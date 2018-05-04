@@ -176,7 +176,7 @@ from sage.manifolds.submanifold.differentiable_submanifold import \
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.functions.other import factorial
-
+from sage.symbolic.ring import SR
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                   DifferentiableSubmanifold):
@@ -341,7 +341,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
                                     self._ambient._name)
 
-    def ambient_metric(self, recache = False):
+    def ambient_metric(self, recache=False):
         r"""
         Return the metric of the ambient manifold.
 
@@ -391,10 +391,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._ambient_metric is not None and not recache:
             return self._ambient_metric
         self._ambient_metric = self._ambient.metric()
-        self._ambient_metric.set_name("g",r"g")
+        self._ambient_metric.set_name("g", r"g")
         return self._ambient_metric
 
-    def first_fundamental_form(self, recache = False):
+    def first_fundamental_form(self, recache=False):
         r"""
         Return the first fundamental form of the submanifold.
 
@@ -442,12 +442,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._first_fundamental_form = self.metric()
         self._first_fundamental_form\
             .set(self._immersion.pullback(self.ambient_metric(recache)))
-        self._first_fundamental_form.set_name("gamma",r"\gamma")
+        self._first_fundamental_form.set_name("gamma", r"\gamma")
         return self._first_fundamental_form
 
     induced_metric = first_fundamental_form
 
-    def difft(self, recache = False):
+    def difft(self, recache=False):
         r"""
         Return the differential of the first scalar field defining the
         submanifold
@@ -487,7 +487,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.difft().display())
-            dr = x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy + z/sqrt(x^2 + y^2 + z^2) dz
+            dr = x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy +
+             z/sqrt(x^2 + y^2 + z^2) dz
 
         """
         if self._dim_foliation == 0:
@@ -500,7 +501,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                              r"\mathrm{d}" + self._var[0]._latex_())
         return self._difft
 
-    def gradt(self, recache = False):
+    def gradt(self, recache=False):
         r"""
         Return the gradient of the first scalar field defining the
         submanifold
@@ -555,7 +556,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                              r"\nabla " + self._var[0]._latex_())
         return self._gradt
 
-    def normal(self, recache = False):
+    def normal(self, recache=False):
         r"""
         Return a normal unit vector to the submanifold.
 
@@ -565,7 +566,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         .. MATH::
 
-            n = \overrightarrow{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...\wedge\mathrm{d}x_{n-1})
+            n = \overrightarrow{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...
+            \wedge\mathrm{d}x_{n-1})
 
         where the star is the hodge dual operator and de wedge the product on
         the exterior algebra.
@@ -605,7 +607,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: g = M.metric('g')
             sage: g[0,0],g[1,1],g[2,2]=1,1,1
             sage: print(N.normal().display())
-            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy + z/sqrt(x^2 + y^2 + z^2) d/dz
+            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
+             + z/sqrt(x^2 + y^2 + z^2) d/dz
 
         Or in spherical coordinates::
 
@@ -618,15 +621,16 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             return self._normal
         if self._dim_foliation != 0:    # case foliation
             self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
-            self._normal.set_name("n",r"n")
+            self._normal.set_name("n", r"n")
             return self._normal
         else:                           # case no foliation
             eps = self.ambient_metric(recache).volume_form(self._dim).along(
                 self._immersion)
             args = list(range(self._dim)) + [eps] + list(range(self._dim))
             r = self.irange()
+            chart = self.atlas()[0]
             n_form = self._immersion.pushforward(
-                self.frames()[0][r.next()]).down(
+                chart.frame()[r.next()]).down(
                 self.ambient_metric().along(self._immersion))
             for i in r:
                 n_form = n_form.wedge(self._immersion.pushforward(
@@ -639,7 +643,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 self.ambient_metric().along(self._immersion))
             return self._normal
 
-    def ambient_first_fundamental_form(self, recache = False):
+    def ambient_first_fundamental_form(self, recache=False):
         r"""
         Return the first fundamental form of the submanifold as a tensor of the
         ambient manifold.
@@ -689,15 +693,15 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self.ambient_metric(recache)
         self.normal(recache)
         self._ambient_first_fundamental_form = \
-            self.ambient_metric() -self._sgn\
+            self.ambient_metric() - self._sgn\
             * self.ambient_metric().contract(self.normal())\
             * self.ambient_metric().contract(self.normal())
-        self._ambient_first_fundamental_form.set_name("gamma",r"\gamma")
+        self._ambient_first_fundamental_form.set_name("gamma", r"\gamma")
         return self._ambient_first_fundamental_form
 
     ambient_induced_metric = ambient_first_fundamental_form
 
-    def lapse(self, recache = False):
+    def lapse(self, recache=False):
         r"""
         Return the lapse function of the foliation
 
@@ -751,7 +755,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._lapse.set_name("N", r"N")
         return self._lapse
 
-    def shift(self, recache = False):
+    def shift(self, recache=False):
         r"""
         Return the shift function of the foliation
 
@@ -800,10 +804,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             return self._shift
         self._shift = self._adapted_charts[0].frame()[self._dim]\
             - self.lapse(recache) * self.normal(recache)
-        self._shift.set_name("beta",r"\beta")
+        self._shift.set_name("beta", r"\beta")
         return self._shift
 
-    def ambient_second_fundamental_form(self, recache = False):
+    def ambient_second_fundamental_form(self, recache=False):
         r"""
         Return the second fundamental form of the submanifold as a tensor of the
         ambient manifold.
@@ -851,19 +855,23 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._ambient_second_fundamental_form is not None and not recache:
             return self._ambient_second_fundamental_form
         nab = self.ambient_metric().connection('nabla', r'\nabla')
-        self.ambient_metric(recache)
         self.normal(recache)
-        self._ambient_second_fundamental_form = \
-            -self.ambient_metric().contract(nab(self.normal())) \
-            - nab(self.normal()).contract(self.normal())\
-            .contract(self.ambient_metric())\
-            * self.normal().contract(self.ambient_metric())
-        self._ambient_second_fundamental_form.set_name("K",r"K")
+        if self._dim_foliation == 0:
+            # g = self.ambient_metric(recache).along(self._immersion)
+            # self._ambient_second_fundamental_form = -g.contract(nab(self.normal())) - nab(self.normal()).contract(self.normal()).contract(g) * self.normal().contract(g)
+            pass
+        else:
+            self._ambient_second_fundamental_form = \
+                -self.ambient_metric().contract(nab(self.normal())) \
+                - nab(self.normal()).contract(self.normal())\
+                .contract(self.ambient_metric())\
+                * self.normal().contract(self.ambient_metric())
+        self._ambient_second_fundamental_form.set_name("K", r"K")
         return self._ambient_second_fundamental_form
 
     ambient_extrinsic_curvature = ambient_second_fundamental_form
 
-    def second_fundamental_form(self, recache = False):
+    def second_fundamental_form(self, recache=False):
         r"""
         Return the second fundamental form of the submanifold.
 
@@ -907,23 +915,43 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._second_fundamental_form is not None and not recache:
             return self._second_fundamental_form
-        inverse_subs = {v: k for k, v in self._subs[0].items()}
-        resu = self._immersion._domain.vector_field_module()\
+        resu = self._immersion._domain.vector_field_module() \
             .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
-        self.ambient_extrinsic_curvature(recache)
-        r = list(self._ambient.irange())
-        for i in self.irange():
-            for j in self.irange():
-                resu[i, j] = self.ambient_extrinsic_curvature()[
-                    self._adapted_charts[0].frame(), [r[i], r[j]]].expr(
-                    self._adapted_charts[0]).subs(inverse_subs)
+        if self._dim_foliation != 0:
+            inverse_subs = {v: k for k, v in self._subs[0].items()}
+            self.ambient_extrinsic_curvature(recache)
+            r = list(self._ambient.irange())
+            for i in self.irange():
+                for j in self.irange():
+                    resu[i, j] = self.ambient_extrinsic_curvature()[
+                        self._adapted_charts[0].frame(), [r[i], r[j]]].expr(
+                        self._adapted_charts[0]).subs(inverse_subs)
+        else:
+            nab = self.ambient_metric().connection('nabla', r'\nabla')
+            n = self.normal(recache)
 
+            gamma_n = matrix(self._dim+1,self._dim+1)
+            for i in range(self._dim+1):
+                for j in range(self._dim+1):
+                    gamma_n[i, j] = sum(
+                        nab[self._ambient.frames()[0], :][i][j][k].expr() *
+                        n.comp(n._fmodule.bases()[0])[:][k].expr() for k in
+                        range(self._dim + 1))
+            dXdu = self._immersion.differential(
+                self(self.atlas()[0][:])).matrix()
+            dNdu = matrix(SR,self._dim+1,self._dim)
+            for i in range(self._dim+1):
+                for j in range(self._dim):
+                    dNdu[i,j] = n.comp(n._fmodule.bases()[0])[:][i].diff(self.atlas()[0][:][j]).expr()
+            g = self.ambient_metric().along(self._immersion)[:]
+            K = -dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
+            resu[self.atlas()[0].frame(),:] = K
         self._second_fundamental_form = resu
         return self._second_fundamental_form
 
     extrinsic_curvature = second_fundamental_form
 
-    def projector(self, recache = False):
+    def projector(self, recache=False):
         r"""
         Return the projector on the submanifold.
 
@@ -966,7 +994,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         Print the projector::
 
             sage: print(N.projector()) # long time
-            Tensor field gamma of type (1,1) on the 3-dimensional Riemannian manifold M
+            Tensor field gamma of type (1,1) on the 3-dimensional Riemannian
+             manifold M
 
         Check that the projector applied to the normal vector is zero::
 
@@ -1036,7 +1065,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             resu = self.projector().contract(0, resu, i)
         return resu
 
-    def gauss_curvature(self, recache = False):
+    def gauss_curvature(self, recache=False):
         r"""
         Return the gauss curvature of the submanifold.
 
@@ -1087,10 +1116,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         a = self.shape_operator(recache)
         e = matrix([[a[i, j].expr() for i in self.irange()] for j in
                     self.irange()]).determinant()
-        self._gauss_curvature = self.scalar_field({self.default_chart():e})
+        self._gauss_curvature = self.scalar_field({self.default_chart(): e})
         return self._gauss_curvature
 
-    def principal_directions(self, recache = False):
+    def principal_directions(self, recache=False):
         r"""
         Return the principal directions of the submanifold.
 
@@ -1143,18 +1172,18 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         pr_d = matrix(
             [[a[i, j].expr() for i in self.irange()] for j in
              self.irange()]).eigenvectors_right()
-        self._principal_directions=[]
+        self._principal_directions = []
         v = self.vector_field()
         counter = self.irange()
         for eigen_space in pr_d:
             for eigen_vector in eigen_space[1]:
-                v[self.default_frame(),:] = eigen_vector
-                self._principal_directions.append((v.copy(),eigen_space[0]))
+                v[self.default_frame(), :] = eigen_vector
+                self._principal_directions.append((v.copy(), eigen_space[0]))
                 self._principal_directions[-1][0].set_name(
                     "e_%i" % counter.next())
         return self._principal_directions
 
-    def principal_curvatures(self, recache = False):
+    def principal_curvatures(self, recache=False):
         r"""
         Return the principal curvatures of the submanifold.
 
@@ -1214,7 +1243,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 name="k_%i" % counter.next())
         return self._principal_curvatures
 
-    def mean_curvature(self, recache = False):
+    def mean_curvature(self, recache=False):
         r"""
         Return the mean curvature of the submanifold.
 
@@ -1261,9 +1290,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
 
         """
-        return sum(self.principal_curvatures(recache)) / self._dim
+        return self._sgn*sum(self.principal_curvatures(recache)) / self._dim
 
-    def shape_operator(self, recache = False):
+    def shape_operator(self, recache=False):
         r"""
         Return the shape opeator of the submanifold.
 

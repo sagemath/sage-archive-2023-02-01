@@ -1392,9 +1392,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 for dom in domain._supersets:
                     if dom is not domain:
                         for supbase in dom._frames:
-                            if (supbase.destination_map().restrict(domain) is
-                                    self._dest_map and domain not in
-                                    supbase._restrictions):
+                            if (supbase.domain() is dom and
+                                    supbase.destination_map().restrict(domain)
+                                    is self._dest_map and
+                                    domain not in supbase._restrictions):
                                 supbase._restrictions[domain] = basis
                                 supbase._subframes.add(basis)
                                 basis._superframes.add(supbase)

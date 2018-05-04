@@ -1257,8 +1257,8 @@ class Partition(CombinatorialElement):
 
         EXAMPLE::
 
-            sage: Partition([3,2,2,1]).standard_tableaux()
-            Standard tableaux of shape [3, 2, 2, 1]
+            sage: Partition([3,2,2,1]).row_standard_tableaux()
+            Row standard tableaux of shape [3, 2, 2, 1]
         """
         return tableau.RowStandardTableaux(self)
 

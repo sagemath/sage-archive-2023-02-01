@@ -4340,7 +4340,7 @@ class RowStandardTableau(Tableau):
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers that increase along rows
         flatx = sorted(sum((list(row) for row in t),[]))
-        if flatx != range(1,len(flatx)+1) or any(row[i] >= row[i+1] for row in t for i in range(len(row)-1)):
+        if flatx != list(range(1,len(flatx)+1)) or any(row[i] >= row[i+1] for row in t for i in range(len(row)-1)):
             raise ValueError("the entries in a row standard tableau must increase along rows and contain the numbers 1,2,...,n")
 
 
@@ -6660,7 +6660,7 @@ class RowStandardTableaux(Tableaux):
             return True
         elif Tableaux.__contains__(self, x):
             flatx = sorted(sum((list(row) for row in x),[]))
-            return flatx == range(1,len(flatx)+1) and all(row[i]<row[i+1] for row in x for i in range(len(row)-1))
+            return flatx == list(range(1,len(flatx)+1)) and all(row[i]<row[i+1] for row in x for i in range(len(row)-1))
         return False
 
 

@@ -234,6 +234,7 @@ from sage.categories.sets_cat import Sets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.flatten import flatten
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.misc.prandom import random
 from sage.arith.all import factorial
@@ -1396,7 +1397,7 @@ class TableauTuple(CombinatorialElement):
 # Row standard tableau tuple - element class
 #--------------------------------------------------
 @add_metaclass(ClasscallMetaclass)
-class StandardTableauTuple(TableauTuple):
+class RowStandardTableauTuple(TableauTuple):
     r"""
     A class for row standard tableau of shape a partition tuple. This is
     a tuple of row standard tableau with entries `1, 2, \ldots, n`, where `n`
@@ -1462,8 +1463,8 @@ class StandardTableauTuple(TableauTuple):
     efficient to construct a :class:`RowStandardTableauTuple` from the
     appropriate parent object::
 
-        sage: STT = RowStandardTableauTuples()
-        sage: STT([[[4,5],[7]],[[1,2,3],[6,8]],[[9]]])
+        sage: RST = RowStandardTableauTuples()
+        sage: RST([[[4,5],[7]],[[1,2,3],[6,8]],[[9]]])
         ([[4, 5], [7]], [[1, 2, 3], [6, 8]], [[9]])
 
     .. SEEALSO::
@@ -1788,8 +1789,6 @@ class StandardTableauTuple(RowStandardTableauTuple):
             True
             sage: t.dominates(s)
             False
-        """
-        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in range(1,1+self.size()))
 
         The tableaux appearing in a :class:`StandardTableauTuple` are
         both row and column strict, but individually they are not standard
@@ -2015,7 +2014,7 @@ class StandardTableauTuple(RowStandardTableauTuple):
             sage: t.dominates(s)
             False
         """
-        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in xrange(1,1+self.size()))
+        return all(self.restrict(m).shape().dominates(t.restrict(m).shape()) for m in range(1,1+self.size()))
 
     def to_chain(self):
         """
@@ -2989,7 +2988,7 @@ class RowStandardTableauTuples(TableauTuples):
         elif TableauTuples.__contains__(self, t) or isinstance(t, (list, tuple)):
             if all(s in Tableaux() for s in t):
                 flatt=sorted(sum((list(row) for s in t for row in s),[]))
-                return ( flatt==range(1,len(flatt)+1) 
+                return ( flatt==list(range(1,len(flatt)+1))
                         and all(len(s)==0 or all(row[i]<row[i+1] for row in s for i in range(len(row)-1)) for s in t)
                        )
             else:
@@ -3802,10 +3801,10 @@ class RowStandardTableaux_residue(RowStandardTableauTuples):
             sage: StandardTableauTuple([[[4]],[[1,3],[2]]]).residue_sequence(3,(0,1)).row_standard_tableaux().an_element()
             ([[4], [3], [1], [2]], [])
         """
-        if self.size()==0:
-            return self.element_class(self, [[],[],[]])
-        else:
-            return self.element_class(self,[[],[list(range(1,self.size()+1))],[]])
+        try:
+            return self.unrank(0)
+        except ValueError:
+            return None
 
 class RowStandardTableaux_residue_shape(RowStandardTableaux_residue):
     """
@@ -4280,17 +4279,6 @@ class StandardTableauTuples(RowStandardTableauTuples):
             True
         """
         return self._shape
-
-    def an_element(self):
-        r"""
-        Returns a particular element of the class.
-
-        EXAMPLES::
-
-            sage: StandardTableauTuples().an_element()
-            ([[1]], [[2, 3]], [[4, 5, 6, 7]])
-        """
-        return self.element_class(self, [ [list(range(2**(i-1),2**i))] for i in range(1,4)])
 
 class StandardTableauTuples_all(StandardTableauTuples, DisjointUnionEnumeratedSets):
     """
@@ -5114,7 +5102,12 @@ class StandardTableaux_residue(StandardTableauTuples):
             sage: T = StandardTableauTuple([[[6],[7]],[[1,2,3],[4,5]]]).residue_sequence(2,(0,0)).standard_tableaux()
             sage: TestSuite(T).run()
         """
-        super(StandardTableaux_residue, self).__init__(residue)
+        super(StandardTableaux_residue, self).__init__(residue, category = FiniteEnumeratedSets())
+        self._level=residue.level()
+        self._multicharge=residue.multicharge()
+        self._quantum_characteristic=residue.quantum_characteristic()
+        self._residue=residue
+        self._size=residue.size()
 
     def _repr_(self):
         """
@@ -5179,7 +5172,7 @@ class StandardTableaux_residue(StandardTableauTuples):
              ([[1, 3], [5]], [[2, 4]])]
 
             sage: R = StandardTableauTuple([[[1,4],[2]],[[3]]]).residue_sequence(3,(0,1))
-            sage: R.standard_tableaux().list()
+            sage: list(R.standard_tableaux())
             [([[1, 3], [2], [4]], []),
              ([[1, 3], [2]], [[4]]),
              ([[1, 4], [2], [3]], []),

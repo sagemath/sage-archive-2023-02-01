@@ -848,8 +848,8 @@ class PartitionTuple(CombinatorialElement):
 
         EXAMPLE::
 
-            sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).standard_tableaux()
-            Standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
+            sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).row_standard_tableaux()
+            Row standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
         """
         from .tableau_tuple import RowStandardTableauTuples
         return RowStandardTableauTuples(shape=self)

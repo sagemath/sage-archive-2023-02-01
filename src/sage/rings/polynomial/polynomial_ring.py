@@ -1431,6 +1431,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         from sage.matrix.matrix_space import MatrixSpace
         if isinstance(base_ring, MatrixSpace):
             return 0
+        from sage.rings.fraction_field import FractionField_generic
+        if isinstance(base_ring, FractionField_generic):
+            return 1 << 60
         # Generic default value
         return 8
 

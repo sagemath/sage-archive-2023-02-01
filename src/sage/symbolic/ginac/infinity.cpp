@@ -20,7 +20,6 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <Python.h>
 #include "py_funcs.h"
 #include "infinity.h"
 #include "numeric.h"
@@ -31,6 +30,7 @@
 #include "mul.h"
 #include "inifcns.h"
 
+#include <climits>
 #include <string>
 #include <stdexcept>
 #include <iostream>

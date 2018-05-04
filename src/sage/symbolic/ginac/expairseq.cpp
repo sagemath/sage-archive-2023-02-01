@@ -410,7 +410,6 @@ bool expairseq::match(const ex & pattern, exmap& map) const
 				continue;
 			auto it = ops.begin(), itend = ops.end();
 			while (it != itend) {
-				auto last_el = map.begin();
 				if (it->match(p, tmp_repl)) {
 					ops.erase(it);
 					goto found;

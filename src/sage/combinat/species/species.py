@@ -150,6 +150,33 @@ class GenericCombinatorialSpecies(SageObject):
             return False
         return self._unique_info() == x._unique_info()
 
+    def __ne__(self, other):
+        """
+        Check whether ``self`` and ``other`` are not equal.
+
+        EXAMPLES::
+
+            sage: X = species.SingletonSpecies()
+            sage: X + X == X + X
+            True
+            sage: X != X
+            False
+            sage: X != species.EmptySetSpecies()
+            True
+            sage: X != X*X
+            True
+
+            sage: X = species.SingletonSpecies()
+            sage: E = species.EmptySetSpecies()
+            sage: L = CombinatorialSpecies()
+            sage: L.define(E+X*L)
+            sage: K = CombinatorialSpecies()
+            sage: K.define(E+X*L)
+            sage: L != K
+            False
+        """
+        return not (self == other)
+    
     def __getstate__(self):
         """
         This is used during the pickling process and returns a dictionary
@@ -359,20 +386,6 @@ class GenericCombinatorialSpecies(SageObject):
             NotImplementedError
         """
         return IsotypesWrapper(self, labels, structure_class=structure_class)
-
-    def __cmp__(self, x):
-        """
-        EXAMPLES::
-
-            sage: S = species.SingletonSpecies()
-            sage: E = species.EmptySetSpecies()
-            sage: S == S
-            True
-            sage: S == E
-            False
-        """
-        return cmp(repr(self), repr(x))
-
 
     def _check(self, n=5):
         """
@@ -696,12 +709,12 @@ class GenericCombinatorialSpecies(SageObject):
 
         ::
 
-            sage: g_c, labels = g.canonical_label(certify=True)
+            sage: g_c, labels = g.canonical_label(certificate=True)
             sage: g.relabel()
             sage: g_r = g.canonical_label()
             sage: g_c == g_r
             True
-            sage: list(sorted(labels.keys()))
+            sage: list(sorted(labels))
             [Combinatorial species,
              Product of (Combinatorial species) and (Combinatorial species),
              Singleton species,

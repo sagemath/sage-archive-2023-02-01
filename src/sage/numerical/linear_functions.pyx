@@ -62,10 +62,18 @@ inequalities as less or equal::
 
         sage: from sage.numerical.linear_functions import LinearFunctionsParent
         sage: LF = LinearFunctionsParent(QQ)
-        sage: x[0] <= LF(3) <= LF(4)
-        x_0 <= 3 <= 4
+        sage: x[1] <= LF(3) <= LF(4)
+        x_1 <= 3 <= 4
 
 TESTS:
+
+This was fixed in :trac:`24423`::
+
+    sage: p.<x> = MixedIntegerLinearProgram()
+    sage: from sage.numerical.linear_functions import LinearFunctionsParent
+    sage: LF = LinearFunctionsParent(QQ)
+    sage: 3 <= x[0] <= LF(4)
+    3 <= x_0 <= 4
 
 See :trac:`12091`::
 
@@ -233,7 +241,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
     This class exists solely to implement chaining of inequalities
     in constraints.
     """
-    def __richcmp__(py_left, py_right, int op):
+    def __richcmp__(self, other, int op):
         """
         Create an inequality or equality object, possibly chaining
         several together.
@@ -309,7 +317,7 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: cm = sage.structure.element.get_coercion_model()
             sage: cm.explain(10, LF(1), operator.le)
             Coercion on left operand via
-                Conversion map:
+                Coercion map:
                   From: Integer Ring
                   To:   Linear functions over Real Double Field
             Arithmetic performed after coercions.
@@ -335,37 +343,34 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: int(1) >= b[0] >= int(2)
             2 <= x_0 <= 1
             sage: int(1) == b[0] == int(2)
-            x_0 == 1 == 2
+            1 == x_0 == 2
             sage: float(0) <= b[0] <= int(1) <= b[1] <= float(2)
             0 <= x_0 <= 1 <= x_1 <= 2
         """
+        # Store the chaining variables and set them to None for now in
+        # order to have a sane state for any conversions below or when
+        # an exception is raised.
         global chained_comparator_left
         global chained_comparator_right
         global chained_comparator_replace
 
-        # Ensure that we use chained_comparator_replace only for this
-        # call to __richcmp__.
-        cdef LinearConstraint replace = chained_comparator_replace
+        chain_left = chained_comparator_left
+        chain_right = chained_comparator_right
+        chain_replace = chained_comparator_replace
+
+        chained_comparator_left = None
+        chained_comparator_right = None
         chained_comparator_replace = None
 
-        # At least one of py_left or py_right must be of type
-        # LinearFunctionOrConstraint: figure out its parent
-        try:
-            LC = (<LinearFunctionOrConstraint?>py_left)._parent
-        except TypeError:
-            LC = (<LinearFunctionOrConstraint>py_right)._parent
-
-        # We want the parent to be a LinearConstraintsParent
-        if not isinstance(LC, LinearConstraintsParent_class):
-            LC = LinearConstraintsParent(LC)
-
-        # Check op and change >= to <=
+        # Assign {self, other} to {py_left, py_right} such that
+        # py_left <= py_right.
         cdef bint equality = False
         if op == Py_LE:
-            pass
+            py_left, py_right = self, other
         elif op == Py_GE:
-            py_left, py_right = py_right, py_left
+            py_left, py_right = other, self
         elif op == Py_EQ:
+            py_left, py_right = self, other
             equality = True
         elif op == Py_LT:
             raise ValueError("strict < is not allowed, use <= instead")
@@ -374,25 +379,10 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
         else:
             raise ValueError("inequality != is not allowed, use one of <=, ==, >=")
 
-        # Convert py_left and py_right to constraints left and right
-        cdef LinearConstraint left
-        cdef LinearConstraint right
-
-        try:
-            left = <LinearConstraint?>py_left
-        except TypeError:
-            left = <LinearConstraint>LC(py_left, equality=equality)
-        else:
-            if left._parent is not LC:
-                left = <LinearConstraint>LC(left.constraints, equality=left.equality)
-
-        try:
-            right = <LinearConstraint?>py_right
-        except TypeError:
-            right = <LinearConstraint>LC(py_right, equality=equality)
-        else:
-            if right._parent is not LC:
-                right = <LinearConstraint>LC(right.constraints, equality=right.equality)
+        # Convert py_left and py_right to constraints left and right,
+        # possibly replacing them to implement the hack below.
+        cdef LinearConstraint left = None
+        cdef LinearConstraint right = None
 
         # HACK to allow chained constraints: Python translates
         # x <= y <= z into:
@@ -416,39 +406,73 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
         # work is to store x and y in the first call to __richcmp__
         # and temp in the call to __nonzero__. Then we can replace x
         # or y by x <= y in the second call to __richcmp__.
-        if replace is not None:
+        if chain_replace is not None:
+            if chain_replace.equality != equality:
+                raise ValueError("cannot mix equations and inequalities")
+
             # First, check for correctly-chained inequalities
             # x <= y <= z or z <= y <= x.
-            if py_left is chained_comparator_right:
-                left = replace
-            elif py_right is chained_comparator_left:
-                right = replace
-            # Next, check for wrongly-chained inequalities like
-            # x <= y >= z. In case of equality, these are accepted
-            # anyway.
-            elif py_left is chained_comparator_left:
+            if py_left is chain_right:
+                left = chain_replace
+            elif py_right is chain_left:
+                right = chain_replace
+            # Next, check for incorrectly chained inequalities like
+            # x <= y >= z. If we are dealing with inequalities, this
+            # is an error. For an equality, we fix the chaining by
+            # reversing one of the sides.
+            elif py_left is chain_left:
                 if not equality:
                     raise ValueError("incorrectly chained inequality")
-                left = replace
-            elif py_right is chained_comparator_right:
+                chain_replace.constraints.reverse()
+                left = chain_replace
+            elif py_right is chain_right:
                 if not equality:
                     raise ValueError("incorrectly chained inequality")
-                right = replace
+                left = chain_replace
+                py_right = py_left
 
-        chained_comparator_left = py_left
-        chained_comparator_right = py_right
+        # Figure out the correct parent to work with: if we did a
+        # replacement, its parent takes priority.
+        if left is not None:
+            LC = left._parent
+        elif right is not None:
+            LC = right._parent
+        else:
+            LC = (<LinearFunctionOrConstraint>self)._parent
+
+            # We want the parent to be a LinearConstraintsParent
+            if not isinstance(LC, LinearConstraintsParent_class):
+                LC = LinearConstraintsParent(LC)
+
+        if left is None:
+            try:
+                left = <LinearConstraint?>py_left
+            except TypeError:
+                left = <LinearConstraint>LC(py_left, equality=equality)
+            else:
+                if left._parent is not LC:
+                    left = <LinearConstraint>LC(left.constraints, equality=left.equality)
+
+        if right is None:
+            try:
+                right = <LinearConstraint?>py_right
+            except TypeError:
+                right = <LinearConstraint>LC(py_right, equality=equality)
+            else:
+                if right._parent is not LC:
+                    right = <LinearConstraint>LC(right.constraints, equality=right.equality)
 
         # Finally, chain the (in)equalities
         if left.equality != equality or right.equality != equality:
             raise ValueError("cannot mix equations and inequalities")
-        return LC(left.constraints + right.constraints, equality=equality)
+        ret = LC(left.constraints + right.constraints, equality=equality)
 
-    cdef void chained_comparator_hack_nonzero(self):
-        """
-        Hack to allow chained (in)equalities, see ``__richcmp__``.
-        """
-        global chained_comparator_replace
-        chained_comparator_replace = self
+        # Everything done, so we set the chaining variables
+        chained_comparator_left = py_left
+        chained_comparator_right = py_right
+        chained_comparator_replace = None
+
+        return ret
 
     def __hash__(self):
         r"""
@@ -838,7 +862,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         which are integers ). The key ``-1`` corresponds to the
         constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -850,7 +874,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
     def coefficient(self, x):
         r"""
-        Return one of the the coefficients.
+        Return one of the coefficients.
 
         INPUT:
 
@@ -862,7 +886,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         A base ring element. The coefficient of ``x`` in the linear
         function. Pass ``-1`` for the constant term.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip.<b> = MixedIntegerLinearProgram()
             sage: lf = -8 * b[3] + b[0] - 5;  lf
@@ -897,7 +921,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
                 raise ValueError('x is from a different linear functions module')
             if len((<LinearFunction>x)._f) != 1:
                 raise ValueError('x is a sum, must be a single variable')
-            i = (<LinearFunction>x)._f.keys()[0]
+            i, = (<LinearFunction>x)._f.keys()
             if (<LinearFunction>x)._f[i] != 1:
                 raise ValueError('x must have a unit coefficient')
         else:
@@ -911,7 +935,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the + operator
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -928,7 +952,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the - operator (opposite).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -942,7 +966,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Defining the - operator (substraction).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
@@ -957,32 +981,21 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         P = self.parent()
         return P(e)
 
-    cpdef _rmul_(self, RingElement b):
+    cpdef _lmul_(self, Element b):
         r"""
-        Left multiplication by scalars
+        Multiplication by scalars
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
             sage: LF({2 : 5, 3 : 2}) * 3
             15*x_2 + 6*x_3
-        """
-        P = self.parent()
-        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
-
-    cpdef _lmul_(self, RingElement b):
-        r"""
-        Right multiplication by scalars
-
-        EXAMPLE::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: LF = p.linear_functions_parent()
             sage: 3 * LF({2 : 5, 3 : 2})
             15*x_2 + 6*x_3
         """
-        return self._rmul_(b)
+        P = self.parent()
+        return P(dict([(id,b*coeff) for (id, coeff) in self._f.iteritems()]))
 
     cpdef _acted_upon_(self, x, bint self_on_left):
        """
@@ -1098,7 +1111,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
         r"""
         Returns a string version of the linear function.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: LF = p.linear_functions_parent()
@@ -1115,13 +1128,13 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
 
         if -1 in d:
             coeff = d.pop(-1)
-            if coeff!=0:
+            if coeff:
                 t = self._coeff_formatter(coeff, constant_term=True)
                 first = False
 
         cdef list l = sorted(d.items())
-        for id,coeff in l:
-            sign = cmp(coeff,0)
+        for id, coeff in l:
+            sign = coeff.sign()
             if sign == 0:
                 continue
             if not first:
@@ -1412,7 +1425,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
       are the entries of a chained less-or-equal (``<=``) inequality
       or a chained equality.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: p = MixedIntegerLinearProgram()
         sage: b = p.new_variable()
@@ -1428,7 +1441,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
 
         See :class:`LinearConstraint`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
@@ -1581,7 +1594,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             3 == x_2
         """
         if not self.is_equation() or self.is_trivial():
-            raise StopIteration
+            return
         term_iter = iter(self)
         lhs = next(term_iter)
         rhs = next(term_iter)
@@ -1614,7 +1627,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             3 <= x_2
         """
         if not self.is_less_or_equal() or self.is_trivial():
-            raise StopIteration
+            return
         term_iter = iter(self)
         lhs = next(term_iter)
         rhs = next(term_iter)
@@ -1631,7 +1644,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
 
         String.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram()
             sage: b = p.new_variable()
@@ -1662,5 +1675,6 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             sage: ieq <= ieq <= ieq
             x_0 <= 9 + x_1 <= x_0 <= 9 + x_1 <= x_0 <= 9 + x_1
         """
-        self.chained_comparator_hack_nonzero()
+        global chained_comparator_replace
+        chained_comparator_replace = self
         return True

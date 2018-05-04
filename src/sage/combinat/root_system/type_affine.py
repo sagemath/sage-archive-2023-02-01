@@ -11,7 +11,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 
@@ -25,7 +24,7 @@ class AmbientSpace(CombinatorialFreeModule):
     ambient space, and by endowing it with the canonical scalar product.
 
     The coefficient of an element in `\delta^\vee`, thus its scalar
-    product with `\delta^\vee` gives its level, and dualy for the
+    product with `\delta^\vee` gives its level, and dually for the
     colevel. The canonical projection onto the classical ambient space
     (by killing `\delta` and `\delta^\vee`) maps the simple roots
     (except `\alpha_0`) onto the corresponding classical simple roots,
@@ -219,7 +218,7 @@ class AmbientSpace(CombinatorialFreeModule):
         .. SEEALSO::
 
             - :class:`sage.combinat.root_system.weight_space.WeightSpace`
-            - :meth:`sage.combinat.root_sytem.weight_lattice_realizations.WeightLatticeRealizations.ParentMethods.is_extended`
+            - :meth:`sage.combinat.root_system.weight_lattice_realizations.WeightLatticeRealizations.ParentMethods.is_extended`
 
         EXAMPLES::
 

@@ -92,9 +92,9 @@ Using tab completion to get the methods of an object
 ----------------------------------------------------
 
 One you have created a number field :math:`K`, type ``K.[tab key]`` to
-see a list of functions. Type, e.g., ``K.Minkowski_embedding?[tab
-key]`` to see help on the ``Minkowski_embedding`` command. To see
-source code, type ``K.Minkowski_embedding??[tab key]``.
+see a list of functions. Type, e.g., ``K.minkowski_embedding?[tab
+key]`` to see help on the ``minkowski_embedding`` command. To see
+source code, type ``K.minkowski_embedding??[tab key]``.
 
 .. skip
 
@@ -310,7 +310,7 @@ root is :math:`x^6 + 10x^3 - 2x^2 + 25`.
 
 .. warning::
 
-   The following tests are currently broken until Trac ticket #5338 is
+   The following tests are currently broken until :trac:`5338` is
    fixed.
 
 .. skip

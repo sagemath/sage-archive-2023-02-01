@@ -17,7 +17,7 @@ familiar and most standard ones, and all of the others are defined
 in terms of one of these. The bases are described in the
 documentation for the function
 :func:`steenrod_algebra_basis`; also see the papers by
-Monks [M1998]_ and Wood [W1998]_ for more information about them. For
+Monks [Mon1998]_ and Wood [Woo1998]_ for more information about them. For
 commutator bases, see the preprint by Palmieri and Zhang [PZ2008]_.
 
 - 'milnor': Milnor basis.
@@ -104,20 +104,8 @@ in the file :file:`steenrod_algebra_mult.py` and also in the
 method for :class:`SteenrodAlgebra_generic
 <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra_generic>` in
 :file:`steenrod_algebra.py`.
-
-REFERENCES:
-
-.. [M1998] \K. G. Monks, "Change of basis, monomial relations, and
-   `P^s_t` bases for the Steenrod algebra," J. Pure Appl.
-   Algebra 125 (1998), no. 1-3, 235-260.
-
-.. [PZ2008] \J. H. Palmieri and J. J. Zhang, "Commutators in the Steenrod
-   algebra," preprint (2008)
-
-.. [W1998] \R. M. W. Wood, "Problems in the Steenrod algebra," Bull. London
-   Math. Soc. 30 (1998), no. 5, 449-517.
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 
 #*****************************************************************************
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
@@ -496,12 +484,12 @@ def xi_degrees(n,p=2, reverse=True):
         [307, 18, 1]
     """
     from sage.rings.all import Integer
-    if n <= 0: return []
+    if n <= 0:
+        return []
     N = Integer(n*(p-1) + 1)
-    l = [int((p**d-1)/(p-1)) for d in range(1,N.exact_log(p)+1)]
-    if not reverse:
-        return l
-    l.reverse()
+    l = [(p**d-1)//(p-1) for d in range(1, N.exact_log(p)+1)]
+    if reverse:
+        l.reverse()
     return l
 
 ########################################################
@@ -621,7 +609,7 @@ def milnor_basis(n, p=2, **kwds):
         # first find the P part of each basis element.
         # in this part of the code (the P part), all dimensions are
         # divided by 2(p-1).
-        for dim in range(n/(2*(p-1)) + 1):
+        for dim in range(n//(2*(p-1)) + 1):
             if dim == 0:
                 P_result = [[0]]
             else:
@@ -637,7 +625,7 @@ def milnor_basis(n, p=2, **kwds):
             for p_mono in P_result:
                 deg = n - 2*dim*(p-1)
                 q_degrees = [1+2*(p-1)*d for d in
-                             xi_degrees(int((deg - 1)/(2*(p-1))), p)] + [1]
+                             xi_degrees(int((deg - 1)//(2*(p-1))), p)] + [1]
                 q_degrees_decrease = q_degrees
                 q_degrees.reverse()
                 if deg % (2*(p-1)) <= len(q_degrees):
@@ -733,8 +721,8 @@ def serre_cartan_basis(n, p=2, bound=1, **kwds):
                     new = vec + (last,)
                     result.append(new)
         else: # p odd
-            if n % (2 * (p-1)) == 0 and n/(2 * (p-1)) >= bound:
-                result = [(0, int(n/(2 * (p-1))), 0)]
+            if n % (2 * (p-1)) == 0 and n//(2 * (p-1)) >= bound:
+                result = [(0, int(n//(2 * (p-1))), 0)]
             elif n == 1:
                 result = [(1,)]
             else:
@@ -1053,7 +1041,7 @@ def atomic_basis_odd(n, basis, p, **kwds):
     trunc = kwds.get("truncation_type", 0)
 
     result = []
-    for dim in range(n/(2*p-2) + 1):
+    for dim in range(n//(2*p-2) + 1):
         P_result = []
         for v in WeightedIntegerVectors(dim, xi_degrees(dim, p=p, reverse=False)):
             mono = []
@@ -1136,9 +1124,6 @@ def steenrod_basis_error_check(dim, p, **kwds):
     import sage.misc.misc as misc
     generic = kwds.get('generic', False if p==2 else True )
 
-    # In this test function, we don't want to use caching.
-    # Hence, the uncached versions of steenrod_algebra_basis
-    # and of convert_to_milnor_matrix are used.
     if not generic:
         bases = ('adem','woody', 'woodz', 'wall', 'arnona', 'arnonc',
                  'pst_rlex', 'pst_llex', 'pst_deg', 'pst_revz',

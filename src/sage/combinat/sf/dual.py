@@ -21,7 +21,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
-from sage.combinat.dict_addition import dict_linear_combination
+import sage.data_structures.blas_dict as blas
 from . import classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
@@ -263,7 +263,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         """
         Representation of ``self``.
 
-        OUPUT
+        OUTPUT:
 
         - a string description of ``self``
 
@@ -609,7 +609,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
                 # Create the monomial coefficient dictionary from the
                 # the monomial coefficient dictionary of dual
-                dictionary = dict_linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
+                dictionary = blas.linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
 
             # Initialize self
             self._dual = dual
@@ -670,7 +670,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             (`e` = elementary, `h` = complete homogeneous, `p` = powersum,
             `s` = Schur).
 
-            :meth:`omega_involution()` is a synonym for the :meth`omega()`
+            :meth:`omega_involution` is a synonym for the :meth:`omega`
             method.
 
             OUTPUT:

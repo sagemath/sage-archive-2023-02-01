@@ -8,6 +8,8 @@ Additive Magmas
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+import six
+
 from sage.misc.lazy_import import LazyImport
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -17,9 +19,7 @@ from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.with_realizations import WithRealizationsCategory
-import sage.categories.coercion_methods
 from sage.categories.sets_cat import Sets
-from sage.structure.element import have_same_parent
 
 class AdditiveMagmas(Category_singleton):
     """
@@ -201,7 +201,7 @@ class AdditiveMagmas(Category_singleton):
 
             .. TODO:: Add an example.
             """
-            return x._add_(y)
+            return x + y
 
         summation_from_element_class_add = summation
 
@@ -389,9 +389,6 @@ class AdditiveMagmas(Category_singleton):
                                   names=names, elements=elements)
 
     class ElementMethods:
-
-        __add__ = sage.categories.coercion_methods.__add__
-        __radd__ = sage.categories.coercion_methods.__radd__
 
         @abstract_method(optional = True)
         def _add_(self, right):
@@ -668,9 +665,9 @@ class AdditiveMagmas(Category_singleton):
                 tester = self._tester(**options)
                 zero = self.zero()
                 # TODO: also call is_zero once it will work
-                tester.assert_(self.is_parent_of(zero))
+                tester.assertTrue(self.is_parent_of(zero))
                 for x in tester.some_elements():
-                    tester.assert_(x + zero == x)
+                    tester.assertTrue(x + zero == x)
                 # Check that zero is immutable if it looks like we can:
                 if hasattr(zero,"is_immutable"):
                     tester.assertEqual(zero.is_immutable(),True)
@@ -701,23 +698,6 @@ class AdditiveMagmas(Category_singleton):
                 """
                 # TODO: add a test that actually exercise this default implementation
                 return self(0)
-
-            def zero_element(self):
-                """
-                Backward compatibility alias for ``self.zero()``.
-
-                TESTS::
-
-                    sage: from sage.geometry.polyhedron.parent import Polyhedra
-                    sage: P = Polyhedra(QQ, 3)
-                    sage: P.zero_element()
-                    doctest:...: DeprecationWarning: .zero_element() is deprecated. Use .zero() instead
-                    See http://trac.sagemath.org/17694 for details.
-                    A 0-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex
-                """
-                from sage.misc.superseded import deprecation
-                deprecation(17694, ".zero_element() is deprecated. Use .zero() instead")
-                return self.zero()
 
             def is_empty(self):
                 r"""
@@ -771,7 +751,7 @@ class AdditiveMagmas(Category_singleton):
             #     return self == self.parent().zero()
 
             @abstract_method
-            def __nonzero__(self):
+            def __bool__(self):
                 """
                 Return whether ``self`` is not zero.
 
@@ -790,9 +770,13 @@ class AdditiveMagmas(Category_singleton):
                     True
                  """
 
+            if six.PY2:
+                __nonzero__ = __bool__
+                del __bool__
+
             def _test_nonzero_equal(self, **options):
                 r"""
-                Test that ``.__nonzero__()`` behave consistently
+                Test that ``.__bool__()`` behave consistently
                 with `` == 0``.
 
                 TESTS::
@@ -804,27 +788,6 @@ class AdditiveMagmas(Category_singleton):
                 tester = self._tester(**options)
                 tester.assertEqual(bool(self), self != self.parent().zero())
                 tester.assertEqual(not self, self == self.parent().zero())
-
-            def __sub__(left, right):
-                """
-                Return the difference between ``left`` and ``right``, if it exists.
-
-                This top-level implementation delegates the work to
-                the ``_sub_`` method or to coercion. See the extensive
-                documentation at the top of :ref:`sage.structure.element`.
-
-                EXAMPLES::
-
-                    sage: F = CombinatorialFreeModule(QQ, ['a','b'])
-                    sage: a,b = F.basis()
-                    sage: a - b
-                    B['a'] - B['b']
-                """
-                if have_same_parent(left, right):
-                    return left._sub_(right)
-                from sage.structure.element import get_coercion_model
-                import operator
-                return get_coercion_model().bin_op(left, right, operator.sub)
 
             def _sub_(left, right):
                 r"""
@@ -845,7 +808,7 @@ class AdditiveMagmas(Category_singleton):
                     sage: C.one() - C.one()
                     (0, 0)
                 """
-                return left._add_(-right)
+                return left + (-right)
 
             def __neg__(self):
                 """
@@ -865,10 +828,6 @@ class AdditiveMagmas(Category_singleton):
 
                 TESTS::
 
-                    sage: b.__neg__.__module__
-                    'sage.categories.additive_magmas'
-                    sage: b._neg_.__module__
-                    'sage.combinat.free_module'
                     sage: F = CombinatorialFreeModule(ZZ, ['a','b'])
                     sage: a,b = F.gens()
                     sage: FF = cartesian_product((F,F))
@@ -940,7 +899,7 @@ class AdditiveMagmas(Category_singleton):
                     return [AdditiveMagmas().AdditiveUnital().AdditiveInverse()]
 
                 class ElementMethods:
-                    def __neg__(self):
+                    def _neg_(self):
                         """
                         Return the negation of ``self``.
 
@@ -980,7 +939,7 @@ class AdditiveMagmas(Category_singleton):
                     r"""
                     Returns the zero of this group
 
-                    EXAMPLE::
+                    EXAMPLES::
 
                         sage: GF(8,'x').cartesian_product(GF(5)).zero()
                         (0, 0)

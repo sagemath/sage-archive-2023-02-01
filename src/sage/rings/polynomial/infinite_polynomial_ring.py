@@ -234,6 +234,7 @@ all constituents coerce.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from six.moves import range
 
 import six
 from sage.rings.ring import CommutativeRing
@@ -404,8 +405,10 @@ class InfiniteGenDict:
         """
         self._D = dict(zip([(hasattr(X,'_name') and X._name) or repr(X) for X in Gens],Gens))
 
-    def __cmp__(self,other):
+    def __eq__(self, other):
         """
+        Check whether ``self`` is equal to ``other``.
+
         EXAMPLES::
 
             sage: R.<a,b> = InfinitePolynomialRing(ZZ)
@@ -414,11 +417,25 @@ class InfiniteGenDict:
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
             sage: D._D == loads(dumps(D._D)) # indirect doctest
             True
-
         """
-        if isinstance(other,InfiniteGenDict):
-            return cmp(self._D,other._D)
-        return -1
+        if isinstance(other, InfiniteGenDict):
+            return self._D == other._D
+        return False
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: R.<a,b> = InfinitePolynomialRing(ZZ)
+            sage: D = R.gens_dict() # indirect doctest
+            sage: D._D
+            [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
+            sage: D._D != loads(dumps(D._D)) # indirect doctest
+            False
+        """
+        return not (self == other)
 
     def __repr__(self):
         """
@@ -525,7 +542,7 @@ class GenDictWithBasering:
                 break
             else:
                 self._D.append(D)
-    def next(self):
+    def __next__(self):
         """
         Return a dictionary that can be used to interprete strings in the base ring of ``self``.
 
@@ -544,6 +561,8 @@ class GenDictWithBasering:
         if len(self._D)<=1:
             raise ValueError("No next term for %s available"%self)
         return GenDictWithBasering(self._P.base_ring(), self._D[1:])
+
+    next = __next__
 
     def __repr__(self):
         """
@@ -684,7 +703,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         # some basic data
         self._order = order
-        self._name_dict = dict([(names[i],i) for i in xrange(len(names))])
+        self._name_dict = dict([(names[i], i) for i in range(len(names))])
         from sage.categories.commutative_algebras import CommutativeAlgebras
         CommutativeRing.__init__(self, R, category=CommutativeAlgebras(R))
 
@@ -771,7 +790,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
         so that ``F(R) is self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()
@@ -1050,7 +1069,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         NOTE:
 
-        Infinite Polynomial Rings over a field `F` are notherian as
+        Infinite Polynomial Rings over a field `F` are noetherian as
         `F(G)` modules, where `G` is the symmetric group of the
         natural numbers. But this is not what the method
         ``is_noetherian()`` is answering.
@@ -1096,47 +1115,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
 
         """
         return False
-
-    ## Auxiliary function for variable comparison
-    def varname_cmp(self, x, y):
-        """
-        Comparison of two variable names.
- 
-        INPUT:
- 
-        ``x,y`` -- two strings of the form ``a+'_'+str(n)``, where a is the
-         name of a generator, and n is an integer
- 
-        RETURN:
- 
-        -1,0,1 if x<y, x==y, x>y, respectively
- 
-        THEORY:
- 
-        The order is defined as follows:
-        x<y `\\iff` the string ``x.split('_')[0]`` is later in the list of
-        generator names of self than ``y.split('_')[0]``, or
-        (``x.split('_')[0]==y.split('_')[0]`` and
-        ``int(x.split('_')[1])<int(y.split('_')[1])``)
- 
-        EXAMPLES::
- 
-            sage: X.<alpha,beta> = InfinitePolynomialRing(ZZ)
-            sage: X.varname_cmp('alpha_1','beta_10')
-            doctest:...: DeprecationWarning: varname_cmp has been replaced by varname_key.
-            See http://trac.sagemath.org/21035 for details.
-             1
-            sage: X.varname_cmp('beta_1','alpha_10')
-            -1
-            sage: X.varname_cmp('alpha_1','alpha_10')
-            -1
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(21035, "varname_cmp has been replaced by varname_key.")
-        try:
-            return cmp(self._identify_variable(*x.split('_',1)),self._identify_variable(*y.split('_', 1)))
-        except (KeyError, ValueError, TypeError):
-            raise ValueError("%s or %s is not a valid variable name" % (x, y))
  
     def varname_key(self, x):
         """
@@ -1392,8 +1370,10 @@ class InfinitePolynomialGen(SageObject):
         self._parent = parent
         self._output = {}
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
+        Check whether ``self`` is equal to ``other``.
+
         EXAMPLES::
 
             sage: X.<x,y> = InfinitePolynomialRing(QQ)
@@ -1401,11 +1381,24 @@ class InfinitePolynomialGen(SageObject):
             sage: x2 = InfinitePolynomialGen(X, 'x')
             sage: x2 == x
             True
-
         """
         if not isinstance(other, InfinitePolynomialGen):
-            return -1
-        return cmp((self._name,self._parent),(other._name,other._parent))
+            return False
+        return (self._name, self._parent) == (other._name, other._parent)
+
+    def __ne__(self, other):
+        """
+        Check whether ``self`` is not equal to ``other``.
+
+        EXAMPLES::
+
+            sage: X.<x,y> = InfinitePolynomialRing(QQ)
+            sage: from sage.rings.polynomial.infinite_polynomial_ring import InfinitePolynomialGen
+            sage: x2 = InfinitePolynomialGen(X, 'x')
+            sage: x2 != x
+            False
+        """
+        return not (self == other)
 
     def _latex_(self):
         r"""
@@ -1429,7 +1422,7 @@ class InfinitePolynomialGen(SageObject):
 
     def __getitem__(self, i):
         """
-        Returns the the variable ``x[i]`` where ``x`` is this
+        Return the variable ``x[i]`` where ``x`` is this
         :class:`sage.rings.polynomial.infinite_polynomial_ring.InfinitePolynomialGen`,
         and i is a non-negative integer.
 
@@ -1438,13 +1431,12 @@ class InfinitePolynomialGen(SageObject):
             sage: X.<alpha> = InfinitePolynomialRing(QQ)
             sage: alpha[1]
             alpha_1
-
         """
-        if int(i)!=i:
-            raise ValueError("The index (= %s) must be an integer"%i)
+        if int(i) != i:
+            raise ValueError("The index (= %s) must be an integer" % i)
         i = int(i)
         if i < 0:
-            raise ValueError("The index (= %s) must be non-negative"%i)
+            raise ValueError("The index (= %s) must be non-negative" % i)
         P = self._parent
         from sage.rings.polynomial.infinite_polynomial_element import InfinitePolynomial_dense, InfinitePolynomial_sparse
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1547,7 +1539,7 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
         A pair ``F,R``, where ``F`` is a construction functor and ``R`` is a ring,
         so that ``F(R) is self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(GF(5))
             sage: R.construction()

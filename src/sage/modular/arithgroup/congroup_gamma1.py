@@ -207,7 +207,7 @@ class Gamma1_class(GammaH_class):
         based on Todd-Coxeter enumeration will be used. This tends to return
         far larger sets of generators.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(3).generators()
             [
@@ -262,7 +262,7 @@ class Gamma1_class(GammaH_class):
         Calculate the number of orbits of elliptic points of order 2 for this
         subgroup `\Gamma_1(N)`. This is known to be 0 if N > 2.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(2).nu2()
             1
@@ -280,7 +280,7 @@ class Gamma1_class(GammaH_class):
         Calculate the number of orbits of elliptic points of order 3 for this
         subgroup `\Gamma_1(N)`. This is known to be 0 if N > 3.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(2).nu3()
             0
@@ -315,11 +315,11 @@ class Gamma1_class(GammaH_class):
         r"""
         Return the index of self in the full modular group. This is given by the formula
 
-        .. math::
+        .. MATH::
 
             N^2 \prod_{\substack{p \mid N \\ \text{$p$ prime}}} \left( 1 - \frac{1}{p^2}\right).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Gamma1(180).index()
             20736
@@ -410,23 +410,33 @@ class Gamma1_class(GammaH_class):
             sage: eps = DirichletGroup(7*43,K).0^2
             sage: G = Gamma1(7*43)
 
-        Via Cohen--Oesterle: ::
+        Via Cohen--Oesterle::
 
             sage: Gamma1(7*43).dimension_cusp_forms(2, eps)
             28
 
-        Via Quer's method: ::
+        Via Quer's method::
 
             sage: Gamma1(7*43).dimension_cusp_forms(2, eps, algorithm="Quer")
             28
 
-        Some more examples: ::
+        Some more examples::
 
             sage: G.<eps> = DirichletGroup(9)
             sage: [Gamma1(9).dimension_cusp_forms(k, eps) for k in [1..10]]
             [0, 0, 1, 0, 3, 0, 5, 0, 7, 0]
             sage: [Gamma1(9).dimension_cusp_forms(k, eps^2) for k in [1..10]]
             [0, 0, 0, 2, 0, 4, 0, 6, 0, 8]
+
+        In weight 1 this will return 0 in a few small cases, and otherwise give a NotImplementedError::
+
+            sage: chi = [u for u in DirichletGroup(40) if u(-1) == -1 and u(21) == 1][0]
+            sage: Gamma1(40).dimension_cusp_forms(1, chi)
+            0
+            sage: Gamma1(40).dimension_cusp_forms(1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         from .all import Gamma0
 
@@ -450,7 +460,8 @@ class Gamma1_class(GammaH_class):
 
         if k == 1:
             try:
-                n = self.dimension_cusp_forms(1)
+                # see if we can rule out cusp forms existing
+                n = GammaH_constructor(self.level(), eps.kernel()).dimension_cusp_forms(1)
                 if n == 0:
                     return ZZ(0)
                 else: # never happens at present
@@ -506,14 +517,14 @@ class Gamma1_class(GammaH_class):
 
         EXAMPLES:
 
-        The following two computations use different algorithms: ::
+        The following two computations use different algorithms::
 
             sage: [Gamma1(36).dimension_eis(1,eps) for eps in DirichletGroup(36)]
             [0, 4, 3, 0, 0, 2, 6, 0, 0, 2, 3, 0]
             sage: [Gamma1(36).dimension_eis(1,eps,algorithm="Quer") for eps in DirichletGroup(36)]
             [0, 4, 3, 0, 0, 2, 6, 0, 0, 2, 3, 0]
 
-        So do these: ::
+        So do these::
 
             sage: [Gamma1(48).dimension_eis(3,eps) for eps in DirichletGroup(48)]
             [0, 12, 0, 4, 0, 8, 0, 4, 12, 0, 4, 0, 8, 0, 4, 0]

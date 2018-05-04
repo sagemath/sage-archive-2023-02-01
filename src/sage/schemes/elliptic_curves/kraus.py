@@ -422,7 +422,7 @@ def test_a1a3_local(c4,c6,P,a1,a3, debug=False):
     The elliptic curve which is the (a1^2/12,a1/2,a3/2)-transform of
     [0,0,0,-c4/48,-c6/864] if this is integral at P, else False.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.kraus import test_a1a3_local
         sage: K.<a> = NumberField(x^2-10)
@@ -462,7 +462,7 @@ def test_a1a3_global(c4,c6,a1,a3, debug=False):
     [0,0,0,-c4/48,-c6/864] if this is integral at all primes P
     dividing 2, else False.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.kraus import test_a1a3_global
         sage: K.<a> = NumberField(x^2-10)
@@ -582,7 +582,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
     c4val = c4.valuation(P)
 
     if c4val==0:
-        if a1 == None:
+        if a1 is None:
             flag, t = sqrt_mod_4(-c6,P)
             if not flag:
                 return False,0,0
@@ -599,7 +599,7 @@ def check_Kraus_local_2(c4,c6,P, a1=None, assume_nonsingular=False):
             raise RuntimeError("check_Kraus_local_2 fails")
 
     if c4val >= 4*e:
-        if a1 == None:
+        if a1 is None:
             a1 = c4.parent().zero() # 0
         flag, a3 = sqrt_mod_4(c6/8,P)
         if flag:
@@ -905,6 +905,24 @@ def semi_global_minimal_model(E, debug=False):
         Elliptic Curve defined by y^2 + 3*x*y + (2*a-11)*y = x^3 + (a-10)*x^2 + (-152*a-415)*x + (1911*a+5920) over Number Field in a with defining polynomial x^2 - 10
         sage: E.minimal_discriminant_ideal()*P**12 == K.ideal(Emin.discriminant())
         True
+
+    TESTS (see :trac:`20737`): a curve with no global minimal model
+    whose non-minimality class has order 3 in the class group, which
+    has order 3315.  The smallest prime in that ideal class has norm
+    23567::
+
+    sage: K.<a> = NumberField(x^2-x+31821453)
+    sage: ainvs = (0, 0, 0, -382586771000351226384*a - 2498023791133552294513515, 358777608829102441023422458989744*a + 1110881475104109582383304709231832166)
+    sage: E = EllipticCurve(ainvs)
+    sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
+    sage: Emin, p = semi_global_minimal_model(E) # long time (15s)
+    sage: p                                      # long time
+    Fractional ideal (23567, a + 2270)
+    sage: p.norm()                               # long time
+    23567
+    sage: Emin.discriminant().norm().factor()    # long time
+    23567^12
+
     """
     c = E.global_minimality_class()
     I = c.ideal()
@@ -914,7 +932,14 @@ def semi_global_minimal_model(E, debug=False):
     else:
         if debug:
             print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        P = c.representative_prime()
+        bound = E.base_field().minkowski_bound()
+        have_prime = False
+        while not have_prime:
+            try:
+                P = c.representative_prime(norm_bound=bound)
+                have_prime = True
+            except RuntimeError:
+                bound *=2
         if debug:
             print("Using a prime in that class: %s" % P)
         I = I/P

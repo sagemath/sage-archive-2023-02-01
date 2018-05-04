@@ -1,12 +1,26 @@
-###############################################################################
+## -*- Makefile -*- ###########################################################
 # This file ($SAGE_ROOT/build/make/deps) will be copied into
-# $SAGE_ROOT/build/make/Makefile by $SAGE_ROOT/build/make/install
+# $SAGE_ROOT/build/make/Makefile by config.status
 ###############################################################################
+
+# Silent rules
+# https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html
+ifeq ($(V), 0)
+AM_V_at = @
+else
+AM_V_at =
+endif
 
 # We need to be able to override this to support ./sage -i -c PKG
 SAGE_SPKG = sage-spkg
 
+# List of targets that can be run using `sage -i` or `sage -f`
+# These should generally have an associated -clean target for `sage -f` to
+# work correctly
+SAGE_I_TARGETS = sagelib doc
+
 STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
+
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage all-toolchain all-build start \
@@ -41,8 +55,8 @@ all-toolchain:
 # All targets except for the base packages
 all-sage: \
 		sagelib \
-		$(STANDARD_PACKAGES) \
-		$(OPTIONAL_INSTALLED_PACKAGES) \
+		$(STANDARD_PACKAGE_INSTS) \
+		$(OPTIONAL_INSTALLED_PACKAGE_INSTS) \
 		$(EXTCODE) \
 		$(SCRIPTS)
 
@@ -50,11 +64,11 @@ all-sage: \
 # option to make forces all targets to be built unconditionally)
 download-for-sdist: base
 	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
-		$(SDIST_PACKAGES)
+		$(SDIST_PACKAGE_INSTS)
 
 # TOOLCHAIN consists of dependencies determined by configure.
 # These are built after the "base" target but before anything else.
-toolchain: $(TOOLCHAIN)
+toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
 
 # Build all packages that GCC links against serially, otherwise this
 # leads to race conditions where some library which is used by GCC gets
@@ -70,7 +84,11 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect)
+SAGERUNTIME = sagelib $(SCRIPTS) $(inst_ipython) $(inst_pexpect) \
+		$(inst_psutil) $(inst_future)
+
+sageruntime: all-toolchain
+	$(MAKE) $(SAGERUNTIME)
 
 
 # Start Sage at least once to check that it works
@@ -81,8 +99,8 @@ start: all-build
 # We make this depend on all standard packages because running
 # sage-starts runs sage-location, which should be run after installing
 # any package.
-$(STARTED): $(STANDARD_PACKAGES)
-	"$(SAGE_LOCAL)/bin/sage-starts"
+$(STARTED): $(STANDARD_PACKAGE_INSTS)
+	$(AM_V_at)"$(SAGE_LOCAL)/bin/sage-starts"
 
 
 ###############################################################################
@@ -90,7 +108,7 @@ $(STARTED): $(STANDARD_PACKAGES)
 #
 # This consists of packages which are required for the Sage build system.
 ###############################################################################
-base: $(inst_bzip2) $(inst_patch) $(inst_pkgconf)
+base: $(inst_patch) $(inst_pkgconf)
 
 ###############################################################################
 # Building normal packages
@@ -106,13 +124,13 @@ sagelib: \
 		$(inst_brial) \
 		$(inst_cephes) \
 		$(inst_cliquer) \
+		$(inst_cypari) \
 		$(inst_cysignals) \
 		$(inst_cython) \
 		$(inst_ecl) \
 		$(inst_eclib) \
 		$(inst_ecm) \
 		$(inst_flint) \
-		$(inst_libfplll) \
 		$(inst_libgd) \
 		$(inst_givaro) \
 		$(inst_glpk) \
@@ -134,11 +152,13 @@ sagelib: \
 		$(inst_ntl) \
 		$(inst_numpy) \
 		$(inst_pari) \
+		$(inst_pip) \
 		$(inst_pkgconfig) \
 		$(inst_planarity) \
 		$(inst_ppl) \
 		$(inst_pynac) \
-		$(PYTHON) \
+		$(inst_python2) \
+		$(inst_python3) \
 		$(inst_ratpoints) \
 		$(inst_readline) \
 		$(inst_rw) \
@@ -147,7 +167,7 @@ sagelib: \
 		$(inst_symmetrica) \
 		$(inst_zn_poly) \
 		$(EXTCODE)
-	if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
+	$(AM_V_at)if [ -z "$$SAGE_INSTALL_FETCH_ONLY" ]; then \
 		cd $(SAGE_SRC) && source bin/sage-env && \
 		sage-logger -p 'time $(MAKE) sage' '$(SAGE_LOGS)/sagelib-$(SAGE_VERSION).log'; \
 	fi
@@ -159,7 +179,7 @@ sagelib: \
 
 # Don't just use "install" since we don't want to change permissions
 $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
-	cp $< $@
+	$(AM_V_at)cp $< $@
 
 # Don't just use "install -D" since we don't want to change permissions.
 # cp won't correctly setup the SAGE_EXTCODE directory structure
@@ -167,7 +187,7 @@ $(SAGE_LOCAL)/bin/%: $(SAGE_SRC)/bin/%
 # an existing folder.
 $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 	@mkdir -p "$(@D)"
-	cp $< $@
+	$(AM_V_at)cp $< $@
 
 
 ###############################################################################
@@ -189,31 +209,31 @@ $(SAGE_EXTCODE)/%: $(SAGE_SRC)/ext/%
 # documented modules are imported and because we use matplotlib to
 # produce plots.
 DOC_DEPENDENCIES = sagelib $(inst_sphinx) $(inst_sagenb) \
-	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) \
+	| $(SAGERUNTIME) $(inst_maxima) $(inst_networkx) $(inst_scipy) $(inst_sympy) \
 	$(inst_matplotlib) $(inst_pillow) $(inst_mathjax) $(inst_mpmath) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
-	$(inst_tachyon) $(inst_jmol)
+	$(inst_tachyon) $(inst_jmol) $(inst_thebe) $(inst_ipywidgets) $(inst_typing)
 
 doc: doc-html
 
 doc-html: $(DOC_DEPENDENCIES)
-	cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
 doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
-	cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 doc-html-mathjax: $(DOC_DEPENDENCIES)
-	cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: $(DOC_DEPENDENCIES)
-	cd ../.. && sage-logger -p './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
+	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
 
 doc-clean: doc-src-clean doc-output-clean
 

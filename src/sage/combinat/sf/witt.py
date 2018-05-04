@@ -370,11 +370,11 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         sage: s(w([4]))
         -s[1, 1, 1, 1] - s[2, 1, 1] - s[2, 2] - s[3, 1]
         sage: [type(coeff) for a, coeff in h(w([4]))]
-        [<type 'sage.rings.integer.Integer'>,
-         <type 'sage.rings.integer.Integer'>,
-         <type 'sage.rings.integer.Integer'>,
-         <type 'sage.rings.integer.Integer'>,
-         <type 'sage.rings.integer.Integer'>]
+        [<... 'sage.rings.integer.Integer'>,
+         <... 'sage.rings.integer.Integer'>,
+         <... 'sage.rings.integer.Integer'>,
+         <... 'sage.rings.integer.Integer'>,
+         <... 'sage.rings.integer.Integer'>]
 
         sage: w(h[3])
         w[1, 1, 1] + w[2, 1] + w[3]
@@ -994,7 +994,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         # symmetric basis and the complete homogeneous basis (over the same base
         # ring as self), respectively (but they are only set if the respective
         # arguments ``coerce_p``, ``coerce_e`` and ``coerce_h`` are True).
-        # self._friendly will be the one avaliable basis which makes computations
+        # self._friendly will be the one available basis which makes computations
         # the easiest.
 
         self._friendly = None

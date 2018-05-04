@@ -18,17 +18,18 @@ TESTS::
     [8.000000000000000 11.00000000000000]
     [22.00000000000000 41.00000000000000]
 """
+
 #*****************************************************************************
-# Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
+#       Copyright (C) 2014 Clemens Heuberger <clemens.heuberger@aau.at>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                http://www.gnu.org/licenses/
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'cysignals/signals.pxi'
-
+from cysignals.signals cimport sig_on, sig_str, sig_off
 
 from sage.libs.arb.acb cimport *
 from sage.libs.arb.acb_mat cimport *
@@ -104,7 +105,7 @@ cdef Matrix_generic_dense acb_mat_to_matrix(
                    for r in range(nrows)])
 
 
-cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_complex_ball_dense(Matrix_dense):
     """
     Matrix over a complex ball field. Implemented using the
     ``acb_mat`` type of the Arb library.
@@ -118,15 +119,6 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         sage: matrix(CBF, 1, 3, [1, 2, -3])
         [ 1.000000000000000  2.000000000000000 -3.000000000000000]
     """
-    #################################################################
-    # LEVEL 1 functionality
-    # * __cinit__
-    # * __init__
-    # * __dealloc__
-    # * set_unsafe(self, size_t i, size_t j, x)
-    # * get_unsafe(self, size_t i, size_t j)
-    ################################################################
-
     def __cinit__(self,
                   parent,
                   entries,
@@ -220,7 +212,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
 
             sage: A = Mat(CBF, 2); A
             Full MatrixSpace of 2 by 2 dense matrices over
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
             sage: A(range(4))
             [                0 1.000000000000000]
             [2.000000000000000 3.000000000000000]
@@ -229,7 +221,7 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
         list, so the following also works::
 
             sage: v = reversed(range(4)); type(v)
-            <type 'listreverseiterator'>
+            <...iterator'>
             sage: A(v)
             [3.000000000000000 2.000000000000000]
             [1.000000000000000                 0]
@@ -240,18 +232,18 @@ cdef class Matrix_complex_ball_dense(matrix_dense.Matrix_dense):
             sage: v = matrix(CBF, 1, 10^5, range(10^5))
             sage: v.parent()
             Full MatrixSpace of 1 by 100000 dense matrices over
-            Complex ball field with 53 bits precision
+            Complex ball field with 53 bits of precision
 
         TESTS::
 
             sage: MatrixSpace(CBF, 0, 0).one()
             []
             sage: Matrix(CBF, 0, 100)
-            0 x 100 dense matrix over Complex ball field with 53 bits precision
-            (use the '.str()' method to see the entries)
+            0 x 100 dense matrix over Complex ball field with 53 bits
+            of precision (use the '.str()' method to see the entries)
             sage: Matrix(CBF, 100, 0)
-            100 x 0 dense matrix over Complex ball field with 53 bits precision
-            (use the '.str()' method to see the entries)
+            100 x 0 dense matrix over Complex ball field with 53 bits
+            of precision (use the '.str()' method to see the entries)
         """
         cdef Py_ssize_t i, j, k
         cdef bint is_list

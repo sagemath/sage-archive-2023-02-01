@@ -74,7 +74,7 @@ class CommutativeRings(CategoryWithAxiom):
                 primitive element `z` of `GF(q^k)`. The minimal polynomial of
                 `z^s` over `GF(q)` is given by
 
-                .. math::
+                .. MATH::
 
                          M_s(x) = \prod_{i \in C_s} (x - z^i),
 
@@ -85,7 +85,7 @@ class CommutativeRings(CategoryWithAxiom):
                 .. NOTE::
 
                     When `R = \ZZ / n \ZZ` the smallest element of each coset is
-                    sometimes callled a *coset leader*. This function returns
+                    sometimes called a *coset leader*. This function returns
                     sorted lists so that the coset leader will always be the
                     first element of the coset.
 

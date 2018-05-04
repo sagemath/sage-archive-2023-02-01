@@ -1,2 +1,4 @@
 /.cython_version
 /build
+/Makefile
+/bin/sage-env-config

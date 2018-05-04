@@ -241,13 +241,13 @@ AUTHORS:
 # stuff. Talk to me (Volker) if you want to work on that.
 #
 ##############################################################################
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-from gap_includes cimport *
+from .gap_includes cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Vector
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
@@ -317,13 +317,10 @@ class Gap(Parent):
 
             sage: libgap.has_coerce_map_from(ZZ)
             True
-            sage: libgap.has_coerce_map_from(CyclotomicField(5))
+            sage: libgap.has_coerce_map_from(CyclotomicField(5)['x','y'])
             True
         """
-        from sage.rings.all import ZZ, QQ
-        from sage.rings.number_field.number_field import is_CyclotomicField
-        if S in (ZZ, QQ) or is_CyclotomicField(S):
-            return True
+        return True
 
     def _element_constructor_(self, x):
         r"""
@@ -345,10 +342,17 @@ class Gap(Parent):
             0
             sage: libgap(int(0))
             0
+            sage: libgap(vector((0,1,2)))
+            [ 0, 1, 2 ]
+            sage: libgap(vector((1/3,2/3,4/5)))
+            [ 1/3, 2/3, 4/5 ]
+            sage: libgap(vector((1/3, 0.8, 3)))
+            [ 0.333333, 0.8, 3. ]
+
         """
         if isinstance(x, GapElement):
             return x
-        elif isinstance(x, (list, tuple)):
+        elif isinstance(x, (list, tuple, Vector)):
             return make_GapElement_List(self, make_gap_list(x))
         elif isinstance(x, dict):
             return make_GapElement_Record(self, make_gap_record(x))
@@ -590,17 +594,8 @@ class Gap(Parent):
 
             sage: libgap.zero()
             0
-
-        TESTS::
-
-            sage: libgap.zero_element()
-            doctest:...: DeprecationWarning: zero_element is deprecated. Please use zero instead.
-            See http://trac.sagemath.org/17694 for details.
-            0
         """
         return self(0)
-
-    zero_element = deprecated_function_alias(17694, zero)
 
     def one(self):
         r"""

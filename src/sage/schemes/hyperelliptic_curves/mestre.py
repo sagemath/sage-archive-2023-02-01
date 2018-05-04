@@ -60,7 +60,7 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
 
     A hyperelliptic curve object.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Examples over the rationals::
 
@@ -108,7 +108,7 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
         TypeError: F (=0) must have degree 2
 
 
-    Igusa-Clebsch invariants also only work over fields of charateristic
+    Igusa-Clebsch invariants also only work over fields of characteristic
     different from 2, 3, and 5, so another algorithm will be needed for fields
     of those characteristics. See also :trac:`12200`::
 

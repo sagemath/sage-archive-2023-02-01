@@ -30,14 +30,14 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from libc.math cimport isfinite, INFINITY
+from libc.string cimport memset, memcpy
+from cysignals.memory cimport check_calloc, check_allocarray, check_reallocarray, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
 
 cdef extern from *:
-    void memset(void *, int, Py_ssize_t)
-    void memcpy(void * dest, void * src, Py_ssize_t n)
     int sprintf_3d "sprintf" (char*, char*, double, double, double)
     int sprintf_3i "sprintf" (char*, char*, int, int, int)
     int sprintf_4i "sprintf" (char*, char*, int, int, int, int)
@@ -46,18 +46,16 @@ cdef extern from *:
     int sprintf_7i "sprintf" (char*, char*, int, int, int, int, int, int, int)
     int sprintf_9d "sprintf" (char*, char*, double, double, double, double, double, double, double, double, double)
 
-# import the double infinity constant
-cdef extern from "math.h":
-    enum: INFINITY
-
 from cpython.list cimport *
-from cpython.string cimport *
+from cpython.bytes cimport *
 
 include "point_c.pxi"
 
 
 from math import sin, cos, sqrt
 from random import randint
+
+from sage.cpython.string cimport bytes_to_str
 
 from sage.rings.real_double import RDF
 
@@ -67,7 +65,7 @@ from sage.modules.free_module_element import vector
 from sage.plot.colors import Color, float_to_integer
 from sage.plot.plot3d.base import Graphics3dGroup
 
-from transform cimport Transformation
+from .transform cimport Transformation
 
 
 # --------------------------------------------------------------------
@@ -79,34 +77,35 @@ cdef inline format_tachyon_texture(color_c rgb):
     cdef Py_ssize_t cr = sprintf_3d(rs,
                                    "TEXTURE\n AMBIENT 0.3 DIFFUSE 0.7 SPECULAR 0 OPACITY 1.0\n COLOR %g %g %g \n TEXFUNC 0",
                                    rgb.r, rgb.g, rgb.b)
-    return PyString_FromStringAndSize(rs, cr)
+    return bytes_to_str(PyBytes_FromStringAndSize(rs, cr))
 
 
 cdef inline format_tachyon_triangle(point_c P, point_c Q, point_c R):
     cdef char ss[250]
-    # PyString_FromFormat doesn't do floats?
+    # PyBytes_FromFormat doesn't do floats?
     cdef Py_ssize_t r = sprintf_9d(ss,
                                    "TRI V0 %g %g %g V1 %g %g %g V2 %g %g %g",
                                    P.x, P.y, P.z,
                                    Q.x, Q.y, Q.z,
                                    R.x, R.y, R.z )
-    return PyString_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 
 cdef inline format_json_vertex(point_c P):
     cdef char ss[100]
-    cdef Py_ssize_t r = sprintf_3d(ss, "{x:%g,y:%g,z:%g}", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
+    cdef Py_ssize_t r = sprintf_3d(ss, '{"x":%g,"y":%g,"z":%g}', P.x, P.y, P.z)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_json_face(face_c face):
-    return "[{}]".format(",".join([str(face.vertices[i])
+    s = "[{}]".format(",".join([str(face.vertices[i])
                                    for i from 0 <= i < face.n]))
+    return s
 
 cdef inline format_obj_vertex(point_c P):
     cdef char ss[100]
-    # PyString_FromFormat doesn't do floats?
+    # PyBytes_FromFormat doesn't do floats?
     cdef Py_ssize_t r = sprintf_3d(ss, "v %g %g %g", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_obj_face(face_c face, int off):
     cdef char ss[100]
@@ -117,8 +116,8 @@ cdef inline format_obj_face(face_c face, int off):
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[0] + off, face.vertices[1] + off, face.vertices[2] + off, face.vertices[3] + off)
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from 0 <= i < face.n])
-    # PyString_FromFormat is almost twice as slow
-    return PyString_FromStringAndSize(ss, r)
+    # PyBytes_FromFormat is almost twice as slow
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_obj_face_back(face_c face, int off):
     cdef char ss[100]
@@ -129,13 +128,13 @@ cdef inline format_obj_face_back(face_c face, int off):
         r = sprintf_4i(ss, "f %d %d %d %d", face.vertices[3] + off, face.vertices[2] + off, face.vertices[1] + off, face.vertices[0] + off)
     else:
         return "f " + " ".join([str(face.vertices[i] + off) for i from face.n > i >= 0])
-    return PyString_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_pmesh_vertex(point_c P):
     cdef char ss[100]
-    # PyString_FromFormat doesn't do floats?
+    # PyBytes_FromFormat doesn't do floats?
     cdef Py_ssize_t r = sprintf_3d(ss, "%g %g %g", P.x, P.y, P.z)
-    return PyString_FromStringAndSize(ss, r)
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 cdef inline format_pmesh_face(face_c face, int has_color):
     cdef char ss[100]
@@ -189,7 +188,7 @@ cdef inline format_pmesh_face(face_c face, int has_color):
                                face.vertices[i],
                                face.vertices[i + 1],
                                face.vertices[0])
-                PyList_Append(all, PyString_FromStringAndSize(ss, r))
+                PyList_Append(all, PyBytes_FromStringAndSize(ss, r))
         else:
             for i from 1 <= i < face.n - 1:
                 r = sprintf_6i(ss, "%d\n%d\n%d\n%d\n%d\n%d", has_color * 4,
@@ -197,10 +196,10 @@ cdef inline format_pmesh_face(face_c face, int has_color):
                                face.vertices[i],
                                face.vertices[i + 1],
                                face.vertices[0], color)
-                PyList_Append(all, PyString_FromStringAndSize(ss, r))
-        return "\n".join(all)
-    # PyString_FromFormat is almost twice as slow
-    return PyString_FromStringAndSize(ss, r)
+                PyList_Append(all, PyBytes_FromStringAndSize(ss, r))
+        return bytes_to_str(b"\n".join(all))
+    # PyBytes_FromFormat is almost twice as slow
+    return bytes_to_str(PyBytes_FromStringAndSize(ss, r))
 
 
 cdef class IndexFaceSet(PrimitiveObject):
@@ -342,32 +341,89 @@ cdef class IndexFaceSet(PrimitiveObject):
         self.face_indices = <int *>check_reallocarray(self.face_indices, icount, sizeof(int))
 
     def _clean_point_list(self):
-        # TODO: There is still wasted space where quadrilaterals were
-        # converted to triangles...  but it's so little it's probably
-        # not worth bothering with
-        cdef int* point_map = <int *>check_calloc(self.vcount, sizeof(int))
-        cdef Py_ssize_t i, j
-        cdef face_c *face
-        for i from 0 <= i < self.fcount:
-            face = &self._faces[i]
-            for j from 0 <= j < face.n:
-                point_map[face.vertices[j]] += 1
-        ix = 0
-        for i from 0 <= i < self.vcount:
-            if point_map[i] > 0:
-                point_map[i] = ix
-                self.vs[ix] = self.vs[i]
-                ix += 1
-        if ix != self.vcount:
-            for i from 0 <= i < self.fcount:
-                face = &self._faces[i]
-                for j from 0 <= j < face.n:
-                    face.vertices[j] = point_map[face.vertices[j]]
-            self.realloc(ix, self.fcount, self.icount)
-            self.vcount = ix
-        sig_free(point_map)
+        """
+        Clean up the vertices and faces as follows:
 
-    def _seperate_creases(self, threshold):
+        - Remove all vertices with a coordinate which is NaN or
+          infinity.
+
+        - If a removed vertex occurs in a face, remove it from that
+          face, but keep other vertices in that face.
+
+        - Remove faces with less than 3 vertices.
+
+        - Remove unused vertices.
+
+        - Free unused memory for vertices and faces (not indices).
+        """
+        cdef Py_ssize_t i, j, v
+
+        # point_map is an array old vertex index -> new vertex index.
+        # The special value -1 means that the vertex is not mapped yet.
+        # The special value -2 means that the vertex must be deleted
+        # because a coordinate is NaN or infinity.
+        # When we are done, all vertices with negative indices are not
+        # used and will be removed.
+        cdef int* point_map = <int*>check_allocarray(self.vcount, sizeof(int))
+
+        cdef Py_ssize_t nv = 0  # number of new vertices
+        for i in range(self.vcount):
+            point_map[i] = -1
+
+        # Process all faces
+        cdef Py_ssize_t nf = 0  # number of new faces
+        cdef Py_ssize_t fv      # number of new vertices on face
+        for i in range(self.fcount):
+            face = &self._faces[i]
+
+            # Process vertices in face
+            fv = 0
+            for j in range(face.n):
+                v = face.vertices[j]
+                if point_map[v] == -1:
+                    pt = &self.vs[v]
+                    if isfinite(pt.x) and isfinite(pt.y) and isfinite(pt.z):
+                        point_map[v] = nv
+                        nv += 1
+                    else:
+                        point_map[v] = -2
+                if point_map[v] == -2:
+                    continue
+
+                face.vertices[fv] = point_map[face.vertices[j]]
+                fv += 1
+
+            # Skip faces with less than 3 vertices
+            if fv < 3:
+                continue
+
+            # Store in newface
+            newface = &self._faces[nf]
+            newface.n = fv
+            if newface is not face:
+                newface.vertices = face.vertices
+                newface.color = face.color
+            nf += 1
+
+        # Realloc face array
+        if nf < self.fcount:
+            self._faces = <face_c*>check_reallocarray(self._faces, nf, sizeof(face_c))
+            self.fcount = nf
+
+        # Realloc and map vertex array
+        # We cannot copy in-place since we permuted the vertices
+        new_vs = <point_c*>check_allocarray(nv, sizeof(point_c))
+        for i in range(self.vcount):
+            j = point_map[i]
+            if j >= 0:
+                new_vs[j] = self.vs[i]
+
+        sig_free(point_map)
+        sig_free(self.vs)
+        self.vs = new_vs
+        self.vcount = nv
+
+    def _separate_creases(self, threshold):
         """
         Some rendering engines Gouraud shading, which is great for smooth
         surfaces but looks bad if one actually has a polyhedron.
@@ -545,7 +601,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             False
         """
         return not(self.global_texture)
-    
+
     def index_faces_with_colors(self):
         """
         Return the list over all faces of (indices of the vertices, color).
@@ -746,7 +802,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         which gives the coordinates of opposite corners of the
         bounding box.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: x,y = var('x,y')
             sage: p = plot3d(sqrt(sin(x)*sin(y)), (x,0,2*pi),(y,0,2*pi))
@@ -763,7 +819,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         low.x, low.y, low.z = INFINITY, INFINITY, INFINITY
         high.x, high.y, high.z = -INFINITY, -INFINITY, -INFINITY
 
-        for i in range(0,self.vcount):
+        for i in range(self.vcount):
             point_c_update_finite_lower_bound(&low, self.vs[i])
             point_c_update_finite_upper_bound(&high, self.vs[i])
         return ((low.x, low.y, low.z), (high.x, high.y, high.z))
@@ -906,7 +962,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.json_repr(G.default_render_params())
-            ["{vertices:[{x:0,y:0,z:1},{x:1,y:1,z:1},{x:2,y:0,z:1}],faces:[[0,1,2]],color:'#0000ff'}"]
+            ['{"vertices":[{"x":0,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":2,"y":0,"z":1}], "faces":[[0,1,2]], "color":"#0000ff", "opacity":1}']
 
         A simple colored one::
 
@@ -918,7 +974,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ["{vertices:[{x:2,y:0,z:0},{x:0,y:2,z:0},{x:0,y:0,z:2},{x:0,y:1,z:1},{x:1,y:0,z:1},{x:1,y:1,z:0}],faces:[[0,4,5],[3,4,5],[2,3,4],[1,3,5]],face_colors:['#ff0000','#ff9900','#cbff00','#33ff00']}"]
+            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1}']
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -938,18 +994,20 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
                                             for i from 0 <= i < self.fcount]))
+        opacity = self._extra_kwds.get('opacity', 1)
+
         if self.global_texture:
-            color_str = "'#{}'".format(self.texture.hex_rgb())
-            return ["{vertices:%s,faces:%s,color:%s}" %
-                    (vertices_str, faces_str, color_str)]
+            color_str = '"#{}"'.format(self.texture.hex_rgb())
+            return ['{{"vertices":{}, "faces":{}, "color":{}, "opacity":{}}}'.format(
+                    vertices_str, faces_str, color_str, opacity)]
         else:
-            color_str = "[{}]".format(",".join(["'{}'".format(
+            color_str = "[{}]".format(",".join(['"{}"'.format(
                     Color(self._faces[i].color.r,
                           self._faces[i].color.g,
                           self._faces[i].color.b).html_color())
                                             for i from 0 <= i < self.fcount]))
-            return ["{vertices:%s,faces:%s,face_colors:%s}" %
-                    (vertices_str, faces_str, color_str)]
+            return ['{{"vertices":{}, "faces":{}, "face_colors":{}, "opacity":{}}}'.format(
+                    vertices_str, faces_str, color_str, opacity)]
 
     def obj_repr(self, render_params):
         """
@@ -1004,7 +1062,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i
         cdef point_c res
 
-        self._seperate_creases(render_params.crease_threshold)
+        self._separate_creases(render_params.crease_threshold)
 
         sig_on()
         if transform is None:
@@ -1038,7 +1096,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                str(self.fcount + extra_faces),
                faces]
 
-        from base import flatten_list
+        from .base import flatten_list
         name = render_params.unique_name('obj')
         all = flatten_list(all)
         if render_params.output_archive:
@@ -1056,7 +1114,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             s = 'pmesh {} "{}"\n{}'.format(name, filename,
                                            self.texture.jmol_str("pmesh"))
         else:
-            s = 'pmesh {} "{}"'.format(name, filename)            
+            s = 'pmesh {} "{}"'.format(name, filename)
 
         # Turn on display of the mesh lines or dots?
         if render_params.mesh:
@@ -1082,14 +1140,15 @@ cdef class IndexFaceSet(PrimitiveObject):
         cdef Py_ssize_t i, j, ix, ff
         cdef IndexFaceSet dual = IndexFaceSet([], **kwds)
         cdef int incoming, outgoing
+        cdef dict dd
 
         dual.realloc(self.fcount, self.vcount, self.icount)
 
-        sig_on()
         # is using dicts overly-heavy?
         dual_faces = [{} for i from 0 <= i < self.vcount]
 
         for i from 0 <= i < self.fcount:
+            sig_check()
             # Let the vertex be centered on the face according to a simple average
             face = &self._faces[i]
             dual.vs[i] = self.vs[face.vertices[0]]
@@ -1113,6 +1172,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         i = 0
         ix = 0
         for dd in dual_faces:
+            sig_check()
             face = &dual._faces[i]
             face.n = len(dd)
             if face.n == 0: # skip unused vertices
@@ -1129,7 +1189,6 @@ cdef class IndexFaceSet(PrimitiveObject):
         dual.vcount = self.fcount
         dual.fcount = i
         dual.icount = ix
-        sig_off()
 
         return dual
 
@@ -1152,7 +1211,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         Graphics3dGroup of stickers
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.plot.plot3d.shapes import Box
             sage: B = Box(.5,.4,.3, color='black')
@@ -1166,7 +1225,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         ct = len(colors)
         for k in range(len(colors)):
             if colors[k]:
-                all.append(self.sticker(range(k, n, ct), width, hover,
+                all.append(self.sticker(list(xrange(k, n, ct)), width, hover,
                                         texture=colors[k]))
         return Graphics3dGroup(all)
 

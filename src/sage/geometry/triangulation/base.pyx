@@ -16,6 +16,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
+from __future__ import absolute_import
 
 from sage.misc.fast_methods cimport hash_by_id
 from sage.structure.sage_object cimport SageObject
@@ -25,8 +26,8 @@ from sage.matrix.constructor import matrix
 from sage.misc.misc import uniq
 from sage.misc.cachefunc import cached_method
 
-from functions cimport binomial
-from triangulations cimport \
+from .functions cimport binomial
+from .triangulations cimport \
     triangulations_ptr, init_triangulations, next_triangulation, delete_triangulations
 
 
@@ -40,7 +41,7 @@ cdef class Point(SageObject):
     relations between the points, for example encoded by the
     :meth:`~sage.geometry.triangulation.point_configuration.PointConfiguration.circuits`.
 
-    .. Warning::
+    .. WARNING::
 
         You should not create :class:`Point` objects manually. The
         constructor of :class:`PointConfiguration_base` takes care of
@@ -390,8 +391,8 @@ cdef class PointConfiguration_base(Parent):
         TESTS::
 
             sage: from sage.geometry.triangulation.base import PointConfiguration_base
-            sage: PointConfiguration_base(((1,2,1),(2,3,1),(3,4,1)), False)  # indirect doctest
-            <type 'sage.geometry.triangulation.base.PointConfiguration_base'>
+            sage: PointConfiguration_base(((1,2,1),(2,3,1),(3,4,1)), False)
+            <sage.geometry.triangulation.base.PointConfiguration_base object at ...>
         """
         Parent.__init__(self, category = Sets())
         self._init_points(points)
@@ -419,13 +420,12 @@ cdef class PointConfiguration_base(Parent):
         Special cases::
 
             sage: PointConfiguration([])
-            A point configuration in QQ^0 consisting of 0 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            The pointless empty configuration
             sage: PointConfiguration([(1,2,3)])
-            A point configuration in QQ^3 consisting of 1 point. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 3-space over Integer Ring
+            consisting of 1 point. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
         """
         n = len(projective_points)
         if n==0:
@@ -661,9 +661,10 @@ cdef class PointConfiguration_base(Parent):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p
-            A point configuration in QQ^2 consisting of 5 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 5 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: len(p)
             5
             sage: p.n_points()
@@ -741,9 +742,10 @@ cdef class PointConfiguration_base(Parent):
 
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: p
-            A point configuration in QQ^2 consisting of 5 points. The
-            triangulations of this point configuration are assumed to
-            be connected, not necessarily fine, not necessarily regular.
+            A point configuration in affine 2-space over Integer Ring
+            consisting of 5 points. The triangulations of this point
+            configuration are assumed to be connected, not necessarily
+            fine, not necessarily regular.
             sage: len(p)
             5
             sage: p.n_points()
@@ -772,12 +774,12 @@ cdef class PointConfiguration_base(Parent):
         EXAMPLES::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.simplex_to_int([1,3,4,7,10,13])
             1678
@@ -817,12 +819,12 @@ cdef class PointConfiguration_base(Parent):
         EXAMPLES::
 
             sage: U=matrix([
-            ...      [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
-            ...      [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
-            ...      [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
-            ...      [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
-            ...      [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
-            ...   ])
+            ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
+            ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
+            ....:    [ 0, 2, 0, 0, 0, 0,-1, 0, 1, 0, 1, 0, 0, 1],
+            ....:    [ 0, 1, 1, 0, 0, 1, 0,-2, 1, 0, 0,-1, 1, 1],
+            ....:    [ 0, 0, 0, 0, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0]
+            ....: ])
             sage: pc = PointConfiguration(U.columns())
             sage: pc.simplex_to_int([1,3,4,7,10,13])
             1678
@@ -940,7 +942,7 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             sage: from sage.geometry.triangulation.base import ConnectedTriangulationsIterator
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: ConnectedTriangulationsIterator(p, fine=True)   # indirect doctest
-            <type 'sage.geometry.triangulation.base.ConnectedTriangulationsIterator'>
+            <sage.geometry.triangulation.base.ConnectedTriangulationsIterator object at ...>
         """
         self._tp = NULL
 
@@ -996,7 +998,7 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             sage: p = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: ci = ConnectedTriangulationsIterator(p, fine=True)
             sage: ci.__iter__()
-            <type 'sage.geometry.triangulation.base.ConnectedTriangulationsIterator'>
+            <sage.geometry.triangulation.base.ConnectedTriangulationsIterator object at ...>
             sage: ci.__iter__() is ci
             True
         """
@@ -1016,10 +1018,6 @@ cdef class ConnectedTriangulationsIterator(SageObject):
             (9, 10)
         """
         t = next_triangulation(self._tp)
-        if len(t)==0:
+        if len(t) == 0:
             raise StopIteration
         return t
-
-
-
-

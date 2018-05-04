@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ "$SAGE_LOCAL" = "" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting"
     echo >&2 "Maybe run 'sage --sh'?"
@@ -14,15 +12,6 @@ fi
 export CFLAGS
 
 cd src/
-
-# Apply patches
-for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
-done
 
 
 build()

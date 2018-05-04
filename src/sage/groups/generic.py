@@ -109,7 +109,7 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 from copy import copy
 
-import sage.misc.all as misc
+from sage.misc.all import prod
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
 from sage.arith.srange import xsrange
@@ -121,7 +121,10 @@ from sage.arith.srange import xsrange
 multiplication_names = ( 'multiplication', 'times', 'product', '*')
 addition_names       = ( 'addition', 'plus', 'sum', '+')
 
+
+# deprecation(24256)
 from sage.structure.element import generic_power as power
+
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -336,7 +339,7 @@ class multiples:
         self.indexed = indexed
 
 
-    def next(self):
+    def __next__(self):
         """
         Returns the next item in this multiples iterator.
         """
@@ -350,6 +353,9 @@ class multiples:
             return (i,val)
         else:
             return val
+
+    next = __next__
+
     def __iter__(self):
         """
         Standard member function making this class an iterator.
@@ -574,6 +580,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     - Yann Laigle-Chapuy (2009-09-05)
 
     """
+    from six.moves import range
     from sage.rings.integer import Integer
     from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
     from operator import mul, add, pow
@@ -612,11 +619,11 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
 
     I=IntegerModRing(ord)
 
-    for s in xrange(10): # to avoid infinite loops
+    for s in range(10): # to avoid infinite loops
         # random walk function setup
-        m=[I.random_element() for i in xrange(partition_size)]
-        n=[I.random_element() for i in xrange(partition_size)]
-        M=[mult(power(base,Integer(m[i])),power(a,Integer(n[i]))) for i in xrange(partition_size)]
+        m=[I.random_element() for i in range(partition_size)]
+        n=[I.random_element() for i in range(partition_size)]
+        M=[mult(power(base,Integer(m[i])),power(a,Integer(n[i]))) for i in range(partition_size)]
 
         ax = I.random_element()
         x = power(base,Integer(ax))
@@ -629,7 +636,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
         H={} # memory
         i0=0
         nextsigma = 0
-        for i in xrange(reset_bound):
+        for i in range(reset_bound):
                     #random walk, we need an efficient hash
             s=hash_function(x) % partition_size
             (x,ax,bx) = (mult(M[s],x), ax+m[s], bx+n[s])
@@ -720,7 +727,8 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
         ...
         ValueError: No discrete log of 2 found to base 1
 
-        See trac\#2356:
+    See :trac:`2356`::
+
         sage: F.<w> = GF(121)
         sage: v = w^120
         sage: v.log(w)
@@ -835,10 +843,10 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
 
     INPUT:
 
-    - a - a group element
-    - base - a group element
-    - bounds - a couple (lb,ub) representing the range where we look for a logarithm
-    - operation - string: '+', '*' or 'other'
+    - a -- a group element
+    - base -- a group element
+    - bounds -- a couple (lb,ub) representing the range where we look for a logarithm
+    - operation -- string: '+', '*' or 'other'
     - hash_function -- having an efficient hash function is critical for this algorithm
 
     OUTPUT: Returns an integer `n` such that `a=base^n` (or `a=n*base`)
@@ -855,7 +863,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
         sage: P = E.lift_x(a); P
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)
 
     This will return a multiple of the order of P::
 
@@ -872,6 +880,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         -- Yann Laigle-Chapuy (2009-01-25)
 
     """
+    from six.moves import range
     from sage.rings.integer import Integer
     from operator import mul, add, pow
 
@@ -895,7 +904,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
     N = width.isqrt()+1
 
     M = dict()
-    for s in xrange(10): #to avoid infinite loops
+    for s in range(10): #to avoid infinite loops
         #random walk function setup
         k = 0
         while (2**k<N):
@@ -905,7 +914,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
         #first random walk
         H = power(base,ub)
         c = ub
-        for i in xrange(N):
+        for i in range(N):
             if mut: H.set_immutable()
             r,e = M[hash_function(H)%k]
             H = mult(H,e)
@@ -1150,7 +1159,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
             L2 = L[k:]
             # recursive calls
             o1 = _order_from_multiple_helper(
-                multiple(Q, misc.prod([p**e for p,e in L2]), operation),
+                multiple(Q, prod([p**e for p,e in L2]), operation),
                 L1,
                 sum_left)
             o2 = _order_from_multiple_helper(
@@ -1397,7 +1406,7 @@ def structure_description(G, latex=False):
         'A8'
     """
     import re
-    from sage.misc.package import is_package_installed
+    from sage.misc.package import is_package_installed, PackageNotFoundError
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
@@ -1405,7 +1414,7 @@ def structure_description(G, latex=False):
         description = str(G._gap_().StructureDescription())
     except RuntimeError:
         if not is_package_installed('database_gap'):
-            raise RuntimeError("You must install the optional database_gap package first.")
+            raise PackageNotFoundError("database_gap")
         raise
 
     description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)

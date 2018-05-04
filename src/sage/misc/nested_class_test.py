@@ -44,7 +44,8 @@ alternative is to use ClasscallMetaclass as metaclass::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
+from six import add_metaclass
 
 __all__ = [] # Don't document any parents
 
@@ -60,7 +61,7 @@ class TestParent1(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent1()
-            <class 'sage.misc.nested_class_test.TestParent1_with_category'>
+            <sage.misc.nested_class_test.TestParent1_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -68,9 +69,9 @@ class TestParent1(Parent):
     class Element(ElementWrapper):
         pass
 
-class TestParent2(Parent):
-    __metaclass__ = NestedClassMetaclass
 
+@add_metaclass(NestedClassMetaclass)
+class TestParent2(Parent):
     def __init__(self):
         """
         EXAMPLES::
@@ -92,7 +93,7 @@ class TestParent3(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent3()
-            <class 'sage.misc.nested_class_test.TestParent3_with_category'>
+            <sage.misc.nested_class_test.TestParent3_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -100,15 +101,15 @@ class TestParent3(UniqueRepresentation, Parent):
     class Element(ElementWrapper):
         pass
 
-class TestParent4(Parent):
-    __metaclass__ = ClasscallMetaclass
 
+@add_metaclass(ClasscallMetaclass)
+class TestParent4(Parent):
     def __init__(self):
         """
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent4()
-            <class 'sage.misc.nested_class_test.TestParent4_with_category'>
+            <sage.misc.nested_class_test.TestParent4_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -174,24 +175,25 @@ class ALB(object):
 C = ALB.C
 
 
-
+@add_metaclass(NestedClassMetaclass)
 class ABBMeta(object):
-    __metaclass__ = NestedClassMetaclass
     class B(object):
         """
         B interne
         """
         pass
 
-class ABLMeta(object):
-    __metaclass__ = NestedClassMetaclass
-    B=B
 
+@add_metaclass(NestedClassMetaclass)
+class ABLMeta(object):
+    B = B
+
+
+@add_metaclass(NestedClassMetaclass)
 class ALBMeta(object):
     """
     There is a nested class just below which is properly sphinxed.
     """
-    __metaclass__ = NestedClassMetaclass
     class CMeta(object):
         """
         B interne

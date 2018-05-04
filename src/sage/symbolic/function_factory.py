@@ -10,10 +10,11 @@ Factory for symbolic functions
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 from __future__ import print_function
+from six import string_types
 
 from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
-from sage.misc.decorators import sage_wraps
+
 
 def function_factory(name, nargs=0, latex_name=None, conversions=None,
             evalf_params_first=True, eval_func=None, evalf_func=None,
@@ -65,6 +66,10 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 "'f"
             """
             return "'%s"%self.name()
+
+        def _sympy_(self):
+            from sympy import Function
+            return Function(self.name())
 
         def __reduce__(self):
             """
@@ -175,7 +180,7 @@ def function(s, *args, **kwds):
         sage: f = cr(a)
         sage: g = f.diff(a).integral(b)
         sage: g
-        b*D[0](cr)(a)
+        b*diff(cr(a), a)
         sage: foo = function("foo", nargs=2)
         sage: x,y,z = var("x y z")
         sage: foo(x, y) + foo(y, z)^2
@@ -198,7 +203,7 @@ def function(s, *args, **kwds):
         sage: 2*f
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand parent(s) for '*': 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
+        TypeError: unsupported operand parent(s) for *: 'Integer Ring' and '<class 'sage.symbolic.function_factory.NewSymbolicFunction'>'
 
     You now need to evaluate the function in order to do the arithmetic::
 
@@ -216,9 +221,9 @@ def function(s, *args, **kwds):
         sage: psi = function('psi', nargs=1)(r); psi
         psi(r)
         sage: g = 1/r^2*(2*r*psi.derivative(r,1) + r^2*psi.derivative(r,2)); g
-        (r^2*D[0, 0](psi)(r) + 2*r*D[0](psi)(r))/r^2
+        (r^2*diff(psi(r), r, r) + 2*r*diff(psi(r), r))/r^2
         sage: g.expand()
-        2*D[0](psi)(r)/r + D[0, 0](psi)(r)
+        2*diff(psi(r), r)/r + diff(psi(r), r, r)
         sage: g.coefficient(psi.derivative(r,2))
         1
         sage: g.coefficient(psi.derivative(r,1))
@@ -311,7 +316,7 @@ def function(s, *args, **kwds):
         sage: E
         E
     """
-    if not isinstance(s, (str, unicode)):
+    if not isinstance(s, string_types):
         raise TypeError("expect string as first argument")
 
     # create the function
@@ -364,40 +369,3 @@ def deprecated_custom_evalf_wrapper(func):
             prec = 53
         return func(*args, prec=prec)
     return new_evalf
-
-
-# This code is used when constructing dynamic methods for symbolic
-# expressions representing evaluated symbolic functions. See
-# get_dynamic_class_for_function in sage/symbolic/expression.pyx.
-# Since Cython does not support closures, this needs to live in a Python
-# file. This file is the only pure Python file we have related to symbolic
-# functions.
-def eval_on_operands(f):
-    """
-    Given a method ``f`` return a new method which takes a single symbolic
-    expression argument and appends operands of the given expression to
-    the arguments of ``f``.
-
-    EXAMPLES::
-
-        sage: def f(ex, x, y):
-        ....:     '''
-        ....:     Some documentation.
-        ....:     '''
-        ....:     return x + 2*y
-        ....:
-        sage: f(None, x, 1)
-        x + 2
-        sage: from sage.symbolic.function_factory import eval_on_operands
-        sage: g = eval_on_operands(f)
-        sage: g(x + 1)
-        x + 2
-        sage: g.__doc__.strip()
-        'Some documentation.'
-    """
-    @sage_wraps(f)
-    def new_f(ex, *args, **kwds):
-        new_args = list(ex._unpack_operands())
-        new_args.extend(args)
-        return f(ex, *new_args, **kwds)
-    return new_f

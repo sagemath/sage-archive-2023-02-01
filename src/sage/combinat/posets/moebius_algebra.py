@@ -19,16 +19,15 @@ Möbius Algebras
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.algebras import Algebras
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.combinat.posets.lattices import LatticePoset
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.all import ZZ
+
 
 class BasisAbstract(CombinatorialFreeModule, BindableClass):
     """
@@ -96,27 +95,6 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
        European Journal of Combinatorics, **19**, 1998.
        :doi:`10.1006/eujc.1998.0227`.
     """
-    @staticmethod
-    def __classcall_private__(cls, R, L):
-        """
-        Normalize input to ensure a unique representation.
-
-        TESTS::
-
-            sage: L1 = posets.BooleanLattice(4)
-            sage: L2 = posets.BooleanLattice(4, facade=False)
-            sage: L1 is L2
-            False
-            sage: M1 = L1.moebius_algebra(QQ)
-            sage: M2 = L2.moebius_algebra(QQ)
-            sage: M1 is M2
-            True
-        """
-        # We force the lattice to not be a facade in order to guarantee
-        #   that the ordering of the poset is used (see #21054).
-        L = LatticePoset(L, facade=False)
-        return super(MoebiusAlgebra, cls).__classcall__(cls, R, L)
-
     def __init__(self, R, L):
         """
         Initialize ``self``.
@@ -170,16 +148,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             sage: M = L.moebius_algebra(QQ)
             sage: M.lattice()
             Finite lattice containing 16 elements
-
-        For technical reasons (the defining lattice is forced to be a
-        non-facade lattice), the result is not equal to ``L``::
-
             sage: M.lattice() == L
-            False
-
-        However it is isomorphic::
-
-            sage: M.lattice().is_isomorphic(L)
             True
         """
         return self._lattice
@@ -281,6 +250,17 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
                 sage: L = posets.BooleanLattice(4)
                 sage: M = L.moebius_algebra(QQ)
                 sage: TestSuite(M.I()).run()
+
+            Check that the transition maps can be pickled::
+
+                sage: L = posets.BooleanLattice(4)
+                sage: M = L.moebius_algebra(QQ)
+                sage: E = M.E()
+                sage: I = M.I()
+                sage: phi = E.coerce_map_from(I)
+                sage: loads(dumps(phi))
+                Generic morphism:
+                ...
             """
             self._basis_name = "idempotent"
             CombinatorialFreeModule.__init__(self, M.base_ring(),
@@ -292,12 +272,14 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             self.module_morphism(self._to_natural_basis,
                                  codomain=E, category=self.category(),
-                                 triangular='lower', unitriangular=True
+                                 triangular='lower', unitriangular=True,
+                                 key=M._lattice._element_to_vertex
                                  ).register_as_coercion()
 
             E.module_morphism(E._to_idempotent_basis,
                               codomain=self, category=self.category(),
-                              triangular='lower', unitriangular=True
+                              triangular='lower', unitriangular=True,
+                              key=M._lattice._element_to_vertex
                               ).register_as_coercion()
 
 
@@ -576,7 +558,8 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
-                                       triangular='lower', unitriangular=True)
+                                       triangular='lower', unitriangular=True,
+                                       key=M._lattice._element_to_vertex)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()
@@ -656,7 +639,8 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
             E = M.E()
             phi = self.module_morphism(self._to_natural_basis,
                                        codomain=E, category=self.category(),
-                                       triangular='lower', unitriangular=True)
+                                       triangular='lower', unitriangular=True,
+                                       key=M._lattice._element_to_vertex)
 
             phi.register_as_coercion()
             (~phi).register_as_coercion()

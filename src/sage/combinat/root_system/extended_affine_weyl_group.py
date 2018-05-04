@@ -45,7 +45,6 @@ from sage.combinat.root_system.root_system import RootSystem
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
-from sage.rings.infinity import Infinity
 
 
 def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
@@ -97,7 +96,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
     .. [Bour] Bourbaki, *Lie Groups and Lie Algebras* IV.2
 
-    .. [Kac]_
+    - [Ka1990]_
 
     .. RUBRIC:: Notation
 
@@ -195,7 +194,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
     call `F` the *fundamental group*.
 
     In the future we may want to build an element of the group from an appropriate linear map f
-    on some of the root lattice realizations for this cartan type: W.from_endomorphism(f).
+    on some of the root lattice realizations for this Cartan type: W.from_endomorphism(f).
 
     EXAMPLES::
 
@@ -341,7 +340,7 @@ def ExtendedAffineWeylGroup(cartan_type, general_linear=None, **print_options):
 
         - Implement a "slow" action of `E` on any affine root or weight lattice realization.
         - Implement the level `m` actions of `E` and `W` on the lattices of finite type.
-        - Implement the relevant methods from the usual affine weyl group
+        - Implement the relevant methods from the usual affine Weyl group
         - Implementation by matrices: style "M".
         - Use case: implement the Hecke algebra on top of this
 
@@ -450,7 +449,7 @@ class ExtendedAffineWeylGroup_Class(UniqueRepresentation, Parent):
             self._n = self._cartan_type.n + 1
         else:
             self._general_linear = False
-        for option in print_options.keys():
+        for option in print_options:
             if option == 'translation':
                 self._prefixt = print_options['translation']
             elif option == 'fundamental':

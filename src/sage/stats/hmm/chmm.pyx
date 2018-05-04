@@ -3,30 +3,33 @@ Continuous Emission Hidden Markov Models
 
 AUTHOR:
 
-   - William Stein, 2010-03
+- William Stein, 2010-03
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
 
-include "cysignals/signals.pxi"
-
+from cpython.object cimport PyObject_RichCompare
 from libc.math cimport log, sqrt, exp, isnormal, isfinite, M_PI
 cdef double sqrt2pi = sqrt(2*M_PI)
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.misc.flatten  import flatten
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 from sage.finance.time_series cimport TimeSeries
 from sage.stats.intlist cimport IntList
 
-from hmm cimport HiddenMarkovModel
-from util cimport HMM_Util
-from distributions cimport GaussianMixtureDistribution
+from .hmm cimport HiddenMarkovModel
+from .util cimport HMM_Util
+from .distributions cimport GaussianMixtureDistribution
 
 cdef HMM_Util util = HMM_Util()
 
@@ -208,7 +211,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         self.B = TimeSeries(B)
         self.probability_init()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and other, which must both be GaussianHiddenMarkovModel's.
 
@@ -226,8 +229,9 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             False
         """
         if not isinstance(other, GaussianHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __getitem__(self, Py_ssize_t i):
         """
@@ -301,7 +305,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
         return [(RDF(self.B[2*i]),RDF(self.B[2*i+1])) for i in range(self.N)]
 
     def __repr__(self):
-        """
+        r"""
         Return string representation.
 
         EXAMPLES::
@@ -1087,7 +1091,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             raise ValueError("number of GaussianMixtures must be the same as number of entries of pi")
 
     def __repr__(self):
-        """
+        r"""
         Return string representation.
 
         EXAMPLES::
@@ -1115,7 +1119,7 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
                (self.A, self.B, self.pi, self.mixture)
 
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare self and other, which must both be GaussianMixtureHiddenMarkovModel's.
 
@@ -1133,8 +1137,9 @@ cdef class GaussianMixtureHiddenMarkovModel(GaussianHiddenMarkovModel):
             False
         """
         if not isinstance(other, GaussianMixtureHiddenMarkovModel):
-            raise ValueError
-        return cmp(self.__reduce__()[1], other.__reduce__()[1])
+            return NotImplemented
+        return PyObject_RichCompare(self.__reduce__()[1],
+                                    other.__reduce__()[1], op)
 
     def __getitem__(self, Py_ssize_t i):
         """

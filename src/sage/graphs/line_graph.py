@@ -133,12 +133,13 @@ This decomposition turns out to be very easy to implement :-)
   Characterizations of derived graphs,
   Journal of Combinatorial Theory,
   Vol. 9(2), pages 129-135, 1970
-  http://dx.doi.org/10.1016/S0021-9800(70)80019-9
+  :doi:`10.1016/S0021-9800(70)80019-9`
 
 Functions
 ---------
 """
 from __future__ import print_function
+from six import iteritems
 
 
 def is_line_graph(g, certificate = False):
@@ -252,7 +253,7 @@ def is_line_graph(g, certificate = False):
             RR, _ = root_graph(gg)
             R = R + RR
 
-        _, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+        _, isom = g.is_isomorphic(R.line_graph(labels = False), certificate = True)
 
     return (True, R, isom)
 
@@ -333,7 +334,7 @@ def line_graph(self, labels=True):
          ((1, 3, None), (3, 4, None), None),
          ((2, 3, None), (3, 4, None), None)]
 
-    Tests:
+    TESTS:
 
     :trac:`13787`::
 
@@ -442,12 +443,12 @@ def root_graph(g, verbose = False):
 
         sage: from sage.graphs.line_graph import root_graph
         sage: def test(g):
-        ...      gl = g.line_graph(labels = False)
-        ...      d=root_graph(gl)
+        ....:    gl = g.line_graph(labels = False)
+        ....:    d=root_graph(gl)
         sage: for i,g in enumerate(graphs(6)): # long time
-        ...     if not g.is_connected():       # long time
-        ...       continue                     # long time
-        ...     test(g)                        # long time
+        ....:   if not g.is_connected():       # long time
+        ....:     continue                     # long time
+        ....:   test(g)                        # long time
 
     Non line-graphs::
 
@@ -488,14 +489,14 @@ def root_graph(g, verbose = False):
         from sage.graphs.graph import Graph
         root = Graph([(0,1),(1,2),(2,0),(0,3)])
         return (root,
-                g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # Wheel on 5 vertices ?
     elif g.order() == 5 and g.size() == 8 and min(g.degree()) == 3:
         from sage.graphs.generators.basic import DiamondGraph
         root = DiamondGraph()
         return (root,
-                g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # Octahedron ?
     elif g.order() == 6 and g.size() == 12 and g.is_regular(k=4):
@@ -504,7 +505,7 @@ def root_graph(g, verbose = False):
             from sage.graphs.generators.basic import CompleteGraph
             root = CompleteGraph(4)
             return (root,
-                    g.is_isomorphic(root.line_graph(labels = False), certify = True)[1])
+                    g.is_isomorphic(root.line_graph(labels = False), certificate = True)[1])
 
     # From now on we can assume (thanks to Beineke) that no edge belongs to two
     # even triangles at once.
@@ -573,13 +574,14 @@ def root_graph(g, verbose = False):
             print("Added clique", S)
 
     # Deal with even triangles
-    for u,v,w in even_triangles:
+    for u, v, w in even_triangles:
 
-        # According to Beineke, we must go through all even triangles, and for
-        # each triangle uvw consider its three pairs of adjacent verties uv, vw,
-        # wu. For all pairs xy among those such that xy do not appear together
-        # in any clique we have found so far, we add xy to the list of cliques
-        # describing our covering.
+        # According to Beineke, we must go through all even triangles,
+        # and for each triangle uvw consider its three pairs of
+        # adjacent vertices uv, vw, wu. For all pairs xy among those
+        # such that xy do not appear together in any clique we have
+        # found so far, we add xy to the list of cliques describing
+        # our covering.
 
         for x,y in [(u,v), (v,w), (w,u)]:
 
@@ -597,7 +599,7 @@ def root_graph(g, verbose = False):
 
     # Deal with vertices contained in only one clique. All edges must be defined
     # by TWO endpoints, so we add a fake clique.
-    for x, clique_list in v_cliques.iteritems():
+    for x, clique_list in iteritems(v_cliques):
         if len(clique_list) == 1:
             clique_list.append((x,))
 
@@ -612,7 +614,7 @@ def root_graph(g, verbose = False):
     # Associates to each vertex of G its pair of coordinates in R
     vertex_to_map = {}
 
-    for v,L in v_cliques.iteritems():
+    for v, L in iteritems(v_cliques):
 
         # Add cliques to relabel dictionary
         for S in L:
@@ -624,7 +626,7 @@ def root_graph(g, verbose = False):
 
     if verbose:
         print("Final associations :")
-        for v, L in v_cliques.iteritems():
+        for v, L in iteritems(v_cliques):
             print(v, L)
 
     # We now build R
@@ -637,7 +639,7 @@ def root_graph(g, verbose = False):
     #
     # It's actually "just to make sure twice". This can be removed later if it
     # turns out to be too costly.
-    is_isom, isom = g.is_isomorphic(R.line_graph(labels = False), certify = True)
+    is_isom, isom = g.is_isomorphic(R.line_graph(labels = False), certificate = True)
 
     if not is_isom:
         raise Exception(error_message)

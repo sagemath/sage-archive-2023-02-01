@@ -4,6 +4,8 @@ Combinatorics features that are imported by default in the interpreter namespace
 from __future__ import absolute_import
 from sage.misc.lazy_import import lazy_import
 
+from sage.misc.lazy_import import lazy_import
+
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
@@ -93,6 +95,10 @@ from .composition_tableau import CompositionTableau, CompositionTableaux
 lazy_import('sage.combinat.tableau_tuple',['TableauTuple', 'StandardTableauTuple', 'RowStandardTableauTuple',
                                            'TableauTuples', 'StandardTableauTuples', 'RowStandardTableauTuples'])
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
+lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
+                                         'LittlewoodRichardsonTableaux'])
+lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
+                                                     'ShiftedPrimedTableau'])
 
 #Words
 from .words.all import *
@@ -106,6 +112,9 @@ from .tuple import Tuples, UnorderedTuples
 
 #Alternating sign matrices
 from .alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
+
+#Plane Partitions
+from .plane_partition import PlanePartition, PlanePartitions
 
 # Parking Functions
 from .non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
@@ -137,6 +146,7 @@ from .root_system.all import *
 from .sf.all import *
 from .ncsf_qsym.all import *
 from .ncsym.all import *
+lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions')
 from .matrices.all import *
 # Posets
 from .posets.all import *
@@ -197,3 +207,9 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 
 # Constellations
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
+
+# Growth diagrams
+lazy_import('sage.combinat.growth', ['GrowthDiagram',
+                                     'GrowthDiagramRSK', 'GrowthDiagramBurge',
+                                     'GrowthDiagramBinWord', 'GrowthDiagramDomino',
+                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])

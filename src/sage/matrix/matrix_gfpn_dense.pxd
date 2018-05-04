@@ -22,8 +22,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     cdef FieldConverter_class _converter
     cdef Matrix_gfpn_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols)
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value)
+    cdef set_slice_unsafe(self, Py_ssize_t i, Matrix_gfpn_dense S)
     cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j)
-    cdef list _rowlist_(self, i, j=*)
-    cdef _matrix_times_matrix_(self, Matrix right)
+    cpdef Matrix_gfpn_dense get_slice(self, Py_ssize_t i, Py_ssize_t j)
+    cpdef list _rowlist_(self, i, j=*)
     cpdef Matrix_gfpn_dense _multiply_classical(Matrix_gfpn_dense self, Matrix_gfpn_dense right)
     cpdef Matrix_gfpn_dense _multiply_strassen(Matrix_gfpn_dense self, Matrix_gfpn_dense right, cutoff=*)

@@ -1,7 +1,5 @@
 from sage.libs.gmp.mpz cimport mpz_t
-from sage.libs.flint.padic cimport padic_ctx_t
-from sage.libs.flint.fmpz cimport fmpz_t
-from sage.libs.flint.fmpz_poly cimport fmpz_poly_t
+from sage.libs.flint.types cimport padic_ctx_t, fmpz_t, fmpz_poly_t
 from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef class PowComputer_flint(PowComputer_class):
@@ -29,7 +27,7 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
     # WARNING:
     # These variables are modified by the linkage and must no be used anywhere else
     # (other than in __(c)init__)
-    cdef fmpz_t fmpz_ccmp, fmpz_cval, fmpz_cinv, fmpz_cinv2, fmpz_clist, fmpz_clist2, fmpz_ctm, fmpz_cconv
+    cdef fmpz_t fmpz_ccmp, fmpz_cval, fmpz_cinv, fmpz_cinv2, fmpz_cexp, fmpz_ctm, fmpz_cconv
     cdef fmpz_poly_t poly_cconv, poly_ctm, poly_ccmp, poly_cinv, poly_cisunit, poly_cinv2, poly_flint_rep, poly_matmod
     cdef mpz_t mpz_cpow, mpz_ctm, mpz_cconv, mpz_matmod
 

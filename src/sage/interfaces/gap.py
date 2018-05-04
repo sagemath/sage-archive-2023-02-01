@@ -174,25 +174,28 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
+from .gap_workspace import gap_workspace_file, prepare_workspace_dir
+from sage.cpython.string import bytes_to_str
+from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
 from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
+from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
+from sage.structure.element import ModuleElement
 import re
 import os
+import io
 import pexpect
 import time
 import platform
 import string
 
-GAP_DIR = os.path.join(DOT_SAGE, 'gap')
-
-WORKSPACE = os.path.join(GAP_DIR, 'workspace-%s'%abs(hash(SAGE_LOCAL)))
+WORKSPACE = gap_workspace_file()
 
 GAP_BINARY = os.path.join(SAGE_LOCAL, 'bin', 'gap')
 
@@ -240,7 +243,7 @@ def set_gap_memory_pool_size(size_in_bytes):
     EXAMPLES::
 
         sage: from sage.interfaces.gap import \
-        ...       get_gap_memory_pool_size, set_gap_memory_pool_size
+        ....:     get_gap_memory_pool_size, set_gap_memory_pool_size
         sage: n = get_gap_memory_pool_size()
         sage: set_gap_memory_pool_size(n)
         sage: n == get_gap_memory_pool_size()
@@ -257,23 +260,27 @@ def get_gap_memory_pool_size():
 
     EXAMPLES::
 
-        sage: from sage.interfaces.gap import \
-        ...       get_gap_memory_pool_size
+        sage: from sage.interfaces.gap import get_gap_memory_pool_size
         sage: get_gap_memory_pool_size()   # random output
         1534059315
     """
     global gap_memory_pool_size
     if gap_memory_pool_size is not None:
         return gap_memory_pool_size
-    from sage.misc.memory_info import MemoryInfo
-    mem = MemoryInfo()
-    suggested_size = max(mem.available_swap() // 10,
-                         mem.available_ram()  // 50)
+
+    import psutil
+    from sage.misc.getusage import virtual_memory_limit
+    mem = psutil.virtual_memory()
+    swap = psutil.swap_memory()
+    vmax = virtual_memory_limit()
+
+    suggested_size = max(swap.free // 10, mem.available // 50)
     # Don't eat all address space if the user set ulimit -v
-    suggested_size = min(suggested_size, mem.virtual_memory_limit()//10)
+    suggested_size = min(suggested_size, vmax // 10)
     # ~220MB is the minimum for long doctests
     suggested_size = max(suggested_size, 250 * 1024**2)
     return suggested_size
+
 
 def _get_gap_memory_pool_size_MB():
     """
@@ -290,7 +297,7 @@ def _get_gap_memory_pool_size_MB():
     EXAMPLES:
 
         sage: from sage.interfaces.gap import \
-        ...       _get_gap_memory_pool_size_MB
+        ....:     _get_gap_memory_pool_size_MB
         sage: _get_gap_memory_pool_size_MB()   # random output
         '1467m'
     """
@@ -473,7 +480,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: filename = tmp_filename()
             sage: f = open(filename, 'w')
-            sage: f.write('xx := 22;\n')
+            sage: _ = f.write('xx := 22;\n')
             sage: f.close()
             sage: gap.read(filename)
             sage: gap.get('xx').strip()
@@ -588,7 +595,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             E.sendline(line)
         except OSError:
             raise RuntimeError("Error evaluating %s in %s"%(line, self))
-        if wait_for_prompt == False:
+        if not wait_for_prompt:
             return ('','')
         if len(line)==0:
             return ('','')
@@ -735,31 +742,31 @@ class Gap_generic(ExtraTabCompletion, Expect):
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
 
-            if len(error)> 0:
+            if len(error):
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
                     self.quit()
                     gap_reset_workspace()
                 error = error.replace('\r','')
                 raise RuntimeError("%s produced error output\n%s\n   executing %s"%(self, error,line))
-            if len(normal) == 0:
+            if not len(normal):
                 return ''
 
-            if isinstance(wait_for_prompt, str) and normal.ends_with(wait_for_prompt):
+            if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
-            elif normal.endswith(self._prompt):
+            elif normal.endswith(bytes_to_str(self._prompt)):
                 n = len(self._prompt)
             elif normal.endswith(self._continuation_prompt()):
                 n = len(self._continuation_prompt())
             else:
                 n = 0
             out = normal[:-n]
-            if len(out) > 0 and out[-1] == "\n":
+            if len(out) and out[-1] == "\n":
                 out = out[:-1]
             return out
 
         except (RuntimeError,TypeError) as message:
-            if 'EOF' in message[0] or E is None or not E.isalive():
+            if 'EOF' in message.args[0] or E is None or not E.isalive():
                 print("** %s crashed or quit executing '%s' **" % (self, line))
                 print("Restarting %s and trying again" % self)
                 self._start()
@@ -890,7 +897,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: g = Gap()
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
 
         When the command itself is so long that it warrants use of a temporary
@@ -898,7 +905,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         the file will contain a single command::
 
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
 
         """
@@ -959,7 +966,11 @@ class Gap_generic(ExtraTabCompletion, Expect):
         return self('%s.%s' % (record.name(), name))
 
 
-class GapElement_generic(ExtraTabCompletion, ExpectElement):
+# We need to inherit from ModuleElement to support
+# sage.structure.coerce_actions.ModuleAction and it needs to be first
+# in the MRO because extension types should always come first.
+@instancedoc
+class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
     r"""
     Generic interface to the GAP3/GAP4 interpreters.
 
@@ -969,19 +980,19 @@ class GapElement_generic(ExtraTabCompletion, ExpectElement):
 
     - Franco Saliola (Feb 2010): refactored to separate out the generic
       code
-
     """
-    def __repr__(self):
+    def _add_(self, other):
         """
         EXAMPLES::
 
-            sage: gap(2)
+            sage: a = gap(1)
+            sage: a + a
             2
         """
-        s = ExpectElement.__repr__(self)
-        if s.find('must have a value') != -1:
-            raise RuntimeError("An error occurred creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s))
-        return s
+        # This is just a copy of ExpectElement._add_ to fix the fact
+        # that the abtract method ModuleElement._add_ comes first in
+        # the MRO.
+        return self._operation("+", other)
 
     def bool(self):
         """
@@ -1131,7 +1142,8 @@ class Gap(Gap_generic):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for gap interpeter.
+        Set the seed for gap interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -1199,12 +1211,13 @@ class Gap(Gap_generic):
             sage: g.quit()
         """
         if self.__use_workspace_cache:
+            from sage.libs.gap.saved_workspace import timestamp
             try:
                 # Check to see if we need to auto-regenerate the gap
                 # workspace, i.e., if the gap script is more recent
                 # than the saved workspace, which signals that gap has
                 # been upgraded.
-                if os.path.getmtime(WORKSPACE) < os.path.getmtime(GAP_BINARY):
+                if os.path.getmtime(WORKSPACE) < timestamp():
                     raise OSError("GAP workspace too old")
                 # Set the modification time of the workspace to the
                 # current time.  This ensures the workspace doesn't
@@ -1286,8 +1299,9 @@ class Gap(Gap_generic):
 
         TESTS:
 
-        We make sure that #9938 (GAP does not start if the path to the GAP
-        workspace file contains more than 82 characters) is fixed::
+        We make sure that :trac:`9938` (GAP does not start if the path
+        to the GAP workspace file contains more than 82 characters) is
+        fixed::
 
             sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
             sage: sage.interfaces.gap.WORKSPACE = os.path.join(SAGE_TMP, "gap" + "0"*(80-len(SAGE_TMP)))
@@ -1296,6 +1310,8 @@ class Gap(Gap_generic):
             5
             sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
         """
+        prepare_workspace_dir()
+
         # According to the GAP Reference Manual,
         # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
@@ -1328,8 +1344,9 @@ class Gap(Gap_generic):
         else:
             tmp_to_use = self._local_tmpfile()
         self.eval('SetGAPDocTextTheme("none")')
-        self.eval(r'\$SAGE.tempfile := "%s";'%tmp_to_use)
-        line = Expect.eval(self, "? %s"%s)
+        gap_encoding = str(self('GAPInfo.TermEncoding;'))
+        self.eval(r'\$SAGE.tempfile := "%s";' % tmp_to_use)
+        line = Expect.eval(self, "? %s" % s)
         Expect.eval(self, "? 1")
         match = re.search("Page from (\d+)", line)
         if match is None:
@@ -1338,7 +1355,7 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = open(self._local_tmpfile(),"r")
+            F = io.open(self._local_tmpfile(), "r", encoding=gap_encoding)
             help = F.read()
             if pager:
                 from IPython.core.page import page
@@ -1489,7 +1506,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     default when Sage first starts GAP.
 
     The first time you start GAP from Sage, it saves the startup state
-    of GAP in a file ``$HOME/.sage/gap/workspace-HASH``, where ``HASH``
+    of GAP in a file ``$HOME/.sage/gap/workspace-gap-HASH``, where ``HASH``
     is a hash of the directory where Sage is installed.
 
     This is useful, since then subsequent startup of GAP is at least 10
@@ -1502,21 +1519,6 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     if they are available.
 
     TESTS:
-
-    Check that ``gap_reset_workspace`` still works when ``GAP_DIR``
-    doesn't exist, see :trac:`14171`::
-
-        sage: ORIGINAL_GAP_DIR = sage.interfaces.gap.GAP_DIR
-        sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
-        sage: sage.interfaces.gap.GAP_DIR = os.path.join(tmp_dir(), "test_gap_dir")
-        sage: sage.interfaces.gap.WORKSPACE = os.path.join(sage.interfaces.gap.GAP_DIR, "test_workspace")
-        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
-        False
-        sage: gap_reset_workspace()                          # long time
-        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
-        True
-        sage: sage.interfaces.gap.GAP_DIR = ORIGINAL_GAP_DIR
-        sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
 
     Check that the race condition from :trac:`14242` has been fixed.
     We temporarily need to change the worksheet filename. ::
@@ -1535,36 +1537,6 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         sage: os.unlink(sage.interfaces.gap.WORKSPACE)  # long time
         sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
     """
-    # Make sure GAP_DIR exists
-    try:
-        os.makedirs(GAP_DIR)
-        msg = "It is OK to delete all these cache files.  They will be recreated as needed.\n"
-        open(os.path.join(GAP_DIR, 'README.txt'), 'w').write(msg)
-    except OSError:
-        if not os.path.isdir(GAP_DIR):
-            raise
-
-    # Delete all gap workspaces that haven't been used in the last
-    # week, to avoid needless cruft.  I had an install on sage.math
-    # with 90 of these, since I run a lot of different versions of
-    # Sage, and it totalled 1.3GB of wasted space!  See trac #4936.
-    # We only do this after creating a new workspace, since this cruft
-    # issue is only a problem if workspaces get created every so
-    # often.  We don't want to have to do this on every startup.
-    now = time.time()
-    for F in os.listdir(GAP_DIR):
-        if F.startswith('workspace-'):
-            W = os.path.join(GAP_DIR, F)
-            try:
-                age = now - os.path.getatime(W)
-                if age >= 604800:    # 1 week in seconds
-                    os.unlink(W)
-            except OSError:
-                # It's not a problem if W doesn't exist, everything
-                # else is an error.
-                if os.path.exists(W):
-                    raise
-
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
@@ -1583,6 +1555,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.quit()
 
 
+@instancedoc
 class GapElement(GapElement_generic):
     def __getitem__(self, n):
         """
@@ -1654,13 +1627,13 @@ class GapElement(GapElement_generic):
         return v
 
 
-
+@instancedoc
 class GapFunctionElement(FunctionElement):
-    def _sage_doc_(self):
+    def _instancedoc_(self):
         """
         EXAMPLES::
 
-            sage: print(gap(4).SymmetricGroup._sage_doc_())
+            sage: print(gap(4).SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1673,12 +1646,13 @@ class GapFunctionElement(FunctionElement):
         return help
 
 
+@instancedoc
 class GapFunction(ExpectFunction):
-    def _sage_doc_(self):
+    def _instancedoc(self):
         """
         EXAMPLES::
 
-            sage: print(gap.SymmetricGroup._sage_doc_())
+            sage: print(gap.SymmetricGroup.__doc__)
             <BLANKLINE>
             50 Group Libraries
             <BLANKLINE>
@@ -1805,13 +1779,14 @@ def intmod_gap_to_sage(x):
     """
     from sage.rings.finite_rings.all import FiniteField
     from sage.rings.finite_rings.integer_mod import Mod
+    from sage.rings.integer import Integer
     s = str(x)
     m = re.search(r'Z\(([0-9]*)\)', s)
     if m:
-        return gfq_gap_to_sage(x, FiniteField(m.group(1)))
+        return gfq_gap_to_sage(x, FiniteField(Integer(m.group(1))))
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
-        return Mod(m.group(1), m.group(2))
+        return Mod(Integer(m.group(1)), Integer(m.group(2)))
     raise ValueError("Unable to convert Gap element '%s'" % s)
 
 #############
@@ -1830,32 +1805,6 @@ def reduce_load_GAP():
     """
     return gap
 
-# This is only for backwards compatibility, in order to be able
-# to unpickle the invalid objects that are in the pickle jar.
-def reduce_load():
-    """
-    This is for backwards compatibility only.
-
-    To be precise, it only serves at unpickling the invalid
-    gap elements that are stored in the pickle jar.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import reduce_load
-        sage: reduce_load()
-        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
-        See http://trac.sagemath.org/18848 for details.
-        <repr(<sage.interfaces.gap.GapElement at ...>) failed:
-        ValueError: The session in which this object was defined is no longer running.>
-
-    By :trac:`18848`, pickling actually often works::
-
-        sage: loads(dumps(gap([1,2,3])))
-        [ 1, 2, 3 ]
-
-    """
-    deprecation(18848, "This function is only used to unpickle invalid objects")
-    return GapElement(None, None)
 
 def gap_console():
     """

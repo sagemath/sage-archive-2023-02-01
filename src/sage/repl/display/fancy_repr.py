@@ -93,8 +93,8 @@ class ObjectReprABC(object):
             'Error: ObjectReprABC.__call__ is abstract'
         """
         from sage.repl.display.pretty_print import SagePrettyPrinter
-        import StringIO
-        stream = StringIO.StringIO()
+        from six import StringIO
+        stream = StringIO()
         p = SagePrettyPrinter(stream, 79, '\n')
         ok = self(obj, p, False)
         if ok:
@@ -209,7 +209,7 @@ class LargeMatrixHelpRepr(ObjectReprABC):
         if obj.nrows() < max_rows and obj.ncols() < max_cols:
             return False
         p.text(
-            str(obj) + " (use the '.str()' method to see the entries)"
+            repr(obj) + " (use the '.str()' method to see the entries)"
         )
         return True
 

@@ -32,8 +32,7 @@ from sage.rings.all import ZZ
 from sage.arith.all import gcd, inverse_mod, kronecker_symbol
 from sage.quadratic_forms.quadratic_form import QuadraticForm
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.matrix.matrix import Matrix, is_Matrix
-from sage.structure.element import is_Vector
+from sage.structure.element import is_Vector, is_Matrix
 from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_with_matrix
 from sage.quadratic_forms.ternary import _reduced_ternary_form_eisenstein_without_matrix, _find_zeros_mod_p_odd, _find_zeros_mod_p_2, _find_p_neighbor_from_vec, _basic_lemma
 from sage.quadratic_forms.ternary import _find_all_ternary_qf_by_level_disc, _find_a_ternary_qf_by_level_disc
@@ -193,7 +192,7 @@ class TernaryQF(SageObject):
         """
         Evaluate this ternary quadratic form Q on a vector of 3 elements, or matrix of elements in Z, with 3 rows. If a vector is given then the output will be an integer Q(`v`), but if a matrix is given the output will be a ternary quadratic form if the matrix has 3 columns, or a quadratic form if not. The quadratic form in matrix notation will be:
 
-        .. math::
+        .. MATH::
                 Q' = v^t * Q * v.
 
         EXAMPLES::
@@ -396,7 +395,7 @@ class TernaryQF(SageObject):
 
     def is_negative_definite(self):
         """
-        Determines if the ternary quadratic form is negatice definite.
+        Determine if the ternary quadratic form is negative definite.
 
         EXAMPLES::
 
@@ -408,9 +407,7 @@ class TernaryQF(SageObject):
             6
             sage: Q.is_negative_definite()
             False
-
         """
-
         d1 = self._a
         if d1 == 0:
             return False

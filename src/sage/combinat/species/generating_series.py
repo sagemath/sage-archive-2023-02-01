@@ -245,7 +245,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         `g = \sum_{n=0}^{\infty} g_n \frac{x^n}{n!}`, then
         functorial composition `f \Box g` is defined as
 
-        .. math::
+        .. MATH::
 
              f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}
 
@@ -438,13 +438,13 @@ class CycleIndexSeries(LazyPowerSeries):
 
         If
 
-        .. math::
+        .. MATH::
 
            f = \sum_{n=0}^{\infty} f_n(p_1, p_2, p_3, \ldots ),
 
         then the stretch `g` of `f` by `k` is
 
-        .. math::
+        .. MATH::
 
            g = \sum_{n=0}^{\infty} f_n(p_k, p_{2k}, p_{3k}, \ldots ).
 
@@ -645,7 +645,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         It can be shown (as in section 2.2 of [BLL]_) that there is a corresponding operation on cycle indices:
 
-        .. math::
+        .. MATH::
 
             Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!} \sum_{\sigma \in \mathfrak{S}_{n}} \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \dots ] \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \dots.
 
@@ -773,10 +773,9 @@ class CycleIndexSeries(LazyPowerSeries):
             # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
             # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
             # partition of `nm`.
-            term_iterable = chain.from_iterable( repeat(lcm(pair), times=gcd(pair)) for pair in product(l1, l2) )
-            term_list = sorted(term_iterable, reverse=True)
-            res = Partition(term_list)
-            return res
+            term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                for pair in product(l1, l2))
+            return Partition(sorted(term_iterable, reverse=True))
 
         # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
         # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
@@ -1277,7 +1276,7 @@ def ExponentialCycleIndexSeries(R = RationalField()):
 
     This cycle index satisfies
 
-    .. math::
+    .. MATH::
 
         Z_{E} = \\sum_{n \\geq 0} \\sum_{\\lambda \\vdash n} \\frac{p_{\\lambda}}{z_{\\lambda}}.
 

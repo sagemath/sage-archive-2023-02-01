@@ -1,15 +1,13 @@
-#!/usr/bin/env bash
-
 cd src
 
-# Apply patches
-for patch in ../patches/*.patch; do
-    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
-    patch -p1 <"$patch"
-    if [ $? -ne 0 ]; then
-        echo >&2 "Error applying '$patch'"
-        exit 1
-    fi
+# pip can install itself!
+#
+# need to use --upgrade or --ignore-installed; Otherwise pip, which is
+# importing itself, will think itself is already installed
+#
+# Install pip3 first so pip2 overwrites local/bin/pip
+for vers in 3 2; do
+    python${vers} -m pip install --verbose --no-index --ignore-installed \
+            --isolated --root="$SAGE_DESTDIR" . || \
+        sdh_die "Error building / installing pip${vers}"
 done
-
-python setup.py install

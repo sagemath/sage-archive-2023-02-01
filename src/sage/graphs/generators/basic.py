@@ -15,6 +15,7 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 #                         http://www.gnu.org/licenses/
 ###########################################################################
 from __future__ import print_function
+from six.moves import range
 
 # import from Sage library
 from sage.graphs.graph import Graph
@@ -98,7 +99,7 @@ def ButterflyGraph():
     For more information, see this
     `Wikipedia article on the butterfly graph <http://en.wikipedia.org/wiki/Butterfly_graph>`_.
 
-    .. seealso::
+    .. SEEALSO::
 
         - :meth:`GraphGenerators.FriendshipGraph`
 
@@ -198,11 +199,12 @@ def CircularLadderGraph(n):
         pos_dict[i] = (x,y)
 
     G = Graph(pos=pos_dict, name="Circular Ladder graph")
-    G.add_vertices( range(2*n) )
-    G.add_cycle( range(n) )
-    G.add_cycle( range(n,2*n) )
+    G.add_vertices(range(2 * n))
+    G.add_cycle(list(range(n)))
+    G.add_cycle(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )
     return G
+
 
 def ClawGraph():
     """
@@ -235,24 +237,22 @@ def CycleGraph(n):
     r"""
     Returns a cycle graph with n nodes.
 
-    A cycle graph is a basic structure which is also typically called
-    an n-gon.
+    A cycle graph is a basic structure which is also typically called an
+    `n`-gon.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each cycle
-    graph will be displayed with the first (0) node at the top, with
-    the rest following in a counterclockwise manner.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each cycle graph will be
+    displayed with the first (0) node at the top, with the rest following in a
+    counterclockwise manner.
 
-    The cycle graph is a good opportunity to compare efficiency of
-    filling a position dictionary vs. using the spring-layout algorithm
-    for plotting. Because the cycle graph is very symmetric, the
-    resulting plots should be similar (in cases of small n).
+    The cycle graph is a good opportunity to compare efficiency of filling a
+    position dictionary vs. using the spring-layout algorithm for
+    plotting. Because the cycle graph is very symmetric, the resulting plots
+    should be similar (in cases of small `n`).
 
-    Filling the position dictionary in advance adds O(n) to the
-    constructor.
+    Filling the position dictionary in advance adds `O(n)` to the constructor.
 
-    EXAMPLES: Compare plotting using the predefined layout and
-    networkx::
+    EXAMPLES: Compare plotting using the predefined layout and networkx::
 
         sage: import networkx
         sage: n = networkx.cycle_graph(23)
@@ -261,9 +261,8 @@ def CycleGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
 
-    We next view many cycle graphs as a Sage graphics array. First we
-    use the ``CycleGraph`` constructor, which fills in the
-    position dictionary::
+    We next view many cycle graphs as a Sage graphics array. First we use the
+    ``CycleGraph`` constructor, which fills in the position dictionary::
 
         sage: g = []
         sage: j = []
@@ -293,14 +292,33 @@ def CycleGraph(n):
         ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
+
+    TESTS:
+
+    The input parameter must be a positive integer::
+
+        sage: G = graphs.CycleGraph(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter n must be a positive integer
     """
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
-    G = graph.Graph(n,pos=pos_dict, name="Cycle graph")
-    G.add_cycle(range(n))
+    if n < 0:
+        raise ValueError("parameter n must be a positive integer")
+
+    G = Graph(n, name="Cycle graph")
+    if n == 1:
+        G.set_pos({0:(0, 0)})
+    elif n == 2:
+        G.add_edge(0, 1)
+        G.set_pos({0:(0, 1), 1:(0, -1)})
+    else:
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
+            pos_dict[i] = (x, y)
+        G.set_pos(pos_dict)
+        G.add_cycle(list(range(n)))
     return G
 
 def CompleteGraph(n):
@@ -478,7 +496,7 @@ def CompleteBipartiteGraph(n1, n2):
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
-    Trac ticket #12155::
+    :trac:`12155`::
 
         sage: graphs.CompleteBipartiteGraph(5,6).complement()
         complement(Complete bipartite graph): Graph on 11 vertices
@@ -517,11 +535,11 @@ def CompleteBipartiteGraph(n1, n2):
     for i in range(n1):
         x = c1*i + c3
         y = 1
-        pos_dict[i] = (x,y)
-    for i in range(n1+n2)[n1:]:
+        pos_dict[i] = (x, y)
+    for i in range(n1,n1+n2):
         x = c2*(i-n1) + c4
         y = 0
-        pos_dict[i] = (x,y)
+        pos_dict[i] = (x, y)
 
     G = Graph(n1+n2, pos=pos_dict, name="Complete bipartite graph")
     G.add_edges((i,j) for i in range(n1) for j in range(n1,n1+n2))
@@ -536,7 +554,7 @@ def CompleteMultipartiteGraph(l):
     - ``l`` -- a list of integers : the respective sizes
       of the components.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A complete tripartite graph with sets of sizes
     `5, 6, 8`::
@@ -558,7 +576,7 @@ def CompleteMultipartiteGraph(l):
 
         '''
         Produce a layout of the vertices so that vertices in the same
-        vertex set are adjecent and clearly separated from vertices in other
+        vertex set are adjacent and clearly separated from vertices in other
         vertex sets.
 
         This is done by calculating the vertices of an r-gon then
@@ -650,7 +668,7 @@ def EmptyGraph():
         4
         sage: for i in range(3):
         ....:     empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
-        sage: for i in range(4)[1:]:
+        sage: for i in range(1, 4):
         ....:     empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
         sage: empty2.show() # long time
     """
@@ -665,7 +683,7 @@ def ToroidalGrid2dGraph(n1, n2):
     2-dimensional grid graph with identical parameters to which are added
     the edges `((i,0),(i,n_2-1))` and `((0,i),(n_1-1,i))`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 2-dimensional grid is a regular graph, while the usual
     2-dimensional grid is not ::
@@ -714,7 +732,7 @@ def Toroidal6RegularGrid2dGraph(n1, n2):
 
     - ``n1, n2`` (integers) -- see above.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The toroidal 6-regular grid on `25` elements::
 
@@ -1033,64 +1051,11 @@ def LadderGraph(n):
         pos_dict[i] = (x,0)
     G = Graph(pos=pos_dict, name="Ladder graph")
     G.add_vertices( range(2*n) )
-    G.add_path( range(n) )
-    G.add_path( range(n,2*n) )
+    G.add_path(list(range(n)))
+    G.add_path(list(range(n, 2 * n)))
     G.add_edges( (i,i+n) for i in range(n) )
     return G
 
-def LollipopGraph(n1, n2):
-    """
-    Returns a lollipop graph with n1+n2 nodes.
-
-    A lollipop graph is a path graph (order n2) connected to a complete
-    graph (order n1). (A barbell graph minus one of the bells).
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the complete
-    graph will be drawn in the lower-left corner with the (n1)th node
-    at a 45 degree angle above the right horizontal center of the
-    complete graph, leading directly into the path graph.
-
-    EXAMPLES: Construct and show a lollipop graph Candy = 13, Stick =
-    4
-
-    ::
-
-        sage: g = graphs.LollipopGraph(13,4)
-        sage: g.show() # long time
-
-    Create several lollipop graphs in a Sage graphics array
-
-    ::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ....:     k = graphs.LollipopGraph(i+3,4)
-        ....:     g.append(k)
-        sage: for i in range(2):
-        ....:     n = []
-        ....:     for m in range(3):
-        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ....:     j.append(n)
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-    """
-    pos_dict = {}
-
-    for i in range(n1):
-        x = float(cos((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        y = float(sin((pi/4) - ((2*pi)/n1)*i) - n2/2 - 1)
-        j = n1-1-i
-        pos_dict[j] = (x,y)
-    for i in range(n1, n1+n2):
-        x = float(i - n1 - n2/2 + 1)
-        y = float(i - n1 - n2/2 + 1)
-        pos_dict[i] = (x,y)
-    G = graph.Graph(dict( (i,range(i+1,n1)) for i in range(n1) ), pos=pos_dict, name="Lollipop Graph")
-    G.add_vertices( range(n1+n2) )
-    G.add_path( range(n1-1,n1+n2) )
-    return G
 
 def PathGraph(n, pos=None):
     """
@@ -1259,10 +1224,10 @@ def StarGraph(n):
         sage: G.show() # long time
     """
     pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n+1):
+    pos_dict[0] = (0, 0)
+    for i in range(1, n+1):
         x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
         y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
-        pos_dict[i] = (x,y)
-    return graph.Graph({0:range(1,n+1)}, pos=pos_dict, name="Star graph")
-
+        pos_dict[i] = (x, y)
+    return graph.Graph({0: list(range(1, n + 1))},
+                       pos=pos_dict, name="Star graph")

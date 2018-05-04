@@ -2,16 +2,10 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport ModuleElement
 from sage.categories.action cimport Action
 from sage.rings.padics.pow_computer cimport PowComputer_class
-#from sage.libs.flint.ulong_extras cimport *
-
-#cdef extern from "../../../ext/multi_modular.h":
-#    ctypedef unsigned long mod_int
-#    mod_int MOD_INT_MAX
-
 
 
 cdef class Dist(ModuleElement):
-    cpdef normalize(self)
+    cpdef normalize(self, include_zeroth_moment=*)
     cdef long ordp
     cpdef long _ord_p(self)
     cdef long _relprec(self)
@@ -21,6 +15,7 @@ cdef class Dist_vector(Dist):
     cdef public _moments
     cdef Dist_vector _new_c(self)
     cdef Dist_vector _addsub(self, Dist_vector right, bint negate)
+    cpdef _add_(self, other)
 
 # cdef class Dist_simple(Dist):
 #     cdef public _moments

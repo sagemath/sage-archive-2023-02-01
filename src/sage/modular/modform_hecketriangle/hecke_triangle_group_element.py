@@ -124,7 +124,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el == HeckeTriangleGroupElement(G, M)
             True
             sage: type(el)
-            <class 'sage.modular.modform_hecketriangle.hecke_triangle_group_element.HeckeTriangleGroup_with_category.element_class'>
+            <class 'sage.modular.modform_hecketriangle.hecke_triangle_groups.HeckeTriangleGroup_with_category.element_class'>
             sage: el.category()
             Category of elements of Hecke triangle group for n = 10
             sage: type(HeckeTriangleGroupElement(G, M))
@@ -158,7 +158,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         # results are stored/cached in the element. Moreover this avoids code duplication.
         # In particular this means we cannot call the method from _matrix_check().
         # Instead it is called here in the __init__ method of the element
-        # (after the prelimenary checks).
+        # (after the preliminary checks).
         if check:
             if self._matrix.determinant() != 1:
                 raise TypeError("The matrix is not an element of {}, it has determinant {} != 1.".format(parent, self._matrix.determinant()))
@@ -651,7 +651,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         I.e. an element which is equal to ``self`` up
         to a sign after taking the appropriate power
         and which itself cannot be written as a non-trivial
-        power (at least for non-elliptic ellements).
+        power (at least for non-elliptic elements).
 
         To construct the representative see
         :meth:`primitive_representative`. To construct
@@ -678,7 +678,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         OUTPUT:
 
         A tuple ``(L, R)``, where ``R`` is an element of
-        the hecke triangle group that conjugates the
+        the Hecke triangle group that conjugates the
         described primitive representative to the primitive
         part of ``self``.
 
@@ -1528,7 +1528,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
         OUTPUT:
 
         A tuple ``(L, R, sgn)``, where ``R`` is an element of
-        the hecke triangle group that conjugates the
+        the Hecke triangle group that conjugates the
         described representative to ``self`` up to the given sign.
 
         In the hyperbolic and parabolic case ``L`` is an
@@ -1955,8 +1955,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [  lam + 2 7*lam + 2]
             ]
 
-            This agrees with the results (p.16) from Culp-Ressler on
-            binary quadratic forms for hecke triangle groups:
+        This agrees with the results (p.16) from Culp-Ressler on
+        binary quadratic forms for Hecke triangle groups::
 
             sage: [v.continued_fraction() for v in R]
             [((1,), (1, 1, 4, 2)),
@@ -2020,9 +2020,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.simple_fixed_point_set()
-            {(-lam + 3/2)*e - 1/2*lam + 1, 1/2*e + 1/2*lam, (-lam + 3/2)*e + 1/2*lam - 1, 1/2*e - 1/2*lam}
+            {(-lam + 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e - 1/2*lam + 1, 1/2*e - 1/2*lam, 1/2*e + 1/2*lam}
+
             sage: el.simple_fixed_point_set(extended=False)
-            {1/2*e + 1/2*lam, 1/2*e - 1/2*lam}
+            {1/2*e - 1/2*lam, 1/2*e + 1/2*lam}
         """
         if self.parent().n() == infinity:
             from warnings import warn
@@ -2507,7 +2508,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.is_hecke_symmetric()
             False
             sage: (el.simple_fixed_point_set(), el.inverse().simple_fixed_point_set())
-            ({1/2*e, (-1/2*lam + 1/2)*e}, {(1/2*lam - 1/2)*e, -1/2*e})
+            ({1/2*e, (-1/2*lam + 1/2)*e}, {-1/2*e, (1/2*lam - 1/2)*e})
 
             sage: el = G.V(3)*G.V(2)^(-1)*G.V(1)*G.V(6)
             sage: el.is_hecke_symmetric()
@@ -2519,7 +2520,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             sage: el.is_hecke_symmetric()
             True
             sage: el.simple_fixed_point_set()
-            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e + 1/2*lam - 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e - 1/2*lam + 1}
+            {(lam - 3/2)*e + 1/2*lam - 1, (-lam + 3/2)*e - 1/2*lam + 1, (lam - 3/2)*e - 1/2*lam + 1, (-lam + 3/2)*e + 1/2*lam - 1}
             sage: el.simple_fixed_point_set() == el.inverse().simple_fixed_point_set()
             True
         """
@@ -3078,12 +3079,12 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
         It is possible to act on points of ``HyperbolicPlane()``.
 
-        .. NOTE:
+        .. NOTE::
 
-        There is a 1-1 correspondence between hyperbolic
-        fixed points and the corresponding primitive element
-        in the stabilizer. The action in the two cases above
-        is compatible with this correspondence.
+            There is a 1-1 correspondence between hyperbolic
+            fixed points and the corresponding primitive element
+            in the stabilizer. The action in the two cases above
+            is compatible with this correspondence.
 
         INPUT:
 
@@ -3167,10 +3168,10 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
 
     def _act_on_(self, other, self_on_left):
         r"""
-        Defines the action by linear fractional transformation of Hecke triangle group
-        elements on complext points (using :meth:`acton`).
+        Define the action by linear fractional transformation of Hecke triangle group
+        elements on complex points (using :meth:`acton`).
 
-        For the action on matrices by conjugation :meth:`acton` has to be used explicitely
+        For the action on matrices by conjugation :meth:`acton` has to be used explicitly
         (to avoid confusion/ambiguity in expressions of the form gamma1*gamma2*z).
 
         EXAMPLES::
@@ -3288,7 +3289,7 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             try:
                 tau = f.numerator().parent().gen()
             except (ValueError, TypeError, AttributeError):
-                raise ValueError("f={} is not a rational function or a polynomial in one variable, so tau has to be specfied explicitely!".format(f))
+                raise ValueError("f={} is not a rational function or a polynomial in one variable, so tau has to be specified explicitely!".format(f))
 
         if (tau in HyperbolicPlane()):
             tau = tau.to_model('UHP').coordinates()
@@ -3308,9 +3309,8 @@ class HeckeTriangleGroupElement(MatrixGroupElement_generic):
             [lam^2 - 1       lam]
             [lam^2 - 1 lam^2 - 1]
             sage: el.as_hyperbolic_plane_isometry().parent()
-            Set of Morphisms from Hyperbolic plane in the Upper Half Plane Model model to Hyperbolic plane in the Upper Half Plane Model model in Category of hyperbolic models of Hyperbolic plane
+            Set of Morphisms from Hyperbolic plane in the Upper Half Plane Model to Hyperbolic plane in the Upper Half Plane Model in Category of hyperbolic models of Hyperbolic plane
             sage: el.as_hyperbolic_plane_isometry("KM").parent()
-            Set of Morphisms from Hyperbolic plane in the Klein Disk Model model to Hyperbolic plane in the Klein Disk Model model in Category of hyperbolic models of Hyperbolic plane
+            Set of Morphisms from Hyperbolic plane in the Klein Disk Model to Hyperbolic plane in the Klein Disk Model in Category of hyperbolic models of Hyperbolic plane
         """
-
         return HyperbolicPlane().UHP().get_isometry(self._matrix).to_model(model)

@@ -18,41 +18,30 @@ This came up in some subtle bug once.
     5
 """
 
-###############################################################################
-#   Sage: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-###############################################################################
-from __future__ import print_function
+#*****************************************************************************
+from __future__ import absolute_import, print_function
 
-cimport sage_object
+cimport sage.structure.sage_object as sage_object
 import operator
-from parent import Set_PythonType, Set_PythonType_class
-from coerce import py_scalar_parent
-from sage.structure.coerce_dict import MonoDict, TripleDict
+from .parent import Set_PythonType, Set_PythonType_class
+from .coerce cimport py_scalar_parent
+from sage.ext.stdsage cimport HAS_DICTIONARY
 
 from cpython.object cimport *
 from cpython.bool cimport *
-include 'sage/ext/stdsage.pxi'
 
 cdef inline check_old_coerce(Parent p):
     if p._element_constructor is not None:
         raise RuntimeError("%s still using old coercion framework" % p)
 
-
-## def make_parent_v0(_class, _dict, has_coerce_map_from):
-##     """
-##     This should work for any Python class deriving from this, as long
-##     as it doesn't implement some screwy __new__() method.
-##     """
-##     cdef Parent new_object
-##     new_object = _class.__new__(_class)
-##     if not _dict is None:
-##         new_object.__dict__ = _dict
-##     new_object._has_coerce_map_from = has_coerce_map_from
-##     return new_object
 
 cdef class Parent(parent.Parent):
     """
@@ -77,34 +66,36 @@ cdef class Parent(parent.Parent):
         [0, a, a + 1, 1]
     """
 
-    def __init__(self, coerce_from=[], actions=[], embeddings=[], category=None):
-        # TODO: many classes don't call this at all, but __new__ crashes Sage
-#        if len(coerce_from):
-#            print(type(self), coerce_from)
+    def __init__(self, coerce_from=None, actions=None, embeddings=None, *, category=None):
         self.init_coerce(False)
-        self._coerce_from_list = list(coerce_from)
-        self._coerce_from_hash = MonoDict(23)
-        self._action_list = list(actions)
-        self._action_hash = TripleDict(23)
+        if coerce_from is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'coerce_from' keyword is deprecated")
+            self._coerce_from_list = list(coerce_from)
+        self._coerce_from_hash = MonoDict()
+        if actions is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'actions' keyword is deprecated")
+            self._action_list = list(actions)
+        self._action_hash = TripleDict()
 
         cdef parent.Parent other
-        for mor in embeddings:
-            other = mor.domain()
-            print("embedding", self, " --> ", other)
-            print(mor)
-            other.init_coerce() # TODO remove when we can
-            other._coerce_from_list.append(mor)
+        if embeddings is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(24614, "the 'embeddings' keyword is deprecated")
+            for mor in embeddings:
+                other = mor.domain()
+                print("embedding", self, " --> ", other)
+                print(mor)
+                other.init_coerce() # TODO remove when we can
+                other._coerce_from_list.append(mor)
 
         self._set_element_constructor()
 
         # old
-        self._has_coerce_map_from = MonoDict(23)
+        self._has_coerce_map_from = MonoDict()
         if category is not None:
             self._init_category_(category)
-
-    cdef int init_coerce(self, bint warn=False) except -1:
-        parent.Parent.init_coerce(self, warn)
-
 
     #################################################################################
     # New Coercion support functionality
@@ -119,10 +110,10 @@ cdef class Parent(parent.Parent):
 
             sage: QQ['q,t'].coerce_map_from(int)
             Composite map:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field
               Defn:   Native morphism:
-                      From: Set of Python objects of type 'int'
+                      From: Set of Python objects of class 'int'
                       To:   Rational Field
                     then
                       Polynomial base injection morphism:
@@ -204,33 +195,6 @@ cdef class Parent(parent.Parent):
         else:
             return None
 
-    cpdef get_action_c(self, S, op, bint self_on_left):
-        check_old_coerce(self)
-        try:
-            if self._action_hash is None: # this is because parent.__init__() does not always get called
-                self.init_coerce()
-            return self._action_hash.get(S, op, self_on_left)
-        except KeyError:
-            pass
-        if HAS_DICTIONARY(self):
-            action = self.get_action_impl(S, op, self_on_left)
-        else:
-            action = self.get_action_c_impl(S, op, self_on_left)
-        if action is not None:
-            from sage.categories.action import Action
-            if not isinstance(action, Action):
-                raise TypeError("get_action_impl must return None or an Action")
-            self._action_hash.set(S, op, self_on_left, action)
-        return action
-
-    def get_action_impl(self, S, op, self_on_left):
-        check_old_coerce(self)
-        return self.get_action_c_impl(S, op, self_on_left)
-
-    cdef get_action_c_impl(self, S, op, bint self_on_left):
-        check_old_coerce(self)
-        return self.discover_action(S, op, self_on_left, None, None)
-
     #################################################################################
     # Coercion support functionality
     #################################################################################
@@ -304,7 +268,7 @@ cdef class Parent(parent.Parent):
         if self == S:
             return True
         if self._has_coerce_map_from is None:
-            self._has_coerce_map_from = MonoDict(23)
+            self._has_coerce_map_from = MonoDict()
         else:
             try:
                 return self._has_coerce_map_from.get(S)
@@ -349,7 +313,7 @@ cdef class Parent(parent.Parent):
         for x in ['_an_element_', 'pi', 1.2, 2, 1, 0, infinity]:
             try:
                 return self(x)
-            except (TypeError, NameError, NotImplementedError, AttributeError, ValueError):
+            except Exception:
                 pass
 
         raise NotImplementedError("please implement _an_element_c_impl or _an_element_impl for %s" % self)
@@ -368,12 +332,6 @@ cdef class Parent(parent.Parent):
             self._cache_an_element = self._an_element_c_impl()
         return self._cache_an_element
 
-    # This should eventually be inherited from the EnumeratedSets() category
-    # This is just a convenient spot to cover the relevant cython parents,
-    # without bothering the new parents
-    list = parent.Parent._list_from_iterator_cached
-
-
     ############################################################################
     # Coercion Compatibility Layer
     ############################################################################
@@ -384,19 +342,23 @@ cdef class Parent(parent.Parent):
         else:
             return parent.Parent._coerce_map_from_(self, S)
 
-    cpdef _get_action_(self, other, op, bint self_on_left):
-        if self._element_constructor is None:
-            return self.get_action_c(other, op, self_on_left)
-        else:
-            return parent.Parent._get_action_(self, other, op, self_on_left)
-
     def _an_element_(self):
         if self._element_constructor is None:
             return self._an_element_c()
         else:
             return parent.Parent._an_element_(self)
 
-    cpdef _generic_convert_map(self, S):
+    cpdef _generic_convert_map(self, S, category=None):
+        r"""
+        Return a default conversion from ``S``.
+
+        EXAMPLES::
+
+           sage: R.<x,y>=QQ[]
+           sage: R._generic_convert_map(QQ).category_for()
+           Category of sets with partial maps
+
+        """
         if self._element_constructor is None:
             if hasattr(self, '_element_constructor_'):
                 assert callable(self._element_constructor_)
@@ -407,4 +369,4 @@ cdef class Parent(parent.Parent):
                 if isinstance(S, type):
                     S = Set_PythonType(S)
                 return CallMorphism(Hom(S, self))
-        return parent.Parent._generic_convert_map(self, S)
+        return parent.Parent._generic_convert_map(self, S, category)

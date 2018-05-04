@@ -52,9 +52,10 @@ EXAMPLES::
     sage: c.is_sparse()
     True
 """
+from __future__ import absolute_import
 
-cimport matrix
-cimport matrix_sparse
+cimport sage.matrix.matrix as matrix
+cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.structure.element
 from sage.structure.element cimport ModuleElement
 
@@ -102,16 +103,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         Secondly, there is no fast way to access non-zero elements in a given
         row/column.
     """
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __init__
-    #   * __dealloc__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * def _pickle
-    #   * def _unpickle
-    ########################################################################
     def __cinit__(self, parent, entries=0, coerce=True, copy=True):
         self._entries = {}  # crucial so that pickling works
 
@@ -159,7 +150,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             sage: loads(dumps(m)) == m
             True
 
-            sage: R2.<a,b> = PolynomialRing(QQ,'a','b')
+            sage: R2.<a,b> = PolynomialRing(QQ)
             sage: M2 = MatrixSpace(R2,2,3,sparse=True)
             sage: M2(m)
             [4 1 0]
@@ -198,7 +189,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         if entries is None or not entries:
             # be careful here. We might get entries set to be an empty list
             # because of the code implemented in matrix_space.MatrixSpace
-            # So the condtion
+            # So the condition
             #   if entries is None or not entries:
             #       ...
             # is valid. But
@@ -241,7 +232,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             #
             #  and this is bad since:
             #
-            #    sage: map(type,m.dict().keys()[0])
+            #    sage: list(map(type,m.dict().keys()[0]))
             #    [<type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>,
             #     <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int'>]
             #
@@ -313,9 +304,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         else:
             raise RuntimeError("unknown matrix version (=%s)"%version)
 
-    def __hash__(self):
-        return self._hash()
-
     ########################################################################
     # LEVEL 2 functionality
     # x  * cdef _add_
@@ -357,10 +345,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i, j, len_v, len_w
         cdef Matrix_generic_sparse other
         other = <Matrix_generic_sparse> _other
-        cdef list v = self._entries.items()
-        v.sort()
-        cdef list w = other._entries.items()
-        w.sort()
+        cdef list v = sorted(self._entries.items())
+        cdef list w = sorted(other._entries.items())
         s = {}
         i = 0  # pointer into self
         j = 0  # pointer into other
@@ -425,8 +411,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
         TESTS::
 
-            sage: R.<a,b> = Zmod(6)['a','b']
-            sage: M = MatrixSpace(R, 4,3)
+            sage: R.<a,b> = Zmod(6)[]
+            sage: M = MatrixSpace(R, 3, 4)
             sage: m = M({(0,3): a+3*b*a, (1,1): -b})
             sage: m == m    # indirect doctest
             True
@@ -471,142 +457,20 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         cdef list v = self.fetch('nonzero_positions_by_column')
         if v is None:
             v = self._entries.keys()
-            v.sort(_cmp_backward)
+            v.sort(key=lambda x: (x[1], x[0]))
             self.cache('nonzero_positions_by_column', v)
         if copy:
             return v[:]
         return v
 
-    ######################
-    # Echelon support
-    ######################
-
-
-##     def dense_matrix(self):
-##         import sage.matrix.matrix
-##         M = sage.matrix.matrix.MatrixSpace(self.base_ring(),
-##                                            self._nrows, self._ncols,
-##                                            sparse = False)(0)
-##         for i, j, x in self._entries
-##             M[i,j] = x
-##         return M
-
-##     def nonpivots(self):
-##         # We convert the pivots to a set so we have fast
-##         # inclusion testing
-##         X = set(self.pivots())
-##         # [j for j in xrange(self.ncols()) if not (j in X)]
-##         np = []
-##         for j in xrange(self.ncols()):
-##             if not (j in X):
-##                 np.append(j)
-##         return np
-
-##     def matrix_from_nonpivot_columns(self):
-##         """
-##         The sparse matrix got by deleted all pivot columns.
-##         """
-##         return self.matrix_from_columns(self.nonpivots())
-
-##     def matrix_from_columns(self, columns):
-##         """
-##         Returns the sparse submatrix of self composed of the given
-##         list of columns.
-
-##         INPUT:
-##             columns -- list of int's
-##         OUTPUT:
-##             a sparse matrix.
-##         """
-##         # Let A be this matrix and let B denote this matrix with
-##         # the columns deleted.
-##         # ALGORITHM:
-##         # 1. Make a table that encodes the function
-##         #          f : Z --> Z,
-##         #    f(j) = column of B where the j-th column of A goes
-##         # 2. Build new list of entries and return resulting matrix.
-##         C = set(columns)
-##         X = []
-##         j = 0
-##         for i in xrange(self.ncols()):
-##             if i in C:
-##                 X.append(j)
-##                 j = j + 1
-##             else:
-##                 X.append(-1)    # column to be deleted.
-##         entries2 = []
-##         for i, j, x in self.entries():
-##             if j in C:
-##                 entries2.append((i,X[j],x))
-##         return SparseMatrix(self.base_ring(), self.nrows(),
-##                             len(C), entries2, coerce=False, sort=False)
-
-##     def matrix_from_rows(self, rows):
-##         """
-##         Returns the sparse submatrix of self composed of the given
-##         list of rows.
-
-##         INPUT:
-##             rows -- list of int's
-##         OUTPUT:
-##             a sparse matrix.
-##         """
-##         R = set(rows)
-##         if not R.issubset(set(xrange(self.nrows()))):
-##             raise ArithmeticError("Invalid rows.")
-##         X = []
-##         i = 0
-##         for j in xrange(self.nrows()):
-##             if j in R:
-##                 X.append(i)
-##                 i = i + 1
-##             else:
-##                 X.append(-1)    # row to be deleted.
-##         entries2 = []
-##         for i, j, x in self.entries():
-##             if i in R:
-##                 entries2.append((X[i],j,x))
-##         return SparseMatrix(self.base_ring(), len(R),
-##                             self.ncols(), entries2, coerce=False, sort=False)
-
-
-##     def transpose(self):
-##         """
-##         Returns the transpose of self.
-##         """
-##         entries2 = [] # [(j,i,x) for i,j,x in self.entries()]
-##         for i,j,x in self.entries():
-##             entries2.append((j,i,x))
-##         return SparseMatrix(self.base_ring(), self.ncols(),
-##                             self.nrows(), entries2, coerce=False, sort=True)
-
-##     def __rmul__(self, left):
-##         return self.scalar_multiple(left)
-
-##     def scalar_multiple(self, left):
-##         R = self.base_ring()
-##         left = R(left)
-##         if left == R(1):
-##             return self
-##         if left == R(0):
-##             return SparseMatrix(R, self.nrows(), self.ncols(), coerce=False, sort=False)
-
-##         X = []
-##         for i, j, x in self.list():
-##             X.append((i,j,left*x))
-##         return SparseMatrix(self.base_ring(), self.nrows(),
-##                             self.ncols(), X, coerce=False, sort=False)
-
 
 ####################################################################################
 # Various helper functions
 ####################################################################################
-import matrix_space
 
 def Matrix_sparse_from_rows(X):
     """
     INPUT:
-
 
     -  ``X`` - nonempty list of SparseVector rows
 
@@ -633,6 +497,8 @@ def Matrix_sparse_from_rows(X):
         raise TypeError("X (=%s) must be a list or tuple"%X)
     if len(X) == 0:
         raise ArithmeticError("X must be nonempty")
+
+    from . import matrix_space
     entries = {}
     R = X[0].base_ring()
     ncols = X[0].degree()
@@ -641,27 +507,3 @@ def Matrix_sparse_from_rows(X):
             entries[(i,j)] = x
     M = matrix_space.MatrixSpace(R, len(X), ncols, sparse=True)
     return M(entries, coerce=False, copy=False)
-
-def _cmp_backward(x, y):  # todo: speed up via Python/C API
-    r"""
-    TESTS::
-
-        sage: from sage.matrix.matrix_generic_sparse import _cmp_backward
-        sage: l0 = [(-1,-1), (0,0), (1,0), (-1,1), (0,1), (1,1), (-1,2)]
-        sage: l = l0[:]
-        sage: for _ in range(10):
-        ....:   shuffle(l)
-        ....:   l.sort(_cmp_backward)
-        ....:   assert l0 == l
-    """
-    # compare two 2-tuples, but in reverse order, i.e., second entry than first
-    cdef Py_ssize_t i,j
-    i = x[1]
-    j = y[1]
-    if i < j:
-        return -1
-    elif i > j:
-        return 1
-    i = x[0]
-    j = y[0]
-    return i-j

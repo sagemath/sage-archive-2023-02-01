@@ -1,8 +1,6 @@
 """
 Matrix Plots
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com>,
 #                          William Stein <wstein@gmail.com>,
@@ -19,9 +17,13 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+from six import iteritems
+
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options, suboptions
 from sage.plot.colors import get_cmap
+
 
 class MatrixPlot(GraphicPrimitive):
     """
@@ -114,8 +116,8 @@ class MatrixPlot(GraphicPrimitive):
 
         # center the matrix so that, for example, the square representing the
         # (0,0) entry is centered on the origin.
-        for k,v in limits.iteritems():
-            limits[k]-=0.5
+        for k, v in iteritems(limits):
+            limits[k] -= 0.5
         return limits
 
     def _allowed_options(self):
@@ -269,7 +271,7 @@ def matrix_plot(mat, **options):
 
       The list of predefined color maps can be visualized in `matplotlib's
       documentation
-      <http://matplotlib.org/examples/color/colormaps_reference.html>`__. You
+      <https://matplotlib.org/examples/color/colormaps_reference.html>`__. You
       can also type ``import matplotlib.cm; matplotlib.cm.datad.keys()`` to list
       their names.
 
@@ -408,7 +410,7 @@ def matrix_plot(mat, **options):
 
     Here we plot a random sparse matrix::
 
-        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in xrange(100)]))
+        sage: sparse = matrix(dict([((randint(0, 10), randint(0, 10)), 1) for i in range(100)]))
         sage: matrix_plot(sparse)
         Graphics object consisting of 1 graphics primitive
 
@@ -499,7 +501,7 @@ def matrix_plot(mat, **options):
     import numpy as np
     import scipy.sparse as scipysparse
     from sage.plot.all import Graphics
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.all import RDF
     orig_mat=mat
     if is_Matrix(mat):

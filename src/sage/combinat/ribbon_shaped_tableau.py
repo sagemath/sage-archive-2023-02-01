@@ -18,11 +18,12 @@ Ribbon Shaped Tableaux
 
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux
 from sage.combinat.tableau import Tableaux
-from sage.combinat.permutation import Permutation, descents_composition_first, descents_composition_list, descents_composition_last
+from sage.combinat.permutation import descents_composition_first, descents_composition_list, descents_composition_last
 from sage.rings.integer import Integer
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
+
 
 class RibbonShapedTableau(SkewTableau):
     r"""
@@ -150,8 +151,7 @@ class RibbonShapedTableau(SkewTableau):
             sage: RibbonShapedTableau([]).width()
             0
         """
-        #return 1+sum([len(r)-1 for r in self])
-        return len(self[0]) if len(self) > 0 else 0
+        return len(self[0]) if self else 0
 
 
 class RibbonShapedTableaux(SkewTableaux):
@@ -336,7 +336,7 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
         if p == []:
             return self.element_class(self, [])
 
-        comp = p.descents(from_zero=False)
+        comp = p.descents()
 
         if comp == []:
             return self.element_class(self, [p[:]])
@@ -453,7 +453,7 @@ class Ribbon_class(RibbonShapedTableau):
 
         EXAMPLES::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+\xcaLJ\xca\xcf\xe3\n\x02S\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl!\x9bFl!\xbb\x06\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x903\x03\xc80\x022\xb8Rc\x0b\xb95@<c \x8f\x07\xc40\x012xSSK\x93\xf4\x00l\x811\x17')
+            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+\xcaLJ\xca\xcf\xe3\n\x02S\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl!\x9bFl!\xbb\x06\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x903\x03\xc80\x022\xb8Rc\x0b\xb95@<c \x8f\x07\xc40\x012xSSK\x93\xf4\x00l\x811\x17')
             [[None, 1, 2], [3, 4]]
             sage: loads(dumps( RibbonShapedTableau([[3,2,1], [1,1]]) ))  # indirect doctest
             [[None, 3, 2, 1], [1, 1]]

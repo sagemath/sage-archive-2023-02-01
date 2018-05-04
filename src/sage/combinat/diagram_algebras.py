@@ -2271,7 +2271,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         if isinstance(x, (AbstractPartitionDiagram, list, tuple, Permutations.Element)):
             return self._diag_to_Blst(x)
 
-        # conversion from Orbit basis
+        # conversion from orbit basis
         if (isinstance(x, OrbitBasis.Element)
                 and self.base_ring().has_coerce_map_from(x.parent().base_ring())):
             return self(x.parent().to_diagram_basis(x))
@@ -2373,7 +2373,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
     def orbit_basis(self):
         r"""
-        Return the Orbit basis of ``self``.
+        Return the orbit basis of ``self``.
 
         EXAMPLES::
 
@@ -2417,7 +2417,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     class Element(DiagramBasis.Element):
         def to_orbit_basis(self):
             """
-            Return ``self`` in the Orbit basis of the associated
+            Return ``self`` in the orbit basis of the associated
             partition algebra.
 
             EXAMPLES::
@@ -2434,7 +2434,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
 class OrbitBasis(DiagramAlgebra):
     """
-    The Orbit basis of the partition algebra.
+    The orbit basis of the partition algebra.
 
     EXAMPLES::
 
@@ -2460,7 +2460,7 @@ class OrbitBasis(DiagramAlgebra):
         sage: O2(pa * ob)
         (x-2)*OP{{-2, -1, 2}, {1}}
 
-    Note that the unit in the Orbit basis is not a single diagram,
+    Note that the unit in the orbit basis is not a single diagram,
     in contrast to the natural diagram basis::
 
         sage: P2.one()
@@ -2605,7 +2605,7 @@ class OrbitBasis(DiagramAlgebra):
     @cached_method
     def one(self):
         """
-        Return the element `1` of the partition algebra in the Orbit basis.
+        Return the element `1` of the partition algebra in the orbit basis.
 
         EXAMPLES::
 
@@ -2655,7 +2655,7 @@ class OrbitBasis(DiagramAlgebra):
 
     def _diagram_to_orbit_on_basis(self, diag):
         """
-        Return the element ``diag`` in the Orbit basis.
+        Return the element ``diag`` in the orbit basis.
 
         EXAMPLES::
 
@@ -2691,7 +2691,7 @@ class OrbitBasis(DiagramAlgebra):
     def product_on_basis(self, d1, d2):
         r"""
         Return the product `O_{d_1} O_{d_2}` of two elements
-        in the Orbit basis ``self``.
+        in the orbit basis ``self``.
 
         EXAMPLES::
 
@@ -2895,7 +2895,7 @@ class SubPartitionAlgebra(DiagramBasis):
     class Element(DiagramBasis.Element):
         def to_orbit_basis(self):
             """
-            Return ``self`` in the Orbit basis of the associated
+            Return ``self`` in the orbit basis of the associated
             ambient partition algebra.
 
             EXAMPLES::

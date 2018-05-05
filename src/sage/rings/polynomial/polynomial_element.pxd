@@ -31,7 +31,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     # may return a new element if not possible to modify inplace
     cdef _inplace_truncate(self, long n)
 
-    cdef get_fast(self, Py_ssize_t i)
+    cdef get_coeff_c(self, Py_ssize_t i)
     cdef get_unsafe(self, Py_ssize_t i)
     cpdef long number_of_terms(self)
 

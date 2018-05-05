@@ -866,7 +866,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         from sage.ext.fast_eval import fast_float_arg, fast_float_constant
         var = self._parent._names[0]
-        if len(vars) == 0:
+        if not vars:
             x = fast_float_arg(0)
         elif var in vars:
             x = fast_float_arg(list(vars).index(var))
@@ -874,8 +874,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError("free variable: %s" % var)
         cdef int i, d = self.degree()
         expr = x
-        coeff = self.get_fast(d)
-        if d <= 0:
+        if d == -1:
+            return fast_float_constant(0)
+        coeff = self.get_unsafe(d)
+        if d == 0:
             return fast_float_constant(coeff)
         if coeff != 1:
             expr *= fast_float_constant(coeff)
@@ -914,7 +916,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         x = etb.var(self.variable_name())
         expr = x
         cdef int i, d = self.degree()
-        coeff = self.get_fast(d)
         # We handle polynomial rings like QQ['x']['y']; that gives us some
         # slowdown.  Optimize away some of that:
         if len(etb._vars) == 1:
@@ -923,7 +924,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         else:
             # There may be variables in our coefficients...
             coeff_maker = etb.make
-        if d <= 0:
+        if d == -1:
+            return coeff_maker(0)
+        coeff = self.get_unsafe(d)
+        if d == 0:
             return coeff_maker(coeff)
         if coeff != 1:
             expr *= coeff_maker(coeff)
@@ -1002,8 +1006,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         cdef Py_ssize_t d2 = pol.degree()
 
         # Special case constant polynomials
-        if d1 <= 0 and d2 <= 0:
-            return richcmp(self.get_fast(0), pol.get_fast(0), op)
+        if d1 == -1: # self is the 0 polynomial
+            if d2 == -1:
+                return rich_to_bool(op, 0) # both polynomials are 0
+            elif d2 == 0:
+                return richcmp(self._parent._base.zero(), pol.get_unsafe(0), op)
+            return rich_to_bool_sgn(op, -1) # we have d2 > 0
+        elif d1 == 0: # self is a nonzero constant
+            if d2 == -1:
+                return richcmp(self.get_unsafe(0), pol._parent._base.zero(), op)
+            elif d2 == 0:
+                return richcmp(self.get_unsafe(0), pol.get_unsafe(0), op)
+            return rich_to_bool_sgn(op, -1) # we have d2 > d1 == 0
 
         # For different degrees, compare the degree
         if d1 != d2:
@@ -1094,9 +1108,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                       + [self.get_unsafe(i) for i in xrange(start, stop)])
             return self._new_generic(values)
 
-        return self.get_fast(pyobject_to_long(n))
+        return self.get_coeff_c(pyobject_to_long(n))
 
-    cdef get_fast(self, Py_ssize_t i):
+    cdef get_coeff_c(self, Py_ssize_t i):
         """
         Return the `i`-th coefficient of ``self``.
         """
@@ -1204,7 +1218,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # This assumption is not true, but I think it is true enough for the purposes and it
             # it allows us to write fast code that omits terms with 0 coefficients.  This is
             # important if we want to maintain the '==' relationship with sparse polys.
-            c_hash = hash(self.get_fast(i))
+            c_hash = hash(self.get_unsafe(i))
             if c_hash != 0:
                 if i == 0:
                     result += c_hash
@@ -1228,7 +1242,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial to float")
-        return float(self.get_fast(0))
+        return float(self.get_coeff_c(0))
 
     def __int__(self):
         """
@@ -1240,7 +1254,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial to int")
-        return int(self.get_fast(0))
+        return int(self.get_coeff_c(0))
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -1262,7 +1276,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         a = im_gens[0]
         P = a.parent()
         d = self.degree()
-        result = P._coerce_(self.get_fast(d))
+        if d == -1:
+            return P.zero() # Special case: 0 should always coerce to 0
+        result = P._coerce_(self.get_unsafe(d))
         i = d - 1
         while i >= 0:
             result = result * a + P._coerce_(self.get_unsafe(i))
@@ -1284,7 +1300,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial")
-        return ZZ(self.get_fast(0))
+        return ZZ(self.get_coeff_c(0))
 
     def _rational_(self):
         r"""
@@ -1300,7 +1316,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             raise TypeError("not a constant polynomial")
-        return sage.rings.rational.Rational(self.get_fast(0))
+        return sage.rings.rational.Rational(self.get_coeff_c(0))
 
     def _symbolic_(self, R):
         """
@@ -1357,12 +1373,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: parent(g)
             Univariate Polynomial Ring in x over Rational Field
         """
-        if self.degree() > 0:
+        d = self.degree()
+        if d > 0:
             if not self.is_unit():
                 raise ValueError("self is not a unit")
             else:
                 raise NotImplementedError("polynomial inversion over non-integral domains not implemented")
-        return self._parent(~(self.get_fast(0)))
+        elif d == -1:
+            return self._parent(~self._parent._base.zero())
+        return self._parent(~self.get_unsafe(0))
 
     def inverse_mod(a, m):
         """
@@ -1547,15 +1566,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if prec <= 0:
             raise ValueError("the precision must be positive, got {}".format(prec))
 
-        if not self.get_fast(0).is_unit():
-            raise ValueError("constant term {} is not a unit".format(self.get_fast(0)))
+        const_term = self.get_coeff_c(0)
+        if not const_term.is_unit():
+            raise ValueError("constant term {} is not a unit".format(const_term))
 
         R = self._parent
         A = R.base_ring()
         try:
-            first_coeff = self.get_fast(0).inverse_of_unit()
+            first_coeff = const_term.inverse_of_unit()
         except AttributeError:
-            first_coeff = A(~self.get_fast(0))
+            first_coeff = A(~const_term)
 
         current = R(first_coeff)
         for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
@@ -1601,7 +1621,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if self.degree() > 0:
             raise TypeError("cannot coerce nonconstant polynomial to long")
-        return long(self.get_fast(0))
+        return long(self.get_coeff_c(0))
 
     cpdef _mul_(self, right):
         """
@@ -1954,9 +1974,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                         pass
             if self.degree() == 1 and (degree is None or degree == 1):
                 if ring is None:
-                    return -self.get_fast(0)/self.get_fast(1)
+                    return -self.get_unsafe(0) / self.get_unsafe(1)
                 else:
-                    return ring(-self.get_fast(0)/self.get_fast(1))
+                    return ring(-self.get_unsafe(0) / self.get_unsafe(1))
             q = self.base_ring().order()
             if ring is None:
                 allowed_deg_mult = Integer(1)
@@ -2293,22 +2313,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             except TypeError:
                 raise TypeError("non-integral exponents not supported")
 
-        if self.degree() <= 0:
-            return self.parent()(self.get_fast(0)**right)
+        d = self.degree()
+        if d == -1:
+            return self._parent(self._parent._base.zero() ** right)
+        elif d == 0:
+            return self._parent(self.get_unsafe(0) ** right)
         if right < 0:
             return (~self)**(-right)
         if modulus:
             if right > 0 and \
-               parent(modulus) == self.parent() and \
+               parent(modulus) == self._parent and \
                modulus.number_of_terms() == 1 and \
                modulus.leading_coefficient().is_one():
                 return self.power_trunc(right, modulus.degree())
             return power_mod(self, right, modulus)
         if self.is_gen():   # special case x**n should be faster!
-            P = self.parent()
-            R = P.base_ring()
+            P = self._parent
+            R = P._base
             if P.is_sparse():
-                v = {right:R.one()}
+                v = {right: R.one()}
             else:
                 v = [R.zero()]*right + [R.one()]
             return self.parent()(v, check=False)
@@ -2433,8 +2456,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def _pow(self, right):
         # TODO: fit __pow__ into the arithmetic structure
-        if self.degree() <= 0:
-            return self._parent(self.get_fast(0)**right)
+        d = self.degree()
+        if d == -1:
+            return self._parent(self._parent._base.zero() ** right)
+        elif d == 0:
+            return self._parent(self.get_unsafe(0) ** right)
         if right < 0:
             return (~self)**(-right)
         if (<Polynomial>self) == self._parent.gen():   # special case x**n should be faster!
@@ -3701,15 +3727,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             S = cm.bin_op(R.one(), ZZ.one(), operator.truediv).parent()
             Q = S.base_ring()
         except TypeError:
-            Q = (R.base_ring().one()/ZZ.one()).parent()
+            Q = (R.base_ring().one() / ZZ.one()).parent()
             S = R.change_ring(Q)
         if var is not None and var != R.gen():
             # call integral() recursively on coefficients
             return S([coeff.integral(var) for coeff in self])
         cdef Py_ssize_t n
         zero = Q.zero()
-        p = [zero] + [cm.bin_op(Q(self.get_fast(n)), n + 1, operator.truediv)
-                      if self.get_fast(n) else zero for n in range(self.degree() + 1)]
+        p = [zero] + [cm.bin_op(Q(self.get_unsafe(n)), n + 1, operator.truediv)
+                      if self.get_unsafe(n) else zero for n in range(self.degree() + 1)]
         return S(p)
 
     def dict(self):
@@ -4133,7 +4159,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() < 0:
             raise ArithmeticError("factorization of {!r} is not defined".format(self))
         if self.degree() == 0:
-            return Factorization([], unit=self.get_fast(0))
+            return Factorization([], unit=self.get_unsafe(0))
 
         # Use multivariate implementations for polynomials over polynomial rings
         variables = self._parent.variable_names_recursive()
@@ -5104,7 +5130,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         offset = 0
         for _ in range(n):
             for c in range(m, -1, -1):
-                M[r, m - c + offset] = self.get_fast(c)
+                M[r, m - c + offset] = self.get_unsafe(c)
             offset += 1
             r += 1
 
@@ -5130,7 +5156,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.constant_coefficient()
             -1/3
         """
-        return self.get_fast(0)
+        if self.is_zero():
+            return self._parent._base.zero()
+        # self.degree() >= 0
+        return self.get_unsafe(0)
 
     cpdef Polynomial _new_constant_poly(self, a, Parent P):
         """
@@ -5208,7 +5237,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: c.is_unit()
             False
         """
-        if self.degree() > 0:
+        d = self.degree()
+        if d > 0:
             try:
                 if self._parent.base_ring().is_integral_domain():
                     return False
@@ -5217,7 +5247,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             for c in self.coefficients()[1:]:
                 if not c.is_nilpotent():
                     return False
-        return self.get_fast(0).is_unit()
+        if d == -1:
+            return self._parent._base.zero().is_unit()
+        return self.get_unsafe(0).is_unit()
 
     def is_nilpotent(self):
         r"""
@@ -5985,7 +6017,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Mod(0, 101)
         """
         if self.is_constant():
-            return self.get_fast(0).__pari__()
+            return self.get_coeff_c(0).__pari__()
         if name is None:
             name = self._parent.variable_name()
         return self._pari_with_name(name)
@@ -6797,7 +6829,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # Late import to avoid cyclic dependencies:
         from sage.rings.power_series_ring import is_PowerSeriesRing
         if self.is_zero():
-            return self._parent.zero()
+            return self  # return 0
         n = self.degree()
         base_ring = self._parent.base_ring()
         if (is_MPolynomialRing(base_ring) or
@@ -6814,17 +6846,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if r == 0 or r == 1:
             u = 1
         try:
-            an = self.get_fast(n)**(n - k - 2)
+            an = self.get_coeff_c(n)**(n - k - 2)
         except ZeroDivisionError:
             assert(n-k-2 == -1)
             # Rather than dividing the resultant by the leading coefficient,
             # we alter the Sylvester matrix (see #11782).
             mat = self.sylvester_matrix(d)
-            mat[0, 0] = self.base_ring()(1)
-            mat[n - 1, 0] = self.base_ring()(n)
+            mat[0, 0] = base_ring.one()
+            mat[n - 1, 0] = base_ring(n)
             return u * mat.determinant()
         else:
-            return self.base_ring()(u * self.resultant(d) * an)
+            return base_ring(u * self.resultant(d) * an)
 
     def reverse(self, degree=None):
         """
@@ -8022,16 +8054,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         S = self.parent()
         A = S.base_ring()
         x = S.gen()
-        if self.get_fast(0) == 0:
+        if self.get_coeff_c(0) == 0:
             raise ValueError("Polynomial not self-reciprocal")
         d = self.degree()
-        sg = (self.get_fast(0)/self.get_fast(d)).sign()
+        # previous if statement implies d >= 0
+        val = self.get_unsafe(0) / self.get_unsafe(d)
+        sg = val.sign()
         try:
-            q = A(abs(self.get_fast(0)/self.get_fast(d))**(2/d))
+            q = A(abs(val)**(2/d))
         except (TypeError, ValueError):
             raise ValueError("Polynomial not self-reciprocal")
         for i in range(d/2+1):
-            if self[d-i] != sg*self.get_fast(i)/q**(d/2-i):
+            if self.get_unsafe(d-i) != sg * self.get_unsafe(i) / q**(d/2-i):
                 raise ValueError("Polynomial not self-reciprocal")
         Q = self
         if sg == -1 and Q.degree() % 2 == 0:
@@ -8470,7 +8504,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if p is None:
             for k from 0 <= k <= self.degree():
-                if self.get_fast(k):
+                if self.get_unsafe(k):
                     return ZZ(k)
         if isinstance(p, Polynomial):
             p = self._parent.coerce(p)
@@ -9711,7 +9745,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self
         elif self.degree() % n:
             raise ValueError("not a %s power"%Integer(n).ordinal_str())
-        elif self.get_fast(0).is_zero():
+        elif self.get_unsafe(0).is_zero(): # We know that self is not 0, so it must have degree >= 0
             # p = x^k q
             # p^(1/n) = x^(k/n) q^(1/n)
             i = self.valuation()
@@ -9719,10 +9753,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 raise ValueError("not a %s power"%Integer(n).ordinal_str())
             return (self >> i).nth_root(n) << (i // n)
 
-        if self.get_fast(0).is_one():
+        if self.get_unsafe(0).is_one():
             start = S.one()
         else:
-            start = S(self.get_fast(0).nth_root(n))
+            start = S(self.get_unsafe(0).nth_root(n))
 
         cdef Polynomial p, q
         p = self.change_ring(R.fraction_field())
@@ -9827,7 +9861,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise ValueError("n (={}) must be positive".format(m))
         elif m.is_one() or self.is_zero() or self.is_one():
             return self
-        elif self.get_fast(0).is_zero():
+        elif self.get_unsafe(0).is_zero(): # we know that self is not zero, so the degree >= 0
             # p = x^i q
             # p^(1/m) = x^(i/m) q^(1/m)
             i = self.valuation()
@@ -9842,10 +9876,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 cc = c**e
                 ans = {}
                 for i in range(self.degree()+1):
-                    if self.get_fast(i):
-                        if i%cc:
+                    if self.get_unsafe(i):
+                        if i % cc:
                             raise ValueError("not a %s power"%m.ordinal_str())
-                        ans[i//cc] = self.get_fast(i).nth_root(cc)
+                        ans[i//cc] = self.get_unsafe(i).nth_root(cc)
                 p = self._parent(ans)
                 m = m // cc
                 if m.is_one():

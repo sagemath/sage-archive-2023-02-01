@@ -4251,20 +4251,20 @@ class RowStandardTableau(Tableau):
 
     - A RowStandardTableau object constructed from ``t``.
 
-    A row standard tableau is a tableau whose entries are 
+    A row standard tableau is a tableau whose entries are
     positive integers from 1 to `m` that increase along rows.
 
     EXAMPLES::
 
-        sage: t = RowStandardTableau([[1,2,3],[4,5]]); t
-        [[1, 2, 3], [4, 5]]
+        sage: t = RowStandardTableau([[3,4,5],[1,2]]); t
+        [[3, 4, 5], [1, 2]]
         sage: t.shape()
         [3, 2]
         sage: t.pp() # pretty print
-        1 2 3
-        4 5
+        3  4  5
+        1  2
         sage: t.is_standard()
-        True
+        False
         sage: RowStandardTableau([]) # The empty tableau
         []
 
@@ -4273,10 +4273,10 @@ class RowStandardTableau(Tableau):
     :class:`Parent` object::
 
         sage: ST = RowStandardTableaux()
-        sage: ST([[1, 2, 3], [4, 5]])
-        [[1, 2, 3], [4, 5]]
+        sage: ST([[3, 4, 5], [1, 2]])
+        [[3, 4, 5], [1, 2]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableau`
         - :class:`StandardTableau`
@@ -4288,7 +4288,7 @@ class RowStandardTableau(Tableau):
 
     TESTS:
 
-        sage: RowStandardTableau([[1,2,3],[4,4]])
+        sage: RowStandardTableau([[1,4,4],[2,3]])
         Traceback (most recent call last):
         ...
         ValueError: the entries in a row standard tableau must increase along rows and contain the numbers 1,2,...,n
@@ -4305,7 +4305,7 @@ class RowStandardTableau(Tableau):
 
         TESTS::
 
-            sage: t = RowStandardTableau([[1,2],[3]])
+            sage: t = RowStandardTableau([[2,3],[1]])
             sage: TestSuite(t).run()
 
             sage: t.parent()
@@ -4320,7 +4320,7 @@ class RowStandardTableau(Tableau):
 
     def __init__(self, parent, t):
         r"""
-        Initializes a standard tableau.
+        Initializes a row standard tableau.
 
         TESTS::
 
@@ -4328,11 +4328,15 @@ class RowStandardTableau(Tableau):
             sage: s = RowStandardTableaux(3)([[1,2],[3]])
             sage: s==t
             True
-            sage: s.parent()
+            sage: u= RowStandardTableaux(3)([[2, 3], [1]])
+            sage: s==u
+            False
+            sage: u.parent()
             Row standard tableaux of size 3
-            sage: r = RowStandardTableaux(3)(t); r.parent()
+            sage: u = RowStandardTableaux(3)(u);
+            sage: u.parent()
             Row standard tableaux of size 3
-            sage: isinstance(r, Tableau)
+            sage: isinstance(u, Tableau)
             True
         """
         super(RowStandardTableau, self).__init__(parent, t)
@@ -6506,7 +6510,7 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
 #########################
 
 class RowStandardTableaux(Tableaux):
-    """
+    r"""
     A factory for the various classes of row standard tableaux.
 
     INPUT:
@@ -6551,7 +6555,7 @@ class RowStandardTableaux(Tableaux):
          [[1], [3], [2]],
          [[1], [2], [3]]]
 
-    .. SEEALSO:
+    .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
@@ -6579,8 +6583,8 @@ class RowStandardTableaux(Tableaux):
          [[1, 4], [2, 3]],
          [[1, 3], [2, 4]],
          [[1, 2], [3, 4]]]
-        sage: RowStandardTableau([[1,2,3],[4,5]]).residue_sequence(3).standard_tableaux()
-        Standard tableaux with 3-residue sequence (0,1,2,2,0) and multicharge (0)
+        sage: RowStandardTableau([[3,4,5],[1,2]]).residue_sequence(3).standard_tableaux()
+        Standard tableaux with 3-residue sequence (2,0,0,1,2) and multicharge (0)
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
@@ -6666,7 +6670,7 @@ class RowStandardTableaux(Tableaux):
 
 class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
     """
-    All standard tableaux.
+    All row standard tableaux.
     """
     def __init__(self):
         r"""
@@ -6691,21 +6695,10 @@ class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
         """
         return "Row standard tableaux"
 
-    def an_element(self):
-        r"""
-        Returns a particular element of the class.
-
-        EXAMPLES::
-
-            sage: RowStandardTableaux().an_element()
-            [[4, 5, 6, 7], [2, 3], [1]]
-        """
-        return self.element_class(self, reversed([range(2**(i-1),2**i) for i in range(1,4)]))
-
 
 class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets):
     """
-    Standard tableaux of fixed size `n`.
+    Row standard tableaux of fixed size `n`.
 
     .. WARNING::
 
@@ -6736,7 +6729,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
     """
     def __init__(self, n):
         r"""
-        Initializes the class of all standard tableaux of size ``n``.
+        Initializes the class of all row standard tableaux of size ``n``.
 
         TESTS::
 
@@ -6795,29 +6788,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
 
     def cardinality(self):
         r"""
-        Return the number of all standard tableaux of size ``n``.
-
-        The number of standard tableaux of size `n` is equal to the
-        number of involutions in the symmetric group `S_n`.
-        This is a consequence of the symmetry of the RSK
-        correspondence, that if `\sigma \mapsto (P, Q)`, then
-        `\sigma^{-1} \mapsto (Q, P)`. For more information, see
-        :wikipedia:`Robinson-Schensted-Knuth_correspondence#Symmetry`.
-
-        ALGORITHM:
-
-        The algorithm uses the fact that standard tableaux of size
-        ``n`` are in bijection with the involutions of size ``n``,
-        (see page 41 in section 4.1 of [Ful1997]_).  For each number of
-        fixed points, you count the number of ways to choose those
-        fixed points multiplied by the number of perfect matchings on
-        the remaining values.
-
-        REFERENCES:
-
-        .. [Ful1997] William Fulton,
-           *Young Tableaux*.
-           Cambridge University Press, 1997.
+        Return the number of all row standard tableaux of size ``n``.
 
         EXAMPLES::
 
@@ -6855,7 +6826,6 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         super(RowStandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
         self.shape = Partition(p)
 
-
     def __contains__(self, x):
         """
         EXAMPLES::
@@ -6886,7 +6856,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
 
     def __iter__(self):
         r"""
-        An iterator for the standard Young tableaux associated to the
+        An iterator for the row standard Young tableaux associated to the
         shape `p` of ``self``.
 
         EXAMPLES::
@@ -7176,6 +7146,7 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
         from .partition import Partitions_n
         DisjointUnionEnumeratedSets.__init__( self,
                 Family(Partitions_n(n), StandardTableaux_shape),
+                category = FiniteEnumeratedSets(),
                 facade=True, keepkey = False)
         self.size = Integer(n)
 
@@ -7228,9 +7199,7 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
 
         REFERENCES:
 
-        .. [Ful1997] William Fulton,
-           *Young Tableaux*.
-           Cambridge University Press, 1997.
+        - [Ful1997]_
 
         EXAMPLES::
 

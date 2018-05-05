@@ -369,8 +369,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       not used.
 
     - ``verbose`` -- boolean (default: ``False``). Whether to print
-      verbose output for debugging purposes. Only supported by the cdd
-      backends.
+      verbose output for debugging purposes. Only supported by the cdd and
+      normaliz backends.
 
     OUTPUT:
 

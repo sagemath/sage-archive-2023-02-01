@@ -1255,7 +1255,7 @@ class Partition(CombinatorialElement):
         """
         Return the :class:`standard tableaux<StandardTableaux>` of this shape.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Partition([3,2,2,1]).row_standard_tableaux()
             Row standard tableaux of shape [3, 2, 2, 1]

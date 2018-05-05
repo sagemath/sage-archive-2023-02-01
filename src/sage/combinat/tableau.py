@@ -133,7 +133,7 @@ class Tableau(ClonableList):
         [[1, 2, 3], [4, 5]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         1 2 3
         4 5
         sage: t.is_standard()
@@ -920,7 +920,7 @@ class Tableau(ClonableList):
 
     def pp(self):
         """
-        Returns a pretty print string of the tableau.
+        Returns a pretily printed string of the tableau.
 
         EXAMPLES::
 
@@ -4118,7 +4118,7 @@ class SemistandardTableau(Tableau):
         [[1, 2, 3], [2, 3]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         1 2 3
         2 3
         sage: t = Tableau([[1,2],[2]])
@@ -4260,13 +4260,17 @@ class RowStandardTableau(Tableau):
         [[3, 4, 5], [1, 2]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         3  4  5
         1  2
         sage: t.is_standard()
         False
         sage: RowStandardTableau([]) # The empty tableau
         []
+        sage: RowStandardTableau([[3,4,5],[1,2]]) in StandardTableaux()
+        False
+        sage: RowStandardTableau([[1,2,5],[3,4]]) in StandardTableaux()
+        True
 
     When using code that will generate a lot of tableaux, it is slightly more
     efficient to construct a RowStandardTableau from the appropriate
@@ -4369,13 +4373,15 @@ class StandardTableau(SemistandardTableau):
         [[1, 2, 3], [4, 5]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         1 2 3
         4 5
         sage: t.is_standard()
         True
         sage: StandardTableau([]) # The empty tableau
         []
+        sage: StandardTableau([[1,2,3],[4,5]]) in RowStandardTableaux()
+        True
 
     When using code that will generate a lot of tableaux, it is slightly more
     efficient to construct a StandardTableau from the appropriate

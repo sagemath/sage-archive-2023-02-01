@@ -846,7 +846,7 @@ class PartitionTuple(CombinatorialElement):
         Return the :class:`standard tableau tuples<StandardTableauTuples>` of
         this shape.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).row_standard_tableaux()
             Row standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])

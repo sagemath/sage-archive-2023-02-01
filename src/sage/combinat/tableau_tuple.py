@@ -311,7 +311,7 @@ class TableauTuple(CombinatorialElement):
         ([3, 1], [3, 2], [1, 1])
         sage: t.is_standard()
         True
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
          6  9 10     1  2  3     7
         11           4  5        8
         sage: t.category()
@@ -1438,7 +1438,7 @@ class RowStandardTableauTuple(TableauTuple):
           3        1  5
         sage: t.shape()
         ([2, 1], [3, 2], [1])
-        sage: t[0].pp()  # pretty print
+        sage: t[0].pp()  # pretty printing
           4  7
           3
         sage: t.is_row_strict()
@@ -1447,6 +1447,10 @@ class RowStandardTableauTuple(TableauTuple):
         False
         sage: RowStandardTableauTuple([[],[],[]]) # An empty tableau tuple
         ([], [], [])
+        sage: RowStandardTableauTuple([[[4,5],[6]],[[1,2,3]]]) in StandardTableauTuples()
+        True
+        sage: RowStandardTableauTuple([[[5,6],[4]],[[1,2,3]]]) in StandardTableauTuples()
+        False
 
     When using code that will generate a lot of tableaux, it is slightly more
     efficient to construct a :class:`RowStandardTableauTuple` from the
@@ -1786,6 +1790,8 @@ class StandardTableauTuple(RowStandardTableauTuple):
             True
             sage: t.dominates(s)
             False
+            sage: StandardTableauTuple([[1,2,3],[4,5]]) in RowStandardTableauTuples()
+            True
 
         The tableaux appearing in a :class:`StandardTableauTuple` are
         both row and column strict, but individually they are not standard
@@ -1831,7 +1837,7 @@ class StandardTableauTuple(RowStandardTableauTuple):
           7        6  8
         sage: t.shape()
         ([2, 1], [3, 2], [1])
-        sage: t[0].pp()  # pretty print
+        sage: t[0].pp()  # pretty printing
           4  5
           7
         sage: t.is_standard()

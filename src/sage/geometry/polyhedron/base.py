@@ -22,7 +22,6 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
@@ -4281,8 +4280,7 @@ class Polyhedron_base(Element):
 
              David Avis's lrs program.
         """
-        if not is_package_installed('lrslib'):
-            raise PackageNotFoundError('lrslib')
+        Lrs().require()
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE

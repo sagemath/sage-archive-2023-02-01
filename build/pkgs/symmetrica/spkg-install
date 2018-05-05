@@ -4,15 +4,6 @@ if [ -z "$SAGE_LOCAL" ] ; then
     exit 1
 fi
 
-if [ -z "$CFLAG64" ] ; then
-    CFLAG64=-m64
-fi
-
-if [ "x$SAGE64" = xyes ] ; then
-    echo "Building a 64-bit version of Symmetrica."
-    CFLAGS="$CFLAGS $CFLAG64"
-fi
-
 export CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
 
 

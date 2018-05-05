@@ -43,6 +43,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.rings.all import ZZ
+from sage.functions.other import ceil
 
 import itertools
 
@@ -1695,6 +1696,10 @@ class DiagramAlgebra(CombinatorialFreeModule):
     def _diag_to_Blst(self, d):
         """
         Return an element of ``self`` from the input ``d``.
+
+        If ``d`` is a partial diagram of `\{1,2,\ldots,k,-1,-2,\ldots,-k\}`
+        then the set partition is filled in by adding the parts `\{i,-i\}`
+        if possible, and singletons sets for the remaining parts.
 
         INPUT:
 
@@ -3715,6 +3720,8 @@ def pairing_is_possible(d, k):
 
 def to_set_partition(l, k=None):
     r"""
+    Convert input to a set partition of `\{1, \ldots, k, -1, \ldots, -k\}`
+
     Convert a list of a list of numbers to a set partitions. Each list
     of numbers in the outer list specifies the numbers contained in one
     of the blocks in the set partition.
@@ -3723,12 +3730,25 @@ def to_set_partition(l, k=None):
     of `\{1, \ldots, k, -1, \ldots, -k\}`. Otherwise, `k` will default to
     the minimum number needed to contain all of the specified numbers.
 
+    INPUT:
+
+    - ``l`` - a list of lists of integers
+    - ``k`` - integer (optional, default ``None``)
+
+    OUTPUT:
+
+    - a list of sets
+
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
         sage: f = lambda sp: SetPartition(da.to_set_partition(sp))
         sage: f([[1,-1],[2,-2]]) == SetPartition(da.identity_set_partition(2))
         True
+        sage: da.to_set_partition([[1]])
+        [{1}, {-1}]
+        sage: da.to_set_partition([[1,-1],[-2,3]],9/2)
+        [{-1, 1}, {-2, 3}, {2}, {-4, 4}, {-5, 5}, {-3}]
     """
     if k is None:
         if l == []:
@@ -3736,7 +3756,7 @@ def to_set_partition(l, k=None):
         else:
             k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = set( list(range(1, int(k+3/2))) + [-1*x for x in range(1, int(k+3/2))] )
+    to_be_added = set( list(range(1, ceil(k+1))) + [-1*x for x in range(1, ceil(k+1))] )
 
     sp = []
     for part in l:

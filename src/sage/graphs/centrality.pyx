@@ -10,6 +10,7 @@ This module is meant for all functions related to centrality in networks.
 
     :func:`centrality_betweenness` | Return the centrality betweenness of `G`
     :func:`centrality_closeness_top_k` | Return the k most closeness central vertices of `G`
+    :func:`centrality_closeness_random_k` | Return the closeness centrality of `G`(undirected graph) wth error error percentage < 5% on average.
 
 Functions
 ---------
@@ -27,7 +28,7 @@ from sage.libs.gmp.mpq cimport *
 from sage.rings.rational cimport Rational
 from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_backend cimport simple_BFS
-from sage.graphs.base.boost_graph import shortest_paths
+from sage.graphs.base.boost_graph import shortest_paths as boost_shortest_paths
 import random
 
 ctypedef fused numerical_type:
@@ -830,25 +831,17 @@ def centrality_closeness_random_k(G, int k=1):
     and n is no of nodes in input graph, by using this knowledge estimate
     closeness centrality for n - k vertices.
 
-    For more information, see [EDTR14]_.
+    For more information, see [EDI2014]_.
 
     INPUT:
 
-    - ``G`` a undirected Graph
+    - ``G`` -- a undirected Graph
 
-    - ``k`` (integer, default: 1): The number of random nodes need to be choosen
+    - ``k`` (integer, default: 1) -- The number of random nodes need to be choosen
 
     OUTPUT:
 
-    An list of closeness centralities of n nodes of input graph G
-
-    REFERENCES:
-
-    .. [EDTR14] EDITH COHEN,DANIEL DELLING,THOMAS PAJOR and RENATO F. WERNECK
-       Computing Classic Closeness Centrality, at Scale
-       Preprint on arXiv.
-       https://arxiv.org/pdf/1409.0035
-
+    A dictionary indexed by vertices and values as estimated closeness centrality.
 
     TESTS:
 
@@ -881,10 +874,6 @@ def centrality_closeness_random_k(G, int k=1):
     # Vertices whose neighbors have been explored
     cdef bitset_t seen
 
-    # Vertices which are randomly selected 
-    cdef short *seen_random_vertices = <short*> mem.malloc(n * sizeof(short))
-
-    cdef int *randomk = <int*> mem.malloc(k * sizeof(int))
     cdef uint32_t * distance = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
     cdef uint32_t * waiting_list = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
     cdef double *partial_farness = <double*> mem.malloc(n * sizeof(double))
@@ -896,40 +885,32 @@ def centrality_closeness_random_k(G, int k=1):
         raise ValueError("k value need to be less than number of nodes.")
 
     # Initialize
-    l = []
+    l = list(range(n))
     for i in range(n):
-        l.append(i)
-        seen_random_vertices[i] = 0
         partial_farness[i] = 0
 
     # Shuffle the vertices
     random.shuffle(l)
-
-    # Take the top k random vertices and mark them
-    for i in range(0,k):
-        randomk[i] = l[i]
-        seen_random_vertices[randomk[i]] = 1
 
     cdef list int_to_vertex = G.vertices()
     vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
 
     if G.weighted():
         # For all random nodes take as a source then run Dijstra and
-        # calculate closeness centrality for those random vertices.
+        # calculate closeness centrality for k random vertices from l.
         for i in range(k):
             farness = 0
-            distances = shortest_paths(G, int_to_vertex[randomk[i]], algorithm='Dijkstra')
+            distances = boost_shortest_paths(G, int_to_vertex[l[i]], algorithm='Dijkstra')
             distances = distances[0]
             for vertex in distances:
                 farness += float(distances[vertex])
                 partial_farness[vertex_to_int[vertex]] += float(distances[vertex])
 
-            closeness_centrality_array[randomk[i]] = (n - 1) / farness
+            closeness_centrality_array[l[i]] = (n - 1) / farness
 
         # Estimate the closeness centrality for remaining n-k vertices.
-        for i in range(n):
-            if not seen_random_vertices[i]:
-                closeness_centrality_array[i] = k / partial_farness[i]
+        for i in range(k,n):
+            closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
 
 
     # G is Unweighted graph
@@ -948,16 +929,16 @@ def centrality_closeness_random_k(G, int k=1):
             bitset_clear(seen)
             farness = 0
 
-            simple_BFS(sd, randomk[i], distance, NULL, waiting_list, seen)
+            simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)
             
             for j in range(n):
                 farness += distance[j]
                 partial_farness[j] += distance[j]
-            closeness_centrality_array[randomk[i]] = (n - 1) / farness
+            closeness_centrality_array[l[i]] = (n - 1) / farness
 
         # Estimate the closeness centrality for remaining n-k vertices.
-        for i in range(n):
-            if not seen_random_vertices[i]:
-                closeness_centrality_array[i] = k / partial_farness[i]
+        for i in range(k,n):
+            closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
+        bitset_free(seen)
 
-    return [(int_to_vertex[i], closeness_centrality_array[i]) for i in range(n)]
+    return {int_to_vertex[i]:closeness_centrality_array[i] for i in range(n)}

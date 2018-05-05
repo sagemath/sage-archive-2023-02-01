@@ -824,6 +824,11 @@ REFERENCES:
 .. [Ed1974] \A. R. Edmonds, 'Angular Momentum in Quantum Mechanics',
             Princeton University Press (1974)
 
+.. [EDI2014] EDITH COHEN,DANIEL DELLING,THOMAS PAJOR and RENATO F. WERNECK
+            Computing Classic Closeness Centrality, at Scale
+            In Proceedings of the second ACM conference on Online social networks (COSN '14)
+            :doi:`10.1145/2660460.2660465`
+
 .. [Eh2013] Ehrhardt, Wolfgang. "The AMath and DAMath Special
             Functions: Reference Manual and Implementation Notes,
             Version

@@ -13226,35 +13226,82 @@ cdef class Matrix(Matrix1):
 
            :meth:`smith_form`
         """
-        d, u, v = self.smith_form()
+        d = self.smith_form(transformation=False)
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
-    def smith_form(self):
+    def smith_form(self, transformation=True, integral=None, exact=True):
         r"""
-        If self is a matrix over a principal ideal domain R, return
-        matrices D, U, V over R such that D = U \* self \* V, U and V have
-        unit determinant, and D is diagonal with diagonal entries the
-        ordered elementary divisors of self, ordered so that
-        `D_{i} \mid D_{i+1}`. Note that U and V are not uniquely
-        defined in general, and D is defined only up to units.
+        Return a Smith normal form of this matrix.
+
+        For a matrix `M`, a Smith normal form is a matrix `S = UMV` such that:
+
+        * `U` and `V` are invertible matrices
+        * the only non-vanishing entries of `S` are located on the diagonal
+          (though `S` might not be a square matrix)
+        * if `d_i` denotes the entry of `S` at `(i,i)`, then `d_i` divides
+          `d_{i+1}` for all `i`, i.e., the `d_i` are the ordered
+          :meth:`elementary_divisors` of `M`
+
+        Note that the matrices `U` and `V` are not uniquely determined and the
+        `d_i` are only uniquely determined up to units. For some base rings,
+        such as local rings, the `d_i` might be further normalized, see
+        ``LOCAL RINGS`` below.
+
+        If the base ring is not a PID, the routine might work, or else it will
+        fail having found an example of a non-principal ideal. Note that we do
+        not call any methods to check whether or not the base ring is a PID,
+        since this might be quite expensive (e.g. for rings of integers of
+        number fields of large degree).
 
         INPUT:
 
+        - ``transformation`` -- a boolean (default: ``True``); whether the
+          matrices `U` and `V` should be returned
 
-        -  ``self`` - a matrix over an integral domain. If the
-           base ring is not a PID, the routine might work, or else it will
-           fail having found an example of a non-principal ideal. Note that we
-           do not call any methods to check whether or not the base ring is a
-           PID, since this might be quite expensive (e.g. for rings of
-           integers of number fields of large degree).
+        - ``integral`` -- a subring of the base ring, boolean or ``None``
+          (default: ``None``); the entries of `U` and `V` are taken
+          from this subring. If ``True``, the ring is taken to be the
+          ring of integers of the base ring; if ``False`` the fraction field
+          of the base ring; if ``None`` the base ring itself.
+          When a subring is specified, multiplying
+          by the denominator must map the entries into the subring; in this
+          case the transformation matrices will have entries in this subring.
 
+        - ``exact`` -- a boolean (default: ``True``), only used for local rings/fields.
+          See ``LOCAL RINGS`` for more details.
 
-        ALGORITHM: Lifted wholesale from :wikipedia:`Smith_normal_form`
+        OUTPUT:
 
-        .. SEEALSO::
+        The matrices `S, U, V` or the matrix `S` depending on
+        ``transformation``.
 
-           :meth:`elementary_divisors`
+        ALGORITHM:
+
+        If the base ring has a method ``_matrix_smith_form``, use it; note that
+        ``_matrix_smith_form`` might choose to further normalize the output.
+
+        Otherwise, use the algorithm from :wikipedia:`Smith_normal_form`.
+
+        LOCAL RINGS:
+
+        Over local rings, we normalize `S` to only contain powers of the uniformizer.
+
+        In order to simplify the precision handling, we truncate the absolute precision
+        of the input matrix to the minimum absolute precision of any of its entries.
+        As long as all of the elementary divisors are nonzero modulo this precision,
+        they can be determined exactly since they are defined to be powers of the
+        uniformizer.  In this case, which is specified by the keyword ``exact=True``,
+        one of the transformation matrices will be inexact: `U` in the case that
+        the number of rows is at least the number of columns, and `V` otherwise.
+
+        If ``exact=False``, we instead return an inexact Smith form.  Now the
+        transformation matrices are exact and we can deal gracefully with
+        elementary divisors that are zero modulo the working precision.  However,
+        the off-diagonal entries of the smith form carry a precision that
+        can affect the precision of future calculations.
+
+        See ``_matrix_smith_form`` on the base ring for more detail.
 
         AUTHORS:
 
@@ -13298,6 +13345,21 @@ cdef class Matrix(Matrix1):
             sage: u*m*v == d
             True
 
+        When the base ring has a ``ring_of_integers`` method and supports denominators,
+        you can get an integral version of the smith form::
+
+            sage: m = matrix(QQ, 2, 2, [17/6, 47/6, 25/6, 23/2])
+            sage: m.smith_form()
+            (
+            [1 0]  [6/17    0]  [     1 -47/17]
+            [0 1], [  75  -51], [     0      1]
+            )
+            sage: m.smith_form(integral=True)
+            (
+            [1/6   0]  [  3  -2]  [ 1  3]
+            [  0 1/3], [-25  17], [ 0 -1]
+            )
+
         Some examples over non-PID's work anyway::
 
             sage: R.<s> = EquationOrder(x^2 + 5) # class number 2
@@ -13333,12 +13395,43 @@ cdef class Matrix(Matrix1):
             True
             sage: m = matrix(OE, 3, 3, [-5*w-1,-2*w-2,4*w-10,8*w,-w,w-1,-1,1,-8]); d,u,v = m.smith_form(); u*m*v == d
             True
+
+        Over local fields, we can request the transformation matrices to be integral:;
+
+            sage: K = Qp(2, 5, print_mode='terse')
+            sage: M = matrix(K, 2, 3, [1/2, 1, 2, 1/3, 1, 3])
+            sage: M.smith_form(integral=True)
+            (
+            [1/2 + O(2^4)            0            0]  [ 1 + O(2^5)           0]
+            [           0   1 + O(2^5)            0], [42 + O(2^6)  1 + O(2^5)],
+            <BLANKLINE>
+            [ 1 + O(2^5) 26 + O(2^5)  6 + O(2^5)]
+            [ 0 + O(2^4)  3 + O(2^4) 11 + O(2^4)]
+            [          0           0  1 + O(2^5)]
+            )
+
         """
         R = self.base_ring()
-        left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
-        right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
+        if hasattr(R, '_matrix_smith_form'):
+            return R._matrix_smith_form(self, transformation=transformation, integral=integral, exact=exact)
+        if integral is True:
+            integral = R.ring_of_integers()
+        elif integral is R:
+            integral = None
+        if integral is False:
+            self = self.change_ring(R.fraction_field())
+        elif integral is not None:
+            # Try to clear denominators
+            den = self.denominator()
+            self = (den * self).change_ring(integral)
+        if transformation:
+            left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
+            right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
         if self == 0 or (self.nrows() <= 1 and self.ncols() <= 1):
-            return self.__copy__(), left_mat, right_mat
+            if transformation:
+                return self.__copy__(), left_mat, right_mat
+            else:
+                return self.__copy__()
 
         # data type checks on R
         if not R.is_integral_domain() or not R.is_noetherian():
@@ -13352,13 +13445,24 @@ cdef class Matrix(Matrix1):
         # now recurse: t now has a nonzero entry at 0,0 and zero entries in the rest
         # of the 0th row and column, so we apply smith_form to the smaller submatrix
         mm = t.submatrix(1,1)
-        dd, uu, vv = mm.smith_form()
+        if transformation:
+            dd, uu, vv = mm.smith_form(transformation=True)
+        else:
+            dd = mm.smith_form(transformation=False)
         mone = self.new_matrix(1, 1, [1])
         d = dd.new_matrix(1,1,[t[0,0]]).block_sum(dd)
-        u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
-        v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
-        dp, up, vp = _smith_diag(d)
-        return dp,up*u,v*vp
+        if transformation:
+            u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
+            v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
+        dp, up, vp = _smith_diag(d, transformation=transformation)
+        if integral is False:
+            dp = dp.change_ring(R)
+        elif integral is not None:
+            dp = dp.change_ring(R) / den
+        if transformation:
+            return dp, up*u, v*vp
+        else:
+            return dp
 
     def _hermite_form_euclidean(self, transformation=False, normalization=None):
         """
@@ -14717,7 +14821,7 @@ cdef class Matrix(Matrix1):
         deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
-def _smith_diag(d):
+def _smith_diag(d, transformation=True):
     r"""
     For internal use by the smith_form routine. Given a diagonal matrix d
     over a ring r, return matrices d', a,b such that a\*d\*b = d' and
@@ -14748,14 +14852,18 @@ def _smith_diag(d):
     dp = d.__copy__()
     n = min(d.nrows(), d.ncols())
     R = d.base_ring()
-    left = d.new_matrix(d.nrows(), d.nrows(), 1)
-    right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    if transformation:
+        left = d.new_matrix(d.nrows(), d.nrows(), 1)
+        right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    else:
+        left = right = None
     for i in xrange(n):
         I = R.ideal(dp[i,i])
 
         if I == R.unit_ideal():
             if dp[i,i] != 1:
-                left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
+                if transformation:
+                    left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
                 dp[i,i] = R(1)
             continue
 
@@ -14779,8 +14887,9 @@ def _smith_diag(d):
                 newrmat[j,i] = mu
                 newrmat[j,j] = R(lamb*dp[i,i] / t)
 
-                left = newlmat*left
-                right = right*newrmat
+                if transformation:
+                    left = newlmat*left
+                    right = right*newrmat
                 dp = newlmat*dp*newrmat
     return dp, left, right
 

@@ -1115,12 +1115,12 @@ def _run_it_on_static_instead(f):
     return same_function_on_static_version
 
 
-cdef inline uint32_t simple_BFS(short_digraph g,
-                                uint32_t source,
-                                uint32_t *distances,
-                                uint32_t *predecessors,
-                                uint32_t *waiting_list,
-                                bitset_t seen):
+cdef uint32_t simple_BFS(short_digraph g,
+                         uint32_t source,
+                         uint32_t *distances,
+                         uint32_t *predecessors,
+                         uint32_t *waiting_list,
+                         bitset_t seen):
     """
     Perform a breadth first search (BFS) using the same method as in
     sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS

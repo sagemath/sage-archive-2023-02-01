@@ -1,0 +1,13 @@
+diff --git a/app_main.cpp b/app_main.cpp
+index f6fcb66..ab567e3 100644
+--- a/app_main.cpp
++++ b/app_main.cpp
+@@ -180,7 +180,7 @@ public:
+     }
+ 
+     ep->close();
+-    delete ep;
++//    delete ep; // clang@xcode-6.3 miscompiles with - gives Illegal Instruction 4
+ 
+     printf("\n");
+ 

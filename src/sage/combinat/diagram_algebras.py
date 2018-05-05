@@ -1656,12 +1656,14 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: D3[[1,-1,2,-2]]
             P{{-3, 3}, {-2, -1, 1, 2}}
             sage: D3[[1,2,-2]]
-            P{{-3}, {-2, 1, 2}, {-1}, {3}}
+            P{{-3, 3}, {-2, 1, 2}, {-1}}
+            sage: P = PartitionAlgebra(3,x)
+            sage: P[[1]]
+            P{{-3, 3}, {-2, 2}, {-1}, {1}}
         """
         if isinstance(d, (list, tuple)) and all(a in ZZ for a in d):
             d = [d]
-        can_pair = pairing_is_possible(d, self._k)
-        d = self._base_diagrams(to_set_partition(d, self._k, through_strands=can_pair))
+        d = self._base_diagrams(to_set_partition(d, self._k))
         if d in self.basis().keys():
             return self.basis()[d]
         raise ValueError("{0} is not an index of a basis element".format(d))
@@ -1724,8 +1726,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
             return self.one()
         if d[0] in ZZ:
             return self._perm_to_Blst(d)
-        d = to_set_partition(d, self._k,
-                             through_strands=pairing_is_possible(d, self._k))
+        d = to_set_partition(d, self._k)
         return self[self._base_diagrams(d)]
 
     def order(self):
@@ -2129,8 +2130,8 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         sage: A([[1,3],[-1],[-3]]) == A[[1,3],[-1],[-3]]
         True
 
-        sage: A([[1,2]]) # if omitted nodes cannot be paired as `{-i,i}`, add as singletons
-        P{{-3}, {-2}, {-1}, {1, 2}, {3}}
+        sage: A([[1,2]])
+        P{{-3, 3}, {-2}, {-1}, {1, 2}}
         sage: A([[1,2]]) == A[[1,2]]
         True
 
@@ -2226,7 +2227,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: A([2,1])
             P{{-3, 3}, {-2, 1}, {-1, 2}}
             sage: A([[2,1]])
-            P{{-3}, {-2}, {-1}, {1, 2}, {3}}
+            P{{-3, 3}, {-2}, {-1}, {1, 2}}
             sage: A([[-1,3],[-2,-3,1]])
             P{{-3, -2, 1}, {-1, 3}, {2}}
 
@@ -3712,7 +3713,7 @@ def pairing_is_possible(d, k):
         return False
     return all(-i in d_support for i in d_support)
 
-def to_set_partition(l, k=None, through_strands=False):
+def to_set_partition(l, k=None):
     r"""
     Convert a list of a list of numbers to a set partitions. Each list
     of numbers in the outer list specifies the numbers contained in one
@@ -3735,7 +3736,7 @@ def to_set_partition(l, k=None, through_strands=False):
         else:
             k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
+    to_be_added = set( list(range(1, int(k+3/2))) + [-1*x for x in range(1, int(k+3/2))] )
 
     sp = []
     for part in l:
@@ -3743,13 +3744,13 @@ def to_set_partition(l, k=None, through_strands=False):
         to_be_added -= spart
         sp.append(spart)
 
-    if through_strands:
-        # assume the elements of to_be_added come in pairs, "i, -i"
-        for i in [_ for _ in to_be_added if _ > 0]:
+    while to_be_added:
+        i = to_be_added.pop()
+        if -i in to_be_added:
+            to_be_added.remove(-i)
             sp.append(set([i,-i]))
-    else:
-        for singleton in to_be_added:
-            sp.append(set([singleton]))
+        else:
+            sp.append(set([i]))
 
     return sp
 

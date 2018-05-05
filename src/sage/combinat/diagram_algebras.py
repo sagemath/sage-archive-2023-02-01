@@ -25,7 +25,6 @@ from __future__ import division
 from six.moves import range
 
 from sage.categories.associative_algebras import AssociativeAlgebras
-from sage.categories.algebras import Algebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.arith.power import generic_power
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -2797,7 +2796,6 @@ class OrbitBasis(DiagramAlgebra):
             return self.zero()
 
         q = self._q
-        k = self._k
         R = q.parent()
         PDs = self._base_diagrams
         def matchings(A, B):

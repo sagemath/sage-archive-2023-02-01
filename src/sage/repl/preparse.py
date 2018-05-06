@@ -759,9 +759,14 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
+            if not six.PY2:
+                postfix = postfix.replace('L', '')
             num_name = num_make = num + postfix.replace('R', '')
         elif 'L' in postfix:
-            continue
+            if six.PY2:
+                continue
+            else:
+                num_name = num_make = num + postfix.replace('L', '')
         else:
 
             # The Sage preparser does extra things with numbers, which we need to handle here.

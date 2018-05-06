@@ -329,7 +329,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         return TorsionQuadraticModule(V, W, check=check)
 
     @cached_method
-    def Brown_invariant(self):
+    def brown_invariant(self):
         r"""
         Return the Brown invariant of this torsion quadratic form.
 
@@ -352,7 +352,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
             sage: L = IntegralLattice("D4")
             sage: D = L.discriminant_group()
-            sage: D.Brown_invariant()
+            sage: D.brown_invariant()
             4
 
         We require the quadratic form to be defined modulo `2 \ZZ`::
@@ -360,7 +360,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
             sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3))
             sage: T = TorsionQuadraticModule((1/10)*V, V)
-            sage: T.Brown_invariant()
+            sage: T.brown_invariant()
             Traceback (most recent call last):
             ...
             ValueError: The torsion quadratic form must have values in\QQ / 2\ZZ
@@ -375,7 +375,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             q = q.gram_matrix_quadratic()
             L = collect_small_blocks(q)
             for qi in L:
-                brown += _Brown_indecomposable(qi,p)
+                brown += _brown_indecomposable(qi,p)
         return brown
 
     @cached_method
@@ -458,6 +458,80 @@ class TorsionQuadraticModule(FGP_Module_class):
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         """
         return self._gens
+
+    def is_genus(self, signature_pair, even=True):
+        r"""
+        Return ``True`` if there is a lattice with this signature and discriminant form.
+
+        TODO:
+
+        - implement the same for odd lattices
+
+        INPUT:
+
+        - signature_pair -- a tuple of non negative integers ``(s_plus, s_minus)``
+        - even -- bool (default: ``True``)
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("D4").direct_sum(IntegralLattice(3 * Matrix(ZZ,2,[2,1,1,2])))
+            sage: D = L.discriminant_group()
+            sage: D.is_genus((6,0))
+            True
+
+        Let us see if there is a lattice in the genus defined by the same discriminant form
+        but with a different signature::
+
+            sage: D.is_genus((4,2))
+            False
+            sage: D.is_genus((16,2))
+            True
+        """
+        s_plus = ZZ(signature_pair[0])
+        s_minus = ZZ(signature_pair[1])
+        if s_plus<0 or s_minus<0:
+            raise ValueError("signature invariants must be non negative")
+        rank = s_plus + s_minus
+        signature = s_plus - s_minus
+        D = self.cardinality()
+        det = (-1)**s_minus * D
+        if rank < len(self.invariants()):
+            return False
+        if even and self._modulus_qf != 2:
+            raise ValueError("the discriminant form of an even lattice has"
+                                 "values modulo 2.")
+        if (not even) and not (self.modulus == self._modulus_qf == 1):
+            raise ValueError("the discriminant form of an odd lattice has"
+                             "values modulo 1.")
+        if not even:
+            raise NotImplementedError("at the moment sage knows how to do this only for even genera. " +
+                                      " Help us to implement this for odd genera.")
+        for p in D.prime_divisors():
+            # check the determinat conditions
+            Q_p = self.primary_part(p)
+            gram_p = Q_p.gram_matrix_quadratic()
+            length_p = len(Q_p.invariants())
+            u = det.prime_to_m_part(p)
+            up = gram_p.det().numerator().prime_to_m_part(p)
+            if p!=2 and length_p==rank:
+                if legendre_symbol(u, p) != legendre_symbol(up, p):
+                    return False
+            if p == 2:
+                if rank % 2 != length_p % 2:
+                    return False
+                n = (rank - length_p) / 2
+                if u % 4 != (-1)**(n % 2) * up % 4:
+                    return False
+                if rank == length_p:
+                    a = QQ(1) / QQ(2)
+                    b = QQ(3) / QQ(2)
+                    diag = gram_p.diagonal()
+                    if not (a in diag or b in diag):
+                        if u % 8 !=  up % 8:
+                            return False
+        if self.brown_invariant() != signature:
+            return False
+        return True
 
     def orthogonal_submodule_to(self, S):
         r"""
@@ -842,7 +916,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return QmodnZ(self._modulus_qf)
 
-def _Brown_indecomposable(q, p):
+def _brown_indecomposable(q, p):
     r"""
     Return the Brown invariant of the indecomposable form ``q``.
 
@@ -856,29 +930,29 @@ def _Brown_indecomposable(q, p):
 
     EXAMPLES::
 
-        sage: from sage.modules.torsion_quadratic_module import _Brown_indecomposable
+        sage: from sage.modules.torsion_quadratic_module import _brown_indecomposable
         sage: q = Matrix(QQ, [1/3])
-        sage: _Brown_indecomposable(q,3)
+        sage: _brown_indecomposable(q,3)
         6
         sage: q = Matrix(QQ, [2/3])
-        sage: _Brown_indecomposable(q,3)
+        sage: _brown_indecomposable(q,3)
         2
         sage: q = Matrix(QQ, [5/4])
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         5
         sage: q = Matrix(QQ, [7/4])
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         7
         sage: q = Matrix(QQ, 2, [0,1,1,0])/2
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         0
         sage: q = Matrix(QQ, 2, [2,1,1,2])/2
-        sage: _Brown_indecomposable(q,2)
+        sage: _brown_indecomposable(q,2)
         4
     """
     v = q.denominator().valuation(p)
     if p == 2:
-        # Brown(U) = 0
+        # brown(U) = 0
         if q.ncols() == 2:
             if q[0,0].valuation(2)>v+1 and q[1,1].valuation(2)>v+1:
                 # type U

@@ -1786,11 +1786,27 @@ class DiagramAlgebra(CombinatorialFreeModule):
             \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
             \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
             \end{tikzpicture}
+
+            sage: latex(P.orbit_basis()([[1,2],[-2,-1]])) # indirect doctest
+            \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw, fill] {};
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw, fill] {};
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw, fill] {};
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw, fill] {};
+            \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+            \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \end{tikzpicture}
+
         """
         # these allow the view command to work (maybe move them somewhere more appropriate?)
         from sage.misc.latex import latex
         latex.add_to_mathjax_avoid_list('tikzpicture')
         latex.add_package_to_preamble_if_available('tikz')
+        if hasattr(self, '_fill'):
+            filled_str = ", fill"
+        else:
+            filled_str = ""
         # Define the sign function
         def sgn(x):
             if x > 0:
@@ -1806,7 +1822,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
                 l2.append(j)
         output = "\\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] \n" #setup beginning of picture
         for i in l2: #add nodes
-            output = output + "\\node[vertex] (G-{}) at ({}, {}) [shape = circle, draw] {{}}; \n".format(i, (abs(i)-1)*1.5, sgn(i))
+            output = output + "\\node[vertex] (G-{}) at ({}, {}) [shape = circle, draw{}] {{}}; \n".format(i, (abs(i)-1)*1.5, sgn(i), filled_str)
         for i in l1: #add edges
             if len(i) > 1:
                 l4 = list(i)
@@ -2574,6 +2590,7 @@ class OrbitBasis(DiagramAlgebra):
         # TODO: should we add additional categories?
         category = alg.category()
         DiagramAlgebra.__init__(self, k, q, base_ring, "O", diagrams, category)
+        self._fill = True
         self._alg = alg
 
     def _repr_(self):

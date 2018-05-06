@@ -27,6 +27,8 @@ Comprehensive Module list
     sage/combinat/binary_tree
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
+    sage/combinat/chas/__init__
+    sage/combinat/chas/wqsym
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all
     sage/combinat/cluster_algebra_quiver/cluster_seed
@@ -119,6 +121,7 @@ Comprehensive Module list
     sage/combinat/finite_class
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
+    sage/combinat/fqsym
     sage/combinat/free_module
     sage/combinat/free_dendriform_algebra
     sage/combinat/free_prelie_algebra

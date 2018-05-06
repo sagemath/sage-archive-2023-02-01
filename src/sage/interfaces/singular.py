@@ -1916,7 +1916,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: Q.sage()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
             sage: singular('x^2+y').sage()
-            x^2 + y
+            y
             sage: singular('x^2+y').sage().parent()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
 

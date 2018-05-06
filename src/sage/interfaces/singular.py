@@ -959,7 +959,7 @@ class Singular(ExtraTabCompletion, Expect):
                   _[1]=x
                   _[2]=y
 
-        Strings have to be escaped before passing them to this method:
+        Strings have to be escaped before passing them to this method::
 
             sage: singular.list([1,2,'"hi"'])
             [1]:
@@ -969,10 +969,10 @@ class Singular(ExtraTabCompletion, Expect):
             [3]:
                hi
 
-        TESTS::
+        TESTS:
 
         Check that a list already converted to Singular can be
-        embedded into a list to be converted:
+        embedded into a list to be converted::
 
             sage: singular.list([1, 2, singular.list([3, 4])])
             [1]:

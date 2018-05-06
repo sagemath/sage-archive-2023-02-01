@@ -27,7 +27,6 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.arith.all import factorial
-import sage.rings.integer
 from sage.sets.set import Set, Set_generic
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -39,10 +38,13 @@ from sage.structure.element import parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.richcmp import richcmp
+from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.combinat import stirling_number2
 from sage.combinat.composition import Composition, Compositions
+from sage.combinat.words.words import Words
+from sage.combinat.words.finite_word import FiniteWord_class
 import sage.combinat.permutation as permutation
 from functools import reduce
 from sage.categories.cartesian_product import cartesian_product
@@ -66,8 +68,8 @@ class OrderedSetPartition(ClonableArray):
     order.
 
     The number `T_n` of ordered set partitions of
-    `\{ 1, 2, ..., n \}` is the so-called `n`-th *Fubini number* (also
-    known as the `n`-th ordered Bell number; see
+    `\{ 1, 2, \ldots, n \}` is the so-called `n`-th *Fubini number*
+    (also known as the `n`-th ordered Bell number; see
     :wikipedia:`Ordered Bell number`). Its exponential generating
     function is
 
@@ -76,6 +78,13 @@ class OrderedSetPartition(ClonableArray):
         \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
 
     (See sequence A000670 in OEIS.)
+
+    INPUT:
+
+    - ``parts`` -- an object or iterable that defines an ordered set partition
+      (e.g., a list of pairwise disjoint sets) or a packed word (e.g., a list
+      of letters on some alphabet). If there is ambiguity and if the input should
+      be treated as a packed word, the keyword ``from_word`` should be used.
 
     EXAMPLES:
 
@@ -129,12 +138,22 @@ class OrderedSetPartition(ClonableArray):
         sage: s.parent()
         Ordered set partitions of {1, 2, 3, 4}
 
+    We can construct the ordered set partition from a word,
+    which we consider as packed::
+
+        sage: OrderedSetPartition([2,4,1,2])
+        [{3}, {1, 4}, {2}]
+        sage: OrderedSetPartition(from_word=[2,4,1,2])
+        [{3}, {1, 4}, {2}]
+        sage: OrderedSetPartition(from_word='bdab')
+        [{3}, {1, 4}, {2}]
+
     REFERENCES:
 
     :wikipedia:`Ordered_partition_of_a_set`
     """
     @staticmethod
-    def __classcall_private__(cls, parts):
+    def __classcall_private__(cls, parts=None, from_word=None):
         """
         Create a set partition from ``parts`` with the appropriate parent.
 
@@ -148,11 +167,28 @@ class OrderedSetPartition(ClonableArray):
             [{2, 4}, {1, 3}]
             sage: s != t
             True
+            sage: OrderedSetPartition()
+            []
             sage: OrderedSetPartition([])
             []
+            sage: OrderedSetPartition('')
+            []
+            sage: OrderedSetPartition('bdab') == OrderedSetPartition(from_word='bdab')
+            True
+            sage: OrderedSetPartition('bdab') == OrderedSetPartition(Word('bdab'))
+            True
         """
-        P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), map(Set, parts), Set([])) )
-        return P.element_class(P, parts)
+        if parts is None and from_word is None:
+            P = OrderedSetPartitions([])
+            return P.element_class(P, [])
+        if from_word:
+            return OrderedSetPartitions().from_finite_word(Words()(from_word))
+        # if `parts` looks like a sequence of "letters" then treat it like a word.
+        if parts in Words() or (len(parts) > 0 and (parts[0] in ZZ or isinstance(parts[0], str))):
+            return OrderedSetPartitions().from_finite_word(Words()(parts))
+        else:
+            P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), map(Set, parts), Set([])) )
+            return P.element_class(P, parts)
 
     def __init__(self, parent, s):
         """
@@ -164,7 +200,25 @@ class OrderedSetPartition(ClonableArray):
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
+        self._base_set = reduce(lambda x,y: x.union(y), map(Set, s), Set([]))
         ClonableArray.__init__(self, parent, [Set(_) for _ in s])
+
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        .. TODO::
+
+            Sort the repr output of Sage's :class:`Set` and remove
+            this method.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1,3],[2,4]])
+            [{1, 3}, {2, 4}]
+        """
+        return '[' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + ']'
 
     def check(self):
         """
@@ -226,6 +280,19 @@ class OrderedSetPartition(ClonableArray):
         return sum(len(x) for x in self)
 
     size = base_set_cardinality
+
+    def length(self):
+        r"""
+        Return the number of parts of ``self``.
+
+        EXAMPLES::
+
+            sage: OS = OrderedSetPartitions(4)
+            sage: s = OS([[1, 3], [2, 4]])
+            sage: s.length()
+            2
+        """
+        return len(self)
 
     @combinatorial_map(name='to composition')
     def to_composition(self):
@@ -303,13 +370,13 @@ class OrderedSetPartition(ClonableArray):
             sage: W.finer().list()
             [[{9}, {4}, {2}, {-1}],
              [{9}, {4}, {-1}, {2}],
-             [{9}, {4}, {2, -1}],
+             [{9}, {4}, {-1, 2}],
              [{4}, {9}, {2}, {-1}],
              [{4}, {9}, {-1}, {2}],
-             [{4}, {9}, {2, -1}],
-             [{9, 4}, {2}, {-1}],
-             [{9, 4}, {-1}, {2}],
-             [{9, 4}, {2, -1}]]
+             [{4}, {9}, {-1, 2}],
+             [{4, 9}, {2}, {-1}],
+             [{4, 9}, {-1}, {2}],
+             [{4, 9}, {-1, 2}]]
         """
         par = parent(self)
         if not self:
@@ -435,7 +502,7 @@ class OrderedSetPartition(ClonableArray):
              [{2, 5}, {1}, {3, 4}]]
 
             sage: OrderedSetPartition([[4, 9], [-1, 2]]).fatter().list()
-            [[{9, 4}, {2, -1}], [{9, 2, 4, -1}]]
+            [[{4, 9}, {-1, 2}], [{-1, 2, 4, 9}]]
 
         Some extreme cases::
 
@@ -478,7 +545,7 @@ class OrderedSetPartition(ClonableArray):
             sage: buo(Set([1, 4, 7, 9]), [2, 1, 1])
             [{1, 4}, {7}, {9}]
             sage: buo(Set([1, 4, 7, 9]), [1, 3])
-            [{1}, {9, 4, 7}]
+            [{1}, {4, 7, 9}]
             sage: buo(Set([1, 4, 7, 9]), [1, 1, 1, 1])
             [{1}, {4}, {7}, {9}]
             sage: buo(range(8), [1, 4, 2, 1])
@@ -526,9 +593,9 @@ class OrderedSetPartition(ClonableArray):
             sage: W = OrderedSetPartition([[4, 9], [-1, 2]])
             sage: W.strongly_finer().list()
             [[{4}, {9}, {-1}, {2}],
-             [{4}, {9}, {2, -1}],
-             [{9, 4}, {-1}, {2}],
-             [{9, 4}, {2, -1}]]
+             [{4}, {9}, {-1, 2}],
+             [{4, 9}, {-1}, {2}],
+             [{4, 9}, {-1, 2}]]
         """
         par = parent(self)
         if not self:
@@ -609,7 +676,7 @@ class OrderedSetPartition(ClonableArray):
              [{2, 5}, {1}, {3, 4}]]
 
             sage: OrderedSetPartition([[4, 9], [-1, 2]]).strongly_fatter().list()
-            [[{9, 4}, {2, -1}]]
+            [[{4, 9}, {-1, 2}]]
 
         Some extreme cases::
 
@@ -646,6 +713,45 @@ class OrderedSetPartition(ClonableArray):
         fattenings = [list(subcomp.fatter()) for subcomp in subcomps]
         return FiniteEnumeratedSet([OrderedSetPartition(sum([list(g) for g in fattening], []))
             for fattening in cartesian_product(fattenings)])
+
+    @combinatorial_map(name='to packed word')
+    def to_packed_word(self):
+        r"""
+        Return the packed word on alphabet `\{1,2,3,\ldots}`
+        corresponding to ``self``.
+
+        A *packed word* on alphabet `\{1,2,3,\ldots\}` is any word whose
+        maximum letter is the same as its total number of distinct letters.
+        Let `P` be an ordered set partition of a set `X`.
+        The corresponding packed word `w_1 w_2 \cdots w_n` is constructed
+        by having letter `w_i = j` if the `i`-th smallest entry in `X`
+        occurs in the `j`-th block of `P`.
+
+        .. SEEALSO::
+
+            :meth:`Word.to_ordered_set_partition`
+
+        .. WARNING::
+
+            This assumes there is a total order on the underlying
+            set (``self._base_set``).
+
+        EXAMPLES::
+
+            sage: S = OrderedSetPartitions()
+            sage: x = S([[3,5], [2], [1,4,6]])
+            sage: x.to_packed_word()
+            word: 321313
+            sage: x = S([['a', 'c', 'e'], ['b', 'd']])
+            sage: x.to_packed_word()
+            word: 12121
+        """
+        X = sorted(self._base_set)
+        out = {}
+        for i in range(len(self)):
+            for letter in self[i]:
+                out[letter] = i
+        return Words()([out[letter]+1 for letter in X])
 
 class OrderedSetPartitions(UniqueRepresentation, Parent):
     """
@@ -720,7 +826,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             if c is not None:
                 raise NotImplementedError("cannot specify 'c' without specifying 's'")
             return OrderedSetPartitions_all()
-        if isinstance(s, (int, sage.rings.integer.Integer)):
+        if isinstance(s, (int, Integer)):
             if s < 0:
                 raise ValueError("s must be non-negative")
             s = frozenset(range(1, s+1))
@@ -730,7 +836,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         if c is None:
             return OrderedSetPartitions_s(s)
 
-        if isinstance(c, (int, sage.rings.integer.Integer)):
+        if isinstance(c, (int, Integer)):
             return OrderedSetPartitions_sn(s, c)
         if c not in Compositions(len(s)):
             raise ValueError("c must be a composition of %s"%len(s))
@@ -795,6 +901,31 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             return False
 
         return True
+
+    def from_finite_word(self, w):
+        r"""
+        Return the unique ordered set partition of `{1, 2, ..., n}` corresponding to a word
+        of length `n`.'
+
+        .. SEEALSO::
+
+            :meth:`Word.to_ordered_set_partition`
+
+        EXAMPLES::
+
+            sage: A = OrderedSetPartitions().from_finite_word('abcabcabd'); A
+            [{1, 4, 7}, {2, 5, 8}, {3, 6}, {9}]
+            sage: B = OrderedSetPartitions().from_finite_word([1,2,3,1,2,3,1,2,4])
+            sage: A == B
+            True
+        """
+        # TODO: fix this if statement.
+        #       In fact, what we need is for the underlying alphabet to be sortable.
+        if isinstance(w, (list, tuple, str, FiniteWord_class)):
+            return self.element_class(self, Words()(w).to_ordered_set_partition())
+        else:
+            raise ValueError("Something is wrong: `from_finite_word` expects an object of type list/tuple/str/Word representing a finite word, received {}.".format(str(w)))
+
 
 class OrderedSetPartitions_s(OrderedSetPartitions):
     """
@@ -1131,13 +1262,13 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
             return False
         X = set(reduce(lambda A,B: A.union(B), x, set()))
         return len(X) == sum(len(s) for s in x) and X == set(range(1,len(X)+1))
-        
+
     def _coerce_map_from_(self, X):
         """
         Return ``True`` if there is a coercion map from ``X``.
 
         EXAMPLES::
-        
+
             sage: OSP = OrderedSetPartitions()
             sage: OSP._coerce_map_from_(OrderedSetPartitions(3))
             True

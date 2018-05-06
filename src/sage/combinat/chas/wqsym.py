@@ -21,6 +21,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.global_options import GlobalOptions
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -50,6 +51,95 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
                                          OrderedSetPartitions(),
                                          category=WQSymBases(alg, graded),
                                          bracket="", prefix=self._prefix)
+
+    def _repr_term(self, osp):
+        r"""
+        Return a string representation of an element of WordQuasiSymmetricFunctions
+        in the basis ``self``.
+
+        TESTS::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: elt = M[[1,2]]*M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.objects = "words"
+            sage: elt
+            M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options._reset()
+        """
+        return self._prefix + self.options._dispatch(self, '_repr_', 'objects', osp)
+
+
+    def _repr_compositions(self, osp):
+        """
+        Return a string representation of ``osp`` indexed by ordered set partitions.
+
+        This method is called by ``self_repr_term``.
+
+        EXAMPLES::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: elt = M[[1,2]] * M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.display = "tight";
+            sage: elt
+            M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
+            sage: M.options.display = "compact";
+            sage: elt
+            M[12.3] + M[123] + M[3.12]
+            sage: osp = OrderedSetPartition([[2,4], [1,3,7],[5,6]])
+            sage: M._repr_compositions(osp) == '[24.137.56]'
+            True
+            sage: M.options._reset(); elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+        """
+        display = self.options.display
+        disp = repr(osp)
+        if display == 'tight':
+            disp = disp.replace(", ", ",")
+            return disp
+        elif display == 'compact':
+            disp = disp.replace("}, ", ".").replace("}", "").replace("{", "")
+            return disp.replace(", ", "")
+        else:
+            # treat display as 'normal'
+            return disp
+
+    def _repr_words(self, osp):
+        """
+        Return a string representation of ``self`` indexed by packed words.
+
+        This method is called by ``self_repr_term``.
+
+        EXAMPLES::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: elt = M[[1,2]]*M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.objects = "words";
+            sage: elt
+            M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options.display = "tight";
+            sage: elt
+            M[1,1,2] + M[1,1,1] + M[2,2,1]
+            sage: M.options.display = "compact";
+            sage: elt
+            M[112] + M[111] + M[221]
+            sage: osp = OrderedSetPartition([[2,4], [1,3,7],[5,6]])
+            sage: M._repr_words(osp) == '[2121332]'
+            True
+            sage: M.options._reset(); elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+        """
+        display = self.options.display
+        disp = repr(list(osp.to_packed_word()))
+        if display == 'tight':
+            return disp.replace(", ", ",")
+        elif display == 'compact':
+            return disp.replace(", ", "")
+        else:
+            # treat display as 'normal'
+            return disp
 
     def _coerce_map_from_(self, R):
         r"""
@@ -319,14 +409,73 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
 
+    # add options to class
+    class options(GlobalOptions):
+        r"""
+        Set and display the global options for bases of WordQuasiSymmetricFunctions.
+        If no parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` can be accessed as the method
+        :obj:`WordQuasiSymmetricFunctions.options` of
+        :class:`WordQuasiSymmetricFunctions` or of any associated basis.
+
+        @OPTIONS@
+
+        The ``'words'`` representation of a basis element of
+        :class:`WordQuasiSymmetricFunctions`, indexed by an ordered
+        set partition `A`, is the packed word associated to `A`.
+        See :meth:`OrderedSetPartition.to_packed_word` for details.)
+
+        EXAMPLES::
+
+            sage: WQ = WordQuasiSymmetricFunctions(QQ)
+            sage: M = WQ.M()
+            sage: elt = M[[1,2]]*M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.display = "tight"
+            sage: elt
+            M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
+            sage: M.options.display = "compact"
+            sage: elt
+            M[12.3] + M[123] + M[3.12]
+            sage: WQ.options._reset()
+            sage: M.options.objects = "words"
+            sage: elt
+            M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options.display = "tight"
+            sage: elt
+            M[1,1,2] + M[1,1,1] + M[2,2,1]
+            sage: WQ.options.display = "compact"
+            sage: elt
+            M[112] + M[111] + M[221]
+            sage: M.options._reset()
+            sage: elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+        """
+        NAME = 'WordQuasiSymmetricFunctions element'
+        module = 'sage.combinat.chas.wqsym'
+        option_class='WordQuasiSymmetricFunctions'
+        objects = dict(default="compositions",
+                       description='Specifies how basis elements of WordQuasiSymmetricFunctions should be indexed',
+                       values=dict(compositions="Indexing the basis by ordered set partitions",
+                                   words="Indexing the basis by packed words"),
+                                   case_sensitive=False)
+        display = dict(default="normal",
+                       description='Specifies how basis elements of WordQuasiSymmetricFunctions should be printed',
+                       values=dict(normal="Using the normal representation",
+                                   tight="Dropping spaces after commas",
+                                   compact="Using a severely compacted representation"),
+                                   case_sensitive=False)
+
     class Monomial(WQSymBasis_abstract):
         r"""
-        The Monomial basis of `W QSym`.
+        The Monomial basis of `WQSym`.
 
         The family `(\mathbf{M}_u)`, as defined in
         :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions`
         with `u` ranging over all packed words, is a basis for the
-        free `R`-module `W QSym` and called the *Monomial basis*.
+        free `R`-module `WQSym` and called the *Monomial basis*.
         Here it is labelled using ordered set partitions.
 
         EXAMPLES::
@@ -1228,6 +1377,8 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                       for (left, right) in deconcatenates)
 
     Phi = StronglyFiner
+
+WQSymBasis_abstract.options = WordQuasiSymmetricFunctions.options
 
 class WQSymBases(Category_realization_of_parent):
     r"""

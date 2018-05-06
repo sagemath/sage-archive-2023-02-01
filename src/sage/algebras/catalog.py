@@ -55,7 +55,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
-- :class:`algebras.WQSym <sage.combinat.chas.wqsym.WordQuasisymmetricFunctions>`
+- :class:`algebras.WQSym <sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions>`
 - :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`

@@ -1118,7 +1118,7 @@ class FreeQuadraticModule_ambient_field(
 
         Check for :trac:`10606`::
 
-            sage: D = matrix.diagonal(Z Z, [1,1])
+            sage: D = matrix.diagonal(ZZ, [1,1])
             sage: V = VectorSpace(GF(46349), 2, inner_product_matrix=D)
             sage: deepcopy(V)
             Ambient quadratic space of dimension 2 over Finite Field

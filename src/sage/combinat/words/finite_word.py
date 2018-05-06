@@ -874,19 +874,19 @@ class FiniteWord_class(Word_class):
 
     def to_ordered_set_partition(self):
         r"""
-        Return the ordered set partition `(P_1, P_2, \ldots, P_k)`
-        of `\{1, 2, \ldots, n\}`, where `n` is the length of ``self``,
-        and where each block `P_i` is the set of positions at which
-        the `i`-th smallest letter occurring in ``self`` occurs in
-        ``self``.
+        Return the ordered set partition correspond to ``self``.
 
-        (Positions are `1`-based.)
+        If `w` is a finite word of length `n`, then the corresponding
+        ordered set partition is an ordered set partition
+        `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+        each block `P_i` is the set of positions at which the `i`-th
+        smallest letter occurring in `w` occurs in `w`.
 
         EXAMPLES::
 
             sage: w = Word('abbabaab')
             sage: w.to_ordered_set_partition()
-            [{1, 4, 6, 7}, {8, 2, 3, 5}]
+            [{1, 4, 6, 7}, {2, 3, 5, 8}]
             sage: Word([-10, 3, -10, 2]).to_ordered_set_partition()
             [{1, 3}, {4}, {2}]
             sage: Word([]).to_ordered_set_partition()

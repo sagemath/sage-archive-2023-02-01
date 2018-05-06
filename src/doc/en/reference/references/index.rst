@@ -390,7 +390,7 @@ REFERENCES:
 
 .. [Bo2009] Bosch, S., Algebra, Springer 2009
 
-.. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapers 1-3.
+.. [Bou1989] \N. Bourbaki. *Lie Groups and Lie Algebras*. Chapters 1-3.
              Springer. 1989.
 
 .. [BP1982] \H. Beker and F. Piper. *Cipher Systems: The Protection of

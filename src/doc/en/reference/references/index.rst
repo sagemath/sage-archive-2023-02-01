@@ -2162,6 +2162,9 @@ REFERENCES:
             Reduction*. Advances in Cryptology - EUROCRYPT '95. LNCS
             Volume 921, 1995, pp 1-12.
 
+.. [Shim2016] Shimada, Ichiro, Connected components of the moduli of
+            elliptic K3 surfaces, https://arxiv.org/abs/1610.04706.
+
 .. [Shi1971] Goro Shimura, *Introduction to the arithmetic theory of
              automorphic functions*. Publications of the Mathematical
              Society of Japan and Princeton University Press, 1971.

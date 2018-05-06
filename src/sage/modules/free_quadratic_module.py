@@ -76,7 +76,6 @@ import sage.rings.ring as ring
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from . import free_module
-from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, richcmp
 
 ###############################################################################
 #

@@ -27,15 +27,15 @@ class CellModule(CombinatorialFreeModule):
     Let `R` be a commutative ring. Let `A` be a cellular `R`-algebra
     with cell datum `(\Lambda, i, M, C)`. A *cell module* `W(\lambda)`
     is the `R`-module given by `R\{C_s \mid s \in M(\lambda)\}` with
-    an action of `a \in A` given by `a C_s = \sum_{u \in M(\lambda}
+    an action of `a \in A` given by `a C_s = \sum_{u \in M(\lambda)}
     r_a(u, s) C_u`, where `r_a(u, s)` is the same as those
     given by the cellular condition:
 
     .. MATH::
 
-        a C^{\lambda}_{st} = \sum_{u \ in M(\lambda) r_a(u, s)
+        a C^{\lambda}_{st} = \sum_{u \in M(\lambda)} r_a(u, s)
         C_{ut}^{\lambda} +
-        \sum_{\substack{\mu < \lambda \\ xy \in M(\mu)}} R C^{\mu}_{xy}.
+        \sum_{\substack{\mu < \lambda \\ x,y \in M(\mu)}} R C^{\mu}_{xy}.
 
     INPUT:
 
@@ -188,7 +188,7 @@ class CellModule(CombinatorialFreeModule):
 
             C_{ss}^{\lambda} C_{tt}^{\lambda} = \Phi_{\lambda}(C_s, C_t)
             C_{st}^{\lambda} +
-            \sum_{\substack{\mu < \lambda \\ xy \in M(\mu)}} R C^{\mu}_{xy}.
+            \sum_{\substack{\mu < \lambda \\ x,y \in M(\mu)}} R C^{\mu}_{xy}.
 
         EXAMPLES::
 
@@ -274,7 +274,7 @@ class CellModule(CombinatorialFreeModule):
         .. MATH::
 
             \operatorname{rad}(\lambda) := \{x \in W(\lambda) \mid
-            \Phi_{\lambda}(x, y),
+            \Phi_{\lambda}(x, y)\},
 
         and note that it is a submodule of `W(\lambda)`.
 

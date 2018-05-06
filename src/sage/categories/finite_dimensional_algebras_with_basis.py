@@ -1117,7 +1117,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
           .. MATH::
 
-              `\{c^\nu_{ab} | \nu > \mu\text{ and } a,b \in T(\nu)\}`.
+              \{ c^\nu_{ab} \mid \nu > \mu \text{ and } a,b \in T(\nu) \}.
 
           Moreover, the scalar `r_a(s,u)` depends only on `a`, `s` and
           `u` and, in particular, is independent of `t`.

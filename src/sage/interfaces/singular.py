@@ -1672,6 +1672,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: singular('z^4')
             (-z3-z2-z-1)
 
+        Test that :trac:`25297` is fixed::
+
+            sage: R.<x,y> = QQ[]
+            sage: SE.<xbar,ybar> = R.quotient(x^2 + y^2 - 1)
+            sage: P = ideal(xbar,ybar)
+            sage: P2 = P._singular_().sage()
+            sage: P2.0.lift().parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
         AUTHORS:
 
         - Martin Albrecht (2006-05-18)

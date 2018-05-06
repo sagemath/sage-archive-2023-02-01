@@ -857,6 +857,9 @@ REFERENCES:
 
 **E**
 
+.. [Early2017] Nick Early. *Canonical bases for permutohedral plates*.
+               Preprint (2017). :arxiv:`1712.08520v3`.
+
 .. [Eb1989] \W. Eberly, "Computations for algebras and group
             representations". Ph.D. Thesis, University of
             Toronto, 1989. http://www.cpsc.ucalgary.ca/~eberly/Research/Papers/phdthesis.pdf
@@ -964,6 +967,12 @@ REFERENCES:
 .. [Fom1995] Sergey V. Fomin, "Schensted algorithms for dual graded
              graphs". Journal of Algebraic Combinatorics Volume 4,
              Number 1 (1995), pp. 5-45.
+
+.. [FoiMal14] Loic Foissy, Claudia Malvenuto,
+              *The Hopf algebra of finite topologies and T-partitions*,
+              Journal of Algebra, Volume 438, 15 September 2015, pp. 130--169,
+              :doi:`10.1016/j.jalgebra.2015.04.024`,
+              :arxiv:`1407.0476v2`.
 
 .. [FOS2010] \G. Fourier, M. Okado, A. Schilling. *Perfectness of
              Kirillov-Reshetikhin crystals for nonexceptional types*.
@@ -1769,6 +1778,14 @@ REFERENCES:
 .. [McM1992] John McMillan. *Games, strategies, and managers*. Oxford
              University Press.
 
+.. [MeNoTh11] Frederic Menous, Jean-Christophe Novelli, Jean-Yves Thibon,
+              *Mould calculus, polyhedral cones, and characters of
+              combinatorial Hopf algebras*,
+              Advances in Applied Mathematics, Volume 51, Issue 2, July 2013,
+              Pages 177--227,
+              :doi:`10.1016/j.aam.2013.02.003`,
+              :arxiv:`1109.1634v2`.
+
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
 
@@ -1871,6 +1888,14 @@ REFERENCES:
 .. [Normaliz] Winfried Bruns, Bogdan Ichim, and Christof Soeger,
               Normaliz,
               http://www.mathematik.uni-osnabrueck.de/normaliz/
+
+.. [NoThWi08] J.-C. Novelli, J.-Y. Thibon, L. K. Williams,
+              *Combinatorial Hopf algebras, noncommutative Hall-Littlewood
+              functions, and permutation tableaux*.
+              Advances in Mathematics, Volume 224, Issue 4, 10 July 2010,
+              pp. 1311--1348,
+              :doi:`10.1016/j.aim.2010.01.006`,
+              :arxiv:`0804.0995v3`.
 
 .. [NZ2012] \T. Nakanishi and \A. Zelevinsky, *On tropical dualities in
             cluster algebras*, Algebraic groups and quantum groups,

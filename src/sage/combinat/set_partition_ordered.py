@@ -181,7 +181,7 @@ class OrderedSetPartition(ClonableArray):
         if from_word:
             return OrderedSetPartitions().from_finite_word(Words()(from_word))
         # if `parts` looks like a sequence of "letters" then treat it like a word.
-        if parts in Words() or (len(parts) > 0 and isinstance(parts[0], (str, int, Integer))):
+        if parts in Words() or (len(parts) > 0 and (parts[0] in ZZ or isinstance(parts[0], str))):
             return OrderedSetPartitions().from_finite_word(Words()(parts))
         else:
             P = OrderedSetPartitions( reduce(lambda x,y: x.union(y), map(Set, parts), Set([])) )

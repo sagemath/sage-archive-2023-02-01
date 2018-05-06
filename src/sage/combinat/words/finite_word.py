@@ -884,7 +884,7 @@ class FiniteWord_class(Word_class):
 
             sage: w = Word('abbabaab')
             sage: w.to_ordered_set_partition()
-            [{1, 4, 6, 7}, {8, 2, 3, 5}]
+            [{1, 4, 6, 7}, {2, 3, 5, 8}]
             sage: Word([-10, 3, -10, 2]).to_ordered_set_partition()
             [{1, 3}, {4}, {2}]
             sage: Word([]).to_ordered_set_partition()

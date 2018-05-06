@@ -958,8 +958,6 @@ class BrauerDiagram(AbstractPartitionDiagram):
         of the Brauer diagram `d`. We say `d` is *elementary symmetric*
         if `D_1 = D_2` and `\pi` is the identity.
 
-        .. TODO:: Come up with a better name?
-
         EXAMPLES::
 
             sage: import sage.combinat.diagram_algebras as da
@@ -2457,22 +2455,22 @@ class OrbitBasis(DiagramAlgebra):
     r"""
     The orbit basis of the partition algebra.
 
-    Let `d_\pi` represent the diagram basis element indexed by the
+    Let `D_\pi` represent the diagram basis element indexed by the
     partition `\pi`, then (see equations (2.14), (2.17) and (2.18) of [BH2017]_)
 
     .. MATH::
 
-        d_\pi = \sum_{\tau \geq \pi} o_\tau,
+        D_\pi = \sum_{\tau \geq \pi} O_\tau,
 
     where the sum is over all partitions `\tau` which are coarser than `\pi`
-    and `o_\tau` is the orbit basis element indexed by the partition `\tau`.
+    and `O_\tau` is the orbit basis element indexed by the partition `\tau`.
 
     If `\mu_{2k}(\pi,\tau)` represents the mobius function of the partition
     lattice, then
 
     .. MATH::
 
-        o_\pi = \sum_{\tau \geq \pi} \mu_{2k}(\pi, \tau) d_\tau.
+        O_\pi = \sum_{\tau \geq \pi} \mu_{2k}(\pi, \tau) D_\tau.
 
     If `\tau` is a partition of `\ell` blocks and the `i^{th}` block of
     `\tau` is a union of `b_i` blocks of `\pi`, then
@@ -2674,10 +2672,12 @@ class OrbitBasis(DiagramAlgebra):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
-            sage: P2 = PartitionAlgebra(2, x, R)
-            sage: O2 = P2.orbit_basis()
-            sage: op = O2.an_element(); op
-            2*O{{-2, -1, 1, 2}} + 3*O{{-2, -1, 1}, {2}} + 2*O{{-2, -1, 2}, {1}}
+            sage: O2 = PartitionAlgebra(2, x, R).orbit_basis()
+            sage: P2 = O2.diagram_basis(); P2
+            Partition Algebra of rank 2 with parameter x over Univariate
+            Polynomial Ring in x over Rational Field
+            sage: P2(O2.an_element())
+            -3*P{{-2, -1, 1, 2}} + 3*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 2}, {1}}
 
         TESTS::
 
@@ -2735,7 +2735,7 @@ class OrbitBasis(DiagramAlgebra):
 
     def product_on_basis(self, d1, d2):
         r"""
-        Return the product `o_{d_1} o_{d_2}` of two elements
+        Return the product `O_{d_1} O_{d_2}` of two elements
         in the orbit basis ``self``.
 
         EXAMPLES::

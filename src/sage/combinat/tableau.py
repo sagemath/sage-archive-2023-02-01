@@ -4087,6 +4087,195 @@ class Tableau(ClonableList):
         data = list(self.conjugate().entries())
         return permutation.Permutation(data).inverse().reduced_word_lexmin()
 
+    def hillman_grassl(self):
+        r"""
+        Return the image of the `\lambda`-array ``self`` under the
+        Hillman-Grassl correspondence (as a
+        :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
+
+        This relies on interpreting ``self`` as a `\lambda`-array
+        in the sense of :mod:`~sage.combinat.hillman_grassl`.
+
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        The Hillman-Grassl correspondence `H` is the map that sends a
+        `\lambda`-array `M` to a `\lambda`-rpp `H(M)` defined recursively
+        as follows:
+
+        * If all entries of `M` are `0`, then `H(M) = M`.
+
+        * Otherwise, let `s` be the index of the leftmost column of `M`
+          containing a nonzero entry.
+          Let `r` be the index of the bottommost nonzero entry in the
+          `s`-th column of `M`. Let `M'` be the `\lambda`-array obtained
+          from `M` by subtracting `1` from the `(r, s)`-th entry of `M`.
+          Let `Q = (q_{i, j})` be the image `H(M')` (which is already
+          defined by recursion).
+
+        * Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
+          (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
+          lattice path made of southward and westward steps) as follows:
+          Set `(i_1, j_1) = (r, \lambda_r)` (the rightmost box in the
+          `r`-th row of `\lambda`). If `(i_k, j_k)` is defined for some
+          `k \geq 1`, then `(i_{k+1}, j_{k+1})` is constructed as follows:
+          If `q_{i_k + 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
+          then we set `(i_{k+1}, j_{k+1}) = (i_k + 1, j_k)`.
+          Otherwise, if `j_k = s`, then the sequence ends here.
+          Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k - 1)`.
+
+        * Let `H(M)` be the array obtained from `Q` by adding `1` to
+          the `(i_k, j_k)`-th entry of `Q` for each
+          `k \in \{1, 2, \ldots, n\}`.
+
+        See [Gans1981]_ (Section 3) for this construction.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.hillman_grassl`
+            for the Hillman-Grassl correspondence as a standalone
+            function.
+
+            :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = Tableau([[2, 1, 1], [0, 2, 0], [1, 1]])
+            sage: A = a.hillman_grassl(); A
+            [[2, 2, 4], [2, 3, 4], [3, 5]]
+            sage: A.parent(), a.parent()
+            (Weak Reverse Plane Partitions, Tableaux)
+        """
+        from sage.combinat.hillman_grassl import (hillman_grassl,
+                                                  WeakReversePlanePartition)
+        return WeakReversePlanePartition(hillman_grassl(list(self)))
+
+    def sulzgruber_correspondence(self):
+        r"""
+        Return the image of the `\lambda`-array ``self`` under the
+        Sulzgruber correspondence (as a
+        :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
+
+        This relies on interpreting ``self`` as a `\lambda`-array
+        in the sense of :mod:`~sage.combinat.hillman_grassl`.
+        See :mod:`~sage.combinat.hillman_grassl` for definitions
+        of the objects involved.
+
+        The Sulzgruber correspondence is the map `\Phi_\lambda`
+        from [Sulzgr2017]_ Section 7, and is the map
+        `\xi_\lambda^{-1}` from [Pak2002]_ Section 5.
+        It is denoted by `\mathcal{RSK}` in [Hopkins2017]_.
+        It is the inverse of the Pak correspondence
+        (:meth:`pak_correspondence`).
+        The following description of the Sulzgruber correspondence
+        follows [Hopkins2017]_ (which denotes it by `\mathcal{RSK}`):
+
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        We shall also use the following notation:
+        If `(u, v)` is a cell of `\lambda`, and if `\pi` is a
+        `\lambda`-rpp, then:
+
+        * the *lower bound* of `\pi` at `(u, v)` (denoted by
+          `\pi_{<(u, v)}`) is defined to be
+          `\max \{ \pi_{u-1, v} , \pi_{u, v-1} \}` (where
+          `\pi_{0, v}` and `\pi_{u, 0}` are understood to mean `0`).
+
+        * the *upper bound* of `\pi` at `(u, v)` (denoted by
+          `\pi_{>(u, v)}`) is defined to be
+          `\min \{ \pi_{u+1, v} , \pi_{u, v+1} \}`
+          (where `\pi_{i, j}` is understood to mean `+ \infty`
+          if `(i, j)` is not in `\lambda`; thus, the upper
+          bound at a corner cell is `+ \infty`).
+
+        * *toggling* `\pi` at `(u, v)` means replacing the entry
+          `\pi_{u, v}` of `\pi` at `(u, v)` by
+          `\pi_{<(u, v)} + \pi_{>(u, v)} - \pi_{u, v}`
+          (this is well-defined as long as `(u, v)` is not a
+          corner of `\lambda`).
+
+        Note that every `\lambda`-rpp `\pi` and every cell
+        `(u, v)` of `\lambda` satisfy
+        `\pi_{<(u, v)} \leq \pi_{u, v} \leq \pi_{>(u, v)}`.
+        Note that toggling a `\lambda`-rpp (at a cell that is not
+        a corner) always results in a `\lambda`-rpp. Also,
+        toggling is an involution).
+
+        The Pak correspondence `\xi_\lambda` sends a `\lambda`-rpp `\pi`
+        to a `\lambda`-array `\xi_\lambda(\pi)`. It is defined by
+        recursion on `\lambda` (that is, we assume that `\xi_\mu` is
+        already defined for every partition `\mu` smaller than
+        `\lambda`), and its definition proceeds as follows:
+
+        * If `\lambda = \varnothing`, then `\xi_\lambda` is the
+          obvious bijection sending the only `\varnothing`-rpp
+          to the only `\varnothing`-array.
+
+        * Pick any corner `c = (i, j)` of `\lambda`, and let `\mu`
+          be the result of removing this corner `c` from the partition
+          `\lambda`.
+          (The exact choice of `c` is immaterial.)
+
+        * Let `\pi'` be what remains of `\pi` when the corner cell `c`
+          is removed.
+
+        * For each positive integer `k` such that `(i-k, j-k)` is a
+          cell of `\lambda`, toggle `\pi'` at `(i-k, j-k)`.
+          (All these togglings commute, so the order in which they
+          are made is immaterial.)
+
+        * Let `M = \xi_\mu(\pi')`.
+
+        * Extend the `\mu`-array `M` to a `\lambda`-array `M'` by
+          adding the cell `c` and writing the number
+          `\pi_{i, j} - \pi_{<(i, j)}` into this cell.
+
+        * Set `\xi_\lambda(\pi) = M'`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.sulzgruber_correspondence`
+            for the Sulzgruber correspondence as a standalone function.
+
+            :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = Tableau([[2, 1, 1], [0, 2, 0], [1, 1]])
+            sage: A = a.sulzgruber_correspondence(); A
+            [[0, 1, 4], [1, 5, 5], [3, 6]]
+            sage: A.parent(), a.parent()
+            (Weak Reverse Plane Partitions, Tableaux)
+
+            sage: a = Tableau([[1, 3], [0, 1]])
+            sage: a.sulzgruber_correspondence()
+            [[0, 4], [1, 5]]
+        """
+        from sage.combinat.hillman_grassl import (sulzgruber_correspondence,
+                                                  WeakReversePlanePartition)
+        return WeakReversePlanePartition(sulzgruber_correspondence(list(self)))
+
 class SemistandardTableau(Tableau):
     """
     A class to model a semistandard tableau.

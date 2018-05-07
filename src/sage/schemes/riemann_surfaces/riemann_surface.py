@@ -2086,10 +2086,11 @@ def integer_matrix_relations(M1,M2,b=None,r=None):
     CC = M1.base_ring() if (M1.base_ring().precision() <= M2.base_ring().precision()) else M2.base_ring()
     V = ["%s%s"%(n,i) for n in ["a","b","c","d"] for i in srange(1,1+g1*g2)]
     R = PolynomialRing(CC,V)
-    A = Matrix(R,g1,g2,V[:g1*g2])
-    B = Matrix(R,g1,g2,V[g1*g2:2*g1*g2])
-    C = Matrix(R,g1,g2,V[2*g1*g2:3*g1*g2])
-    D = Matrix(R,g1,g2,V[3*g1*g2:4*g1*g2])
+    vars = R.gens()
+    A = Matrix(R, g1, g2, vars[:g1*g2])
+    B = Matrix(R, g1, g2, vars[g1*g2:2*g1*g2])
+    C = Matrix(R, g1, g2, vars[2*g1*g2:3*g1*g2])
+    D = Matrix(R, g1, g2, vars[3*g1*g2:4*g1*g2])
     W = ((M1*A+B) - (M1*C+D)*M2).list()
     vars = R.gens()
     mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g1*g2)] +

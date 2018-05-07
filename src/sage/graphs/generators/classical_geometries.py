@@ -18,12 +18,10 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from __future__ import absolute_import, division
 from six.moves import range
 
-from copy import copy
-from math import sin, cos, pi
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from sage.arith.all import is_prime_power
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -184,7 +182,6 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
             raise ValueError("d must be odd when sign==None")
         s = 0
 
-    from sage.interfaces.gap import gap
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -287,7 +284,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
-    from itertools import combinations
 
     if m % 2 == 0:
         if sign != "+" and sign != "-":
@@ -876,7 +872,6 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     if k==0 or p==2:
        raise ValueError('q must be an odd prime power')
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
     from six.moves.builtins import sum
     Fq = FiniteField(q**2, 'a')
@@ -1066,7 +1061,6 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     """
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
-    from sage.modules.free_module_element import free_module_element as vector
 
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p!=2:
@@ -1187,7 +1181,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         raise ValueError('q must be a power of 2')
 
     if hyperoval_matching is None:
-        hyperoval_matching = [(2 * k + 1, 2 * k) for k in range(1 + q // 2)]
+        hyperoval_matching = [(2 * K + 1, 2 * K) for K in range(1 + q // 2)]
     if field is None:
         F = GF(q, 'a')
     else:
@@ -1411,7 +1405,6 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     """
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
-    from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import matrix
 
     p, k = is_prime_power(q,get_data=True)

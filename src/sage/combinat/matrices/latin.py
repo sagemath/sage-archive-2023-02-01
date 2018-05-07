@@ -1304,13 +1304,17 @@ class LatinSquare:
 def genus(T1, T2):
     """
     Returns the genus of hypermap embedding associated with the bitrade
-    (T1, T2). Informally, we compute the [tau_1, tau_2, tau_3]
+    (T1, T2).
+
+    Informally, we compute the [tau_1, tau_2, tau_3]
     permutation representation of the bitrade. Each cycle of tau_1,
     tau_2, and tau_3 gives a rotation scheme for a black, white, and
     star vertex (respectively). The genus then comes from Euler's
-    formula. For more details see Carlo Hamalainen: Partitioning
+    formula.
+
+    For more details see Carlo Hamalainen: Partitioning
     3-homogeneous latin bitrades. To appear in Geometriae Dedicata,
-    available at http://arxiv.org/abs/0710.0938
+    available at :arxiv:`0710.0938`
 
     EXAMPLES::
 

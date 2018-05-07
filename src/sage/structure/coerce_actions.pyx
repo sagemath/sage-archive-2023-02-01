@@ -755,7 +755,7 @@ cdef class IntegerMulAction(IntegerAction):
 
         Check that large multiplications can be interrupted::
 
-            sage: alarm(0.5); (2^(10^7)) * P
+            sage: alarm(0.5); (2^(10^7)) * P  # not tested; see trac:#24986
             Traceback (most recent call last):
             ...
             AlarmInterrupt

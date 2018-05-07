@@ -125,11 +125,15 @@ $(INST)/.dummy:
 #
 #     $(inst_python2) $(inst_cython) $(inst_pari) | $(inst_pip)
 #
+# If some value in the dependencies list is not a package name (e.g. it is
+# the name of some arbitrary file, or it is the '|' symbol) then it is just
+# used verbatim.
+#
 # Positional arguments:
 #     $(1): package name
 pkg_deps = \
 	$(foreach dep,$(deps_$(1)),\
-        $(if $(findstring |,$(dep)),|,$$(inst_$(dep))))
+        $(if $(value inst_$(dep)),$$(inst_$(dep)),$(dep)))
 
 # ============================= normal packages ==============================
 # Generate build rules for 'normal' packages; this template is used to generate
@@ -253,6 +257,16 @@ $(foreach pkgname,$(SCRIPT_PACKAGES),\
 	$(info $(call SCRIPT_PACKAGE_templ,$(pkgname),$(call pkg_deps,$(pkgname)))))
 endif
 
+
+# Use this target to list common targets of this Makefile (in particular for
+# installation with `sage -i`.
+list:
+	@for pkg in $(SAGE_I_TARGETS) $(NORMAL_PACKAGES) $(PIP_PACKAGES) $(SCRIPT_PACKAGES); do\
+		echo $$pkg;\
+	done
+
+
 .PHONY: $(NORMAL_PACKAGES) $(addsuffix -clean,$(NORMAL_PACKAGES)) \
         $(PIP_PACKAGES) $(addsuffix -clean,$(PIP_PACKAGES)) \
-        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES))
+        $(SCRIPT_PACKAGES) $(addsuffix -clean,$(SCRIPT_PACKAGES)) \
+		list

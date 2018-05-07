@@ -9,6 +9,7 @@ AUTHORS:
 - Stephen Doty, Aaron Lauve, George H. Seelinger (2015): Implementation of
   ``*Diagram`` classes and other methods to improve diagram algebras.
 - Mike Zabrocki (2018): Implementation of individual element diagram classes
+- Aaron Lauve (2018): Implementation of orbit basis for Partition algebra.
 """
 
 #*****************************************************************************
@@ -978,7 +979,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
     This is an abstract base class for partition diagrams.
 
-    Thee primary use of this class is to serve as basis keys for
+    The primary use of this class is to serve as basis keys for
     diagram algebras, but diagrams also have properties in their
     own right. Furthermore, this class is meant to be extended to
     create more efficient contains methods.
@@ -3705,35 +3706,6 @@ def propagating_number(sp):
         if min(part) < 0  and max(part) > 0:
             pn += 1
     return pn
-
-def pairing_is_possible(d, k):
-    r"""
-    Determine whether or not omitted nodes in ``d`` may be added
-    in pairs `\{i,-i\}`.
-
-    INPUT:
-
-    - ``d`` -- a set partition of `X \subseteq
-      \{-k, \ldots, -2, -1, 1, 2, \ldots, k\}`
-    - ``k`` -- the maximum value for ``d``
-
-    OUTPUT:
-
-    - boolean if there is a perfect matching on the nodes comprising the
-      complement of `X` of the form `\{i, -i\}`
-
-    TESTS::
-
-        sage: from sage.combinat.diagram_algebras import pairing_is_possible
-        sage: pairing_is_possible([[-1,3],[1,2,5],[-3],[-2,-5]], 7)
-        True
-        sage: pairing_is_possible([[-1,3],[1,2,5],[-3],[-2]], 7)
-        False
-    """
-    d_support = set(sum(map(list, d), []))
-    if max(d_support) > k:
-        return False
-    return all(-i in d_support for i in d_support)
 
 def to_set_partition(l, k=None):
     r"""

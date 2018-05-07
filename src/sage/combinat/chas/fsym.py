@@ -29,7 +29,6 @@ from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.tableau import Tableau, StandardTableaux
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.sf.sf import SymmetricFunctions
 
 class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
@@ -721,7 +720,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
               a coercion map into ``self.base_ring()``
             - symmetric functions over a base with a coercion
               map into ``self.base_ring()``
-            - free quasi-symmetric functions over a base with
+            - elements of `FSym^*` over a base ring with
               a coercion map into ``self.base_ring()``
 
             EXAMPLES:
@@ -817,8 +816,11 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
             z = []
             n = t1.size()
             m = t2.size()
+            npmp1 = n + m + 1
             ST = self._indices
-            for (I, J) in OrderedSetPartitions(range(1, n + m + 1), [n, m]):
+            from itertools import combinations
+            for I in combinations(range(1, npmp1), n):
+                J = [j for j in range(1, npmp1) if (j not in I)]
                 tt1 = [[I[x-1] for x in row] for row in t1]
                 tt2 = [tuple([J[x-1] for x in row]) for row in t2]
                 z.append(ST(Tableau(tt1).slide_multiply(tt2)))

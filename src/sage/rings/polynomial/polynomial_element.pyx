@@ -6393,7 +6393,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     algorithm = "BFSS"
 
         if algorithm == "resultant":
-            R = K['x', 'y']
+            R = S['x', 'y']
             x = R.gen(0)
             y = R.gen(1)
             if op is operator.add:

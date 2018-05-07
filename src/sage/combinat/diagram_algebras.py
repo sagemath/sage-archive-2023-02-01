@@ -9,7 +9,7 @@ AUTHORS:
 - Stephen Doty, Aaron Lauve, George H. Seelinger (2015): Implementation of
   ``*Diagram`` classes and other methods to improve diagram algebras.
 - Mike Zabrocki (2018): Implementation of individual element diagram classes
-- Aaron Lauve (2018): Implementation of orbit basis for Partition algebra.
+- Aaron Lauve, Mike Zabrocki (2018): Implementation of orbit basis for Partition algebra.
 """
 
 #*****************************************************************************

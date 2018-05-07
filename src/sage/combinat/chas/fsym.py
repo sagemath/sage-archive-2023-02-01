@@ -36,7 +36,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
     Abstract base class for bases of `FSym`.
 
-    This must define two attributes:
+    This must define the following attributes:
 
     - ``_prefix`` -- the basis prefix
     """
@@ -80,7 +80,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         The things that coerce into ``self`` are
 
-        - elements of the algebra `FSym` over a base with
+        - elements of the algebra `FSym` over a base ring with
           a coercion map into ``self.base_ring()``
 
         EXAMPLES::
@@ -168,7 +168,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         EXAMPLES:
 
-        We use a compact notation for set partitions::
+        We use a compact notation for standard tableaux::
 
             sage: FSym = algebras.FSym(QQ)
             sage: G = FSym.G()
@@ -181,7 +181,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         """
         return "{}[{}]".format(self._prefix,
                                "|".join("".join(map(str,block))
-                                                for block in sorted(phi, key=min)))
+                                                for block in phi))
 
 class FSymBases(Category_realization_of_parent):
     r"""
@@ -224,12 +224,12 @@ class FSymBases(Category_realization_of_parent):
         def __getitem__(self, key):
             r"""
             Override the ``__getitem__`` method to allow passing of
-            arguments to SetPartition.
+            arguments to ``StandardTableau``.
 
             EXAMPLES:
 
-            Construct the basis element indexed by a set partition by
-            passing data that defines the set partition::
+            Construct the basis element indexed by a standard tableau by
+            passing data that defines the standard tableau::
 
                 sage: FSym = algebras.FSym(QQ)
                 sage: G = FSym.G()
@@ -284,8 +284,7 @@ class FSymBases(Category_realization_of_parent):
 
         def duality_pairing(self, x, y):
             r"""
-            Scalar product for which the Hopf algebra of tableaux is
-            self-dual: the basis of tableaux is declared to be orthonormal.
+            The canonical pairing between `FSym` and `FSym^*`.
 
             EXAMPLES::
 
@@ -381,19 +380,42 @@ class FSymBases(Category_realization_of_parent):
             return self.parent().duality_pairing(self, other)
 
 class FreeSymmetricFunctions(UniqueRepresentation, Parent):
-    """
+    r"""
     The free symmetric functions.
 
-    The *free symmetric functions* is the combinatorial Hopf algebra
+    The *free symmetric functions* is a combinatorial Hopf algebra
     defined using tableaux and denoted `FSym`.
 
-    EXAMPLES::
+    Consider the Hopf algebra `FQSym`
+    (:class:`sage.combinat.fqsym.FreeQuasisymmetricFunctions`)
+    over a commutative ring `R`, and its bases `(F_w)` and `(G_w)`
+    (where `w`, in both cases, ranges over all permutations in all
+    symmetric groups `S_0, S_1, S_2, \ldots`).
+    For each word `w`, let `P(w)` be the P-tableau of `w` (that
+    is, the first of the two tableaux obtained by applying the
+    RSK algorithm to `w`; see :meth:`sage.combinat.rsk.RSK`).
+    If `t` is a standard tableau of size `n`, then we define
+    `\mathcal{G}_t \in FQSym` to be the sum of the `F_w` with
+    `w` ranging over all permutations of `\{1, 2, \ldots, n\}`
+    satisfying `P(w) = t`. Equivalently, `\mathcal{G}_t` is the
+    sum of the `G_w` with `w` ranging over all permutations of
+    `\{1, 2, \ldots, n\}` satisfying `Q(w) = t` (where `Q(w)`
+    denotes the Q-tableau of `w`).
 
-    This Hopf algebra embeds as a Hopf-subalgebra of the Hopf algebra of
-    permutations: the basis element indexed by a tableau `t` is sent to
-    the sum of permutations whose `P`-tableau is `t`.
+    The `R`-linear span of the `\mathcal{G}_t` (for `t` ranging
+    over all standard tableaux) is a Hopf algebra of `FQSym`,
+    denoted by `FSym` and known as the *free symmetric functions*
+    or the *Poirier-Reutenauer Hopf algebra of tableaux*. It has been
+    introduced in [PoiReu95]_, where it was denoted by
+    `(\mathbb{Z} T, \ast, \delta)`. (What we call `\mathcal{G}_t`
+    has just been called `t` in [PoiReu95]_.)
+    The family `(\mathcal{G}_t)` (with `t` ranging over all standard
+    tableaux) is a basis of `FSym`, called the *Fundamental basis*.
 
-    ::
+    EXAMPLES:
+
+    As explained above, `FSym` is constructed as a Hopf subalgebra of
+    `FQSym`::
 
         sage: G = algebras.FSym(QQ).G()
         sage: F = algebras.FQSym(QQ).F()
@@ -416,9 +438,9 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
         ....:     for t in StandardTableaux(4))
         True
 
-    There is a Hopf algebra map onto the Hopf algebra of symmetric
-    functions, which maps a tableau `t` to the Schur function indexed
-    by the shape of `t`::
+    There is a Hopf algebra map from `FSym` onto the Hopf algebra
+    of symmetric functions, which maps a tableau `t` to the Schur function
+    indexed by the shape of `t`::
 
         sage: TG = algebras.FSym(QQ).G()
         sage: t = StandardTableau([[1,3],[2,4],[5]])
@@ -535,7 +557,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
                 G[12|3|4|5] + G[12|34|5] + G[124|3|5] + G[124|35]
             """
             n = t1.size()
-            m = t1.size() + t2.size()
+            m = n + t2.size()
             tableaux = []
             for t in StandardTableaux(m):
                 if t.restrict(n) == t1 and standardize(t.anti_restrict(n).rectify()) == t2:
@@ -608,6 +630,9 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
 class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
     """
     The Hopf dual `FSym^*` of the free symmetric functions `FSym`.
+
+    See :class:`FreeSymmetricFunctions` for the definition of the
+    latter.
     """
     def __init__(self, base_ring):
         r"""
@@ -661,7 +686,8 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
     class FundamentalDual(FSymBasis_abstract):
         r"""
-        The Hopf algebra of tableaux on the fundamental dual basis.
+        The dual to the Hopf algebra of tableaux,
+        on the fundamental dual basis.
 
         EXAMPLES::
 

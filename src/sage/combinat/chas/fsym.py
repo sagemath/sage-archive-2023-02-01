@@ -24,8 +24,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.categories.realizations import Category_realization_of_parent
-from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
+from sage.categories.hopf_algebras import HopfAlgebras
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.tableau import Tableau, StandardTableaux
@@ -33,7 +32,8 @@ from sage.combinat.sf.sf import SymmetricFunctions
 
 class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
-    Abstract base class for bases of `FSym`.
+    Abstract base class for bases of `FSym` and of `FSym^*`
+    indexed by standard tableaux.
 
     This must define the following attributes:
 
@@ -184,7 +184,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
 class FSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `FSym`.
+    The category of bases of `FSym` and `FSym^*`.
     """
     def super_categories(self):
         """
@@ -203,8 +203,8 @@ class FSymBases(Category_realization_of_parent):
         """
         R = self.base().base_ring()
         return [self.base().Realizations(),
-                GradedHopfAlgebras(R).Realizations(),
-                GradedHopfAlgebrasWithBasis(R).Connected()]
+                HopfAlgebras(R).Graded().Realizations(),
+                HopfAlgebras(R).Graded().WithBasis().Graded().Connected()]
 
     class ParentMethods:
         def _repr_(self):
@@ -222,8 +222,9 @@ class FSymBases(Category_realization_of_parent):
 
         def __getitem__(self, key):
             r"""
-            Override the ``__getitem__`` method to allow passing of
-            arguments to ``StandardTableau``.
+            Override the ``__getitem__`` method to allow passing a standard
+            tableau in a nonstandard form (e.g., as a tuple of rows instead
+            of a list of rows; or as a single row for a single-rowed tableau).
 
             EXAMPLES:
 
@@ -234,8 +235,12 @@ class FSymBases(Category_realization_of_parent):
                 sage: G = FSym.G()
                 sage: G[[1,3],[2]]
                 G[13|2]
+                sage: G[(1,3),(2,)]
+                G[13|2]
                 sage: G[[1,3],[2]].leading_support() in StandardTableaux()
                 True
+                sage: G[1,2,3]
+                G[123]
             """
             try:
                 return self.monomial(self._indices(list(key)))
@@ -298,9 +303,11 @@ class FSymBases(Category_realization_of_parent):
                 1
                 sage: G.duality_pairing(G[t2], F[t2])
                 1
+                sage: F.duality_pairing(F[t2], G[t2])
+                1
 
                 sage: z = G[[1,3,5],[2,4]]
-                sage: all(F.duality_pairing(F[p1] * F[p2], z)
+                sage: all(F.duality_pairing(F[p1] * F[p2], z) == c
                 ....:     for ((p1, p2), c) in z.coproduct())
                 True
             """
@@ -341,10 +348,10 @@ class FSymBases(Category_realization_of_parent):
 
         def degree_on_basis(self, t):
             """
-            Return the degree of a standard tableaux in the algebra
+            Return the degree of a standard tableau in the algebra
             of free symmetric functions.
 
-            This is the size of the tableaux.
+            This is the size of the tableau ``t``.
 
             EXAMPLES::
 
@@ -455,7 +462,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
             sage: FSym = algebras.FSym(QQ)
             sage: TestSuite(FSym).run()
         """
-        cat = GradedHopfAlgebras(base_ring).Connected()
+        cat = HopfAlgebras(base_ring).Graded().Connected()
         Parent.__init__(self, base=base_ring, category=cat.WithRealizations())
 
     _shorthands = ['G']
@@ -642,9 +649,8 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
             sage: FSymD = algebras.FSym(QQ).dual()
             sage: TestSuite(FSymD).run()
         """
-        # TODO: the following line won't be needed when CategoryObject won't override base_ring
-        self._base = base_ring
-        Parent.__init__(self, category=GradedHopfAlgebras(base_ring).WithRealizations())
+        cat = HopfAlgebras(base_ring).Graded().Connected()
+        Parent.__init__(self, base=base_ring, category=cat.WithRealizations())
 
     _shorthands = ['F']
 

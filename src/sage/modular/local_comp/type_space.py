@@ -17,7 +17,6 @@ from __future__ import absolute_import
 from six.moves import range
 
 import operator
-from sage.misc.misc import verbose, cputime
 from sage.modular.arithgroup.all import GammaH
 from sage.modular.modform.element import Newform
 from sage.modular.modform.constructor import ModularForms

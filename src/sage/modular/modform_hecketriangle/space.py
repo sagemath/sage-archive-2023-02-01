@@ -20,7 +20,6 @@ from __future__ import absolute_import
 from sage.rings.all import ZZ, QQ, infinity
 
 from sage.modules.module import Module
-from sage.categories.all import Modules
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
 from sage.structure.unique_representation import UniqueRepresentation

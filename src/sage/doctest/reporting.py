@@ -39,6 +39,7 @@ import signal
 from sage.structure.sage_object import SageObject
 from sage.doctest.util import count_noun
 from sage.doctest.sources import DictAsObject
+from .external import available_software
 
 def signal_name(sig):
     """
@@ -454,7 +455,9 @@ class DocTestReporter(SageObject):
                                 elif tag in ("not tested", "not implemented"):
                                     untested += nskipped
                                 else:
-                                    if tag not in self.controller.options.optional:
+                                    if (tag not in self.controller.options.optional and
+                                       not ('external' in self.controller.options.optional
+                                           and tag in available_software.seen())):
                                         seen_other = True
                                         if tag == "bug":
                                             log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))

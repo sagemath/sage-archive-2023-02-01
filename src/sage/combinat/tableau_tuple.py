@@ -1505,7 +1505,7 @@ class RowStandardTableauTuple(TableauTuple):
     @staticmethod
     def __classcall_private__(self, t):
         r"""
-        This ensures that a :class:`RowStandardTableauTuple` is only ever constructed
+        This ensures that a :class:`RowStandardTableauTuple` is only constructed
         as an ``element_class()`` call of an appropriate parent.
 
         EXAMPLES::
@@ -1628,7 +1628,7 @@ class RowStandardTableauTuple(TableauTuple):
     def residue_sequence(self, e, multicharge):
         r"""
         Return the :class:`sage.combinat.tableau_residues.ResidueSequence`
-        of the tableau ``self``.
+        of ``self``.
 
         INPUT:
 
@@ -1658,18 +1658,17 @@ class RowStandardTableauTuple(TableauTuple):
 
     def degree(self, e, multicharge):
         r"""
-        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of the standard
-        tableau ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of ``self``.
 
-        The *degree* of a tableau ix an integer that is defined recursively by
+        The *degree* of a tableau is an integer that is defined recursively by
         successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`,
         and at stage adding the count of the number of addable cell of the same
         residue minus the number of removable cells of them same residue as `k`
         and that are below `k` in the diagram.
 
         Note that even though this degree function was defined by
-        Brundan-Kleshchev-Wang [BKW11]_ the underlying combinatorics is much
-        older, going back at least to Misra and Miwa.
+        Brundan-Kleshchev-Wang [BKW11]_ the underlying combinatorics
+        is much older, going back at least to Misra and Miwa.
 
         The degrees of the tableau `T` gives the degree of the homogeneous
         basis element of the graded Specht module which is indexed by `T`.
@@ -1717,8 +1716,7 @@ class RowStandardTableauTuple(TableauTuple):
 
     def codegree(self, e, multicharge):
         r"""
-        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of the standard
-        tableau ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of ``self``.
 
         The *codegree* of a tableau is an integer that is defined
         recursively by successively stripping off the number `k`, for
@@ -2698,16 +2696,16 @@ class RowStandardTableauTuples(TableauTuples):
 
     There are three optional arguments:
 
-    - ``level`` -- The :meth:`~TableauTuples.level` of the tuples of tableaux
+    - ``level`` -- the :meth:`~TableauTuples.level` of the tuples of tableaux
 
-    - ``size``  -- The :meth:`~TableauTuples.size` of the tuples of tableaux
+    - ``size``  -- the :meth:`~TableauTuples.size` of the tuples of tableaux
 
-    - ``shape`` -- A list or a partition tuple specifying the :meth:`shape` of
+    - ``shape`` -- a list or a partition tuple specifying the :meth:`shape` of
       the row standard tableau tuples
 
-    It is not necessary to use the keywords. If they are not used then the first
-    integer argument specifies the :meth:`~TableauTuples.level` and the second
-    the :meth:`~TableauTuples.size` of the tableau tuples.
+    It is not necessary to use the keywords. If they are not used then the
+    first integer argument specifies the :meth:`~TableauTuples.level` and
+    the second the :meth:`~TableauTuples.size` of the tableau tuples.
 
     OUTPUT:
 
@@ -2727,7 +2725,7 @@ class RowStandardTableauTuples(TableauTuples):
 
     EXAMPLES::
 
-        sage: tabs=RowStandardTableauTuples([[2],[1,1]]); tabs
+        sage: tabs = RowStandardTableauTuples([[2],[1,1]]); tabs
         Row standard tableau tuples of shape ([2], [1, 1])
         sage: tabs.cardinality()
         12
@@ -2745,7 +2743,7 @@ class RowStandardTableauTuples(TableauTuples):
          ([[1, 2]], [[4], [3]]),
          ([[1, 2]], [[3], [4]])]
 
-        sage: tabs=RowStandardTableauTuples(level=3); tabs
+        sage: tabs = RowStandardTableauTuples(level=3); tabs
         Row standard tableau tuples of level 3
         sage: tabs[100]
         ([], [], [[2, 3], [1]])
@@ -2782,7 +2780,7 @@ class RowStandardTableauTuples(TableauTuples):
     def __classcall_private__(cls, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
-        arguments.  See the documentation for:class:`RowStandardTableauTuples``
+        arguments.  See the documentation for :class:`RowStandardTableauTuples`
         for more information.
 
         EXAMPLES::
@@ -2853,7 +2851,7 @@ class RowStandardTableauTuples(TableauTuples):
             try:
                 shape = PartitionTuple(shape)
             except ValueError:
-                raise ValueError( 'the shape must be a partition tuple' )
+                raise ValueError('the shape must be a partition tuple')
 
             if level is None:
                 level = shape.level()
@@ -3049,7 +3047,7 @@ class RowStandardTableauTuples_level(RowStandardTableauTuples, DisjointUnionEnum
     """
     def __init__(self, level):
         r"""
-        Initializes the class of semirow standard tableaux of level
+        Initializes the class of row standard tableaux of level
         ``level`` of arbitrary ``size``.
 
         .. WARNING::
@@ -3144,7 +3142,7 @@ class RowStandardTableauTuples_size(RowStandardTableauTuples, DisjointUnionEnume
     """
     def __init__(self, size):
         r"""
-        Initializes the class of semirow standard tableaux of size ``size`` of
+        Initializes the class of row standard tableaux of size ``size`` of
         arbitrary level.
 
         .. WARNING::
@@ -3242,7 +3240,7 @@ class RowStandardTableauTuples_level_size(RowStandardTableauTuples, DisjointUnio
     """
     def __init__(self,level,size):
         r"""
-        Initializes the class of semirow standard tableaux of level ``level``
+        Initializes the class of row standard tableaux of level ``level``
         and size ``size``.
 
         .. WARNING::
@@ -3328,7 +3326,7 @@ class RowStandardTableauTuples_level_size(RowStandardTableauTuples, DisjointUnio
 
     def an_element(self):
         r"""
-        Returns a particular element of the class.
+        Returns a particular element of ``self``.
 
         EXAMPLES::
 
@@ -3353,8 +3351,8 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
     """
     def __init__(self, shape):
         r"""
-        Initializes the class of semirow standard tableaux of shape ``p`` and no
-        maximum entry.
+        Initializes the class of semirow standard tableaux of shape ``p``
+        and no maximum entry.
 
         .. WARNING::
 
@@ -3377,7 +3375,8 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
 
     def __contains__(self, t):
         """
-        Containment function of :class:`RowStandardTableauTuples` of fixed shape.
+        Containment function of :class:`RowStandardTableauTuples` of
+        fixed shape.
 
         EXAMPLES::
 
@@ -3470,8 +3469,10 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
 
         TESTS::
 
-            sage: correct_number=lambda mu : RowStandardTableauTuples(mu).cardinality()==len(RowStandardTableauTuples(mu).list())
-            sage: all(correct_number(mu) for mu in PartitionTuples(4,4))
+            sage: def check(mu):
+            ....:     return (RowStandardTableauTuples(mu).cardinality()
+            ....:             == len(RowStandardTableauTuples(mu).list()))
+            sage: all(check(mu) for mu in PartitionTuples(4,4))
             True
         """
         mu = self.shape()
@@ -3517,11 +3518,11 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
 
     def cardinality(self):
         r"""
-        Returns the number of row standard Young tableau tuples of with the same
+        Return the number of row standard tableau tuples of with the same
         shape as the partition tuple ``self``.
 
-        This is just the index of the corresponding Young subgroup i the full
-        symmetric group.
+        This is just the index of the corresponding Young subgroup in the
+        full symmetric group.
 
         EXAMPLES::
 
@@ -3537,7 +3538,7 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
 
     def an_element(self):
         r"""
-        Returns a particular element of the class.
+        Returns a particular element of ``self``.
 
         EXAMPLES::
 
@@ -3576,7 +3577,7 @@ class RowStandardTableaux_residue(RowStandardTableauTuples):
         r"""
         Initialize ``self``.
 
-        .. NOTE::
+        .. WARNING::
 
             Input is not checked; please use :class:`RowStandardTableauTuples`
             to ensure the options are properly parsed.
@@ -3638,7 +3639,7 @@ class RowStandardTableaux_residue(RowStandardTableauTuples):
         r"""
         Iterate through ``self``.
 
-        We construct this sequence of tableaux recursively. is easier (and
+        We construct this sequence of tableaux recursively, as is easier (and
         more useful for applications to graded Specht modules).
 
         EXAMPLES::
@@ -3970,11 +3971,11 @@ class StandardTableauTuples(RowStandardTableauTuples):
 
     There are three optional arguments:
 
-    - ``level`` -- The :meth:`~TableauTuples.level` of the tuples of tableaux
+    - ``level`` -- the :meth:`~TableauTuples.level` of the tuples of tableaux
 
-    - ``size``  -- The :meth:`~TableauTuples.size` of the tuples of tableaux
+    - ``size``  -- the :meth:`~TableauTuples.size` of the tuples of tableaux
 
-    - ``shape`` -- A list or a partition tuple specifying the :meth:`shape` of
+    - ``shape`` -- a list or a partition tuple specifying the :meth:`shape` of
       the standard tableau tuples
 
     It is not necessary to use the keywords. If they are not used then the first

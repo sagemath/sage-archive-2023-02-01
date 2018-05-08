@@ -6530,10 +6530,10 @@ class RowStandardTableaux(Tableaux):
     - with a partition argument, the class of all standard tableaux of that
       shape
 
-    A standard tableau is a semistandard tableaux which contains each of the
-    entries from 1 to ``n`` exactly once.
+    A row standard tableau is a tableaux that contains each of the
+    entries from `1` to `n` exactly once and is increasing along rows.
 
-    All classes of standard tableaux are iterable.
+    All classes of row standard tableaux are iterable.
 
     EXAMPLES::
 

@@ -1910,11 +1910,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def to_fsym(self):
                 r"""
-                Return the image of ``self`` in the natural map to `FSym`.
+                Return the image of ``self`` under the natural map to
+                `FSym`.
 
-                There is a Hopf algebra morphism from `NSym`, which maps
-                the ribbon indexed by a composition `\alpha` to the sum
-                of tableaux whose descent composition is `\alpha`::
+                There is an injective Hopf algebra morphism from `NSym` to
+                `FSym` (see
+                :class:`sage.combinat.chas.fsym.FreeSymmetricFunctions`),
+                which maps the ribbon `R_\alpha` indexed by a composition
+                `\alpha` to the sum of all tableaux whose descent
+                composition is `\alpha`.
+                If we regard `NSym` as a Hopf subalgebra of `FQSym` via
+                the morphism `\iota : NSym \to FQSym` (implemented as
+                :meth:`to_fqsym`), then this injective morphism is just
+                the inclusion map.
 
                 EXAMPLES::
 
@@ -1944,9 +1952,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S[2,1].to_fsym()
                     G[12|3] + G[123]
                 """
-                from sage.combinat.chas.fsym import HopfAlgebraOfTableaux, descent_composition
+                from sage.combinat.chas.fsym import FreeSymmetricFunctions, descent_composition
                 from sage.combinat.tableau import StandardTableaux
-                G = HopfAlgebraOfTableaux(self.base_ring()).G()
+                G = FreeSymmetricFunctions(self.base_ring()).G()
                 R = self.parent().realization_of().ribbon()
                 ST = G._indices
                 def on_basis(alpha):

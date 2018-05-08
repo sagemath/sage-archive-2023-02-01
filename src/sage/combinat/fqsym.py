@@ -108,6 +108,9 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: algebras.FQSym(QQ)(TG[t])
             F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
              + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+            sage: G7 = algebras.FQSym(GF(7)).G()
+            sage: G7(TG[[1,2],[3,4]])
+            G[2, 4, 1, 3] + G[3, 4, 1, 2]
 
         TESTS::
 

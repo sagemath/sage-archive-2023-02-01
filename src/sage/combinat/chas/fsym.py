@@ -600,7 +600,8 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
         class Element(FSymBasis_abstract.Element):
             def to_fqsym(self):
                 """
-                Return the image of ``self`` in the natural map to `FQSym`.
+                Return the image of ``self`` under the natural inclusion
+                map to `FQSym`.
 
                 EXAMPLES::
 
@@ -618,7 +619,13 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
 
             def to_symmetric_function(self):
                 """
-                Return the image of ``self`` in the natural map to `Sym`.
+                Return the image of ``self`` under the natural projection
+                map to `Sym`.
+
+                The natural projection map `FSym \to Sym` sends each
+                standard tableau `t` to the Schur function `s_\lambda`,
+                where `\lambda` is the shape of `t`.
+                This map is a surjective Hopf algebra homomorphism.
 
                 EXAMPLES::
 
@@ -884,8 +891,15 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
         class Element(FSymBasis_abstract.Element):
             def to_quasisymmetric_function(self):
                 """
-                Return the image of ``self`` as a quasi-symmetric function
-                in the Fundamental basis.
+                Return the image of ``self`` under the canonical projection
+                `FSym^* \to QSym` to the ring of quasi-symmetric functions.
+
+                This projection is the adjoint of the canonical injection
+                `NSym \to FSym` (see
+                :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_fsym`).
+                It sends each tableau `t` to the fundamental quasi-symmetric
+                function `F_\alpha`, where `\alpha` is the descent composition
+                of `t`.
 
                 EXAMPLES::
 
@@ -985,8 +999,7 @@ def descent_set(t):
 
     The *descent set* of a standard tableau `t` is defined as
     the set of all entries `i` of `t` such that the number `i+1`
-    appears either to the left of `i` or in a row below `i` in
-    `t`.
+    appears in a row below `i` in `t`.
 
     EXAMPLES::
 

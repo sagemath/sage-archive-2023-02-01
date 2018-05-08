@@ -995,6 +995,10 @@ REFERENCES:
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
 
+.. [Ful1997] William Fulton,
+             *Young Tableaux*.
+             Cambridge University Press, 1997.
+
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
             Mathematicae. **155** (2004), no. 3, pp. 515-536.

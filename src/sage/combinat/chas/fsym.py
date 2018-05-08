@@ -634,11 +634,41 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
     G = Fundamental
 
 class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
-    """
+    r"""
     The Hopf dual `FSym^*` of the free symmetric functions `FSym`.
 
     See :class:`FreeSymmetricFunctions` for the definition of the
     latter.
+
+    Recall that the fundamental basis of `FSym` consists of the
+    elements `\mathcal{G}_t` for `t` ranging over all standard
+    tableaux. The dual basis of this is called the *dual
+    fundamental basis* of `FSym^*`, and is denoted by
+    `(\mathcal{G}_t^*)`.
+    The Hopf dual `FSym^*` is isomorphic to the Hopf algebra
+    `(\mathbb{Z} T, \ast', \delta')` from [PoiReu95]_; the
+    isomorphism sends a basis element `\mathcal{G}_t^*` to `t`.
+
+    EXAMPLES::
+
+        sage: FSym = algebras.FSym(QQ)
+        sage: TF = FSym.dual().F()
+        sage: TF[1,2] * TF[[1],[2]]
+        F[12|3|4] + F[123|4] + F[124|3] + F[13|2|4] + F[134|2] + F[14|2|3]
+        sage: TF[[1,2],[3]].coproduct()
+        F[] # F[12|3] + F[1] # F[1|2] + F[12] # F[1] + F[12|3] # F[]
+
+    The Hopf algebra `FSym^*` is a Hopf quotient of `FQSym`;
+    the canonical projection sends `F_w` (for a permutation `w`)
+    to `\mathcal{G}_{Q(w)}'`, where `Q(w)` is the P-tableau of
+    `w`. This projection is implemented as a coercion::
+
+        sage: FQSym = algebras.FQSym(QQ)
+        sage: F = FQSym.F()
+        sage: TF(F[[1, 3, 2]])
+        F[12|3]
+        sage: TF(F[[5, 1, 4, 2, 3]])
+        F[135|2|4]
     """
     def __init__(self, base_ring):
         r"""
@@ -722,18 +752,18 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
             The things that coerce into ``self`` are
 
-            - elements of the algebra `FSym^*` over a base with
-              a coercion map into ``self.base_ring()``
+            - elements of the algebra `FSym^*` over a base ring
+              with a coercion map into ``self.base_ring()``
             - symmetric functions over a base with a coercion
               map into ``self.base_ring()``
-            - elements of `FSym^*` over a base ring with
+            - elements of the algebra `FQSym` over a base ring with
               a coercion map into ``self.base_ring()``
 
             EXAMPLES:
 
             `FSym` is a Hopf-quotient algbera of `FQSym`: the basis
-            element indexed by a permutation `\sigma` is mapped to
-            the tableau `Q(\sigma)`::
+            element `F_\sigma` indexed by a permutation `\sigma` is
+            mapped to the tableau `Q(\sigma)`::
 
                 sage: TF = algebras.FSym(QQ).dual().F()
                 sage: SF = algebras.FQSym(QQ).F()
@@ -818,6 +848,9 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 sage: t1 = StandardTableau([[1,2]])
                 sage: TF.product_on_basis(t1, t1)
                 F[12|34] + F[123|4] + F[1234] + F[124|3] + F[13|24] + F[134|2]
+                sage: t0 = StandardTableau([])
+                sage: TF.product_on_basis(t1, t0) == TF[t1] == TF.product_on_basis(t0, t1)
+                True
             """
             z = []
             n = t1.size()

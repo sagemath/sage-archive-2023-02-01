@@ -1074,6 +1074,10 @@ REFERENCES:
 .. [GL1996] \G. Golub and C. van Loan. *Matrix Computations*. 3rd
             edition, Johns Hopkins Univ. Press, 1996.
 
+.. [GrLe1996] \J. Graham and G.I. Lehrer
+              *Cellular algebras*. Invent. Math. 123 (1996), 1–34.
+              :mathscinet:`MR1376244`
+
 .. [GLSVJGK2014] \V. Grosso, G. Leurent, F.-X. Standaert, K. Varici,
                  \F. D. A. Journault, L. Gaspar, and S. Kerckhof,
                  *SCREAM & iSCREAM Side-Channel Resistant Authenticated Encryption
@@ -1544,6 +1548,12 @@ REFERENCES:
               International Mathematics Research Notices. Vol. 2014, No. 2,
               pp. 512-550 (2012)
 
+.. [KX1998] \S. König and C. Xi.
+            *On the structure of cellular algebras*.
+            Algebras and modules, II (Geiranger, 1996), 365–386,
+            CMS Conf. Proc., **24**, Amer. Math. Soc., Providence, RI, 1998.
+            :mathscinet:`MR1648638`
+
 .. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
             moduli space of Abelian differentials with prescripebd
             singularities" Invent. math. 153, 631-678 (2003)
@@ -1743,6 +1753,12 @@ REFERENCES:
 .. [Mat1992] \O. Mathieu. *Classification of Harish-Chandra
              modules over the Virasoro Lie algebra*.
              Invent. Math. **107(2)** (1992), pp. 225-234.
+
+.. [Mat1999] \A. Mathas.
+             *Iwahori-Hecke algebras and Schur algebras of the symmetric group*.
+             University Lecture Series, **15**. American Mathematical Society,
+             Providence, RI, 1999. xiv+188 pp. ISBN: 0-8218-1926-7
+             :mathscinet:`MR1711316`
 
 .. [Mat2002] Jiří Matousek, "Lectures on Discrete Geometry", Springer,
              2002

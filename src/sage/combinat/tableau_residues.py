@@ -373,7 +373,7 @@ class ResidueSequence(ClonableArray):
     def restrict_row(self, cell, row):
         r"""
         Return a residue sequence for the tableau obtained by swapping the row
-        in ending in `cell` with the row that is `row` rows above it and  which
+        in ending in `cell` with the row that is `row` rows above it and which
         has the same length.
 
         The residue sequence ``self`` is of the form `(r_1, \ldots, r_n)`.
@@ -391,16 +391,16 @@ class ResidueSequence(ClonableArray):
         residues = self.residues() # residue sequence
         residues.reverse()         # reversed residue sequence
 
-        if residues[0]+row == residues[0]:
+        if residues[0] + row == residues[0]:
             # if the residues in the two rows are the same we don't need to do
             # anything special
             return self.restrict(len(residues)-1)
 
         # determine the sets of residues, one_res and two_res, that need to be
         # interchanged in order to swap the corresponding rows
-        row_len=cell[-1] # length of the row being swapped
-        one_res=[0]      # last row of tableau will move
-        two_res=[0]      # will prune this entry later
+        row_len = cell[-1] # length of the row being swapped
+        one_res = [0]      # last row of tableau will move
+        two_res = [0]      # will prune this entry later
         try:
             for c in range(1, row_len+1):
                 # residues decrease by 1 from right to left in each row
@@ -420,7 +420,9 @@ class ResidueSequence(ClonableArray):
             residues[two_res[c+1]] -= row # jump over two_res[0]
 
         # remove the first residue, reverse the order and return
-        return ResidueSequence(self.quantum_characteristic(), self.multicharge(), residues[1:][::-1])
+        return ResidueSequence(self.quantum_characteristic(),
+                               self.multicharge(),
+                               residues[1:][::-1])
 
     def swap_residues(self, i, j):
         r"""
@@ -519,7 +521,7 @@ class ResidueSequence(ClonableArray):
         if shape is None:
             return RowStandardTableaux_residue(residue=self)
         else:
-            return RowStandardTableaux_residue_shape(residue=self,shape=PartitionTuple(shape))
+            return RowStandardTableaux_residue_shape(residue=self, shape=PartitionTuple(shape))
 
     def negative(self):
         r"""

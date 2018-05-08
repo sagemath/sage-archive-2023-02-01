@@ -424,20 +424,20 @@ class PartitionTuple(CombinatorialElement):
             return mu
 
         # one way or another these two cases need to be treated separately
-        if mu==[] or mu==[[]]:
-            return Partition([])
+        if mu == [] or mu == [[]]:
+            return _Partitions([])
 
         # We must check mu is a list of partitions
         try:
-            mu=[Partition(mu)]
+            mu = [_Partitions(mu)]
         except ValueError:
             try:
-                mu=[Partition(nu) for nu in mu]
+                mu = [_Partitions(nu) for nu in mu]
             except ValueError:
                 raise ValueError('%s is not a tuple of Partitions' % mu)
 
-        if len(mu)==1:
-            return Partition(mu[0])
+        if len(mu) == 1:
+            return _Partitions(mu[0])
         else:
             return PartitionTuples_all().element_class(PartitionTuples_all(), mu)
 
@@ -459,7 +459,7 @@ class PartitionTuple(CombinatorialElement):
             ValueError: [[], [], [2, 1, 2, 1]] is not a tuple of Partitions
 
         """
-        mu = [Partition(nu) for nu in mu]
+        mu = [_Partitions(nu) for nu in mu]
         CombinatorialElement.__init__(self, parent, mu)
 
     def level(self):
@@ -843,8 +843,9 @@ class PartitionTuple(CombinatorialElement):
 
     def row_standard_tableaux(self):
         """
-        Return the :class:`standard tableau tuples<StandardTableauTuples>` of
-        this shape.
+        Return the :class:`row standard tableau tuples
+        <sage.combinat.tableau_tuple.RowStandardTableauTuples>`
+        of shape ``self``.
 
         EXAMPLES::
 
@@ -856,8 +857,8 @@ class PartitionTuple(CombinatorialElement):
 
     def standard_tableaux(self):
         """
-        Return the :class:`standard tableau tuples<StandardTableauTuples>` of
-        this shape.
+        Return the :class:`standard tableau tuples<StandardTableauTuples>`
+        of shape ``self``.
 
         EXAMPLES::
 
@@ -1638,10 +1639,10 @@ class PartitionTuple(CombinatorialElement):
 
         OUTPUT:
 
-        - A dictionary giving the multiplicities of the residues in the
+        - a dictionary giving the multiplicities of the residues in the
           partition tuple ``self``
 
-        In more detail, the dictionary `\beta[i]` is equal to the
+        In more detail, the value ``beta[i]`` is equal to the
         number of nodes of residue ``i``. This corresponds to
 
         .. MATH::
@@ -1675,15 +1676,13 @@ class PartitionTuple(CombinatorialElement):
             {0: 3, 1: 2, 2: 3}
             sage: PartitionTuple([[2,2],[2,2]]).block(4,(0,0))
             {0: 4, 1: 2, 3: 2}
-
         """
-        block={}
+        block = {}
         Ie = IntegerModRing(e)
         for (k,r,c) in self.cells():
-            i=Ie(multicharge[k]+c-r)
-            block[i] = block.get(i,0) + 1
+            i = Ie(multicharge[k] + c - r)
+            block[i] = block.get(i, 0) + 1
         return block
-
 
     def defect(self, e, multicharge):
         r"""
@@ -1696,12 +1695,23 @@ class PartitionTuple(CombinatorialElement):
 
         .. MATH::
 
-            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta),
 
         where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
         `(\kappa_1, \ldots, \kappa_{\ell})` and
         `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
         being over the cells in the partition.
+
+        INPUT:
+
+        - ``e`` -- the quantum characteritic
+
+        - ``multicharge`` -- the multicharge (default `(0,)`)
+
+        OUTPUT:
+
+        - a non-negative integer, which is the defect of the block
+          containing the partition tuple ``self``
 
         EXAMPLES::
 
@@ -1725,8 +1735,8 @@ class PartitionTuple(CombinatorialElement):
         # We use a dictionary to cover the case when e = 0.
         beta = self.block(e, multicharge)
         Ie = IntegerModRing(e)
-        return sum(beta.get(r,0) for r in multicharge) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
-                                                for r in beta)
+        return (sum(beta.get(r, 0) for r in multicharge)
+                - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1), 0) for r in beta))
 
 #--------------------------------------------------
 # Partition tuples - parent classes

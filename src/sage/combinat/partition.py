@@ -1253,7 +1253,8 @@ class Partition(CombinatorialElement):
 
     def row_standard_tableaux(self):
         """
-        Return the :class:`standard tableaux<StandardTableaux>` of this shape.
+        Return the :class:`row standard tableaux
+        <sage.combinat.tableau.RowStandardTableaux>` of shape ``self``.
 
         EXAMPLES::
 
@@ -1264,7 +1265,8 @@ class Partition(CombinatorialElement):
 
     def standard_tableaux(self):
         """
-        Return the :class:`standard tableaux<StandardTableaux>` of this shape.
+        Return the :class:`standard tableaux<StandardTableaux>`
+        of shape ``self``.
 
         EXAMPLES::
 
@@ -3314,7 +3316,7 @@ class Partition(CombinatorialElement):
         - A dictionary giving the multiplicities of the residues in the
           partition tuple ``self``
 
-        In more detail, the dictionary `\beta[i]` is equal to the
+        In more detail, the value ``beta[i]`` is equal to the
         number of nodes of residue ``i``. This corresponds to
 
         .. MATH::
@@ -3345,16 +3347,30 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3,2]).block(4)
             {0: 2, 1: 2, 2: 2, 3: 3}
         """
-        block={}
+        block = {}
         Ie = IntegerModRing(e)
         for (r,c) in self.cells():
-            i=Ie(multicharge[0]+c-r)
-            block[i] = block.get(i,0) + 1
+            i = Ie(multicharge[0] + c - r)
+            block[i] = block.get(i, 0) + 1
         return block
 
     def defect(self, e, multicharge=(0,)):
         r"""
         Return the ``e``-defect or the ``e``-weight of ``self``.
+
+        The `e`-defect is the number of (connected) `e`-rim hooks that
+        can be removed from the partition.
+
+        The defect of a partition is given by 
+
+        .. MATH::
+
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta),
+
+        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
+        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
+        being over the cells in the partition.
 
         INPUT:
 
@@ -3364,22 +3380,8 @@ class Partition(CombinatorialElement):
 
         OUTPUT:
 
-        - A non-negative integer, which is the defect of the block containing the
-          partition ``self``.
-
-        The `e`-defect is the number of (connected) `e`-rim hooks that
-        can be removed from the partition.
-
-        The defect of a partition is given by 
-
-        .. MATH::
-
-            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
-
-        where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
-        `(\kappa_1, \ldots, \kappa_{\ell})` and 
-        `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
-        being over the cells in the partition.
+        - a non-negative integer, which is the defect of the block
+          containing the partition ``self``
 
         EXAMPLES::
 
@@ -3416,8 +3418,8 @@ class Partition(CombinatorialElement):
         """
         beta = self.block(e, multicharge)
         Ie = IntegerModRing(e)
-        return beta.get(multicharge[0],0) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1),0)
-                                                for r in beta)
+        return beta.get(multicharge[0], 0) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1), 0)
+                                                 for r in beta)
 
     def conjugacy_class_size(self):
         """

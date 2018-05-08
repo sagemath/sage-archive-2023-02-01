@@ -165,6 +165,14 @@ _add_variable_or_fallback('ELLCURVE_DATA_DIR',opj('$SAGE_SHARE','ellcurves'))
 _add_variable_or_fallback('POLYTOPE_DATA_DIR',opj('$SAGE_SHARE','reflexive_polytopes'))
 _add_variable_or_fallback('GAP_ROOT_DIR',     opj('$SAGE_LOCAL','gap','latest'))
 _add_variable_or_fallback('THEBE_DIR',        opj('$SAGE_SHARE','thebe'))
+_add_variable_or_fallback('COMBINATORIAL_DESIGN_DATA_DIR', opj('$SAGE_SHARE', 'combinatorial_designs'))
+_add_variable_or_fallback('CREMONA_MINI_DATA_DIR', opj('$SAGE_SHARE','cremona'))
+_add_variable_or_fallback('CREMONA_LARGE_DATA_DIR', opj('$SAGE_SHARE', 'cremona'))
+_add_variable_or_fallback('JMOL_DIR', opj('$SAGE_SHARE', 'jmol'))
+_add_variable_or_fallback('JSMOL_DIR', SAGE_ENV['JMOL_DIR'])
+_add_variable_or_fallback('MATHJAX_DIR', opj('$SAGE_SHARE', 'mathjax'))
+_add_variable_or_fallback('THREEJS_DIR', opj('$SAGE_SHARE', 'threejs'))
+
 
 # locate singular shared object
 if UNAME[:6] == "CYGWIN":
@@ -179,11 +187,6 @@ else:
     SINGULAR_SO = SAGE_LOCAL+"/lib/libSingular."+extension
 
 _add_variable_or_fallback('SINGULAR_SO', SINGULAR_SO)
-
-if not SINGULAR_SO or not os.path.exists(SINGULAR_SO):
-    raise RuntimeError(
-        "libSingular not found--a working Singular install in $SAGE_LOCAL "
-        "is required for Sage to work")
 
 # post process
 if ' ' in DOT_SAGE:

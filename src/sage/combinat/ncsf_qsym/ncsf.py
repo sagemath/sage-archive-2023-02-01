@@ -1915,7 +1915,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 There is an injective Hopf algebra morphism from `NSym` to
                 `FSym` (see
-                :class:`sage.combinat.chas.fsym.FreeSymmetricFunctions`),
+                :class:`~sage.combinat.chas.fsym.FreeSymmetricFunctions`),
                 which maps the ribbon `R_\alpha` indexed by a composition
                 `\alpha` to the sum of all tableaux whose descent
                 composition is `\alpha`.

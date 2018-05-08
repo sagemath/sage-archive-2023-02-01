@@ -393,13 +393,13 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
     defined using tableaux and denoted `FSym`.
 
     Consider the Hopf algebra `FQSym`
-    (:class:`sage.combinat.fqsym.FreeQuasisymmetricFunctions`)
+    (:class:`~sage.combinat.fqsym.FreeQuasisymmetricFunctions`)
     over a commutative ring `R`, and its bases `(F_w)` and `(G_w)`
     (where `w`, in both cases, ranges over all permutations in all
     symmetric groups `S_0, S_1, S_2, \ldots`).
     For each word `w`, let `P(w)` be the P-tableau of `w` (that
     is, the first of the two tableaux obtained by applying the
-    RSK algorithm to `w`; see :meth:`sage.combinat.rsk.RSK`).
+    RSK algorithm to `w`; see :meth:`~sage.combinat.rsk.RSK`).
     If `t` is a standard tableau of size `n`, then we define
     `\mathcal{G}_t \in FQSym` to be the sum of the `F_w` with
     `w` ranging over all permutations of `\{1, 2, \ldots, n\}`
@@ -409,7 +409,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
     denotes the Q-tableau of `w`).
 
     The `R`-linear span of the `\mathcal{G}_t` (for `t` ranging
-    over all standard tableaux) is a Hopf algebra of `FQSym`,
+    over all standard tableaux) is a Hopf subalgebra of `FQSym`,
     denoted by `FSym` and known as the *free symmetric functions*
     or the *Poirier-Reutenauer Hopf algebra of tableaux*. It has been
     introduced in [PoiReu95]_, where it was denoted by
@@ -761,14 +761,14 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
             - elements of the algebra `FSym^*` over a base ring
               with a coercion map into ``self.base_ring()``
-            - symmetric functions over a base with a coercion
+            - symmetric functions over a base ring with a coercion
               map into ``self.base_ring()``
             - elements of the algebra `FQSym` over a base ring with
               a coercion map into ``self.base_ring()``
 
             EXAMPLES:
 
-            `FSym` is a Hopf-quotient algbera of `FQSym`: the basis
+            `FSym^*` is a quotient Hopf algbera of `FQSym`: the basis
             element `F_\sigma` indexed by a permutation `\sigma` is
             mapped to the tableau `Q(\sigma)`::
 
@@ -795,7 +795,12 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 ....:     for p in Permutations(4))
                 True
 
-            There is a Hopf algebra morphism from `Sym`::
+            There is also an injective Hopf algebra morphism
+            `Sym \to FSym^*` (adjoint to the projection `FSym \to Sym`
+            implemented as
+            :meth:`FreeSymmetricFunctions.Fundamental.Element.to_symmetric_function`)
+            that sends each Schur function `s_\lambda` to the sum of
+            all standard tableaux of shape `\lambda`::
 
                 sage: Sym = SymmetricFunctions(QQ)
                 sage: s = Sym.schur()
@@ -807,6 +812,21 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
                 sage: h = Sym.h()
                 sage: TF(h[2,1])
                 F[12|3] + F[123] + F[13|2]
+
+            This mapping is a Hopf algebra morphism::
+
+                sage: all(TF(s[p1] * s[p2]) == TF(s[p1]) * TF(s[p2])
+                ....:     for p1 in Partitions(2)
+                ....:     for p2 in Partitions(3))
+                True
+
+                sage: s2 = s.tensor_square()
+                sage: phi = s2.module_morphism(
+                ....:               lambda x: tensor([TF(s[x[0]]), TF(s[x[1]])]),
+                ....:               codomain=TF.tensor_square())
+                sage: all(phi(s[p].coproduct()) == TF(s[p]).coproduct()
+                ....:     for p in Partitions(4))
+                True
             """
             if hasattr(R, "realization_of"):
                 if not self.base_ring().has_coerce_map_from(R.base_ring()):
@@ -896,7 +916,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
                 This projection is the adjoint of the canonical injection
                 `NSym \to FSym` (see
-                :meth:`sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_fsym`).
+                :meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.to_fsym`).
                 It sends each tableau `t` to the fundamental quasi-symmetric
                 function `F_\alpha`, where `\alpha` is the descent composition
                 of `t`.

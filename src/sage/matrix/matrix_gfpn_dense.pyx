@@ -1118,6 +1118,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: -M == (-1)*M
             True
 
+        TESTS:
+
+        Make sure that :trac:`25076` remains fixed::
+
+            sage: M == M*int(4) == int(4)*M
+            True
+
         """
         if self.Data == NULL:
             return self.__copy__()

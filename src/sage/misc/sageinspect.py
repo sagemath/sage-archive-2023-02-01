@@ -2119,7 +2119,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        28
+        22
         sage: sage_getsourcelines(matrix)[0][0][6:]
         'MatrixFactory(object):\n'
 

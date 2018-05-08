@@ -81,6 +81,7 @@ from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
+from .args cimport SparseEntry, MatrixArgs_init
 
 #########################################################
 # PARI C library
@@ -245,27 +246,20 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_mat_clear(self._matrix)
 
-    def __init__(self, parent, entries, copy, coerce):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
         Initialize a dense matrix over the integers.
 
         INPUT:
 
+        - ``parent`` -- a matrix space over ``ZZ``
 
-        -  ``parent`` - a matrix space
+        - ``entries`` -- see :func:`matrix`
 
-        -  ``entries`` - list - create the matrix with those
-           entries along the rows.
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        -  ``other`` - a scalar; entries is coerced to an
-           integer and the diagonal entries of this matrix are set to that
-           integer.
-
-        -  ``coerce`` - whether need to coerce entries to the
-           integers (program may crash if you get this wrong)
-
-        -  ``copy`` - ignored (since integers are immutable)
-
+        - ``coerce`` -- if False, assume without checking that the
+          entries are of type :class:`Integer`.
 
         EXAMPLES:
 
@@ -318,59 +312,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: v.parent()
             Full MatrixSpace of 1 by 100000 dense matrices over Integer Ring
         """
-        cdef Py_ssize_t i, j, k
-        cdef bint is_list
-        cdef Integer x
-        cdef list entries_list
-
-        if entries is None:
-            x = ZZ.zero()
-            is_list = False
-        elif isinstance(entries, (int,long,Element)):
-            try:
-                x = ZZ(entries)
-            except TypeError:
-                raise TypeError("unable to coerce entry to an integer")
-            is_list = False
-        elif type(entries) is list:
-            entries_list = entries
-            is_list = True
-        else:
-            entries_list = list(entries)
-            is_list = True
-        if is_list:
-            # Create the matrix whose entries are in the given entry list.
-            if len(entries_list) != self._nrows * self._ncols:
-                raise TypeError("entries has the wrong length")
-            if coerce:
-                k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
-                        x = ZZ(entries_list[k])
-                        k += 1
-                        # todo -- see integer.pyx and the TODO there; perhaps this could be
-                        # sped up by creating a mpz_init_set_sage function.
-                        fmpz_set_mpz(fmpz_mat_entry(self._matrix, i, j),(<Integer>x).value)
-            else:
-                k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
-                        fmpz_set_mpz(fmpz_mat_entry(self._matrix, i,j),(<Integer> entries_list[k]).value)
-                        k += 1
-        else:
-            # If x is zero, make the zero matrix and be done.
-            if mpz_sgn(x.value) == 0:
-                fmpz_mat_zero(self._matrix)
-                return
-
-            # the matrix must be square:
-            if self._nrows != self._ncols:
-                raise TypeError("nonzero scalar matrix must be square")
-
-            # Now we set all the diagonal entries to x and all other entries to 0.
-            fmpz_mat_zero(self._matrix)
-            for i from 0 <= i < self._nrows:
-                fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,i), x.value)
+        ma = MatrixArgs_init(parent, entries)
+        cdef Integer z
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            z = <Integer>se.entry
+            fmpz_set_mpz(fmpz_mat_entry(self._matrix, se.i, se.j), z.value)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         """
@@ -1467,10 +1414,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             return self._mod_int_c(modulus)
 
     cdef _mod_two(self):
-        cdef Matrix_mod2_dense res
-        res = Matrix_mod2_dense.__new__(Matrix_mod2_dense, matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols, sparse=False), None, None, None)
-        res.__init__(matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols, sparse=False), self.list(), None, None)
-        return res
+        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        return Matrix_mod2_dense(MS, self, True, True)
 
     cdef _mod_int_c(self, mod_int p):
         from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT

@@ -631,33 +631,33 @@ class NCSymBases(Category_realization_of_parent):
                 sage: x = NCSym.x()
                 sage: m = NCSym.m()
                 sage: m[[1,3],[2]].to_wqsym()
-                M[{2}, {1, 3}] + M[{1, 3}, {2}]
+                M[{1, 3}, {2}] + M[{2}, {1, 3}]
                 sage: x[[1,3],[2]].to_wqsym()
-                -M[{1}, {3}, {2}] - M[{2}, {1}, {3}] - M[{1, 2}, {3}]
-                 - M[{2, 3}, {1}] - M[{1}, {2}, {3}] - M[{3}, {2}, {1}]
-                 - M[{3}, {1}, {2}] - M[{3}, {1, 2}] - M[{2}, {3}, {1}]
-                 - M[{1}, {2, 3}]
+                -M[{1}, {2}, {3}] - M[{1}, {2, 3}] - M[{1}, {3}, {2}]
+                 - M[{1, 2}, {3}] - M[{2}, {1}, {3}] - M[{2}, {3}, {1}]
+                 - M[{2, 3}, {1}] - M[{3}, {1}, {2}] - M[{3}, {1, 2}]
+                 - M[{3}, {2}, {1}]
                 sage: (4*p[[1,3],[2]]-p[[1]]).to_wqsym()
-                4*M[{1, 2, 3}] + 4*M[{2}, {1, 3}] + 4*M[{1, 3}, {2}] - M[{1}]
+                -M[{1}] + 4*M[{1, 2, 3}] + 4*M[{1, 3}, {2}] + 4*M[{2}, {1, 3}]
             """
             parent = self.parent()
             NCSym = parent.realization_of()
             R = parent.base_ring()
-            one = R.one()
             m = NCSym.monomial()
             from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctions
             from sage.combinat.set_partition_ordered import OrderedSetPartition
             M = WordQuasiSymmetricFunctions(R).M()
             from itertools import permutations
+            OSP = M.basis().keys()
             def to_wqsym_on_m_basis(A):
                 # Return the image of `\mathbf{m}_A` under the inclusion
                 # map `NCSym \to WQSym`.
                 l = len(A)
-                return M.sum_of_terms([(OrderedSetPartition([A[u[i]] for i in range(l)]), 1)
-                                         for u in permutations(range(l))],
+                return M.sum_of_terms(((OSP([A[ui] for ui in u]), 1)
+                                         for u in permutations(range(l))),
                                       distinct=True)
-            return M.sum(coeff * to_wqsym_on_m_basis(A)
-                         for A, coeff in m(self))
+            return M.linear_combination((to_wqsym_on_m_basis(A), coeff)
+                                        for A, coeff in m(self))
 
         def internal_coproduct(self):
             """

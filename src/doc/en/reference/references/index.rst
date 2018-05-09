@@ -2178,6 +2178,11 @@ REFERENCES:
 .. [Sch2006] Oliver Schiffmann. *Lectures on Hall algebras*,
              preprint, 2006. :arxiv:`0611617v2`.
 
+.. [Sch2013] Schmidt, Jens M
+             "A Simple Test on 2-Vertex- and 2-Edge-Connectivity",
+             Information Processing Letters, 113 (7): 241–244
+             :doi:`10.2307/2303897`              
+
 .. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
              Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`
 

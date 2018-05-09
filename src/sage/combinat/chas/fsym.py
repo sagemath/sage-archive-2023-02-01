@@ -129,12 +129,23 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             True
             sage: G.has_coerce_map_from(PolynomialRing(ZZ, 3, 'x,y,z'))
             False
+            sage: G = algebras.FSym(QQ).G()
+            sage: TG = G.dual_basis()
+            sage: TG.coerce_map_from(G) is None
+            True
+            sage: G.coerce_map_from(TG) is None
+            True
         """
         # free symmetric functions in the same variables
         # over any base that coerces in:
         if isinstance(R, FSymBasis_abstract):
-            if R.realization_of() == self.realization_of():
+            FSym = self.realization_of()
+            if R.realization_of() == FSym:
                 return True
+            if (isinstance(R.realization_of(), FreeSymmetricFunctions)
+                != isinstance(FSym, FreeSymmetricFunctions)):
+                # If they are dual bases, then no coercion
+                return False
             if not self.base_ring().has_coerce_map_from(R.base_ring()):
                 return False
             if self._realization_name() == R._realization_name(): # The same basis
@@ -142,7 +153,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
                     return self._from_dict(x.monomial_coefficients())
                 return coerce_base_ring
             # Otherwise lift that basis up and then coerce over
-            target = getattr(self.realization_of(), R._realization_name())()
+            target = getattr(FSym, R._realization_name())()
             return self._coerce_map_via([target], R)
         return super(FSymBasis_abstract, self)._coerce_map_from_(R)
 
@@ -343,7 +354,7 @@ class FSymBases(Category_realization_of_parent):
             from sage.matrix.constructor import matrix
             keys = self.basis(degree=degree).keys()
             return matrix(self.base_ring(),
-                          [[self.duality_pairing(self[t], basis[s])
+                          [[self.duality_pairing(self[s], basis[t])
                             for t in keys] for s in keys])
 
         def degree_on_basis(self, t):
@@ -413,7 +424,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
     denoted by `FSym` and known as the *free symmetric functions*
     or the *Poirier-Reutenauer Hopf algebra of tableaux*. It has been
     introduced in [PoiReu95]_, where it was denoted by
-    `(\mathbb{Z} T, \ast, \delta)`. (What we call `\mathcal{G}_t`
+    `(\ZZ T, \ast, \delta)`. (What we call `\mathcal{G}_t`
     has just been called `t` in [PoiReu95]_.)
     The family `(\mathcal{G}_t)` (with `t` ranging over all standard
     tableaux) is a basis of `FSym`, called the *Fundamental basis*.
@@ -445,8 +456,8 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
         True
 
     There is a Hopf algebra map from `FSym` onto the Hopf algebra
-    of symmetric functions, which maps a tableau `t` to the Schur function
-    indexed by the shape of `t`::
+    of symmetric functions, which maps a tableau `t` to the Schur
+    function indexed by the shape of `t`::
 
         sage: TG = algebras.FSym(QQ).G()
         sage: t = StandardTableau([[1,3],[2,4],[5]])

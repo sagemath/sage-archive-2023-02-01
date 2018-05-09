@@ -1405,17 +1405,14 @@ def structure_description(G, latex=False):
         sage: groups.matrix.GL(4,2).structure_description() # optional - database_gap
         'A8'
     """
+    from sage.features.gap import SmallGroupsLibrary
+    SmallGroupsLibrary().require()
+
     import re
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
-    try:
-        description = str(G._gap_().StructureDescription())
-    except RuntimeError:
-        from sage.misc.feature_test import SmallGroupsLibrary
-        SmallGroupsLibrary().require()
-        # the Small Groups Library is installed. The command failed for a different reason
-        raise
+    description = str(G._gap_().StructureDescription())
 
     description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)
     if not latex:
@@ -1425,4 +1422,3 @@ def structure_description(G, latex=False):
     description = re.sub(r"O([+-])", r"O^{\g<1>}", description)
 
     return description
-

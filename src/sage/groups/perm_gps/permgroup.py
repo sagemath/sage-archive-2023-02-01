@@ -160,9 +160,10 @@ def load_hap():
 
         sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
-    from sage.misc.feature_test import GapPackage
+    from sage.features.gap import GapPackage
     GapPackage("hap", spkg="gap_packages").require()
     gap.load_package("hap")
+
 
 def hap_decorator(f):
     """
@@ -1719,14 +1720,10 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.group_id()    # optional - database_gap
             [12, 4]
         """
-        try:
-            return [Integer(n) for n in self._gap_().IdGroup()]
-        except RuntimeError:
-            from sage.misc.feature_test import SmallGroupsLibrary
-            SmallGroupsLibrary().require()
-            # if the small groups library is installed, then something else caused
-            # the call to fail - reraise the original exception
-            raise
+        from sage.features.gap import SmallGroupsLibrary
+        SmallGroupsLibrary().require()
+
+        return [Integer(n) for n in self._gap_().IdGroup()]
 
     def id(self):
         """
@@ -1774,14 +1771,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         if not self.is_primitive():
             raise ValueError('Group is not primitive')
 
-        try:
-            return Integer(self._gap_().PrimitiveIdentification())
-        except RuntimeError:
-            from sage.misc.feature_test import SmallGroupsLibrary
-            SmallGroupsLibrary().require()
-            # if the small groups library is installed, then something else caused
-            # the call to fail - reraise the original exception
-            raise
+        from sage.features.gap import GapPackage
+        GapPackage("prim", spkg="database_gap").require()
+
+        return Integer(self._gap_().PrimitiveIdentification())
 
     def center(self):
         """

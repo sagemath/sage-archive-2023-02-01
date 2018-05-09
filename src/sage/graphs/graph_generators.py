@@ -1223,7 +1223,7 @@ class GraphGenerators():
         if order % 2 == 1 or order < 20 or order == 22:
             return
 
-        from sage.misc.feature_test import Buckygen
+        from sage.features.graph_generators import Buckygen
         Buckygen().require()
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
@@ -1313,7 +1313,7 @@ class GraphGenerators():
             yield(G)
             return
 
-        from sage.misc.feature_test import Benzene
+        from sage.features.graph_generators import Benzene
         Benzene().require()
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
@@ -1502,7 +1502,7 @@ class GraphGenerators():
                 yield(G)
             return
 
-        from sage.misc.feature_test import Plantri
+        from sage.features.graph_generators import Plantri
         Plantri().require()
 
         cmd = 'plantri -p{}m{}c{}{}{} {}'
@@ -1685,7 +1685,7 @@ class GraphGenerators():
         if only_eulerian and order < 6:
             return
 
-        from sage.misc.feature_test import Plantri
+        from sage.features.graph_generators import Plantri
         Plantri().require()
 
         cmd = 'plantri -{}m{}c{}{}{} {}'
@@ -1829,7 +1829,7 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
-        from sage.misc.feature_test import Plantri
+        from sage.features.graph_generators import Plantri
         Plantri().require()
 
         cmd = 'plantri -qm{}c{}{} {}'

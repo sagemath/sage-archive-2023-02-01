@@ -1481,10 +1481,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges() == H.edges()                  # optional - python_igraph
             False
         """
-        try:
-            import igraph
-        except ImportError:
-            raise PackageNotFoundError("python_igraph")
+        import igraph
 
         v_to_int = {v: i for i, v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -8477,10 +8474,10 @@ class GenericGraph(GenericGraph_pyx):
             capacity=lambda x: 1
 
         if algorithm is None:
-            from sage.misc.feature_test import Module
+            from sage.features import PythonModule
             if vertex_bound:
                 algorithm = "LP"
-            elif Module(module="igraph", spkg="python_igraph", url="http://igraph.org").is_present():
+            elif PythonModule("igraph", spkg="python_igraph", url="http://igraph.org").is_present():
                 algorithm = "igraph"
             else:
                 algorithm = "FF"
@@ -8488,11 +8485,7 @@ class GenericGraph(GenericGraph_pyx):
         if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (algorithm == 'igraph'):
-
-            try:
-                import igraph
-            except ImportError:
-                raise PackageNotFoundError("python_igraph")
+            import igraph
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)

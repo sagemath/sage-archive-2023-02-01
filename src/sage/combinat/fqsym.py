@@ -917,7 +917,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
 class FQSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `FQSym`.
+    The category of graded bases of `FQSym` indexed by permutations.
     """
     def __init__(self, base):
         r"""
@@ -1002,6 +1002,31 @@ class FQSymBases(Category_realization_of_parent):
                 F[1, 3, 4, 2]
             """
             return self.monomial(Permutation(p))
+
+        def basis(self, degree=None):
+            r"""
+            The basis elements (optionally: of the specified degree).
+
+            OUTPUT: Family
+
+            EXAMPLES::
+
+                sage: FQSym = algebras.FQSym(QQ)
+                sage: G = FQSym.G()
+                sage: G.basis()
+                Lazy family (Term map from Standard permutations to Free Quasi-symmetric functions over Rational Field in the G basis(i))_{i in Standard permutations}
+                sage: G.basis().keys()
+                Standard permutations
+                sage: G.basis(degree=3).keys()
+                Standard permutations of 3
+                sage: G.basis(degree=3).list()
+                [G[1, 2, 3], G[1, 3, 2], G[2, 1, 3], G[2, 3, 1], G[3, 1, 2], G[3, 2, 1]]
+            """
+            from sage.combinat.family import Family
+            if degree is None:
+                return Family(self._indices, self.monomial)
+            else:
+                return Family(Permutations(degree), self.monomial)
 
         def is_field(self, proof=True):
             """

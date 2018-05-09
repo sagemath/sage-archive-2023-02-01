@@ -217,18 +217,18 @@ Generators
 Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
-    ....:     print(g.spectrum())
+    ....:     print(g.degree_sequence())
     [0, 0, 0, 0]
-    [1, 0, 0, -1]
-    [1.4142135623..., 0, 0, -1.4142135623...]
-    [2, 0, -1, -1]
-    [1.7320508075..., 0, 0, -1.7320508075...]
-    [1, 1, -1, -1]
-    [1.6180339887..., 0.6180339887..., -0.6180339887..., -1.6180339887...]
-    [2.1700864866..., 0.3111078174..., -1, -1.4811943040...]
-    [2, 0, 0, -2]
-    [2.5615528128..., 0, -1, -1.5615528128...]
-    [3, -1, -1, -1]
+    [1, 1, 0, 0]
+    [2, 1, 1, 0]
+    [3, 1, 1, 1]
+    [1, 1, 1, 1]
+    [2, 2, 1, 1]
+    [2, 2, 2, 0]
+    [3, 2, 2, 1]
+    [2, 2, 2, 2]
+    [3, 3, 2, 2]
+    [3, 3, 3, 3]
 
 Similarly ``graphs()`` will iterate through all graphs. The complete
 graph of 4 vertices is of course the smallest graph with chromatic number

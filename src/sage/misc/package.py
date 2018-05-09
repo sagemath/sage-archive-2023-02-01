@@ -319,6 +319,15 @@ def is_package_installed(package, exclude_pip=True):
         sage: from sage.misc.package import list_packages
         sage: for pkg in list_packages('pip', local=True):
         ....:     assert not is_package_installed(pkg)
+
+    .. NOTE::
+
+        Do not use this function to check whether you can use a feature from an
+        external library. This only checks whether something was installed with
+        ``sage -i`` but it may have been installed by other means (for example
+        if this copy of Sage has been installed as part of a distribution.)
+        Use the framework provided by :module:`sage.misc.feature_test` to check
+        whether a library is installed and functional.
     """
     return any(p.split('-')[0] == package for p in installed_packages(exclude_pip))
 

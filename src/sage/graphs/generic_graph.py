@@ -8898,6 +8898,17 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.delete_vertices(['s','t'])
             sage: len(flow_graph.edges(labels=None))
             4
+
+        TESTS:
+
+        Graph with an isolated vertex (:trac:`24925`)::
+
+            sage: G = Graph({0:[], 1:[]})
+            sage: G.flow(0, 1, algorithm='FF')
+            0
+            sage: G = Graph([[0, 1, 2], [(0, 1)]])
+            sage: G.flow(0, 2, algorithm='FF')
+            0
         """
         from sage.graphs.digraph import DiGraph
         from sage.functions.other import floor
@@ -8910,7 +8921,7 @@ class GenericGraph(GenericGraph_pyx):
 
         directed = self.is_directed()
 
-        # Associated to each edge (u,v) of the flow graph its capacity
+        # Associates to each edge (u,v) of the flow graph its capacity
         capacity = {}
         # Associates to each edge (u,v) of the graph the (directed)
         # flow going through it
@@ -8921,6 +8932,7 @@ class GenericGraph(GenericGraph_pyx):
         # current edge is strictly less than its capacity, or when
         # there exists a back arc with non-null flow
         residual = DiGraph()
+        residual.add_vertices(self.vertices())
 
         # Initializing the variables
         if directed:
@@ -8941,7 +8953,7 @@ class GenericGraph(GenericGraph_pyx):
                     flow[(u,v)] = 0
                     flow[(v,u)] = 0
 
-        # Reqrites a path as a list of edges :
+        # Rewrites a path as a list of edges :
         # ex : [0,1,2,3,4,5] becomes [(0,1), (1,2), (2,3), (3,4), (4,5)]
         path_to_edges = lambda P : zip(P[:-1], P[1:])
 

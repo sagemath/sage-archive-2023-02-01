@@ -6632,8 +6632,9 @@ class RowStandardTableaux(Tableaux):
             return RowStandardTableaux_shape(_Partitions(n))
 
         elif n in SkewPartitions():
-            from sage.combinat.skew_tableau import StandardSkewTableaux
-            return StandardSkewTableaux(n)
+            #from sage.combinat.skew_tableau import RowStandardSkewTableaux
+            #return RowStandardSkewTableaux(n)
+            raise NotImplementedError("row standard skew tableaux not yet implemented")
 
         if not isinstance(n, (int, Integer)) or n < 0:
             raise ValueError("the argument must be a non-negative integer or a partition")

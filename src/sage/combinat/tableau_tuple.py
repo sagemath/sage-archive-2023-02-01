@@ -1403,10 +1403,17 @@ class TableauTuple(CombinatorialElement):
 @add_metaclass(ClasscallMetaclass)
 class RowStandardTableauTuple(TableauTuple):
     r"""
-    A class for row standard tableau of shape a partition tuple. This is
-    a tuple of row standard tableau with entries `1, 2, \ldots, n`, where `n`
-    is the size of the underlying partition tuple, such that the entries
-    increase along rows in each component of the tuple.
+    A class for row standard tableau tuples of shape a partition tuple.
+
+    A row standard tableau tuple of shape
+    `(\lambda_1, \lambda_2, \ldots, \lambda_k)` is a tuple
+    `(T_1, T_2, \ldots, T_k)`, where each `T_i` is a tableau
+    of shape `\lambda_i` whose entries increase along rows, and
+    with the following property: If we set
+    `n = |\lambda_1| + |\lambda_2| + \cdots + |\lambda_k|`,
+    then each of the numbers `1, 2, \ldots, n` appears
+    in exactly one of the `T_i`, and appears exactly once in
+    this `T_i`.
 
     .. NOTE::
 

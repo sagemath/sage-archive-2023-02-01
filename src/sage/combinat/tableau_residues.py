@@ -91,8 +91,8 @@ This module implements the following classes:
     * :class:`StandardTableau`
     * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue`
     * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue_shape`
-    * :class:`~sage.combinat.tableau_tuple.RowStandardTableaux_residue`
-    * :class:`~sage.combinat.tableau_tuple.RowStandardTableaux_residue_shape`
+    * :class:`~sage.combinat.tableau_tuple.RowStandardTableauTuples_residue`
+    * :class:`~sage.combinat.tableau_tuple.RowStandardTableauTuples_residue_shape`
     * :class:`StandardTableaux`
     * :class:`Tableau`
     * :class:`Tableaux`
@@ -129,8 +129,10 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 from .partition_tuple import PartitionTuple
-from .tableau_tuple import StandardTableaux_residue, StandardTableaux_residue_shape,\
-                           RowStandardTableaux_residue, RowStandardTableaux_residue_shape
+from .tableau_tuple import (StandardTableaux_residue,
+                            StandardTableaux_residue_shape,
+                            RowStandardTableauTuples_residue,
+                            RowStandardTableauTuples_residue_shape)
 
 #--------------------------------------------------
 # Residue sequences
@@ -519,9 +521,9 @@ class ResidueSequence(ClonableArray):
             Row standard (3|3|3)-tableaux with 3-residue sequence (0,1,2,0,1,2,0,1,2) and multicharge (0,0,0)
         """
         if shape is None:
-            return RowStandardTableaux_residue(residue=self)
+            return RowStandardTableauTuples_residue(residue=self)
         else:
-            return RowStandardTableaux_residue_shape(residue=self, shape=PartitionTuple(shape))
+            return RowStandardTableauTuples_residue_shape(residue=self, shape=PartitionTuple(shape))
 
     def negative(self):
         r"""

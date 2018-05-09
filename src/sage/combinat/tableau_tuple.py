@@ -179,8 +179,8 @@ Parent classes:
 * :class:`RowStandardTableauTuples_size`
 * :class:`RowStandardTableauTuples_level_size`
 * :class:`RowStandardTableauTuples_shape`
-* :class:`RowStandardTableaux_residue`
-* :class:`RowStandardTableaux_residue_shape`
+* :class:`RowStandardTableauTuples_residue`
+* :class:`RowStandardTableauTuples_residue_shape`
 
 .. SEEALSO::
 
@@ -3557,7 +3557,7 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
         c = self.cardinality()
         return self[c>3 and 4 or (c>1 and -1 or 0)]
 
-class RowStandardTableaux_residue(RowStandardTableauTuples):
+class RowStandardTableauTuples_residue(RowStandardTableauTuples):
     r"""
     Class of all row standard tableau tuples with a fixed residue sequence.
 
@@ -3596,7 +3596,7 @@ class RowStandardTableaux_residue(RowStandardTableauTuples):
             sage: tabs = RowStandardTableauTuple([[[6],[7]],[[3,4,5],[1,2]]]).residue_sequence(2,(0,0)).row_standard_tableaux()
             sage: TestSuite(tabs).run()  # long time
         """
-        super(RowStandardTableaux_residue, self).__init__(category=FiniteEnumeratedSets())
+        super(RowStandardTableauTuples_residue, self).__init__(category=FiniteEnumeratedSets())
         self._residue = residue
         self._quantum_characteristic = residue.quantum_characteristic()
         self._multicharge = residue.multicharge()
@@ -3684,7 +3684,7 @@ class RowStandardTableaux_residue(RowStandardTableauTuples):
         from sage.combinat.partition_tuple import PartitionTuples
         for mu in PartitionTuples(self._level, self._size):
             if mu.block(self._quantum_characteristic, self._multicharge) == self._residue.block():
-                for t in RowStandardTableaux_residue_shape(self._residue, mu):
+                for t in RowStandardTableauTuples_residue_shape(self._residue, mu):
                     if self._level == 1:
                         yield t
                     else:
@@ -3794,7 +3794,7 @@ class RowStandardTableaux_residue(RowStandardTableauTuples):
         except ValueError:
             return None
 
-class RowStandardTableaux_residue_shape(RowStandardTableaux_residue):
+class RowStandardTableauTuples_residue_shape(RowStandardTableauTuples_residue):
     """
     All row standard tableau tuples with a fixed residue and shape.
 
@@ -3838,7 +3838,7 @@ class RowStandardTableaux_residue_shape(RowStandardTableaux_residue):
         if residue.size() != shape.size():
             raise ValueError('the size of the shape and the length of the residue defence must coincide!')
 
-        super(RowStandardTableaux_residue_shape, self).__init__(residue)
+        super(RowStandardTableauTuples_residue_shape, self).__init__(residue)
         self._shape = shape
 
         # The _standard_tableaux attribute below is used to generate the

@@ -1952,17 +1952,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: S[2,1].to_fsym()
                     G[12|3] + G[123]
                 """
-                from sage.combinat.chas.fsym import FreeSymmetricFunctions, descent_composition
-                from sage.combinat.tableau import StandardTableaux
+                from sage.combinat.chas.fsym import FreeSymmetricFunctions
                 G = FreeSymmetricFunctions(self.base_ring()).G()
-                R = self.parent().realization_of().ribbon()
-                ST = G._indices
-                def on_basis(alpha):
-                    return G.sum_of_monomials(ST(t) for t in StandardTableaux(alpha.size())
-                                              if descent_composition(t) == alpha)
-                return G.linear_combination((on_basis(alpha), coeff)
-                                            for alpha, coeff in R(self))
-
+                return G(self)
 
             def expand(self, n, alphabet='x'):
                 r"""

@@ -549,6 +549,84 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         _prefix = "G"
 
+        def _coerce_map_from_(self, R):
+            r"""
+            Return ``True`` if there is a coercion from ``R`` into ``self``
+            and ``False`` otherwise.
+
+            The things that coerce into ``self`` are
+
+            - elements of the algebra `FSym` over a base ring
+              with a coercion map into ``self.base_ring()``
+            - non-commutative symmetric functions over a base ring with
+              a coercion map into ``self.base_ring()``
+
+            EXAMPLES:
+
+            There exists a morphism from `NCSF` to `FSym`::
+
+                sage: G = algebras.FSym(QQ).G()
+                sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+                sage: G(R[3,1,2,2,1])
+                G[123|46|58|7|9] + G[123|46|58|79] + G[123|468|5|7|9]
+                 + G[123|468|57|9] + G[123|468|579] + G[123|468|59|7]
+                 + G[1236|478|5|9] + G[1236|478|59] + G[1236|48|5|7|9]
+                 + G[1236|48|59|7] + G[12368|4|5|7|9] + G[12368|47|5|9]
+                 + G[12368|47|59] + G[12368|479|5] + G[12368|49|5|7]
+                 + G[1238|46|5|7|9] + G[1238|46|57|9] + G[1238|46|59|7]
+                 + G[1238|469|5|7] + G[1238|469|57]
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                sage: G(S[2,1,2])
+                G[12|35|4] + G[123|45] + G[12345] + G[1235|4]
+                 + G[1245|3] + G[125|3|4] + G[125|34]
+                sage: G(R(S[3,1,2,2])) == G(S[3,1,2,2])
+                True
+
+            This mapping is a Hopf algebra morphism::
+
+                sage: all(G(R[a1] * R[a2]) == G(R[a1]) * G(R[a2])
+                ....:     for a1 in Compositions(2)
+                ....:     for a2 in Compositions(4))
+                True
+
+                sage: R2 = R.tensor_square()
+                sage: phi = R2.module_morphism(
+                ....:               lambda x: tensor([G(R[x[0]]), G(R[x[1]])]),
+                ....:               codomain=G.tensor_square())
+                sage: all(phi(R[p].coproduct()) == G(R[p]).coproduct()
+                ....:     for p in Compositions(4))
+                True
+
+                sage: all(G(S[a1] * S[a2]) == G(S[a1]) * G(S[a2])
+                ....:     for a1 in Compositions(2)
+                ....:     for a2 in Compositions(4))
+                True
+
+                sage: S2 = S.tensor_square()
+                sage: psi = S2.module_morphism(
+                ....:               lambda x: tensor([G(S[x[0]]), G(S[x[1]])]),
+                ....:               codomain=G.tensor_square())
+                sage: all(psi(S[p].coproduct()) == G(S[p]).coproduct()
+                ....:     for p in Compositions(4))
+                True
+            """
+            if hasattr(R, "realization_of"):
+                if not self.base_ring().has_coerce_map_from(R.base_ring()):
+                    return False
+                A = R.realization_of()
+                # NSym to FSym
+                from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
+                if isinstance(A, NonCommutativeSymmetricFunctions):
+                    ribbon = A.ribbon()
+                    if R is ribbon:
+                        ST = self._indices
+                        def R_to_G_on_basis(alpha):
+                            return self.sum_of_monomials(ST(t) for t in StandardTableaux(alpha.size())
+                                                         if descent_composition(t) == alpha)
+                        return ribbon.module_morphism(R_to_G_on_basis, codomain=self)
+                    return self._coerce_map_via([ribbon], R)
+            return super(FreeSymmetricFunctions.Fundamental, self)._coerce_map_from_(R)
+
         def dual_basis(self):
             r"""
             Return the dual basis to ``self``.

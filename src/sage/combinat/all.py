@@ -17,6 +17,7 @@ from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
 
 from .expnums import expnums
 
+from sage.combinat.chas.all import *
 from sage.combinat.crystals.all import *
 from .rigged_configurations.all import *
 

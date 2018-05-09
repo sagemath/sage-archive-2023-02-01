@@ -1,6 +1,17 @@
 r"""
 Tests For Combinatorial Hopf Algebras
 
+We check that the composition of `Sym \to FSym^* \to QSym`
+agrees with `Sym \to QSym`::
+
+    sage: s = SymmetricFunctions(QQ).s()
+    sage: M = QuasiSymmetricFunctions(QQ).M()
+    sage: F = algebras.FSym(QQ).dual().F()
+    sage: all(F(s[p]).to_quasisymmetric_function() == M(s[p])
+    ....:     for n in range(5)
+    ....:     for p in Partitions(n))
+    True
+
 There are various morphisms between the Hopf algebras below.
 We test that the diagram of morphisms is commutative::
 
@@ -36,9 +47,5 @@ We test that the diagram of morphisms is commutative::
 
     sage: all(go2(n) for n in range(6))  # not tested (needs more morphisms)
     True
-
-.. TODO::
-
-    Add tests checking compatibility of the Hopf structure.
 """
 

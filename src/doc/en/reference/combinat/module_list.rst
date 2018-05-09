@@ -28,6 +28,7 @@ Comprehensive Module list
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
     sage/combinat/chas/__init__
+    sage/combinat/chas/fsym
     sage/combinat/chas/wqsym
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all

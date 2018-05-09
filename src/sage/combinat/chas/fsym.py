@@ -32,7 +32,7 @@ from sage.combinat.sf.sf import SymmetricFunctions
 
 class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
-    Abstract base class for bases of `FSym` and of `FSym^*`
+    Abstract base class for graded bases of `FSym` and of `FSym^*`
     indexed by standard tableaux.
 
     This must define the following attributes:
@@ -105,7 +105,7 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             True
 
         However, `\GF{7}` does not coerce to `\ZZ`, so the
-        elements of `FSym` `\GF{7}` do not coerce
+        elements of `FSym` over `\GF{7}` do not coerce
         to the same algebra over `\ZZ`::
 
             sage: H.coerce(y)
@@ -195,7 +195,8 @@ class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
 class FSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `FSym` and `FSym^*`.
+    The category of graded bases of `FSym` and `FSym^*` indexed
+    by standard tableaux.
     """
     def super_categories(self):
         """
@@ -321,10 +322,20 @@ class FSymBases(Category_realization_of_parent):
                 sage: all(F.duality_pairing(F[p1] * F[p2], z) == c
                 ....:     for ((p1, p2), c) in z.coproduct())
                 True
+
+            TESTS:
+
+            If ``x`` is zero, then the output still has the right
+            type::
+
+                sage: z = G.duality_pairing(G.zero(), F.zero()); z
+                0
+                sage: parent(z)
+                Rational Field
             """
             x = self(x)
             y = self.dual_basis()(y)
-            return sum(coeff * y[t] for (t, coeff) in x)
+            return self.base_ring().sum(coeff * y[t] for (t, coeff) in x)
 
         def duality_pairing_matrix(self, basis, degree):
             r"""
@@ -664,7 +675,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
     fundamental basis* of `FSym^*`, and is denoted by
     `(\mathcal{G}_t^*)`.
     The Hopf dual `FSym^*` is isomorphic to the Hopf algebra
-    `(\mathbb{Z} T, \ast', \delta')` from [PoiReu95]_; the
+    `(\ZZ T, \ast', \delta')` from [PoiReu95]_; the
     isomorphism sends a basis element `\mathcal{G}_t^*` to `t`.
 
     EXAMPLES::
@@ -678,7 +689,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
     The Hopf algebra `FSym^*` is a Hopf quotient of `FQSym`;
     the canonical projection sends `F_w` (for a permutation `w`)
-    to `\mathcal{G}_{Q(w)}'`, where `Q(w)` is the P-tableau of
+    to `\mathcal{G}_{Q(w)}'`, where `Q(w)` is the Q-tableau of
     `w`. This projection is implemented as a coercion::
 
         sage: FQSym = algebras.FQSym(QQ)

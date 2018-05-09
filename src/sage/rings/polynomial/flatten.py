@@ -36,6 +36,7 @@ from __future__ import absolute_import, print_function
 
 import itertools, six
 
+from sage.categories.homset import Homset
 from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 from .polynomial_ring_constructor import PolynomialRing
@@ -178,7 +179,8 @@ class FlatteningMorphism(Morphism):
         else:
             codomain = PolynomialRing(ring, variables)
 
-        Morphism.__init__(self, domain, codomain)
+        hom = Homset(domain, codomain, base=ring, check=False)
+        Morphism.__init__(self, hom)
         self._repr_type_str = 'Flattening'
 
     def _call_(self, p):
@@ -335,7 +337,8 @@ class UnflatteningMorphism(Morphism):
         self._intermediate_rings = intermediate_rings
         self._intermediate_rings.reverse()
 
-        Morphism.__init__(self, domain, codomain)
+        hom = Homset(domain, codomain, base=ring, check=False)
+        Morphism.__init__(self, hom)
         self._repr_type_str = 'Unflattening'
 
     def _call_(self, p):

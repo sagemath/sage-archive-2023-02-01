@@ -15,6 +15,8 @@
 from __future__ import division, print_function, absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
+
+from sage.cpython.string cimport char_to_str
 from sage.ext.cplusplus cimport ccreadstr
 
 include "decl.pxi"
@@ -152,7 +154,7 @@ cdef class ntl_ZZX(object):
         """
         cdef char * val
         val = ZZX_repr(&self.x)
-        result = str(val)
+        result = char_to_str(val)
         cpp_delete_array(val)
         return result
 
@@ -962,7 +964,9 @@ cdef class ntl_ZZX(object):
         sig_on()
         cdef char* t
         t = ZZX_trace_list(&self.x)
-        return eval(string_delete(t).replace(' ', ','))
+        r = eval(char_to_str(t).replace(' ', ','))
+        string_delete(t)
+        return r
 
     def resultant(self, ntl_ZZX other, proof=None):
         """

@@ -1052,7 +1052,7 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("There is no dense immutable backend at the moment.")
         elif immutable is False:
             # If the users requests a mutable graph and input is immutable, we
-            # chose the 'sparse' cgraph backend. Unless the user explicitly
+            # choose the 'sparse' cgraph backend. Unless the user explicitly
             # asked for something different.
             if self.is_immutable():
                 data_structure = 'dense' if sparse is False else 'sparse'
@@ -1481,10 +1481,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.edges() == H.edges()                  # optional - python_igraph
             False
         """
-        try:
-            import igraph
-        except ImportError:
-            raise PackageNotFoundError("python_igraph")
+        import igraph
 
         v_to_int = {v: i for i, v in enumerate(self.vertices())}
         edges = [(v_to_int[v], v_to_int[w]) for v,w in self.edge_iterator(labels=False)]
@@ -3589,6 +3586,8 @@ class GenericGraph(GenericGraph_pyx):
 
           - ``"Kruskal_Boost"`` -- Kruskal's algorithm (Boost implementation).
 
+          - ``"Boruvka"`` -- Boruvka's algorithm.
+
           - ``NetworkX`` -- Uses NetworkX's minimum spanning tree
             implementation.
 
@@ -3611,6 +3610,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :func:`sage.graphs.spanning_tree.kruskal`
+            - :func:`sage.graphs.spanning_tree.boruvka`
             - :func:`sage.graphs.base.boost_graph.min_spanning_tree`
 
         EXAMPLES:
@@ -3630,6 +3630,11 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges(g.edges())
             sage: g.min_spanning_tree()
             [(0, 1, None), (0, 4, None), (0, 5, None), (1, 2, None), (1, 6, None), (3, 8, None), (5, 7, None), (5, 8, None), (6, 9, None)]
+
+        Boruvka's algorithm::
+
+            sage: g.min_spanning_tree(algorithm='Boruvka')
+            [(0, 1, None), (1, 2, None), (2, 3, None), (0, 4, None), (0, 5, None), (1, 6, None), (2, 7, None), (3, 8, None), (4, 9, None)]
 
         Prim's algorithm::
 
@@ -3685,6 +3690,8 @@ class GenericGraph(GenericGraph_pyx):
             [(0, 1, 1), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='NetworkX')
             [(0, 1, 1), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Boruvka')
+            [(0, 1, 1), (1, 2, 1)]
 
         Check that, if ``weight_function`` is provided, it overrides edge
         weights::
@@ -3702,6 +3709,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.min_spanning_tree(algorithm='Prim_Boost', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
             sage: g.min_spanning_tree(algorithm='NetworkX', weight_function=weight)
+            [(0, 2, 10), (1, 2, 1)]
+            sage: g.min_spanning_tree(algorithm='Boruvka', weight_function=weight)
             [(0, 2, 10), (1, 2, 1)]
 
         If the graph is directed, it is transformed into an undirected graph::
@@ -3737,6 +3746,10 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: could not convert string to float: a
             sage: g.min_spanning_tree(algorithm="NetworkX")
+            Traceback (most recent call last):
+            ...
+            ValueError: could not convert string to float: a
+            sage: g.min_spanning_tree(algorithm="Boruvka")
             Traceback (most recent call last):
             ...
             ValueError: could not convert string to float: a
@@ -3782,7 +3795,7 @@ class GenericGraph(GenericGraph_pyx):
 
         wfunction_float = lambda e:float(weight_function(e))
 
-        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost"]:
+        if algorithm in ["Kruskal", "Kruskal_Boost", "Prim_Boost", "Boruvka"]:
             if self.is_directed():
                 g = self.to_undirected()
             else:
@@ -3791,6 +3804,9 @@ class GenericGraph(GenericGraph_pyx):
             if algorithm == "Kruskal":
                 from .spanning_tree import kruskal
                 return kruskal(g, wfunction=wfunction_float, check=check)
+            elif algorithm == "Boruvka":
+                from .spanning_tree import boruvka
+                return boruvka(g, wfunction=wfunction_float, check=check)
             else:
                 from sage.graphs.base.boost_graph import min_spanning_tree
                 return min_spanning_tree(g,
@@ -8462,7 +8478,6 @@ class GenericGraph(GenericGraph_pyx):
            sage: abs(flow_ff-flow_igraph) < 0.00001         # optional python_igraph
            True
         """
-        from sage.misc.package import is_package_installed, PackageNotFoundError
         self._scream_if_not_simple(allow_loops=True)
         if vertex_bound and algorithm in ["FF", "igraph"]:
             raise ValueError("This method does not support both " +
@@ -8478,9 +8493,10 @@ class GenericGraph(GenericGraph_pyx):
             capacity=lambda x: 1
 
         if algorithm is None:
+            from sage.features import PythonModule
             if vertex_bound:
                 algorithm = "LP"
-            elif is_package_installed("python_igraph"):
+            elif PythonModule("igraph", spkg="python_igraph", url="http://igraph.org").is_present():
                 algorithm = "igraph"
             else:
                 algorithm = "FF"
@@ -8488,11 +8504,7 @@ class GenericGraph(GenericGraph_pyx):
         if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (algorithm == 'igraph'):
-
-            try:
-                import igraph
-            except ImportError:
-                raise PackageNotFoundError("python_igraph")
+            import igraph
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -21845,11 +21857,8 @@ class GenericGraph(GenericGraph_pyx):
             [Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [()],
             Subgroup of (Permutation Group with generators [(0,7)(1,4)(2,3)(6,8)]) generated by [(0,7)(1,4)(2,3)(6,8)]]
         """
-        try:
-            from sage.graphs.bliss import automorphism_group
-            have_bliss = True
-        except ImportError:
-            have_bliss = False
+        from sage.features.bliss import Bliss
+        have_bliss = Bliss().is_present()
 
         # See trac #21704
         if self.has_multiple_edges():
@@ -21864,10 +21873,9 @@ class GenericGraph(GenericGraph_pyx):
             if edge_labels:
                 raise ValueError("bliss cannot be used when edge_labels is True")
 
-            if not have_bliss:
-                from sage.misc.package import PackageNotFoundError
-                raise PackageNotFoundError("bliss")
+            Bliss().require()
 
+            from sage.graphs.bliss import automorphism_group
             A = automorphism_group(self, partition)
 
             # If the user only wants the automorphism group, lets return it
@@ -22319,6 +22327,16 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g.is_isomorphic(h, certificate=True)
             (True, None)
+
+        Ensure that :trac:`24964` is fixed ::
+
+            sage: A = DiGraph([(6,7,'a'), (6,7,'b')], multiedges=True)
+            sage: B = DiGraph([('x','y','u'), ('x','y','v')], multiedges=True)
+            sage: A.is_isomorphic(B, certificate=True)
+            (True, {6: 'x', 7: 'y'})
+            sage: A.is_isomorphic(B, certificate=True, edge_labels=True)
+            (False, None)
+
         """
 
         if self.order() == other.order() == 0:
@@ -22386,7 +22404,7 @@ class GenericGraph(GenericGraph_pyx):
             return True
         else:
             isom_trans = {}
-            if edge_labels:
+            if edge_labels or self.has_multiple_edges():
                 relabeling2_inv = {}
                 for x in relabeling2:
                     relabeling2_inv[relabeling2[x]] = x

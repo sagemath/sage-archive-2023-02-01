@@ -30,7 +30,6 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
 from sage.structure.element cimport Element
 
-from sage.rings.complex_arb import ComplexBallField
 from sage.structure.element import coerce_binop
 
 cdef inline long prec(Polynomial_complex_arb pol):

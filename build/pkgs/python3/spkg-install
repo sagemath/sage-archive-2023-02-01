@@ -13,10 +13,6 @@ export SVNVERSION=no
 
 cd src
 
-
-# Remove old libraries
-rm -f "$SAGE_LOCAL"/lib/lib"$PKG_BASE"*
-
 # Running 'make install' in parallel is a bad idea, so we use
 # only 1 job.
 # The "-i" option to ignore errors is crucial, especially in the

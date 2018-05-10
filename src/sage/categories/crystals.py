@@ -921,14 +921,17 @@ class Crystals(Category_singleton):
 
         def latex_file(self, filename):
             r"""
-            Exports a file, suitable for pdflatex, to 'filename'. This requires
+            Export a file, suitable for pdflatex, to 'filename'.
+
+            This requires
             a proper installation of ``dot2tex`` in sage-python. For more
             information see the documentation for ``self.latex()``.
 
             EXAMPLES::
 
                 sage: C = crystals.Letters(['A', 5])
-                sage: C.latex_file('/tmp/test.tex')
+                sage: fn = tmp_filename(ext='.tex')
+                sage: C.latex_file(fn)
             """
             header = r"""\documentclass{article}
             \usepackage[x11names, rgb]{xcolor}

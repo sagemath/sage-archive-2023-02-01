@@ -739,21 +739,21 @@ class RationalField(Singleton, number_field_base.NumberField):
         from sage.rings.finite_rings.residue_field import ResidueField
         return ResidueField(ZZ.ideal(p), check=check)
 
-    def hilbert_conductor_inverse(self, S, b, check=True):
-        """
+    def hilbert_symbol_negative_at_S(self, S, b, check=True):
+        r"""
         Returns an integer that has a negative Hilbert symbol with respect
-        to a given rational number and a given set of primes.
+        to a given rational number and a given set of primes (or places).
 
-        The function is algorithm 3.4.1 in _[Kir2016]. It finds an integer a that
-        has a negative Hilbert symbol with respect to a given rational number
-        and set of primes.
+        The function is algorithm 3.4.1 in _[Kir2016]. It finds an integer `a`
+        that has negative Hilbert symbol with respect to a given rational number
+        exactly at a given set of primes (or places).
 
         INPUT:
 
         - ``S`` -- a list of rational primes, the infinite place as real
-          embedding of `QQ` or as -1 or alternatively ``S`` may be an integer
+          embedding of `\QQ` or as -1
         - ``b`` -- a non-zero rational number which is a non-square locally
-          at every prime in S.
+          at every prime in ``S``.
         - ``check`` -- ``bool`` (default:``True``) perform additional checks on
           input and confirm the output.
 
@@ -764,44 +764,39 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: QQ.hilbert_conductor_inverse([-1,5,3,2,7,11,13,23], -10/7)
+            sage: QQ.hilbert_symbol_negative_at_S([-1,5,3,2,7,11,13,23], -10/7)
             -9867
-
-        Equivalently - but involving a prime factorization::
-
-            sage: QQ.hilbert_conductor_inverse(-1*2*3*5*7*11*13*23, -10/7)
-            -9867
-            sage: QQ.hilbert_conductor_inverse([3, 5, QQ.places()[0], 11], -15)
+            sage: QQ.hilbert_symbol_negative_at_S([3, 5, QQ.places()[0], 11], -15)
             -33
-            sage: QQ.hilbert_conductor_inverse([3, 5], 2)
+            sage: QQ.hilbert_symbol_negative_at_S([3, 5], 2)
             15
 
-        TESTS::
+        TESTS:
 
-        These examples show possible error messages.
+        These examples show possible error messages::
 
-            sage: QQ.hilbert_conductor_inverse(5/2, -2)
+            sage: QQ.hilbert_symbol_negative_at_S(5/2, -2)
             Traceback (most recent call last):
             ...
             TypeError: first argument must be a list or integer
 
         ::
 
-            sage: QQ.hilbert_conductor_inverse([1, 3], 0)
+            sage: QQ.hilbert_symbol_negative_at_S([1, 3], 0)
             Traceback (most recent call last):
             ...
             ValueError: second argument must be nonzero
 
         ::
 
-            sage: QQ.hilbert_conductor_inverse([-1, 3, 5], 2)
+            sage: QQ.hilbert_symbol_negative_at_S([-1, 3, 5], 2)
             Traceback (most recent call last):
             ...
             ValueError: list should be of even cardinality
 
         ::
 
-            sage: QQ.hilbert_conductor_inverse([1, 3], 2)
+            sage: QQ.hilbert_symbol_negative_at_S([1, 3], 2)
             Traceback (most recent call last):
             ...
             ValueError: all entries in list must be prime or -1 for
@@ -809,7 +804,7 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.hilbert_conductor_inverse([5, 7], 2)
+            sage: QQ.hilbert_symbol_negative_at_S([5, 7], 2)
             Traceback (most recent call last):
             ...
             ValueError: second argument must be a nonsquare with
@@ -817,14 +812,14 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.hilbert_conductor_inverse([1, 3], sqrt(2))
+            sage: QQ.hilbert_symbol_negative_at_S([1, 3], sqrt(2))
             Traceback (most recent call last):
             ...
             TypeError: second argument must be a rational number
 
         ::
 
-            sage: QQ.hilbert_conductor_inverse([-1, 3], 2)
+            sage: QQ.hilbert_symbol_negative_at_S([-1, 3], 2)
             Traceback (most recent call last):
             ...
             ValueError: if the infinite place is in the list, the second
@@ -843,11 +838,6 @@ class RationalField(Singleton, number_field_base.NumberField):
         from sage.arith.misc import hilbert_symbol, is_prime
 
         # input checks
-        if S in ZZ:
-            s = S.sign()
-            S = ZZ(S).prime_factors()
-            if s == -1:
-                S.append(s)
         if not type(S) is list:
             raise TypeError("first argument must be a list or integer")
         # -1 is used for the infinite place

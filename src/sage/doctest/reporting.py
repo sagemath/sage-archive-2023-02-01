@@ -113,6 +113,39 @@ class DocTestReporter(SageObject):
         self.stats = {}
         self.error_status = 0
 
+    def have_optional_tag(self, tag):
+        r"""
+        Return whether doctests marked with this tag are run.
+
+        INPUT:
+
+        - ``tag`` -- string
+
+        EXAMPLES::
+
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.env import SAGE_SRC
+            sage: import os
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
+            sage: DC = DocTestController(DocTestDefaults(),[filename])
+            sage: DTR = DocTestReporter(DC)
+
+        ::
+
+            sage: DTR.have_optional_tag('sage')
+            True
+            sage: DTR.have_optional_tag('nice_unavailable_package')
+            False
+
+        """
+        if tag in self.controller.options.optional:
+            return True
+        if 'external' in self.controller.options.optional:
+            if tag in available_software.seen():
+                return True
+        return False
+
     def report_head(self, source):
         """
         Return the "sage -t [options] file.py" line as string.
@@ -454,17 +487,14 @@ class DocTestReporter(SageObject):
                                         log("    %s not run"%(count_noun(nskipped, "long test")))
                                 elif tag in ("not tested", "not implemented"):
                                     untested += nskipped
-                                else:
-                                    if (tag not in self.controller.options.optional and
-                                       not ('external' in self.controller.options.optional
-                                           and tag in available_software.seen())):
-                                        seen_other = True
-                                        if tag == "bug":
-                                            log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
-                                        elif tag == "":
-                                            log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
-                                        else:
-                                            log("    %s not run"%(count_noun(nskipped, tag + " test")))
+                                elif not self.have_optional_tag(tag):
+                                    seen_other = True
+                                    if tag == "bug":
+                                        log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
+                                    elif tag == "":
+                                        log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
+                                    else:
+                                        log("    %s not run"%(count_noun(nskipped, tag + " test")))
                             if untested:
                                 log("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
                     if not (self.controller.options.only_errors and not f):

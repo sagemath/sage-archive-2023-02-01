@@ -51,6 +51,13 @@ REFERENCES:
                 and T. Yalcin, *Block ciphers - focus on the linear layer
                 (feat. PRIDE)*; in CRYPTO, (2014), pp. 57-76.
 
+.. [AguSot05] Marcelo Aguiar and Frank Sottile,
+              *Structure of the Malvenuto-Reutenauer Hopf algebra of
+              permutations*,
+              Advances in Mathematics, Volume 191, Issue 2, 1 March 2005,
+              pp. 225--275,
+              :arxiv:`math/0203282v2`.
+
 .. [AH2002] \R. J. Aumann and S. Hart, Elsevier, eds. *Computing
             equilibria for two-person
             games*. http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf (2002)

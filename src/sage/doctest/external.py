@@ -36,7 +36,7 @@ def has_internet():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_internet
-        sage: has_internet() # random
+        sage: has_internet() # optional -- internet
         True
     """
     from six.moves import urllib

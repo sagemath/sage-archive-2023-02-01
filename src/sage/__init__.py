@@ -1,5 +1,9 @@
 __all__ = ['all']
 
+# Set sage.__version__ to the current version number. This is analogous
+# to many other Python packages.
+from sage.version import version as __version__
+
 # Make sure that the correct zlib library is loaded. This is needed
 # to prevent the system zlib to be loaded instead of the Sage one.
 # See https://trac.sagemath.org/ticket/23122

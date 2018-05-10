@@ -1758,7 +1758,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             sage: G(p)
             Traceback (most recent call last):
             ...
-            TypeError: entries must be coercible to a list or integer
+            TypeError: unable to convert (1,3,2) to a rational
             sage: phi = S3.hom(lambda p: G(p.matrix()), codomain = G)
             sage: phi(p)
             [0 0 1]

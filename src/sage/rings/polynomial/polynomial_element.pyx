@@ -7173,6 +7173,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.roots(ring=CIF)
             [(-0.1666666666666667? - 0.552770798392567?*I, 1), (-0.1666666666666667? + 0.552770798392567?*I, 1), (0.1812324444698754? + 1.083954101317711?*I, 2)]
 
+        In some cases, it is possible to isolate the roots of polynomials over
+        complex ball fields::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x^2 + 2).roots(multiplicities=False)
+            [[+/- 1.54e-19] + [-1.414213562373095 +/- 4.90e-17]*I,
+            [+/- 1.54e-19] + [1.414213562373095 +/- 4.90e-17]*I]
+            sage: (x^3 - 1/2).roots(RBF, multiplicities=False)
+            [[0.7937005259840997 +/- 3.76e-17]]
+            sage: ((x - 1)^2).roots(multiplicities=False, proof=False)
+            doctest:...
+            UserWarning: roots may have been lost...
+            [[1.00000000000 +/- 8.43e-12] + [+/- 1.01e-11]*I,
+             [1.0000000000 +/- 5.22e-12] + [+/- 6.20e-12]*I]
+
         Note that coefficients in a number field with defining polynomial
         `x^2 + 1` are considered to be Gaussian rationals (with the
         generator mapping to +I), if you ask for complex roots.

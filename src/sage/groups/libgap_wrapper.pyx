@@ -202,8 +202,19 @@ class ParentLibGAP(SageObject):
             Group([ a^2*b ])
             sage: G.gens()
             (a^2*b,)
+
+        Checking that :trac:`19270` is fixed::
+
+            sage: gens = [w.matrix() for w in WeylGroup(['B', 3])]
+            sage: G = MatrixGroup(gens)
+            sage: import itertools
+            sage: diagonals = itertools.product((1,-1), repeat=3)
+            sage: subgroup_gens = [diagonal_matrix(L) for L in diagonals]
+            sage: G.subgroup(subgroup_gens)
+            Matrix group over Rational Field with 8 generators
+
         """
-        generators = [ g if isinstance(g, GapElement) else g.gap()
+        generators = [ g if isinstance(g, GapElement) else self(g).gap()
                        for g in generators ]
         G = self.gap()
         H = G.Subgroup(generators)

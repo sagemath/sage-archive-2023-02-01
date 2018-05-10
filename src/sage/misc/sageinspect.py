@@ -2120,8 +2120,8 @@ def sage_getsourcelines(obj):
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
         22
-        sage: sage_getsourcelines(matrix)[0][0][6:]
-        'MatrixFactory(object):\n'
+        sage: sage_getsourcelines(matrix)[0][0]
+        'def matrix(*args, **kwds):\n'
 
     Some classes customize this using a ``_sage_src_lines_`` method,
     which gives the source lines of a class instance, but not the class
@@ -2131,7 +2131,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(cachedfib)[0][0]
         'def fibonacci(n, algorithm="pari"):\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
-         'cdef class CachedFunction(object):\n'
+        'cdef class CachedFunction(object):\n'
 
     TESTS::
 

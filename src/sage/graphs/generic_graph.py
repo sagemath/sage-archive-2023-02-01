@@ -1662,10 +1662,9 @@ class GenericGraph(GenericGraph_pyx):
         Returns the adjacency matrix of the (di)graph.
 
         The matrix returned is over the integers. If a different ring
-        is desired, use either
-        :meth:`sage.matrix.matrix0.Matrix.change_ring` method or
-        :class:`matrix <sage.matrix.constructor.MatrixFactory>`
-        function.
+        is desired, use either the
+        :meth:`sage.matrix.matrix0.Matrix.change_ring` method or the
+        :func:`matrix` function.
 
         INPUT:
 

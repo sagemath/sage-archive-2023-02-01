@@ -310,20 +310,29 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
          ``f(x, y)`` should instead return whether ``x`` is covered by
          ``y``.
 
-      3. A dictionary, list or tuple of upper covers: ``data[x]`` is
+      3. A dictionary of upper covers: ``data[x]`` is
          a list of the elements that cover the element `x` in the poset.
+
+      4. A list or tuple of upper covers: ``data[x]`` is
+         a list of the elements that cover the element `x` in the poset.
+
+         If the set of elements is not a set of consecutive integers
+         starting from zero, then:
+
+         - every element must appear in the data, for example in its own entry.
+         - ``data`` must be ordered in the same way as sorted elements.
 
          .. WARNING::
 
              If data is a list or tuple of length `2`, then it is
-             handled by the above case..
+             handled by the case 2 above.
 
-      4. An acyclic, loop-free and multi-edge free ``DiGraph``. If
+      5. An acyclic, loop-free and multi-edge free ``DiGraph``. If
          ``cover_relations`` is ``True``, then the edges of the
          digraph are assumed to correspond to the cover relations of
          the poset. Otherwise, the cover relations are computed.
 
-      5. A previously constructed poset (the poset itself is returned).
+      6. A previously constructed poset (the poset itself is returned).
 
     - ``element_labels`` -- (default: ``None``); an optional list or
       dictionary of objects that label the poset elements.
@@ -411,25 +420,30 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
           sage: Poset({'a':['b','c'], 'b':['d'], 'c':['d'], 'd':[]})
           Finite poset containing 4 elements
 
-       A list of upper covers::
+    4. A list of upper covers, with range(5) as set of vertices::
 
           sage: Poset([[1,2],[4],[3],[4],[]])
           Finite poset containing 5 elements
 
+       A list of upper covers, with letters as vertices::
+
+          sage: Poset([["a","b"],["b","c"],["c"]])
+          Finite poset containing 3 elements
+
        A list of upper covers and a dictionary of labels::
 
           sage: elm_labs = {0:"a",1:"b",2:"c",3:"d",4:"e"}
-          sage: P = Poset([[1,2],[4],[3],[4],[]], elm_labs, facade = False)
+          sage: P = Poset([[1,2],[4],[3],[4],[]], elm_labs, facade=False)
           sage: P.list()
           [a, b, c, d, e]
 
        .. WARNING::
 
          The special case where the argument data is a list or tuple of
-         length 2 is handled by the above cases. So you cannot use this
+         length 2 is handled by the case 2. So you cannot use this
          method to input a 2-element poset.
 
-    4. An acyclic DiGraph.
+    5. An acyclic DiGraph.
 
        ::
 
@@ -655,7 +669,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         D = copy.deepcopy(data)
     elif isinstance(data, dict): # type 3: dictionary of upper covers
         D = DiGraph(data, format="dict_of_lists")
-    elif isinstance(data,(list,tuple)): # types 1, 2, 3 (list/tuple)
+    elif isinstance(data, (list, tuple)): # types 1, 2, 3 (list/tuple)
         if len(data) == 2: # types 1 or 2
             if callable(data[1]): # type 2
                 elements, function = data
@@ -677,7 +691,12 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
             D.add_edges(relations, loops=False)
         elif len(data) > 2:
             # type 3, list/tuple of upper covers
-            D = DiGraph(dict([[Integer(i),data[i]] for i in range(len(data))]),
+            vertices = sorted(set(x for item in data for x in item))
+            if len(vertices) != len(data):
+                # by default, assuming vertices are the range 0..n
+                vertices = list(range(len(data)))
+            D = DiGraph({v: [u for u in cov if u != v]
+                         for v, cov in zip(vertices, data)},
                         format="dict_of_lists")
         else:
             raise ValueError("not valid poset data")

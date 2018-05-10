@@ -171,16 +171,16 @@ def MeetSemilattice(data=None, *args, **options):
     Using data that defines a poset::
 
         sage: MeetSemilattice([[1,2],[3],[3]])
-        Finite meet-semilattice containing 4 elements
+        Finite meet-semilattice containing 3 elements
 
         sage: MeetSemilattice([[1,2],[3],[3]], cover_relations = True)
-        Finite meet-semilattice containing 4 elements
+        Finite meet-semilattice containing 3 elements
 
     Using a previously constructed poset::
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: L = MeetSemilattice(P); L
-        Finite meet-semilattice containing 4 elements
+        Finite meet-semilattice containing 3 elements
         sage: type(L)
         <class 'sage.combinat.posets.lattices.FiniteMeetSemilattice_with_category'>
 
@@ -230,14 +230,14 @@ class FiniteMeetSemilattice(FinitePoset):
 
             sage: M = MeetSemilattice([[1,2],[3],[3]])
             sage: M._repr_()
-            'Finite meet-semilattice containing 4 elements'
+            'Finite meet-semilattice containing 3 elements'
 
         ::
 
             sage: P = Poset([[1,2],[3],[3]])
             sage: M = MeetSemilattice(P)
             sage: M._repr_()
-            'Finite meet-semilattice containing 4 elements'
+            'Finite meet-semilattice containing 3 elements'
         """
         s = "Finite meet-semilattice containing %s elements" % self._hasse_diagram.order()
         if self._with_linear_extension:
@@ -426,16 +426,16 @@ def JoinSemilattice(data=None, *args, **options):
     Using data that defines a poset::
 
         sage: JoinSemilattice([[1,2],[3],[3]])
-        Finite join-semilattice containing 4 elements
+        Finite join-semilattice containing 3 elements
 
         sage: JoinSemilattice([[1,2],[3],[3]], cover_relations = True)
-        Finite join-semilattice containing 4 elements
+        Finite join-semilattice containing 3 elements
 
     Using a previously constructed poset::
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: J = JoinSemilattice(P); J
-        Finite join-semilattice containing 4 elements
+        Finite join-semilattice containing 3 elements
         sage: type(J)
         <class 'sage.combinat.posets.lattices.FiniteJoinSemilattice_with_category'>
 
@@ -486,14 +486,14 @@ class FiniteJoinSemilattice(FinitePoset):
 
             sage: J = JoinSemilattice([[1,2],[3],[3]])
             sage: J._repr_()
-            'Finite join-semilattice containing 4 elements'
+            'Finite join-semilattice containing 3 elements'
 
         ::
 
             sage: P = Poset([[1,2],[3],[3]])
             sage: J = JoinSemilattice(P)
             sage: J._repr_()
-            'Finite join-semilattice containing 4 elements'
+            'Finite join-semilattice containing 3 elements'
         """
         s = "Finite join-semilattice containing %s elements" % self._hasse_diagram.order()
         if self._with_linear_extension:
@@ -629,16 +629,16 @@ def LatticePoset(data=None, *args, **options):
     Using data that defines a poset::
 
         sage: LatticePoset([[1,2],[3],[3]])
-        Finite lattice containing 4 elements
+        Finite lattice containing 3 elements
 
         sage: LatticePoset([[1,2],[3],[3]], cover_relations = True)
-        Finite lattice containing 4 elements
+        Finite lattice containing 3 elements
 
     Using a previously constructed poset::
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: L = LatticePoset(P); L
-        Finite lattice containing 4 elements
+        Finite lattice containing 3 elements
         sage: type(L)
         <class 'sage.combinat.posets.lattices.FiniteLatticePoset_with_category'>
 
@@ -701,14 +701,14 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             sage: L = LatticePoset([[1,2],[3],[3]])
             sage: L._repr_()
-            'Finite lattice containing 4 elements'
+            'Finite lattice containing 3 elements'
 
         ::
 
             sage: P = Poset([[1,2],[3],[3]])
             sage: L = LatticePoset(P)
             sage: L._repr_()
-            'Finite lattice containing 4 elements'
+            'Finite lattice containing 3 elements'
         """
         s = "Finite lattice containing %s elements" % self._hasse_diagram.order()
         if self._with_linear_extension:

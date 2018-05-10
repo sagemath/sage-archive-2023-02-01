@@ -1466,7 +1466,7 @@ class RESetMapReduce(object):
         """
         res = [""] # classical trick to have a local variable shared with the
         # local function (see e.g:
-        # http://stackoverflow.com/questions/2609518/python-nested-function-scopes).
+        # https://stackoverflow.com/questions/2609518/python-nested-function-scopes).
         def pstat(name, start, end, ist):
             res[0] += "\n" + name
             res[0] += " ".join(

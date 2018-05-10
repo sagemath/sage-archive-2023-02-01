@@ -1547,9 +1547,8 @@ def floyd_warshall(gg, paths = True, distances = False):
     r"""
     Computes the shortest path/distances between all pairs of vertices.
 
-    For more information on the Floyd-Warshall algorithm, see the `Wikipedia
-    article on Floyd-Warshall
-    <http://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm>`_.
+    For more information on the Floyd-Warshall algorithm, see
+    :wikipedia:`Floyd-Warshall_algorithm`
 
     INPUT:
 

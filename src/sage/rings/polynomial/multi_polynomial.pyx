@@ -631,7 +631,7 @@ cdef class MPolynomial(CommutativeRingElement):
         return result
 
     # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # __richcmp__.  The python documentation at  https://docs.python.org/api/type-structs.html
     # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()

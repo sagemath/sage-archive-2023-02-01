@@ -17,12 +17,6 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-    echo "Building a 64-bit version of PyCrypto."
-    export ABI=64
-    CFLAGS="-m64 $CFLAGS"
-fi
-
 CFLAGS="-I$SAGE_LOCAL/include -L$SAGE_LOCAL/lib $CFLAGS"
 
 sdh_pip_install .

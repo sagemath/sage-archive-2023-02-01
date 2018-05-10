@@ -1634,6 +1634,13 @@ def __GCD_sequence(v, **kwargs):
         sage: X=polygen(ZZ)
         sage: __GCD_sequence(Sequence((2*X+4,2*X^2,2)))
         2
+        sage: __GCD_sequence(Sequence((1/1,1/2)))
+        1/2
+
+    TESTS::
+
+        sage: __GCD_sequence(Sequence((1,1/2,1/5)))
+        1/10
     """
     if len(v) == 0:
         return ZZ(0)
@@ -1641,11 +1648,8 @@ def __GCD_sequence(v, **kwargs):
         g = v.universe()(0)
     else:
         g = ZZ(0)
-    one = v.universe()(1)
     for vi in v:
         g = vi.gcd(g, **kwargs)
-        if g == one:
-            return g
     return g
 
 def xlcm(m, n):

@@ -9,6 +9,7 @@ Plane curves
    sage/schemes/curves/projective_curve
    sage/schemes/curves/curve
    sage/schemes/curves/point
+   sage/schemes/riemann_surfaces/riemann_surface
 
    sage/schemes/plane_conics/constructor
    sage/schemes/plane_conics/con_field

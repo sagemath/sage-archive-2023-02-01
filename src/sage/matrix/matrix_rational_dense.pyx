@@ -68,6 +68,7 @@ from __future__ import absolute_import, print_function
 
 from libc.string cimport strcpy, strlen
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 from sage.ext.stdsage cimport PY_NEW
@@ -96,6 +97,7 @@ cimport sage.structure.element
 from sage.structure.sequence import Sequence
 from sage.rings.rational cimport Rational
 from .matrix cimport Matrix
+from .args cimport SparseEntry, MatrixArgs_init
 from .matrix_integer_dense cimport Matrix_integer_dense, _lift_crt
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
@@ -153,12 +155,21 @@ cdef class Matrix_rational_dense(Matrix_dense):
         return Matrix_rational_dense.__new__(Matrix_rational_dense, parent, None, None, None)
 
     def  __dealloc__(self):
-        sig_on()
         fmpq_mat_clear(self._matrix)
-        sig_off()
 
-    def __init__(self, parent, entries=None, coerce=True, copy=True):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
+        INPUT:
+
+        - ``parent`` -- a matrix space over ``QQ``
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if False, assume without checking that the
+          entries are of type :class:`Rational`.
+
         TESTS::
 
             sage: matrix(QQ, 2, 2, 1/4)
@@ -168,49 +179,16 @@ cdef class Matrix_rational_dense(Matrix_dense):
             [ 1/2]
             [-3/4]
             [   0]
+            sage: matrix(QQ, 2, 2, 0.5)
+            [1/2   0]
+            [  0 1/2]
         """
-        cdef Py_ssize_t i, j, k
+        ma = MatrixArgs_init(parent, entries)
         cdef Rational z
-
-        if entries is None: return
-        if isinstance(entries, xrange):
-            entries = list(entries)
-        if isinstance(entries, (list, tuple)):
-            if len(entries) != self._nrows * self._ncols:
-                raise TypeError("entries has the wrong length")
-
-            if coerce:
-                k = 0
-                for i in range(self._nrows):
-                    for j in range(self._ncols):
-                        # TODO: Should use an unsafe un-bounds-checked array access here.
-                        sig_check()
-                        z = Rational(entries[k])
-                        k += 1
-                        fmpq_set_mpq(fmpq_mat_entry(self._matrix, i, j), z.value)
-            else:
-                k = 0
-                for i in range(self._nrows):
-                    for j in range(self._ncols):
-                        # TODO: Should use an unsafe un-bounds-checked array access here.
-                        sig_check()
-                        fmpq_set_mpq(fmpq_mat_entry(self._matrix, i, j), (<Rational> entries[k]).value)
-                        k += 1
-
-        else:
-            # is it a scalar?
-            try:
-                # Try to coerce entries to a scalar (an integer)
-                z = Rational(entries)
-                is_list = False
-            except TypeError:
-                raise TypeError("entries must be coercible to a list or integer")
-
-            if z:
-                if self._nrows != self._ncols:
-                    raise TypeError("nonzero scalar matrix must be square")
-                for i in range(self._nrows):
-                    fmpq_set_mpq(fmpq_mat_entry(self._matrix, i, i), z.value)
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            z = <Rational>se.entry
+            fmpq_set_mpq(fmpq_mat_entry(self._matrix, se.i, se.j), z.value)
 
     def matrix_from_columns(self, columns):
         """
@@ -363,7 +341,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
                     t[1] = <char>0
                     t = t + 1
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 
@@ -385,11 +363,12 @@ cdef class Matrix_rational_dense(Matrix_dense):
                 s = data[k]
                 k += 1
                 if '/' in s:
-                    num, den = s.split('/')
+                    num, den = [str_to_bytes(n) for n in s.split('/')]
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), num, 32) or \
                        fmpz_set_str(fmpq_mat_entry_den(self._matrix, i, j), den, 32):
                            raise RuntimeError("invalid pickle data")
                 else:
+                    s = str_to_bytes(s)
                     if fmpz_set_str(fmpq_mat_entry_num(self._matrix, i, j), s, 32):
                         raise RuntimeError("invalid pickle data")
                     fmpz_one(fmpq_mat_entry_den(self._matrix, i, j))

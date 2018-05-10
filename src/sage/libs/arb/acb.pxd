@@ -169,4 +169,5 @@ cdef extern from "acb.h":
     void acb_agm1_cpx(acb_ptr m, const acb_t z, long len, long prec)
 
     acb_ptr _acb_vec_init(long n)
+    void _acb_vec_sort_pretty(acb_ptr vec, long len)
     void _acb_vec_clear(acb_ptr v, long n)

@@ -26,6 +26,8 @@ import sys
 from cysignals.memory cimport sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.cpython.string import FS_ENCODING
 from sage.libs.eclib cimport bigint, Curvedata, mw, two_descent
 
 cdef extern from "wrap.cpp":
@@ -72,7 +74,7 @@ cdef extern from "wrap.cpp":
 cdef object string_sigoff(char* s):
     sig_off()
     # Makes a python string and deletes what is pointed to by s.
-    t = str(s)
+    t = char_to_str(s)
     sig_free(s)
     return t
 
@@ -144,6 +146,7 @@ def initprimes(filename, verb=False):
     """
     if not os.path.exists(filename):
         raise IOError('No such file or directory: %s' % filename)
+    filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
     mwrank_initprimes(filename, verb)
     if verb:
         sys.stdout.flush()
@@ -182,7 +185,7 @@ cdef class _bigint:
         """
         s = str(x)
         if s.isdigit() or s[0] == "-" and s[1:].isdigit():
-            self.x = str_to_bigint(s)
+            self.x = str_to_bigint(str_to_bytes(s))
         else:
             raise ValueError("invalid _bigint: %r"%x)
 
@@ -931,13 +934,11 @@ cdef class _mw:
             10 None []
             11 None [[3639568:106817593:4096]]
         """
-        cdef char* _h_lim
 
-        h_lim = str(h_lim)
-        _h_lim = h_lim
+        h_lim = str_to_bytes(str(h_lim))
 
         sig_on()
-        mw_search(self.x, _h_lim, moduli_option, verb)
+        mw_search(self.x, h_lim, moduli_option, verb)
         if verb:
             sys.stdout.flush()
             sys.stderr.flush()

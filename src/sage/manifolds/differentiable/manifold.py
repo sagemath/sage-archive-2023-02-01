@@ -1449,7 +1449,7 @@ class DifferentiableManifold(TopologicalManifold):
           ``name``
         - ``dest_map`` -- (default: ``None``) the destination map
           `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N = M`
-          andthat `\Phi` is the identity map (case of a vector field
+          and that `\Phi` is the identity map (case of a vector field
           *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
@@ -3175,7 +3175,7 @@ class DifferentiableManifold(TopologicalManifold):
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
-          (case of a metric field *on* `U`)
+          (case of a metric tensor field *on* `U`)
 
         OUTPUT:
 
@@ -3221,7 +3221,7 @@ class DifferentiableManifold(TopologicalManifold):
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
-          (case of a metric field *on* `U`)
+          (case of a metric tensor field *on* `U`)
 
         OUTPUT:
 
@@ -3304,7 +3304,7 @@ class DifferentiableManifold(TopologicalManifold):
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
-          (case of a metric field *on* `U`)
+          (case of a metric tensor field *on* `U`)
 
         OUTPUT:
 

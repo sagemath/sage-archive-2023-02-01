@@ -366,19 +366,28 @@ class DocTestController(SageObject):
         # write to the actual standard output, regardless of
         # redirections.
         if options.serial:
-            real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
+            self._real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "w")
+            self._close_stdout = True
         else:
             # Parallel mode: no special tricks needed
-            real_stdout = sys.stdout
+            self._real_stdout = sys.stdout
+            self._close_stdout = False
 
         if self.logfile is None:
-            self.logger = real_stdout
+            self.logger = self._real_stdout
         else:
-            self.logger = Logger(real_stdout, self.logfile)
+            self.logger = Logger(self._real_stdout, self.logfile)
 
         self.stats = {}
         self.load_stats(options.stats_path)
         self._init_warn_long()
+
+    def __del__(self):
+        if getattr(self, 'logfile', None) is not None:
+            self.logfile.close()
+
+        if getattr(self, '_close_stdout', False):
+            self._real_stdout.close()
 
     def _init_warn_long(self):
         """

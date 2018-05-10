@@ -477,7 +477,7 @@ class IdealDiagram(AbstractPartitionDiagram):
          {{-2}, {-1, 1}, {2}}, {{-2}, {-1}, {1, 2}},
          {{-2}, {-1}, {1}, {2}}]
         sage: from sage.combinat.diagram_algebras import PartitionDiagrams as PDs
-        sage: PDs(4).cardinality() == factorial(4) + IDs(4).cardinality()
+        sage: PDs(4).cardinality() == factorial(4) + IDs(4).cardinality()  # long time
         True
     """
     @staticmethod

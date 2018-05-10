@@ -3705,3 +3705,60 @@ class TensorField(ModuleElement):
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
         return resu
+
+    def along(self, mapping):
+        r"""
+        Return the tensor field deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
+
+        More precisely, if ``self`` is a tensor field `t` on `M` and if
+        `\Phi: U \rightarrow M` is a differentiable map from some
+        differentiable manifold `U` to `M`, the returned object is
+        a tensor field `\tilde t` along `U` with values on `M` such that
+
+        .. MATH::
+
+           \forall p \in U,\  \tilde t(p) = t(\Phi(p)).
+
+        INPUT:
+
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow M`
+
+        OUTPUT:
+
+        - tensor field `\tilde t` along `U` defined above.
+
+        EXAMPLES:
+
+        """
+        dom = self._domain
+        if self._ambient_domain is not dom:
+            raise ValueError("{} is not a tensor field ".format(self) +
+                             "with values in the {}".format(dom))
+        if mapping.codomain().is_subset(dom):
+            rmapping = mapping
+        else:
+            rmapping = None
+            for doms, rest in mapping._restrictions.items():
+                if doms[1].is_subset(dom):
+                    rmapping = rest
+                    break
+            else:
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 "included in the domain of {}".format(self))
+        resu_ambient_domain = rmapping.codomain()
+        if resu_ambient_domain.is_manifestly_parallelizable():
+            return self.restrict(resu_ambient_domain).along(rmapping)
+        dom_resu = rmapping.domain()
+        vmodule = dom_resu.vector_field_module(dest_map=rmapping)
+        resu = vmodule.tensor(self._tensor_type, name=self._name,
+                              latex_name=self._latex_name, sym=self._sym,
+                              antisym=self._antisym)
+        for rdom in resu_ambient_domain._parallelizable_parts:
+            if rdom in resu_ambient_domain._top_subsets:
+                for chart1, chart2 in rmapping._coord_expression:
+                    if chart2.domain() is rdom:
+                        dom1 = chart1.domain()
+                        rrmap = rmapping.restrict(dom1, subcodomain=rdom)
+                        resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
+        return resu

@@ -25,6 +25,7 @@ Integer lists
 - :ref:`sage.combinat.composition`
 - :class:`~sage.combinat.composition_signed.SignedCompositions`
 - :class:`IntegerListsLex`
+- :ref:`sage.combinat.superpartition`
 
 - :class:`~sage.combinat.integer_vector.IntegerVectors`
 - :func:`~sage.combinat.integer_vector_weighted.WeightedIntegerVectors`

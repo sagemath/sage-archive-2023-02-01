@@ -3377,7 +3377,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return a numerator of self computed as self * self.denominator()
 
-        Note that some subclases may implement its own numerator
+        Note that some subclasses may implement its own numerator
         function. For example, see
         :class:`sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint`
 

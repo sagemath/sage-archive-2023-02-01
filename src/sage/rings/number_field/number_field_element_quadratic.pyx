@@ -748,7 +748,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         TESTS:
 
-        Check that coercions and conversions go throuh this method::
+        Check that coercions and conversions go through this method::
 
             sage: RBF.convert_map_from(QuadraticField(5))
             Conversion via _arb_ method map:

@@ -5062,8 +5062,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: p1 == p3
             True
         """
-        from sage.combinat.posets.lattices import (LatticePoset,
-             JoinSemilattice, MeetSemilattice, FiniteLatticePoset,
+        from sage.combinat.posets.lattices import (FiniteLatticePoset,
              FiniteMeetSemilattice, FiniteJoinSemilattice)
 
         if isinstance(self, FiniteLatticePoset):

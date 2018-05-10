@@ -2175,13 +2175,13 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         it = self._hasse_diagram.orthocomplementations_iterator()
         try:
-            _ = next(it)
+            next(it)
             if not unique:
                 return True
         except StopIteration:
             return False
         try:
-            _ = next(it)
+            next(it)
             return False
         except StopIteration:
             return True
@@ -3074,8 +3074,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             TypeError: other is not a lattice
         """
         try:
-            _ = other.meet
-            _ = other.join
+            o_meet = other.meet
+            o_join = other.join
         except (AttributeError):
             raise TypeError('other is not a lattice')
         if not self.is_induced_subposet(other):
@@ -3084,8 +3084,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         n = self.cardinality()
         for i in range(n):
             for j in range(i):
-                if (other.meet(self[i], self[j]) not in self or
-                    other.join(self[i], self[j]) not in self):
+                if (o_meet(self[i], self[j]) not in self or
+                    o_join(self[i], self[j]) not in self):
                     return False
         return True
 
@@ -4452,7 +4452,6 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if labels == 'tuple':
             H.relabel(lambda m: tuple(part_dict[m]))
             return LatticePoset(H)
-        maximal_vertices = [max(part) for part in parts_H]
         H.relabel(lambda m: self.sublattice(part_dict[m]))
         return LatticePoset(H)
 

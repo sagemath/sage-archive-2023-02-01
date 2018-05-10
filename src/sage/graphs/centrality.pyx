@@ -10,7 +10,7 @@ This module is meant for all functions related to centrality in networks.
 
     :func:`centrality_betweenness` | Return the centrality betweenness of `G`
     :func:`centrality_closeness_top_k` | Return the k most closeness central vertices of `G`
-    :func:`centrality_closeness_random_k` | Return the closeness centrality of `G`(undirected graph) wth error error percentage < 5% on average.
+    :func:`centrality_closeness_random_k` | Return an estimation of the closeness centrality of `G`.
 
 Functions
 ---------
@@ -116,12 +116,6 @@ def centrality_betweenness(G, exact=False, normalize=True):
         sage: centrality_betweenness(Graph(2),exact=1)
         {0: 0, 1: 0}
 
-    REFERENCES:
-
-    .. [Brandes01] Ulrik Brandes,
-       A faster algorithm for betweenness centrality,
-       Journal of Mathematical Sociology 25.2 (2001): 163-177,
-       http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
     """
     if exact:
         return centrality_betweenness_C(G,<mpq_t> 0,normalize=normalize)
@@ -580,13 +574,6 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
     If ``k`` is bigger than the number of vertices with positive (out)degree,
     the list might be smaller.
 
-    REFERENCES:
-
-    .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
-       Fast and Simple Computation of Top-k Closeness Centralities.
-       Preprint on arXiv.
-       http://arxiv.org/abs/1507.01490
-
     EXAMPLES::
 
         sage: from sage.graphs.centrality import centrality_closeness_top_k
@@ -824,12 +811,13 @@ def centrality_closeness_top_k(G, int k=1, int verbose=0):
 
 def centrality_closeness_random_k(G, int k=1):
     r"""
+    Return an estimation of the closeness centrality of `G`.
 
-    The algorithm is based on performing a breadth-first-search (BFS) for
-    unweighted graph and Dijkstra for weighted graph from each vertex v
-    from set S, set S: Randomly choose k nodes from n nodes, where k < n
-    and n is no of nodes in input graph, by using this knowledge estimate
-    closeness centrality for n - k vertices.
+    The algorithm first randomly selects a set ``S`` of ``k`` vertices.
+    Then it computes a the shortest path distances from each vertex in
+    ``S`` (using breadth-first-search (BFS) for unweighted graph and
+    Dijkstra for weighted graph) and uses this knowledge to estimate
+    the closeness centrality of all vertices.
 
     For more information, see [EDI2014]_.
 
@@ -841,7 +829,22 @@ def centrality_closeness_random_k(G, int k=1):
 
     OUTPUT:
 
-    A dictionary indexed by vertices and values as estimated closeness centrality.
+    A dictionary indexed by vertices and values are estimated closeness centrality.
+
+    EXAMPLES::
+        sage: from sage.graphs.centrality import centrality_closeness_random_k
+        sage: G = graphs.PetersenGraph()
+        sage: centrality_closeness_random_k(G,10)
+        {0: 0.6,
+         1: 0.6,
+         2: 0.6,
+         3: 0.6,
+         4: 0.6,
+         5: 0.6,
+         6: 0.6,
+         7: 0.6,
+         8: 0.6,
+         9: 0.6}
 
     TESTS:
 
@@ -867,8 +870,14 @@ def centrality_closeness_random_k(G, int k=1):
     if G.is_directed():
         raise ValueError("G should be undirected Graph.")
 
-    cdef MemoryAllocator mem = MemoryAllocator()
     cdef int n = G.order()
+    if k > n:
+        raise ValueError("k value need to be less than number of nodes.")
+
+    if G.order() == 0 or G.order() == 1 or G.size() == 0:
+        raise ValueError("G must have at least one edge.")
+
+    cdef MemoryAllocator mem = MemoryAllocator()
     cdef int i, j
 
     # Vertices whose neighbors have been explored
@@ -880,9 +889,6 @@ def centrality_closeness_random_k(G, int k=1):
     cdef double *closeness_centrality_array = <double*> mem.malloc(n * sizeof(double))
     cdef double farness
     cdef short_digraph sd
-
-    if k > n:
-        raise ValueError("k value need to be less than number of nodes.")
 
     # Initialize
     l = list(range(n))
@@ -912,7 +918,6 @@ def centrality_closeness_random_k(G, int k=1):
         for i in range(k,n):
             closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
 
-
     # G is Unweighted graph
     else:
 
@@ -926,7 +931,6 @@ def centrality_closeness_random_k(G, int k=1):
         for i in range(k):
 
             # Initialize
-            bitset_clear(seen)
             farness = 0
 
             simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)

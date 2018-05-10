@@ -40,8 +40,10 @@ def has_internet():
         True
     """
     from six.moves import urllib
+    from six.moves.urllib.request import Request, urlopen
+    req = Request("http://www.sagemath.org",headers={"User-Agent":"sage-doctest"})
     try:
-        urllib.request.urlopen("http://www.sagemath.org",timeout=1)
+        urlopen(req,timeout=1)
         return True
     except urllib.error.URLError:
         return False

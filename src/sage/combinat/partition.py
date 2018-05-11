@@ -482,7 +482,7 @@ class Partition(CombinatorialElement):
             if mu is not None:
                 if isinstance(mu, Partition):
                     return mu
-                return _Partitions(list(mu)) # Partition = Partitions()
+                return _Partitions(list(mu))
         if l == 1:
             if 'beta_numbers' in keyword:
                 return _Partitions.from_beta_numbers(keyword['beta_numbers'])

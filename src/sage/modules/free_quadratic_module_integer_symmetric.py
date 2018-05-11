@@ -1305,6 +1305,13 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
 
             sage: L = IntegralLattice("A4")
             sage: L.twist(3)
+            Lattice of degree 4 and rank 4 over Integer Ring
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            Inner product matrix:
             [ 6 -3  0  0]
             [-3  6 -3  0]
             [ 0 -3  6 -3]

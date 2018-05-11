@@ -228,7 +228,7 @@ class FlatteningMorphism(Morphism):
                 raise RuntimeError
             p = new_p
 
-        return self.codomain()(p)
+        return self.codomain()(p, check=False)
 
     @cached_method
     def section(self):
@@ -325,17 +325,19 @@ class UnflatteningMorphism(Morphism):
         ring = codomain
         intermediate_rings = []
 
-        while is_PolynomialRing(ring) or is_MPolynomialRing(ring):
-            intermediate_rings.append(ring)
+        while True:
+            is_polynomial_ring = is_PolynomialRing(ring)
+            if not (is_polynomial_ring or is_MPolynomialRing(ring)):
+                break
+            intermediate_rings.append((ring, is_polynomial_ring))
             ring = ring.base_ring()
 
-        if domain.base_ring() != intermediate_rings[-1].base_ring():
+        if domain.base_ring() != intermediate_rings[-1][0].base_ring():
             raise ValueError("rings must have same base ring")
-        if domain.ngens() != sum([R.ngens() for R in intermediate_rings]):
+        if domain.ngens() != sum([R.ngens() for R, _ in intermediate_rings]):
             raise ValueError("rings must have the same number of variables")
 
         self._intermediate_rings = intermediate_rings
-        self._intermediate_rings.reverse()
 
         hom = Homset(domain, codomain, base=ring, check=False)
         Morphism.__init__(self, hom)
@@ -355,23 +357,31 @@ class UnflatteningMorphism(Morphism):
             ....:    for _ in range(10):
             ....:        p = R.random_element()
             ....:        assert p == g(f(p))
+            ....:        z = R.zero()
+            ....:        assert z == g(f(z))
         """
-        num = [len(R.gens()) for R in self._intermediate_rings]
-        f = self.codomain().zero()
-        for mon,pp in six.iteritems(p.dict()):
-            ind = 0
-            g = pp
-            for i in range(len(num)):
-                m = mon[ind:ind+num[i]]
-                ind += num[i]
-                R = self._intermediate_rings[i]
-                if is_PolynomialRing(R):
-                    m = m[0]
-                g = R({m: g})
-            f += g
-
-        return f
-
+        index = [0]
+        for R, _ in reversed(self._intermediate_rings):
+            index.append(index[-1] + len(R.gens()))
+        newpol = [{} for _ in self._intermediate_rings]
+        expo = sorted(p.exponents(), key=lambda e: tuple(reversed(e)))
+        for i in range(len(expo)):
+            cur_exp = expo[i]
+            for l in range(len(self._intermediate_rings)):
+                R, univariate = self._intermediate_rings[-1-l]
+                sub_exp = (cur_exp[index[l]] if univariate
+                          else cur_exp[index[l]:index[l+1]])
+                if l == 0:
+                    newpol[l][sub_exp] = p[cur_exp]
+                else:
+                    newpol[l][sub_exp] = newpol[l-1]
+                    newpol[l-1] = {}
+                if (i == len(expo) - 1
+                        or expo[i+1][index[l+1]:] != cur_exp[index[l+1]:]):
+                    newpol[l] = R(newpol[l], check=False)
+                else:
+                    break
+        return R(newpol[-1], check=False)
 
 class SpecializationMorphism(Morphism):
     r"""

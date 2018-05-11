@@ -837,7 +837,7 @@ REFERENCES:
 
 .. [DJM1998] \R. Dipper, G. James and A. Mathas
              *Cyclotomic q-Schur algebras*, Math. Z, **229** (1998), 385-416.
-             :mathscinet:`MR1635149`
+             :mathscinet:`MR1658581`
 
 .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart
               polynomials of matroid polytopes and

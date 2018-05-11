@@ -1105,6 +1105,9 @@ class VectorFrame(FreeModuleBasis):
                               latex_indices=self._latex_indices,
                               symbol_dual=self._symbol_dual,
                               latex_symbol_dual=self._latex_symbol_dual)
+
+            res._from_frame = self._from_frame
+
             for dom in subdomain._supersets:
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
@@ -1264,6 +1267,17 @@ class VectorFrame(FreeModuleBasis):
                                  " included in the domain of {}".format(self))
         vmodule = rmapping.domain().vector_field_module(dest_map=rmapping)
         return vmodule.basis(from_frame=self)
+
+    def is_subframe(self, other):
+        if other in self._superframes:
+            return True
+        if self._from_frame is other._from_frame and self.domain().is_subset(
+                    other.domain()):
+            self._superframes.add(other)
+            other._subframes.add(self)
+            return True
+        return False
+
 
     def at(self, point):
         r"""

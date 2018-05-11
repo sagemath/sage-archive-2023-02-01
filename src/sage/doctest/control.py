@@ -87,7 +87,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = set(['sage']) | auto_optional_tags
+        self.optional = set(['sage', 'dochtml']) | auto_optional_tags
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -969,7 +969,7 @@ class DocTestController(SageObject):
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
             sage: DC = DocTestController(DocTestDefaults(), [])
             sage: DC._optional_tags_string()
-            'sage'
+            'dochtml,sage'
             sage: DC = DocTestController(DocTestDefaults(optional="all,and,some,more"), [])
             sage: DC._optional_tags_string()
             'all'

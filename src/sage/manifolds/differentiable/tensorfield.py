@@ -3427,16 +3427,12 @@ class TensorField(ModuleElement):
 
         Divergence of a vector field in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
-            sage: v = M.vector_field('v')
-            sage: v[:] = x, y
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(x, y, name='v')
             sage: s = v.divergence(); s
-            Scalar field div(v) on the 2-dimensional Riemannian manifold M
+            Scalar field div(v) on the Euclidean plane E^2
             sage: s.display()
-            div(v): M --> R
+            div(v): E^2 --> R
                (x, y) |--> 2
 
         A shortcut alias of ``divergence`` is ``div``::
@@ -3456,19 +3452,19 @@ class TensorField(ModuleElement):
         not the default one::
 
             sage: h = M.lorentzian_metric('h')
-            sage: h[0,0], h[1,1] = -1, 1/(1+x^2+y^2)
+            sage: h[1,1], h[2,2] = -1, 1/(1+x^2+y^2)
             sage: s = v.div(h); s
-            Scalar field div_h(v) on the 2-dimensional Riemannian manifold M
+            Scalar field div_h(v) on the Euclidean plane E^2
             sage: s.display()
-            div_h(v): M --> R
+            div_h(v): E^2 --> R
                (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
 
         The standard formula
 
         .. MATH::
 
-            \mathrm{div}_h \, v = \frac{1}{\sqrt{\det h}}
-            \frac{\partial}{\partial x^i} \left( \sqrt{\det h} \, v^i \right)
+            \mathrm{div}_h \, v = \frac{1}{\sqrt{|\det h|}}
+            \frac{\partial}{\partial x^i} \left( \sqrt{|\det h|} \, v^i \right)
 
         is checked as follows::
 
@@ -3479,24 +3475,22 @@ class TensorField(ModuleElement):
 
         A divergence-free vector::
 
-            sage: w = M.vector_field('w')
-            sage: w[:] = -y, x
+            sage: w = M.vector_field(-y, x, name='w')
             sage: w.div().display()
-            div(w): M --> R
+            div(w): E^2 --> R
                (x, y) |--> 0
             sage: w.div(h).display()
-            div_h(w): M --> R
+            div_h(w): E^2 --> R
                (x, y) |--> 0
 
         Divergence of a type-``(2,0)`` tensor field::
 
             sage: t = v*w; t
-            Tensor field v*w of type (2,0) on the 2-dimensional Riemannian
-             manifold M
+            Tensor field v*w of type (2,0) on the Euclidean plane E^2
             sage: s = t.div(); s
-            Vector field div(v*w) on the 2-dimensional Riemannian manifold M
+            Vector field div(v*w) on the Euclidean plane E^2
             sage: s.display()
-            div(v*w) = -y d/dx + x d/dy
+            div(v*w) = -y e_x + x e_y
 
         """
         n_con = self._tensor_type[0] # number of contravariant indices = k
@@ -3565,16 +3559,12 @@ class TensorField(ModuleElement):
 
         Laplacian of a vector field in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = x^3 + y^2, x*y
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(x^3 + y^2, x*y, name='v')
             sage: Dv = v.laplacian(); Dv
-            Vector field Delta(v) on the 2-dimensional Riemannian manifold M
+            Vector field Delta(v) on the Euclidean plane E^2
             sage: Dv.display()
-            Delta(v) = (6*x + 2) d/dx
+            Delta(v) = (6*x + 2) e_x
 
         The function :func:`~sage.manifolds.operators.laplacian` from the
         :mod:`~sage.manifolds.operators` module can be used instead of the
@@ -3594,12 +3584,12 @@ class TensorField(ModuleElement):
         not the default one::
 
             sage: h = M.lorentzian_metric('h')
-            sage: h[0,0], h[1,1] = -1, 1+x^2
+            sage: h[1,1], h[2,2] = -1, 1+x^2
             sage: Dv = v.laplacian(h); Dv
-            Vector field Delta_h(v) on the 2-dimensional Riemannian manifold M
+            Vector field Delta_h(v) on the Euclidean plane E^2
             sage: Dv.display()
-            Delta_h(v) = -(8*x^5 - 2*x^4 - x^2*y^2 + 15*x^3 - 4*x^2
-             + 6*x - 2)/(x^4 + 2*x^2 + 1) d/dx - 3*x^3*y/(x^4 + 2*x^2 + 1) d/dy
+            Delta_h(v) = -(8*x^5 - 2*x^4 - x^2*y^2 + 15*x^3 - 4*x^2 + 6*x
+             - 2)/(x^4 + 2*x^2 + 1) e_x - 3*x^3*y/(x^4 + 2*x^2 + 1) e_y
 
         """
         n_con = self._tensor_type[0] # number of contravariant indices = k
@@ -3714,4 +3704,61 @@ class TensorField(ModuleElement):
             # The name is propagated to possible restrictions of self:
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def along(self, mapping):
+        r"""
+        Return the tensor field deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
+
+        More precisely, if ``self`` is a tensor field `t` on `M` and if
+        `\Phi: U \rightarrow M` is a differentiable map from some
+        differentiable manifold `U` to `M`, the returned object is
+        a tensor field `\tilde t` along `U` with values on `M` such that
+
+        .. MATH::
+
+           \forall p \in U,\  \tilde t(p) = t(\Phi(p)).
+
+        INPUT:
+
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow M`
+
+        OUTPUT:
+
+        - tensor field `\tilde t` along `U` defined above.
+
+        EXAMPLES:
+
+        """
+        dom = self._domain
+        if self._ambient_domain is not dom:
+            raise ValueError("{} is not a tensor field ".format(self) +
+                             "with values in the {}".format(dom))
+        if mapping.codomain().is_subset(dom):
+            rmapping = mapping
+        else:
+            rmapping = None
+            for doms, rest in mapping._restrictions.items():
+                if doms[1].is_subset(dom):
+                    rmapping = rest
+                    break
+            else:
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 "included in the domain of {}".format(self))
+        resu_ambient_domain = rmapping.codomain()
+        if resu_ambient_domain.is_manifestly_parallelizable():
+            return self.restrict(resu_ambient_domain).along(rmapping)
+        dom_resu = rmapping.domain()
+        vmodule = dom_resu.vector_field_module(dest_map=rmapping)
+        resu = vmodule.tensor(self._tensor_type, name=self._name,
+                              latex_name=self._latex_name, sym=self._sym,
+                              antisym=self._antisym)
+        for rdom in resu_ambient_domain._parallelizable_parts:
+            if rdom in resu_ambient_domain._top_subsets:
+                for chart1, chart2 in rmapping._coord_expression:
+                    if chart2.domain() is rdom:
+                        dom1 = chart1.domain()
+                        rrmap = rmapping.restrict(dom1, subcodomain=rdom)
+                        resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
         return resu

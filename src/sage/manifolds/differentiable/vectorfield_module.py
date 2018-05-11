@@ -1385,20 +1385,22 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         self._induced_bases = {}
         if self._dest_map != self._domain.identity_map():
             for frame in self._ambient_domain._top_frames:
-                basis = self.basis(from_frame=frame)
-                self._induced_bases[frame] = basis
-                # basis is added to the restrictions of bases on a larger
-                # domain
-                for dom in domain._supersets:
-                    if dom is not domain:
-                        for supbase in dom._frames:
-                            if (supbase.domain() is dom and
-                                    supbase.destination_map().restrict(domain)
-                                    is self._dest_map and
-                                    domain not in supbase._restrictions):
-                                supbase._restrictions[domain] = basis
-                                supbase._subframes.add(basis)
-                                basis._superframes.add(supbase)
+                if (frame.destination_map() ==
+                    self._ambient_domain.identity_map()):
+                    basis = self.basis(from_frame=frame)
+                    self._induced_bases[frame] = basis
+                    # basis is added to the restrictions of bases on a larger
+                    # domain
+                    for dom in domain._supersets:
+                        if dom is not domain:
+                            for supbase in dom._frames:
+                                if (supbase.domain() is dom and
+                                        supbase.destination_map().restrict(domain)
+                                        is self._dest_map and
+                                        domain not in supbase._restrictions):
+                                    supbase._restrictions[domain] = basis
+                                    supbase._subframes.add(basis)
+                                    basis._superframes.add(supbase)
         # Initialization of the components of the zero element:
         zero = self.zero()
         for frame in self._domain._frames:

@@ -1028,6 +1028,15 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
             True
             sage: one == three
             False
+
+        Testing that :trac:`24416` is fixed for when entries are larger
+        than `2^{1024}`::
+
+            sage: from collections import Counter
+            sage: X = GeneralDiscreteDistribution([1,2,2^1024])
+            sage: Counter(X.get_random_element() for _ in range(100))
+            Counter({2: 100})
+
         """
         gsl_rng_env_setup()
         self.set_random_number_generator(rng)
@@ -1038,6 +1047,10 @@ cdef class GeneralDiscreteDistribution(ProbabilityDistribution):
 
         cdef int n
         n = len(P)
+
+        s = sum(P)
+        if s != 1:
+            P = [p/s for p in P]
 
         cdef double *P_vec
         P_vec = <double *> sig_malloc(n*(sizeof(double)))

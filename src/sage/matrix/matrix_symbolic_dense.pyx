@@ -1,10 +1,6 @@
 """
 Symbolic matrices
 
-Matrices with symbolic entries.  The underlying representation is a
-pointer to a Maxima object.
-
-
 EXAMPLES::
 
     sage: matrix(SR, 2, 2, range(4))
@@ -146,6 +142,16 @@ Conversion to Maxima::
     sage: m._maxima_()
     matrix([sqrt(2),3],[%pi,%e])
 
+TESTS:
+
+Check that :trac:`12778` is fixed::
+
+    sage: M = Matrix([[1, 0.9, 1/5, x^2], [2, 1.9, 2/5, x^3], [3, 2.9, 3/5, x^4]]); M
+    [                1 0.900000000000000               1/5               x^2]
+    [                2  1.90000000000000               2/5               x^3]
+    [                3  2.90000000000000               3/5               x^4]
+    sage: parent(M)
+    Full MatrixSpace of 3 by 4 dense matrices over Symbolic Ring
 """
 from __future__ import absolute_import
 

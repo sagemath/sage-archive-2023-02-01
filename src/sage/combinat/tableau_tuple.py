@@ -1405,15 +1405,12 @@ class RowStandardTableauTuple(TableauTuple):
     r"""
     A class for row standard tableau tuples of shape a partition tuple.
 
-    A row standard tableau tuple of shape
-    `(\lambda_1, \lambda_2, \ldots, \lambda_k)` is a tuple
-    `(T_1, T_2, \ldots, T_k)`, where each `T_i` is a tableau
-    of shape `\lambda_i` whose entries increase along rows, and
-    with the following property: If we set
-    `n = |\lambda_1| + |\lambda_2| + \cdots + |\lambda_k|`,
-    then each of the numbers `1, 2, \ldots, n` appears
-    in exactly one of the `T_i`, and appears exactly once in
-    this `T_i`.
+    A row standard tableau tuple of size `n` is an ordered tuple of row
+    standard tableaux (see :class:`RowStandardTableau`), with entries `1, 2,
+    \ldots, n` such that, in each component, the entries are in increasing
+    order along each row. If the tableau in component `k` has shape
+    `\lambda^{(k)}` then `\lambda=(\lambda^{(1)},\ldots,\lambda^{(l)}` is a
+    :class:`PartitionTuple`.
 
     .. NOTE::
 
@@ -3358,7 +3355,7 @@ class RowStandardTableauTuples_shape(RowStandardTableauTuples):
     """
     def __init__(self, shape):
         r"""
-        Initializes the class of semirow standard tableaux of shape ``p``
+        Initializes the class of row standard tableaux of shape ``p``
         and no maximum entry.
 
         .. WARNING::

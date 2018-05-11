@@ -352,14 +352,14 @@ if [ "$1" = '-i' ]; then
     # (which is a dependency of every package)
     $MAKE all-toolchain
 
+    ALL_TARGETS="$($MAKE list 2>/dev/null)"
+
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
         # First check that $PKG is actually a Makefile target
-        # Since https://trac.sagemath.org/ticket/21524 there is not explicitly
-        # a target for the package, but if it has a vers_<pkgname> variable
-        # there will also be a generated rule for it
-        if ! grep "^vers_$PKG = " build/make/Makefile >/dev/null; then
+        # See https://trac.sagemath.org/ticket/25078
+        if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
             echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
             exit 1
@@ -991,9 +991,8 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
         gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
-        # Location of cython_debug directory
-        cygdb_dir="$SAGE_SRC/build/cythonized"
-        cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
+        sage_dir=$(sage-python23 -c 'import os, sage; print(os.path.dirname(sage.__file__))')
+        cygdb "$sage_dir" "$SAGE_SRC/sage" \
             -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi

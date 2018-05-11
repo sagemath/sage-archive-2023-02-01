@@ -4341,8 +4341,9 @@ class Polyhedron_base(Element):
 
         REFERENCES:
 
-             David Avis's lrs program.
+        - David Avis's lrs program.
         """
+        from sage.features.lrs import Lrs
         Lrs().require()
 
         from sage.misc.temporary_file import tmp_filename

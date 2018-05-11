@@ -20,6 +20,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cpdef bint is_zero(self)
     cpdef bint is_one(self)
+    cpdef bint is_term(self)
 
     cpdef _add_(self, other)
     cpdef _mul_(self, other)

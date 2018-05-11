@@ -1615,11 +1615,38 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: z = 1 + (t + O(t^2))*s + (t^2 + O(t^3))*s^2
             sage: z*z
             (t^4 + O(t^5))*s^4 + (2*t^3 + O(t^4))*s^3 + (3*t^2 + O(t^3))*s^2 + (2*t + O(t^2))*s + 1
+
+        TESTS::
+
+            sage: Pol.<x> = MatrixSpace(ZZ, 2)[]
+            sage: a = matrix([[1,0],[0,0]])
+            sage: b = matrix([[1,2],[3,4]])
+            sage: list((a*x)*(b*x + 1))
+            [
+            [0 0]  [1 0]  [1 2]
+            [0 0], [0 0], [0 0]
+            ]
+            sage: list((b*x + 1)*(a*x))
+            [
+            [0 0]  [1 0]  [1 0]
+            [0 0], [0 0], [3 0]
+            ]
+            sage: list((a*x + 1)*(b*x))
+            [
+            [0 0]  [1 2]  [1 2]
+            [0 0], [3 4], [0 0]
+            ]
         """
         if not self or not right:
             return self._parent.zero()
-
-        if self._parent.is_exact():
+        cdef Polynomial _right = right
+        if self.is_term():
+            d = self.degree()
+            return _right._rmul_(self.get_unsafe(d)).shift(d)
+        elif _right.is_term():
+            d = _right.degree()
+            return self._lmul_(_right.get_unsafe(d)).shift(d)
+        elif self._parent.is_exact():
             return self._mul_karatsuba(right)
         else:
             return self._mul_generic(right)
@@ -4843,16 +4870,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return len(self.exponents()) == 1 and self.leading_coefficient() == 1
 
-    def is_term(self):
+    cpdef bint is_term(self):
         """
-        Return True if self is an element of the base ring times a
-        power of the generator.
+        Return True if this polynomial is a nonzero element of the base ring
+        times a power of the variable.
 
         EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: x.is_term()
             True
+            sage: R(0).is_term()
+            False
             sage: R(1).is_term()
             True
             sage: (3*x^5).is_term()
@@ -10441,6 +10470,31 @@ cdef class Polynomial_generic_dense(Polynomial):
 
     def __nonzero__(self):
         return bool(self.__coeffs)
+
+    cpdef bint is_term(self):
+        """
+        Return True if this polynomial is a nonzero element of the base ring
+        times a power of the variable.
+
+        EXAMPLES::
+
+            sage: R.<x> = SR[]
+            sage: R(0).is_term()
+            False
+            sage: R(1).is_term()
+            True
+            sage: (3*x^5).is_term()
+            True
+            sage: (1+3*x^5).is_term()
+            False
+        """
+        if not self.__coeffs:
+            return False
+        else:
+            for c in self.__coeffs[:-1]:
+                if c:
+                    return False
+            return True
 
     cdef int __normalize(self) except -1:
         """

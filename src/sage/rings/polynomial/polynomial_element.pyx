@@ -1639,13 +1639,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         if not self or not right:
             return self._parent.zero()
+
         cdef Polynomial _right = right
         if self.is_term():
-            d = self.degree()
-            return _right._rmul_(self.get_unsafe(d)).shift(d)
+            return _right._mul_term(self, term_on_right=False)
         elif _right.is_term():
-            d = _right.degree()
-            return self._lmul_(_right.get_unsafe(d)).shift(d)
+            return self._mul_term(_right, term_on_right=True)
+
         elif self._parent.is_exact():
             return self._mul_karatsuba(right)
         else:
@@ -3091,6 +3091,28 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if n == m:
             return self._new_generic(do_karatsuba(f,g, K_threshold, 0, 0, n))
         return self._new_generic(do_karatsuba_different_size(f,g, K_threshold))
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef Polynomial _mul_term(self, Polynomial term, bint term_on_right):
+        """
+        Return the product ``self * term``, where ``term`` is a polynomial
+        with a single term.
+        """
+        cdef Py_ssize_t d = term.degree()
+        cdef Py_ssize_t i
+        cdef list coeffs, output
+        c = term.get_unsafe(d)
+        if term_on_right:
+            coeffs = [a * c for a in self.list(copy=False)]
+        else:
+            coeffs = [c * a for a in self.list(copy=False)]
+        if d == 0:
+            return self._new_generic(coeffs)
+        # shift by d
+        output = [self.base_ring().zero()] * d
+        output.extend(coeffs)
+        return self._new_generic(output)
 
     def base_ring(self):
         """
@@ -4872,8 +4894,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     cpdef bint is_term(self):
         """
-        Return True if this polynomial is a nonzero element of the base ring
-        times a power of the variable.
+        Return ``True`` if this polynomial is a nonzero element of the
+        base ring times a power of the variable.
 
         EXAMPLES::
 
@@ -4889,7 +4911,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (1+3*x^5).is_term()
             False
 
-        To require that the coefficient is 1, use is_monomial() instead::
+        To require that the coefficient is 1, use :meth:`is_monomial()`
+        instead::
 
             sage: (3*x^5).is_monomial()
             False
@@ -10473,8 +10496,8 @@ cdef class Polynomial_generic_dense(Polynomial):
 
     cpdef bint is_term(self):
         """
-        Return True if this polynomial is a nonzero element of the base ring
-        times a power of the variable.
+        Return ``True`` if this polynomial is a nonzero element of the
+        base ring times a power of the variable.
 
         EXAMPLES::
 
@@ -10490,11 +10513,36 @@ cdef class Polynomial_generic_dense(Polynomial):
         """
         if not self.__coeffs:
             return False
+
+        for c in self.__coeffs[:-1]:
+            if c:
+                return False
+        return True
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef Polynomial _mul_term(self, Polynomial term, bint term_on_right):
+        """
+        Return the product ``self * term``, where ``term`` is a polynomial
+        with a single term.
+        """
+        cdef Py_ssize_t d = len( (<Polynomial_generic_dense> term).__coeffs ) - 1
+        cdef Py_ssize_t i
+        cdef list x = self.__coeffs
+        cdef Py_ssize_t ell = len(x)
+        c = term.get_unsafe(d)
+        cdef list v = [self.base_ring().zero()] * (d + ell)
+        if term_on_right:
+            for i in range(ell):
+                v[i+d] = x[i] * c
         else:
-            for c in self.__coeffs[:-1]:
-                if c:
-                    return False
-            return True
+            for i in range(ell):
+                v[i+d] = c * x[i]
+        cdef Polynomial_generic_dense res = self._new_c(v, self._parent)
+        #if not v[len(v)-1]:
+        # "normalize" checks this anyway...
+        res.__normalize()
+        return res
 
     cdef int __normalize(self) except -1:
         """

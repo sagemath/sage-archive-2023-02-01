@@ -27,6 +27,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cpdef _floordiv_(self, right)
     cpdef Polynomial _mul_trunc_(self, Polynomial right, long n)
     cpdef Polynomial _power_trunc(self, unsigned long n, long prec)
+    cdef Polynomial _mul_term(self, Polynomial term, bint term_on_right)
 
     # UNSAFE, only call from an inplace operator
     # may return a new element if not possible to modify inplace

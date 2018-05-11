@@ -343,7 +343,8 @@ class DocTestController(SageObject):
                     if not optionaltag_regex.search(o):
                         raise ValueError('invalid optional tag {!r}'.format(o))
 
-                options.optional |= auto_optional_tags
+                if "sage" in options.optional:
+                    options.optional |= auto_optional_tags
 
         self.options = options
         self.files = args
@@ -741,7 +742,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: sorted(DC.sources[0].options.optional)  # abs tol 1
-            ['guava', 'magma', 'py3']
+            ['guava', 'magma']
 
         We check that files are skipped appropriately::
 

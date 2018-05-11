@@ -1249,13 +1249,26 @@ class Partition(CombinatorialElement):
 
         REFERENCES:
 
-        :wikipedia:`Zolotarev's_lemma`
+        - :wikipedia:`Zolotarev's_lemma`
         """
         return (-1)**(self.size()-self.length())
 
+    def row_standard_tableaux(self):
+        """
+        Return the :class:`row standard tableaux
+        <sage.combinat.tableau.RowStandardTableaux>` of shape ``self``.
+
+        EXAMPLES::
+
+            sage: Partition([3,2,2,1]).row_standard_tableaux()
+            Row standard tableaux of shape [3, 2, 2, 1]
+        """
+        return tableau.RowStandardTableaux(self)
+
     def standard_tableaux(self):
         """
-        Return the :class:`standard tableaux<StandardTableaux>` of this shape.
+        Return the :class:`standard tableaux<StandardTableaux>`
+        of shape ``self``.
 
         EXAMPLES::
 
@@ -3284,6 +3297,63 @@ class Partition(CombinatorialElement):
         """
         return (c - r) % l
 
+    @cached_method
+    def block(self, e, multicharge=(0,)):
+        r"""
+        Return a dictionary `\beta` that determines the block associated to
+        the partition ``self`` and the
+        :meth:`~sage.combinat.tableau_residues.ResidueSequence.quantum_characteristic` ``e``.
+
+        INPUT:
+
+        - ``e`` -- the quantum characteristic
+
+        - ``multicharge`` -- the multicharge (default `(0,)`)
+
+        OUTPUT:
+
+        - A dictionary giving the multiplicities of the residues in the
+          partition tuple ``self``
+
+        In more detail, the value ``beta[i]`` is equal to the
+        number of nodes of residue ``i``. This corresponds to
+        the positive root
+
+        .. MATH::
+
+            \sum_{i\in I} \beta_i \alpha_i \in Q^+,
+
+        a element of the positive root lattice of the corresponding
+        Kac-Moody algebra. See [DJM1999]_ and [BK2009]_ for more details.
+
+        This is a useful statistics because two Specht modules for a 
+        Hecke algebra of type `A` belong to the same block if and only if they
+        correspond to same element `\beta` of the root lattice, given above.
+
+        We return a dictionary because when the quantum characteristic is `0`,
+        the Cartan type is `A_{\infty}`, in which case the simple roots are
+        indexed by the integers.
+
+        EXAMPLES::
+
+            sage: Partition([4,3,2]).block(0)
+            {-2: 1, -1: 2, 0: 2, 1: 2, 2: 1, 3: 1}
+            sage: Partition([4,3,2]).block(2)
+            {0: 4, 1: 5}
+            sage: Partition([4,3,2]).block(2, multicharge=(1,))
+            {0: 5, 1: 4}
+            sage: Partition([4,3,2]).block(3)
+            {0: 3, 1: 3, 2: 3}
+            sage: Partition([4,3,2]).block(4)
+            {0: 2, 1: 2, 2: 2, 3: 3}
+        """
+        block = {}
+        Ie = IntegerModRing(e)
+        for (r,c) in self.cells():
+            i = Ie(multicharge[0] + c - r)
+            block[i] = block.get(i, 0) + 1
+        return block
+
     def defect(self, e, multicharge=(0,)):
         r"""
         Return the ``e``-defect or the ``e``-weight of ``self``.
@@ -3295,15 +3365,38 @@ class Partition(CombinatorialElement):
 
         .. MATH::
 
-            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta)
+            \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta),
 
         where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
         `(\kappa_1, \ldots, \kappa_{\ell})` and 
         `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
         being over the cells in the partition.
 
+        INPUT:
+
+        - ``e`` -- the quantum characteritic
+
+        - ``multicharge`` -- the multicharge (default `(0,)`)
+
+        OUTPUT:
+
+        - a non-negative integer, which is the defect of the block
+          containing the partition ``self``
+
         EXAMPLES::
 
+            sage: Partition([4,3,2]).defect(2)
+            3
+            sage: Partition([0]).defect(2)
+            0
+            sage: Partition([3]).defect(2)
+            1
+            sage: Partition([6]).defect(2)
+            3
+            sage: Partition([9]).defect(2)
+            4
+            sage: Partition([12]).defect(2)
+            6
             sage: Partition([4,3,2]).defect(3)
             3
             sage: Partition([0]).defect(3)
@@ -3323,14 +3416,10 @@ class Partition(CombinatorialElement):
             ....:     for mu in Partitions(9) for e in [2,3,4])
             True
         """
-        beta = [0]*e # element of positive root lattice corresponding to the block
-
+        beta = self.block(e, multicharge)
         Ie = IntegerModRing(e)
-        for (r,c) in self.cells():
-            beta[Ie(r-c)] += 1
-
-        return beta[multicharge[0]] - sum(beta[i]**2 - beta[i] * beta[Ie(i+1)]
-                                          for i in range(e))
+        return beta.get(multicharge[0], 0) - sum(beta[r]**2 - beta[r] * beta.get(Ie(r+1), 0)
+                                                 for r in beta)
 
     def contents_tableau(self, multicharge=(0,)):
         """
@@ -5727,7 +5816,6 @@ class Partitions_all(Partitions):
         return self.element_class(self, [new_w[i]+i for i in range(len(new_w))])
 
 class Partitions_all_bounded(Partitions):
-
     def __init__(self, k):
         """
         TESTS::
@@ -5785,7 +5873,6 @@ class Partitions_all_bounded(Partitions):
             for p in Partitions(n, max_part=self.k):
                 yield self.element_class(self, p)
             n += 1
-
 
 class Partitions_n(Partitions):
     """

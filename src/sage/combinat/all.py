@@ -88,14 +88,15 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-from .tableau import Tableau, SemistandardTableau, StandardTableau, \
-        Tableaux, StandardTableaux, SemistandardTableaux
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+                                     "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux
 from .ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
 from .composition_tableau import CompositionTableau, CompositionTableaux
 
-from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
+lazy_import('sage.combinat.tableau_tuple',['TableauTuple', 'StandardTableauTuple', 'RowStandardTableauTuple',
+                                           'TableauTuples', 'StandardTableauTuples', 'RowStandardTableauTuples'])
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])

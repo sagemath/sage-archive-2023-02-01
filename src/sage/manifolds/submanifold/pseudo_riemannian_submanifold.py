@@ -177,6 +177,7 @@ from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.functions.other import factorial
 from sage.symbolic.ring import SR
+from Queue import Queue
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                   DifferentiableSubmanifold):
@@ -624,23 +625,106 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             self._normal.set_name("n", r"n")
             return self._normal
         else:                           # case no foliation
-            eps = self.ambient_metric(recache).volume_form(self._dim).along(
-                self._immersion)
-            args = list(range(self._dim)) + [eps] + list(range(self._dim))
-            r = self.irange()
-            chart = self.atlas()[0]
-            n_form = self._immersion.pushforward(
-                chart.frame()[r.next()]).down(
-                self.ambient_metric().along(self._immersion))
-            for i in r:
-                n_form = n_form.wedge(self._immersion.pushforward(
-                    self.frames()[0][i]).down(
-                        self.ambient_metric().along(self._immersion)))
-            self._normal = (
-                        n_form.contract(*args) / factorial(self._dim)).contract(
-                self.ambient_metric().inverse().along(self._immersion))
-            self._normal = self._normal / self._normal.norm(
-                self.ambient_metric().along(self._immersion))
+            self._normal = self._ambient.vector_field().along(self._immersion)
+            self._normal.set_name("n", r"n")
+
+            for chart in self.atlas():
+                eps = self.ambient_metric(recache).volume_form(self._dim).along(
+                    self._immersion).restrict(chart.domain())
+                args = list(range(self._dim)) + [eps] + list(range(self._dim))
+                r = self.irange()
+                n_form = self._immersion.restrict(chart.domain()).pushforward(
+                    chart.frame()[r.next()]).down(
+                    self.ambient_metric().along(self._immersion).restrict(
+                        chart.domain()))
+                for i in r:
+                    n_form = n_form.wedge(
+                        self._immersion.restrict(chart.domain()).pushforward(
+                            chart.frame()[i]).down(
+                            self.ambient_metric().along(self._immersion).restrict(
+                                chart.domain())))
+                n_comp = (n_form.contract(*args) / factorial(
+                        self._dim)).contract(
+                        self.ambient_metric().inverse().along(self._immersion))
+                n_comp = n_comp / n_comp.norm(
+                    self.ambient_metric().along(self._immersion))
+
+                frame = next(iter(n_comp._components))
+                self._normal.add_comp(frame)[:] = n_comp[frame,:]
+
+            return self._normal
+
+    def normal_by_breadth_first_search(self,recache=False):
+        if self._normal is not None and not recache:
+            return self._normal
+        if self._dim_foliation != 0:
+            return self.normal(recache)
+        else:
+
+            def calc_normal(chart):
+                eps = self.ambient_metric(recache).volume_form(self._dim).along(
+                    self._immersion).restrict(chart.domain())
+                args = list(range(self._dim)) + [eps] + list(range(self._dim))
+                r = self.irange()
+                n_form = self._immersion.restrict(chart.domain()).pushforward(
+                    chart.frame()[r.next()]).down(
+                    self.ambient_metric().along(self._immersion).restrict(
+                        chart.domain()))
+                for i in r:
+                    n_form = n_form.wedge(
+                        self._immersion.restrict(chart.domain()).pushforward(
+                            chart.frame()[i]).down(
+                            self.ambient_metric().along(
+                                self._immersion).restrict(
+                                chart.domain())))
+                n_comp = (n_form.contract(*args) / factorial(
+                    self._dim)).contract(
+                    self.ambient_metric().inverse().along(self._immersion))
+                n_comp = n_comp / n_comp.norm(
+                    self.ambient_metric().along(self._immersion))
+
+                frame = next(iter(n_comp._components))
+                self._normal.add_comp(frame)[:] = n_comp[frame, :]
+
+            def calc_by_restrict(chart1, chart2):
+                frame = next(iter(self._normal.restrict(chart1.domain())._components))
+                self._normal.add_comp(frame.restrict(chart2.domain()))[:] = self._normal[frame, :]
+
+            self._normal = self._ambient.vector_field().along(self._immersion)
+            self._normal.set_name("n", r"n")
+
+            G = self.atlas()
+            marked = set()
+            f = Queue()
+
+            for v in G:
+                if v not in marked:
+                    f.put(v)
+                    calc_normal(v) # first calculus
+                    marked.add(v)
+                    while not f.empty():
+                        v = f.get()
+                        # for each neighbor:
+                        print("first chart : ",v)
+                        for vp in G:
+                            if vp in v._subcharts and vp not in marked:
+                                print("    second chart : "+ vp._repr_()+" (restriction)")
+                                f.put(vp)
+                                calc_by_restrict(v,vp)
+                                marked.add(vp)
+                            if vp in v._supercharts and vp not in marked:
+                                print("    second chart : "+ vp._repr_()+ " (continuation)")
+                                f.put(vp)
+                                self._normal.add_comp_by_continuation(vp.frame(),v.domain())
+                                marked.add(vp)
+                            if (v,vp) in self.coord_changes() and vp not in marked:
+                                print("    second chart : "+ vp._repr_()+ " (coord change)")
+                                f.put(vp)
+                                calc_normal(vp)
+                                if self._normal.restrict(v.domain())[vp,:] == -self._normal.restrict(vp.domain)[vp,:]:
+                                    frame = next(iter(self._normal.restrict(vp.domain)._components))
+                                    self._normal.restrict(v.domain())._component[frame] = -self._normal._component[frame]
+                                marked.add(vp)
             return self._normal
 
     def ambient_first_fundamental_form(self, recache=False):

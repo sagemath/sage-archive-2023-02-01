@@ -715,15 +715,16 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                             if vp in v._supercharts and vp not in marked:
                                 print("    second chart : "+ vp._repr_()+ " (continuation)")
                                 f.put(vp)
-                                self._normal.add_comp_by_continuation(vp.frame(),v.domain())
+                                extended_frame = self._ambient.default_frame().along(self._immersion).restrict(vp.domain())
+                                for fr in v.domain().frames():
+                                    if v.domain() is fr.domain() and fr.is_subframe(extended_frame):
+                                        self._normal.add_comp(extended_frame)[:] = self._normal.restrict(fr.domain()).components(fr)[:]
                                 marked.add(vp)
                             if (v,vp) in self.coord_changes() and vp not in marked:
                                 print("    second chart : "+ vp._repr_()+ " (coord change)")
                                 f.put(vp)
-                                calc_normal(vp)
-                                if self._normal.restrict(v.domain())[vp,:] == -self._normal.restrict(vp.domain)[vp,:]:
-                                    frame = next(iter(self._normal.restrict(vp.domain)._components))
-                                    self._normal.restrict(v.domain())._component[frame] = -self._normal._component[frame]
+                                frame = next(iter(self._normal.restrict(v.domain())._components))
+                                self._normal.add_comp(frame.restrict(vp.domain()))[:] = self._normal[frame, :]
                                 marked.add(vp)
             return self._normal
 

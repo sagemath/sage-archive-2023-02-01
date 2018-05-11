@@ -3324,7 +3324,7 @@ class Partition(CombinatorialElement):
             \sum_{i\in I} \beta_i \alpha_i \in Q^+,
 
         a element of the positive root lattice of the corresponding
-        Kac-Moody algebra. See [DJM1999]_ and [BK2009]_ for more details.
+        Kac-Moody algebra. See [DJM1998]_ and [BK2009]_ for more details.
 
         This is a useful statistics because two Specht modules for a 
         Hecke algebra of type `A` belong to the same block if and only if they

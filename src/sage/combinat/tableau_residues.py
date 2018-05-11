@@ -78,7 +78,7 @@ accessed via the standard tableaux classes::
 
 These residue sequences are particularly useful in the graded representation
 theory of the cyclotomic KLR algebrasand the cyclotomic Hecke algebras of type~A;
-see [DJM1999]_ and [BK2009]_.
+see [DJM1998]_ and [BK2009]_.
 
 This module implements the following classes:
 

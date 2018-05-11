@@ -835,8 +835,8 @@ REFERENCES:
             finite geometries, 2000,
             https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
 
-.. [DJM1999] \R. Dipper, G. James and A. Mathas
-             *The cyclotomic q-Schur algebra*, Math. Z, **229** (1999), 385-416.
+.. [DJM1998] \R. Dipper, G. James and A. Mathas
+             *Cyclotomic q-Schur algebras*, Math. Z, **229** (1998), 385-416.
              :mathscinet:`MR1635149`
 
 .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart

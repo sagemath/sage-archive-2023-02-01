@@ -85,7 +85,7 @@ tuples. Four different classes of tuples of partitions are currently supported:
 
 REFERENCES:
 
-.. [DJM1999]_
+.. [DJM1998]_
 .. [BK2009]_
 
 AUTHORS:
@@ -1683,7 +1683,7 @@ class PartitionTuple(CombinatorialElement):
             \sum_{i\in I} \beta_i \alpha_i \in Q^+,
 
         a element of the positive root lattice of the corresponding
-        Kac-Moody algebra. See [DJM1999]_ and [BK2009]_ for more details.
+        Kac-Moody algebra. See [DJM1998]_ and [BK2009]_ for more details.
 
         This is a useful statistics because two Specht modules for a cyclotomic
         Hecke algebra of type `A` belong to the same block if and only if they

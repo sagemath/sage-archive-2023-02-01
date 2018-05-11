@@ -194,7 +194,7 @@ Parent classes:
 
 .. TODO::
 
-    Implement semistandard tableau tuples as defined in [DJM1999]_.
+    Implement semistandard tableau tuples as defined in [DJM1998]_.
 
 Much of the combinatorics implemented here is motivated by this and
 subsequent papers on the representation theory of these algebras.
@@ -269,7 +269,7 @@ class TableauTuple(CombinatorialElement):
     - the representation theory of the complex reflection groups of
       type `G(l,1,n)` and the representation theory of the associated
       (degenerate and non-degenerate) Hecke algebras. See, for example,
-      [DJM1999]_
+      [DJM1998]_
 
     - the crystal theory of (quantum) affine special linear groups and  its
       integral highest weight modules and their canonical bases. See, for

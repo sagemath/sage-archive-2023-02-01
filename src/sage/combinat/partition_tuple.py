@@ -85,10 +85,8 @@ tuples. Four different classes of tuples of partitions are currently supported:
 
 REFERENCES:
 
-.. [DJM99] \R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra", Math. Z,
-      229 (1999), 385-416.
-.. [BK09] \J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
-      Adv. Math., 222 (2009), 1883-1942"
+.. [DJM1999]_
+.. [BK2009]_
 
 AUTHORS:
 
@@ -1629,7 +1627,8 @@ class PartitionTuple(CombinatorialElement):
     def block(self, e, multicharge):
         r"""
         Return a dictionary `\beta` that determines the block associated to
-        the partition ``self`` and the quantum characteristic ``e``.
+        the partition ``self`` and the
+        :meth:`~sage.combinat.tableau_residues.ResidueSequence.quantum_characteristic` ``e``.
 
         INPUT:
 
@@ -1644,13 +1643,14 @@ class PartitionTuple(CombinatorialElement):
 
         In more detail, the value ``beta[i]`` is equal to the
         number of nodes of residue ``i``. This corresponds to
+        the positive root
 
         .. MATH::
 
             \sum_{i\in I} \beta_i \alpha_i \in Q^+,
 
         a element of the positive root lattice of the corresponding
-        Kac-Moody algebra.
+        Kac-Moody algebra. See [DJM1999]_ and [BK2009]_ for more details.
 
         This is a useful statistics because two Specht modules for a cyclotomic
         Hecke algebra of type `A` belong to the same block if and only if they

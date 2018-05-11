@@ -34,7 +34,7 @@ REFERENCES:
 **A**
 
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
-              *ACM Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
+              *ACM Transactions on Mathematical Software*, **39** no. 1 (2012), 1-28.
 
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
@@ -343,6 +343,11 @@ REFERENCES:
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
+.. [BK2009] \J. Brundan and A. Kleshchev
+      *Blocks of cyclotomic Hecke algebras and Khovanov-Lauda algebras*,
+      Invent. Math. **178** (2009), 451–484.
+      :mathscinet:`MR2551762`
+
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
               J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
@@ -353,6 +358,11 @@ REFERENCES:
             Block Cipher*; in Proceedings of CHES 2007; LNCS 7427; pp. 450-466;
             Springer Verlag 2007; available at
             http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
+
+.. [BKW2011]_ \J. Brundan, A. Kleshchev, and W. Wang,
+          *Graded Specht modules*,
+          J. Reine Angew. Math., **655** (2011), 61-87.
+          :mathscinet:`MR2806105`
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -795,6 +805,10 @@ REFERENCES:
 .. [Di2000] \L. Dissett, Combinatorial and computational aspects of
             finite geometries, 2000,
             https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
+
+.. [DJM1999] \R. Dipper, G. James and A. Mathas
+             *The cyclotomic q-Schur algebra*, Math. Z, **229** (1999), 385-416.
+             :mathscinet:`MR1635149`
 
 .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart
               polynomials of matroid polytopes and
@@ -1498,6 +1512,11 @@ REFERENCES:
             23, Issue 3 (November 2002), 281-290.  Available at
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
+
+.. [Kra1999] \C. Krattenthaler,
+           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
+           Journal of Combinatorial Theory, Series A, **88** (1999), 66-92,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
 .. [Kra2006] Christian Krattenthaler.  *Growth diagrams, and
              increasing and decreasing chains in fillings of Ferrers

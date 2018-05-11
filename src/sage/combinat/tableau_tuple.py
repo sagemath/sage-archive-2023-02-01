@@ -194,18 +194,10 @@ Parent classes:
 
 .. TODO::
 
-    Implement semistandard tableau tuples as defined in [DJM]_.
+    Implement semistandard tableau tuples as defined in [DJM1999]_.
 
 Much of the combinatorics implemented here is motivated by this and
 subsequent papers on the representation theory of these algebras.
-
-REFERENCES:
-
-.. [DJM] \R. Dipper, G. James and A. Mathas "The cyclotomic q-Schur algebra",
-   Math. Z, 229 (1999), 385-416.
-
-.. [BK] \J. Brundan and A. Kleshchev "Graded decomposition numbers for cyclotomic Hecke algebras",
-   Adv. Math., 222 (2009), 1883-1942"
 
 """
 
@@ -276,11 +268,12 @@ class TableauTuple(CombinatorialElement):
 
     - the representation theory of the complex reflection groups of
       type `G(l,1,n)` and the representation theory of the associated
-      (degenerate and non-degenerate) Hecke algebras. See, for example, [DJM]_
+      (degenerate and non-degenerate) Hecke algebras. See, for example,
+      [DJM1999]_
 
     - the crystal theory of (quantum) affine special linear groups and  its
       integral highest weight modules and their canonical bases. See, for
-      example, [BK]_.
+      example, [BK2009]_.
 
     These apparently different and unrelated contexts are, in fact, intimately
     related as in characteristic zero the cyclotomic Hecke algebras categorify
@@ -1662,7 +1655,7 @@ class RowStandardTableauTuple(TableauTuple):
 
     def degree(self, e, multicharge):
         r"""
-        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW2011]_ degree of ``self``.
 
         The *degree* of a tableau is an integer that is defined recursively by
         successively stripping off the number `k`, for `k = n, n-1, \ldots, 1`,
@@ -1671,7 +1664,7 @@ class RowStandardTableauTuple(TableauTuple):
         and that are below `k` in the diagram.
 
         Note that even though this degree function was defined by
-        Brundan-Kleshchev-Wang [BKW11]_ the underlying combinatorics
+        Brundan-Kleshchev-Wang [BKW2011]_ the underlying combinatorics
         is much older, going back at least to Misra and Miwa.
 
         The degrees of the tableau `T` gives the degree of the homogeneous
@@ -1720,7 +1713,7 @@ class RowStandardTableauTuple(TableauTuple):
 
     def codegree(self, e, multicharge):
         r"""
-        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of ``self``.
 
         The *codegree* of a tableau is an integer that is defined
         recursively by successively stripping off the number `k`, for
@@ -1762,11 +1755,6 @@ class RowStandardTableauTuple(TableauTuple):
             sage: StandardTableauTuple([[],[[2]], [[1]]]).codegree(0,(0,0,0))
             3
 
-        REFERENCES:
-
-        - [BKW11]_ J. Brundan, A. Kleshchev, and W. Wang,
-          *Graded Specht modules*,
-          J. Reine Angew. Math., 655 (2011), 61-87.
         """
         if not self:  # the trivial case
             return 0

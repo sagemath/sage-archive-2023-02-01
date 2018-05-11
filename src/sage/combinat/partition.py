@@ -3303,11 +3303,12 @@ class Partition(CombinatorialElement):
     def block(self, e, multicharge=(0,)):
         r"""
         Return a dictionary `\beta` that determines the block associated to
-        the partition ``self`` and the quantum characteristic ``e``.
+        the partition ``self`` and the
+        :meth:`~sage.combinat.tableau_residues.ResidueSequence.quantum_characteristic` ``e``.
 
         INPUT:
 
-        - ``e`` -- the quantum characteritic
+        - ``e`` -- the quantum characteristic
 
         - ``multicharge`` -- the multicharge (default `(0,)`)
 
@@ -3318,15 +3319,16 @@ class Partition(CombinatorialElement):
 
         In more detail, the value ``beta[i]`` is equal to the
         number of nodes of residue ``i``. This corresponds to
+        the positive root
 
         .. MATH::
 
             \sum_{i\in I} \beta_i \alpha_i \in Q^+,
 
         a element of the positive root lattice of the corresponding
-        Kac-Moody algebra.
+        Kac-Moody algebra. See [DJM1999]_ and [BK2009]_ for more details.
 
-        This is a useful statistics because two Specht modules for a cyclotomic
+        This is a useful statistics because two Specht modules for a 
         Hecke algebra of type `A` belong to the same block if and only if they
         correspond to same element `\beta` of the root lattice, given above.
 

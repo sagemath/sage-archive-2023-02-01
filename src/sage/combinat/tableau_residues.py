@@ -77,7 +77,8 @@ accessed via the standard tableaux classes::
     [([[5]], [[1, 2], [3, 4]]), ([[4]], [[1, 2], [3, 5]])]
 
 These residue sequences are particularly useful in the graded representation
-theory of the cyclotomic Hecke algebras of type~A [BK]_.
+theory of the cyclotomic KLR algebrasand the cyclotomic Hecke algebras of type~A;
+see [DJM1999]_ and [BK2009]_.
 
 This module implements the following classes:
 
@@ -86,16 +87,16 @@ This module implements the following classes:
 
 .. SEEALSO::
 
-    * :class:`PartitionTuples`
     * :class:`Partitions`
-    * :class:`StandardTableau`
+    * :class:`PartitionTuples`
     * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue`
     * :class:`~sage.combinat.tableau_tuple.StandardTableaux_residue_shape`
     * :class:`~sage.combinat.tableau_tuple.RowStandardTableauTuples_residue`
     * :class:`~sage.combinat.tableau_tuple.RowStandardTableauTuples_residue_shape`
     * :class:`StandardTableaux`
-    * :class:`Tableau`
+    * :class:`StandardTableauTuples`
     * :class:`Tableaux`
+    * :class:`TableauTuples`
 
 .. TODO::
 
@@ -548,23 +549,26 @@ class ResidueSequence(ClonableArray):
         Return a dictionary `\beta` that determines the block associated to
         the residue sequence ``self``.
 
-        In more detail, in tis dictionary `\beta[i]` is equal to the
-        number of nodes of residue ``i``. This corresponds to
+        Two Specht modules for a cyclotomic Hecke algebra of type `A` belong to
+        the same block, in this sense, if and only if the residue sequences of
+        their standard tableaux have the same block in this sense.  The blocks
+        of these algebras are actually indexed by positive roots in the root
+        lattice of an affine special linear group. Instead of than constructing
+        the root lattice, this method simply returns a dictionary `\beta` where
+        the keys are residues `i` and where the value of the  key `i` is equal
+        to the numbers of nodes in the residue sequence ``self`` that are equal
+        to `i`. The dictionary `\beta` corresponds to the positive root:
 
         .. MATH::
 
             \sum_{i\in I} \beta_i \alpha_i \in Q^+,
 
-        a element of the positive root lattice of the corresponding
-        Kac-Moody algebra.
+        These positive roots also index the blocks of the cyclotomic KLR
+        algebras of type `A`.
 
-        This is a useful statistics because two Specht modules for a cyclotomic
-        Hecke algebra of type `A` belong to the same block if and only if they
-        correspond to same element `\beta` of the root lattice, given above.
-
-        We return a dictionary because when the quantum characteristic is `0`,
+        We return a dictionary because when the :meth:`quantum_characteristic` is `0`,
         the Cartan type is `A_{\infty}`, in which case the simple roots are
-        indexed by the integers.
+        indexed by the integers, which is infinite.
 
         EXAMPLES::
 

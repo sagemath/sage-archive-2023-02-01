@@ -3886,7 +3886,7 @@ class Tableau(ClonableList):
 
     def degree(self, e, multicharge=(0,)):
         """
-        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW2011]_ degree of ``self``.
 
         The *degree* is an integer that is defined recursively by successively
         stripping off the number `k`, for `k = n, n-1, \ldots, 1` and at stage
@@ -3913,11 +3913,6 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
             1
 
-        REFERENCES:
-
-        .. [BKW11] \J. Brundan, A. Kleshchev, and W. Wang,
-           *Graded Specht modules*,
-           J. Reine Angew. Math., 655 (2011), 61-87.
         """
         n = self.size()
         if n == 0:
@@ -3935,7 +3930,7 @@ class Tableau(ClonableList):
 
     def codegree(self, e, multicharge=(0,)):
         """
-        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of the
+        Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of the
         standard tableau ``self``.
 
         The *coderee* of a tableau is an integer that is defined recursively by
@@ -3966,11 +3961,6 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
             0
 
-        REFERENCES:
-
-        - [BKW11]_ \J. Brundan, A. Kleshchev, and W. Wang,
-          *Graded Specht modules*,
-          J. Reine Angew. Math., 655 (2011), 61-87.
         """
         if not self:  # the trivial case
             return 0
@@ -6392,22 +6382,16 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         """
         Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
 
-        Uses the algorithm from [Krat99]_ based on the Novelli-Pak-Stoyanovskii bijection
+        Uses the algorithm from [Kra1999]_ based on the Novelli-Pak-Stoyanovskii bijection
 
         EXAMPLES::
 
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
             sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
             [[1, 1], [2, 3], [3], [5]]
             sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
             [[1, 4], [5, 5], [6], [7]]
 
-
-        REFERENCES:
-
-        .. [Krat99] \C. Krattenthaler,
-           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
-           Journal of Combinatorial Theory, Series A vol 88 Issue 1 (1999), 66-92,
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
         """
         from sage.misc.prandom import randint
         from sage.combinat.partition import _Partitions
@@ -7383,10 +7367,6 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
         fixed points, you count the number of ways to choose those
         fixed points multiplied by the number of perfect matchings on
         the remaining values.
-
-        REFERENCES:
-
-        - [Ful1997]_
 
         EXAMPLES::
 

@@ -4026,47 +4026,6 @@ class Graph(GenericGraph):
                 D._embedding = copy(self._embedding)
             yield D
 
-    @doc_index("Connectivity, orientations, trees")
-    def random_orientation(self):
-        r"""
-        Return a random orientation of ``self``.
-
-        An *orientation* of an undirected graph is a directed graph such that
-        every edge is assigned a direction. Hence there are `2^m` oriented
-        digraphs for a simple graph with `m` edges.
-
-        EXAMPLES::
-
-            sage: G = graphs.PetersenGraph()
-            sage: D = G.random_orientation()
-            sage: D.order() == G.order(), D.size() == G.size()
-            (True, True)
-
-        .. SEEALSO::
-
-            - :meth:`~Graph.orientations`
-        """
-        D = DiGraph(data=[self.vertices(), []],
-                    format='vertices_and_edges',
-                    multiedges=self.allows_multiple_edges(),
-                    loops=self.allows_loops(),
-                    weighted=self.weighted(),
-                    pos=self.get_pos(),
-                    name="Random orientation of {}".format(self.name()) )
-        if hasattr(self, '_embedding'):
-            D._embedding = copy(self._embedding)
-
-        from sage.misc.prandom import getrandbits
-        rbits = getrandbits(self.size())
-        for u,v,l in self.edge_iterator():
-            if rbits % 2:
-                D.add_edge(u, v, l)
-            else:
-                D.add_edge(v, u, l)
-            rbits >>= 1
-        return D
-
-
     ### Coloring
 
     @doc_index("Basic methods")
@@ -8228,7 +8187,7 @@ class Graph(GenericGraph):
     from sage.graphs.tutte_polynomial import tutte_polynomial
     from sage.graphs.lovasz_theta import lovasz_theta
     from sage.graphs.partial_cube import is_partial_cube
-    from sage.graphs.orientations import strong_orientations_iterator
+    from sage.graphs.orientations import strong_orientations_iterator, random_orientation
 
 
 _additional_categories = {
@@ -8250,7 +8209,8 @@ _additional_categories = {
     "is_partial_cube"           : "Graph properties",
     "tutte_polynomial"          : "Algorithmically hard stuff",
     "lovasz_theta"              : "Leftovers",
-    "strong_orientations_iterator" : "Connectivity, orientations, trees"
+    "strong_orientations_iterator" : "Connectivity, orientations, trees",
+    "random_orientation"        : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

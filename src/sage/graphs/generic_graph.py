@@ -5400,6 +5400,11 @@ class GenericGraph(GenericGraph_pyx):
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
+
+        from sage.graphs.base.boost_graph import bc_tree
+        return bc_tree(g)
+
+
         blocks = []
         cut_vertices = set()
 

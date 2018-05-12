@@ -672,6 +672,25 @@ cpdef min_spanning_tree(g,
         return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
 
 
+cpdef bc_tree(g):
+    from sage.graphs.graph import Graph
+
+    if not isinstance(g, Graph):
+        raise TypeError("the input must be a Sage Graph")
+
+    if g.allows_loops() or g.allows_multiple_edges():
+        g = g.to_simple()
+
+    cdef BoostVecGraph g_boost
+
+    boost_graph_from_sage_graph(&g_boost, g)
+    sig_on()
+    result = g_boost.bc_tree()
+    sig_off()
+    return result
+
+
+
 cpdef shortest_paths(g, start, weight_function=None, algorithm=None):
     r"""
     Computes the shortest paths from ``start`` to all other vertices.

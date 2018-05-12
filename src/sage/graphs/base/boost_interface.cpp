@@ -12,6 +12,8 @@
 #include <boost/graph/bellman_ford_shortest_paths.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
+#include <boost/graph/biconnected_components.hpp>
+#include <boost/graph/properties.hpp>
 
 #include <iostream>
 
@@ -38,7 +40,6 @@ typedef struct {
     std::vector<v_index> predecessors; // For each vertex v, the first vertex in a shortest
                                   // path from the starting vertex to v.
 } result_distances;
-
 
 template <class OutEdgeListS, // How neighbors are stored
           class VertexListS,  // How vertices are stored
@@ -70,6 +71,7 @@ private:
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
     typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type vertex_to_int_map;
+    typedef typename boost::property_map<adjacency_list, boost::edge_index_t>::type edge_map_t; // This is the error
 
 public:
     adjacency_list graph;
@@ -188,6 +190,33 @@ public:
             }
         }
         return to_return;
+    }
+
+    // This function returns the blocks and cut vertices tree.
+    std::vector<v_index> bc_tree() {
+        edge_map_t components_bc = get(boost::edge_index, graph);
+
+        std::size_t num_comps = biconnected_components(graph, components_bc);
+        std::cerr << "Found " << num_comps << " biconnected components.\n";
+
+        std::vector<vertex_descriptor> art_points;
+        articulation_points(graph, std::back_inserter(art_points));
+        std::cerr << "Found " << art_points.size() << " articulation points.\n";
+
+        for (std::size_t i = 0; i < art_points.size(); ++i) {
+            std::cout << (char)(art_points[i] + 'A')
+                      << std::endl;
+        }
+
+        typename boost::graph_traits < adjacency_list >::edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei)
+            std::cout << (char)(source(*ei, graph) + 'A') << " -- "
+                      << (char)(target(*ei, graph) + 'A')
+                      << "[label=\"" << components_bc[*ei] << "\"]\n";
+        std::cout << "}\n";
+        std::vector<v_index> to_return;
+        return to_return;
+
     }
 
     result_distances dijkstra_shortest_paths(v_index s) {

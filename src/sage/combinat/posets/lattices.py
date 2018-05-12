@@ -60,6 +60,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_supersolvable` | Return ``True`` if the lattice is supersolvable.
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
+    :meth:`~FiniteLatticePoset.is_interval_dismantlable` | Return ``True`` if the lattice is interval dismantlable.
     :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
@@ -1283,7 +1284,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_join_semidistributive`
-            - Weaker properties: :meth:`is_pseudocomplemented`
+            - Weaker properties: :meth:`is_pseudocomplemented`,
+              :meth:`is_interval_dismantlable`
             - Stronger properties: :meth:`is_semidistributive`,
               :meth:`is_join_distributive`,
               :meth:`is_constructible_by_doublings` (by upper pseudo-intervals)
@@ -1374,7 +1376,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Dual property: :meth:`is_meet_semidistributive`
-            - Weaker properties: :meth:`is_join_pseudocomplemented`
+            - Weaker properties: :meth:`is_join_pseudocomplemented`,
+              :meth:`is_interval_dismantlable`
             - Stronger properties: :meth:`is_semidistributive`,
               :meth:`is_meet_distributive`,
               :meth:`is_constructible_by_doublings` (by lower pseudo-intervals)
@@ -3630,6 +3633,118 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not certificate:
             return True
         return (True, [self[e] for e in cert])
+
+    def is_interval_dismantlable(self, certificate=False):
+        """
+        Return ``True`` if the lattice is interval dismantlable, and
+        ``False`` otherwise.
+
+        An interval dismantling is a subdivision of a lattice to a principal
+        upper set and a principal lower set. A lattice is *interval
+        dismantlable* if it can be decomposed into 1-element lattices by
+        consecutive interval distmantlings.
+
+        A lattice is *minimally interval non-dismantlable* if it is not
+        interval dismantlable, but all of it's sublattices are interval
+        dismantlable.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - if ``certificate=False``, return only ``True`` or ``False``
+        - if ``certificate=True``, return either
+
+          * ``(True, list)`` where `list` is a nested list showing the
+            decomposition; for example ``list[1][0]`` is a lower part of
+            upper part of the lattice when decomposed twise.
+          * ``(False, M)`` where `M` is a minimally interval non-dismantlable
+            sublattice of the lattice.
+
+        EXAMPLES::
+
+            sage: L1 = LatticePoset({1: [2, 3], 3: [4, 5], 2: [6], 4: [6], 5: [6]})
+            sage: L1.is_interval_dismantlable()
+            True
+
+            sage: L2 = LatticePoset({1: [2, 3, 4, 5], 2: [6], 3: [6], 4: [6],
+            ....:                    5: [6, 7], 6: [8], 7: [9, 10], 8:[10], 9:[10]})
+            sage: L2.is_interval_dismantlable()
+            False
+
+        To get certificates::
+
+            sage: L1.is_interval_dismantlable(certificate=True)
+            (True, [[[1], [2]], [[[3], [5]], [[4], [6]]]])
+            sage: L2.is_interval_dismantlable(certificate=True)
+            (False, Finite lattice containing 5 elements)
+
+        .. SEEALSO::
+
+            - Stronger properties: :meth:`is_join_semidistributive`,
+              :meth:`is_meet_semidistributive`
+
+        TESTS::
+
+            sage: LatticePoset().is_interval_dismantlable()
+            True
+            sage: LatticePoset().is_interval_dismantlable(certificate=True)
+            (True, [])
+        """
+        def minimal_non_int_dismant(L):
+            """
+            Return a minimally interval non-dismantlable sublattice.
+
+            Assumes that L is interval non-dismantlable.
+            """
+            while True:
+                H = L._hasse_diagram
+                for sl in H.sublattices_iterator(set(), 0):
+                    if len(sl) < 5 or len(sl) == H.order():
+                        continue
+                    L_ = L.sublattice([L._vertex_to_element(v) for v in sl])
+                    if not L_.is_interval_dismantlable():
+                        L = L_
+                        break
+                else:
+                    return L
+
+        def recursive_is_interval_dismantlable(self):
+            if self.cardinality() == 1:
+                return (True, [self[0]])
+
+            mp = self.meet_primes()
+            if not mp:
+                return (False, self)
+
+            e = mp[0]
+            e_lower = self.principal_lower_set(e)
+
+            # First check the lower part...
+            L_down = LatticePoset(self.subposet(e_lower))
+            result_down = recursive_is_interval_dismantlable(L_down)
+            if not result_down[0]:
+                return result_down
+
+            # ...and then check the upper.
+            L_up = LatticePoset(self.subposet([x for x in self if x not in e_lower]))
+            result_up = recursive_is_interval_dismantlable(L_up)
+            if not result_up[0]:
+                return result_up
+
+            # OK, both parts are dismantlable, so then is the whole lattice.
+            return (True, [result_down[1], result_up[1]])
+
+        if self.cardinality() == 0:
+            return (True, []) if certificate else True
+
+        result = recursive_is_interval_dismantlable(self)
+        if result[0]:
+            return result if certificate else True
+        return (False, minimal_non_int_dismant(self)) if certificate else False
 
     def is_subdirectly_reducible(self, certificate=False):
         r"""

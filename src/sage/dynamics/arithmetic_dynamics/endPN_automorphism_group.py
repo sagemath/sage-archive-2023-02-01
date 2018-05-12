@@ -1083,7 +1083,7 @@ def three_stable_points(rational_function, invariant_list):
         sage: L = [[0,1],[4,1],[1,1],[1,0]]
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import three_stable_points
         sage: three_stable_points(f,L)
-        [z, 4*z, 2/(2*z), 3/(2*z)]
+        [z, 4*z, 1/z, 4/z]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():
@@ -1151,7 +1151,7 @@ def automorphism_group_FF_alg2(rational_function):
         sage: f = (3*z^3 - z^2)/(z-1)
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF_alg2
         sage: automorphism_group_FF_alg2(f)
-        [Univariate Polynomial Ring in w over Finite Field in b of size 7^2, [w, (3*b + 2)/((2*b + 6)*w)]]
+        [Univariate Polynomial Ring in w over Finite Field in b of size 7^2, [w, 5/w]]
 
     ::
 
@@ -1159,11 +1159,13 @@ def automorphism_group_FF_alg2(rational_function):
         sage: f = (3456*z^(4))
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import automorphism_group_FF_alg2
         sage: automorphism_group_FF_alg2(f)
-        [Univariate Polynomial Ring in w over Finite Field in b of size 5^6, [w,
-        (3*b^5 + 4*b^4 + 3*b^2 + 2*b + 1)*w, (2*b^5 + b^4 + 2*b^2 + 3*b + 3)*w,
-        (3*b^5 + 4*b^4 + 3*b^2 + 2*b)/((3*b^5 + 4*b^4 + 3*b^2 + 2*b)*w), (4*b^5
-        + 2*b^4 + 4*b^2 + b + 2)/((3*b^5 + 4*b^4 + 3*b^2 + 2*b)*w), (3*b^5 +
-        4*b^4 + 3*b^2 + 2*b + 3)/((3*b^5 + 4*b^4 + 3*b^2 + 2*b)*w)]]
+        [Univariate Polynomial Ring in w over Finite Field in b of size 5^6,
+         [w,
+          (3*b^5 + 4*b^4 + 3*b^2 + 2*b + 1)*w,
+          (2*b^5 + b^4 + 2*b^2 + 3*b + 3)*w,
+          1/w,
+          (3*b^5 + 4*b^4 + 3*b^2 + 2*b + 1)/w,
+          (2*b^5 + b^4 + 2*b^2 + 3*b + 3)/w]]
     """
     # define ground field and ambient function field
     if rational_function.parent().is_field():

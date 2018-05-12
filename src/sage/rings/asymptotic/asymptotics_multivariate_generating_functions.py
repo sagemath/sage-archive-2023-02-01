@@ -802,10 +802,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: FFPD = FractionWithFactoredDenominatorRing(R)
             sage: f = 5*x^3 + 1/x + 1/(x-1) + 1/(3*x^2 + 1)
             sage: f
-            (15.0000000000000*x^7 - 15.0000000000000*x^6 + 5.00000000000000*x^5
-             - 5.00000000000000*x^4 + 6.00000000000000*x^3
-             - 2.00000000000000*x^2 + x - 1.00000000000000)/(3.00000000000000*x^4
-             - 3.00000000000000*x^3 + x^2 - x)
+            (5.00000000000000*x^7 - 5.00000000000000*x^6 + 1.66666666666667*x^5 - 1.66666666666667*x^4 + 2.00000000000000*x^3 - 0.666666666666667*x^2 + 0.333333333333333*x - 0.333333333333333)/(x^4 - x^3 + 0.333333333333333*x^2 - 0.333333333333333*x)
             sage: decomp = FFPD(f).univariate_decomposition()
             sage: decomp
             (5.00000000000000*x^3, []) +
@@ -2762,9 +2759,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = [7/3, var('a')]
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 14/(3*a)*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of
-             Multivariate Polynomial Ring in x, y over Fraction Field of
-             Univariate Polynomial Ring in a over Rational Field
+            Ideal (y^2 + 14/3/a*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 

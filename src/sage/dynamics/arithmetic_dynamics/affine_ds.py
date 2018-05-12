@@ -699,9 +699,10 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: A.<x,y> = AffineSpace(FractionField(R), 2)
             sage: f = DynamicalSystem_affine([(x-t*y^2)/x, t*x*y])
             sage: f.orbit(A(1, t), 3)
-            [(1, t), (-t^3 + 1, t^2), ((-t^5 - t^3 + 1)/(-t^3 + 1), -t^6 + t^3),
-            ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 -
-            t^7 + t^4)]
+            [(1, t),
+             (-t^3 + 1, t^2),
+             ((t^5 + t^3 - 1)/(t^3 - 1), -t^6 + t^3),
+             ((-t^16 + 3*t^13 - 3*t^10 + t^7 + t^5 + t^3 - 1)/(t^5 + t^3 - 1), -t^9 - t^7 + t^4)]
         """
         Q = P
         if isinstance(n, list) or isinstance(n, tuple):

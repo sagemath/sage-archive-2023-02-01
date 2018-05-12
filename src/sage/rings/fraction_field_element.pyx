@@ -67,7 +67,7 @@ cdef class FractionFieldElement(FieldElement):
         True
         sage: x = K.gen()
         sage: f = (x^3 + x)/(17 - x^19); f
-        (x^3 + x)/(-x^19 + 17)
+        (-x^3 - x)/(x^19 - 17)
         sage: loads(f.dumps()) == f
         True
 
@@ -1062,6 +1062,32 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
 
     Many of the functions here are included for coherence with number fields.
     """
+
+    def __init__(self, parent, numerator, denominator=1,
+                 coerce=True, reduce=True):
+        """
+        TESTS:
+
+            sage: P.<x> = QQ[]
+            sage: a = (2*x^2)/x
+            sage: ~a
+            1/2/x
+            sage: 1/a
+            1/2/x
+        """
+        FractionFieldElement.__init__(self, parent, numerator, denominator,
+                coerce, reduce)
+        if not reduce:
+            self.normalize_leading_coefficients()
+
+    cdef normalize_leading_coefficients(self):
+        """
+        See :meth:`reduce`.
+        """
+        invlc = ~self.__denominator.leading_coefficient()
+        self.__denominator = self.__denominator.monic()
+        self.__numerator *= invlc
+
     def is_integral(self):
         """
         Returns whether this element is actually a polynomial.
@@ -1119,10 +1145,10 @@ cdef class FractionFieldElement_1poly_field(FractionFieldElement):
             sage: (2 + 2*x) / (4*x)
             (x + 1)/(2*x)
         """
+        if self._is_reduced:
+            return
         super(self.__class__, self).reduce()
-        invlc = ~self.__denominator.leading_coefficient()
-        self.__denominator = self.__denominator.monic()
-        self.__numerator *= invlc
+        self.normalize_leading_coefficients()
 
 def make_element(parent, numerator, denominator):
     """

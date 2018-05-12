@@ -1858,6 +1858,11 @@ REFERENCES:
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
 
+.. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
+             Dobinsky’s equality and Charlier
+             polynomials*. Trans. Amer. Math. Soc., 245 (1978),
+             89-118.
+
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
 

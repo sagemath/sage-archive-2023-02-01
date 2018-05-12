@@ -18,11 +18,15 @@ fields:
 * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for differential
   forms (fully antisymmetric covariant tensor fields)
 
+* :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+  for multivector fields (fully antisymmetric contravariant tensor fields)
+
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
-- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian
+- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian;
+  method :meth:`TensorField.along`
 
 REFERENCES:
 

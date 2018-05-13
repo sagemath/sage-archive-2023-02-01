@@ -285,25 +285,31 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         WARNING:
 
-        The number of submodules grows very fast and this method
-        creates all of them in memory.
+        This method creates all submodules in memory. The number of submodules
+        grows rapidly with the number of generators. For example consider a
+        vector space of dimension `n` over a finite field of prime order `p`.
+        The number of subspaces is (very) roughly `p^{(n^2-n)/2}`.
 
         EXAMPLES::
 
             sage: D = IntegralLattice("D4").discriminant_group()
             sage: D.all_submodules()
             [Finite quadratic module over Integer Ring with invariants ()
-            Gram matrix of the quadratic form with values in Q/2Z:
-            [], Finite quadratic module over Integer Ring with invariants (2,)
-            Gram matrix of the quadratic form with values in Q/2Z:
-            [1], Finite quadratic module over Integer Ring with invariants (2,)
-            Gram matrix of the quadratic form with values in Q/2Z:
-            [1], Finite quadratic module over Integer Ring with invariants (2,)
-            Gram matrix of the quadratic form with values in Q/2Z:
-            [1], Finite quadratic module over Integer Ring with invariants (2, 2)
-            Gram matrix of the quadratic form with values in Q/2Z:
-            [  1 1/2]
-            [1/2   1]]
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [],
+             Finite quadratic module over Integer Ring with invariants (2,)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [1],
+             Finite quadratic module over Integer Ring with invariants (2,)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [1],
+             Finite quadratic module over Integer Ring with invariants (2,)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [1],
+             Finite quadratic module over Integer Ring with invariants (2, 2)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [  1 1/2]
+              [1/2   1]]
         """
         from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
         invs = self.invariants()

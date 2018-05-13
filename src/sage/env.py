@@ -172,6 +172,8 @@ _add_variable_or_fallback('JMOL_DIR', opj('$SAGE_SHARE', 'jmol'))
 _add_variable_or_fallback('JSMOL_DIR', SAGE_ENV['JMOL_DIR'])
 _add_variable_or_fallback('MATHJAX_DIR', opj('$SAGE_SHARE', 'mathjax'))
 _add_variable_or_fallback('THREEJS_DIR', opj('$SAGE_SHARE', 'threejs'))
+_add_variable_or_fallback('ECLDIR', opj('$SAGE_LOCAL', 'lib', 'ecl'))
+_add_variable_or_fallback('MAXIMA_FAS', opj(SAGE_ENV['ECLDIR'], 'maxima.fas'))
 
 
 # locate singular shared object

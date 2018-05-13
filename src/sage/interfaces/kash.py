@@ -436,6 +436,7 @@ from .expect import Expect, ExpectElement
 from sage.docs.instancedoc import instancedoc
 import os
 
+from sage.misc.sage_eval import sage_eval
 
 class Kash(Expect):
     r"""
@@ -484,11 +485,19 @@ class Kash(Expect):
 
         self.__seq = 0
 
-    def _next_var_name(self):
-        if self.__seq == 0:
-            self.eval('_s_ := [ ];')
-        self.__seq += 1
-        return '_s_[%s]'%self.__seq
+    def clear(self, var):
+        """
+        Clear the variable named ``var``.
+
+        Kash variables have a record structure, so if sage1 is a
+        polynomial ring, sage1.1 will be its indeterminate.  This
+        prevents us from easily reusing variables, since sage1.1
+        might still have references even if sage1 does not.
+
+        For now, we don't implement variable clearing to avoid these
+        problems, and instead implement this method with a noop.
+        """
+        pass
 
     def _read_in_file_command(self,filename):
         return 'Read("%s");'%filename
@@ -584,7 +593,14 @@ class Kash(Expect):
 
         EXAMPLES::
 
-            sage: X = kash.help('IntegerRing')   # optional -- kash
+            sage: X = kash.help('IntegerRing')   # random; optional -- kash
+            1439: IntegerRing() -> <ord^rat>
+            1440: IntegerRing(<elt-ord^rat> m) -> <res^rat>
+            1441: IntegerRing(<seq()> Q) -> <res^rat>
+            1442: IntegerRing(<fld^rat> K) -> <ord^rat>
+            1443: IntegerRing(<fld^fra> K) -> <ord^num>
+            1444: IntegerRing(<rng> K) -> <rng>
+            1445: IntegerRing(<fld^pad> L) -> <ord^pad>
 
         There is one entry in X for each item found in the documentation
         for this function: If you type ``print(X[0])`` you will
@@ -682,6 +698,48 @@ class KashElement(ExpectElement):
     def __len__(self):
         self._check_valid()
         return int(self.parent().eval('Length(%s)'%self.name()))
+
+    def _sage_(self, locals={}, *args):
+        """
+        Convert this object to Sage.
+
+        A translation dictionary `locals` can be provided to map Kash
+        names and objects to Sage objects.
+
+        EXAMPLES::
+
+            sage: kash('1234').sage()                   # optional -- kash
+            1234
+
+            sage: kash('X^2+X').sage({'X': x})          # optional -- kash
+            x^2 + x
+
+            sage: kQ = kash.RationalField()             # optional -- kash
+            sage: kR = kQ.PolynomialAlgebra()           # optional -- kash
+
+            sage: R.<x> = QQ[]                          # optional -- kash
+            sage: ka = (x^2+x).subs({x : kR.1})         # random; optional -- kash
+            sage541.1^2 + sage541.1
+            sage: ka.sage({kR.1: x})                    # known bug; optional -- kash
+            x^2 + x
+
+            sage: R.<x,y> = QQ[]                        # optional -- kash
+            sage: ka = (x^2+x).subs({x : kR.1})         # random; optional -- kash
+            sage541.1^2 + sage541.1
+            sage: ka.sage({kR.1: x})                    # optional -- kash
+            x^2 + x
+
+        """
+
+        string = self._sage_repr()
+
+        for key in locals:
+           string = string.replace(str(key), str(locals[key]))
+
+        try:
+            return sage_eval(string, vars={str(locals[x]):locals[x] for x in locals})
+        except Exception:
+            raise NotImplementedError("Unable to parse output: %s" % string)
 
 
 class KashDocumentation(list):

@@ -1696,19 +1696,19 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
            choose an appropriate conversion strategy
         """
         # TODO: Refactor imports to move this to the top
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.polynomial.polydict import ETuple
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
-        from sage.rings.quotient_ring import is_QuotientRing
+        from sage.rings.quotient_ring import QuotientRing_generic
 
         ring_is_fine = False
         if R is None:
             ring_is_fine = True
             R = self.sage_global_ring()
 
-        if is_QuotientRing(R):
+        if isinstance(R, QuotientRing_generic) and (ring_is_fine or can_convert_to_singular(R)):
             p = self.sage_poly(R.ambient(), kcache)
             return R(p)
 
@@ -1758,7 +1758,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
-        if is_MPolynomialRing(R) and (ring_is_fine or can_convert_to_singular(R)):
+        if isinstance(R, MPolynomialRing_polydict) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))

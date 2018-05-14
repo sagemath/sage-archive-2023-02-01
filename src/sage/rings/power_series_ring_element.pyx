@@ -1461,17 +1461,47 @@ cdef class PowerSeries(AlgebraElement):
             1 + 2*u^2 + u^6 + 2*u^8 + u^12 + 2*u^14 + O(u^20)
             sage: p.nth_root(4)**4
             1 + 2*u^2 + O(u^20)
+
+        TESTS:
+
+        Check that exact roots show infinite precision::
+
+            sage: ((1+x)^5).nth_root(5)
+            1 + x
+
+        Check precision on `O(x^r)`::
+
+            sage: O(x^4).nth_root(2)
+            O(x^2)
+            sage: O(x^4).nth_root(4)
+            O(x^1)
+
+        Check precision on higher valuation series::
+
+            sage: (x^5+x^6+O(x^7)).nth_root(5)
+            x + 1/5*x^2 + O(x^3)
         """
+
+        val = self.valuation()
+
+        if val is not infinity and val % n != 0:
+            raise ValueError("power series valuation is not a multiple of %s" % n)
+
+        maxprec = (val // n) + self.precision_relative()
+
         if prec is None:
-            prec = self.prec()
+            prec = maxprec
             if prec == infinity:
                 prec = self.parent().default_prec()
         else:
-            prec = min(self.prec(), prec)
+            prec = min(maxprec, prec)
 
         p = self.polynomial()
         q = p._nth_root_series(n, prec)
-        return self.parent()(q) + self.parent()(0).O(prec)
+        ans = self.parent()(q)
+        if not (self.prec() == infinity and q.degree() * n <= prec and q**n == p):
+            ans = ans.add_bigoh(prec)
+        return ans
 
     def cos(self, prec=infinity):
         r"""

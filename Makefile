@@ -9,7 +9,18 @@
 
 default: all
 
-build: all-build
+all: base-toolchain
+	$(MAKE) all-start
+
+build: base-toolchain
+	$(MAKE) all-build
+
+start: base-toolchain
+	$(MAKE) build-start
+
+sageruntime: base-toolchain
+	$(MAKE) all-sageruntime
+
 
 # The --stop flag below is just a random flag to induce graceful
 # breakage with non-GNU versions of make.

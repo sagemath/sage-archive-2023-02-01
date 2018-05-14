@@ -640,7 +640,6 @@ if test x`uname` = xDarwin; then
         fi
     fi
 ]
-    SAGE_SHOULD_INSTALL_GCC([XCode 9.3 is broken, see Trac 25113])
 
 ###########################################################################
 # (OS X only)

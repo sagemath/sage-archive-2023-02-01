@@ -93,8 +93,6 @@ from cpython.bytes cimport *
 from cysignals.memory cimport check_malloc, check_allocarray, sig_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
-from collections import Iterator, Sequence
-
 from sage.libs.gmp.mpz cimport *
 from sage.libs.linbox.fflas cimport fflas_trans_enum, fflas_no_trans, fflas_trans, \
     fflas_right, vector, list as std_list
@@ -121,6 +119,8 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 import sage.matrix.matrix_space as matrix_space
+from .args cimport MatrixArgs_init
+
 
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
@@ -417,16 +417,6 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         """
         Create a new matrix.
 
-        INPUT:
-
-        - ``parent`` - a matrix space
-
-        - ``entries`` - a list of entries or a scalar
-
-        - ``copy`` - ignroed
-
-        - ``coerce`` - perform modular reduction first?
-
         EXAMPLES::
 
             sage: A = random_matrix(GF(3),1000,1000)
@@ -471,24 +461,21 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             ....:      del C
             ....:      del D
             ....:      _ = gc.collect()
-
         """
-        if self._entries == NULL:
-            return
         sig_free(self._entries)
         sig_free(self._matrix)
 
-    def __init__(self, parent, entries, copy, coerce):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        r"""
         Create a new matrix.
 
         INPUT:
 
-        - ``parent`` - a matrix space
+        - ``parent`` -- a matrix space
 
-        - ``entries`` - a list of entries or a scalar
+        - ``entries`` -- see :func:`matrix`
 
-        - ``copy`` - ignroed
+        - ``copy`` -- ignored (for backwards compatibility)
 
         - ``coerce`` - perform modular reduction first?
 
@@ -518,44 +505,15 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [4618989 4618988]
             [      4 2639423]
         """
-        cdef celement e
-        cdef Py_ssize_t i, j, k
-        cdef celement *v
-        cdef long p
-        p = self._base_ring.characteristic()
-
-        R = self.base_ring()
-
-        # scalar?
-        if not isinstance(entries, (Iterator, Sequence)):
-            sig_on()
-            for i in range(self._nrows*self._ncols):
-                self._entries[i] = 0
-            sig_off()
-            if entries is None:
-                # zero matrix
-                pass
-            else:
-                e = R(entries)
-                if e != 0:
-                    for i in range(min(self._nrows, self._ncols)):
-                        self._matrix[i][i] = e
-            return
-
-        # all entries are given as a long iterable
-        if not isinstance(entries, (list, tuple)):
-            entries = list(entries)
-        if len(entries) != self._nrows * self._ncols:
-            raise IndexError("The vector of entries has the wrong length.")
-
-        k = 0
-        cdef long tmp
-
-        for i in range(self._nrows):
-            sig_check()
+        ma = MatrixArgs_init(parent, entries)
+        cdef long i, j
+        it = ma.iter(False)
+        R = ma.base
+        p = R.characteristic()
+        for i in range(ma.nrows):
             v = self._matrix[i]
-            for j in range(self._ncols):
-                x = entries[k]
+            for j in range(ma.ncols):
+                x = next(it)
                 if type(x) is int:
                     tmp = (<long>x) % p
                     v[j] = tmp + (tmp<0)*p
@@ -567,10 +525,9 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                     else:
                         v[j] = mpz_get_ui((<Integer>x).value)
                 elif coerce:
-                    v[j] = R(entries[k])
+                    v[j] = R(x)
                 else:
-                    v[j] = <celement>(entries[k])
-                k = k + 1
+                    v[j] = <celement>x
 
     cdef long _hash_(self) except -1:
         """

@@ -47,7 +47,7 @@ class Plantri(Executable):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
-        expected = "1 triangulation written"
+        expected = "1 triangulations written"
         if lines.find(expected) == -1:
             return FeatureTestResult(self, False,
                     reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))

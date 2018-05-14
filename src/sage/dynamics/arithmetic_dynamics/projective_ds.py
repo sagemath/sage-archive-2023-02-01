@@ -5022,7 +5022,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f.is_polynomial()
             False
 
-        TESTS::
+        TESTS:
+
+        See :trac:`25242`::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: F = DynamicalSystem([x^2+ y^2, x*y])

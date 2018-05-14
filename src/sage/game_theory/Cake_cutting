@@ -1,0 +1,36 @@
+diff --git a/src/sage/game_theory/catalog.py b/src/sage/game_theory/catalog.py
+index 3b87496..1daedaa 100644
+--- a/src/sage/game_theory/catalog.py
++++ b/src/sage/game_theory/catalog.py
+@@ -10,6 +10,7 @@ AUTHOR:
+ """
+ from sage.game_theory.normal_form_game import NormalFormGame
+ from sage.matrix.constructor import matrix
++from sage.functions.generalized import sign
+def CakeCutting():
+@@ -398,19 +399,97 @@ def CakeCutting():
+    There is a Nash equilibrium when every player gets their preferred share of the cake. Let us assume it to be a two player (A,B) game, and there be 2-pieces (j,k) of the cake. A prefers j more than k and B prefers k more than j.
+M = \begin{pmatrix}
+    5&10\\
+    6&3\\
+    \end{pmatrix}
+This can be implemented in Sage using the following : :
+sage : g = game_theory.CakeCutting()
+sage: g
+CakeCutting : Normal form game with the following utilities : {(0,0):[5,3],(0,1):[10,10],(1,0):[6,6],(1,1):[3,5]}
+sage: g.obtain_nash()
+[[(10,10),(6,6)]]
+"""
+M = matrix([[5,10],[6,3]])
+ g = NormalFormGame([M])
+     g.rename('CakeCutting: ' + repr(g))
+     return g
+diff --git a/src/sage/game_theory/named_games.py b/src/sage/game_theory/named_games.py
+index b9da09e..d7d9958 100644
+--- a/src/sage/game_theory/named_games.py
++++ b/src/sage/game_theory/named_games.py
+@@ -11,3 +11,4 @@ from sage.game_theory.catalog import HawkDove
+ from sage.game_theory.catalog import MatchingPennies
+ from sage.game_theory.catalog import Pigs
+ from sage.game_theory.catalog import PrisonersDilemma
++from sage.game_theory.catalog import RPS

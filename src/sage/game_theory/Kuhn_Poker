@@ -1,0 +1,76 @@
+iff --git a/src/sage/game_theory/catalog.py b/src/sage/game_theory/catalog.py
+index 3b87496..1daedaa 100644
+--- a/src/sage/game_theory/catalog.py
++++ b/src/sage/game_theory/catalog.py
+@@ -10,6 +10,7 @@ AUTHOR:
+ """
+ from sage.game_theory.normal_form_game import NormalFormGame
+ from sage.matrix.constructor import matrix
++from sage.functions.generalized import sign
+def KuhnPoker():
+@@ -398,19 +399,97 @@ def KuhnPoker():
+    Kuhn poker is a zero sum two player game. The deck includes only three cards. One card is dealt to each player, then the first player must bet or pass, then the second player may bet or pass. If any player chooses to bet the opposing player must bet as well in order to stay in the round. After both players pass or bet the player with the highest card wins the pot.
+Let m,n be the two players and the three cards be jack(j), queen(q) and king(k), and there are two strategies available for each player namly, bet(b) or pass(p). Then one of the following six scenarios will take place:
+1: (m,j),(n,q)
+m/n    b      p
+b    (-1,1)    (-1,1)
+p    (-1,1)    (0,0)
+
+2: (m,j),(n,k)
+m/n    b      p
+b    (-1,1)    (-1,1)
+p    (-1,1)    (0,0)
+
+3: (m,q),(n,j)
+m/n    b    p
+b    (1,-1)    (1,-1)
+p    (1,-1)    (0,0)
+
+4: (m,q),(n,k)
+m/n    b    p
+b    (-1,1)    (-1,1)
+p    (-1,1)    (0,0)
+
+5: (m,k),(n,j)
+m/n    b    p
+b    (1,-1)    (1,-1)
+p    (1,-1)    (0,0)
+
+6: (m,k),(n,q)
+m/n    b    p
+b    (1,-1)    (1,-1)
+p    (1,-1)    (0,0)
+//for player m, and for scenarios 3,5 and 6//
+M = \begin{pmatrix}
+    1&1\\
+    1&0\\
+    \end{pmatrix}
+//Similarly, for scenarios 1,2 and 4//
+M = \begin{pmatrix}
+    -1&-1\\
+    -1&0\\
+    \end{pmatrix}
+
+This can be implemented in Sage using the following : :
+sage : g = game_theory.KuhnPoker()
+sage: g
+//for scenarios 1,2 and 4//
+KuhnPoker : Normal form game with the following utilities : {(0,0):[-1,1],(0,1):[-1,1],(1,0):[-1,1],(1,1):[0,0]}
+//for scenarios 3,5 and 6//
+KuhnPoker : Normal form game with the following utilities : {(0,0):[1,-1],(0,1):[1,-1],(1,0):[1,-1],(1,1):[0,0]}
+sage: g.obtain_nash()
+[[(10,10),(6,6)]]
+"""
+M = matrix([[5,10],[6,3]])
+ g = NormalFormGame([M])
+     g.rename('KuhnPoker: ' + repr(g))
+     return g
+diff --git a/src/sage/game_theory/named_games.py b/src/sage/game_theory/named_games.py
+index b9da09e..d7d9958 100644
+--- a/src/sage/game_theory/named_games.py
++++ b/src/sage/game_theory/named_games.py
+@@ -11,3 +11,4 @@ from sage.game_theory.catalog import HawkDove
+ from sage.game_theory.catalog import MatchingPennies
+ from sage.game_theory.catalog import Pigs
+ from sage.game_theory.catalog import PrisonersDilemma
++from sage.game_theory.catalog import RPS

@@ -831,8 +831,13 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: M.divides(N)
             True
         """
-        q,r = self.quo_rem(other)
-        return r
+        try:
+            quo_rem = self.quo_rem
+        except AttributeError:
+            raise NotImplementedError
+        else:
+            q, r = quo_rem(other)
+            return r
 
     def change_ring(self, R):
         """

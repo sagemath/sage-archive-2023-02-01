@@ -1873,7 +1873,7 @@ cdef class MPolynomial(CommutativeRingElement):
         except AttributeError:
             raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
         else:
-            return doit(uniself, other.polynomial(x))
+            return self.parent()(doit(uniself, other.polynomial(x)))
 
     def nth_root(self, n):
         r"""

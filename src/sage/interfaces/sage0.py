@@ -148,8 +148,15 @@ class Sage(ExtraTabCompletion, Expect):
 
         if init_code is None:
             init_code = []
-        elif isinstance(init_code, list):
-            init_code = list(init_code)
+        elif isinstance(init_code, string_types):
+            init_code = init_code.splitlines()
+        else:
+            try:
+                init_code = list(init_code)
+            except TypeError:
+                raise TypeError(
+                    'init_code should be a string or an iterable of lines '
+                    'of code')
 
         if python:
             command = "python -u"

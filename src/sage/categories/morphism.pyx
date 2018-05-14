@@ -383,7 +383,7 @@ cdef class Morphism(Map):
         .. NOTE::
 
             Be careful when overriding this method. Often morphisms are used
-            (incorrecly) in constructs such as ``if f: # do something`` where
+            (incorrectly) in constructs such as ``if f: # do something`` where
             the author meant to write ``if f is not None: # do something``.
             Having morphisms return ``False`` here can therefore lead to subtle
             bugs.

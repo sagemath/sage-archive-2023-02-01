@@ -19,7 +19,7 @@ from __future__ import absolute_import
 from .args cimport MatrixArgs
 
 
-class MatrixFactory(object):
+def matrix(*args, **kwds):
     """
     Create a matrix.
 
@@ -622,10 +622,9 @@ class MatrixFactory(object):
     - Jeroen Demeyer (2018-02-20): completely rewritten using
       :class:`MatrixArgs`, see :trac:`24742`
     """
-    def __call__(self, *args, **kwds):
-        return MatrixArgs(*args, **kwds).matrix()
+    return MatrixArgs(*args, **kwds).matrix()
 
 
-Matrix = matrix = MatrixFactory()
+Matrix = matrix
 
 from .special import *

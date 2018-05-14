@@ -17,6 +17,7 @@ from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
 
 from .expnums import expnums
 
+from sage.combinat.chas.all import *
 from sage.combinat.crystals.all import *
 from .rigged_configurations.all import *
 
@@ -143,6 +144,7 @@ from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
+from .superpartition import SuperPartition, SuperPartitions
 
 from .root_system.all import *
 from .sf.all import *

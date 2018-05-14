@@ -139,7 +139,7 @@ def hilbert_class_polynomial(D, algorithm=None):
     # NB: [https://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
     # incorrect.  Enge writes (2009-04-20 email to John Cremona) "The
     # source is my paper on class polynomials
-    # [http://hal.inria.fr/inria-00001040] It was pointed out to me by
+    # [https://hal.inria.fr/inria-00001040] It was pointed out to me by
     # the referee after ANTS that the constant given there was
     # wrong. The final version contains a corrected constant on p.7
     # which is consistent with your example. It says:
@@ -317,7 +317,6 @@ def cm_orders(h, proof=None):
         84
     """
     h = Integer(h)
-    T = None
     if h <= 0:
         # trivial case
         return []

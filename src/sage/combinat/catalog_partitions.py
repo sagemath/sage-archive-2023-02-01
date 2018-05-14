@@ -8,13 +8,7 @@ Partitions
 - :ref:`sage.combinat.partition`
 - :ref:`sage.combinat.skew_partition`
 - :ref:`sage.combinat.partition_tuple`
-- :ref:`sage.combinat.partition_kleshchev`
-- :ref:`sage.combinat.core`
-
-Tableaux
---------
-
-- :ref:`sage.combinat.tableau`
+- :ref:`sage.combinat.superpartition`
 - :ref:`sage.combinat.tableau_tuple`
 - :ref:`sage.combinat.skew_tableau`
 - :ref:`sage.combinat.ribbon`

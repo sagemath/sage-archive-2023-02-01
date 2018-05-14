@@ -6749,7 +6749,7 @@ cdef class Matroid(SageObject):
 
         # Construct ``Y``: a list of all elements of ``X``
         # in order of weakly decreasing weight.
-        # and a dictionary that gives the weights of the elementns of X.
+        # and a dictionary that gives the weights of the elements of X.
         else:
             wt = []
             wt_dic = {}

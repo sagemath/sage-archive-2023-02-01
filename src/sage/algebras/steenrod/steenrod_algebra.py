@@ -3454,7 +3454,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 else:
                     return len(mono[0]) + 2 * sum(mono[1])
 
-            p = self.prime()
             a = self.milnor()
             if not self.parent()._generic:
                 excesses = [sum(mono) for mono in a.support()]

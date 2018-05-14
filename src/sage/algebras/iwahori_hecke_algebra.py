@@ -1199,7 +1199,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: selt.specialize_to(GA, 1)
                     T[1,2,1] + 3*T[1] + T[3]
                 """
-                hecke = self.parent().realization_of()
                 q1 = new_hecke._q1
                 q2 = new_hecke._q2
                 new_basis = getattr(new_hecke, self.parent()._basis_name)()

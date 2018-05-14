@@ -159,8 +159,8 @@ class Sage(ExtraTabCompletion, Expect):
                     'of code')
 
         if python:
-            command = "python -u"
-            prompt = re.compile(b">>> ")
+            command = 'python -u'
+            prompt = re.compile(b'>>> ')
             init_code.append('from sage.all import *')
         else:
             command = ' '.join([
@@ -260,13 +260,13 @@ class Sage(ExtraTabCompletion, Expect):
         if self.is_local():
             with open(self._local_tmpfile(), 'wb') as fobj:
                 fobj.write(cPickle.dumps(x, 2))
-            code = "_sage0_load_local({!r})".format(self._local_tmpfile())
+            code = '_sage0_load_local({!r})'.format(self._local_tmpfile())
             return SageElement(self, code)
         else:
             with open(self._local_tmpfile(), 'wb') as fobj:
                 fobj.write(dumps(x))   # my dumps is compressed by default
             self._send_tmpfile_to_server()
-            code = "_sage0_load_remote({!r})".format(self._remote_tmpfile())
+            code = '_sage0_load_remote({!r})'.format(self._remote_tmpfile())
             return SageElement(self, code)
 
     def __reduce__(self):
@@ -541,7 +541,7 @@ class SageFunction(FunctionElement):
         kwds = [(k, P(v)) for k, v in iteritems(kwds)]
 
         arg_str = ','.join(x.name() for x in args)
-        kwd_str = ",".join("%s=%s" % (k, v.name()) for k, v in kwds)
+        kwd_str = ','.join('%s=%s' % (k, v.name()) for k, v in kwds)
 
         if arg_str and kwd_str:
             args_str = '%s,%s' % (arg_str, kwd_str)

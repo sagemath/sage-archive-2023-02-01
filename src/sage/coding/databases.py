@@ -276,7 +276,7 @@ def self_orthogonal_binary_codes(n, k, b=2, parent=None, BC=None, equal=False,
     Since all the codes will be self-orthogonal, b must be divisible by
     2::
 
-        sage: list(self_orthogonal_binary_codes(8, 4, 1, equal=True))
+        sage: list(codes.databases.self_orthogonal_binary_codes(8, 4, 1, equal=True))
         Traceback (most recent call last):
         ...
         ValueError: b (1) must be a positive even integer.

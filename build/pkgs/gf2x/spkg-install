@@ -21,12 +21,6 @@ else
     export CFLAGS="-O2 -g $CFLAGS"
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-    echo "Building a 64-bit version of gf2x."
-    export ABI=64
-    CFLAGS="-m64 $CFLAGS"
-fi
-
 if [ "$SAGE_FAT_BINARY" = "yes" ]; then
     echo "Building a generic gf2x library."
     GF2X_CONFIGURE="--disable-hardware-specific-code $GF2X_CONFIGURE"

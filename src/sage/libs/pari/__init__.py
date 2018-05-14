@@ -201,6 +201,10 @@ def _get_pari_instance():
     from sage.ext.memory import init_memory_functions
     init_memory_functions()
 
+    # PARI sets debugmem=1 by default but we do not want those warning
+    # messages in Sage.
+    P.default("debugmem", 0)
+
     return P
 
 pari = _get_pari_instance()

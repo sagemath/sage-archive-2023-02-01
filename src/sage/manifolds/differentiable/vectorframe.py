@@ -1093,8 +1093,13 @@ class VectorFrame(FreeModuleBasis):
                 raise ValueError("the provided domain is not a subdomain of " +
                                  "the current frame's domain")
             sdest_map = self._dest_map.restrict(subdomain)
-            res = VectorFrame(subdomain.vector_field_module(sdest_map,
-                                                            force_free=True),
+            resmodule = subdomain.vector_field_module(sdest_map,
+                                                      force_free=True)
+            if subdomain in self._restrictions:
+                # the restriction has been generated during the creation of
+                # resmodule (which may happen if sdest_map is not trivial)
+                return self._restrictions[subdomain]
+            res = VectorFrame(resmodule,
                               self._symbol, latex_symbol=self._latex_symbol,
                               indices=self._indices,
                               latex_indices=self._latex_indices,

@@ -99,6 +99,10 @@ from __future__ import absolute_import
 import operator
 
 from .infinity import infinity, is_Infinite
+
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import sage.misc.misc
@@ -1048,6 +1052,42 @@ cdef class PowerSeries(AlgebraElement):
         if isinstance(other, (int, Integer, long)):
             return PowerSeriesRing(IntegerModRing(other), self.variable())(self)
         raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
+
+    def __pow__(self, r, dummy):
+        """
+        EXAMPLES::
+
+            sage: x = QQ[['x']].0
+            sage: f = x^2 + x^4 + O(x^6)
+            sage: f^(1/2)
+            x + 1/2*x^3 + O(x^5)
+            sage: f^7
+            x^14 + 7*x^16 + O(x^18)
+            sage: f^(7/2)
+            x^7 + 7/2*x^9 + O(x^11)
+            sage: h = x^2 + 2*x^4 + x^6
+            sage: h^(1/2)
+            x + x^3
+            sage: O(x^4)^(1/2)
+            O(x^2)
+
+        """
+        right=int(r)
+        if right == r:
+            return super().__pow__(r, dummy)
+
+        try:
+            right=QQ(r)
+        except TypeError:
+            raise ValueError("exponent must be a rational number")
+
+        if self.is_zero():
+            return self.parent()(0).O((self.prec()*right).floor())
+
+        d = right.denominator()
+        n = right.numerator()
+
+        return self.nth_root(d)**n
 
     def shift(self, n):
         r"""

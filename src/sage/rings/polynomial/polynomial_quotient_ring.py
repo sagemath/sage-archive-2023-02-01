@@ -1587,7 +1587,6 @@ class PolynomialQuotientRing_generic(CommutativeRing):
 
         TESTS::
 
-            sage: k = GF(4)
             sage: k.<a> = GF(4)
             sage: R.<b> = k[]
             sage: l.<b> = k.extension(b^2 + b + a)

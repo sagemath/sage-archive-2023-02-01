@@ -22,6 +22,12 @@ jobs:
   # we do build & test & release in one step.
   build:
     machine: true
+    # Build for all tags
+    tags:
+      only: /.*/
+    # Build for all branches
+    branches:
+      only: /.*/
     steps:
       - checkout
       - run:

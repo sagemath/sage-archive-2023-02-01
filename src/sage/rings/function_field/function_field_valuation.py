@@ -298,10 +298,10 @@ class FunctionFieldValuationFactory(UniqueFactory):
         Check that :trac:`25294` has been resolved::
 
             sage: K.<x> = FunctionField(QQ)
-			sage: R.<y> = K[]
-			sage: L.<y> = K.extension(y^3 + 1/x^3*y + 2/x^4)
-			sage: v = K.valuation(x)
-			sage: v.extensions(L)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 + 1/x^3*y + 2/x^4)
+            sage: v = K.valuation(x)
+            sage: v.extensions(L)
             [[ (x)-adic valuation, v(y) = 1 ]-adic valuation (in Function field in y defined by y^3 + x*y + 2*x^2 after y |--> 1/x^2*y),
              [ (x)-adic valuation, v(y) = 1/2 ]-adic valuation (in Function field in y defined by y^3 + x*y + 2*x^2 after y |--> 1/x^2*y)]
 

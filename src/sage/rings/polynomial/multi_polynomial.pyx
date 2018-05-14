@@ -1868,10 +1868,12 @@ cdef class MPolynomial(CommutativeRingElement):
         x = self._parent.gens()[-1]
         uniself = self.polynomial(x)
         unibase = uniself.base_ring()
-        if hasattr(unibase, "_gcd_univariate_polynomial"):
-            return self._parent(unibase._gcd_univariate_polynomial(uniself, other.polynomial(x)))
-        else:
+        try:
+            doit = unibase._gcd_univariate_polynomial
+        except AttributeError:
             raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
+        else:
+            return doit(uniself, other.polynomial(x))
 
     def nth_root(self, n):
         r"""

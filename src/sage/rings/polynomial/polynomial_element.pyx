@@ -4611,10 +4611,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if tgt.ngens() > 1 and tgt._has_singular:
             g = flatten(self).gcd(flatten(other))
             return flatten.section()(g)
-        if hasattr(self._parent._base, '_gcd_univariate_polynomial'):
-            return self._parent._base._gcd_univariate_polynomial(self, other)
-        else:
+        try:
+            doit = self._parent._base._gcd_univariate_polynomial
+        except AttributeError:
             raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self._parent._base)
+        else:
+            return doit(self, other)
 
     @coerce_binop
     def lcm(self, other):

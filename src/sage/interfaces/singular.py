@@ -1672,6 +1672,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: singular('z^4')
             (-z3-z2-z-1)
 
+        Test that :trac:`25297` is fixed::
+
+            sage: R.<x,y> = QQ[]
+            sage: SE.<xbar,ybar> = R.quotient(x^2 + y^2 - 1)
+            sage: P = ideal(xbar,ybar)
+            sage: P2 = P._singular_().sage()
+            sage: P2.0.lift().parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
         AUTHORS:
 
         - Martin Albrecht (2006-05-18)
@@ -1689,17 +1698,19 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # TODO: Refactor imports to move this to the top
         from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.polydict import PolyDict,ETuple
+        from sage.rings.polynomial.polydict import ETuple
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         from sage.rings.quotient_ring import QuotientRing_generic
-        from sage.rings.quotient_ring_element import QuotientRingElement
 
         ring_is_fine = False
         if R is None:
             ring_is_fine = True
             R = self.sage_global_ring()
+
+        if isinstance(R, QuotientRing_generic) and (ring_is_fine or can_convert_to_singular(R)):
+            p = self.sage_poly(R.ambient(), kcache)
+            return R(p)
 
         sage_repr = {}
         k = R.base_ring()
@@ -1747,7 +1758,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
-        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
+        if isinstance(R, MPolynomialRing_polydict) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))
@@ -1776,11 +1787,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
-            p = MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
-            if isinstance(R, MPolynomialRing_polydict):
-                return p
-            else:
-                return QuotientRingElement(R,p,reduce=False)
+            return R(sage_repr)
 
         elif is_PolynomialRing(R) and (ring_is_fine or can_convert_to_singular(R)):
 
@@ -1918,7 +1925,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: Q.sage()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
             sage: singular('x^2+y').sage()
-            x^2 + y
+            y
             sage: singular('x^2+y').sage().parent()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
 

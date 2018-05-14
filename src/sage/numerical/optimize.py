@@ -877,7 +877,7 @@ def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
         while True:
             from sage.numerical.mip import MIPSolverException
             try:
-                return binpacking(items, k=k, maximum=maximum)
+                return binpacking(items, k=k, maximum=maximum, solver=solver, verbose=verbose)
             except MIPSolverException:
                 k = k + 1
 

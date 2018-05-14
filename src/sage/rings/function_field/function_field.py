@@ -2353,7 +2353,7 @@ class RationalFunctionField(FunctionField):
         phi = S.hom([t])
         return sum([phi((denom * v[i]).numerator()) * x**i for i in range(len(v))]), denom
 
-    def _factor_univariate_polynomial(self, f, proof=True):
+    def _factor_univariate_polynomial(self, f):
         """
         Factor the univariate polynomial ``f`` over self.
 
@@ -2390,10 +2390,10 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
 
-        We check that ``proof`` parameter is passed to the underlying
-        polynomial (see :trac:`24510`). However, factoring over a function
-        field over a tower of finite fields does not work yet (see
-        :trac:`24533`)::
+        We check that the underlying polynomial honors the proof setting for
+        polynomials (see :trac:`24510` and :trac:`25360`.) However, factoring
+        over a function field over a tower of finite fields does not work yet
+        (see :trac:`24533`)::
 
             sage: k = GF(4)
             sage: k.<a> = GF(4)
@@ -2402,7 +2402,8 @@ class RationalFunctionField(FunctionField):
             sage: K.<x> = FunctionField(l)
             sage: R.<t> = K[]
             sage: F = t*x
-            sage: F.factor(proof=False)
+            sage: with proof.WithProof('polynomial', False):
+            ....:     F.factor()
             Traceback (most recent call last):
             ...
             TypeError: no conversion of this ring to a Singular ring defined
@@ -2415,7 +2416,7 @@ class RationalFunctionField(FunctionField):
             f = f.change_variable_name(old_variable_name + old_variable_name)
 
         F, d = self._to_bivariate_polynomial(f)
-        fac = F.factor(proof=proof)
+        fac = F.factor()
         x = f.parent().gen()
         t = f.parent().base_ring().gen()
         phi = F.parent().hom([x, t])

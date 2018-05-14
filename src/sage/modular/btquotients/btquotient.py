@@ -1484,7 +1484,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                     self._magma = magma
                 else:
                     self._magma = magma_session
-                magmap = self._magma(p)
+                self._magma(p)
                 # print("Warning: this input needs magma to work...")
             except RuntimeError:
                 raise NotImplementedError('Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.')
@@ -1990,8 +1990,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
         GH = lambda N,ker: Gamma0(N) if character is None else GammaH_constructor(N,ker)
-
-        divs = lev.divisors()
 
         def mumu(N):
             p = 1

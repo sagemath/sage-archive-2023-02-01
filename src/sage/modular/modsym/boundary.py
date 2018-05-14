@@ -689,7 +689,6 @@ class BoundarySpace_wtk_g0(BoundarySpace):
         """
         if self.weight()%2 != 0:
             return self(0)
-        N = self.level()
 
         # see if we've already found this cusp
         i = self._cusp_index(c)
@@ -851,7 +850,6 @@ class BoundarySpace_wtk_g1(BoundarySpace):
             (0, -1)
         """
         g = self._known_gens
-        N = self.level()
         for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
@@ -1061,7 +1059,6 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
             (3, 1)
         """
         g = self._known_gens
-        N = self.level()
         for i in range(len(g)):
             t, eps = self._is_equiv(cusp, g[i])
             if t:
@@ -1310,7 +1307,6 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             (1, -zeta10^2)
         """
         g = self._known_gens
-        N = self.level()
         for i in range(len(g)):
             t, s = self._is_equiv(cusp, g[i])
             if t:
@@ -1372,7 +1368,6 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             0
         """
         N    = self.level()
-        k    = self.weight()
         sign = self.sign()
         i, eps = self._cusp_index(c)
         if i != -1:

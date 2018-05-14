@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Alternating Sign Matrices
 
@@ -174,6 +175,21 @@ class AlternatingSignMatrix(Element):
             [0 0 1]
         """
         return repr(self._matrix)
+
+    def _unicode_art_(self):
+        """
+        Unicode art representation of ``self``.
+
+        TESTS::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: M._unicode_art_()
+            ⎛1 0 0⎞
+            ⎜0 1 0⎟
+            ⎝0 0 1⎠
+        """
+        return self._matrix._unicode_art_()
 
     def _richcmp_(self, other, op):
         """

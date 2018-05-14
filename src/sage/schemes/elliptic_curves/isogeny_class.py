@@ -619,7 +619,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
         The array of isogenies themselves is not filled out but only
         contains those used to construct the class, the other entries
-        containing the interger 0.  This will be changed when the
+        containing the integer 0.  This will be changed when the
         class :class:`EllipticCurveIsogeny` allowed composition.  In
         this case we used `2`-isogenies to go from 0 to 2 and from 1
         to 3, and `3`-isogenies to go from 0 to 1 and from 2 to 3::

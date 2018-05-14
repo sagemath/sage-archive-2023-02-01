@@ -1631,7 +1631,7 @@ class InteractiveLPProblem(SageObject):
             b = b.n().change_ring(QQ)
         F = self.feasible_set()
         if ymax is None:
-            ymax = max(map(abs, b) + [v[1] for v in F.vertices()])
+            ymax = max([abs(bb) for bb in b] + [v[1] for v in F.vertices()])
         if ymin is None:
             ymin = min([-ymax/4.0] + [v[1] for v in F.vertices()])
         if xmax is None:

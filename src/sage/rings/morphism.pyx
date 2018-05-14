@@ -1913,7 +1913,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             raise TypeError("The base ring must be a commutative ring")
         self._p = domain.characteristic()
         if not self._p.is_prime():
-            raise TypeError("The caracteristic of the base ring must be prime")
+            raise TypeError("the characteristic of the base ring must be prime")
         try:
             n = Integer(n)
         except TypeError:

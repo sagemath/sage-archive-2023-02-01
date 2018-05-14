@@ -997,7 +997,7 @@ cdef class FiniteField(Field):
         - ``basis`` -- a basis of the finite field as a vector space
           over the subfield. If not given, one is chosen automatically.
 
-        - ``map`` -- boolean (default: ``False``); if ``True``, isomophisms
+        - ``map`` -- boolean (default: ``False``); if ``True``, isomorphisms
           from and to the vector space are also returned.
 
         The ``basis`` maps to the standard basis of the vector space

@@ -17,28 +17,12 @@ Two classes implement differential forms, depending whether the manifold
 * :class:`DiffFormParal` when `M` is parallelizable
 * :class:`DiffForm` when `M` is not assumed parallelizable.
 
-.. NOTE::
-
-    A difference with the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm`
-    is that the present classes lie at the tensor field level. Accordingly, an
-    instance of :class:`DiffForm` or :class:`DiffFormParal` can have various
-    sets of components, each in a different coordinate system (or more
-    generally in a different coframe), while the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm`
-    considers differential forms at the component level in a fixed chart.
-    In this respect, the class
-    :class:`~sage.tensor.differential_form_element.DifferentialForm` is
-    closer to the class :class:`~sage.tensor.modules.comp.CompFullyAntiSym`
-    than to :class:`DiffForm`.
-
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013, 2014): initial version
 - Joris Vankerschaver (2010): developed a previous class,
-  :class:`~sage.tensor.differential_form_element.DifferentialForm` (cf. the
-  above note), which inspired the storage of the non-zero components as a
-  dictionary whose keys are the indices.
+  ``DifferentialForm`` (cf. :trac:`24444`), which inspired the storage of the
+  non-zero components as a dictionary whose keys are the indices.
 - Travis Scrimshaw (2016): review tweaks
 
 REFERENCES:

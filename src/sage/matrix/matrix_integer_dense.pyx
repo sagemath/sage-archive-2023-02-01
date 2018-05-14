@@ -63,6 +63,7 @@ from __future__ import absolute_import, print_function
 from libc.stdint cimport int64_t
 from libc.string cimport strcpy, strlen
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.ext.stdsage cimport PY_NEW
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 from cysignals.memory cimport sig_malloc, sig_free, check_allocarray
@@ -80,6 +81,7 @@ from sage.structure.proof.proof import get_flag as get_proof_flag
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
+from .args cimport SparseEntry, MatrixArgs_init
 
 #########################################################
 # PARI C library
@@ -244,27 +246,20 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_mat_clear(self._matrix)
 
-    def __init__(self, parent, entries, copy, coerce):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
         Initialize a dense matrix over the integers.
 
         INPUT:
 
+        - ``parent`` -- a matrix space over ``ZZ``
 
-        -  ``parent`` - a matrix space
+        - ``entries`` -- see :func:`matrix`
 
-        -  ``entries`` - list - create the matrix with those
-           entries along the rows.
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        -  ``other`` - a scalar; entries is coerced to an
-           integer and the diagonal entries of this matrix are set to that
-           integer.
-
-        -  ``coerce`` - whether need to coerce entries to the
-           integers (program may crash if you get this wrong)
-
-        -  ``copy`` - ignored (since integers are immutable)
-
+        - ``coerce`` -- if False, assume without checking that the
+          entries are of type :class:`Integer`.
 
         EXAMPLES:
 
@@ -305,8 +300,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         Actually it is only necessary that the input can be coerced to a
         list, so the following also works::
 
-            sage: v = reversed(range(4)); type(v)
-            <... 'listreverseiterator'>
+            sage: v = reversed(range(4))
             sage: A(v)
             [3 2]
             [1 0]
@@ -318,59 +312,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: v.parent()
             Full MatrixSpace of 1 by 100000 dense matrices over Integer Ring
         """
-        cdef Py_ssize_t i, j, k
-        cdef bint is_list
-        cdef Integer x
-        cdef list entries_list
-
-        if entries is None:
-            x = ZZ.zero()
-            is_list = False
-        elif isinstance(entries, (int,long,Element)):
-            try:
-                x = ZZ(entries)
-            except TypeError:
-                raise TypeError("unable to coerce entry to an integer")
-            is_list = False
-        elif type(entries) is list:
-            entries_list = entries
-            is_list = True
-        else:
-            entries_list = list(entries)
-            is_list = True
-        if is_list:
-            # Create the matrix whose entries are in the given entry list.
-            if len(entries_list) != self._nrows * self._ncols:
-                raise TypeError("entries has the wrong length")
-            if coerce:
-                k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
-                        x = ZZ(entries_list[k])
-                        k += 1
-                        # todo -- see integer.pyx and the TODO there; perhaps this could be
-                        # sped up by creating a mpz_init_set_sage function.
-                        fmpz_set_mpz(fmpz_mat_entry(self._matrix, i, j),(<Integer>x).value)
-            else:
-                k = 0
-                for i from 0 <= i < self._nrows:
-                    for j from 0 <= j < self._ncols:
-                        fmpz_set_mpz(fmpz_mat_entry(self._matrix, i,j),(<Integer> entries_list[k]).value)
-                        k += 1
-        else:
-            # If x is zero, make the zero matrix and be done.
-            if mpz_sgn(x.value) == 0:
-                fmpz_mat_zero(self._matrix)
-                return
-
-            # the matrix must be square:
-            if self._nrows != self._ncols:
-                raise TypeError("nonzero scalar matrix must be square")
-
-            # Now we set all the diagonal entries to x and all other entries to 0.
-            fmpz_mat_zero(self._matrix)
-            for i from 0 <= i < self._nrows:
-                fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,i), x.value)
+        ma = MatrixArgs_init(parent, entries)
+        cdef Integer z
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            z = <Integer>se.entry
+            fmpz_set_mpz(fmpz_mat_entry(self._matrix, se.i, se.j), z.value)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         """
@@ -537,7 +484,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ('1 61 f', 0)
 
         """
-        return self._export_as_string(32)
+        return str_to_bytes(self._export_as_string(32), 'ascii')
 
     cpdef _export_as_string(self, int base=10):
         """
@@ -592,13 +539,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     t[1] = <char>0
                     t = t + 1
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 
     def _unpickle(self, data, int version):
         if version == 0:
-            if isinstance(data, str):
+            if isinstance(data, bytes):
                 self._unpickle_version0(data)
             elif isinstance(data, list):
                 self._unpickle_matrix_2x2_version0(data)
@@ -1467,10 +1414,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             return self._mod_int_c(modulus)
 
     cdef _mod_two(self):
-        cdef Matrix_mod2_dense res
-        res = Matrix_mod2_dense.__new__(Matrix_mod2_dense, matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols, sparse=False), None, None, None)
-        res.__init__(matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols, sparse=False), self.list(), None, None)
-        return res
+        MS = matrix_space.MatrixSpace(IntegerModRing(2), self._nrows, self._ncols)
+        return Matrix_mod2_dense(MS, self, True, True)
 
     cdef _mod_int_c(self, mod_int p):
         from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
@@ -1617,7 +1562,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             The ordering for the factors `d_{i} | d_{i+1}` and for
             the placement of zeroes was chosen to agree with the output of
-            ``smith_form``.
+            :meth:`smith_form`.
 
             See the example for a pictorial description of such a basis.
 
@@ -2166,10 +2111,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         Return the elementary divisors of self, in order.
 
-
         .. warning::
 
-           This is MUCH faster than the smith_form function.
+           This is MUCH faster than the :meth:`smith_form` function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of *left* multiplication of this matrix.
@@ -2250,16 +2194,25 @@ cdef class Matrix_integer_dense(Matrix_dense):
         self.cache('elementary_divisors', d)
         return d[:]
 
-    def smith_form(self):
+    def smith_form(self, transformation=True, integral=None):
         r"""
-        Returns matrices S, U, and V such that S = U\*self\*V, and S is in
-        Smith normal form. Thus S is diagonal with diagonal entries the
-        ordered elementary divisors of S.
+        Return the smith normal form of this matrix, that is the diagonal
+        matrix `S` with diagonal entries the ordered elementary divisors of
+        this matrix.
 
-        .. warning::
+        INPUT:
 
-           The elementary_divisors function, which returns the
-           diagonal entries of S, is VASTLY faster than this function.
+        - ``transformation`` -- a boolean (default: ``True``); whether to
+          return the transformation matrices `U` and `V` such that `S=U\cdot
+          self\cdot V`.
+
+        - ``integral`` -- a subring of the base ring or ``True`` (default:
+          ``None``); ignored for matrices with integer entries.
+
+        .. NOTE::
+
+           The :meth:`elementary_divisors` function, which returns the diagonal
+           entries of `S`, is VASTLY faster than this function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of this matrix. They are ordered in
@@ -2320,10 +2273,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
            :meth:`elementary_divisors`
         """
         v = self.__pari__().matsnf(1).sage()
-        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
-        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
         # need to reverse order of rows of U, columns of V, and both of D.
         D = self.matrix_space()([v[2][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
+
+        if not transformation:
+            return D
+
+        if self._ncols == 0: v[0] = self.matrix_space(ncols = self._nrows)(1)
+        if self._nrows == 0: v[1] = self.matrix_space(nrows = self._ncols)(1)
 
         if self._ncols == 0:
             # silly special cases for matrices with 0 columns (PARI has a unique empty matrix)

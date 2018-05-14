@@ -284,6 +284,7 @@ class sage_build_cython(Command):
             cdivision=True,
             embedsignature=True,
             fast_getattr=True,
+            preliminary_late_includes_cy28=True,
             profile=self.profile,
         )
         self.compile_time_env = dict(
@@ -340,9 +341,8 @@ class sage_build_cython(Command):
         if self.cythonized_files is not None:
             return self.cythonized_files
 
-        dist = self.distribution
-        self.cythonized_files = find_extra_files(dist.packages,
-            ".", self.build_dir, ["ntlwrap.cpp"])
+        self.cythonized_files = list(find_extra_files(
+            ".", ["sage"], self.build_dir, ["ntlwrap.cpp"]).items())
 
         return self.cythonized_files
 
@@ -358,9 +358,7 @@ class sage_build_cython(Command):
 
         log.info("Updating Cython code....")
         t = time.time()
-        # We use [:] to change the list in-place because the same list
-        # object is pointed to from different places.
-        self.extensions[:] = cythonize(
+        extensions = cythonize(
             self.extensions,
             nthreads=self.parallel,
             build_dir=self.build_dir,
@@ -371,11 +369,18 @@ class sage_build_cython(Command):
             create_extension=self.create_extension,
             # Debugging
             gdb_debug=self.debug,
-            output_dir=self.build_dir,
+            output_dir=os.path.join(self.build_lib, "sage"),
             # Disable Cython caching, which is currently too broken to
             # use reliably: http://trac.sagemath.org/ticket/17851
             cache=False,
             )
+
+        # Filter out extensions with skip_build=True
+        extensions = [ext for ext in extensions if not getattr(ext, "skip_build", False)]
+
+        # We use [:] to change the list in-place because the same list
+        # object is pointed to from different places.
+        self.extensions[:] = extensions
 
         log.info("Finished Cythonizing, time: %.2f seconds." % (time.time() - t))
 
@@ -753,9 +758,6 @@ class sage_build_ext(build_ext):
         depends = sources + ext.depends
         if not (self.force or newer_group(depends, ext_filename, 'newer')):
             log.debug("skipping '%s' extension (up-to-date)", ext.name)
-            need_to_compile = False
-        elif getattr(ext, "skip_build", False):
-            log.debug("skipping '%s' extension (optional)", ext.name)
             need_to_compile = False
         else:
             log.info("building '%s' extension", ext.name)

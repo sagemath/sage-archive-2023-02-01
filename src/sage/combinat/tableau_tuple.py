@@ -3,7 +3,7 @@ TableauTuples
 
 A :class:`TableauTuple` is a tuple of tableaux. These objects arise naturally
 in representation theory of the wreath products of cyclic groups and the
-symmetric groups where the standard tableau tulpes index bases for the ordinary
+symmetric groups where the standard tableau tuples index bases for the ordinary
 irreducible representations. This generalises the well-known fact the ordinary
 irreducible representations of the symmetric groups have bases indexed by the
 standard tableaux of a given shape. More generally, :class:`TableauTuples`, or
@@ -274,14 +274,14 @@ class TableauTuple(CombinatorialElement):
 
     In sage a :class:`TableauTuple` looks an behaves like a real tuple of
     (level 1) :class:`Tableaux`. Many of the operations which are defined
-    on :class:`Tableau` extend to :class:`TableauTuples`. Tableau tulpes of
+    on :class:`Tableau` extend to :class:`TableauTuples`. Tableau tuples of
     level 1 are just ordinary :class:`Tableau`.
 
     In sage, the entries of :class:`Tableaux` can be very general, including
     arbitrarily nested lists, so some lists can be interpreted either as a
     tuple of tableaux or simply as tableaux. If it is possible to interpret
     the input to :class:`TableauTuple` as a tuple of tableaux then
-    :class:`TableauTuple` returns the corresponding tuple. Given a 1-tulpe of
+    :class:`TableauTuple` returns the corresponding tuple. Given a 1-tuple of
     tableaux the tableau itself is returned.
 
     EXAMPLES::
@@ -3320,7 +3320,7 @@ class StandardTableauTuples_shape(StandardTableauTuples):
     def __iter__(self):
         r"""
         Iterate through the finite class of :class:`StandardTableauTuples` of
-        a given :class:`PartitionTulpe` shape.
+        a given :class:`PartitionTuple` shape.
 
         The algorithm below is modelled on, but different than, the
         corresponding iterator for the standard tableau of partition shape. In

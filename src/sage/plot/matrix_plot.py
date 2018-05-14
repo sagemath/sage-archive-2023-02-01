@@ -271,7 +271,7 @@ def matrix_plot(mat, **options):
 
       The list of predefined color maps can be visualized in `matplotlib's
       documentation
-      <http://matplotlib.org/examples/color/colormaps_reference.html>`__. You
+      <https://matplotlib.org/examples/color/colormaps_reference.html>`__. You
       can also type ``import matplotlib.cm; matplotlib.cm.datad.keys()`` to list
       their names.
 

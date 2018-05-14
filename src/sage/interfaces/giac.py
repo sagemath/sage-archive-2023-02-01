@@ -230,6 +230,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
+from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.docs.instancedoc import instancedoc
@@ -491,7 +492,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             E.timeout = t
             return []
         E.timeout = t
-        v = E.before
+        v = bytes_to_str(E.before)
         E.expect(self._prompt)
         E.expect(self._prompt)
         return v.split()[1:]
@@ -714,14 +715,14 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
         EXAMPLES::
 
             sage: giac._true_symbol()
-            '1'
+            'true'
 
         ::
 
             sage: giac(2) == giac(2)
             True
         """
-        return '1'
+        return 'true'
 
     def _assign_symbol(self):
         """

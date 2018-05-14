@@ -68,7 +68,7 @@ For display options, see :meth:`Tableaux.options`.
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range, zip
-from six import add_metaclass
+from six import add_metaclass, text_type
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
@@ -299,6 +299,18 @@ class Tableau(ClonableList):
         else:
             return list(self) != other
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1],[2]])
+            sage: hash(tuple(t)) == hash(t)
+            True
+        """
+        return hash(tuple(self))
+
     def check(self):
         r"""
         Check that ``self`` is a valid straight-shape tableau.
@@ -467,11 +479,11 @@ class Tableau(ClonableList):
             └┘
         """
         from sage.typeset.unicode_art import UnicodeArt
-        return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
+        return UnicodeArt(self._ascii_art_table(use_unicode=True).splitlines())
 
     _ascii_art_repr = _repr_diagram
 
-    def _ascii_art_table(self, unicode=False):
+    def _ascii_art_table(self, use_unicode=False):
         """
         TESTS:
 
@@ -532,7 +544,7 @@ class Tableau(ClonableList):
         Unicode version::
 
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print(t._ascii_art_table(unicode=True))
+            sage: print(t._ascii_art_table(use_unicode=True))
             ┌────┬────┬────┬───┐
             │ 1  │ 2  │ 15 │ 7 │
             ├────┼────┼────┴───┘
@@ -544,7 +556,7 @@ class Tableau(ClonableList):
             └────┘
             sage: Tableaux().options.convention='french'
             sage: t = Tableau([[1,2,15,7],[12,5],[8,10],[9]])
-            sage: print(t._ascii_art_table(unicode=True))
+            sage: print(t._ascii_art_table(use_unicode=True))
             ┌────┐
             │ 9  │
             ├────┼────┐
@@ -556,7 +568,7 @@ class Tableau(ClonableList):
             └────┴────┴────┴───┘
             sage: Tableaux.options._reset()
         """
-        if unicode:
+        if use_unicode:
             import unicodedata
             v  = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL')
             h  = unicodedata.lookup('BOX DRAWINGS LIGHT HORIZONTAL')
@@ -569,20 +581,28 @@ class Tableau(ClonableList):
             uh = unicodedata.lookup('BOX DRAWINGS LIGHT UP AND HORIZONTAL')
             dh = unicodedata.lookup('BOX DRAWINGS LIGHT DOWN AND HORIZONTAL')
             vh = unicodedata.lookup('BOX DRAWINGS LIGHT VERTICAL AND HORIZONTAL')
+            from sage.typeset.unicode_art import unicode_art as art
         else:
             v = '|'
             h = '-'
             dl = dr = ul = ur = vr = vl = uh = dh = vh = '+'
+            from sage.typeset.ascii_art import ascii_art as art
 
         if not self:
             return dr + dl + '\n' + ur + ul
 
         # Get the widths of the columns
-        str_tab = [[str(_) for _ in row] for row in self]
+        str_tab = [[art(_) for _ in row] for row in self]
         col_widths = [1]*len(str_tab[0])
+        if use_unicode:
+            # Special handling of overline not adding to printed length
+            def get_len(e):
+                return len(e) - list(text_type(e)).count(u"\u0304")
+        else:
+            get_len = len
         for row in str_tab:
             for i,e in enumerate(row):
-                col_widths[i] = max(col_widths[i], len(e))
+                col_widths[i] = max(col_widths[i], get_len(e))
 
         matr = []  # just the list of lines
         l1 = ""
@@ -603,7 +623,7 @@ class Tableau(ClonableList):
                     l1 += vh + h*(2+w)
                 else:
                     l1 += uh + h*(2+w)
-                if unicode:
+                if use_unicode:
                     l2 += u"{} {:^{width}} ".format(v, e, width=w)
                 else:
                     l2 += "{} {:^{width}} ".format(v, e, width=w)
@@ -619,7 +639,7 @@ class Tableau(ClonableList):
             return "\n".join(matr)
         else:
             output = "\n".join(reversed(matr))
-            if unicode:
+            if use_unicode:
                 tr = {
                     ord(dl): ul, ord(dr): ur,
                     ord(ul): dl, ord(ur): dr,
@@ -4067,6 +4087,195 @@ class Tableau(ClonableList):
         data = list(self.conjugate().entries())
         return permutation.Permutation(data).inverse().reduced_word_lexmin()
 
+    def hillman_grassl(self):
+        r"""
+        Return the image of the `\lambda`-array ``self`` under the
+        Hillman-Grassl correspondence (as a
+        :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
+
+        This relies on interpreting ``self`` as a `\lambda`-array
+        in the sense of :mod:`~sage.combinat.hillman_grassl`.
+
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        The Hillman-Grassl correspondence `H` is the map that sends a
+        `\lambda`-array `M` to a `\lambda`-rpp `H(M)` defined recursively
+        as follows:
+
+        * If all entries of `M` are `0`, then `H(M) = M`.
+
+        * Otherwise, let `s` be the index of the leftmost column of `M`
+          containing a nonzero entry.
+          Let `r` be the index of the bottommost nonzero entry in the
+          `s`-th column of `M`. Let `M'` be the `\lambda`-array obtained
+          from `M` by subtracting `1` from the `(r, s)`-th entry of `M`.
+          Let `Q = (q_{i, j})` be the image `H(M')` (which is already
+          defined by recursion).
+
+        * Define a sequence `((i_1, j_1), (i_2, j_2), \ldots,
+          (i_n, j_n))` of boxes in the diagram of `\lambda` (actually a
+          lattice path made of southward and westward steps) as follows:
+          Set `(i_1, j_1) = (r, \lambda_r)` (the rightmost box in the
+          `r`-th row of `\lambda`). If `(i_k, j_k)` is defined for some
+          `k \geq 1`, then `(i_{k+1}, j_{k+1})` is constructed as follows:
+          If `q_{i_k + 1, j_k}` is well-defined and equals `q_{i_k, j_k}`,
+          then we set `(i_{k+1}, j_{k+1}) = (i_k + 1, j_k)`.
+          Otherwise, if `j_k = s`, then the sequence ends here.
+          Otherwise, we set `(i_{k+1}, j_{k+1}) = (i_k, j_k - 1)`.
+
+        * Let `H(M)` be the array obtained from `Q` by adding `1` to
+          the `(i_k, j_k)`-th entry of `Q` for each
+          `k \in \{1, 2, \ldots, n\}`.
+
+        See [Gans1981]_ (Section 3) for this construction.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.hillman_grassl`
+            for the Hillman-Grassl correspondence as a standalone
+            function.
+
+            :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.hillman_grassl_inverse`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = Tableau([[2, 1, 1], [0, 2, 0], [1, 1]])
+            sage: A = a.hillman_grassl(); A
+            [[2, 2, 4], [2, 3, 4], [3, 5]]
+            sage: A.parent(), a.parent()
+            (Weak Reverse Plane Partitions, Tableaux)
+        """
+        from sage.combinat.hillman_grassl import (hillman_grassl,
+                                                  WeakReversePlanePartition)
+        return WeakReversePlanePartition(hillman_grassl(list(self)))
+
+    def sulzgruber_correspondence(self):
+        r"""
+        Return the image of the `\lambda`-array ``self`` under the
+        Sulzgruber correspondence (as a
+        :class:`~sage.combinat.hillman_grassl.WeakReversePlanePartition`).
+
+        This relies on interpreting ``self`` as a `\lambda`-array
+        in the sense of :mod:`~sage.combinat.hillman_grassl`.
+        See :mod:`~sage.combinat.hillman_grassl` for definitions
+        of the objects involved.
+
+        The Sulzgruber correspondence is the map `\Phi_\lambda`
+        from [Sulzgr2017]_ Section 7, and is the map
+        `\xi_\lambda^{-1}` from [Pak2002]_ Section 5.
+        It is denoted by `\mathcal{RSK}` in [Hopkins2017]_.
+        It is the inverse of the Pak correspondence
+        (:meth:`pak_correspondence`).
+        The following description of the Sulzgruber correspondence
+        follows [Hopkins2017]_ (which denotes it by `\mathcal{RSK}`):
+
+        Fix a partition `\lambda`
+        (see :meth:`~sage.combinat.partition.Partition`).
+        We draw all partitions and tableaux in English notation.
+
+        A `\lambda`-*array* will mean a tableau of shape `\lambda` whose
+        entries are nonnegative integers. (No conditions on the order of
+        these entries are made. Note that `0` is allowed.)
+
+        A *weak reverse plane partition of shape* `\lambda` (short:
+        `\lambda`-*rpp*) will mean a `\lambda`-array whose entries weakly
+        increase along each row and weakly increase along each column.
+
+        We shall also use the following notation:
+        If `(u, v)` is a cell of `\lambda`, and if `\pi` is a
+        `\lambda`-rpp, then:
+
+        * the *lower bound* of `\pi` at `(u, v)` (denoted by
+          `\pi_{<(u, v)}`) is defined to be
+          `\max \{ \pi_{u-1, v} , \pi_{u, v-1} \}` (where
+          `\pi_{0, v}` and `\pi_{u, 0}` are understood to mean `0`).
+
+        * the *upper bound* of `\pi` at `(u, v)` (denoted by
+          `\pi_{>(u, v)}`) is defined to be
+          `\min \{ \pi_{u+1, v} , \pi_{u, v+1} \}`
+          (where `\pi_{i, j}` is understood to mean `+ \infty`
+          if `(i, j)` is not in `\lambda`; thus, the upper
+          bound at a corner cell is `+ \infty`).
+
+        * *toggling* `\pi` at `(u, v)` means replacing the entry
+          `\pi_{u, v}` of `\pi` at `(u, v)` by
+          `\pi_{<(u, v)} + \pi_{>(u, v)} - \pi_{u, v}`
+          (this is well-defined as long as `(u, v)` is not a
+          corner of `\lambda`).
+
+        Note that every `\lambda`-rpp `\pi` and every cell
+        `(u, v)` of `\lambda` satisfy
+        `\pi_{<(u, v)} \leq \pi_{u, v} \leq \pi_{>(u, v)}`.
+        Note that toggling a `\lambda`-rpp (at a cell that is not
+        a corner) always results in a `\lambda`-rpp. Also,
+        toggling is an involution).
+
+        The Pak correspondence `\xi_\lambda` sends a `\lambda`-rpp `\pi`
+        to a `\lambda`-array `\xi_\lambda(\pi)`. It is defined by
+        recursion on `\lambda` (that is, we assume that `\xi_\mu` is
+        already defined for every partition `\mu` smaller than
+        `\lambda`), and its definition proceeds as follows:
+
+        * If `\lambda = \varnothing`, then `\xi_\lambda` is the
+          obvious bijection sending the only `\varnothing`-rpp
+          to the only `\varnothing`-array.
+
+        * Pick any corner `c = (i, j)` of `\lambda`, and let `\mu`
+          be the result of removing this corner `c` from the partition
+          `\lambda`.
+          (The exact choice of `c` is immaterial.)
+
+        * Let `\pi'` be what remains of `\pi` when the corner cell `c`
+          is removed.
+
+        * For each positive integer `k` such that `(i-k, j-k)` is a
+          cell of `\lambda`, toggle `\pi'` at `(i-k, j-k)`.
+          (All these togglings commute, so the order in which they
+          are made is immaterial.)
+
+        * Let `M = \xi_\mu(\pi')`.
+
+        * Extend the `\mu`-array `M` to a `\lambda`-array `M'` by
+          adding the cell `c` and writing the number
+          `\pi_{i, j} - \pi_{<(i, j)}` into this cell.
+
+        * Set `\xi_\lambda(\pi) = M'`.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.hillman_grassl.sulzgruber_correspondence`
+            for the Sulzgruber correspondence as a standalone function.
+
+            :meth:`~sage.combinat.hillman_grassl.WeakReversePlanePartition.pak_correspondence`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: a = Tableau([[2, 1, 1], [0, 2, 0], [1, 1]])
+            sage: A = a.sulzgruber_correspondence(); A
+            [[0, 1, 4], [1, 5, 5], [3, 6]]
+            sage: A.parent(), a.parent()
+            (Weak Reverse Plane Partitions, Tableaux)
+
+            sage: a = Tableau([[1, 3], [0, 1]])
+            sage: a.sulzgruber_correspondence()
+            [[0, 4], [1, 5]]
+        """
+        from sage.combinat.hillman_grassl import (sulzgruber_correspondence,
+                                                  WeakReversePlanePartition)
+        return WeakReversePlanePartition(sulzgruber_correspondence(list(self)))
+
 class SemistandardTableau(Tableau):
     """
     A class to model a semistandard tableau.
@@ -4741,11 +4950,13 @@ class Tableaux(UniqueRepresentation, Parent):
             Tableaux
             sage: Tableaux(3)
             Tableaux of size 3
+            sage: Tableaux(n=3)
+            Tableaux of size 3
         """
         if args:
             n = args[0]
         elif 'n' in kwargs:
-            n = kwargs[n]
+            n = kwargs['n']
         else:
             n = None
 
@@ -6448,6 +6659,8 @@ class StandardTableaux(SemistandardTableaux):
             Standard tableaux of shape [2, 1]
             sage: StandardTableaux(0)
             Standard tableaux of size 0
+            sage: StandardTableaux(n=3)
+            Standard tableaux of size 3
 
             sage: StandardTableaux(-1)
             Traceback (most recent call last):
@@ -6464,7 +6677,7 @@ class StandardTableaux(SemistandardTableaux):
         if args:
             n = args[0]
         elif 'n' in kwargs:
-            n = kwargs[n]
+            n = kwargs['n']
         else:
             n = None
 
@@ -7153,7 +7366,7 @@ class Tableau_class(Tableau):
 
         TESTS::
 
-            sage: loads('x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')
+            sage: loads(b'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+IL\xcaIM,\xe5\n\x81\xd0\xf1\xc99\x89\xc5\xc5\\\x85\x8c\x9a\x8d\x85L\xb5\x85\xcc\x1a\xa1\xac\xf1\x19\x89\xc5\x19\x85,~@VNfqI!kl![l!;\xc4\x9c\xa2\xcc\xbc\xf4b\xbd\xcc\xbc\x92\xd4\xf4\xd4"\xae\xdc\xc4\xec\xd4x\x18\xa7\x90#\x94\xd1\xb05\xa8\x9031\xb14I\x0f\x00\xf6\xae)7')
             [[1]]
             sage: loads(dumps( Tableau([[1]]) ))
             [[1]]

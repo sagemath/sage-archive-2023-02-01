@@ -949,7 +949,7 @@ class kSchur(CombinatorialFreeModule):
         sage: ks2([1])^2
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand type(s) for ** or pow(): 'kSchur_with_category.element_class' and 'int'
+        TypeError: unsupported operand parent(s) for ^: '2-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 2-Schur basis' and 'Integer Ring'
 
     .. TODO::
 

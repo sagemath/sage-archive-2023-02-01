@@ -456,7 +456,7 @@ cdef class IdentityMorphism(Morphism):
         else:
             return left
 
-    def __pow__(self, n, dummy):
+    cpdef _pow_int(self, n):
         return self
 
     def __invert__(self):

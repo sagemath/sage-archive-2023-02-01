@@ -152,7 +152,7 @@ class ChowCycle(FGP_Element):
 
         Do not construct :class:`ChowCycle` objects manually. Instead,
         use the parent :class:`ChowGroup<ChowGroup_class>` to obtain
-        generators or Chow cycles correspondig to cones of the fan.
+        generators or Chow cycles corresponding to cones of the fan.
 
     EXAMPLES::
 

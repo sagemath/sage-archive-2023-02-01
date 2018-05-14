@@ -526,7 +526,7 @@ def test_relation_maxima(relation):
         return False
 
     difference = relation.lhs() - relation.rhs()
-    if repr(difference) == '0':
+    if difference.is_trivial_zero():
         return True
 
     # Try to apply some simplifications to see if left - right == 0.
@@ -543,7 +543,7 @@ def test_relation_maxima(relation):
                  difference.simplify_trig()]
     for f in simp_list:
         try:
-            if repr( f() ).strip() == "0":
+            if f().is_trivial_zero():
                 return True
                 break
         except Exception:

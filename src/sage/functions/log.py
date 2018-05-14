@@ -1220,6 +1220,11 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             0.386627621982332
             sage: harmonic_number(3,5/2)
             1/27*sqrt(3) + 1/8*sqrt(2) + 1
+
+        TESTS::
+
+            sage: harmonic_number(int(3), int(3))
+            1.162037037037037
         """
         if m == 0:
             return z
@@ -1227,7 +1232,7 @@ class Function_harmonic_number_generalized(BuiltinFunction):
             return harmonic_m1._eval_(z)
 
         if z in ZZ and z >= 0:
-            return sum(1 / (k ** m) for k in range(1, z + 1))
+            return sum(ZZ(k) ** (-m) for k in range(1, z + 1))
 
     def _evalf_(self, z, m, parent=None, algorithm=None):
         """
@@ -1393,7 +1398,7 @@ class Function_harmonic_number(BuiltinFunction):
                 import sage.libs.flint.arith as flint_arith
                 return flint_arith.harmonic_number(z)
         elif z in QQ:
-            from sage.functions.other import psi1
+            from .gamma import psi1
             return psi1(z+1) - psi1(1)
 
     def _evalf_(self, z, parent=None, algorithm='mpmath'):

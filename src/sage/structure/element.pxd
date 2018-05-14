@@ -191,6 +191,10 @@ cdef class Element(SageObject):
     cdef _floordiv_(self, other)
     cdef _mod_(self, other)
 
+    cdef _pow_(self, other)
+    cdef _pow_int(self, n)
+    cdef _pow_long(self, long n)
+
 
 cdef class ElementWithCachedMethod(Element):
     cdef public dict __cached_methods
@@ -200,7 +204,8 @@ cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
-    cpdef _sub_(self, right)
+    cpdef _add_(self, other)
+    cpdef _sub_(self, other)
     cpdef _neg_(self)
 
     # self._rmul_(x) is x * self
@@ -209,16 +214,18 @@ cdef class ModuleElement(Element):
     cpdef _rmul_(self, Element left)
 
 cdef class MonoidElement(Element):
-    pass
+    cpdef _pow_int(self, n)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
-    cpdef _div_(self, right)
+    cpdef _div_(self, other)
 
 cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(ModuleElement):
-    cpdef _div_(self, right)
+    cpdef _mul_(self, other)
+    cpdef _div_(self, other)
+    cpdef _pow_int(self, n)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -233,11 +240,11 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     pass
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
-    cpdef _floordiv_(self, right)
-    cpdef _mod_(self, right)
+    cpdef _floordiv_(self, other)
+    cpdef _mod_(self, other)
 
 cdef class FieldElement(CommutativeRingElement):
-    cpdef _floordiv_(self, right)
+    cpdef _floordiv_(self, other)
 
 cdef class AlgebraElement(RingElement):
     pass

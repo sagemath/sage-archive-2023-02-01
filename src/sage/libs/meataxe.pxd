@@ -146,23 +146,3 @@ cdef extern from "meataxe.h":
 
     ctypedef void MtxErrorHandler_t(MtxErrorRecord_t*)
     MtxErrorHandler_t *MtxSetErrorHandler(MtxErrorHandler_t *h)
-
-###############################################################
-## It is needed to do some initialisation. Since meataxe is
-## a static library, it is needed to do this initialisation
-## by calling meataxe_init() in all modules calling MeatAxe
-## library functions
-
-from cpython.bytes cimport PyBytes_AsString
-
-cdef void sage_meataxe_error_handler(const MtxErrorRecord_t *err)
-
-cdef inline meataxe_init():
-    ## Assign to a variable that enables MeatAxe to find
-    ## its multiplication tables.
-    import os
-    from sage.env import DOT_SAGE
-    global MtxLibDir
-    MtxLibDir = PyBytes_AsString(os.path.join(DOT_SAGE,'meataxe'))
-    ## Error handling for MeatAxe, to prevent immediate exit of the program
-    MtxSetErrorHandler(sage_meataxe_error_handler)

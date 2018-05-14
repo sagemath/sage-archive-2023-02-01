@@ -24,7 +24,7 @@ Class hierarchy:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
+from __future__ import absolute_import, division
 from six.moves import range
 
 import sage.modular.hecke.element as element
@@ -2661,8 +2661,8 @@ class EisensteinSeries(ModularFormElement):
                 v.append(F(t-1)/F(24))
             else:
                 an = sigma(n,1)
-                if n%t == 0:
-                    an -= t * sigma(n/t,1)
+                if n % t == 0:
+                    an -= t * sigma(n//t,1)
                 v.append(an)
         return v
 

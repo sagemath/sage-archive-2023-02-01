@@ -241,7 +241,7 @@ The following should not timeout even on a very slow machine::
 
 As for ``reduce_locally``, one should not see any difference, except for speed
 during normal usage. Most of the time the user should leave it to ``True``,
-unless he sets up a mecanism to consume the partial results as soon as they
+unless he sets up a mechanism to consume the partial results as soon as they
 arrive. See :class:`RESetParallelIterator` and in particular the ``__iter__``
 method for a example of consumer use.
 
@@ -405,7 +405,7 @@ some work (ie: a node) from another worker. This is performed in the
 From the point of view of ``W`` here is what happens:
 
 - ``W`` signals to the master that it is idle :meth:`master._signal_task_done`;
-- ``W`` chose a victim ``V`` at random;
+- ``W`` chooses a victim ``V`` at random;
 - ``W`` sends a request to ``V`` : it puts its identifier into ``V._request``;
 - ``W`` tries to read a node from ``W._read_task``. Then three things may happen:
 

@@ -56,7 +56,7 @@ class Tarball(object):
             self.__package = None
             for pkg in Package.all():
                 if pkg.tarball_filename == tarball_name:
-                    self.__package = pkg
+                    self.__package = pkg.tarball_package
             if self.package is None:
                 error = 'tarball {0} is not referenced by any Sage package'.format(tarball_name)
                 log.error(error)

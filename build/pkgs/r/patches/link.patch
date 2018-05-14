@@ -1,0 +1,15 @@
+baseRegisterIndex should be declared extern
+
+Otherwise linking breaks at least on Solaris
+
+diff -ru R-3.4.3//src/include/GraphicsBase.h b/src/include/GraphicsBase.h
+--- R-3.4.3//src/include/GraphicsBase.h 2017-03-24 00:03:58.000000000 +0100
++++ b/src/include/GraphicsBase.h        2018-02-05 16:26:05.656947056 +0100
+@@ -41,6 +41,6 @@
+ 
+ void Rf_setBaseDevice(Rboolean val, pGEDevDesc dd); /* used in graphics.c */
+ 
+-int baseRegisterIndex;
++extern int baseRegisterIndex;
+ 
+ #endif /* R_GRAPHICSBASE_ */

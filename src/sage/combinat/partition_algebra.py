@@ -21,7 +21,7 @@ from six.moves import range
 from .combinat import catalan_number
 from .combinatorial_algebra import CombinatorialAlgebra, CombinatorialAlgebraElement
 from sage.combinat.set_partition import SetPartition, SetPartitions, SetPartitions_set
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 from sage.graphs.graph import Graph
 from sage.arith.all import factorial, binomial
 from .permutation import Permutations
@@ -90,7 +90,7 @@ class SetPartitionsXkElement(SetPartition):
         """
         #Check to make sure each element of x is a set
         for s in self:
-            assert isinstance(s, (set, frozenset)) or is_Set(s)
+            assert isinstance(s, (set, frozenset, Set_generic))
 
 #####
 #A_k#

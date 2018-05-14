@@ -129,6 +129,7 @@ Comprehensive Module list
     sage/combinat/growth
     sage/combinat/grossman_larson_algebras
     sage/combinat/hall_polynomial
+    sage/combinat/hillman_grassl
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists
     sage/combinat/integer_lists/invlex
@@ -282,6 +283,7 @@ Comprehensive Module list
     sage/combinat/sf/dual
     sage/combinat/sf/elementary
     sage/combinat/sf/hall_littlewood
+    sage/combinat/sf/hecke
     sage/combinat/sf/homogeneous
     sage/combinat/sf/jack
     sage/combinat/sf/k_dual
@@ -301,6 +303,7 @@ Comprehensive Module list
     sage/combinat/sf/sfa
     sage/combinat/sf/witt
     sage/combinat/shard_order
+    sage/combinat/shifted_primed_tableau
     sage/combinat/shuffle
     sage/combinat/sidon_sets
     sage/combinat/similarity_class_type

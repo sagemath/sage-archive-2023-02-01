@@ -106,7 +106,7 @@ class AutomorphismField(TensorField):
         sage: W = U.intersection(V)
         sage: a.add_comp_by_continuation(eV, W, c_uv)
 
-    At this stage, the automorphims field `a` is fully defined::
+    At this stage, the automorphism field `a` is fully defined::
 
         sage: a.display(eU)
         a = d/dx*dx + x d/dx*dy + 2 d/dy*dy

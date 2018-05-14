@@ -1110,7 +1110,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G.reynolds_operator(f, chi)
             Traceback (most recent call last):
             ...
-            NotImplementedError: nontrivial characters not implemented for charateristic > 0
+            NotImplementedError: nontrivial characters not implemented for characteristic > 0
             sage: G.reynolds_operator(f)
             x^6
 
@@ -1194,7 +1194,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                     L1 = fields[0].composite_fields(fields[1])[0]
                     L = L1.composite_fields(fields[2])[0]
         else:
-            raise NotImplementedError("nontrivial characters not implemented for charateristic > 0")
+            raise NotImplementedError("nontrivial characters not implemented for characteristic > 0")
         poly = poly.change_ring(L)
         poly_gens = vector(poly.parent().gens())
         F = L.zero()

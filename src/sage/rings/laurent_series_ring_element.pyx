@@ -69,8 +69,6 @@ AUTHORS:
 
 from __future__ import print_function, absolute_import
 
-import operator
-
 from .infinity import infinity
 
 import sage.rings.polynomial.polynomial_element as polynomial
@@ -168,7 +166,7 @@ cdef class LaurentSeries(AlgebraElement):
                 self.__u = f >> val
 
     def __reduce__(self):
-        return make_element_from_parent, (self._parent, self.__u, self.__n)
+        return self._parent, (self.__u, self.__n)
 
     def change_ring(self, R):
         """
@@ -560,6 +558,35 @@ cdef class LaurentSeries(AlgebraElement):
         R = self._parent.laurent_polynomial_ring()
         return R(self.__u.polynomial()) * R.gen()**(self.__n)
 
+    def lift_to_precision(self, absprec=None):
+        """
+        Return a congruent Laurent series with absolute precision at least
+        ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or ``None`` (default: ``None``), the
+          absolute precision of the result. If ``None``, lifts to an exact
+          element.
+
+        EXAMPLES::
+
+            sage: A.<t> = LaurentSeriesRing(GF(5))
+            sage: x = t^(-1) + t^2 + O(t^5)
+            sage: x.lift_to_precision(10)
+            t^-1 + t^2 + O(t^10)
+            sage: x.lift_to_precision()
+            t^-1 + t^2
+        """
+        if absprec is not None and absprec <= self.precision_absolute():
+            return self
+
+        exact = self._parent(0) if self.is_zero() else self._parent(self.list()) << self.__n
+        if absprec is None:
+            return exact
+        else:
+            return exact.add_bigoh(absprec)
+
     def __setitem__(self, n, value):
         """
         EXAMPLES::
@@ -710,13 +737,13 @@ cdef class LaurentSeries(AlgebraElement):
     def O(self, prec):
         r"""
         Return the Laurent series of precision at most ``prec`` obtained by
-        adding `O(q^\text{prec})`, where `q` is the variable. 
-        
+        adding `O(q^\text{prec})`, where `q` is the variable.
+
         The precision of ``self`` and the integer ``prec`` can be arbitrary. The
         resulting Laurent series will have precision equal to the minimum of
         the precision of ``self`` and ``prec``. The term `O(q^\text{prec})` is the
         zero series with precision ``prec``.
-       
+
         EXAMPLES::
 
             sage: R.<t> = LaurentSeriesRing(QQ)
@@ -1183,7 +1210,7 @@ cdef class LaurentSeries(AlgebraElement):
     def precision_relative(self):
         """
         Return the relative precision of this series, that
-        is the difference between its absolute precision  
+        is the difference between its absolute precision
         and its valuation.
 
         By convention, the relative precision of `0` (or
@@ -1513,6 +1540,3 @@ cdef class LaurentSeries(AlgebraElement):
             x = x[0]
 
         return self.__u(*x)*(x[0]**self.__n)
-
-def make_element_from_parent(parent, *args):
-    return parent(*args)

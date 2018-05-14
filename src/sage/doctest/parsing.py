@@ -39,7 +39,7 @@ from functools import reduce
 from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -113,6 +113,98 @@ def remove_unicode_u(string):
     return string
 
 
+_type_repr_re = re.compile(r"<type '(?P<name>[^']+)'>")
+
+def normalize_type_repr(s):
+    r"""
+    Convert the repr of type objects (e.g. ``int``, ``float``) from their
+    Python 2 representation to their Python 3 representation.
+
+    In Python 2, the repr of built-in types like ``int`` is like
+    ``<type 'int'>``, whereas user-defined pure Python classes are displayed
+    as ``<class 'classname'>``.  On Python 3 this was normalized so that
+    built-in types are represented the same as user-defined classes (e.g.
+    ``<class 'int'>``.
+
+    This simply normalizes all class/type reprs to the Python 3 convention for
+    the sake of output checking.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import normalize_type_repr
+        sage: s = "<type 'int'>"
+        sage: normalize_type_repr(s)
+        "<class 'int'>"
+        sage: normalize_type_repr(repr(float))
+        "<class 'float'>"
+
+    This can work on multi-line output as well::
+
+        sage: s = "The desired output was <class 'int'>\n"
+        sage: s += "The received output was <type 'int'>"
+        sage: print(normalize_type_repr(s))
+        The desired output was <class 'int'>
+        The received output was <class 'int'>
+
+    And should work when types are embedded in other nested expressions::
+
+        sage: normalize_type_repr(repr([Integer, float]))
+        "[<class 'sage.rings.integer.Integer'>, <class 'float'>]"
+    """
+
+    def subst(m):
+        return "<class '{0}'>".format(m.group('name'))
+
+    return _type_repr_re.sub(subst, s)
+
+
+_long_repr_re = re.compile(r'([+-]?[0-9]+)[lL]')
+def normalize_long_repr(s):
+    """
+    Simple conversion from Python 2 representation of ``long`` ints (that
+    is, integers with the ``L``) suffix, to the Python 3 representation
+    (same number, without the suffix, since Python 3 doesn't have a
+    distinct ``long`` type).
+
+    Note: This just uses a simple regular expression that can't distinguish
+    representations of long objects from strings containing a long repr.
+
+    EXAMPLES::
+        sage: from sage.doctest.parsing import normalize_long_repr
+        sage: normalize_long_repr('10L')
+        '10'
+        sage: normalize_long_repr('[10L, -10L, +10L, "ALL"]')
+        '[10, -10, +10, "ALL"]'
+    """
+
+    return _long_repr_re.sub(lambda m: m.group(1), s)
+
+
+# Collection of fixups applied in the SageOutputChecker.  Each element in this
+# this list a pair of functions applied to the actual test output ('g' for
+# "got") and the expected test output ('w' for "wanted").  The first function
+# should be a simple fast test on the expected and/or actual output to
+# determine if a fixup should be applied.  The second function is the actual
+# fixup, which is applied if the test function passes.  In most fixups only one
+# of the expected or recevied outputs are normalized, depending on the
+# application.
+# For example, on Python 3 we strip all u prefixes from unicode strings in the
+# expected output, because we never expect to see those on Python 3.
+if six.PY2:
+    _repr_fixups = []
+else:
+    _repr_fixups = [
+        (lambda g, w: 'u"' in w or "u'" in w,
+         lambda g, w: (g, remove_unicode_u(w))),
+
+        (lambda g, w: '<class' in g and '<type' in w,
+         lambda g, w: (g, normalize_type_repr(w))),
+
+        (lambda g, w: 'L' in w or 'l' in w,
+         lambda g, w: (g, normalize_long_repr(w)))
+    ]
+
+
 def parse_optional_tags(string):
     """
     Returns a set consisting of the optional tags from the following
@@ -122,6 +214,8 @@ def parse_optional_tags(string):
     - 'not implemented'
     - 'not tested'
     - 'known bug'
+    - 'py2'
+    - 'py3'
     - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
 
     EXAMPLES::
@@ -363,7 +457,7 @@ def make_marked_output(s, D):
     return ans
 
 
-class OriginalSource:
+class OriginalSource(object):
     r"""
     Context swapping out the pre-parsed source with the original for
     better reporting.
@@ -407,7 +501,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: OriginalSource(ex)
-            <sage.doctest.parsing.OriginalSource instance at ...>
+            <sage.doctest.parsing.OriginalSource object at ...>
         """
         self.example = example
 
@@ -454,6 +548,7 @@ class OriginalSource:
         """
         if hasattr(self.example, 'sage_source'):
             self.example.source = self.old_source
+
 
 class SageDocTestParser(doctest.DocTestParser):
     """
@@ -627,16 +722,19 @@ class SageDocTestParser(doctest.DocTestParser):
                 if optional_tags:
                     for tag in optional_tags:
                         self.optionals[tag] += 1
-                    if ('not implemented' in optional_tags) or ('not tested' in optional_tags):
+                    if (('not implemented' in optional_tags) or
+                            ('not tested' in optional_tags)):
                         continue
+
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not self.optional_tags is True:
+
+                    if self.optional_tags is not True:
                         extra = optional_tags - self.optional_tags # set difference
-                        if len(extra) > 0:
+                        if extra:
                             if not('external' in self.optional_tags
                                    and available_software.issuperset(extra)):
                                 continue
@@ -874,6 +972,14 @@ class SageOutputChecker(doctest.OutputChecker):
             [u'Fermat',  u'Euler']
             sage: c = u'you'; c
             u'you'
+
+        Also allowance for the difference in reprs of ``type`` instances (i.e.
+        classes) between Python 2 and Python 3::
+
+            sage: int
+            <type 'int'>
+            sage: float
+            <type 'float'>
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
@@ -899,13 +1005,20 @@ class SageOutputChecker(doctest.OutputChecker):
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
 
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        if ok or ('u"' not in want and "u'" not in want):
+
+        if ok:
             return ok
 
-        # accept the same answer where strings have unicode prefix u
-        # for smoother transition to python3
-        if not six.PY2:
-            want = remove_unicode_u(want)
+        did_fixup = False
+        for quick_check, fixup in _repr_fixups:
+            do_fixup = quick_check(got, want)
+            if do_fixup:
+                got, want = fixup(got, want)
+                did_fixup = True
+
+        if not did_fixup:
+            # Return the same result as before
+            return ok
 
         return doctest.OutputChecker.check_output(self, want, got, optionflags)
 

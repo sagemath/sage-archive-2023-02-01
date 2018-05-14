@@ -603,10 +603,10 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         sage: class MyClass(CachedRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         return cmp(self.value, other.value)
+        ....:     def __eq__(self, other):
+        ....:         if type(self) != type(other):
+        ....:             return False
+        ....:         return self.value == other.value
 
     Two coexisting instances of ``MyClass`` created with the same argument data
     are guaranteed to share the same identity. Since :trac:`12215`, this is
@@ -1260,12 +1260,6 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: class MyClass(UniqueRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         print("custom cmp")
-        ....:         return cmp(self.value, other.value)
-        ....:
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1290,26 +1284,22 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x.value, y.value
         (1, 1)
 
-    Rich comparison by identity is used when possible (hence, for ``==``, for
-    ``!=``, and for identical arguments in the case of ``<``, ``<=``, ``>=``
-    and ``>``), which is as fast as it can get. Only if identity is not enough
-    to decide the answer of a comparison, the custom comparison is called::
+    When comparing two instances of a unique representation with ``==``
+    or ``!=`` comparison by identity is used::
 
         sage: x == y
         True
-        sage: z = MyClass(2)
-        sage: x == z, x is z
-        (False, False)
-        sage: x <= x
+        sage: x is y
         True
+        sage: z = MyClass(2)
+        sage: x == z
+        False
+        sage: x is z
+        False
+        sage: x != y
+        False
         sage: x != z
         True
-        sage: x <= z
-        custom cmp
-        True
-        sage: x > z
-        custom cmp
-        False
 
     A hash function equivalent to :meth:`object.__hash__` is used, which is
     compatible with comparison by identity. However this means that the hash

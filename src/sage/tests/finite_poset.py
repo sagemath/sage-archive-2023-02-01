@@ -174,7 +174,7 @@ def test_finite_lattice(L):
         if P[p1] and P[p2]:
             raise ValueError("error: %s and %s should be impossible combination" % (p1, p2))
 
-    # Two-propery implications
+    # Two-property implications
     for p1, p2, p3 in two_to_one:
         if P[p1] and P[p2] and not P[p3]:
             raise ValueError("error: %s and %s, so should be %s" % (p1, p2, p3))

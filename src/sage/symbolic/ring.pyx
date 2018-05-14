@@ -24,6 +24,7 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
+from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -684,7 +685,7 @@ cdef class SymbolicRing(CommutativeRing):
             # get symbol
             symb = ex_to_symbol(e._gobj)
             if latex_name is not None:
-                symb.set_texname(latex_name)
+                symb.set_texname(str_to_bytes(latex_name))
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
             e._gobj = GEx(symb)
@@ -709,7 +710,8 @@ cdef class SymbolicRing(CommutativeRing):
                     ginac_domain = sage_domain_to_ginac_domain(domain)
                 else:
                     ginac_domain = domain_complex
-                symb = ginac_symbol(name, latex_name, ginac_domain)
+                symb = ginac_symbol(str_to_bytes(name),
+                                    str_to_bytes(latex_name), ginac_domain)
                 self.symbols[name] = e
 
             e._gobj = GEx(symb)
@@ -894,7 +896,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: latex(var('theta') + 2)
             \theta + 2
         """
-        return GEx_to_str_latex(&x._gobj)
+        return char_to_str(GEx_to_str_latex(&x._gobj))
 
     def _call_element_(self, _the_element, *args, **kwds):
         """

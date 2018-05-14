@@ -9,17 +9,6 @@ cd src/
 # disabled.  Therefore, disable it always.
 export CPPFLAGS="$CPPFLAGS -DDISABLE_COMMENTATOR"
 
-if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of LinBox."
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CFLAG64"
-    CPPFLAGS="$CPPFLAGS $CFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
-
 ###############################################################################
 # Configure, build and install LinBox:
 ###############################################################################
@@ -33,6 +22,12 @@ fi
 # This is harmless as no functionality using fplll is exposed in Sage.
 # See trac ticket #21221.
 LINBOX_CONFIGURE="--without-fplll $LINBOX_CONFIGURE"
+
+# Need to use 'bash' for configure, see
+# https://trac.sagemath.org/ticket/23451
+if [ -z "$CONFIG_SHELL" ]; then
+    export CONFIG_SHELL=`command -v bash`
+fi
 
 # We disable openmp because of build failures, see
 # http://trac.sagemath.org/ticket/17635#comment:67

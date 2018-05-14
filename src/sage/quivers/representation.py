@@ -2803,7 +2803,7 @@ class QuiverRep_with_path_basis(QuiverRep_generic):
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
-                # Add an entry to the matrix coresponding to where the new path is found
+                # Add an entry to the matrix corresponding to where the new path is found
                 j = self._bases[e[1]].index(self._bases[e[0]][i]*arrow)
                 maps[e][i, j] = k.one()
 
@@ -3017,7 +3017,7 @@ class QuiverRep_with_dual_path_basis(QuiverRep_generic):
             # Start with the zero matrix and fill in from there
             maps[e] = Matrix(k, len(self._bases[e[0]]), len(self._bases[e[1]]))
             for i in range(0, len(self._bases[e[0]])):
-                # Add an entry to the matrix coresponding to where the new path is found
+                # Add an entry to the matrix corresponding to where the new path is found
                 if self._bases[e[0]][i] % arrow in self._bases[e[1]]:
                     j = self._bases[e[1]].index(self._bases[e[0]][i] % arrow)
                     maps[e][i, j] = k.one()

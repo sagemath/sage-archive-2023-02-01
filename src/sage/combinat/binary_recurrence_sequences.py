@@ -374,7 +374,7 @@ class BinaryRecurrenceSequence(SageObject):
         Return the period of the binary recurrence sequence modulo
         an integer ``m``.
 
-        If `n_1` is congruent to `n_2` modulu ``period(m)``, then `u_{n_1}` is
+        If `n_1` is congruent to `n_2` modulo ``period(m)``, then `u_{n_1}` is
         is congruent to `u_{n_2}` modulo ``m``.
 
         INPUT:

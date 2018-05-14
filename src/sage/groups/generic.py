@@ -121,7 +121,10 @@ from sage.arith.srange import xsrange
 multiplication_names = ( 'multiplication', 'times', 'product', '*')
 addition_names       = ( 'addition', 'plus', 'sum', '+')
 
+
+# deprecation(24256)
 from sage.structure.element import generic_power as power
+
 
 def multiple(a, n, operation='*', identity=None, inverse=None, op=None):
     r"""
@@ -426,7 +429,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         sage: F.<a> = GF(37^5)
         sage: E = EllipticCurve(F, [1,1])
         sage: P = E.lift_x(a); P
-        (a : 9*a^4 + 22*a^3 + 23*a^2 + 30 : 1)
+        (a : 28*a^4 + 15*a^3 + 14*a^2 + 7 : 1)
 
     This will return a multiple of the order of P::
 
@@ -1402,17 +1405,14 @@ def structure_description(G, latex=False):
         sage: groups.matrix.GL(4,2).structure_description() # optional - database_gap
         'A8'
     """
+    from sage.features.gap import SmallGroupsLibrary
+    SmallGroupsLibrary().require()
+
     import re
-    from sage.misc.package import is_package_installed, PackageNotFoundError
     def correct_dihedral_degree(match):
         return "%sD%d" % (match.group(1), int(match.group(2))/2)
 
-    try:
-        description = str(G._gap_().StructureDescription())
-    except RuntimeError:
-        if not is_package_installed('database_gap'):
-            raise PackageNotFoundError("database_gap")
-        raise
+    description = str(G._gap_().StructureDescription())
 
     description = re.sub(r"(\A|\W)D(\d+)", correct_dihedral_degree, description)
     if not latex:
@@ -1422,4 +1422,3 @@ def structure_description(G, latex=False):
     description = re.sub(r"O([+-])", r"O^{\g<1>}", description)
 
     return description
-

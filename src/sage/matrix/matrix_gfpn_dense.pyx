@@ -34,8 +34,6 @@ from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import os
 
-meataxe_init()
-
 ####################
 #
 # import sage types
@@ -51,10 +49,14 @@ from sage.misc.randstate import current_randstate
 from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
+from .args cimport MatrixArgs_init
 
 from libc.string cimport memset, memcpy
 
 cimport sage.matrix.matrix0
+
+# The following import is just to ensure that meataxe_init() is called.
+import sage.libs.meataxe
 
 ####################
 #
@@ -300,34 +302,22 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             MatFree(self.Data)
             self.Data = NULL
 
-    def __init__(self, parent, data=None, mutable=True, copy=False, coerce=False):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=False, *, bint mutable=True):
+        r"""
         Matrix extension class using libmeataxe as backend.
 
         INPUT:
 
-        Instances of this class can be created by providing one of
-        the following input data, where ``q<255`` is a prime power,
-        ``m,n`` are non-negative integers, and `a_{11},...,a_{mn}`
-        can be coerced into ``GF(q)``. Note that a user should
-        create these instances via the matrix constructors; what
-        we explain here is for internal use only!
+        - ``parent`` -- a matrix space over ``GF(q)`` with `q < 255`
 
-        - A string ``f`` ==> load matrix from the file named ``f``
-        - A matrix space of `m\\times n` matrices over GF(q) and either
+        - ``entries`` -- see :func:`matrix`
 
-          - a list `[a_{11},a_{12},...,a_{1n},a_{21},...,a_{m1},...,a_{mn}]`,
-            which results in a matrix with the given marks
-          - ``None``, which is the fastest way to creata a zero matrix.
-          - an element of GF(q), which results in a diagonal matrix with the
-            given element on the diagonal.
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        If the optional parameter ``mutable`` is ``False`` (by default,
-        it is ``True``), the resulting matrix can not be changed, and
-        it can be used as key in a Python dictionary.
+        - ``coerce`` -- ignored
 
-        The arguments ``copy`` and ``coerce`` are ignored, they are only
-        here for a common interface with other matrix constructors.
+        - ``mutable`` -- if False, the resulting matrix can not be
+          changed, and it can be used as key in a Python dictionary
 
         EXAMPLES::
 
@@ -364,7 +354,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
                 sage: Matrix_gfpn_dense('foobarNONEXISTING_FILE')       # optional: meataxe
                 Traceback (most recent call last):
                 ...
-                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 254)
+                OSError: .../foobarNONEXISTING_FILE: No such file or directory in file os.c (line 255)
                 sage: Matrix_gfpn_dense('')                             # optional: meataxe
                 Traceback (most recent call last):
                 ...
@@ -384,7 +374,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             Basis matrix:
             [1 0]
             [0 1]
-
         """
         if isinstance(parent, basestring): # load from file
             if not parent:
@@ -403,62 +392,29 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self._cache = {}
             return
 
-        cdef int fl = parent.base_ring().order()
-        cdef int nr = parent.nrows()
-        cdef int nc = parent.ncols()
+        ma = MatrixArgs_init(parent, entries)
+        Matrix_dense.__init__(self, ma.space)
+        cdef long fl = ma.base.order()
+        cdef long nr = ma.nrows
+        cdef long nc = ma.ncols
+
         self.Data = MatAlloc(fl, nr, nc)
-        Matrix_dense.__init__(self, parent)
-        self._is_immutable = not mutable
-        B = self._base_ring
-        self._converter = FieldConverter(B)
-        if data is None:
-            return
+        self._converter = FieldConverter(ma.base)
 
-        cdef int i,j
-        cdef FEL f
-        cdef PTR x
-        if not isinstance(data,list):
-            if not data:
-                return
-            if self._nrows != self._ncols:
-                raise ValueError("Cannot initialise non-square matrix from {}".format(data))
-            f = FfFromInt(self._converter.field_to_int(self._coerce_element(data)))
-            x = self.Data.Data
-            for j in range(self.Data.Noc):
-                FfInsert(x,j,f)
-                FfStepPtr(&x)
-                sig_check()
-            return
-
-        x = self.Data.Data
+        cdef PTR x = self.Data.Data
         assert self.Data.Noc == nc
         assert self.Data.Nor == nr
-        if nr==0 or nc==0:
-            return
-        if len(data) < nr:
-            raise ValueError("Expected a list of size at least the number of rows")
-        cdef list dt, dt_i
         FfSetField(fl)
         FfSetNoc(nc)
-        if isinstance(data[0],list):
-            # The matrix is given by a list of rows
-            dt = data
-            for i in range(nr):
-                idx = 0
-                dt_i = dt[i]
-                for j in range(nc):
-                    FfInsert(x, j, FfFromInt(self._converter.field_to_int(self._coerce_element(dt_i[j]))))
-                    sig_check()
-                FfStepPtr(&(x))
-        else:
-            # It is supposed to be a flat list of all entries, sorted by rows
-            dtnext = data.__iter__().next
-            for i in range(nr):
-                for j in range(nc):
-                    bla = self._converter.field_to_int(self._coerce_element(dtnext()))
-                    FfInsert(x, j, FfFromInt(bla))
-                    sig_check()
-                FfStepPtr(&(x))
+        it = ma.iter(False)
+        cdef long i,j
+        for i in range(nr):
+            for j in range(nc):
+                v = self._converter.field_to_int(self._coerce_element(next(it)))
+                FfInsert(x, j, FfFromInt(v))
+            FfStepPtr(&x)
+
+        self._is_immutable = not mutable
 
     cdef Matrix_gfpn_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""
@@ -1162,6 +1118,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: -M == (-1)*M
             True
 
+        TESTS:
+
+        Make sure that :trac:`25076` remains fixed::
+
+            sage: M == M*int(4) == int(4)*M
+            True
+
         """
         if self.Data == NULL:
             return self.__copy__()
@@ -1661,8 +1624,8 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         sage: s = 'Uq\x82\xa7\x8bh'
         sage: len(s)
         6
-        sage: MS = MatrixSpace(GF(13), 2, 5)
-        sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle  # optional: meataxe
+        sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle, Matrix_gfpn_dense  # optional: meataxe
+        sage: MS = MatrixSpace(GF(13), 2, 5, implementation=Matrix_gfpn_dense) # optional: meataxe
         sage: N = mtx_unpickle(MS, 2, 5, s, True)            # optional: meataxe
         sage: N                                              # optional: meataxe
         [ 6  7  8  9 10]
@@ -1739,7 +1702,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     OUT = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
-        Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc))
+        Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense))
     else:
         if f.nrows() != nr or f.ncols() != nc:
             raise ValueError("Inconsistent dimensions in this matrix pickle")

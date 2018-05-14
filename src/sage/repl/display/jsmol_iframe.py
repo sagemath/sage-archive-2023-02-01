@@ -155,13 +155,16 @@ class JSMolHtml(SageObject):
                 if line.startswith('pmesh'):
                     command, obj, meshfile = line.split(' ', 3)
                     assert command == 'pmesh'
-                    assert meshfile.startswith('"') and meshfile.endswith('"\n')
-                    meshfile = meshfile[1:-2]    # strip quotes
-                    script += [
-                        'pmesh {0} inline "'.format(obj),
-                        self._zip.open(meshfile).read(),
-                        '"\n'
-                    ]
+                    if meshfile not in ['dots\n', 'mesh\n']:
+                        assert meshfile.startswith('"') and meshfile.endswith('"\n')
+                        meshfile = meshfile[1:-2]    # strip quotes
+                        script += [
+                            'pmesh {0} inline "'.format(obj),
+                            self._zip.open(meshfile).read(),
+                            '"\n'
+                        ]
+                    else:
+                        script += [line]
                 else:
                     script += [line]
         return ''.join(script)

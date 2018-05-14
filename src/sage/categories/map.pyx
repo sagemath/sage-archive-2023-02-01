@@ -24,6 +24,7 @@ from __future__ import absolute_import, print_function
 from . import homset
 import weakref
 from sage.ext.stdsage cimport HAS_DICTIONARY
+from sage.arith.power cimport generic_power
 from sage.structure.parent cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
@@ -621,8 +622,9 @@ cdef class Map(Element):
             sage: f = R.hom([x+y, x-y], R)
             sage: f.category_for()
             Join of Category of unique factorization domains
-             and Category of commutative algebras over
-                 (number fields and quotient fields and metric spaces)
+            and Category of commutative algebras
+            over (number fields and quotient fields and metric spaces)
+            and Category of infinite sets
             sage: f.category()
             Category of endsets of unital magmas
              and right modules over (number fields and quotient fields and metric spaces)
@@ -1189,7 +1191,7 @@ cdef class Map(Element):
         """
         raise NotImplementedError(type(self))
 
-    def __pow__(Map self, n, dummy):
+    cpdef _pow_int(self, n):
         """
         TESTS::
 
@@ -1234,7 +1236,6 @@ cdef class Map(Element):
         if n == 0:
             from sage.categories.morphism import IdentityMorphism
             return IdentityMorphism(self._parent)
-        from sage.structure.element import generic_power
         return generic_power(self, n)
 
     def section(self):

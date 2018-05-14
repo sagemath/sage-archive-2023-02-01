@@ -144,6 +144,9 @@ import sys
 from six.moves import range
 
 from sage.structure.element import Element
+
+import sage.categories as categories
+
 import sage.algebras.algebra
 import sage.rings.commutative_algebra as commutative_algebra
 import sage.rings.ring as ring
@@ -159,6 +162,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -169,8 +173,7 @@ from .polynomial_element import PolynomialBaseringInjection
 from .polynomial_real_mpfr_dense import PolynomialRealDense
 from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
 
-from sage.categories.commutative_rings import CommutativeRings
-_CommutativeRings = CommutativeRings()
+_CommutativeRings = categories.commutative_rings.CommutativeRings()
 
 from . import cyclotomic
 
@@ -240,10 +243,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             Join of Category of unique factorization domains
              and Category of commutative algebras over
               (euclidean domains and infinite enumerated sets and metric spaces)
+             and Category of infinite sets
             sage: category(GF(7)['x'])
             Join of Category of euclidean domains
              and Category of commutative algebras over
-              (finite enumerated fields and subquotients of monoids and quotients of semigroups)
+              (finite enumerated fields and subquotients of monoids and quotients of semigroups) and Category of infinite sets
 
         TESTS:
 
@@ -253,11 +257,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.<y> = K[]
             sage: TestSuite(R).run()
 
+        Check that category for zero ring::
+
+            sage: PolynomialRing(Zmod(1), 'x').category()
+            Category of finite rings
         """
         # We trust that, if category is given, it is useful and does not need to be joined
         # with the default category
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            if base_ring.is_zero():
+                category = categories.rings.Rings().Finite()
+            else:
+                category = polynomial_default_category(base_ring.category(), 1)
         self.__is_sparse = sparse
         if element_class:
             self._polynomial_class = element_class
@@ -281,14 +292,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
-        if is_PolynomialRing(base_ring):
-            self._Karatsuba_threshold = 0
-        else:
-            from sage.matrix.matrix_space import MatrixSpace
-            if isinstance(base_ring, MatrixSpace):
-                self._Karatsuba_threshold = 0
-            else:
-                self._Karatsuba_threshold = 8
 
     def __reduce__(self):
         from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
@@ -581,8 +584,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         ]
 
     def construction(self):
-        from sage.categories.pushout import PolynomialFunctor
-        return PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
+        return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
 
     def completion(self, p, prec=20, extras=None):
         """
@@ -898,14 +900,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return False
         return True
 
-#    Polynomial rings should be unique parents. Hence,
-#    no need for __cmp__. Or actually, having a __cmp__
-#    method that identifies a dense with a sparse ring
-#    is a bad bad idea!
-#    def __cmp__(left, right):
-#        c = cmp(type(left),type(right))
-#        if c: return c
-#        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
+    #    Polynomial rings should be unique parents. Hence,
+    #    no need for any comparison method
 
     def __hash__(self):
         # should be faster than just relying on the string representation
@@ -1390,6 +1386,30 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             coeffs.reverse()
             yield self(coeffs)
 
+    @lazy_attribute
+    def _Karatsuba_threshold(self):
+        """
+        Return the default Karatsuba threshold.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: R._Karatsuba_threshold
+            8
+            sage: MS = MatrixSpace(ZZ, 2, 2)
+            sage: R.<x> = MS[]
+            sage: R._Karatsuba_threshold
+            0
+        """
+        base_ring = self.base_ring()
+        if is_PolynomialRing(base_ring):
+            return 0
+        from sage.matrix.matrix_space import MatrixSpace
+        if isinstance(base_ring, MatrixSpace):
+            return 0
+        # Generic default value
+        return 8
+
     def karatsuba_threshold(self):
         """
         Return the Karatsuba threshold used for this ring by the method
@@ -1425,7 +1445,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: K.karatsuba_threshold()
             0
         """
-        self._Karatsuba_threshold = ZZ(Karatsuba_threshold)
+        self._Karatsuba_threshold = int(Karatsuba_threshold)
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """
@@ -1565,7 +1585,10 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
             raise TypeError("Base ring %s must be a commutative ring."%repr(base_ring))
         # We trust that, if a category is given, that it is useful.
         if category is None:
-            category = polynomial_default_category(base_ring.category(),False)
+            if base_ring.is_zero():
+                category = categories.rings.Rings().Finite()
+            else:
+                category = polynomial_default_category(base_ring.category(), 1)
         PolynomialRing_general.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
 

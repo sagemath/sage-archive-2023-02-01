@@ -191,6 +191,8 @@ from sage.ext.cplusplus cimport ccrepr
 
 import operator
 
+from sage.cpython.string cimport str_to_bytes
+
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.randstate import current_randstate
@@ -367,7 +369,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             raise ValueError("Number of variables must be greater than 1.")
 
         self.pbind = <Py_ssize_t*>sig_malloc(n*sizeof(Py_ssize_t))
-        cdef char *_n
 
         order = TermOrder(order, n)
 
@@ -431,7 +432,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             pbnames = self._names
 
         for i from 0 <= i < n:
-            _n = pbnames[self.pbind[i]]
+            _n = str_to_bytes(pbnames[self.pbind[i]])
             self._pbring.setVariableName(i, _n)
 
         self._zero_element = new_BP(self)
@@ -674,15 +675,10 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
                 return False
             return self._base.has_coerce_map_from(S.base())
 
-    cdef _coerce_c_impl(self, rhs):
+    cdef _convert(self, other):
         r"""
         Canonical conversion of elements from other domains to
         this boolean polynomial ring.
-
-        NOTE:
-
-        Inspite of its name, we use this method for conversion,
-        not coercion.
 
         EXAMPLES:
 
@@ -806,7 +802,6 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef BooleanPolynomial p
         # we check for other PolyBoRi types first since this conversion
         # is used by the PolyBoRi python code often
-        other = rhs
         if isinstance(other, BooleSet):
             other = new_BP_from_PBSet(other.ring(), (<BooleSet>other)._pbset)
 
@@ -937,7 +932,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         cdef int i
 
         try:
-            return self._coerce_c_impl(other)
+            return self._convert(other)
         except TypeError:
             pass
 
@@ -1008,7 +1003,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             i = int(other)
         except Exception:
             try:    # last chance: try Sage's conversions over GF(2), Trac #13284
-                return self._coerce_c_impl(self.cover_ring()(other))
+                return self._convert(self.cover_ring()(other))
             except Exception:
                 raise TypeError("cannot convert %s to BooleanPolynomial" % (type(other)))
 
@@ -1837,7 +1832,7 @@ def get_var_mapping(ring, other):
     return var_mapping
 
 
-class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
+class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
     """
     Construct a boolean monomial monoid given a boolean polynomial
     ring.
@@ -1890,7 +1885,7 @@ class BooleanMonomialMonoid(UniqueRepresentation,Monoid_class):
         cdef BooleanMonomial m
         self._ring = polring
         from sage.categories.monoids import Monoids
-        Parent.__init__(self, GF(2), names=polring._names, category=Monoids())
+        Parent.__init__(self, GF(2), names=polring._names, category=Monoids().Commutative())
 
         m = new_BM(self, polring)
         m._pbmonom = PBMonom(polring._pbring)
@@ -2377,10 +2372,10 @@ cdef class BooleanMonomial(MonoidElement):
         EXAMPLES::
 
             sage: B.<x,y> = BooleanPolynomialRing()
-            sage: m = x.lm()
-            sage: m.stable_hash()
-            -845955105                 # 32-bit
-            173100285919               # 64-bit
+            sage: x.lm() is x.lm()
+            False
+            sage: x.lm().stable_hash() == x.lm().stable_hash()
+            True
 
         .. NOTE::
 
@@ -3144,7 +3139,6 @@ cdef class BooleanPolynomial(MPolynomial):
             sage: x != False
             True
         """
-        from builtins import zip
         for lm, rm in zip(left, right):
             if lm != rm:
                 return richcmp_not_equal(lm, rm, op)
@@ -4644,9 +4638,10 @@ cdef class BooleanPolynomial(MPolynomial):
         EXAMPLES::
 
             sage: B.<x,y> = BooleanPolynomialRing()
-            sage: x.stable_hash()
-            -845955105                 # 32-bit
-            173100285919               # 64-bit
+            sage: x is B.gen(0)
+            False
+            sage: x.stable_hash() == B.gen(0).stable_hash()
+            True
 
         .. NOTE::
 
@@ -5726,10 +5721,10 @@ cdef class BooleSet:
         EXAMPLES::
 
             sage: B.<x,y> = BooleanPolynomialRing()
-            sage: s = x.set()
-            sage: s.stable_hash()
-            -845955105                 # 32-bit
-            173100285919               # 64-bit
+            sage: x.set() is x.set()
+            False
+            sage: x.set().stable_hash() == x.set().stable_hash()
+            True
 
         .. NOTE::
 
@@ -6416,7 +6411,7 @@ cdef class ReductionStrategy:
 
         - ``leading_terms`` - all leading terms of generators
 
-        - ``minimial_leading_terms`` - the reduced set of leading terms
+        - ``minimal_leading_terms`` - the reduced set of leading terms
 
         - ``monomials`` -
 

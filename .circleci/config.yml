@@ -41,7 +41,7 @@ jobs:
             . .ci/update-env.sh
 
             # Select ARTIFACT_BASE depending on the current branch/tag
-            if [ -n $CIRCLE_TAG ] || [ $DOCKER_TAG = master ] || [ $DOCKER_TAG = develop ];then
+            if [ -n "$CIRCLE_TAG" ] || [ $DOCKER_TAG = "master" ] || [ $DOCKER_TAG = "develop" ];then
               export ARTIFACT_BASE=source-clean
             else
               # Select sagemath/sagemath-dev:develop as the ARTIFACT_BASE

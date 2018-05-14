@@ -186,7 +186,7 @@ symbolic ring. This is currently not supported as SR is not exact::
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
     Traceback (most recent call last):
     ...
-    ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
     sage: SR.is_exact()
     False
@@ -202,13 +202,13 @@ triangle, that would be::
 
 .. WARNING::
 
-    Be careful when you construct polyhedra with floating point numbers. The only 
-    available backend for such computation is `cdd` which uses machine floating 
-    point numbers which have have limited precision. If the input consists of 
-    floating point numbers and the `base_ring` is not specified, the base ring is 
-    set to be the `RealField` with the precision given by the minimal bit precision 
-    of the input. Then, if the obtained minimum is 53 bits of precision, the 
-    constructor converts automatically the base ring to `RDF`. Otherwise, 
+    Be careful when you construct polyhedra with floating point numbers. The only
+    available backend for such computation is `cdd` which uses machine floating
+    point numbers which have have limited precision. If the input consists of
+    floating point numbers and the `base_ring` is not specified, the base ring is
+    set to be the `RealField` with the precision given by the minimal bit precision
+    of the input. Then, if the obtained minimum is 53 bits of precision, the
+    constructor converts automatically the base ring to `RDF`. Otherwise,
     it returns an error::
 
         sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
@@ -218,7 +218,7 @@ triangle, that would be::
         sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]])
         Traceback (most recent call last):
         ...
-        ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
+        ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
 
     The strongly suggested method to input floating point numbers is to specify the
     `base_ring` to be `RDF`::
@@ -369,8 +369,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       not used.
 
     - ``verbose`` -- boolean (default: ``False``). Whether to print
-      verbose output for debugging purposes. Only supported by the cdd
-      backends.
+      verbose output for debugging purposes. Only supported by the cdd and
+      normaliz backends.
 
     OUTPUT:
 
@@ -481,10 +481,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
         Traceback (most recent call last):
         ...
-        ValueError: for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'
-    
+        ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+
     Check that setting ``base_ring`` to a ``RealField`` returns an error (see :trac:`22552`)::
-    
+
         sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
         Traceback (most recent call last):
         ...
@@ -563,10 +563,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 base_ring = RDF
                 convert = True
             elif base_ring is not RDF:
-                raise ValueError("for polyhedra with floating point numbers, the only allowed ring is RDF with backend 'cdd'")
+                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
     # Add the origin if necessary
-    if got_Vrep and len(vertices)==0:
+    if got_Vrep and len(vertices) == 0:
         vertices = [ [0]*ambient_dim ]
 
     # Specific backends can override the base_ring

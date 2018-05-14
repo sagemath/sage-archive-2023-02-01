@@ -93,6 +93,7 @@ from sage.rings.all import FiniteField as GF
 from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.matrix.matrix_mod2_dense cimport Matrix_mod2_dense
+from .args cimport SparseEntry, MatrixArgs_init
 
 from sage.libs.m4ri cimport m4ri_word, mzd_copy, mzd_init
 from sage.libs.m4rie cimport *
@@ -213,16 +214,20 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             mzed_free(self._entries)
             self._entries = NULL
 
-    def __init__(self, parent, entries, copy, coerce):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        r"""
         Create new matrix over `GF(2^e)` for 2<=e<=10.
 
         INPUT:
 
-        - ``parent`` - a :class:`MatrixSpace`.
-        - ``entries`` - may be list or a finite field element.
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced
+        - ``parent`` -- a matrix space over ``GF(2^e)``
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         EXAMPLES::
 
@@ -246,34 +251,10 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             [0 a 0]
             [0 0 a]
         """
-        cdef int i,j
-
-        if entries is None:
-            return
-
-        R = self.base_ring()
-
-        # scalar ?
-        if not isinstance(entries, list):
-            if entries != 0:
-                if self.nrows() != self.ncols():
-                    raise TypeError("self must be a  square matrices for scalar assignment")
-                for i in range(self.nrows()):
-                    self.set_unsafe(i,i, R(entries))
-            return
-
-        # all entries are given as a long list
-        if len(entries) != self._nrows * self._ncols:
-            raise IndexError("The vector of entries has the wrong length.")
-
-        k = 0
-
-        for i from 0 <= i < self._nrows:
-            sig_check()
-            for j from 0 <= j < self._ncols:
-                e = R(entries[k])
-                mzed_write_elem(self._entries, i, j, poly_to_word(e))
-                k = k + 1
+        ma = MatrixArgs_init(parent, entries)
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            mzed_write_elem(self._entries, se.i, se.j, poly_to_word(se.entry))
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         """

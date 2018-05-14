@@ -723,6 +723,9 @@ ext_modules = [
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
 
+    Extension('sage.matrix.args',
+              sources = ['sage/matrix/args.pyx']),
+
     Extension('sage.matrix.echelon_matrix',
               sources = ['sage/matrix/echelon_matrix.pyx']),
 

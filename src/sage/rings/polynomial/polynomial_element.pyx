@@ -72,7 +72,9 @@ from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
 from sage.arith.power cimport generic_power
+from sage.arith.misc import crt
 from sage.arith.long cimport pyobject_to_long
+from sage.misc.mrange import cartesian_product_iterator
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_item,
         rich_to_bool, rich_to_bool_sgn)
@@ -95,6 +97,7 @@ from sage.structure.element cimport (parent, have_same_parent,
 
 from sage.rings.rational_field import QQ, is_RationalField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
+from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.integer cimport Integer, smallInteger
 from sage.libs.gmp.mpz cimport *
 from sage.rings.fraction_field import is_FractionField
@@ -4213,8 +4216,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.number_field.number_field_rel import is_RelativeNumberField
         from sage.rings.number_field.all import NumberField
         from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-        from sage.rings.integer_ring import is_IntegerRing
 
         n = None
 
@@ -5003,7 +5004,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() <= 1:
             return R.fraction_field()
 
-        if sage.rings.integer_ring.is_IntegerRing(R):
+        if is_IntegerRing(R):
             return NumberField(self, names)
 
         if sage.rings.rational_field.is_RationalField(R) or is_NumberField(R):
@@ -7132,9 +7133,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.roots(multiplicities=False)
             [I, -2^(1/4), 2^(1/4), 1]
 
-        A couple of examples where the base ring doesn't have a
+        A couple of examples where the base ring does not have a
         factorization algorithm (yet). Note that this is currently done via
-        naive enumeration, so could be very slow::
+        a rather naive enumeration, so could be very slow::
 
             sage: R = Integers(6)
             sage: S.<x> = R['x']
@@ -7144,13 +7145,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             NotImplementedError: root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)
             sage: p.roots(multiplicities=False)
-            [1, 5]
+            [5, 1]
             sage: R = Integers(9)
             sage: A = PolynomialRing(R, 'y')
             sage: y = A.gen()
             sage: f = 10*y^2 - y^3 - 9
             sage: f.roots(multiplicities=False)
-            [0, 1, 3, 6]
+            [1, 0, 3, 6]
 
         An example over the complex double field (where root finding is
         fast, thanks to NumPy)::
@@ -7528,7 +7529,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
              (1.00000000000000, 7),
              (0.500000000000000 - 0.866025403784439*I, 5),
              (0.500000000000000 + 0.866025403784439*I, 5)]
+
+        Test that some large finite rings can be handled (:trac:`13825`)::
+
+            sage: R.<x> = IntegerModRing(20000009)[]
+            sage: eq = x^6+x-17
+            sage: eq.roots(multiplicities=False)
+            [3109038, 17207405]
         """
+        from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not
@@ -7751,6 +7760,25 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if K.is_finite():
                 if multiplicities:
                     raise NotImplementedError("root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)")
+                elif is_IntegerModRing(K):
+                    # handling via the chinese remainders theorem
+                    N = K.cardinality()
+                    primes = N.prime_divisors()
+                    residue_roots = []
+                    for p in primes:
+                        local_self = self.change_ring(GF(p))
+                        local_roots = local_self.roots(multiplicities=False)
+                        residue_roots.append([a.lift() for a in local_roots])
+                    result = []
+                    P = ZZ.prod(primes)
+                    for res in cartesian_product_iterator(residue_roots):
+                        lifted = crt(list(res), primes)
+                        candidate = lifted
+                        for k in range(N // P):
+                            if not self(candidate):
+                                result.append(candidate)
+                            candidate += P
+                    return result
                 else:
                     return [a for a in K if not self(a)]
 

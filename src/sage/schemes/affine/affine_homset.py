@@ -165,7 +165,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: E = A.subscheme([x^2 + y^2 - 1, y^2 - x^3 + x^2 + x - 1])
             sage: E(A.base_ring()).points()
-            [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            [(-1, 0), (0, -1), (0, 1), (1, 0)]
 
         ::
 
@@ -174,12 +174,19 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: E(A.base_ring()).points()
             [(-1.00000000000000, 0.000000000000000),
             (0.000000000000000, 0.000000000000000)]
+
+        ::
+
+            sage: A.<x1,x2> = AffineSpace(CDF, 2)
+            sage: E = A.subscheme([x1^2+x2^2+x1*x2, x1+x2])
+            sage: E(A.base_ring()).points()
+            [(0.0, 0.0)]
         """
         X = self.codomain()
         from sage.schemes.affine.affine_space import is_AffineSpace
-        from sage.rings.all import CC
+        from sage.rings.all import CC, CDF
         if not is_AffineSpace(X) and X.base_ring() in Fields():
-            if X.base_ring() == CC:
+            if X.base_ring() == CC or X.base_ring() == CDF:
                 complex = True
             else:
                 complex = False
@@ -212,7 +219,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                             #of coordinates known so far. This results in a single
                             #variable polynomial (by elimination)
                             L = G[i].substitute(P)
-                            if L != 0:
+                            if R(L).degree() > 0:
                                 if complex:
                                     for pol in L.univariate_polynomial().roots(multiplicities=False):
                                         r = L.variables()[0]
@@ -253,7 +260,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                                 S = X([points[i][R.gen(j)] for j in range(N)])
                                 #S.normalize_coordinates()
                                 rat_points.append(S)
-                #rat_points = sorted(rat_points)
+                rat_points = sorted(rat_points)
                 return rat_points
         R = self.value_ring()
         if is_RationalField(R) or R == ZZ:

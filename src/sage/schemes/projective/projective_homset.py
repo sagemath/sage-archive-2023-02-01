@@ -128,12 +128,20 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             [(-0.500000000000000 + 0.866025403784439*I : 1.00000000000000 : 0.000000000000000),
             (-1.00000000000000*I : 0.000000000000000 : 1.00000000000000),
             (1.00000000000000*I : 0.000000000000000 : 1.00000000000000)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(CDF,2)
+            sage: E = P.subscheme([y^3-x^3-x*z^2,x*y*z])
+            sage: E(P.base_ring()).points()
+            [(-0.5000000000000001 + 0.866025403784439*I : 1.0 : 0.0), 
+            (-1.0000000000000004*I : 0.0 : 1.0), (0.9999999999999997*I : 0.0 : 1.0)]
         """
         X = self.codomain()
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        from sage.rings.all import CC
+        from sage.rings.all import CC, CDF
         if not is_ProjectiveSpace(X) and X.base_ring() in Fields():
-            if X.base_ring() == CC:
+            if X.base_ring() == CC or X.base_ring() == CDF:
                 complex = True
             else:
                 complex = False
@@ -170,9 +178,10 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                                 #of coordinates known so far. This results in a single
                                 #variable polynomial (by elimination)
                                 L = G[i].substitute(P)
-                                if L != 0:
+                                if R(L).degree() > 0:
                                     if complex:
                                         for pol in L.univariate_polynomial().roots(multiplicities=False):
+                                            good = 1
                                             r = L.variables()[0]
                                             varindex = R.gens().index(r)
                                             P.update({R.gen(varindex):pol})

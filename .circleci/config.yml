@@ -1,0 +1,69 @@
+# This file configures automatic builds of Sage on [CircleCI](https://circleci.com).
+# To make the build time not too excessive, we seed the build cache with
+# sagemath/sagemath-dev:develop. When basic SPKGs change, this does not help much,
+# still the full build does usually not exceed CircleCI's limits for open
+# source projcets (five hours on 2 vCPUs as of early 2018.)
+# You might want to try to build locally or with GitLab CI, see
+# `.gitlab-ci.yml` for more options.
+# Note that we do not use workflows because it was not clear whether the docker
+# images sizes would not exceed the size limits of CircleCI workspaces. Also,
+# workflows would not make things faster. We do not get more machines for free
+# and the frequent loading of docker images probably exceeds the cost of the
+# actual tests.
+
+# As of early 2018, a run on CircleCI takes usually about 25 minutes. Most of
+# the time is spent pulling/pushing from/to Docker Hub and copying files
+# locally during the docker build. We could probably save five minutes by not
+# building and testing the sagemath-dev image for most branches.
+
+version: 2
+jobs:
+  # As https://circleci.com/docs/2.0/docker-layer-caching/ is a paid feature,
+  # we do build & test & release in one step.
+  build:
+    machine: true
+    # Build for all tags
+    tags:
+      only: /.*/
+    # Build for all branches
+    branches:
+      only: /.*/
+    steps:
+      - checkout
+      - run:
+          # The docker commands sometimes take a while to produce output
+          no_output_timeout: 30m
+          command: |
+            # CircleCI has no mechanism to hide secret variables.
+            # Therefore we roll our own to protect $SECRET_* variables.
+            . .ci/protect-secrets.sh
+            # Collect debug infos about the system we are running on
+            .ci/describe-system.sh
+            # Set MAKEOPTS and SAGE_NUM_THREADS 
+            . .ci/setup-make-parallelity.sh
+
+            # Set DOCKER_TAG according to the current branch/tag
+            export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}
+            . .ci/update-env.sh
+
+            # Select ARTIFACT_BASE depending on the current branch/tag
+            if [ -n "$CIRCLE_TAG" ] || [ $DOCKER_TAG = "master" ] || [ $DOCKER_TAG = "develop" ];then
+              export ARTIFACT_BASE=source-clean
+            else
+              # Select sagemath/sagemath-dev:develop as the ARTIFACT_BASE
+              # unless the user has explicitly selected a differnt one as a
+              # CircleCI environment variable.
+              export ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
+            fi
+
+            # Build docker images
+            .ci/build-docker.sh
+
+            # Test that the images work
+            .ci/test-dev.sh $DOCKER_IMAGE_DEV
+            .ci/test-cli.sh $DOCKER_IMAGE_CLI
+            .ci/test-jupyter.sh $DOCKER_IMAGE_CLI localhost
+
+            # Push docker images to dockerhub if a dockerhub user has been configured
+            .ci/push-dockerhub.sh sagemath-dev
+            .ci/push-dockerhub.sh sagemath

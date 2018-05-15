@@ -299,7 +299,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneWavefront container
             sage: out.obj.get()
-            'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
+            'mtllib ... 6 3 8 11\nf 8 7 12\nf 7 9 12\nf 9 10 12\nf 10 11 12\nf 11 8 12\n'
             sage: out.mtl.get()
             'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 1.0\n'
         """
@@ -327,7 +327,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1.0}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -390,12 +390,12 @@ cdef class Graphics3d(SageObject):
         for p in self.flatten().all:
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
-                opacity = p._extra_kwds.get('opacity', 1)
+                opacity = float(p._extra_kwds.get('opacity', 1))
                 points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
                               json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
-                opacity = p._extra_kwds.get('opacity', 1)
+                opacity = float(p._extra_kwds.get('opacity', 1))
                 thickness = p._extra_kwds.get('thickness', 1)
                 lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
@@ -518,16 +518,16 @@ cdef class Graphics3d(SageObject):
             sage: D.aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._aspect_ratio = map(float, v)
+            self._aspect_ratio = [float(z) for z in v]
         else:
             if self._aspect_ratio is None:
-                self._aspect_ratio = [1.0,1.0,1.0]
+                self._aspect_ratio = [1.0, 1.0, 1.0]
             return self._aspect_ratio
 
     def frame_aspect_ratio(self, v=None):
@@ -552,16 +552,16 @@ cdef class Graphics3d(SageObject):
             sage: D.frame_aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("frame_aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._frame_aspect_ratio = map(float, v)
+            self._frame_aspect_ratio = [float(z) for z in v]
         else:
             if self._frame_aspect_ratio is None:
-                self._frame_aspect_ratio = [1.0,1.0,1.0]
+                self._frame_aspect_ratio = [1.0, 1.0, 1.0]
             return self._frame_aspect_ratio
 
     def _determine_frame_aspect_ratio(self, aspect_ratio):

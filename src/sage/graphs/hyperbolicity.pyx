@@ -107,11 +107,11 @@ Hyperbolicity
       twice over all pairs of vertices, in the "inner" loop, we cut several
       pairs by exploiting properties of the underlying graph.
 
-TODO:
+.. TODO::
 
-- Add exact methods for the hyperbolicity of chordal graphs
+    - Add exact methods for the hyperbolicity of chordal graphs
 
-- Add method for partitioning the graph with clique separators
+    - Add method for partitioning the graph with clique separators
 
 **This module contains the following functions**
 
@@ -133,12 +133,11 @@ REFERENCES:
 
 .. [CCL15] \N. Cohen, D. Coudert, and A. Lancin. On computing the Gromov
    hyperbolicity. ACM Journal of Experimental Algorithmics, 20(1.6):1-18, 2015.
-   [`<http://dx.doi.org/10.1145/2780652>`_] or
+   :doi:`10.1145/2780652` or
    [`<https://hal.inria.fr/hal-01182890>`_].
 
-.. [FIV12] \H. Fournier, A. Ismail, and A. Vigneron. Computing the Gromov
-   hyperbolicity of a discrete metric space. ArXiv, Tech. Rep. arXiv:1210.3323,
-   Oct. 2012. [`<http://arxiv.org/abs/1210.3323>`_].
+.. [FIV12] \H. Fournier, A. Ismail, and A. Vigneron. *Computing the Gromov
+   hyperbolicity of a discrete metric space*. :arxiv:`1210.3323`.
 
 .. [Gromov87] \M. Gromov. Hyperbolic groups. Essays in Group Theory, 8:75--263,
    1987.

@@ -160,7 +160,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w = Word("abbabaab"); w
         word: abbabaab
         sage: w.parent()
-        Finite words over Set of Python objects of type 'object'
+        Finite words over Set of Python objects of class 'object'
 
     We can also input a semistandard tableau and a standard tableau to
     obtain a word from the inverse RSK algorithm using the

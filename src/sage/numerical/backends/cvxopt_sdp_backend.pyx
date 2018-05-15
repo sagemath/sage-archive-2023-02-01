@@ -22,7 +22,6 @@ from __future__ import print_function
 
 from sage.numerical.sdp import SDPSolverException
 from sage.matrix.all import Matrix
-from cvxopt import solvers
 from .generic_sdp_backend cimport GenericSDPBackend
 
 
@@ -284,7 +283,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             sage: p.row_name(-1)
             'fun'
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         for t in coefficients:
             m = t[1]
             if not is_Matrix(m):
@@ -292,7 +291,7 @@ cdef class CVXOPTSDPBackend(GenericSDPBackend):
             if not m.is_square():
                 raise ValueError("The matrix has to be a square")
             if self.matrices_dim.get(self.nrows()) is not None and m.dimensions()[0] != self.matrices_dim.get(self.nrows()):
-                raise ValueError("The matrces have to be of the same dimension")
+                raise ValueError("the matrices have to be of the same dimension")
         self.coeffs_matrix.append(coefficients)
         self.matrices_dim[self.nrows()] = m.dimensions()[0] #
         self.row_name_var.append(name)

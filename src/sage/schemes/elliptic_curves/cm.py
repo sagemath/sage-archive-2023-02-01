@@ -136,10 +136,10 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     # compute needed precision
     #
-    # NB: [http://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
+    # NB: [https://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
     # incorrect.  Enge writes (2009-04-20 email to John Cremona) "The
     # source is my paper on class polynomials
-    # [http://hal.inria.fr/inria-00001040] It was pointed out to me by
+    # [https://hal.inria.fr/inria-00001040] It was pointed out to me by
     # the referee after ANTS that the constant given there was
     # wrong. The final version contains a corrected constant on p.7
     # which is consistent with your example. It says:
@@ -301,7 +301,7 @@ def cm_orders(h, proof=None):
         sage: v = cm_orders(1); v
         [(-3, 3), (-3, 2), (-3, 1), (-4, 2), (-4, 1), (-7, 2), (-7, 1), (-8, 1), (-11, 1), (-19, 1), (-43, 1), (-67, 1), (-163, 1)]
         sage: type(v[0][0]), type(v[0][1])
-        (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
+        (<... 'sage.rings.integer.Integer'>, <... 'sage.rings.integer.Integer'>)
         sage: v = cm_orders(2); v
          [(-3, 7), (-3, 5), (-3, 4), (-4, 5), (-4, 4), (-4, 3), (-7, 4), (-8, 3), (-8, 2), (-11, 3), (-15, 2), (-15, 1), (-20, 1), (-24, 1), (-35, 1), (-40, 1), (-51, 1), (-52, 1), (-88, 1), (-91, 1), (-115, 1), (-123, 1), (-148, 1), (-187, 1), (-232, 1), (-235, 1), (-267, 1), (-403, 1), (-427, 1)]
         sage: len(v)
@@ -317,7 +317,6 @@ def cm_orders(h, proof=None):
         84
     """
     h = Integer(h)
-    T = None
     if h <= 0:
         # trivial case
         return []

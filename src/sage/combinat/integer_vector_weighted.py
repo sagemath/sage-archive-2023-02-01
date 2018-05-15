@@ -351,7 +351,7 @@ def iterator_fast(n, l):
     Test that :trac:`20491` is fixed::
 
         sage: type(list(iterator_fast(2, [2]))[0][0])
-        <type 'sage.rings.integer.Integer'>
+        <... 'sage.rings.integer.Integer'>
     """
     if n < 0:
         return

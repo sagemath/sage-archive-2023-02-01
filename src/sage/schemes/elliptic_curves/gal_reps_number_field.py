@@ -532,7 +532,7 @@ def _maybe_borels(E, L, patience=100):
         sage: sage.schemes.elliptic_curves.gal_reps_number_field._maybe_borels(E, primes(20))
         [2, 3]
 
-    Here the curve really does possess isognies of degrees 2 and 3::
+    Here the curve really does possess isogenies of degrees 2 and 3::
 
         sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
         [1, 1]
@@ -577,8 +577,8 @@ def _maybe_borels(E, L, patience=100):
 def _exceptionals(E, L, patience=1000):
     r"""
     Determine which primes in L are exceptional for E, using Proposition 19
-    of Section 2.8 of Serre's ``Proprietes Galoisiennes des Points d'Ordre
-    Fini des Courbes Elliptiques'' [Serre72].
+    of Section 2.8 of Serre's ``Propriétés Galoisiennes des Points d'Ordre
+    Fini des Courbes Elliptiques'' [Serre72]_.
 
     INPUT:
 
@@ -979,7 +979,7 @@ def _possible_normalizers(E, SA):
 
     OUTPUT:
 
-    - list - A list of primes, which contains all primes `l` such that the
+    - list -- A list of primes, which contains all primes `l` such that the
              Galois image at `l` is contained in the normalizer of a Cartan
              subgroup, such that the corresponding quadratic character is
              ramified only at primes in SA.

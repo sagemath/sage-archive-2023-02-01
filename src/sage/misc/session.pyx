@@ -23,7 +23,7 @@ session permanently, since ``SAGE_TMP`` will be removed when leaving Sage!
 This saves a dictionary with ``w`` as one of the keys::
 
     sage: z = load(os.path.join(SAGE_TMP, 'session'))
-    sage: z.keys()
+    sage: list(z)
     ['w']
     sage: z['w']
     2/3

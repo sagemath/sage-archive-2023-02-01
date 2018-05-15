@@ -3,4 +3,4 @@ if [ "$UNAME" = "Darwin" ] && [ $MACOSX_VERSION -ge 16 ]; then
     CC=clang
 fi
 
-cd src && $PIP_INSTALL .
+cd src && sdh_pip_install .

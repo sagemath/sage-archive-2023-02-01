@@ -12,7 +12,7 @@ Mathématique in Montreal by Franco Saliola during winter 2011.
 The solution uses the dancing links code which is in Sage and is based on
 the more general code available in the module :mod:`sage.combinat.tiling`.
 Dancing links were originally introduced by Donald Knuth in 2000
-(`arXiv:cs/0011047 <http://arxiv.org/abs/cs/0011047>`_). In particular,
+(:arxiv:`cs/0011047`). In particular,
 Knuth used dancing links to solve tilings of a region by 2D pentaminos.
 Here we extend the method for 3D pentaminos.
 
@@ -165,8 +165,7 @@ REFERENCES:
 - [1] `Family Games America's Quantumino
   <http://familygamesamerica.com/mainsite/consumers/productview.php?pro_id=274&search=quantumino>`_
 - [2] `Quantumino - How to Play <http://www.youtube.com/watch?v=jX_VKzakZi8>`_ on Youtube
-- [3] Knuth, Donald (2000). "Dancing links". `arXiv:cs/0011047
-  <http://arxiv.org/abs/cs/0011047>`_.
+- [3] Knuth, Donald (2000). *Dancing links*. :arxiv:`cs/0011047`.
 
 """
 #*****************************************************************************
@@ -177,6 +176,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division
+
 from sage.structure.sage_object import SageObject
 from sage.plot.all import Graphics
 from sage.plot.plot3d.platonic import cube
@@ -213,12 +214,12 @@ def show_pentaminos(box=(5,8,2)):
 
     INPUT:
 
-    - ``box`` - tuple of size three (optional, default: ``(5,8,2)``),
+    - ``box`` -- tuple of size three (optional, default: ``(5,8,2)``),
       size of the box
 
     OUTPUT:
 
-        3D Graphic object
+    3D Graphic object
 
     EXAMPLES::
 
@@ -230,18 +231,18 @@ def show_pentaminos(box=(5,8,2)):
         sage: show_pentaminos().show(frame=False)  # not tested (1s)
     """
     G = Graphics()
-    for i,p in enumerate(pentaminos):
-        x = 4 * (i%4)
-        y = 4 * (i/4)
+    for i, p in enumerate(pentaminos):
+        x = 4 * (i % 4)
+        y = 4 * (i // 4)
         q = p + (x, y, 0)
         G += q.show3d()
-        G += text3d(str(i), (x,y,2))
-    G += cube(color='gray',opacity=0.5).scale(box).translate((17,6,0))
+        G += text3d(str(i), (x, y, 2))
+    G += cube(color='gray',opacity=0.5).scale(box).translate((17, 6, 0))
 
     # hack to set the aspect ratio to 1
-    a,b = G.bounding_box()
-    a,b = map(vector, (a,b))
-    G.frame_aspect_ratio(tuple(b-a))
+    a, b = G.bounding_box()
+    a, b = map(vector, (a, b))
+    G.frame_aspect_ratio(tuple(b - a))
 
     return G
 

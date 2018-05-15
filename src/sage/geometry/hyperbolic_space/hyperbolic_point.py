@@ -64,7 +64,7 @@ from sage.structure.element import Element
 from sage.structure.richcmp import richcmp, op_NE
 from sage.symbolic.all import I
 from sage.misc.latex import latex
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity

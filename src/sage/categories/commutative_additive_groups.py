@@ -95,4 +95,3 @@ class CommutativeAdditiveGroups(CategoryWithAxiom, AbelianCategory):
 
     class Algebras(AlgebrasCategory):
         pass
-

@@ -39,7 +39,7 @@ from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.pari.all import pari_gen
-from sage.structure.richcmp import richcmp, richcmp_not_equal, rich_to_bool, rich_to_bool_sgn
+from sage.structure.richcmp import richcmp, richcmp_item, rich_to_bool, rich_to_bool_sgn
 from sage.structure.element import coerce_binop
 
 from sage.rings.infinity import infinity, Infinity
@@ -670,7 +670,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: for _ in range(100):
             ....:     pd = Rd.random_element()
             ....:     qd = Rd.random_element()
-            ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
+            ....:     assert bool(pd < qd) == bool(Rs(pd) < Rs(qd))
         """
         d1 = self.degree()
         d2 = other.degree()
@@ -687,8 +687,9 @@ class Polynomial_generic_sparse(Polynomial):
         for i in sorted(degs, reverse=True):
             x = self[i]
             y = other[i]
-            if x != y:
-                return richcmp_not_equal(x, y, op)
+            res = richcmp_item(x, y, op)
+            if res is not NotImplemented:
+                return res
         return rich_to_bool(op, 0)
 
     def shift(self, n):
@@ -1236,9 +1237,9 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
 
         - Xavier Caruso (2013-03-20)
 
-        TODO:
+        .. TODO::
 
-        Precision is not optimal, and can be improved.
+            Precision is not optimal, and can be improved.
         """
         coeffs = self.list()
         a = coeffs[:deg+1]

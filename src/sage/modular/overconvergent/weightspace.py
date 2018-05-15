@@ -719,7 +719,7 @@ class ArbitraryWeight(WeightCharacter):
         if x.valuation() != 0:
             return 0
 
-        teich = x.parent().teichmuller(x)
+        teich = x.parent().teichmuller(x, x.precision_absolute())
         xx = x / teich
         if (xx - 1).valuation() <= 0:
             raise ArithmeticError

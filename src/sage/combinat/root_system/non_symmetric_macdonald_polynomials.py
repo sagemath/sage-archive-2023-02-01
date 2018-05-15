@@ -26,8 +26,8 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.integer_ring import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.combinat.root_system.hecke_algebra_representation import CherednikOperatorsEigenvectors
+
 
 class NonSymmetricMacdonaldPolynomials(CherednikOperatorsEigenvectors):
     r"""

@@ -58,7 +58,7 @@ Lift an MSymbol to a matrix in `SL(2, R)`:
 
     sage: alpha = MSymbol(N, a + 2, 3*a^2)
     sage: alpha.lift_to_sl2_Ok()
-    [1, -4*a^2 + 9*a - 21, a + 2, a^2 - 3*a + 3]
+    [-3*a^2 + a + 12, 25*a^2 - 50*a + 100, a + 2, a^2 - 3*a + 3]
     sage: Ok = k.ring_of_integers()
     sage: M = Matrix(Ok, 2, alpha.lift_to_sl2_Ok())
     sage: det(M)
@@ -804,7 +804,7 @@ class P1NFList(SageObject):
             sage: P[5]
             M-symbol (1/2*a + 1/2: -a) of level Fractional ideal (3)
             sage: P.lift_to_sl2_Ok(5)
-            [1, -2, 1/2*a + 1/2, -a]
+            [-a, 2*a - 2, 1/2*a + 1/2, -a]
 
         ::
 

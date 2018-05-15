@@ -287,7 +287,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
        groups. Algebraic geometry, 94--121, Lecture Notes in Math., 1479,
        Springer, Berlin, 1991.
     .. [LawsonWuthrich] \T. Lawson and C. Wuthrich, Vanishing of some Galois
-       cohomology groups for elliptic curves, http://arxiv.org/abs/1505.02940
+       cohomology groups for elliptic curves, :arxiv:`1505.02940`
     .. [LumStein] \A. Lum, W. Stein. Verification of the Birch and
        Swinnerton-Dyer Conjecture for Elliptic Curves with Complex
        Multiplication (unpublished)
@@ -369,7 +369,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.rank()
         1
         sage: E._EllipticCurve_rational_field__rank
-        {True: 1}
+        (1, True)
         sage: E.analytic_rank = lambda : 0
         sage: E.prove_BSD()
         Traceback (most recent call last):
@@ -528,9 +528,9 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
        rank_lower_bd > rank_upper_bd:
         raise RuntimeError("Something went wrong with 2-descent.")
     if BSD.rank != len(gens):
-        if BSD.rank != len(BSD.curve._EllipticCurve_rational_field__gens[True]):
+        gens = BSD.curve.gens(proof=True)
+        if BSD.rank != len(gens):
             raise RuntimeError("Could not get generators")
-        gens = BSD.curve._EllipticCurve_rational_field__gens[True]
     BSD.gens = [BSD.curve.point(x, check=True) for x in gens]
 
     if BSD.rank != BSD.curve.analytic_rank():

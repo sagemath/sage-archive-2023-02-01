@@ -508,7 +508,7 @@ Sage example in ./programmation.tex, line 1835::
 
   sage: L = [[2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3],\
   ....: [1, 1, 2], [1, 2, 7]]
-  sage: L.sort (cmp = alpha) ; L    # optional - python2
+  sage: L.sort (cmp = alpha) ; L    # py2
   [[1, 1, 2], [1, 2, 7], [2, 2, 5], [2, 3, 4], [3, 2, 4], [3, 3, 3]]
 
 Sage example in ./programmation.tex, line 1856::

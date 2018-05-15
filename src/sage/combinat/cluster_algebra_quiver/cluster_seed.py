@@ -37,9 +37,10 @@ from six.moves import range
 import itertools
 import time
 from operator import pos
+from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
-from sage.rings.all import QQ, infinity, factor
+from sage.rings.all import QQ, infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.all import FractionField, PolynomialRing
 from sage.rings.fraction_field_element import FractionFieldElement
@@ -47,7 +48,6 @@ from sage.sets.all import Set
 from sage.graphs.digraph import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
-from sage.misc.misc import exists
 from random import randint
 from sage.misc.all import prod
 from sage.matrix.all import identity_matrix
@@ -179,8 +179,6 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',4])
             sage: TestSuite(S).run()
         """
-        from sage.matrix.matrix import Matrix
-
         #initialize a null state ClusterSeed object so all tests run and fail as appropriate.
         # numerous doctests if this null state is not first initialized.
         self._n = 0
@@ -226,7 +224,8 @@ class ClusterSeed(SageObject):
             user_labels = [tuple(x) if isinstance(x, list) else x for x in user_labels]
         elif isinstance(user_labels, dict):
             values = [tuple(user_labels[x]) if isinstance(user_labels[x], list) else user_labels[x] for x in user_labels]
-            user_labels = {user_labels.keys()[i]: values[i] for i in range(len(values))}
+            keys = list(user_labels)
+            user_labels = {keys[i]: v for i, v in enumerate(values)}
 
         # constructs a cluster seed from a cluster seed
         if isinstance(data, ClusterSeed):
@@ -348,8 +347,8 @@ class ClusterSeed(SageObject):
                 self._init_vars = copy(xs)
                 self._init_vars.update(ys)
 
-            self._init_exch = dict(self._init_vars.items()[:self._n])
-            self._U = PolynomialRing(QQ,['y%s'%i for i in range(self._n)])
+            self._init_exch = dict(islice(self._init_vars.items(), self._n))
+            self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
             self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
             self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
             self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n,self._n+self._m)])) for j in range(self._n)])
@@ -653,8 +652,8 @@ class ClusterSeed(SageObject):
                 if self._G == matrix.identity(self._n): # If we are at the root
                     if not self._use_g_vec:
                         self.use_g_vectors(True)
-                    self._init_exch = dict(self._init_vars.items()[:self._n])
-                    self._U = PolynomialRing(QQ,['y%s'%i for i in range(self._n)])
+                    self._init_exch = dict(islice(self._init_vars.items(), self._n))
+                    self._U = PolynomialRing(QQ,['y%s' % i for i in range(self._n)])
                     self._F = dict([(i,self._U(1)) for i in self._init_exch.values()])
                     self._R = PolynomialRing(QQ,[val for val in self._init_vars.values()])
                     self._y = dict([ (self._U.gen(j),prod([self._R.gen(i)**self._M[i,j] for i in range(self._n,self._n+self._m)])) for j in range(self._n)])
@@ -2176,6 +2175,7 @@ class ClusterSeed(SageObject):
         An integer.
 
         EXAMPLES::
+
             sage: B = matrix([[0,2],[-2,0]])
             sage: C = ClusterSeed(B).principal_extension();
             sage: C.mutate(0)
@@ -2547,7 +2547,8 @@ class ClusterSeed(SageObject):
         is_vertices = set(seqq).issubset(set(seed._nlist))
         is_indices = set(seqq).issubset(set(range(n)))
 
-        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
+        # Note - this does not guarantee that the sequence consists of
+        # cluster variables, it only rules out some possibilities.
         is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.
@@ -4579,8 +4580,9 @@ class ClusterSeed(SageObject):
 
     def _compute_compatible_vectors(self,vd):
         r"""
-        Returns a list of compatible vectors of each vector in the vector decomposition `vd`.
-        Compatibility is defined as in [LLM] with respect to the matrix `B`.
+        Return a list of compatible vectors of each vector in the vector decomposition `vd`.
+
+        Compatibility is defined as in [LLM]_ with respect to the matrix `B`.
 
         INPUT:
 
@@ -4672,7 +4674,7 @@ class ClusterSeed(SageObject):
             for s in psetvect:
                 pass1 = True
         #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
-        #Only checks for the mutable verices since all entries in a_i i>num_cols are zero. 
+        #Only checks for the mutable vertices since all entries in a_i i>num_cols are zero. 
                 for k in range(num_cols):
                     if s[k] > a[0][k]:
                         pass1 = False
@@ -4920,7 +4922,7 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
 
 def get_green_vertices(C):
     r"""
-    Get the green vertices from a matrix. Will go through each clumn and return
+    Get the green vertices from a matrix. Will go through each column and return
     the ones where no entry is greater than 0.
 
     INPUT:
@@ -4941,9 +4943,12 @@ def get_green_vertices(C):
     #max_entries = [ np.max(np.array(C.column(i))) for i in range(C.ncols()) ]
     #return [i for i in range(C.ncols()) if max_entries[i] > 0]
 
+
 def get_red_vertices(C):
     r"""
-    Get the red vertices from a matrix. Will go through each clumn and return
+    Get the red vertices from a matrix.
+
+    Will go through each column and return
     the ones where no entry is less than 0.
 
     INPUT:
@@ -4951,11 +4956,11 @@ def get_red_vertices(C):
     - ``C`` -- The C matrix to check
 
     EXAMPLES::
+
         sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import get_red_vertices
         sage: S = ClusterSeed(['A',4]); S.mutate([1,2,3,2,0,1,2,0,3])
         sage: get_red_vertices(S.c_matrix())
         [1, 2]
-
     """
     return [ i for (i,v) in enumerate(C.columns()) if any(x < 0 for x in v) ]
     ## old code commented out
@@ -5127,18 +5132,18 @@ def _multi_concatenate(l1, l2):
     
     EXAMPLES::
 
-    sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import _multi_concatenate
 
-    sage: _multi_concatenate([[0,1,2]],[3,4,5])
-    [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
+        sage: _multi_concatenate([[0,1,2]],[3,4,5])
+        [[0, 1, 2, 3], [0, 1, 2, 4], [0, 1, 2, 5]]
 
-    sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
-    [[0, 1, 2, 6],
-    [0, 1, 2, 7],
-    [0, 1, 2, 8],
-    [3, 4, 5, 6],
-    [3, 4, 5, 7],
-    [3, 4, 5, 8]]   
+        sage: _multi_concatenate([[0,1,2],[3,4,5]],[6,7,8])
+        [[0, 1, 2, 6],
+        [0, 1, 2, 7],
+        [0, 1, 2, 8],
+        [3, 4, 5, 6],
+        [3, 4, 5, 7],
+        [3, 4, 5, 8]]   
     """
     plist = []
     for i in l1:

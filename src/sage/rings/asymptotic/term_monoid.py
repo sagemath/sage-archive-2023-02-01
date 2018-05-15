@@ -3114,7 +3114,7 @@ class ExactTerm(TermWithCoefficient):
         elif c == '-1':
             return '-{g}'.format(g=g)
         elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
-            # note that -pi/2 is not atomic, but -5 is. As subtractions are handeled
+            # note that -pi/2 is not atomic, but -5 is. As subtractions are handled
             # in the asymptotic ring, we ignore such non-atomicity.
             s = '{c} {g}' if latex else '{c}*{g}'
         else:
@@ -3339,7 +3339,7 @@ class ExactTerm(TermWithCoefficient):
             sage: T(x^1234).log_term()
             (1234*log(x),)
             sage: T(49*x^7).log_term(base=7)
-            (log(49)/log(7), 7/log(7)*log(x))
+            (2, 7/log(7)*log(x))
 
         ::
 
@@ -3347,7 +3347,7 @@ class ExactTerm(TermWithCoefficient):
             sage: T('x * y').log_term()
             (log(x), log(y))
             sage: T('4 * x * y').log_term(base=2)
-            (log(4)/log(2), 1/log(2)*log(x), 1/log(2)*log(y))
+            (2, 1/log(2)*log(x), 1/log(2)*log(y))
 
         .. SEEALSO::
 
@@ -3565,10 +3565,6 @@ class ExactTerm(TermWithCoefficient):
             > *previous* ZeroDivisionError: Cannot substitute in x^(-1) in
             Growth Group x^ZZ.
             >> *previous* ZeroDivisionError: rational division by zero
-            sage: (e*e)._substitute_({'x': 'something'})
-            'somethingsomething'
-            sage: E(1/x)._substitute_({'x': 'something'})
-            ''
             sage: E(1/x)._substitute_({'x': ZZ})
             Traceback (most recent call last):
             ...

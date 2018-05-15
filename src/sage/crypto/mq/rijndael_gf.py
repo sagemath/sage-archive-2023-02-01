@@ -621,7 +621,7 @@ class RijndaelGF(SageObject):
         r"""
         Returns the string representation of ``self``.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: from sage.crypto.mq.rijndael_gf import RijndaelGF
             sage: rgf = RijndaelGF(5, 8)
@@ -1103,7 +1103,7 @@ class RijndaelGF(SageObject):
         - ``PRm`` -- If ``PRm`` is a `4 \times Nb` matrix with entries from
           the multivariate PolynomialRing ``_all_PR``, this method does nothing
           `\GF{2^8}`, this method does nothing. Otherwise, this method raises
-          an error. Note that a matrix of elements from `\GF(2^8)` is regarded
+          an error. Note that a matrix of elements from `\GF{2^8}` is regarded
           as a matrix with entries from ``_all_PR`` and will pass this test.
 
         - ``keyword`` -- The name of the keyword ``PRm`` from where this
@@ -2306,6 +2306,7 @@ class RijndaelGF(SageObject):
               `\GF{2^8}`.
 
             EXAMPLES::
+
                 sage: from sage.crypto.mq.rijndael_gf import \
                 ....: RijndaelGF
                 sage: rgf = RijndaelGF(4, 4)

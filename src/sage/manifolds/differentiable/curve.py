@@ -1,7 +1,7 @@
 r"""
 Curves in Manifolds
 
-Given a differentiable manifold `M`, a *differentiable curve* curve in
+Given a differentiable manifold `M`, a *differentiable curve* in
 `M` is a differentiable mapping
 
 .. MATH::
@@ -37,7 +37,6 @@ from sage.misc.latex import latex
 from sage.misc.decorators import options
 from sage.manifolds.point import ManifoldPoint
 from sage.manifolds.differentiable.diff_map import DiffMap
-from sage.manifolds.utilities import simplify_chain_real
 
 class DifferentiableCurve(DiffMap):
     r"""
@@ -434,15 +433,15 @@ class DifferentiableCurve(DiffMap):
         if (canon_chart, codom._def_chart) in self._coord_expression:
             chart_pair = (canon_chart, codom._def_chart)
         else:
-            chart_pair = self._coord_expression.keys()[0]  # a chart is picked
-                                                           # at random
+            chart_pair = next(iter(self._coord_expression.keys()))
+            # a chart is picked at random
         coord_functions = self._coord_expression[chart_pair]._functions
         n = codom._dim
         dict_subs = {canon_coord: t}
         coords = [coord_functions[i].expr().substitute(dict_subs)
                   for i in range(n)]
         if simplify:
-            coords = [simplify_chain_real(coords[i]) for i in range(n)]
+            coords = [chart_pair[0].simplify(coords[i]) for i in range(n)]
         if self._name is not None:
             name = "{}({})".format(self._name, t)
         else:
@@ -744,7 +743,7 @@ class DifferentiableCurve(DiffMap):
             sage: a, b = var('a b')
             sage: c = R2.curve([a*cos(t) + b, a*sin(t)], (t, 0, 2*pi), name='c')
 
-        To make a plot, we set spectific values for ``a`` and ``b`` by means
+        To make a plot, we set specific values for ``a`` and ``b`` by means
         of the Python dictionary ``parameters``::
 
             sage: c.plot(parameters={a: 2, b: -3}, aspect_ratio=1)
@@ -931,4 +930,3 @@ class DifferentiableCurve(DiffMap):
                 labels = [str(pc) for pc in ambient_coords]
                 resu = set_axes_labels(resu, *labels)
         return resu
-

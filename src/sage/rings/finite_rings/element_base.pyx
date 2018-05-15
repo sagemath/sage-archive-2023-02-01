@@ -28,6 +28,7 @@ def is_FiniteFieldElement(x):
     from sage.rings.finite_rings.finite_field_base import is_FiniteField
     return isinstance(x, Element) and is_FiniteField(x.parent())
 
+
 cdef class FiniteRingElement(CommutativeRingElement):
     def _nth_root_common(self, n, all, algorithm, cunningham):
         """
@@ -98,6 +99,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
                 return self
         else:
             raise ValueError("unknown algorithm")
+
 
 cdef class FinitePolyExtElement(FiniteRingElement):
     """
@@ -170,14 +172,13 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R(self.__pari__().minpoly('x').lift())
         elif algorithm == 'matrix':
-            return self._matrix_().minpoly(var)
+            return self.matrix().minpoly(var)
         else:
             raise ValueError("unknown algorithm '%s'" % algorithm)
 
-
-        ## We have two names for the same method
-        ## for compatibility with sage.matrix
-    def minimal_polynomial(self,var='x'):
+    # We have two names for the same method
+    # for compatibility with sage.matrix
+    def minimal_polynomial(self, var='x'):
         """
         Returns the minimal polynomial of this element
         (over the corresponding prime subfield).
@@ -241,8 +242,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ret.reverse()
         return k.vector_space()(ret)
 
-    def _matrix_(self, reverse=False):
-        """
+    def matrix(self, reverse=False):
+        r"""
         Return the matrix of left multiplication by the element on
         the power basis `1, x, x^2, \ldots, x^{d-1}` for the field
         extension.  Thus the \emph{columns} of this matrix give the images
@@ -256,9 +257,9 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
             sage: k.<a> = GF(2^4)
             sage: b = k.random_element()
-            sage: vector(a*b) == matrix(a) * vector(b)
+            sage: vector(a*b) == a.matrix() * vector(b)
             True
-            sage: (a*b)._vector_(reverse=True) == a._matrix_(reverse=True) * b._vector_(reverse=True)
+            sage: (a*b)._vector_(reverse=True) == a.matrix(reverse=True) * b._vector_(reverse=True)
             True
         """
         K = self.parent()
@@ -419,7 +420,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             R = PolynomialRing(self.parent().prime_subfield(), var)
             return R(self.__pari__().charpoly('x').lift())
         elif algorithm == 'matrix':
-            return self._matrix_().charpoly(var)
+            return self.matrix().charpoly(var)
         else:
             raise ValueError("unknown algorithm '%s'" % algorithm)
 
@@ -795,4 +796,3 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             b^11 + b^10 + b^9 + b^7 + b^5 + b^4 + b^2 + b
         """
         return self.pth_power(-k)
-

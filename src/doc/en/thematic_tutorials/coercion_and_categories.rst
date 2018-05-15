@@ -114,8 +114,6 @@ This base class provides a lot more methods than a general parent::
      '__rxor__',
      '__truediv__',
      '__xor__',
-     '_an_element',
-     '_an_element_c',
      '_an_element_impl',
      '_coerce_',
      '_coerce_c',
@@ -123,7 +121,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_try',
      '_default_category',
      '_gens',
-     '_has_coerce_map_from',
      '_ideal_class_',
      '_latex_names',
      '_list',
@@ -147,8 +144,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'get_action_c',
-     'get_action_impl',
      'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',
@@ -399,15 +394,6 @@ we stay inside a single parent structure::
     sage: a-b == MyElement(P, 1, 4)
     True
 
-.. end of output
-
-We didn't implement exponentiation\---but it just works::
-
-    sage: a^3
-    (27):(64)
-
-.. end of output
-
 There is a default implementation of element tests. We can already do
 ::
 
@@ -423,7 +409,7 @@ does not even give a wrong answer, but results in an error::
     sage: 1 in P
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -466,7 +452,7 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
     78
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    118
+    117
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -610,7 +596,7 @@ does not work, yet::
     sage: P.sum([a, b, c])
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -661,7 +647,12 @@ This little change provides several benefits:
       sage: P.sum([a,b,c])
       (36):(16)
 
-.. end of output
+- Exponentiation now works out of the box using the multiplication
+  that we defined::
+
+    sage: a^3
+    (729):(64)
+
 
 What did happen behind the scenes to make this work?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -879,7 +870,8 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Join of Category of euclidean domains and Category of metric spaces
+          Join of Category of euclidean domains and Category of infinite sets
+          and Category of metric spaces
 
       .. end of output
 
@@ -1270,7 +1262,7 @@ functors are shuffled.
 ::
 
     sage: Compl, R = RR.construction(); Compl
-    Completion[+Infinity]
+    Completion[+Infinity, prec=53]
 
 .. end of output
 
@@ -1300,7 +1292,7 @@ When we apply ``Compl``, ``Matr`` and ``Poly`` to the ring of integers, we
 obtain::
 
     sage: (Poly*Matr*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Real Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
 
 .. end of output
 
@@ -1308,14 +1300,14 @@ Applying the shuffling procedure yields
 ::
 
     sage: (Poly*Matr*Fract*Poly*AlgClos*Fract*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 
 and this is indeed equal to the pushout found by Sage::
 
     sage: pushout((Fract*Poly*AlgClos*Fract)(ZZ), (Poly*Matr*Compl)(ZZ))
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 
@@ -1552,6 +1544,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_elements_eq_transitive',
      '_test_elements_neq',
      '_test_euclidean_degree',
+     '_test_fraction_field',
      '_test_gcd_vs_xgcd',
      '_test_one', '_test_prod',
      '_test_quo_rem',
@@ -1606,6 +1599,7 @@ Let us see what tests are actually performed::
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
@@ -1778,6 +1772,7 @@ interesting.
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass

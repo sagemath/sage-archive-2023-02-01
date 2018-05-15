@@ -54,6 +54,10 @@ from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
+#################################################################
+# File and directory utilities
+#################################################################
+
 def sage_makedirs(dir):
     """
     Python version of ``mkdir -p``: try to create a directory, and also

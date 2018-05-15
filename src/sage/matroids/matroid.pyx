@@ -331,6 +331,7 @@ from __future__ import absolute_import
 
 from cpython.object cimport Py_EQ, Py_NE
 
+from sage.structure.richcmp cimport rich_to_bool, richcmp
 from sage.structure.sage_object cimport SageObject
 from itertools import combinations, permutations, product
 from .set_system cimport SetSystem
@@ -3556,27 +3557,16 @@ cdef class Matroid(SageObject):
             sage: M1 == M3  # indirect doctest
             True
         """
-        from . import basis_matroid
         if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if left.__class__ != right.__class__:
+        if type(left) is not type(right):
             return NotImplemented
-        # The above test can be tricked. One could:
-        # * spoof the __class__ attribute
-        # * call the method with two things that are not Matroid instances, as in
-        #   sage.matroids.matroid.Matroid.__richcmp__(p, q, 2)
-        # Non-abstract subclasses should just call isinstance on both left and right.
         if hash(left) != hash(right):
-            if op == Py_EQ:
-                return False
-            if op == Py_NE:
-                return True
+            return rich_to_bool(op, 1)
 
-        res = (basis_matroid.BasisMatroid(left) == basis_matroid.BasisMatroid(right))   # Default implementation
-        if op == Py_EQ:
-            return res
-        if op == Py_NE:
-            return not res
+        # Default implementation: use BasisMatroid
+        from .basis_matroid import BasisMatroid
+        return richcmp(BasisMatroid(left), BasisMatroid(right), op)
 
     # Minors and duality
 
@@ -5488,7 +5478,7 @@ cdef class Matroid(SageObject):
         T = spanning_stars(M)
         for (x1,y1) in T:
             # The whiting out
-            B = matrix(M)
+            B = M
             for (x,y) in product(range(n),range(m)):
                 if (x1!=x and y1!=y):
                     if(M[x1,y]==1 and
@@ -6759,7 +6749,7 @@ cdef class Matroid(SageObject):
 
         # Construct ``Y``: a list of all elements of ``X``
         # in order of weakly decreasing weight.
-        # and a dictionary that gives the weights of the elementns of X.
+        # and a dictionary that gives the weights of the elements of X.
         else:
             wt = []
             wt_dic = {}
@@ -7414,12 +7404,23 @@ cdef class Matroid(SageObject):
             T = T(a, b)
         return T
 
-    cpdef flat_cover(self):
+    cpdef flat_cover(self, solver=None, verbose=0):
         """
         Return a minimum-size cover of the nonbases by non-spanning flats.
 
         A *nonbasis* is a subset that has the size of a basis, yet is
         dependent. A *flat* is a closed set.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
+          of the LP solver. Set to 0 by default, which means quiet.
 
         .. SEEALSO::
 
@@ -7443,12 +7444,12 @@ cdef class Matroid(SageObject):
         for r in range(self.full_rank()):
             FF.extend(self.flats(r))
 
-        MIP = MixedIntegerLinearProgram(maximization=False)
+        MIP = MixedIntegerLinearProgram(maximization=False, solver=solver)
         f = MIP.new_variable(binary=True)
         MIP.set_objective(sum([f[F] for F in FF]))
         for N in NB:
             MIP.add_constraint(sum([f[F] for F in FF if len(F.intersection(N)) > self.rank(F)]), min=1)
-        opt = MIP.solve()
+        opt = MIP.solve(log=verbose)
 
         fsol = MIP.get_values(f)
         eps = 0.00000001

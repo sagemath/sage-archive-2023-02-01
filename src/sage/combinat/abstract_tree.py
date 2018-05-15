@@ -72,6 +72,8 @@ from sage.misc.misc_c import prod
 # Unfortunately Cython forbids multiple inheritance. Therefore, we do not
 # inherit from SageObject to be able to inherit from Element or a subclass
 # of it later.
+
+
 class AbstractTree(object):
     """
     Abstract Tree.
@@ -1049,7 +1051,7 @@ class AbstractTree(object):
             5
         """
         if self.is_empty():
-            return 0
+            return Integer(0)
         else:
             return sum((i.node_number() for i in self), Integer(1))
 
@@ -1151,7 +1153,8 @@ class AbstractTree(object):
                        /  /
                       14 15
         """
-        node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
+        def node_to_str(t):
+            return str(t.label()) if hasattr(t, "label") else "o"
 
         if self.is_empty():
             from sage.typeset.ascii_art import empty_ascii_art
@@ -1159,15 +1162,15 @@ class AbstractTree(object):
 
         from sage.typeset.ascii_art import AsciiArt
         if len(self) == 0:
-            t_repr = AsciiArt( [node_to_str(self)] )
+            t_repr = AsciiArt([node_to_str(self)])
             t_repr._root = 1
             return t_repr
         if len(self) == 1:
             repr_child = self[0]._ascii_art_()
-            sep = AsciiArt( [" "*(repr_child._root-1)] )
-            t_repr = AsciiArt( [node_to_str(self)] )
+            sep = AsciiArt([" "*(repr_child._root-1)])
+            t_repr = AsciiArt([node_to_str(self)])
             t_repr._root = 1
-            repr_root = (sep + t_repr)*(sep + AsciiArt( ["|"] ))
+            repr_root = (sep + t_repr)*(sep + AsciiArt(["|"]))
             t_repr = repr_root * repr_child
             t_repr._root = repr_child._root
             t_repr._baseline = t_repr._h - 1
@@ -1182,12 +1185,12 @@ class AbstractTree(object):
             t_repr = l_repr.pop(0)
             acc += AsciiArt([" "]) + t_repr
             if len(l_repr) == 0:
-                lf_sep += "_"*(t_repr._root+1)
+                lf_sep += "_" * (t_repr._root + 1)
             else:
-                lf_sep += "_"*(t_repr._l+1)
+                lf_sep += "_" * (t_repr._l + 1)
             ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
         mid = whitesep + (len(lf_sep) - whitesep) // 2
-        node = node_to_str( self )
+        node = node_to_str(self)
         t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
         t_repr._root = mid
         t_repr._baseline = t_repr._h - 1
@@ -1302,8 +1305,8 @@ class AbstractTree(object):
             tr = l_repr.pop(0)
             acc += UnicodeArt([u" "]) + tr
             if not len(l_repr):
-                lf_sep += u"─" * (tr._root) + u"╮" # + u" " * (tr._l - tr._root)
-                ls_sep += u" " * (tr._root) + u"│" # + u" " * (tr._l - tr._root)
+                lf_sep += u"─" * (tr._root) + u"╮"
+                ls_sep += u" " * (tr._root) + u"│"
             else:
                 lf_sep += u"─" * (tr._root) + u"┬" + u"─" * (tr._l - tr._root)
                 ls_sep += u" " * (tr._root) + u"│" + u" " * (tr._l - tr._root)
@@ -1316,7 +1319,7 @@ class AbstractTree(object):
         t_repr._baseline = t_repr._h - 1
         return t_repr
 
-    def canonical_labelling(self,shift=1):
+    def canonical_labelling(self, shift=1):
         """
         Returns a labelled version of ``self``.
 
@@ -1345,9 +1348,9 @@ class AbstractTree(object):
         liste = []
         deca = 1
         for subtree in self:
-            liste += [subtree.canonical_labelling(shift+deca)]
+            liste += [subtree.canonical_labelling(shift + deca)]
             deca += subtree.node_number()
-        return LTR._element_constructor_(liste,label=shift)
+        return LTR._element_constructor_(liste, label=shift)
 
     def to_hexacode(self):
         r"""
@@ -1419,7 +1422,7 @@ class AbstractTree(object):
         """
         nb = self.node_number()
         if nb <= 1:
-            return 1
+            return Integer(1)
         return nb * prod(s.tree_factorial() for s in self)
 
     def _latex_(self):
@@ -1474,12 +1477,16 @@ class AbstractTree(object):
         space = " "*9
         sepspace = sep + space
         spacesep = space + sep
-        node_to_str = lambda node: " " + node + " " * (len(space) - 1 - len(node))
+
+        def node_to_str(node):
+            return " " + node + " " * (len(space) - 1 - len(node))
         # # TODO:: modify how to create nodes --> new_cmd : \\node[...] in create_node
         num = [0]
 
         def resolve(self):
-            nodes = []; matrix = []; edges = []
+            nodes = []
+            matrix = []
+            edges = []
 
             def create_node(self):
                 r"""
@@ -2005,7 +2012,7 @@ class AbstractLabelledTree(AbstractTree):
     """
     Abstract Labelled Tree.
 
-    Typically a class for labelled trees is contructed by inheriting from
+    Typically a class for labelled trees is constructed by inheriting from
     a class for unlabelled trees and :class:`AbstractLabelledTree`.
 
     .. rubric:: How should this class be extended ?
@@ -2034,7 +2041,7 @@ class AbstractLabelledTree(AbstractTree):
 
     .. SEEALSO:: :class:`AbstractTree`
     """
-    def __init__(self, parent, children, label = None, check = True):
+    def __init__(self, parent, children, label=None, check=True):
         """
         TESTS::
 
@@ -2100,7 +2107,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LabelledOrderedTree([[],LabelledOrderedTree([[]], label=2)], label=3)
             3[None[], 2[None[]]]
         """
-        return "%s%s"%(self._label, self[:])
+        return "%s%s" % (self._label, self[:])
 
     def label(self, path=None):
         """
@@ -2177,7 +2184,7 @@ class AbstractLabelledTree(AbstractTree):
             sage: LBT(None).leaf_labels()
             []
         """
-        return [t.label() for t in self.subtrees() if t.node_number()==1]
+        return [t.label() for t in self.subtrees() if t.node_number() == 1]
 
     def __eq__(self, other):
         """
@@ -2201,8 +2208,8 @@ class AbstractLabelledTree(AbstractTree):
             sage: t1 == t2
             False
         """
-        return ( super(AbstractLabelledTree, self).__eq__(other) and
-                 self._label == other._label )
+        return (super(AbstractLabelledTree, self).__eq__(other) and
+                self._label == other._label)
 
     def _hash_(self):
         """
@@ -2292,8 +2299,8 @@ class AbstractLabelledTree(AbstractTree):
            Digraph on 4 vertices
         """
         from sage.graphs.digraph import DiGraph
-        resu = dict([[self.label(),
-                    [t.label() for t in self if not t.is_empty()]]])
+        resu = {self.label():
+                [t.label() for t in self if not t.is_empty()]}
         resu = DiGraph(resu, format="dict_of_lists")
         for t in self:
             if not t.is_empty():

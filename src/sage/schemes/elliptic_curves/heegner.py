@@ -369,7 +369,7 @@ class RingClassField(SageObject):
             sage: K5.degree_over_K()
             6
             sage: type(K5.degree_over_K())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
             sage: E = EllipticCurve('389a'); E.heegner_point(-20).ring_class_field().degree_over_K()
             2
@@ -1250,7 +1250,7 @@ class GaloisAutomorphism(SageObject):
             sage: G = heegner_points(389,-7,5).ring_class_field().galois_group(); G
             Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5
             sage: sage.schemes.elliptic_curves.heegner.GaloisAutomorphism(G)
-            <class 'sage.schemes.elliptic_curves.heegner.GaloisAutomorphism'>
+            <sage.schemes.elliptic_curves.heegner.GaloisAutomorphism object at ...>
         """
         self.__parent = parent
 
@@ -3150,9 +3150,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             Heegner point of discriminant -7 on elliptic curve of conductor 37
             sage: P = y.kolyvagin_point(); P
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
-            sage: PP = P.numerical_approx() # approximately (0 : 0 : 1)
-            sage: all([c.abs() < 1e-15 for c in PP.xy()])
-            True
+            sage: P.numerical_approx()  # abs tol 1e-15
+            (-3.36910401903861e-16 - 2.22076195576076e-16*I : 3.33066907387547e-16 + 2.22076195576075e-16*I : 1.00000000000000)
         """
         return KolyvaginPoint(self)
 
@@ -3250,8 +3249,8 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('37a'); P = E.heegner_point(-7); P
             Heegner point of discriminant -7 on elliptic curve of conductor 37
-            sage: all([c.abs()< 1e-15 for c in P.numerical_approx().xy()])
-            True
+            sage: P.numerical_approx()  # abs tol 1e-15
+            (-3.36910401903861e-16 - 2.22076195576076e-16*I : 3.33066907387547e-16 + 2.22076195576075e-16*I : 1.00000000000000)
             sage: P.numerical_approx(10)  # expect random digits
             (0.0030 - 0.0028*I : -0.0030 + 0.0028*I : 1.0)
             sage: P.numerical_approx(100)[0]  # expect random digits
@@ -5544,12 +5543,13 @@ class HeegnerQuatAlg(SageObject):
     def kolyvagin_point_on_curve(self, D, c, E, p, bound=10):
         r"""
         Compute image of the Kolyvagin divisor `P_c` in
-        `E(\GF{\ell^2}) / p E(\GF{\ell^2})`.  Note that
-        this image is by definition only well defined up to
-        scalars.   However, doing multiple computations
-        will always yield the same result, and working
-        modulo different `\ell` is compatible (since we
-        always chose the same generator for `\textrm{Gal}(K_c/K_1)`).
+        `E(\GF{\ell^2}) / p E(\GF{\ell^2})`.
+
+        Note that this image is by definition only well defined up to
+        scalars.  However, doing multiple computations will always
+        yield the same result, and working modulo different `\ell` is
+        compatible (since we always choose the same generator for
+        `\textrm{Gal}(K_c/K_1)`).
 
         INPUT:
 
@@ -6619,7 +6619,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     which can be used to fine tune the 2-descent used to compute
     the regulator of the twist::
 
-        sage: E = EllipticCurve([0, 0, 1, -34874, -2506691])
+        sage: E = EllipticCurve([1,-1,0,-1228,-16267])
         sage: E.heegner_index(-8)
         Traceback (most recent call last):
         ...
@@ -6628,7 +6628,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     However when we search higher, we find the points we need::
 
         sage: E.heegner_index(-8, descent_second_limit=16, check_rank=False)
-        1.00000?
+        2.00000?
 
 
     Two higher rank examples (of ranks 2 and 3)::
@@ -6885,12 +6885,15 @@ def _heegner_index_in_EK(self, D):
     Return the index of the sum of `E(\QQ)/tor + E^D(\QQ)/tor` in `E(K)/tor`.
 
     INPUT:
-        - `D` -- negative integer; the Heegner discriminant
+
+    - `D` -- negative integer; the Heegner discriminant
 
     OUTPUT:
-        a power of 2 -- the given index
+
+    a power of 2 -- the given index
 
     EXAMPLES:
+
     We compute the index for a rank 2 curve and found that it is 2::
 
         sage: E = EllipticCurve('389a')
@@ -6898,7 +6901,7 @@ def _heegner_index_in_EK(self, D):
         2
 
     We explicitly verify in the above example that indeed that
-    index is divisibly by 2 by writing down a generator of
+    index is divisible by 2 by writing down a generator of
     `E(\QQ)/tor + E^D(\QQ)/tor` that is divisible by 2 in `E(K)`::
 
         sage: F = E.quadratic_twist(-7)

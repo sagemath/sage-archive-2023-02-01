@@ -210,7 +210,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.rings.all import ZZ, QQ
 from sage.matrix.all import Matrix, identity_matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.interfaces.gap3 import gap3
 from sage.rings.universal_cyclotomic_field import E
 from sage.modules.free_module_element import vector

@@ -20,7 +20,6 @@ from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from .generic_backend cimport GenericBackend
-from cvxopt import solvers
 from copy import copy
 
 
@@ -323,7 +322,7 @@ cdef class CVXOPTBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 

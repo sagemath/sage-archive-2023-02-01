@@ -1050,9 +1050,17 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
 
                     EXAMPLES::
 
+                        sage: W = Permutations(4)
+                        sage: W.number_of_reflections_of_full_support()
+                        1
+
                         sage: W = ColoredPermutations(1,4)
                         sage: W.number_of_reflections_of_full_support()
                         1
+
+                        sage: W = CoxeterGroup("B3")
+                        sage: W.number_of_reflections_of_full_support()
+                        3
 
                         sage: W = ColoredPermutations(3,3)
                         sage: W.number_of_reflections_of_full_support()
@@ -1061,8 +1069,7 @@ class FiniteComplexReflectionGroups(CategoryWithAxiom):
                     n = self.rank()
                     h = self.coxeter_number()
                     l = self.cardinality()
-                    codegrees = self.codegrees()[:-1]
-                    return (n * h * prod(codegrees)) // l
+                    return (n * h * prod(d for d in self.codegrees() if d != 0)) // l
 
                 @cached_method
                 def rational_catalan_number(self, p, polynomial=False):

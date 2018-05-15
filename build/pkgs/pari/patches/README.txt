@@ -11,6 +11,3 @@ Patches to configuration files:
 C files:
 * stackwarn.patch (Jeroen Demeyer, #19883): do not display warnings
   regarding the stack size (unless DEBUGMEM is set).
-
-Bugfixes:
-* polredabs.patch (Maarten Derickx, #23259): Fix bug in polredabs

@@ -16,7 +16,7 @@ functions.
 #*****************************************************************************
 
 from sage.structure.parent_base import ParentWithBase
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.functions.all import sqrt
 from sage.rings.real_mpfr import (RealField, is_RealField)
 from sage.rings.rational_field import is_RationalField
@@ -339,7 +339,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
                 if not one == 1:
                     raise TypeError("Argument P (= %s) does not define a probability function")
             else:
-                if not Abs(one-1) < 2^(-codomain.precision()+1):
+                if not abs(one - 1) < 2 ** (-codomain.precision() + 1):
                     raise TypeError("Argument P (= %s) does not define a probability function")
         ProbabilitySpace_generic.__init__(self, X, codomain)
         DiscreteRandomVariable.__init__(self, self, P, codomain, check)

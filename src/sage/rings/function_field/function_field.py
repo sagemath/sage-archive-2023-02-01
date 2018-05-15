@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Function Fields
 
@@ -7,7 +8,7 @@ AUTHORS:
 
 - Robert Bradshaw (2010-05-30): added is_finite()
 
-- Julian Rueth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
+- Julian Rüth (2011-06-08, 2011-09-14, 2014-06-23, 2014-06-24, 2016-11-13):
   fixed hom(), extension(); use @cached_method; added derivation(); added
   support for relative vector spaces; fixed conversion to base fields
 
@@ -77,7 +78,7 @@ from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
 #       Copyright (C) 2010 Robert Bradshaw <robertwb@math.washington.edu>
-#       Copyright (C) 2011-2016 Julian Rueth <julian.rueth@gmail.com>
+#       Copyright (C) 2011-2017 Julian Rüth <julian.rueth@gmail.com>
 #       Copyright (C) 2011 Maarten Derickx <m.derickx.student@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -160,7 +161,7 @@ class FunctionField(Field):
 
     def some_elements(self):
         """
-        Return some elemnts in this function field.
+        Return some elements in this function field.
 
         EXAMPLES::
 
@@ -466,15 +467,15 @@ class FunctionField(Field):
         from itertools import product
         # Leibniz's law
         for x,y in tester.some_elements(product(S, S)):
-            tester.assert_(d(x*y) == x*d(y) + d(x)*y)
+            tester.assertTrue(d(x*y) == x*d(y) + d(x)*y)
         # Linearity
         for x,y in tester.some_elements(product(S, S)):
-            tester.assert_(d(x+y) == d(x) + d(y))
+            tester.assertTrue(d(x+y) == d(x) + d(y))
         for c,x in tester.some_elements(product(K, S)):
-            tester.assert_(d(c*x) == c*d(x))
+            tester.assertTrue(d(c*x) == c*d(x))
         # Constants map to zero
         for c in tester.some_elements(K):
-            tester.assert_(d(c) == 0)
+            tester.assertTrue(d(c) == 0)
 
     def _convert_map_from_(self, R):
         r"""
@@ -571,6 +572,123 @@ class FunctionField(Field):
             Rational function field in x over Rational Field
         """
         return self if is_RationalFunctionField(self) else self.base_field().rational_function_field()
+
+    def valuation(self, prime):
+        r"""
+        Return the discrete valuation on this function field defined by
+        ``prime``.
+
+        INPUT:
+
+        - ``prime`` -- a place of the function field, a valuation on a subring,
+          or a valuation on another function field together with information
+          for isomorphisms to and from that function field
+
+        EXAMPLES:
+        
+        We create valuations that correspond to finite rational places of a
+        function field::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: v = K.valuation(1); v
+            (x - 1)-adic valuation
+            sage: v(x)
+            0
+            sage: v(x - 1)
+            1
+
+        A place can also be specified with an irreducible polynomial::
+
+            sage: v = K.valuation(x - 1); v
+            (x - 1)-adic valuation
+        
+        Similarly, for a finite non-rational place::
+            
+            sage: v = K.valuation(x^2 + 1); v
+            (x^2 + 1)-adic valuation
+            sage: v(x^2 + 1)
+            1
+            sage: v(x)
+            0
+
+        Or for the infinite place::
+        
+            sage: v = K.valuation(1/x); v
+            Valuation at the infinite place
+            sage: v(x)
+            -1
+
+        Instead of specifying a generator of a place, we can define a valuation on a
+        rational function field by giving a discrete valuation on the underlying
+        polynomial ring::
+        
+            sage: R.<x> = QQ[]
+            sage: w = valuations.GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x - 1, 1)
+            sage: v = K.valuation(w); v
+            (x - 1)-adic valuation
+        
+        Note that this allows us to specify valuations which do not correspond to a
+        place of the function field::
+        
+            sage: w = valuations.GaussValuation(R, QQ.valuation(2))
+            sage: v = K.valuation(w); v
+            2-adic valuation
+
+        The same is possible for valuations with `v(1/x) > 0` by passing in an
+        extra pair of parameters, an isomorphism between this function field and an
+        isomorphic function field. That way you can, for example, indicate that the
+        valuation is to be understood as a valuation on `K[1/x]`, i.e., after
+        applying the substitution `x \mapsto 1/x` (here, the inverse map is also `x
+        \mapsto 1/x`)::
+
+            sage: w = valuations.GaussValuation(R, QQ.valuation(2)).augmentation(x, 1)
+            sage: w = K.valuation(w)
+            sage: v = K.valuation((w, K.hom([~K.gen()]), K.hom([~K.gen()]))); v
+            Valuation on rational function field induced by [ Gauss valuation induced by 2-adic valuation, v(x) = 1 ] (in Rational function field in x over Rational Field after x |--> 1/x)
+
+        Note that classical valuations at finite places or the infinite place are
+        always normalized such that the uniformizing element has valuation 1::
+
+            sage: K.<t> = FunctionField(GF(3))
+            sage: M.<x> = FunctionField(K)
+            sage: v = M.valuation(x^3 - t)
+            sage: v(x^3 - t)
+            1
+
+        However, if such a valuation comes out of a base change of the ground
+        field, this is not the case anymore. In the example below, the unique
+        extension of ``v`` to ``L`` still has valuation 1 on `x^3 - t` but it has
+        valuation ``1/3`` on its uniformizing element  `x - w`::
+
+            sage: R.<w> = K[]
+            sage: L.<w> = K.extension(w^3 - t)
+            sage: N.<x> = FunctionField(L)
+            sage: w = v.extension(N) # missing factorization, :trac:`16572`
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: w(x^3 - t) # not tested
+            1
+            sage: w(x - w) # not tested
+            1/3
+
+        There are several ways to create valuations on extensions of rational
+        function fields::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x); L
+            Function field in y defined by y^2 - x
+
+        A place that has a unique extension can just be defined downstairs::
+
+            sage: v = L.valuation(x); v
+            (x)-adic valuation
+
+        """
+        from sage.rings.function_field.function_field_valuation import FunctionFieldValuation
+        return FunctionFieldValuation(self, prime)
+
 
 class FunctionField_polymod(FunctionField):
     """
@@ -688,7 +806,6 @@ class FunctionField_polymod(FunctionField):
         if not isinstance(base_field, FunctionField):
             raise TypeError("polynomial must be over a FunctionField")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._base_field = base_field
         self._polynomial = polynomial
 
@@ -1483,9 +1600,11 @@ class FunctionField_polymod(FunctionField):
             sage: L.genus()
             3
         """
-        # unfortunately singular can not compute the genus with the polynomial_ring()._singular_
-        # object because genus method only accepts a ring of transdental degree 2 over a prime field
-        # not a ring of transdental degree 1 over a rational function field of one variable
+        # unfortunately singular can not compute the genus with the
+        # polynomial_ring()._singular_ object because genus method
+        # only accepts a ring of transcendental degree 2 over a prime
+        # field not a ring of transcendental degree 1 over a rational
+        # function field of one variable
 
         if is_RationalFunctionField(self._base_field) and self._base_field.constant_field().is_prime_field():
 
@@ -2035,17 +2154,22 @@ class RationalFunctionField(FunctionField):
         if not constant_field.is_field():
             raise TypeError("constant_field must be a field")
         self._element_class = element_class
-        self._element_init_pass_parent = False
         self._constant_field = constant_field
         FunctionField.__init__(self, self, names=names, category = category)
         R = constant_field[names[0]]
         self._hash = hash((constant_field, names))
         self._ring = R
+
         self._field = R.fraction_field()
-        self._populate_coercion_lists_(coerce_list=[self._field])
+        from sage.categories.all import Hom
+        hom = Hom(self._field, self)
+        from .maps import FractionFieldToFunctionField
+        self.register_coercion(hom.__make_element_class__(FractionFieldToFunctionField)(hom.domain(), hom.codomain()))
+
         from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
         from sage.categories.morphism import SetMorphism
         R.register_conversion(SetMorphism(self.Hom(R, SetsWithPartialMaps()), self._to_polynomial))
+
         self._gen = self(R.gen())
 
     def __reduce__(self):
@@ -2265,6 +2389,24 @@ class RationalFunctionField(FunctionField):
             (1/t) * (X + (a + 2)*t)^3
             sage: f.factor().prod() == f
             True
+
+        We check that ``proof`` parameter is passed to the underlying
+        polynomial (see :trac:`24510`). However, factoring over a function
+        field over a tower of finite fields does not work yet (see
+        :trac:`24533`)::
+
+            sage: k = GF(4)
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(a^2 + a + b)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this ring to a Singular ring defined
+
         """
         old_variable_name = f.variable_name()
         # the variables of the bivariate polynomial must be distinct
@@ -2273,7 +2415,7 @@ class RationalFunctionField(FunctionField):
             f = f.change_variable_name(old_variable_name + old_variable_name)
 
         F, d = self._to_bivariate_polynomial(f)
-        fac = F.factor()
+        fac = F.factor(proof=proof)
         x = f.parent().gen()
         t = f.parent().base_ring().gen()
         phi = F.parent().hom([x, t])
@@ -2426,7 +2568,7 @@ class RationalFunctionField(FunctionField):
 
         INPUT:
 
-            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and trascendental over
+            - ``im_gens`` -- exactly one element of some ring.  It must be invertible and transcendental over
                              the image of ``base_morphism``; this is not checked.
             - ``base_morphism`` -- a homomorphism from the base field into the other ring.
                                    If ``None``, try to use a coercion map.
@@ -2483,6 +2625,11 @@ class RationalFunctionField(FunctionField):
             sage: K.<t> = FunctionField(GF(7))
             sage: K.field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.fraction_field.FractionField_1poly_field.function_field`
+
         """
         return self._field
 

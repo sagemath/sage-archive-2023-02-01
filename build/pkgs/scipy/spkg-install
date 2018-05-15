@@ -17,7 +17,7 @@ if [ "$UNAME" = "Darwin" ]; then
     export LDFLAGS="-bundle -undefined dynamic_lookup $LDFLAGS"
     export CPPFLAGS="-D__ACCELERATE__ $CPPFLAGS"
 else
-    export {ATLAS,PTATLAS,OPENBLAS,MKL}=None
+    export {ATLAS,PTATLAS,OPENBLAS,MKL,MKLROOT}=None
     export LDFLAGS="-shared $LDFLAGS"
 fi
 
@@ -41,7 +41,7 @@ UMFPACK="None"; export UMFPACK
 cd src/
 
 # Install:
-$PIP_INSTALL .
+sdh_pip_install .
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error installing scipy."

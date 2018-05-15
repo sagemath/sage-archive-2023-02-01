@@ -920,7 +920,7 @@ class KBoundedQuotientBasis(CombinatorialFreeModule):
     __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.__func__
     _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.__func__
     _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+
 
 class kMonomial(KBoundedQuotientBasis):
     r"""

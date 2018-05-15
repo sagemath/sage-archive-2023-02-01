@@ -1610,7 +1610,7 @@ class FreeModuleTensor(ModuleElement):
             return self._fmodule._def_basis  # the default basis is privileged
         else:
             # a basis is picked arbitrarily:
-            return self._components.items()[0][0]
+            return next(iter(self._components.items()))[0]
 
     def __eq__(self, other):
         r"""
@@ -2365,7 +2365,7 @@ class FreeModuleTensor(ModuleElement):
 
         Instead of the explicit call to the method :meth:`contract`, the index
         notation can be used to specify the contraction, via Einstein
-        conventation (summation on repeated indices); it suffices to pass the
+        convention (summation on repeated indices); it suffices to pass the
         indices as a string inside square brackets::
 
             sage: s1 = a['_i']*b['^i'] ; s1

@@ -756,7 +756,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return FiniteDimensionalAlgebra(R, mats, names=self._names)
 
     class ElementMethods:
-        def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a mophism
+        def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a morphism
             """
             Return the matrix of the adjoint action of ``self``.
 
@@ -803,10 +803,28 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L = LieAlgebra(associative=D)
                 sage: L.an_element().to_vector()
                 (1, 1, 1, 1, 1, 1, 1, 1)
+
+            TESTS:
+
+            Check that the error raised agrees with the one
+            from ``monomial_coefficients()`` (see :trac:`25007`)::
+
+                sage: L = lie_algebras.sp(QQ, 4, representation='matrix')
+                sage: x = L.an_element()
+                sage: x.monomial_coefficients()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: the basis is not defined
+                sage: x.to_vector()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: the basis is not defined
             """
+            mc = self.monomial_coefficients(copy=False)
             M = self.parent().module()
             B = M.basis()
-            return M.sum(self[k] * B[i] for i,k in enumerate(self.parent()._basis_ordering))
+            return M.sum(mc[k] * B[i] for i,k in enumerate(self.parent()._basis_ordering)
+                         if k in mc)
 
         _vector_ = to_vector
 

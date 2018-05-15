@@ -1,15 +1,15 @@
 r"""
 Interface to Axiom
 
-TODO:
+.. TODO::
 
-- Evaluation using a file is not done. Any input line with more than a
-  few thousand characters would hang the system, so currently it
-  automatically raises an exception.
+    - Evaluation using a file is not done. Any input line with more than a
+      few thousand characters would hang the system, so currently it
+      automatically raises an exception.
 
-- All completions of a given command.
+    - All completions of a given command.
 
-- Interactive help.
+    - Interactive help.
 
 Axiom is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system whose development started in 1973
@@ -569,7 +569,7 @@ class PanAxiomElement(ExpectElement):
         P = self.parent()
         return P('%s(%s)'%(self.name(), x))
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 

@@ -24,8 +24,8 @@ TESTS::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 import random
 
@@ -38,16 +38,18 @@ class Test:
     """
     Modular symbol testing class.
     """
-    def __init__(self, levels=20, weights=4, onlyg0=False, onlyg1=False, onlychar=False):
+    def __init__(self, levels=20, weights=4, onlyg0=False, onlyg1=False,
+                 onlychar=False):
         """
         Create a modular symbol testing object.
 
         INPUT:
-            levels --  list or int
-            weights -- list or int
-            onlyg0 -- bool, if True only select Gamma0 spaces for testing
-            onlyg1 -- bool, if True only select Gamma1 spaces for testing
-            onlychar -- bool, if True only selects spaces with character for testing
+
+        - levels --  list or int
+        - weights -- list or int
+        - onlyg0 -- bool, if True only select Gamma0 spaces for testing
+        - onlyg1 -- bool, if True only select Gamma1 spaces for testing
+        - onlychar -- bool, if True only selects spaces with character for testing
 
         EXAMPLES::
 
@@ -60,14 +62,14 @@ class Test:
             [1, 2, 3, 4, 5]
         """
         if not isinstance(levels, list):
-            levels = range(1,int(levels)+1)
+            levels = list(range(1, int(levels) + 1))
         if not isinstance(weights, list):
-            weights = range(2,int(weights)+1)
+            weights = list(range(2, int(weights) + 1))
         self.levels = levels
         self.weights = weights
-        if len(levels) < 1:
+        if not(levels):
             raise RuntimeError("levels must have positive length")
-        if len(weights) < 1:
+        if not(weights):
             raise RuntimeError("weights must have positive length")
         self.current_space = None
         self.onlyg0 = onlyg0

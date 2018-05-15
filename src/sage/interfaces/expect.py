@@ -63,6 +63,7 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
+from sage.cpython.string import bytes_to_str
 
 from six import reraise as raise_
 
@@ -482,7 +483,8 @@ If this all works, you can then make calls like:
                         timeout=None,  # no timeout
                         env=pexpect_env,
                         name=self._repr_(),
-                        # work around python #1652
+                        echo=self._terminal_echo,
+                        # Work around https://bugs.python.org/issue1652
                         preexec_fn=lambda: signal.signal(signal.SIGPIPE, signal.SIG_DFL),
                         quit_string=self._quit_string())
             except (ExceptionPexpect, pexpect.EOF) as e:
@@ -506,13 +508,6 @@ If this all works, you can then make calls like:
             self._session_number = BAD_SESSION
             raise RuntimeError("unable to start %s" % self.name())
         self._expect.timeout = None
-
-        # Calling tcsetattr earlier exposes bugs in various pty
-        # implementations, see trac #16474. Since we haven't
-        # **written** anything so far it is safe to wait with
-        # switching echo off until now.
-        if not self._terminal_echo:
-            self._expect.setecho(0)
 
         with gc_disabled():
             if block_during_init:
@@ -555,7 +550,7 @@ If this all works, you can then make calls like:
             pass
         self._expect = None
 
-    def quit(self, verbose=False, timeout=None):
+    def quit(self, verbose=False):
         """
         Quit the running subprocess.
 
@@ -578,9 +573,6 @@ If this all works, you can then make calls like:
 
             sage: maxima.quit(verbose=True)
         """
-        if timeout is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(17686, 'the timeout argument to quit() is deprecated and ignored')
         if self._expect is not None:
             if verbose:
                 if self.is_remote():
@@ -672,14 +664,14 @@ If this all works, you can then make calls like:
             sage: @parallel
             ....: def f(n):
             ....:     return gap._local_tmpfile()
-            sage: L = [t[1] for t in f(range(5))]
+            sage: L = [t[1] for t in f(list(range(5)))]
             sage: len(set(L))
             5
 
         The following used to fail::
 
             sage: s = gap._local_tmpfile()
-            sage: L = [t[1] for t in f(range(5))]
+            sage: L = [t[1] for t in f(list(range(5)))]
             sage: len(set(L))
             5
 
@@ -1022,9 +1014,14 @@ If this all works, you can then make calls like:
     # BEGIN Synchronization code.
     ###########################################################################
 
-    def _before(self):
+    def _before(self, encoding=None, errors=None):
         r"""
         Return the previous string that was sent through the interface.
+
+        Returns ``str`` objects on both Python 2 and Python 3.
+
+        The ``encoding`` and ``errors`` arguments are passed to
+        :func:`sage.misc.cpython.bytes_to_str`.
 
         EXAMPLES::
 
@@ -1033,7 +1030,33 @@ If this all works, you can then make calls like:
             sage: singular._before()
             '5\r\n'
         """
-        return self._expect.before
+        return bytes_to_str(self._expect.before, encoding, errors)
+
+    def _after(self, encoding=None, errors=None):
+        r"""
+        Return trailing data in the buffer after the text matched by the expect
+        interface.
+
+        When the ``spawn.after`` attribute contains bytes, this returns ``str``
+        objects on both Python 2 and Python 3.  There are also cases (such as
+        exceptions) where the ``.after`` attribute contains either an exception
+        type or ``None``, in which case those values are returned.
+
+        The ``encoding`` and ``errors`` arguments are passed to
+        :func:`sage.misc.cpython.bytes_to_str`.
+
+        EXAMPLES::
+
+            sage: singular('2+3')
+            5
+            sage: singular._after()
+            '> '
+        """
+        after = self._expect.after
+        if isinstance(after, bytes):
+            return bytes_to_str(after, encoding, errors)
+
+        return after
 
     def _interrupt(self):
         for i in range(15):

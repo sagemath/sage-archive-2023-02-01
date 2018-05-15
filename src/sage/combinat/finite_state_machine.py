@@ -179,7 +179,7 @@ Conversion
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <sage.matrix.constructor.MatrixFactory>`
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :func:`matrix`
     :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
     :meth:`~FiniteStateMachine.plot` | Plot
 
@@ -965,14 +965,14 @@ def full_group_by(l, key=lambda x: x):
     - that the keys are sortable (in contrast to the
       approach via ``sorted`` and ``itertools.groupby``) and
     - that the keys are hashable (in contrast to the
-      implementation proposed in `<http://stackoverflow.com/a/15250161>`_).
+      implementation proposed in `<https://stackoverflow.com/a/15250161>`_).
 
     However, it is required
 
     - that distinct keys have distinct ``str``-representations.
 
     The implementation is inspired by
-    `<http://stackoverflow.com/a/15250161>`_, but non-hashable keys are
+    `<https://stackoverflow.com/a/15250161>`_, but non-hashable keys are
     allowed.
 
     EXAMPLES::
@@ -1024,7 +1024,7 @@ def equal(iterator):
 
     ``True`` or ``False``.
 
-    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+    This implements `<https://stackoverflow.com/a/3844832/1052778>`_.
 
     EXAMPLES::
 
@@ -2706,7 +2706,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
       process.
 
     - ``store_states_dict`` -- If ``True``, then additionally the states
-      are stored in an interal dictionary for speed up.
+      are stored in an internal dictionary for speed up.
 
     - ``on_duplicate_transition`` -- A function which is called when a
       transition is inserted into ``self`` which already existed (same
@@ -2860,7 +2860,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ``LookupError`` or return an empty list.
 
         When constructing a finite state machine in this way, some
-        inital states and an input alphabet have to be specified.
+        initial states and an input alphabet have to be specified.
 
         ::
 
@@ -10554,7 +10554,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         (x, y, z) = R.gens()
         try:
             M = get_matrix(self, x, y)
-        except TypeError:
+        except (TypeError, ValueError):
             sage.misc.misc.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)

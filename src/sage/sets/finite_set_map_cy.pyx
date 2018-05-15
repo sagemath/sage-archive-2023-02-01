@@ -56,7 +56,7 @@ from __future__ import absolute_import
 import sage
 from sage.structure.list_clone cimport ClonableIntArray
 from sage.structure.parent cimport Parent
-from sage.structure.element cimport generic_power_c
+from sage.arith.power cimport generic_power
 from sage.sets.set import Set_object_enumerated
 
 
@@ -652,7 +652,7 @@ cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self, n, self.parent().one())
+        return generic_power(self, n)
 
 
 cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
@@ -710,4 +710,4 @@ cdef class FiniteSetEndoMap_Set(FiniteSetMap_Set):
         """
         if dummy is not None:
             raise RuntimeError("__pow__ dummy argument not used")
-        return generic_power_c(self, n, self.parent().one())
+        return generic_power(self, n)

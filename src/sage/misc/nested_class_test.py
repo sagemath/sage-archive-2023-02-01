@@ -61,7 +61,7 @@ class TestParent1(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent1()
-            <class 'sage.misc.nested_class_test.TestParent1_with_category'>
+            <sage.misc.nested_class_test.TestParent1_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -93,7 +93,7 @@ class TestParent3(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent3()
-            <class 'sage.misc.nested_class_test.TestParent3_with_category'>
+            <sage.misc.nested_class_test.TestParent3_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -109,7 +109,7 @@ class TestParent4(Parent):
         EXAMPLES::
 
             sage: sage.misc.nested_class_test.TestParent4()
-            <class 'sage.misc.nested_class_test.TestParent4_with_category'>
+            <sage.misc.nested_class_test.TestParent4_with_category object at ...>
         """
         from sage.categories.all import Sets
         Parent.__init__(self, category = Sets())
@@ -202,26 +202,14 @@ class ALBMeta(object):
 
 CMeta = ALBMeta.CMeta
 
+
 class TestNestedParent(UniqueRepresentation, Parent):
     """
     This is a dummy for testing source inspection of nested classes.
 
-    EXAMPLES::
-
-        sage: from sage.misc.nested_class_test import TestNestedParent
-        sage: from sage.misc.sageinspect import sage_getsource
-        sage: P = TestNestedParent()
-        sage: E = P.element_class
-        sage: E.__bases__
-        (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
-         <class 'sage.categories.sets_cat.Sets.element_class'>)
-        sage: print(sage_getsource(E))
-            class Element:
-                "This is a dummy element class"
-                pass
-
+    See the test in ``sage.misc.sageinspect.sage_getsourcelines``.
     """
+
     class Element:
         "This is a dummy element class"
         pass
-

@@ -267,7 +267,7 @@ cdef class GaussianMixtureDistribution(Distribution):
             True
         """
         if not isinstance(other, GaussianMixtureDistribution):
-            raise NotImplemented
+            return NotImplemented
         return PyObject_RichCompare(self.__reduce__()[1],
                                     other.__reduce__()[1], op)
 
@@ -289,7 +289,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         INPUT:
 
-            - i - None (default) or integer; if given, only return
+            - i -- None (default) or integer; if given, only return
               whether the i-th component is fixed
 
         EXAMPLES::
@@ -319,7 +319,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         INPUT:
 
-            - i - None (default) or integer; if given, only fix the
+            - i -- None (default) or integer; if given, only fix the
               i-th component
 
         EXAMPLES::
@@ -347,7 +347,7 @@ cdef class GaussianMixtureDistribution(Distribution):
 
         INPUT:
 
-            - i - None (default) or integer; if given, only fix the
+            - i -- None (default) or integer; if given, only fix the
               i-th component
 
         EXAMPLES::

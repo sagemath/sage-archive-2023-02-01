@@ -1712,7 +1712,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         INPUT:
 
-        - x - an element of this algebra
+        - x -- an element of this algebra
 
         OUTPUT: x converted to the Milnor basis
 
@@ -3454,7 +3454,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 else:
                     return len(mono[0]) + 2 * sum(mono[1])
 
-            p = self.prime()
             a = self.milnor()
             if not self.parent()._generic:
                 excesses = [sum(mono) for mono in a.support()]

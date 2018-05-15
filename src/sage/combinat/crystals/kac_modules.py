@@ -791,7 +791,21 @@ def to_dual_tableau(elt):
         sage: ascii_art([to_dual_tableau(t) for t in T])
         [  -3 -3   -3 -2   -3 -1   -3 -1   -2 -1   -3 -3   -3 -2   -2 -2 ]
         [  -2   ,  -2   ,  -2   ,  -1   ,  -1   ,  -1   ,  -1   ,  -1    ]
+
+    TESTS:
+
+    Check that :trac:`23935` is fixed::
+
+        sage: from sage.combinat.crystals.kac_modules import to_dual_tableau
+        sage: T = crystals.Tableaux(['A',2], shape=[])
+        sage: to_dual_tableau(T[0])
+        []
+
+        sage: Ktriv = crystals.KacModule(['A',[1,1]], [], [])
+        sage: Ktriv.module_generator()
+        ({}, [], [])
     """
+    from sage.combinat.tableau import Tableau
     M = elt.parent().cartan_type().rank() + 2
     if not elt:
         return Tableau([])
@@ -803,7 +817,6 @@ def to_dual_tableau(elt):
             tab[len(tab)-1].append(elt[i].value-M)
     for x in tab:
         x.reverse()
-    from sage.combinat.tableau import Tableau
     return Tableau(tab).conjugate()
 
 def latex_dual(elt):

@@ -382,7 +382,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
 
             This is the trailing term of `h_{\lambda}` mapped by `\chi` to
             the `\mathbf{w}` basis and is used by the coercion framework to
-            constuct the preimage `\chi^{-1}`.
+            construct the preimage `\chi^{-1}`.
 
             INPUT:
 

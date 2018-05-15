@@ -657,7 +657,7 @@ class OverconvergentModularFormsSpace(Module):
         inputs with a higher precision than the set precision of this space
         will be rounded.
 
-        EXAMPLES::
+        EXAMPLES:
 
         From a `q`-expansion::
 

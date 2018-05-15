@@ -71,6 +71,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##########################################################################
+from __future__ import division
 
 from sage.interfaces.maxima import Maxima
 from sage.plot.all import line
@@ -392,7 +393,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: assume(x>0)
         sage: assume(y>0)
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
-        [x - arcsinh(y(x)^2/(x*sqrt(y(x)^2))) - arcsinh(y(x)/x) + 1/2*log(4*(x^2 + 2*y(x)^2 + 2*x*sqrt((x^2*y(x)^2 + y(x)^4)/x^2))/x^2) == _C]
+        [x - arcsinh(y(x)^2/(x*sqrt(y(x)^2))) - arcsinh(y(x)/x) + 1/2*log(4*(x^2 + 2*y(x)^2 + 2*sqrt(x^2*y(x)^2 + y(x)^4))/x^2) == _C]
 
     :trac:`6479` fixed::
 
@@ -1056,18 +1057,21 @@ def eulers_method_2x2_plot(f,g, t0, x0, y0, h, t1):
         sage: f = lambda z : z[2]; g = lambda z : -sin(z[1])
         sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
     """
-    n=int((1.0)*(t1-t0)/h)
-    t00 = t0; x00 = x0; y00 = y0
-    soln = [[t00,x00,y00]]
-    for i in range(n+1):
-        x01 = x00 + h*f([t00,x00,y00])
-        y00 = y00 + h*g([t00,x00,y00])
+    n = int((1.0)*(t1-t0)/h)
+    t00 = t0
+    x00 = x0
+    y00 = y0
+    soln = [[t00, x00, y00]]
+    for i in range(n + 1):
+        x01 = x00 + h * f([t00, x00, y00])
+        y00 = y00 + h * g([t00, x00, y00])
         x00 = x01
         t00 = t00 + h
-        soln.append([t00,x00,y00])
-    Q1 = line([[x[0],x[1]] for x in soln], rgbcolor=(1/4,1/8,3/4))
-    Q2 = line([[x[0],x[2]] for x in soln], rgbcolor=(1/2,1/8,1/4))
-    return [Q1,Q2]
+        soln.append([t00, x00, y00])
+    Q1 = line([[x[0], x[1]] for x in soln], rgbcolor=(.25, .125, .75))
+    Q2 = line([[x[0], x[2]] for x in soln], rgbcolor=(.5, .125, .25))
+    return [Q1, Q2]
+
 
 def desolve_rk4_determine_bounds(ics,end_points=None):
     """
@@ -1174,7 +1178,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
     Variant 1 for input - we can pass ODE in the form used by
-    desolve function In this example we integrate bakwards, since
+    desolve function In this example we integrate backwards, since
     ``end_points < ics[0]``::
 
         sage: y = function('y')(x)
@@ -1728,10 +1732,10 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
 
     REFERENCES:
 
-    .. A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
+    .. [ABBR1] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924. *ACM
        Transactions on Mathematical Software* , *39* (1), 1-28.
 
-    .. A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
+    .. [ABBR2] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez.
       `TIDES tutorial: Integrating ODEs by using the Taylor Series Method.
       <http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm>`_
 

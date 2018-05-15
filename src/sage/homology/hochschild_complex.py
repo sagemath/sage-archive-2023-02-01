@@ -622,7 +622,7 @@ class HochschildComplex(UniqueRepresentation, Parent):
                 return 'Trivial chain'
 
             if n == 1:
-                deg, vec = self._vec.items()[0]
+                (deg, vec), = self._vec.items()
                 return 'Chain({0}: {1})'.format(deg, vec)
 
             return 'Chain with {0} nonzero terms over {1}'.format(n,

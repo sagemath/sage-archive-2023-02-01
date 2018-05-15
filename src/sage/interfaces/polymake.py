@@ -846,7 +846,7 @@ class Polymake(ExtraTabCompletion, Expect):
 
         When requesting help, polymake sometimes expect the user to choose
         from a list. In that situation, we abort with a warning, and show
-        the list from which the user can chose; we could demonstrate this using
+        the list from which the user can choose; we could demonstrate this using
         the :meth:`help` method, but here we use an explicit code evaluation::
 
             sage: print(polymake.eval('help "TRIANGULATION";'))     # optional - polymake # random
@@ -1393,7 +1393,7 @@ class PolymakeElement(ExtraTabCompletion, ExpectElement):
                 out = P.get(name).strip()
         return out
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Comparison of polymake elements.
 

@@ -1833,7 +1833,6 @@ class EllipticCurveIsogeny(Morphism):
 
         return
 
-
     ###########################
     # Velu's Formula Functions
     ###########################
@@ -1856,6 +1855,17 @@ class EllipticCurveIsogeny(Morphism):
             Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x over Finite Field of size 7 to Elliptic Curve defined by y^2 = x^3 + 4*x over Finite Field of size 7
             sage: phi._EllipticCurveIsogeny__init_from_kernel_list([E(0), E((0,0))])
 
+        The following example demonstrates the necessity of avoiding any calls
+        to P.order(), since such calls involve factoring the group order which
+        could take a long time. ::
+
+            sage: p = 12 * next_prime(2^180) * next_prime(2^194) - 1
+            sage: F = FiniteField(p, proof=False)
+            sage: E = EllipticCurve([F(1), F(0)])
+            sage: P = E(0).division_points(3)[1]
+            sage: EllipticCurveIsogeny(E, P)
+            Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 461742260113997803268895001173557974278278194575766957660028841364655249961609425998827452443620996655395008156411 to Elliptic Curve defined by y^2 = x^3 + 80816485163488178037199320944019099858815874115367810482828676054000067654558381377552245721755005198633191074893*x + 301497584865165444049833326660609767433467459033532853758006118022998267706948164646650354324860226263546558337993 over Finite Field of size 461742260113997803268895001173557974278278194575766957660028841364655249961609425998827452443620996655395008156411
+
         """
         if self.__check :
             for P in kernel_gens:
@@ -1869,11 +1879,17 @@ class EllipticCurveIsogeny(Morphism):
 
         kernel_set = Set([self.__E1(0)])
         from sage.misc.all import flatten
-        from sage.groups.generic import multiples
-        for P in kernel_gens:
-            kernel_set += Set(flatten([list(multiples(P,P.order(),Q))
-                                       for Q in kernel_set]))
 
+        def all_multiples(itr, terminal):
+            mult_list = [terminal]
+            R = terminal + itr
+            while R != terminal:
+                mult_list.append(R)
+                R = R + itr
+            return mult_list
+        for P in kernel_gens:
+            kernel_set += Set(flatten([all_multiples(P,Q)
+                                       for Q in kernel_set]))
         self.__kernel_list = kernel_set.list()
         self.__kernel_2tor = {}
         self.__kernel_non2tor = {}
@@ -2809,7 +2825,7 @@ class EllipticCurveIsogeny(Morphism):
 
            This function returns the `x`-coordinate component of the
            isogeny as a rational function in `F(x)`, where `F` is the
-           base field.  To obtain both coordiunate functions as
+           base field.  To obtain both coordinate functions as
            elements of the function field `F(x,y)` in two variables,
            use :meth:`rational_maps`.
 
@@ -3361,6 +3377,13 @@ class EllipticCurveIsogeny(Morphism):
             sage: Ym = Yhat.subs(x=X, y=Y)
             sage: (Xm, Ym) == E.multiplication_by_m(5)
             True
+
+        Test for :trac:`23928`::
+
+            sage: E = EllipticCurve(j=GF(431**2)(4))
+            sage: phi = E.isogeny(E.lift_x(0))
+            sage: phi.dual()
+            Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 427*x over Finite Field in z2 of size 431^2 to Elliptic Curve defined by y^2 = x^3 + x over Finite Field in z2 of size 431^2
 
         Test (for :trac:`7096`)::
 

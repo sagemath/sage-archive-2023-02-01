@@ -52,8 +52,7 @@ from six import iteritems
 from copy import copy
 
 from sage.structure.parent import Parent
-from sage.structure.element import ModuleElement
-from sage.structure.element import is_Vector
+from sage.structure.element import ModuleElement, is_Vector, coercion_model
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
@@ -61,7 +60,7 @@ from sage.rings.rational_field import QQ
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix0 import Matrix
-from sage.matrix.constructor import matrix, prepare_dict
+from sage.matrix.constructor import matrix
 from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
 from sage.misc.decorators import rename_keyword
@@ -224,7 +223,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1), matrix(QQ, 4, 3)])
         Traceback (most recent call last):
         ...
-        TypeError: unable to find a common ring for all elements
+        TypeError: no common canonical parent for objects with parents: 'Finite Field in a of size 5^3' and 'Rational Field'
 
     If the base ring is given explicitly but is not compatible with
     the matrices, an error results::
@@ -247,14 +246,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
 
     # transform data into data_dict
     if data is None or (isinstance(data, (list, tuple)) and len(data) == 0):
-        # the zero chain complex
-        try:
-            zero = grading_group.identity()
-        except AttributeError:
-            zero = grading_group.zero()
-        if base_ring is None:
-            base_ring = ZZ
-        data_dict = dict()
+        data_dict = {}
     elif isinstance(data, dict):  # data is dictionary
         data_dict = data
     else: # data is list/tuple/iterable
@@ -263,10 +255,14 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
             raise ValueError('degree must be +1 if the data argument is a list or tuple')
         if grading_group != ZZ:
             raise ValueError('grading_group must be ZZ if the data argument is a list or tuple')
-        data_dict = dict((grading_group(i), m) for i,m in enumerate(data_matrices))
+        data_dict = {grading_group(i): m for i, m in enumerate(data_matrices)}
 
     if base_ring is None:
-        _, base_ring = prepare_dict(dict([n, data_dict[n].base_ring()(0)] for n in data_dict))
+        if not data_dict:
+            base_ring = ZZ
+        else:
+            bases = tuple(x.base_ring() for x in data_dict.values())
+            base_ring = coercion_model.common_parent(*bases)
 
     # make sure values in data_dict are appropriate matrices
     for n in data_dict.keys():
@@ -566,8 +562,8 @@ class Chain_class(ModuleElement):
             0 <---- [6] <---- [2] <----- 0
                     [8]       [4]
         """
-        vectors = dict()
-        for d in set(self._vec.keys() + other._vec.keys()):
+        vectors = {}
+        for d in set(list(self._vec) + list(other._vec)):
             v = self.vector(d) + other.vector(d)
             if not v.is_zero():
                 v.set_immutable()
@@ -1837,6 +1833,15 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C._latex_()
             '\\Bold{Z}^{3} \\xrightarrow{d_{0}} \\Bold{Z}^{2}'
+
+            sage: ChainComplex()._latex_()
+            '0'
+
+            sage: G = AdditiveAbelianGroup([0, 0])
+            sage: m = matrix([0])
+            sage: C = ChainComplex(grading_group=G, degree=G(vector([1,2])), data={G.zero(): m})
+            sage: C._latex_()
+            '\\dots \\xrightarrow{d_{\\text{\\texttt{(0,{ }0)}}}} \\Bold{Z}^{1} \\xrightarrow{d_{\\text{\\texttt{(1,{ }2)}}}} \\dots'
         """
 #         Warning: this is likely to screw up if, for example, the
 #         degree of the differential is 2 and there are nonzero terms
@@ -1847,34 +1852,36 @@ class ChainComplex_class(Parent):
 #         dimension 3, etc.  I don't know how much effort should be
 #         put into trying to fix this.
         string = ""
-        dict = self._diff
+        diffs = self._diff
+        if len(diffs) == 0:
+            return "0"
         deg = self.degree_of_differential()
         ring = self.base_ring()
         if self.grading_group() != ZZ:
-            guess = dict.keys()[0]
-            if guess-deg in dict:
+            guess = next(iter(diffs))
+            if guess - deg in diffs:
                 string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
-            string += _latex_module(ring, mat.ncols())
+            string += _latex_module(ring, diffs[guess].ncols())
             string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
         else:
             backwards = (deg < 0)
-            sorted_list = sorted(dict.keys(), reverse=backwards)
-            if len(dict) <= 6:
+            sorted_list = sorted(diffs.keys(), reverse=backwards)
+            if len(diffs) <= 6:
                 for n in sorted_list[1:-1]:
-                    mat = dict[n]
+                    mat = diffs[n]
                     string += _latex_module(ring, mat.ncols())
                     string += " \\xrightarrow{d_{%s}} " % latex(n)
-                mat = dict[sorted_list[-1]]
+                mat = diffs[sorted_list[-1]]
                 string += _latex_module(ring, mat.ncols())
             else:
                 for n in sorted_list[:2]:
-                    mat = dict[n]
+                    mat = diffs[n]
                     string += _latex_module(ring, mat.ncols())
                     string += " \\xrightarrow{d_{%s}} " % latex(n)
                 string += "\\dots "
                 n = sorted_list[-2]
                 string += "\\xrightarrow{d_{%s}} " % latex(n)
-                mat = dict[sorted_list[-1]]
+                mat = diffs[sorted_list[-1]]
                 string += _latex_module(ring, mat.ncols())
         return string
 

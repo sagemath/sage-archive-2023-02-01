@@ -212,6 +212,7 @@ ZZ_1 = Integer(1)
 ZZ_m1 = Integer(-1)
 ZZ_2 = Integer(2)
 
+
 def last_two_convergents(x):
     """
     Given the list ``x`` that consists of numbers, return the two last
@@ -243,6 +244,7 @@ def last_two_convergents(x):
         p0, p1 = p1, a*p1+p0
         q0, q1 = q1, a*q1+q0
     return p0, q0, p1, q1
+
 
 def rat_interval_cf_list(r1, r2):
     r"""
@@ -973,17 +975,6 @@ class ContinuedFraction_base(SageObject):
         """
         return int(self.quotient(0))
 
-    def __long__(self):
-        """
-        EXAMPLES::
-
-            sage: a = continued_fraction(-17/389); a
-            [-1; 1, 21, 1, 7, 2]
-            sage: long(a)
-            -1L
-        """
-        return long(self.quotient(0))
-
     def sign(self):
         r"""
         Returns the sign of self as an Integer.
@@ -1687,11 +1678,11 @@ class ContinuedFraction_real(ContinuedFraction_base):
         ContinuedFraction_base.__init__(self)
         self._x0 = x
 
-
         from .real_mpfi import RealIntervalField
-        self._xa = RealIntervalField(53)(self._x0)   # an approximation of the
-                                                     # last element of the orbit
-                                                     # under the Gauss map
+        self._xa = RealIntervalField(53)(self._x0)
+        # an approximation of the last element of the orbit under the
+        # Gauss map
+
         self._quotients = []
 
     def length(self):
@@ -1870,6 +1861,7 @@ class ContinuedFraction_real(ContinuedFraction_base):
             e
         """
         return self._x0
+
 
 class ContinuedFraction_infinite(ContinuedFraction_base):
     r"""
@@ -2082,7 +2074,8 @@ class ContinuedFraction_infinite(ContinuedFraction_base):
             from sage.rings.real_lazy import RLF
             return RLF(self)
 
-def check_and_reduce_pair(x1,x2=None):
+
+def check_and_reduce_pair(x1, x2=None):
     r"""
     There are often two ways to represent a given continued fraction. This
     function makes it canonical.
@@ -2341,8 +2334,6 @@ def continued_fraction_list(x, type="std", partial_convergents=False, bits=None,
     return [cf.quotient(i) for i in range(limit)]
 
 
-
-
 def continued_fraction(x, value=None):
     r"""
     Return the continued fraction of ``x``.
@@ -2541,6 +2532,7 @@ def continued_fraction(x, value=None):
 
     return continued_fraction(continued_fraction_list(x))
 
+
 def Hirzebruch_Jung_continued_fraction_list(x, bits=None, nterms=None):
     r"""
     Return the Hirzebruch-Jung continued fraction of ``x`` as a list.
@@ -2586,6 +2578,7 @@ def convergents(x):
         [0, 1, 1/2, 4/7, 5/9, 9/16, 14/25, 23/41, 60/107, 143/255]
     """
     return continued_fraction(x).convergents()
+
 
 def farey(v, lim):
     """
@@ -2646,5 +2639,3 @@ def farey(v, lim):
             if lim < mediant[1]:
                 return lower
             upper = mediant
-
-

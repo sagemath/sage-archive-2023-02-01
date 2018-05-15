@@ -155,16 +155,16 @@ a callable or a finite iterator::
 
 REFERENCES:
 
-- [1] Freeman, H.: On the encoding of arbitrary geometric configurations.
+- [1] Freeman, H.: *On the encoding of arbitrary geometric configurations*.
   IRE Trans. Electronic Computer 10 (1961) 260-268.
-- [2] Freeman, H.: Boundary encoding and processing. In Lipkin, B., Rosenfeld,
+- [2] Freeman, H.: *Boundary encoding and processing*. In Lipkin, B., Rosenfeld,
   A., eds.: Picture Processing and Psychopictorics, Academic Press, New York
   (1970) 241-266.
-- [3] Braquelaire, J.P., Vialard, A.: Euclidean paths: A new representation of
-  boundary of discrete regions. Graphical Models and Image Processing 61 (1999)
+- [3] Braquelaire, J.P., Vialard, A.: *Euclidean paths: A new representation of
+  boundary of discrete regions*. Graphical Models and Image Processing 61 (1999)
   16-43.
-- [4] http://en.wikipedia.org/wiki/Regular_tiling
-- [5] http://en.wikipedia.org/wiki/Dyck_word
+- [4] :wikipedia:`Regular_tiling`
+- [5] :wikipedia:`Dyck_word`
 
 """
 #*****************************************************************************

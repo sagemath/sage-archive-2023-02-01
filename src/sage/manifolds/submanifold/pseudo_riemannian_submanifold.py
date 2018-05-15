@@ -557,7 +557,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                              r"\nabla " + self._var[0]._latex_())
         return self._gradt
 
-    def normal(self, recache=False):
+    def normal_old(self, recache=False):
         r"""
         Return a normal unit vector to the submanifold.
 
@@ -654,79 +654,235 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
             return self._normal
 
-    def normal_by_breadth_first_search(self,recache=False):
+    def normal(self, recache=False):
+        r"""
+        Return a normal unit vector to the submanifold.
+
+        If a foliation is defined, it is used to compute the gradient and then
+        the normal vector. If not, the normal vector is computed using the
+        following formula:
+
+        .. MATH::
+
+            n = \overrightarrow{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...
+            \wedge\mathrm{d}x_{n-1})
+
+        where the star is the hodge dual operator and de wedge the product on
+        the exterior algebra.
+
+        This formula does not always define a proper vector field when multiple
+        charts overlap, because of the arbitrariness of the direction of the
+        normal vector. To avoid this problem, this function considers the graph
+        defined by the atlas of the submanifold and the changes of coordinates,
+        and only calculate the normal vector once by connected component. The
+        expression is then propagate by restriction, continuation, or change of
+        coordinates using a breadth-first exploration of the graph.
+
+        The result is cached, so calling this method multiple times always
+        returns the same result at no additional cost.
+
+        INPUT:
+
+        - ``recache`` -- (default: ``False``) if True, the cached value will be
+          ignored and all the functions this function depends on will be
+          reevaluated (potentially long). Use only after a modification of the
+          submanifold
+
+        OUTPUT:
+
+        - vector field on the ambient manifold.
+
+        EXAMPLES:
+
+        A sphere embedded in euclidian space foliated on the radius::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian")
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
+            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: N.declare_embedding()
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: print(N.normal().display())
+            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
+             + z/sqrt(x^2 + y^2 + z^2) d/dz
+
+        Or in spherical coordinates::
+
+            sage: print(N.normal().display(T[0].frame(),T[0]))
+            d/dr_M
+
+        The same sphere of constant radius, ie not foliated::
+
+            sage: M = Manifold(3,'M',structure = "Riemannian",start_index = 1)
+            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: U = N.open_subset('U')
+            sage: V = N.open_subset('V')
+            sage: N.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart()
+            sage: stereoS.<xp,yp> = V.chart("xp:x' yp:y'")
+            sage: stereoN_to_S = stereoN.transition_map(stereoS,
+            ....:                                 (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                 intersection_name='W',
+            ....:                                 restrictions1= x^2+y^2!=0,
+            ....:                                 restrictions2= xp^2+yp^2!=0)
+            sage: stereoS_to_N = stereoN_to_S.inverse()
+            sage: W = U.intersection(V)
+            sage: stereoN_W = stereoN.restrict(W)
+            sage: stereoS_W = stereoS.restrict(W)
+            sage: A = W.open_subset('A', coord_def={stereoN_W: (y!=0, x<0),
+            ....:                                  stereoS_W: (yp!=0, xp<0)})
+            sage: spher.<th,ph> = A.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+            sage: stereoN_A = stereoN_W.restrict(A)
+            sage: spher_to_stereoN = spher.transition_map(stereoN_A,
+            ....:                              (sin(th)*cos(ph)/(1-cos(th)),
+            ....:                               sin(th)*sin(ph)/(1-cos(th))))
+            sage: spher_to_stereoN.set_inverse(2*atan(1/sqrt(x^2+y^2)),
+            ....:                                    atan2(-y,-x)+pi)
+            sage: stereoN_to_S_A = stereoN_to_S.restrict(A)
+            sage: spher_to_stereoS = stereoN_to_S_A * spher_to_stereoN
+            sage: stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
+            sage: stereoS_to_spher = spher_to_stereoN.inverse() * stereoS_to_N_A
+            sage: E.<X,Y,Z> = M.chart()
+            sage: r=1
+            sage: phi = N.diff_map(M, {(stereoN, E): [2*x/(1+x^2+y^2),
+            ....:                                    2*y/(1+x^2+y^2),
+            ....:                                    (x^2+y^2-1)/(1+x^2+y^2)],
+            ....:                   (stereoS, E): [2*xp/(1+xp^2+yp^2),
+            ....:                                  2*yp/(1+xp^2+yp^2),
+            ....:                                 (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
+            ....:                  name='Phi', latex_name=r'\Phi')
+            sage: N.set_immersion(phi)
+            sage: N.declare_embedding()
+            sage: g = M.metric('g')
+            sage: g[3,3],g[1,1],g[2,2]=1,1,1
+            sage: N.ambient_metric()[:]
+            sage: n = N.normal()
+            sage: n.restrict(V).display(format_spec = spher)
+            n = -cos(ph)*sin(th) d/dX - sin(ph)*sin(th) d/dY - cos(th) d/dZ
+            sage: n.restrict(U).display(format_spec = spher)
+            n = -cos(ph)*sin(th) d/dX - sin(ph)*sin(th) d/dY - cos(th) d/dZ
+
+        """
         if self._normal is not None and not recache:
             return self._normal
-        if self._dim_foliation != 0:
-            return self.normal(recache)
-        else:
-
-            def calc_normal(chart):
-                eps = self.ambient_metric(recache).volume_form(self._dim).along(
-                    self._immersion).restrict(chart.domain())
-                args = list(range(self._dim)) + [eps] + list(range(self._dim))
-                r = self.irange()
-                n_form = self._immersion.restrict(chart.domain()).pushforward(
-                    chart.frame()[r.next()]).down(
-                    self.ambient_metric().along(self._immersion).restrict(
-                        chart.domain()))
-                for i in r:
-                    n_form = n_form.wedge(
-                        self._immersion.restrict(chart.domain()).pushforward(
-                            chart.frame()[i]).down(
-                            self.ambient_metric().along(
-                                self._immersion).restrict(
-                                chart.domain())))
-                n_comp = (n_form.contract(*args) / factorial(
-                    self._dim)).contract(
-                    self.ambient_metric().inverse().along(self._immersion))
-                n_comp = n_comp / n_comp.norm(
-                    self.ambient_metric().along(self._immersion))
-
-                frame = next(iter(n_comp._components))
-                self._normal.add_comp(frame)[:] = n_comp[frame, :]
-
-            def calc_by_restrict(chart1, chart2):
-                frame = next(iter(self._normal.restrict(chart1.domain())._components))
-                self._normal.add_comp(frame.restrict(chart2.domain()))[:] = self._normal[frame, :]
-
-            self._normal = self._ambient.vector_field().along(self._immersion)
+        if self._dim_foliation != 0:    # case foliation
+            self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
             self._normal.set_name("n", r"n")
-
-            G = self.atlas()
-            marked = set()
-            f = Queue()
-
-            for v in G:
-                if v not in marked:
-                    f.put(v)
-                    calc_normal(v) # first calculus
-                    marked.add(v)
-                    while not f.empty():
-                        v = f.get()
-                        # for each neighbor:
-                        print("first chart : ",v)
-                        for vp in G:
-                            if vp in v._subcharts and vp not in marked:
-                                print("    second chart : "+ vp._repr_()+" (restriction)")
-                                f.put(vp)
-                                calc_by_restrict(v,vp)
-                                marked.add(vp)
-                            if vp in v._supercharts and vp not in marked:
-                                print("    second chart : "+ vp._repr_()+ " (continuation)")
-                                f.put(vp)
-                                extended_frame = self._ambient.default_frame().along(self._immersion).restrict(vp.domain())
-                                for fr in v.domain().frames():
-                                    if v.domain() is fr.domain() and fr.is_subframe(extended_frame):
-                                        self._normal.add_comp(extended_frame)[:] = self._normal.restrict(fr.domain()).components(fr)[:]
-                                marked.add(vp)
-                            if (v,vp) in self.coord_changes() and vp not in marked:
-                                print("    second chart : "+ vp._repr_()+ " (coord change)")
-                                f.put(vp)
-                                frame = next(iter(self._normal.restrict(v.domain())._components))
-                                self._normal.add_comp(frame.restrict(vp.domain()))[:] = self._normal[frame, :]
-                                marked.add(vp)
             return self._normal
+
+        # case no foliation:
+
+        # 4 auxiliary functions:
+        def calc_normal(chart):
+            """
+            Calculate the normal vector field according to the formula in the
+            documentation in a given chart.
+            """
+            eps = self.ambient_metric(recache).volume_form(self._dim).along(
+                self._immersion).restrict(chart.domain())
+            args = list(range(self._dim)) + [eps] + list(range(self._dim))
+            r = self.irange()
+            n_form = self._immersion.restrict(chart.domain()).pushforward(
+                chart.frame()[r.next()]).down(
+                self.ambient_metric().along(self._immersion).restrict(
+                    chart.domain()))
+            for i in r:
+                n_form = n_form.wedge(
+                    self._immersion.restrict(chart.domain()).pushforward(
+                        chart.frame()[i]).down(
+                        self.ambient_metric().along(
+                            self._immersion).restrict(
+                            chart.domain())))
+            n_comp = (n_form.contract(*args) / factorial(
+                self._dim)).contract(
+                self.ambient_metric().inverse().along(self._immersion))
+            n_comp = n_comp / n_comp.norm(
+                self.ambient_metric().along(self._immersion))
+
+            frame = next(iter(n_comp._components))
+            self._normal.add_comp(frame)[:] = n_comp[frame, :]
+
+        def calc_by_restrict(chart1, chart2):
+            """
+            Restrict self._normal from chart1 to chart2.
+
+            This function is used because restrict() sometimes loses too much
+            information. (eg when restricting a tensor along a submanifold on a
+            subset of a subset)
+            """
+            frame = next(iter(self._normal.restrict(chart1.domain())._components))
+            self._normal.add_comp(frame.restrict(chart2.domain()))[:] = self._normal[frame, :]
+
+        def calc_by_continuation(chart1, chart2):
+            """
+            Define self._normal on chart2 by continuating the components defined
+            on chart1
+
+            This function is used because add_comp_by_continuation() sometimes
+            loses too much information. (eg when continuating a tensor along a
+            submanifold from a subset of a subset)
+            """
+            extended_frame = self._ambient.default_frame().along(
+                self._immersion).restrict(chart2.domain())
+            for fr in chart1.domain().frames():
+                if chart1.domain() is fr.domain() and fr.is_subframe(extended_frame):
+                    self._normal.add_comp(extended_frame)[
+                    :] = self._normal.restrict(fr.domain()).components(fr)[:]
+
+        def calc_by_coord_change(chart1 ,chart2):
+            """
+            Define self._normal on chart2 by continuating the components defined
+            on chart1
+            """
+            frame = next(
+                iter(self._normal.restrict(chart1.domain())._components))
+            self._normal.add_comp(frame.restrict(chart2.domain()))[:] = \
+                self._normal[frame, :]
+
+        self._normal = self._ambient.vector_field().along(self._immersion)
+        self._normal.set_name("n", r"n")
+
+        # start breadth-first graph exploration
+        marked = set()
+        f = Queue()
+
+        for v in self.atlas():
+            if v not in marked:
+                f.put(v)
+                calc_normal(v) # initial calculus
+                marked.add(v)
+                while not f.empty():
+                    v = f.get()
+                    # for each neighbor:
+                    for vp in self.atlas():
+                        # case restriction
+                        if vp in v._subcharts and vp not in marked:
+                            f.put(vp)
+                            calc_by_restrict(v,vp)
+                            marked.add(vp)
+
+                        # case continuation
+                        if vp in v._supercharts and vp not in marked:
+                            f.put(vp)
+                            calc_by_continuation(v,vp)
+                            marked.add(vp)
+
+                        # case coordinates change
+                        if (v,vp) in self.coord_changes() and vp not in marked:
+                            f.put(vp)
+                            calc_by_coord_change(v,vp)
+                            marked.add(vp)
+        return self._normal
 
     def ambient_first_fundamental_form(self, recache=False):
         r"""

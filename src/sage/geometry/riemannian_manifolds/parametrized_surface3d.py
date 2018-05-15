@@ -1433,9 +1433,20 @@ class ParametrizedSurface3D(SageObject):
            sage: torus = ParametrizedSurface3D([(R+r*cos(v))*cos(u),(R+r*cos(v))*sin(u),r*sin(v)],[u,v],'torus')
            sage: torus.principal_directions()
            [(-cos(v)/(r*cos(v) + R), [(1, 0)], 1), (-1/r, [(0, 1)], 1)]
+           
+        ::
+        
+            sage: u, v = var('u, v', domain='real')
+            sage: V = vector([u*cos(u+v), u*sin(u+v), u+v])
+            sage: helicoid = ParametrizedSurface3D(V, (u, v))
+            sage: helicoid.principal_directions()
+            [(-1/(u^2 + 1), [(1, -(u^2 - sqrt(u^2 + 1) + 1)/(u^2 + 1))], 1),
+            (1/(u^2 + 1), [(1, -(u^2 + sqrt(u^2 + 1) + 1)/(u^2 + 1))], 1)]
+
+
 
         """
-        return self.shape_operator().eigenvectors_left()
+        return self.shape_operator().eigenvectors_right()
 
 
     @cached_method

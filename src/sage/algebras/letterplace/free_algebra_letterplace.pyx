@@ -145,7 +145,7 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
 
     Note that, since the algebras are cached, we need to choose
     a different base ring, since other doctests could have a
-    side effect on the atteined degree bound::
+    side effect on the attained degree bound::
 
         sage: F.<x,y,z> = FreeAlgebra(GF(17), implementation='letterplace')
         sage: L.<a,b,c> = FreeAlgebra(GF(17), implementation='letterplace', order='lex')

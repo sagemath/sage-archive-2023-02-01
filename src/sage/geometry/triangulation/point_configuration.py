@@ -1157,7 +1157,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: DihedralGroup(4).is_isomorphic(_)
             True
 
-        The square with an off-center point in the middle. Note thath
+        The square with an off-center point in the middle. Note that
         the middle point breaks the restricted automorphism group
         `D_4` of the convex hull::
 

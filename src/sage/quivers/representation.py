@@ -2228,7 +2228,7 @@ class QuiverRep_generic(WithEqualityById, Module):
             # element of a quotient of that module but not the other way
             # around.  So in order to pass a map to the quotient we need to
             # construct the quotient map for the domain so that we can take
-            # inverse images to lift elments.  As sage can coerce to a quotient
+            # inverse images to lift elements.  As sage can coerce to a quotient
             # this is easy, we just send generators to themselves and set the
             # domain to be the quotient.
 

@@ -1038,6 +1038,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self.str()
 
+    def _symbolic_(self, sring):
+        """
+        Return this integer as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(ZZ(7)); ex
+            7
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
+
     def _sympy_(self):
         """
         Convert Sage Integer() to SymPy Integer.
@@ -7365,7 +7378,7 @@ cdef Integer zero = the_integer_ring._zero_element
 cdef Integer one = the_integer_ring._one_element
 
 # pool of small integer for fast sign computation
-# Use the same defaults as Python, documented at http://docs.python.org/2/c-api/int.html#PyInt_FromLong
+# Use the same defaults as Python, documented at https://docs.python.org/2/c-api/int.html#PyInt_FromLong
 DEF small_pool_min = -5
 DEF small_pool_max = 256
 # we could use the above zero and one here

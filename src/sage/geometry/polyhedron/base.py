@@ -1282,14 +1282,19 @@ class Polyhedron_base(Element):
         else:
             return self._Hrepresentation[index]
 
-    def repr_pretty_Hrepresentation(self, separator=', ', **kwds):
+    def Hrepresentation_str(self, separator='\n', latex=None, style='>=',**kwds):
         r"""
-        Return a pretty representation of the Hrepresentation of this
+        Return a human-readable string representation of the Hrepresentation of this
         polyhedron.
 
         INPUT:
 
-        - ``separator`` -- a string
+        - ``separator`` -- a string. Default is ``"\n"``.
+
+        - ``latex`` -- a boolean. Default is ``None``.
+
+        - ``style`` -- either ``"positive"`` (making all coefficients positive)
+                       or ``"<="``, or ``">="``. Default is ``">="``.
 
         Keyword parameters of
         :meth:`~sage.geometry.polyhedron.representation.Hrepresentation.repr_pretty`
@@ -1299,21 +1304,97 @@ class Polyhedron_base(Element):
 
         - ``indices`` -- a tuple or other iterable
 
-        - ``latex`` -- a boolean
-
         OUTPUT:
 
         A string.
 
         EXAMPLES::
 
-            sage: P = Polyhedron(ieqs=[(0, 1, 0, 0), (1, 2, 1, 0)],
-            ....:                eqns=[(1, -1, -1, 1)])
-            sage: P.repr_pretty_Hrepresentation()
-            'x0 + x1 == x2 + 1, x0 >= 0, 2*x0 + x1 + 1 >= 0'
+            sage: P = polytopes.permutahedron(3)
+            sage: print(P.Hrepresentation_str())
+            x0 + x1 + x2 ==  6
+                -x1 - x2 >= -5
+                     -x2 >= -3
+                     -x1 >= -3
+                      x1 >=  1
+                 x1 + x2 >=  3
+                      x2 >=  1
+            sage: print(P.Hrepresentation_str(style='<='))
+            -x0 - x1 - x2 == -6
+                  x1 + x2 <=  5
+                       x2 <=  3
+                       x1 <=  3
+                      -x1 <= -1
+                 -x1 - x2 <= -3
+                      -x2 <= -1
+            sage: print(P.Hrepresentation_str(style='positive'))
+            x0 + x1 + x2 == 6
+                       5 >= x1 + x2
+                       3 >= x2
+                       3 >= x1
+                      x1 >= 1
+                 x1 + x2 >= 3
+                      x2 >= 1
+            sage: print(P.Hrepresentation_str(latex=True))
+            \begin{array}{rcl}
+            x_{0} + x_{1} + x_{2} & =    &  6 \\
+                   -x_{1} - x_{2} & \geq & -5 \\
+                           -x_{2} & \geq & -3 \\
+                           -x_{1} & \geq & -3 \\
+                            x_{1} & \geq &  1 \\
+                    x_{1} + x_{2} & \geq &  3 \\
+                            x_{2} & \geq &  1
+            \end{array}
+
+        TESTS::
+
+            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
+            sage: P1.repr_pretty_Hrepresentation()
+            doctest:warning
+            ...
+            :
+            DeprecationWarning: repr_pretty_Hrepresentation is deprecated. Please use Hrepresentation_str instead.
+            See https://trac.sagemath.org/24837 for details.
+            ' x0 >=  0 \n-x0 >= -1 '
         """
-        return separator.join(h.repr_pretty(**kwds)
-                              for h in self.Hrepresentation())
+
+        if latex is None:
+            latex = False
+
+        pretty_hs= [h.repr_pretty(split=True,latex=latex,style=style,**kwds) for h in self.Hrepresentation()]
+        shift = any([pretty_hs[index][2][0] == '-' for index in range(len(pretty_hs))])
+
+        lengths  = [(len(s[0]),len(s[1]),len(s[2])) for s in pretty_hs]
+        from operator import itemgetter
+        length_left = max(lengths,key=itemgetter(0))[0]
+        length_middle = max(lengths,key=itemgetter(1))[1]
+        length_right = max(lengths,key=itemgetter(2))[2] + 1  # Add one character in case of shift
+
+        if latex:
+            h_line = "{:>" + "{}".format(length_left) + "} & {:" + \
+                     "{}".format(length_middle) + "} & {:" + \
+                     "{}".format(length_right) + "}\\\\"
+        else:
+            h_line = "{:>" + "{}".format(length_left) + "} {:" + "{}".format(length_middle) + "} {:" + "{}".format(length_right) + "}"
+
+        pretty_print = ''
+        for index in range(len(pretty_hs)):
+            pretty_h = pretty_hs[index]
+            if shift and pretty_h[2][0] != '-':
+                pretty_print += h_line.format(pretty_h[0],pretty_h[1],' ' + pretty_h[2])
+            else:
+                pretty_print += h_line.format(pretty_h[0],pretty_h[1],pretty_h[2])
+            pretty_print += separator
+        pretty_print = pretty_print[:-1]  # Removing the last return
+
+        if not latex:
+            return pretty_print
+        else:
+            pretty_print = "\\begin{array}{rcl}\n" + pretty_print
+            pretty_print = pretty_print[:-2] + "\n\\end{array}"
+            return pretty_print
+
+    repr_pretty_Hrepresentation = deprecated_function_alias(24837, Hrepresentation_str)
 
     def Hrep_generator(self):
         """

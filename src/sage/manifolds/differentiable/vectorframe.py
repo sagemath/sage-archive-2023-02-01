@@ -1275,6 +1275,7 @@ class VectorFrame(FreeModuleBasis):
                     other.domain()):
             self._superframes.add(other)
             other._subframes.add(self)
+            other._restrictions[self._domain] = self
             return True
         return False
 

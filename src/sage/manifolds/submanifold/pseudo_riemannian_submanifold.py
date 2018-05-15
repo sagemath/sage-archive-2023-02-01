@@ -173,6 +173,7 @@ from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
 from sage.manifolds.submanifold.differentiable_submanifold import \
     DifferentiableSubmanifold
+from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.functions.other import factorial
@@ -835,9 +836,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             extended_frame = self._ambient.default_frame().along(
                 self._immersion).restrict(chart2.domain())
             for fr in chart1.domain().frames():
+                # used to make fr recognized as a subframe of extended_frame,
+                # needed for add_comp_by_continuation
                 if chart1.domain() is fr.domain() and fr.is_subframe(extended_frame):
-                    self._normal.add_comp(extended_frame)[
-                    :] = self._normal.restrict(fr.domain()).components(fr)[:]
+                    self._normal.add_comp_by_continuation(extended_frame,chart1.domain(),chart2)
 
         def calc_by_coord_change(chart1 ,chart2):
             """
@@ -849,9 +851,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             self._normal.add_comp(frame.restrict(chart2.domain()))[:] = \
                 self._normal[frame, :]
 
-        self._normal = self._ambient.vector_field().along(self._immersion)
-        self._normal.set_name("n", r"n")
-
+        Xmp = VectorFieldModule(self, self._immersion) # not FreeModule
+        self._normal = Xmp.tensor((1,0), "n", r"n")
         # start breadth-first graph exploration
         marked = set()
         f = Queue()
@@ -1156,7 +1157,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._second_fundamental_form is not None and not recache:
             return self._second_fundamental_form
-        resu = self._immersion._domain.vector_field_module() \
+        resu = self.vector_field_module() \
             .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
         if self._dim_foliation != 0:
             inverse_subs = {v: k for k, v in self._subs[0].items()}
@@ -1171,22 +1172,29 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             nab = self.ambient_metric().connection('nabla', r'\nabla')
             n = self.normal(recache)
 
-            gamma_n = matrix(self._dim+1,self._dim+1)
-            for i in range(self._dim+1):
-                for j in range(self._dim+1):
-                    gamma_n[i, j] = sum(
-                        nab[self._ambient.frames()[0], :][i][j][k].expr() *
-                        n.comp(n._fmodule.bases()[0])[:][k].expr() for k in
-                        range(self._dim + 1))
-            dXdu = self._immersion.differential(
-                self(self.atlas()[0][:])).matrix()
-            dNdu = matrix(SR,self._dim+1,self._dim)
-            for i in range(self._dim+1):
-                for j in range(self._dim):
-                    dNdu[i,j] = n.comp(n._fmodule.bases()[0])[:][i].diff(self.atlas()[0][:][j]).expr()
-            g = self.ambient_metric().along(self._immersion)[:]
-            K = -dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
-            resu[self.atlas()[0].frame(),:] = K
+            for chart in self.atlas():
+                gamma_n = matrix(self._dim+1,self._dim+1)
+                for i in range(self._dim+1):
+                    for j in range(self._dim+1):
+                        gamma_n[i, j] = sum(
+                            nab[self._ambient.frames()[0], :][i][j][k].expr() *
+                            n.restrict(chart.domain()).comp(
+                                n.restrict(chart.domain())._fmodule.bases()[0])
+                            [:][k].expr() for k in
+                            range(self._dim + 1))
+                dXdu = self._immersion.differential(
+                    self(chart[:])).matrix()
+                dNdu = matrix(SR,self._dim+1,self._dim)
+                for i in range(self._dim+1):
+                    for j in range(self._dim):
+                        dNdu[i, j] = n.restrict(chart.domain()).comp(
+                            n.restrict(chart.domain())._fmodule.bases()[0])[:,
+                                     chart][i].diff(chart[:][j]).expr()
+                g = self.ambient_metric().along(self._immersion)[:]
+                K = -dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
+                resu[chart.frame(), :] = K
+
+
         self._second_fundamental_form = resu
         return self._second_fundamental_form
 

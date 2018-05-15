@@ -1093,15 +1093,31 @@ class DiffScalarField(ScalarField):
 
         Gradient of a scalar field in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
+            sage: M.<x,y> = EuclideanSpace()
             sage: f = M.scalar_field(cos(x*y), name='f')
             sage: v = f.gradient(); v
-            Vector field grad(f) on the 2-dimensional Riemannian manifold M
+            Vector field grad(f) on the Euclidean plane E^2
             sage: v.display()
-            grad(f) = -y*sin(x*y) d/dx - x*sin(x*y) d/dy
+            grad(f) = -y*sin(x*y) e_x - x*sin(x*y) e_y
+            sage: v[:]
+            [-y*sin(x*y), -x*sin(x*y)]
+
+        Gradient in polar coordinates::
+
+            sage: M.<r,phi> = EuclideanSpace(coordinates='polar')
+            sage: f = M.scalar_field(r*cos(phi), name='f')
+            sage: f.gradient().display()
+            grad(f) = cos(phi) e_r - sin(phi) e_phi
+            sage: f.gradient()[:]
+            [cos(phi), -sin(phi)]
+
+        Note that ``(e_r, e_phi)`` is the orthonormal vector frame associated
+        with polar coordinates (see
+        :meth:`~sage.manifolds.differentiable.euclidean.EuclideanPlane.polar_frame`);
+        the gradient expressed in the coordinate frame is::
+
+            sage: f.gradient().display(M.polar_coordinates().frame())
+            grad(f) = cos(phi) d/dr - sin(phi)/r d/dphi
 
         The function :func:`~sage.manifolds.operators.grad` from the
         :mod:`~sage.manifolds.operators` module can be used instead of the
@@ -1115,13 +1131,13 @@ class DiffScalarField(ScalarField):
         not the default one::
 
             sage: h = M.lorentzian_metric('h')
-            sage: h[0,0], h[1,1] = -1, 1/(1+x^2+y^2)
-            sage: h.display()
-            h = -dx*dx + 1/(x^2 + y^2 + 1) dy*dy
+            sage: h[1,1], h[2,2] = -1, 1/(1+r^2)
+            sage: h.display(M.polar_coordinates().frame())
+            h = -dr*dr + r^2/(r^2 + 1) dphi*dphi
             sage: v = f.gradient(h); v
-            Vector field grad_h(f) on the 2-dimensional Riemannian manifold M
+            Vector field grad_h(f) on the Euclidean plane E^2
             sage: v.display()
-            grad_h(f) = y*sin(x*y) d/dx - (x^3 + x*y^2 + x)*sin(x*y) d/dy
+            grad_h(f) = -cos(phi) e_r + (-r^2*sin(phi) - sin(phi)) e_phi
 
         """
         default_metric = metric is None
@@ -1175,15 +1191,12 @@ class DiffScalarField(ScalarField):
 
         Laplacian of a scalar field on the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
+            sage: M.<x,y> = EuclideanSpace()
             sage: f = M.scalar_field(function('F')(x,y), name='f')
             sage: s = f.laplacian(); s
-            Scalar field Delta(f) on the 2-dimensional Riemannian manifold M
+            Scalar field Delta(f) on the Euclidean plane E^2
             sage: s.display()
-            Delta(f): M --> R
+            Delta(f): E^2 --> R
                (x, y) |--> d^2(F)/dx^2 + d^2(F)/dy^2
 
         The function :func:`~sage.manifolds.operators.laplacian` from the
@@ -1198,11 +1211,11 @@ class DiffScalarField(ScalarField):
         not the default one::
 
             sage: h = M.lorentzian_metric('h')
-            sage: h[0,0], h[1,1] = -1, 1/(1+x^2+y^2)
+            sage: h[1,1], h[2,2] = -1, 1/(1+x^2+y^2)
             sage: s = f.laplacian(h); s
-            Scalar field Delta_h(f) on the 2-dimensional Riemannian manifold M
+            Scalar field Delta_h(f) on the Euclidean plane E^2
             sage: s.display()
-            Delta_h(f): M --> R
+            Delta_h(f): E^2 --> R
                (x, y) |--> (y^4*d^2(F)/dy^2 + y^3*d(F)/dy
                + (2*(x^2 + 1)*d^2(F)/dy^2 - d^2(F)/dx^2)*y^2
                + (x^2 + 1)*y*d(F)/dy + x*d(F)/dx - (x^2 + 1)*d^2(F)/dx^2

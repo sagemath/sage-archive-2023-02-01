@@ -51,17 +51,6 @@ mpfr_configure()
         default_cflags="$default_cflags -g -O3"
     fi
 
-    if [ "$SAGE64" = yes ]; then
-        if [ -z "$CFLAG64" ]; then
-            CFLAG64=-m64
-        fi
-        echo "Building a 64-bit version of MPFR (using '$CFLAG64')."
-        required_cflags="$required_cflags $CFLAG64"
-        CPPFLAGS="$CPPFLAGS $CFLAG64"
-        LDFLAGS="$LDFLAGS $CFLAG64"
-        # As MPFR doesn't have C++ files, we don't have to modify CXXFLAGS.
-    fi
-
     # Enabling thread-safe (which meanwhile is or at least may be the default)
     # currently causes problems on a few systems:
     SAGE_CONF_OPTS="--disable-thread-safe"

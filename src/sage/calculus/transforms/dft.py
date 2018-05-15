@@ -146,7 +146,7 @@ class IndexedSequence(SageObject):
 
     def dict(self):
         """
-        Return a python dict of ``self`` where the keys are elments in the
+        Return a python dict of ``self`` where the keys are elements in the
         indexing set.
 
         EXAMPLES::

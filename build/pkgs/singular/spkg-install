@@ -26,17 +26,6 @@ fi
 
 export CFLAGS CXXFLAGS
 
-if [ "x$SAGE64" = xyes ]; then
-    echo "Building a 64-bit version of Singular"
-    CFLAGS="$CFLAGS -m64"
-    CXXFLAGS="$CXXFLAGS -m64"
-    CPPFLAGS="$CPPFLAGS -m64"; export CPPFLAGS
-    LDFLAGS="$LDFLAGS -m64"; export LDFLAGS
-    if [ "x`uname`" = xSunOS ] ; then
-        export CC="$CC -m64"
-        export CXX="$CXX -m64"
-    fi
-fi
 
 remove_old_version()
 {

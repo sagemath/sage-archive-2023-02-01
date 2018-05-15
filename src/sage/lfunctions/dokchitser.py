@@ -31,14 +31,12 @@ import copy
 import os
 import re
 import string
-import time
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import ComplexField, Integer
 from sage.misc.all import verbose, sage_eval, SAGE_TMP
 import sage.interfaces.gp
 from sage.env import SAGE_EXTCODE
-
 
 
 class Dokchitser(SageObject):

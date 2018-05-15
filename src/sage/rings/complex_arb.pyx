@@ -2,7 +2,7 @@
 r"""
 Arbitrary precision complex balls using Arb
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+This is a binding to the `Arb library <http://arblib.org>`_; it
 may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -143,7 +143,7 @@ Classes and Methods
 #*****************************************************************************
 from __future__ import absolute_import
 
-import operator, sys
+import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
@@ -159,7 +159,7 @@ from cpython.complex cimport PyComplex_FromDoubles
 
 from sage.ext.stdsage cimport PY_NEW
 
-from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD, mpfr_get_d_2exp
+from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD, MPFR_PREC_MIN, mpfr_get_d_2exp
 from sage.libs.arb.types cimport ARF_RND_NEAR
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
@@ -167,6 +167,7 @@ from sage.libs.arb.acb_calc cimport *
 from sage.libs.arb.acb_hypgeom cimport *
 from sage.libs.arb.acb_elliptic cimport *
 from sage.libs.arb.acb_modular cimport *
+from sage.libs.arb.acb_poly cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_d, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
 from sage.libs.arb.mag cimport (mag_init, mag_clear, mag_add, mag_set_d,
         MAG_BITS, mag_is_inf, mag_is_finite, mag_zero, mag_set_ui_2exp_si,
@@ -175,12 +176,9 @@ from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz,
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si, mpz_sgn
 from sage.libs.gsl.complex cimport gsl_complex_rect
-
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.complex_double cimport ComplexDoubleElement
-from sage.rings.complex_field import ComplexField
-from sage.rings.complex_interval_field import ComplexIntervalField
-from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_complex_arb cimport Polynomial_complex_arb
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
@@ -188,6 +186,10 @@ from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.rings.complex_field import ComplexField
+from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.integer_ring import ZZ
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
@@ -723,6 +725,164 @@ class ComplexBallField(UniqueRepresentation, Field):
                 self('inf'), self(1./3, 'inf'), self('inf', 'inf'),
                 self('nan'), self('nan', 'nan'), self('inf', 'nan')]
 
+    def _roots_univariate_polynomial(self, pol, ring, multiplicities,
+                                     algorithm, proof=True):
+        r"""
+        Compute the roots of ``pol``.
+
+        This method is used internally by the
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`
+        method of polynomials with complex ball coefficients. See its
+        documentation for details.
+
+        EXAMPLES::
+
+            sage: import warnings
+            sage: warnings.simplefilter("always")
+
+            sage: Pol.<x> = CBF[]
+            sage: i = CBF.gen(0)
+
+            sage: (x^4 - 1/3).roots()
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial with interval coefficients, use multiplicities=False
+
+            sage: (x^4 - 1/3).roots(multiplicities=False) # indirect doctest
+            [[-0.759835685651593 +/- 5.90e-16] + [+/- 1.27e-16]*I,
+             [0.759835685651593 +/- 5.90e-16] + [+/- 1.27e-16]*I,
+             [+/- 1.27e-16] + [0.759835685651593 +/- 5.90e-16]*I,
+             [+/- 1.27e-16] + [-0.759835685651593 +/- 5.90e-16]*I]
+
+            sage: (x^4 - 1/3).roots(RBF, multiplicities=False)
+            [[-0.759835685651593 +/- 5.90e-16], [0.759835685651593 +/- 5.90e-16]]
+
+            sage: (x^4 - 3).roots(RealBallField(100), multiplicities=False)
+            [[-1.316074012952492460819218901797 +/- 9.7e-34],
+             [1.316074012952492460819218901797 +/- 9.7e-34]]
+
+            sage: (x^4 - 3).roots(ComplexIntervalField(100), multiplicities=False)
+            [-1.31607401295249246081921890180? + 0.?e-37*I,
+             1.31607401295249246081921890180? + 0.?e-37*I,
+             0.?e-37 + 1.31607401295249246081921890180?*I,
+             0.?e-37 - 1.31607401295249246081921890180?*I]
+
+            sage: (x^2 - i/3).roots(ComplexBallField(2), multiplicities=False)
+            [[+/- 0.409] + [+/- 0.409]*I, [+/- 0.409] + [+/- 0.409]*I]
+
+            sage: ((x - 1)^2).roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to isolate the roots (try using proof=False or
+            increasing the precision)
+            sage: ((x - 1)^2).roots(multiplicities=False, proof=False)
+            doctest:...
+            UserWarning: roots may have been lost...
+            [[1.00000000000 +/- 8.43e-12] + [+/- 1.01e-11]*I,
+             [1.0000000000 +/- 5.22e-12] + [+/- 6.20e-12]*I]
+
+            sage: pol = x^7 - 2*(1000*x - 1)^2 # Mignotte polynomial
+            sage: pol.roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to isolate the roots (try using proof=False or
+            increasing the precision)
+            sage: pol.roots(multiplicities=False, proof=False)
+            doctest:...
+            UserWarning: roots may have been lost...
+            [[0.001000000 +/- 2.52e-10] + [+/- 2.05e-10]*I,
+             [0.00100000 +/- 1.56e-10] + [+/- 1.27e-10]*I,
+             [18.20524201487994 +/- 1.22e-15] + [+/- 5.75e-37]*I,
+             [-14.72907378354557 +/- 4.63e-15] + [10.70100790294238 +/- 2.16e-15]*I,
+             [-14.72907378354557 +/- 4.63e-15] + [-10.70100790294238 +/- 2.16e-15]*I,
+             [5.625452776105595 +/- 2.29e-16] + [17.31459450084417 +/- 4.09e-15]*I,
+             [5.625452776105595 +/- 2.29e-16] + [-17.31459450084417 +/- 4.09e-15]*I]
+            sage: pol.roots(ComplexBallField(100), multiplicities=False)
+            [[0.00099999999997763932022675...] + [+/- ...]*I,
+             ...]
+
+            sage: ((x - 1)^2 + 2^(-70)*i/3).roots(RBF, multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to determine which roots are real
+        """
+        if algorithm is not None:
+            raise NotImplementedError
+        if multiplicities:
+            raise ValueError("polynomial with interval coefficients, "
+                             "use multiplicities=False")
+
+        cdef bint real = False
+        if ring is None:
+            ring = self
+        elif isinstance(ring, ComplexBallField):
+            pass
+        elif isinstance(ring, RealBallField):
+            real = True
+        elif ring.has_coerce_map_from(self):
+            pass
+        elif (ring.has_coerce_map_from(self._base)
+                and RealField(MPFR_PREC_MIN).has_coerce_map_from(ring)):
+            real = True
+        else:
+            raise NotImplementedError
+
+        cdef Polynomial_complex_arb poly = <Polynomial_complex_arb?> pol
+        cdef acb_poly_t rounded_poly
+        cdef long tgtprec = ring.precision()
+        cdef long maxprec = 3*max(poly._parent._base._prec, tgtprec)
+        cdef long initial_prec = min(32, maxprec)
+        cdef long prec = initial_prec
+        cdef long isolated = 0
+        cdef RealBall rb
+        cdef ComplexBall cb
+        acb_poly_init(rounded_poly)
+        cdef long deg = acb_poly_degree(poly.__poly)
+        cdef acb_ptr roots = _acb_vec_init(deg)
+        try:
+            sig_on()
+            while ((isolated < deg or any(acb_rel_accuracy_bits(&roots[i]) < tgtprec
+                                        for i in range(deg)))
+                and prec < maxprec):
+                acb_poly_set_round(rounded_poly, poly.__poly, prec)
+                maxiter = min(max(deg, 32), prec)
+                if (prec == initial_prec):
+                    isolated = acb_poly_find_roots(roots, rounded_poly, NULL, maxiter, prec)
+                else:
+                    isolated = acb_poly_find_roots(roots, rounded_poly, roots, maxiter, prec)
+                prec *= 2
+            sig_off()
+
+            if isolated < deg:
+                if proof:
+                    raise ValueError("unable to isolate the roots (try using "
+                            "proof=False or increasing the precision)")
+                else:
+                    warnings.warn("roots may have been lost")
+
+            _acb_vec_sort_pretty(roots, deg)
+
+            res = []
+            if real:
+                if not acb_poly_validate_real_roots(roots, rounded_poly, prec):
+                    raise ValueError("unable to determine which roots are real")
+                for i in range(deg):
+                    if arb_contains_zero(acb_imagref(&roots[i])):
+                        rb = RealBall.__new__(RealBall)
+                        rb._parent = self._base
+                        arb_set(rb.value, acb_realref(&roots[i]))
+                        res.append(ring(rb))
+            else:
+                for i in range(deg):
+                    cb = ComplexBall.__new__(ComplexBall)
+                    cb._parent = self
+                    acb_set(cb.value, &roots[i])
+                    res.append(ring(cb))
+        finally:
+            _acb_vec_clear(roots, deg)
+            acb_poly_clear(rounded_poly)
+        return res
+
     def _sum_of_products(self, terms):
         r"""
         Compute a sum of product of complex balls without creating temporary
@@ -1050,7 +1210,7 @@ cdef inline real_ball_field(ComplexBall ball):
 cdef class ComplexBall(RingElement):
     """
     Hold one ``acb_t`` of the `Arb library
-    <http://fredrikj.net/arb/>`_
+    <http://arblib.org>`_
 
     EXAMPLES::
 

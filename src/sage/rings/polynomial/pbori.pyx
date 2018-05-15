@@ -2372,10 +2372,10 @@ cdef class BooleanMonomial(MonoidElement):
         EXAMPLES::
 
             sage: B.<x,y> = BooleanPolynomialRing()
-            sage: m = x.lm()
-            sage: m.stable_hash()
-            -845955105                 # 32-bit
-            173100285919               # 64-bit
+            sage: x.lm() is x.lm()
+            False
+            sage: x.lm().stable_hash() == x.lm().stable_hash()
+            True
 
         .. NOTE::
 
@@ -4638,9 +4638,10 @@ cdef class BooleanPolynomial(MPolynomial):
         EXAMPLES::
 
             sage: B.<x,y> = BooleanPolynomialRing()
-            sage: x.stable_hash()
-            -845955105                 # 32-bit
-            173100285919               # 64-bit
+            sage: x is B.gen(0)
+            False
+            sage: x.stable_hash() == B.gen(0).stable_hash()
+            True
 
         .. NOTE::
 
@@ -5720,10 +5721,10 @@ cdef class BooleSet:
         EXAMPLES::
 
             sage: B.<x,y> = BooleanPolynomialRing()
-            sage: s = x.set()
-            sage: s.stable_hash()
-            -845955105                 # 32-bit
-            173100285919               # 64-bit
+            sage: x.set() is x.set()
+            False
+            sage: x.set().stable_hash() == x.set().stable_hash()
+            True
 
         .. NOTE::
 
@@ -5943,7 +5944,7 @@ cdef class BooleSetIterator:
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: f = B.random_element()
-            sage: it = iter(f.set()) # indirect doctesrt
+            sage: it = iter(f.set()) # indirect doctest
         """
         return self
 

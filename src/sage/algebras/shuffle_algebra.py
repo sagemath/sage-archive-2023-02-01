@@ -285,13 +285,13 @@ class ShuffleAlgebra(CombinatorialFreeModule):
                         ((w, self.one_basis()), 1),
                         ((self.one_basis(), w), 1) ], distinct=True)
 
-        B = self.basis()
         result = self.coproduct_on_basis(Word([w[0]]))
         for i in w[1:]:
             result = self.tensor_square().sum_of_terms([
-                    ((Word(v1)*Word(u1), Word(v2)*Word(u2)), coeff1 * coeff2)
-                    for ((u1,u2),coeff1) in self.coproduct_on_basis(Word([i]))
-                    for ((v1,v2),coeff2) in result ])
+                    ((Word(v1) * Word(u1), Word(v2) * Word(u2)),
+                     coeff1 * coeff2)
+                    for ((u1, u2), coeff1) in self.coproduct_on_basis(Word([i]))
+                    for ((v1, v2), coeff2) in result])
         return result
 
     def coproduct(self, S):

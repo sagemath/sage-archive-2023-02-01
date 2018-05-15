@@ -60,7 +60,6 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.functions.generalized import sign
 from sage.homology.chain_complex import ChainComplex
 from sage.misc.flatten import flatten
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 from itertools import combinations

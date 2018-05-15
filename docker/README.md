@@ -3,7 +3,8 @@
 # Supported tags
 
 * `latest` — the stable `master` branch [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/master.svg)](https://github.com/sagemath/sage/commits/master) [![CircleCI branch](https://img.shields.io/circleci/project/github/sagemath/sage/master.svg)](https://circleci.com/gh/sagemath/sage/tree/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/master/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/master)
-* `x.x.x` — all stable releases of Sage are tagged with their version number.
+* `x.x` — all stable releases of Sage are tagged with their version number.
+* `x.x.{beta,rc}x` - betas and release candidadets of Sage as [tagged in our git repository](https://github.com/sagemath/sage/tags).
 * `develop` — the current development version of Sage which gets merged into the `master` branch when a new version of Sage is released [![GitHub last commit (branch)](https://img.shields.io/github/last-commit/sagemath/sage/develop.svg)](https://github.com/sagemath/sage/commits/develop) [![CircleCI branch](https://img.shields.io/circleci/project/github/sagemath/sage/master.svg)](https://circleci.com/gh/sagemath/sage/tree/master) [![GitLab CI](https://gitlab.com/sagemath/sage/badges/develop/pipeline.svg)](https://gitlab.com/sagemath/sage/commits/develop)
 
 

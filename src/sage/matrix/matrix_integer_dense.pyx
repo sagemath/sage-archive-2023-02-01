@@ -466,8 +466,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         EXAMPLES::
 
             sage: a = matrix(ZZ,2,3,[1,193,15,-2,3,0])
-            sage: a._pickle()
-            ('1 61 f -2 3 0', 0)
+            sage: a._pickle() == (b'1 61 f -2 3 0', 0)
+            True
 
             sage: S = ModularSymbols(250,4,sign=1).cuspidal_submodule().new_subspace().decomposition() # long time
             sage: S == loads(dumps(S)) # long time
@@ -479,8 +479,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         EXAMPLES::
 
-            sage: matrix(ZZ,1,3,[1,193,15])._pickle()   # indirect doctest
-            ('1 61 f', 0)
+            sage: matrix(ZZ,1,3,[1,193,15])._pickle() == (b'1 61 f', 0)   # indirect doctest
+            True
 
         """
         return str_to_bytes(self._export_as_string(32), 'ascii')

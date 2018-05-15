@@ -558,103 +558,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                              r"\nabla " + self._var[0]._latex_())
         return self._gradt
 
-    def normal_old(self, recache=False):
-        r"""
-        Return a normal unit vector to the submanifold.
-
-        If a foliation is defined, it is used to compute the gradient and then
-        the normal vector. If not, the normal vector is computed using the
-        following formula:
-
-        .. MATH::
-
-            n = \overrightarrow{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...
-            \wedge\mathrm{d}x_{n-1})
-
-        where the star is the hodge dual operator and de wedge the product on
-        the exterior algebra.
-
-        The result is cached, so calling this method multiple times always
-        returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
-
-        OUTPUT:
-
-        - vector field on the ambient manifold.
-
-        EXAMPLES:
-
-        A sphere embedded in euclidian space::
-
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
-            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
-            sage: r = var('r')
-            sage: assume(r>0)
-            sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
-            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
-            ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
-            sage: T = N.adapted_chart()
-            sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
-            sage: print(N.normal().display())
-            x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
-             + z/sqrt(x^2 + y^2 + z^2) d/dz
-
-        Or in spherical coordinates::
-
-            sage: print(N.normal().display(T[0].frame(),T[0]))
-            d/dr_M
-
-
-        """
-        if self._normal is not None and not recache:
-            return self._normal
-        if self._dim_foliation != 0:    # case foliation
-            self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
-            self._normal.set_name("n", r"n")
-            return self._normal
-        else:                           # case no foliation
-            self._normal = self._ambient.vector_field().along(self._immersion)
-            self._normal.set_name("n", r"n")
-
-            for chart in self.atlas():
-                eps = self.ambient_metric(recache).volume_form(self._dim).along(
-                    self._immersion).restrict(chart.domain())
-                args = list(range(self._dim)) + [eps] + list(range(self._dim))
-                r = self.irange()
-                n_form = self._immersion.restrict(chart.domain()).pushforward(
-                    chart.frame()[r.next()]).down(
-                    self.ambient_metric().along(self._immersion).restrict(
-                        chart.domain()))
-                for i in r:
-                    n_form = n_form.wedge(
-                        self._immersion.restrict(chart.domain()).pushforward(
-                            chart.frame()[i]).down(
-                            self.ambient_metric().along(self._immersion).restrict(
-                                chart.domain())))
-                n_comp = (n_form.contract(*args) / factorial(
-                        self._dim)).contract(
-                        self.ambient_metric().inverse().along(self._immersion))
-                n_comp = n_comp / n_comp.norm(
-                    self.ambient_metric().along(self._immersion))
-
-                frame = next(iter(n_comp._components))
-                self._normal.add_comp(frame)[:] = n_comp[frame,:]
-
-            return self._normal
-
     def normal(self, recache=False):
         r"""
         Return a normal unit vector to the submanifold.
@@ -1182,16 +1085,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                 n.restrict(chart.domain())._fmodule.bases()[0])
                             [:][k].expr() for k in
                             range(self._dim + 1))
-                dXdu = self._immersion.differential(
-                    self(chart[:])).matrix()
+                dXdu = self._immersion.differential_functions(chart)
                 dNdu = matrix(SR,self._dim+1,self._dim)
                 for i in range(self._dim+1):
                     for j in range(self._dim):
                         dNdu[i, j] = n.restrict(chart.domain()).comp(
                             n.restrict(chart.domain())._fmodule.bases()[0])[:,
                                      chart][i].diff(chart[:][j]).expr()
-                g = self.ambient_metric().along(self._immersion)[:]
-                K = -dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
+                g = self.ambient_metric().along(
+                    self._immersion.restrict(chart.domain())).restrict(
+                    chart.domain())[:, chart]
+                K = dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
                 resu[chart.frame(), :] = K
 
 
@@ -1363,9 +1267,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._gauss_curvature is not None and not recache:
             return self._gauss_curvature
         a = self.shape_operator(recache)
-        e = matrix([[a[i, j].expr() for i in self.irange()] for j in
-                    self.irange()]).determinant()
-        self._gauss_curvature = self.scalar_field({self.default_chart(): e})
+        #e = {chart: a[chart.frame(),:,chart].determinant for chart in self.atlas()}
+        #e = matrix([[a[i, j].expr() for i in self.irange()] for j in
+        #            self.irange()]).determinant()
+        self._gauss_curvature = self.scalar_field(
+            {chart: a[chart.frame(), :, chart].determinant()
+             for chart in self.atlas()})
         return self._gauss_curvature
 
     def principal_directions(self, recache=False):
@@ -1418,18 +1325,21 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._principal_directions is not None and not recache:
             return self._principal_directions
         a = self.shape_operator(recache)
-        pr_d = matrix(
-            [[a[i, j].expr() for i in self.irange()] for j in
-             self.irange()]).eigenvectors_right()
+        pr_d = {chart: matrix(
+            [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
+             for j in self.irange()]).eigenvectors_right() for chart in
+                self.atlas()}
         self._principal_directions = []
         v = self.vector_field()
-        counter = self.irange()
-        for eigen_space in pr_d:
-            for eigen_vector in eigen_space[1]:
-                v[self.default_frame(), :] = eigen_vector
-                self._principal_directions.append((v.copy(), eigen_space[0]))
-                self._principal_directions[-1][0].set_name(
-                    "e_%i" % counter.next())
+        for chart in self.atlas():
+            counter = self.irange()
+            for eigen_space in pr_d[chart]:
+                for eigen_vector in eigen_space[1]:
+                    v[chart.frame(), :] = eigen_vector
+                    self._principal_directions.append(
+                        (v.copy(), eigen_space[0]))############## TODO 
+                    self._principal_directions[-1][0].set_name(
+                        "e_%i" % counter.next())
         return self._principal_directions
 
     def principal_curvatures(self, recache=False):

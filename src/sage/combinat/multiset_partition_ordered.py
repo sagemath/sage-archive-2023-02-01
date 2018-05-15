@@ -18,6 +18,7 @@ REMARK:
 
 EXAMPLES::
 
+    sage: from sage.combinat.multiset_partition_ordered import *
     sage: OrderedMultisetPartition([[5, 3], [1, 3]])
     [{3,5}, {1,3}]
     sage: list(OrderedMultisetPartitions(4))

@@ -850,9 +850,9 @@ class InterfaceElement(Element):
         Returns the hash of self. This is a default implementation of hash
         which just takes the hash of the string of self.
         """
-        return hash('%s'%(self))
+        return hash('%s' % self)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Comparison of interface elements.
 
@@ -909,7 +909,7 @@ class InterfaceElement(Element):
 
         # everything is supposed to be comparable in Python, so we define
         # the comparison thus when no comparison is available in interfaced system.
-        if (hash(self) < hash(other)):
+        if hash(self) < hash(other):
             return -1
         else:
             return 1

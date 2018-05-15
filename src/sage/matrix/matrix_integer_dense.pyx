@@ -164,7 +164,6 @@ cdef inline void mpz_array_clear(mpz_t * a, size_t length):
         mpz_clear(a[i])
     sig_free(a)
 
-
 cdef class Matrix_integer_dense(Matrix_dense):
     r"""
     Matrix over the integers, implemented using FLINT.
@@ -607,11 +606,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    # cdef _mul_(self, Matrix right):
-    # def _multiply_classical(left, matrix.Matrix _right):
-    # def _list(self):
-    # def _dict(self):
-
     def __copy__(self):
         r"""
         Returns a new copy of this matrix.
@@ -685,6 +679,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             False
         """
         return self.is_square() and fmpz_mat_is_one(self._matrix)
+
+
 
     def _multiply_linbox(self, Matrix_integer_dense right):
         """
@@ -1074,6 +1070,148 @@ cdef class Matrix_integer_dense(Matrix_dense):
     #    * Other functions (list them here):
     #    * Specialized echelon form
     ########################################################################
+
+    def is_primitive(self):
+        r"""
+        Test whether the matrix is primitive.
+
+        An integral matrix `A` is primitive if all its entries are non-negative
+        and for some positive integer `n` the matrix `A^n` has all its
+        entries positive.
+
+        EXAMPLES::
+
+            sage: m = matrix(3, [1,1,0,0,0,1,1,0,0])
+            sage: m.is_primitive()
+            True
+            sage: m**4
+            [3 2 1]
+            [1 1 1]
+            [2 1 1]
+
+            sage: m = matrix(4, [[1,1,0,0],[0,0,1,0],[0,0,0,1],[1,0,0,0]])
+            sage: m.is_primitive()
+            True
+            sage: m**6
+            [4 3 2 1]
+            [1 1 1 1]
+            [2 1 1 1]
+            [3 2 1 1]
+
+            sage: m = matrix(4, [[0,1,0,1],[1,0,1,0],[0,1,0,1],[1,0,1,0]])
+            sage: m.is_primitive()
+            False
+
+        Testing extremal matrices::
+
+            sage: def matrix1(d):
+            ....:     m = matrix(d)
+            ....:     m[0,0] = 1
+            ....:     for i in range(d-1):
+            ....:         m[i,i+1] = m[i+1,i] = 1
+            ....:     return m
+            sage: all(matrix1(d).is_primitive() for d in range(2,20))
+            True
+
+            sage: def matrix2(d):
+            ....:     m = matrix(d)
+            ....:     for i in range(d-1):
+            ....:         m[i,i+1] = 1
+            ....:     m[d-1,0] = m[d-1,1] = 1
+            ....:     return m
+            sage: all(matrix2(d).is_primitive() for d in range(2,20))
+            True
+
+        Non-primitive families::
+
+            sage: def matrix3(d):
+            ....:     m = matrix(d)
+            ....:     m[0,0] = 1
+            ....:     for i in range(d-1):
+            ....:         m[i,i+1] = 1
+            ....:     return m
+            sage: any(matrix3(d).is_primitive() for d in range(2,20))
+            False
+
+        TESTS::
+
+            sage: matrix(1, 2, [1,3]).is_primitive()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a square matrix
+        """
+        # NOTE: ideally, all computations should be done with 0/1 matrices
+        # with the bitwise operations + = OR and * = AND. Instead we do
+        # computation over integers and reset positive entries to 1 to
+        # avoid coefficient blowup.
+
+        cdef long dim = fmpz_mat_nrows(self._matrix)
+        if dim != fmpz_mat_ncols(self._matrix):
+            raise ValueError("not a square matrix")
+
+        cdef int s, diag, zero
+        cdef size_t i,j, N
+        cdef fmpz_mat_t m
+
+        try:
+            fmpz_mat_init(m, dim, dim)
+
+            # 1. check that self._matrix is non-negative and set
+            #    m as a 0/1 matrix
+            zero = 0
+            diag = 0
+            for i in range(dim):
+                for j in range(dim):
+                    s = fmpz_sgn(fmpz_mat_entry(self._matrix, i, j))
+                    if s == 0:
+                        fmpz_zero(fmpz_mat_entry(m, i, j))
+                        zero = 1
+                    elif s == -1:
+                        return False
+                    elif s == 1:
+                        fmpz_one(fmpz_mat_entry(m, i, j))
+                        if i == j:
+                            diag = 1
+                    else:
+                        raise RuntimeError
+
+            # 2. is the matrix already positive?
+            if not zero:
+                return True
+
+            # 3. try powers up to the given bounds
+            #    2 * (dim - 1)  : if one diagonal entry is nonzero
+            #    (dim - 1)^2 + 1: otherwise
+            fmpz_mat_sqr(m, m)
+            if diag:
+                N = (dim - 1)
+            else:
+                N = ((dim - 1) * (dim - 1) + 1) >> 1
+
+            while N:
+                zero = False
+                for i in range(dim):
+                    for j in range(dim):
+                        if fmpz_is_zero(fmpz_mat_entry(m, i, j)):
+                            zero = True
+                        else:
+                            fmpz_one(fmpz_mat_entry(m, i, j))
+                if zero:
+                    fmpz_mat_sqr(m, m)
+                    N >>= 1
+                else:
+                    return True
+
+            for i in range(dim):
+                for j in range(dim):
+                    if fmpz_is_zero(fmpz_mat_entry(m, i, j)):
+                        return False
+
+            return True
+
+        finally:
+            fmpz_mat_clear(m)
+
 
     def _clear_denom(self):
         """

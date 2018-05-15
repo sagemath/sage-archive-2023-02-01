@@ -17,7 +17,7 @@ SageMath is a free open-source mathematics software system licensed under the GP
 
 There are several flavours of this image.
 
-* [`sagemath/sagemath`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath:latest.svg)](https://hub.docker.com/sagemath/sagemath) contains everything necessary to run Sage on the command line. Run it with:
+* [`sagemath/sagemath`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath/latest.svg)](https://hub.docker.com/r/sagemath/sagemath) contains everything necessary to run Sage on the command line. Run it with:
     ```
     docker run -it sagemath/sagemath:latest
     ```
@@ -25,7 +25,7 @@ There are several flavours of this image.
     ```
     docker run -p8888:8888 sagemath/sagemath:latest sage-jupyter
     ```
-* [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath-dev:develop.svg)](https://hub.docker.com/sagemath/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
+* [`sagemath/sagemath-dev`![image size](https://img.shields.io/microbadger/image-size/sagemath/sagemath-dev.svg)](https://hub.docker.com/r/sagemath/sagemath-dev) contains all the build artifacts to rebuild Sage quickly. This version is probably only relevant for Sage developers. Run this image with:
     ```
     docker run -it sagemath/sagemath-dev:develop
     ```

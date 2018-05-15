@@ -644,27 +644,114 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def residue(self, prec):
     #    raise NotImplementedError
 
-    def sqrt(self, extend = True, all = False):
+    def sqrt(self, extend=True, all=False, algorithm=None):
         r"""
-        TODO: document what "extend" and "all" do
+        Return the square root of this element.
 
         INPUT:
 
-        - ``self`` -- a local ring element
+        - ``self`` -- a `p`-adic element.
+
+        - ``extend`` -- a boolean (default: ``True``); if ``True``, return a
+          square root in an extension if necessary; if ``False`` and no root
+          exists in the given ring or field, raise a ValueError.
+
+        - ``all`` -- a boolean (default: ``False``); if ``True``, return a
+          list of all square roots.
+
+        - ``algorithm`` -- ``"pari"``, ``"sage"`` or ``None`` (default:
+          ``None``); Sage provides an implementation for any extension of
+          `Q_p` whereas only square roots over `Q_p` is implemented in Pari;
+          the default is ``"pari"`` if the ground field is `Q_p`, ``"sage"``
+          otherwise.
 
         OUTPUT:
 
-        - local ring element -- the square root of ``self``
+        The square root or the list of all square roots of this element.
+
+        NOTE:
+
+        The square root is chosen (resp. the square roots are ordered) in
+        a deterministic way, which is compatible with change of precision.
 
         EXAMPLES::
 
-            sage: R = Zp(13, 10, 'capped-rel', 'series')
-            sage: a = sqrt(R(-1)); a * a
-            12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + 12*13^7 + 12*13^8 + 12*13^9 + O(13^10)
-            sage: sqrt(R(4))
-            2 + O(13^10)
-            sage: sqrt(R(4/9)) * 3
-            2 + O(13^10)
+            sage: R = Zp(3, 20)
+            sage: sqrt(R(0))
+            0
+
+            sage: sqrt(R(1))
+            1 + O(3^20)
+
+            sage: R(2).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not a square
+
+            sage: s = sqrt(R(4)); -s
+            2 + O(3^20)
+
+            sage: s = sqrt(R(9)); s
+            3 + O(3^21)
+
+        Over the `2`-adics, the precision of the square root is less
+        than the input::
+
+            sage: R2 = Zp(2, 20)
+            sage: sqrt(R2(1))
+            1 + O(2^19)
+            sage: sqrt(R2(4))
+            2 + O(2^20)
+
+            sage: R.<t> = Zq(2^10, 10)
+            sage: u = 1 + 8*t
+            sage: sqrt(u)
+            1 + t*2^2 + t^2*2^3 + t^2*2^4 + (t^4 + t^3 + t^2)*2^5 + (t^4 + t^2)*2^6 + (t^5 + t^2)*2^7 + (t^6 + t^5 + t^4 + t^2)*2^8 + O(2^9)
+
+            sage: R.<a> = Zp(2).extension(x^3 - 2)
+            sage: u = R(1 + a^4 + a^5 + a^7 + a^8, 10); u
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+            sage: v = sqrt(u); v
+            1 + a^2 + a^4 + a^6 + O(a^7)
+
+        However, observe that the precision increases to its original value
+        when we recompute the square of the square root::
+
+            sage: v^2
+            1 + a^4 + a^5 + a^7 + a^8 + O(a^10)
+
+        If the input does not have enough precision in order to determine if
+        the given element has a square root in the ground field, an error is
+        raised::
+
+            sage: R(1, 6).sqrt()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to be sure that this element has a square root
+
+            sage: R(1, 7).sqrt()
+            1 + O(a^4)
+
+            sage: R(1+a^6, 7).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not a square
+
+        In particular, an error is raised when we try to compute the square
+        root of an inexact
+
+        TESTS::
+
+            sage: R = Qp(5, 100)
+            sage: c = R.random_element()
+            sage: s = sqrt(c^2)
+            sage: s == c or s == -c
+            True
+
+            sage: c2 = c^2
+            sage: c2 = c2.add_bigoh(c2.valuation() + 50)
+            sage: s == sqrt(c2)
+            True
         """
         return self.square_root(extend, all)
 

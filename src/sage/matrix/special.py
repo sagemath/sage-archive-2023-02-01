@@ -3354,7 +3354,7 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
         [ 0.00 -0.93  0.22  0.30]
         [ 0.00  0.00 -0.80  0.60]
         sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10)) * v
-        (5.5, 0.00098, 0.00098, 0.00)
+        (5.5, 0.0020, 0.00098, 0.00)
 
     AUTHORS:
 

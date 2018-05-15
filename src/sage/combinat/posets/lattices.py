@@ -3780,7 +3780,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.is_sublattice_dismantlable()
             True
 
-        .. SEEALSO:
+        .. SEEALSO::
 
             - Stronger properties: :meth:`is_dismantlable`, :meth:`is_interval_dismantlable`
 

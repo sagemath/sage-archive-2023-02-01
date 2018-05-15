@@ -133,6 +133,8 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: len(M._coord_changes)
         2
 
+    The foliations parameters are always added as the last coordinates.
+
     .. SEEALSO::
 
         :mod:`sage.manifolds.manifold`
@@ -166,6 +168,8 @@ class TopologicalSubmanifold(TopologicalManifold):
             self._ambient = ambient
         self._immersed = False
         self._embedded = False
+        self._adapted_charts = None
+        self._subs = None
 
     def _repr_(self):
         r"""
@@ -306,7 +310,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         self._immersion._is_isomorphism = True
         self._embedded = True
 
-    def adapted_chart(self, index=""):
+    def adapted_chart(self, index="", latex_index=""):
         r"""
         Create charts and changes of charts in the ambient manifold adapted
         to the foliation
@@ -331,6 +335,11 @@ class TopologicalSubmanifold(TopologicalManifold):
           coordinates in the new chart. This string will be added at the end of
           the names of the old coordinates. By default, it is replace by
           "_"+self._ambient._name
+        - ``latex_index`` -- (default: ``""``) string defining the latex name
+          of the coordinates in the new chart. This string will be added at the
+          end of the latex names of the old coordinates. By default, it is
+          replace by "_"+self._ambient._latex_()
+
 
         OUTPUT:
 
@@ -364,6 +373,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             raise TypeError("index must be a string")
 
         res = []
+        self._subs = []
 
         # All possible expressions for the immersion
         domains = self._immersion._coord_expression.keys()
@@ -371,8 +381,13 @@ class TopologicalSubmanifold(TopologicalManifold):
         if index == "":
             postscript = "_" + self._ambient._name
 
+        latex_postscript = latex_index
+        if latex_postscript == "":
+            latex_postscript = "_" + self._ambient._latex_()
+
         for domain in domains:
-            name = " ".join([domain[0][i]._repr_() + postscript
+            name = " ".join([domain[0][i]._repr_()+postscript+":{"
+                             + domain[0][i]._latex_()+"}"+latex_postscript
                              for i in self.irange()]) + " "\
                    + " ".join(v._repr_()+postscript for v in self._var)
             chart = domain[1]._domain.chart(name)
@@ -388,6 +403,7 @@ class TopologicalSubmanifold(TopologicalManifold):
                     if isinstance(_a, Expression):
                         assume(_a.subs(subs))
 
+                self._subs.append(subs)
                 res.append(chart)
                 self._immersion.add_expr(domain[0], chart,
                                          list(domain[0][:]) + self._var)
@@ -413,8 +429,9 @@ class TopologicalSubmanifold(TopologicalManifold):
                                          for v in self._var}
                         for i in range(len(expr)):
                             expr[i] = expr[i].subs(substitutions)
-                        chartMU.transition_map(chartMV, expr)
 
+                        chartMU.transition_map(chartMV, expr)
+        self._adapted_charts = res
         return res
 
     def plot(self, param, u, v, chart1=None, chart2=None, **kwargs):

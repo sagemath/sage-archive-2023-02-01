@@ -21736,8 +21736,7 @@ class GenericGraph(GenericGraph_pyx):
            respecting the partition.
 
         -  ``edge_labels`` - default False, otherwise allows
-           only permutations respecting edge labels. Note that this option
-           is not supported if ``algorithm="bliss"``
+           only permutations respecting edge labels.
 
         -  ``order`` - (default False) if True, compute the
            order of the automorphism group
@@ -21815,6 +21814,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph(sparse=True)
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.automorphism_group(edge_labels=True)
+            Permutation Group with generators [(1,4)(2,3)]
+
+            sage: G.automorphism_group(edge_labels=True, algorithm="bliss") # optional - bliss
+            Permutation Group with generators [(1,4)(2,3)]
+
+            sage: G.automorphism_group(edge_labels=True, algorithm="sage")
             Permutation Group with generators [(1,4)(2,3)]
 
         ::
@@ -21918,15 +21923,12 @@ class GenericGraph(GenericGraph_pyx):
 
         if (algorithm == 'bliss'           or   # explicit choice from the user; or
             (algorithm is None             and  # by default
-             not edge_labels               and
              have_bliss)):
-            if edge_labels:
-                raise ValueError("bliss cannot be used when edge_labels is True")
 
             Bliss().require()
 
             from sage.graphs.bliss import automorphism_group
-            A = automorphism_group(self, partition)
+            A = automorphism_group(self, partition, use_edge_labels=edge_labels)
 
             # If the user only wants the automorphism group, lets return it
             # without much hassle
@@ -22493,8 +22495,7 @@ class GenericGraph(GenericGraph_pyx):
           currently available:
 
           * ``'bliss'``: use the optional package bliss
-            (http://www.tcs.tkk.fi/Software/bliss/index.html); can not
-            be combined with ``edge_labels``
+            (http://www.tcs.tkk.fi/Software/bliss/index.html);
           * ``'sage'``: always use Sage's implementation.
           * ``None`` (default): use bliss when available and possible
 
@@ -22562,11 +22563,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
-            sage: G.canonical_label(edge_labels=True, certificate=True)
+            sage: G.canonical_label(edge_labels=True, algorithm="bliss", certificate=True) # optional - bliss
+            (Graph on 5 vertices, {0: 4, 1: 3, 2: 1, 3: 0, 4: 2})
+
+            sage: G.canonical_label(edge_labels=True, algorithm="sage", certificate=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
-        Canonical forms can be computed by bliss as well. Different
-        canonization algorithms give different graphs::
+        Another example where different canonization algorithms give
+        different graphs::
 
             sage: g = Graph({'a': ['b'], 'c': ['d']})
             sage: g_sage = g.canonical_label(algorithm='sage')
@@ -22623,8 +22627,6 @@ class GenericGraph(GenericGraph_pyx):
         has_multiedges = self.has_multiple_edges()
         if has_multiedges and algorithm == 'bliss':  # See trac #21704
             raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
-        if edge_labels and algorithm == 'bliss':
-            raise NotImplementedError("algorithm 'bliss' can not be used when edge_labels=True")
 
         # Check bliss if explicitly requested, raise if not found.
         if algorithm == 'bliss':
@@ -22633,7 +22635,7 @@ class GenericGraph(GenericGraph_pyx):
         # By default use bliss when possible
         if algorithm is None:
             algorithm = 'sage'
-            if not has_multiedges and not edge_labels:
+            if not has_multiedges:
                 try:
                     from sage.graphs.bliss import canonical_form
                     algorithm = 'bliss'

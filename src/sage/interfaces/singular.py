@@ -322,6 +322,7 @@ from __future__ import absolute_import
 from six.moves import range
 from six import integer_types, string_types
 
+import io
 import os
 import re
 import sys
@@ -1262,10 +1263,10 @@ class Singular(ExtraTabCompletion, Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-    
+
 @instancedoc
 class SingularElement(ExtraTabCompletion, ExpectElement):
-    
+
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -1278,12 +1279,12 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         if parent is None: return
         if not is_name:
             try:
-                self._name = parent._create( value, type)
+                self._name = parent._create(value, type)
             # Convert SingularError to TypeError for
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise_(TypeError, x, sys.exc_info()[2])
+                raise_(TypeError, TypeError(x), sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -2111,11 +2112,12 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: list(iter(A))
             [[1,3], [2,4]]
         """
-        if self.type()=='matrix':
+        if self.type() == 'matrix':
             l = self.ncols()
         else:
             l = len(self)
-        for i in range(1, l + 1):
+
+        for i in range(1, int(l + 1)):
             yield self[i]
 
     def _singular_(self):
@@ -2272,24 +2274,27 @@ def generate_docstring_dictionary():
 
     L, in_node, curr_node = [], False, None
 
-    for line in open(singular_docdir + "singular.hlp"):
-        m = re.match(new_node,line)
-        if m:
-            # a new node starts
-            in_node = True
-            nodes[curr_node] = "".join(L)
-            L = []
-            curr_node, = m.groups()
-        elif in_node: # we are in a node
-           L.append(line)
-        else:
-           m = re.match(new_lookup, line)
-           if m:
-               a,b = m.groups()
-               node_names[a] = b.strip()
+    # singular.hlp contains a few iso-5559-1 encoded special characters
+    with io.open(os.path.join(singular_docdir, 'singular.hlp'),
+                 encoding='latin-1') as f:
+        for line in f:
+            m = re.match(new_node,line)
+            if m:
+                # a new node starts
+                in_node = True
+                nodes[curr_node] = "".join(L)
+                L = []
+                curr_node, = m.groups()
+            elif in_node: # we are in a node
+               L.append(line)
+            else:
+               m = re.match(new_lookup, line)
+               if m:
+                   a,b = m.groups()
+                   node_names[a] = b.strip()
 
-        if line == "6 Index\n":
-            in_node = False
+            if line == "6 Index\n":
+                in_node = False
 
     nodes[curr_node] = "".join(L) # last node
 

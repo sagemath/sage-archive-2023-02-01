@@ -66,8 +66,9 @@ from .partition import Partition, Partitions, PartitionsInBox,\
      OrderedPartitions, PartitionsGreatestLE, PartitionsGreatestEQ,\
      PartitionsGreatestLE, PartitionsGreatestEQ, number_of_partitions
 
-from sage.combinat.partition_tuple import PartitionTuple, PartitionTuples
-from .skew_partition import SkewPartition, SkewPartitions
+lazy_import('sage.combinat.partition_tuple', ['PartitionTuple', 'PartitionTuples'])
+lazy_import('sage.combinat.partition_kleshchev', ['KleshchevPartitions'])
+lazy_import('sage.combinat.skew_partition', ['SkewPartition', 'SkewPartitions'])
 
 #Partition algebra
 from .partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk

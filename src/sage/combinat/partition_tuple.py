@@ -270,11 +270,14 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.interfaces.all import gp
 from sage.misc.cachefunc import cached_method
+from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.all import NN, ZZ, IntegerModRing
 from sage.rings.integer import Integer
 from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 
 #--------------------------------------------------
 # Partition tuple - element class
@@ -967,6 +970,36 @@ class PartitionTuple(CombinatorialElement):
 
         """
         return multicharge[k]-r+c
+
+    def content_tableau(self,multicharge):
+        """
+        Return the tableau which has (k,r,c)th entry equal to the content
+        ``multicharge[k]-r+c`` of this cell.
+
+        As with the content function, by setting the ``multicharge``
+        appropriately the tableau containing the residues is returned.
+
+        EXAMPLES::
+
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau([0,0,0])
+            ([[0, 1], [-1]], [[0, 1]], [[0], [-1], [-2]])
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau([0,0,1]).pp()
+                0  1     0  1     1
+               -1                 0
+                                 -1
+
+        as with the content function the multicharge can be used to return the
+        tableau containing the residues of the cells::
+
+            sage: multicharge=[ IntegerModRing(3)(c) for c in [0,0,1] ]
+            sage: PartitionTuple([[2,1],[2],[1,1,1]]).content_tableau(multicharge).pp()
+                0  1     0  1     1
+                2                 0
+                                  2
+        """
+        from sage.combinat.tableau_tuple import TableauTuple
+        return TableauTuple([[[multicharge[k]-r+c for c in range(self[k][r])]
+                        for r in range(len(self[k]))] for k in range(len(self))])
 
     def conjugate(self):
         """
@@ -1787,14 +1820,14 @@ class PartitionTuples(UniqueRepresentation, Parent):
         if mu == [] or mu == () or mu == [[]]:
             if mu not in self:
                 raise ValueError('{} is not a {}'.format(mu, self))
-            return self.element_class(self, [Partition([])])
+            return self.element_class(self, [_Partitions([])])
 
         # As partitions are 1-tuples of partitions we need to treat them separately
         try:
-            mu = [Partition(mu)]
+            mu = [_Partitions(mu)]
         except ValueError:
             try:
-                mu = [Partition(nu) for nu in mu]
+                mu = [_Partitions(nu) for nu in mu]
             except ValueError:
                 raise ValueError('{} is not a {}'.format(mu, self))
 
@@ -2773,7 +2806,3 @@ class RegularPartitionTuples_level_size(RegularPartitionTuples):
                 mu[0] = [1]
                 mu[-1] = [self._size-1]
         return self.element_class(self, mu)
-
-# Deprecations from trac:18555. July 2016
-from sage.misc.superseded import deprecated_function_alias
-PartitionTuples.global_options=deprecated_function_alias(18555, PartitionTuples.options)

@@ -15,7 +15,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
 
 from sage.plot.hyperbolic_polygon import HyperbolicPolygon, hyperbolic_polygon
 from sage.plot.all import Graphics
@@ -141,10 +141,10 @@ class HyperbolicRegularPolygon(HyperbolicPolygon):
         z_k = z_0                      #z_k has the Re(z)>0 vertices for the I centered polygon 
         r_z_k = []                     #r_z_k has the Re(z)<0 vertices
         if is_odd(self.sides):
-            vert = (self.sides - 1) / 2
+            vert = (self.sides - 1) // 2
         else:
-            vert = self.sides / 2 - 1
-        for k in range(0, vert):
+            vert = self.sides // 2 - 1
+        for k in range(vert):
             # Compute with 8 digits to accelerate calculations
             new_z_k = self._i_rotation(z_k[-1], beta).n(digits=8)
             z_k = z_k + [new_z_k]

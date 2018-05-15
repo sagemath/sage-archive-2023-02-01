@@ -737,7 +737,7 @@ class KashElement(ExpectElement):
            string = string.replace(str(key), str(locals[key]))
 
         try:
-            return sage_eval(string, vars={str(locals[x]):locals[x] for x in locals})
+            return sage_eval(string, locals={str(locals[x]):locals[x] for x in locals})
         except Exception:
             raise NotImplementedError("Unable to parse output: %s" % string)
 

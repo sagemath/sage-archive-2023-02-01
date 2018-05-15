@@ -149,13 +149,52 @@ cdef class dancing_linksWrapper:
 
         """
         self._rows = [row for row in rows]
-        self.reinitialize()
+        self._initialize()
+
+    def _initialize(self):
+        r"""
+        Initialization of the search algorithm
+
+        This adds the rows to the instance of dancing_links. This method is
+        used by `__init__` and `reinitialize` methods and should not be
+        used directly.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.matrices.dancing_links import dlx_solver
+            sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
+            sage: x = dlx_solver(rows)         # indirect doctest
+            sage: x.get_solution() if x.search() else None
+            [0, 1]
+            sage: x.get_solution() if x.search() else None
+            [2, 3]
+
+        Reinitialization of the algorithm::
+
+            sage: x.reinitialize()             # indirect doctest
+            sage: x.get_solution() if x.search() else None
+            [0, 1]
+
+        """
+        cdef vector[int] v
+        cdef vector[vector[int]] vv
+
+        for row in self._rows:
+            v.clear()
+            for x in row:
+                v.push_back(x)
+            vv.push_back(v)
+
+        sig_on()
+        self._x.add_rows(vv)
+        sig_off()
 
     def reinitialize(self):
         r"""
-        (Re)initialization of the search algorithm
+        Reinitialization of the search algorithm
 
-        This adds the rows to the instance of dancing_links.
+        This recreates an empty `dancing_links` object and adds the rows to
+        the instance of dancing_links.
 
         EXAMPLES::
 
@@ -194,18 +233,7 @@ cdef class dancing_linksWrapper:
         self._x = dancing_links()
         sig_off()
 
-        cdef vector[int] v
-        cdef vector[vector[int]] vv
-
-        for row in self._rows:
-            v.clear()
-            for x in row:
-                v.push_back(x)
-            vv.push_back(v)
-
-        sig_on()
-        self._x.add_rows(vv)
-        sig_off()
+        self._initialize()
 
     def __repr__(self):
         """

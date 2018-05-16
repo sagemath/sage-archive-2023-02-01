@@ -21,7 +21,7 @@ irreducible integral highest weight representations of the quantum group
 `U_q(\widehat{\mathfrak{sl}}_e)` of the affine special linear group. Under
 this categorification, `q` corresponds to the grading shift on the
 cyclotomic Hecke algebras, where the grading from the Brundan-Kleshchev
-graded isomorphism theorem to the *KLR algebras* of type `A` [BK2008]_.
+graded isomorphism theorem to the *KLR algebras* of type `A` [BK2009]_.
 
 The group algebras of the symmetric group in characteristic `p` are an
 important special case of the cyclotomic Hecke algebras of type `A`.

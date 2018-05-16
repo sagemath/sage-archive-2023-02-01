@@ -206,8 +206,8 @@ def graph_db_info(tablename=None):
 
     EXAMPLES::
 
-        sage: graph_db_info().keys()
-        ['graph_data', 'degrees', 'spectrum', 'misc', 'aut_grp']
+        sage: sorted(graph_db_info())
+        ['aut_grp', 'degrees', 'graph_data', 'misc', 'spectrum']
 
     ::
 

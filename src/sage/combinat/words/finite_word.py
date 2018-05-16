@@ -218,6 +218,7 @@ from __future__ import print_function, absolute_import
 
 from builtins import zip
 
+from six import iteritems
 from six.moves import range
 from collections import defaultdict
 from itertools import islice, cycle
@@ -4847,7 +4848,7 @@ class FiniteWord_class(Word_class):
             sage: Word("abcaccab").evaluation_sparse()
             [('a', 3), ('c', 3), ('b', 2)]
         """
-        return self.evaluation_dict().items()
+        return list(iteritems(self.evaluation_dict()))
 
     def evaluation_partition(self):
         r"""

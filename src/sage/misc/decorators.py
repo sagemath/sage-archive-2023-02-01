@@ -30,6 +30,9 @@ from __future__ import print_function
 from functools import (partial, update_wrapper, WRAPPER_ASSIGNMENTS,
                        WRAPPER_UPDATES)
 from copy import copy
+
+import six
+
 from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
 from inspect import ArgSpec
@@ -473,7 +476,7 @@ class suboptions(object):
 
             #Collect all the relevant keywords in kwds
             #and put them in suboptions
-            for key, value in kwds.items():
+            for key, value in list(six.iteritems(kwds)):
                 if key.startswith(self.name):
                     suboptions[key[len(self.name):]] = value
                     del kwds[key]

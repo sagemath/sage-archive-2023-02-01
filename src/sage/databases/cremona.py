@@ -1015,8 +1015,7 @@ class MiniCremonaDatabase(SQLDatabase):
         conductor = int(conductor)
         classes = []
         A = self.allcurves(conductor)
-        K = A.keys()
-        K.sort(key=sort_key)
+        K = sorted(A, key=sort_key)
         for k in K:
             v = A[k]
             # test if not first curve in class

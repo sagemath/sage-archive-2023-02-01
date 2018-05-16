@@ -4721,10 +4721,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: a < b
             True
         """
-        a = (<FreeModuleElement_generic_sparse>left)._entries.items()
-        a.sort()
-        b = (<FreeModuleElement_generic_sparse>right)._entries.items()
-        b.sort()
+        a = sorted((<FreeModuleElement_generic_sparse>left)._entries.iteritems())
+        b = sorted((<FreeModuleElement_generic_sparse>right)._entries.iteritems())
 
         return richcmp([(-x, y) for x, y in a], [(-x, y) for x, y in b], op)
 
@@ -4980,9 +4978,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: (v+w).nonzero_positions()
             [1]
         """
-        K = self._entries.keys()
-        K.sort()
-        return K
+        return sorted(self._entries)
 
     cpdef int hamming_weight(self):
         """

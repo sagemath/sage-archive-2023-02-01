@@ -805,33 +805,29 @@ cdef class LaurentSeries(AlgebraElement):
         """
         cdef LaurentSeries self = _self
 
-        right=int(r)
+        right = int(r)
         if right == r:
             return type(self)(self._parent, self.__u**right, self.__n*right)
 
         try:
-            right=QQ(r)
+            right = QQ.coerce(r)
         except TypeError:
             raise ValueError("exponent must be a rational number")
 
         if self.is_zero():
             return self._parent(0).O(self.prec()*right)
 
-        P = self._parent
-
         d = right.denominator()
         n = right.numerator()
 
         val = self.valuation()
 
-        try:
-            ZZ(val / d)
-        except TypeError:
+        if val % d:
             raise ValueError("power series valuation would be fractional")
 
         u = self.valuation_zero_part().nth_root(d)
 
-        s = type(self)(self._parent, u, val/d)
+        s = type(self)(self._parent, u, val // d)
 
         return s**n
 

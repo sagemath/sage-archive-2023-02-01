@@ -100,7 +100,6 @@ import operator
 
 from .infinity import infinity, is_Infinite
 
-from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1072,12 +1071,12 @@ cdef class PowerSeries(AlgebraElement):
             O(x^2)
 
         """
-        right=int(r)
+        right = int(r)
         if right == r:
             return super().__pow__(r, dummy)
 
         try:
-            right=QQ(r)
+            right = QQ.coerce(r)
         except TypeError:
             raise ValueError("exponent must be a rational number")
 
@@ -1473,6 +1472,8 @@ cdef class PowerSeries(AlgebraElement):
 
             sage: O(x^4).nth_root(2)
             O(x^2)
+            sage: O(x^4).nth_root(3)
+            O(x^1)
             sage: O(x^4).nth_root(4)
             O(x^1)
 
@@ -1483,6 +1484,12 @@ cdef class PowerSeries(AlgebraElement):
         """
 
         val = self.valuation()
+
+        if self.is_zero():
+            if val is infinity:
+                return self
+            else:
+                return self.parent()(0).O(val // n)
 
         if val is not infinity and val % n != 0:
             raise ValueError("power series valuation is not a multiple of %s" % n)

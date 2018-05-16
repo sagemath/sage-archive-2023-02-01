@@ -36,22 +36,27 @@ from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_
                                                                 fast_julia_plot,
                                                                 julia_helper)
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
-from sage.repl.ipython_kernel.interact import interact
 from sage.plot.colors import Color
 from sage.repl.image import Image
 from sage.functions.log import logb
-from sage.rings.rational_field import QQ
-from sage.rings.all import CC
+from sage.rings.all import QQ, CC
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.prandom import randint
-from sage.functions.other import floor
 
 
 EPS = 0.00001
 
 
-def mandelbrot_plot(**kwds):
+def mandelbrot_plot(x_center=-1.0,
+                    y_center=0.0,
+                    image_width=4.0,
+                    max_iteration=500,
+                    pixel_count=500,
+                    base_color='steelblue',
+                    iteration_level=1,
+                    number_of_colors=30,
+                    interact=False):
     r"""
     Interactive plot of the Mandelbrot set for the map `Q_c(z) = z^2 + c`.
 
@@ -70,7 +75,7 @@ def mandelbrot_plot(**kwds):
 
     [Dev2005]_
 
-    kwds:
+    INPUT:
 
     - ``x_center`` -- double (optional - default: ``-1.0``), Real part
       of center point.
@@ -107,17 +112,17 @@ def mandelbrot_plot(**kwds):
 
     ::
 
-        sage: mandelbrot_plot() # long time
+        sage: mandelbrot_plot()
         500x500px 24-bit RGB image
 
     ::
 
-        sage: mandelbrot_plot(pixel_count=1000) # long time
+        sage: mandelbrot_plot(pixel_count=1000)
         1000x1000px 24-bit RGB image
 
     ::
 
-        sage: mandelbrot_plot(x_center=-1.11, y_center=0.2283, image_width=1/128, # long time
+        sage: mandelbrot_plot(x_center=-1.11, y_center=0.2283, image_width=1/128,
         ....: max_iteration=2000, number_of_colors=500, base_color=[40, 100, 100])
         500x500px 24-bit RGB image
 
@@ -125,57 +130,42 @@ def mandelbrot_plot(**kwds):
     Notebook, set ``interact`` to ``True``::
 
         sage: mandelbrot_plot(interact=True)
-        Interactive function ... with 8 widgets...
+        interactive(children=(FloatSlider(value=-1.0, description=u'Real center'...
 
     ::
 
         sage: mandelbrot_plot(interact=True, x_center=-0.75, y_center=0.25,
-        ....: image_width=1/2, number_of_colors=75)
-        Interactive function ... with 8 widgets...
+        ....:     image_width=1/2, number_of_colors=75)
+        interactive(children=(FloatSlider(value=-0.75, description=u'Real center'...
     """
-    x_center = kwds.pop("x_center", -1.0)
-    y_center = kwds.pop("y_center", 0.0)
-    image_width = kwds.pop("image_width", 4.0)
-    max_iteration = kwds.pop("max_iteration", 500)
-    pixel_count = kwds.pop("pixel_count", 500)
-    base_color = kwds.pop("base_color", 'steelblue')
-    iteration_level = kwds.pop("iteration_level", 1)
-    number_of_colors = kwds.pop("number_of_colors", 30)
-    interacts = kwds.pop("interact", False)
+    base_color = Color(base_color)
 
-    if interacts:
-        return interact.widget(mandelbrot_interact)
+    if interact:
+        from ipywidgets.widgets import FloatSlider, IntSlider, ColorPicker, interact
+        widgets = dict(
+            x_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
+                                   value=x_center, description="Real center"),
+            y_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
+                                   value=y_center, description="Imag center"),
+            image_width = FloatSlider(min=EPS, max=4.0, step=EPS,
+                                      value=image_width, description="Image width"),
+            max_iteration = IntSlider(min=0, max=600,
+                                      value=max_iteration, description="Iterations"),
+            pixel_count = IntSlider(min=10, max=600,
+                                    value=pixel_count, description="Pixels"),
+            level_sep = IntSlider(min=1, max=20,
+                                  value=iteration_level, description="Color sep"),
+            color_num = IntSlider(min=1, max=100,
+                                  value=number_of_colors, description="# Colors"),
+            base_color = ColorPicker(value=base_color.html_color(),
+                                     description="Base color"),
+        )
+        return interact(**widgets).widget(fast_mandelbrot_plot)
 
-    base_color = [floor(255 * co) for co in list(Color(base_color).rgb())]
     return fast_mandelbrot_plot(x_center, y_center, image_width,
                                 max_iteration,
                                 pixel_count, iteration_level,
                                 number_of_colors, base_color)
-
-
-def mandelbrot_interact(real_center=('Real center:', (-1.0, 1.0, EPS)),
-                        im_center=('Imaginary center:', (-1.0, 1.0, EPS)),
-                        width=('Width of Image:', (EPS, 4.0, EPS)),
-                        iterations=('Max Number of Iterations:', (0, 600)),
-                        pixel_count=("Pixels:", (10, 600)),
-                        level_sep=('Iterations between Colors:', (1, 10)),
-                        color_num=('Number of Colors:', (1, 40)),
-                        image_color=('Base Color:', Color('steelblue'))):
-    """
-    Return the interactive Mandelbrot widget.
-
-    Not to be used directly. Use :func:`mandelbrot_plot` instead.
-
-    EXAMPLES::
-
-        sage: from sage.dynamics.complex_dynamics.mandel_julia import mandelbrot_interact
-        sage: mandelbrot_plot(interact=True)  # indirect doctest
-        Interactive function ... with 8 widgets
-        ...
-    """
-    return fast_mandelbrot_plot(real_center, im_center, width,
-                                iterations, pixel_count, level_sep,
-                                color_num, image_color)
 
 
 def external_ray(theta, **kwds):
@@ -236,12 +226,12 @@ def external_ray(theta, **kwds):
 
     ::
 
-        sage: external_ray([0, 0.2, 0.4, 0.7]) # long time
+        sage: external_ray([0, 0.2, 0.4, 0.7])
         500x500px 24-bit RGB image
 
     ::
 
-        sage: external_ray([i/5 for i in range(1,5)]) # long time
+        sage: external_ray([i/5 for i in range(1,5)])
         500x500px 24-bit RGB image
 
     WARNING:
@@ -250,14 +240,14 @@ def external_ray(theta, **kwds):
     which parameters to use when drawing the external ray.
     For example, the following is incorrect::
 
-        sage: M = mandelbrot_plot(x_center=0) # not tested
-        sage: external_ray(5/7, image=M) # not tested
+        sage: M = mandelbrot_plot(x_center=0)  # not tested
+        sage: external_ray(5/7, image=M)       # not tested
         500x500px 24-bit RGB image
 
     To get the correct external ray, we adjust our parameters::
 
-        sage: M = mandelbrot_plot(x_center=0) # not tested
-        sage: external_ray(5/7, x_center=0, image=M) # not tested
+        sage: M = mandelbrot_plot(x_center=0)
+        sage: external_ray(5/7, x_center=0, image=M)
         500x500px 24-bit RGB image
 
     .. TODO::
@@ -273,11 +263,15 @@ def external_ray(theta, **kwds):
     sharpness = kwds.get("S", 10)
     radial_parameter = kwds.get("R", 100)
     precision = kwds.get("prec", 300)
-    precision = max(precision, -logb(pixel_width * 0.001, 2).round() + 10)
     ray_color = kwds.get("ray_color", [255] * 3)
     image = kwds.get("image", None)
     if image is None:
-        image = mandelbrot_plot(**kwds)
+        image = mandelbrot_plot(x_center=x_0,
+                                y_center=y_0,
+                                image_width=plot_width,
+                                pixel_count=pixel_width)
+
+    precision = max(precision, -logb(pixel_width * 0.001, 2).round() + 10)
 
     # Make a copy of the bitmap image.
     # M = copy(image)
@@ -328,7 +322,19 @@ def external_ray(theta, **kwds):
     return M
 
 
-def julia_plot(c=-1, **kwds):
+def julia_plot(c=-1,
+               x_center=0.0,
+               y_center=0.0,
+               image_width=4.0,
+               max_iteration=500,
+               pixel_count=500,
+               base_color='steelblue',
+               iteration_level=1,
+               number_of_colors=50,
+               point_color='yellow',
+               interact=False,
+               mandelbrot=True,
+               period=None):
     r"""
     Plots the Julia set of a given complex `c` value. Users can specify whether
     they would like to display the Mandelbrot side by side with the Julia set.
@@ -353,8 +359,6 @@ def julia_plot(c=-1, **kwds):
 
     - ``c`` -- complex (optional - default: ``-1``), complex point `c` that
       determines the Julia set.
-
-    kwds:
 
     - ``period`` -- list (optional - default: ``None``), returns the Julia set
       for a random `c` value with the given (formal) cycle structure.
@@ -411,7 +415,7 @@ def julia_plot(c=-1, **kwds):
     set ``interact`` to ``True``::
 
         sage: julia_plot(interact=True)
-        Interactive function ... with 12 widgets...
+        interactive(children=(FloatSlider(value=-1.0, description=u'Real c'...
 
     To return the Julia set of a random `c` value with (formal) cycle structure
     `(2,3)`, set ``period = [2,3]``::
@@ -431,19 +435,6 @@ def julia_plot(c=-1, **kwds):
         ....: for c in c_values:
         ....:     julia_plot(c)
     """
-    x_center = kwds.pop("x_center", 0.0)
-    y_center = kwds.pop("y_center", 0.0)
-    image_width = kwds.pop("image_width", 4.0)
-    max_iteration = kwds.pop("max_iteration", 500)
-    pixel_count = kwds.pop("pixel_count", 500)
-    base_color = kwds.pop("base_color", 'steelblue')
-    iteration_level = kwds.pop("iteration_level", 1)
-    number_of_colors = kwds.pop("number_of_colors", 50)
-    point_color = kwds.pop("point_color", 'tomato')
-    interacts = kwds.pop("interact", False)
-    mandelbrot = kwds.pop("mandelbrot", True)
-    period = kwds.pop("period", None)
-
     if period is not None:
         R = PolynomialRing(QQ, 'c')
         c = R.gen()
@@ -452,14 +443,44 @@ def julia_plot(c=-1, **kwds):
         L = f.dynatomic_polynomial(period).subs({x: 0, y: 1}).roots(ring=CC)
         c = L[randint(0, len(L) - 1)][0]
 
-    c_real = CC(c).real()
-    c_imag = CC(c).imag()
+    c = CC(c)
+    c_real = c.real()
+    c_imag = c.imag()
 
-    if interacts:
-        return interact.widget(julia_interact)
+    base_color = Color(base_color)
+    point_color = Color(point_color)
 
-    base_color = [floor(255 * co) for co in list(Color(base_color).rgb())]
-    point_color = [floor(255 * co) for co in list(Color(point_color).rgb())]
+    if interact:
+        from ipywidgets.widgets import FloatSlider, IntSlider, ColorPicker, interact
+        widgets = dict(
+            c_real = FloatSlider(min=-2.0, max=2.0, step=EPS,
+                                 value=c_real, description="Real c"),
+            c_imag = FloatSlider(min=-2.0, max=2.0, step=EPS,
+                                 value=c_imag, description="Imag c"),
+            x_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
+                                   value=x_center, description="Real center"),
+            y_center = FloatSlider(min=-1.0, max=1.0, step=EPS,
+                                   value=y_center, description="Imag center"),
+            image_width = FloatSlider(min=EPS, max=4.0, step=EPS,
+                                      value=image_width, description="Image width"),
+            max_iteration = IntSlider(min=0, max=600,
+                                      value=max_iteration, description="Iterations"),
+            pixel_count = IntSlider(min=10, max=600,
+                                    value=pixel_count, description="Pixels"),
+            level_sep = IntSlider(min=1, max=20,
+                                  value=iteration_level, description="Color sep"),
+            color_num = IntSlider(min=1, max=100,
+                                  value=number_of_colors, description="# Colors"),
+            base_color = ColorPicker(value=base_color.html_color(),
+                                     description="Base color"),
+        )
+        if mandelbrot:
+            widgets["point_color"] = ColorPicker(value=point_color.html_color(),
+                                                 description="Point color")
+            return interact(**widgets).widget(julia_helper)
+        else:
+            return interact(**widgets).widget(fast_julia_plot)
+
     if mandelbrot:
         return julia_helper(c_real, c_imag, x_center, y_center,
                             image_width, max_iteration, pixel_count,
@@ -471,44 +492,3 @@ def julia_plot(c=-1, **kwds):
                                image_width, max_iteration, pixel_count,
                                iteration_level,
                                number_of_colors, base_color)
-
-
-def julia_interact(cx=('Re(c):', (-1.0, 1.0, EPS)),
-                   cy=('Im(c):', (-1.0, 1.0, EPS)),
-                   real_center=('Real Center:', (-1.0, 1.0, EPS)),
-                   im_center=('Imaginary Center:', (-1.0, 1.0, EPS)),
-                   width=('Width of Image:', (EPS, 4.0, EPS)),
-                   iterations=('Max Number of Iterations:', (1, 600)),
-                   pixel_count=("Pixels:", (1, 600)),
-                   level_sep=('Iterations between Colors', (1, 10)),
-                   color_num=('Number of Colors:', (1, 40)),
-                   image_color=("Image Color:", Color('tomato')),
-                   pt_color=("Point Color:", Color('steelblue')),
-                   mandel=('Mandelbrot set:', False)):
-    """
-    Return the interactive Julia widget.
-
-    Not to be used directly. Use :func:`julia_plot` instead.
-
-    EXAMPLES::
-
-        sage: from sage.dynamics.complex_dynamics.mandel_julia import julia_interact
-        sage: julia_plot(interact=True)  # indirect doctest
-        Interactive function ... with 12 widgets
-        ...
-    """
-    if mandel:
-        return julia_helper(cx, cy,
-                            real_center, im_center,
-                            width, iterations,
-                            pixel_count, level_sep,
-                            color_num,
-                            image_color,
-                            pt_color)
-    else:
-        return fast_julia_plot(cx, cy,
-                               real_center, im_center,
-                               width, iterations,
-                               pixel_count, level_sep,
-                               color_num,
-                               image_color)

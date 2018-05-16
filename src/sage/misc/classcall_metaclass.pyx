@@ -97,7 +97,6 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
             sage: isinstance(Foo, type)
             True
     """
-    _included_private_doc_ = ['__call__', '__contains__', '__get__']
 
     def __cinit__(self, *args, **opts):
         r"""

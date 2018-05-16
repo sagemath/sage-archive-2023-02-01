@@ -716,7 +716,7 @@ class Maxima(MaximaAbstract, Expect):
             else:
                 i = self._expect.expect(expr)
             if i > 0:
-                v = self._expect.before
+                v = self._before()
 
                 #We check to see if there is a "serious" error in Maxima.
                 #Note that this depends on the order of self._prompt_wait
@@ -727,7 +727,11 @@ class Maxima(MaximaAbstract, Expect):
                 j = v.find('Is ')
                 v = v[j:]
                 k = v.find(' ', 3)
-                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[3:k] + """>0')" before integral or limit evaluation, for example):\n""" + v + self._expect.after
+                msg = "Computation failed since Maxima requested additional " \
+                      "constraints (try the command " \
+                      "\"maxima.assume('{}>0')\" " \
+                      "before integral or limit evaluation, for example):\n" \
+                      "{}{}".format(v[3:k], v, self._after())
                 self._sendline(";")
                 self._expect_expr()
                 raise ValueError(msg)
@@ -793,7 +797,7 @@ class Maxima(MaximaAbstract, Expect):
         assert line_echo.strip().endswith(line.strip()), 'mismatch:\n' + line_echo + line
 
         self._expect_expr(self._display_prompt)
-        out = self._before()        # input echo + output prompt + output
+        out = self._before()  # input echo + output prompt + output
         if error_check:
             self._error_check(line, out)
         if not reformat:

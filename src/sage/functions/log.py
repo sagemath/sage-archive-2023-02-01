@@ -649,7 +649,8 @@ class Function_dilog(GinacFunction):
             Complex Field with 13 bits of precision
         """
         GinacFunction.__init__(self, 'dilog',
-                conversions=dict(maxima='li[2]'))
+                conversions=dict(maxima='li[2]',
+                                 fricas='(x+->dilog(1-x))'))
 
 dilog = Function_dilog()
 

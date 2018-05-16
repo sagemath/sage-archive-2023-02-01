@@ -3199,7 +3199,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         The boundary cones of ``cone`` as a formal linear combination
         of cones with coefficients `\pm 1`. Each summand is a facet of
         ``cone`` and the coefficient indicates whether their (chosen)
-        orientation argrees or disagrees with the "outward normal
+        orientation agrees or disagrees with the "outward normal
         first" boundary orientation. Note that the orientation of any
         individual cone is arbitrary. This method once and for all
         picks orientations for all cones and then computes the

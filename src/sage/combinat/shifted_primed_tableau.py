@@ -646,7 +646,6 @@ class ShiftedPrimedTableau(ClonableArray):
         if self._skew is None:
             res = [len([y for y in row if y <= n]) for row in self]
         else:
-            m = len(self._skew)
             res = [len([y for y in row if y is None or y <= n])
                    for i, row in enumerate(self)]
 

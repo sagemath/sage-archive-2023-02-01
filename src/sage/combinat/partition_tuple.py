@@ -85,8 +85,8 @@ tuples. Four different classes of tuples of partitions are currently supported:
 
 REFERENCES:
 
-.. [DJM1998]_
-.. [BK2009]_
+- [DJM1998]_
+- [BK2009]_
 
 AUTHORS:
 

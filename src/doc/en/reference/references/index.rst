@@ -383,10 +383,10 @@ REFERENCES:
             Springer Verlag 2007; available at
             http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
 
-.. [BKW2011]_ \J. Brundan, A. Kleshchev, and W. Wang,
-          *Graded Specht modules*,
-          J. Reine Angew. Math., **655** (2011), 61-87.
-          :mathscinet:`MR2806105`
+.. [BKW2011] \J. Brundan, A. Kleshchev, and W. Wang,
+             *Graded Specht modules*,
+             J. Reine Angew. Math., **655** (2011), 61-87.
+             :mathscinet:`MR2806105`
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the

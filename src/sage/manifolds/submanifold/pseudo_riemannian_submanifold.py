@@ -53,7 +53,9 @@ One can check that the inverse is correct with::
 
     sage: (phi*phi_inv).display()
     M --> M
-    (w, x, y, z) |--> ((b^2 + x^2 + y^2 + z^2 + sqrt(b^2 + x^2 + y^2 + z^2)*(t + sqrt(x^2 + y^2 + z^2)) + sqrt(x^2 + y^2 + z^2)*t)/(sqrt(b^2 + x^2 + y^2 + z^2) + sqrt(x^2 + y^2 + z^2)), x, y, z)
+    (w, x, y, z) |--> ((b^2 + x^2 + y^2 + z^2 + sqrt(b^2 + x^2 + y^2 + z^2)*(t
+     + sqrt(x^2 + y^2 + z^2)) + sqrt(x^2 + y^2 + z^2)*t)/(sqrt(b^2 + x^2 + y^2
+      + z^2) + sqrt(x^2 + y^2 + z^2)), x, y, z)
 
 The first parameter cannot be evaluated yet, because the inverse for t is not
 taken into account. To prove that it is correct, one can temporarily inject it
@@ -179,6 +181,7 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import factorial
 from sage.symbolic.ring import SR
 from Queue import Queue
+
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                   DifferentiableSubmanifold):
@@ -317,8 +320,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._ambient_metric = None
         self._projector = None
         self._gauss_curvature = None
-        self._principal_directions = None
-        self._principal_curvatures = None
+        self._principal_directions = {}
+        self._principal_curvatures = {}
+        self._mean_curvature = None
         self._shape_operator = None
         self._sgn = 1 if ambient._structure.name == "Riemannian" else -1
 
@@ -724,8 +728,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             information. (eg when restricting a tensor along a submanifold on a
             subset of a subset)
             """
-            frame = next(iter(self._normal.restrict(chart1.domain())._components))
-            self._normal.add_comp(frame.restrict(chart2.domain()))[:] = self._normal[frame, :]
+            frame = next(
+                iter(self._normal.restrict(chart1.domain())._components))
+            self._normal.add_comp(frame.restrict(chart2.domain()))[
+            :] = self._normal[frame, :]
 
         def calc_by_continuation(chart1, chart2):
             """
@@ -741,10 +747,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             for fr in chart1.domain().frames():
                 # used to make fr recognized as a subframe of extended_frame,
                 # needed for add_comp_by_continuation
-                if chart1.domain() is fr.domain() and fr.is_subframe(extended_frame):
-                    self._normal.add_comp_by_continuation(extended_frame,chart1.domain(),chart2)
+                if chart1.domain() is fr.domain() and fr.is_subframe(
+                        extended_frame):
+                    self._normal.add_comp_by_continuation(extended_frame,
+                                                          chart1.domain(),
+                                                          chart2)
 
-        def calc_by_coord_change(chart1 ,chart2):
+        def calc_by_coord_change(chart1, chart2):
             """
             Define self._normal on chart2 by continuating the components defined
             on chart1
@@ -754,8 +763,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             self._normal.add_comp(frame.restrict(chart2.domain()))[:] = \
                 self._normal[frame, :]
 
-        Xmp = VectorFieldModule(self, self._immersion) # not FreeModule
-        self._normal = Xmp.tensor((1,0), "n", r"n")
+        xmp = VectorFieldModule(self, self._immersion)  # not FreeModule
+        self._normal = xmp.tensor((1, 0), "n", r"n")
         # start breadth-first graph exploration
         marked = set()
         f = Queue()
@@ -763,7 +772,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         for v in self.atlas():
             if v not in marked:
                 f.put(v)
-                calc_normal(v) # initial calculus
+                calc_normal(v)  # initial calculus
                 marked.add(v)
                 while not f.empty():
                     v = f.get()
@@ -772,19 +781,19 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                         # case restriction
                         if vp in v._subcharts and vp not in marked:
                             f.put(vp)
-                            calc_by_restrict(v,vp)
+                            calc_by_restrict(v, vp)
                             marked.add(vp)
 
                         # case continuation
                         if vp in v._supercharts and vp not in marked:
                             f.put(vp)
-                            calc_by_continuation(v,vp)
+                            calc_by_continuation(v, vp)
                             marked.add(vp)
 
                         # case coordinates change
-                        if (v,vp) in self.coord_changes() and vp not in marked:
+                        if (v, vp) in self.coord_changes() and vp not in marked:
                             f.put(vp)
-                            calc_by_coord_change(v,vp)
+                            calc_by_coord_change(v, vp)
                             marked.add(vp)
         return self._normal
 
@@ -1003,7 +1012,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self.normal(recache)
         if self._dim_foliation == 0:
             # g = self.ambient_metric(recache).along(self._immersion)
-            # self._ambient_second_fundamental_form = -g.contract(nab(self.normal())) - nab(self.normal()).contract(self.normal()).contract(g) * self.normal().contract(g)
+            # self._ambient_second_fundamental_form =
+            # -g.contract(nab(self.normal())) -
+            # nab(self.normal()).contract(self.normal()).contract(g) *
+            # self.normal().contract(g)
             pass
         else:
             self._ambient_second_fundamental_form = \
@@ -1076,7 +1088,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n = self.normal(recache)
 
             for chart in self.atlas():
-                gamma_n = matrix(self._dim+1,self._dim+1)
+                gamma_n = matrix(self._dim+1, self._dim+1)
                 for i in range(self._dim+1):
                     for j in range(self._dim+1):
                         gamma_n[i, j] = sum(
@@ -1086,18 +1098,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                             [:][k].expr() for k in
                             range(self._dim + 1))
                 dXdu = self._immersion.differential_functions(chart)
-                dNdu = matrix(SR,self._dim+1,self._dim)
+                dNdu = matrix(SR, self._dim+1, self._dim)
                 for i in range(self._dim+1):
                     for j in range(self._dim):
                         dNdu[i, j] = n.restrict(chart.domain()).comp(
                             n.restrict(chart.domain())._fmodule.bases()[0])[:,
-                                     chart][i].diff(chart[:][j]).expr()
+                            chart][i].diff(chart[:][j]).expr()
                 g = self.ambient_metric().along(
                     self._immersion.restrict(chart.domain())).restrict(
                     chart.domain())[:, chart]
                 K = dXdu.transpose()*g*(dNdu+gamma_n*dXdu)
                 resu[chart.frame(), :] = K
-
 
         self._second_fundamental_form = resu
         return self._second_fundamental_form
@@ -1267,15 +1278,16 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._gauss_curvature is not None and not recache:
             return self._gauss_curvature
         a = self.shape_operator(recache)
-        #e = {chart: a[chart.frame(),:,chart].determinant for chart in self.atlas()}
-        #e = matrix([[a[i, j].expr() for i in self.irange()] for j in
+        # e = {chart: a[chart.frame(),:,chart].determinant
+        # for chart in self.atlas()}
+        # e = matrix([[a[i, j].expr() for i in self.irange()] for j in
         #            self.irange()]).determinant()
         self._gauss_curvature = self.scalar_field(
             {chart: a[chart.frame(), :, chart].determinant()
-             for chart in self.atlas()})
+             for chart in self.top_charts()})
         return self._gauss_curvature
 
-    def principal_directions(self, recache=False):
+    def principal_directions(self, chart, recache=False):
         r"""
         Return the principal directions of the submanifold.
 
@@ -1322,27 +1334,24 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             e_0 = d/dth
 
         """
-        if self._principal_directions is not None and not recache:
-            return self._principal_directions
+        if chart in self._principal_directions.keys() and not recache:
+            return self._principal_directions[chart]
         a = self.shape_operator(recache)
-        pr_d = {chart: matrix(
+        pr_d = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
-             for j in self.irange()]).eigenvectors_right() for chart in
-                self.atlas()}
-        self._principal_directions = []
+             for j in self.irange()]).eigenvectors_right()
+        res = []
         v = self.vector_field()
-        for chart in self.atlas():
-            counter = self.irange()
-            for eigen_space in pr_d[chart]:
-                for eigen_vector in eigen_space[1]:
-                    v[chart.frame(), :] = eigen_vector
-                    self._principal_directions.append(
-                        (v.copy(), eigen_space[0]))############## TODO 
-                    self._principal_directions[-1][0].set_name(
-                        "e_%i" % counter.next())
-        return self._principal_directions
+        counter = self.irange()
+        for eigen_space in pr_d:
+            for eigen_vector in eigen_space[1]:
+                v[chart.frame(), :] = eigen_vector
+                res.append((v.copy(), eigen_space[0]))
+                res[-1][0].set_name("e_%i" % counter.next())
+        self._principal_directions[chart] = res
+        return res
 
-    def principal_curvatures(self, recache=False):
+    def principal_curvatures(self, chart, recache=False):
         r"""
         Return the principal curvatures of the submanifold.
 
@@ -1389,18 +1398,18 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             k_0: N --> R
                (th, ph) |--> -1/r
         """
-        if self._principal_curvatures is not None and not recache:
-            return self._principal_curvatures
+        if chart in self._principal_curvatures.keys() and not recache:
+            return self._principal_curvatures[chart]
         a = self.shape_operator(recache)
-        self._principal_curvatures = matrix(
-            [[a[i, j].expr() for i in self.irange()] for j in
-             self.irange()]).eigenvalues()
+        res = matrix(
+            [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
+             for j in self.irange()]).eigenvalues()
         counter = self.irange()
         for i in range(self._dim):
-            self._principal_curvatures[i] = self.scalar_field(
-                {self.default_chart(): self._principal_curvatures[i]},
-                name="k_%i" % counter.next())
-        return self._principal_curvatures
+            res[i] = self.scalar_field({chart: res[i]},
+                                       name="k_%i" % counter.next())
+        self._principal_curvatures[chart] = res
+        return res
 
     def mean_curvature(self, recache=False):
         r"""
@@ -1449,11 +1458,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
 
         """
-        return self._sgn*sum(self.principal_curvatures(recache)) / self._dim
+        if self._mean_curvature is not None and not recache:
+            return self._shape_operator
+        self._shape_operator = self.scalar_field({chart: self._sgn * sum(
+            self.principal_curvatures(chart, recache)).expr(chart) / self._dim
+                                                  for chart in
+                                                  self.top_charts()})
+        return self._shape_operator
 
     def shape_operator(self, recache=False):
         r"""
-        Return the shape opeator of the submanifold.
+        Return the shape operator of the submanifold.
 
         The shape operator is equal to the second fundamental form with one of
         the indices upped.

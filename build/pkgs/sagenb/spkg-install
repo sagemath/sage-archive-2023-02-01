@@ -13,6 +13,5 @@ fi
 PYTHON_VERSION=$("$SAGE_LOCAL/bin/$PYTHON" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
 cd "${SAGE_DESTDIR}${SAGE_LOCAL}/lib/python$PYTHON_VERSION/site-packages/sagenb/data" || \
     sdh_die "Cannot find SageNB data directory."
-[ -d "$SAGE_SHARE/mathjax" ] || \
+ln -s -n "$SAGE_SHARE/mathjax/" mathjax || \
     sdh_die "Error: Cannot symlink mathjax into the SageNB data directory."
-ln -s -n "$SAGE_SHARE/mathjax/" mathjax

@@ -211,7 +211,8 @@ def _blocks(b, even_only=False):
 
     EXAMPLES::
 
-    _blocks([15,2,0,0,0])
+        sage: from sage.genera.genus.genus import _blocks
+        sage: _blocks([15,2,0,0,0])
         [[15, 2, 3, 0, 0],
         [15, 2, 7, 0, 0],
         [15, 2, 1, 1, 0],

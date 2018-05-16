@@ -527,9 +527,8 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
             sage: R.<z> = L[]
             sage: L.<z> = L.extension(z - y)
             sage: v = K.valuation(x)
-            sage: v.extension(L)
+            sage: v.extensions(L)
             [(x)-adic valuation]
-
         """
         K = self.domain()
         from sage.categories.function_fields import FunctionFields

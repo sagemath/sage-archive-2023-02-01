@@ -39,6 +39,14 @@ def isfunction(obj):
         False
         sage: isfunction(Integer(1).digits)  # bound method
         False
+
+    Verify that ipywidgets can correctly determine signatures of Cython
+    functions::
+
+        sage: from ipywidgets.widgets.interaction import signature
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandelbrot_plot
+        sage: signature(fast_mandelbrot_plot)  # random
+        <IPython.utils._signatures.Signature object at 0x7f3ec8274e10>
     """
     # We use type(obj) instead of just obj to avoid __getattr__().
     # Some types, like methods, will return the __code__ of the

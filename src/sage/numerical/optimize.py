@@ -768,7 +768,8 @@ def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
 
     For more informations, see :wikipedia:`Bin_packing_problem`.
 
-    Two version of this problem are solved by this algorithm :
+    Two versions of this problem are solved by this algorithm :
+
     - Is it possible to put the given items in `k` bins ?
     - What is the assignment of items using the least number of bins with
       the given list of items ?

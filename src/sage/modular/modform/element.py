@@ -837,6 +837,16 @@ class ModularForm_abstract(ModuleElement):
             sage: CuspForms(1, 30).0.lseries().eps
             -1.00000000000000
 
+        We check that :trac:`25369` is fixed::
+
+            sage: f5 = Newforms(Gamma1(4), 5, names='a')[0]; f5
+            q - 4*q^2 + 16*q^4 - 14*q^5 + O(q^6)
+            sage: L5 = f5.lseries()
+            sage: abs(L5.check_functional_equation()) < 1e-15
+            True
+            sage: abs(L5(4) - (gamma(1/4)^8/(3840*pi^2)).n()) < 1e-15
+            True
+
         We can change the precision (in bits)::
 
             sage: f = Newforms(389, names='a')[0]
@@ -877,7 +887,7 @@ class ModularForm_abstract(ModuleElement):
 
         # get global root number
         w = self.atkin_lehner_eigenvalue(N, embedding=emb)
-        e = C.gen()**l * w
+        e = ~C.gen()**l * w
 
         if self.is_cuspidal():
             poles = []  # cuspidal

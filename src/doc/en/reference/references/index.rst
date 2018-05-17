@@ -34,7 +34,7 @@ REFERENCES:
 **A**
 
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
-              *ACM Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
+              *ACM Transactions on Mathematical Software*, **39** no. 1 (2012), 1-28.
 
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
@@ -382,6 +382,11 @@ REFERENCES:
             Block Cipher*; in Proceedings of CHES 2007; LNCS 7427; pp. 450-466;
             Springer Verlag 2007; available at
             http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
+
+.. [BKW2011] \J. Brundan, A. Kleshchev, and W. Wang,
+             *Graded Specht modules*,
+             J. Reine Angew. Math., **655** (2011), 61-87.
+             :mathscinet:`MR2806105`
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -830,6 +835,10 @@ REFERENCES:
             finite geometries, 2000,
             https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
 
+.. [DJM1998] \R. Dipper, G. James and A. Mathas
+             *Cyclotomic q-Schur algebras*, Math. Z, **229** (1998), 385-416.
+             :mathscinet:`MR1658581`
+
 .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart
               polynomials of matroid polytopes and
               polymatroids. Discrete & Computational Geometry, Volume
@@ -1047,6 +1056,10 @@ REFERENCES:
 
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
+
+.. [Ful1997] William Fulton,
+             *Young Tableaux*.
+             Cambridge University Press, 1997.
 
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
@@ -1568,6 +1581,11 @@ REFERENCES:
             23, Issue 3 (November 2002), 281-290.  Available at
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
+
+.. [Kra1999] \C. Krattenthaler,
+           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
+           Journal of Combinatorial Theory, Series A, **88** (1999), 66-92,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
 .. [Kra2006] Christian Krattenthaler.  *Growth diagrams, and
              increasing and decreasing chains in fillings of Ferrers

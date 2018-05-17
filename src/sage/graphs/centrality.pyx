@@ -813,9 +813,9 @@ def centrality_closeness_random_k(G, int k=1):
     r"""
     Return an estimation of the closeness centrality of `G`.
 
-    The algorithm first randomly selects a set ``S`` of ``k`` vertices.
+    The algorithm first randomly selects a set `S` of `k` vertices.
     Then it computes a the shortest path distances from each vertex in
-    ``S`` (using breadth-first-search (BFS) for unweighted graph and
+    `S` (using breadth-first-search (BFS) for unweighted graph and
     Dijkstra for weighted graph) and uses this knowledge to estimate
     the closeness centrality of all vertices.
 
@@ -823,9 +823,9 @@ def centrality_closeness_random_k(G, int k=1):
 
     INPUT:
 
-    - ``G`` -- a undirected Graph
+    - `G` -- a undirected Graph
 
-    - ``k`` (integer, default: 1) -- The number of random nodes need to be choosen
+    - `k` (integer, default: 1) -- The number of random nodes need to be choosen
 
     OUTPUT:
 
@@ -866,7 +866,7 @@ def centrality_closeness_random_k(G, int k=1):
         ValueError: G should be undirected Graph.
 
     """
-
+    G._scream_if_not_simple()
     if G.is_directed():
         raise ValueError("G should be undirected Graph.")
 
@@ -934,7 +934,7 @@ def centrality_closeness_random_k(G, int k=1):
             farness = 0
 
             simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)
-            
+
             for j in range(n):
                 farness += distance[j]
                 partial_farness[j] += distance[j]
@@ -943,6 +943,8 @@ def centrality_closeness_random_k(G, int k=1):
         # Estimate the closeness centrality for remaining n-k vertices.
         for i in range(k,n):
             closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
+
         bitset_free(seen)
+        free_short_digraph(sd)
 
     return {int_to_vertex[i]:closeness_centrality_array[i] for i in range(n)}

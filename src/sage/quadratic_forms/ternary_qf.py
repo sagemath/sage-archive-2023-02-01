@@ -227,7 +227,7 @@ class TernaryQF(SageObject):
             else:
                 return QuadraticForm(ZZ, v.transpose() * self.matrix() * v)
         elif (is_Vector(v) or isinstance(v, (list, tuple))):
-            ## Check that v has lenght 3
+            ## Check that v has length 3
             if not (len(v) == 3):
                 raise TypeError("Oops! Your vector needs to have length 3")
             v0, v1, v2 = v

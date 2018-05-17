@@ -525,7 +525,7 @@ cdef class ModuleAction(Action):
             sage: cm.explain(x, 1, operator.truediv)
             Action discovered.
                 Right inverse action by Symbolic Constants Subring on Univariate Polynomial Ring in x over Symbolic Constants Subring
-                with precomposition on right by Coercion map:
+                with precomposition on right by Conversion via _symbolic_ method map:
                   From: Integer Ring
                   To:   Symbolic Constants Subring
             Result lives in Univariate Polynomial Ring in x over Symbolic Constants Subring
@@ -755,7 +755,7 @@ cdef class IntegerMulAction(IntegerAction):
 
         Check that large multiplications can be interrupted::
 
-            sage: alarm(0.5); (2^(10^7)) * P
+            sage: alarm(0.5); (2^(10^7)) * P  # not tested; see trac:#24986
             Traceback (most recent call last):
             ...
             AlarmInterrupt

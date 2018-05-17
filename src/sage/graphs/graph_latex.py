@@ -1344,6 +1344,18 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
+        Check that :trac:`25120` is fixed::
+
+            sage: G = Graph([(0,1)])
+            sage: G.set_latex_options(edge_colors = {(0,1): 'red'})
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            ...
+            \draw [red,] (node_0) ... (node_1);
+            ...
+            \end{tikzpicture}
+
+
         .. NOTE::
 
             There is a lot of overlap between what tkz_picture and
@@ -1355,6 +1367,19 @@ class GraphLatex(SageObject):
 
         options = self.__graphlatex_options.copy()
         options.update(self._options)
+
+        # NOTE: the edge_labels option for graphviz_string is opposite
+        # see https://trac.sagemath.org/ticket/25120
+        if 'edge_colors' in options:
+            edge_colors = options['edge_colors']
+            new_edge_colors = {}
+            for edge,col in edge_colors.items():
+                if col in new_edge_colors:
+                    new_edge_colors[col].append(edge)
+                else:
+                    new_edge_colors[col] = [edge]
+            options['edge_colors'] = new_edge_colors
+
         dotdata = self._graph.graphviz_string(labels="latex", **options)
         import dot2tex
         return dot2tex.dot2tex(dotdata,

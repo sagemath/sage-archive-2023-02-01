@@ -534,10 +534,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: phi + psi
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from
-            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring!
+            ValueError: inconsistent number of rows: should be 2 but got 3
         """
         # TODO: move over to any coercion model!
         if not isinstance(right, MatrixMorphism):

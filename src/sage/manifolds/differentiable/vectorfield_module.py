@@ -1362,8 +1362,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         self._induced_bases = {}
         if self._dest_map != self._domain.identity_map():
             for frame in self._ambient_domain._top_frames:
-                basis = self.basis(from_frame=frame)
-                self._induced_bases[frame] = basis
+                if (frame.destination_map() ==
+                    self._ambient_domain.identity_map()):
+                    basis = self.basis(from_frame=frame)
+                    self._induced_bases[frame] = basis
 
         # Initialization of the components of the zero element:
         zero = self.zero()

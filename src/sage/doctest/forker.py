@@ -124,6 +124,17 @@ def init_sage():
     # Sage imports.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
+
+    # Set the Python PRNG class to the Python 2 implementation for consistency
+    # of 'random' test results that use it; see
+    # https://trac.sagemath.org/ticket/24508
+    # We use the baked in copy of the random module for both Python 2 and 3
+    # since, although the upstream copy is unlikely to change, this further
+    # ensures consistency of test results
+    import sage.misc.randstate
+    from sage.cpython._py2_random import Random
+    sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
+
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 
@@ -1991,6 +2002,19 @@ class DocTestWorker(multiprocessing.Process):
             # Note: This closes the tempfile in the child process, but in the
             # parent process self.outtmpfile will not be closed yet, and can
             # still be accessed in save_result_output
+            if hasattr(self.outtmpfile, 'delete'):
+                # On some platforms (notably Cygwin) tempfile.TemporaryFile is
+                # actually replaced by tempfile.NamedTemporaryFile with
+                # delete=True for this file
+                # This means that we end up with two NamedTemporaryFile
+                # instances--one on the parent process and one on the worker
+                # process.  Since NamedTemporaryFile automatically unlinks the
+                # file when it is closed, this can lead to an unhandled
+                # exception in the parent process if the child process closes
+                # this file first.  See https://trac.sagemath.org/ticket/25107#comment:14
+                # for more details.
+                self.outtmpfile.delete = False
+
             self.outtmpfile.close()
 
     def start(self):
@@ -2213,6 +2237,22 @@ class DocTestTask(object):
         sage: sorted(results.keys())
         ['cputime', 'err', 'failures', 'optionals', 'walltime']
     """
+
+    if six.PY2:
+        extra_globals = {}
+    else:
+        extra_globals = {'long': int}
+    """
+    Extra objects to place in the global namespace in which tests are run.
+    Normally this should be empty but there are special cases where it may
+    be useful.
+
+    In particular, on Python 3 add ``long`` as an alias for ``int`` so that
+    tests that use the ``long`` built-in (of which there are many) still pass.
+    We do this so that the test suite can run on Python 3 while Python 2 is
+    still the default.
+    """
+
     def __init__(self, source):
         """
         Initialization.
@@ -2331,6 +2371,10 @@ class DocTestTask(object):
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.
         dict_all.pop('__package__', None)
+
+        # Add any other special globals for testing purposes only
+        dict_all.update(self.extra_globals)
+
         sage_namespace = RecordingDict(dict_all)
         sage_namespace['__name__'] = '__main__'
         doctests, extras = self.source.create_doctests(sage_namespace)

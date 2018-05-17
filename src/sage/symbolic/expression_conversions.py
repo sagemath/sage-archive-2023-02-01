@@ -956,13 +956,28 @@ class AlgebraicConverter(Converter):
             sage: a.composition(exp(pi*I*RR(1), hold=True), exp)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            TypeError: unable to convert e^(1.00000000000000*I*pi) to Algebraic Field
             sage: a.composition(exp(pi*CC.gen(), hold=True), exp)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion from Real Field with 53 bits of precision to Rational Field
+            TypeError: unable to convert e^(1.00000000000000*I*pi) to Algebraic Field
             sage: bool(sin(pi*RR("0.7000000000000002")) > 0)
             True
+
+        Check that :trac:`24440` is fixed::
+
+            sage: QQbar(tanh(pi + 0.1))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
+            sage: QQbar(sin(I*pi/7))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
+            sage: QQbar(sin(I*pi/7, hold=True))
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to represent as an algebraic number
         """
         func = operator
         operand, = ex.operands()
@@ -971,11 +986,16 @@ class AlgebraicConverter(Converter):
         # Note that comparing functions themselves goes via maxima, and is SLOW
         func_name = repr(func)
         if func_name == 'exp':
-            if operand.real():
+            if operand.is_trivial_zero():
+                return self.field(1)
+            if not (SR(-1).sqrt()*operand).is_real():
                 raise ValueError("unable to represent as an algebraic number")
             # Coerce (not convert, see #22571) arg to a rational
             arg = operand.imag()/(2*ex.parent().pi())
-            rat_arg = QQ.coerce(arg.pyobject())
+            try:
+                rat_arg = QQ.coerce(arg.pyobject())
+            except TypeError:
+                raise TypeError("unable to convert %r to %s"%(ex, self.field))
             res = QQbar.zeta(rat_arg.denom())**rat_arg.numer()
         elif func_name in ['sin', 'cos', 'tan']:
             exp_ia = exp(SR(-1).sqrt()*operand)._algebraic_(QQbar)
@@ -986,6 +1006,8 @@ class AlgebraicConverter(Converter):
             else:
                 res = -QQbar.zeta(4)*(exp_ia - ~exp_ia)/(exp_ia + ~exp_ia)
         elif func_name in ['sinh', 'cosh', 'tanh']:
+            if not (SR(-1).sqrt()*operand).is_real():
+                raise ValueError("unable to represent as an algebraic number")
             exp_a = exp(operand)._algebraic_(QQbar)
             if func_name == 'sinh':
                 res = (exp_a - ~exp_a)/2

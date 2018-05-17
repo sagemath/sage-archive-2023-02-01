@@ -57,9 +57,10 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
 
+from sage.structure.richcmp import richcmp_method, rich_to_bool
 from sage.structure.sage_object import SageObject
 
 from copy import copy
@@ -164,7 +165,7 @@ class ReducedPermutation(SageObject) :
             sage: len(p)
             3
         """
-        return (len(self._twin[0]) + len(self._twin[1])) / 2
+        return (len(self._twin[0]) + len(self._twin[1])) // 2
 
     def length_top(self):
         r"""
@@ -480,6 +481,7 @@ def ReducedPermutationsIET_iterator(
         ReducedPermutationsIET_iterator(nintervals, False, alphabet))
 
 
+@richcmp_method
 class ReducedPermutationIET(ReducedPermutation, PermutationIET):
     """
     Reduced permutation from iet
@@ -598,7 +600,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             self._hash = hash(tuple(self._twin[0]))
         return self._hash
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Defines a natural lexicographic order.
 
@@ -633,12 +635,12 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             True
         """
         if type(self) is not type(other):
-            raise ValueError("Permutations must be of the same type")
+            return NotImplemented
 
         if len(self) > len(other):
-            return 1
+            return rich_to_bool(op, 1)
         elif len(self) < len(other):
-            return -1
+            return rich_to_bool(op, -1)
 
         n = len(self)
         j = 0
@@ -646,10 +648,12 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             j += 1
 
         if j != n:
-            if self._twin[1][j] > other._twin[1][j]: return 1
-            else: return -1
+            if self._twin[1][j] > other._twin[1][j]:
+                return rich_to_bool(op, 1)
+            else:
+                return rich_to_bool(op, -1)
 
-        return 0
+        return rich_to_bool(op, 0)
 
     def _reversed(self):
         r"""
@@ -1380,6 +1384,8 @@ class FlippedReducedPermutation(ReducedPermutation):
         super(FlippedReducedPermutation, self)._inversed()
         self._flips.reverse()
 
+
+@richcmp_method
 class FlippedReducedPermutationIET(
     FlippedReducedPermutation,
     FlippedPermutationIET,
@@ -1402,7 +1408,7 @@ class FlippedReducedPermutationIET(
         sage: p == loads(dumps(p))
         True
     """
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Defines a natural lexicographic order.
 
@@ -1458,12 +1464,12 @@ class FlippedReducedPermutationIET(
             True
         """
         if type(self) is not type(other):
-            return -1
+            return NotImplemented
 
         if len(self) > len(other):
-            return 1
+            return rich_to_bool(op, 1)
         elif len(self) < len(other):
-            return -1
+            return rich_to_bool(op, -1)
 
         n = len(self)
         j = 0
@@ -1473,11 +1479,14 @@ class FlippedReducedPermutationIET(
             j += 1
 
         if j != n:
-            if self._twin[1][j] > other._twin[1][j]: return 1
-            elif self._twin[1][j] < other._twin[1][j]: return -1
-            else: return self._flips[1][j]
+            if self._twin[1][j] > other._twin[1][j]:
+                return rich_to_bool(op, 1)
+            elif self._twin[1][j] < other._twin[1][j]:
+                return rich_to_bool(op, -1)
+            else:
+                return rich_to_bool(op, self._flips[1][j])
 
-        return 0
+        return rich_to_bool(op, 0)
 
     def list(self, flips=False):
         r"""

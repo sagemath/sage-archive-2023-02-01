@@ -1461,7 +1461,7 @@ cdef class Expression(CommutativeRingElement):
             sage: AA(-golden_ratio)
             -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            1 + 1*I
+            I + 1
             sage: QQbar(e^(pi*I/3))
             0.50000000000000000? + 0.866025403784439?*I
 
@@ -3902,11 +3902,11 @@ cdef class Expression(CommutativeRingElement):
             sage: I^(1/2)
             sqrt(I)
             sage: I^(2/3)
-            I^(2/3)
+            -1
             sage: 2^(1/2)
             sqrt(2)
             sage: (2*I)^(1/2)
-            sqrt(2*I)
+            I + 1
 
         Test if we can take powers of elements of `\QQ(i)` (:trac:`8659`)::
 

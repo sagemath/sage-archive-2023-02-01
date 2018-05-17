@@ -769,7 +769,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         marked = set()
         f = Queue()
 
-        for v in self.atlas():
+        for v in self.top_charts():
             if v not in marked:
                 f.put(v)
                 calc_normal(v)  # initial calculus
@@ -793,7 +793,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                         # case coordinates change
                         if (v, vp) in self.coord_changes() and vp not in marked:
                             f.put(vp)
-                            calc_by_coord_change(v, vp)
+                            #calc_by_coord_change(v, vp)
                             marked.add(vp)
         return self._normal
 
@@ -844,12 +844,15 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._ambient_first_fundamental_form is not None and not recache:
             return self._ambient_first_fundamental_form
-        self.ambient_metric(recache)
+        g = self.ambient_metric(recache)
         self.normal(recache)
-        self._ambient_first_fundamental_form = \
-            self.ambient_metric() - self._sgn\
-            * self.ambient_metric().contract(self.normal())\
-            * self.ambient_metric().contract(self.normal())
+
+        if self._dim_foliation == 0:  # case no foliation
+            g = g.along(self._immersion)
+
+        self._ambient_first_fundamental_form = g - self._sgn * g.contract(
+            self.normal()) * g.contract(self.normal())
+
         self._ambient_first_fundamental_form.set_name("gamma", r"\gamma")
         return self._ambient_first_fundamental_form
 
@@ -1011,12 +1014,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         nab = self.ambient_metric().connection('nabla', r'\nabla')
         self.normal(recache)
         if self._dim_foliation == 0:
-            # g = self.ambient_metric(recache).along(self._immersion)
-            # self._ambient_second_fundamental_form =
-            # -g.contract(nab(self.normal())) -
-            # nab(self.normal()).contract(self.normal()).contract(g) *
-            # self.normal().contract(g)
-            pass
+            self._ambient_second_fundamental_form = \
+                           self.tensor_field(0, 2, sym = [(0, 1)], antisym = [],
+                                             dest_map = self._immersion)
+            k = self.second_fundamental_form(recache)
+            g = self.ambient_metric(recache)
+            gam_rst = {}
+            max_frame = self._ambient.default_frame().along(self._immersion)
+            for chart in self.top_charts():
+                gam_rst[chart] = k.restrict(chart.domain)
+                pf = [self._immersion.pushforward(chart.frame()[k]) for k in
+                      self.irange()]
+                gam_rst[chart] = sum(pf[i].down(g) * pf[j].down(g) * k[
+                    chart.frame(), i, j, chart] for i in self.irange() for j in
+                                     self.irange())
+                self._ambient_second_fundamental_form.add_comp_by_continuation(
+                    max_frame, chart.domain(), chart)
         else:
             self._ambient_second_fundamental_form = \
                 -self.ambient_metric().contract(nab(self.normal())) \

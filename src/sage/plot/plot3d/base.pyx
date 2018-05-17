@@ -36,9 +36,11 @@ from cpython.list cimport *
 from cpython.object cimport PyObject
 
 import os
+import sys
+import zipfile
+
 from functools import reduce
 from random import randint
-import zipfile
 from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
@@ -264,11 +266,11 @@ cdef class Graphics3d(SageObject):
             # Java needs absolute paths
             # On cygwin, they should be native ones
             scene_native = scene_zip
-            import sys
+
             if sys.platform == 'cygwin':
-                from subprocess import check_output, STDOUT
-                scene_native = check_output(['cygpath', '-w', scene_native],
-                                            stderr=STDOUT).rstrip()
+                import cygwin
+                scene_native = cygwin.cygpath(scene_native, 'w')
+
             script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",

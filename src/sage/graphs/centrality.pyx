@@ -823,9 +823,9 @@ def centrality_closeness_random_k(G, int k=1):
 
     INPUT:
 
-    - `G` -- a undirected Graph
+    - ``G`` -- a undirected Graph
 
-    - `k` (integer, default: 1) -- The number of random nodes need to be choosen
+    - ``k`` (integer, default: 1) -- The number of random nodes need to be choosen
 
     OUTPUT:
 

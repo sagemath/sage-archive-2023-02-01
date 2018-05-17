@@ -284,7 +284,6 @@ from six.moves import range
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
-from sage.misc.mrange import xmrange
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.superseded import deprecated_function_alias
 
@@ -1404,7 +1403,6 @@ class TilingSolver(SageObject):
         if self._reusable:
             return len(self.rows()) != 0
         else:
-            from sage.misc.misc_c import prod
             return (sum(len(p) for p in self.pieces()) == len(self._box)
                     and len(self.rows()) != 0)
 

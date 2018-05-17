@@ -957,6 +957,19 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
 
+    def _symbolic_(self, sring):
+        """
+        Return this rational as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(QQ(7)/3); ex
+            7/3
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
+
     def _sympy_(self):
         """
         Convert Sage ``Rational`` to SymPy ``Rational``.

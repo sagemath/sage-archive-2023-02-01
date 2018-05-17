@@ -856,3 +856,59 @@ def q_stirling_number1(n, k, q=None):
         return A.zero()
     return (q_stirling_number1(n - 1, k - 1, q=q) +
             q_int(n - 1) * q_stirling_number1(n - 1, k, q=q))
+
+@cached_function
+def q_stirling_number2(n, k, q=None):
+    r"""
+    Return the (unsigned) `q`-Stirling number of the second kind.
+
+    This is a `q`-analogue of :func:`sage.combinat.combinat.stirling_number2`.
+
+    INPUT:
+
+    - ``n``, ``k`` -- integers with ``1 <= k <= n``
+
+    - ``q`` -- optional variable (default `q`)
+
+    OUTPUT: a polynomial in the variable `q`
+
+    These polynomials satisfy the recurrence
+
+    .. MATH::
+
+         S_{n,k} = q^{k-1} S_{n-1,k-1} + [k]_q s_{n-1, k}.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.q_analogues import q_stirling_number2
+        sage: q_stirling_number2(4,2)
+        q^3 + 3*q^2 + 3*q
+
+        sage: all(stirling_number2(6,k) == q_stirling_number2(6,k)(1)
+        ....:     for k in range(7))
+        True
+
+
+    TESTS::
+
+        sage: q_stirling_number2(-1,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q-Stirling numbers are not defined for n < 0
+
+    REFERENCES:
+
+    - [Mil1978]_
+
+    """
+    if q is None:
+        q = ZZ['q'].gen()
+    A = q.parent()
+    if n < 0:
+        raise ValueError('q-Stirling numbers are not defined for n < 0')
+    if n == 0 == k:
+        return A.one()
+    if k > n or k < 0:
+        return A.zero()
+    return (q**(k-1)*q_stirling_number2(n - 1, k - 1, q=q) +
+            q_int(k) * q_stirling_number2(n - 1, k, q=q))

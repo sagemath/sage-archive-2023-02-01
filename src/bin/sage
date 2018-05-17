@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 help_banner() {
-    sage_banner | grep -v 'Type'
+    cat "$SAGE_ROOT/VERSION.txt"
     echo
 }
 
@@ -102,6 +102,7 @@ usage_advanced() {
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
     echo "                         Sage), passing additional options to IPython"
+    echo "  -ipython3 [...]     -- same as above, but using Python 3"
     echo "  -kash [...]         -- run Sage's Kash with given arguments"
     command -v kash &>/dev/null || \
     echo "                         (not installed currently, run sage -i kash)"
@@ -351,14 +352,14 @@ if [ "$1" = '-i' ]; then
     # (which is a dependency of every package)
     $MAKE all-toolchain
 
+    ALL_TARGETS="$($MAKE list 2>/dev/null)"
+
     # Now install the packages
     for PKG in $PACKAGES; do
         echo
         # First check that $PKG is actually a Makefile target
-        # Since https://trac.sagemath.org/ticket/21524 there is not explicitly
-        # a target for the package, but if it has a vers_<pkgname> variable
-        # there will also be a generated rule for it
-        if ! grep "^vers_$PKG = " build/make/Makefile >/dev/null; then
+        # See https://trac.sagemath.org/ticket/25078
+        if ! echo "$ALL_TARGETS" | grep "^${PKG}$" >/dev/null; then
             echo >&2 "Error: package '$PKG' not found"
             echo >&2 "Note: if it is an old-style package, use -p instead of -i to install it"
             exit 1
@@ -404,9 +405,6 @@ sage_setup() {
         echo >&2 '************************************************************************'
         exit 1
     fi
-
-    # Display the startup banner (unless SAGE_BANNER is explicitly "no")
-    sage_banner
 
     maybe_sage_location
 
@@ -601,6 +599,11 @@ fi
 if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     shift
     exec ipython "$@"
+fi
+
+if [ "$1" = '-ipython3' -o "$1" = '--ipython3' ]; then
+    shift
+    exec ipython3 "$@"
 fi
 
 if [ "$1" = '-git' -o "$1" = '--git' ]; then
@@ -833,7 +836,7 @@ if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then
     if [ "$1" = '-bt' -o "$1" = '-btp' ]; then
         build_sage
     fi
-    SAGE_BANNER=no sage_setup
+    sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     if [ "$1" = '-tp' -o "$1" = '-btp' ]; then
         shift
@@ -849,21 +852,21 @@ if [ "$1" = '-tnew' -o "$1" = '-btnew' ]; then
         build_sage
     fi
     shift
-    SAGE_BANNER=no sage_setup
+    sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests --new "$@"
 fi
 
 if [ "$1" = '-testall' -o "$1" = "--testall" ]; then
     shift
-    SAGE_BANNER=no sage_setup
+    sage_setup
     export PYTHONIOENCODING="utf-8"  # Fix encoding for doctests
     exec sage-runtests -a "$@"
 fi
 
 if [ "$1" = '-c' ]; then
     shift
-    SAGE_BANNER=no sage_setup
+    sage_setup
     unset TERM  # See Trac #12263
     exec sage-eval "$@"
 fi
@@ -930,7 +933,7 @@ fi
 
 if [ "$1" = '-installed' -o "$1" = "--installed" ]; then
     shift
-    exec sage-list-packages installed $@
+    exec sage-list-packages all --installed-only $@
 fi
 
 if [ "$1" = '-p' ]; then
@@ -988,9 +991,8 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
         gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
-        # Location of cython_debug directory
-        cygdb_dir="$SAGE_SRC/build/cythonized"
-        cygdb "$cygdb_dir" "$SAGE_SRC/sage" \
+        sage_dir=$(sage-python23 -c 'import os, sage; print(os.path.dirname(sage.__file__))')
+        cygdb "$sage_dir" "$SAGE_SRC/sage" \
             -- -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
             -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi
@@ -1051,7 +1053,7 @@ if [ $# -ge 1 ]; then
     if [ "$T" = "spkg" ]; then
         install "$@"
     fi
-    SAGE_BANNER=no sage_setup
+    sage_setup
     unset TERM  # See Trac #12263
     exec sage-run "$@"
 fi

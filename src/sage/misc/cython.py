@@ -626,7 +626,6 @@ def cython(filename, verbose=0, compile_message=False,
                     cython_messages = "Error compiling Cython file"
     except CompileError:
         # Check for names in old_pxi_names
-        note = ''
         for pxd, names in old_pxi_names.items():
             for name in names:
                 if re.search(r"\b{}\b".format(name), cython_messages):
@@ -661,7 +660,12 @@ def cython(filename, verbose=0, compile_message=False,
         # Capture errors from distutils and its child processes
         with open(os.path.join(target_dir, name + ".err"), 'w+') as errfile:
             try:
-                with redirection(sys.stderr, errfile, close=False):
+                # Redirect stderr to errfile.  We use the file descriptor
+                # number "2" instead of "sys.stderr" because we really
+                # want to redirect the messages from GCC. These are sent
+                # to the actual stderr, regardless of what sys.stderr is.
+                sys.stderr.flush()
+                with redirection(2, errfile, close=False):
                     dist.run_command("build")
             finally:
                 errfile.seek(0)

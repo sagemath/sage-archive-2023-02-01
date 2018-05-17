@@ -249,7 +249,7 @@ class CoxeterGroups(Category_singleton):
                 sage: W(s1*s2)
                 Traceback (most recent call last):
                 ...
-                ValueError: ...
+                ValueError: inconsistent number of rows: should be 1 but got 3
             """
             P = parent(x)
             if P in CoxeterGroups():

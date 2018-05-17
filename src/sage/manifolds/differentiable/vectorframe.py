@@ -1092,9 +1092,39 @@ class VectorFrame(FreeModuleBasis):
             if not subdomain.is_subset(self._domain):
                 raise ValueError("the provided domain is not a subdomain of " +
                                  "the current frame's domain")
+            # First one tries to get the restriction from a tighter domain:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    res._superframes.update(self._superframes)
+                    for sframe2 in self._superframes:
+                        sframe2._subframes.add(res)
+                    return self._restrictions[subdomain]
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom):
+                    self._restrictions[subdomain] = rst.restrict(subdomain)
+                    return self._restrictions[subdomain]
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for sframe in self._superframes:
+                if subdomain in sframe._restrictions:
+                    res = sframe._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    res._superframes.update(self._superframes)
+                    for sframe2 in self._superframes:
+                        sframe2._subframes.add(res)
+                    return self._restrictions[subdomain]
+            # If this point is reached, the restriction has to be created
+            # from scratch
             sdest_map = self._dest_map.restrict(subdomain)
-            res = VectorFrame(subdomain.vector_field_module(sdest_map,
-                                                            force_free=True),
+            resmodule = subdomain.vector_field_module(sdest_map,
+                                                      force_free=True)
+            if subdomain in self._restrictions:
+                # the restriction has been generated during the creation of
+                # resmodule (which may happen if sdest_map is not trivial)
+                return self._restrictions[subdomain]
+            res = VectorFrame(resmodule,
                               self._symbol, latex_symbol=self._latex_symbol,
                               indices=self._indices,
                               latex_indices=self._latex_indices,

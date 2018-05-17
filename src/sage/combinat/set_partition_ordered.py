@@ -290,7 +290,7 @@ class OrderedSetPartition(ClonableArray):
     @combinatorial_map(name='to packed word')
     def to_packed_word(self):
         r"""
-        Return the packed word on alphabet `\{1,2,3,\ldots}`
+        Return the packed word on alphabet `\{1,2,3,\ldots\}`
         corresponding to ``self``.
 
         A *packed word* on alphabet `\{1,2,3,\ldots\}` is any word whose

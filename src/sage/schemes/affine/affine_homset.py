@@ -119,7 +119,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         Set of rational points of Affine Space of dimension 2 over Rational Field
     """
 
-    def points(self, B=0):
+    def points(self, B=0, tolerance=0.9):
         r"""
         Return some or all rational points of an affine scheme.
 
@@ -182,9 +182,12 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: E(A.base_ring()).points()
             [(0.0, 0.0)]
         """
-        X = self.codomain()
         from sage.schemes.affine.affine_space import is_AffineSpace
-        from sage.rings.all import CC, CDF
+        from sage.rings.all import CC, CDF, RR
+        X = self.codomain()
+        tolerance_RR = RR(tolerance)
+        if tolerance_RR.sign() != 1:
+            raise ValueError("Tolerance must be positive")        
         if not is_AffineSpace(X) and X.base_ring() in Fields():
             if X.base_ring() == CC or X.base_ring() == CDF:
                 complex = True
@@ -260,6 +263,19 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                                 S = X([points[i][R.gen(j)] for j in range(N)])
                                 #S.normalize_coordinates()
                                 rat_points.append(S)
+                
+                # remove duplicate element using tolerance
+                if complex:
+                    tol = (X.base_ring().precision()*tolerance_RR).floor()
+                    dupl_points = list(rat_points)
+                    for i in range(len(dupl_points)):
+                        u = dupl_points[i]
+                        for j in range(i+1, len(dupl_points)):
+                            v = dupl_points[j]
+                            if all([(u[k]-v[k]).abs() < 2**(-tol) for k in range(len(u))]):
+                                rat_points.remove(u)
+                                break 
+
                 rat_points = sorted(rat_points)
                 return rat_points
         R = self.value_ring()

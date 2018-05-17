@@ -1659,7 +1659,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
-    def rational_points(self, bound=0, F=None):
+    def rational_points(self, bound=0, F=None, tolerance=0.9):
         """
         Return the rational points on the algebraic subscheme.
 
@@ -1715,7 +1715,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
             try:
-                return X.points(bound) # checks for proper bound done in points functions
+                return X.points(B=bound, tolerance=tolerance) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
         try:

@@ -106,6 +106,10 @@ REFERENCES:
              *MacMahon's partition analysis: the Omega package*,
              European J. Combin. 22 (2001), no. 7, 887--904.
 
+.. [Ariki1996] Susumu Ariki.
+               *On the decomposition numbers of the Hecke algebra of*
+               `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996). pp 789--808.
+
 .. [Ar2006] \D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
 
@@ -920,6 +924,10 @@ REFERENCES:
 
 **F**
 
+.. [Fayers2010] Matthew Fayers. *An LLT-type algorithm for computing
+                higher-level canonical bases*. J. Pure Appl. Algebra
+                **214** (2010), no. 12, 2186-2198. :arxiv:`0908.1749v3`.
+
 .. [Fedorov2015] Roman Fedorov, *Variations of Hodge structures for hypergeometric
    differential operators and parabolic Higgs bundles*,
    :arxiv:`1505.01704`
@@ -1167,6 +1175,11 @@ REFERENCES:
 
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
+.. [GW1999] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum
+            affine algebras and affine Kazhdan-Lusztig polyonmials*.
+            Int. Math. Res. Notices **5** (1999), 251-275.
+            :arxiv:`math/9807014v1`.
+
 .. [GW2014] \G. Gratzer and F. Wehrung,
             Lattice Theory: Special Topics and Applications Vol. 1,
             Springer, 2014.
@@ -1340,6 +1353,9 @@ REFERENCES:
             *Kashiwara and Zelevinsky involutions in affine type A*.
             Pac. J. Math. 243(2):287-311 (2009).
 
+.. [JL2016] \M. Jones and L. Lapointe. *Pieri rules for Schur
+            functions in superspace*. Preprint, :arXiv:`1608.08577`
+
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).
 
@@ -1400,6 +1416,10 @@ REFERENCES:
 .. [Kaw2009] Kawahira, Tomoki. *An algorithm to draw external rays of the
              Mandelbrot set*, Nagoya University, 23 Apr. 2009.
              math.titech.ac.jp/~kawahira/programs/mandel-exray.pdf
+
+.. [Kir2016] \M. Kirschmer, *Definite quadratic and hermitian forms with small
+             class number*, Habilitationsschrift, RWTH Aachen University, 2016.
+             http://www.math.rwth-aachen.de/~Markus.Kirschmer/papers/herm.pdf
 
 .. [KB1983] \W. Kühnel and T. F. Banchoff, "The 9-vertex complex
             projective plane", Math. Intelligencer 5 (1983), no. 3,
@@ -1647,6 +1667,11 @@ REFERENCES:
              Algebra 207 (2006), no 1, pages 1-18.
              Preprint: :arxiv:`math/0504296v2`.
 
+.. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
+             *Hecke algebras at roots of unity and crystal bases of
+             quantum affine algebras*. Commun. Math. Phys.
+             **181** (1996), pp 205-263.
+
 .. [LLYCL2005] \H. J. Lee, S. J. Lee, J. H. Yoon, D. H. Cheon, and J. I. Lee,
                *The SEED Encryption Algorithm*; in
                RFC 4269, (2005).
@@ -1832,6 +1857,11 @@ REFERENCES:
 
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
+
+.. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
+             Dobinsky’s equality and Charlier
+             polynomials*. Trans. Amer. Math. Soc., 245 (1978),
+             89-118.
 
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
@@ -2202,6 +2232,11 @@ REFERENCES:
 
 .. [Sch2006] Oliver Schiffmann. *Lectures on Hall algebras*,
              preprint, 2006. :arxiv:`0611617v2`.
+
+.. [Sch2013] Schmidt, Jens M
+             "A Simple Test on 2-Vertex- and 2-Edge-Connectivity",
+             Information Processing Letters, 113 (7): 241–244
+             :doi:`10.2307/2303897`              
 
 .. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
              Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`

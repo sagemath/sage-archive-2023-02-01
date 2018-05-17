@@ -1432,8 +1432,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if isinstance(x, integer_types + (integer.Integer,)):
             return self.list()[x]
-        return Rings.ParentMethods.__getitem__.__func__(self, x)
-
+        return super(MatrixSpace, self).__getitem__(x)
 
     def basis(self):
         """

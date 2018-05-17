@@ -2978,7 +2978,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         """
         K = self.base_ring()
         R = PolynomialRing(K, 'x')
-        x = R.gen(0)
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 

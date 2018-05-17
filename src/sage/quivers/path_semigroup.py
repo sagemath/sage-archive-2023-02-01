@@ -407,8 +407,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.arrows()
             (a, b, c, d)
         """
-        Q = self._quiver
-        return tuple(self.element_class(self, e[0],e[1], [i]) for i,e in enumerate(self._sorted_edges))
+        return tuple(self.element_class(self, e[0], e[1], [i])
+                     for i, e in enumerate(self._sorted_edges))
 
     @cached_method
     def idempotents(self):

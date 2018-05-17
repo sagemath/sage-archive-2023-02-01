@@ -143,6 +143,7 @@ from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
+from .superpartition import SuperPartition, SuperPartitions
 
 from .root_system.all import *
 from .sf.all import *

@@ -1039,11 +1039,6 @@ class TableauTuple(CombinatorialElement):
               ([[1, 2]], [[3], [4]])]
 
         """
-        #Get a list of all places where we can add a cell
-        #to the shape of self
-
-        addable_cells = self.shape().addable_cells()
-
         if n is None:
             n = self.size()
 

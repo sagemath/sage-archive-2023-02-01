@@ -183,7 +183,7 @@ class Scheme(Parent):
         """
         Extend the base of the scheme.
 
-        Derived clases must override this method.
+        Derived classes must override this method.
 
         EXAMPLES::
 

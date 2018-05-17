@@ -1560,6 +1560,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         cdef dict d = self.dict(copy=False)
         yield from d.iteritems()
 
+    items = iteritems
+
     def __abs__(self):
         """
         Return the square root of the sum of the squares of the entries of
@@ -4741,6 +4743,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             [(0, 1), (1, 2/3), (2, pi)]
         """
         return self._entries.iteritems()
+
+    items = iteritems
 
     def __reduce__(self):
         """

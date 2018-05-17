@@ -568,7 +568,7 @@ class options(object):
         #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
         def argspec():
             argspec = sage_getargspec(func)
-            args = (argspec.args if not argspec.args is None else []) + self.options.keys()
+            args = (argspec.args if not argspec.args is None else []) + list(self.options.keys())
             defaults = tuple(argspec.defaults if not argspec.defaults is None else ()) + tuple(self.options.values())
             #Note: argspec.defaults is not always a tuple for some reason
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)

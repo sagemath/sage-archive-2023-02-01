@@ -15,6 +15,7 @@
 #include <boost/graph/biconnected_components.hpp>
 #include <boost/graph/properties.hpp>
 
+#include <map>
 #include <iostream>
 
 typedef int v_index;
@@ -71,7 +72,13 @@ private:
     typedef typename boost::graph_traits<adjacency_list>::edge_descriptor edge_descriptor;
     typedef typename std::vector<edge_descriptor> edge_container;
     typedef typename boost::property_map<adjacency_list, boost::vertex_index_t>::type vertex_to_int_map;
-    typedef typename boost::property_map<adjacency_list, boost::edge_index_t>::type edge_map_t; // This is the error
+
+    // This struct is used for biconnected_components function
+    struct order_edges {
+        bool operator()(const edge_descriptor& x, const edge_descriptor& y) const { return x.get_property() < y.get_property(); }
+    };
+    // This map is a parameter/output for biconnected_components function
+    typedef typename std::map<edge_descriptor, int, order_edges> edge_map;
 
 public:
     adjacency_list graph;
@@ -193,30 +200,28 @@ public:
     }
 
     // This function returns the blocks and cut vertices tree.
-    std::vector<v_index> bc_tree() {
-        edge_map_t components_bc = get(boost::edge_index, graph);
-
-        std::size_t num_comps = biconnected_components(graph, components_bc);
-        std::cerr << "Found " << num_comps << " biconnected components.\n";
-
+    std::vector<std::vector<v_index>> blocks_and_cut_vertices() {
+        edge_map bicmp_map;
+        boost::associative_property_map<edge_map> bimap(bicmp_map);
         std::vector<vertex_descriptor> art_points;
+        std::size_t num_comps = biconnected_components(graph, bimap);
         articulation_points(graph, std::back_inserter(art_points));
-        std::cerr << "Found " << art_points.size() << " articulation points.\n";
+
+        // std::cout << "num of conn comp " << num_comps << std::endl;
+        std::vector<std::vector<v_index>> to_return(num_comps+1, std::vector<v_index>(0));
+        // std::cout << "num of art points " << art_points.size() << std::endl;
 
         for (std::size_t i = 0; i < art_points.size(); ++i) {
-            std::cout << (char)(art_points[i] + 'A')
-                      << std::endl;
+            to_return[num_comps].push_back(index[art_points[i]]);
         }
 
-        typename boost::graph_traits < adjacency_list >::edge_iterator ei, ei_end;
-        for (boost::tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei)
-            std::cout << (char)(source(*ei, graph) + 'A') << " -- "
-                      << (char)(target(*ei, graph) + 'A')
-                      << "[label=\"" << components_bc[*ei] << "\"]\n";
-        std::cout << "}\n";
-        std::vector<v_index> to_return;
-        return to_return;
+        typename boost::graph_traits<adjacency_list>::edge_iterator ei, ei_end;
+        for (boost::tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei) {
+            to_return[bimap[*ei]].push_back(index[source(*ei, graph)]);
+            to_return[bimap[*ei]].push_back(index[target(*ei, graph)]);
+        }
 
+        return to_return;
     }
 
     result_distances dijkstra_shortest_paths(v_index s) {

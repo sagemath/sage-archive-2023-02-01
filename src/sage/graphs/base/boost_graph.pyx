@@ -31,6 +31,7 @@ with ``delete()``.
     :func:`shortest_paths` | Uses Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
     :func:`johnson_shortest_paths` | Uses Johnson algorithm to compute the all-pairs shortest paths.
     :func:`johnson_closeness_centrality` | Uses Johnson algorithm to compute the closeness centrality of all vertices.
+    :func:`blocks_and_cut_vertices` | Uses Tarjan's algorithm to compute the blocks and cut vertices of the graph.
 
 Functions
 ---------
@@ -672,23 +673,83 @@ cpdef min_spanning_tree(g,
         return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
 
 
-cpdef bc_tree(g):
-    from sage.graphs.graph import Graph
+cpdef blocks_and_cut_vertices(g):
+    r"""
+    Uses Boost to compute the blocks and cut vertices of the input graph.
 
-    if not isinstance(g, Graph):
-        raise TypeError("the input must be a Sage Graph")
+    INPUT:
+
+    - ``g`` (``Graph``) - the input graph.
+
+    OUTPUT:
+
+    A 2-dimensional vector with m rows (m is the number of biconnected
+    components), where each of the first m-1 rows correspond to vertices in a
+    block, and the last row is the list of cut vertices.
+
+    .. SEEALSO::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import blocks_and_cut_vertices
+        sage: g = graphs.KrackhardtKiteGraph()
+        sage: blocks_and_cut_vertices(g)
+        ([[8, 9], [8, 7], [0, 1, 2, 3, 4, 5, 6, 7]], [8, 7])
+
+        sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
+        sage: blocks_and_cut_vertices(G)
+        ([[0, 1, 2]], [])
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: blocks_and_cut_vertices("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be a Sage Graph
+    """
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
 
     if g.allows_loops() or g.allows_multiple_edges():
         g = g.to_simple()
 
     cdef BoostVecGraph g_boost
+    cdef vector[vector[v_index]] result
+    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
+    cdef list int_to_vertex = g.vertices()
 
     boost_graph_from_sage_graph(&g_boost, g)
     sig_on()
-    result = g_boost.bc_tree()
+    result = g_boost.blocks_and_cut_vertices()
     sig_off()
-    return result
 
+    result_blocks = []
+
+    # If the graph consists of only isolated vertices
+    if (len(result[0]) == 0):
+        for v in g.vertices():
+            result_blocks.append([v])
+        return tuple([result_blocks, []])
+
+    for i in range(len(result)-1):
+        result[i] = list(set(result[i]))
+        result_temp = []
+        for j in range(len(result[i])):
+            result_temp.append(int_to_vertex[<int> result[i][j] ])
+        result_blocks.append(result_temp)
+
+    result_cut = []
+    for i in range(len(result[len(result)-1])):
+        result_cut.append(int_to_vertex[<int> result[len(result)-1][i] ])
+
+    result_tup = [result_blocks, result_cut]
+    return tuple(result_tup)
 
 
 cpdef shortest_paths(g, start, weight_function=None, algorithm=None):

@@ -667,7 +667,7 @@ REFERENCES:
 .. [CMT2003] \A. M. Cohen, S. H. Murray, D. E. Talyor.
              *Computing in groups of Lie type*.
              Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
-             http://www.win.tue.nl/~amc/pub/papers/cmt.pdf
+             https://www.win.tue.nl/~amc/pub/papers/cmt.pdf
 
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,

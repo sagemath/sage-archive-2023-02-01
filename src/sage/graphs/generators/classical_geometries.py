@@ -34,7 +34,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     made adjacent if `f(u,v)=0`.
 
     See the page `on symplectic graphs on Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
 
     INPUT:
 
@@ -124,7 +124,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
     For more information on Affine Polar graphs, see `Affine Polar
     Graphs page of Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/VO.html>`_.
 
     INPUT:
 
@@ -153,7 +153,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         True
 
     Some examples from `Brouwer's table or strongly regular graphs
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
 
         sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"-"); g
         Affine Polar Graph VO^-(6,2): Graph on 64 vertices
@@ -209,7 +209,7 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     A helper function to build ``OrthogonalPolarGraph`` and ``NO2,3,5`` graphs.
 
     See the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -330,7 +330,7 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
 
     For more information on Orthogonal Polar graphs, see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -401,7 +401,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
       Note that for `q=2` one will get a complete graph.
 
     For more information, see Sect. 9.9 of [BH12]_ and [BvL84]_. Note that the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_
     uses different notation.
 
     INPUT:
@@ -592,7 +592,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
     Returns the Unitary Polar Graph `U(m,q)`.
 
     For more information on Unitary Polar graphs, see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 

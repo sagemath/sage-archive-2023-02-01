@@ -418,7 +418,10 @@ class TensorField(ModuleElement):
             self._latex_name = latex_name
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
-        self._restrictions = {} # dict. of restrictions of self on subdomains
+
+        self._extensions = {self._domain: self}
+        self._restrictions = {self._domain: self}
+                                # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
         self._sym = []
@@ -947,19 +950,42 @@ class TensorField(ModuleElement):
                                  "the {}".format(self))
             # First one tries to get the restriction from a tighter domain:
             for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    res._extensions.update(self._extensions)
+                    for ext in self._extensions.values():
+                        ext._restrictions[subdomain] = res
+                    return self._restrictions[subdomain]
+
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and dom is not self._domain:
                     self._restrictions[subdomain] = rst.restrict(subdomain)
-                    break
+                    return self._restrictions[subdomain]
+
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for dom, ext in self._extensions.items():
+                if subdomain in ext._restrictions:
+                    res = ext._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    res._extensions.update(self._extensions)
+                    for ext in self._extensions.values():
+                        ext._restrictions[subdomain] = res
+                    return self._restrictions[subdomain]
+
             # If this fails, the restriction is created from scratch:
-            else:
-                smodule = subdomain.vector_field_module(dest_map=dest_map)
-                self._restrictions[subdomain] = smodule.tensor(
-                                                  self._tensor_type,
-                                                  name=self._name,
-                                                  latex_name=self._latex_name,
-                                                  sym=self._sym,
-                                                  antisym=self._antisym,
-                                                  specific_type=type(self))
+            smodule = subdomain.vector_field_module(dest_map=dest_map)
+            res = smodule.tensor(self._tensor_type, name=self._name,
+                                 latex_name=self._latex_name, sym=self._sym,
+                                 antisym=self._antisym,
+                                 specific_type=type(self))
+            res._extensions.update(self._extensions)
+            for dom, ext in self._extensions.items():
+                ext._restrictions[subdomain] = res
+
+            self._restrictions[subdomain] = res
+
         return self._restrictions[subdomain]
 
     def set_comp(self, basis=None):

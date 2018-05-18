@@ -1201,6 +1201,21 @@ class TensorField(ModuleElement):
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
+    def add_expr_by_continuation(self, frame, subdomain):
+        dom = frame._domain
+        if not dom.is_subset(self._domain):
+            raise ValueError("the vector frame is not defined on a subset " +
+                             "of the tensor field domain")
+        if frame not in self.restrict(frame.domain())._components:
+            raise ValueError("the tensor doesn't have an expression in "
+                             "the frame"+frame._repr_())
+        comp = self.comp(frame)
+        scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
+        print(comp)
+        for ind in comp.non_redundant_index_generator():
+            comp[[ind]]._express.update(scomp[[ind]]._express)
+        self._del_derived()
+
     def comp(self, basis=None, from_basis=None):
         r"""
         Return the components in a given vector frame.

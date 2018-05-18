@@ -1724,6 +1724,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             pass
 
         base_ring = self.base_ring()
+
+        if hasattr(base_ring, '_factor_multivariate_polynomial'):
+            return base_ring._factor_multivariate_polynomial(self, proof=proof)
+
         if base_ring.is_finite():
             if base_ring.characteristic() > 1<<29:
                 raise NotImplementedError("Factorization of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")

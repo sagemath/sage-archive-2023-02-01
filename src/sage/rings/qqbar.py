@@ -1576,6 +1576,119 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         from sage.structure.factorization import Factorization
         return Factorization([(f.parent()([-r,1]),e) for r,e in f.roots()], unit=f.leading_coefficient())
 
+    def _factor_multivariate_polynomial(self, f, proof=True):
+        """
+        Factor the multivariate polynomial ``f``.
+
+        INPUT:
+
+        - ``f`` -- a multivariate polynomial defined over the algebraic field
+
+        OUTPUT:
+
+        - A factorization of ``f`` over the algebraic numbers into a unit and
+          monic irreducible factors
+
+        ALGORITHM:
+
+        Uses Singular's `absfact` library.
+
+        TODO:
+
+        Implement absolute factorization over number fields.
+
+        .. NOTE::
+
+            This is a helper method for
+            :meth:`sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict.factor`.
+
+        TESTS::
+
+            sage: R.<x,y>=QQbar[]
+
+            sage: L = QQbar._factor_multivariate_polynomial(x^2+y^2)
+            sage: L
+            ((-1*I)*x - y) * (1*I*x - y)
+            sage: L.value()
+            x^2 + y^2
+
+            sage: p = (-7*x^2 + 2*x*y^2 + 6*x + y^4 + 14*y^2 + 47)*(5*x^2+y^2)^3*(x-y)^4
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (1/21125) * (5*x + (-2.236067977499790?*I)*y)^3 * (5*x + 2.236067977499790?*I*y)^3 * (x - y)^4 * (13*y^2 + (-23.76955262170047?)*x + 72.6152236891498?) * (13*y^2 + 49.76955262170047?*x + 109.3847763108503?)
+            sage: F.value() == p
+            True
+
+            sage: QQbar._factor_multivariate_polynomial(x+QQbar(sqrt(2))*y)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: absolute factorization over number fields
+
+        """
+        from sage.structure.factorization import Factorization
+        from sage.interfaces.singular import singular
+
+        singular.lib('absfact.lib')
+
+        orig_elems = f.coefficients()
+        numfield, new_elems, morphism = number_field_elements_from_algebraics(orig_elems)
+
+        # Singular's absFactorize() doesn't work over number fields
+
+        if numfield is not QQ:
+            raise NotImplementedError("absolute factorization over number fields")
+
+        elem_dict = dict(zip(orig_elems, new_elems))
+
+        def elem_map(e):
+            return elem_dict[e]
+
+        def polynomial_map(p):
+            return p.map_coefficients(elem_map, new_base_ring=numfield)
+
+        R = polynomial_map(f)._singular_().absFactorize()
+
+        singular.setring(R)
+        L = singular('absolute_factors')
+
+        # Singular returns our factors in a multivariate polynomial
+        # ring over a fraction field of a univariate ring, which is
+        # actually a number field, with the minimal polynomial
+        # specified separately.
+
+        def reverse_polynomial_map(p, hom):
+            # 'hom' should map from a NumberField to QQbar
+            NF = hom.domain()
+            # first we map from the univariate fraction field to NF,
+            # then map NF to QQbar
+            def reverse_elem_map(e):
+                return hom(NF(e.numerator()) / NF(e.denominator()))
+
+            return p.map_coefficients(reverse_elem_map, new_base_ring=QQbar)
+
+        factorization = []
+
+        for i in range(2, len(L[1])+1):
+            factor = L[1][i].sage()
+            multiplicity = int(L[2][i].sage())
+            minpoly = L[3][i].sage()
+
+            # minpoly is also in a multivariate polynomial ring
+            # over a univariate fraction field
+
+            assert(minpoly.degree() == 0)
+            minpoly = minpoly.constant_coefficient()
+            assert(minpoly.denominator() == 1)
+            minpoly = minpoly.numerator()
+
+            NF = NumberField(minpoly, minpoly.parent().gen(0))
+
+            for hom in NF.embeddings(QQbar):
+                QQbar_factor = reverse_polynomial_map(factor, hom)
+                factorization.append((QQbar_factor, multiplicity))
+
+        return Factorization(factorization, unit=QQ(L[1][1].sage()))
+
 def is_AlgebraicField(F):
     r"""
     Check whether ``F`` is an :class:`~AlgebraicField` instance.

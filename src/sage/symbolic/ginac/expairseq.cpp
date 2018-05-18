@@ -178,8 +178,6 @@ void expairseq::archive(archive_node &n) const
 	n.add_ex("overall_coeff", ex(overall_coeff));
 }
 
-DEFAULT_UNARCHIVE(expairseq)
-
 //////////
 // functions overriding virtual functions from base classes
 //////////

@@ -56,6 +56,7 @@ public:
 	ex real_part() const override;
 	ex imag_part() const override;
 	unsigned get_serial() const {return serial;}
+        static ex unarchive(const archive_node &n, lst &sym_lst);
 
 protected:
 	ex derivative(const symbol & s) const override;

@@ -108,6 +108,11 @@ public:
 		m[0] = x;
 		return matrix_init<ex, exvector::iterator>(++m.begin());
 	}
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new matrix(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 	
 	// functions overriding virtual functions from base classes
 public:

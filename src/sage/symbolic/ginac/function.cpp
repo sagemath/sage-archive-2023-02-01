@@ -536,8 +536,7 @@ unsigned function::current_serial = 0;
 registered_class_info function::reg_info = \
         registered_class_info(registered_class_options("function",
                                 "exprseq",
-                                &function::tinfo_static,
-                                &function::unarchive));
+                                &function::tinfo_static));
 
 const tinfo_static_t function::tinfo_static = {};
 

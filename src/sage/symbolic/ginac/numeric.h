@@ -131,6 +131,11 @@ public:
 	numeric(mpz_t bigint);
 	numeric(mpq_t bigrat);
 	numeric(PyObject*, bool=false);
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new numeric(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 
 	~numeric();
 

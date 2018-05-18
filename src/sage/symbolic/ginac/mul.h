@@ -47,6 +47,11 @@ public:
                         bool do_index_renaming = false);
 //	mul(std::unique_ptr<epvector> vp, const ex & oc, bool do_index_renaming = false);
 	mul(const ex & lh, const ex & mh, const ex & rh);
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new mul(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 	
 	// functions overriding virtual functions from base classes
 public:

@@ -113,8 +113,6 @@ void pseries::archive(archive_node &n) const
 	n.add_ex("point", point);
 }
 
-DEFAULT_UNARCHIVE(pseries)
-
 //////////
 // functions overriding virtual functions from base classes
 //////////

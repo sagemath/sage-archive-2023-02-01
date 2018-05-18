@@ -24,6 +24,21 @@
 #include "registrar.h"
 #include "ex.h"
 #include "lst.h"
+#include "symbol.h"
+#include "lst.h"
+#include "container.h"
+#include "numeric.h"
+#include "constant.h"
+#include "function.h"
+#include "fderivative.h"
+#include "matrix.h"
+#include "pseries.h"
+#include "add.h"
+#include "mul.h"
+#include "power.h"
+#include "infinity.h"
+#include "exprseq.h"
+#include "relational.h"
 #ifdef HAVE_CONFIG_H
 #include "pynac-config.h"
 #endif
@@ -31,6 +46,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <unordered_map>
 
 namespace GiNaC {
 
@@ -500,6 +516,39 @@ void archive_node::get_properties(propinfovector &v) const
 	}	
 }
 
+using unarch_func_t = ex (*)(const archive_node&, lst&);
+using unarch_func_map = std::unordered_map<std::string, unarch_func_t>;
+
+static unarch_func_map& fill_map()
+{
+        static unarch_func_map map;
+
+        map["symbol"] = symbol::unarchive;
+        map["lst"] = lst::unarchive;
+        map["numeric"] = numeric::unarchive;
+        map["constant"] = constant::unarchive;
+        map["function"] = function::unarchive;
+        map["fderivative"] = fderivative::unarchive;
+        map["matrix"] = matrix::unarchive;
+        map["pseries"] = pseries::unarchive;
+        map["add"] = add::unarchive;
+        map["mul"] = mul::unarchive;
+        map["power"] = power::unarchive;
+        map["infinity"] = infinity::unarchive;
+        map["exprseq"] = exprseq::unarchive;
+        map["relational"] = relational::unarchive;
+
+        return map;
+}
+
+static const unarch_func_t& find_unarch_func(const std::string& s)
+{
+        static unarch_func_map& map = fill_map();
+        auto it = map.find(s);
+        if (it == map.end())
+                throw std::runtime_error("can't happen");
+        return it->second;
+}
 
 /** Convert archive node to GiNaC expression. */
 ex archive_node::unarchive(lst &sym_lst) const
@@ -512,12 +561,12 @@ ex archive_node::unarchive(lst &sym_lst) const
 	std::string class_name;
 	if (!find_string("class", class_name))
 		throw (std::runtime_error("archive node contains no class name"));
-	unarch_func f = find_unarch_func(class_name);
+	const unarch_func_t f = find_unarch_func(class_name);
 
 	// Call instantiation function
 	e = f(*this, sym_lst);
 	has_expression = true;
-	return e;
+	return ex(e);
 }
 
 

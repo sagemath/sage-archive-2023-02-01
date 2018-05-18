@@ -89,8 +89,6 @@ void fderivative::archive(archive_node &n) const
 		n.add_unsigned("param", elem);
 }
 
-DEFAULT_UNARCHIVE(fderivative)
-
 //////////
 // functions overriding virtual functions from base classes
 //////////

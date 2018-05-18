@@ -75,15 +75,10 @@ public:
 	ex real_part() const override;
 	ex imag_part() const override;
 	bool is_polynomial(const ex & var) const override;
-protected:
 	ex derivative(const symbol & s) const override;
 	bool is_equal_same_type(const basic & other) const override;
 	long calchash() const override;
-	
-	// non-virtual functions in this class
-public:
-	//void assign(const ex & value);
-	//void unassign();
+	static ex unarchive(const archive_node &n, lst &sym_lst);
         bool operator==(const symbol& other) const { return serial == other.serial; }
 	void set_name(const std::string & n) { name = n; }
 	std::string get_name() const { return name; }

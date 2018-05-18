@@ -59,6 +59,11 @@ public:
 
 	// internal constructors
 	fderivative(unsigned ser, paramset  params, std::unique_ptr<exvector> vp);
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new fderivative(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 
 	// functions overriding virtual functions from base classes
 public:

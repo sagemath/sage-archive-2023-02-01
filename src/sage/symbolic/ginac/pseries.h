@@ -40,6 +40,11 @@ class pseries : public basic
 	// other constructors
 public:
 	pseries(const ex &rel_, epvector ops_);
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new pseries(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 
 	// functions overriding virtual functions from base classes
 public:

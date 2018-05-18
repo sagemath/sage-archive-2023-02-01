@@ -29,8 +29,7 @@ template<> const tinfo_static_t exprseq::tinfo_static = {};
 template<> registered_class_info exprseq::reg_info = \
         registered_class_info(registered_class_options("exprseq",
                        "basic",
-                       &exprseq::tinfo_static,
-                       &exprseq::unarchive).
+                       &exprseq::tinfo_static).
         print_func<print_context>(&exprseq::do_print).
         print_func<print_tree>(&exprseq::do_print_tree));
 
@@ -44,6 +43,12 @@ template <> bool exprseq::info(unsigned inf) const
 		return true;
 	
 		return inherited::info(inf);
+}
+
+template <> ex exprseq::unarchive(const archive_node &n, lst &sym_lst)
+{
+        return (new exprseq(n, sym_lst))->
+                setflag(status_flags::dynallocated);
 }
 
 #ifdef _MSC_VER

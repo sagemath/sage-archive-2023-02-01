@@ -387,6 +387,7 @@ public:
 	ex imag_part() const override;
 	bool info(unsigned inf) const override;
 	//int compare(const basic &other) const;
+        static ex unarchive(const archive_node &n, lst &sym_lst);
 protected:
 	ex derivative(const symbol & s) const override;
 	bool is_equal_same_type(const basic & other) const override;

@@ -105,9 +105,6 @@ basic::basic(const archive_node &n, lst& /*unused*/) : flags(0)
 		throw (std::runtime_error("archive node contains no class name"));
 }
 
-/** Unarchive the object. */
-DEFAULT_UNARCHIVE(basic)
-
 /** Archive the object. */
 void basic::archive(archive_node &n) const
 {

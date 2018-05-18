@@ -55,6 +55,11 @@ public:
 	// other constructors
 public:
 	relational(ex  lhs, ex  rhs, operators oper=equal);
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new relational(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 	
 	// functions overriding virtual functions from base classes
 public:

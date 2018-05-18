@@ -36,6 +36,7 @@ template<> tinfo_t exprseq::get_tinfo();
 
 // defined in exprseq.cpp
 template<> bool exprseq::info(unsigned inf) const;
+template<> ex exprseq::unarchive(const archive_node &n, lst &sym_lst);
 
 } // namespace GiNaC
 

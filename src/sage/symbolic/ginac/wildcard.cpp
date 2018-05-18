@@ -68,8 +68,6 @@ void wildcard::archive(archive_node &n) const
 	n.add_unsigned("label", label);
 }
 
-DEFAULT_UNARCHIVE(wildcard)
-
 //////////
 // functions overriding virtual functions from base classes
 //////////

@@ -419,15 +419,8 @@ extern const ex _ex144;
 #define DEFAULT_CTOR(classname) \
 classname::classname() : inherited(&classname::tinfo_static) { setflag(status_flags::evaluated | status_flags::expanded); }
 
-#define DEFAULT_UNARCHIVE(classname) \
-ex classname::unarchive(const archive_node &n, lst &sym_lst) \
-{ \
-	return (new classname(n, sym_lst))->setflag(status_flags::dynallocated); \
-}
-
 #define DEFAULT_ARCHIVING(classname) \
 classname::classname(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst) {} \
-DEFAULT_UNARCHIVE(classname) \
 void classname::archive(archive_node &n) const \
 { \
 	inherited::archive(n); \

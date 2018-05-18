@@ -43,6 +43,11 @@ public:
 	add(const epvector & v);
 	add(const epvector & v, const numeric & oc);
 //	add(std::unique_ptr<epvector> vp, const ex & oc);
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new add(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 	
 	// functions overriding virtual functions from base classes
 public:

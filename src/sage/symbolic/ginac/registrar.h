@@ -23,16 +23,15 @@
 #ifndef __GINAC_REGISTRAR_H__
 #define __GINAC_REGISTRAR_H__
 
+#include "class_info.h"
+#include "print.h"
+
 #include <string>
 #include <list>
 #include <vector>
 
-#include "class_info.h"
-#include "print.h"
-
 namespace GiNaC {
 
-class ex;
 class archive_node;
 
 template <template <class T, class = std::allocator<T> > class> class container;
@@ -42,20 +41,16 @@ typedef container<std::list> lst;
 typedef const void * tinfo_t;
 struct tinfo_static_t {};
 
-/** Unarchiving function (static member function of every GiNaC class). */
-typedef ex (*unarch_func)(const archive_node &n, lst &sym_lst);
-
 
 /** This class stores information about a registered GiNaC class. */
 class registered_class_options {
 public:
-	registered_class_options(const char *n, const char *p, tinfo_t ti, unarch_func f)
-	 : name(n), parent_name(p), tinfo_key(ti), unarchive(f) {}
+	registered_class_options(const char *n, const char *p, tinfo_t ti)
+	 : name(n), parent_name(p), tinfo_key(ti) {}
 
 	const char *get_name() const { return name; }
 	const char *get_parent_name() const { return parent_name; }
 	tinfo_t get_id() const { return tinfo_key; }
-	unarch_func get_unarch_func() const { return unarchive; }
 	const std::vector<print_functor> &get_print_dispatch_table() const { return print_dispatch_table; }
 
 	template <class Ctx, class T, class C>
@@ -90,7 +85,6 @@ private:
 	const char *name;         /**< Class name. */
 	const char *parent_name;  /**< Name of superclass. */
 	tinfo_t tinfo_key;        /**< Type information key. */
-	unarch_func unarchive;    /**< Pointer to unarchiving function. */
 	std::vector<print_functor> print_dispatch_table; /**< Method table for print() dispatch */
 };
 
@@ -112,7 +106,6 @@ public: \
 	\
 	classname(const GiNaC::archive_node &n, GiNaC::lst &sym_lst); \
 	virtual void archive(GiNaC::archive_node &n) const override; \
-	static GiNaC::ex unarchive(const GiNaC::archive_node &n, GiNaC::lst &sym_lst); \
 	\
 	class visitor { \
 	public: \
@@ -145,15 +138,11 @@ private:
 /** Macro for inclusion in the implementation of each registered class.
  *  Additional options can be specified. */
 #define GINAC_IMPLEMENT_REGISTERED_CLASS_OPT(classname, supername, options) \
-	GiNaC::registered_class_info classname::reg_info = GiNaC::registered_class_info(GiNaC::registered_class_options(#classname, #supername, &classname::tinfo_static, &classname::unarchive).options); \
+	GiNaC::registered_class_info classname::reg_info = GiNaC::registered_class_info(GiNaC::registered_class_options(#classname, #supername, &classname::tinfo_static).options); \
 	const GiNaC::tinfo_static_t classname::tinfo_static = {};
 
 /** Find type information key by class name. */
 extern tinfo_t find_tinfo_key(const std::string &class_name);
-
-/** Find unarchiving function by class name. */
-extern unarch_func find_unarch_func(const std::string &class_name);
-
 
 /** Add or replace a print method. */
 template <class Alg, class Ctx, class T, class C>

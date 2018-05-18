@@ -43,6 +43,7 @@ public:
        	infinity(const numeric & _direction);
 	static infinity from_direction(const ex & _direction);
 	static infinity from_sign(int sgn);
+        static ex unarchive(const archive_node &n, lst &sym_lst);
 	
 	// functions overriding virtual functions from base classes
 public:

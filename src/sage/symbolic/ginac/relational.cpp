@@ -76,8 +76,6 @@ void relational::archive(archive_node &n) const
 	n.add_unsigned("op", o);
 }
 
-DEFAULT_UNARCHIVE(relational)
-
 //////////
 // functions overriding virtual functions from base classes
 //////////

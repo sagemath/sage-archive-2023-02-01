@@ -51,6 +51,11 @@ class power : public basic
 public:
 	power(ex  lh, ex  rh) : inherited(&power::tinfo_static), basis(std::move(lh)), exponent(std::move(rh)) {}
 	template<typename T> power(ex  lh, const T & rh) : inherited(&power::tinfo_static), basis(std::move(lh)), exponent(rh) {}
+        static ex unarchive(const archive_node &n, lst &sym_lst)
+        {
+                return (new power(n, sym_lst))->
+                        setflag(status_flags::dynallocated);
+        }
 	
 	// functions overriding virtual functions from base classes
 public:

@@ -455,6 +455,7 @@ public:
 	container & remove_all();
 	container & sort();
 	container & unique();
+        static ex unarchive(const archive_node &n, lst &sym_lst);
 
 	const_iterator begin() const {return this->seq.begin();}
 	const_iterator end() const {return this->seq.end();}

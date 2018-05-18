@@ -984,8 +984,6 @@ void numeric::archive(archive_node &n) const {
         inherited::archive(n);
 }
 
-DEFAULT_UNARCHIVE(numeric)
-
 //////////
 // functions overriding virtual functions from base classes
 //////////

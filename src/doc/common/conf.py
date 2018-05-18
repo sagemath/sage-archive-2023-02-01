@@ -26,6 +26,12 @@ def sphinx_plot(plot):
     from sage.misc.temporary_file import tmp_filename
     import matplotlib.pyplot as plt
     if os.environ.get('SAGE_SKIP_PLOT_DIRECTIVE', 'no') != 'yes':
+        import matplotlib as mpl
+        mpl.rcParams['image.interpolation'] = 'bilinear'
+        mpl.rcParams['image.resample'] = False
+        mpl.rcParams['figure.figsize'] = [8.0, 6.0]
+        mpl.rcParams['figure.dpi'] = 80
+        mpl.rcParams['savefig.dpi'] = 100
         fn = tmp_filename(ext=".png")
         plot.plot().save(fn)
         img = mpimg.imread(fn)
@@ -152,11 +158,11 @@ extlinks = {
     'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
     'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
-    'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
+    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
     'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
-    'doi': ('https://dx.doi.org/%s', 'doi:'),
-    'pari': ('http://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
-    'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
+    'doi': ('https://doi.org/%s', 'doi:'),
+    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
+    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
     }
 
 # By default document are not master.

@@ -268,6 +268,15 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
             [  6   0 8/3]
             sage: phi(Y) == Z
             True
+
+        We test that :trac:`24590` is resolved::
+
+            sage: A = FreeQuadraticModule(ZZ,1,matrix([2]))
+            sage: f = A.Hom(A).an_element()
+            sage: f.inverse_image(A)
+            Free module of degree 1 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [1]
         """
         if self.rank() == 0:
             # Special case -- if this is the 0 map, then the only possibility
@@ -318,11 +327,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
         # Finally take the linear combinations of the basis for the
         # domain defined by C. Together with the kernel K, this spans
         # the inverse image of V.
-        if self.domain().is_ambient():
-            L = C.row_module(R)
-        else:
-            L = (C*self.domain().basis_matrix()).row_module(R)
-
+        dom = self.domain()
+        if not dom.is_ambient():
+            C = C * dom.basis_matrix()
+        L = dom.submodule(C.rows())
         return K + L
 
     def lift(self, x):

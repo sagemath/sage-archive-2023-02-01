@@ -109,9 +109,6 @@ def krawtchouk(n, q, l, x, check=True):
         kraw += jth_term
     return kraw
 
-Krawtchouk = deprecated_function_alias(20908, krawtchouk)
-Kravchuk   = deprecated_function_alias(20908, krawtchouk)
-
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """
     LP builder - common for the two functions; not exported.
@@ -197,7 +194,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
        [1, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0]
 
     The bound on the size of the `F_2`-codes of length 24 and minimal distance
-    8, i.e. parameters of the extened binary Golay code::
+    8, i.e. parameters of the extended binary Golay code::
 
        sage: a,p,x = codes.bounds.delsarte_bound_hamming_space(24,8,2,return_data=True)
        sage: x

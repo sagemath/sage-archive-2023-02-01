@@ -530,7 +530,8 @@ TESTS:
 
 Check the qepcad configuration file::
 
-    sage: open('%s/default.qepcadrc'%SAGE_LOCAL).readlines()[-1]
+    sage: with open(os.path.join(SAGE_LOCAL, 'default.qepcadrc')) as f:
+    ....:     f.readlines()[-1]
     'SINGULAR .../bin\n'
 
 Tests related to the not tested examples (nondeterministic order of atoms)::
@@ -634,7 +635,7 @@ def _qepcad_atoms(formula):
     EXAMPLES::
 
     sage: from sage.interfaces.qepcad import _qepcad_atoms
-    sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\ y <= 0 /\ [ y = 0 \/ y^5 + 4 y + 8 = 0 ]')
+    sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\\ y <= 0 /\\ [ y = 0 \\/ y^5 + 4 y + 8 = 0 ]')
     {'y <= 0', 'y = 0', 'y^5 + 4 y + 8 = 0', 'y^5 + 4 y + 8 >= 0'}
     """
     return set(i.strip() for i in flatten([i.split('\\/') for i in formula.replace('[','').replace(']','').split('/\\')]))

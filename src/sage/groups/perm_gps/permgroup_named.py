@@ -600,9 +600,12 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A.category()
             Join of Category of coxeter group algebras over Rational Field
                 and Category of finite group algebras over Rational Field
+                and Category of finite dimensional cellular algebras with basis
+                     over Rational Field
             sage: A = S3.algebra(QQ, category=Semigroups())
             sage: A.category()
-            Category of finite dimensional semigroup algebras over Rational Field
+            Category of finite dimensional unital cellular semigroup algebras
+             over Rational Field
 
         In the following case, a usual group algebra is returned:
 
@@ -996,7 +999,7 @@ class KleinFourGroup(PermutationGroup_unique):
 
             sage: G = KleinFourGroup(); G
             The Klein 4 group of order 4, as a permutation group
-            sage: list(G)
+            sage: sorted(G)
             [(), (3,4), (1,2), (1,2)(3,4)]
 
         TESTS::
@@ -1401,9 +1404,8 @@ class DihedralGroup(PermutationGroup_unique):
 
             sage: DihedralGroup(5).gens()
             [(1,2,3,4,5), (1,5)(2,4)]
-            sage: list(DihedralGroup(5))
-            [(), (1,5)(2,4), (1,2,3,4,5), (1,4)(2,3), (1,3,5,2,4), (2,5)(3,4),
-            (1,3)(4,5), (1,5,4,3,2), (1,4,2,5,3), (1,2)(3,5)]
+            sage: sorted(DihedralGroup(5))
+            [(), (2,5)(3,4), (1,2)(3,5), (1,2,3,4,5), (1,3)(4,5), (1,3,5,2,4), (1,4)(2,3), (1,4,2,5,3), (1,5,4,3,2), (1,5)(2,4)]
 
             sage: G = DihedralGroup(6)
             sage: G.order()

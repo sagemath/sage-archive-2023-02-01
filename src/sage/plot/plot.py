@@ -478,7 +478,7 @@ We test that ``imshow`` works as well, verifying that
 
 ::
 
-    sage: plt.imshow([[(0,0,0)]])
+    sage: plt.imshow([[(0.0,0.0,0.0)]])
     <matplotlib.image.AxesImage object at ...>
     sage: plt.savefig(os.path.join(SAGE_TMP, 'foo.png'))
 
@@ -1011,6 +1011,12 @@ def plot(funcs, *args, **kwds):
 
     - ``fillalpha`` - (default: 0.5) How transparent the fill is.
       A number between 0 and 1.
+      
+    MATPLOTLIB STYLE SHEET OPTION:
+    
+    - ``stylesheet`` - (Default: classic) Support for loading a full matplotlib style sheet.
+      Any style sheet listed in ``matplotlib.pyplot.style.available`` is acceptable. If a
+      non-existing style is provided the default classic is applied.
 
     EXAMPLES:
 
@@ -2908,11 +2914,14 @@ def list_plot(data, plotjoined=False, **kwargs):
         If ``plotjoined`` is ``False`` then the axis that is in log scale
         must have all points strictly positive. For instance, the following
         plot will show no points in the figure since the points in the
-        horizontal axis starts from `(0,1)`.
+        horizontal axis starts from `(0,1)`. Further, matplotlib will display
+        a user warning.
 
         ::
 
             sage: list_plot(yl, scale='loglog')         # both axes are log
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         Instead this will work. We drop the point `(0,1)`.::
@@ -3288,12 +3297,15 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
 
         If ``plotjoined`` is ``False`` then the vertical axis must have all
         points strictly positive. Otherwise the plot will come up empty.
-        For instance the following plot contains a point at `(1,0)`.
+        For instance the following plot contains a point at `(1,0)`. Further, 
+        matplotlib will display a user warning.
 
         ::
 
             sage: xl = [2**k for k in range(12)]; yl = range(len(xl))
             sage: list_plot_semilogy(list(zip(xl,yl))) # plot empty due to (1,0)
+            doctest:warning
+            ...
             Graphics object consisting of 1 graphics primitive
 
         We remove `(1,0)` to fix this.::

@@ -3,7 +3,7 @@ r"""
 Families of graphs derived from classical geometries over finite fields
 
 These include graphs of polar spaces, affine polar graphs, graphs
-related to Hermitean unitals, graphs on nonistropic points, etc
+related to Hermitean unitals, graphs on nonisotropic points, etc
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -688,7 +688,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
-      http://dx.doi.org/10.1016/0012-365X(75)90057-6
+      :doi:`10.1016/0012-365X(75)90057-6`
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0:
@@ -1284,12 +1284,10 @@ def CossidentePenttilaGraph(q):
     if k==0 or p==2:
         raise ValueError('q(={}) must be an odd prime power'.format(q))
 
+    from sage.features.gap import GapPackage
+    GapPackage("grape", spkg="gap_packages").require()
+
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
-
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
-
     adj_list=libgap.function_factory("""function(q)
         local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
         LoadPackage("grape");

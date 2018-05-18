@@ -6,12 +6,6 @@ cd src
 cp "$SAGE_ROOT"/config/config.* .
 
 
-# Compile for 64-bit if SAGE64 is set to 'yes'
-if [ "x$SAGE64" = "xyes" ] ; then
-    CFLAGS="$CFLAGS -m64 "
-fi
-
-
 # Build with -O0 if debugging requested
 if [ "$SAGE_DEBUG" = "yes" ]; then
     CFLAGS="-g -O0 $CFLAGS"

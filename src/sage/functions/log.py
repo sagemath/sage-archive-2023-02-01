@@ -649,7 +649,8 @@ class Function_dilog(GinacFunction):
             Complex Field with 13 bits of precision
         """
         GinacFunction.__init__(self, 'dilog',
-                conversions=dict(maxima='li[2]'))
+                conversions=dict(maxima='li[2]',
+                                 fricas='(x+->dilog(1-x))'))
 
 dilog = Function_dilog()
 
@@ -1398,7 +1399,7 @@ class Function_harmonic_number(BuiltinFunction):
                 import sage.libs.flint.arith as flint_arith
                 return flint_arith.harmonic_number(z)
         elif z in QQ:
-            from sage.functions.other import psi1
+            from .gamma import psi1
             return psi1(z+1) - psi1(1)
 
     def _evalf_(self, z, parent=None, algorithm='mpmath'):

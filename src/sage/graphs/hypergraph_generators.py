@@ -39,11 +39,11 @@ class HypergraphGenerators():
 
         - ``regular`` (integer) -- if set to an integer value `k`, requires the
           hypergraphs to be `k`-regular. It is actually a shortcut for the
-          corresponing min/max values.
+          corresponding min/max values.
 
         - ``uniform`` (integer) -- if set to an integer value `k`, requires the
           hypergraphs to be `k`-uniform. It is actually a shortcut for the
-          corresponing min/max values.
+          corresponding min/max values.
 
         - ``max_intersection`` (integer) -- constraints the maximum cardinality
           of the intersection of two sets fro the hypergraphs. Set to ``None``

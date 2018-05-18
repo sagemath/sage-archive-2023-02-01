@@ -966,7 +966,7 @@ cdef class ExpansionIter(object):
     INPUT:
 
     - ``elt`` -- the `p`-adic element
-    - ``prec`` -- the nunmber of terms to be emitted
+    - ``prec`` -- the number of terms to be emitted
     - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
 
     EXAMPLES::
@@ -1091,7 +1091,7 @@ cdef class ExpansionIterable(object):
     INPUT:
 
     - ``elt`` -- the `p`-adic element
-    - ``prec`` -- the nunmber of terms to be emitted
+    - ``prec`` -- the number of terms to be emitted
     - ``val_shift`` -- how many zeros to add at the beginning of the expansion,
       or the number of initial terms to truncate (if negative)
     - ``mode`` -- either ``simple_mode``, ``smallest_mode`` or ``teichmuller_mode``
@@ -1142,7 +1142,7 @@ cdef class ExpansionIterable(object):
         Returns an iterator, based on a corresponding :class:`ExpansionIter`.
 
         If ``val_shift`` is positive, will first emit that many zeros
-        (of the approrpiate type: ``[]`` instead when the inertia degree
+        (of the appropriate type: ``[]`` instead when the inertia degree
         is larger than one.
 
         If ``val_shift`` is negative, will truncate that many terms at

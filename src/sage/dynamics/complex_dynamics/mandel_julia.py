@@ -253,7 +253,7 @@ def external_ray(theta, **kwds):
     if type(theta) != list:
         theta = [theta]
 
-    # Check if theta is in the invterval [0,1]
+    # Check if theta is in the interval [0,1]
     for angle in theta:
         if angle < 0 or angle > 1:
             raise \

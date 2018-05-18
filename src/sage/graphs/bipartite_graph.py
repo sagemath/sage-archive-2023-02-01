@@ -36,6 +36,7 @@ from __future__ import absolute_import
 from six import iteritems
 from six.moves import range
 
+from .generic_graph import GenericGraph
 from .graph import Graph
 from sage.rings.integer import Integer
 
@@ -56,7 +57,8 @@ class BipartiteGraph(Graph):
     A reduced adjacency matrix contains only the non-redundant portion of the
     full adjacency matrix for the bipartite graph.  Specifically, for zero
     matrices of the appropriate size, for the reduced adjacency matrix ``H``,
-    the full adjacency matrix is ``[[0, H'], [H, 0]]``.
+    the full adjacency matrix is ``[[0, H'], [H, 0]]``. The columns correspond
+    to vertices on the left, and the rows correspond to vertices on the right.
 
     The alist file format is described at
     http://www.inference.phy.cam.ac.uk/mackay/codes/alist.html
@@ -75,7 +77,7 @@ class BipartiteGraph(Graph):
 
     EXAMPLES:
 
-    1. No inputs or ``None`` for the input creates an empty graph::
+    #. No inputs or ``None`` for the input creates an empty graph::
 
         sage: B = BipartiteGraph()
         sage: type(B)
@@ -85,7 +87,7 @@ class BipartiteGraph(Graph):
         sage: B == BipartiteGraph(None)
         True
 
-    2. From a graph: without any more information, finds a bipartition::
+    #. From a graph: without any more information, finds a bipartition::
 
         sage: B = BipartiteGraph(graphs.CycleGraph(4))
         sage: B = BipartiteGraph(graphs.CycleGraph(5))
@@ -108,11 +110,12 @@ class BipartiteGraph(Graph):
         sage: B.right
         {4, 5, 6}
 
-    You can specify a partition using ``partition`` argument. Note that if such graph
-    is not bipartite, then Sage will raise an error. However, if one specifies
-    ``check=False``, the offending edges are simply deleted (along with
-    those vertices not appearing in either list).  We also lump creating
-    one bipartite graph from another into this category::
+    #. If a Graph or DiGraph is used as data,
+       you can specify a partition using ``partition`` argument. Note that if such graph
+       is not bipartite, then Sage will raise an error. However, if one specifies
+       ``check=False``, the offending edges are simply deleted (along with
+       those vertices not appearing in either list).  We also lump creating
+       one bipartite graph from another into this category::
 
         sage: P = graphs.PetersenGraph()
         sage: partition = [list(range(5)), list(range(5,10))]
@@ -148,7 +151,18 @@ class BipartiteGraph(Graph):
         sage: B == B2
         True
 
-    4. From a reduced adjacency matrix::
+      ::
+
+        sage: d = DiGraph(6)
+        sage: d.add_edge(0,1)
+        sage: part=[[1,2,3],[0,4,5]]
+        sage: b = BipartiteGraph(d, part)
+        sage: b.left
+        {1, 2, 3}
+        sage: b.right
+        {0, 4, 5}
+
+    #. From a reduced adjacency matrix::
 
         sage: M = Matrix([(1,1,1,0,0,0,0), (1,0,0,1,1,0,0),
         ....:             (0,1,0,1,0,1,0), (1,1,0,1,0,0,1)])
@@ -205,7 +219,7 @@ class BipartiteGraph(Graph):
          sage: B.weighted()
          True
 
-    5. From an alist file::
+    #. From an alist file::
 
          sage: file_name = os.path.join(SAGE_TMP, 'deleteme.alist.txt')
          sage: fi = open(file_name, 'w')
@@ -218,7 +232,7 @@ class BipartiteGraph(Graph):
          sage: B == H
          True
 
-    6. From a NetworkX bipartite graph::
+    #. From a NetworkX bipartite graph::
 
         sage: import networkx
         sage: G = graphs.OctahedralGraph()
@@ -263,7 +277,7 @@ class BipartiteGraph(Graph):
         Traceback (most recent call last):
         ...
         ValueError: cannot add edge from 0 to 0 in graph without loops
-        
+
     """
 
     def __init__(self, data=None, partition=None, check=True, *args, **kwds):
@@ -348,7 +362,7 @@ class BipartiteGraph(Graph):
                     for jj in range(nrows):
                         if data[jj][ii] != 0:
                             self.add_edge((ii, jj + ncols))
-        elif (isinstance(data, Graph) and partition is not None):
+        elif (isinstance(data, GenericGraph) and partition is not None):
             from copy import copy
             left, right = partition
             left = copy(left)
@@ -382,7 +396,7 @@ class BipartiteGraph(Graph):
                     if len(a_nbrs) != 0:
                         self.delete_edges([(a, b) for b in a_nbrs])
             self.left, self.right = set(partition[0]), set(partition[1])
-        elif isinstance(data, Graph):
+        elif isinstance(data, GenericGraph):
             Graph.__init__(self, data, *args, **kwds)
             try:
                 self.left, self.right = self.bipartite_sets()

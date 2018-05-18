@@ -157,22 +157,24 @@ cdef class MatrixMatrixAction(MatrixMulAction):
 
             sage: M1 = MatrixSpace(ZZ, 2, implementation='flint')
             sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
-            sage: M3 = MatrixSpace(ZZ, 2, sparse=True)
-            sage: M = [M1, M2, M3]
+            sage: M3 = MatrixSpace(ZZ, 2, implementation='gap')
+            sage: M4 = MatrixSpace(ZZ, 2, sparse=True)
+            sage: M = [M1, M2, M3, M4]
 
             sage: coercions = ''
-            sage: for i in range(3):
-            ....:     for j in range(3):
+            sage: for M1 in M:
+            ....:     for M2 in M:
             ....:         try:
-            ....:             s = M[i].an_element() * M[j].an_element()
+            ....:             s = M1.an_element() * M2.an_element()
             ....:             coercions += 'X'
             ....:         except TypeError:
             ....:             coercions += ' '
             ....:     coercions += '\n'
             sage: print(coercions)
-            X X
+            X  X
              X
-            X X
+              X
+            X  X
         """
         if not is_MatrixSpace(S):
             raise TypeError("Not a matrix space: %s" % S)

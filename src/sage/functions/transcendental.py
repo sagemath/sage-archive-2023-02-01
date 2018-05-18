@@ -19,7 +19,6 @@ Number-Theoretic Functions
 
 import sys
 import sage.rings.complex_field as complex_field
-from sage.functions.other import factorial, psi
 
 from sage.rings.all import (ComplexField, ZZ, RR, RDF)
 from sage.rings.complex_number import is_ComplexNumber
@@ -30,6 +29,9 @@ from sage.symbolic.function import GinacFunction, BuiltinFunction
 import sage.libs.mpmath.utils as mpmath_utils
 from sage.misc.superseded import deprecation
 from sage.combinat.combinat import bernoulli_polynomial
+
+from .gamma import psi
+from .other import factorial
 
 CC = complex_field.ComplexField()
 I = CC.gen(0)

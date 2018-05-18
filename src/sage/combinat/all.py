@@ -17,6 +17,7 @@ from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
 
 from .expnums import expnums
 
+from sage.combinat.chas.all import *
 from sage.combinat.crystals.all import *
 from .rigged_configurations.all import *
 
@@ -46,6 +47,9 @@ lazy_import('sage.combinat.baxter_permutations', ['BaxterPermutations'])
 
 #RSK
 from .rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse
+
+#HillmanGrassl
+lazy_import("sage.combinat.hillman_grassl", ["WeakReversePlanePartition", "WeakReversePlanePartitions"])
 
 #PerfectMatchings
 from .perfect_matching import PerfectMatching, PerfectMatchings
@@ -95,6 +99,8 @@ from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, Tabl
 from .k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
                                          'LittlewoodRichardsonTableaux'])
+lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
+                                                     'ShiftedPrimedTableau'])
 
 #Words
 from .words.all import *
@@ -137,6 +143,7 @@ from .necklace import Necklaces
 from .lyndon_word import LyndonWord, LyndonWords, StandardBracketedLyndonWords
 from .dyck_word import DyckWords, DyckWord
 from .sloane_functions import sloane
+from .superpartition import SuperPartition, SuperPartitions
 
 from .root_system.all import *
 from .sf.all import *

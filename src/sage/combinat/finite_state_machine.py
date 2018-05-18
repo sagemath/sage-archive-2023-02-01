@@ -179,7 +179,7 @@ Conversion
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <sage.matrix.constructor.MatrixFactory>`
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :func:`matrix`
     :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
     :meth:`~FiniteStateMachine.plot` | Plot
 
@@ -965,14 +965,14 @@ def full_group_by(l, key=lambda x: x):
     - that the keys are sortable (in contrast to the
       approach via ``sorted`` and ``itertools.groupby``) and
     - that the keys are hashable (in contrast to the
-      implementation proposed in `<http://stackoverflow.com/a/15250161>`_).
+      implementation proposed in `<https://stackoverflow.com/a/15250161>`_).
 
     However, it is required
 
     - that distinct keys have distinct ``str``-representations.
 
     The implementation is inspired by
-    `<http://stackoverflow.com/a/15250161>`_, but non-hashable keys are
+    `<https://stackoverflow.com/a/15250161>`_, but non-hashable keys are
     allowed.
 
     EXAMPLES::
@@ -1024,7 +1024,7 @@ def equal(iterator):
 
     ``True`` or ``False``.
 
-    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+    This implements `<https://stackoverflow.com/a/3844832/1052778>`_.
 
     EXAMPLES::
 

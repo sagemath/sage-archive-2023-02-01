@@ -15,7 +15,7 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the dependencies and check to see that there are no others 
+We exclude the dependencies and check to see that there are no others
 except for the known bad apples::
 
     sage: allowed = [
@@ -70,14 +70,10 @@ import math
 
 from sage.env import SAGE_ROOT, SAGE_SRC, SAGE_DOC_SRC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
-# Add SAGE_SRC at the end of sys.path to enable Cython tracebacks
-# (which use paths relative to SAGE_SRC)
-sys.path.append(SAGE_SRC)
-
 
 ###################################################################
 
-# This import also setups the interrupt handler
+# This import also sets up the interrupt handler
 from cysignals.signals import (AlarmInterrupt, SignalError,
         sig_on_reset as sig_on_count)
 
@@ -108,6 +104,7 @@ from sage.sat.all        import *
 from sage.schemes.all    import *
 from sage.graphs.all     import *
 from sage.groups.all     import *
+from sage.arith.power    import generic_power as power
 from sage.databases.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
@@ -213,6 +210,7 @@ copyright = license
 _cpu_time_ = cputime()
 _wall_time_ = walltime()
 
+
 def quit_sage(verbose=True):
     """
     If you use Sage in library mode, you should call this function
@@ -313,8 +311,6 @@ warnings.filters.remove(('ignore', None, DeprecationWarning, None, 0))
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore',
     module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic)')
-# Ignore warnings due to matplotlib-1.5 together with numpy-1.13
-warnings.filterwarnings('ignore', module='matplotlib[.]contour|numpy[.]ma[.]core')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default',
     '[\s\S]*See http://trac.sagemath.org/[0-9]* for details.')

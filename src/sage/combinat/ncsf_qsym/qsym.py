@@ -1087,7 +1087,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`Symmetric functions plethsym
+                    :meth:`Symmetric functions plethysm
                     <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.plethysm>`
 
                 INPUT:

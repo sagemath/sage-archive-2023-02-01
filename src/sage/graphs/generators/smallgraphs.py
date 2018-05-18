@@ -4861,7 +4861,7 @@ def JankoKharaghaniGraph(v):
     .. [JK02] Janko, Kharaghani,
        A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
        J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
-       http://dx.doi.org/10.1006/jcta.2001.3231
+       :doi:`10.1006/jcta.2001.3231`
 
     .. [GM87] Gibbons, Mathon,
        Construction methods for Bhaskar Rao and related designs,
@@ -5206,7 +5206,7 @@ def U42Graph216():
 
     .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
        Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
-       https://arxiv.org/abs/1609.07133
+       :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
     from sage.misc.package import is_package_installed, PackageNotFoundError

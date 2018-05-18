@@ -675,8 +675,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                the elements of ``gens`` are already in (not necessarily
                reduced) echelon form
 
-            - ``unitrangular`` -- (default: ``False``) whether
-              the lift morphism is unitrangular
+            - ``unitriangular`` -- (default: ``False``) whether
+              the lift morphism is unitriangular
 
             If ``already_echelonized`` is ``False``, then the
             generators are put in reduced echelon form using

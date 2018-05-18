@@ -71,6 +71,7 @@ import sage.rings.infinity as infinity
 from sage.misc.sage_eval import sage_eval
 from sage.misc.abstract_method import abstract_method
 from sage.misc.latex import latex
+from sage.arith.power cimport generic_power
 from sage.arith.long cimport pyobject_to_long
 from sage.structure.factorization import Factorization
 from sage.structure.richcmp cimport (richcmp, richcmp_item,
@@ -88,7 +89,7 @@ from sage.rings.real_double import is_RealDoubleField, RDF
 from sage.rings.complex_double import is_ComplexDoubleField, CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
-from sage.structure.element import generic_power, coerce_binop
+from sage.structure.element import coerce_binop
 from sage.structure.element cimport (parent, have_same_parent,
         Element, RingElement, coercion_model)
 
@@ -990,13 +991,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: a != b
             False
 
-        For ``RBF``, identical elements are considered equal::
-
             sage: R.<x> = RBF[]
             sage: pol = RBF(1.0, 0.1)
             sage: pol == pol
-            True
-            sage: pol == copy(pol)
             False
         """
         cdef Polynomial pol = <Polynomial?>other
@@ -1558,6 +1555,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             z = current._mul_trunc_(self, next_prec)._mul_trunc_(current, next_prec)
             current = current + current - z
         return current
+
+    def revert_series(self, n):
+        r"""
+        Return a polynomial ``f`` such that
+        ``f(self(x)) = self(f(x)) = x mod x^n``.
+
+        Currently, this is only implemented over some coefficient rings.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = QQ[]
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            3/40*x^5 - 1/6*x^3 + x
+            sage: Pol.<x> = CBF[]
+            sage: (x + x^3/6 + x^5/120).revert_series(6)
+            ([0.075000000000000 +/- 9.75e-17])*x^5 + ([-0.166666666666667 +/- 4.45e-16])*x^3 + x
+            sage: Pol.<x> = SR[]
+            sage: x.revert_series(6)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: only implemented for certain base rings
+        """
+        raise NotImplementedError("only implemented for certain base rings")
 
     def __long__(self):
         """
@@ -2226,7 +2246,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Check that the algorithm used is indeed correct::
 
-            sage: from sage.structure.element import generic_power
+            sage: from sage.arith.power import generic_power
             sage: R1 = PolynomialRing(GF(8,'a'), 'x')
             sage: R2 = PolynomialRing(GF(9,'b'), 'x', sparse=True)
             sage: R3 = PolynomialRing(R2, 'y')
@@ -2234,7 +2254,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: for d in range(20,40): # long time
             ....:     for R in [R1, R2, R3, R3]:
             ....:         a = R.random_element()
-            ....:         assert a^d == generic_power(a,d)
+            ....:         assert a^d == generic_power(a, d)
 
         Test the powering modulo ``x^n`` (calling :meth:`power_trunc`)::
 
@@ -2294,8 +2314,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 p = -1
             if 0 < p <= right and (self.base_ring() in sage.categories.integral_domains.IntegralDomains() or p.is_prime()):
                 x = self.parent().gen()
-                one = self.parent().one()
-                ret = one
+                ret = self.parent().one()
                 e = 1
                 q = right
                 sparse = self.parent().is_sparse()
@@ -2313,11 +2332,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                             for i in range(len(c)):
                                 tmp[e*i] = c[i]**e
                             tmp = self.parent()(tmp)
-                        ret *= generic_power(tmp, r, one=one)
+                        ret *= generic_power(tmp, r)
                     e *= p
                 return ret
 
-        return generic_power(self,right)
+        return generic_power(self, right)
 
     def power_trunc(self, n, prec):
         r"""
@@ -2441,7 +2460,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         We verify that :trac:`23020` has been resolved. (There are no elements
         in the Sage library yet that do not implement ``__nonzero__``, so we
-        have to create one artifically.)::
+        have to create one artificially.)::
 
             sage: class PatchedAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
             ....:     def __nonzero__(self): raise NotImplementedError()
@@ -3118,6 +3137,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2 + z
             sage: f.change_ring(K.embeddings(CC)[0])
             x^2 - 0.500000000000000 - 0.866025403784439*I
+
+        TESTS:
+
+        Check that :trac:`25022` is fixed::
+
+            sage: K.<x> = ZZ[]
+            sage: x.change_ring(SR) == SR['x'].gen()
+            True
+            sage: x.change_ring(ZZ['x']) == ZZ['x']['x'].gen()
+            True
         """
         if isinstance(R, Morphism):
             # we're given a hom of the base ring extend to a poly hom
@@ -3125,7 +3154,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
             return R(self)
         else:
-            return self._parent.change_ring(R)(self)
+            return self._parent.change_ring(R)(list(self))
 
     def _mpoly_dict_recursive(self, variables=None, base_ring=None):
         """
@@ -3348,7 +3377,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return a numerator of self computed as self * self.denominator()
 
-        Note that some subclases may implement its own numerator
+        Note that some subclasses may implement its own numerator
         function. For example, see
         :class:`sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint`
 
@@ -7153,6 +7182,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-0.1666666666666667? - 0.552770798392567?*I, 1), (-0.1666666666666667? + 0.552770798392567?*I, 1), (0.1812324444698754? + 1.083954101317711?*I, 2)]
             sage: p.roots(ring=CIF)
             [(-0.1666666666666667? - 0.552770798392567?*I, 1), (-0.1666666666666667? + 0.552770798392567?*I, 1), (0.1812324444698754? + 1.083954101317711?*I, 2)]
+
+        In some cases, it is possible to isolate the roots of polynomials over
+        complex ball fields::
+
+            sage: Pol.<x> = CBF[]
+            sage: (x^2 + 2).roots(multiplicities=False)
+            [[+/- 1.54e-19] + [-1.414213562373095 +/- 4.90e-17]*I,
+            [+/- 1.54e-19] + [1.414213562373095 +/- 4.90e-17]*I]
+            sage: (x^3 - 1/2).roots(RBF, multiplicities=False)
+            [[0.7937005259840997 +/- 3.76e-17]]
+            sage: ((x - 1)^2).roots(multiplicities=False, proof=False)
+            doctest:...
+            UserWarning: roots may have been lost...
+            [[1.00000000000 +/- 8.43e-12] + [+/- 1.01e-11]*I,
+             [1.0000000000 +/- 5.22e-12] + [+/- 6.20e-12]*I]
 
         Note that coefficients in a number field with defining polynomial
         `x^2 + 1` are considered to be Gaussian rationals (with the

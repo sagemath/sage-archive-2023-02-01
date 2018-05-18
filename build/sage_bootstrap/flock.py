@@ -47,6 +47,17 @@ class FileType(argparse.FileType):
         return super(FileType, self).__call__(string)
 
 
+class IntOrFileType(FileType):
+    """
+    Like FileType but also accepts an int (e.g. for a file descriptor).
+    """
+
+    def __call__(self, string):
+        try:
+            return int(string)
+        except ValueError:
+            return super(IntOrFileType, self).__call__(string)
+
 
 def run(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
@@ -58,9 +69,11 @@ def run(argv=None):
     # but supplying the --exclusive flag explicitly may help clarity
     group.add_argument('-x', '--exclusive', action='store_true',
                        help='create an exclusive lock (the default)')
+    group.add_argument('-u', '--unlock', action='store_true',
+                       help='remove an existing lock')
     parser.add_argument('lock', metavar='LOCK',
-                        type=FileType('w+', makedirs=True),
-                        help='filename of the lock')
+                        type=IntOrFileType('w+', makedirs=True),
+                        help='filename of the lock an integer file descriptor')
     parser.add_argument('command', metavar='COMMAND', nargs=argparse.REMAINDER,
                         help='command to run with the lock including any '
                              'arguments to that command')
@@ -69,19 +82,31 @@ def run(argv=None):
 
     if args.shared:
         locktype = fcntl.LOCK_SH
+    elif args.unlock:
+        locktype = fcntl.LOCK_UN
     else:
         locktype = fcntl.LOCK_EX
 
+
     lock = args.lock
     command = args.command
+
+    if isinstance(lock, int) and command:
+        parser.error('sage-flock does not accept a command when passed '
+                     'a file descriptor number')
 
     # First try a non-blocking lock such that we can give an informative
     # message while the user is waiting.
     try:
         fcntl.flock(lock, locktype | fcntl.LOCK_NB)
-    except IOError:
+    except IOError as exc:
         if locktype == fcntl.LOCK_SH:
             kind = "shared"
+        elif locktype == fcntl.LOCK_UN:
+            # This shouldn't happen
+            sys.stderr.write(
+                "Unexpected error trying to unlock fd: {0}\n".format(exc))
+            return 1
         else:
             kind = "exclusive"
 
@@ -90,7 +115,8 @@ def run(argv=None):
         fcntl.flock(lock, locktype)
         sys.stderr.write("ok\n")
 
-    os.execvp(command[0], command)
+    if not (args.unlock or isinstance(lock, int)):
+        os.execvp(command[0], command)
 
 
 if __name__ == '__main__':

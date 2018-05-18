@@ -11,6 +11,7 @@ Catalog
 - :ref:`sage.combinat.partition`
 - :ref:`sage.combinat.tableau`
 - :ref:`sage.combinat.partition_tuple`
+- :ref:`sage.combinat.superpartition`
 - :ref:`sage.combinat.tableau_tuple`
 - :ref:`sage.combinat.skew_partition`
 - :ref:`sage.combinat.skew_tableau`
@@ -21,4 +22,5 @@ Catalog
 - :ref:`sage.combinat.rsk`
 - :ref:`sage.combinat.growth`
 - :ref:`sage.combinat.tableau_residues`
+- :ref:`sage.combinat.shifted_primed_tableau`
 """

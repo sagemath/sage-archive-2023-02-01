@@ -883,7 +883,8 @@ class AsymptoticExpansionGenerators(SageObject):
                 MonomialGrowthGroup
         from sage.arith.all import falling_factorial
         from sage.categories.cartesian_product import cartesian_product
-        from sage.functions.other import binomial, gamma
+        from sage.functions.other import binomial
+        from sage.functions.gamma import gamma
         from sage.calculus.calculus import limit
         from sage.misc.cachefunc import cached_function
         from sage.arith.srange import srange

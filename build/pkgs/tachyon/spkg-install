@@ -42,12 +42,7 @@ if [ "$UNAME" = "Darwin" ]; then
     # TODO: This has to be (re)checked for current versions (0.98.9+).
     # make macosx-thr
     # The threaded version of the 0.98 beta doesn't work on OS X.
-    if [ "$SAGE64" = "yes" ]; then
-        echo "Building a 64-bit version of Tachyon on MacOS X."
-        $MAKE macosx-64
-    else
-        $MAKE macosx
-    fi
+    $MAKE macosx
     finished
 fi
 
@@ -79,15 +74,7 @@ if [ "$UNAME" = "Linux" ]; then
 fi
 
 if [ "$UNAME" = "SunOS" ]; then
-    if [ "x$SAGE64" = xyes ]; then
-        # There was nothing suitable for 64-bit mode with
-        # gcc, so I made a new target. David Kirkby, May 2010.
-        echo "Building a 64-bit version of Tachyon on Solaris."
-        $MAKE solaris-pthreads-gcc-64-bit
-    else
-        echo "Building a 32-bit version of Tachyon on Solaris."
-        $MAKE solaris-pthreads-gcc
-    fi
+    $MAKE solaris-pthreads-gcc
     finished
 fi
 

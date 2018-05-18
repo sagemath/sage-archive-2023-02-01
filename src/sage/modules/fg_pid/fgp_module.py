@@ -310,16 +310,16 @@ class FGP_Module_class(Module):
         Finitely generated module V/W over Integer Ring with invariants (4, 12)
         sage: type(Q)
         <class 'sage.modules.fg_pid.fgp_module.FGP_Module_class_with_category'>
-    
+
     TESTS::
-    
+
     Make sure that the problems in
     http://trac.sagemath.org/sage_trac/ticket/7516 are fixed::
-    
+
         sage: V = FreeModule(QQ, 2)
         sage: W = V.submodule([V([1,1])])
         sage: Z = W.submodule([])
-        sage: WmodZ = W / Z   
+        sage: WmodZ = W / Z
         sage: loads(dumps(WmodZ))==WmodZ
         True
     """
@@ -436,6 +436,32 @@ class FGP_Module_class(Module):
         if is_FGP_Module(S):
             return S.has_canonical_map_to(self)
         return self._V.has_coerce_map_from(S)
+
+    def _mul_(self, other, switch_sides=False):
+        r"""
+        Return the image of this module under scalar multiplication by ``other``.
+
+        INPUT:
+
+        - ``other`` -- an element of the base ring
+        - ``switch_sides`` -- (default: ``False``) left or right multiplication
+
+        EXAMPLES::
+
+            sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ)
+            sage: W = span([2*V.0,4*V.1,3*V.2])
+            sage: Q = V/W
+            sage: Q
+            Finitely generated module V/W over Integer Ring with invariants (2, 12)
+            sage: 2*Q
+            Finitely generated module V/W over Integer Ring with invariants (6)
+            sage: Q*3
+            Finitely generated module V/W over Integer Ring with invariants (2, 4)
+        """
+        if other in self.base_ring():
+            return self._module_constructor(other*self.V() + self.W(), self.W())
+        raise ValueError("Scalar multiplication of a module is only " +
+                         "defined for an element of the base ring.")
 
     def _repr_(self):
         """
@@ -1634,9 +1660,9 @@ class FGP_Module_class(Module):
             Finitely generated module V/W over Integer Ring with invariants (0, 0)
             sage: Q.annihilator()
             Principal ideal (0) of Integer Ring
-            
+
         We check that :trac:`22720` is resolved::
-            
+
             sage: H=AdditiveAbelianGroup([])
             sage: H.annihilator()
             Principal ideal (1) of Integer Ring
@@ -1685,7 +1711,7 @@ class FGP_Module_class(Module):
             -7071641102956720018 # 64-bit
         """
         return hash( (self.V(), self.W()) )
-    
+
 ##############################################################
 # Useful for testing
 ##############################################################

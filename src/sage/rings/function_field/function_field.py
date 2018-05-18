@@ -161,7 +161,7 @@ class FunctionField(Field):
 
     def some_elements(self):
         """
-        Return some elemnts in this function field.
+        Return some elements in this function field.
 
         EXAMPLES::
 

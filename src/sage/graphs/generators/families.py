@@ -1052,15 +1052,14 @@ def FoldedCubeGraph(n):
 
 def FriendshipGraph(n):
     r"""
-    Returns the friendship graph `F_n`.
+    Return the friendship graph `F_n`.
 
     The friendship graph is also known as the Dutch windmill graph. Let
     `C_3` be the cycle graph on 3 vertices. Then `F_n` is constructed by
     joining `n \geq 1` copies of `C_3` at a common vertex. If `n = 1`,
     then `F_1` is isomorphic to `C_3` (the triangle graph). If `n = 2`,
     then `F_2` is the butterfly graph, otherwise known as the bowtie
-    graph. For more information, see this
-    `Wikipedia article on the friendship graph <http://en.wikipedia.org/wiki/Friendship_graph>`_.
+    graph. For more information, see :wikipedia:`Friendship_graph`.
 
     INPUT:
 

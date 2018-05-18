@@ -957,9 +957,9 @@ class SignedPermutations(ColoredPermutations):
         [2 3 1 4]
         [2 2 4 1]
         sage: S.long_element()
-        [-4, -3, -2, -1]
+        [-1, -2, -3, -4]
         sage: S.long_element().reduced_word()
-        [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]
+        [4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
 
     We can also go between the 2-colored permutation group::
 
@@ -1152,12 +1152,22 @@ class SignedPermutations(ColoredPermutations):
 
             sage: S = SignedPermutations(4)
             sage: S.long_element()
-            [-4, -3, -2, -1]
+            [-1, -2, -3, -4]
+
+        TESTS:
+
+        Check that this is the element of maximal length (:trac:`25200`)::
+
+            sage: S = SignedPermutations(4)
+            sage: S.long_element().length() == max(x.length() for x in S)
+            True
+            sage: all(SignedPermutations(n).long_element().length() == n^2
+            ....:     for n in range(2,10))
+            True
         """
         if index_set is not None:
             return super(SignedPermutations, self).long_element()
-        p = list(range(self._n, 0, -1))
-        return self.element_class(self, [-ZZ.one()] * self._n, self._P(p))
+        return self.element_class(self, [-ZZ.one()] * self._n, self._P.one())
 
     Element = SignedPermutation
 

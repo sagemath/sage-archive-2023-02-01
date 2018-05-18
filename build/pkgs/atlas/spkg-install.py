@@ -158,7 +158,7 @@ if 'SAGE_ATLAS_LIB' in os.environ:
         print('- or liblapack and libblas;')
         print('you wish to use existing ATLAS libraries.')
         print('For more details, see:')
-        print('http://doc.sagemath.org/html/en/installation/source.html#environment-variables')
+        print('https://doc.sagemath.org/html/en/installation/source.html#environment-variables')
         print('Unset SAGE_ATLAS_LIB to build ATLAS from source.')
         print('Then type make.')
         sys.exit(2)

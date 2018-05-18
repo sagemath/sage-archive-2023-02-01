@@ -588,7 +588,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         gSelf = self._gap_()
         gRight = right._gap_()
-        gapcmp = gSelf.__cmp__(gRight)
+        gapcmp = gSelf._cmp_(gRight)
         if not gapcmp:
             return rich_to_bool(op, 0)
 

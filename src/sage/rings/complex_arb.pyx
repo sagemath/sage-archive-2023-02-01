@@ -2,7 +2,7 @@
 r"""
 Arbitrary precision complex balls using Arb
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+This is a binding to the `Arb library <http://arblib.org>`_; it
 may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -1210,7 +1210,7 @@ cdef inline real_ball_field(ComplexBall ball):
 cdef class ComplexBall(RingElement):
     """
     Hold one ``acb_t`` of the `Arb library
-    <http://fredrikj.net/arb/>`_
+    <http://arblib.org>`_
 
     EXAMPLES::
 

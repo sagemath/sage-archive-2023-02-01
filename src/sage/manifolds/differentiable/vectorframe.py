@@ -810,6 +810,7 @@ class VectorFrame(FreeModuleBasis):
             Vector frame (M, (f_0,f_1))
 
         """
+        print("Way 8")
         return VectorFrame(self._fmodule, symbol, latex_symbol=latex_symbol,
                            indices=indices, latex_indices=latex_indices,
                            symbol_dual=symbol_dual,
@@ -1040,6 +1041,7 @@ class VectorFrame(FreeModuleBasis):
                             self._fmodule._basis_changes[(self, the_new_frame)]
             sdom._frame_changes[(the_new_frame, self)] = \
                             self._fmodule._basis_changes[(the_new_frame, self)]
+        print("Way 7")
         return the_new_frame
 
     def restrict(self, subdomain):
@@ -1087,6 +1089,7 @@ class VectorFrame(FreeModuleBasis):
 
         """
         if subdomain == self._domain:
+            print("Way 5")
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):
@@ -1100,10 +1103,12 @@ class VectorFrame(FreeModuleBasis):
                     res._superframes.update(self._superframes)
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
+                    print("Way 4")
                     return self._restrictions[subdomain]
             for dom, rst in self._restrictions.items():
                 if subdomain.is_subset(dom):
                     self._restrictions[subdomain] = rst.restrict(subdomain)
+                    print("Way 6")
                     return self._restrictions[subdomain]
             # Secondly one tries to get the restriction from one previously
             # defined on a larger domain:
@@ -1114,6 +1119,7 @@ class VectorFrame(FreeModuleBasis):
                     res._superframes.update(self._superframes)
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
+                    print("Way 3")
                     return self._restrictions[subdomain]
             # If this point is reached, the restriction has to be created
             # from scratch
@@ -1123,6 +1129,7 @@ class VectorFrame(FreeModuleBasis):
             if subdomain in self._restrictions:
                 # the restriction has been generated during the creation of
                 # resmodule (which may happen if sdest_map is not trivial)
+                print("Way 2")
                 return self._restrictions[subdomain]
             res = VectorFrame(resmodule,
                               self._symbol, latex_symbol=self._latex_symbol,
@@ -1150,6 +1157,16 @@ class VectorFrame(FreeModuleBasis):
             for sframe in self._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
+
+            print("Way 1")
+
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    res._restrictions.update(rst._restrictions)
+                    res._subframes.update(rst._subframes)
+                    rst._superframes.update(res._superframes)
+        print("Way 0")
+        print(self, subdomain)
         return self._restrictions[subdomain]
 
     @cached_method

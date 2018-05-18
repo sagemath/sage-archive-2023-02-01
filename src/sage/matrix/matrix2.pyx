@@ -414,16 +414,14 @@ cdef class Matrix(Matrix1):
                         if ret.type() == 't_INT':
                             raise ValueError("matrix equation has no solutions")
                         X.append(ret.sage())
-                    X = self.matrix_space(B.ncols(),self.ncols())(X)
+                    X = self.matrix_space(B.ncols(), self.ncols())(X)
                     return X.T
                 elif b.type() == "t_VEC":
                     b = b.Col()
                     ret = A.matsolvemod(K.cardinality(), b)
                     if ret.type() == 't_INT':
                         raise ValueError("matrix equation has no solutions")
-                    ret = A.matsolvemod(K.cardinality(), b)
                     ret = ret.Vec().sage()
-                if is_Vector(B):
                     return (K ** self.ncols())(ret)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
         if not K.is_field():

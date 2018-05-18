@@ -93,6 +93,11 @@ specify one less variable::
 REFERENCES:
 
 .. [WpInvariantTheory] :wikipedia:`Glossary_of_invariant_theory`
+
+AUTHORS:
+
+- Volker Braun (2013-01-24): initial version
+- Jesper Noordsij (2018-05-18): support for binary quintics added
 """
 
 #*****************************************************************************
@@ -111,6 +116,7 @@ from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.cachefunc import cached_method
+from sage.functions.other import binomial, factorial, sqrt
 
 
 
@@ -167,6 +173,55 @@ def _guess_variables(polynomial, *args):
     else:
         return tuple(args)
 
+def transvectant(f, g, h=1):
+    r"""
+    Returns the h-th transvectant of f and g.
+
+    INPUT:
+
+    - ``f,g`` -- two homogeneous binary forms in the same polynomial ring.
+
+    - ``h`` -- the order of the transvectant. If it is not specified,
+      the first transvectant is returned.
+
+    OUTPUT:
+
+    The h-th transvectant of the listed forms f and g:
+
+    .. MATH::
+
+        (f,g)_h = \frac{(d_f - h)! \cdot (d_g-h)!}{d_f! \cdot d_g!}\left(
+                  \left(\frac{\partial}{\partial x}\frac{\partial}{\partial z'}
+                  - \frac{\partial}{\partial x'}\frac{\partial}{\partial z}
+                  \right)^h \left(f(x,z) \cdot g(x',z')\right)
+                  \right)_{(x',z')=(x,z)}
+
+        EXAMPLES::
+
+        sage: from sage.rings.invariant_theory import AlgebraicForm, transvectant
+        sage: R.<x,y> = QQ[]
+        sage: f = AlgebraicForm(2, 5, x^5 + 5*x^4*y + 5*x*y^4 + y^5)
+        sage: transvectant(f, f, 4).form()
+        2*x^2 - 4*x*y + 2*y^2
+        sage: transvectant(f, f, 8).form()
+        0
+    """
+    R = f._ring
+    if not g._ring is R:
+        raise ValueError('All input forms must be in the same polynomial ring.')
+    x = f._variables[0]
+    y = f._variables[1]
+    degree = f._d + g._d - 2*h
+    if h > f._d or h > g._d:
+        tv = R(0)
+    else:
+        scalar = factorial(f._d-h) * factorial(g._d-h) * R(factorial(f._d)*factorial(g._d))**(-1)
+        def diff(j):
+            df = f.form().derivative(x,j).derivative(y,h-j)
+            dg = g.form().derivative(x,h-j).derivative(y,j)
+            return (-1)**j * binomial(h,j) * df * dg
+        tv = scalar * sum([diff(j) for j in range(h+1)])
+    return AlgebraicForm(2, degree, tv, x, y)
 
 ######################################################################
 
@@ -175,7 +230,7 @@ class FormsBase(SageObject):
     """
     The common base class of :class:`AlgebraicForm` and
     :class:`SeveralAlgebraicForms`.
-    
+
     This is an abstract base class to provide common methods. It does
     not make much sense to instantiate it.
 
@@ -189,7 +244,7 @@ class FormsBase(SageObject):
     def __init__(self, n, homogeneous, ring, variables):
         """
         The Python constructor.
-        
+
         TESTS::
 
             sage: from sage.rings.invariant_theory import FormsBase
@@ -200,7 +255,7 @@ class FormsBase(SageObject):
         self._homogeneous = homogeneous
         self._ring = ring
         self._variables = variables
-    
+
 
     def _jacobian_determinant(self, *args):
         """
@@ -218,7 +273,7 @@ class FormsBase(SageObject):
 
         EXAMPLES::
 
-        
+
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariant_theory import FormsBase
             sage: f = FormsBase(2, True, R, (x, y))
@@ -576,7 +631,7 @@ class AlgebraicForm(FormsBase):
         return self._polynomial
 
     polynomial = form
-    
+
 
     def homogenized(self, var='h'):
         """
@@ -596,7 +651,7 @@ class AlgebraicForm(FormsBase):
 
             sage: T.<t> = QQ[]
             sage: quadratic = invariant_theory.binary_quadratic(t^2 + 2*t + 3)
-            sage: quadratic 
+            sage: quadratic
             Binary quadratic with coefficients (1, 3, 2)
             sage: quadratic.homogenized()
             Binary quadratic with coefficients (1, 3, 2)
@@ -624,7 +679,7 @@ class AlgebraicForm(FormsBase):
             polynomial = R(self._polynomial).homogenize(var)
             variables = R.gens()
         return self.__class__(self._n, self._d, polynomial, variables)
- 
+
     def _extract_coefficients(self, monomials):
         """
         Return the coefficients of ``monomials``.
@@ -656,7 +711,7 @@ class AlgebraicForm(FormsBase):
             sage: m = [x^3, y^3, 1, x^2*y, x^2, x*y^2, y^2, x, y, x*y]
             sage: base._extract_coefficients(m)
             (a30, a03, a00, a21, a20, a12, a02, a10, a01, a11)
-            
+
             sage: T.<t> = QQ[]
             sage: univariate = AlgebraicForm(2, 3, t^3+2*t^2+3*t+4)
             sage: m = [t^3, 1, t, t^2]
@@ -677,7 +732,7 @@ class AlgebraicForm(FormsBase):
         if R.ngens() == 1:
             # Univariate polynomials
             assert indices == [0]
-            coefficient_monomial_iter = [(c, R.gen(0)**i) for i,c in 
+            coefficient_monomial_iter = [(c, R.gen(0)**i) for i,c in
                                          enumerate(self._polynomial.padded_list())]
             def index(monomial):
                 if monomial in R.base_ring():
@@ -718,7 +773,7 @@ class AlgebraicForm(FormsBase):
         """
         return self.coeffs()
 
-    
+
     def transformed(self, g):
         """
         Return the image under a linear transformation of the variables.
@@ -747,7 +802,7 @@ class AlgebraicForm(FormsBase):
             True
             sage: g = matrix(QQ, [[1, 0, 0], [-1, 1, -3], [-5, -5, 16]])
             sage: cubic.transformed(g)
-            Ternary cubic with coefficients (-356, -373, 12234, -1119, 3578, -1151, 
+            Ternary cubic with coefficients (-356, -373, 12234, -1119, 3578, -1151,
             3582, -11766, -11466, 7360)
             sage: cubic.transformed(g).transformed(g.inverse()) == cubic
             True
@@ -758,7 +813,7 @@ class AlgebraicForm(FormsBase):
         else:
             from sage.modules.all import vector
             v = vector(self._ring, self._variables)
-            g_v = g*v
+            g_v = vector(self._ring, g*v)
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
         # The covariant of the transformed polynomial
         return self.__class__(self._n, self._d, self.form().subs(transform), self.variables())
@@ -1027,7 +1082,7 @@ class QuadraticForm(AlgebraicForm):
             ....:       a10*x*z + a01*y*z + a00*z^2 )
             sage: quadratic = invariant_theory.ternary_quadratic(p, x,y,z)
             sage: quadratic.dual().dual().form().factor()
-            (1/4) * 
+            (1/4) *
             (a20*x^2 + a11*x*y + a02*y^2 + a10*x*z + a01*y*z + a00*z^2) *
             (4*a20*a02*a00 - a20*a01^2 - a11^2*a00 + a11*a10*a01 - a02*a10^2)
 
@@ -1392,6 +1447,570 @@ class BinaryQuartic(AlgebraicForm):
             5 * (2*a1**2*a3 - 3*a0*a2*a3 + a0*a1*a4) * xpow[4] + \
             (6*a1**2*a2 - 9*a0*a2**2 + 2*a0*a1*a3 + a0**2*a4) * xpow[5] + \
             (2*a1**3 - 3*a0*a1*a2 + a0**2*a3) * xpow[6]
+
+
+######################################################################
+
+class BinaryQuintic(AlgebraicForm):
+    """
+    Invariant theory of a binary quintic form.
+
+    You should use the :class:`invariant_theory
+    <InvariantTheoryFactory>` factory object to construct instances
+    of this class. See :meth:`~InvariantTheoryFactory.binary_quintic`
+    for details.
+
+    REFERENCES:
+
+    For a description of all invariants and covariants of a binary 
+    quintic, see section 73 of _[Cle1872].
+
+    TESTS::
+
+        sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+        sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+        sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+        sage: quintic._check_covariant('form')
+        sage: quintic._check_covariant('A_invariant', invariant=True)
+        sage: quintic._check_covariant('B_invariant', invariant=True)
+        sage: quintic._check_covariant('C_invariant', invariant=True)
+        sage: quintic._check_covariant('R_invariant', invariant=True)
+        sage: quintic._check_covariant('H_covariant')
+        sage: quintic._check_covariant('i_covariant')
+        sage: quintic._check_covariant('T_covariant')
+        sage: quintic._check_covariant('j_covariant')
+        sage: quintic._check_covariant('tau_covariant')
+        sage: quintic._check_covariant('theta_covariant')
+        sage: quintic._check_covariant('alpha_covariant')
+        sage: quintic._check_covariant('beta_covariant')
+        sage: quintic._check_covariant('gamma_covariant')
+        sage: quintic._check_covariant('delta_covariant')
+        sage: TestSuite(quintic).run()
+    """
+
+    def __init__(self, n, d, polynomial, *args):
+        """
+        The Python constructor.
+
+        TESTS::
+            sage: R.<x,y> = QQ[]
+            sage: from sage.rings.invariant_theory import BinaryQuintic
+            sage: BinaryQuintic(2, 5, x^5+2*x^3*y^2+3*x*y^4)
+            Binary quintic with coefficients (0, 3, 0, 2, 0, 1)
+        """
+        assert n == 2 and d == 5
+        super(BinaryQuintic, self).__init__(2, 5, polynomial, *args)
+        self._x = self._variables[0]
+        self._y = self._variables[1]
+
+
+    @cached_method
+    def monomials(self):
+        """
+        List the basis monomials in the form.
+
+        OUTPUT:
+        A tuple of monomials. They are in the same order as
+        :meth:`coeffs`.
+
+        EXAMPLES::
+            sage: R.<x,y> = QQ[]
+            sage: quintic = invariant_theory.binary_quintic(x^5+y^5)
+            sage: quintic.monomials()
+            (y^5, x*y^4, x^2*y^3, x^3*y^2, x^4*y, x^5)
+        """
+        quintic = self._polynomial
+        x0 = self._x
+        x1 = self._y
+        if self._homogeneous:
+            return (x1**5, x1**4*x0, x1**3*x0**2, x1**2*x0**3, x1*x0**4, x0**5)
+        else:
+            return (self._ring.one(), x0, x0**2, x0**3, x0**4, x0**5)
+
+
+    @cached_method
+    def coeffs(self):
+        """
+        The coefficients of a binary quintic.
+
+        Given
+
+        .. MATH::
+
+            f(x) = a_0 x_1^5 + a_1 x_0 x_1^4 + a_2 x_0^2 x_1^3 +
+                   a_3 x_0^3 x_1^2 + a_4 x_0^4 x_1 + a_5 x_1^5
+
+        this function returns `a = (a_0, a_1, a_2, a_3, a_4, a_5)`
+
+        EXAMPLES::
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.coeffs()
+            (a0, a1, a2, a3, a4, a5)
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x> = QQ[]
+            sage: p = a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5
+            sage: quintic = invariant_theory.binary_quintic(p, x)
+            sage: quintic.coeffs()
+            (a0, a1, a2, a3, a4, a5)
+        """
+        return self._extract_coefficients(self.monomials())
+
+
+    def scaled_coeffs(self):
+        """
+        The coefficients of a binary quintic.
+
+        Given
+
+        .. MATH::
+
+            f(x) = a_0 x_1^5 + 5 a_1 x_0 x_1^4 + 10 a_2 x_0^2 x_1^3 +
+                   10 a_3 x_0^3 x_1^2 + 5 a_4 x_0^4 x_1 + a_5 x_1^5
+
+        this function returns `a = (a_0, a_1, a_2, a_3, a_4, a_5)`
+
+        EXAMPLES::
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + 5*a1*x1^4*x0 + 10*a2*x1^3*x0^2 + 10*a3*x1^2*x0^3 + 5*a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.scaled_coeffs()
+            (a0, a1, a2, a3, a4, a5)
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x> = QQ[]
+            sage: p = a0 + 5*a1*x + 10*a2*x^2 + 10*a3*x^3 + 5*a4*x^4 + a5*x^5
+            sage: quintic = invariant_theory.binary_quintic(p, x)
+            sage: quintic.scaled_coeffs()
+            (a0, a1, a2, a3, a4, a5)
+        """
+        coeff = self.coeffs()
+        return (coeff[0], coeff[1]/5, coeff[2]/10, coeff[3]/10, coeff[4]/5, coeff[5])
+
+
+    @cached_method
+    def H_covariant(self, asform=False):
+        """
+        Returns the covariant 'H' of a binary quintic.
+
+        OUTPUT:
+
+        The H-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.H_covariant()
+            -2/25*a4^2*x0^6 + 1/5*a3*a5*x0^6 - 3/25*a3*a4*x0^5*x1 +
+            3/5*a2*a5*x0^5*x1 - 3/25*a3^2*x0^4*x1^2 + 3/25*a2*a4*x0^4*x1^2 +
+            6/5*a1*a5*x0^4*x1^2 - 4/25*a2*a3*x0^3*x1^3 + 14/25*a1*a4*x0^3*x1^3 +
+            2*a0*a5*x0^3*x1^3 - 3/25*a2^2*x0^2*x1^4 + 3/25*a1*a3*x0^2*x1^4 +
+            6/5*a0*a4*x0^2*x1^4 - 3/25*a1*a2*x0*x1^5 + 3/5*a0*a3*x0*x1^5 -
+            2/25*a1^2*x1^6 + 1/5*a0*a2*x1^6
+        """
+        cov = transvectant(self, self, 2)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def i_covariant(self, asform=False):
+        """
+        Returns the covariant 'i' of a binary quintic.
+
+        OUTPUT:
+
+        The i-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.i_covariant()
+            3/50*a3^2*x0^2 - 4/25*a2*a4*x0^2 + 2/5*a1*a5*x0^2 + 1/25*a2*a3*x0*x1 -
+            6/25*a1*a4*x0*x1 + 2*a0*a5*x0*x1 + 3/50*a2^2*x1^2 - 4/25*a1*a3*x1^2 +
+            2/5*a0*a4*x1^2
+        """
+        cov = transvectant(self, self, 4)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def T_covariant(self, asform=False):
+        """
+        Returns the covariant 'T' of a binary quintic.
+
+        OUTPUT:
+
+        The T-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.T_covariant()
+            2/125*a4^3*x0^9 - 3/50*a3*a4*a5*x0^9 + 1/10*a2*a5^2*x0^9 +
+            9/250*a3*a4^2*x0^8*x1 - 3/25*a3^2*a5*x0^8*x1 + 1/50*a2*a4*a5*x0^8*x1 +
+            2/5*a1*a5^2*x0^8*x1 + 3/250*a3^2*a4*x0^7*x1^2 + 8/125*a2*a4^2*x0^7*x1^2
+            ...
+            11/25*a0*a1*a4*x0^2*x1^7 - a0^2*a5*x0^2*x1^7 - 9/250*a1^2*a2*x0*x1^8 +
+            3/25*a0*a2^2*x0*x1^8 - 1/50*a0*a1*a3*x0*x1^8 - 2/5*a0^2*a4*x0*x1^8 -
+            2/125*a1^3*x1^9 + 3/50*a0*a1*a2*x1^9 - 1/10*a0^2*a3*x1^9
+        """
+        H = self.H_covariant(asform=True)
+        cov = transvectant(H, self, 1)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def j_covariant(self, asform=False):
+        """
+        Returns the covariant 'j' of a binary quintic.
+
+        OUTPUT:
+
+        The j-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.j_covariant()
+            -3/500*a3^3*x0^3 + 3/125*a2*a3*a4*x0^3 - 6/125*a1*a4^2*x0^3 -
+            3/50*a2^2*a5*x0^3 + 3/25*a1*a3*a5*x0^3 - 3/500*a2*a3^2*x0^2*x1 +
+            3/250*a2^2*a4*x0^2*x1 + 3/125*a1*a3*a4*x0^2*x1 - 6/25*a0*a4^2*x0^2*x1 -
+            3/25*a1*a2*a5*x0^2*x1 + 3/5*a0*a3*a5*x0^2*x1 - 3/500*a2^2*a3*x0*x1^2 +
+            3/250*a1*a3^2*x0*x1^2 + 3/125*a1*a2*a4*x0*x1^2 - 3/25*a0*a3*a4*x0*x1^2 -
+            6/25*a1^2*a5*x0*x1^2 + 3/5*a0*a2*a5*x0*x1^2 - 3/500*a2^3*x1^3 +
+            3/125*a1*a2*a3*x1^3 - 3/50*a0*a3^2*x1^3 - 6/125*a1^2*a4*x1^3 +
+            3/25*a0*a2*a4*x1^3
+        """
+        x0 = self._x
+        x1 = self._y
+        i = self.i_covariant()
+        minusi = AlgebraicForm(2, 2, -i, x0, x1)
+        cov = transvectant(minusi, self, 2)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def tau_covariant(self, asform=False):
+        r"""
+        Returns the covariant '\tau' of a binary quintic.
+
+        OUTPUT:
+
+        The \tau-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.tau_covariant()
+            1/62500*a2^2*a3^4*x0^2 - 3/62500*a1*a3^5*x0^2 -
+            1/15625*a2^3*a3^2*a4*x0^2 + 1/6250*a1*a2*a3^3*a4*x0^2 +
+            3/6250*a0*a3^4*a4*x0^2 - 1/31250*a2^4*a4^2*x0^2 +
+            ...
+            2/125*a0*a1*a2^2*a4*a5*x1^2 - 4/125*a0*a1^2*a3*a4*a5*x1^2 +
+            2/25*a0^2*a2*a3*a4*a5*x1^2 - 8/625*a1^4*a5^2*x1^2 +
+            8/125*a0*a1^2*a2*a5^2*x1^2 - 2/25*a0^2*a2^2*a5^2*x1^2
+        """
+        j = self.j_covariant(asform=True)
+        cov = transvectant(j, j, 2)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def theta_covariant(self, asform=False):
+        r"""
+        Returns the covariant '\theta' of a binary quintic.
+
+        OUTPUT:
+
+        The \theta-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.theta_covariant()
+            -1/625000*a2^3*a3^5*x0^2 + 9/1250000*a1*a2*a3^6*x0^2 -
+            27/1250000*a0*a3^7*x0^2 + 3/250000*a2^4*a3^3*a4*x0^2 -
+            7/125000*a1*a2^2*a3^4*a4*x0^2 - 3/312500*a1^2*a3^5*a4*x0^2 +
+            ...
+            6/625*a0^2*a1*a2^2*a4*a5^2*x1^2 + 24/625*a0^2*a1^2*a3*a4*a5^2*x1^2 -
+            12/125*a0^3*a2*a3*a4*a5^2*x1^2 + 8/625*a0*a1^4*a5^3*x1^2 -
+            8/125*a0^2*a1^2*a2*a5^3*x1^2 + 2/25*a0^3*a2^2*a5^3*x1^2
+        """
+        i = self.i_covariant(asform=True)
+        tau = self.tau_covariant(asform=True)
+        cov = transvectant(i, tau, 1)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def alpha_covariant(self, asform=False):
+        r"""
+        Returns the covariant '\alpha' of a binary quintic.
+
+        OUTPUT:
+
+        The \alpha-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.alpha_covariant()
+            1/2500*a2^2*a3^3*x0 - 3/2500*a1*a3^4*x0 - 1/625*a2^3*a3*a4*x0 +
+            3/625*a1*a2*a3^2*a4*x0 + 3/625*a0*a3^3*a4*x0 + 2/625*a1*a2^2*a4^2*x0 -
+            6/625*a1^2*a3*a4^2*x0 - 12/625*a0*a2*a3*a4^2*x0 + 24/625*a0*a1*a4^3*x0 +
+            ...
+            12/625*a1^2*a2*a3*a5*x1 - 1/125*a0*a2^2*a3*a5*x1 +
+            8/125*a0*a1*a3^2*a5*x1 + 24/625*a1^3*a4*a5*x1 - 8/125*a0*a1*a2*a4*a5*x1
+            - 4/25*a0^2*a3*a4*a5*x1 - 4/25*a0*a1^2*a5^2*x1 + 2/5*a0^2*a2*a5^2*x1
+        """
+        i = self.i_covariant()
+        x0 = self._x
+        x1 = self._y
+        i2 = AlgebraicForm(2, 4, i**2, x0, x1)
+        cov = transvectant(i2, self, 4)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def beta_covariant(self, asform=False):
+        r"""
+        Returns the covariant '\beta' of a binary quintic.
+
+        OUTPUT:
+
+        The \beta-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.beta_covariant()
+            -1/62500*a2^3*a3^4*x0 + 9/125000*a1*a2*a3^5*x0 - 27/125000*a0*a3^6*x0 +
+            13/125000*a2^4*a3^2*a4*x0 - 31/62500*a1*a2^2*a3^3*a4*x0 -
+            3/62500*a1^2*a3^4*a4*x0 + 27/15625*a0*a2*a3^4*a4*x0 -
+            ...
+            16/125*a0^2*a1*a3^2*a5^2*x1 - 28/625*a0*a1^3*a4*a5^2*x1 +
+            6/125*a0^2*a1*a2*a4*a5^2*x1 + 8/25*a0^3*a3*a4*a5^2*x1 +
+            4/25*a0^2*a1^2*a5^3*x1 - 2/5*a0^3*a2*a5^3*x1
+        """
+        i = self.i_covariant(asform=True)
+        alpha = self.alpha_covariant(asform=True)
+        cov = transvectant(i, alpha, 1)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def gamma_covariant(self, asform=False):
+        r"""
+        Returns the covariant '\gamma' of a binary quintic.
+
+        OUTPUT:
+
+        The \gamma-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.gamma_covariant()
+            1/156250000*a2^5*a3^6*x0 - 3/62500000*a1*a2^3*a3^7*x0 +
+            27/312500000*a1^2*a2*a3^8*x0 + 27/312500000*a0*a2^2*a3^8*x0 -
+            81/312500000*a0*a1*a3^9*x0 - 19/312500000*a2^6*a3^4*a4*x0 +
+            ...
+            32/3125*a0^2*a1^3*a2^2*a5^4*x1 + 6/625*a0^3*a1*a2^3*a5^4*x1 -
+            8/3125*a0^2*a1^4*a3*a5^4*x1 + 8/625*a0^3*a1^2*a2*a3*a5^4*x1 -
+            2/125*a0^4*a2^2*a3*a5^4*x1
+        """
+        alpha = self.alpha_covariant(asform=True)
+        tau = self.tau_covariant(asform=True)
+        cov = transvectant(tau, alpha, 1)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def delta_covariant(self, asform=False):
+        r"""
+        Returns the covariant '\delta' of a binary quintic.
+
+        OUTPUT:
+
+        The \delta-covariant of the binary quintic as polynomial or as binary form.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.delta_covariant()
+            1/1562500000*a2^6*a3^7*x0 - 9/1562500000*a1*a2^4*a3^8*x0 +
+            9/625000000*a1^2*a2^2*a3^9*x0 + 9/781250000*a0*a2^3*a3^9*x0 -
+            9/1562500000*a1^3*a3^10*x0 - 81/1562500000*a0*a1*a2*a3^10*x0 +
+            ...
+            64/3125*a0^3*a1^3*a2^2*a5^5*x1 - 12/625*a0^4*a1*a2^3*a5^5*x1 +
+            16/3125*a0^3*a1^4*a3*a5^5*x1 - 16/625*a0^4*a1^2*a2*a3*a5^5*x1 +
+            4/125*a0^5*a2^2*a3*a5^5*x1
+        """
+        alpha = self.alpha_covariant(asform=True)
+        theta = self.theta_covariant(asform=True)
+        cov = transvectant(theta, alpha, 1)
+        if asform:
+            return cov
+        else:
+            return cov.polynomial()
+
+
+    @cached_method
+    def A_invariant(self):
+        """
+        Returns the invariant A of a binary quintic.
+
+        OUTPUT:
+
+        The A-invariant of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.A_invariant()
+            4/625*a2^2*a3^2 - 12/625*a1*a3^3 - 12/625*a2^3*a4 + 38/625*a1*a2*a3*a4 +
+            6/125*a0*a3^2*a4 - 18/625*a1^2*a4^2 - 16/125*a0*a2*a4^2 +
+            6/125*a1*a2^2*a5 - 16/125*a1^2*a3*a5 - 2/25*a0*a2*a3*a5 +
+            4/5*a0*a1*a4*a5 - 2*a0^2*a5^2
+        """
+        i = self.i_covariant(asform=True)
+        cov = transvectant(i, i, 2)
+        return cov.polynomial()
+
+
+    @cached_method
+    def B_invariant(self):
+        """
+        Returns the invariant B of a binary quintic.
+
+        OUTPUT:
+
+        The B-invariant of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.B_invariant()
+            1/1562500*a2^4*a3^4 - 3/781250*a1*a2^2*a3^5 + 9/1562500*a1^2*a3^6 -
+            3/781250*a2^5*a3^2*a4 + 37/1562500*a1*a2^3*a3^3*a4 -
+            57/1562500*a1^2*a2*a3^4*a4 + 3/312500*a0*a2^2*a3^4*a4 -
+            ...
+            8/625*a0^2*a1^2*a4^2*a5^2 - 4/125*a0^3*a2*a4^2*a5^2 - 16/3125*a1^5*a5^3
+            + 4/125*a0*a1^3*a2*a5^3 - 6/125*a0^2*a1*a2^2*a5^3 -
+            4/125*a0^2*a1^2*a3*a5^3 + 2/25*a0^3*a2*a3*a5^3
+        """
+        i = self.i_covariant(asform=True)
+        tau = self.tau_covariant(asform=True)
+        cov = transvectant(i, tau, 2)
+        return cov.polynomial()
+
+
+    @cached_method
+    def C_invariant(self):
+        """
+        Returns the invariant C of a binary quintic.
+
+        OUTPUT:
+
+        The C-invariant of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.C_invariant()
+            -3/1953125000*a2^6*a3^6 + 27/1953125000*a1*a2^4*a3^7 -
+            249/7812500000*a1^2*a2^2*a3^8 - 3/78125000*a0*a2^3*a3^8 +
+            3/976562500*a1^3*a3^9 + 27/156250000*a0*a1*a2*a3^9 -
+            ...
+            192/15625*a0^2*a1^3*a2^2*a3*a5^4 - 36/3125*a0^3*a1*a2^3*a3*a5^4 +
+            24/15625*a0^2*a1^4*a3^2*a5^4 - 24/3125*a0^3*a1^2*a2*a3^2*a5^4 +
+            6/625*a0^4*a2^2*a3^2*a5^4
+        """
+        tau = self.tau_covariant(asform=True)
+        cov = transvectant(tau, tau, 2)
+        return cov.polynomial()
+
+
+    @cached_method
+    def R_invariant(self):
+        """
+        Returns the invariant R of a binary quintic.
+
+        OUTPUT:
+
+        The R-invariant of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.R_invariant()
+            3/3906250000000*a1^2*a2^5*a3^11 - 3/976562500000*a0*a2^6*a3^11 -
+            51/7812500000000*a1^3*a2^3*a3^12 + 27/976562500000*a0*a1*a2^4*a3^12 +
+            27/1953125000000*a1^4*a2*a3^13 - 81/1562500000000*a0*a1^2*a2^2*a3^13 -
+            ...
+            384/9765625*a0*a1^10*a5^7 - 192/390625*a0^2*a1^8*a2*a5^7 +
+            192/78125*a0^3*a1^6*a2^2*a5^7 - 96/15625*a0^4*a1^4*a2^3*a5^7 +
+            24/3125*a0^5*a1^2*a2^4*a5^7 - 12/3125*a0^6*a2^5*a5^7
+        """
+        beta = self.beta_covariant(asform=True)
+        gamma = self.gamma_covariant(asform=True)
+        cov = transvectant(beta, gamma, 1)
+        return cov.polynomial()
 
 
 ######################################################################
@@ -1961,8 +2580,8 @@ class TernaryCubic(AlgebraicForm):
         """
         F = self._ring.base_ring()
         return 1 / F(9) * self._jacobian_determinant(
-            [self.form(), 3], 
-            [self.Hessian(), 3], 
+            [self.form(), 3],
+            [self.Hessian(), 3],
             [self.Theta_covariant(), 6])
 
     def syzygy(self, U, S, T, H, Theta, J):
@@ -1973,7 +2592,7 @@ class TernaryCubic(AlgebraicForm):
         INPUT:
 
         - ``U``, ``S``, ``T``, ``H``, ``Theta``, ``J`` --
-          polynomials from the same polynomial ring. 
+          polynomials from the same polynomial ring.
 
         OUTPUT:
 
@@ -1993,7 +2612,7 @@ class TernaryCubic(AlgebraicForm):
             sage: T = cubic.T_invariant()
             sage: H = cubic.Hessian()
             sage: Theta = cubic.Theta_covariant()
-            sage: J = cubic.J_covariant() 
+            sage: J = cubic.J_covariant()
             sage: cubic.syzygy(U, S, T, H, Theta, J)
             0
         """
@@ -2056,7 +2675,7 @@ class SeveralAlgebraicForms(FormsBase):
         if not all(set(f._variables) == s for f in forms):
             raise ValueError('All forms must be in the same variables.')
         self._forms = forms
-        
+
     def __richcmp__(self, other, op):
         """
         Compare ``self`` with ``other``.
@@ -2094,8 +2713,8 @@ class SeveralAlgebraicForms(FormsBase):
             Joint binary quadratic with coefficients (1, 1, 0) and binary
             quadratic with coefficients (0, 0, 1)
             sage: SeveralAlgebraicForms([q1, q2, q3])   # indirect doctest
-            Joint binary quadratic with coefficients (1, 1, 0), binary 
-            quadratic with coefficients (0, 0, 1), and binary quadratic 
+            Joint binary quadratic with coefficients (1, 1, 0), binary
+            quadratic with coefficients (0, 0, 1), and binary quadratic
             with coefficients (1, 1, 2)
         """
         if self.n_forms() == 1:
@@ -2150,9 +2769,9 @@ class SeveralAlgebraicForms(FormsBase):
             True
         """
         return self._forms[i]
-    
+
     __getitem__ = get_form
-    
+
 
     def homogenized(self, var='h'):
         """
@@ -2173,10 +2792,10 @@ class SeveralAlgebraicForms(FormsBase):
             sage: R.<x,y,z> = QQ[]
             sage: q = invariant_theory.quaternary_biquadratic(x^2+1, y^2+1, [x,y,z])
             sage: q
-            Joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0) 
+            Joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0)
             and quaternary quadratic with coefficients (0, 1, 0, 1, 0, 0, 0, 0, 0, 0)
             sage: q.homogenized()
-            Joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0) 
+            Joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0)
             and quaternary quadratic with coefficients (0, 1, 0, 1, 0, 0, 0, 0, 0, 0)
             sage: type(q) is type(q.homogenized())
             True
@@ -2531,7 +3150,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
         sage: R.<w,x,y,z> = QQ[]
         sage: inv = invariant_theory.quaternary_biquadratic(w^2+x^2, y^2+z^2, w, x, y, z)
         sage: inv
-        Joint quaternary quadratic with coefficients (1, 1, 0, 0, 0, 0, 0, 0, 0, 0) and 
+        Joint quaternary quadratic with coefficients (1, 1, 0, 0, 0, 0, 0, 0, 0, 0) and
         quaternary quadratic with coefficients (0, 0, 1, 1, 0, 0, 0, 0, 0, 0)
         sage: TestSuite(inv).run()
 
@@ -2584,7 +3203,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             True
         """
         return self.get_form(1).matrix().det()
-        
+
 
     def _Theta_helper(self, scaled_coeffs_1, scaled_coeffs_2):
         """
@@ -2824,7 +3443,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
         This is the Jacobian determinant of the two biquadratics, the
         `T`-covariant, and the `T'`-covariant with respect to the four
         homogeneous variables.
-        
+
         EXAMPLES::
 
             sage: R.<w,x,y,z,a0,a1,a2,a3,A0,A1,A2,A3> = QQ[]
@@ -2842,7 +3461,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             [self.T_covariant(), 4],
             [self.T_prime_covariant(), 4])
 
-    
+
     def syzygy(self, Delta, Theta, Phi, Theta_prime, Delta_prime, U, V, T, T_prime, J):
         """
         Return the syzygy evaluated on the invariants and covariants.
@@ -2851,14 +3470,14 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
         - ``Delta``, ``Theta``, ``Phi``, ``Theta_prime``,
           ``Delta_prime``, ``U``, ``V``, ``T``, ``T_prime``, ``J`` --
-          polynomials from the same polynomial ring. 
+          polynomials from the same polynomial ring.
 
         OUTPUT:
 
         Zero if the ``U`` is the first polynomial, ``V`` the second
         polynomial, and the remaining input are the invariants and
         covariants of a quaternary biquadratic.
-        
+
         EXAMPLES::
 
             sage: R.<w,x,y,z> = QQ[]
@@ -2899,13 +3518,13 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             )* V + \
             ( (Delta*Phi*Delta_prime) * T**2 +
               (3*Delta*Theta_prime*Delta_prime - Theta*Phi*Delta_prime) * T*T_prime +
-              (2*Delta*Delta_prime**2 - 2*Theta*Theta_prime*Delta_prime 
+              (2*Delta*Delta_prime**2 - 2*Theta*Theta_prime*Delta_prime
                + Phi**2*Delta_prime) * T_prime**2
             ) * U**2 + \
             ( (Delta*Theta*Delta_prime + 2*Delta*Phi*Theta_prime - Theta**2*Theta_prime) * T**2 +
-              (4*Delta*Phi*Delta_prime - 3*Theta**2*Delta_prime 
+              (4*Delta*Phi*Delta_prime - 3*Theta**2*Delta_prime
                - 3*Delta*Theta_prime**2 + Theta*Phi*Theta_prime) * T*T_prime +
-              (Delta*Theta_prime*Delta_prime + 2*Delta_prime*Phi*Theta 
+              (Delta*Theta_prime*Delta_prime + 2*Delta_prime*Phi*Theta
                - Theta*Theta_prime**2) * T_prime**2
             ) * U*V + \
             ( (2*Delta**2*Delta_prime - 2*Delta*Theta*Theta_prime + Delta*Phi**2) * T**2 +
@@ -2917,12 +3536,12 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             ) * U**3 + \
             ( (4*Delta**2*Delta_prime**2 - Delta*Theta*Theta_prime*Delta_prime
                - 2*Delta*Phi**2*Delta_prime + Theta**2*Phi*Delta_prime) * T +
-              (-5*Delta*Theta*Delta_prime**2 + Delta*Phi*Theta_prime*Delta_prime 
+              (-5*Delta*Theta*Delta_prime**2 + Delta*Phi*Theta_prime*Delta_prime
                 + 2*Theta**2*Theta_prime*Delta_prime - Theta*Phi**2*Delta_prime) * T_prime
             ) * U**2*V + \
             ( (-5*Delta**2*Theta_prime*Delta_prime + Delta*Theta*Phi*Delta_prime
                 + 2*Delta*Theta*Theta_prime**2 - Delta*Phi**2*Theta_prime) * T +
-              (4*Delta**2*Delta_prime**2 - Delta*Theta*Theta_prime*Delta_prime 
+              (4*Delta**2*Delta_prime**2 - Delta*Theta*Theta_prime*Delta_prime
                - 2*Delta*Phi**2*Delta_prime + Delta*Phi*Theta_prime**2) * T_prime
             ) * U*V**2 + \
             ( (-2*Delta**2*Phi*Delta_prime + Delta**2*Theta_prime**2) * T +
@@ -2931,11 +3550,11 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
             (Delta**2*Delta_prime**3) * U**4 + \
             (-3*Delta**2*Theta_prime*Delta_prime**2 + 3*Delta*Theta*Phi*Delta_prime**2
               - Theta**3*Delta_prime**2) * U**3*V + \
-            (-3*Delta**2*Phi*Delta_prime**2 + 3*Delta*Theta**2*Delta_prime**2 
-              + 3*Delta**2*Theta_prime**2*Delta_prime 
-              - 3*Delta*Theta*Phi*Theta_prime*Delta_prime 
+            (-3*Delta**2*Phi*Delta_prime**2 + 3*Delta*Theta**2*Delta_prime**2
+              + 3*Delta**2*Theta_prime**2*Delta_prime
+              - 3*Delta*Theta*Phi*Theta_prime*Delta_prime
               + Delta*Phi**3*Delta_prime) * U**2*V**2 + \
-            (-3*Delta**2*Theta*Delta_prime**2 + 3*Delta**2*Phi*Theta_prime*Delta_prime 
+            (-3*Delta**2*Theta*Delta_prime**2 + 3*Delta**2*Phi*Theta_prime*Delta_prime
               - Delta**2*Theta_prime**3) * U*V**3 + \
             (Delta**3*Delta_prime**2) * V**4
 
@@ -2952,7 +3571,7 @@ class InvariantTheoryFactory(object):
         sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
         Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
     """
-    
+
     def __repr__(self):
         """
         Return a string representation.
@@ -3065,7 +3684,7 @@ can then be queried for invariant and covariants. For example,
         Invariant theory of a quadratic in two variables.
 
         INPUT:
-                
+
         - ``quadratic`` -- a quadratic form.
 
         - ``x``, ``y`` -- the homogeneous variables. If ``y`` is
@@ -3092,7 +3711,7 @@ can then be queried for invariant and covariants. For example,
         Invariant theory of a quadratic in four variables.
 
         INPUT:
-                
+
         - ``quadratic`` -- a quadratic form.
 
         - ``w``, ``x``, ``y``, ``z`` -- the homogeneous variables. If
@@ -3161,6 +3780,37 @@ can then be queried for invariant and covariants. For example,
             <class 'sage.rings.invariant_theory.BinaryQuartic'>
         """
         return BinaryQuartic(2, 4, quartic, *args, **kwds)
+
+    def binary_quintic(self, quintic, *args, **kwds):
+        """
+        Invariant theory of a quintic in two variables.
+
+        The algebra of invariants of a quintic form is generated by
+        invariants `A`, `B` and `C` of respective degrees 4, 8 and 12.
+
+        INPUT:
+
+        - ``quintic`` -- a quintic.
+
+        - ``x``, ``y`` -- the homogeneous variables. If ``y`` is
+          ``None``, the quintic is assumed to be inhomogeneous.
+
+        REFERENCES:
+
+        - :wikipedia:`Invariant_of_a_binary_form`
+        - [Cle1872]_ 
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: quintic = invariant_theory.binary_quintic(x^5+y^5)
+            sage: quintic
+            Binary quintic with coefficients (1, 0, 0, 0, 0, 1)
+            
+            sage: type(quintic)
+            <class 'sage.rings.invariant_theory.BinaryQuintic'>
+        """
+        return BinaryQuintic(2, 5, quintic, *args, **kwds)
 
     def ternary_quadratic(self, quadratic, *args, **kwds):
         """
@@ -3338,8 +3988,8 @@ can then be queried for invariant and covariants. For example,
         Distance between two spheres [Salmon]_ ::
 
             sage: R.<x,y,z, a,b,c, r1,r2> = QQ[]
-            sage: S1 = -r1^2 + x^2 + y^2 + z^2 
-            sage: S2 = -r2^2 + (x-a)^2 + (y-b)^2 + (z-c)^2 
+            sage: S1 = -r1^2 + x^2 + y^2 + z^2
+            sage: S2 = -r2^2 + (x-a)^2 + (y-b)^2 + (z-c)^2
             sage: inv = invariant_theory.quaternary_biquadratic(S1, S2, [x, y, z])
             sage: inv.Delta_invariant()
             -r1^2
@@ -3361,4 +4011,3 @@ can then be queried for invariant and covariants. For example,
 
 
 invariant_theory = InvariantTheoryFactory()
-

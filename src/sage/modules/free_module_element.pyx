@@ -1545,20 +1545,29 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.arith.all import lcm
         return lcm(v)
 
-    def iteritems(self):
+    def items(self):
         """
-        Return iterator over self.
+        Return an iterator over ``self``.
 
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi])
-            sage: v.iteritems()
+            sage: v.items()
             <generator object at ...>
+            sage: list(v.items())
+            [(0, 1), (1, 2/3), (2, pi)]
+
+        TESTS:
+
+        Using iteritems as an alias::
+
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
         cdef dict d = self.dict(copy=False)
         yield from d.iteritems()
+
+    iteritems = items
 
     def __abs__(self):
         """
@@ -4728,19 +4737,28 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
         return richcmp([(-x, y) for x, y in a], [(-x, y) for x, y in b], op)
 
-    def iteritems(self):
+    def items(self):
         """
-        Return iterator over the entries of self.
+        Return an iterator over the entries of ``self``.
 
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.iteritems()
+            sage: v.items()
             <dictionary-itemiterator object at ...>
+            sage: list(v.items())
+            [(0, 1), (1, 2/3), (2, pi)]
+
+        TESTS:
+
+        Using iteritems as an alias::
+
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
         return self._entries.iteritems()
+
+    iteritems = items
 
     def __reduce__(self):
         """

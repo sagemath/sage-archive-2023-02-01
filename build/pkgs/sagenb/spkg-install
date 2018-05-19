@@ -20,7 +20,12 @@ if [ $? -ne 0 ]; then
 fi
 
 # let sagenb use mathjax
-PYTHON_VERSION=$("$SAGE_LOCAL/bin/python2" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+if [ "$SAGE_PYTHON3" = yes ]
+then
+    PYTHON_VERSION=$("$SAGE_LOCAL/bin/python3" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+else
+    PYTHON_VERSION=$("$SAGE_LOCAL/bin/python2" -c 'import sys; print("%d.%d" % sys.version_info[:2])')
+fi
 cd "${SAGE_LOCAL}/lib/python$PYTHON_VERSION/site-packages/sagenb/data"
 if [ $? -ne 0 ]; then
     echo >&2 "Error: Cannot find SageNB data directory."

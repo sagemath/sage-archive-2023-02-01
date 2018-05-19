@@ -1862,6 +1862,14 @@ REFERENCES:
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
 
+.. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
+             Dobinsky’s equality and Charlier
+             polynomials*. Trans. Amer. Math. Soc., 245 (1978),
+             89-118.
+
+.. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
+                http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
+
 .. [MJ1991] Mestre, Jean-Francois. *Construction de courbes de genre 2 a partir de
             leurs modules*. Effective methods in algebraic geometry (Castiglioncello,
             1990), 313--334, Progr. Math., 94, Birkhauser Boston, Boston, MA, 1991.
@@ -1870,20 +1878,6 @@ REFERENCES:
              *Computations in a free Lie algebra*. (1998).
              `Downloadable from Munthe-Kaas's website
              <http://hans.munthe-kaas.no/work/Blog/Entries/1999/1/1_Article__Computations_in_a_Free_Lie-algebra.html>`_
-
-<<<<<<< HEAD
-=======
-.. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
-             Ann. of Math. (2) 67 (1958), 150-171.
-
-.. [Mil1978] \S. Milne, *A q-analog of restricted growth functions,
-             Dobinsky’s equality and Charlier
-             polynomials*. Trans. Amer. Math. Soc., 245 (1978),
-             89-118.
-
->>>>>>> develop
-.. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
-                http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
 
 .. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
               Matroid Enumeration for Incidence Geometry,

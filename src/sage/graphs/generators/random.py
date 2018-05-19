@@ -233,10 +233,16 @@ def RandomBipartite(n1, n2, p):
                 g.add_edge((0,v),(1,w))
 
     pos = {}
-    for i in range(n1):
-        pos[(0,i)] = (0, i/(n1-1.0))
-    for i in range(n2):
-        pos[(1,i)] = (1, i/(n2-1.0))
+    if n1 == 1:
+        pos[(0, 0)] = (0, 0.5)
+    else:
+        for i in range(n1):
+            pos[(0,i)] = (0, i/(n1-1.0))
+    if n2 == 1:
+        pos[(1, n1)] = (1, 0.5)
+    else:
+        for i in range(n2):
+            pos[(1,i)] = (1, i/(n2-1.0))
 
     g.set_pos(pos)
 

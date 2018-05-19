@@ -18,7 +18,7 @@ EXAMPLES::
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013-2017 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2013-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -392,10 +392,10 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: from sage.rings.valuation.value_group import DiscreteValueGroup
-            sage: DiscreteValueGroup(3/8)._element_with_valuation(DiscreteValueGroup(3), 5/8)
-            (-1, 1)
-            sage: DiscreteValueGroup(3/8)._element_with_valuation(DiscreteValueGroup(3), 11/8)
-            (1, 1)
+            sage: DiscreteValueGroup(3/8)._element_with_valuation(DiscreteValueGroup(3), 15/8)
+            (-3, 1)
+            sage: DiscreteValueGroup(3/8)._element_with_valuation(DiscreteValueGroup(3), 33/8)
+            (3, 1)
 
         """
         if s not in self:
@@ -403,7 +403,6 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
         i = self.index(subgroup)
         x = s/self.gen()
-        assert i.divides(x)
         a = x%i
         if abs(a-i) < a: a -= i
         b = (x-a)/i

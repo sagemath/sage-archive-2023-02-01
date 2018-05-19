@@ -47,6 +47,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+
+import six
 from six.moves import range
 
 from sage.matrix.constructor import matrix
@@ -1332,7 +1334,7 @@ class Link(object):
             else:
                 crossing_dic = {}
 
-            pd = crossing_dic.values()
+            pd = list(six.itervalues(crossing_dic))
             self._pd_code = pd
             return self._pd_code
 

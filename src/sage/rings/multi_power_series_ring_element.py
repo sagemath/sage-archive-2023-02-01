@@ -1183,7 +1183,7 @@ class MPowerSeries(PowerSeries):
             sage: f.monomials()
             []
         """
-        return self.coefficients().keys()
+        return list(self.coefficients())
 
     def coefficients(self):
         """

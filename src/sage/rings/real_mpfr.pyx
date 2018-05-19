@@ -438,7 +438,8 @@ cpdef RealField(int prec=53, int sci_not=0, rnd=MPFR_RNDN):
         try:
             r = rounding_modes[rnd]
         except KeyError:
-            raise ValueError("rounding mode (={!r}) must be one of {}".format(rnd, rounding_modes.keys()))
+            raise ValueError("rounding mode (={!r}) must be one of {}".format(rnd,
+                sorted(rounding_modes)))
 
     try:
         return RealField_cache[prec, sci_not, r]

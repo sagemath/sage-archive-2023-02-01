@@ -3451,7 +3451,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: toy_inverse_transition_matrices[2]
                 [2 1]
                 [0 1]
-                sage: toy_transition_matrices.keys()
+                sage: sorted(toy_transition_matrices)
                 [0, 1, 2]
 
             As we see from the fractions in the transition matrices, this
@@ -3624,7 +3624,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: HWL._M_inverse_transition_matrices[2]
                 [2 1]
                 [1 0]
-                sage: HWL._M_transition_matrices.keys()
+                sage: sorted(HWL._M_transition_matrices)
                 [0, 1, 2]
 
             We did not have to call ``HWL._precompute_M(0)``,

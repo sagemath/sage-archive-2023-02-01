@@ -440,8 +440,7 @@ def _frobenius_shift(K, generators, check_only=False):
             i = qlist.index(mqlist[k-1])
             crt[(i,j)].append(_find_pow_of_frobenius(p, m, compatible[m][qlist[j]], compatible[m][qlist[i]]))
     from .integer_mod import mod
-    pairs = crt.keys()
-    for i, j in pairs:
+    for i, j in list(crt):
         L = crt[(i,j)]
         running = mod(0,1)
         for a in L:

@@ -813,11 +813,10 @@ def centrality_closeness_random_k(G, int k=1):
     r"""
     Return an estimation of the closeness centrality of `G`.
 
-    The algorithm first randomly selects a set `S` of `k` vertices.
-    Then it computes a the shortest path distances from each vertex in
-    `S` (using breadth-first-search (BFS) for unweighted graph and
-    Dijkstra for weighted graph) and uses this knowledge to estimate
-    the closeness centrality of all vertices.
+    The algorithm first randomly selects a set `S` of `k` vertices.  Then it
+    computes shortest path distances from each vertex in `S` (using Dijkstra for
+    weighted graph and breadth-first-search (BFS) for unweighted graph) and uses
+    this knowledge to estimate the closeness centrality of all vertices.
 
     For more information, see [EDI2014]_.
 
@@ -825,16 +824,17 @@ def centrality_closeness_random_k(G, int k=1):
 
     - ``G`` -- a undirected Graph
 
-    - ``k`` (integer, default: 1) -- The number of random nodes need to be choosen
+    - ``k`` (integer, default: 1) -- The number of random nodes to choose
 
     OUTPUT:
 
     A dictionary indexed by vertices and values are estimated closeness centrality.
 
     EXAMPLES::
+
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = graphs.PetersenGraph()
-        sage: centrality_closeness_random_k(G,10)
+        sage: centrality_closeness_random_k(G, 10)
         {0: 0.6,
          1: 0.6,
          2: 0.6,
@@ -846,105 +846,93 @@ def centrality_closeness_random_k(G, int k=1):
          8: 0.6,
          9: 0.6}
 
-    TESTS:
+    TESTS::
 
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = Graph('Ihe\\n@GUA')
-        sage: centrality_closeness_random_k(G,11)
+        sage: centrality_closeness_random_k(G, 11)
         Traceback (most recent call last):
         ...
-        ValueError: k value need to be less than number of nodes.
+        ValueError: parameter k must be less than the number of nodes
 
-        sage: import random
-        sage: n = 20
-        sage: m = random.randint(1, n*(n-1))
-        sage: k = random.randint(1, n)
-        sage: g = digraphs.RandomDirectedGNM(n,m)
-        sage: centrality_closeness_random_k(g,4)
+        sage: centrality_closeness_random_k(DiGraph(2), 1)
         Traceback (most recent call last):
         ...
-        ValueError: G should be undirected Graph.
+        ValueError: G should be an undirected Graph
 
     """
     G._scream_if_not_simple()
     if G.is_directed():
-        raise ValueError("G should be undirected Graph.")
+        raise ValueError("G should be an undirected Graph")
+    if not G.size():
+        raise ValueError("G must have at least one edge")
 
     cdef int n = G.order()
     if k > n:
-        raise ValueError("k value need to be less than number of nodes.")
+        raise ValueError("parameter k must be less than the number of nodes")
 
-    if G.order() == 0 or G.order() == 1 or G.size() == 0:
-        raise ValueError("G must have at least one edge.")
-
+    # Initialization of some data structures
     cdef MemoryAllocator mem = MemoryAllocator()
-    cdef int i, j
-
-    # Vertices whose neighbors have been explored
-    cdef bitset_t seen
-
-    cdef uint32_t * distance = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
-    cdef uint32_t * waiting_list = <uint32_t *>mem.malloc(n * sizeof(uint32_t))
-    cdef double *partial_farness = <double*> mem.malloc(n * sizeof(double))
-    cdef double *closeness_centrality_array = <double*> mem.malloc(n * sizeof(double))
-    cdef double farness
+    cdef double * partial_farness = <double *> mem.malloc(n * sizeof(double))
+    cdef double * closeness_centrality_array = <double *> mem.malloc(n * sizeof(double))
+    cdef uint32_t * distance
+    cdef uint32_t * waiting_list
     cdef short_digraph sd
+    cdef bitset_t seen
+    cdef double farness
+    cdef int i, j, u
+    cdef list int_to_vertex = G.vertices()
+    cdef dict vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
 
     # Initialize
-    l = list(range(n))
     for i in range(n):
         partial_farness[i] = 0
 
     # Shuffle the vertices
+    l = list(range(n))
     random.shuffle(l)
-
-    cdef list int_to_vertex = G.vertices()
-    vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
 
     if G.weighted():
         # For all random nodes take as a source then run Dijstra and
         # calculate closeness centrality for k random vertices from l.
         for i in range(k):
+            u = l[i]
             farness = 0
-            distances = boost_shortest_paths(G, int_to_vertex[l[i]], algorithm='Dijkstra')
-            distances = distances[0]
+            distances = boost_shortest_paths(G, int_to_vertex[u], algorithm='Dijkstra')[0]
             for vertex in distances:
                 farness += float(distances[vertex])
                 partial_farness[vertex_to_int[vertex]] += float(distances[vertex])
 
-            closeness_centrality_array[l[i]] = (n - 1) / farness
+            closeness_centrality_array[u] = (n - 1) / farness
 
-        # Estimate the closeness centrality for remaining n-k vertices.
-        for i in range(k,n):
-            closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
-
-    # G is Unweighted graph
+    # G is unweighted graph
     else:
 
-        # Copying the whole graph to obtain the list of neighbors quicker than
-        # by calling out_neighbors. This data structure is well documented in
-        # the module sage.graphs.base.static_sparse_graph
+        # Copying the whole graph as a static_sparse_graph for fast shortest
+        # paths computation in unweighted graph. This data structure is well
+        # documented in module sage.graphs.base.static_sparse_graph
         init_short_digraph(sd, G)
+        distance = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
+        waiting_list = <uint32_t *> mem.malloc(n * sizeof(uint32_t))
         bitset_init(seen, n)
 
         # Run BFS for random k vertices
         for i in range(k):
-
-            # Initialize
+            u = l[i]
             farness = 0
-
-            simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)
-
+            simple_BFS(sd, u, distance, NULL, waiting_list, seen)
             for j in range(n):
                 farness += distance[j]
                 partial_farness[j] += distance[j]
-            closeness_centrality_array[l[i]] = (n - 1) / farness
 
-        # Estimate the closeness centrality for remaining n-k vertices.
-        for i in range(k,n):
-            closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
+            closeness_centrality_array[u] = (n - 1) / farness
 
         bitset_free(seen)
         free_short_digraph(sd)
+
+    # Estimate the closeness centrality for remaining n-k vertices.
+    for i in range(k, n):
+        u = l[i]
+        closeness_centrality_array[u] = k / partial_farness[u]
 
     return {int_to_vertex[i]:closeness_centrality_array[i] for i in range(n)}

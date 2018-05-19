@@ -269,6 +269,23 @@ class AbstractPartitionDiagram(AbstractSetPartition):
                 raise ValueError("{} does not represent two rows of vertices of order {}".format(
                                      self, self.parent().order))
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+        
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(2)
+            sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: hash(pd1) == hash(pd2)
+            True
+            sage: hash(pd1) == hash( ((-2,-1), (1,2)) )
+            True
+        """
+        return hash(self._base_diagram)
+
     def __eq__(self, other):
         r"""
         TESTS::

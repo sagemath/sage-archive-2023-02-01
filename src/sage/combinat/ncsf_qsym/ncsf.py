@@ -460,7 +460,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.complete()
 
-    _shorthands = tuple(['S', 'R', 'L', 'Phi', 'Psi', 'nM', 'I'])
+    _shorthands = tuple(['S', 'R', 'L', 'Phi', 'Psi', 'nM', 'I', 'dQS', 'dYQS', 'ZL', 'ZR'])
 
     def dual(self):
         r"""
@@ -5122,6 +5122,196 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
             return s[Partition(sorted(I,reverse=True))]
 
     dQS = dualQuasisymmetric_Schur
+
+    class dualYoungQuasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
+        r"""
+        The basis of NCSF dual to the Young Quasisymmetric-Schur basis of QSym.
+
+        The
+        :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.YoungQuasisymmetric_Schur`
+        functions are given in Definition 5.2.1 of [LMvW13]_.  The dual basis
+        in the algebra of non-commutative symmetric functions are related by
+        an involution reversing the indexing composition of the complete
+        expansion of a quasi-Schur basis element.  This basis has many of the
+        same properties as the Quasisymmetric Schur basis and is related to
+        that basis by an algebraic transformation.
+
+        EXAMPLES::
+
+            sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+            sage: dYQS = NCSF.dYQS()
+            sage: dYQS([1,3,2])*dYQS([1])
+            dYQS[1, 3, 2, 1] + dYQS[1, 3, 3] + dYQS[1, 4, 2] + dYQS[2, 3, 2]
+            sage: dYQS([1])*dYQS([1,3,2])
+            dYQS[1, 1, 3, 2] + dYQS[2, 3, 2] + dYQS[3, 3, 1] + dYQS[4, 1, 2]
+            sage: dYQS([1,3])*dYQS([1,1])
+            dYQS[1, 3, 1, 1] + dYQS[1, 4, 1] + dYQS[2, 3, 1] + dYQS[2, 4]
+            sage: dYQS([3,1])*dYQS([2,1])
+            dYQS[3, 1, 2, 1] + dYQS[3, 2, 2] + dYQS[3, 3, 1] + dYQS[4, 1, 1, 1]
+             + dYQS[4, 1, 2] + dYQS[4, 2, 1] + dYQS[4, 3] + dYQS[5, 1, 1]
+             + dYQS[5, 2]
+            sage: dYQS([1,1]).coproduct()
+            dYQS[] # dYQS[1, 1] + dYQS[1] # dYQS[1] + dYQS[1, 1] # dYQS[]
+            sage: dYQS([3,3]).coproduct().monomial_coefficients()[(Composition([1,2]),Composition([2,1]))]
+            1
+            sage: S = NCSF.complete()
+            sage: dYQS(S[1,3,1])
+            dYQS[1, 3, 1] + dYQS[1, 4] + dYQS[2, 3] + dYQS[4, 1] + dYQS[5]
+            sage: S(dYQS[1,3,1])
+            S[1, 3, 1] - S[1, 4] - S[2, 3] + S[5]
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: s(S(dYQS([2,1,3])).to_symmetric_function())
+            s[3, 2, 1]
+        """
+
+        def __init__(self, NCSF):
+            r"""
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: S = NCSF.complete()
+                sage: dYQS = NCSF.dualYoungQuasisymmetric_Schur()
+                sage: dYQS(S(dYQS.an_element())) == dYQS.an_element()
+                True
+                sage: S(dYQS(S.an_element())) == S.an_element()
+                True
+                sage: TestSuite(dYQS).run() # long time
+            """
+            category = NCSF.Bases()
+            CombinatorialFreeModule.__init__(self, NCSF.base_ring(), Compositions(),
+                                             prefix='dYQS', bracket=False,
+                                             category=category)
+
+            self._S = NCSF.complete()
+            self._dQS = NCSF.dualQuasisymmetric_Schur()
+            self.module_morphism(on_basis=self._to_complete_on_basis,
+                                 codomain=self._S,
+                                 category=category).register_as_coercion()
+
+            self._S.module_morphism(on_basis=self._from_complete_on_basis,
+                                    codomain=self,
+                                    category=category).register_as_coercion()
+
+        def _realization_name(self):
+            r"""
+            TESTS::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dYQS = NCSF.dYQS()
+                sage: dYQS._realization_name()
+                'dual Young Quasisymmetric-Schur'
+            """
+            return "dual Young Quasisymmetric-Schur"
+
+        def _to_complete_on_basis(self, comp):
+            r"""
+            The expansion of the dual Quasisymmetric-Schur basis element
+            indexed by ``comp`` in the complete basis.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the complete basis
+
+            EXAMPLES::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: dYQS = NCSF.dYQS()
+                sage: dYQS._to_complete_on_basis(Composition([1,3,1]))
+                S[1, 3, 1] - S[1, 4] - S[2, 3] + S[5]
+            """
+            elt = self._dQS._to_complete_on_basis(comp.reversed())
+            return self._S._from_dict({al.reversed(): c for al, c in elt},
+                                      coerce=False, remove_zeros=False)
+
+        def _from_complete_on_basis(self, comp):
+            r"""
+            Return the expansion of a complete basis element in the
+            dual Young Quasisymmetric-Schur basis.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - the expansion in the dual Young Quasisymmetric-Schur basis of
+              the basis element in the complete basis indexed by the
+              composition ``comp``
+
+            EXAMPLES::
+
+                sage: dYQS=NonCommutativeSymmetricFunctions(QQ).dYQS()
+                sage: dYQS._from_complete_on_basis(Composition([]))
+                dYQS[]
+                sage: dYQS._from_complete_on_basis(Composition([2,1,1]))
+                dYQS[2, 1, 1] + dYQS[2, 2] + 2*dYQS[3, 1] + dYQS[4]
+            """
+            elt = self._dQS._from_complete_on_basis(comp.reversed())
+            return self._from_dict({al.reversed(): c for al, c in elt},
+                                   coerce=False, remove_zeros=False)
+
+        def dual(self):
+            r"""
+            The dual basis to the dual Quasisymmetric-Schur basis of NCSF.
+
+            The basis returned is the
+            :class:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Quasisymmetric_Schur`
+            basis of QSym.
+
+            OUTPUT:
+
+            - the Young Quasisymmetric-Schur basis of quasi-symmetric functions
+
+            EXAMPLES::
+
+                sage: dYQS=NonCommutativeSymmetricFunctions(QQ).dualYoungQuasisymmetric_Schur()
+                sage: dYQS.dual()
+                Quasisymmetric functions over the Rational Field in the Young
+                Quasisymmetric Schur basis
+                sage: dYQS.duality_pairing_matrix(dYQS.dual(),3)
+                [1 0 0 0]
+                [0 1 0 0]
+                [0 0 1 0]
+                [0 0 0 1]
+            """
+            return self.realization_of().dual().Young_Quasisymmetric_Schur()
+
+        def to_symmetric_function_on_basis(self, I):
+            r"""
+            The commutative image of a dual Young quasi-symmetric
+            Schur element.
+
+            The commutative image of a basis element is obtained by sorting
+            the indexing composition of the basis element.
+
+            INPUT:
+
+            - ``I`` -- a composition
+
+            OUTPUT:
+
+            - The commutative image of the dual Young quasi-Schur basis element
+              indexed by ``I``. The result is the Schur symmetric function
+              indexed by the partition obtained by sorting ``I``.
+
+            EXAMPLES::
+
+                sage: dYQS=NonCommutativeSymmetricFunctions(QQ).dYQS()
+                sage: dYQS.to_symmetric_function_on_basis([2,1,3])
+                s[3, 2, 1]
+                sage: dYQS.to_symmetric_function_on_basis([])
+                s[]
+            """
+            s = SymmetricFunctions(self.base_ring()).s()
+            return s[Partition(sorted(I,reverse=True))]
+
+    dYQS = dualYoungQuasisymmetric_Schur
 
     class Zassenhaus_left(CombinatorialFreeModule, BindableClass):
         r"""

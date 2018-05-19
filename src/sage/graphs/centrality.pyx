@@ -830,7 +830,9 @@ def centrality_closeness_random_k(G, int k=1):
 
     A dictionary indexed by vertices and values are estimated closeness centrality.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Estimation of the closeness centrality of the Petersen Graph when `k == n`::
 
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = graphs.PetersenGraph()
@@ -845,6 +847,12 @@ def centrality_closeness_random_k(G, int k=1):
          7: 0.6,
          8: 0.6,
          9: 0.6}
+
+    The closeness centrality of an isolated vertex is not defined::
+
+        sage: from sage.graphs.centrality import centrality_closeness_random_k
+        sage: centrality_closeness_random_k(Graph(2), 1)
+        {}
 
     TESTS::
 
@@ -865,7 +873,7 @@ def centrality_closeness_random_k(G, int k=1):
     if G.is_directed():
         raise ValueError("G should be an undirected Graph")
     if not G.size():
-        raise ValueError("G must have at least one edge")
+        return {}
 
     cdef int n = G.order()
     if k > n:
@@ -880,7 +888,7 @@ def centrality_closeness_random_k(G, int k=1):
     cdef short_digraph sd
     cdef bitset_t seen
     cdef double farness
-    cdef int i, j, u
+    cdef int i, j
     cdef list int_to_vertex = G.vertices()
     cdef dict vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
 
@@ -888,22 +896,23 @@ def centrality_closeness_random_k(G, int k=1):
     for i in range(n):
         partial_farness[i] = 0
 
-    # Shuffle the vertices
-    l = list(range(n))
+    # Shuffle the vertices, isolated vertices at the end
+    cdef set zeros = {vertex_to_int[u] for u in G.vertex_iterator() if G.degree(u) == 0}
+    cdef list l = [i for i in range(n) if not i in zeros]
     random.shuffle(l)
+    l.extend(zeros)
 
     if G.weighted():
         # For all random nodes take as a source then run Dijstra and
         # calculate closeness centrality for k random vertices from l.
         for i in range(k):
-            u = l[i]
             farness = 0
-            distances = boost_shortest_paths(G, int_to_vertex[u], algorithm='Dijkstra')[0]
+            distances = boost_shortest_paths(G, int_to_vertex[l[i]], algorithm='Dijkstra')[0]
             for vertex in distances:
                 farness += float(distances[vertex])
                 partial_farness[vertex_to_int[vertex]] += float(distances[vertex])
 
-            closeness_centrality_array[u] = (n - 1) / farness
+            closeness_centrality_array[l[i]] = (n - 1) / farness
 
     # G is unweighted graph
     else:
@@ -918,21 +927,19 @@ def centrality_closeness_random_k(G, int k=1):
 
         # Run BFS for random k vertices
         for i in range(k):
-            u = l[i]
             farness = 0
-            simple_BFS(sd, u, distance, NULL, waiting_list, seen)
+            simple_BFS(sd, l[i], distance, NULL, waiting_list, seen)
             for j in range(n):
                 farness += distance[j]
                 partial_farness[j] += distance[j]
 
-            closeness_centrality_array[u] = (n - 1) / farness
+            closeness_centrality_array[l[i]] = (n - 1) / farness
 
         bitset_free(seen)
         free_short_digraph(sd)
 
     # Estimate the closeness centrality for remaining n-k vertices.
     for i in range(k, n):
-        u = l[i]
-        closeness_centrality_array[u] = k / partial_farness[u]
+        closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
 
-    return {int_to_vertex[i]:closeness_centrality_array[i] for i in range(n)}
+    return {int_to_vertex[i]:closeness_centrality_array[i] for i in range(n) if not i in zeros}

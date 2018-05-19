@@ -381,6 +381,35 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
         """
         return self._generator.is_zero()
 
+    def _element_with_valuation(self, subgroup, s):
+        r"""
+        Return exponents such that `\pi^a+\psi^b` has valuation `s` where `\pi`
+        is a unformizer corresponding to this value group and `\psi` a
+        unformizer corresponding to its ``subgroup``.
+
+        The returned values are such that ``a`` is minimal.
+
+        EXAMPLES::
+
+            sage: from sage.rings.valuation.value_group import DiscreteValueGroup
+            sage: DiscreteValueGroup(3/8)._element_with_valuation(DiscreteValueGroup(3), 5/8)
+            (-1, 1)
+            sage: DiscreteValueGroup(3/8)._element_with_valuation(DiscreteValueGroup(3), 11/8)
+            (1, 1)
+
+        """
+        if s not in self:
+            raise ValueError("s must be in the value group but %r is not in %r."%(s, self))
+
+        i = self.index(subgroup)
+        x = s/self.gen()
+        assert i.divides(x)
+        a = x%i
+        if abs(a-i) < a: a -= i
+        b = (x-a)/i
+        return a, b
+
+
 class DiscreteValueSemigroup(UniqueRepresentation, Parent):
     r"""
     The value semigroup of a discrete valuation, an additive subsemigroup of

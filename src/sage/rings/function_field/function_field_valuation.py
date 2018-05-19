@@ -578,6 +578,30 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
         True
 
     """
+    @cached_method
+    def element_with_valuation(self, s):
+        r"""
+        Return an element with valuation ``s``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3+6)
+            sage: v = QQ.valuation(2).extension(K)
+            sage: R.<x> = K[]
+            sage: w = GaussValuation(R, v).augmentation(x, 1/123)
+            sage: K.<x> = FunctionField(K)
+            sage: w = w.extension(K)
+            sage: w.element_with_valuation(122/123)
+            2/x
+            sage: w.element_with_valuation(1)
+            2
+
+        """
+        constant_valuation = self.restriction(self.domain().constant_field())
+        a, b = self.value_group()._element_with_valuation(constant_valuation.value_group(), s)
+        ret = self.uniformizer()**a * constant_valuation.uniformizer()**b
+
+        return self.simplify(ret, error=s)
 
 
 class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
@@ -842,6 +866,21 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             
         """
         return self._base_valuation.residue_ring().fraction_field()
+
+    def restriction(self, ring):
+        r"""
+        Return the restriction of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.valuation(x).restriction(QQ)
+            Trivial valuation on Rational Field
+
+        """
+        if ring.is_subring(self._base_valuation.domain()):
+            return self._base_valuation.restriction(ring)
+        return super(InducedFunctionFieldValuation_base, self).restriction(ring)
 
 
 class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, RationalFunctionFieldValuation_base):

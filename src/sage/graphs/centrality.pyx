@@ -854,6 +854,16 @@ def centrality_closeness_random_k(G, int k=1):
         sage: centrality_closeness_random_k(Graph(2), 1)
         {}
 
+    Closeness centrality for a graph in which few isolated vertices are there::
+
+        sage: from sage.graphs.centrality import centrality_closeness_random_k
+        sage: G = Graph()
+        sage: G.add_cycle([0,1,2])
+        sage: G.add_vertex(3)
+        sage: G.add_vertex(4)
+        sage: centrality_closeness_random_k(G,3)
+        {0: 1.0, 1: 1.0, 2: 1.0, 3: 0.0, 4: 0.0}
+
     TESTS::
 
         sage: from sage.graphs.centrality import centrality_closeness_random_k
@@ -882,13 +892,26 @@ def centrality_closeness_random_k(G, int k=1):
     # Initialization of some data structures
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef double * partial_farness = <double *> mem.malloc(n * sizeof(double))
-    cdef double * closeness_centrality_array = <double *> mem.malloc(n * sizeof(double))
     cdef uint32_t * distance
     cdef uint32_t * waiting_list
     cdef short_digraph sd
     cdef bitset_t seen
     cdef double farness
     cdef int i, j
+    cdef dict closeness_centrality_array = {}
+
+    # Remove isolated vertices
+    Isolated_vertices = []
+    for i in G.vertex_iterator():
+        if not G.degree(i) :
+            G.delete_vertex(i)
+            closeness_centrality_array[i] = 0.0
+            Isolated_vertices.append(i)
+
+
+    n = G.order()
+    if k > n:
+        k = n
     cdef list int_to_vertex = G.vertices()
     cdef dict vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
 
@@ -896,11 +919,9 @@ def centrality_closeness_random_k(G, int k=1):
     for i in range(n):
         partial_farness[i] = 0
 
-    # Shuffle the vertices, isolated vertices at the end
-    cdef set zeros = {vertex_to_int[u] for u in G.vertex_iterator() if G.degree(u) == 0}
-    cdef list l = [i for i in range(n) if not i in zeros]
+    # Shuffle the vertices
+    cdef list l = [i for i in range(n)]
     random.shuffle(l)
-    l.extend(zeros)
 
     if G.weighted():
         # For all random nodes take as a source then run Dijstra and
@@ -912,7 +933,7 @@ def centrality_closeness_random_k(G, int k=1):
                 farness += float(distances[vertex])
                 partial_farness[vertex_to_int[vertex]] += float(distances[vertex])
 
-            closeness_centrality_array[l[i]] = (n - 1) / farness
+            closeness_centrality_array[int_to_vertex[l[i]]] = (n - 1) / farness
 
     # G is unweighted graph
     else:
@@ -933,13 +954,16 @@ def centrality_closeness_random_k(G, int k=1):
                 farness += distance[j]
                 partial_farness[j] += distance[j]
 
-            closeness_centrality_array[l[i]] = (n - 1) / farness
+            closeness_centrality_array[int_to_vertex[l[i]]] = (n - 1) / farness
 
         bitset_free(seen)
         free_short_digraph(sd)
 
     # Estimate the closeness centrality for remaining n-k vertices.
     for i in range(k, n):
-        closeness_centrality_array[l[i]] = k / partial_farness[l[i]]
+        closeness_centrality_array[int_to_vertex[l[i]]] = k / partial_farness[l[i]]
 
-    return {int_to_vertex[i]:closeness_centrality_array[i] for i in range(n) if not i in zeros}
+    for i in Isolated_vertices:
+        G.add_vertex(i)
+
+    return closeness_centrality_array

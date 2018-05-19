@@ -22,6 +22,12 @@ jobs:
   # we do build & test & release in one step.
   build:
     machine: true
+    # Build for all tags
+    tags:
+      only: /.*/
+    # Build for all branches
+    branches:
+      only: /.*/
     steps:
       - checkout
       - run:
@@ -41,17 +47,14 @@ jobs:
             . .ci/update-env.sh
 
             # Select ARTIFACT_BASE depending on the current branch/tag
-            case $DOCKER_TAG in
-            "develop" | "latest")
+            if [ -n "$CIRCLE_TAG" ] || [ $DOCKER_TAG = "master" ] || [ $DOCKER_TAG = "develop" ];then
               export ARTIFACT_BASE=source-clean
-              ;;
-            *)
+            else
               # Select sagemath/sagemath-dev:develop as the ARTIFACT_BASE
               # unless the user has explicitly selected a differnt one as a
               # CircleCI environment variable.
               export ARTIFACT_BASE=${ARTIFACT_BASE:-sagemath/sagemath-dev:develop}
-              ;;
-            esac
+            fi
 
             # Build docker images
             .ci/build-docker.sh

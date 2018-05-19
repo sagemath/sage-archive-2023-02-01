@@ -98,6 +98,7 @@ build-from-latest: &build
   except:
     - master
     - develop
+    - tags
 
 # Build Sage and its documentation from a clean checkout of Sage.
 # Note that this takes several hours. You probably want to run this on your own
@@ -113,6 +114,7 @@ build-from-clean:
   only:
     - master
     - develop
+    - tags
   except: []
   tags:
     # 60 GB of HDD are available
@@ -160,6 +162,7 @@ push-dockerhub-dev:
   only:
     - master
     - develop
+    - tags
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev

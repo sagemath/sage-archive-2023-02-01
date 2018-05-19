@@ -2,7 +2,7 @@
 r"""
 Arbitrary precision real balls using Arb
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_ for ball
+This is a binding to the `Arb library <http://arblib.org>`_ for ball
 arithmetic. It may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -1145,7 +1145,7 @@ cdef inline long prec(RealBall ball):
 cdef class RealBall(RingElement):
     """
     Hold one ``arb_t`` of the `Arb library
-    <http://fredrikj.net/arb/>`_
+    <http://arblib.org>`_
 
     EXAMPLES::
 

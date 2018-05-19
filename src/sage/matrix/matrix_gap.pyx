@@ -16,6 +16,8 @@ from __future__ import print_function, absolute_import
 from sage.libs.gap.libgap import libgap
 from . import matrix_space
 from sage.structure.element cimport Matrix
+from .args cimport MatrixArgs_init
+
 
 cdef class Matrix_gap(Matrix_dense):
     r"""
@@ -67,8 +69,20 @@ cdef class Matrix_gap(Matrix_dense):
         ....:     M = MatrixSpace(ring, 2, 3, implementation='gap')
         ....:     TestSuite(M).run()
     """
-    def __init__(self, parent, entries, coerce, copy):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
+        INPUT:
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if True (the default), convert elements to the
+          base ring before passing them to GAP. If False, pass the
+          elements to GAP as given.
+
         TESTS::
 
             sage: M = MatrixSpace(ZZ, 2, implementation='gap')
@@ -95,34 +109,22 @@ cdef class Matrix_gap(Matrix_dense):
             sage: M(1)
             Traceback (most recent call last):
             ...
-            TypeError: identity matrix must be square
-
+            TypeError: nonzero scalar matrix must be square
             sage: MatrixSpace(QQ, 1, 2)(0)
             [0 0]
             sage: MatrixSpace(QQ, 2, 1)(0)
             [0]
             [0]
         """
-        Matrix_dense.__init__(self, parent)
-
-        R = self._base_ring
-
-        if isinstance(entries, (tuple, list)):
-            entries = [[R(x) for x in entries[i * self._ncols: (i+1) * self._ncols]] for i in range(self._nrows)]
-        else:
-            zero = R.zero()
-            if entries is None:
-                elt = zero
-            else:
-                elt = R(entries)
-            entries = [[zero] * self._ncols for i in range(self._nrows)]
-            if not elt.is_zero():
-                if self._nrows != self._ncols:
-                    raise TypeError('non diagonal matrices can not be initialized from a scalar')
-                for i in range(self._nrows):
-                    entries[i][i] = elt
-
-        self._libgap = libgap(entries)
+        ma = MatrixArgs_init(parent, entries)
+        Matrix_dense.__init__(self, ma.space)
+        it = ma.iter(coerce)
+        cdef list mat = []
+        cdef long i, j
+        for i in range(ma.nrows):
+            row = [next(it) for j in range(ma.ncols)]
+            mat.append(row)
+        self._libgap = libgap(mat)
 
     cdef Matrix_gap _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         if nrows == self._nrows and ncols == self._ncols:

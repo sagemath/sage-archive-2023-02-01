@@ -670,8 +670,10 @@ class Partition(CombinatorialElement):
             ⎣ └┴┴┴┴┘, └┴┴┴┘, └┴┴┘, └┴┴┘, └┴┘, └┴┘, └┘ ⎦
             sage: Partitions.options._reset()
         """
+        from sage.typeset.unicode_art import UnicodeArt
+
         if not self._list:
-            return u'∅'
+            return UnicodeArt(u'∅', baseline=0)
         if self.parent().options.convention == "English":
             data = list(self)
         else:
@@ -689,7 +691,6 @@ class Partition(CombinatorialElement):
                 txt += [u'├' + u'┼' * q + u'┴' * (p - q - 1) + u'┘']
         txt += [u'└' + u'┴' * (data[-1] - 1) + u'┘']
 
-        from sage.typeset.unicode_art import UnicodeArt        
         return UnicodeArt(txt, baseline=0)
 
     def _repr_list(self):

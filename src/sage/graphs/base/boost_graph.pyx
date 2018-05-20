@@ -676,6 +676,7 @@ cpdef min_spanning_tree(g,
 cpdef blocks_and_cut_vertices(g):
     r"""
     Computes the blocks and cut vertices of the graph.
+
     This method uses the implementation of Tarjan's algorithm available in the
     Boost library .
 
@@ -685,8 +686,8 @@ cpdef blocks_and_cut_vertices(g):
 
     OUTPUT:
 
-    A 2-dimensional vector with m rows (m is the number of biconnected
-    components), where each of the first m-1 rows correspond to vertices in a
+    A 2-dimensional vector with m+1 rows (m is the number of biconnected
+    components), where each of the first m rows correspond to vertices in a
     block, and the last row is the list of cut vertices.
 
     .. SEEALSO::
@@ -756,14 +757,13 @@ cpdef blocks_and_cut_vertices(g):
         result_blocks.append(result_temp)
         result_temp = []
 
-    # If the vertex does not belong to any block, it must be an isolated vertex.
+    # If a vertex does not belong to any block, it must be an isolated vertex.
     # Hence, it is considered a block.
     for i in range(g.order()):
         if vertex_status[i] == -1:
             result_blocks.append([int_to_vertex[<int> i]])
 
-    result_tup = [result_blocks, result_cut]
-    return tuple(result_tup)
+    return (result_blocks, result_cut)
 
 
 cpdef shortest_paths(g, start, weight_function=None, algorithm=None):

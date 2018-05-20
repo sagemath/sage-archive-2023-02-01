@@ -199,22 +199,15 @@ public:
         return to_return;
     }
 
-    // This function returns the blocks and cut vertices tree.
+    // This function returns the biconnected components of the graph.
     std::vector<std::vector<v_index>> blocks_and_cut_vertices() {
         edge_map bicmp_map;
         boost::associative_property_map<edge_map> bimap(bicmp_map);
-        std::vector<vertex_descriptor> art_points;
         std::size_t num_comps = biconnected_components(graph, bimap);
-        articulation_points(graph, std::back_inserter(art_points));
 
-        // std::cout << "num of conn comp " << num_comps << std::endl;
-        std::vector<std::vector<v_index>> to_return(num_comps+1, std::vector<v_index>(0));
-        // std::cout << "num of art points " << art_points.size() << std::endl;
-
-        for (std::size_t i = 0; i < art_points.size(); ++i) {
-            to_return[num_comps].push_back(index[art_points[i]]);
-        }
-
+        // We iterate over every edge and add the vertices of block i into to_return[i].
+        // to_return[i] could contain repetitions.
+        std::vector<std::vector<v_index>> to_return(num_comps, std::vector<v_index>(0));
         typename boost::graph_traits<adjacency_list>::edge_iterator ei, ei_end;
         for (boost::tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei) {
             to_return[bimap[*ei]].push_back(index[source(*ei, graph)]);

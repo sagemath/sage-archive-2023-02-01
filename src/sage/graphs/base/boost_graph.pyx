@@ -724,6 +724,7 @@ cpdef blocks_and_cut_vertices(g):
     cdef BoostVecGraph g_boost
     cdef vector[vector[v_index]] result
     cdef list int_to_vertex = g.vertices()
+    cdef dict vertex_to_int = {v:0 for i,v in enumerate(g.vertices())}
 
     boost_graph_from_sage_graph(&g_boost, g)
     sig_on()
@@ -731,24 +732,28 @@ cpdef blocks_and_cut_vertices(g):
     sig_off()
 
     cdef list result_blocks = []
+    cdef list result_cut = []
 
-    # If the graph consists of only isolated vertices
-    if (len(result[0]) == 0):
-        for v in g.vertices():
-            result_blocks.append([v])
-        return tuple([result_blocks, []])
-
-    num_comps = len(result)-1
-    for i in range(num_comps):
-        result[i] = list(set(result[i]))
+    # We iterate over the blocks with repetitions and populate the list result_blocks
+    for i in range(len(result)):
         result_temp = []
-        for j in range(len(result[i])):
-            result_temp.append(int_to_vertex[<int> result[i][j] ])
+        for v in set(result[i]):
+            result_temp.append(int_to_vertex[<int> v ])
         result_blocks.append(result_temp)
 
-    cdef list result_cut = []
-    for i in range(len(result[num_comps])):
-        result_cut.append(int_to_vertex[<int> result[num_comps][i] ])
+    for block in result_blocks:
+        for vertex in block:
+            # The vertex is seen for the first time
+            if (vertex_to_int[vertex] == 0):
+                vertex_to_int[vertex] = 1
+            # Vertex seen again, must be a cut vertex
+            elif (vertex_to_int[vertex] == 1):
+                vertex_to_int[vertex] = 2
+                result_cut.append(vertex)
+
+    for vertex, val in vertex_to_int.items():
+        if val == 0:
+            result_blocks.append([vertex])
 
     result_tup = [result_blocks, result_cut]
     return tuple(result_tup)

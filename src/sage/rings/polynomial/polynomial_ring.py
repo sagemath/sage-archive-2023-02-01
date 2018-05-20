@@ -2139,6 +2139,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             raise ValueError("algorithm must be one of 'divided_difference' or 'neville'")
 
+    @cached_method
     def fraction_field(self):
         """
         Returns the fraction field of self.
@@ -2149,18 +2150,14 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.fraction_field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         """
-        try:
-            return self._fraction_field
-        except AttributeError:
-            R = self.base_ring()
-            p = R.characteristic()
-            if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
-                from sage.rings.fraction_field_FpT import FpT
-                self._fraction_field = FpT(self)
-            else:
-                from sage.rings.fraction_field import FractionField_1poly_field
-                self._fraction_field = FractionField_1poly_field(self)
-            return self._fraction_field
+        R = self.base_ring()
+        p = R.characteristic()
+        if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
+            from sage.rings.fraction_field_FpT import FpT
+            return FpT(self)
+        else:
+            from sage.rings.fraction_field import FractionField_1poly_field
+            return FractionField_1poly_field(self)
 
 
 class PolynomialRing_dense_finite_field(PolynomialRing_field):

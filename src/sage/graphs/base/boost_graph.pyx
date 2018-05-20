@@ -724,7 +724,7 @@ cpdef blocks_and_cut_vertices(g):
     cdef BoostVecGraph g_boost
     cdef vector[vector[v_index]] result
     cdef list int_to_vertex = g.vertices()
-    cdef dict vertex_status = {vi:-1 for vi in g.vertices()}
+    cdef list vertex_status = [-1]*g.order()
 
     boost_graph_from_sage_graph(&g_boost, g)
     sig_on()
@@ -735,19 +735,19 @@ cpdef blocks_and_cut_vertices(g):
     cdef list result_cut = []
     cdef list result_temp = []
     cdef int i
+    cdef v_index v
 
     # We iterate over the vertices in the blocks and find articulation points
     for i in range(len(result)):
-        for vertex in result[i]:
-            v = int_to_vertex[<int> vertex]
+        for v in result[i]:
             # The vertex is seen for the first time
             if vertex_status[v] == -1:
-                result_temp.append(v)
+                result_temp.append(int_to_vertex[<int> v])
                 vertex_status[v] = i
             # Vertex belongs to a previous block also, must be a cut vertex
             elif vertex_status[v] < i:
-                result_cut.append(v)
-                result_temp.append(v)
+                result_cut.append(int_to_vertex[<int> v])
+                result_temp.append(int_to_vertex[<int> v])
                 # Change the block number to avoid adding the vertex twice as a cut vertex if it is repeated in block i
                 vertex_status[v] = i
             # elif vertex_status[v] == i:
@@ -758,9 +758,9 @@ cpdef blocks_and_cut_vertices(g):
 
     # If the vertex does not belong to any block, it must be an isolated vertex.
     # Hence, it is considered a block.
-    for v, val in vertex_status.items():
-        if val == -1:
-            result_blocks.append([v])
+    for i in range(g.order()):
+        if vertex_status[i] == -1:
+            result_blocks.append([int_to_vertex[<int> i]])
 
     result_tup = [result_blocks, result_cut]
     return tuple(result_tup)

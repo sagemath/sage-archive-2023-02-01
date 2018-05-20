@@ -57,7 +57,7 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import (Interface, InterfaceElement,
-        InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
+        InterfaceFunction, InterfaceFunctionElement)
 
 from sage.structure.element import RingElement
 
@@ -65,7 +65,6 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
-from sage.cpython.string import bytes_to_str
 
 from sage.cpython.string import str_to_bytes, bytes_to_str
 

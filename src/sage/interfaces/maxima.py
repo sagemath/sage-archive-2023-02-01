@@ -475,8 +475,7 @@ from random import randrange
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.misc.misc import ECL_TMP
 
-from .expect import (Expect, ExpectElement, FunctionElement,
-                    ExpectFunction, gc_disabled)
+from .expect import (Expect, ExpectElement, gc_disabled)
 
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
                              MaximaAbstractElement,

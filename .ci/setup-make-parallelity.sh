@@ -1,9 +1,8 @@
 #!/bin/sh
 
-# Source this to set CPUTHREADS (the number of apparent cores) and
-# RAMTHREADS (free RAM divided by the maximum amount needed per thread
-# typically)
-# From this this script exports reasonable defaults for SAGE_NUM_THREADS and
+# Source this to set CPUTHREADS (the number of apparent cores) and RAMTHREADS
+# (free RAM divided by the maximum amount needed per thread typically)
+# From this this script infers reasonable defaults for SAGE_NUM_THREADS and
 # MAKEOPTS.
 
 # We do exactly the same for CPUTHREADS_DOCBUILD, RAMTHREADS_DOCBUILD,
@@ -29,20 +28,20 @@ if [ -z "$CPUTHREADS" ]; then
     # https://circleci.com/docs/2.0/configuration-reference/#resource_class) which
     # provision fewer vCPUs than shown in /proc/cpuinfo. So it is probably better
     # to set CPUTHREADS manuall in your CI configuration.
-    CPUTHREADS=`grep -E '^processor' /proc/cpuinfo | wc -l`
+    CPUTHREADS=`docker run docker cat /proc/cpuinfo | grep -E '^processor' | wc -l`
 fi
 if [ -z "$CPUTHREADS_DOCBUILD" ]; then
     CPUTHREADS_DOCBUILD=$CPUTHREADS
 fi
 
 if [ -z "$RAMTHREADS" ]; then
-    RAMTHREADS=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 1048576 ))
+    RAMTHREADS=$(( `docker run docker cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'` / 1048576 ))
     if [ $RAMTHREADS = 0 ];then
         RAMTHREADS=1;
     fi
 fi
 if [ -z "$RAMTHREADS_DOCBUILD" ]; then
-    RAMTHREADS_DOCBUILD=$(( `grep MemTotal /proc/meminfo | awk '{ print $2 }'` / 2097152 ))
+    RAMTHREADS_DOCBUILD=$(( `docker run docker cat /proc/meminfo | grep MemTotal | awk '{ print $2 }'` / 2097152 ))
     if [ $RAMTHREADS_DOCBUILD = 0 ];then
         RAMTHREADS_DOCBUILD=1;
     fi

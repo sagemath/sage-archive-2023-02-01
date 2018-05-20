@@ -1672,7 +1672,7 @@ class MPowerSeries(PowerSeries):
         TESTS:
 
         We try to recognize variables even if they are not recognized as
-        genrators of the rings::
+        generators of the rings::
 
             sage: T.<a,b> = PowerSeriesRing(QQ,2)
             sage: a.is_gen()

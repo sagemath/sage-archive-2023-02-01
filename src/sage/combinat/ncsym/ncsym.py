@@ -163,11 +163,11 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
     Let `A = \{A_1, A_2, \ldots, A_r\}` be a set partition of the integers
     `[k] := \{ 1, 2, \ldots, k \}`.  This partition `A` determines an
-    equivalence relation `~_A` on `[k]`, which has `c ~_A d` if and
+    equivalence relation `\sim_A` on `[k]`, which has `c \sim_A d` if and
     only if `c` and `d` are in the same part `A_j` of `A`.
     The monomial basis element `\mathbf{m}_A` indexed by `A` is the sum of
     monomials `x_{i_1} x_{i_2} \cdots x_{i_k}` such that `i_c = i_d` if
-    and only if `c ~_A d`.
+    and only if `c \sim_A d`.
 
     The `k`-th graded component of the ring of symmetric functions in
     non-commutative variables has its dimension equal to the number of

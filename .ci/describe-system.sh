@@ -12,10 +12,12 @@
 
 set +e -x
 
-uname -a
-df -h
-cat /proc/cpuinfo
-cat /proc/meminfo
-cat /proc/sys/vm/overcommit_memory
-cat /proc/sys/vm/overcommit_ratio
 docker info
+docker run docker sh -c "
+  set -x
+  uname -a
+  df -h
+  cat /proc/cpuinfo
+  cat /proc/meminfo
+  cat /proc/sys/vm/overcommit_memory
+  cat /proc/sys/vm/overcommit_ratio"

@@ -675,7 +675,9 @@ cpdef min_spanning_tree(g,
 
 cpdef blocks_and_cut_vertices(g):
     r"""
-    Uses Boost to compute the blocks and cut vertices of the input graph.
+    Computes the blocks and cut vertices of the graph.
+    This method uses the implementation of Tarjan's algorithm available in the
+    Boost library .
 
     INPUT:
 
@@ -721,7 +723,6 @@ cpdef blocks_and_cut_vertices(g):
 
     cdef BoostVecGraph g_boost
     cdef vector[vector[v_index]] result
-    cdef dict vertex_to_int = {v:i for i,v in enumerate(g.vertices())}
     cdef list int_to_vertex = g.vertices()
 
     boost_graph_from_sage_graph(&g_boost, g)
@@ -729,7 +730,7 @@ cpdef blocks_and_cut_vertices(g):
     result = g_boost.blocks_and_cut_vertices()
     sig_off()
 
-    result_blocks = []
+    cdef list result_blocks = []
 
     # If the graph consists of only isolated vertices
     if (len(result[0]) == 0):
@@ -737,16 +738,17 @@ cpdef blocks_and_cut_vertices(g):
             result_blocks.append([v])
         return tuple([result_blocks, []])
 
-    for i in range(len(result)-1):
+    num_comps = len(result)-1
+    for i in range(num_comps):
         result[i] = list(set(result[i]))
         result_temp = []
         for j in range(len(result[i])):
             result_temp.append(int_to_vertex[<int> result[i][j] ])
         result_blocks.append(result_temp)
 
-    result_cut = []
-    for i in range(len(result[len(result)-1])):
-        result_cut.append(int_to_vertex[<int> result[len(result)-1][i] ])
+    cdef list result_cut = []
+    for i in range(len(result[num_comps])):
+        result_cut.append(int_to_vertex[<int> result[num_comps][i] ])
 
     result_tup = [result_blocks, result_cut]
     return tuple(result_tup)

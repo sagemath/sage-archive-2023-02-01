@@ -17,7 +17,7 @@ jobs:
     docker:
       - image: docker:latest
     environment:
-      DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:latest
+      DEFAULT_ARTIFACT_BASE: sagemath/sagemath-dev:develop
     steps:
       - run: apk --update add git openssh
       - checkout

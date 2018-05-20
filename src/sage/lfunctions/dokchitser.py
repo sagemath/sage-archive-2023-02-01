@@ -605,7 +605,7 @@ class Dokchitser(SageObject):
 
             sage: L = EllipticCurve("24a1").modular_form().lseries()
             sage: L.taylor_series(-1, 3)
-            0.000000000000000 - 0.702565506265199*z + 0.638929001045535*z^2 + 0.526515658001218*z^3 + O(z^4)
+            0.000000000000000 - 0.702565506265199*z + 0.638929001045535*z^2 + O(z^3)
 
         """
         self.__check_init()
@@ -627,7 +627,7 @@ class Dokchitser(SageObject):
         K = self.__CC
         v = [K(repr(x)) for x in v]
         R = self.__CC[[var]]
-        return R(v, len(v))
+        return R(v, k)
 
     def check_functional_equation(self, T=1.2):
         r"""

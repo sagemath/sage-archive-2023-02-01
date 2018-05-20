@@ -388,8 +388,6 @@ def run_100ms():
     """
     t0 = time.time()   # start
     t1 = t0 + 0.1      # end
-    from sage.misc.functional import symbolic_sum
     from sage.symbolic.ring import SR
     while time.time() < t1:
-        sum(1/(1+SR(n) ** 2) for n in range(100))
-
+        sum(1 / (1 + SR(n) ** 2) for n in range(100))

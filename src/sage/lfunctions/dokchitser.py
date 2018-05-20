@@ -600,13 +600,20 @@ class Dokchitser(SageObject):
             sage: L = E.lseries().dokchitser(200)
             sage: L.taylor_series(1,3)
             -9.094...e-82 + (5.1538...e-82)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
+
+        Check that :trac:`25402` is fixed::
+
+            sage: L = EllipticCurve("24a1").modular_form().lseries()
+            sage: L.taylor_series(-1, 3)
+            0.000000000000000 - 0.702565506265199*z + 0.638929001045535*z^2 + 0.526515658001218*z^3 + O(z^4)
+
         """
         self.__check_init()
         a = self.__CC(a)
         k = Integer(k)
         try:
             z = self._gp_call_inst('Lseries', a, '', k - 1)
-            z = self.gp()('Vec(%s)' % z)
+            z = self.gp()('Vecrev(Pol(%s))' % z)
         except TypeError as msg:
             raise RuntimeError("%s\nUnable to compute Taylor expansion (try lowering the number of terms)" % msg)
         r = repr(z)

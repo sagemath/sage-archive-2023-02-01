@@ -22,12 +22,13 @@ from __future__ import print_function
 from six.moves import range
 
 import time
-from sage.groups.perm_gps.partn_ref.refinement_graphs import *
+from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree, get_orbits
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
 
-def _principal_part( mat ):
+
+def _principal_part(mat):
     """
     Returns the principal part of a matrix.
 

@@ -5385,20 +5385,26 @@ class GenericGraph(GenericGraph_pyx):
             sage: rings = graphs.CycleGraph(10)
             sage: rings.merge_vertices([0, 5])
             sage: rings.blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4], [0, 9, 6, 7, 8]], [0])
+            ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
             sage: rings.blocks_and_cut_vertices(algorithm="Tarjan_Sage")
             ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
 
         The Petersen graph is biconnected, hence has no cut vertices::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
+            ([[0, 1, 4, 5, 2, 6, 3, 7, 8, 9]], [])
 
         Decomposing paths to pairs::
 
             sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
             sage: g.blocks_and_cut_vertices()
-            ([[2, 3], [1, 2], [0, 1], [8, 7], [6, 7], [5, 6], [4, 5]], [2, 1, 7, 6, 5])
+            ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [2, 1, 7, 6, 5])
+
+        A disconnected graph::
+
+            sage: g = Graph({1:{2:28, 3:10}, 2:{1:10, 3:16}, 4:{}, 5:{6:3, 7:10}})
+            sage: g.blocks_and_cut_vertices()
+            ([[1, 2, 3], [5, 6], [5, 7], [4]], [5])
 
         TESTS::
 
@@ -5571,7 +5577,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
             sage: T.vertices()
-            [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
+            [('B', (0, 1, 4, 5, 2, 6, 3, 7, 8, 9))]
 
         TESTS:
 

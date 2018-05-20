@@ -698,7 +698,7 @@ cpdef blocks_and_cut_vertices(g):
         sage: from sage.graphs.base.boost_graph import blocks_and_cut_vertices
         sage: g = graphs.KrackhardtKiteGraph()
         sage: blocks_and_cut_vertices(g)
-        ([[8, 9], [8, 7], [0, 1, 2, 3, 4, 5, 6, 7]], [8, 7])
+        ([[8, 9], [7, 8], [0, 1, 2, 3, 5, 4, 6, 7]], [8, 7])
 
         sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
         sage: blocks_and_cut_vertices(G)
@@ -724,7 +724,7 @@ cpdef blocks_and_cut_vertices(g):
     cdef BoostVecGraph g_boost
     cdef vector[vector[v_index]] result
     cdef list int_to_vertex = g.vertices()
-    cdef dict vertex_status = {v:0 for i,v in enumerate(g.vertices())}
+    cdef dict vertex_status = {vi:-1 for vi in g.vertices()}
 
     boost_graph_from_sage_graph(&g_boost, g)
     sig_on()
@@ -734,30 +734,33 @@ cpdef blocks_and_cut_vertices(g):
     cdef list result_blocks = []
     cdef list result_cut = []
     cdef list result_temp = []
+    cdef int i
 
-    # We iterate over the blocks with repetitions and populate the list `result_blocks`
+    # We iterate over the vertices in the blocks and find articulation points
     for i in range(len(result)):
-        for v in set(result[i]):
-            result_temp.append(int_to_vertex[<int> v ])
+        for vertex in result[i]:
+            v = int_to_vertex[<int> vertex]
+            # The vertex is seen for the first time
+            if vertex_status[v] == -1:
+                result_temp.append(v)
+                vertex_status[v] = i
+            # Vertex belongs to a previous block also, must be a cut vertex
+            elif vertex_status[v] < i:
+                result_cut.append(v)
+                result_temp.append(v)
+                # Change the block number to avoid adding the vertex twice as a cut vertex if it is repeated in block i
+                vertex_status[v] = i
+            # elif vertex_status[v] == i:
+            # Nothing to do since we have already added the vertex to block i
+
         result_blocks.append(result_temp)
         result_temp = []
 
-    # We iterate over the vertices in all the blocks and find articulation points
-    for block in result_blocks:
-        for vertex in block:
-            # The vertex is seen for the first time
-            if (vertex_status[vertex] == 0):
-                vertex_status[vertex] = 1
-            # Vertex seen again, must be a cut vertex
-            elif (vertex_status[vertex] == 1):
-                vertex_status[vertex] = 2
-                result_cut.append(vertex)
-
     # If the vertex does not belong to any block, it must be an isolated vertex.
     # Hence, it is considered a block.
-    for vertex, val in vertex_status.items():
-        if val == 0:
-            result_blocks.append([vertex])
+    for v, val in vertex_status.items():
+        if val == -1:
+            result_blocks.append([v])
 
     result_tup = [result_blocks, result_cut]
     return tuple(result_tup)

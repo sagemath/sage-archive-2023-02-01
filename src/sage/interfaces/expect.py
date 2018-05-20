@@ -40,6 +40,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six import string_types
+from six import reraise as raise_
 
 import io
 import os
@@ -57,7 +58,7 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import (Interface, InterfaceElement,
-        InterfaceFunction, InterfaceFunctionElement)
+            InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
 
 from sage.structure.element import RingElement
 
@@ -67,8 +68,6 @@ from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
 
 from sage.cpython.string import str_to_bytes, bytes_to_str
-
-from six import reraise as raise_
 
 BAD_SESSION = -2
 

@@ -477,8 +477,8 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
     def from_finite_word(self, w):
         r"""
-        Return the unique ordered set partition of `{1, 2, ..., n}` corresponding to a word
-        of length `n`.'
+        Return the unique ordered set partition of `\{1, 2, \ldots, n\}` corresponding
+        to a word `w` of length `n`.
 
         .. SEEALSO::
 

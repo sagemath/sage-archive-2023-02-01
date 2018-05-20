@@ -822,7 +822,7 @@ def centrality_closeness_random_k(G, int k=1):
 
     INPUT:
 
-    - ``G`` -- a undirected Graph
+    - ``G`` -- an undirected connected Graph
 
     - ``k`` (integer, default: 1) -- The number of random nodes to choose
 
@@ -848,30 +848,14 @@ def centrality_closeness_random_k(G, int k=1):
          8: 0.6,
          9: 0.6}
 
-    The closeness centrality of an isolated vertex is not defined::
-
-        sage: from sage.graphs.centrality import centrality_closeness_random_k
-        sage: centrality_closeness_random_k(Graph(2), 1)
-        {}
-
-    Closeness centrality for a graph in which few isolated vertices are there::
-
-        sage: from sage.graphs.centrality import centrality_closeness_random_k
-        sage: G = Graph()
-        sage: G.add_cycle([0,1,2])
-        sage: G.add_vertex(3)
-        sage: G.add_vertex(4)
-        sage: centrality_closeness_random_k(G,3)
-        {0: 1.0, 1: 1.0, 2: 1.0, 3: 0.0, 4: 0.0}
-
     TESTS::
 
         sage: from sage.graphs.centrality import centrality_closeness_random_k
         sage: G = Graph('Ihe\\n@GUA')
-        sage: centrality_closeness_random_k(G, 11)
+        sage: centrality_closeness_random_k(G, -1)
         Traceback (most recent call last):
         ...
-        ValueError: parameter k must be less than the number of nodes
+        ValueError: parameter k must be a positive integer
 
         sage: centrality_closeness_random_k(DiGraph(2), 1)
         Traceback (most recent call last):
@@ -881,13 +865,15 @@ def centrality_closeness_random_k(G, int k=1):
     """
     G._scream_if_not_simple()
     if G.is_directed():
-        raise ValueError("G should be an undirected Graph")
-    if not G.size():
-        return {}
+        raise ValueError("G must be an undirected Graph")
+    if not G.is_connected():
+        raise ValueError("G must be a connected Graph")
 
     cdef int n = G.order()
+    if k < 1:
+        raise ValueError("parameter k must be a positive integer")
     if k > n:
-        raise ValueError("parameter k must be less than the number of nodes")
+        k = n
 
     # Initialization of some data structures
     cdef MemoryAllocator mem = MemoryAllocator()
@@ -899,19 +885,6 @@ def centrality_closeness_random_k(G, int k=1):
     cdef double farness
     cdef int i, j
     cdef dict closeness_centrality_array = {}
-
-    # Remove isolated vertices
-    Isolated_vertices = []
-    for i in G.vertex_iterator():
-        if not G.degree(i) :
-            G.delete_vertex(i)
-            closeness_centrality_array[i] = 0.0
-            Isolated_vertices.append(i)
-
-
-    n = G.order()
-    if k > n:
-        k = n
     cdef list int_to_vertex = G.vertices()
     cdef dict vertex_to_int = {int_to_vertex[i]:i for i in range(n)}
 
@@ -920,9 +893,9 @@ def centrality_closeness_random_k(G, int k=1):
         partial_farness[i] = 0
 
     # Shuffle the vertices
-    cdef list l = [i for i in range(n)]
+    l = list(range(n))
     random.shuffle(l)
-
+    
     if G.weighted():
         # For all random nodes take as a source then run Dijstra and
         # calculate closeness centrality for k random vertices from l.
@@ -962,8 +935,5 @@ def centrality_closeness_random_k(G, int k=1):
     # Estimate the closeness centrality for remaining n-k vertices.
     for i in range(k, n):
         closeness_centrality_array[int_to_vertex[l[i]]] = k / partial_farness[l[i]]
-
-    for i in Isolated_vertices:
-        G.add_vertex(i)
 
     return closeness_centrality_array

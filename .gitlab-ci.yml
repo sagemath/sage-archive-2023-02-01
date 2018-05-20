@@ -88,7 +88,7 @@ build-from-latest: &build
     - gitlab-build-docker.log
     expire_in: 1 month
   script:
-    - apk update && apk add coreutils
+    - apk --update add coreutils
     # The output of the build can get larger than gitlab.com's limit; only print the first 3MB (and the last 80 lines.)
     - .ci/build-docker.sh | tee gitlab-build-docker.log | .ci/head-tail.sh 3145728
     - .ci/push-gitlab.sh sagemath-dev

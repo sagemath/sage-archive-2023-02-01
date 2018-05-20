@@ -16,9 +16,8 @@
 # ****************************************************************************
 
 set -ex
-
-docker run --name sage-jupyter -p 8888:8888 -d "$1" sage-jupyter
+docker run --name sage-jupyter -p -d "$1" sage-jupyter
 echo "Checking that the Jupyter notebook is running…"
 sleep 10 # giving the server some time to start
 docker logs sage-jupyter
-wget --retry-connrefused --tries=10 --wait=3 "http://${2:-localhost}:8888"
+docker run --link sage-jupyter alpine sh -c "apk --update add wget; wget --retry-connrefused --tries=10 --wait=3 http://sage-jupyter:8888"

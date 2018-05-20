@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This script gets called from CI to establish the name of the current docker
-# tag to build from the name of the branch/tag provided by CI.
+# tag to build and also the image which is used to seed the cache.
 
 # ****************************************************************************
 #       Copyright (C) 2018 Julian Rüth <julian.rueth@fsfe.org>
@@ -26,3 +26,7 @@ export DOCKER_TAG=`echo $DOCKER_TAG | tr -d '[:space:]' | tr -c '[:alnum:]_.-' '
 
 export DOCKER_IMAGE_CLI=${DOCKER_USER:-sagemath}/sagemath:$DOCKER_TAG
 export DOCKER_IMAGE_DEV=${DOCKER_USER:-sagemath}/sagemath-dev:$DOCKER_TAG
+
+# Seed the build cache with this image (set to source-clean to build from
+# scratch.)
+export ARTIFACT_BASE=${ARTIFACT_BASE:-$DEFAULT_ARTIFACT_BASE}

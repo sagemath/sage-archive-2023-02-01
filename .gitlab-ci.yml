@@ -78,12 +78,10 @@ services:
 - docker:dind
 
 # Build Sage and its documentation.
-# The build starts from the build artifacts of ARTIFACT_BASE which is usually
-# much faster than building from a clean checkout of Sage.
+# The build starts from the build artifacts of DEFAULT_ARTIFACT_BASE which is
+# usually much faster than building from a clean checkout of Sage.
 build-from-latest: &build
   stage: build
-  variables:
-    ARTIFACT_BASE: $DEFAULT_ARTIFACT_BASE
   artifacts:
     when: always
     paths:
@@ -135,12 +133,6 @@ test-cli:
 test-jupyter:
   stage: test
   script:
-    # Force usage of docker-in-docker (and don't start docker on a bind-mounted
-    # /var/run/docker.sock set through a private GitLab CI variable) so that
-    # the -p flag to docker run works as expected.
-    - export DOCKER_HOST='tcp://docker:2375'
-    - apk update
-    - apk add wget
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/test-jupyter.sh "$DOCKER_IMAGE" docker
 

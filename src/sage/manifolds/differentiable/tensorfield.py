@@ -18,11 +18,15 @@ fields:
 * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for differential
   forms (fully antisymmetric covariant tensor fields)
 
+* :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+  for multivector fields (fully antisymmetric contravariant tensor fields)
+
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
-- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian
+- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian;
+  method :meth:`TensorField.along`
 
 REFERENCES:
 
@@ -3746,4 +3750,122 @@ class TensorField(ModuleElement):
             # The name is propagated to possible restrictions of self:
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def along(self, mapping):
+        r"""
+        Return the tensor field deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
+
+        More precisely, if ``self`` is a tensor field `t` on `M` and if
+        `\Phi: U \rightarrow M` is a differentiable map from some
+        differentiable manifold `U` to `M`, the returned object is
+        a tensor field `\tilde t` along `U` with values on `M` such that
+
+        .. MATH::
+
+           \forall p \in U,\  \tilde t(p) = t(\Phi(p)).
+
+        INPUT:
+
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow M`
+
+        OUTPUT:
+
+        - tensor field `\tilde t` along `U` defined above.
+
+        EXAMPLES:
+
+        Let us consider the 2-dimensional sphere `S^2`::
+
+            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                 restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+
+        and the following map from the open interval `(0,5\pi/2)` to `S^2`,
+        the image of it being the great circle `x=0`, `u=0`, which goes through
+        the North and South poles::
+
+            sage: I.<t> = OpenInterval(0, 5*pi/2)
+            sage: J = I.open_interval(0, 3*pi/2)
+            sage: K = I.open_interval(pi, 5*pi/2)
+            sage: c_J = J.canonical_chart(); c_K = K.canonical_chart()
+            sage: Phi = I.diff_map(M, {(c_J, c_xy):
+            ....:                      (0, sgn(pi-t)*sqrt((1+cos(t))/(1-cos(t)))),
+            ....:                      (c_K, c_uv):
+            ....:                      (0,  sgn(t-2*pi)*sqrt((1-cos(t))/(1+cos(t))))},
+            ....:                  name='Phi')
+
+        Let us consider a vector field on `S^2`::
+
+            sage: eU = c_xy.frame(); eV = c_uv.frame()
+            sage: w = M.vector_field(name='w')
+            sage: w[eU,0] = 1
+            sage: w.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: w.display(eU)
+            w = d/dx
+            sage: w.display(eV)
+            w = (-u^2 + v^2) d/du - 2*u*v d/dv
+
+        We have then::
+
+            sage: wa = w.along(Phi); wa
+            Vector field w along the Real interval (0, 5/2*pi) with values on
+             the 2-dimensional differentiable manifold S^2
+            sage: wa.display(eU.along(Phi))
+            w = d/dx
+            sage: wa.display(eV.along(Phi))
+            w = -(cos(t) - 1)*sgn(-2*pi + t)^2/(cos(t) + 1) d/du
+
+        Some tests::
+
+            sage: p = K.an_element()
+            sage: wa.at(p) == w.at(Phi(p))
+            True
+            sage: wa.at(J(4*pi/3)) == wa.at(K(4*pi/3))
+            True
+            sage: wa.at(I(4*pi/3)) == wa.at(K(4*pi/3))
+            True
+            sage: wa.at(K(7*pi/4)) == eU[0].at(Phi(I(7*pi/4))) # since eU[0]=d/dx
+            True
+
+        """
+        dom = self._domain
+        if self._ambient_domain is not dom:
+            raise ValueError("{} is not a tensor field ".format(self) +
+                             "with values in the {}".format(dom))
+        if mapping.codomain().is_subset(dom):
+            rmapping = mapping
+        else:
+            rmapping = None
+            for doms, rest in mapping._restrictions.items():
+                if doms[1].is_subset(dom):
+                    rmapping = rest
+                    break
+            else:
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 "included in the domain of {}".format(self))
+        resu_ambient_domain = rmapping.codomain()
+        if resu_ambient_domain.is_manifestly_parallelizable():
+            return self.restrict(resu_ambient_domain).along(rmapping)
+        dom_resu = rmapping.domain()
+        vmodule = dom_resu.vector_field_module(dest_map=rmapping)
+        resu = vmodule.tensor(self._tensor_type, name=self._name,
+                              latex_name=self._latex_name, sym=self._sym,
+                              antisym=self._antisym)
+        for rdom in resu_ambient_domain._parallelizable_parts:
+            if rdom in resu_ambient_domain._top_subsets:
+                for chart1, chart2 in rmapping._coord_expression:
+                    if chart2.domain() is rdom:
+                        dom1 = chart1.domain()
+                        rrmap = rmapping.restrict(dom1, subcodomain=rdom)
+                        resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
         return resu

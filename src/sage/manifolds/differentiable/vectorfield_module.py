@@ -1218,6 +1218,29 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
         sage: TestSuite(XIM).run()
 
+    Let us introduce an open subset of `J\subset I` and the vector field module
+    corresponding to the restriction of `\Phi` to it::
+
+        sage: J = I.open_subset('J', coord_def= {canon: t<pi})
+        sage: XJM = J.vector_field_module(dest_map=Phi.restrict(J)); XJM
+        Free module X(J,Phi) of vector fields along the Open subset J of the
+         1-dimensional differentiable manifold I mapped into the 2-dimensional
+         differentiable manifold R^2
+
+    We have then::
+
+        sage: XJM.default_basis()
+        Vector frame (J, (d/dx,d/dy)) with values on the 2-dimensional
+         differentiable manifold R^2
+        sage: XJM.default_basis() is XIM.default_basis().restrict(J)
+        True
+        sage: v.restrict(J)
+        Vector field along the Open subset J of the 1-dimensional
+         differentiable manifold I with values on the 2-dimensional
+         differentiable manifold R^2
+        sage: v.restrict(J).display()
+        t d/dx + t^2 d/dy
+
     Let us now consider the module of vector fields on the circle `S^1`; we
     start by constructing the `S^1` manifold::
 
@@ -1389,8 +1412,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                 subframe._superframes.update(basis._superframes)
                                 basis._subframes.update(subframe._subframes)
                                 basis._restrictions.update(subframe._restrictions)
-
-
 
         # Initialization of the components of the zero element:
         zero = self.zero()

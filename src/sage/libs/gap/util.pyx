@@ -18,11 +18,12 @@ from cpython.exc cimport PyErr_SetObject
 from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 from cysignals.signals cimport sig_on, sig_off, sig_error
 
+from .gap_includes cimport *
+from .element cimport *
 from sage.cpython.string import FS_ENCODING
 from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.interfaces.gap_workspace import prepare_workspace_dir
 from sage.env import SAGE_LOCAL, GAP_ROOT_DIR
-from .element cimport *
 
 
 ############################################################################
@@ -105,7 +106,8 @@ cdef ObjWrapper wrap_obj(libGAP_Obj obj):
     return result
 
 
-owned_objects_refcount = dict()
+# a dictionary to keep all GAP elements
+cdef dict owned_objects_refcount = dict()
 
 cpdef get_owned_objects():
     """
@@ -174,6 +176,9 @@ def gap_root():
     gapdir = gapdir.replace('$SAGE_LOCAL', SAGE_LOCAL)
     return gapdir
 
+
+# To ensure that we call initialize_libgap only once.
+cdef bint _gap_is_initialized = False
 
 cdef initialize():
     """
@@ -341,6 +346,12 @@ cdef libGAP_Obj gap_eval(str gap_string) except? NULL:
 ############################################################################
 ### Helper to protect temporary objects from deletion ######################
 ############################################################################
+
+# Hold a reference (inside the GAP kernel) to obj so that it doesn't
+# get deleted this works by assigning it to a global variable. This is
+# very simple, but you can't use it to keep two objects alive. Be
+# careful.
+cdef libGAP_UInt reference_holder
 
 cdef void hold_reference(libGAP_Obj obj):
     """

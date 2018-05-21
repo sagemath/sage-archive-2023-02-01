@@ -944,6 +944,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: chi.gauss_sum()
             zeta52^22 + zeta52^21 + zeta52^19 - zeta52^16 + zeta52^15 + zeta52^14 + zeta52^12 - zeta52^11 - zeta52^10 - zeta52^7 - zeta52^5 + zeta52^4
 
+        Check that :trac:`25127` is fixed::
+
+            sage: G = DirichletGroup(1)
+            sage: chi = G.one()
+            sage: chi.gauss_sum()
+            1
+
+
         .. SEEALSO::
 
             - :func:`sage.arith.misc.gauss_sum` for general finite fields
@@ -966,7 +974,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         else:
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, QQbar, or a complex field")
         zeta = zeta ** a
-        g = L.zero()
+        g = L(chi(0))
         z = L.one()
         for c in chi.values()[1:]:
             z *= zeta
@@ -1043,7 +1051,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         else:
             raise NotImplementedError("Gauss sums only currently implemented when the base ring is a cyclotomic field, QQ, QQbar, or a complex field")
         zeta = CC.zeta(G.modulus()) ** a
-        g = CC.zero()
+        g = phi(self(0))
         z = CC.one()
         for c in self.values()[1:]:
             z *= zeta

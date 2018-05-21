@@ -758,7 +758,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
             T.assertTrue(gens[-1].valuation(I) == 1)
 
             # This implicitly tests that the gens really are gens!
-            _ = self.discrete_log(c, -1)
+            self.discrete_log(c, -1)
 
     def _test_subgroupgens(self, **options):
         r"""

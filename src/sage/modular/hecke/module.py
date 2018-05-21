@@ -20,7 +20,6 @@ import sage.misc.misc as misc
 import sage.modules.module
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
-from sage.structure.parent import Parent
 
 import sage.misc.prandom as random
 
@@ -606,7 +605,6 @@ class HeckeModule_free_module(HeckeModule_generic):
             return self.__eigen_nonzero
         except AttributeError:
             pass
-        A = self.ambient_hecke_module()
         V = self.dual_free_module()
         B = V.basis()
         for i in range(V.degree()):

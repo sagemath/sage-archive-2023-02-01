@@ -94,10 +94,11 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import zip
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import rich_to_bool_sgn, richcmp_method
 from sage.misc.lazy_attribute import lazy_attribute
 
 from copy import copy
@@ -229,7 +230,7 @@ class LabelledPermutation(SageObject):
             sage: len(iet.Permutation('1 2 3 4 5 6','1 2 3 4 5 6'))
             6
         """
-        return (len(self._intervals[0]) + len(self._intervals[1])) / 2
+        return (len(self._intervals[0]) + len(self._intervals[1])) // 2
 
     def length_top(self):
         r"""
@@ -774,6 +775,8 @@ def LabelledPermutationsIET_iterator(nintervals=None,
             lambda x: x.is_irreducible(),
             LabelledPermutationsIET_iterator(nintervals,False,alphabet))
 
+
+@richcmp_method
 class LabelledPermutationIET(LabelledPermutation, PermutationIET):
     """
     Labelled permutation for iet
@@ -811,7 +814,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         sage: p in d
         True
     """
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         ALGORITHM:
 
@@ -829,21 +832,22 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
             sage: (p1 > p0) and (p1 == p1)
             True
         """
+
         if type(self) is not type(other):
-            return -1
+            return NotImplemented
 
         n = len(self)
         if n != len(other):
-            return n - len(other)
+            return rich_to_bool_sgn(op, n - len(other))
 
         i, j = 0, 0
         while (self._intervals[i][j] == other._intervals[i][j]):
             j += 1
             if j == n:
-                if i == 1: return 0
+                if i == 1: return rich_to_bool_sgn(op, 0)
                 i = 1
                 j = 0
-        return self._intervals[i][j] - other._intervals[i][j]
+        return rich_to_bool_sgn(op, self._intervals[i][j] - other._intervals[i][j])
 
     @lazy_attribute
     def _twin(self):
@@ -1116,6 +1120,8 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         """
         return LabelledRauzyDiagram(self, **args)
 
+
+@richcmp_method
 class LabelledPermutationLI(LabelledPermutation, PermutationLI):
     r"""
     Labelled quadratic (or generalized) permutation
@@ -1162,7 +1168,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
         sage: p in r
         True
     """
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         ALGORITHM:
 
@@ -1191,25 +1197,27 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
             True
         """
         if type(self) is not type(other):
-            return -1
+            return NotImplemented
 
         n = len(self)
 
-        if n != len(other): return n - len(other)
+        if n != len(other):
+            return rich_to_bool_sgn(op, n - len(other))
 
         l0 = self._intervals[0]
         l1 = other._intervals[0]
 
         n = len(self._intervals[0])
 
-        if n != len(other._intervals[0]): return n - len(other._intervals[0])
+        if n != len(other._intervals[0]):
+            return rich_to_bool_sgn(op, n - len(other._intervals[0]))
 
         i = 0
         while (i < n) and (l0[i] == l1[i]):
             i += 1
 
         if i != n:
-            return l0[i] - l1[i]
+            return rich_to_bool_sgn(op, l0[i] - l1[i])
 
         l0 = self._intervals[1]
         l1 = other._intervals[1]
@@ -1220,9 +1228,9 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
             i += 1
 
         if i != n:
-            return l0[i] - l1[i]
+            return rich_to_bool_sgn(op, l0[i] - l1[i])
 
-        return 0
+        return rich_to_bool_sgn(op, 0)
 
     def has_right_rauzy_move(self, winner):
         r"""

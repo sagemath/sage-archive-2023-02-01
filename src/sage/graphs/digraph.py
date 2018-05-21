@@ -658,7 +658,6 @@ class DiGraph(GenericGraph):
         if format is None and isinstance(data,list):
             format = "list_of_edges"
             if weighted is None: weighted = False
-            num_verts=0
 
         if format == 'weighted_adjacency_matrix':
             if weighted is False:

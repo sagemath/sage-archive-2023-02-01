@@ -66,6 +66,7 @@ def BinaryStrings():
     _cache[2] = weakref.ref(S)
     return S
 
+
 def OctalStrings():
     r"""
     Returns the free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
@@ -94,6 +95,7 @@ def OctalStrings():
     S = OctalStringMonoid()
     _cache[8] = weakref.ref(S)
     return S
+
 
 def HexadecimalStrings():
     r"""
@@ -124,6 +126,7 @@ def HexadecimalStrings():
     S = HexadecimalStringMonoid()
     _cache[16] = weakref.ref(S)
     return S
+
 
 def Radix64Strings():
     r"""
@@ -160,6 +163,7 @@ def Radix64Strings():
     _cache[64] = weakref.ref(S)
     return S
 
+
 def AlphabeticStrings():
     r"""
     Returns the string monoid on generators A-Z:
@@ -189,6 +193,7 @@ def AlphabeticStrings():
     return S
 
 #*****************************************************************************
+
 
 class StringMonoid_class(FreeMonoid_class):
     r"""
@@ -282,6 +287,7 @@ class StringMonoid_class(FreeMonoid_class):
 # Specific global string monoids
 #*****************************************************************************
 
+
 class BinaryStringMonoid(StringMonoid_class):
     r"""
     The free binary string monoid on generators `\{ 0, 1 \}`.
@@ -300,11 +306,6 @@ class BinaryStringMonoid(StringMonoid_class):
             01111101
         """
         StringMonoid_class.__init__(self, 2, ['0', '1'])
-
-    def __cmp__(self, other):
-        if not isinstance(other, BinaryStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free binary string monoid"
@@ -395,6 +396,7 @@ class BinaryStringMonoid(StringMonoid_class):
     #     """
     #     return 2
 
+
 class OctalStringMonoid(StringMonoid_class):
     r"""
     The free octal string monoid on generators `\{ 0, 1, \dots, 7 \}`.
@@ -415,11 +417,6 @@ class OctalStringMonoid(StringMonoid_class):
             01234567
         """
         StringMonoid_class.__init__(self, 8, [ str(i) for i in range(8) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, OctalStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free octal string monoid"
@@ -453,6 +450,7 @@ class OctalStringMonoid(StringMonoid_class):
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
 
+
 class HexadecimalStringMonoid(StringMonoid_class):
     r"""
     The free hexadecimal string monoid on generators
@@ -476,11 +474,6 @@ class HexadecimalStringMonoid(StringMonoid_class):
         """
         alph = '0123456789abcdef'
         StringMonoid_class.__init__(self, 16, [ alph[i] for i in range(16) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, HexadecimalStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free hexadecimal string monoid"
@@ -559,6 +552,7 @@ class HexadecimalStringMonoid(StringMonoid_class):
             hex_string.extend(hex_chars)
         return self(hex_string)
 
+
 class Radix64StringMonoid(StringMonoid_class):
     r"""
     The free radix 64 string monoid on 64 generators.
@@ -580,11 +574,6 @@ class Radix64StringMonoid(StringMonoid_class):
         """
         alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
         StringMonoid_class.__init__(self, 64, [ alph[i] for i in range(64) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, Radix64StringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free radix 64 string monoid"
@@ -620,6 +609,7 @@ class Radix64StringMonoid(StringMonoid_class):
             return StringMonoidElement(self, x, check)
         else:
             raise TypeError("Argument x (= %s) is of the wrong type." % x)
+
 
 class AlphabeticStringMonoid(StringMonoid_class):
     """
@@ -688,11 +678,6 @@ class AlphabeticStringMonoid(StringMonoid_class):
             "Y": RR(0.020), "Z": RR(0.001)}
         alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         StringMonoid_class.__init__(self, 26, [ alph[i] for i in range(26) ])
-
-    def __cmp__(self, other):
-        if not isinstance(other, AlphabeticStringMonoid):
-            return -1
-        return 0
 
     def __repr__(self):
         return "Free alphabetic string monoid on A-Z"

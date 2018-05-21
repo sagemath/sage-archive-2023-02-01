@@ -2819,7 +2819,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).plethysm(s(0))
             s[]
 
-        Sage also handles plethsym of tensor products of symmetric functions::
+        Sage also handles plethysm of tensor products of symmetric functions::
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: X = tensor([s[1],s[[]]])

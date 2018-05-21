@@ -3137,6 +3137,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^2 + z
             sage: f.change_ring(K.embeddings(CC)[0])
             x^2 - 0.500000000000000 - 0.866025403784439*I
+
+        TESTS:
+
+        Check that :trac:`25022` is fixed::
+
+            sage: K.<x> = ZZ[]
+            sage: x.change_ring(SR) == SR['x'].gen()
+            True
+            sage: x.change_ring(ZZ['x']) == ZZ['x']['x'].gen()
+            True
         """
         if isinstance(R, Morphism):
             # we're given a hom of the base ring extend to a poly hom
@@ -3144,7 +3154,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
             return R(self)
         else:
-            return self._parent.change_ring(R)(self)
+            return self._parent.change_ring(R)(list(self))
 
     def _mpoly_dict_recursive(self, variables=None, base_ring=None):
         """
@@ -3367,7 +3377,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Return a numerator of self computed as self * self.denominator()
 
-        Note that some subclases may implement its own numerator
+        Note that some subclasses may implement its own numerator
         function. For example, see
         :class:`sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint`
 

@@ -631,7 +631,7 @@ cdef class MPolynomial(CommutativeRingElement):
         return result
 
     # you may have to replicate this boilerplate code in derived classes if you override
-    # __richcmp__.  The python documentation at  http://docs.python.org/api/type-structs.html
+    # __richcmp__.  The python documentation at  https://docs.python.org/api/type-structs.html
     # explains how __richcmp__, __hash__, and __cmp__ are tied together.
     def __hash__(self):
         return self._hash_c()
@@ -863,6 +863,14 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f = x^2 + z*y
             sage: f.change_ring(K.embeddings(CC)[1])
             x^2 + (-0.500000000000000 + 0.866025403784439*I)*y
+
+        TESTS:
+
+        Check that :trac:`25022` is fixed::
+
+            sage: K.<x,y> = ZZ[]
+            sage: (x*y).change_ring(SR).monomials()
+            [x*y]
         """
         if isinstance(R, Map):
         #if we're given a hom of the base ring extend to a poly hom
@@ -870,7 +878,7 @@ cdef class MPolynomial(CommutativeRingElement):
                 R = self.parent().hom(R, self.parent().change_ring(R.codomain()))
             return R(self)
         else:
-            return self.parent().change_ring(R)(self)
+            return self.parent().change_ring(R)(self.dict())
 
     def _gap_(self, gap):
         """
@@ -1504,7 +1512,7 @@ cdef class MPolynomial(CommutativeRingElement):
         is computed and returned. If this computation fails, the
         unit of the parent of self is returned.
 
-        Note that some subclases may implement its own denominator
+        Note that some subclasses may implement its own denominator
         function.
 
         .. warning::
@@ -1579,7 +1587,7 @@ cdef class MPolynomial(CommutativeRingElement):
         """
         Return a numerator of self computed as self * self.denominator()
 
-        Note that some subclases may implement its own numerator
+        Note that some subclasses may implement its own numerator
         function.
 
         .. warning::

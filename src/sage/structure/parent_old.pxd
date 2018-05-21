@@ -13,19 +13,12 @@ from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
 
 cdef class Parent(parent.Parent):
+    # Cache for __has_coerce_map_from_c()
+    cdef MonoDict _has_coerce_map_from
 
-    # returns a Morphism from S to self, or None
-    cpdef coerce_map_from_c(self, S)
-    cdef coerce_map_from_c_impl(self, S)
-
-    cdef public MonoDict _has_coerce_map_from
-
-    #########################################
-    # Canonical Coercion Methods
-    cpdef has_coerce_map_from_c(self, S)
-    cdef has_coerce_map_from_c_impl(self, S)
     cpdef _coerce_c(self, x)
     cdef _coerce_c_impl(self, x)
 
-    cdef _an_element_c_impl(self)
-    cpdef _an_element_c(self)
+    cdef __coerce_map_from_c(self, S)
+    cdef __coerce_map_from_c_impl(self, S)
+    cdef __has_coerce_map_from_c(self, S)

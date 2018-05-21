@@ -897,7 +897,7 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
 
         There is some support for discrete pseudo-valuations on rational
         function fields in the code. However, since these valuations must send
-        elments to `-\infty`, they are not supported yet::
+        elements to `-\infty`, they are not supported yet::
 
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(QQ['x'], QQ.valuation(2)).augmentation(x, infinity)

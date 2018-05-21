@@ -45,6 +45,8 @@ public:
         bool operator==(const wildcard& other) const
             { return label == other.label; }
 	bool match(const ex & pattern, exmap& map) const override;
+        bool cmatch(const ex & pattern, exmap& map) const override
+                { return match(pattern, map); }
 
 protected:
 	long calchash() const override;

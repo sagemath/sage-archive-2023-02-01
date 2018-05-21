@@ -35,7 +35,10 @@
 #include "utils.h"
 #include "relational.h"
 #include "compiler.h"
+#include "cmatcher.h"
+#include "wildcard.h"
 
+#include <unistd.h>
 #include <vector>
 #include <stdexcept>
 #include <limits>
@@ -697,6 +700,26 @@ bool power::has(const ex & other, unsigned options) const
                         return true;
         }
 	return basic::has(other, options);
+}
+
+bool power::cmatch(const ex & pattern, exmap& map) const
+{
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////sleep(60);
+	if (is_exactly_a<wildcard>(pattern)) {
+                const auto& it = map.find(pattern);
+                if (it != map.end())
+		        return is_equal(ex_to<basic>(it->second));
+		map[pattern] = *this;
+		return true;
+	} 
+        if (not is_exactly_a<power>(pattern))
+                return false;
+        CMatcher cm(*this, pattern, map);
+        const opt_exmap& m = cm.get();
+        if (not m)
+                return false;
+        map = m.value();
+        return true;
 }
 
 // from mul.cpp

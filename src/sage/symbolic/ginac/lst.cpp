@@ -21,6 +21,8 @@
  */
 
 #include "lst.h"
+#include "wildcard.h"
+#include "cmatcher.h"
 
 namespace GiNaC {
 
@@ -38,6 +40,26 @@ template <> bool lst::info(unsigned inf) const
 		return true;
 
 	return inherited::info(inf);
+}
+
+template <>
+bool lst::cmatch(const ex & pattern, exmap& map) const
+{
+	if (is_exactly_a<wildcard>(pattern)) {
+                const auto& it = map.find(pattern);
+                if (it != map.end())
+		        return is_equal(ex_to<basic>(it->second));
+		map[pattern] = *this;
+		return true;
+	} 
+        if (not is_exactly_a<lst>(pattern))
+                return false;
+        CMatcher cm(*this, pattern, map);
+        const opt_exmap& m = cm.get();
+        if (not m)
+                return false;
+        map = m.value();
+        return true;
 }
 
 template <> ex lst::unarchive(const archive_node &n, lst &sym_lst)

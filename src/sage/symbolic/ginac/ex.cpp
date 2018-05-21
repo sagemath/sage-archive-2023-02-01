@@ -130,6 +130,35 @@ bool ex::match(const ex & pattern, exvector& vec) const
         return ret;
 }
 
+bool ex::cmatch(const ex & pattern, exmap& map) const
+{
+        return bp->cmatch(pattern, map);
+}
+
+bool ex::cmatch(const ex & pattern, exvector& vec) const
+{
+        exmap map;
+        bool ret = this->cmatch(pattern, map);
+        if (not ret)
+                return ret;
+        unsigned maxl = 0;
+        for (const auto& pair : map) {
+                if (not is_exactly_a<wildcard>(pair.first))
+                        throw std::runtime_error("no wildcard");
+                unsigned l = ex_to<wildcard>(pair.first).get_label();
+                if (maxl < l)
+                        maxl = l;
+        }
+        ex nan = NaN;
+        exvector tvec(maxl+1);
+        tvec.assign(maxl+1, nan);
+        for (const auto& pair : map) {
+                tvec[ex_to<wildcard>(pair.first).get_label()] = pair.second;
+        }
+        vec = tvec;
+        return ret;
+}
+
 /** Find all occurrences of a pattern. The found matches are appended to
  *  the "found" list. If the expression itself matches the pattern, the
  *  children are not further examined. This function returns true when any

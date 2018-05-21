@@ -21,6 +21,8 @@
  */
 
 #include "exprseq.h"
+#include "cmatcher.h"
+#include "wildcard.h"
 
 namespace GiNaC {
 
@@ -44,6 +46,27 @@ template <> bool exprseq::info(unsigned inf) const
 	
 		return inherited::info(inf);
 }
+
+template <>
+bool exprseq::cmatch(const ex & pattern, exmap& map) const
+{
+	if (is_exactly_a<wildcard>(pattern)) {
+                const auto& it = map.find(pattern);
+                if (it != map.end())
+		        return is_equal(ex_to<basic>(it->second));
+		map[pattern] = *this;
+		return true;
+	} 
+        if (not is_exactly_a<exprseq>(pattern))
+                return false;
+        CMatcher cm(*this, pattern, map);
+        const opt_exmap& m = cm.get();
+        if (not m)
+                return false;
+        map = m.value();
+        return true;
+}
+
 
 template <> ex exprseq::unarchive(const archive_node &n, lst &sym_lst)
 {

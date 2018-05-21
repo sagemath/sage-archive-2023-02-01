@@ -37,6 +37,9 @@
 #include "utils.h"
 #include "remember.h"
 #include "symbol.h"
+#include "cmatcher.h"
+#include "wildcard.h"
+#include "expairseq.h"
 
 #include <iostream>
 #include <string>
@@ -1389,6 +1392,26 @@ bool function::match_same_type(const basic & other) const
 
 	return serial == o.serial;
 }
+
+bool function::cmatch(const ex & pattern, exmap& map) const
+{
+	if (is_exactly_a<wildcard>(pattern)) {
+                const auto& it = map.find(pattern);
+                if (it != map.end())
+		        return is_equal(ex_to<basic>(it->second));
+		map[pattern] = *this;
+		return true;
+	} 
+        if (not is_exactly_a<function>(pattern))
+                return false;
+        CMatcher cm(*this, pattern, map);
+        const opt_exmap& m = cm.get();
+        if (not m)
+                return false;
+        map = m.value();
+        return true;
+}
+
 
 unsigned function::return_type() const
 {

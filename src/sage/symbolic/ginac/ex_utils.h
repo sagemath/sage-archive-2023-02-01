@@ -23,6 +23,29 @@ inline bool ex_match_int(const exvector& ev, const std::vector<int>& iv)
 { return std::equal(ev.begin(), ev.end(), iv.begin(),
         [](ex e, int i) -> bool { return e.is_equal(numeric(i)); } ); }
 
+inline const ex exvec_max(const exvector& v)
+{
+        numeric max;
+        bool is_set = false;
+        for (const auto& e : v) {
+                if (is_exactly_a<numeric>(e)) {
+                        const numeric& n = ex_to<numeric>(e);
+                        if (n.is_real()) {
+                                if (not is_set) {
+                                        is_set = true;
+                                        max = n;
+                                        continue;
+                                }
+                                if (max < n)
+                                        max = n;
+                        }
+                }
+        }
+        if (not is_set)
+                max = I;
+        return max;
+}
+
 // wrapper functions around member functions
 inline size_t nops(const ex & thisex)
 { return thisex.nops(); }

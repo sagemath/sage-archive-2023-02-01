@@ -378,6 +378,7 @@ public:
 	long calchash() const override;
 	ex series(const relational & r, int order, unsigned options = 0) const override;
         void useries(flint_series_t& fp, int order) const override;
+        bool cmatch(const ex& pattern, exmap& map) const override;
         ex subs(const exmap & m, unsigned options = 0) const override;
 	ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const override;
 	ex thiscontainer(const exvector & v) const override;

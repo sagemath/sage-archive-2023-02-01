@@ -226,7 +226,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             [&=...] PADIC(lg=5):... (precp=0,valp=5):... ... ... ...
                 p : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
               p^l : [&=...] INT(lg=3):... (+,lgefint=3):... ... 
-                I : [&=...] INT(lg=2):... (0,lgefint=2):... 
+                I : gen_0
         """
         if exactzero(self.ordp):
             return pari.zero()
@@ -249,13 +249,18 @@ cdef class pAdicCappedRelativeElement(CRElement):
             raise ValueError("Cannot form an integer out of a p-adic field element with negative valuation")
         return self.lift_c()
 
-    def residue(self, absprec=1):
+    def residue(self, absprec=1, field=None, check_prec=True):
         """
         Reduces this element modulo `p^{\mathrm{absprec}}`.
 
         INPUT:
 
-        - ``absprec`` - a non-negative integer (default: ``1``)
+        - ``absprec`` -- a non-negative integer (default: ``1``)
+
+        - ``field`` -- boolean (default ``None``).  Whether to return an element of GF(p) or Zmod(p).
+
+        - ``check_prec`` -- boolean (default ``True``).  Whether to raise an error if this
+          element has insufficient precision to determine the reduction.
 
         OUTPUT:
 
@@ -311,6 +316,11 @@ cdef class pAdicCappedRelativeElement(CRElement):
             Traceback (most recent call last):
             ...
             PrecisionError: not enough precision known in order to compute residue.
+            sage: a.residue(5, check_prec=False)
+            8
+
+            sage: a.residue(field=True).parent()
+            Finite Field of size 7
 
         .. SEEALSO::
 
@@ -321,14 +331,18 @@ cdef class pAdicCappedRelativeElement(CRElement):
         cdef long aprec
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
-        if absprec > self.precision_absolute():
+        if check_prec and absprec > self.precision_absolute():
             raise PrecisionError("not enough precision known in order to compute residue.")
         elif absprec < 0:
             raise ValueError("cannot reduce modulo a negative power of p.")
-        aprec = mpz_get_ui((<Integer>absprec).value)
         if self.ordp < 0:
             raise ValueError("element must have non-negative valuation in order to compute residue.")
+        if field is None:
+            field = (absprec == 1)
+        elif field and absprec != 1:
+            raise ValueError("field keyword may only be set at precision 1")
         modulus = PY_NEW(Integer)
+        aprec = mpz_get_ui((<Integer>absprec).value)
         mpz_set(modulus.value, self.prime_pow.pow_mpz_t_tmp(aprec))
         selfvalue = PY_NEW(Integer)
         if self.relprec == 0:
@@ -336,7 +350,11 @@ cdef class pAdicCappedRelativeElement(CRElement):
         else:
             # Need to do this better.
             mpz_mul(selfvalue.value, self.prime_pow.pow_mpz_t_tmp(self.ordp), self.unit)
-        return Mod(selfvalue, modulus)
+        if field:
+            from sage.rings.finite_rings.all import GF
+            return GF(self.parent().prime())(selfvalue)
+        else:
+            return Mod(selfvalue, modulus)
 
     def _log_binary_splitting(self, aprec, mina=0):
         r"""
@@ -582,4 +600,11 @@ def base_p_list(Integer n, bint pos, PowComputer_class prime_pow):
     """
     if mpz_sgn(n.value) < 0:
         raise ValueError("n must be nonnegative")
-    return clist(n.value, prime_pow.prec_cap, pos, prime_pow)
+    cdef expansion_mode mode = simple_mode if pos else smallest_mode
+    # We need a p-adic element to feed to ExpansionIter before resetting its curvalue
+    from sage.rings.padics.all import Zp
+    p = prime_pow.prime
+    dummy = Zp(p)(0)
+    cdef ExpansionIter expansion = ExpansionIter(dummy, n.exact_log(p) + 2, mode)
+    mpz_set(expansion.curvalue, n.value)
+    return trim_zeros(list(expansion))

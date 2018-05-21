@@ -496,18 +496,18 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
 
         sage: a = hyperplane_arrangements.semiorder(3)
         sage: from sage.geometry.hyperplane_arrangement.plot import legend_3d
-        sage: legend_3d(a, colors.values()[:6],length='long')
+        sage: legend_3d(a, list(colors.values())[:6],length='long')
         Graphics object consisting of 6 graphics primitives
 
         sage: b = hyperplane_arrangements.semiorder(4)
         sage: c = b.essentialization()
-        sage: legend_3d(c, colors.values()[:12], length='long')
+        sage: legend_3d(c, list(colors.values())[:12], length='long')
         Graphics object consisting of 12 graphics primitives
 
-        sage: legend_3d(c, colors.values()[:12], length='short')
+        sage: legend_3d(c, list(colors.values())[:12], length='short')
         Graphics object consisting of 12 graphics primitives
 
-        sage: p = legend_3d(c, colors.values()[:12], length='short')
+        sage: p = legend_3d(c, list(colors.values())[:12], length='short')
         sage: p.set_legend_options(ncol=4)
         sage: type(p)
         <class 'sage.plot.graphics.Graphics'>

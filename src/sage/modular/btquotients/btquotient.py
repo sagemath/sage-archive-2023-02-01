@@ -553,11 +553,15 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         if v != 0:
             M = p ** (-v) * M
 
+        det = M.determinant()
+        if not det:
+            raise NotImplementedError("matrix must be invertible")
+
         m00 = M[0, 0].valuation(p)
         m01 = M[0, 1].valuation(p)
 
         if m00 <= m01:
-            tmp = M.determinant().valuation(p) - m00
+            tmp = det.valuation(p) - m00
             bigpower = p ** (1 + tmp)
             r = M[0, 0]
             if r != 0:
@@ -566,7 +570,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             r = (M[1, 0] * s) % bigpower
             newM = self._Mat_22([p ** m00, 0, r, bigpower / p])
         else:
-            tmp = M.determinant().valuation(p) - m01
+            tmp = det.valuation(p) - m01
             bigpower = p ** tmp
             r = M[0, 1]
             if r != 0:
@@ -986,7 +990,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         L = []
         for ii in range(val):
             L.append(0)
-        L.extend(z.list())
+        L.extend(z.expansion())
         for n in range(len(L)):
             if L[n] != 0:
                 if len(L[n]) > 1:
@@ -1480,7 +1484,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                     self._magma = magma
                 else:
                     self._magma = magma_session
-                magmap = self._magma(p)
+                self._magma(p)
                 # print("Warning: this input needs magma to work...")
             except RuntimeError:
                 raise NotImplementedError('Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.')
@@ -1986,8 +1990,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
         GH = lambda N,ker: Gamma0(N) if character is None else GammaH_constructor(N,ker)
-
-        divs = lev.divisors()
 
         def mumu(N):
             p = 1

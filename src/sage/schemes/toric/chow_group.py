@@ -152,7 +152,7 @@ class ChowCycle(FGP_Element):
 
         Do not construct :class:`ChowCycle` objects manually. Instead,
         use the parent :class:`ChowGroup<ChowGroup_class>` to obtain
-        generators or Chow cycles correspondig to cones of the fan.
+        generators or Chow cycles corresponding to cones of the fan.
 
     EXAMPLES::
 
@@ -400,9 +400,9 @@ class ChowCycle(FGP_Element):
             sage: intersection_QQ.count_points()
             -1
             sage: type(intersection_QQ.count_points())
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: type(intersection.count_points())
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
 
         TESTS:
 

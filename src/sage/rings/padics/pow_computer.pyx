@@ -92,6 +92,7 @@ cdef class PowComputer_class(SageObject):
             9
         """
         self.prime = prime
+        self.p2 = prime // 2
         self.in_field = in_field
         self.cache_limit = cache_limit
         self.prec_cap = prec_cap

@@ -1134,7 +1134,69 @@ class Func_chebyshev_U(ChebyshevFunction):
 chebyshev_U = Func_chebyshev_U()
 
 
-class Func_legendre_P(BuiltinFunction):
+class Func_legendre_P(GinacFunction):
+    r"""
+    EXAMPLES::
+
+        sage: legendre_P(4, 2.0)
+        55.3750000000000
+        sage: legendre_P(1, x)
+        x
+        sage: legendre_P(4, x+1)
+        35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
+        sage: legendre_P(1/2, I+1.)
+        1.05338240025858 + 0.359890322109665*I
+        sage: legendre_P(0, SR(1)).parent()
+        Symbolic Ring
+
+        sage: legendre_P(0, 0)
+        1
+        sage: legendre_P(1, x)
+        x
+
+        sage: legendre_P(4, 2.)
+        55.3750000000000
+        sage: legendre_P(5.5,1.00001)
+        1.00017875754114
+        sage: legendre_P(1/2, I+1).n()
+        1.05338240025858 + 0.359890322109665*I
+        sage: legendre_P(1/2, I+1).n(59)
+        1.0533824002585801 + 0.35989032210966539*I
+        sage: legendre_P(42, RR(12345678))
+        2.66314881466753e309
+        sage: legendre_P(42, Reals(20)(12345678))
+        2.6632e309
+        sage: legendre_P(201/2, 0).n()
+        0.0561386178630179
+        sage: legendre_P(201/2, 0).n(100)
+        0.056138617863017877699963095883
+
+        sage: R.<x> = QQ[]
+        sage: legendre_P(4,x)
+        35/8*x^4 - 15/4*x^2 + 3/8
+        sage: legendre_P(10000,x).coefficient(x,1)
+        0
+        sage: var('t,x')
+        (t, x)
+        sage: legendre_P(-5,t)
+        35/8*t^4 - 15/4*t^2 + 3/8
+        sage: legendre_P(4, x+1)
+        35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
+        sage: legendre_P(4, sqrt(2))
+        83/8
+        sage: legendre_P(4, I*e)
+        35/8*e^4 + 15/4*e^2 + 3/8
+
+        sage: n = var('n')
+        sage: derivative(legendre_P(n,x), x)
+        (n*x*legendre_P(n, x) - n*legendre_P(n - 1, x))/(x^2 - 1)
+        sage: derivative(legendre_P(3,x), x)
+        15/2*x^2 - 3/2
+        sage: derivative(legendre_P(n,x), n)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: derivative w.r.t. to the index is not supported yet
+    """
     def __init__(self):
         r"""
         Init method for the Legendre polynomials of the first kind.
@@ -1149,140 +1211,6 @@ class Func_legendre_P(BuiltinFunction):
                                               'mathematica':'LegendreP',
                                               'maple':'LegendreP',
                                               'giac':'legendre'})
-
-    def _eval_(self, n, x, *args, **kwds):
-        r"""
-        Return an evaluation of this Legendre P expression.
-
-        EXAMPLES::
-
-            sage: legendre_P(4, 2.0)
-            55.3750000000000
-            sage: legendre_P(1, x)
-            x
-            sage: legendre_P(4, x+1)
-            35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
-            sage: legendre_P(1/2, I+1.)
-            1.05338240025858 + 0.359890322109665*I
-            sage: legendre_P(0, SR(1)).parent()
-            Symbolic Ring
-        """
-        ret = self._eval_special_values_(n, x)
-        if ret is not None:
-            return ret
-        if n in ZZ:
-            ret = self.eval_pari(n, x)
-            if ret is not None:
-                return ret
-
-    def _eval_special_values_(self, n, x):
-        """
-        Special values known.
-
-        EXAMPLES::
-
-            sage: legendre_P(0, 0)
-            1
-            sage: legendre_P(1, x)
-            x
-        """
-        if n == 0 or n == -1 or x == 1:
-            return ZZ(1)
-        if n == 1 or n == -2:
-            return x
-
-    def _evalf_(self, n, x, parent=None, **kwds):
-        """
-        EXAMPLES::
-
-            sage: legendre_P(4, 2.)
-            55.3750000000000
-            sage: legendre_P(5.5,1.00001)
-            1.00017875754114
-            sage: legendre_P(1/2, I+1).n()
-            1.05338240025858 + 0.359890322109665*I
-            sage: legendre_P(1/2, I+1).n(59)
-            1.0533824002585801 + 0.35989032210966539*I
-            sage: legendre_P(42, RR(12345678))
-            2.66314881466753e309
-            sage: legendre_P(42, Reals(20)(12345678))
-            2.6632e309
-            sage: legendre_P(201/2, 0).n()
-            0.0561386178630179
-            sage: legendre_P(201/2, 0).n(100)
-            0.056138617863017877699963095883
-        """
-        ret = self._eval_special_values_(n, x)
-        if ret is not None:
-            return ret
-
-        import mpmath
-        from sage.libs.mpmath.all import call as mpcall
-        return mpcall(mpmath.legenp, n, 0, x, parent=parent)
-
-    def eval_pari(self, n, arg, **kwds):
-        """
-        Use Pari to evaluate legendre_P for integer, symbolic, and
-        polynomial argument.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: legendre_P(4,x)
-            35/8*x^4 - 15/4*x^2 + 3/8
-            sage: legendre_P(10000,x).coefficient(x,1)
-            0
-            sage: var('t,x')
-            (t, x)
-            sage: legendre_P(-5,t)
-            35/8*t^4 - 15/4*t^2 + 3/8
-            sage: legendre_P(4, x+1)
-            35/8*(x + 1)^4 - 15/4*(x + 1)^2 + 3/8
-            sage: legendre_P(4, sqrt(2))
-            83/8
-            sage: legendre_P(4, I*e)
-            35/8*e^4 + 15/4*e^2 + 3/8
-        """
-        if n < 0:
-            n = - n - 1
-        P = parent(arg)
-        if P in (ZZ, QQ, RR, CC, SR):
-            from sage.libs.pari.all import pari
-            R = PolynomialRing(QQ, 'x')
-            pol = R(pari.pollegendre(n))
-            return sum(b * arg**a for a, b in enumerate(pol))
-        elif is_PolynomialRing(P):
-            from sage.libs.pari.all import pari
-            if arg == P.gen():
-                return P(pari.pollegendre(n))
-            else:
-                R = PolynomialRing(QQ, 'x')
-                pol = R(pari.pollegendre(n))
-                pol = pol.subs({pol.parent().gen():arg})
-                pol = pol.change_ring(P.base_ring())
-                return pol
-
-    def _derivative_(self, n, x, *args,**kwds):
-        """
-        Return the derivative of legendre_P.
-
-        EXAMPLES::
-
-            sage: n = var('n')
-            sage: derivative(legendre_P(n,x), x)
-            (n*x*legendre_P(n, x) - n*legendre_P(n - 1, x))/(x^2 - 1)
-            sage: derivative(legendre_P(3,x), x)
-            15/2*x^2 - 3/2
-            sage: derivative(legendre_P(n,x), n)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Derivative w.r.t. to the index is not supported.
-        """
-        diff_param = kwds['diff_param']
-        if diff_param == 0:
-            raise NotImplementedError("Derivative w.r.t. to the index is not supported.")
-        else:
-            return (n*legendre_P(n-1, x) - n*x*legendre_P(n, x))/(1 - x**2)
 
 legendre_P = Func_legendre_P()
 
@@ -1335,7 +1263,7 @@ class Func_legendre_Q(BuiltinFunction):
             sage: var('n')
             n
             sage: legendre_Q(n, 0)
-            -1/2*sqrt(pi)*sin(1/2*pi*n)*gamma(1/2*n + 1/2)/gamma(1/2*n + 1)
+            -1/2*sqrt(pi)*gamma(1/2*n + 1/2)*sin(1/2*pi*n)/gamma(1/2*n + 1)
             sage: legendre_Q(-1., 0.)
             +infinity
             sage: legendre_Q(-1/2, 2)
@@ -1354,8 +1282,9 @@ class Func_legendre_Q(BuiltinFunction):
             return SR(unsigned_infinity)
 
         if x == 0:
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import sin
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import sin
             try:
                 gam = gamma((n+1)/2)/gamma(n/2 + 1)
                 if gam.is_infinity():
@@ -1541,6 +1470,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
         Special values known.
 
         EXAMPLES::
+
             sage: gen_legendre_P(2,3,4)
             0
             sage: gen_legendre_P(2,0,4)==legendre_P(2,4)
@@ -1566,8 +1496,9 @@ class Func_assoc_legendre_P(BuiltinFunction):
         if n == m:
             return factorial(2*m)/2**m/factorial(m) * (x**2-1)**(m/2)
         if x == 0:
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import cos
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import cos
             if m in QQ and n in QQ:
                 return 2**m/sqrt(SR.pi())*cos((n+m)/2*SR.pi())*(gamma(QQ(n+m+1)/2)/gamma(QQ(n-m)/2+1))
             elif isinstance(n, Expression) or isinstance(m, Expression):
@@ -1666,7 +1597,7 @@ class Func_assoc_legendre_Q(BuiltinFunction):
         EXAMPLES::
 
             sage: gen_legendre_Q(2,1,3)
-            -1/4*sqrt(-2)*(-36*I*pi + 36*log(4) - 36*log(2) - 25)
+            -1/4*sqrt(-2)*(-36*I*pi + 36*log(2) - 25)
         """
         ret = self._eval_special_values_(n, m, x)
         if ret is not None:
@@ -1684,13 +1615,14 @@ class Func_assoc_legendre_Q(BuiltinFunction):
 
             sage: n, m = var('n m')
             sage: gen_legendre_Q(n,m,0)
-            -sqrt(pi)*2^(m - 1)*sin(1/2*pi*m + 1/2*pi*n)*gamma(1/2*m + 1/2*n + 1/2)/gamma(-1/2*m + 1/2*n + 1)
+            -sqrt(pi)*2^(m - 1)*gamma(1/2*m + 1/2*n + 1/2)*sin(1/2*pi*m + 1/2*pi*n)/gamma(-1/2*m + 1/2*n + 1)
         """
         if m == 0:
             return legendre_Q(n, x)
         if x.is_zero():
-            from sage.functions.other import gamma, sqrt
-            from sage.functions.trig import sin
+            from .gamma import gamma
+            from .other import sqrt
+            from .trig import sin
             if m in QQ and n in QQ:
                 return -(sqrt(SR.pi()))*sin(SR.pi()/2*(m+n))*gamma(QQ(m+n+1)/2)/gamma(QQ(n-m)/2 + 1)*2**(m-1)
             elif isinstance(n, Expression) or isinstance(m, Expression):
@@ -1923,7 +1855,7 @@ class Func_jacobi_P(OrthogonalFunction):
             raise ValueError("n must be greater than -1, got n = {0}".format(n))
         if not n in ZZ:
             return
-        from sage.functions.other import gamma
+        from .gamma import gamma
         s = sum(binomial(n,m) * gamma(a+b+n+m+1) / gamma(a+m+1) * ((x-1)/2)**m for m in range(n+1))
         r = gamma(a+n+1) / factorial(n) / gamma(n+a+b+1) * s
         return r.to_gamma().gamma_normalize().normalize()

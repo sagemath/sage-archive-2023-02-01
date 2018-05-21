@@ -145,28 +145,25 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement, stan
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.cachefunc import cached_method
 from sage.groups.class_function import ClassFunction
-from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
-from sage.functions.other import factorial
 from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
                                     richcmp, rich_to_bool, op_EQ)
 
 
 def load_hap():
-    """
-    Load the GAP hap package into the default GAP interpreter
-    interface. If this fails, try one more time to load it.
+    r"""
+    Load the GAP hap package into the default GAP interpreter interface.
 
     EXAMPLES::
 
         sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
-    try:
-        gap.load_package("hap")
-    except Exception:
-        gap.load_package("hap")
+    from sage.features.gap import GapPackage
+    GapPackage("hap", spkg="gap_packages").require()
+    gap.load_package("hap")
+
 
 def hap_decorator(f):
     """
@@ -192,8 +189,6 @@ def hap_decorator(f):
     """
     @wraps(f)
     def wrapped(self, n, p=0):
-        if not is_package_installed('gap_packages'):
-            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):
@@ -593,7 +588,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         gSelf = self._gap_()
         gRight = right._gap_()
-        gapcmp = gSelf.__cmp__(gRight)
+        gapcmp = gSelf._cmp_(gRight)
         if not gapcmp:
             return rich_to_bool(op, 0)
 
@@ -1601,6 +1596,14 @@ class PermutationGroup_generic(group.FiniteGroup):
             ....:     [(9,10), (8,10), (7,10), (6,10), (5,10), (4,10), (3,10), (2,10)]]
             sage: [SymmetricGroup(n).subgroup(gen)._order() for gen in special_gens]
             [6, 24, 120, 720, 5040, 40320, 362880]
+
+        Checks that output is a Sage integer (:trac:`23778`)::
+
+            sage: P = PermutationGroup(['(1,2)','(1,3)'])
+            sage: P.cardinality()
+            6
+            sage: isinstance(P.cardinality(), Integer)
+            True
         """
         gens = self.gens()
         # This special case only works with more than 1 generator.
@@ -1620,14 +1623,18 @@ class PermutationGroup_generic(group.FiniteGroup):
         # and therefore its order is n!.
 
         # Check that all generators are order 2 and have length-1 cycle tuples.
+        cycle_tuples = []
         for g in gens:
             if g.order() != 2:
                 return None
-            if len(g.cycle_tuples()) != 1:
+            c = g.cycle_tuples()
+            if len(c) != 1:
                 return None
+            cycle_tuples.append(c)
+
         # Find the common element.
-        g0 = gens[0].cycle_tuples()[0]
-        g1 = gens[1].cycle_tuples()[0]
+        g0 = cycle_tuples[0][0]
+        g1 = cycle_tuples[1][0]
         a, b = g0
         if a not in g1 and b not in g1:
             return None
@@ -1637,14 +1644,15 @@ class PermutationGroup_generic(group.FiniteGroup):
             elem = b
         # Count the number of unique elements in the generators.
         unique = set()
-        for g in gens:
-            a, b = g.cycle_tuples()[0]
+        for c in cycle_tuples:
+            a, b = c[0]
             if a != elem and b != elem:
                 return None
             unique.add(a)
             unique.add(b)
+
         # Compute the order.
-        return factorial(len(unique))
+        return Integer(len(unique)).factorial()
 
     def order(self):
         """
@@ -1662,12 +1670,23 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G = PermutationGroup([])
             sage: G.order()
             1
+
+        ``cardinality`` is just an alias::
+
+            sage: PermutationGroup([(1,2,3)]).cardinality()
+            3
         """
-        if not self.gens() or self.gens() == [self(1)]:
+        gens = self.gens()
+
+        if not gens:
             return Integer(1)
+        elif len(gens) == 1:
+            return gens[0].order()
+
         subgroup_order = self._order()
         if subgroup_order is not None:
           return subgroup_order
+
         return Integer(self._gap_().Size())
 
     cardinality = order
@@ -1693,7 +1712,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     def group_id(self):
         """
         Return the ID code of this group, which is a list of two integers.
-        Requires "optional" database_gap-4.4.x package.
+        Requires "optional" database_gap package.
 
         EXAMPLES::
 
@@ -1701,18 +1720,15 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.group_id()    # optional - database_gap
             [12, 4]
         """
-        try:
-            return [Integer(n) for n in self._gap_().IdGroup()]
-        except RuntimeError:
-            if not is_package_installed('database_gap'):
-                raise PackageNotFoundError("database_gap")
-            raise
+        from sage.features.gap import SmallGroupsLibrary
+        SmallGroupsLibrary().require()
+
+        return [Integer(n) for n in self._gap_().IdGroup()]
 
     def id(self):
         """
         (Same as ``self.group_id()``.) Return the ID code of this group, which
-        is a list of two integers. Requires "optional" database_gap-4.4.x
-        package.
+        is a list of two integers. Requires "optional" database_gap package.
 
         EXAMPLES::
 
@@ -1726,7 +1742,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         Return the index of this group in the GAP database of primitive groups.
 
-        Requires "optional" database_gap-4.4.x package.
+        Requires "optional" database_gap package.
 
         OUTPUT:
 
@@ -1754,12 +1770,10 @@ class PermutationGroup_generic(group.FiniteGroup):
         if not self.is_primitive():
             raise ValueError('Group is not primitive')
 
-        try:
-            return Integer(self._gap_().PrimitiveIdentification())
-        except RuntimeError:
-            if not is_package_installed('database_gap'):
-                raise PackageNotFoundError("database_gap")
-            raise
+        from sage.features.gap import PrimitiveGroupsLibrary
+        PrimitiveGroupsLibrary().require()
+
+        return Integer(self._gap_().PrimitiveIdentification())
 
     def center(self):
         """
@@ -4131,8 +4145,6 @@ class PermutationGroup_generic(group.FiniteGroup):
         - David Joyner and Graham Ellis
 
         """
-        if not is_package_installed('gap_packages'):
-            raise PackageNotFoundError("gap_packages")
         load_hap()
         from sage.arith.all import is_prime
         if not (p == 0 or is_prime(p)):

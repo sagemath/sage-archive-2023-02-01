@@ -3,7 +3,7 @@ r"""
 Families of graphs derived from classical geometries over finite fields
 
 These include graphs of polar spaces, affine polar graphs, graphs
-related to Hermitean unitals, graphs on nonistropic points, etc
+related to Hermitean unitals, graphs on nonisotropic points, etc
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -34,7 +34,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     made adjacent if `f(u,v)=0`.
 
     See the page `on symplectic graphs on Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
 
     INPUT:
 
@@ -49,9 +49,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
 
     Computation of the spectrum of `Sp(6,2)`::
 
-        sage: g = graphs.SymplecticGraph(6,2)
-        doctest:...: DeprecationWarning: SymplecticGraph is deprecated. Please use sage.graphs.generators.classical_geometries.SymplecticPolarGraph instead.
-        See http://trac.sagemath.org/19136 for details.
+        sage: g = graphs.SymplecticPolarGraph(6,2)
         sage: g.is_strongly_regular(parameters=True)
         (63, 30, 13, 15)
         sage: set(g.spectrum()) == {-5, 3, 30}
@@ -112,8 +110,6 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     G.relabel()
     return G
 
-from sage.misc.superseded import deprecated_function_alias
-SymplecticGraph = deprecated_function_alias(19136, SymplecticPolarGraph)
 
 def AffineOrthogonalPolarGraph(d,q,sign="+"):
     r"""
@@ -128,7 +124,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
     For more information on Affine Polar graphs, see `Affine Polar
     Graphs page of Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/VO.html>`_.
 
     INPUT:
 
@@ -157,7 +153,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         True
 
     Some examples from `Brouwer's table or strongly regular graphs
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
 
         sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"-"); g
         Affine Polar Graph VO^-(6,2): Graph on 64 vertices
@@ -213,7 +209,7 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     A helper function to build ``OrthogonalPolarGraph`` and ``NO2,3,5`` graphs.
 
     See the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -334,7 +330,7 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
 
     For more information on Orthogonal Polar graphs, see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -405,7 +401,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
       Note that for `q=2` one will get a complete graph.
 
     For more information, see Sect. 9.9 of [BH12]_ and [BvL84]_. Note that the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_
     uses different notation.
 
     INPUT:
@@ -596,7 +592,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
     Returns the Unitary Polar Graph `U(m,q)`.
 
     For more information on Unitary Polar graphs, see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -692,7 +688,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
-      http://dx.doi.org/10.1016/0012-365X(75)90057-6
+      :doi:`10.1016/0012-365X(75)90057-6`
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0:
@@ -1288,12 +1284,10 @@ def CossidentePenttilaGraph(q):
     if k==0 or p==2:
         raise ValueError('q(={}) must be an odd prime power'.format(q))
 
+    from sage.features.gap import GapPackage
+    GapPackage("grape", spkg="gap_packages").require()
+
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
-
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
-
     adj_list=libgap.function_factory("""function(q)
         local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
         LoadPackage("grape");

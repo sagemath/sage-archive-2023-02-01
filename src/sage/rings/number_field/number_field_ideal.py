@@ -57,10 +57,11 @@ from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import generic_power, MultiplicativeGroupElement
+from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
+from sage.structure.richcmp import richcmp
 
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
@@ -193,7 +194,7 @@ class NumberFieldIdeal(Ideal_generic):
         """
         return '\\left(%s\\right)'%(", ".join(map(latex.latex, self._gens_repr())))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare an ideal of a number field to something else.
 
@@ -204,24 +205,18 @@ class NumberFieldIdeal(Ideal_generic):
         can give rise to the same ideal. And this can easily
         be detected using Hermite normal form.
 
-        Unfortunately, there is a difference between "cmp" and
-        "==": In the first case, this method is directly called.
-        In the second case, it is only called *after coercion*.
-        However, we ensure that "cmp(I,J)==0" and "I==J" will
-        always give the same answer for number field ideals.
-
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 3); K
             Number Field in a with defining polynomial x^2 + 3
             sage: f = K.factor(15); f
             (Fractional ideal (-a))^2 * (Fractional ideal (5))
-            sage: cmp(f[0][0], f[1][0])
-            -1
-            sage: cmp(f[0][0], f[0][0])
-            0
-            sage: cmp(f[1][0], f[0][0])
-            1
+            sage: (f[0][0] < f[1][0])
+            True
+            sage: (f[0][0] == f[0][0])
+            True
+            sage: (f[1][0] > f[0][0])
+            True
             sage: f[1][0] == 5
             True
             sage: f[1][0] == GF(7)(5)
@@ -234,22 +229,10 @@ class NumberFieldIdeal(Ideal_generic):
             sage: F_4 = L.fractional_ideal(b^4-1)
             sage: F_2 == F_4
             True
-
         """
         if not isinstance(other, NumberFieldIdeal):
-            # this can only occur with cmp(,)
-            return cmp(type(self), type(other))
-        if self.parent()!=other.parent():
-            # again, this can only occur if cmp(,) is called
-            if self==other:
-                return 0
-            return (cmp(self.pari_hnf(), other.pari_hnf()) or
-                    cmp(self.parent(),other.parent()))
-
-        # We can now assume that both have the same parent,
-        # even if originally cmp(,) was called.
-
-        return cmp(self.pari_hnf(), other.pari_hnf())
+            return NotImplemented
+        return richcmp(self.pari_hnf().sage(), other.pari_hnf().sage(), op)
 
     def _mul_(self, other):
         """
@@ -1720,8 +1703,17 @@ def is_NumberFieldIdeal(x):
 class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
     r"""
     A fractional ideal in a number field.
-    """
 
+    EXAMPLES::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: K.<a> = NumberField(x^3 - 2)
+        sage: I = K.ideal(2/(5+a))
+        sage: J = I^2
+        sage: Jinv = I^(-2)
+        sage: J*Jinv
+        Fractional ideal (1)
+    """
     def __init__(self, field, gens, coerce=True):
         """
         INPUT:
@@ -1887,22 +1879,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         I = self.number_field().ideal(NumberFieldIdeal._NumberFieldIdeal__elements_from_hnf(self,hnf))
         I.__pari_hnf = hnf
         return I
-
-    def __pow__(self, r):
-        """
-        Return self to the power of r.
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: K.<a> = NumberField(x^3 - 2)
-            sage: I = K.ideal(2/(5+a))
-            sage: J = I^2
-            sage: Jinv = I^(-2)
-            sage: J*Jinv
-            Fractional ideal (1)
-        """
-        return generic_power(self, r)
 
     def is_maximal(self):
         """
@@ -2726,7 +2702,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             Fractional ideal (a^2 - 4*a + 2)
             68
             sage: r = A.element_1_mod(B); r
-            -a^2 + 4*a - 1
+            -33
             sage: r in A
             True
             sage: 1-r in B

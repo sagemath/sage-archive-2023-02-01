@@ -404,9 +404,8 @@ class TensorProductOfCrystals(CrystalOfWords):
         return FullTensorProductOfCrystals(tp, cartan_type=cartan_type)
 
     # add options to class
-    options=GlobalOptions('TensorProductOfCrystals', 
-        module='sage.combinat.crystals',
-        doc=r"""
+    class options(GlobalOptions):
+        r"""
         Sets the global options for tensor products of crystals. The default is to
         use the anti-Kashiwara convention.
 
@@ -414,8 +413,8 @@ class TensorProductOfCrystals(CrystalOfWords):
         and the difference between the two is the order of the tensor factors
         are reversed. This affects both the input and output. See the example
         below.
-        """,
-        end_doc=r"""
+
+        @OPTIONS@
 
         .. NOTE::
 
@@ -443,14 +442,15 @@ class TensorProductOfCrystals(CrystalOfWords):
             sage: T(C(2), C(1)) == elt
             True
             sage: crystals.TensorProduct.options._reset()
-        """,
-        convention=dict(default="antiKashiwara",
+        """
+        NAME = 'TensorProductOfCrystals'
+        module = 'sage.combinat.crystals'
+        convention = dict(default="antiKashiwara",
                         description='Sets the convention used for displaying/inputting tensor product of crystals',
                         values=dict(antiKashiwara='use the anti-Kashiwara convention',
                                     Kashiwara='use the Kashiwara convention'),
                             alias=dict(anti="antiKashiwara", opposite="antiKashiwara"),
                             case_sensitive=False)
-    )
 
     def _element_constructor_(self, *crystalElements):
         """

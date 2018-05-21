@@ -2,7 +2,7 @@
 r"""
 Integrated Curves and Geodesics in Manifolds
 
-Given a differentiable manifold `M`, an *integrated curve* curve in `M`
+Given a differentiable manifold `M`, an *integrated curve* in `M`
 is a differentiable curve constructed as a solution to a system of
 second order differential equations.
 
@@ -94,6 +94,7 @@ from sage.manifolds.differentiable.tangent_vector import TangentVector
 from sage.calculus.interpolation import Spline
 from sage.misc.decorators import options
 from sage.misc.functional import numerical_approx
+from sage.arith.srange import srange
 
 class IntegratedCurve(DifferentiableCurve):
     r"""
@@ -203,8 +204,7 @@ class IntegratedCurve(DifferentiableCurve):
         sage: sol = c.solve(step=0.2,
         ....:         parameters_values={B_0:1, m:1, q:1, L:10, T:1},
         ....:         solution_key='carac time 1', verbose=True)
-        Performing 4th order Runge-Kutta integration with Maxima by
-         default...
+        Performing numerical integration with method 'rk4_maxima'...
         Numerical integration completed.
         <BLANKLINE>
         Checking all points are in the chart domain...
@@ -866,16 +866,18 @@ class IntegratedCurve(DifferentiableCurve):
 
         return tuple(coords_sol_expr)
 
-    def solve(self, step=None, method=None, solution_key=None,
+    def solve(self, step=None, method='rk4_maxima', solution_key=None,
               parameters_values=None, verbose=False):
         r"""
         Integrate the curve numerically over the domain of integration.
 
         INPUT:
 
-        - ``step`` -- (default: ``0.1``) step of integration
-        - ``method`` -- (default: ``None``) numerical scheme to use for
-          the integration of the curve; algorithms available are:
+        - ``step`` -- (default: ``None``) step of integration; default
+          value is a hundredth of the domain of integration if none is
+          provided
+        - ``method`` -- (default: ``'rk4_maxima'``) numerical scheme to
+          use for the integration of the curve; algorithms available are:
 
           * ``'rk4_maxima'`` - 4th order classical Runge-Kutta, which
             makes use of Maxima's dynamics package via Sage solver
@@ -895,7 +897,7 @@ class IntegratedCurve(DifferentiableCurve):
           * ``'rk4imp'`` - implicit 4th order Runge-Kutta at Gaussian points
           * ``'gear1'`` - `M=1` implicit Gear
           * ``'gear2'`` - `M=2` implicit Gear
-          * ``'bsimp'`` - implicit Burlisch-Stoer (requires Jacobian)
+          * ``'bsimp'`` - implicit Bulirsch-Stoer (requires Jacobian)
 
         - ``solution_key`` -- (default: ``None``) key which the
           resulting numerical solution will be associated to; a default
@@ -938,8 +940,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol = c.solve(
             ....:        parameters_values={B_0:1, m:1, q:1, L:10, T:1},
             ....:        verbose=True)
-            Performing 4th order Runge-Kutta integration with Maxima by
-             default...
+            Performing numerical integration with method 'rk4_maxima'...
             Resulting list of points will be associated with the key
              'rk4_maxima' by default.
             Numerical integration completed.
@@ -959,11 +960,9 @@ class IntegratedCurve(DifferentiableCurve):
 
         from sage.symbolic.ring import SR
 
-        if method is None:
-            method = 'rk4_maxima'
-            if verbose:
-                print("Performing 4th order Runge-Kutta integration " +
-                      "with Maxima by default...")
+        if verbose:
+            print("Performing numerical integration with method '" +
+                  method + "'...")
 
         if solution_key is None:
             solution_key = method
@@ -1064,6 +1063,8 @@ class IntegratedCurve(DifferentiableCurve):
 
         if step is None:
             step = (t_max - t_min) / 100
+
+        step = numerical_approx(step)
 
         initial_pt_coords = [numerical_approx(coord) for coord
                              in initial_pt_coords]
@@ -1220,9 +1221,7 @@ class IntegratedCurve(DifferentiableCurve):
                         return jac
                     T.jacobian = jacobian
 
-                T.ode_solve(jacobian=jacobian, y_0=y_0, t_span=t_span)
-            else:
-                T.ode_solve(y_0=y_0, t_span=t_span)
+            T.ode_solve(y_0=y_0, t_span=t_span)
 
             sol0 = T.solution
             sol = []
@@ -1319,15 +1318,13 @@ class IntegratedCurve(DifferentiableCurve):
             sage: sol_mute = c.solution()
             sage: sol_mute == sol
             True
-
         """
-
         if solution_key is None:
             if 'rk4_maxima' in self._solutions:
                 solution_key = 'rk4_maxima'
             else:
-                solution_key = self._solutions.keys()[0] # will raise
-                # error if self._solutions empty
+                solution_key = next(iter(self._solutions))
+                # will raise an error if self._solutions is empty
             if verbose:
                 print("Returning the numerical solution associated " +
                       "with the key '{}' ".format(solution_key) +
@@ -1413,12 +1410,11 @@ class IntegratedCurve(DifferentiableCurve):
              erased).
 
         """
-
         if solution_key is None:
             if 'rk4_maxima' in self._solutions:
                 solution_key = 'rk4_maxima'
             else:
-                solution_key = self._solutions.keys()[0] # will raise
+                solution_key = next(iter(self._solutions)) # will raise
                 # error if self._solutions empty
             if verbose:
                 print("Interpolating the numerical solution " +
@@ -1520,7 +1516,7 @@ class IntegratedCurve(DifferentiableCurve):
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'
             else:
-                interpolation_key = self._interpolations.keys()[0]#will
+                interpolation_key = next(iter(self._interpolations))  #will
                 # raise error if self._interpolations empty
             if verbose:
                 print("Returning the interpolation associated with " +
@@ -1588,7 +1584,7 @@ class IntegratedCurve(DifferentiableCurve):
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'
             else:
-                interpolation_key = self._interpolations.keys()[0]#will
+                interpolation_key = next(iter(self._interpolations))  #will
                 # raise error if self._interpolations empty
             if verbose:
                 print("Evaluating point coordinates from the " +
@@ -1679,7 +1675,7 @@ class IntegratedCurve(DifferentiableCurve):
                 interpolation_key = 'cubic spline'
             else:
                 # will raise error if self._interpolations empty
-                interpolation_key = self._interpolations.keys()[0]
+                interpolation_key = next(iter(self._interpolations))
             if verbose:
                 print("Evaluating tangent vector components from the " +
                       "interpolation associated with the key " +
@@ -1813,7 +1809,7 @@ class IntegratedCurve(DifferentiableCurve):
             if 'cubic spline' in self._interpolations:
                 interpolation_key = 'cubic spline'
             else:
-                interpolation_key = self._interpolations.keys()[0]#will
+                interpolation_key = next(iter(self._interpolations)) #will
                 # raise error if self._interpolations empty
             if verbose:
                 print("Plotting from the interpolation associated " +
@@ -2382,7 +2378,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
     the usual embedding of `\mathbb{S}^{2}` in
     `\mathbb{R}^{3}` thanks to using an orthonormal frame,
     since providing the components with respect to the coordinate basis
-    would require mutliplying the second component (i.e. the `\phi`
+    would require multiplying the second component (i.e. the `\phi`
     component) in order to picture the vector in the same way.
     This subtlety will need to be taken into account later when the
     numerical curve will be compared to the analytical solution.

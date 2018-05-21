@@ -258,7 +258,7 @@ cdef class ManinSymbol(Element):
         if self.weight() > 2:
             raise NotImplementedError("ModSym * Matrix only implemented "
                                       "in weight 2")
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(matrix):
             if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
                 raise ValueError("matrix(=%s) must be 2x2" % matrix)

@@ -18,6 +18,6 @@ cd src
 
 # Install new version
 echo "Installing nose..."
-$PIP_INSTALL .
+sdh_pip_install .
 success 'Error installing nose'
 echo

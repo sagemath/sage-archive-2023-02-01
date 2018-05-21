@@ -9,6 +9,7 @@ give the matrix representation given in [HRT2000]_.
 AUTHORS:
 
 - Travis Scrimshaw (2013-05-03): Initial version
+- Sebastian Oehms  (2018-03-18): matrix method of the element class of ClassicalMatrixLieAlgebra added
 """
 
 #*****************************************************************************
@@ -42,8 +43,8 @@ from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.arith import binomial
 from sage.sets.family import Family
+
 
 class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
     """
@@ -333,6 +334,42 @@ class ClassicalMatrixLieAlgebra(LieAlgebraFromAssociative):
         from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra
         return AffineLieAlgebra(self, kac_moody)
 
+    class Element(LieAlgebraFromAssociative.Element):
+        def matrix(self):
+            r"""
+            Return ``self`` as element of the underlying matrix algebra.
+
+            OUTPUT:
+
+            An instance of the element class of MatrixSpace.
+
+            EXAMPLES::
+
+                sage: sl3m = lie_algebras.sl(ZZ, 3, representation='matrix')
+                sage: e1,e2, f1, f2, h1, h2 = sl3m.gens()
+                sage: h1m = h1.matrix(); h1m
+                [ 1  0  0]
+                [ 0 -1  0]
+                [ 0  0  0]
+                sage: h1m.parent()
+                Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+                sage: matrix(h2)
+                [ 0  0  0]
+                [ 0  1  0]
+                [ 0  0 -1]
+                sage: L = lie_algebras.so(QQ['z'], 5, representation='matrix')
+                sage: matrix(L.an_element())
+                [ 1  1  0  0  0]
+                [ 1  1  0  0  2]
+                [ 0  0 -1 -1  0]
+                [ 0  0 -1 -1 -1]
+                [ 0  1  0 -2  0]
+            """
+            return self.value
+
+        _matrix_ = matrix
+
+
 class gl(LieAlgebraFromAssociative):
     r"""
     The matrix Lie algebra `\mathfrak{gl}_n`.
@@ -460,7 +497,7 @@ class gl(LieAlgebraFromAssociative):
             return self.basis()['E_{}_{}'.format(*i)]
         return self.basis()[i]
 
-    class Element(LieAlgebraFromAssociative.Element):
+    class Element(ClassicalMatrixLieAlgebra.Element):
         def monomial_coefficients(self, copy=True):
             r"""
             Return the monomial coefficients of ``self``.
@@ -921,7 +958,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
     @staticmethod
     def __classcall_private__(cls, R, cartan_type):
         """
-        Normalize ``self`` to ensure a unique represntation.
+        Normalize ``self`` to ensure a unique representation.
 
         TESTS::
 

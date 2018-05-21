@@ -11,7 +11,7 @@ fi
 
 cd src
 
-$PIP_INSTALL .
+sdh_pip_install .
 
 if [ $? -ne 0 ]; then
     echo "Error installing functools32 ... exiting"

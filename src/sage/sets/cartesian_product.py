@@ -235,7 +235,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             This is meant as a fast low-level method. In particular,
             no coercion is attempted. When coercion or sanity checks
             are desirable, please use instead ``self(elements)`` or
-            ``self._element_constructor(elements)``.
+            ``self._element_constructor_(elements)``.
 
         EXAMPLES::
 

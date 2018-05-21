@@ -11,6 +11,7 @@ Root system data for super type A
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
@@ -21,7 +22,7 @@ from six import iteritems
 
 class AmbientSpace(ambient_space.AmbientSpace):
     r"""
-    Abstract class for ambient spaces.
+    The ambient space for (super) type `A(m|n)`.
 
     EXAMPLES::
 
@@ -45,52 +46,10 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         ct = root_system.cartan_type()
         if index_set is None:
-            index_set = tuple(range(-ct.m-1,0) + range(1,ct.n+2))
+            index_set = tuple(list(range(-ct.m - 1, 0)) +
+                              list(range(1, ct.n + 2)))
         ambient_space.AmbientSpace.__init__(self, root_system, base_ring,
                                             index_set=index_set)
-
-    def _test_weight_lattice_realization(self, **options):
-        """
-        Runs sanity checks on this weight lattice realization.
-
-        This tests the following:
-
-        - Scalar products between the fundamental weights and simple coroots.
-        - Embeddings from the weight lattice and weight space.
-
-        .. SEEALSO:: :class:`TestSuite`
-
-        EXAMPLES::
-
-            sage: RootSystem(['A', [3,2]]).ambient_space()._test_weight_lattice_realization()
-        """
-        from sage.rings.all import ZZ
-        tester     = self._tester(**options)
-        Lambda     = self.fundamental_weights()
-        alphacheck = self.simple_coroots()
-        tester.assertEqual(tuple(Lambda.keys()), self.index_set())
-
-        # Check the consistency between simple_root and simple_roots
-        for i in self.index_set():
-            tester.assertEqual(self.fundamental_weight(i), Lambda[i])
-
-        # Check the embeddings from:
-        # - the weight lattice
-        # - the weight space over the same base ring
-        domains = [self.root_system.weight_space(base_ring)
-                   for base_ring in set([ZZ, self.base_ring()])]
-        for domain in domains:
-            tester.assert_(self._internal_coerce_map_from(domain) is not None)
-            for i in self.index_set():
-                # This embedding maps fundamental weights to fundamental weights
-                tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
-
-        # Check that the fundamental weights form the dual basis of the simple coroots
-        sym = self.cartan_type().symmetrizer()
-        for i in self.index_set():
-            assert(Lambda[i].is_dominant())
-            for j in self.index_set():
-                tester.assertEqual(Lambda[j].scalar(alphacheck[i]), (sym[i] if i==j else 0))
 
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
@@ -174,11 +133,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-j) - self.monomial(-i)
-                for i in range(1,ct.m+2)
-                for j in range(i+1,ct.m+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(i + 1, ct.m + 2)]
         ret += [self.monomial(i) - self.monomial(j)
-                for i in range(1,ct.n+2)
-                for j in range(i+1,ct.n+2)]
+                for i in range(1, ct.n + 2)
+                for j in range(i + 1, ct.n + 2)]
         return ret
 
     def positive_odd_roots(self):
@@ -198,8 +157,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         ct = self.root_system.cartan_type()
         return [self.monomial(-i) - self.monomial(j)
-                for i in range(1,ct.m+2)
-                for j in range(1,ct.n+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(1, ct.n + 2)]
 
     def highest_root(self):
         """
@@ -249,11 +208,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         ct = self.root_system.cartan_type()
         ret = []
         ret += [self.monomial(-i) - self.monomial(-j)
-                for i in range(1,ct.m+2)
-                for j in range(i+1,ct.m+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(i + 1, ct.m + 2)]
         ret += [self.monomial(j) - self.monomial(i)
-                for i in range(1,ct.n+2)
-                for j in range(i+1,ct.n+2)]
+                for i in range(1, ct.n + 2)
+                for j in range(i + 1, ct.n + 2)]
         return ret
 
     def negative_odd_roots(self):
@@ -273,8 +232,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         ct = self.root_system.cartan_type()
         return [self.monomial(j) - self.monomial(-i)
-                for i in range(1,ct.m+2)
-                for j in range(1,ct.n+2)]
+                for i in range(1, ct.m + 2)
+                for j in range(1, ct.n + 2)]
 
     def fundamental_weight(self, i):
         """
@@ -288,20 +247,36 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: L.fundamental_weight(0)
             (1, 1, 1, 1, 0, 0, 0)
             sage: L.fundamental_weight(2)
-            (1, 1, 1, 1, -1, -1, 0)
+            (1, 1, 1, 1, -1, -1, -2)
             sage: list(L.fundamental_weights())
             [(1, 0, 0, 0, 0, 0, 0),
              (1, 1, 0, 0, 0, 0, 0),
              (1, 1, 1, 0, 0, 0, 0),
              (1, 1, 1, 1, 0, 0, 0),
-             (1, 1, 1, 1, -1, 0, 0),
-             (1, 1, 1, 1, -1, -1, 0)]
+             (1, 1, 1, 1, -1, -2, -2),
+             (1, 1, 1, 1, -1, -1, -2)]
+
+        ::
+
+            sage: L = RootSystem(['A', [2,3]]).ambient_space()
+            sage: La = L.fundamental_weights()
+            sage: al = L.simple_roots()
+            sage: I = L.index_set()
+            sage: matrix([[al[i].scalar(La[j]) for i in I] for j in I])
+            [ 1  0  0  0  0  0]
+            [ 0  1  0  0  0  0]
+            [ 0  0  1  0  0  0]
+            [ 0  0  0 -1  0  0]
+            [ 0  0  0  0 -1  0]
+            [ 0  0  0  0  0 -1]
         """
         m = self.root_system.cartan_type().m
+        n = self.root_system.cartan_type().n
         if i <= 0:
             return self.sum(self.monomial(j) for j in range(-m-1,i))
         return (self.sum(self.monomial(j) for j in range(-m-1,1))
-                - self.sum(self.monomial(j) for j in range(i+1)))
+                - self.sum(self.monomial(j) for j in range(0,i+1))
+                - 2*self.sum(self.monomial(j) for j in range(i+1,n+2)))
 
     def simple_coroot(self, i):
         """
@@ -410,24 +385,27 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
             EXAMPLES::
 
-                sage: space=RootSystem(['A',5]).weight_space()
-                sage: alpha=RootSystem(['A',5]).weight_space().simple_roots()
-                sage: [alpha[i].has_descent(1) for i in space.index_set()]
-                [False, True, False, False, False]
-                sage: [(-alpha[i]).has_descent(1) for i in space.index_set()]
-                [True, False, False, False, False]
-                sage: [alpha[i].has_descent(1, True) for i in space.index_set()]
-                [True, False, False, False, False]
-                sage: [(-alpha[i]).has_descent(1, True) for i in space.index_set()]
-                [False, True, False, False, False]
-                sage: (alpha[1]+alpha[2]+alpha[4]).has_descent(3)
+                sage: L = RootSystem(['A', [2,1]]).ambient_space()
+                sage: al = L.simple_roots()
+                sage: [al[i].has_descent(1) for i in L.index_set()]
+                [False, False, True, False]
+                sage: [(-al[i]).has_descent(1) for i in L.index_set()]
+                [False, False, False, True]
+                sage: [al[i].has_descent(1, True) for i in L.index_set()]
+                [False, False, False, True]
+                sage: [(-al[i]).has_descent(1, True) for i in L.index_set()]
+                [False, False, True, False]
+                sage: (al[-2] + al[0] + al[1]).has_descent(-1)
                 True
-                sage: (alpha[1]+alpha[2]+alpha[4]).has_descent(1)
+                sage: (al[-2] + al[0] + al[1]).has_descent(1)
                 False
-                sage: (alpha[1]+alpha[2]+alpha[4]).has_descent(1, True)
+                sage: (al[-2] + al[0] + al[1]).has_descent(1, positive=True)
+                True
+                sage: all(all(not la.has_descent(i) for i in L.index_set())
+                ....:     for la in L.fundamental_weights())
                 True
             """
-            s = self.scalar(self.parent().simple_coroots()[i])
+            s = self.scalar(self.parent().simple_roots()[i])
             if i > 0:
                 s = -s
             if positive:
@@ -462,10 +440,10 @@ class AmbientSpace(ambient_space.AmbientSpace):
                sage: x.is_dominant_weight()
                True
             """
-            alphacheck = self.parent().simple_coroots()
+            alpha = self.parent().simple_roots()
             l = self.parent().cartan_type().symmetrizer()
             from sage.rings.semirings.non_negative_integer_semiring import NN
-            return all(l[i] * self.inner_product(alphacheck[i]) in NN
+            return all(l[i] * self.inner_product(alpha[i]) in NN
                        for i in self.parent().index_set())
 
 class CartanType(SuperCartanType_standard):
@@ -523,7 +501,7 @@ class CartanType(SuperCartanType_standard):
             sage: CartanType(['A', [2,3]]).index_set()
             (-2, -1, 0, 1, 2, 3)
         """
-        return tuple(range(-self.m, self.n+1))
+        return tuple(range(-self.m, self.n + 1))
 
     AmbientSpace = AmbientSpace
 

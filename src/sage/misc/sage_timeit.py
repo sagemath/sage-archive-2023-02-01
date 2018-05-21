@@ -16,6 +16,8 @@ AUTHOR:
     -- William Stein, based on code by Fernando Perez included in IPython
 """
 
+import six
+
 
 class SageTimeitResult(object):
     r"""
@@ -165,14 +167,14 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
 
     Test to make sure that ``timeit`` behaves well with output::
 
-        sage: timeit("print 'Hi'", number=50)
+        sage: timeit("print('Hi')", number=50)
         50 loops, best of 3: ... per loop
 
     If you want a machine-readable output, use the ``seconds=True`` option::
 
-        sage: timeit("print 'Hi'", seconds=True)   # random output
+        sage: timeit("print('Hi')", seconds=True)   # random output
         1.42555236816e-06
-        sage: t = timeit("print 'Hi'", seconds=True)
+        sage: t = timeit("print('Hi')", seconds=True)
         sage: t     #r random output
         3.6010742187499999e-07
 
@@ -198,9 +200,9 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     import sage.repl.interpreter as interpreter
     import sage.repl.preparse as preparser
 
-    number=int(number)
-    repeat=int(repeat)
-    precision=int(precision)
+    number = int(number)
+    repeat = int(repeat)
+    precision = int(precision)
     if preparse is None:
         preparse = interpreter._do_preparse
     if preparse:
@@ -217,8 +219,12 @@ def sage_timeit(stmt, globals_dict=None, preparse=None, number=0, repeat=3, prec
     # but is there a better way to achieve that the code stmt has access
     # to the shell namespace?
 
-    src = timeit_.template % {'stmt': timeit_.reindent(stmt, 8),
-                             'setup': "pass", 'init' : ''}
+    if six.PY2:
+        src = timeit_.template % {'stmt': timeit_.reindent(stmt, 8),
+                                 'setup': "pass", 'init': ''}
+    else:
+        src = timeit_.template.format(stmt=timeit_.reindent(stmt, 8),
+                                      setup="pass", init='')
     code = compile(src, "<magic-timeit>", "exec")
     ns = {}
     if not globals_dict:

@@ -11,6 +11,7 @@ Frobenius endomorphisms on p-adic fields
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from sage.rings.integer cimport Integer
 from sage.rings.infinity import Infinity
@@ -22,7 +23,7 @@ from sage.structure.richcmp cimport (richcmp, rich_to_bool,
         richcmp_not_equal)
 
 from sage.rings.morphism cimport RingHomomorphism
-from padic_generic import pAdicGeneric
+from .padic_generic import pAdicGeneric
 
 from sage.categories.morphism cimport Morphism
 

@@ -27,7 +27,6 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.ncsym.bases import NCSymBases, MultiplicativeNCSymBases, NCSymBasis_abstract
 from sage.combinat.set_partition import SetPartitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
-from sage.combinat.subset import Subsets
 from sage.combinat.posets.posets import Poset
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.matrix.matrix_space import MatrixSpace
@@ -292,7 +291,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
         # change the line below to assert(R in Rings()) once MRO issues from #15536, #15475 are resolved
         assert(R in Fields() or R in Rings()) # side effect of this statement assures MRO exists for R
         self._base = R # Won't be needed once CategoryObject won't override base_ring
-        category = GradedHopfAlgebras(R)  # TODO: .Commutative()
+        category = GradedHopfAlgebras(R)  # TODO: .Cocommutative()
         Parent.__init__(self, category = category.WithRealizations())
 
     def _repr_(self):

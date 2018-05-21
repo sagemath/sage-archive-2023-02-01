@@ -207,6 +207,14 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: FooBar.mro()
         [<class '__main__.FooBar'>, <... 'object'>, <class __main__.Bar at ...>]
 
+    If all the base classes are extension types, the dynamic class is
+    also considered to be an extension type (see :trac:`23435`)::
+
+        sage: dyn = dynamic_class("dyn", (Integer,))
+        sage: from sage.structure.misc import is_extension_type
+        sage: is_extension_type(dyn)
+        True
+
     .. RUBRIC:: Pickling
 
     Dynamic classes are pickled by construction. Namely, upon
@@ -221,7 +229,6 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
 
         sage: type(FooBar)
         <class 'sage.structure.dynamic_class.DynamicMetaclass'>
-
 
     The following (meaningless) example illustrates how to customize
     the result of the reduction::
@@ -306,7 +313,6 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: FooUnique = dynamic_class("Foo", (Bar, UniqueRepresentation))
         sage: loads(dumps(FooUnique)) is FooUnique
         True
-
     """
     bases = tuple(bases)
     #assert(len(bases) > 0 )
@@ -381,7 +387,6 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
         sage: C2 = sage.structure.dynamic_class.dynamic_class_internal("C2", (UniqueRepresentation, Morphism))
         sage: type(C2)
         <class 'sage.structure.dynamic_class.DynamicInheritComparisonClasscallMetaclass'>
-
     """
     if reduction is None:
         reduction = (dynamic_class, (name, bases, cls, reduction, doccls))
@@ -406,6 +411,13 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
     methods['_doccls'] = (doccls,)
     methods['__doc__'] = doccls.__doc__
     methods['__module__'] = doccls.__module__
+
+    # If none of the bases have a __dict__, the new class shouldn't
+    # have one either.
+    # NOTE: we need the isinstance(b, type) check to exclude old-style
+    # classes.
+    if all(isinstance(b, type) and not b.__dictoffset__ for b in bases):
+        methods['__slots__'] = []
 
     metaclass = DynamicMetaclass
     # The metaclass of a class must derive from the metaclasses of its

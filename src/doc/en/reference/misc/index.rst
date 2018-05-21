@@ -50,7 +50,6 @@ Lists and Iteration, etc.
    sage/misc/converting_dict
    sage/misc/flatten
    sage/misc/search
-   sage/misc/sage_itertools
    sage/misc/mrange
    sage/misc/multireplace
    sage/misc/map_threaded
@@ -153,7 +152,6 @@ Code Evaluation
 .. toctree::
    :maxdepth: 1
 
-   sage/misc/cython_c
    sage/misc/cython
    sage/misc/inline_fortran
    sage/misc/parser
@@ -235,6 +233,14 @@ Distribution
 
    sage/misc/package
    sage/misc/dist
+   sage/features
+   sage/features/bliss
+   sage/features/csdp
+   sage/features/databases
+   sage/features/fes
+   sage/features/gap
+   sage/features/graph_generators
+   sage/features/lrs
 
 Credits
 ~~~~~~~

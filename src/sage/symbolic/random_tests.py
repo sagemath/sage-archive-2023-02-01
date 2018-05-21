@@ -21,6 +21,7 @@ from sage.libs.pynac.pynac import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric
+from sage.functions.other import cases
 from sage.symbolic.comparison import mixed_order
 
 ###################################################################
@@ -55,7 +56,8 @@ def _mk_full_functions():
             for (name, f) in items
             if hasattr(f, 'number_of_arguments') and
                f.number_of_arguments() > 0 and
-               f != hypergeometric]
+               f != hypergeometric and
+               f != cases]
 
 # For creating simple expressions
 
@@ -66,7 +68,7 @@ fast_nodes = [(0.9, fast_binary, 2), (0.1, fast_unary, 1)]
 # For creating expressions with the full power of Pynac's simple expression
 # subset (with no quantifiers/operators; that is, no derivatives, integrals,
 # etc.)
-full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.div), (0.1, operator.pow)]
+full_binary = [(0.3, operator.add), (0.1, operator.sub), (0.3, operator.mul), (0.2, operator.truediv), (0.1, operator.pow)]
 full_unary = [(0.8, operator.neg), (0.2, operator.inv)]
 full_functions = _mk_full_functions()
 full_nullary = [(1.0, c) for c in [pi, e]] + [(0.05, c) for c in

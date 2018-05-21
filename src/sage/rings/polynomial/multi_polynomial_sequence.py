@@ -160,7 +160,6 @@ from sage.misc.cachefunc import cached_method
 
 from types import GeneratorType
 from sage.misc.converting_dict import KeyConvertingDict
-from sage.misc.package import is_package_installed
 
 from sage.structure.sequence import Sequence, Sequence_generic
 
@@ -277,7 +276,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         sage: PolynomialSequence([0], R)
         [0]
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
 
     is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
@@ -661,7 +660,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         J = RR.ideal([ Ts[j] - RR(self[j]) for j in range(r)])
         JJ = J.elimination_ideal(Xs)
-        # By the elimination theorem, JJ is the kernel of the ring homorphism
+        # By the elimination theorem, JJ is the kernel of the ring morphism
         # `phi:K[\bar T] \to K[\bar X]` that fixes `K` and sends each
         # `T_i` to `f_i`.
         # So JJ is the ideal of annihilating polynomials of `f_1,\ldots,f_r`,
@@ -1442,9 +1441,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                if not is_package_installed('fes'):
-                    from sage.misc.package import PackageNotFoundError
-                    raise PackageNotFoundError("fes")
+                from sage.features.fes import LibFES
+                LibFES().require()
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 

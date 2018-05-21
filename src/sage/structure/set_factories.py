@@ -439,7 +439,7 @@ class SetFactoryPolicy(UniqueRepresentation, SageObject):
             sage: from sage.structure.set_factories import SetFactoryPolicy
             sage: from sage.structure.set_factories_example import XYPairs
             sage: S = SetFactoryPolicy(XYPairs); S
-            <class 'sage.structure.set_factories.SetFactoryPolicy'>
+            <sage.structure.set_factories.SetFactoryPolicy object at ...>
         """
         assert isinstance(factory, SetFactory)
         self._factory = factory
@@ -797,12 +797,12 @@ class FacadeParentPolicy(SetFactoryPolicy):
 
 class BareFunctionPolicy(SetFactoryPolicy):
     r"""
-    Policy where element are contructed using a bare function.
+    Policy where element are constructed using a bare function.
 
     INPUT:
 
     - ``factory`` -- an instance of :class:`SetFactory`
-    - ``contructor`` -- a function
+    - ``constructor`` -- a function
 
     Given a factory ``F`` and a function ``c``, returns a policy for
     parent ``P`` creating element using the function ``f``.

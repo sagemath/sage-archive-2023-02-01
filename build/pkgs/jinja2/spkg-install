@@ -14,7 +14,7 @@ success() {
 # Install new version
 cd src
 
-$PIP_INSTALL .
+sdh_pip_install .
 success 'Error installing Jinja2'
 
 ### The Jinja2 docs use Sphinx which requires Jinja2... do not build!

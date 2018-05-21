@@ -233,12 +233,12 @@ class FreeMonoid_class(Monoid_class):
 
     def _element_constructor_(self, x, check=True):
         """
-        Return `x` coerced into this free monoid.
+        Return ``x`` coerced into this free monoid.
 
-        One can create a free monoid element from the integer 1, from a
-        list of 2-tuples of integers `(i,j)`, where `(i,j)`
-        corresponds to `x_i^j`, where `x_i` is the
-        `i`th generator, and words in teh same alphabet as the generators.
+        One can create a free monoid element from the integer 1, from
+        a list of 2-tuples of integers `(i,j)`, where `(i,j)`
+        corresponds to `x_i^j`, where `x_i` is the `i`-th generator,
+        and from words in the same alphabet as the generators.
 
         EXAMPLES::
 

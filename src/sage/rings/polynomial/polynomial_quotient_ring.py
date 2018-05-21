@@ -58,6 +58,8 @@ from sage.structure.category_object import normalize_names
 from sage.rings.polynomial.infinite_polynomial_ring import GenDictWithBasering
 from sage.all import sage_eval, parent
 
+from sage.structure.richcmp import richcmp
+
 
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
@@ -114,7 +116,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     ::
 
         sage: A.<y> = PolynomialRing(GF(2)); A
-        Univariate Polynomial Ring in y over Finite Field of size 2 (using NTL)
+        Univariate Polynomial Ring in y over Finite Field of size 2 (using GF2X)
         sage: B = A.quotient(y^2 + y + 1, 'y2'); B
         Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
         sage: C = PolynomialRing(B, 'x'); x=C.gen(); C
@@ -470,12 +472,12 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             raise TypeError("unable to convert %r to an element of %s"%(x, self))
 
     def _coerce_map_from_(self, R):
-        """
-        Anything coercing into ``self``'s polynomial ring coerces into ``self``.
-        Any quotient polynomial ring whose polynomial ring coerces into
-        ``self``'s polynomial ring and whose modulus is divided by the modulus
-        of ``self`` coerces into ``self``. There is no coercion if the division
-        of the moduli fails.
+        r"""
+        Return a coerce map from ``R``.
+
+        Anything coercing into the underlying polynomial ring coerces into this
+        quotient. Furthermore, for quotients `R=A[x]/(f)` and `S=B[x]/(g)` with
+        a coercion `R\to S` there is a coercion iff `f` divides `g`.
 
         AUTHOR:
 
@@ -513,7 +515,9 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                     return False
             except (ZeroDivisionError,ArithmeticError):
                 return False
-            return self.__ring.has_coerce_map_from(R.polynomial_ring())
+            from sage.all import Hom
+            parent = Hom(R, self, category=self.category()._meet_(R.category()))
+            return parent.__make_element_class__(PolynomialQuotientRing_coercion)(R, self, category=parent.homset_category())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -1382,14 +1386,16 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.unit_group()
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
-            sage: u,o = K.S_units([])[0]; u, o
-            (-1/2*a + 1/2, 6)
+            sage: u,o = K.S_units([])[0]; o
+            6
+            sage: 2*u - 1 in {a, -a}
+            True
             sage: u^6
             1
             sage: u^3
             -1
-            sage: u^2
-            -1/2*a - 1/2
+            sage: 2*u^2 + 1 in {a, -a}
+            True
 
         ::
 
@@ -1397,22 +1403,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: y = polygen(K)
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
-            sage: L.S_units([])
-            [(-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
-            sage: L.S_units([K.ideal(1/2*a - 3/2)])
-            [((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a, +Infinity),
-             (-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
-            sage: L.S_units([K.ideal(2)])
-            [((1/2*a - 1/2)*b^2 + (a + 1)*b + 3, +Infinity),
-             ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a + 1/2, +Infinity),
-             ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity),
-             (-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
+            sage: [u for u, o in L.S_units([]) if o is Infinity]
+            [(-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
+            sage: [u for u, o in L.S_units([K.ideal(1/2*a - 3/2)]) if o is Infinity]
+            [(-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a,
+             (-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
+            sage: [u for u, o in L.S_units([K.ideal(2)]) if o is Infinity]
+            [(1/2*a - 1/2)*b^2 + (a + 1)*b + 3,
+             (1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a + 1/2,
+             (1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2,
+             (-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
 
         Note that all the returned values live where we expect them to::
 
@@ -1469,14 +1472,15 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.unit_group()
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
-            sage: u = K.units()[0][0]; u
-            -1/2*a + 1/2
+            sage: u = K.units()[0][0]
+            sage: 2*u - 1 in {a, -a}
+            True
             sage: u^6
             1
             sage: u^3
             -1
-            sage: u^2
-            -1/2*a - 1/2
+            sage: 2*u^2 + 1 in {a, -a}
+            True
             sage: K.<a> = QQ['x'].quotient(x^2 + 5)
             sage: K.units(())
             [(-1, 2)]
@@ -1487,17 +1491,16 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: y = polygen(K)
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
-            sage: L.units()
-            [(-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
+            sage: [u for u, o in L.units() if o is Infinity]
+            [(-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
             sage: L.<b> = K.extension(y^3 + 5)
             sage: L.unit_group()
             Unit group with structure C6 x Z x Z of Number Field in b with defining polynomial x^3 + 5 over its base field
             sage: L.unit_group().gens()    # abstract generators
             (u0, u1, u2)
-            sage: L.unit_group().gens_values()
-            [1/2*a + 1/2, (-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, 2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
+            sage: L.unit_group().gens_values()[1:]
+            [(-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, 2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
 
         Note that all the returned values live where we expect them to::
 
@@ -1808,6 +1811,125 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             tester.assertIn(y, ring)
             tester.assertEqual(from_isomorphic_ring(y), x)
 
+from sage.structure.coerce_maps import DefaultConvertMap_unique
+class PolynomialQuotientRing_coercion(DefaultConvertMap_unique):
+    r"""
+    A coercion map from a :class:`PolynomialQuotientRing` to a
+    :class:`PolynomialQuotientRing` that restricts to the coercion map on the
+    underlying ring of constants.
+
+    EXAMPLES::
+
+        sage: R.<x> = ZZ[]
+        sage: S.<x> = QQ[]
+        sage: f = S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1)); f
+        Coercion map:
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+          To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+
+    TESTS::
+
+        sage: from sage.rings.polynomial.polynomial_quotient_ring import PolynomialQuotientRing_coercion
+        sage: isinstance(f, PolynomialQuotientRing_coercion)
+        True
+        sage: TestSuite(f).run(skip=['_test_pickling'])
+
+    Pickling works but the returned value is not compare equal to the original
+    morphism::
+
+        sage: g = loads(dumps(f)); g
+        Coercion map:
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
+          To:   Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
+        sage: f == g
+        False
+
+    The reason for this is that pickling of the domain is currently broken, and
+    therefore the parent of `f` and `g` are different::
+
+        sage: loads(dumps(f.domain())) is f.domain()
+        False
+        sage: f.parent() is g.parent()
+        False
+
+    """
+    def is_injective(self):
+        r"""
+        Return whether this coercion is injective.
+
+        EXAMPLES:
+
+        If the modulus of the domain and the codomain is the same and the
+        leading coefficient is a unit in the domain, then the map is injective
+        if the underlying map on the constants is::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = QQ[]
+            sage: f = S.quo(x^2 + 1).coerce_map_from(R.quo(x^2 + 1))
+            sage: f.is_injective()
+            True
+
+        """
+        if (self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus()
+            and self.domain().modulus().leading_coefficient().is_unit()):
+            if self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_injective():
+                return True
+            else:
+                return self.domain().modulus().degree() == 0 # domain and codomain are the zero ring
+        return super(PolynomialQuotientRing_coercion, self).is_injective()
+
+    def is_surjective(self):
+        r"""
+        Return whether this coercion is surjective.
+
+        EXAMPLES:
+
+        If the underlying map on constants is surjective, then this coercion is
+        surjective since the modulus of the codomain divides the modulus of the
+        domain::
+
+            sage: R.<x> = ZZ[]
+            sage: f = R.quo(x).coerce_map_from(R.quo(x^2))
+            sage: f.is_surjective()
+            True
+
+        If the modulus of the domain and the codomain is the same, then the map
+        is surjective iff the underlying map on the constants is::
+
+            sage: A.<a> = ZqCA(9)
+            sage: R.<x> = A[]
+            sage: S.<x> = A.fraction_field()[]
+            sage: f = S.quo(x^2 + 2).coerce_map_from(R.quo(x^2 + 2))
+            sage: f.is_surjective()
+            False
+
+        """
+        constant_map_is_surjective = self.codomain().base_ring().coerce_map_from(self.domain().base_ring()).is_surjective()
+        if constant_map_is_surjective:
+            return True
+        if self.domain().modulus().change_ring(self.codomain().base_ring()) == self.codomain().modulus():
+            return constant_map_is_surjective
+        return super(PolynomialQuotientRing_coercion, self).is_surjective()
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare this morphism to ``other``.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: S.<x> = ZZ[]
+            sage: f = S.quo(x).coerce_map_from(R.quo(x^2))
+            sage: g = S.quo(x).coerce_map_from(R.quo(x^3))
+            sage: f == g
+            False
+            sage: f == f
+            True
+
+        """
+        if type(self) != type(other):
+            return NotImplemented
+        return richcmp(self.parent(), other.parent(), op)
 
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, IntegralDomain):
     """

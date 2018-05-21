@@ -221,7 +221,8 @@ class Gp(ExtraTabCompletion, Expect):
 
     def set_seed(self, seed=None):
         """
-        Sets the seed for gp interpeter.
+        Set the seed for gp interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::

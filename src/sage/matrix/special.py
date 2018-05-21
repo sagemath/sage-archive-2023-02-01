@@ -69,10 +69,9 @@ import sage.rings.all as rings
 from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
 from sage.modules.free_module_element import vector
-from sage.structure.element import is_Vector
+from sage.structure.element import is_Vector, is_Matrix
 from sage.rings.all import ZZ, QQ
 from sage.misc.misc_c import running_total
-from .matrix import is_Matrix
 from copy import copy
 from .constructor import matrix
 
@@ -135,19 +134,19 @@ def column_matrix(*args, **kwds):
         generally, when creating a matrix, input vectors and lists are
         treated as rows.  This function is a convenience that turns
         around this convention when creating a matrix.  If you are not
-        familiar with the usual :class:`matrix <MatrixFactory>`
+        familiar with the usual :func:`matrix`
         constructor, you might want to consider it first.
 
     INPUT:
 
-    Inputs are almost exactly the same as for the :class:`matrix
-    <MatrixFactory>` constructor, which are documented there.  But see
+    Inputs are almost exactly the same as for the :func:`matrix`
+    constructor, which are documented there.  But see
     examples below for how dimensions are handled.
 
     OUTPUT:
 
-    Output is exactly the transpose of what the :class:`matrix
-    <MatrixFactory>` constructor would return.  In other words, the
+    Output is exactly the transpose of what the :func:`matrix`
+    constructor would return.  In other words, the
     ``matrix`` constructor builds a matrix and then this function
     exchanges rows for columns, and columns for rows.
 
@@ -156,7 +155,7 @@ def column_matrix(*args, **kwds):
     The most compelling use of this function is when you have a
     collection of lists or vectors that you would like to become the
     columns of a matrix. In almost any other situation, the
-    :class:`matrix <MatrixFactory>` constructor can probably do the
+    :func:`matrix`` constructor can probably do the
     job just as easily, or easier. ::
 
         sage: col_1 = [1,2,3]
@@ -212,7 +211,7 @@ def column_matrix(*args, **kwds):
 
 
 @matrix_method
-def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds):
+def random_matrix(ring, nrows, ncols=None, algorithm='randomize', implementation=None, *args, **kwds):
     r"""
     Return a random matrix with entries in a specified ring, and possibly with additional properties.
 
@@ -245,6 +244,10 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
        - ``diagonalizable`` - creates a diagonalizable matrix whose
          eigenvectors, if computed by hand, will have only integer
          entries.
+
+    - ``implementation`` -  (``None`` or string or a matrix class) a possible
+      implementation. See the documentation of the constructor of
+      :class:`~sage.matrix.matrix_space.MatrixSpace`.
 
     -  ``*args, **kwds`` - arguments and keywords to describe additional
        properties. See more detailed documentation below.
@@ -365,6 +368,14 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         sage: A = random_matrix(ZZ, 100, 100, x=2^16); A
         100 x 100 dense matrix over Integer Ring (use the '.str()' method to see the entries)
 
+    One can prescribe a specific matrix implementation::
+
+        sage: K.<a>=FiniteField(2^8)
+        sage: type(random_matrix(K, 2, 5))
+        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        sage: type(random_matrix(K, 2, 5, implementation="generic"))
+        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+
     Random rational matrices.  Now ``num_bound`` and ``den_bound`` control the
     generation of random elements, by specifying limits on the absolute value of
     numerators and denominators (respectively).  Entries will be positive and
@@ -374,27 +385,27 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     described above. ::
 
         sage: random_matrix(QQ, 2, 8, num_bound=20, den_bound=4)
-        [ -1/2     6    13   -12  -2/3  -1/4     5     5]
-        [ -9/2   5/3    19  15/2  19/2  20/3 -13/4     0]
+        [ -1/4     5     5  -9/2   5/3    19  15/2  19/2]
+        [ 20/3 -13/4     0    16    -5   -20   -11  -7/3]
 
         sage: random_matrix(QQ, 4, density = 0.5, sparse=True)
-        [    0    71     0  -1/2]
-        [    0     0     0     0]
-        [31/85     0 -31/2     0]
-        [    1  -1/4     0     0]
+        [  0   1   0  -1]
+        [  0   0   0   0]
+        [  6   0   3   0]
+        [  1 1/3   0   0]
 
         sage: A = random_matrix(QQ, 3, 10, num_bound = 99, den_bound = 99)
         sage: positives = list(map(abs, A.list()))
         sage: matrix(QQ, 3, 10, positives)
-        [61/18 47/41  1/22   1/2 75/68   6/7     1   1/2 72/41   7/3]
-        [33/13   9/2 40/21 45/46 17/22     1 70/79 97/71  7/24  12/5]
-        [ 13/8  8/25   1/3 61/14 92/45  4/85  3/38 95/16 82/71   1/5]
+        [ 2/45 40/21 45/46 17/22     1 70/79 97/71  7/24  12/5  13/8]
+        [ 8/25   1/3 61/14 92/45  4/85  3/38 95/16 82/71   1/5 41/16]
+        [55/76    19 28/41 52/51  14/3    43 76/13  8/77 13/38 37/21]
 
         sage: random_matrix(QQ, 4, 10, den_bound = 10)
-        [  -1    0  1/8  1/6  2/9 -1/6  1/5 -1/8  1/5 -1/5]
         [ 1/9  1/5   -1  2/9  1/4 -1/7  1/8 -1/9    0    2]
         [ 2/3    2  1/8   -2    0    0   -2    2    0 -1/2]
         [   0    2    1 -2/3    0    0  1/6    0 -1/3 -2/9]
+        [   0    0  2/5  1/9    0    0  1/6 1/10    0    1]
 
     Random matrices over other rings.  Several classes of matrices have specialized
     ``randomize()`` methods.  You can locate these with the Sage command::
@@ -408,22 +419,19 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     that we use the default implementation in this test::
 
         sage: K.<a>=FiniteField(3^2)
-        sage: from sage.matrix.matrix_generic_dense import Matrix_generic_dense
-        sage: MS = MatrixSpace(K, 2, 5)
-        sage: MS._MatrixSpace__matrix_class = Matrix_generic_dense
-        sage: random_matrix(K, 2, 5)
-        [      1       a       1 2*a + 1       2]
-        [    2*a   a + 2       0       2       1]
+        sage: random_matrix(K, 2, 5, implementation='generic')
+        [  a + 1   a + 1       0 2*a + 2   a + 1]
+        [  a + 2   a + 1       2       0       0]
 
         sage: random_matrix(RR, 3, 4, density=0.66)
-        [ 0.000000000000000 -0.806696574554030 -0.693915509972359  0.000000000000000]
-        [ 0.629781664418083  0.000000000000000 -0.833709843116637  0.000000000000000]
-        [ 0.922346867410064  0.000000000000000  0.000000000000000 -0.940316454178921]
+        [ 0.000000000000000 0.0869697644118808 -0.232952499486647  0.000000000000000]
+        [-0.793158962467820  0.000000000000000  0.318853016385637  0.000000000000000]
+        [-0.220342454156035  0.000000000000000  0.000000000000000  0.914890766754157]
 
         sage: A = random_matrix(ComplexField(32), 3, density=0.8, sparse=True); A
-        [                 0.000000000  0.399739209 + 0.909948633*I                  0.000000000]
-        [-0.361911424 - 0.455087671*I -0.687810605 + 0.460619713*I  0.625520058 - 0.360952012*I]
-        [                 0.000000000                  0.000000000 -0.162196416 - 0.193242896*I]
+        [                 0.000000000 -0.443499553 - 0.406854867*I                  0.000000000]
+        [ 0.171578609 + 0.644048756*I  0.518523841 + 0.794429291*I -0.341030168 - 0.507791873*I]
+        [                 0.000000000                  0.000000000  0.782759943 + 0.236288982*I]
         sage: A.is_sparse()
         True
 
@@ -586,7 +594,7 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
         ncols = nrows
     sparse = kwds.pop('sparse', False)
     # Construct the parent of the desired matrix
-    parent = matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)
+    parent = matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse, implementation=implementation)
     if algorithm == 'randomize':
         density = kwds.pop('density', None)
         # zero matrix is immutable, copy is mutable
@@ -742,12 +750,12 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: A.parent()
         Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
 
-    Giving the entries improperly may first complain about not having a length.  ::
+    Giving the entries improperly may first complain about not being iterable::
 
         sage: diagonal_matrix(QQ, 5, 10)
         Traceback (most recent call last):
         ...
-        TypeError: unable to determine number of entries for diagonal matrix construction
+        TypeError: 'sage.rings.integer.Integer' object is not iterable
 
     Giving too many entries will raise an error. ::
 
@@ -763,16 +771,21 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         ...
         ValueError: number of diagonal matrix entries (1) exceeds the requested matrix size (-2)
 
-    Types for the entries are limited, even though they may have a length.  ::
+    Types for the entries need to be iterable (tuple, list, vector, NumPy array,
+    etc)::
 
         sage: diagonal_matrix(x^2)
         Traceback (most recent call last):
         ...
-        TypeError: diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)
+        TypeError: 'sage.symbolic.expression.Expression' object is not iterable
+
+    TESTS::
+
+        sage: A = diagonal_matrix(reversed(range(4)))
 
     AUTHOR:
 
-        - Rob Beezer (2011-01-11): total rewrite
+    - Rob Beezer (2011-01-11): total rewrite
     """
     # Roll arguments leftward
     #
@@ -793,6 +806,11 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Formats 1, 2, 3, 4
     entries = arg0
 
+    # sanity check for entries
+    from numpy import ndarray
+    if not isinstance(entries, (list, tuple, ndarray)):
+        entries = list(entries)
+
     # Reconcile matrix size and number of entries
     try:
         nentries = len(entries)
@@ -807,11 +825,6 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # provide a default ring for an empty list
     if len(entries) == 0 and ring is None:
       ring = rings.ZZ
-
-    # Sanity check on entries (partially, e.g. a list of lists will survive this check)
-    from numpy import ndarray
-    if not any([isinstance(entries, (list, tuple)), isinstance(entries, ndarray), is_Vector(entries)]):
-        raise TypeError('diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)')
 
     # Convert entries to a list v over a common ring
     from sage.modules.free_module_element import prepare
@@ -1464,14 +1477,13 @@ def circulant(v, sparse=None):
         sage: matrix.circulant([0,1,-1], sparse=True).is_sparse()
         True
     """
-    from exceptions import AttributeError
     if sparse is None:
         try:
             sparse = v.is_sparse()
         except AttributeError:
             sparse = False
     n = len(v)
-    return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)
+    return matrix(n, n, lambda i, j: v[(j - i) % n], sparse=sparse)
 
 
 def _determine_block_matrix_grid(sub_matrices):
@@ -3186,9 +3198,9 @@ def random_diagonalizable_matrix(parent,eigenvalues=None,dimensions=None):
         ...
         ValueError: each eigenvalue must have a corresponding dimension and each dimension a corresponding eigenvalue.
 
-    TODO:
+    .. TODO::
 
-    Modify the routine to allow for complex eigenvalues.
+        Modify the routine to allow for complex eigenvalues.
 
     AUTHOR:
 
@@ -3341,7 +3353,7 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
         [ 0.00 -0.93  0.22  0.30]
         [ 0.00  0.00 -0.80  0.60]
         sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10)) * v
-        (5.5, 0.00098, 0.00098, 0.00)
+        (5.5, 0.0020, 0.00098, 0.00)
 
     AUTHORS:
 
@@ -3539,7 +3551,7 @@ def toeplitz(c, r, ring=None):
     r"""
     Return a Toeplitz matrix of given first column and first row.
 
-    In a Toeplitz matrix, each descending diagonal from left to right is 
+    In a Toeplitz matrix, each descending diagonal from left to right is
     constant, such that:
 
     .. MATH:: T_{i,j} = T_{i+1, j+1}.

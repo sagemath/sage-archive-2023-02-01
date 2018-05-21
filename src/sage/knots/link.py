@@ -60,7 +60,6 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.functions.generalized import sign
 from sage.homology.chain_complex import ChainComplex
 from sage.misc.flatten import flatten
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 from itertools import combinations
@@ -559,6 +558,18 @@ class Link(object):
                 return True
         return self.braid() == other.braid()
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(8)
+            sage: L1 = Link(B([-1, -1, -1, -2, 1, -2, 3, -2, 5, 4]))
+            sage: H = hash(L1)
+        """
+        return hash(self.braid())
+
     def __ne__(self, other):
         """
         Check inequality.
@@ -602,6 +613,12 @@ class Link(object):
             sage: L = Link([[], []])
             sage: L.braid()
             1
+
+        Check that :trac:`25050` is solved::
+
+            sage: A = Link([[[1, 2, -2, -1, -3, -4, 4, 3]], [1, 1, 1, 1]])
+            sage: A.braid()
+            s0*s1*s2*s3
         """
         if self._braid is not None:
             return self._braid
@@ -1905,7 +1922,7 @@ class Link(object):
             sage: L = Link([[[-1, 2, 3, -4, 5, -6, 7, 8, -2, -5, 6, 1, -8, -3, 4, -7]], [-1, -1, -1, -1, 1, 1, -1, 1]])
             sage: L.seifert_circles()
             [[1, 13, 9, 3, 15, 5, 11, 7], [2, 10, 6, 12], [4, 16, 8, 14]]
-            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6,-5]], [-1, -1, -1, -1, 1, -1, 1]])
+            sage: L = Link([[[-1, 2, -3, 4, 5, 1, -2, 6, 7, 3, -4, -7, -6, -5]], [-1, -1, -1, -1, 1, -1, 1]])
             sage: L.seifert_circles()
             [[1, 7, 3, 11, 5], [2, 8, 14, 6], [4, 12, 10], [9, 13]]
             sage: L = Link([[1, 7, 2, 6], [7, 3, 8, 2], [3, 11, 4, 10], [11, 5, 12, 4], [14, 5, 1, 6], [13, 9, 14, 8], [12, 9, 13, 10]])
@@ -1918,9 +1935,24 @@ class Link(object):
             sage: L = Link(B([1, 1, 1]))
             sage: L.seifert_circles()
             [[1, 3, 5], [2, 4, 6]]
+
+        TESTS:
+
+        Check that :trac:`25050` is solved::
+
+            sage: A = Link([[[1, 2, -2, -1, -3, -4, 4, 3]], [1, 1, 1, 1]])
+            sage: A.seifert_circles()
+            [[3], [7], [1, 5], [2, 4], [6, 8]]
         """
         available_segments = set(flatten(self.pd_code()))
         result = []
+        # detect looped segments. They must be their own seifert circles
+        for a in available_segments:
+            if any(C.count(a)>1 for C in self.pd_code()):
+                result.append([a])
+        # remove the looped segments from the available
+        for a in result:
+            available_segments.remove(a[0])
         tails, heads = self._directions_of_edges()
         while available_segments:
             a = available_segments.pop()
@@ -1931,8 +1963,9 @@ class Link(object):
                 par = []
                 while not a in par:
                     par.append(a)
-                    if tails[C[(C.index(a) + 1) % 4]] == C:
-                        a = C[(C.index(a) + 1) % 4]
+                    posnext = C[(C.index(a) + 1) % 4]
+                    if tails[posnext] == C and not [posnext] in result:
+                        a = posnext
                     else:
                         a = C[(C.index(a) - 1) % 4]
                     if a in available_segments:
@@ -2774,7 +2807,7 @@ class Link(object):
         values = MLP.get_values(v)
         for i in range(len(edges)):
             s[i] = int(values[2*i] - values[2*i + 1])
-        # segments represents the different parts of the previos edges after bending
+        # segments represents the different parts of the previous edges after bending
         segments = {e: [(e,i) for i in range(abs(s[edges.index(e)])+1)] for e in edges}
         pieces = {tuple(i): [i] for j in segments.values() for i in j}
         nregions = []
@@ -2879,15 +2912,16 @@ class Link(object):
         used_edges = []
         ims = line([], **kwargs)
         while len(used_edges) < len(edges):
+            cross_keys = list(crossings.keys())
             i = 0
             j = 0
-            while crossings.keys()[i][j] in used_edges:
+            while cross_keys[i][j] in used_edges:
                 if j < 3:
                     j += 1
                 else:
                     j = 0
-                    i+=1
-            c = crossings.keys()[i]
+                    i += 1
+            c = cross_keys[i]
             e = c[j]
             used_edges.append(e)
             direction = (crossings[c][2] - c.index(e)) % 4

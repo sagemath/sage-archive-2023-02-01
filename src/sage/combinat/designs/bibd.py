@@ -102,10 +102,10 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         * :func:`v_4_1_BIBD`
         * :func:`v_5_1_BIBD`
 
-    TODO:
+    .. TODO::
 
-        * Implement other constructions from the Handbook of Combinatorial
-          Designs.
+        Implement other constructions from the Handbook of Combinatorial
+        Designs.
 
     EXAMPLES::
 
@@ -1170,7 +1170,7 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     .. [Denniston69] \R. H. F. Denniston,
        Some maximal arcs in finite projective planes.
        Journal of Combinatorial Theory 6, no. 3 (1969): 317-319.
-       http://dx.doi.org/10.1016/S0021-9800(69)80095-5
+       :doi:`10.1016/S0021-9800(69)80095-5`
 
     """
     q = (n-1)//(k-1)-1

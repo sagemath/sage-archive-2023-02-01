@@ -40,7 +40,7 @@ include "sage/libs/ntl/decl.pxi"
 
 from cpython.int cimport PyInt_AS_LONG
 from sage.libs.gmp.mpz cimport *
-from sage.misc.long cimport pyobject_to_long
+from sage.arith.long cimport pyobject_to_long
 
 from sage.libs.flint.fmpz_poly cimport *
 from sage.rings.polynomial.polynomial_element cimport Polynomial
@@ -62,17 +62,12 @@ from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport fmpz_poly_reverse, fmpz_poly_revert_series
 from sage.libs.flint.ntl_interface cimport fmpz_set_ZZ, fmpz_poly_set_ZZX, fmpz_poly_get_ZZX
 from sage.libs.ntl.ZZX cimport *
-from sage.rings.integer cimport smallInteger
+from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.real_mpfr cimport RealNumber, RealField_class
 from sage.rings.real_mpfi cimport RealIntervalFieldElement
 
 from sage.rings.polynomial.evaluation cimport fmpz_poly_evaluation_mpfr, fmpz_poly_evaluation_mpfi
 
-cdef extern from "limits.h":
-    long LONG_MAX
-
-cdef extern from "flint/flint.h":
-    int FLINT_BITS
 
 cdef class Polynomial_integer_dense_flint(Polynomial):
     r"""
@@ -751,6 +746,22 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
         """
         return (fmpz_poly_degree(self.__poly) == -1)
 
+    cpdef bint is_one(self):
+        """
+        Returns True if self is equal to one.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: R(0).is_one()
+            False
+            sage: R(1).is_one()
+            True
+            sage: x.is_one()
+            False
+        """
+        return fmpz_poly_is_one(self.__poly)
+
     def __nonzero__(self):
         """
         Check if self is not zero.
@@ -781,6 +792,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: f.gcd(g)
             6*x + 47
         """
+        cdef Polynomial_integer_dense_flint _right = <Polynomial_integer_dense_flint> right
+        if self.is_zero() or _right.is_one():
+            return right
+        elif self.is_one() or _right.is_zero():
+            return self
         cdef Polynomial_integer_dense_flint x = self._new()
         sig_on()
         fmpz_poly_gcd(x.__poly, self.__poly,
@@ -1159,25 +1175,40 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: (x^2 + 13*x + 169) // 13
             x + 13
         """
-        cdef Polynomial_integer_dense_flint res = self._new()
-        cdef Polynomial
-        cdef long t
-        if right == 0:
-            raise ZeroDivisionError("division by zero")
+        cdef Polynomial_integer_dense_flint _right
+        cdef Polynomial_integer_dense_flint res
         if not isinstance(right, Polynomial_integer_dense_flint):
-            if right in ZZ:
+            if isinstance(right, Integer):
+                if (<Integer> right).is_zero():
+                    raise ZeroDivisionError("division by zero")
+                else:
+                    res = self._new()
+                    sig_on()
+                    fmpz_poly_scalar_fdiv_mpz(res.__poly, self.__poly,
+                            (<Integer> right).value)
+                    sig_off()
+                return res
+            elif right in ZZ:
+                res = self._new()
                 sig_on()
                 fmpz_poly_scalar_fdiv_mpz(res.__poly, self.__poly,
                         (<Integer>ZZ(right)).value)
                 sig_off()
                 return res
-        if self._parent is not right.parent():
-            right = self._parent(right)
-        sig_on()
-        fmpz_poly_div(res.__poly, self.__poly,
-                (<Polynomial_integer_dense_flint>right).__poly)
-        sig_off()
-        return res
+            else:
+                right = self._parent(right)
+        _right = <Polynomial_integer_dense_flint> right
+        if _right.is_zero():
+            raise ZeroDivisionError("division by zero")
+        elif _right.is_one():
+            # quite typical when removing gcds...
+            return self
+        else:
+            res = self._new()
+            sig_on()
+            fmpz_poly_div(res.__poly, self.__poly, _right.__poly)
+            sig_off()
+            return res
 
     cpdef Polynomial inverse_series_trunc(self, long prec):
         r"""

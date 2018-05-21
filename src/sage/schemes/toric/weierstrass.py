@@ -268,8 +268,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
 
     OUTPUT:
 
-    A tuple containing of the affine span of the Netwton polytope and
-    a dictionary with keys the integral values of the Newton polytope
+    A dictionary with keys the integral values of the Newton polytope
     and values the corresponding coefficient of ``polynomial``.
 
     EXAMPLES::

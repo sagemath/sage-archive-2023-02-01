@@ -20,7 +20,7 @@ from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.all import QQ
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.modules.free_module import FreeModule
 from sage.sets.family import Family
 
@@ -34,7 +34,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
     - `xy = yx`, and
     - `(xy)(xx) = x(y(xx))` (the Jordan identity).
 
-    See [Ja1971]_, [Ch2012]_, and [McC1978], for example.
+    See [Ja1971]_, [Ch2012]_, and [McC1978]_, for example.
 
     These axioms imply that a Jordan algebra is power-associative and the
     following generalization of Jordan's identity holds [Al1947]_:
@@ -103,7 +103,7 @@ class JordanAlgebra(Parent, UniqueRepresentation):
         sage: (x*y)*(x*x) == x*(y*(x*x))
         True
 
-    Next we constuct a Jordan algebra from a symmetric bilinear form::
+    Next we construct a Jordan algebra from a symmetric bilinear form::
 
         sage: m = matrix([[-2,3],[3,4]])
         sage: J.<a,b,c> = JordanAlgebra(m); J

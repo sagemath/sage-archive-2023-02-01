@@ -20,7 +20,7 @@ Methods index
     :meth:`~GLPKGraphBackend.set_vertex_demand`   | Sets the vertex parameters.
     :meth:`~GLPKGraphBackend.set_vertices_demand` | Sets the parameters of selected vertices.
     :meth:`~GLPKGraphBackend.get_vertex`          | Returns a specific vertex as a ``dict`` Object.
-    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictonaries associated to each vertex.
+    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictionaries associated to each vertex.
     :meth:`~GLPKGraphBackend.vertices`            | Returns a ``list`` of all vertices.
     :meth:`~GLPKGraphBackend.delete_vertex`       | Removes a vertex from the graph.
     :meth:`~GLPKGraphBackend.delete_vertices`     | Removes vertices from the graph.
@@ -120,7 +120,7 @@ cdef class GLPKGraphBackend(object):
      * - ``dimacs``
 
        - Read data from a plain ASCII text file in DIMACS format.
-         A discription of the DIMACS format can be found at
+         A description of the DIMACS format can be found at
          http://dimacs.rutgers.edu/Challenges/.
 
      * - ``mincost``
@@ -496,7 +496,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef dict get_vertices(self, verts):
         """
-        Returns a dictionary of the dictonaries associated to each vertex.
+        Returns a dictionary of the dictionaries associated to each vertex.
 
         INPUT:
 
@@ -626,7 +626,7 @@ cdef class GLPKGraphBackend(object):
 
         - ``edges`` -- An iterable container of pairs of the form ``(u, v)``,
           where ``u`` is name (as ``str``) of the tail vertex and ``v`` is the
-          name (as ``str``) of the head vertex or an interable container of
+          name (as ``str``) of the head vertex or an iterable container of
           triples of the form ``(u, v, params)`` where params is a ``dict`` as
           described in ``add_edge``.
 
@@ -1065,7 +1065,7 @@ cdef class GLPKGraphBackend(object):
         Writes the graph to a text file in DIMACS format.
 
         Writes the data to plain ASCII text file in DIMACS format.
-        A discription of the DIMACS format can be found at
+        A description of the DIMACS format can be found at
         http://dimacs.rutgers.edu/Challenges/.
 
         INPUT:

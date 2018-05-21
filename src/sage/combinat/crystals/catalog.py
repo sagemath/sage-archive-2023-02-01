@@ -21,15 +21,20 @@ This is a catalog of crystals that are currently implemented in Sage:
   <sage.combinat.crystals.generalized_young_walls.CrystalOfGeneralizedYoungWalls>`
 * :func:`HighestWeight <sage.combinat.crystals.highest_weight_crystals.HighestWeightCrystal>`
 * :class:`Induced <sage.combinat.crystals.induced_structure.InducedCrystal>`
+* :class:`KacModule <sage.combinat.crystals.kac_modules.CrystalOfKacModule>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
+* :class:`KleshchevPartitions <sage.combinat.partition_kleshchev.KleshchevPartitions_all>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
 * :class:`NakajimaMonomials <sage.combinat.crystals.monomial_crystals.CrystalOfNakajimaMonomials>`
+* :class:`OddNegativeRoots <sage.combinat.crystals.kac_modules.CrystalOfOddNegativeRoots>`
 * :class:`ProjectedLevelZeroLSPaths
   <sage.combinat.crystals.littelmann_path.CrystalOfProjectedLevelZeroLSPaths>`
 * :class:`RiggedConfigurations
   <sage.combinat.rigged_configurations.rc_crystal.CrystalOfRiggedConfigurations>`
+* :class:`ShiftedPrimedTableaux
+  <sage.combinat.shifted_primed_tableau.ShiftedPrimedTableaux_shape>`
 * :class:`Spins <sage.combinat.crystals.spins.CrystalOfSpins>`
 * :class:`SpinsPlus <sage.combinat.crystals.spins.CrystalOfSpinsPlus>`
 * :class:`SpinsMinus <sage.combinat.crystals.spins.CrystalOfSpinsMinus>`
@@ -73,8 +78,13 @@ from .monomial_crystals import CrystalOfNakajimaMonomials as NakajimaMonomials
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import TensorProductOfKirillovReshetikhinTableaux
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
+from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableaux_shape as ShiftedPrimedTableaux
+from sage.combinat.partition_kleshchev import KleshchevPartitions
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
+
+from sage.combinat.crystals.kac_modules import CrystalOfKacModule as KacModule
+from sage.combinat.crystals.kac_modules import CrystalOfOddNegativeRoots as OddNegativeRoots
 
 from .tensor_product import TensorProductOfCrystals as TensorProduct
 from .direct_sum import DirectSumOfCrystals as DirectSum

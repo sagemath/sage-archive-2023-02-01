@@ -57,7 +57,7 @@ from sage.schemes.affine.affine_space import (AffineSpace,
                                               is_AffineSpace)
 from . import point
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
+from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 
 from sage.schemes.affine.affine_space import AffineSpace, is_AffineSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace

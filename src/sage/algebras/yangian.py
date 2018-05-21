@@ -376,12 +376,18 @@ class Yangian(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Y = Yangian(QQ, 4)
+            sage: Y = Yangian(QQ, 4, filtration='loop')
             sage: TestSuite(Y).run(skip="_test_antipode") # Not implemented
+            sage: Y = Yangian(QQ, 4, filtration='natural')
+            sage: G = Y.algebra_generators()
+            sage: elts = [Y.one(), G[1,2,2], G[1,1,4], G[3,3,1], G[1,2,1]*G[2,1,4]]
+            sage: TestSuite(Y).run(elements=elts)  # long time
         """
         self._n = n
         self._filtration = filtration
         category = HopfAlgebrasWithBasis(base_ring).Filtered()
+        if filtration == 'natural':
+            category = category.Connected()
         self._index_set = tuple(range(1,n+1))
         # The keys for the basis are tuples (l, i, j)
         indices = GeneratorIndexingSet(self._index_set)
@@ -1097,7 +1103,7 @@ class GradedYangianNatural(GradedYangianBase):
         """
         if Y._filtration != 'natural':
             raise ValueError("the Yangian must have the natural filtration")
-        cat = GradedHopfAlgebrasWithBasis(Y.base_ring()).Commutative()
+        cat = GradedHopfAlgebrasWithBasis(Y.base_ring()).Connected().Commutative()
         GradedYangianBase.__init__(self, Y, cat)
 
     def product_on_basis(self, x, y):

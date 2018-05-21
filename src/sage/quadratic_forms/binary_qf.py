@@ -55,7 +55,7 @@ from functools import total_ordering
 
 from sage.libs.pari.all import pari_gen
 from sage.rings.all import ZZ, is_fundamental_discriminant
-from sage.arith.all import divisors, gcd, integer_ceil, integer_floor
+from sage.arith.all import gcd, integer_ceil, integer_floor
 from sage.structure.sage_object import SageObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix
@@ -167,7 +167,7 @@ class BinaryQF(SageObject):
             sage: pari(f)
             Qfb(2, 3, 4)
             sage: type(pari(f))
-            <type 'cypari2.gen.Gen'>
+            <... 'cypari2.gen.Gen'>
             sage: gp(f)
             Qfb(2, 3, 4)
             sage: type(gp(f))
@@ -1123,7 +1123,6 @@ class BinaryQF(SageObject):
         """
         from sage.sets.all import Set
         from sage.arith.srange import xsrange
-        d = self.discriminant()
         B = 10
         while True:
             llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))

@@ -75,6 +75,7 @@ from __future__ import absolute_import
 
 include 'sage/data_structures/bitset.pxi'
 
+from sage.structure.richcmp cimport rich_to_bool
 from .matroid cimport Matroid
 from .basis_exchange_matroid cimport BasisExchangeMatroid
 from .set_system cimport SetSystem
@@ -1153,19 +1154,14 @@ cdef class BasisMatroid(BasisExchangeMatroid):
             sage: M == N
             False
         """
-        if op not in (Py_EQ, Py_NE):
+        if op not in [Py_EQ, Py_NE]:
             return NotImplemented
-        if not isinstance(left, BasisMatroid) or not isinstance(right, BasisMatroid):
+        if type(left) is not type(right):
             return NotImplemented
-        if op == Py_EQ:
-            res = True
-        if op == Py_NE:
-            res = False
-        # res gets inverted if matroids are deemed different.
         if left.equals(right):
-            return res
+            return rich_to_bool(op, 0)
         else:
-            return not res
+            return rich_to_bool(op, 1)
 
     def __copy__(self):
         """

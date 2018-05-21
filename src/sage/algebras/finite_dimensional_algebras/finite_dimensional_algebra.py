@@ -20,8 +20,8 @@ from .finite_dimensional_algebra_ideal import FiniteDimensionalAlgebraIdeal
 from sage.rings.integer_ring import ZZ
 
 from sage.categories.magmatic_algebras import MagmaticAlgebras
-from sage.matrix.constructor import Matrix
-from sage.matrix.matrix import is_Matrix
+from sage.matrix.constructor import Matrix, matrix
+from sage.structure.element import is_Matrix
 from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 from sage.structure.category_object import normalize_names
@@ -554,7 +554,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         n = self.degree()
         k = self.base_ring()
         if n == 0:
-            self._one = vector(k, [])
+            self._one = matrix(k, 1, n)
             return True
         B1 = reduce(lambda x, y: x.augment(y),
                     self._table, Matrix(k, n, 0))
@@ -564,7 +564,7 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         # n times n identity matrix:
         kone = k.one()
         kzero = k.zero()
-        v = vector(k, (n - 1) * ([kone] + n * [kzero]) + [kone])
+        v = matrix(k, 1, n**2, (n - 1) * ([kone] + n * [kzero]) + [kone])
         try:
             sol1 = B1.solve_left(v)
             sol2 = B2.solve_left(v)
@@ -670,11 +670,11 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
             sage: H(Matrix([[1, 0], [1, 1]]))
             Traceback (most recent call last):
             ...
-            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators.
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
             sage: Hom(B, B)(Matrix([[2]]))
             Traceback (most recent call last):
             ...
-            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators.
+            ValueError: relations do not all (canonically) map to 0 under map determined by images of generators
         """
         assert len(im_gens) == self.degree()
 
@@ -719,8 +719,8 @@ class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
         pivots = f.pivot_rows()
         table = []
         for p in pivots:
-            v = vector(k, self.degree())
-            v[p] = 1
+            v = matrix(k, 1, self.degree())
+            v[0,p] = 1
             v = self.element_class(self, v)
             table.append(f.solve_right(v.matrix() * f))
         B = FiniteDimensionalAlgebra(k, table)

@@ -1199,9 +1199,6 @@ def reduce_load_MaximaLib():
 
 import sage.rings.real_double
 import sage.symbolic.expression
-import sage.functions.trig
-import sage.functions.log
-import sage.functions.other
 import sage.symbolic.integration.integral
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 
@@ -1221,7 +1218,7 @@ lisp_length=EclObject("length")
 sage_op_dict = {
     sage.functions.other.abs : "MABS",
     add_vararg : "MPLUS",
-    sage.symbolic.expression.operator.div : "MQUOTIENT",
+    sage.symbolic.expression.operator.truediv : "MQUOTIENT",
     sage.symbolic.expression.operator.eq : "MEQUAL",
     sage.symbolic.expression.operator.ge : "MGEQP",
     sage.symbolic.expression.operator.gt : "MGREATERP",
@@ -1238,7 +1235,7 @@ sage_op_dict = {
     sage.functions.log.lambert_w : "%LAMBERT_W",
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.error.erf : "%ERF",
-    sage.functions.other.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])
@@ -1343,7 +1340,7 @@ def mqapply_to_sage(expr):
         return sage.functions.log.polylog(max_to_sr(cadadr(expr)),
                                           max_to_sr(caddr(expr)))
     if caaadr(expr) == max_psi:
-        return sage.functions.other.psi(max_to_sr(cadadr(expr)),
+        return sage.functions.gamma.psi(max_to_sr(cadadr(expr)),
                                         max_to_sr(caddr(expr)))
     if caaadr(expr) == max_hyper:
         return sage.functions.hypergeometric.hypergeometric(mlist_to_sage(car(cdr(cdr(expr)))),
@@ -1494,8 +1491,8 @@ special_max_to_sage={
 
 special_sage_to_max={
     sage.functions.log.polylog : lambda N,X : [[mqapply],[[max_li, max_array],N],X],
-    sage.functions.other.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
-    sage.functions.other.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
+    sage.functions.gamma.psi1 : lambda X : [[mqapply],[[max_psi, max_array],0],X],
+    sage.functions.gamma.psi2 : lambda N,X : [[mqapply],[[max_psi, max_array],N],X],
     sage.functions.log.lambert_w : lambda N,X : [[max_lambert_w], X] if N==EclObject(0) else [[mqapply],[[max_lambert_w, max_array],N],X],
     sage.functions.log.harmonic_number : lambda N,X : [[max_harmo],X,N],
     sage.functions.hypergeometric.hypergeometric : lambda A, B, X : [[mqapply],[[max_hyper, max_array],lisp_length(A.cdr()),lisp_length(B.cdr())],A,B,X]

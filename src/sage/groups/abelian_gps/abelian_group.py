@@ -700,7 +700,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
     @cached_method
     def dual_group(self, names="X", base_ring=None):
         """
-        Returns the dual group.
+        Return the dual group.
 
         INPUT:
 
@@ -884,22 +884,20 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: gap(G)
             Group( [ f1, f2, f3 ] )
 
-        Only works for finite groups::
+        Requires the optional ``gap_packages`` for infinite groups::
 
-            sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
+            sage: G = AbelianGroup(3,[0,3,4], names="abc"); G
             Multiplicative Abelian group isomorphic to Z x C3 x C4
-            sage: G._gap_init_()
-            Traceback (most recent call last):
-            ...
-            TypeError: abelian groups in GAP are finite, but self is infinite
+            sage: G._gap_init_()   # optional - gap_packages
+            'AbelianPcpGroup([0, 3, 4])'
         """
-        # TODO: Use the package polycyclic has AbelianPcpGroup, which can handle
-        # the infinite case but it is a GAP package not GPL'd.
-        # Use this when the group is infinite...
-        # return 'AbelianPcpGroup(%s)'%list(self.invariants())
-        if not self.is_finite():
-            raise TypeError('abelian groups in GAP are finite, but self is infinite')
-        return 'AbelianGroup(%s)'%list(self.gens_orders())
+        if self.is_finite():
+            return 'AbelianGroup(%s)'%list(self.gens_orders())
+        from sage.misc.package import is_package_installed, PackageNotFoundError
+        if is_package_installed('gap_packages'):
+            # Make sure to LoadPackage("Polycyclic") in gap
+            return 'AbelianPcpGroup(%s)'%list(self.gens_orders())
+        raise PackageNotFoundError("gap_packages")
 
     def gen(self, i=0):
         """
@@ -1296,7 +1294,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         r"""
         Compute all the subgroups of this abelian group (which must be finite).
 
-        TODO: This is *many orders of magnitude* slower than Magma.
+        .. TODO:: This is *many orders of magnitude* slower than Magma.
 
         INPUT:
 
@@ -1422,15 +1420,16 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         return self.subgroup([self([x[0][i] % self.gens_orders()[i]
                                     for i in range(d)]) for x in new_basis if x[1] != 1])
 
+
 class AbelianGroup_subgroup(AbelianGroup_class):
     """
     Subgroup subclass of AbelianGroup_class, so instance methods are
     inherited.
 
-    TODO:
+    .. TODO::
 
-    - There should be a way to coerce an element of a subgroup
-      into the ambient group.
+        There should be a way to coerce an element of a subgroup
+        into the ambient group.
     """
     def __init__(self, ambient, gens, names="f"):
         """

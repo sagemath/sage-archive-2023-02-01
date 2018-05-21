@@ -190,7 +190,7 @@ cdef class DisjointSet_class(SageObject):
             sage: sorted(d)
             [['a'], ['b'], ['c']]
         """
-        return (<dict?>self.root_to_elements_dict()).itervalues()
+        return iter((<dict?>self.root_to_elements_dict()).itervalues())
 
     def __richcmp__(self, other, int op):
         r"""

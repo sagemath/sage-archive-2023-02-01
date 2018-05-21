@@ -274,6 +274,8 @@ def regular_vector_fields(R):
     r"""
     Return the Lie algebra of regular vector fields on `\CC^{\times}`.
 
+    This is also known as the Witt (Lie) algebra.
+
     .. SEEALSO::
 
         :class:`~sage.algebras.lie_algebras.virasoro.LieAlgebraRegularVectorFields`
@@ -286,9 +288,16 @@ def regular_vector_fields(R):
     from sage.algebras.lie_algebras.virasoro import LieAlgebraRegularVectorFields
     return LieAlgebraRegularVectorFields(R)
 
+witt = regular_vector_fields
+
 def pwitt(R, p):
     r"""
     Return the `p`-Witt Lie algebra over `R`.
+
+    INPUT:
+
+    - ``R`` -- the base ring
+    - ``p`` -- a positive integer that is `0` in ``R``
 
     EXAMPLES::
 

@@ -736,9 +736,9 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(6):
             gens = self.unit_gens(c)
             exps = self.exponents(c)
-            T.assert_(exps[-1] == 0)
-            T.assert_(all([u != 0 for u in exps[:-1]]))
-            T.assert_(all([u.parent() is self.number_field() for u in gens]))
+            T.assertTrue(exps[-1] == 0)
+            T.assertTrue(all([u != 0 for u in exps[:-1]]))
+            T.assertTrue(all([u.parent() is self.number_field() for u in gens]))
 
             I = self.ideal(c)
             for i in range(len(exps[:-1])):
@@ -755,10 +755,10 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 if not (g - 1 in I):
                     T.fail("For generator g=%s, g^%s = %s, which is not 1 mod I" % (gens[i], exps[i], g))
             I = self.prime() if self.number_field() == QQ else self.ideal(1)
-            T.assert_(gens[-1].valuation(I) == 1)
+            T.assertTrue(gens[-1].valuation(I) == 1)
 
             # This implicitly tests that the gens really are gens!
-            _ = self.discrete_log(c, -1)
+            self.discrete_log(c, -1)
 
     def _test_subgroupgens(self, **options):
         r"""
@@ -773,7 +773,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
         for c in range(1, 6):
             sgs = self.subgroup_gens(c)
             I2 = self.ideal(c-1)
-            T.assert_(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
+            T.assertTrue(all([x-1 in I2 for x in sgs]), "Kernel gens at level %s not in kernel!" % c)
 
             # now find the exponent of the kernel
 
@@ -788,7 +788,7 @@ class SmoothCharacterGroupGeneric(ParentWithBase):
                 L = tuple(self.discrete_log(c, y))
                 if L not in logs:
                     logs.append(L)
-            T.assert_(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
+            T.assertTrue(n2 * len(logs) == n1, "Kernel gens at level %s don't generate everything!" % c)
 
     def compose_with_norm(self, chi):
         r"""
@@ -1601,8 +1601,8 @@ class SmoothCharacterGroupRamifiedQuadratic(SmoothCharacterGroupGeneric):
             sage: G = SmoothCharacterGroupRamifiedQuadratic(3, 1, QQ)
             sage: s = G.number_field().gen()
             sage: G.discrete_log(4, 3 + 2*s)
-            [5, 2, 1, 1]
-            sage: gs = G.unit_gens(4); gs[0]^5 * gs[1]^2 * gs[2] * gs[3] - (3 + 2*s) in G.ideal(4)
+            [5, 1, 1, 1]
+            sage: gs = G.unit_gens(4); gs[0]^5 * gs[1] * gs[2] * gs[3] - (3 + 2*s) in G.ideal(4)
             True
         """
         x = self.number_field().coerce(x)

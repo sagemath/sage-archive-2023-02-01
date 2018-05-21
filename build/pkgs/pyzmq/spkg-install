@@ -15,4 +15,4 @@ echo "zmq = $SAGE_LOCAL" >> src/setup.cfg
 cd src
 
 # Configure and install
-$PIP_INSTALL .
+sdh_pip_install .

@@ -162,6 +162,29 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         """
         return self.ground_ring().residue_class_field()
 
+    def residue_ring(self, n):
+        """
+        Return the quotient of the ring of integers by the nth power of its maximal ideal.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = Zp(5).extension(x^2 - 5)
+            sage: W.residue_ring(1)
+            Ring of integers modulo 5
+
+        The following requires implementing more general Artinian rings::
+
+            sage: W.residue_ring(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if n == 1:
+            return self.ground_ring().residue_ring(1)
+        else:
+            raise NotImplementedError
+
     #def discriminant(self, K=None):
     #    if K is self:
     #        return 1

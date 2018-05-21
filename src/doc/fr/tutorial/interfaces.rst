@@ -66,7 +66,7 @@ commandes sont de types différents :
     sage: type(pari('znprimroot(10007)'))
     <type 'cypari2.gen.Gen'>
 
-Alors, laquelle des intrefaces utiliser ? Tout dépend de ce que vous
+Alors, laquelle des interfaces utiliser ? Tout dépend de ce que vous
 cherchez à faire. L'interface GP permet de faire absolument tout ce que
 vous pourriez faire avec la ligne de commande GP/PARI habituelle,
 puisqu'elle fait appel à celle-ci. En particulier, vous pouvez
@@ -80,10 +80,10 @@ PARI est souvent considérablement plus rapide et robuste que l'interface GP.
 (Si l'interface GP manque de mémoire pour évaluer une ligne d'entrée
 donnée, elle double silencieusement la taille de la pile et réessaie
 d'évaluer la ligne. Ainsi votre calcul ne plantera pas même si vous
-n'avez pas évalué convenablement l'espace qui nécessite. C'est une
+n'avez pas évalué convenablement l'espace qu'il nécessite. C'est une
 caractéristique commode que l'interpréteur GP habituel ne semble pas
 fournir. L'interface PARI, quant à elle, déplace immédiatement les
-objets créés en-dehors de la pile de PARI, de sorte que celle-ci ne
+objets créés hors de la pile de PARI, de sorte que celle-ci ne
 grossit pas. Cependant, la taille de chaque objet est limitée à 100 Mo,
 sous peine que la pile ne déborde à la création de l'objet. Par
 ailleurs, cette copie supplémentaire a un léger impact sur les

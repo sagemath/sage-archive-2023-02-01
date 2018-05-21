@@ -4,6 +4,7 @@ from sage.rings.integer cimport Integer
 
 cdef class PowComputer_class(SageObject):
     cdef Integer prime
+    cdef Integer p2 # floor(p/2)
     cdef bint in_field
     cdef int __allocated
     cdef public object _prec_type

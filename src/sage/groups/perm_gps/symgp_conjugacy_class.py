@@ -3,7 +3,7 @@ Conjugacy Classes Of The Symmetric Group
 
 AUTHORS:
 
-- Vincent Delacroix, Travis Scrimshaw (2014-11-23)
+- Vincent Delecroix, Travis Scrimshaw (2014-11-23)
 """
 from __future__ import print_function
 from six.moves import range
@@ -292,6 +292,7 @@ def default_representative(part, G):
     #   once SymmetricGroup is a proper parent.
     return PermutationGroupElement(cycles, G, check=False)
 
+
 def conjugacy_class_iterator(part, S=None):
     r"""
     Return an iterator over the conjugacy class associated to
@@ -319,12 +320,10 @@ def conjugacy_class_iterator(part, S=None):
         [(1, 3), (2, 4)]
         [(1, 4), (2, 3)]
 
-    In order to get permutations, one can use ``map``
-    from the Python module ``builtins`` (works with Python 2 and Python 3)::
+    In order to get permutations, one just has to wrap::
 
-        sage: from builtins import map
         sage: S = SymmetricGroup(5)
-        sage: for p in map(S, conjugacy_class_iterator([3,2])): print(p)
+        sage: for p in conjugacy_class_iterator([3,2]): print(S(p))
         (1,2)(3,4,5)
         (1,2)(3,5,4)
         (1,3)(2,4,5)

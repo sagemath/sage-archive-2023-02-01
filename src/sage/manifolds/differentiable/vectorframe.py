@@ -1156,7 +1156,6 @@ class VectorFrame(FreeModuleBasis):
                     res._subframes.update(rst._subframes)
                     rst._superframes.update(res._superframes)
 
-        print(self, subdomain)
         return self._restrictions[subdomain]
 
     @cached_method

@@ -1681,6 +1681,8 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if multiset == []:
             yield self.element_class(self, [])
         else:
+            print multiset
+            # We build ordered multiset partitions of `X` by permutation + deconcatenation
             for alpha in Permutations(multiset):
                 co = _break_at_descents(alpha, weak=True)
                 for A in self.element_class(self, co).finer(strong=True):
@@ -2026,12 +2028,12 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             return 0
 
         # We build ordered multiset partitions of `X` by permutation + deconcatenation
-        # Is there a balls-and-boxes formula for thsi?
+        # Is there a balls-and-boxes formula for this?
 
         deg = 0
         for alpha in Permutations(self._Xlist):
             fattest = _break_at_descents(alpha)
-            deg += prod(2^(len(k)-1) for k in fattest)
+            deg += prod(2**(len(k)-1) for k in fattest)
         return deg
 
     def an_element(self):

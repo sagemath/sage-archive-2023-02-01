@@ -134,14 +134,14 @@ class OrderedMultisetPartition(ClonableArray):
         """
         if isinstance(co[0], (list, tuple, set, frozenset, Set_object)):
             # standard input
-            X = _get_multiset(co)
+            X = _concatenate(co)
             P = OrderedMultisetPartitions(X)
             return P.element_class(P, co)
         else:
             # user shortcuts
             multiset = [c for c in co if c not in {0, '0'}]
             P = OrderedMultisetPartitions(multiset)
-            self.__init__(self, P.from_list(co))
+            return P.element_class(P, P.from_list(co))
 
     def __init__(self, *args):
         """
@@ -165,7 +165,7 @@ class OrderedMultisetPartition(ClonableArray):
         if co and not isinstance(co[0], (list, tuple, set, frozenset, Set_object)):
             co = parent.from_list(co)
         ClonableArray.__init__(self, parent, [Set(list(k)) for k in co])
-        self._multiset = sorted(_get_multiset(co))
+        self._multiset = _get_multiset(co)
         self._weight = _get_weight(self._multiset)
         self._order = sum([len(block) for block in self])
         if all((a in ZZ and a > 0) for a in self._multiset):
@@ -283,7 +283,7 @@ class OrderedMultisetPartition(ClonableArray):
             True
         """
         co = list(self)+list(other)
-        X = _get_multiset(co)
+        X = _concatenate(co)
         return OrderedMultisetPartitions(X)(co)
 
     @combinatorial_map(order=2, name='reversal')
@@ -596,7 +596,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: OrderedMultisetPartition([[1,4],[1],[1]]).is_finer([[1,4],[2]])
             False
         """
-        X = _get_multiset(co)
+        X = _concatenate(co)
         if self.weight() != OrderedMultisetPartitions(X)(co).weight():
             return False
 
@@ -659,7 +659,7 @@ class OrderedMultisetPartition(ClonableArray):
             size = len(_union_of_sets(result_i))
             if size < strict_size:
                 valid = False
-            result.append(_get_multiset(result_i))
+            result.append(_concatenate(result_i))
         if not valid:
             str_rep = '['
             for i in range(len(grouping)):
@@ -707,7 +707,9 @@ class OrderedMultisetPartition(ClonableArray):
 
     def minimaj(self):
         r"""
-        A statistic on ordered multiset partitions, which we define via an example.
+        Return the minimaj statistic on ordered multiset partitions.
+
+        We define `minimaj` via an example:
 
         1. Sort the block in ``self`` as prescribed by ``self.minimaj_ordering()``,
            keeping track of the original separation into blocks.
@@ -728,29 +730,28 @@ class OrderedMultisetPartition(ClonableArray):
         EXAMPLES::
 
             sage: C = OrderedMultisetPartition([{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}])
-            sage: C, C.to_minimaj_ordering()
+            sage: C, C.minimaj_word()
             ([{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}],
              [5, 7, 1, 2, 4, 5, 6, 4, 6, 8, 3, 1, 1, 2, 3])
             sage: C.minimaj()
             30
             sage: C = OrderedMultisetPartition([{2,4}, {1,2,3}, {1,6,8}, {2,3}])
-            sage: C, C.to_minimaj_ordering()
+            sage: C, C.minimaj_word()
             ([{2,4}, {1,2,3}, {1,6,8}, {2,3}], [2, 4, 1, 2, 3, 6, 8, 1, 2, 3])
             sage: C.minimaj()
             9
             sage: OrderedMultisetPartition([]).minimaj()
             0
             sage: C = OrderedMultisetPartition('bd0abc0b')
-            sage: C, C.to_minimaj_ordering()
+            sage: C, C.minimaj_word()
             ([{'b','d'}, {'a','b','c'}, {'b'}], ['d', 'b', 'c', 'a', 'b', 'b'])
             sage: C.minimaj()
             4
         """
-        C = self.to_minimaj_ordering()
-        D = [j+1 for j in range(len(C)-1) if C[j]>C[j+1]]
-        return sum(D)
+        D = _descents(self.minimaj_word())
+        return sum(D) + len(D)
 
-    def to_minimaj_ordering(self):
+    def minimaj_word(self):
         r"""
         Return an ordering of ``self._multiset`` derived by concatenating the blocks of
         ``self`` after first ordering them in a prescribed order, which we define
@@ -771,30 +772,111 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: C = OrderedMultisetPartition([2,1,0,1,2,3,0,1,2,0,3,0,1]); C
             [{1,2}, {1,2,3}, {1,2}, {3}, {1}]
-            sage: C.to_minimaj_ordering()
+            sage: C.minimaj_word()
             [1, 2, 2, 3, 1, 1, 2, 3, 1]
             sage: C = OrderedMultisetPartition([{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]); C
             [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
-            sage: C.to_minimaj_ordering()
+            sage: C.minimaj_word()
             [5, 7, 1, 2, 4, 5, 6, 4, 6, 8, 3, 1, 1, 2, 3]
-            sage: OrderedMultisetPartition([]).to_minimaj_ordering()
+            sage: OrderedMultisetPartition([]).minimaj_word()
             []
         """
-        B = [sorted(block) for block in self]
-        if len(B) == 0:
+        return [_ for block in self.minimaj_blocks() for _ in block]
+
+    def minimaj_blocks(self):
+        r"""
+        Return the ordering on blocks of ``self`` leading to ``self.minimaj_word()``.
+        """
+        if len(self) == 0:
             return []
-        C = B[-1]
-        for i in range(1,len(B)):
-            Bi = B[-1-i]
-            j0 = -1
-            for j in range(len(Bi)):
-                if Bi[j]<=C[0]:
-                    j0 = j
+
+        C = [sorted(self[-1])]
+        for i in range(1,len(self)):
+            lower = []; upper = []
+            for j in self[-1-i]:
+                if j <= C[0][0]:
+                    lower.append(j)
                 else:
-                    break
-            Bi = Bi[j0+1:]+Bi[:j0+1]
-            C = Bi + C
-        return C
+                    upper.append(j)
+            C = [sorted(upper)+sorted(lower)] + C
+        return tuple(map(tuple,C))
+
+    def anne_greedy(b):
+        """
+        Return greedy algorithm on `b`.
+
+        EXAMPLES::
+
+            sage: b=multiset_partitions(2,3,3)[0]; b
+            ({1, 2}, {1})
+            sage: greedy(b)
+            [[2, 1], [1]]
+        """
+        l = len(b)#.cartesian_factors())
+        c = tuple([tuple(sorted(b[l-1]))])
+        for i in range(l-2,-1,-1):
+            lower = sorted([j for j in b[i] if j<=c[0][0]])
+            upper = sorted([j for j in b[i] if j>c[0][0]])
+            c = tuple([tuple(upper+lower)])+c
+        return c
+
+    def anne_minimaj_ordering(b):
+        """
+        Return minimaj ordering of `b`, where `b` is an element in decreasing order within blocks.
+
+        EXAMPLES::
+
+            sage: b = [[3, 1, 2], [2, 3]]
+            sage: minimaj_ordering(b)
+            [[3, 1, 2], [2, 3]]
+            sage: b=[[2,3],[2],[1,3]]
+            sage: minimaj_ordering(b)
+            ((3, 2), (2,), (1, 3))
+        """
+        result = [tuple(sorted(b[-1]))]
+        for i in range(len(b)-2,-1,-1):
+            m = result[0][0]
+            result = [tuple(sorted([j for j in b[i] if j>m])+sorted([j for j in b[i] if j<=m]))] + result
+        return tuple(result)
+
+    def anne_minimaj(b):
+        """
+        Return minimaj of `b`.
+
+        EXAMPLES::
+
+            sage: S = crystal_elements(2,5,3)
+            sage: [minimaj(b) for b in S]
+            [2, 2, 1, 1, 1, 2]
+        """
+        return Word(flatten(b.anne_minimaj_ordering())).major_index()
+
+    def to_tableau(self):
+        """
+        Return a sequence of row words corresponding to (skew-)tableaux.
+
+        Output is the minimaj bijection `\varphi` of [BCHOPSYxx]_ applied to ``self``.
+
+        .. TODO:: implement option for mapping to sequence of (skew-)tableaux?
+
+        EXAMPLES::
+
+            sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
+            sage: to_tableau(mu)
+            [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
+        """
+        if len(self) == 0:
+            return []
+        bb = self.minimaj_blocks()
+        b = [block[0] for block in bb]
+        beginning = _partial_sum(self.shape_from_cardinality())
+        w = _concatenate(bb)
+        D = [0] + _descents(w) + [len(w)]
+        pieces = [b]
+        for i in range(len(D)-1):
+            p = [w[j] for j in range(D[i]+1,D[i+1]+1) if j not in beginning]
+            pieces = [p[::-1]] + pieces
+        return pieces
 
     def major_index(self):
         r"""
@@ -1393,11 +1475,11 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if not cdict:
             cdict = self.constraints
         constr = ""
-        ss = ['%s %s'%(key, val) for (key,val) in cdict.iteritems()]
+        ss = ['%s=%s'%(key, val) for (key,val) in cdict.iteritems()]
         if len(ss) > 1:
-            constr = " with constraints " + ", ".join(ss)
+            constr = " with constraints: " + ", ".join(ss)
         elif len(ss) == 1:
-            constr = " with constraint " + ", ".join(ss)
+            constr = " with constraint: " + ", ".join(ss)
         return constr
 
     def _element_constructor_(self, lst):
@@ -1489,7 +1571,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         return True
 
     def _satisfies_constraints(self, x):
-        X = _get_multiset(x)
+        X = _concatenate(x)
         co = OrderedMultisetPartitions(X)(x)
         def pass_test(co, (key,tst)):
             if key == 'size':
@@ -1794,12 +1876,19 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
 
     def an_element(self):
         r"""
-        Return a typical ``OrderedMultisetPartition_n``.
+        Return a typical element of ``OrderedMultisetPartition_n``.
         """
-        alpha = Compositions(self._n).an_element()
+        #output will have at most three blocks, each of size 1, 2, or 3.
+        alpha = Compositions(self._n, max_part=self._n//3+1).an_element()
         out = []
         for a in alpha:
-            out.append(sorted(RegularPartitions_n(a).an_element()))
+            if a in {1, 2, 4}:
+                out.append([a])
+            else:
+                if a % 2:
+                    out.append([a//2+1, a//2])
+                else:
+                    out.append([a//2, a//2-1, 1])
         return self.element_class(self, map(Set, out))
 
     def random_element(self):
@@ -1926,7 +2015,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         Blocks should be nonempty sets/lists/tuples whose union is the given multiset.
         """
         no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
-        valid_partition = sorted(_get_multiset(x)) == self._Xlist
+        valid_partition = _get_multiset(x) == self._Xlist
         return no_repeats and valid_partition
 
     def cardinality(self):
@@ -2097,7 +2186,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         """
         no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
         valid_order = sum(map(len,x)) == self._order
-        valid_letters = self._alphabet.issuperset(Set(_get_multiset(x)))
+        valid_letters = self._alphabet.issuperset(Set(_concatenate(x)))
         return no_repeats and valid_order and valid_letters
 
     def an_element(self):
@@ -2227,6 +2316,24 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
         valid = OrderedMultisetPartitions_A(self._alphabet, self._order)._has_valid_blocks(x)
         return valid and self._satisfies_constraints(x)
 
+    def an_element(self):
+        r"""
+        Return a typical ``OrderedMultisetPartition_A``.
+        """
+        keys = self.constraints.keys()
+        if "length" in keys or "max_length" in keys:
+            k = self.constraints.get("max_length",infinity)
+            k = self.constraints.get("length", k)
+            n = len(self._alphabet)
+            if n * k < self._order:
+                raise EmptySetError("%s is the empty set"%self)
+        if ["length"] == list(keys):
+            alpha = Compositions(self._order, length=k, max_part=n).an_element()
+            co = [Subsets(self._alphabet, a).an_element() for a in alpha]
+            return self.element_class(self, map(Set, co))
+        else:
+            return self.first()
+
     def __iter__(self):
         """
         Iterate over the ordered multiset partitions of order ``self._order``over the
@@ -2265,7 +2372,7 @@ def _get_multiset(co):
     """
     Construct the multiset (as an unsorted list) suggested by the lists of lists ``co``.
     """
-    return [_ for block in co for _ in block]
+    return sorted(_concatenate(co))
 
 def _get_weight(lst):
     """
@@ -2284,9 +2391,12 @@ def _union_of_sets(list_of_sets):
 
 def _concatenate(list_of_iters):
     """
-    Return the concatenation of a list of lists.
+    Return the concatenation of a list of iterables
     """
-    return reduce(lambda a,b: a+b, list_of_iters, [])
+    #if not list_of_iters:
+    #    return []
+    #return reduce(lambda a,b: a+b, list_of_iters)
+    return [_ for block in list_of_iters for _ in block]
 
 def _is_finite(constraints):
     r"""
@@ -2299,7 +2409,31 @@ def _is_finite(constraints):
                     Set(["order", "max_order"]).intersection(Set(constraints.keys()))
 
 def _is_initial_segment(lst):
+    """
+    Return True if ``lst`` is an interval in `ZZ` of the form `[0, 1, \ldots, n]`.
+    """
     return list(range(max(lst)+1)) == lst
+
+def _partial_sum(lst):
+    """
+    Return partial sums of elements in ``lst``.
+
+    EXAMPLES::
+
+        sage: list = [1,3,5]
+        sage: partial_sum(list)
+        [0, 1, 4, 9]
+    """
+    result = [0]
+    for i in range(len(lst)):
+        result.append(result[-1]+lst[i])
+    return result
+
+def _descents(w):
+    r"""
+    Return descent positions in the word ``w``.
+    """
+    return [j for j in range(len(w)-1) if w[j] > w[j+1]]
 
 def _break_at_descents(alpha, weak=True):
     if not alpha:
@@ -2358,3 +2492,367 @@ def _split_block(S, k=2):
             a[w[pos]].add(X[pos])
         out.append(a)
     return Set([tuple(map(Set,x)) for x in out])
+
+def _from_tableau(T):
+    """
+        Return an ordered multiset partition from a sequence of row words
+        corresponding to (skew-)tableaux.
+
+        Output is the minimaj bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``T``.
+
+    .. TODO:: implement option for mapping from sequence of actual (skew-)tableaux?
+
+    EXAMPLES::
+
+        sage: mu = OrderedMultisetPartitions(14).an_element(); mu
+        [{2,3}, {2,3}, {4}]
+        sage: mu.to_tableau()
+        [[3, 2], [], [3, 2, 4]]
+        sage: _from_tableau(mu.to_tableau()) == mu
+        True
+    """
+    X = _concatenate(T)
+    mu = [(i,) for i in T[-1]]
+    breaks = [0] + _descents(T[-1]) + [len(mu)-1]
+    T = [T[i][::-1] for i in range(len(T)-1)][::-1]
+    for f in range(len(breaks)-1):
+        for j in range(breaks[f],breaks[f+1]+1):
+            mu[j] += tuple(i for i in T[f] if (mu[j][0]<i or j==breaks[f]) and (j==breaks[f+1] or i<=mu[j+1][0]))
+    return OrderedMultisetPartitions(X)(mu)
+
+# ####################################
+# def multiset_partitions(k,ell,n):
+#     """
+#     Return the set of all multiset partitions with `k` parts
+#     of words of length `ell` on the alphabet `[1,2,...,n]`.
+#
+#     EXAMPLES::
+#
+#          sage: multiset_partitions(2,3,3)
+#          [({1, 2}, {1}),
+#          ({1, 2}, {2}),
+#          ({1, 2}, {3}),
+#          ({1, 3}, {1}),
+#          ({1, 3}, {2}),
+#          ({1, 3}, {3}),
+#          ({2, 3}, {1}),
+#          ({2, 3}, {2}),
+#          ({2, 3}, {3}),
+#          ({1}, {1, 2}),
+#          ({1}, {1, 3}),
+#          ({1}, {2, 3}),
+#          ({2}, {1, 2}),
+#          ({2}, {1, 3}),
+#          ({2}, {2, 3}),
+#          ({3}, {1, 2}),
+#          ({3}, {1, 3}),
+#          ({3}, {2, 3})]
+#     """
+#     E = range(1,n+1)
+#     return DisjointUnionEnumeratedSets(Family(Compositions(ell,length=k),
+#                                               lambda I: cartesian_product( [Subsets(E,i) for i in I] ))).list()
+#
+# def greedy(b):
+#     """
+#     Return greedy algorithm on `b`.
+#
+#     EXAMPLES::
+#
+#         sage: b=multiset_partitions(2,3,3)[0]; b
+#         ({1, 2}, {1})
+#         sage: greedy(b)
+#         [[2, 1], [1]]
+#     """
+#     l = len(b.cartesian_factors())
+#     c = tuple([tuple(sorted(b[l-1]))])
+#     for i in range(l-2,-1,-1):
+#         lower = sorted([j for j in b[i] if j<=c[0][0]])
+#         upper = sorted([j for j in b[i] if j>c[0][0]])
+#         c = tuple([tuple(upper+lower)])+c
+#     return c
+#
+# def minimaj_ordering(b):
+#     """
+#     Return minimaj ordering of `b`, where `b` is an element in decreasing order within blocks.
+#
+#     EXAMPLES::
+#
+#         sage: b = [[3, 1, 2], [2, 3]]
+#         sage: minimaj_ordering(b)
+#         [[3, 1, 2], [2, 3]]
+#         sage: b=[[2,3],[2],[1,3]]
+#         sage: minimaj_ordering(b)
+#         ((3, 2), (2,), (1, 3))
+#     """
+#     result = [tuple(sorted(b[-1]))]
+#     for i in range(len(b)-2,-1,-1):
+#         m = result[0][0]
+#         result = [tuple(sorted([j for j in b[i] if j>m])+sorted([j for j in b[i] if j<=m]))] + result
+#     return tuple(result)
+#
+# def minimaj(b):
+#     """
+#     Return minimaj of `b`.
+#
+#     EXAMPLES::
+#
+#         sage: S = crystal_elements(2,5,3)
+#         sage: [minimaj(b) for b in S]
+#         [2, 2, 1, 1, 1, 2]
+#     """
+#     return Word(flatten(minimaj_ordering(b))).major_index()
+#
+#
+# def crystal_elements(k,ell,n):
+#     """
+#     Return list of crystal elements with `ell` letters from alphabet `\{1,2,...,n\}`
+#     divided into `k` blocks.
+#
+#     EXAMPLES::
+#
+#         sage: crystal_elements(2,3,2)
+#         (((2, 1), (1,)), ((1, 2), (2,)), ((1,), (1, 2)), ((2,), (1, 2)))
+#     """
+#     M = multiset_partitions(k,ell,n)
+#     return tuple([tuple(greedy(b)) for b in M])
+#
+# def partial_sum(list):
+#     """
+#     Return partial sums of elements in `list`.
+#
+#     EXAMPLES::
+#
+#         sage: list = [1,3,5]
+#         sage: partial_sum(list)
+#         [0, 1, 4, 9]
+#     """
+#     result = [0]
+#     for i in range(len(list)):
+#         result += [result[-1]+list[i]]
+#     return result
+#
+# def which_block(partial, p):
+#     """
+#     Return which block position `p` belongs to.
+#
+#     EXAMPLES::
+#
+#         sage: which_block([0,3,5,6],4)
+#         1
+#         sage: which_block([0,3,5,6],5)
+#         2
+#         sage: which_block([0,3,5,6],6)
+#         2
+#     """
+#     i=0
+#     while p >= partial[i+1] and i<len(partial)-2:
+#         i += 1
+#     return i
+#
+# def descents(mu):
+#     """
+#     Return descents of minimaj word ``mu``.
+#
+#     EXAMPLES::
+#
+#         sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
+#         sage: descents(mu)
+#         [4, 7, 10]
+#     """
+#     w = flatten(mu)
+#     return [i for i in range(len(w)-1) if w[i]>w[i+1]]
+#
+# def to_tableau(mu):
+#     """
+#     Return bijection from minimaj words to sequence of tableaux.
+#
+#     EXAMPLES::
+#
+#         sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
+#         sage: to_tableau(mu)
+#         [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
+#     """
+#     if len(mu) == 0:
+#         return []
+#     b = [mu[i][0] for i in range(len(mu))]
+#     beginning = _partial_sum([len(mu[i]) for i in range(len(mu))])
+#     w = flatten(mu)
+#     D = [0] + _descents(w) + [len(w)]
+#     pieces = [b]
+#     for i in range(len(D)-1):
+#         p = [w[j] for j in range(D[i]+1,D[i+1]+1) if j not in beginning]
+#         pieces = [p[::-1]] + pieces
+#     return pieces
+#
+# def from_tableau(t):
+#     """
+#     Return minimaj word from sequence of tableaux.
+#
+#     EXAMPLES::
+#
+#         sage: all(mu == from_tableau(to_tableau(mu)) for mu in crystal_elements(3,6,3))
+#         True
+#     """
+#     mu = [(i,) for i in t[-1]]
+#     breaks = [0]+descents(t[-1])+[len(mu)-1]
+#     t = [t[i][::-1] for i in range(len(t)-1)][::-1]
+#     for f in range(len(breaks)-1):
+#         for j in range(breaks[f],breaks[f+1]+1):
+#             mu[j] += tuple(i for i in t[f] if (mu[j][0]<i or j==breaks[f]) and (j==breaks[f+1] or i<=mu[j+1][0]))
+#     return tuple(mu)
+#
+#
+class MinimajCrystal(UniqueRepresentation, Parent):
+    """
+    Crystal of ordered multiset partitions with `ell` letters from alphabet
+    `\{1,2,...,n\}` divided into `k` blocks.
+
+    EXAMPLES::
+
+        sage: list(MinimajCrystal(2,3,2))
+        [((2, 1), (1,)), ((2,), (1, 2)), ((1,), (1, 2)), ((1, 2), (2,))]
+
+    TESTS::
+
+        sage: list(MinimajCrystal(3,2,4)) # more blocks than letters
+        []
+        sage: list(MinimajCrystal(3,6,2))
+        [((1, 2), (2, 1), (1, 2))]
+        sage: list(MinimajCrystal(2,5,2)) # blocks too fat for alphabet
+        []
+    """
+    def __init__(self, k, ell, n):
+        Parent.__init__(self, category = ClassicalCrystals())
+        self.n = n
+        self.k = k
+        self.ell = ell
+        self._cartan_type = CartanType(['A',n-1])
+        self._full_module = OrderedMultisetPartitions(n, ell, length=k)
+        if n == 1:
+            self.module_generators = [self(b) for b in self._full_module]
+        else:
+            self.module_generators = []
+            for mu in self._full_module:
+                b = self(mu)
+                if Set([b.e(i) for i in range(1,n)]) == Set([None]):
+                    self.module_generators.append(b)
+
+    def _repr_(self):
+        """
+        EXAMPLES::
+
+            sage: B = MinimajCrystal(2,4,3); B
+            Minimaj Crystal of type A_3 of words of length 4 into 2 blocks
+        """
+        return "Minimaj Crystal of type A_%s of words of length %s into %s blocks"%(self.n-1, self.ell, self.k)
+
+    def an_element(self):
+        """
+        Return a typical element.
+        """
+        return self(OrderedMultisetPartitions(self.n, self.ell, length=self.k).an_element())
+
+    def __contains__(self, x):
+        return x in self._full_module
+
+    def from_tableau(self, T):
+        """
+            Return the minimaj bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``T``.
+
+        EXAMPLES::
+
+            sage: B = MinimajCrystal(3,6,3)
+            sage: b = B.an_element(); b
+            ((1, 2, 3), (3, 1), (2,))
+            sage: t = b.to_tableau(); t
+            [[1], [3, 2], [1, 3, 2]]
+
+        TESTS::
+
+            sage: B = MinimajCrystal(3,6,3)
+            sage: all(mu == B.from_tableau(mu.to_tableau()) for mu in B)
+            True
+            sage: t = B.an_element().to_tableau()
+            sage: B1 = MinimajCrystal(2,6,3)
+            sage: B1.from_tableau(t)
+            Traceback (most recent call last):
+            ...
+            AssertionError: [{1,2,3}, {1,3}, {2}] is not an element of Minimaj Crystal
+             of type A_2 of words of length 6 into 2 blocks
+        """
+        mu = _from_tableau(T)
+        if mu in self:
+            return self(mu)
+        else:
+            raise AssertionError("%s is not an element of %s"%(mu, self))
+
+    def val(self, q='q'):
+        """
+        Return Val polynomial corresponding to ``self``.
+
+        TESTS::
+
+        Verifying Example 4.5 from [BCHOPSYxx]_::
+
+            sage: B = MinimajCrystal(2, 4, 3) # for `Val_{4,1}^{(3)}`
+            sage: B.val()
+            (q^2+q+1)*s[2, 1, 1] + q*s[2, 2]
+        """
+        H = self.module_generators
+        Sym = SymmetricFunctions(QQ[q])
+        q = Sym.base_ring().gens()[0]
+        s = Sym.schur()
+        return sum((q**(t.minimaj()) * s[sorted(t.weight().values(), reverse=True)] for t in H), Sym.zero())
+
+    class Element(OrderedMultisetPartition):
+
+        def _repr_(self):
+            return str(self.minimaj_blocks())
+
+        def e(self, i):
+            """
+            Return `e_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: B = MinimajCrystal(2,3,4)
+                sage: b = B.an_element(); b
+                ((3,), (2, 3))
+                sage: [b.e(i) for i in range(1,4)]
+                [((3,), (1, 3)), ((3, 2), (2,)), None]
+            """
+            t = self.to_tableau()
+            B = crystals.Tableaux(['A', self.parent().n-1], shape=[1])
+            T = tensor([B]*self.parent().ell)
+            blocks = [len(h) for h in t]
+            partial = _partial_sum(blocks)
+            b = T(*[B(a) for a in flatten(t)])
+            if b.e(i) is None:
+                return None
+            b = b.e(i)
+            b = [[b[a].to_tableau()[0][0] for a in range(partial[j], partial[j+1])] for j in range(len(partial)-1)]
+            return self.parent().from_tableau(b)
+
+        def f(self,i):
+            """
+            Return `f_i` on ``self``.
+
+            EXAMPLES::
+
+                sage: B = MinimajCrystal(2,3,4)
+                sage: b = B.an_element(); b
+                ((3,), (2, 3))
+                sage: [b.f(i) for i in range(1,4)]
+                [None, None, ((4,), (2, 3))]
+            """
+            t = self.to_tableau()
+            B = crystals.Tableaux(['A',self.parent().n-1],shape=[1])
+            T = tensor([B]*self.parent().ell)
+            blocks = [len(h) for h in t]
+            partial = _partial_sum(blocks)
+            b = T(*[B(a) for a in flatten(t)])
+            if b.f(i) is None:
+                return None
+            b = b.f(i)
+            b = [[b[a].to_tableau()[0][0] for a in range(partial[j],partial[j+1])] for j in range(len(partial)-1)]
+            return self.parent().from_tableau(b)

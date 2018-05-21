@@ -198,6 +198,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: number of columns of self must equal number of columns of B
         """
+
         if is_Vector(B):
             try:
                 return self.transpose().solve_right(B, check=check)
@@ -8282,8 +8283,8 @@ cdef class Matrix(Matrix1):
             False
         """
 
-        row_sums = map(sum, self.rows())
-        col_sums = map(sum, self.columns())
+        row_sums = [sum(r) for r in self.rows()]
+        col_sums = [sum(c) for c in self.columns()]
 
         return self.is_square() and\
                 col_sums[0] == row_sums[0] and\

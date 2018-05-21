@@ -860,20 +860,23 @@ def centrality_closeness_random_k(G, int k=1):
         sage: centrality_closeness_random_k(DiGraph(2), 1)
         Traceback (most recent call last):
         ...
-        ValueError: G should be an undirected Graph
+        ValueError: G must be an undirected Graph
 
     """
     G._scream_if_not_simple()
     if G.is_directed():
         raise ValueError("G must be an undirected Graph")
-    if not G.is_connected():
-        raise ValueError("G must be a connected Graph")
 
     cdef int n = G.order()
+    if n == 0:
+        return {}
     if k < 1:
         raise ValueError("parameter k must be a positive integer")
     if k > n:
         k = n
+
+    if not G.is_connected():
+        raise ValueError("G must be a connected Graph")
 
     # Initialization of some data structures
     cdef MemoryAllocator mem = MemoryAllocator()
@@ -893,7 +896,7 @@ def centrality_closeness_random_k(G, int k=1):
         partial_farness[i] = 0
 
     # Shuffle the vertices
-    l = list(range(n))
+    cdef list l = list(range(n))
     random.shuffle(l)
     
     if G.weighted():

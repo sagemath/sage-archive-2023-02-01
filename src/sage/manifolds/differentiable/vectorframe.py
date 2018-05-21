@@ -1103,12 +1103,10 @@ class VectorFrame(FreeModuleBasis):
                     res._superframes.update(self._superframes)
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
-                    print("Way 4")
                     return self._restrictions[subdomain]
             for dom, rst in self._restrictions.items():
                 if subdomain.is_subset(dom):
                     self._restrictions[subdomain] = rst.restrict(subdomain)
-                    print("Way 6")
                     return self._restrictions[subdomain]
             # Secondly one tries to get the restriction from one previously
             # defined on a larger domain:
@@ -1119,7 +1117,6 @@ class VectorFrame(FreeModuleBasis):
                     res._superframes.update(self._superframes)
                     for sframe2 in self._superframes:
                         sframe2._subframes.add(res)
-                    print("Way 3")
                     return self._restrictions[subdomain]
             # If this point is reached, the restriction has to be created
             # from scratch
@@ -1129,7 +1126,6 @@ class VectorFrame(FreeModuleBasis):
             if subdomain in self._restrictions:
                 # the restriction has been generated during the creation of
                 # resmodule (which may happen if sdest_map is not trivial)
-                print("Way 2")
                 return self._restrictions[subdomain]
             res = VectorFrame(resmodule,
                               self._symbol, latex_symbol=self._latex_symbol,
@@ -1157,16 +1153,12 @@ class VectorFrame(FreeModuleBasis):
             for sframe in self._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
-
-            print("Way 1")
-
             for dom, rst in self._restrictions.items():
                 if dom.is_subset(subdomain):
                     res._restrictions.update(rst._restrictions)
                     res._subframes.update(rst._subframes)
                     rst._superframes.update(res._superframes)
-        print("Way 0")
-        print(self, subdomain)
+
         return self._restrictions[subdomain]
 
     @cached_method

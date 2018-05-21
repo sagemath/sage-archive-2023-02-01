@@ -712,7 +712,7 @@ cpdef blocks_and_cut_vertices(g):
         sage: blocks_and_cut_vertices("I am not a graph!")
         Traceback (most recent call last):
         ...
-        TypeError: the input must be a Sage Graph
+        TypeError: the input must be a Sage graph
     """
     from sage.graphs.generic_graph import GenericGraph
 
@@ -733,7 +733,7 @@ cpdef blocks_and_cut_vertices(g):
     sig_off()
 
     cdef list result_blocks = []
-    cdef list result_cut = []
+    cdef set result_cut = set()
     cdef list result_temp = []
     cdef int i
     cdef v_index v
@@ -747,7 +747,7 @@ cpdef blocks_and_cut_vertices(g):
                 vertex_status[v] = i
             # Vertex belongs to a previous block also, must be a cut vertex
             elif vertex_status[v] < i:
-                result_cut.append(int_to_vertex[<int> v])
+                result_cut.add(int_to_vertex[<int> v])
                 result_temp.append(int_to_vertex[<int> v])
                 # Change the block number to avoid adding the vertex twice as a cut vertex if it is repeated in block i
                 vertex_status[v] = i
@@ -763,7 +763,7 @@ cpdef blocks_and_cut_vertices(g):
         if vertex_status[i] == -1:
             result_blocks.append([int_to_vertex[<int> i]])
 
-    return (result_blocks, result_cut)
+    return (result_blocks, list(result_cut))
 
 
 cpdef shortest_paths(g, start, weight_function=None, algorithm=None):

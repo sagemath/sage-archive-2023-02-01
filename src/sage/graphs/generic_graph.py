@@ -5398,13 +5398,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
             sage: g.blocks_and_cut_vertices()
-            ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [2, 1, 7, 6, 5])
+            ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [1, 2, 5, 6, 7])
 
         A disconnected graph::
 
-            sage: g = Graph({1:{2:28, 3:10}, 2:{1:10, 3:16}, 4:{}, 5:{6:3, 7:10}})
+            sage: g = Graph({1:{2:28, 3:10}, 2:{1:10, 3:16}, 4:{}, 5:{6:3, 7:10, 8:4}})
             sage: g.blocks_and_cut_vertices()
-            ([[1, 2, 3], [5, 6], [5, 7], [4]], [5])
+            ([[1, 2, 3], [5, 6], [5, 7], [5, 8], [4]], [5])
 
         TESTS::
 

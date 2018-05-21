@@ -457,7 +457,7 @@ class TopologicalSubmanifold(TopologicalManifold):
           default chart of the manifold is used
         - ``**kwargs`` other argument as used in  `ParametricSurface`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Manifold(3,'M',structure="topological")
             sage: N = Manifold(2,'N',ambient = M,structure="topological")

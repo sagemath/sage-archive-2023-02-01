@@ -491,40 +491,6 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
         # see __cmp__() if you want to change the hash function
         return hash_by_id(<void*>self)
 
-    def __cmp__(left, right):
-        """
-        Implement comparison of two linear functions or constraints.
-
-        EXAMPLES::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: LF = p.linear_functions_parent()
-            sage: f = LF({2 : 5, 3 : 2})
-            sage: cmp(f, f)
-            0
-            sage: abs(cmp(f, f+0))     # since we are comparing by id()
-            1
-            sage: abs(cmp(f, f+1))
-            1
-            sage: len(set([f, f]))
-            1
-            sage: len(set([f, f+0]))
-            2
-            sage: len(set([f, f+1]))
-            2
-            sage: abs(cmp(f <= 0, f <= 0))
-            1
-        """
-        # Note: if you want to implement smarter comparison, you also
-        # need to change __hash__(). The comparison function must
-        # satisfy cmp(x,y)==0 => hash(x)==hash(y)
-        if left is right:
-            return 0
-        if <size_t><void*>left < <size_t><void*>right:
-            return -1
-        else:
-            return 1
-
 
 #*****************************************************************************
 #

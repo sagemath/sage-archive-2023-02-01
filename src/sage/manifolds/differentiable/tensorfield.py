@@ -1201,7 +1201,7 @@ class TensorField(ModuleElement):
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
-    def add_expr_by_continuation(self, frame, subdomain):
+    def add_expr_from_subdomain(self, frame, subdomain):
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +

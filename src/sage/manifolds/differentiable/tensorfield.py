@@ -419,9 +419,10 @@ class TensorField(ModuleElement):
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
 
-        self._extensions = {self._domain: self}
-        self._restrictions = {self._domain: self}
-                                # dict. of restrictions of self on subdomains
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
+
+        self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
         self._sym = []
@@ -953,25 +954,30 @@ class TensorField(ModuleElement):
                 if subdomain.is_subset(dom) and subdomain in rst._restrictions:
                     res = rst._restrictions[subdomain]
                     self._restrictions[subdomain] = res
-                    res._extensions.update(self._extensions)
-                    for ext in self._extensions.values():
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
                         ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
                     return self._restrictions[subdomain]
 
             for dom, rst in self._restrictions.items():
                 if subdomain.is_subset(dom) and dom is not self._domain:
                     self._restrictions[subdomain] = rst.restrict(subdomain)
+                    self._restrictions_graph[subdomain] = rst.restrict(subdomain)
                     return self._restrictions[subdomain]
 
             # Secondly one tries to get the restriction from one previously
             # defined on a larger domain:
-            for dom, ext in self._extensions.items():
+            for dom, ext in self._extensions_graph.items():
                 if subdomain in ext._restrictions:
-                    res = ext._restrictions[subdomain]
+                    res = ext._restrictions_graph[subdomain]
                     self._restrictions[subdomain] = res
-                    res._extensions.update(self._extensions)
-                    for ext in self._extensions.values():
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
                         ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
                     return self._restrictions[subdomain]
 
             # If this fails, the restriction is created from scratch:
@@ -980,11 +986,21 @@ class TensorField(ModuleElement):
                                  latex_name=self._latex_name, sym=self._sym,
                                  antisym=self._antisym,
                                  specific_type=type(self))
-            res._extensions.update(self._extensions)
-            for dom, ext in self._extensions.items():
+            res._extensions_graph.update(self._extensions_graph)
+            for dom, ext in self._extensions_graph.items():
                 ext._restrictions[subdomain] = res
+                ext._restrictions_graph[subdomain] = res
+
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    if rst is not res:
+                        res._restrictions.update(rst._restrictions)
+                    res._restrictions_graph.update(rst._restrictions_graph)
+                    rst._extensions_graph.update(res._extensions_graph)
 
             self._restrictions[subdomain] = res
+            self._restrictions_graph[subdomain] = res
+            res._extensions_graph.update(self._extensions_graph)
 
         return self._restrictions[subdomain]
 

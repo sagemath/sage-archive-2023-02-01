@@ -1130,6 +1130,8 @@ class VectorFrame(FreeModuleBasis):
                               latex_indices=self._latex_indices,
                               symbol_dual=self._symbol_dual,
                               latex_symbol_dual=self._latex_symbol_dual)
+
+            res._from_frame = self._from_frame
             for dom in subdomain._supersets:
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
@@ -1147,6 +1149,14 @@ class VectorFrame(FreeModuleBasis):
             for sframe in self._superframes:
                 sframe._subframes.add(res)
                 sframe._restrictions[subdomain] = res # includes sframe = self
+
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    res._restrictions.update(rst._restrictions)
+                    res._subframes.update(rst._subframes)
+                    rst._superframes.update(res._superframes)
+
+        print(self, subdomain)
         return self._restrictions[subdomain]
 
     @cached_method

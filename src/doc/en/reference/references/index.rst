@@ -309,9 +309,6 @@ REFERENCES:
              Memoirs of the American Mathematical Society, vol. 192
              (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
-.. [Ber1991] \C. Berger, "Une version effective du théorème de
-             Hurewicz", https://tel.archives-ouvertes.fr/tel-00339314/en/.
-
 .. [BerZab05] Nantel Bergeron, Mike Zabrocki,
               *The Hopf algebras of symmetric functions and quasisymmetric
               functions in non-commutative variables are free and cofree*,

@@ -434,7 +434,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: C.has_rational_point(algorithm='magma') # optional - magma
             True
             sage: C.has_rational_point(algorithm='magma', point=True) # optional - magma
-            (True, (t : 1 : 1))
+            (True, (-t : 1 : 1))
 
             sage: D = Conic([t,1,t^2])
             sage: D.has_rational_point(algorithm='magma') # optional - magma

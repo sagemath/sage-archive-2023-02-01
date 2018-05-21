@@ -1128,6 +1128,11 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: for x in cpts:
             ....:     assert (x * (~x) - 1).contains_zero()
 
+        Test that the bug reported in :trac:`25414` has been fixed::
+
+            sage: 1 / CIF(RIF(-1,1),0)
+            [.. NaN ..] + [.. NaN ..]*I
+
         REFERENCES:
 
         .. [RL] \J. Rokne, P. Lancaster. Complex interval arithmetic.

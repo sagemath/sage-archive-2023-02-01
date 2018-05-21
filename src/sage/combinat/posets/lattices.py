@@ -3754,10 +3754,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is sublattice dismantlable, and
         ``False`` otherwise.
 
-        A sublattice dismantling is a subdivision of a lattice to two non-empty
-        sublattices. A lattice is  *sublattice dismantlable* if it can be
-        decomposed into 1-element lattices by consecutive sublattice
-        distmantlings.
+        A sublattice dismantling is a subdivision of a lattice into two
+        non-empty sublattices. A lattice is  *sublattice dismantlable*
+        if it can be decomposed into 1-element lattices by consecutive
+        sublattice dismantlings.
 
         EXAMPLES:
 
@@ -3770,7 +3770,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             False
 
         Here we adjoin a (double-irreducible-)dismantlable lattice
-        as a part to an interval-dismantlabe lattice::
+        as a part to an interval-dismantlable lattice::
 
             sage: B3 = posets.BooleanLattice(3)
             sage: N5 = posets.PentagonPoset()

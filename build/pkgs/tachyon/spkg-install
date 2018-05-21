@@ -7,7 +7,7 @@ case "$UNAME" in
 "CYGWIN")
     TARGET=win32
     ;;
-"DARWIN")
+"Darwin")
     TARGET=macosx
     ;;
 "FreeBSD")

@@ -749,7 +749,8 @@ cpdef blocks_and_cut_vertices(g):
             elif vertex_status[v] < i:
                 result_cut.add(int_to_vertex[<int> v])
                 result_temp.append(int_to_vertex[<int> v])
-                # Change the block number to avoid adding the vertex twice as a cut vertex if it is repeated in block i
+                # Change the block number to avoid adding the vertex twice 
+                # as a cut vertex if it is repeated in block i
                 vertex_status[v] = i
             # elif vertex_status[v] == i:
             # Nothing to do since we have already added the vertex to block i

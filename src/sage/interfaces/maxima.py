@@ -570,7 +570,7 @@ class Maxima(MaximaAbstract, Expect):
         self._ask = [b'zero or nonzero\\?', b'an integer\\?',
                      b'positive, negative or zero\\?', b'positive or negative\\?',
                      b'positive or zero\\?', b'equal to .*\\?']
-        self._prompt_wait = ([self._prompt.encode('ascii')] +
+        self._prompt_wait = ([self._prompt] +
                              [re.compile(x) for x in self._ask] +
                              [b'Break [0-9]+'])  # note that you might need to change _expect_expr if you
                                                  # change this

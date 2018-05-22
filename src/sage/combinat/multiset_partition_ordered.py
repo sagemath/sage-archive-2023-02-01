@@ -1662,8 +1662,6 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
     """
     Class of all ordered multiset partitions (with or without constraints).
 
-    .. TODO::  do we want C == D in the last test below? If so, make it so.
-
     TESTS::
 
         sage: C = OrderedMultisetPartitions(); repr(C)
@@ -1673,12 +1671,20 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
         sage: TestSuite(C).run()
 
         sage: C = OrderedMultisetPartitions(weight=[2,0,1], length=2); repr(C)
-        'Ordered Multiset Partitions with constraints: length=2, weight={1:2, 3:1}'
+        'Ordered Multiset Partitions with constraints: length=2, weight={1: 2, 3: 1}'
         sage: C == loads(dumps(C))
         True
         sage: TestSuite(C).run()
-        sage: D = OrderedMultisetPartitions(weight={1:2, 3:1}, min_length=2, max_length=2)
-        sage: C == D
+
+        sage: D1 = OrderedMultisetPartitions(weight={1:2, 3:1}, min_length=2, max_length=2)
+        sage: D2 = OrderedMultisetPartitions({1:2, 3:1}, min_length=2, max_length=2)
+        sage: D3 = OrderedMultisetPartitions(5, weight={1:2, 3:1}, length=2)
+        sage: D4 = OrderedMultisetPartitions([1,3], 3, weight={1:2, 3:1}, length=2)
+        sage: D5 = OrderedMultisetPartitions([1,3], 3, size=5, length=2)
+        sage: all(C == eval('D'+str(i)) for i in range(1,6))
+        True
+        sage: E = OrderedMultisetPartitions({1:2, 3:1}, size=5, min_length=2)
+        sage: C == E
         False
     """
     def __init__(self, **constraints):
@@ -1797,6 +1803,34 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
             return len(list(self))
         else:
             return infinity
+
+    def __eq__(self, other):
+        """
+        Return True if ``self`` and ``other`` represent the same set of
+        ordered multiset partitions.
+        """
+        constr1 = dict(self.constraints)
+        constr1["weight"] = constr1.get("weight", dict(getattr(self, "_X", {})))
+        constr1["size"] = constr1.get("size", getattr(self, "_n", None))
+        A = getattr(self, "_alphabet", Set(constr1["weight"].keys()))
+        constr1["alphabet"] = constr1.get("alphabet", A)
+        constr1["order"] = constr1.get("order", getattr(self, "_order", None))
+
+        constr2 = dict(other.constraints)
+        constr2["weight"] = constr2.get("weight", dict(getattr(other, "_X", {})))
+        constr2["size"] = constr2.get("size", getattr(other, "_n", None))
+        A = getattr(self, "_alphabet", Set(constr1["weight"].keys()))
+        constr2["alphabet"] = constr2.get("alphabet", A)
+        constr2["order"] = constr2.get("order", getattr(other, "_order", None))
+
+        if constr1 == constr2:
+            return True
+        else:
+            if {self.category(), other.category()} == {FiniteEnumeratedSets()}:
+                return Set(self) == Set(other)
+            else:
+                # maybe not true
+                return False
 
 ###############
 

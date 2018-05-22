@@ -4299,8 +4299,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         parts = []
         for i,j in zip(cut_points,cut_points[1:]):
-            parts.append(self.subposet([self._vertex_to_element(e)
-                                        for e in range(i+1,j+1)]))
+            parts.append(Poset(self._hasse_diagram.subgraph(range(i+1,
+             j+1)).relabel(self._vertex_to_element, inplace=False)))
         return parts
 
     def product(self, other):

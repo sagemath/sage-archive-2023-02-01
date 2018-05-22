@@ -31,7 +31,7 @@ from sage.combinat.tableau import Tableau, StandardTableaux
 from sage.combinat.sf.sf import SymmetricFunctions
 
 class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
-    """
+    r"""
     Abstract base class for graded bases of `FSym` and of `FSym^*`
     indexed by standard tableaux.
 
@@ -699,7 +699,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
 
         class Element(FSymBasis_abstract.Element):
             def to_fqsym(self):
-                """
+                r"""
                 Return the image of ``self`` under the natural inclusion
                 map to `FQSym`.
 
@@ -718,7 +718,7 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
                 return G(self)
 
             def to_symmetric_function(self):
-                """
+                r"""
                 Return the image of ``self`` under the natural projection
                 map to `Sym`.
 
@@ -767,7 +767,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
     The Hopf algebra `FSym^*` is a Hopf quotient of `FQSym`;
     the canonical projection sends `F_w` (for a permutation `w`)
-    to `\mathcal{G}_{Q(w)}'`, where `Q(w)` is the Q-tableau of
+    to `\mathcal{G}_{Q(w)}^*`, where `Q(w)` is the Q-tableau of
     `w`. This projection is implemented as a coercion::
 
         sage: FQSym = algebras.FQSym(QQ)
@@ -868,7 +868,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
             EXAMPLES:
 
-            `FSym^*` is a quotient Hopf algbera of `FQSym`: the basis
+            `FSym^*` is a quotient Hopf algebra of `FQSym`: the basis
             element `F_\sigma` indexed by a permutation `\sigma` is
             mapped to the tableau `Q(\sigma)`::
 
@@ -1010,7 +1010,7 @@ class FreeSymmetricFunctions_Dual(UniqueRepresentation, Parent):
 
         class Element(FSymBasis_abstract.Element):
             def to_quasisymmetric_function(self):
-                """
+                r"""
                 Return the image of ``self`` under the canonical projection
                 `FSym^* \to QSym` to the ring of quasi-symmetric functions.
 

@@ -1070,8 +1070,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             0
 
         """
-        self._projector = self.ambient_first_fundamental_form().up(
-            self.ambient_metric(), pos=0)
+
+        g =  self.ambient_metric().inverse()
+        if(self._dim_foliation == 0):
+            g = g.along(self._immersion)
+
+        self._projector = self.ambient_first_fundamental_form().contract(0,g)
         self._projector.set_name("gamma", r"\overrightarrow{\gamma}")
         return self._projector
 

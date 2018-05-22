@@ -1591,16 +1591,24 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         ALGORITHM:
 
-        Uses Singular's `absfact` library.
+        For rings over QQ, uses Singular's `absfact` library.
 
-        TODO:
-
-        Implement absolute factorization over number fields.
+        For rings over number fields, we reduce to the QQ case by factoring
+        the norm of the polynomial.
 
         .. NOTE::
 
             This is a helper method for
             :meth:`sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict.factor`.
+
+        REFERENCE::
+
+            Geddes, Section 8.8, Algorithm 8.10
+            cites Trager "Algebraic Factoring and Rational Function Integration", Kronecker, van der Waerden "Modern Algebra"
+
+            make Norm() square free by adding a multiple of alpha (NF's generator) to z
+            in F(alpha)[z].   a(z) is our polynomial.  Norm(a(z-s alpha)) is square free
+            for all but a finite set of s's
 
         TESTS::
 
@@ -1619,10 +1627,12 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: F.value() == p
             True
 
-            sage: QQbar._factor_multivariate_polynomial(x+QQbar(sqrt(2))*y)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: absolute factorization over number fields
+            sage: p = x^2 + QQbar(sqrt(2))*y^2
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (1.414213562373095?) * ((-0.8408964152537146?*I)*x - y) * (0.8408964152537146?*I*x - y)
+            sage: F.value() == p
+            True
 
         """
         from sage.structure.factorization import Factorization
@@ -1631,20 +1641,19 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         singular.lib('absfact.lib')
 
         orig_elems = f.coefficients()
-        numfield, new_elems, morphism = number_field_elements_from_algebraics(orig_elems)
-
-        # Singular's absFactorize() doesn't work over number fields
-
-        if numfield is not QQ:
-            raise NotImplementedError("absolute factorization over number fields")
+        numfield, new_elems, morphism = number_field_elements_from_algebraics(orig_elems, same_field=True)
 
         elem_dict = dict(zip(orig_elems, new_elems))
 
-        def elem_map(e):
-            return elem_dict[e]
+        from sage.misc.all import prod
 
         def polynomial_map(p):
-            return p.map_coefficients(elem_map, new_base_ring=numfield)
+            newp = p.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
+            if numfield is not QQ:
+                newp = prod([newp.map_coefficients(h) for h in numfield.embeddings(QQbar)]).change_ring(QQ)
+            return newp
+
+        numfield_f = f.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
 
         R = polynomial_map(f)._singular_().absFactorize()
 
@@ -1664,9 +1673,11 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             def reverse_elem_map(e):
                 return hom(NF(e.numerator()) / NF(e.denominator()))
 
-            return p.map_coefficients(reverse_elem_map, new_base_ring=QQbar)
+            return p.map_coefficients(reverse_elem_map, new_base_ring=hom.codomain())
 
         factorization = []
+
+        # return L.sage()
 
         for i in range(2, len(L[1])+1):
             factor = L[1][i].sage()
@@ -1683,11 +1694,53 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             NF = NumberField(minpoly, minpoly.parent().gen(0))
 
-            for hom in NF.embeddings(QQbar):
-                QQbar_factor = reverse_polynomial_map(factor, hom)
-                factorization.append((QQbar_factor, multiplicity))
+            if numfield is not QQ:
+                LL = NF.composite_fields(numfield, both_maps = True)
+                composite_field, NF_into_CF, numfield_into_CF, k = LL[0]
+            else:
+                composite_field = NF
 
-        return Factorization(factorization, unit=QQ(L[1][1].sage()))
+            #if composite_field is numfield:
+            if False:
+                # NF is numfield or a subfield thereof
+                # this is a factor of the original polynomial that exists in numfield[]
+                # Norm() introduced
+                for hom in NF.embeddings(numfield):
+                    QQbar_factor = reverse_polynomial_map(factor, morphism*hom)
+                    factorization.append((QQbar_factor, multiplicity))
+            else:
+                # NF is not a subfield of numfield
+                # this is a factor of the original polynomial that exists in QQ[]
+                # Norm() simply increased its multiplicity
+                #assert(multiplicity % numfield.degree() == 0)
+                #multiplicity = multiplicity // numfield.degree()
+                #for hom in NF.embeddings(QQbar):
+                #    QQbar_factor = reverse_polynomial_map(factor, hom)
+                #    factorization.append((QQbar_factor, multiplicity))
+
+                # First, let's pick an embedding of our original numfield into NF
+                # so that the factor divides our original polynomial.
+
+                basehom = next( (h for h in numfield.embeddings(NF) if numfield_f.map_coefficients(h) % reverse_polynomial_map(factor, NF.hom(NF)) == 0) )
+
+                # Then, for every way of embedding NF into QQbar, check to see
+                # if composing it with basehom produces the original morphism
+                # that maps number_field to QQbar.  If so, this is a valid
+                # conjugate, so add it to factorization.
+
+                for hom in NF.embeddings(QQbar):
+                    if hom * basehom == morphism:
+                        QQbar_factor = reverse_polynomial_map(factor, hom)
+                        factorization.append((QQbar_factor, multiplicity))
+
+        # What we'd now like to do is
+        #     return Factorization(factorization, unit=QQ(L[1][1].sage()))
+        # but Singular seems to have a bug and doesn't
+        # always compute the unit correctly
+
+        trial = Factorization(factorization).value()
+
+        return Factorization(factorization, unit = f.lc() / trial.lc())
 
 def is_AlgebraicField(F):
     r"""

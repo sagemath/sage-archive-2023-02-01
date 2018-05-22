@@ -11,9 +11,7 @@ REFERENCES:
    functions and the Solomon descent algebra*, J. Algebra **177** (1995),
    no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
-.. [GriRei2014] Darij Grinberg, Victor Reiner,
-   *Hopf algebras in combinatorics*,
-   25 August 2015. :arxiv:`1409.8356v3`.
+.. [GriRei16]_
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,
@@ -172,7 +170,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     a bialgebra). These quasi-symmetric functions are actual polynomials
     then, not just power series.
 
-    Chapter 5 of [GriRei2014]_ and Section 11 of [HazWitt1]_ are devoted
+    Chapter 5 of [GriRei16]_ and Section 11 of [HazWitt1]_ are devoted
     to quasi-symmetric functions, as are Malvenuto's thesis [Mal1993]_
     and part of Chapter 7 of [Sta-EC2]_.
 
@@ -1843,7 +1841,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             the reduced Lyndon compositions (i. e., compositions
             which are Lyndon words and have the gcd of their entries
             equal to `1`) form a set of free polynomial generators
-            for `\mathrm{QSym}`. See [GriRei2014]_, Chapter 6, for
+            for `\mathrm{QSym}`. See [GriRei16]_, Chapter 6, for
             the proof, and [Haz2004]_ for a major part of it.
 
             INPUT:
@@ -3086,7 +3084,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         the `n`-fold concatenation of this Lyndon word with
         itself, occurring `n!` times in that shuffle power. But this
         can be deduced from Section 2 of [Rad1979]_. See also
-        Chapter 6 of [GriRei2014]_, specifically Theorem 6.107, for a
+        Chapter 6 of [GriRei16]_, specifically Theorem 6.5.13, for a
         complete proof.) More precisely, he showed that
         `\mathrm{QSym}` is generated, as a free commutative
         `\mathbf{k}`-algebra, by the elements `\lambda^n(M_I)`, where

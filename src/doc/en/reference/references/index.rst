@@ -1186,7 +1186,7 @@ REFERENCES:
 
 .. [GriRei16] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
-              :arxiv:`1409.8356v4`.
+              :arxiv:`1409.8356v5`.
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.

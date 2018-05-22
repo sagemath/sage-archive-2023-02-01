@@ -810,7 +810,6 @@ class VectorFrame(FreeModuleBasis):
             Vector frame (M, (f_0,f_1))
 
         """
-        print("Way 8")
         return VectorFrame(self._fmodule, symbol, latex_symbol=latex_symbol,
                            indices=indices, latex_indices=latex_indices,
                            symbol_dual=symbol_dual,
@@ -1041,7 +1040,6 @@ class VectorFrame(FreeModuleBasis):
                             self._fmodule._basis_changes[(self, the_new_frame)]
             sdom._frame_changes[(the_new_frame, self)] = \
                             self._fmodule._basis_changes[(the_new_frame, self)]
-        print("Way 7")
         return the_new_frame
 
     def restrict(self, subdomain):
@@ -1089,7 +1087,6 @@ class VectorFrame(FreeModuleBasis):
 
         """
         if subdomain == self._domain:
-            print("Way 5")
             return self
         if subdomain not in self._restrictions:
             if not subdomain.is_subset(self._domain):

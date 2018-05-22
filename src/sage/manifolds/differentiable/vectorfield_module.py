@@ -1388,7 +1388,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 if (frame.destination_map() ==
                     self._ambient_domain.identity_map()):
                     basis = self.basis(from_frame=frame)
-                    print("Way 9 bis") # TODO: sub/super frames
                     self._induced_bases[frame] = basis
 
                     # basis is added to the restrictions of bases on a larger

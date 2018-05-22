@@ -1211,10 +1211,12 @@ class TensorField(ModuleElement):
                              "the frame"+frame._repr_())
         comp = self.comp(frame)
         scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
-        print(comp)
         for ind in comp.non_redundant_index_generator():
             comp[[ind]]._express.update(scomp[[ind]]._express)
-        self._del_derived()
+
+        rst = self._restrictions.copy()
+        self._del_derived()         # delete restrictions
+        self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
         r"""

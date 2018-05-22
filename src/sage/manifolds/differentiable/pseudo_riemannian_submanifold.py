@@ -689,7 +689,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         # case no foliation:
 
-        # 4 auxiliary functions:
+        max_frame = self._ambient.default_frame().along(self._immersion)
+
+        # an auxiliary functions:
         def calc_normal(chart):
             """
             Calculate the normal vector field according to the formula in the
@@ -716,54 +718,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n_comp = n_comp / n_comp.norm(
                 self.ambient_metric().along(self._immersion))
 
-            frame = next(iter(n_comp._components))
-            self._normal.add_comp(frame)[:] = n_comp[frame, :]
 
-        def calc_by_restrict(chart1, chart2):
-            """
-            Restrict self._normal from chart1 to chart2.
+            norm_rst = self._normal.restrict(chart.domain())
+            norm_rst.add_comp(max_frame.restrict(chart.domain()))[:] = n_comp[:]
+            self._normal.add_comp_by_continuation(max_frame, chart.domain(),
+                                                  chart)
 
-            This function is used because restrict() sometimes loses too much
-            information. (eg when restricting a tensor along a submanifold on a
-            subset of a subset)
-            """
-            frame = next(
-                iter(self._normal.restrict(chart1.domain())._components))
-            self._normal.add_comp(frame.restrict(chart2.domain()))[
-            :] = self._normal[frame, :]
+        self._normal = self.vector_field("n", r"n", self._immersion)
 
-        def calc_by_continuation(chart1, chart2):
-            """
-            Define self._normal on chart2 by continuating the components defined
-            on chart1
-
-            This function is used because add_comp_by_continuation() sometimes
-            loses too much information. (eg when continuating a tensor along a
-            submanifold from a subset of a subset)
-            """
-            extended_frame = self._ambient.default_frame().along(
-                self._immersion).restrict(chart2.domain())
-            for fr in chart1.domain().frames():
-                # used to make fr recognized as a subframe of extended_frame,
-                # needed for add_comp_by_continuation
-                if chart1.domain() is fr.domain() and fr.is_subframe(
-                        extended_frame):
-                    self._normal.add_comp_by_continuation(extended_frame,
-                                                          chart1.domain(),
-                                                          chart2)
-
-        def calc_by_coord_change(chart1, chart2):
-            """
-            Define self._normal on chart2 by continuating the components defined
-            on chart1
-            """
-            frame = next(
-                iter(self._normal.restrict(chart1.domain())._components))
-            self._normal.add_comp(frame.restrict(chart2.domain()))[:] = \
-                self._normal[frame, :]
-
-        xmp = VectorFieldModule(self, self._immersion)  # not FreeModule
-        self._normal = xmp.tensor((1, 0), "n", r"n")
         # start breadth-first graph exploration
         marked = set()
         f = Queue()
@@ -780,20 +742,26 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                         # case restriction
                         if vp in v._subcharts and vp not in marked:
                             f.put(vp)
-                            calc_by_restrict(v, vp)
+                            self._normal.restrict(vp.domain())
                             marked.add(vp)
 
                         # case continuation
                         if vp in v._supercharts and vp not in marked:
                             f.put(vp)
-                            calc_by_continuation(v, vp)
+                            self._normal.add_comp_by_continuation(
+                                max_frame.restrict(vp.domain()), v.domain(), vp)
                             marked.add(vp)
 
                         # case coordinates change
                         if (v, vp) in self.coord_changes() and vp not in marked:
                             f.put(vp)
-                            #calc_by_coord_change(v, vp)
+                            self._normal.comp(max_frame, vp)
                             marked.add(vp)
+
+        # Going up from each top_chart to the full manifold :
+        for v in self.top_charts():
+            self._normal.add_expr_from_subdomain(max_frame, v.domain())
+
         return self._normal
 
     def ambient_first_fundamental_form(self, recache=False):
@@ -1021,7 +989,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             gam_rst = {}
             max_frame = self._ambient.default_frame().along(self._immersion)
             for chart in self.top_charts():
-                gam_rst[chart] = k.restrict(chart.domain)
+                gam_rst[chart] = k.restrict(chart.domain())
                 pf = [self._immersion.pushforward(chart.frame()[k]) for k in
                       self.irange()]
                 gam_rst[chart] = sum(pf[i].down(g) * pf[j].down(g) * k[

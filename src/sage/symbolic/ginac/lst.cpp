@@ -43,7 +43,7 @@ template <> bool lst::info(unsigned inf) const
 }
 
 template <>
-bool lst::cmatch(const ex & pattern, exmap& map) const
+bool lst::match(const ex & pattern, exmap& map) const
 {
 	if (is_exactly_a<wildcard>(pattern)) {
                 const auto& it = map.find(pattern);

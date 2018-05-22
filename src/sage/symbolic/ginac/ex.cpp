@@ -118,27 +118,7 @@ bool ex::match(const ex & pattern, lst & repl_lst) const
 bool ex::match(const ex & pattern, exvector& vec) const
 {
         exmap map;
-        bool ret = bp->match(pattern, map);
-        if (not ret)
-                return ret;
-        vec.resize(map.size());
-        for (const auto& pair : map) {
-                if (not is_exactly_a<wildcard>(pair.first))
-                        throw std::runtime_error("no wildcard");
-                vec[ex_to<wildcard>(pair.first).get_label()] = pair.second;
-        }
-        return ret;
-}
-
-bool ex::cmatch(const ex & pattern, exmap& map) const
-{
-        return bp->cmatch(pattern, map);
-}
-
-bool ex::cmatch(const ex & pattern, exvector& vec) const
-{
-        exmap map;
-        bool ret = this->cmatch(pattern, map);
+        bool ret = this->match(pattern, map);
         if (not ret)
                 return ret;
         unsigned maxl = 0;

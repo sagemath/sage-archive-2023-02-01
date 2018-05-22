@@ -1393,7 +1393,7 @@ bool function::match_same_type(const basic & other) const
 	return serial == o.serial;
 }
 
-bool function::cmatch(const ex & pattern, exmap& map) const
+bool function::match(const ex & pattern, exmap& map) const
 {
 	if (is_exactly_a<wildcard>(pattern)) {
                 const auto& it = map.find(pattern);

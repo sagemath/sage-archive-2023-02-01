@@ -184,8 +184,6 @@ public:
 	bool match(const ex & pattern, exmap& map) const
             { return bp->match(pattern, map); }
 	bool match(const ex & pattern, exvector& vec) const;
-	bool cmatch(const ex & pattern, exmap& map) const;
-        bool cmatch(const ex & pattern, exvector& vec) const;
 
 	// substitutions
 	ex subs(const exmap & m, unsigned options = 0) const
@@ -269,7 +267,6 @@ public:
 
 	long gethash() const { return bp->gethash(); }
 
-private:
 	static ptr<basic> construct_from_basic(const basic & other);
 	static basic & construct_from_int(int i);
 	static basic & construct_from_pyobject(PyObject* o);
@@ -287,7 +284,6 @@ private:
 
 // member variables
 
-private:
 	mutable ptr<basic> bp;  ///< pointer to basic object managed by this
 };
 

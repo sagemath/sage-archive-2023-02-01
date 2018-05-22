@@ -369,7 +369,7 @@ public:
 	ex & let_op(size_t i) override;
 	ex eval(int level = 0) const override;
 	ex subs(const exmap & m, unsigned options = 0) const override;
-        bool cmatch(const ex & pattern, exmap& map) const override;
+        bool match(const ex & pattern, exmap& map) const override;
 
 protected:
 	ex conjugate() const override
@@ -817,8 +817,8 @@ typedef container<std::list> lst;
 template<> const tinfo_static_t lst::tinfo_static;
 template<> registered_class_info lst::reg_info;
 
-template<> bool exprseq::cmatch(const ex & pattern, exmap& map) const;
-template<> bool lst::cmatch(const ex & pattern, exmap& map) const;
+template<> bool exprseq::match(const ex & pattern, exmap& map) const;
+template<> bool lst::match(const ex & pattern, exmap& map) const;
 } // namespace GiNaC
 
 #endif // ndef __GINAC_CONTAINER_H__

@@ -574,11 +574,6 @@ bool basic::match(const ex & pattern, exmap& map) const
         return true;
 }
 
-bool basic::cmatch(const ex & pattern, exmap& map) const
-{
-        return match(pattern, map);
-}
-
 /** Helper function for subs(). Does not recurse into subexpressions. */
 ex basic::subs_one_level(const exmap & m, unsigned options) const
 {

@@ -179,7 +179,6 @@ public: // only const functions please (may break reference counting)
 	virtual ex eval(int level = 0) const;
 	virtual ex evalf(int level = 0, PyObject* parent=nullptr) const;
 	virtual ex evalm() const;
-public:
 
 	// printing
 	virtual void print(const print_context & c, unsigned level = 0) const;
@@ -206,13 +205,12 @@ public:
 	// pattern matching
 	virtual bool has(const ex & other, unsigned options = 0) const;
 	virtual bool match(const ex & pattern, exmap& map) const;
-	virtual bool cmatch(const ex & pattern, exmap& map) const;
 	virtual bool match_same_type(const basic & other) const;
 
 	virtual void do_print(const print_context & c, unsigned level) const;
 	virtual void do_print_tree(const print_tree & c, unsigned level) const;
-	virtual void do_print_python_repr(const print_python_repr & c, unsigned level) const;
-public:
+	virtual void do_print_python_repr(const print_python_repr & c,
+                        unsigned level) const;
 
 	// substitutions
 	virtual ex subs(const exmap & m, unsigned options = 0) const;
@@ -238,14 +236,14 @@ public:
 	virtual ex collect(const ex & s, bool distributed = false) const;
 
 	// differentiation and series expansion
-protected:
 	virtual ex derivative(const symbol & s) const;
-public:
-	virtual ex series(const relational & r, int order, unsigned options = 0) const;
+	virtual ex series(const relational & r, int order,
+                        unsigned options = 0) const;
         virtual void useries(flint_series_t& fp, int order) const {}
 
 	// rational functions
-	virtual ex normal(exmap & repl, exmap & rev_lookup, int level = 0, unsigned options = 0) const;
+	virtual ex normal(exmap & repl, exmap & rev_lookup, int level = 0,
+                        unsigned options = 0) const;
 	virtual ex to_rational(exmap & repl) const;
 	virtual ex to_polynomial(exmap & repl) const;
 
@@ -265,7 +263,6 @@ public:
 
 	virtual int compare(const basic & other) const;
 	// functions that should be called from class ex only
-protected:
 	virtual int compare_same_type(const basic & other) const;
 	virtual bool is_equal_same_type(const basic & other) const;
 

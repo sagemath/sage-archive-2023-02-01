@@ -48,7 +48,7 @@ template <> bool exprseq::info(unsigned inf) const
 }
 
 template <>
-bool exprseq::cmatch(const ex & pattern, exmap& map) const
+bool exprseq::match(const ex & pattern, exmap& map) const
 {
 	if (is_exactly_a<wildcard>(pattern)) {
                 const auto& it = map.find(pattern);

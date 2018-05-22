@@ -38,6 +38,31 @@
 
 namespace GiNaC {
 
+int CMatcher::level = 0;
+
+static bool trivial_match(const ex& s, const ex& pattern, exmap& map)
+{
+	if (is_exactly_a<wildcard>(pattern)) {
+
+		// Wildcard matches anything, but check whether we already have found
+		// a match for that wildcard first (if so, the earlier match must be
+		// the same expression)
+                const auto& it = map.find(pattern);
+                if (it != map.end())
+		        return s.is_equal(ex_to<basic>(it->second));
+		map[pattern] = s;
+		return true;
+	} 
+
+        // Expression must be of the same type as the pattern
+        if (s.bp->tinfo() != ex_to<basic>(pattern).tinfo())
+                return false;
+
+        // No subexpressions (such expressions are handled in cmatch()
+        // So just compare the objects (there can't be
+        // wildcards in the pattern)
+        return s.bp->is_equal_same_type(ex_to<basic>(pattern));
+}
 
 inline bool is_ncfunc(const ex& e)
 {
@@ -203,7 +228,7 @@ opt_bool CMatcher::init()
         if (P == 1) {
             if (not global_wild) {
                 if (not m_cmatch[0]) {
-                        ret_val = ops[0].match(pat[0], map);
+                        ret_val = trivial_match(ops[0], pat[0], map);
                         if (ret_val.value())
                                 ret_map = map;
                         finished = true;
@@ -248,7 +273,7 @@ opt_bool CMatcher::init()
                         // no term needs a cmatcher, let's decide early
                         finished = true;
                         for (size_t i=0; i<P; ++i)
-                                if (not ops[i].match(pat[i], map))
+                                if (not trivial_match(ops[i], pat[i], map))
                                         return false;
                         ret_map = map;
                         return true;
@@ -325,7 +350,7 @@ void CMatcher::noncomm_run()
                 if (not m_cmatch[index]) {
                         // normal matching attempt
                         exmap m = map_repo[index];
-                        bool ret = e.match(p, m);
+                        bool ret = trivial_match(e, p, m);
                         if (ret) {
                                 map_repo[index] = m;
                                 continue;
@@ -419,7 +444,7 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                         if (not m_cmatch[index]) {
                                 // normal matching attempt
                                 exmap m = map_repo[index];
-                                bool ret = e.match(p, m);
+                                bool ret = trivial_match(e, p, m);
                                 if (ret) {
                                         map_repo[index] = m;
                                         continue;

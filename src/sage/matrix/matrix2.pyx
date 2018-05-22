@@ -6569,10 +6569,12 @@ cdef class Matrix(Matrix1):
           - ``'default'``: Let Sage choose an algorithm (default).
 
           - ``'classical'``: Gauss elimination.
-          
-          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting (if base ring has absolute value)
-          
-          - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled partial pivoting (if base ring has absolute value)
+
+          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting
+            (if base ring has absolute value)
+
+          - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
+            partial pivoting (if base ring has absolute value)
 
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
@@ -6640,10 +6642,10 @@ cdef class Matrix(Matrix1):
             sage: b.echelon_form()               # potentially useful
             [  1 y/x]
             [  0   0]
-            
-        We check that the echelon form works for matrices over p-adics. 
-        See :trac:`17272` ::
-        
+
+        We check that the echelon form works for matrices over p-adics.
+        See :trac:`17272`::
+
             sage: R = ZpCA(5,5,print_mode='val-unit')
             sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
             sage: A
@@ -6694,7 +6696,7 @@ cdef class Matrix(Matrix1):
                 algorithm = 'strassen'
             # Currently we only use scaled partial pivoting in discrete valuation fields
             # In general, we would like to do so in any rank one valuation ring,
-            # but this should be done by introducing a category of general valuation rings and fields, 
+            # but this should be done by introducing a category of general valuation rings and fields,
             # which we don't have at the moment
             elif self.base_ring() in DiscreteValuationFields():
                 algorithm = 'scaled_partial_pivoting'
@@ -6735,10 +6737,12 @@ cdef class Matrix(Matrix1):
           - ``'default'``: Let Sage choose an algorithm (default).
 
           - ``'classical'``: Gauss elimination.
-          
-          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting (if base ring has absolute value)
-          
-          - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled partial pivoting (if base ring has absolute value)
+
+          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting
+            (if base ring has absolute value)
+
+          - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
+            partial pivoting (if base ring has absolute value)
 
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
@@ -6816,8 +6820,8 @@ cdef class Matrix(Matrix1):
 
     cpdef _echelon(self, str algorithm):
         """
-        Return the echelon form of self using algorithm.
-        
+        Return the echelon form of ``self`` using ``algorithm``.
+
         EXAMPLES::
 
             sage: t = matrix(QQ, 3, 3, range(9)); t
@@ -6842,11 +6846,11 @@ cdef class Matrix(Matrix1):
             [1 + O(5^5)     O(5^5)     O(5^5)]
             [    O(5^5) 1 + O(5^5)     O(5^5)]
             [    O(5^5)     O(5^5) 1 + O(5^5)]
-            
+
         The following example is an example where partial pivoting fails,
         but scaled partial pivoting succeeds, taken from 'Numerical Analysis (9th edition)'
-        by R.L. Burden and J.D. Faires (with minor adjustments) ::
-        
+        by R.L. Burden and J.D. Faires (with minor adjustments)::
+
             sage: RR13 = RealField(prec=13)
             sage: A = Matrix(RR13, 2, 3, [30, 591400, 591700, 5.291, -6.130, 46.78])
             sage: A
@@ -6871,11 +6875,11 @@ cdef class Matrix(Matrix1):
         return E
 
     # This is for backward compatibility
-    
+
     def _echelon_classical(self):
         """
-        Return the echelon form of self using algorithm.
-        
+        Return the echelon form of ``self`` using the classical algorithm.
+
         EXAMPLES::
 
             sage: t = matrix(QQ, 3, 3, range(9)); t
@@ -6892,11 +6896,11 @@ cdef class Matrix(Matrix1):
             [ 0  1  2]
         """
         return self._echelon('classical')
-        
+
     cpdef _echelon_in_place(self, str algorithm):
         """
-        Transform self into echelon form and set the pivots of self.
-        
+        Transform ``self`` into echelon form and set the pivots of ``self``.
+
         EXAMPLES::
 
             sage: t = matrix(QQ, 3, 3, range(9)); t
@@ -6921,11 +6925,11 @@ cdef class Matrix(Matrix1):
             [1 + O(5^5)     O(5^5)     O(5^5)]
             [    O(5^5) 1 + O(5^5)     O(5^5)]
             [    O(5^5)     O(5^5) 1 + O(5^5)]
-            
+
         The following example is an example where partial pivoting fails,
         but scaled partial pivoting succeeds, taken from 'Numerical Analysis (9th edition)'
-        by R.L. Burden and J.D. Faires (with minor adjustments) ::
-        
+        by R.L. Burden and J.D. Faires (with minor adjustments)::
+
             sage: RR13 = RealField(prec=13)
             sage: A = Matrix(RR13, 2, 3, [30, 591400, 591700, 5.291, -6.130, 46.78])
             sage: A
@@ -6942,7 +6946,6 @@ cdef class Matrix(Matrix1):
             sage: P = A._echelon_in_place('scaled_partial_pivoting'); A
             [ 1.00 0.000  10.0]
             [0.000  1.00  1.00]
-
         """
         tm = verbose('generic in-place Gauss elimination on %s x %s matrix using %s algorithm'%(self._nrows, self._ncols, algorithm))
         cdef Py_ssize_t start_row, c, r, nr, nc, i, best_r
@@ -6958,69 +6961,77 @@ cdef class Matrix(Matrix1):
 
         start_row = 0
         pivots = []
-        scale_factors = []
-        
-        if (algorithm == 'scaled_partial_pivoting'):
-            for r in range(nr):
-                scale_factor = 0
-                for c in range(nc):
-                    abs_val = A.get_unsafe(r,c).abs()
-                    if (abs_val > scale_factor):
-                        scale_factor = abs_val
-                scale_factors.append(scale_factor)
+        cdef list scale_factors = []
 
-        for c in range(nc):
-            sig_check()
-            max_abs_val = 0
-            best_r = start_row - 1
-            if (algorithm == 'classical'):
+        if algorithm == "classical":
+            for c in range(nc):
+                sig_check()
                 for r in range(start_row, nr):
-                    max_abs_val = A.get_unsafe(r,c)
-                    if (max_abs_val):
-                        best_r = r
+                    if A.get_unsafe(r, c):
+                        pivots.append(c)
+                        a_inverse = ~A.get_unsafe(r, c)
+                        A.rescale_row(r, a_inverse, c)
+                        A.swap_rows(r, start_row)
+                        for i in range(nr):
+                            if i != start_row:
+                                if A.get_unsafe(i, c):
+                                    minus_b = -A.get_unsafe(i, c)
+                                    A.add_multiple_of_row(i, start_row, minus_b, c)
+                        start_row = start_row + 1
                         break
-                        
-            if (algorithm == 'partial_pivoting'):
-                for r in range(start_row, nr):
-                    abs_val = A.get_unsafe(r,c).abs()
-                    if (abs_val > max_abs_val):
-                        max_abs_val = abs_val
-                        best_r = r
-                        
-            if (algorithm == 'scaled_partial_pivoting'):
-                for r in range(start_row, nr):
-                    if (scale_factors[r]):
-                        abs_val = (A[r,c]).abs() / scale_factors[r]
-                        if (abs_val > max_abs_val):
+        else:
+            if algorithm == 'scaled_partial_pivoting':
+                for r in range(nr):
+                    scale_factor = 0
+                    for c in range(nc):
+                        abs_val = A.get_unsafe(r, c).abs()
+                        if abs_val > scale_factor:
+                            scale_factor = abs_val
+                    scale_factors.append(scale_factor)
+
+            for c in range(nc):
+                sig_check()
+                max_abs_val = 0
+                best_r = start_row - 1
+
+                if algorithm == 'partial_pivoting':
+                    for r in range(start_row, nr):
+                        abs_val = A.get_unsafe(r,c).abs()
+                        if abs_val > max_abs_val:
                             max_abs_val = abs_val
                             best_r = r
-                            
-            if max_abs_val:
-                pivots.append(c)
-                a_inverse = ~A.get_unsafe(best_r,c)
-                A.rescale_row(best_r, a_inverse, c)
-                A.swap_rows(best_r, start_row)
-                
-                if (algorithm == 'scaled_partial_pivoting'):
-                    tmp = scale_factors[best_r]
-                    scale_factors[best_r] = scale_factors[start_row]
-                    scale_factors[start_row] = tmp
-                    
-                for i in range(nr):
-                    if i != start_row:
-                        if A.get_unsafe(i,c):
-                            minus_b = -A.get_unsafe(i, c)
-                            A.add_multiple_of_row(i, start_row, minus_b, c)
-                start_row = start_row + 1
+                else: # algorithm == 'scaled_partial_pivoting':
+                    for r in range(start_row, nr):
+                        if scale_factors[r]:
+                            abs_val = A.get_unsafe(r,c).abs() / scale_factors[r]
+                            if abs_val > max_abs_val:
+                                max_abs_val = abs_val
+                                best_r = r
+
+                if max_abs_val:
+                    pivots.append(c)
+                    a_inverse = ~A.get_unsafe(best_r, c)
+                    A.rescale_row(best_r, a_inverse, c)
+                    A.swap_rows(best_r, start_row)
+
+                    if algorithm == 'scaled_partial_pivoting':
+                        scale_factors[best_r], scale_factors[start_row] = scale_factors[start_row], scale_factors[best_r]
+
+                    for i in range(nr):
+                        if i != start_row:
+                            if A.get_unsafe(i, c):
+                                minus_b = -A.get_unsafe(i, c)
+                                A.add_multiple_of_row(i, start_row, minus_b, c)
+                    start_row = start_row + 1
 
         pivots = tuple(pivots)
         self.cache('pivots', pivots)
         self.cache('in_echelon_form', True)
         self.cache('echelon_form', self)
-        return pivots   
+        return pivots
 
     # for backward compatibility
-        
+
     def _echelon_in_place_classical(self):
         """
         Transform self into echelon form and set the pivots of self.

@@ -35,12 +35,9 @@
 #include <iostream>
 #include <algorithm>
 
-#define DEBUG if(debug)
 
 namespace GiNaC {
 
-static bool debug=false;
-int CMatcher::level = 0;
 
 inline bool is_ncfunc(const ex& e)
 {
@@ -92,11 +89,9 @@ inline bool CMatcher::get_alt(size_t i)
 
 opt_bool CMatcher::init()
 {
-        DEBUG std::cerr<<level<<" cmatch: "<<source<<", "<<pattern<<", "<<map<<std::endl;
         bool global_wild = false;
         const size_t snops = source.nops(), pnops = pattern.nops();
 	if (is_exactly_a<wildcard>(pattern)) {
-                DEBUG std::cerr << "pattern is single wildcard"<<std::endl;
                 const auto& it = map.find(pattern);
                 finished = true;
                 if (it != map.end()) {
@@ -108,27 +103,22 @@ opt_bool CMatcher::init()
 		map[pattern] = source;
                 ret_map = map;
 		return true;
-	} 
-	if (ex_to<basic>(source).tinfo() != ex_to<basic>(pattern).tinfo()) {
-                DEBUG std::cerr<<"pattern type mismatch"<<std::endl;
+	}
+        // same expression type?
+	if (ex_to<basic>(source).tinfo() != ex_to<basic>(pattern).tinfo())
                 return false;
-        }
         if (is_exactly_a<function>(source)
            and ex_to<function>(source).get_serial()
-            != ex_to<function>(pattern).get_serial()) {
-                DEBUG std::cerr<<"function type mismatch"<<std::endl;
+            != ex_to<function>(pattern).get_serial())
                 return false;
-        }
-        if (snops < pnops) {
-                DEBUG std::cerr<<"# of source terms > pattern terms"<<std::endl;
+        // less source than pattern terms?
+        if (snops < pnops)
                 return false;
-        }
+        // symbol mismatch?
         symbolset oset = source.symbols();
         symbolset pset = substitute(pattern.wilds(), map);
-        if (not subset_of(pset, oset)) {
-                DEBUG std::cerr<<"substitution has unmatched symbols"<<std::endl;
+        if (not subset_of(pset, oset))
                 return false;
-        }
 
         // Chop into terms
         for (size_t i=0; i<snops; i++) {
@@ -149,7 +139,6 @@ opt_bool CMatcher::init()
                         // more than one term (x^+ in the paper) in a sum or
                         // product
                         global_wild = true;
-                        DEBUG std::cerr<<"global wildcard seen: "<<snops<<","<<pnops<<std::endl;
                 }
                 // Check that all "constants" in the pattern are matched
                 // Presets are already substituted now
@@ -163,12 +152,10 @@ opt_bool CMatcher::init()
                                                       return e.is_equal(*it1);
                                               } );
                         if (it2 != ops.end()) {
-                                DEBUG std::cerr<<level<<" constant "<<*it1<<" found in "<<source<<std::endl;
                                 (void)ops.erase(it2);
                                 it1 = pat.erase(it1);
                         }
                         else {
-                                DEBUG std::cerr<<level<<" constant "<<*it1<<" not found in "<<source<<std::endl;
                                 return false;
                         }
                 }
@@ -185,12 +172,10 @@ opt_bool CMatcher::init()
                                 continue;
                         }
                         if (it2->is_equal(*it1)) {
-                                DEBUG std::cerr<<level<<" constant "<<*it1<<" found in "<<source<<std::endl;
                                 it2 = ops.erase(it2);
                                 it1 = pat.erase(it1);
                         }
                         else {
-                                DEBUG std::cerr<<level<<" constant "<<*it1<<" not found in "<<source<<std::endl;
                                 return false;
                         }
                 }
@@ -210,9 +195,11 @@ opt_bool CMatcher::init()
 
         N = ops.size();
         P = pat.size();
+        // m_cmatch indicates which of the terms needs a cmatcher itself
         m_cmatch.assign(P, false);
         std::transform(ops.begin(), ops.end(), m_cmatch.begin(),
                         [](const ex& e) { return is_func(e); } );
+
         if (P == 1) {
             if (not global_wild) {
                 if (not m_cmatch[0]) {
@@ -220,13 +207,12 @@ opt_bool CMatcher::init()
                         if (ret_val.value())
                                 ret_map = map;
                         finished = true;
-                        DEBUG std::cerr<<"early decision: "<<ret_val.value()<<std::endl;
                         return ret_val.value();
                 }
             }
             else {
-                // only the global wildcard left
-                DEBUG std::cerr<<"early decision: 1"<<std::endl;
+                // only the global wildcard left,
+                // add/mul what's left in the source
                 ret_val = true;
                 ret_map = map;
                 ex r;
@@ -245,25 +231,26 @@ opt_bool CMatcher::init()
                 return true;
             }
         }
+        // cms will contain the daughter cmatchers
         for (size_t i=0; i<P; ++i)
                 cms.emplace_back();
         map_repo = std::vector<exmap>(P);
 
         finished = false;
         perm.reserve(P);
-        if (is_ncfunc(source)) {
+        if (is_ncfunc(source)) { // source is a noncommutative structure
                 type = Type::noncomm;
                 // perm is not used but needs to be filled
                 for (size_t i=0; i<P; ++i)
                         perm.push_back(i);
                 if (std::all_of(m_cmatch.begin(), m_cmatch.end(),
                                 [](bool b) { return not b; } )) {
+                        // no term needs a cmatcher, let's decide early
                         finished = true;
                         for (size_t i=0; i<P; ++i)
                                 if (not ops[i].match(pat[i], map))
                                         return false;
                         ret_map = map;
-                        DEBUG std::cerr<<"all noncomm matched"<<std::endl;
                         return true;
                 }
                 return nullopt;
@@ -283,6 +270,7 @@ opt_bool CMatcher::init()
         return nullopt;
 }
 
+// run() will be called until no more solutions are found
 void CMatcher::run()
 {
         clear_ret();
@@ -306,9 +294,10 @@ void CMatcher::run()
         }
 }
 
+// noncommutative run; go through all term pairs sequentially,
+// but allow backtracking to earlier terms if a match fails
 void CMatcher::noncomm_run()
 {
-        DEBUG std::cerr<<level<<" noncomm_run() entered, N="<<N<<", "<<map<<std::endl;
         int ii = P;
         while (--ii >= 0) {
                 if (m_cmatch[ii]
@@ -333,17 +322,14 @@ void CMatcher::noncomm_run()
                         map_repo[index] = map_repo[index-1];
                 // At this point we try matching p to e 
                 const ex& p = pat[index];
-                DEBUG std::cerr<<level<<" index: "<<index<<", op: "<<e<<", pat: "<<p<<std::endl;
                 if (not m_cmatch[index]) {
                         // normal matching attempt
                         exmap m = map_repo[index];
                         bool ret = e.match(p, m);
                         if (ret) {
                                 map_repo[index] = m;
-                                DEBUG std::cerr<<level<<" match found: "<<e<<", "<<p<<", "<<m<<": "<<ret<<std::endl; 
                                 continue;
                         }
-                        DEBUG std::cerr<<"match failed"<<std::endl;
                 }
                 else {
                         if (not cms[index])
@@ -354,11 +340,9 @@ void CMatcher::noncomm_run()
                         }
                         if (get_alt(index)) {
                                 map_repo[index] = ret_map.value();
-                                DEBUG std::cerr<<level<<" cmatch found: "<<e<<", "<<p<<", "<<map_repo[index]<<std::endl; 
                                 continue;
                         }
                         cms[index].reset();
-                        DEBUG std::cerr<<"cmatch failed"<<std::endl;
                 }
                 bool alt_solution_found = false;
                 int i = static_cast<int>(index);
@@ -368,7 +352,6 @@ void CMatcher::noncomm_run()
                                         map_repo[0] = map;
                                 else
                                         map_repo[i] = map_repo[i-1];
-                           DEBUG std::cerr<<level<<" find alt: "<<i<<" based on "<<map_repo[i]<<std::endl;
                                 auto& cm = cms[i].value();
                                 cm.ret_val.reset();
                                 cm.map = map_repo[i];
@@ -376,7 +359,6 @@ void CMatcher::noncomm_run()
                                         map_repo[i] = ret_map.value();
                                         index = i;
                                         alt_solution_found = true;
-                                        DEBUG std::cerr<<level<<" try alt: "<<i<<", "<<map_repo[i]<<std::endl;
                                         break;
                                 }
                                 else
@@ -389,7 +371,6 @@ void CMatcher::noncomm_run()
         while (++index < P);
 
         if (index >= P) {
-                DEBUG std::cerr<<level<<" send alt: "<<map_repo[P-1]<<std::endl;
                 ret_val = true;
                 ret_map = map_repo[P-1];
                 return;
@@ -401,11 +382,11 @@ void CMatcher::noncomm_run()
 
 void CMatcher::no_global_wild()
 {
-        DEBUG std::cerr<<level<<" run() entered"<<std::endl;
-
         perm_run(ops, pat);
 }
 
+// This is both the run() function for commutative matching without
+// global wildcards, and the core of the global wildcards run()
 void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
 {
         // The outer loop goes though permutations of perm
@@ -426,7 +407,6 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                 else // no cmatcher or all uninitialized
                         index = 0;
                 finished = true;
-                DEBUG { std::cerr<<level<<" ["; for (size_t i:perm) std::cerr<<i<<","; std::cerr<<"]"<<std::endl; }
                 // The second loop increases index to get a new ops term
                 do {
                         const ex& e = sterms[index];
@@ -436,17 +416,14 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                 map_repo[index] = map_repo[index-1];
                         // At this point we try matching p to e 
                         const ex& p = pterms[perm[index]];
-                        DEBUG std::cerr<<level<<" index: "<<index<<", op: "<<e<<", pat: "<<p<<std::endl;
                         if (not m_cmatch[index]) {
                                 // normal matching attempt
                                 exmap m = map_repo[index];
                                 bool ret = e.match(p, m);
                                 if (ret) {
                                         map_repo[index] = m;
-                                        DEBUG std::cerr<<level<<" match found: "<<e<<", "<<p<<", "<<m<<": "<<ret<<std::endl; 
                                         continue;
                                 }
-                                    DEBUG std::cerr<<"match failed"<<std::endl;
                         }
                         else {
                                 if (not cms[index])
@@ -458,12 +435,10 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                 }
                                 if (get_alt(index)) {
                                         map_repo[index] = ret_map.value();
-                                        DEBUG std::cerr<<level<<" cmatch found: "<<e<<", "<<p<<", "<<map_repo[index]<<std::endl; 
                                         continue;
                                 }
                                 else
                                         cms[index].reset();
-                                DEBUG std::cerr<<"cmatch failed"<<std::endl;
                         }
                         // unfinished cmatchers in this permutation?
                         bool alt_solution_found = false;
@@ -474,7 +449,6 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                                 map_repo[0] = map;
                                         else
                                                 map_repo[i] = map_repo[i-1];
-                                        DEBUG std::cerr<<level<<" find alt: "<<i<<" based on "<<map_repo[i]<<std::endl;
                                         auto& cm = cms[i].value();
                                         cm.ret_val.reset();
                                         cm.map = map_repo[i];
@@ -482,7 +456,6 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                                 map_repo[i] = ret_map.value();
                                                 index = i;
                                                 alt_solution_found = true;
-                                                DEBUG std::cerr<<level<<" try alt: "<<i<<", "<<map_repo[i]<<std::endl;
                                                 break;
                                         }
                                         cms[i].reset();
@@ -496,7 +469,6 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                 if (index >= P) {
                         // give back one solution of this cmatch call
                         // possibly still permutations left
-                        DEBUG std::cerr<<level<<" send alt: "<<map_repo[P-1]<<std::endl;
                         if (std::all_of(cms.begin(), cms.end(),
                               [](const opt_CMatcher& cm) { return not cm or cm.value().finished; } ))
                                 finished = not std::next_permutation(perm.begin(),
@@ -517,13 +489,11 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                         ret_val = false;
                                         ret_map.reset();
                                         finished = true;
-                                        DEBUG std::cerr<<level<<" perms exhausted"<<std::endl;
                                         return;
                                 }
                         }
                 }
         }
-        DEBUG std::cerr<<"comm_run() exited"<<std::endl;
         ret_val = false;
 }
 
@@ -538,11 +508,8 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
 // global wildcard.
 void CMatcher::with_global_wild()
 {
-        DEBUG std::cerr<<level<<" gwrun() entered: "<<P<<" out of "<<N<<std::endl;
         do {
-                DEBUG std::cerr<<"global: "<<pat[wi]<<std::endl;
                 do {
-                        DEBUG { std::cerr<<level<<" {"; for (size_t i:comb) std::cerr<<i<<","; std::cerr<<"}"<<std::endl; }
                         bool comb_finished = finished = false;
                         if (perm.empty()) { // new combination
                                 for (size_t i=0; i<P; ++i)
@@ -590,7 +557,6 @@ void CMatcher::with_global_wild()
                                         if (not (++wi < wild_ind.size()))
                                                 finished = true;
                                 }
-                                DEBUG std::cerr<<level<<" gw found: "<<ret_map.value()<<std::endl;
                                 return;
                         }
                         if (not comb_finished)
@@ -601,7 +567,6 @@ void CMatcher::with_global_wild()
                 next_combination(comb, P, N);
         }
         while (++wi < wild_ind.size());
-        DEBUG std::cerr<<"gwrun() exited"<<std::endl;
         finished = true;
         ret_val = false;
 }

@@ -44,6 +44,7 @@ from six.moves import range
 from six import add_metaclass
 
 from functools import reduce
+from itertools import chain
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -191,7 +192,7 @@ class OrderedMultisetPartition(ClonableArray):
         """
         Check that we are a valid ordered multiset partition.
 
-        .. TODO:: make examples/tests work.
+        .. TODO:: make tests work.
 
         EXAMPLES::
 
@@ -1046,30 +1047,27 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-    - Change how constraints are handled in presence of 'weight'.
-      See, e.g.,
-      sage: OrderedMultisetPartitions(4, weight=[0,0,0,1])
-      Ordered Multiset Partitions of integer 4 with constraints min_order 1,
-       weight {4: 1}, alphabet {4}, order 1, max_order 1
-
-      This should rather read as:
-      'Ordered Multiset Partitions of integer 4 with constraint weight {4: 1}'
-
     - Fix ``check`` error.
       See, e.g.,
       sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
 
-    - Fix errors here:
-      sage: OMPw = OrderedMultisetPartitions(weight=[2,1])
-      sage: OMPw.cardinality() # maximum recursion depth exceded
-      sage: list(OMPw)
+    - Fix iteration errors here:
+      sage: O1 = OrderedMultisetPartitions(weight=[2,0,1])
+      sage: list(O1) # maximum recursion depth exceded
+      sage: O1.list()
+      [[{1}, {1}, {3}], [{1}, {1,3}], [{1}, {3}, {1}], [{1,3}, {1}], [{3}, {1}, {1}]]
+      sage: list(O1)
+      [[{1}, {1}, {3}], [{1}, {1,3}], [{1}, {3}, {1}], [{1,3}, {1}], [{3}, {1}, {1}]]
 
-    - Fix errors here:
-      sage: OrderedMultisetPartitions({'a':2, 'c':1}, length=2)
-      sage: OrderedMultisetPartitions({'a':2, 'c':1}, length=4).list()
-
-      Compare with this:
-      sage: OrderedMultisetPartitions({'a':2, 'c':1})
+      sage: O2 = OrderedMultisetPartitions(alphabet=[1,3], max_order=3, min_length=2)
+      sage: list(O2) # maximum recursion depth exceded
+      sage: O2.list()
+      [[{1}, {1}], [{1}, {3}], [{3}, {1}], [{3}, {3}], [{1,3}, {1}],
+       [{1,3}, {3}], [{1}, {1,3}], [{3}, {1,3}], [{1}, {1}, {1}],
+       [{1}, {1}, {3}], [{1}, {3}, {1}], [{1}, {3}, {3}],
+       [{3}, {1}, {1}], [{3}, {1}, {3}], [{3}, {3}, {1}], [{3}, {3}, {3}]]
+      sage: list(O2) == _
+      True
 
 
     INPUT:
@@ -1220,8 +1218,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     For example, the ordered multiset partitions of 4 are listed by weight below::
 
         sage: OrderedMultisetPartitions(4, weight=[0,0,0,1])
-        Ordered Multiset Partitions of integer 4 with constraints min_order 1,
-         weight {4: 1}, alphabet {4}, order 1, max_order 1
+        Ordered Multiset Partitions of integer 4 with constraint: weight={4: 1}
         sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
         [[{4}]]
         sage: OrderedMultisetPartitions(4, weight=[1,0,1]).list()
@@ -1282,7 +1279,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitions(4)
             Ordered Multiset Partitions of integer 4
             sage: OrderedMultisetPartitions(4, max_order=2)
-            Ordered Multiset Partitions of integer 4 with constraint max_order 2
+            Ordered Multiset Partitions of integer 4 with constraint: max_order=2
 
             sage: OrderedMultisetPartitions({1:2, 3:1})
             Ordered Multiset Partitions of multiset {{1, 1, 3}}
@@ -1299,7 +1296,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             Ordered Multiset Partitions of order 3 over alphabet {a, d}
             sage: OrderedMultisetPartitions([2,4], 3, min_length=2)
             Ordered Multiset Partitions of order 3 over alphabet {2, 4}
-             with constraint min_length 2
+             with constraint: min_length=2
         """
         constraints = dict(constraints)
         if "weight" in constraints:
@@ -1492,13 +1489,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
     def __contains__(self, x):
         """
-        .. TODO:: make these work.
-
-            sage: [[2, -1, 'a']] in OrderedMultisetPartitions()
-            True
-            sage: [[2, 1]] in OrderedMultisetPartitions(4)
-            False
-
         TESTS::
 
             sage: OMP = OrderedMultisetPartitions
@@ -1520,8 +1510,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if not isinstance(x, (OrderedMultisetPartition, list, tuple)):
             return False
         else:
-            #TODO: why does next line create infinite recursion
-            #return self._has_valid_blocks(x) and self._satisfies_constraints(x)
             return self._has_valid_blocks(x)
 
     def _has_valid_blocks(self, x):
@@ -1548,7 +1536,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             if key == 'max_length':
                 return co.length() <= tst
             if key == 'weight':
-                return co.multiset() == dict(tst)
+                return co.weight() == dict(tst)
             if key == 'alphabet':
                 if tst in ZZ:
                     tst = range(1,tst+1)
@@ -1605,10 +1593,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             from_zero_lst += [0]
         co = []; block=[]
         for a in from_zero_lst:
-            if a in {0,'0'} and block !=[]:
-                #TODO: should the next line just be `lst.append(block)`?
-                co.append([b for b in block if b not in {0,'0'}])
-                block = []
+            if a in {0,'0'}:
+                if block:
+                    co.append(block)
+                    block = []
             else:
                 block.append(a)
         if self._has_valid_blocks(co):
@@ -1642,6 +1630,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             multiset = _concatenate([k]*weight[k] for k in sorted(weight.keys()))
         elif isinstance(weight, (list, tuple)):
             multiset = [(i+1) for i in range(len(weight)) for _ in range(weight[i])]
+        P = OrderedMultisetPartitions(multiset)
 
         if multiset == []:
             yield self.element_class(self, [])
@@ -1649,7 +1638,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             # We build ordered multiset partitions of `X` by permutation + deconcatenation
             for alpha in Permutations(multiset):
                 co = _break_at_descents(alpha, weak=True)
-                for A in self.element_class(self, co).finer(strong=True):
+                for A in P(co).finer(strong=True):
                     yield A
 
     def an_element(self):
@@ -1680,13 +1669,14 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
         sage: C = OrderedMultisetPartitions(); repr(C)
         'Ordered Multiset Partitions'
         sage: C == loads(dumps(C))
-        sage: TestSuite(C).run()
         True
+        sage: TestSuite(C).run()
+
         sage: C = OrderedMultisetPartitions(weight=[2,0,1], length=2); repr(C)
-        'Ordered Multiset Partitions with constraints length 2,  weight {1:2, 3:1}'
+        'Ordered Multiset Partitions with constraints: length=2, weight={1:2, 3:1}'
         sage: C == loads(dumps(C))
-        sage: TestSuite(C).run()
         True
+        sage: TestSuite(C).run()
         sage: D = OrderedMultisetPartitions(weight={1:2, 3:1}, min_length=2, max_length=2)
         sage: C == D
         False
@@ -1751,30 +1741,53 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
             [[], [{1}], [{2}], [{1}, {1}], [{3}], [{1,2}], [{2}, {1}],
              [{1}, {2}], [{1}, {1}, {1}], [{4}], [{1,3}], [{3}, {1}]]
         """
-        if "weight" in self.constraints:
-            iterator = self._iterator_weight(self.constraints["weight"])
+        constraints = self.constraints
+        if self.category() == FiniteEnumeratedSets():
+            if "weight" in constraints:
+                iterator = self._iterator_weight(constraints["weight"])
+            elif "size" in constraints:
+                n = constraints["size"]
+                iterator = OrderedMultisetPartitions_n(n).__iter__()
+            elif "alphabet" in constraints:
+                A = constraints["alphabet"]
+                n = len(A)
+                if "order" in constraints:
+                    ord = constraints["order"]
+                    iterator = OrderedMultisetPartitions_A(A, ord).__iter__()
+                elif "length" in constraints:
+                    k = constraints["length"]
+                    iterator = chain(
+                        *(OrderedMultisetPartitions_A(A, ord).__iter__(k, k) \
+                            for ord in range(k, n*k + 1)))
+                else:
+                    maxk = constraints.get("max_length", constraints.get("max_order", infinity))
+                    mink = constraints.get("min_length", 0)
+                    max_ord = min(n * maxk, constraints.get("max_order", infinity))
+                    iterator = chain(
+                        *(OrderedMultisetPartitions_A(A, ord).__iter__(mink, maxk) \
+                            for ord in range(mink, max_ord+1)))
             for co in iterator:
-                if self._satisfies_constraints(co):
-                    yield self.element_class(self, co)
-        elif "alphabet" in self.constraints and "order" in self.constraints:
-            A = self.constraints["alphabet"]
-            ord = self.constraints["order"]
-            for co in OrderedMultisetPartitions_A(A, ord):
-                if self._satisfies_constraints(co):
-                    yield self.element_class(self, co)
-        elif "size" in self.constraints:
-            n = self.constraints["size"]
-            for co in OrderedMultisetPartitions_n(n):
                 if self._satisfies_constraints(co):
                     yield self.element_class(self, co)
         else:
             # iterate over partitions of multisets of positive integers
-            n = 0
-            while True:
-                for co in OrderedMultisetPartitions_n(n):
-                    if self._satisfies_constraints(co):
-                        yield self.element_class(self, co)
-                n += 1
+            # or letters over an alphabet
+            if "alphabet" in self.constraints:
+                A = constraints["alphabet"]
+                n = 0
+                while True:
+                    for co in OrderedMultisetPartitions_A(A, n):
+                        if self._satisfies_constraints(co):
+                            yield self.element_class(self, co)
+                    n += 1
+            else:
+                n = 0
+                while True:
+
+                    for co in OrderedMultisetPartitions_n(n):
+                        if self._satisfies_constraints(co):
+                            yield self.element_class(self, co)
+                    n += 1
 
     def cardinality(self, skip_check=False):
         r"""
@@ -1974,8 +1987,8 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             True
         """
         OrderedMultisetPartitions.__init__(self, True)
-        self._X = dict(X)
-        self._Xlist = [k for k in sorted(self._X.keys()) for _ in range(self._X[k])]
+        self._X = X
+        self._Xlist = [k for (k,v) in X for _ in range(v)]
 
     def _repr_(self):
         """
@@ -2074,7 +2087,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             sage: OrderedMultisetPartitions({}).list()
             [[]]
         """
-        for A in self._iterator_weight(self._X):
+        for A in self._iterator_weight(dict(self._X)):
             yield A
 
 class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
@@ -2083,13 +2096,19 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
 
     .. TODO:: add ``an_element`` method?
     """
+#    def __init__(self, n, **constraints):
+#        """
+#        Mimic class ``OrderedMultisetPartitions_n`` to initialize.
+#        """
+#        OrderedMultisetPartitions.__init__(self, True, **constraints)
+#        self._n = int(n)
     def __init__(self, X, **constraints):
         """
         Mimic class ``OrderedMultisetPartitions_X`` to initialize.
         """
         OrderedMultisetPartitions.__init__(self, True, **constraints)
-        self._X = dict(X)
-        self._Xlist = [k for k in sorted(self._X.keys()) for _ in range(self._X[k])]
+        self._X = X
+        self._Xlist = [k for (k,v) in X for _ in range(v)]
 
     def _repr_(self):
         r"""
@@ -2103,7 +2122,7 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         """
         Check that blocks of ``x`` are valid and satisfy constraints.
         """
-        valid = OrderedMultisetPartitions(self._X)._has_valid_blocks(x)
+        valid = OrderedMultisetPartitions_X(self._X)._has_valid_blocks(x)
         return valid and self._satisfies_constraints(x)
 
     def __iter__(self):
@@ -2386,7 +2405,7 @@ def _is_finite(constraints):
     if Set(["size", "weight"]).intersection(Set(constraints.keys())):
         return True
     return ("alphabet" in constraints) and \
-                    Set(["order", "max_order"]).intersection(Set(constraints.keys()))
+                    Set(["length", "max_length", "order", "max_order"]).intersection(Set(constraints.keys()))
 
 def _is_initial_segment(lst):
     """

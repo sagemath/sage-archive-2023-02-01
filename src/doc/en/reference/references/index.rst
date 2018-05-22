@@ -1184,7 +1184,7 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
-.. [GriRei16] Darij Grinberg, Victor Reiner,
+.. [GriRei18] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
               :arxiv:`1409.8356v5`.
 

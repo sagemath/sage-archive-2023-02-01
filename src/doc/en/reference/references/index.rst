@@ -348,6 +348,11 @@ REFERENCES:
 .. [BH1994] \S. Billey, M. Haiman. *Schubert polynomials for the
             classical groups*. J. Amer. Math. Soc., 1994.
 
+.. [BH2017] Georgia Benkart and Tom Halverson. *Partition algebras*
+            `\mathsf{P}_k(n)` *with* `2k > n` *and the fundamental theorems
+            of invariant theory for the symmetric group* `\mathsf{S}_n`.
+            Preprint (2017). :arXiv:`1707.1410`
+
 .. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
              3.0, 2008. http://www.sagemath.org

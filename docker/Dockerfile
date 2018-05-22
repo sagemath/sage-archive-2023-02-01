@@ -249,7 +249,7 @@ ARG ARTIFACT_BASE=source-clean
 # Apply the patch from sagemath-dev-patch if we created one.
 RUN if [ x"$ARTIFACT_BASE" != x"source-clean" ]; then \
         echo "Applying `du -hs patch/modified.tar.xz` patch" \
-        xzcat patch/modified.xz | xargs rm -rvf \
+        && xzcat patch/modified.xz | xargs rm -rvf \
         && tar -Jxf patch/modified.tar.xz \
         && rm -rf patch; \
     fi

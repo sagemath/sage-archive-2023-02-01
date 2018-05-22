@@ -821,56 +821,6 @@ class OrderedMultisetPartition(ClonableArray):
             C = [sorted(upper)+sorted(lower)] + C
         return tuple(map(tuple,C))
 
-    def anne_greedy(b):
-        """
-        Return greedy algorithm on `b`.
-
-        EXAMPLES::
-
-            sage: b=multiset_partitions(2,3,3)[0]; b
-            ({1, 2}, {1})
-            sage: greedy(b)
-            [[2, 1], [1]]
-        """
-        l = len(b)#.cartesian_factors())
-        c = tuple([tuple(sorted(b[l-1]))])
-        for i in range(l-2,-1,-1):
-            lower = sorted([j for j in b[i] if j<=c[0][0]])
-            upper = sorted([j for j in b[i] if j>c[0][0]])
-            c = tuple([tuple(upper+lower)])+c
-        return c
-
-    def anne_minimaj_ordering(b):
-        """
-        Return minimaj ordering of `b`, where `b` is an element in decreasing order within blocks.
-
-        EXAMPLES::
-
-            sage: b = [[3, 1, 2], [2, 3]]
-            sage: minimaj_ordering(b)
-            [[3, 1, 2], [2, 3]]
-            sage: b=[[2,3],[2],[1,3]]
-            sage: minimaj_ordering(b)
-            ((3, 2), (2,), (1, 3))
-        """
-        result = [tuple(sorted(b[-1]))]
-        for i in range(len(b)-2,-1,-1):
-            m = result[0][0]
-            result = [tuple(sorted([j for j in b[i] if j>m])+sorted([j for j in b[i] if j<=m]))] + result
-        return tuple(result)
-
-    def anne_minimaj(b):
-        """
-        Return minimaj of `b`.
-
-        EXAMPLES::
-
-            sage: S = crystal_elements(2,5,3)
-            sage: [minimaj(b) for b in S]
-            [2, 2, 1, 1, 1, 2]
-        """
-        return Word(flatten(b.anne_minimaj_ordering())).major_index()
-
     def to_tableau(self):
         """
         Return a sequence of row words corresponding to (skew-)tableaux.
@@ -1109,17 +1059,9 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
       See, e.g.,
       sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
 
-    - Fix cardinality computation here:
-      sage: OMP = OrderedMultisetPartitions([1,1,4])
-      sage: OMP.cardinality()
-      20
-      sage: len(list(OMP))
-      5
-
     - Fix errors here:
-      sage: OrderedMultisetPartitions([1,1,4]).cardinality()
       sage: OMPw = OrderedMultisetPartitions(weight=[2,1])
-      sage: OMPw.cardinality()
+      sage: OMPw.cardinality() # maximum recursion depth exceded
       sage: list(OMPw)
 
     - Fix errors here:

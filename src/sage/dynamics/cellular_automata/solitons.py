@@ -958,7 +958,7 @@ class SolitonCellularAutomata(SageObject):
 
     def latex_states(self, num=None, as_array=True, box_width='5pt'):
         r"""
-        Return a latex verion of the states.
+        Return a latex version of the states.
 
         INPUT:
 

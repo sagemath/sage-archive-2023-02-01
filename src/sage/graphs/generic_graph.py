@@ -5360,7 +5360,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return sorted((len(cc) for cc in self.connected_components()),reverse=True)
 
-    def blocks_and_cut_vertices(self):
+    def blocks_and_cut_vertices(self, algorithm="Tarjan_Boost"):
         """
         Computes the blocks and cut vertices of the graph.
 
@@ -5371,6 +5371,17 @@ class GenericGraph(GenericGraph_pyx):
         components. A block is a maximal induced subgraph which itself has no
         cut vertices. Two distinct blocks cannot overlap in more than a single
         cut vertex.
+
+        INPUT:
+
+        - ``algorithm`` -- The algorithm to use in computing the blocks
+            and cut vertices of ``G``. The following algorithms are supported:
+
+          - ``"Tarjan_Boost"`` (default) -- Tarjan's algorithm
+            (Boost implementation).
+
+          - ``"Tarjan_Sage"`` -- Tarjan's algorithm
+            (Sage implementation).
 
         OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is a list of
         vertices and the blocks are the corresponding induced subgraphs - and
@@ -5384,6 +5395,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`blocks_and_cuts_tree`
+            - :func:`sage.graphs.base.boost_graph.blocks_and_cut_vertices`
             - :meth:`~Graph.is_biconnected`
             - :meth:`~Graph.bridges`
 
@@ -5394,18 +5406,26 @@ class GenericGraph(GenericGraph_pyx):
             sage: rings = graphs.CycleGraph(10)
             sage: rings.merge_vertices([0, 5])
             sage: rings.blocks_and_cut_vertices()
+            ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
+            sage: rings.blocks_and_cut_vertices(algorithm="Tarjan_Sage")
             ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
 
         The Petersen graph is biconnected, hence has no cut vertices::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
+            ([[0, 1, 4, 5, 2, 6, 3, 7, 8, 9]], [])
 
         Decomposing paths to pairs::
 
             sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
             sage: g.blocks_and_cut_vertices()
             ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [1, 2, 5, 6, 7])
+
+        A disconnected graph::
+
+            sage: g = Graph({1:{2:28, 3:10}, 2:{1:10, 3:16}, 4:{}, 5:{6:3, 7:10, 8:4}})
+            sage: g.blocks_and_cut_vertices()
+            ([[1, 2, 3], [5, 6], [5, 7], [5, 8], [4]], [5])
 
         TESTS::
 
@@ -5421,6 +5441,15 @@ class GenericGraph(GenericGraph_pyx):
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
+
+        if (algorithm=="Tarjan_Boost"):
+            from sage.graphs.base.boost_graph import blocks_and_cut_vertices
+            return blocks_and_cut_vertices(self)
+
+        if (algorithm!="Tarjan_Sage"):
+            raise NotImplementedError("Blocks and cut vertices algorithm '%s' is not implemented." % algorithm)
+
+        # If algorithm is "Tarjan_Sage"
         blocks = []
         cut_vertices = set()
 
@@ -5569,7 +5598,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
             sage: T.vertices()
-            [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
+            [('B', (0, 1, 4, 5, 2, 6, 3, 7, 8, 9))]
 
         TESTS:
 

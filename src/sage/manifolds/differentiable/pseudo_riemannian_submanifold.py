@@ -181,6 +181,7 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import factorial
 from sage.symbolic.ring import SR
 from Queue import Queue
+from sage.misc.cachefunc import cached_method
 
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
@@ -346,19 +347,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
                                     self._ambient._name)
 
-    def ambient_metric(self, recache=False):
+    @cached_method
+    def ambient_metric(self):
         r"""
         Return the metric of the ambient manifold.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -393,25 +388,17 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                                 PseudoRiemannianManifold):
             raise ValueError("Submanifold must be "
                              "embedded in a pseudo-Riemannian manifold")
-        if self._ambient_metric is not None and not recache:
-            return self._ambient_metric
         self._ambient_metric = self._ambient.metric()
         self._ambient_metric.set_name("g", r"g")
         return self._ambient_metric
 
-    def first_fundamental_form(self, recache=False):
+    @cached_method
+    def first_fundamental_form(self):
         r"""
         Return the first fundamental form of the submanifold.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -442,30 +429,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [            0 r^2*sin(th)^2]
 
         """
-        if self._first_fundamental_form is not None and not recache:
-            return self._first_fundamental_form
         self._first_fundamental_form = self.metric()
         self._first_fundamental_form\
-            .set(self._immersion.pullback(self.ambient_metric(recache)))
+            .set(self._immersion.pullback(self.ambient_metric()))
         self._first_fundamental_form.set_name("gamma", r"\gamma")
         return self._first_fundamental_form
 
     induced_metric = first_fundamental_form
 
-    def difft(self, recache=False):
+    @cached_method
+    def difft(self):
         r"""
         Return the differential of the first scalar field defining the
         submanifold
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -499,27 +478,19 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed to "
                              "perform this calculation")
-        if self._difft is not None and not recache:
-            return self._difft
         self._difft = self._t_inverse[self._var[0]].differential()
         self._difft.set_name("d" + self._var[0]._repr_(),
                              r"\mathrm{d}" + self._var[0]._latex_())
         return self._difft
 
-    def gradt(self, recache=False):
+    @cached_method
+    def gradt(self):
         r"""
         Return the gradient of the first scalar field defining the
         submanifold
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -553,15 +524,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed to perform "
                              "this calculation")
-        if self._gradt is not None and not recache:
-            return self._gradt
-        self._gradt = self.ambient_metric(recache).inverse()\
-            .contract(self.difft(recache))
+        self._gradt = self.ambient_metric().inverse()\
+            .contract(self.difft())
         self._gradt.set_name("grad_" + self._var[0]._repr_(),
                              r"\nabla " + self._var[0]._latex_())
         return self._gradt
 
-    def normal(self, recache=False):
+    @cached_method
+    def normal(self):
         r"""
         Return a normal unit vector to the submanifold.
 
@@ -587,13 +557,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -680,10 +643,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n = -cos(ph)*sin(th) d/dX - sin(ph)*sin(th) d/dY - cos(th) d/dZ
 
         """
-        if self._normal is not None and not recache:
-            return self._normal
         if self._dim_foliation != 0:    # case foliation
-            self._normal = self._sgn*self.lapse(recache)*self.gradt(recache)
+            self._normal = self._sgn*self.lapse()*self.gradt()
             self._normal.set_name("n", r"n")
             return self._normal
 
@@ -697,7 +658,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Calculate the normal vector field according to the formula in the
             documentation in a given chart.
             """
-            eps = self.ambient_metric(recache).volume_form(self._dim).along(
+            eps = self.ambient_metric().volume_form(self._dim).along(
                 self._immersion).restrict(chart.domain())
             args = list(range(self._dim)) + [eps] + list(range(self._dim))
             r = self.irange()
@@ -764,20 +725,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         return self._normal
 
-    def ambient_first_fundamental_form(self, recache=False):
+    @cached_method
+    def ambient_first_fundamental_form(self):
         r"""
         Return the first fundamental form of the submanifold as a tensor of the
         ambient manifold.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -809,10 +764,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             gamma = r_M^2 dth_M*dth_M + r_M^2*sin(th_M)^2 dph_M*dph_M
 
         """
-        if self._ambient_first_fundamental_form is not None and not recache:
-            return self._ambient_first_fundamental_form
-        g = self.ambient_metric(recache)
-        self.normal(recache)
+        g = self.ambient_metric()
 
         if self._dim_foliation == 0:  # case no foliation
             g = g.along(self._immersion)
@@ -825,19 +777,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     ambient_induced_metric = ambient_first_fundamental_form
 
-    def lapse(self, recache=False):
+    @cached_method
+    def lapse(self):
         r"""
         Return the lapse function of the foliation
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -872,26 +818,18 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed "
                              "to perform this calculation")
-        if self._lapse is not None and not recache:
-            return self._lapse
-        self._lapse = 1 / (self._sgn * self.ambient_metric(recache)(
-            self.gradt(recache), self.gradt(recache))).sqrt()
+        self._lapse = 1 / (self._sgn * self.ambient_metric()(
+            self.gradt(), self.gradt())).sqrt()
         self._lapse.set_name("N", r"N")
         return self._lapse
 
-    def shift(self, recache=False):
+    @cached_method
+    def shift(self):
         r"""
         Return the shift function of the foliation
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -924,27 +862,19 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if self._dim_foliation == 0:
             raise ValueError("A foliation is needed "
                              "to perform this calculation")
-        if self._shift is not None and not recache:
-            return self._shift
         self._shift = self._adapted_charts[0].frame()[self._dim]\
-            - self.lapse(recache) * self.normal(recache)
+            - self.lapse() * self.normal()
         self._shift.set_name("beta", r"\beta")
         return self._shift
 
-    def ambient_second_fundamental_form(self, recache=False):
+    @cached_method
+    def ambient_second_fundamental_form(self):
         r"""
         Return the second fundamental form of the submanifold as a tensor of the
         ambient manifold.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -976,15 +906,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
 
         """
-        if self._ambient_second_fundamental_form is not None and not recache:
-            return self._ambient_second_fundamental_form
-        nab = self.ambient_metric(recache).connection('nabla', r'\nabla')
-        self.normal(recache)
+        nab = self.ambient_metric().connection('nabla', r'\nabla')
+        self.normal()
         if self._dim_foliation == 0:
             self._ambient_second_fundamental_form = \
                            self.tensor_field(0, 2, sym = [(0, 1)], antisym = [],
                                              dest_map = self._immersion)
-            k = self.second_fundamental_form(recache)
+            k = self.second_fundamental_form()
             g = self.ambient_metric().along(self._immersion)
             max_frame = self._ambient.default_frame().along(self._immersion)
             for chart in self.top_charts():
@@ -1017,19 +945,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     ambient_extrinsic_curvature = ambient_second_fundamental_form
 
-    def second_fundamental_form(self, recache=False):
+    @cached_method
+    def second_fundamental_form(self):
         r"""
         Return the second fundamental form of the submanifold.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -1059,13 +981,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -r dth*dth - r*sin(th)^2 dph*dph
 
         """
-        if self._second_fundamental_form is not None and not recache:
-            return self._second_fundamental_form
         resu = self.vector_field_module() \
             .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
         if self._dim_foliation != 0:
             inverse_subs = {v: k for k, v in self._subs[0].items()}
-            self.ambient_extrinsic_curvature(recache)
+            self.ambient_extrinsic_curvature()
             r = list(self._ambient.irange())
             for i in self.irange():
                 for j in self.irange():
@@ -1074,7 +994,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                         self._adapted_charts[0]).subs(inverse_subs)
         else:
             nab = self.ambient_metric().connection('nabla', r'\nabla')
-            n = self.normal(recache)
+            n = self.normal()
 
             for chart in self.atlas():
                 gamma_n = matrix(self._dim+1, self._dim+1)
@@ -1104,19 +1024,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     extrinsic_curvature = second_fundamental_form
 
-    def projector(self, recache=False):
+    @cached_method
+    def projector(self):
         r"""
         Return the projector on the submanifold.
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -1156,10 +1070,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             0
 
         """
-        if self._projector is not None and not recache:
-            return self._projector
-        self._projector = self.ambient_first_fundamental_form(recache).up(
-            self.ambient_metric(recache), pos=0)
+        self._projector = self.ambient_first_fundamental_form().up(
+            self.ambient_metric(), pos=0)
         self._projector.set_name("gamma", r"\overrightarrow{\gamma}")
         return self._projector
 
@@ -1218,7 +1130,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             resu = self.projector().contract(0, resu, i)
         return resu
 
-    def gauss_curvature(self, recache=False):
+    @cached_method
+    def gauss_curvature(self):
         r"""
         Return the gauss curvature of the submanifold.
 
@@ -1227,13 +1140,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -1264,19 +1170,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             (th, ph) |--> r^(-2)
 
         """
-        if self._gauss_curvature is not None and not recache:
-            return self._gauss_curvature
-        a = self.shape_operator(recache)
-        # e = {chart: a[chart.frame(),:,chart].determinant
-        # for chart in self.atlas()}
-        # e = matrix([[a[i, j].expr() for i in self.irange()] for j in
-        #            self.irange()]).determinant()
+        a = self.shape_operator()
         self._gauss_curvature = self.scalar_field(
             {chart: a[chart.frame(), :, chart].determinant()
              for chart in self.top_charts()})
         return self._gauss_curvature
 
-    def principal_directions(self, chart, recache=False):
+    @cached_method
+    def principal_directions(self, chart):
         r"""
         Return the principal directions of the submanifold.
 
@@ -1289,10 +1190,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         INPUT:
 
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
+        - ``chart`` --  chart in which the principal directions are to be
+          computed
 
         OUTPUT:
 
@@ -1323,9 +1222,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             e_0 = d/dth
 
         """
-        if chart in self._principal_directions.keys() and not recache:
-            return self._principal_directions[chart]
-        a = self.shape_operator(recache)
+        a = self.shape_operator()
         pr_d = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
              for j in self.irange()]).eigenvectors_right()
@@ -1340,7 +1237,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._principal_directions[chart] = res
         return res
 
-    def principal_curvatures(self, chart, recache=False):
+    @cached_method
+    def principal_curvatures(self, chart):
         r"""
         Return the principal curvatures of the submanifold.
 
@@ -1353,10 +1251,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         INPUT:
 
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
+        - ``chart`` --  chart in which the principal curvatures are to be
+          computed
 
         OUTPUT:
 
@@ -1387,9 +1283,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             k_0: N --> R
                (th, ph) |--> -1/r
         """
-        if chart in self._principal_curvatures.keys() and not recache:
-            return self._principal_curvatures[chart]
-        a = self.shape_operator(recache)
+        a = self.shape_operator()
         res = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
              for j in self.irange()]).eigenvalues()
@@ -1400,7 +1294,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._principal_curvatures[chart] = res
         return res
 
-    def mean_curvature(self, recache=False):
+    @cached_method
+    def mean_curvature(self):
         r"""
         Return the mean curvature of the submanifold.
 
@@ -1409,13 +1304,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -1447,15 +1335,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
 
         """
-        if self._mean_curvature is not None and not recache:
-            return self._shape_operator
         self._shape_operator = self.scalar_field({chart: self._sgn * sum(
-            self.principal_curvatures(chart, recache)).expr(chart) / self._dim
+            self.principal_curvatures(chart)).expr(chart) / self._dim
                                                   for chart in
                                                   self.top_charts()})
         return self._shape_operator
 
-    def shape_operator(self, recache=False):
+    @cached_method
+    def shape_operator(self):
         r"""
         Return the shape operator of the submanifold.
 
@@ -1464,13 +1351,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The result is cached, so calling this method multiple times always
         returns the same result at no additional cost.
-
-        INPUT:
-
-        - ``recache`` -- (default: ``False``) if True, the cached value will be
-          ignored and all the functions this function depends on will be
-          reevaluated (potentially long). Use only after a modification of the
-          submanifold
 
         OUTPUT:
 
@@ -1501,8 +1381,24 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [   0 -1/r]
 
         """
-        if self._shape_operator is not None and not recache:
-            return self._shape_operator
-        self._shape_operator = self.second_fundamental_form(recache).contract(
-            self.induced_metric(recache).inverse())
+        self._shape_operator = self.second_fundamental_form().contract(
+            self.induced_metric().inverse())
         return self._shape_operator
+
+    def clear_cache(self):
+        self.ambient_metric.clear_cache()
+        self.first_fundamental_form.clear_cache()
+        self.difft.clear_cache()
+        self.gradt.clear_cache()
+        self.normal.clear_cache()
+        self.ambient_first_fundamental_form.clear_cache()
+        self.lapse.clear_cache()
+        self.shift.clear_cache()
+        self.ambient_second_fundamental_form.clear_cache()
+        self.second_fundamental_form.clear_cache()
+        self.projector.clear_cache()
+        self.gauss_curvature.clear_cache()
+        self.principal_directions.clear_cache()
+        self.principal_curvatures.clear_cache()
+        self.shape_operator.clear_cache()
+

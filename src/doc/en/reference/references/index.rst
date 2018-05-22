@@ -313,6 +313,13 @@ REFERENCES:
              Memoirs of the American Mathematical Society, vol. 192
              (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
+.. [BerZab05] Nantel Bergeron, Mike Zabrocki,
+              *The Hopf algebras of symmetric functions and quasisymmetric
+              functions in non-commutative variables are free and cofree*,
+              J. of Algebra and its Applications (8)(2009), No 4, pp. 581--600,
+              :doi:`10.1142/S0219498809003485`,
+              :arxiv:`math/0509265v3`.
+
 .. [BeukersHeckman] \F. Beukers and \G. Heckman,
    *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,
    Invent. Math. 95 (1989)
@@ -2060,6 +2067,10 @@ REFERENCES:
               pp. 1311--1348,
               :doi:`10.1016/j.aim.2010.01.006`,
               :arxiv:`0804.0995v3`.
+
+.. [NovThi06] Jean-Christophe Novelli, Jean-Yves Thibon,
+              *Polynomial realizations of some trialgebras*, FPSAC 2006.
+              :arxiv:`math/0605061v1`.
 
 .. [NZ2012] \T. Nakanishi and \A. Zelevinsky, *On tropical dualities in
             cluster algebras*, Algebraic groups and quantum groups,

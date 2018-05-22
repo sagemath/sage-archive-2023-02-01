@@ -202,9 +202,9 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         INPUTS:
 
-        - ``phi`` -- continuous map from self to self._ambient
-        - ``inverse`` -- (default: ``None``) inverse of phi onto its image, used
-          for computing changes of chart from or to adapted charts. No
+        - ``phi`` -- continuous map `\phi` from self to self._ambient
+        - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
+          used for computing changes of chart from or to adapted charts. No
           verification is made
         - ``var`` -- (default: ``None``) list of parameters appearing in `\phi`
         - ``t_inverse`` -- (default: ``{}``) dictionary of scalar field on
@@ -322,9 +322,9 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         INPUTS:
 
-        - ``phi`` -- continuous map from self to self._ambient
-        - ``inverse`` -- (default: ``None``) inverse of phi onto its image, used
-          for computing changes of chart from or to adapted charts. No
+        - ``phi`` -- continuous map `\phi` from self to self._ambient
+        - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
+          used for computing changes of chart from or to adapted charts. No
           verification is made
         - ``var`` -- (default: ``None``) list of parameters appearing in `\phi`
         - ``t_inverse`` -- (default: ``{}``) dictionary of scalar field on

@@ -22,7 +22,7 @@ AUTHORS:
 
 from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
-from sage.manifolds.submanifold.differentiable_submanifold import \
+from sage.manifolds.differentiable.differentiable_submanifold import \
     DifferentiableSubmanifold
 from sage.rings.infinity import infinity
 

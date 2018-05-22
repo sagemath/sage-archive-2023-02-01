@@ -2441,9 +2441,9 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
     from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
-    from sage.manifolds.submanifold.topological_submanifold import TopologicalSubmanifold
-    from sage.manifolds.submanifold.differentiable_submanifold import DifferentiableSubmanifold
-    from sage.manifolds.submanifold.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
+    from sage.manifolds.topological_submanifold import TopologicalSubmanifold
+    from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
+    from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")

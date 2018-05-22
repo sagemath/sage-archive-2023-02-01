@@ -29,8 +29,7 @@ AUTHORS:
 # *****************************************************************************
 
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.submanifold.topological_submanifold import \
-    TopologicalSubmanifold
+from sage.manifolds.topological_submanifold import TopologicalSubmanifold
 from sage.rings.infinity import infinity
 
 

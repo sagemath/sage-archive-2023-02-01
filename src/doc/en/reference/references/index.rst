@@ -267,6 +267,10 @@ REFERENCES:
                        *PRINCE - A low-latency block cipher for pervasive computing
                        applications*; in ASIACRYPT, (2012), pp. 208-225.
 
+.. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
+           Fast and Simple Computation of Top-k Closeness Centralities.
+           :arXiv:`1507.01490`.
+
 .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
@@ -457,6 +461,10 @@ REFERENCES:
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
 
+.. [Brandes01] Ulrik Brandes,
+               A faster algorithm for betweenness centrality,
+               Journal of Mathematical Sociology 25.2 (2001): 163-177,
+               http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
 .. [Bre2008] \A. Bretscher and D. G. Corneil and M. Habib and C. Paul (2008), "A
              simple Linear Time LexBFS Cograph Recognition Algorithm", SIAM
              Journal on Discrete Mathematics, 22 (4): 1277–1296,
@@ -922,6 +930,11 @@ REFERENCES:
 
 .. [Ed1974] \A. R. Edmonds, 'Angular Momentum in Quantum Mechanics',
             Princeton University Press (1974)
+
+.. [EDI2014] EDITH COHEN,DANIEL DELLING,THOMAS PAJOR and RENATO F. WERNECK
+             Computing Classic Closeness Centrality, at Scale
+             In Proceedings of the second ACM conference on Online social networks (COSN '14)
+             :doi:`10.1145/2660460.2660465`
 
 .. [Eh2013] Ehrhardt, Wolfgang. "The AMath and DAMath Special
             Functions: Reference Manual and Implementation Notes,

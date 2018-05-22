@@ -133,6 +133,8 @@ class OrderedMultisetPartition(ClonableArray):
             sage: OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1])
             [{1}, {1,3,5}, {1,2}]
         """
+        if not co:
+            return OrderedMultisetPartitions([])([])
         if isinstance(co[0], (list, tuple, set, frozenset, Set_object)):
             # standard input
             X = _concatenate(co)
@@ -148,15 +150,26 @@ class OrderedMultisetPartition(ClonableArray):
         """
         Initialize ``self``.
 
-        .. TODO:: figure out why the code ``__init__(self, parent, co)`` causes errors.
-
         EXAMPLES::
 
-            sage: OMP = OrderedMultisetPartitions()
+            sage: OMPs = OrderedMultisetPartitions()
+            sage: co = OMPs([[1,3], [1,'a']])
+            sage: OrderedMultisetPartition([[1,3], [1,'a']]) == co
+            True
+
+        TESTS::
+
+            sage: OMP = OrderedMultisetPartition
             sage: co = OMP([[1,3], [1,'a']])
             sage: TestSuite(co).run()
-            sage: OrderedMultisetPartition([])
-            []
+            sage: co = OMP('abc0ab0a')
+            sage: TestSuite(co).run()
+            sage: OMP([]) == OMP('')
+            True
+            sage: OMP([1,2,3,1]) == OMP([[1],[2],[3],[1]])
+            True
+            sage: OMP([1,2,3,0,1]) == OMP([[1,2,3],[1]])
+            True
         """
         if len(args) == 1:
             parent = OrderedMultisetPartitions()
@@ -196,12 +209,14 @@ class OrderedMultisetPartition(ClonableArray):
             sage: co.check()
             Traceback (most recent call last):
             ...
-            AssertionError: [{1,3}, {1,4}] is not an element of Ordered Multiset Partitions of integer 4
+            AssertionError: [{1,3}, {1,4}] is not an element
+             of Ordered Multiset Partitions of integer 4
 
             sage: co = OMP([[1, 1], [1, 4]])
             Traceback (most recent call last):
             ...
-            TypeError: Element is not an ordered multiset partition
+            AssertionError: cannot convert [[1, 1], [1, 4]] into an element
+             of Ordered Multiset Partitions
         """
         assert self in self.parent()
 
@@ -563,17 +578,21 @@ class OrderedMultisetPartition(ClonableArray):
         where blocks are deconcatenation of blocks of `B`.
 
 
-        .. TODO:: Add some examples/tests with non-numeric multisets.
-
         EXAMPLES::
 
-            sage: C =  OrderedMultisetPartition([[3,2]]).finer()
+            sage: C = OrderedMultisetPartition([[3,2]]).finer()
             sage: C.cardinality()
             3
             sage: C.list()
             [[{2}, {3}], [{2,3}], [{3}, {2}]]
             sage: OrderedMultisetPartition([]).finer()
             {[]}
+            sage: O = OrderedMultisetPartitions([1, 1, 'a', 'b'])
+            sage: o = O.an_element()
+            sage: o.finer()
+            {[{'b'}, {'a'}, {1}, {1}], [{'a'}, {'b'}, {1}, {1}], [{'a','b'}, {1}, {1}]}
+            sage: o.finer() & o.fatter() == Set([o])
+            True
         """
         P = OrderedMultisetPartitions(self._multiset)
 
@@ -1005,30 +1024,33 @@ class OrderedMultisetPartition(ClonableArray):
           greater than `J`. (Here, lexicographic order is taken with respect to blocks,
           not entries within the blocks.)
 
-        .. TODO:: check these examples; show examples decided by each condition in `soll`.
-
         EXAMPLES::
 
             sage: C = OrderedMultisetPartition([2,1,0,1,2,3,0,1,2,0,3,0,1])
             sage: D1 = OrderedMultisetPartition([2,4,0,2,3])
-            sage: D2 = OrderedMultisetPartition([2,4,0,2,4,0,2,3])
-            sage: D2a = OrderedMultisetPartition([{1,2}, {1,2,3}, {1,2}, {4}])
-            sage: D3 = OrderedMultisetPartition([2,4,0,2,4,0,1,3])
-            sage: D4 = OrderedMultisetPartition([1,2,0,2,4,0,2,0,1,0,1,2,0,1])
-            sage: print(repr(C) + ' >? ' + repr(D1)); C.soll_gt(D1)  #size
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}] >? [{2,4}, {2,3}]
+            sage: D2 = OrderedMultisetPartition([{1,2}, {1,2,3}, {1,2}, {1}, {1,2}])
+            sage: D3 = OrderedMultisetPartition([1,0,1,2,3,0,1,2,3,0,1,2])
+            sage: D4 = OrderedMultisetPartition([1,2,0,2,3,0,1,3,0,1,2,0,1])
+            sage: C.soll_gt(D1) #size
             True
-            sage: print(repr(C) + ' >? ' + repr(D2)); C.soll_gt(D2)  #size
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}] >? [{2,4}, {2,4}, {2,3}]
+            sage: C.soll_gt(D2) #order
             False
-            sage: print(repr(C) + ' >? ' + repr(D2a)); C.soll_gt(D2a)  #order
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}] >? [{1,2}, {1,2,3}, {1,2}, {4}]
+            sage: C.soll_gt(D3) #length
             True
-            sage: print(repr(C) + ' >? ' + repr(D3)); C.soll_gt(D3)  #length
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}] >? [{2,4}, {2,4}, {1,3}]
+            sage: C.soll_gt(D4) #lex
             True
-            sage: print(repr(C) + ' >? ' + repr(D4)); C.soll_gt(D4)  #lex
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}] >? [{1,2}, {2,4}, {2}, {1}, {1,2}, {1}]
+
+        TESTS::
+
+            sage: C = OrderedMultisetPartition('ba0abc0ab0c0a')
+            sage: D2 = OrderedMultisetPartition('ab0abc0ab0a0ab')
+            sage: D3 = OrderedMultisetPartition('a0abc0abc0ab')
+            sage: D4 = OrderedMultisetPartition('ab0bc0ac0ab0a')
+            sage: C.soll_gt(D2) #order
+            False
+            sage: C.soll_gt(D3) #length
+            True
+            sage: C.soll_gt(D4) #lex
             False
         """
         co1 = self
@@ -2692,14 +2714,3 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             b = b.f(i)
             b = [[b[a].to_tableau()[0][0] for a in range(partial[j],partial[j+1])] for j in range(len(partial)-1)]
             return self.parent().from_tableau(b)
-
-###############
-def test():
-    O = OrderedMultisetPartitions([1,3], 0); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 1); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 0, max_length=2); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 1, max_length=2); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 1, min_length=2); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 0, length=2); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 1, length=2); print O.an_element()
-    O = OrderedMultisetPartitions([1,3], 3, length=2); print O.an_element()

@@ -978,25 +978,34 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         if self._ambient_second_fundamental_form is not None and not recache:
             return self._ambient_second_fundamental_form
-        nab = self.ambient_metric().connection('nabla', r'\nabla')
+        nab = self.ambient_metric(recache).connection('nabla', r'\nabla')
         self.normal(recache)
         if self._dim_foliation == 0:
             self._ambient_second_fundamental_form = \
                            self.tensor_field(0, 2, sym = [(0, 1)], antisym = [],
                                              dest_map = self._immersion)
             k = self.second_fundamental_form(recache)
-            g = self.ambient_metric(recache)
-            gam_rst = {}
+            g = self.ambient_metric().along(self._immersion)
             max_frame = self._ambient.default_frame().along(self._immersion)
             for chart in self.top_charts():
-                gam_rst[chart] = k.restrict(chart.domain())
-                pf = [self._immersion.pushforward(chart.frame()[k]) for k in
-                      self.irange()]
-                gam_rst[chart] = sum(pf[i].down(g) * pf[j].down(g) * k[
-                    chart.frame(), i, j, chart] for i in self.irange() for j in
-                                     self.irange())
-                self._ambient_second_fundamental_form.add_comp_by_continuation(
-                    max_frame, chart.domain(), chart)
+                pf = [self._immersion.restrict(chart.domain()).pushforward(
+                    chart.frame()[i]) for i in self.irange()]
+                for i in range(self._dim):
+                    pf[i] = pf[i]/g(pf[i],pf[i])
+                gam_rst = sum(
+                    g.restrict(chart.domain()).contract(pf[i]) *
+                    g.restrict(chart.domain()).contract(pf[j]) *
+                    self.scalar_field({chart: k.comp(chart.frame())[:][i, j]})
+                    for i in range(self._dim) for j in range(self._dim))
+                gam_rst._sym=[(0,1)]
+                self._ambient_second_fundamental_form.set_restriction(gam_rst)
+
+            charts = iter(self.top_charts())
+            self._ambient_second_fundamental_form.add_comp_by_continuation(
+                max_frame, charts.next().domain())
+            for chart in charts:
+                self._ambient_second_fundamental_form.add_expr_from_subdomain(
+                    max_frame, chart.domain())
         else:
             self._ambient_second_fundamental_form = \
                 -self.ambient_metric().contract(nab(self.normal())) \

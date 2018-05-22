@@ -1120,7 +1120,7 @@ class Constellations_ld(UniqueRepresentation, Parent):
         else:
             raise ValueError("at most one permutation can be None")
 
-        g = map(self._sym, g)
+        g = [self._sym(_) for _ in g]
 
         if i is not None:
             h = self._sym.one()

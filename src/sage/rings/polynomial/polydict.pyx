@@ -111,10 +111,10 @@ cdef class PolyDict:
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if not c == zero:
-                        new_pdict[ETuple(list(map(int, k)))] = c
+                        new_pdict[ETuple([int(_) for _ in k])] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[ETuple(list(map(int, k)))] = c
+                    new_pdict[ETuple([int(_) for _ in k])] = c
             pdict = new_pdict
         else:
             if remove_zero:

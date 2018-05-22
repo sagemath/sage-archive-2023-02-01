@@ -81,7 +81,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
     Let N be a 2-dimensional submanifold of M, 3-dimensional manifold::
 
         sage: M = Manifold(3, 'M', structure ="pseudo-Riemannian")
-        sage: N = Manifold(2, 'N', ambient = M, structure ="pseudo-Riemannian")
+        sage: N = Manifold(2, 'N', ambient=M, structure="pseudo-Riemannian")
         sage: N
         2-dimensional pseudo-Riemannian submanifold N embedded in 3-dimensional
          differentiable manifold M
@@ -101,8 +101,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     `\phi` can then be declared as an embedding from N to M::
 
-        sage: N.set_embedding(phi, inverse = phi_inv, var = t,
-        ....:                 t_inverse = {t: phi_inv_t})
+        sage: N.set_embedding(phi, inverse=phi_inv, var=t,
+        ....:                 t_inverse={t: phi_inv_t})
 
     The foliation can also be used to find new charts on the ambient manifold
     that are adapted to the foliation, ie in which the expression of the

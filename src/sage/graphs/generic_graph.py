@@ -1810,7 +1810,7 @@ class GenericGraph(GenericGraph_pyx):
         loop will correspond to a zero column. In particular, it is not possible
         to recover the loops of an oriented graph from its incidence matrix.
 
-        See :wikipedia:`Incidence_matrix` for more informations.
+        See :wikipedia:`Incidence_matrix` for more information.
 
         INPUT:
 

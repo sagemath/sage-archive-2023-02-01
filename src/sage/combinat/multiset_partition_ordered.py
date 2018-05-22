@@ -1,8 +1,8 @@
 r"""
 Ordered multiset partitions
 
-An ordered multiset partition `c` of a multiset `X` is a list of subsets of `X` (not multisets),
-called the blocks of `c`, whose multi-union is `X`.
+An ordered multiset partition `c` of a multiset `X` is a list of nonempty subsets of `X`
+(not multisets), called the blocks of `c`, whose multi-union is `X`.
 
 This module provides tools for manipulating ordered multiset partitions.
 
@@ -65,7 +65,7 @@ from sage.calculus.var import var
 from sage.combinat.subset import Subsets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.composition import Compositions
-from sage.combinat.permutation import Permutations
+from sage.combinat.permutation import Permutations_mset
 from sage.combinat.partition import RegularPartitions_n
 from sage.combinat.integer_lists.invlex import IntegerListsLex
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -76,8 +76,8 @@ class OrderedMultisetPartition(ClonableArray):
     r"""
     Ordered multiset partitions
 
-    An ordered multiset partition `c` of a multiset `X` is a list of subsets (not multisets),
-    called the blocks of `c`, whose multi-union is `X`.
+    An ordered multiset partition `c` of a multiset `X` is a list of nonempty subsets
+    (not multisets), called the blocks of `c`, whose multi-union is `X`.
 
     EXAMPLES:
 
@@ -139,12 +139,12 @@ class OrderedMultisetPartition(ClonableArray):
         if isinstance(co[0], (list, tuple, set, frozenset, Set_object)):
             # standard input
             X = _concatenate(co)
-            P = OrderedMultisetPartitions(X)
+            P = OrderedMultisetPartitions(_get_weight(X))
             return P.element_class(P, co)
         else:
             # user shortcuts
-            multiset = [c for c in co if c not in {0, '0'}]
-            P = OrderedMultisetPartitions(multiset)
+            weight = _get_weight(c for c in co if c not in {0, '0'})
+            P = OrderedMultisetPartitions_X(tuple(weight.iteritems()))
             return P.element_class(P, P.from_list(co))
 
     def __init__(self, *args):
@@ -301,7 +301,7 @@ class OrderedMultisetPartition(ClonableArray):
         """
         co = list(self)+list(other)
         X = _concatenate(co)
-        return OrderedMultisetPartitions(X)(co)
+        return OrderedMultisetPartitions(_get_weight(X))(co)
 
     @combinatorial_map(order=2, name='reversal')
     def reversal(self):
@@ -379,10 +379,10 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C = OrderedMultisetPartition([3, 4, 1, 0, 2, 0, 1, 2, 3, 7]); C
             [{1,3,4}, {2}, {1,2,3,7}]
             sage: C.multiset()
-            [1, 1, 2, 2, 3, 3, 4, 7]
+            (1, 1, 2, 2, 3, 3, 4, 7)
             sage: C.multiset(as_dict=True)
             {1:2, 2:2, 3:3, 4:1, 7:1}
-            sage: OrderedMultisetPartition([]).multiset() == []
+            sage: OrderedMultisetPartition([]).multiset() == ()
             True
         """
         if as_dict:
@@ -618,7 +618,7 @@ class OrderedMultisetPartition(ClonableArray):
             False
         """
         X = _concatenate(co)
-        if self.weight() != OrderedMultisetPartitions(X)(co).weight():
+        if self.weight() != OrderedMultisetPartitions(_get_weight(X))(co).weight():
             return False
 
         # trim common prefix and suffix to make the search-space smaller
@@ -942,7 +942,7 @@ class OrderedMultisetPartition(ClonableArray):
         other = OrderedMultisetPartition(other)
         if overlap is True:
             for term in ShuffleProduct_overlapping(self, other):
-                if term._multiset == sorted(self._multiset + other._multiset):
+                if list(term._multiset) == sorted(self._multiset + other._multiset):
                     yield term
         else:
             for term in ShuffleProduct(self, other):
@@ -959,7 +959,7 @@ class OrderedMultisetPartition(ClonableArray):
         The soll-ordering is a total order on the set of all ordered multiset partitions.
         ("soll" is short for "size, order, length, lexicographic".)
 
-        A ordered multiset partition `I` is greater than a ordered multiset partition
+        An ordered multiset partition `I` is greater than an ordered multiset partition
         `J` if and only if one of the following conditions holds:
 
         - The size of `I` is greater than size of `J`. (Recall size of `I` is ``None``
@@ -1037,8 +1037,8 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     r"""
     A set of ordered multiset partitions `c`.
 
-    An ordered multiset partition `c` of a multiset `X` is a list of subsets (not multisets),
-    called the blocks of `c`, whose multi-union is `X`.
+    An ordered multiset partition `c` of a multiset `X` is a list of nonempty subsets
+    (not multisets), called the blocks of `c`, whose multi-union is `X`.
 
     Alternatively:
     An ordered multiset partition `c` of a nonnegative integer `n` is a list of
@@ -1096,10 +1096,9 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
     EXAMPLES:
 
-    There are 5 ordered multiset partitions of multiset {{1, 1, 4}}::
+    There are 5 ordered multiset partitions of multiset `{{1, 1, 4}}`::
 
         sage: OrderedMultisetPartitions([1,1,4]).cardinality()
-        ???
         5
 
     Here is the list of them::
@@ -1286,7 +1285,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitions({1:2, 3:1}) == OrderedMultisetPartitions([1,1,3])
             True
             sage: OrderedMultisetPartitions({'a':2, 'c':1}, length=2)
-            ??
+            Ordered Multiset Partitions of multiset {{a, a, c}} with constraint: length=2
             sage: OrderedMultisetPartitions({'a':2, 'c':1}, length=4).list()
             []
 
@@ -1525,7 +1524,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
     def _satisfies_constraints(self, x):
         X = _concatenate(x)
-        co = OrderedMultisetPartitions(X)(x)
+        co = OrderedMultisetPartitions(_get_weight(X))(x)
         def pass_test(co, (key,tst)):
             if key == 'size':
                 return co.size() == tst
@@ -1607,7 +1606,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def _iterator_weight(self, weight):
         """
         Return an iterator for the ordered multiset partitions with weight given by
-        the weak composition or dictionary ``weight``.
+        the dictionary (or weak composition) ``weight``.
 
         EXAMPLES::
 
@@ -1627,16 +1626,17 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             True
         """
         if isinstance(weight, dict):
-            multiset = _concatenate([k]*weight[k] for k in sorted(weight.keys()))
+            multiset = tuple(k for k in sorted(weight.keys()) for _ in range(weight[k]))
         elif isinstance(weight, (list, tuple)):
-            multiset = [(i+1) for i in range(len(weight)) for _ in range(weight[i])]
-        P = OrderedMultisetPartitions(multiset)
+            multiset = tuple((k+1) for _ in range(len(weight)) for _ in range(weight[k]))
+            weight = _get_weight(multiset)
+        P = OrderedMultisetPartitions(weight)
 
-        if multiset == []:
+        if multiset == ():
             yield self.element_class(self, [])
         else:
             # We build ordered multiset partitions of `X` by permutation + deconcatenation
-            for alpha in Permutations(multiset):
+            for alpha in Permutations_mset(multiset):
                 co = _break_at_descents(alpha, weak=True)
                 for A in P(co).finer(strong=True):
                     yield A
@@ -2022,7 +2022,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         """
         OrderedMultisetPartitions.__init__(self, True)
         self._X = X
-        self._Xlist = [k for (k,v) in X for _ in range(v)]
+        self._Xlist = tuple(k for (k,v) in sorted(X) for _ in range(v))
 
     def _repr_(self):
         """
@@ -2050,14 +2050,14 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         """
         Return the number of ordered partitions of multiset ``X``.
         """
-        if self._Xlist == []:
+        if self._Xlist == ():
             return 0
 
         # We build ordered multiset partitions of `X` by permutation + deconcatenation
         # Is there a balls-and-boxes formula for this?
 
         deg = 0
-        for alpha in Permutations(self._Xlist):
+        for alpha in Permutations_mset(self._Xlist):
             fattest = _break_at_descents(alpha)
             deg += prod(2**(len(k)-1) for k in fattest)
         return deg
@@ -2066,9 +2066,9 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         r"""
         Return a typical ``OrderedMultisetPartition_X``.
         """
-        if self._Xlist == []:
+        if self._Xlist == ():
             return self.element_class(self, [])
-        alpha = Permutations(self._Xlist).an_element()
+        alpha = Permutations_mset(self._Xlist).an_element()
         co = _break_at_descents(alpha)
 
         # construct "an element" by breaking the first fat block of `co` in two
@@ -2105,7 +2105,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         if not self._Xlist:
             return self.element_class(self, [])
 
-        alpha = Permutations(self._Xlist).random_element()
+        alpha = Permutations_mset(self._Xlist).random_element()
         co = _break_at_descents(alpha)
         finer = self.element_class(self, map(Set,co)).finer()
         return finer.random_element()
@@ -2142,7 +2142,7 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         """
         OrderedMultisetPartitions.__init__(self, True, **constraints)
         self._X = X
-        self._Xlist = [k for (k,v) in X for _ in range(v)]
+        self._Xlist = tuple(k for (k,v) in sorted(X) for _ in range(v))
 
     def _repr_(self):
         r"""
@@ -2403,9 +2403,9 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
 
 def _get_multiset(co):
     """
-    Construct the multiset (as an unsorted list) suggested by the lists of lists ``co``.
+    Construct the multiset (as a sorted tuple) suggested by the lists of lists ``co``.
     """
-    return sorted(_concatenate(co))
+    return tuple(sorted(_concatenate(co)))
 
 def _get_weight(lst):
     """
@@ -2424,12 +2424,12 @@ def _union_of_sets(list_of_sets):
 
 def _concatenate(list_of_iters):
     """
-    Return the concatenation of a list of iterables
+    Return the concatenation of a list of iterables as a tuple.
     """
     #if not list_of_iters:
     #    return []
     #return reduce(lambda a,b: a+b, list_of_iters)
-    return [_ for block in list_of_iters for _ in block]
+    return tuple(_ for block in list_of_iters for _ in block)
 
 def _is_finite(constraints):
     r"""

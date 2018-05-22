@@ -1791,7 +1791,7 @@ class SQLDatabase(SageObject):
             index_string = 'CREATE INDEX ' + col_name + ' ON ' + table_name \
                 + ' (' + col_name + ')'
         cur = self.__connection__.cursor()
-        exe = cur.execute(index_string)
+        cur.execute(index_string)
 
         # Update Skeleton
         self.__skeleton__[table_name][col_name]['index'] = True
@@ -1821,14 +1821,15 @@ class SQLDatabase(SageObject):
         if self.__read_only__:
             raise RuntimeError('Cannot modify a read only database.')
         if table_name not in self.__skeleton__:
-            raise ValueError("Database has no table %s."%table_name)
+            raise ValueError("Database has no table %s." % table_name)
         if index_name not in self.__skeleton__[table_name]:
-            raise ValueError("Table %s has no column %s."%(table,index_name))
+            raise ValueError("Table %s has no column %s." % (table_name,
+                                                             index_name))
         if not self.__skeleton__[table_name][index_name]['index']:
             return # silently
 
         cur = self.__connection__.cursor()
-        exe = cur.execute('DROP INDEX i_' + table_name + '_' + index_name)
+        cur.execute('DROP INDEX i_' + table_name + '_' + index_name)
 
         # Update Skeleton
         self.__skeleton__[table_name][index_name]['index'] = False

@@ -1,15 +1,15 @@
 r"""
 Differentiable submanifold of a differentiable manifold.
 
-Given two differentiable manifolds N and M, an immersion \phi is a
+Given two differentiable manifolds N and M, an immersion `\phi` is a
 differentiable map from N to M such that its differential is everywhere
 injective.
 
-If in addition \phi is a topological embedding, then it is called an embedding.
+If in addition `\phi` is a topological embedding, then it is called an embedding.
 In this case, N is a differentiable submanifold of M
 
-\phi can also depend on one or multiple parameters. As long as the differential
-of \phi remains injective in these parameters, it represent a foliation.
+`\phi` can also depend on one or multiple parameters. As long as the differential
+of `\phi` remains injective in these parameters, it represent a foliation.
 The dimension of the foliation is defined as the number of parameters.
 
 AUTHORS:
@@ -29,8 +29,7 @@ AUTHORS:
 # *****************************************************************************
 
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.submanifold.topological_submanifold import \
-    TopologicalSubmanifold
+from sage.manifolds.topological_submanifold import TopologicalSubmanifold
 from sage.rings.infinity import infinity
 
 
@@ -38,15 +37,15 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
     r"""
     Differentiable submanifold of a differentiable manifold.
 
-    Given two differentiable manifolds N and M, an immersion \phi is a
+    Given two differentiable manifolds N and M, an immersion `\phi` is a
     differentiable map from N to M such that its differential is everywhere
     injective.
 
-    If in addition \phi is a topological embedding, then it is called an
+    If in addition `\phi` is a topological embedding, then it is called an
     embedding. In this case, N is a differentiable submanifold of M
 
-    \phi can also depend on one or multiple parameters. As long as the
-    differential of \phi remains injective in these parameters, it represent
+    `\phi` can also depend on one or multiple parameters. As long as the
+    differential of `\phi` remains injective in these parameters, it represent
     a foliation. The dimension of the foliation is defined as the number of
     parameters.
 
@@ -96,7 +95,7 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
     Let N be a 2-dimensional submanifold of M, 3-dimensional manifold::
 
         sage: M = Manifold(3, 'M')
-        sage: N = Manifold(2, 'N', ambient = M)
+        sage: N = Manifold(2, 'N', ambient=M)
         sage: N
         2-dimensional differentiable submanifold N embedded in 3-dimensional
          differentiable manifold M
@@ -114,11 +113,10 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         sage: phi_inv = M.diff_map(N, {(CM, CN):[x, y]})
         sage: phi_inv_t = M.scalar_field({CM: z-x**2-y**2})
 
-    \phi can then be declared as an embedding from N to M::
+    `\phi` can then be declared as an embedding from N to M::
 
-        sage: N.set_immersion(phi, phi_inverse = phi_inv, var = t,\
-        ....:                 t_inverse = {t: phi_inv_t})
-        sage: N.declare_embedding()
+        sage: N.set_embedding(phi, inverse=phi_inv, var=t,
+        ....:                 t_inverse={t: phi_inv_t})
 
     The foliation can also be used to find new charts on the ambient manifold
     that are adapted to the foliation, ie in which the expression of the

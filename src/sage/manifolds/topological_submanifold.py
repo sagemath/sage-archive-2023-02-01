@@ -3,11 +3,11 @@ Topological Submanifold
 
 Given a topological manifold M over the topological field K, a topological
 submanifold of M is defined by a manifold N on the same field K of dimension
-smaller than M and a topological immersion, i.e. a continuous map \phi from N
-to M which is locally a topological embedding (i.e. an homeomorphism onto its
+smaller than M and a topological immersion, i.e. a continuous map `\phi` from
+N to M which is locally a topological embedding (i.e. an homeomorphism onto its
 image).
 
-\phi can also depend on one or multiple parameters. As long as \phi remains
+`\phi` can also depend on one or multiple parameters. As long as `\phi` remains
 injective in these parameters, it represent a foliation. The dimension of
 the foliation is defined as the number of parameters.
 
@@ -47,12 +47,12 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     Given a topological manifold M over the topological field K, a topological
     submanifold of M is defined by a manifold N on the same field K of dimension
-    smaller than M and a topological immersion, i.e. a continuous map \phi from
-    N to M which is locally a topological embedding (i.e. an homeomorphism onto
-    its image).
+    smaller than M and a topological immersion, i.e. a continuous map `\phi`
+    from N to M which is locally a topological embedding (i.e. an homeomorphism
+    onto its image).
 
-    \phi can also depend on one or multiple parameters.
-    as long as \phi remains injective in these parameters, it represent
+    `\phi` can also depend on one or multiple parameters.
+    as long as `\phi` remains injective in these parameters, it represent
     a foliation. The dimension of the foliation is defined as the numbers of
     parameters.
 
@@ -102,7 +102,7 @@ class TopologicalSubmanifold(TopologicalManifold):
     Let N be a 2-dimensional submanifold of M, 3-dimensional manifold::
 
         sage: M = Manifold(3, 'M', structure="topological")
-        sage: N = Manifold(2, 'N', ambient = M, structure="topological")
+        sage: N = Manifold(2, 'N', ambient=M, structure="topological")
         sage: N
         2-dimensional submanifold N embedded in 3-dimensional manifold M
         sage: CM.<x,y,z> = M.chart()
@@ -118,11 +118,10 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: phi_inv = M.continuous_map(N, {(CM, CN):[x, y]})
         sage: phi_inv_t = M.scalar_field({CM: z-x**2-y**2})
 
-    \phi can then be declared as an embedding from N to M::
+    `\phi` can then be declared as an embedding from N to M::
 
-        sage: N.set_immersion(phi, phi_inverse = phi_inv, var = t,\
-        ....:                 t_inverse = {t: phi_inv_t})
-        sage: N.declare_embedding()
+        sage: N.set_embedding(phi, inverse=phi_inv, var=t,
+        ....:                 t_inverse={t: phi_inv_t})
 
     The foliation can also be used to find new charts on the ambient manifold
     that are adapted to the foliation, ie in which the expression of the
@@ -146,8 +145,8 @@ class TopologicalSubmanifold(TopologicalManifold):
         Construct a topological immersion of a given manifold.
 
         EXAMPLES::
-            sage: M = Manifold(3,'M',structure="topological")
-            sage: N = Manifold(2,'N',ambient = M,structure="topological")
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
             2-dimensional submanifold N embedded in 3-dimensional manifold M
 
@@ -178,8 +177,8 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         TESTS::
 
-            sage: M = Manifold(3,'M',structure="topological")
-            sage: N = Manifold(2,'N',ambient = M,structure="topological")
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N._repr_()
             '2-dimensional submanifold N embedded in 3-dimensional manifold M'
 
@@ -191,30 +190,31 @@ class TopologicalSubmanifold(TopologicalManifold):
                                                 self._ambient._dim,
                                                 self._ambient._name)
 
-    def set_immersion(self, phi, phi_inverse=None, var=None,
+    def set_immersion(self, phi, inverse=None, var=None,
                       t_inverse=None):
         r"""
         Register the immersion of the immersed submanifold.
 
         The immersion is a continuous map from the submanifold to the ambient
-        manifold. If an inverse exists, it can be registered at the same time.
-        If the immersion depends on parameters, they must also be declared here.
+        manifold. If an inverse onto its image exists, it can be registered at
+        the same time. If the immersion depends on parameters, they must also be
+        declared here.
 
         INPUTS:
 
-        - ``phi`` -- continuous map from self to self._ambient
-        - ``phi_inverse`` -- (default: ``None``) inverse of phi, used for
-          computing changes of chart from or to adapted charts. No verification
-          is made
-        - ``var`` -- (default: ``None``) list of parameters appearing in \phi
+        - ``phi`` -- continuous map `\phi` from self to self._ambient
+        - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
+          used for computing changes of chart from or to adapted charts. No
+          verification is made
+        - ``var`` -- (default: ``None``) list of parameters appearing in `\phi`
         - ``t_inverse`` -- (default: ``{}``) dictionary of scalar field on
           self._ambient indexed by elements of ``var`` representing the missing
-          information in ``phi_inverse``
+          information in ``inverse``
 
         EXAMPLES::
 
-            sage: M = Manifold(3,'M',structure="topological")
-            sage: N = Manifold(2,'N',ambient = M,structure="topological")
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
             2-dimensional submanifold N embedded in 3-dimensional manifold M
             sage: CM.<x,y,z> = M.chart()
@@ -226,8 +226,8 @@ class TopologicalSubmanifold(TopologicalManifold):
              manifold M
             sage: phi_inv = M.continuous_map(N,{(CM,CN):[x,y]})
             sage: phi_inv_t = M.scalar_field({CM:z-x**2-y**2})
-            sage: N.set_immersion(phi, phi_inverse = phi_inv, var = t,\
-            ....:                 t_inverse = {t: phi_inv_t})
+            sage: N.set_immersion(phi, inverse=phi_inv, var=t,
+            ....:                 t_inverse={t: phi_inv_t})
 
         """
         if not isinstance(phi, ContinuousMap):
@@ -239,9 +239,9 @@ class TopologicalSubmanifold(TopologicalManifold):
                                                     self._ambient.name()))
         self._immersion = phi
 
-        if phi_inverse is not None:
-            self._immersion._inverse = phi_inverse
-            self._immersion_inv = phi_inverse
+        if inverse is not None:
+            self._immersion._inverse = inverse
+            self._immersion_inv = inverse
 
         if var is not None:
             try:
@@ -277,8 +277,8 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         EXAMPLES::
 
-            sage: M = Manifold(3,'M',structure="topological")
-            sage: N = Manifold(2,'N',ambient = M,structure="topological")
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
             2-dimensional submanifold N embedded in 3-dimensional manifold M
             sage: CM.<x,y,z> = M.chart()
@@ -290,8 +290,8 @@ class TopologicalSubmanifold(TopologicalManifold):
              manifold M
             sage: phi_inv = M.continuous_map(N,{(CM,CN):[x,y]})
             sage: phi_inv_t = M.scalar_field({CM:z-x**2-y**2})
-            sage: N.set_immersion(phi, phi_inverse = phi_inv, var = t,\
-            ....:                 t_inverse = {t: phi_inv_t})
+            sage: N.set_immersion(phi, inverse=phi_inv, var=t,
+            ....:                 t_inverse={t: phi_inv_t})
             sage: print(N._immersed)
             True
             sage: print(N._embedded)
@@ -310,45 +310,101 @@ class TopologicalSubmanifold(TopologicalManifold):
         self._immersion._is_isomorphism = True
         self._embedded = True
 
+    def set_embedding(self, phi, inverse=None, var=None,
+                      t_inverse=None):
+        r"""
+        Register the embedding of an embedded submanifold.
+
+        A topological embedding is an immersion that is an homeomorphism on
+        its image. A differential embedding must also have a non-zero
+        differential in every point. Having an invertible immersion is not
+        enough.
+
+        INPUTS:
+
+        - ``phi`` -- continuous map `\phi` from self to self._ambient
+        - ``inverse`` -- (default: ``None``) inverse of `\phi` onto its image,
+          used for computing changes of chart from or to adapted charts. No
+          verification is made
+        - ``var`` -- (default: ``None``) list of parameters appearing in `\phi`
+        - ``t_inverse`` -- (default: ``{}``) dictionary of scalar field on
+          self._ambient indexed by elements of ``var`` representing the missing
+          information in ``inverse``
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
+            sage: N
+            2-dimensional submanifold N embedded in 3-dimensional manifold M
+            sage: CM.<x,y,z> = M.chart()
+            sage: CN.<u,v> = N.chart()
+            sage: t = var('t')
+            sage: phi = N.continuous_map(M,{(CN,CM):[u,v,t+u**2+v**2]}); phi
+            Continuous map from the 2-dimensional submanifold N embedded in
+             3-dimensional manifold M to the 3-dimensional topological
+             manifold M
+            sage: phi_inv = M.continuous_map(N,{(CM,CN):[x,y]})
+            sage: phi_inv_t = M.scalar_field({CM:z-x**2-y**2})
+            sage: N.set_embedding(phi, inverse=phi_inv, var=t,
+            ....:                 t_inverse={t: phi_inv_t})
+
+        """
+        self.set_immersion(phi, inverse, var, t_inverse)
+        self.declare_embedding()
+
+
     def adapted_chart(self, index="", latex_index=""):
         r"""
         Create charts and changes of charts in the ambient manifold adapted
         to the foliation
 
-        A manifold M of dimension m can be foliated by a submanifolds N of
-        dimension n. The corresponding embedding needs m-n free parameters to
-        describe the whole manifold.
+        A manifold M of dimension `m` can be foliated by a submanifolds N of
+        dimension `n`. The corresponding embedding needs `m-n` free parameters
+        to describe the whole manifold.
 
         A set of coordinates adapted to a foliation is a set of coordinates
-        (x_1,...,x_n,t_1,...t_{m-n}) such that (x_1,...x_n) are coordinates
-        of N and (t_1,...t_{m-n}) are the m-n free parameters of the foliation
+        `(x_1,...,x_n,t_1,...t_{m-n})` such that `(x_1,...x_n)` are coordinates
+        of N and `(t_1,...t_{m-n})` are the `m-n` free parameters of the
+        foliation.
 
         Provided that an embedding is already defined, this function constructs
         such charts and coordinates changes whenever it is possible.
 
-        If there are restriction of the coordinates on the starting chart, these
-        restrictions are also propagated
+        If there are restrictions of the coordinates on the starting chart,
+        these restrictions are also propagated
 
         INPUT:
 
         - ``index`` -- (default: ``""``) string defining the name of the
           coordinates in the new chart. This string will be added at the end of
           the names of the old coordinates. By default, it is replace by
+<<<<<<< HEAD:src/sage/manifolds/submanifold/topological_submanifold.py
           "_"+self._ambient._name
         - ``latex_index`` -- (default: ``""``) string defining the latex name
           of the coordinates in the new chart. This string will be added at the
           end of the latex names of the old coordinates. By default, it is
           replace by "_"+self._ambient._latex_()
 
+||||||| merged common ancestors
+          "_"+self._ambient._name
+=======
+          ``"_"+self._ambient._name``
+        - ``latex_index`` -- (default: ``""``) string defining the latex name
+          of the coordinates in the new chart. This string will be added at the
+          end of the latex names of the old coordinates. By default, it is
+          replace by ``"_"+self._ambient._latex_()``
+
+>>>>>>> embedding:src/sage/manifolds/topological_submanifold.py
 
         OUTPUT:
 
-        -list of charts created from the charts of self
+        -list of charts created from the charts of ``self``
 
         EXAMPLES::
 
-            sage: M = Manifold(3,'M',structure="topological")
-            sage: N = Manifold(2,'N',ambient = M,structure="topological")
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
             sage: N
             2-dimensional submanifold N embedded in 3-dimensional manifold M
             sage: CM.<x,y,z> = M.chart()
@@ -357,8 +413,8 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: phi = N.continuous_map(M,{(CN,CM):[u,v,t+u**2+v**2]})
             sage: phi_inv = M.continuous_map(N,{(CM,CN):[x,y]})
             sage: phi_inv_t = M.scalar_field({CM:z-x**2-y**2})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = t,\
-            ....:                 t_inverse = {t:phi_inv_t})
+            sage: N.set_immersion(phi, inverse=phi_inv, var=t,
+            ....:                 t_inverse={t:phi_inv_t})
             sage: N.declare_embedding()
             sage: N.adapted_chart()
             [Chart (M, (u_M, v_M, t_M))]
@@ -455,36 +511,36 @@ class TopologicalSubmanifold(TopologicalManifold):
           considered. By default, the default chart of the submanifold is used
         - ``chart1`` -- (default: ``None``) destination chart. By default, the
           default chart of the manifold is used
-        - ``**kwargs`` other argument as used in  `ParametricSurface`
+        - ``**kwargs`` other argument as used in  ``ParametricSurface``
 
-        EXAMPLE::
+        EXAMPLES::
 
-            sage: M = Manifold(3,'M',structure="topological")
-            sage: N = Manifold(2,'N',ambient = M,structure="topological")
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient = M, structure="topological")
             sage: CM.<x,y,z> = M.chart()
             sage: CN.<u,v> = N.chart()
             sage: t = var('t')
             sage: phi = N.continuous_map(M,{(CN,CM):[u,v,t+u**2+v**2]})
             sage: phi_inv = M.continuous_map(N,{(CM,CN):[x,y]})
             sage: phi_inv_t = M.scalar_field({CM:z-x**2-y**2})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = t,\
+            sage: N.set_immersion(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse = {t:phi_inv_t})
             sage: N.declare_embedding()
             sage: N.adapted_chart()
             [Chart (M, (u_M, v_M, t_M))]
-            sage: P0 = N.plot({t:0}, srange(-1, 1, 0.1), srange(-1, 1, 0.1), \
+            sage: P0 = N.plot({t:0}, srange(-1, 1, 0.1), srange(-1, 1, 0.1),
             ....:             CN, CM, opacity=0.3, mesh=True)
-            sage: P1 = N.plot({t:1}, srange(-1, 1, 0.1), srange(-1, 1, 0.1), \
+            sage: P1 = N.plot({t:1}, srange(-1, 1, 0.1), srange(-1, 1, 0.1),
             ....:             CN, CM, opacity=0.3, mesh=True)
-            sage: P2 = N.plot({t:2}, srange(-1, 1, 0.1), srange(-1, 1, 0.1), \
-             ....:             CN, CM, opacity=0.3, mesh=True)
-            sage: P3 = N.plot({t:3}, srange(-1, 1, 0.1), srange(-1, 1, 0.1), \
-             ....:             CN, CM, opacity=0.3, mesh=True)
+            sage: P2 = N.plot({t:2}, srange(-1, 1, 0.1), srange(-1, 1, 0.1),
+            ....:             CN, CM, opacity=0.3, mesh=True)
+            sage: P3 = N.plot({t:3}, srange(-1, 1, 0.1), srange(-1, 1, 0.1),
+            ....:             CN, CM, opacity=0.3, mesh=True)
             sage: show(P0+P1+P2+P3)
 
         .. SEEALSO::
 
-            :func: `ParametricSurface`
+            :class:`~sage.plot.plot3d.parametric_surface.ParametricSurface`
 
         """
 

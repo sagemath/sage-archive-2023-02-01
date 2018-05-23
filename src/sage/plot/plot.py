@@ -1543,7 +1543,7 @@ def plot(funcs, *args, **kwds):
 
     .. PLOT::
 
-        p1 = plot(sin(x), -pi, pi, fill='axis'); print p1
+        p1 = plot(sin(x), -pi, pi, fill='axis'); print(p1)
         p2 = plot(sin(x), -pi, pi, fill='min', fillalpha=1)
         p3 = plot(sin(x), -pi, pi, fill='max')
         p4 = plot(sin(x), -pi, pi, fill=(1-x)/3, fillcolor='blue', fillalpha=.2)

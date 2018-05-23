@@ -1391,7 +1391,8 @@ class DifferentialPrecisionGeneric(SageObject):
             for index in mark:
                 status[index] = '~'
             hist = [ self._format_history(-1, status, timings) ]
-            oldevent = ''; total_time = 0
+            oldevent = ''
+            total_time = 0
             for (event, index, tme) in self._history:
                 if event == 'partial reduce' or event == 'full reduce':
                     if separate_reduce:
@@ -1475,7 +1476,7 @@ class DifferentialPrecisionGeneric(SageObject):
             tme_by_event[event] += tme
         if action is None:
             return tme_by_event
-        if tme_by_event.has_key(action):
+        if action in tme_by_event:
             return tme_by_event[action]
         else:
             raise ValueError("invalid event")
@@ -1883,7 +1884,7 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
         for i in range(len(col)):
             v = col[i].valuation()
             if v >= prec: continue
-            if rows_by_val.has_key(v):
+            if v in rows_by_val:
                 rows_by_val[v].append(i)
             else:
                 rows_by_val[v] = [i]
@@ -2519,7 +2520,7 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
         for i in range(len(col)):
             v = col[i].valuation()
             if v >= prec: continue
-            if rows_by_val.has_key(v):
+            if v in rows_by_val:
                 rows_by_val[v].append(i)
             else:
                 rows_by_val[v] = [i]

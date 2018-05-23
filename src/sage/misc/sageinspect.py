@@ -506,7 +506,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             return node.value
 
         def visit_arg(self, node):
-            """
+            r"""
             Visit a Python AST :class:`ast.arg` node.
 
             This node type is only on Python 3, where function arguments are
@@ -517,11 +517,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
 
             INPUT:
 
-            - ``node`` - the node instance to visit
+            - ``node`` -- the node instance to visit
 
             OUTPUT:
 
-            - the argument name
+            the argument name
 
             EXAMPLES::
 
@@ -532,7 +532,6 @@ class SageArgSpecVisitor(ast.NodeVisitor):
                 sage: [visitor.visit_arg(n) for n in args]  # py3
                 ['a', 'b', 'c', 'd']
             """
-
             return node.arg
 
     def visit_Num(self, node):

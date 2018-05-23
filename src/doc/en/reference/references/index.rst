@@ -34,7 +34,7 @@ REFERENCES:
 **A**
 
 .. [ABBR2012] \A. Abad, R. Barrio, F. Blesa, M. Rodriguez. Algorithm 924.
-              *ACM Transactions on Mathematical Software*, *39* no. 1 (2012), 1-28.
+              *ACM Transactions on Mathematical Software*, **39** no. 1 (2012), 1-28.
 
 .. [ACFLSS04] \F. N. Abu-Khzam, R. L. Collins, M. R. Fellows, M. A.  Langston,
               W. H. Suters, and C. T. Symons: Kernelization Algorithm for the
@@ -73,10 +73,15 @@ REFERENCES:
 .. [Aj1996] \M. Ajtai. Generating hard instances of lattice problems
             (extended abstract). STOC, pp. 99--108, ACM, 1996.
 
+.. [AK1994] \S. Ariki and K. Koike.
+            *A Hecke algebra of* `(\mathbb{Z}/r\mathbb{Z})\wr\mathfrak{S}_n`
+            *and construction of its irreducible representations.*
+            Adv. Math. **106** (1994), 216–243.
+            mathscinet:`MR1279219`
 
-.. [AJL2011] Susumu Ariki, Nicolas Jacon, and Cedric Lecouvey.
+.. [AJL2011] \S. Ariki, N. Jacon, and C. Lecouvey.
              *The modular branching rule for affine Hecke algebras of type A*.
-             Adv. Math. 228:481-526 (2011).
+             Adv. Math. 228:481-526, 2011.
 
 .. [Aki1980] \J. Akiyama. and G. Exoo and F. Harary. Covering and packing in
              graphs. III: Cyclic and acyclic invariants. Mathematical Institute
@@ -99,16 +104,17 @@ REFERENCES:
             Steenrod algebra," Proc. Cambridge Philos. Soc. 76 (1974),
             45-52.
 
+.. [AM2000]  \S. Ariki and A. Mathas.
+            *The number of simple modules of the Hecke algebras of type G(r,1,n)*.
+            Math. Z. 233 (2000), no. 3, 601–623.
+            :mathscinet:`MR1750939`
+
 .. [Ap1997] \T. Apostol, Modular functions and Dirichlet series in
             number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
 
 .. [APR2001] George E. Andrews, Peter Paule, Axel Riese,
              *MacMahon's partition analysis: the Omega package*,
              European J. Combin. 22 (2001), no. 7, 887--904.
-
-.. [Ariki1996] Susumu Ariki.
-               *On the decomposition numbers of the Hecke algebra of*
-               `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996). pp 789--808.
 
 .. [Ar2006] \D. Armstrong. *Generalized noncrossing partitions and
             combinatorics of Coxeter groups*. Mem. Amer. Math. Soc., 2006.
@@ -117,6 +123,15 @@ REFERENCES:
             Ish arrangement". Transactions of the American
             Mathematical Society 364 (2012),
             1509-1528. :arxiv:`1009.1655`
+
+.. [Ariki1996] \S. Ariki. *On the decomposition numbers of the Hecke
+               algebra of* `G(m,1,n)`. J. Math. Kyoto Univ. **36** (1996),
+               no. 4, 789–808. :mathscinet:`MR1443748`
+
+.. [Ariki2001] \S. Ariki. *On the classification of simple modules for
+               cyclotomic Hecke algebras of type* `G(m,1,n)` *and Kleshchev
+               multipartitions*. Osaka J. Math. **38** (2001), 827–837.
+               :mathscinet:`MR1864465`
 
 .. [AS-Bessel] \F. W. J. Olver: 9. Bessel Functions of Integer Order,
                in Abramowitz and Stegun: Handbook of Mathematical
@@ -347,6 +362,16 @@ REFERENCES:
             affine semigroup. Uni. Iaggelonicae Acta Math. 39, (2001),
             59-70
 
+.. [BK2008] \J. Brundan and A. Kleshchev.
+            *Blocks of cyclotomic Hecke algebras and Khovanov-Lauda algebras*.
+            Invent. Math. *178* (2009), no. 3, 451–484.
+            :mathscinet:`MR2551762`
+
+.. [BK2009] \J. Brundan and A. Kleshchev.
+            *Graded decomposition numbers for cyclotomic Hecke algebras*.
+            Adv. Math. **222** (2009), 1883–1942.
+            :mathscinet:`MR2562768`
+
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
               J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
@@ -357,6 +382,11 @@ REFERENCES:
             Block Cipher*; in Proceedings of CHES 2007; LNCS 7427; pp. 450-466;
             Springer Verlag 2007; available at
             http://www.crypto.rub.de/imperia/md/content/texte/publications/conferences/present_ches2007.pdf
+
+.. [BKW2011] \J. Brundan, A. Kleshchev, and W. Wang,
+             *Graded Specht modules*,
+             J. Reine Angew. Math., **655** (2011), 61-87.
+             :mathscinet:`MR2806105`
 
 .. [BL2000] Anders Björner and Frank H. Lutz, "Simplicial manifolds,
             bistellar flips and a 16-vertex triangulation of the
@@ -454,6 +484,11 @@ REFERENCES:
              Volume 50, Issue 2, 6 May 1994, Pages 111-123
              Discrete Applied Mathematics
              http://www.sciencedirect.com/science/article/pii/0166218X9200169M
+
+.. [Bru1998] \J. Brundan. *Modular branching rules and the Mullineux map
+             for Hecke algebras of type* `A`.
+             Proc. London Math. Soc. (3) **77** (1998), 551–581.
+             :mathscinet:`MR1643413`
 
 .. [Bruin-Molnar] \N. Bruin and A. Molnar, *Minimal models for rational
             functions in a dynamical setting*,
@@ -632,7 +667,7 @@ REFERENCES:
 .. [CMT2003] \A. M. Cohen, S. H. Murray, D. E. Talyor.
              *Computing in groups of Lie type*.
              Mathematics of Computation. **73** (2003), no 247. pp. 1477--1498.
-             http://www.win.tue.nl/~amc/pub/papers/cmt.pdf
+             https://www.win.tue.nl/~amc/pub/papers/cmt.pdf
 
 .. [Co1984] \J. Conway, Hexacode and tetracode - MINIMOG and
             MOG. *Computational group theory*, ed. M. Atkinson,
@@ -641,7 +676,7 @@ REFERENCES:
 .. [Co1999] John Conway, Neil Sloan. *Sphere Packings, Lattices and Groups*,
             Springer Verlag 1999.
 
-.. [Coh1993] Henri Cohen. A Course in Computational Number
+.. [Coh1993] Henri Cohen. A Course in Computational Algebraic Number
              Theory. Graduate Texts in Mathematics 138. Springer, 1993.
 
 .. [Coh2007I] Henri Cohen, *Number Theory, Vol. I: Tools and
@@ -802,6 +837,10 @@ REFERENCES:
 .. [Di2000] \L. Dissett, Combinatorial and computational aspects of
             finite geometries, 2000,
             https://tspace.library.utoronto.ca/bitstream/1807/14575/1/NQ49844.pdf
+
+.. [DJM1998] \R. Dipper, G. James and A. Mathas
+             *Cyclotomic q-Schur algebras*, Math. Z, **229** (1998), 385-416.
+             :mathscinet:`MR1658581`
 
 .. [DLHK2007] \J. A. De Loera, D. C. Haws, M. Köppe, Ehrhart
               polynomials of matroid polytopes and
@@ -1021,6 +1060,10 @@ REFERENCES:
 .. [Fu1993] Wiliam Fulton, *Introduction to Toric Varieties*,
             Princeton University Press, 1993.
 
+.. [Ful1997] William Fulton,
+             *Young Tableaux*.
+             Cambridge University Press, 1997.
+
 .. [FY2004] Eva Maria Feichtner and Sergey Yuzvinsky. *Chow rings of
             toric varieties defined by atomic lattices*. Inventiones
             Mathematicae. **155** (2004), no. 3, pp. 515-536.
@@ -1213,9 +1256,13 @@ REFERENCES:
             Cryptanalysis* ; 2002' available at
             http://www.engr.mun.ca/~howard/PAPERS/ldc_tutorial.pdf
 
-.. [Hes2002] \F. Hess, "Computing Riemann-Roch spaces in algebraic
+.. [Hes2002] Florian Hess, "Computing Riemann-Roch spaces in algebraic
              function fields and related topics," J. Symbolic
              Comput. 33 (2002), no. 4, 425--445.
+
+.. [Hes2002b] Florian Hess, "An algorithm for computing Weierstrass points,"
+              International Algorithmic Number Theory Symposium (pp. 357-371).
+              Springer Berlin Heidelberg, 2002.
 
 .. [Hig2008] \N. J. Higham, "Functions of matrices: theory and computation",
              Society for Industrial and Applied Mathematics (2008).
@@ -1461,6 +1508,17 @@ REFERENCES:
             Sci. Publ., Hackensack, NJ, 2008. Preprint version:
             :arxiv:`0710.1835`
 
+.. [Kle1995] \A. Kleshchev. *Branching rules for modular representations of
+             symmetric groups. I*. J. Algebra **178** (1995), 493–511.
+
+.. [Kle1996] \A. Kleshchev, *Branching rules for modular representations of symmetric groups III:
+              Some corollaries and a problem of Mullineux*, J. London Math. Soc. 54 (1996) 25–38.
+              :mathscinet:`MR1395065`
+
+.. [Kle2009] \A. Kleshchev.
+             *Representation theory of symmetric groups and related Hecke algebras*.
+             Bull. Amer. Math. Soc. **47** (2010), 419–481. :arxiv:`0909.4844`.
+
 .. [KLLRSY2014] \E. B. Kavun, M. M. Lauridsen, G. Leander, C. Rechberger,
                 \P. Schwabe, and T. Yalcin, *Prost v1*; CAESAR Competition, (2014).
 
@@ -1529,6 +1587,11 @@ REFERENCES:
             23, Issue 3 (November 2002), 281-290.  Available at
             http://portal.acm.org/citation.cfm?id=763203 and free of
             charge at :arxiv:`math/0106043`
+
+.. [Kra1999] \C. Krattenthaler,
+           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
+           Journal of Combinatorial Theory, Series A, **88** (1999), 66-92,
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
 
 .. [Kra2006] Christian Krattenthaler.  *Growth diagrams, and
              increasing and decreasing chains in fillings of Ferrers
@@ -1678,8 +1741,9 @@ REFERENCES:
 
 .. [LLT1996] Alain Lascoux, Bernard Leclerc, and Jean-Yves Thibon.
              *Hecke algebras at roots of unity and crystal bases of
-             quantum affine algebras*. Commun. Math. Phys.
+             quantum affine algebras*. Comm. Math. Phys.
              **181** (1996), pp 205-263.
+             :mathscinet:`MR1410572`
 
 .. [LLYCL2005] \H. J. Lee, S. J. Lee, J. H. Yoon, D. H. Cheon, and J. I. Lee,
                *The SEED Encryption Algorithm*; in
@@ -1835,6 +1899,12 @@ REFERENCES:
 .. [Mas1969] James L. Massey, "Shift-Register Synthesis and BCH
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.
+
+.. [Mat2015]  \A. Mathas. *Cyclotomic quiver Hecke algebras of type A*,
+              in "Modular representation theory of finite and p-adic groups",
+              165–266, Lect. Notes Ser. Inst. Math. Sci. Natl. Univ. Singap.,
+              **30**, World Sci. Publ., Hackensack, NJ, 2015.
+              :mathscinet:`MR3495747`
 
 .. [MatroidDatabase] `Database of Matroids <http://www-imai.is.s.u-tokyo.ac.jp/~ymatsu/matroid/index.html>`_
 
@@ -2506,6 +2576,17 @@ REFERENCES:
            Integrating ODEs by using the Taylor Series Method
            (http://www.unizar.es/acz/05Publicaciones/Monografias/MonografiasPublicadas/Monografia36/IndMonogr36.htm)
 
+.. [TingleyLN] Peter Tingley. *Explicit* `\widehat{\mathfrak{sl}}_n` *crystal
+               maps between cylindric plane partitions, multi-partitions, and
+               multi-segments*. Lecture notes.
+               http://webpages.math.luc.edu/~ptingley/lecturenotes/explicit_bijections.pdf
+
+.. [Tingley2007] Peter Tingley. *Three combinatorial models for*
+                 `\widehat{\mathfrak{sl}}_n` *crystals, with applications
+                 to cylindric plane partitions*.
+                 International Mathematics Research Notices. (2007).
+                 :arxiv:`0702062v3`.
+
 .. [TOPCOM] \J. Rambau, TOPCOM
             <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
 
@@ -2538,6 +2619,12 @@ REFERENCES:
              :doi:`10.1007/978-3-0348-8495-2`
 
 .. [Vat2008] \D. Vatne, *The mutation class of `D_n` quivers*, :arxiv:`0810.4789v1`.
+
+.. [Vazirani2002] Monica Vazirani. *Parameterizing Hecek algebra modules:
+                  Bernstein-Zelevinsky multisegments, Kleshchev
+                  multipartitions, and crystal graphs*. Transform. Groups
+                  **7** (2002). pp. 267-303. :arxiv:`0107052v1`,
+                  :doi:`10.1007/s00031-002-0014-1`.
 
 .. [VB1996] \E. Viterbo, E. Biglieri. *Computing the Voronoi Cell of a
             Lattice: The Diamond-Cutting Algorithm*. IEEE Transactions

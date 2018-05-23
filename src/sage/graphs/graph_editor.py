@@ -21,7 +21,6 @@ import sys
 from .graph_generators import graphs
 from sage.misc.html import html
 
-import sagenb.notebook.interact
 from sage.server.support import EMBEDDED_MODE
 
 
@@ -105,6 +104,7 @@ def graph_editor(graph=None, graph_name=None,
         sage: h = graphs.StarGraph(6)
         sage: graph_editor(h, replace_input=False)  # not tested
     """
+    import sagenb.notebook.interact
     if graph is None:
         graph = graphs.CompleteGraph(2)
 

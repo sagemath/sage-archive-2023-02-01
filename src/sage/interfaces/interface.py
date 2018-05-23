@@ -1157,7 +1157,10 @@ class InterfaceElement(Element):
             return self.parent().get(self._name).rstrip()
 
     def __getattr__(self, attrname):
-        P = self._check_valid()
+        try:
+            P = self._check_valid()
+        except ValueError:
+            raise AttributeError(attrname)
         if attrname[:1] == "_":
             raise AttributeError
         return P._function_element_class()(self, attrname)

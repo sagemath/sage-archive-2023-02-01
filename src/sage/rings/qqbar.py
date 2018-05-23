@@ -1591,7 +1591,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         ALGORITHM:
 
-        For rings over QQ, uses Singular's `absfact` library.
+        For rings over QQ, uses Singular's ``absfact`` library.
 
         For rings over number fields, we reduce to the QQ case by factoring
         the norm of the polynomial.
@@ -1603,16 +1603,11 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         REFERENCE::
 
-            Geddes, Section 8.8, Algorithm 8.10
-            cites Trager "Algebraic Factoring and Rational Function Integration", Kronecker, van der Waerden "Modern Algebra"
-
-            make Norm() square free by adding a multiple of alpha (NF's generator) to z
-            in F(alpha)[z].   a(z) is our polynomial.  Norm(a(z-s alpha)) is square free
-            for all but a finite set of s's
+            Geddes, et. al, "Algorithms for Computer Algebra", Section 8.8
 
         TESTS::
 
-            sage: R.<x,y>=QQbar[]
+            sage: R.<x,y> = QQbar[]
 
             sage: L = QQbar._factor_multivariate_polynomial(x^2+y^2)
             sage: L
@@ -1625,7 +1620,10 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: p = (-7*x^2 + 2*x*y^2 + 6*x + y^4 + 14*y^2 + 47)*(5*x^2+y^2)^3*(x-y)^4
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (1/21125) * (5*x + (-2.236067977499790?*I)*y)^3 * (5*x + 2.236067977499790?*I*y)^3 * (x - y)^4 * (13*y^2 + (-23.76955262170047?)*x + 72.6152236891498?) * (13*y^2 + 49.76955262170047?*x + 109.3847763108503?)
+            (1/21125) * (5*x + (-2.236067977499790?*I)*y)^3
+            * (5*x + 2.236067977499790?*I*y)^3 * (x - y)^4
+            * (13*y^2 + (-23.76955262170047?)*x + 72.6152236891498?)
+            * (13*y^2 + 49.76955262170047?*x + 109.3847763108503?)
             sage: F.value() == p
             True
 
@@ -1635,7 +1633,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: p = x^2 + QQbar(sqrt(2))*y^2
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (1.414213562373095?) * ((-0.8408964152537146?*I)*x - y) * (0.8408964152537146?*I*x - y)
+            (1.414213562373095?) * ((-0.8408964152537146?*I)*x - y)
+            * (0.8408964152537146?*I*x - y)
             sage: F.value() == p
             True
 
@@ -1655,7 +1654,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: p = QQbar(sqrt(2))*(x^2-2*y^2)^2
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (5.656854249492380?) * ((-0.7071067811865475?)*x - y)^2 * (0.7071067811865475?*x - y)^2
+            (5.656854249492380?) * ((-0.7071067811865475?)*x - y)^2
+            * (0.7071067811865475?*x - y)^2
             sage: F.value() == p
             True
 
@@ -1664,7 +1664,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: p = (x^2+QQbar(sqrt(2))*y^2)*(x^4-2*y^4)
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (-2.828427124746190?) * ((-0.8408964152537146?)*x - y) * (0.8408964152537146?*x - y) * ((-0.8408964152537146?*I)*x - y)^2 * (0.8408964152537146?*I*x - y)^2
+            (-2.828427124746190?) * ((-0.8408964152537146?)*x - y)
+            * (0.8408964152537146?*x - y) * ((-0.8408964152537146?*I)*x - y)^2
+            * (0.8408964152537146?*I*x - y)^2
             sage: F.value() == p
             True
 
@@ -1703,9 +1705,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             # minpoly is in a multivariate polynomial ring
             # over a univariate fraction field
 
-            assert(minpoly.degree() == 0)
+            assert minpoly.degree() == 0
             minpoly = minpoly.constant_coefficient()
-            assert(minpoly.denominator() == 1)
+            assert minpoly.denominator() == 1
             minpoly = minpoly.numerator()
 
             NF = NumberField(minpoly, minpoly.parent().gen(0))
@@ -1760,7 +1762,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
                 # that doesn't require numfield, so add all of its conjugates
                 # to factorization.
 
-                assert(multiplicity % numfield.degree() == 0)
+                assert multiplicity % numfield.degree() == 0
                 multiplicity = multiplicity // numfield.degree()
 
                 for hom in NF.embeddings(QQbar):

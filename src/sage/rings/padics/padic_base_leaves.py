@@ -876,7 +876,7 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
         TESTS:
 
             sage: R = ZpLC(7, label='init')
-            sage: TestSuite(R).run(skip='_test_teichmuller')
+            sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
         """
         # We need to set the subtype first, so that
         # pAdicRingBaseGeneric.__init__ can work
@@ -1004,8 +1004,8 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
 
         TESTS::
 
-            sage: R = ZpLC(7, label='init')
-            sage: TestSuite(R).run(skip='_test_teichmuller')
+            sage: R = QpLC(7, label='init')
+            sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
         """
         # We need to set the subtype first, so that
         # pAdicFieldBaseGeneric.__init__ can work

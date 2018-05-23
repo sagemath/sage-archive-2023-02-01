@@ -1659,6 +1659,15 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: F.value() == p
             True
 
+        A test where two factors produce the same factor in the norm::
+
+            sage: p = (x^2+QQbar(sqrt(2))*y^2)*(x^4-2*y^4)
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (-2.828427124746190?) * ((-0.8408964152537146?)*x - y) * (0.8408964152537146?*x - y) * ((-0.8408964152537146?*I)*x - y)^2 * (0.8408964152537146?*I*x - y)^2
+            sage: F.value() == p
+            True
+
         """
         from sage.structure.factorization import Factorization
         from sage.interfaces.singular import singular
@@ -1715,33 +1724,35 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             homs = numfield.embeddings(NF)
 
-            # Can we embed NF in numfield?
+            # Can we embed our original numfield into NF?
 
             if len(homs) > 0:
 
-                # Yes.  Select those embeddings of our original numfield
-                # into NF so that the factor divides our original polynomial.
+                for numfield_into_NF in homs:
 
-                valid_homs = [h for h in homs if numfield_f.map_coefficients(h) % factor_NF == 0]
+                    # We can't rely on the multiplicity computed by Singular,
+                    # since there might be multiple factors in the original
+                    # polynomial that give rise to the same factor in the
+                    # norm.  Therefore, we recompute the multiplicity here
+                    # for each possible embedding.
 
-                # There should be at least one, and if there's more than one,
-                # then our multiplicity was inflated by that factor.
+                    numfield_NF = numfield_f.map_coefficients(numfield_into_NF)
 
-                assert(len(valid_homs) > 0)
-                assert(multiplicity % len(valid_homs) == 0)
-                multiplicity = multiplicity // len(valid_homs)
-
-                for numfield_into_NF in valid_homs:
+                    for i in itertools.count(1):
+                        if numfield_NF % (factor_NF)**i != 0:
+                            multiplicity = i-1
+                            break
 
                     # Then, for all of the conjugates, check to see if composing
                     # with numfield_into_NF produces the original morphism that
                     # maps number_field into QQbar.  If so, this conjugate is
                     # a factor of the original polynomial, and not just its norm.
 
-                    for hom in NF.embeddings(QQbar):
-                        if hom * numfield_into_NF == morphism:
-                            QQbar_factor = factor_NF.map_coefficients(hom)
-                            factorization.append((QQbar_factor, multiplicity))
+                    if multiplicity > 0:
+                        for hom in NF.embeddings(QQbar):
+                            if hom * numfield_into_NF == morphism:
+                                QQbar_factor = factor_NF.map_coefficients(hom)
+                                factorization.append((QQbar_factor, multiplicity))
 
             else:
 

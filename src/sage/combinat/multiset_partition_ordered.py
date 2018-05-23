@@ -219,7 +219,8 @@ class OrderedMultisetPartition(ClonableArray):
             AssertionError: cannot convert [[1, 1], [1, 4]] into an element
              of Ordered Multiset Partitions
         """
-        assert self in self.parent()
+        if self not in self.parent():
+            raise ValueError("{} not an element of {}".format(self, self.parent())
 
     def _repr_(self):
         return self._repr_tight()
@@ -1625,11 +1626,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: len(list(OMP._iterator_weight(weight=[2,1]))) == OMPw.cardinality()
             True
         """
+        if isinstance(weight, (list, tuple)):
+            weight = {k+1: val for k,val in enumerate(weight) if val > 0}
         if isinstance(weight, dict):
-            multiset = tuple(k for k in sorted(weight.keys()) for _ in range(weight[k]))
-        elif isinstance(weight, (list, tuple)):
-            multiset = tuple((k+1) for _ in range(len(weight)) for _ in range(weight[k]))
-            weight = _get_weight(multiset)
+            multiset = tuple([k for k in sorted(weight) for _ in range(weight[k])])
         P = OrderedMultisetPartitions(weight)
 
         if multiset == ():
@@ -1724,7 +1724,7 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
             sage: C.subset([1,4], 2)
             Ordered Multiset Partitions of order 2 over alphabet {1, 4}
         """
-        if len(args) == 0:
+        if not args:
             return self
         return OrderedMultisetPartitions(*args, **self.constraints)
 
@@ -1794,15 +1794,6 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
                         if self._satisfies_constraints(co):
                             yield self.element_class(self, co)
                     n += 1
-
-    def cardinality(self, skip_check=False):
-        r"""
-        Return the cardinality of ``self``.
-        """
-        if skip_check or self.category() == FiniteEnumeratedSets():
-            return len(list(self))
-        else:
-            return infinity
 
     def __eq__(self, other):
         """

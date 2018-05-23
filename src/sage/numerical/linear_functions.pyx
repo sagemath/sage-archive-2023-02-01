@@ -52,7 +52,7 @@ inequalities as less or equal::
     The implementation of chained inequalities uses a Python hack to
     make it work, so it is not completely robust. In particular, while
     constants are allowed, no two constants can appear next to
-    eachother. The following does not work for example::
+    each other. The following does not work for example::
 
         sage: x[0] <= 3 <= 4
         True
@@ -87,6 +87,18 @@ See :trac:`12091`::
     2*x_0 <= x_1 <= 1
     sage: b[2] >= b[1] >= 2*b[0]
     2*x_0 <= x_1 <= x_2
+
+Some checks kept from :trac:`25419`::
+
+    sage: p = MixedIntegerLinearProgram()
+    sage: LF = p.linear_functions_parent()
+    sage: f = LF({2 : 5, 3 : 2})
+    sage: len(set([f, f]))
+    1
+    sage: len(set([f, f+0]))
+    2
+    sage: len(set([f, f+1]))
+    2
 """
 
 #*****************************************************************************

@@ -365,15 +365,9 @@ def absolute_igusa_invariants_wamelen(f):
 
 def absolute_igusa_invariants_kohel(f):
     r"""
-    Given a sextic form `f`, return the three absolute Igusa invariants used by Kohel [K]_.
+    Given a sextic form `f`, return the three absolute Igusa invariants used by Kohel [KohECHIDNA]_.
 
     `f` may be homogeneous in two variables or inhomogeneous in one.
-
-    REFERENCES:
-
-    .. [K] Kohel, David.  ECHIDNA: Databases for Elliptic Curves
-       and Higher Dimensional Analogues.
-       Available at http://echidna.maths.usyd.edu.au/~kohel/dbs/
 
     EXAMPLES::
 
@@ -383,7 +377,7 @@ def absolute_igusa_invariants_kohel(f):
         sage: absolute_igusa_invariants_kohel(x^5 - x)
         (100, -20000, -2000)
 
-    The following example can be checked against Kohel's database [K]_ ::
+    The following example can be checked against Kohel's database [KohECHIDNA]_ ::
 
         sage: i1, i2, i3 = absolute_igusa_invariants_kohel(-x^5 + 3*x^4 + 2*x^3 - 6*x^2 - 3*x + 1)
         sage: list(map(factor, (i1, i2, i3)))

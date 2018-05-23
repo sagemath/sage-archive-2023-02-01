@@ -1572,6 +1572,10 @@ REFERENCES:
              1998), Advanced Studies in Pure Mathematics, 30,
              177-196, 2000.
 
+.. [KohECHIDNA] Kohel, David.  ECHIDNA: Databases for Elliptic Curves and Higher
+                Dimensional Analogues.  Available at
+                http://echidna.maths.usyd.edu.au/~kohel/dbs/
+
 .. [Koh2007] \A. Kohnert, *Constructing two-weight codes with prescribed
              groups of automorphisms*, Discrete applied mathematics 155,
              no. 11 (2007):

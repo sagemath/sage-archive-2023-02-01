@@ -1795,34 +1795,6 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
                             yield self.element_class(self, co)
                     n += 1
 
-    def __eq__(self, other):
-        """
-        Return True if ``self`` and ``other`` represent the same set of
-        ordered multiset partitions.
-        """
-        constr1 = dict(self.constraints)
-        constr1["weight"] = constr1.get("weight", dict(getattr(self, "_X", {})))
-        constr1["size"] = constr1.get("size", getattr(self, "_n", None))
-        A = getattr(self, "_alphabet", Set(constr1["weight"].keys()))
-        constr1["alphabet"] = constr1.get("alphabet", A)
-        constr1["order"] = constr1.get("order", getattr(self, "_order", None))
-
-        constr2 = dict(other.constraints)
-        constr2["weight"] = constr2.get("weight", dict(getattr(other, "_X", {})))
-        constr2["size"] = constr2.get("size", getattr(other, "_n", None))
-        A = getattr(self, "_alphabet", Set(constr1["weight"].keys()))
-        constr2["alphabet"] = constr2.get("alphabet", A)
-        constr2["order"] = constr2.get("order", getattr(other, "_order", None))
-
-        if constr1 == constr2:
-            return True
-        else:
-            if {self.category(), other.category()} == {FiniteEnumeratedSets()}:
-                return Set(self) == Set(other)
-            else:
-                # maybe not true
-                return False
-
 ###############
 
 class OrderedMultisetPartitions_n(OrderedMultisetPartitions):

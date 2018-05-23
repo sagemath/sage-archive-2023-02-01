@@ -1620,6 +1620,8 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: L.value()
             x^2 + y^2
 
+        The test from Singular's ``absfact`` documentation::
+
             sage: p = (-7*x^2 + 2*x*y^2 + 6*x + y^4 + 14*y^2 + 47)*(5*x^2+y^2)^3*(x-y)^4
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
@@ -1627,10 +1629,33 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             sage: F.value() == p
             True
 
+        A test requiring us to further extend a number field that was
+        used to specify the polynomial::
+
             sage: p = x^2 + QQbar(sqrt(2))*y^2
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
             (1.414213562373095?) * ((-0.8408964152537146?*I)*x - y) * (0.8408964152537146?*I*x - y)
+            sage: F.value() == p
+            True
+
+        A test requiring a number field different from the number field
+        used to specify the polynomial::
+
+            sage: p = QQbar(sqrt(2))*(x^2+y^2)
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (1.414213562373095?) * ((-1*I)*x - y) * (1*I*x - y)
+            sage: F.value() == p
+            True
+
+        A test where a factor introduces a number field that was already
+        used to specify the polynomial::
+
+            sage: p = QQbar(sqrt(2))*(x^2-2*y^2)^2
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (5.656854249492380?) * ((-0.7071067811865475?)*x - y)^2 * (0.7071067811865475?*x - y)^2
             sage: F.value() == p
             True
 
@@ -1645,46 +1670,28 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         elem_dict = dict(zip(orig_elems, new_elems))
 
-        from sage.misc.all import prod
-
-        def polynomial_map(p):
-            newp = p.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
-            if numfield is not QQ:
-                newp = prod([newp.map_coefficients(h) for h in numfield.embeddings(QQbar)]).change_ring(QQ)
-            return newp
-
         numfield_f = f.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
 
-        R = polynomial_map(f)._singular_().absFactorize()
+        from sage.misc.all import prod
+
+        if numfield is not QQ:
+            norm_f = prod([numfield_f.map_coefficients(h) for h in numfield.embeddings(QQbar)]).change_ring(QQ)
+        else:
+            norm_f = numfield_f
+
+        R = norm_f._singular_().absFactorize()
 
         singular.setring(R)
         L = singular('absolute_factors')
 
-        # Singular returns our factors in a multivariate polynomial
-        # ring over a fraction field of a univariate ring, which is
-        # actually a number field, with the minimal polynomial
-        # specified separately.
-
-        def reverse_polynomial_map(p, hom):
-            # 'hom' should map from a NumberField to QQbar
-            NF = hom.domain()
-            # first we map from the univariate fraction field to NF,
-            # then map NF to QQbar
-            def reverse_elem_map(e):
-                return hom(NF(e.numerator()) / NF(e.denominator()))
-
-            return p.map_coefficients(reverse_elem_map, new_base_ring=hom.codomain())
-
         factorization = []
-
-        # return L.sage()
 
         for i in range(2, len(L[1])+1):
             factor = L[1][i].sage()
             multiplicity = int(L[2][i].sage())
             minpoly = L[3][i].sage()
 
-            # minpoly is also in a multivariate polynomial ring
+            # minpoly is in a multivariate polynomial ring
             # over a univariate fraction field
 
             assert(minpoly.degree() == 0)
@@ -1694,44 +1701,60 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             NF = NumberField(minpoly, minpoly.parent().gen(0))
 
-            if numfield is not QQ:
-                LL = NF.composite_fields(numfield, both_maps = True)
-                composite_field, NF_into_CF, numfield_into_CF, k = LL[0]
+            # Singular returns factor coefficients in a fraction field
+            # of a univariate ring, which is actually a number field.
+
+            def NF_elem_map(e):
+                return NF(e.numerator()) / NF(e.denominator())
+
+            factor_NF = factor.map_coefficients(NF_elem_map, new_base_ring=NF)
+
+            # We now have a number field and a factor in that number field such
+            # that the factor and all of its conjugates multiply together to
+            # form a factor of the original polynomial's norm.
+
+            homs = numfield.embeddings(NF)
+
+            # Can we embed NF in numfield?
+
+            if len(homs) > 0:
+
+                # Yes.  Select those embeddings of our original numfield
+                # into NF so that the factor divides our original polynomial.
+
+                valid_homs = [h for h in homs if numfield_f.map_coefficients(h) % factor_NF == 0]
+
+                # There should be at least one, and if there's more than one,
+                # then our multiplicity was inflated by that factor.
+
+                assert(len(valid_homs) > 0)
+                assert(multiplicity % len(valid_homs) == 0)
+                multiplicity = multiplicity // len(valid_homs)
+
+                for numfield_into_NF in valid_homs:
+
+                    # Then, for all of the conjugates, check to see if composing
+                    # with numfield_into_NF produces the original morphism that
+                    # maps number_field into QQbar.  If so, this conjugate is
+                    # a factor of the original polynomial, and not just its norm.
+
+                    for hom in NF.embeddings(QQbar):
+                        if hom * numfield_into_NF == morphism:
+                            QQbar_factor = factor_NF.map_coefficients(hom)
+                            factorization.append((QQbar_factor, multiplicity))
+
             else:
-                composite_field = NF
 
-            #if composite_field is numfield:
-            if False:
-                # NF is numfield or a subfield thereof
-                # this is a factor of the original polynomial that exists in numfield[]
-                # Norm() introduced
-                for hom in NF.embeddings(numfield):
-                    QQbar_factor = reverse_polynomial_map(factor, morphism*hom)
-                    factorization.append((QQbar_factor, multiplicity))
-            else:
-                # NF is not a subfield of numfield
-                # this is a factor of the original polynomial that exists in QQ[]
-                # Norm() simply increased its multiplicity
-                #assert(multiplicity % numfield.degree() == 0)
-                #multiplicity = multiplicity // numfield.degree()
-                #for hom in NF.embeddings(QQbar):
-                #    QQbar_factor = reverse_polynomial_map(factor, hom)
-                #    factorization.append((QQbar_factor, multiplicity))
+                # No.  This corresponds to a factor of the original polynomial
+                # that doesn't require numfield, so add all of its conjugates
+                # to factorization.
 
-                # First, let's pick an embedding of our original numfield into NF
-                # so that the factor divides our original polynomial.
-
-                basehom = next( (h for h in numfield.embeddings(NF) if numfield_f.map_coefficients(h) % reverse_polynomial_map(factor, NF.hom(NF)) == 0) )
-
-                # Then, for every way of embedding NF into QQbar, check to see
-                # if composing it with basehom produces the original morphism
-                # that maps number_field to QQbar.  If so, this is a valid
-                # conjugate, so add it to factorization.
+                assert(multiplicity % numfield.degree() == 0)
+                multiplicity = multiplicity // numfield.degree()
 
                 for hom in NF.embeddings(QQbar):
-                    if hom * basehom == morphism:
-                        QQbar_factor = reverse_polynomial_map(factor, hom)
-                        factorization.append((QQbar_factor, multiplicity))
+                    QQbar_factor = factor_NF.map_coefficients(hom)
+                    factorization.append((QQbar_factor, multiplicity))
 
         # What we'd now like to do is
         #     return Factorization(factorization, unit=QQ(L[1][1].sage()))

@@ -84,7 +84,7 @@ from sage.combinat.root_system.cartan_type import CartanType
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedMultisetPartition(ClonableArray):
     r"""
-    Ordered multiset partitions
+    Ordered Multiset Partition
 
     An ordered multiset partition `c` of a multiset `X` is a list of nonempty
     subsets (not multisets), called the blocks of `c`, whose multi-union is `X`.
@@ -1055,7 +1055,7 @@ class OrderedMultisetPartition(ClonableArray):
 
 class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     r"""
-    A set of ordered multiset partitions `c`.
+    Ordered Multiset Partitions
 
     An ordered multiset partition `c` of a multiset `X` is a list of nonempty subsets
     (not multisets), called the blocks of `c`, whose multi-union is `X`.
@@ -1068,27 +1068,8 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     .. TODO::
 
     - Fix ``check`` error.
-      See, e.g.,
-      sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
-
-    - Fix iteration errors here:
-      sage: O1 = OrderedMultisetPartitions(weight=[2,0,1])
-      sage: list(O1) # maximum recursion depth exceded
-      sage: O1.list()
-      [[{1}, {1}, {3}], [{1}, {1,3}], [{1}, {3}, {1}], [{1,3}, {1}], [{3}, {1}, {1}]]
-      sage: list(O1)
-      [[{1}, {1}, {3}], [{1}, {1,3}], [{1}, {3}, {1}], [{1,3}, {1}], [{3}, {1}, {1}]]
-
-      sage: O2 = OrderedMultisetPartitions(alphabet=[1,3], max_order=3, min_length=2)
-      sage: list(O2) # maximum recursion depth exceded
-      sage: O2.list()
-      [[{1}, {1}], [{1}, {3}], [{3}, {1}], [{3}, {3}], [{1,3}, {1}],
-       [{1,3}, {3}], [{1}, {1,3}], [{3}, {1,3}], [{1}, {1}, {1}],
-       [{1}, {1}, {3}], [{1}, {3}, {1}], [{1}, {3}, {3}],
-       [{3}, {1}, {1}], [{3}, {1}, {3}], [{3}, {3}, {1}], [{3}, {3}, {3}]]
-      sage: list(O2) == _
-      True
-
+      See, e.g., below, which should be the empty list.
+      sage: OrderedMultisetPartitions(4, weight=[0,0,0,0,1]).list()
 
     INPUT:
 
@@ -1754,9 +1735,7 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
         iteration is passed to :class:`OrderedMultisetPartitions_n`
         for all sizes `n`.
 
-        .. TODO:: make some nice examples and tests.
-
-        TESTS::
+        EXAMPLES::
 
             sage: OrderedMultisetPartitions(3).list()
             [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
@@ -1764,9 +1743,23 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
             [[]]
             sage: C = OrderedMultisetPartitions()
             sage: it = C.__iter__()
-            sage: [next(it) for i in range(12)]
+            sage: [next(it) for i in range(16)]
             [[], [{1}], [{2}], [{1}, {1}], [{3}], [{1,2}], [{2}, {1}],
-             [{1}, {2}], [{1}, {1}, {1}], [{4}], [{1,3}], [{3}, {1}]]
+             [{1}, {2}], [{1}, {1}, {1}], [{4}], [{1,3}], [{3}, {1}],
+             [{1,2}, {1}], [{2}, {2}], [{2}, {1}, {1}], [{1}, {3}]]
+
+        TESTS::
+
+            sage: OrderedMultisetPartitions(alphabet=[1,3], max_length=2).list()
+            [[], [{1}], [{3}], [{1,3}], [{1}, {1}], [{1}, {3}],
+             [{3}, {1}], [{3}, {3}], [{1,3}, {1}], [{1,3}, {3}],
+             [{1}, {1,3}], [{3}, {1,3}], [{1,3}, {1,3}]]
+            sage: C = OrderedMultisetPartitions(min_length=2, max_order=2)
+            sage: it = C.__iter__()
+            sage: [next(it) for i in range(15)]
+            [[{1}, {1}], [{2}, {1}], [{1}, {2}], [{3}, {1}], [{2}, {2}],
+             [{1}, {3}], [{4}, {1}], [{3}, {2}], [{2}, {3}], [{1}, {4}],
+             [{5}, {1}], [{4}, {2}], [{3}, {3}], [{2}, {4}], [{1}, {5}]]
         """
         constraints = self.constraints
         if self.category() == FiniteEnumeratedSets():
@@ -1801,12 +1794,12 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
             # or letters over an alphabet
             if "alphabet" in self.constraints:
                 A = constraints["alphabet"]
-                n = 0
+                ell = 0
                 while True:
-                    for co in OrderedMultisetPartitions_A(A, n):
+                    for co in OrderedMultisetPartitions_A(A, ell):
                         if self._satisfies_constraints(co):
                             yield self.element_class(self, co)
-                    n += 1
+                    ell += 1
             else:
                 n = 0
                 while True:
@@ -1963,7 +1956,8 @@ class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
         """
         cdict = dict(self.constraints)
         cdict.pop("size", None)
-        return OrderedMultisetPartitions_n(self._n)._repr_() + self._constraint_repr_(cdict)
+        base_repr = "Ordered Multiset Partitions of integer %s" % self._n
+        return base_repr + self._constraint_repr_(cdict)
 
     def __iter__(self):
         """
@@ -2131,8 +2125,9 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         """
         cdict = dict(self.constraints)
         cdict.pop("weight", None)
-        # FIXME: You should never create a new parent to do a repr.
-        return OrderedMultisetPartitions_X(self._X)._repr_() + self._constraint_repr_(cdict)
+        ms_rep = "{{" + ", ".join(map(str, self._Xlist)) + "}}"
+        base_repr = "Ordered Multiset Partitions" + " of multiset %s"%ms_rep
+        return base_repr + self._constraint_repr_(cdict)
 
     def _has_valid_blocks(self, x):
         """
@@ -2189,9 +2184,9 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
             sage: repr(OrderedMultisetPartitions([1,3], 2))
             'Ordered Multiset Partitions of order 2 over alphabet {1, 3}'
         """
-        _rep = " of order " + str(self._order)
-        _rep += " over alphabet {%s}"%(", ".join(map(str, sorted(self._alphabet))))
-        return "Ordered Multiset Partitions" + _rep
+        A_rep = "Ordered Multiset Partitions of order " + str(self._order)
+        A_rep += " over alphabet {%s}"%(", ".join(map(str, sorted(self._alphabet))))
+        return A_rep
 
     def _has_valid_blocks(self, x):
         """
@@ -2322,8 +2317,9 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
         cdict = dict(self.constraints)
         cdict.pop("alphabet", None)
         cdict.pop("order", None)
-        return OrderedMultisetPartitions_A(self._alphabet, self._order)._repr_() \
-                + self._constraint_repr_(cdict)
+        base_repr = "Ordered Multiset Partitions of order " + str(self._order)
+        base_repr += " over alphabet {%s}"%(", ".join(map(str, sorted(self._alphabet))))
+        return base_repr + self._constraint_repr_(cdict)
 
     def _has_valid_blocks(self, x):
         """

@@ -1903,7 +1903,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def distance_matrix(self):
         """
-        Returns the distance matrix of the (strongly) connected (di)graph.
+        Return the distance matrix of (di)graph.
+
+        The (di)graph is expected to be (strongly) connected.
 
         The distance matrix of a (strongly) connected (di)graph is a matrix whose
         rows and columns are indexed with the vertices of the (di) graph. The
@@ -1943,21 +1945,23 @@ class GenericGraph(GenericGraph_pyx):
             * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_all_pairs`
               -- computes the distance between any two vertices.
         """
-
         from sage.matrix.constructor import matrix
 
         n = self.order()
-        ret = matrix(n,n)
+        ret = matrix(n, n)
         V = self.vertices()
 
         dist = self.distance_all_pairs()
 
         for i in range(n):
             for j in range(i+1,n):
-                d = (dist[V[i]])[V[j]]
-                if d > n :
+                try:
+                    d = (dist[V[i]])[V[j]]
+                except KeyError:
                     raise ValueError("Input (di)graph must be (strongly) connected.")
-                ret[i,j] = ret[j,i] = d
+                if d > n:
+                    raise ValueError("Input (di)graph must be (strongly) connected.")
+                ret[i, j] = ret[j, i] = d
 
         return ret
 

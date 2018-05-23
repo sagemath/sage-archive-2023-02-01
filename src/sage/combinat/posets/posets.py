@@ -5416,7 +5416,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.subposet(["a","b","x"])
             Traceback (most recent call last):
             ...
-            ValueError: <... 'str'> is not an element of this poset
+            ValueError: element (=x) not in poset
             sage: P.subposet(3)
             Traceback (most recent call last):
             ...
@@ -5424,15 +5424,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.misc.misc import uniq
 
-        if not elements:
-            return Poset()
-
         H = self._hasse_diagram
         elms = uniq([self._element_to_vertex(e) for e in elements])
 
+        if not elms:
+            return Poset()
+
         relations = []
         lt = [set() for _ in range(elms[-1]+1)]
-    
+
         for i in range(elms[0], elms[-1]+1):
             for low in H.neighbor_in_iterator(i):
                 lt[i].update(lt[low])
@@ -5441,7 +5441,10 @@ class FinitePoset(UniqueRepresentation, Parent):
                 lt[i] = set([i])
 
         g = DiGraph([elms, relations], format='vertices_and_edges')
-        g.relabel(self._vertex_to_element, inplace=True)
+        if self._is_facade:
+            g.relabel(self._vertex_to_element, inplace=True)
+        else:
+            g.relabel(lambda v: self._vertex_to_element(v).element, inplace=True)
         return Poset(g, cover_relations=False, facade=self._is_facade)
 
     def random_subposet(self, p):

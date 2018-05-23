@@ -217,7 +217,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     Consider the `R`-linear map that sends each `G_u` to the sum of
     all words whose standardization (also known as "standard
     permutation"; see
-    :meth:`~sage.combinat.words.finite_word.standard_permutation`)
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.standard_permutation`)
     is `u`. This map is an injective `R`-algebra homomorphism, and
     thus embeds `FQSym` into the latter ring.
 
@@ -367,12 +367,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     _shorthands = tuple(['F', 'G'])
 
     class F(FQSymBasis_abstract):
-        """
+        r"""
         The F-basis of `FQSym`.
 
         This is the basis `(F_w)`, with `w` ranging over all
-        permutations. See the documentation of :class:`FQSym`
-        for details.
+        permutations. See the documentation of
+        :class:`FreeQuasisymmetricFunctions` for details.
 
         EXAMPLES::
 
@@ -691,12 +691,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 return SGA._from_dict({Permutations(n)(key): c for (key, c) in self})
 
     class G(FQSymBasis_abstract):
-        """
+        r"""
         The G-basis of `FQSym`.
 
         This is the basis `(G_w)`, with `w` ranging over all
-        permutations. See the documentation of :class:`FQSym`
-        for details.
+        permutations. See the documentation of
+        :class:`FreeQuasisymmetricFunctions` for details.
 
         EXAMPLES::
 
@@ -1066,7 +1066,8 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`product`, :meth:`prec`, :meth:`over`, :meth:`under`
+                :meth:`~sage.categories.magmas.Magmas.ParentMethods.product`,
+                :meth:`prec`
 
             EXAMPLES::
 
@@ -1117,7 +1118,8 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`product`, :meth:`succ`, :meth:`over`, :meth:`under`
+                :meth:`~sage.categories.magmas.Magmas.ParentMethods.product`,
+                :meth:`succ`
 
             EXAMPLES::
 

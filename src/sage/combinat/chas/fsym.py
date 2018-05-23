@@ -270,7 +270,8 @@ class FSymBases(Category_realization_of_parent):
                 sage: FSym = algebras.FSym(QQ)
                 sage: TG = FSym.G()
                 sage: TG.basis()
-                Lazy family (Term map from Standard tableaux to Hopf algebra of standard tableaux over the Rational Field in the Fundamental basis(i))_{i in Standard tableaux}
+                Lazy family (Term map from Standard tableaux to Hopf algebra of standard tableaux
+                 over the Rational Field in the Fundamental basis(i))_{i in Standard tableaux}
                 sage: TG.basis().keys()
                 Standard tableaux
                 sage: TG.basis(degree=3).keys()
@@ -390,7 +391,8 @@ class FSymBases(Category_realization_of_parent):
     class ElementMethods:
         def duality_pairing(self, other):
             r"""
-            Compute the pairing between ``self`` and an element ``other`` of the dual.
+            Compute the pairing between ``self`` and an element ``other``
+            of the dual.
 
             EXAMPLES::
 
@@ -643,6 +645,8 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def product_on_basis(self, t1, t2):
             r"""
+            Return the product of basis elements indexed by ``t1`` and ``t2``.
+
             EXAMPLES::
 
                 sage: FSym = algebras.FSym(QQ)
@@ -673,6 +677,8 @@ class FreeSymmetricFunctions(UniqueRepresentation, Parent):
         @cached_method
         def coproduct_on_basis(self, t):
             r"""
+            Return the coproduct of the basis element indexed by ``t``.
+
             EXAMPLES::
 
                 sage: FSym = algebras.FSym(QQ)

@@ -1908,18 +1908,13 @@ class GenericGraph(GenericGraph_pyx):
         The (di)graph is expected to be (strongly) connected.
 
         The distance matrix of a (strongly) connected (di)graph is a matrix
-        whose rows and columns are indexed with the vertices of the
-        (di)graph. The intersection of a row and column contains the
-        respective distance between the vertices indexed at these position.
+        whose rows and columns are indexed with the positions of the vertices
+        of the (di)graph in the ordering ``G.vertices()``. The intersection
+        of a row and a column contains the respective distance between the
+        vertices indexed at these positions.
 
-        .. WARNING::
-
-            The ordering of vertices in the matrix has no reason to correspond
-            to the order of vertices in
-            :meth:`~sage.graphs.generic_graph.GenericGraph.vertices`. In
-            particular, if two integers `i,j` are vertices of a graph `G` with
-            distance matrix ``M``, then ``M[i][i]`` is not necessarily the
-            distance between vertices `i` and `j`.
+        Note that even when the vertices are consecutive integers
+        starting from one, usually the vertex is not equal to it's index.
 
         EXAMPLES::
 
@@ -1957,7 +1952,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if ((self.is_directed() and not self.is_strongly_connected()) or
             (not self.is_directed() and not self.is_connected())):
-            raise ValueError("Input (di)graph must be (strongly) connected.")
+            raise ValueError("input (di)graph must be (strongly) connected")
 
         n = self.order()
         ret = matrix(n, n)

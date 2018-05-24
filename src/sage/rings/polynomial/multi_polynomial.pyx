@@ -2098,7 +2098,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.reduced_form(prec=200)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(1.5551623876686905873160660564410782587973928631765344695031 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(1.5551623876686905871173822301513235862915980531542297136320 > 1e-06), increase precision
             sage: f.reduced_form(prec=400)
             (
             -1872*x^5*h + 468*x^4*h^2 + 2340*x^3*h^3 - 2340*x^2*h^4 - 468*x*h^5 + 1872*h^6,

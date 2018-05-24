@@ -3675,7 +3675,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=30)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(1.2519607 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(1.2519612 > 1e-06), increase precision
             sage: f.reduced_form()
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field

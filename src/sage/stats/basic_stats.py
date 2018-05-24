@@ -202,7 +202,6 @@ def std(v, bias=False):
 
     import numpy
 
-    x = 0
     if isinstance(v, numpy.ndarray):
         # accounts for numpy arrays
         if bias:
@@ -215,6 +214,7 @@ def std(v, bias=False):
         return NaN
 
     return sqrt(variance(v, bias=bias))
+
 
 def variance(v, bias=False):
     """

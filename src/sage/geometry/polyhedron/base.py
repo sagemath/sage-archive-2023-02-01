@@ -4126,12 +4126,20 @@ class Polyhedron_base(Element):
             sage: cube_dual = cube.polar()
             sage: octahedron == cube_dual
             True
+
+        TESTS::
+
+            Check that :trac:`25081` is fixed::
+
+            sage: C = polytopes.hypercube(4,backend='cdd')
+            sage: C.polar().backend()
+            'cdd'
         """
         assert self.is_compact(), "Not a polytope."
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         base_ring = self.parent()._coerce_base_ring(self.center().parent())
-        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring)
+        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring,backend=self.backend())
 
     def pyramid(self):
         """
@@ -4341,8 +4349,9 @@ class Polyhedron_base(Element):
 
         REFERENCES:
 
-             David Avis's lrs program.
+        - David Avis's lrs program.
         """
+        from sage.features.lrs import Lrs
         Lrs().require()
 
         from sage.misc.temporary_file import tmp_filename

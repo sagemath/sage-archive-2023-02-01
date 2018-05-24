@@ -1352,6 +1352,5 @@ def units_mod_ideal(I):
     elist = [Istar(I.ideallog(u)).order() for u in ulist]
 
     from sage.misc.mrange import xmrange
-    from sage.misc.all import prod
 
     return [k.prod(u**e for u, e in zip(ulist, ei)) for ei in xmrange(elist)]

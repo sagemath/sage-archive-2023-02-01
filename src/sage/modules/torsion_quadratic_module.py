@@ -328,6 +328,51 @@ class TorsionQuadraticModule(FGP_Module_class):
         """
         return TorsionQuadraticModule(V, W, check=check)
 
+    def all_submodules(self):
+        r"""
+        Return a list of all submodules of ``self``.
+
+        WARNING:
+
+        This method creates all submodules in memory. The number of submodules
+        grows rapidly with the number of generators. For example consider a
+        vector space of dimension `n` over a finite field of prime order `p`.
+        The number of subspaces is (very) roughly `p^{(n^2-n)/2}`.
+
+        EXAMPLES::
+
+            sage: D = IntegralLattice("D4").discriminant_group()
+            sage: D.all_submodules()
+            [Finite quadratic module over Integer Ring with invariants ()
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [],
+             Finite quadratic module over Integer Ring with invariants (2,)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [1],
+             Finite quadratic module over Integer Ring with invariants (2,)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [1],
+             Finite quadratic module over Integer Ring with invariants (2,)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [1],
+             Finite quadratic module over Integer Ring with invariants (2, 2)
+              Gram matrix of the quadratic form with values in Q/2Z:
+              [  1 1/2]
+              [1/2   1]]
+        """
+        from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        invs = self.invariants()
+        # knows how to compute all subgroups
+        A = AbelianGroupGap(invs)
+        S = A.all_subgroups()
+        # over ZZ submodules and subgroups are the same thing.
+        submodules = []
+        for sub in S:
+            gen = [A(g).exponents() for g in sub.gens()]
+            gen = [self.linear_combination_of_smith_form_gens(g) for g in gen]
+            submodules.append(self.submodule(gen))
+        return submodules
+
     @cached_method
     def brown_invariant(self):
         r"""
@@ -873,6 +918,50 @@ class TorsionQuadraticModule(FGP_Module_class):
         T = self.submodule(gens)
         T._gens = [self(v) for v in gens]
         return T
+
+    def twist(self, s):
+        r"""
+        Return the torsion quadratic module with quadratic form scaled by ``s``.
+
+        If the old form was defined modulo `n`, then the new form is defined
+        modulo `n s`.
+
+        INPUT:
+
+        - ``s`` - a rational number
+
+        EXAMPLES::
+
+            sage: q = TorsionQuadraticForm(matrix.diagonal([3/9, 1/9]))
+            sage: q.twist(-1)
+            Finite quadratic module over Integer Ring with invariants (3, 9)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [2/3   0]
+            [  0 8/9]
+
+        This form is defined modulo `3`::
+
+            sage: q.twist(3)
+            Finite quadratic module over Integer Ring with invariants (3, 9)
+            Gram matrix of the quadratic form with values in Q/3Z:
+            [  1   0]
+            [  0 1/3]
+
+        The next form is defined modulo `4`::
+
+            sage: q.twist(4)
+            Finite quadratic module over Integer Ring with invariants (3, 9)
+            Gram matrix of the quadratic form with values in Q/4Z:
+            [4/3   0]
+            [  0 4/9]
+        """
+        s = self.base_ring().fraction_field()(s)
+        n = self.V().degree()
+        inner_product_matrix = s * self.V().inner_product_matrix()
+        ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
+        V = ambient.span(self.V().basis())
+        W = ambient.span(self.W().basis())
+        return TorsionQuadraticModule(V, W)
 
     def value_module(self):
         r"""

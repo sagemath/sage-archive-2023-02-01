@@ -288,7 +288,7 @@ def IntegralLattice(data, basis=None):
                             inner_product_matrix=inner_product_matrix)
     return FreeQuadraticModule_integer_symmetric(ambient=A,
                                                  basis=basis,
-                                                 inner_product_matrix=inner_product_matrix,
+                                                 inner_product_matrix=A.inner_product_matrix(),
                                                  already_echelonized=False)
 
 def IntegralLatticeDirectSum(Lattices, return_embeddings=False):
@@ -1225,6 +1225,71 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         from sage.quadratic_forms.genera.genus import Genus
         return Genus(self.gram_matrix())
 
+    def tensor_product(self, other, discard_basis=False):
+        r"""
+        Return the tensor product of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- an integral lattice
+        - ``discard_basis`` -- a boolean (default: ``False``). If ``True``, then the lattice
+                            returned is equipped with the standard basis.
+
+        EXAMPLES::
+
+            sage: L = IntegralLattice("D3", [[1,-1,0], [0,1,-1]])
+            sage: L1 = L.tensor_product(L)
+            sage: L2 = L.tensor_product(L, True)
+            sage: L1
+            Lattice of degree 9 and rank 4 over Integer Ring
+            Basis matrix:
+            [ 1 -1  0 -1  1  0  0  0  0]
+            [ 0  1 -1  0 -1  1  0  0  0]
+            [ 0  0  0  1 -1  0 -1  1  0]
+            [ 0  0  0  0  1 -1  0 -1  1]
+            Inner product matrix:
+            [ 4 -2 -2 -2  1  1 -2  1  1]
+            [-2  4  0  1 -2  0  1 -2  0]
+            [-2  0  4  1  0 -2  1  0 -2]
+            [-2  1  1  4 -2 -2  0  0  0]
+            [ 1 -2  0 -2  4  0  0  0  0]
+            [ 1  0 -2 -2  0  4  0  0  0]
+            [-2  1  1  0  0  0  4 -2 -2]
+            [ 1 -2  0  0  0  0 -2  4  0]
+            [ 1  0 -2  0  0  0 -2  0  4]
+            sage: L1.gram_matrix()
+            [ 36 -12 -12   4]
+            [-12  24   4  -8]
+            [-12   4  24  -8]
+            [  4  -8  -8  16]
+            sage: L2
+            Lattice of degree 4 and rank 4 over Integer Ring
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            Inner product matrix:
+            [ 36 -12 -12   4]
+            [-12  24   4  -8]
+            [-12   4  24  -8]
+            [  4  -8  -8  16]
+        """
+        if not isinstance(other, FreeQuadraticModule_integer_symmetric):
+            raise ValueError("other (=%s) must be an integral lattice" % other)
+        if discard_basis:
+            gram_matrix = self.gram_matrix().tensor_product(other.gram_matrix())
+            return IntegralLattice(gram_matrix)
+        else:
+            inner_product_matrix = self.inner_product_matrix().tensor_product(other.inner_product_matrix())
+            basis_matrix = self.basis_matrix().tensor_product(other.basis_matrix())
+            n = self.degree()
+            m = other.degree()
+            ambient = FreeQuadraticModule(self.base_ring(), m * n, inner_product_matrix)
+            return FreeQuadraticModule_integer_symmetric(ambient=ambient,
+                                                         basis=basis_matrix,
+                                                         inner_product_matrix=ambient.inner_product_matrix())
+
     def twist(self, s, discard_basis=False):
         r"""
         Return the lattice with inner product matrix scaled by ``s``.
@@ -1292,3 +1357,4 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             inner_product_matrix = s * self.inner_product_matrix()
             ambient = FreeQuadraticModule(self.base_ring(), n, inner_product_matrix)
             return FreeQuadraticModule_integer_symmetric(ambient=ambient, basis=self.basis(), inner_product_matrix=inner_product_matrix)
+

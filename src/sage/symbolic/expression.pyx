@@ -1461,7 +1461,7 @@ cdef class Expression(CommutativeRingElement):
             sage: AA(-golden_ratio)
             -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            1 + 1*I
+            I + 1
             sage: QQbar(e^(pi*I/3))
             0.50000000000000000? + 0.866025403784439?*I
 
@@ -3902,11 +3902,11 @@ cdef class Expression(CommutativeRingElement):
             sage: I^(1/2)
             sqrt(I)
             sage: I^(2/3)
-            I^(2/3)
+            -1
             sage: 2^(1/2)
             sqrt(2)
             sage: (2*I)^(1/2)
-            sqrt(2*I)
+            I + 1
 
         Test if we can take powers of elements of `\QQ(i)` (:trac:`8659`)::
 
@@ -7320,7 +7320,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ex = lcm(sin(x)^2 - 1, sin(x)^2 + sin(x)); ex
             (sin(x)^2 + sin(x))*(sin(x)^2 - 1)/(sin(x) + 1)
             sage: ex.simplify_full()
-            -cos(x)^2*sin(x)
+            sin(x)^3 - sin(x)
 
         TESTS:
 
@@ -10182,7 +10182,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f=tan(3*x)
             sage: f.simplify_trig()
-            (4*cos(x)^2 - 1)*sin(x)/(4*cos(x)^3 - 3*cos(x))
+            -(4*cos(x)^2 - 1)*sin(x)/(4*cos(x)*sin(x)^2 - cos(x))
             sage: f.simplify_trig(False)
             sin(3*x)/cos(3*x)
 
@@ -12687,8 +12687,8 @@ cdef get_dynamic_class_for_function(unsigned serial):
         <class '__main__.Expression_with_dynamic_methods'>
         sage: t.argp1()
         x + 1
-        sage: import sagenb.misc.support as s
-        sage: s.completions('t.argp', globals(), system='python')
+        sage: import sage.interfaces.tab_completion as s
+        sage: s.completions('t.argp', globals())
         ['t.argp1']
         sage: t.argp1.__doc__.strip()
         'Some documentation about a bogus function.'

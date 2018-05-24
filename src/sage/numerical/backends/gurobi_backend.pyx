@@ -60,11 +60,13 @@ cdef class GurobiBackend(GenericBackend):
 
         # Initializing the master Environment. This one is kept to be
         # deallocated on __dealloc__
-        error = GRBloadenv(&self.env_master, NULL)
-
+        error = GRBemptyenv(&self.env_master)
         if self.env_master == NULL:
             raise RuntimeError("Could not initialize Gurobi environment")
-
+        check(self.env_master, error)
+        error = GRBsetintparam(self.env_master, "OutputFlag", 0)
+        check(self.env_master, error)
+        error = GRBstartenv(self.env_master)
         check(self.env_master, error)
 
         # Initializing the model

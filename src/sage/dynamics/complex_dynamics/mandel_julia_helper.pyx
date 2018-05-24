@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Mandelbrot and Julia sets (Cython helper)
 

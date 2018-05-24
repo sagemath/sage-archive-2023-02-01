@@ -48,7 +48,7 @@ from functools import total_ordering
 
 from sage.libs.pari.all import pari
 from sage.rings.all import ZZ, is_fundamental_discriminant
-from sage.arith.all import divisors, gcd
+from sage.arith.all import gcd
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -709,7 +709,6 @@ class BinaryQF(SageObject):
         """
         from sage.sets.all import Set
         from sage.arith.srange import xsrange
-        d = self.discriminant()
         B = 10
         while True:
             llist = list(Set([self(x,y) for x in xsrange(-B,B) for y in xsrange(B)]))

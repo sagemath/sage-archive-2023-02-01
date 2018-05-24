@@ -1427,13 +1427,12 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               Defn: Defined on coordinates by sending (x, y) to
                     (x/y, y)
         """
-        K = self.codomain().base_ring()
         T = self.domain().change_ring(R)
         if self.is_endomorphism():
             H = End(T)
         else:
             S = self.codomain().change_ring(R)
-            H = Hom(T,S)
+            H = Hom(T, S)
 
         if isinstance(R, Map):
             if R.domain() == self.base_ring():

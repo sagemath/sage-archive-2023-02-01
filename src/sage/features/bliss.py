@@ -14,6 +14,8 @@ cdef extern from "bliss/graph.hh" namespace "bliss":
     cdef cppclass Graph:
         Graph(const unsigned int)
 
+from cysignals.signals cimport sig_on, sig_off
+
 sig_on()
 Graph(1)
 sig_off()

@@ -20,7 +20,7 @@ You still can create a projective space as a toric variety if you wish.
 In the following, we call the corresponding subschemes affine
 algebraic schemes, projective algebraic schemes, or toric algebraic
 schemes. In the future other ambient spaces, perhaps by means of
-gluing relations, may be intoduced.
+gluing relations, may be introduced.
 
 Generally, polynomials `p_0, p_1, \dots, p_n` define an ideal
 `I=\left<p_0, p_1, \dots, p_n\right>`. In the projective and toric case, the
@@ -1571,7 +1571,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             ...
             TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
         """
-        #This will catch any ambient space mistmatches
+        #This will catch any ambient space mismatches
         AS = self.ambient_space()*right.ambient_space()
         CR = AS.coordinate_ring()
         n = self.ambient_space().coordinate_ring().ngens()
@@ -1832,11 +1832,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
               (-0.561231024154687 - 0.972080648619833*I)*x^2,
               y^2
         """
-        K = self.base_ring()
         AS = self.ambient_space()
         new_AS = AS.change_ring(R)
         I = [f.change_ring(R) for f in self.defining_polynomials()]
-        return(new_AS.subscheme(I))
+        return new_AS.subscheme(I)
 
     def weil_restriction(self):
         r"""

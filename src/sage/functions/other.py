@@ -1400,7 +1400,7 @@ class Function_factorial(GinacFunction):
             sage: SR(5).factorial()
             120
             sage: SR(3245908723049857203948572398475r).factorial()
-            factorial(3245908723049857203948572398475L)
+            factorial(3245908723049857203948572398475)
             sage: SR(3245908723049857203948572398475).factorial()
             factorial(3245908723049857203948572398475)
         """
@@ -1501,6 +1501,13 @@ class Function_binomial(GinacFunction):
             sage: y = polygen(QQ, 'y')
             sage: binomial(y, 2).parent()
             Univariate Polynomial Ring in y over Rational Field
+
+        :trac:`16726`::
+
+            sage: binomial(CIF(1), 2)
+            0
+            sage: binomial(CIF(3), 2)
+            3
 
         Test pickling::
 

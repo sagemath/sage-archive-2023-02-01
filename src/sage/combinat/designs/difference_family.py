@@ -805,7 +805,7 @@ def one_radical_difference_family(K, k):
     from sage.groups.generic import discrete_log
     logA = [discrete_log(a,x)%c for a in A]
 
-    # if two elments of A are equal modulo c then no tiling is possible
+    # if two elements of A are equal modulo c then no tiling is possible
     if len(set(logA)) != m:
         return None
 
@@ -1094,7 +1094,7 @@ def mcfarland_1973_construction(q, s):
     .. [McF1973] Robert L. McFarland
        "A family of difference sets in non-cyclic groups"
        J. Combinatorial Theory (A) 15 (1973) 1--10.
-       http://dx.doi.org/10.1016/0097-3165(73)90031-9
+       :doi:`10.1016/0097-3165(73)90031-9`
 
     EXAMPLES::
 

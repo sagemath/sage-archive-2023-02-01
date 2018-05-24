@@ -314,7 +314,7 @@ def WellsGraph():
     Returns the Wells graph.
 
     For more information on the Wells graph (also called Armanios-Wells graph),
-    see `this page <http://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
+    see `this page <https://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
 
     The implementation follows the construction given on page 266 of
     [BCN89]_. This requires to create intermediate graphs and run a small
@@ -1399,7 +1399,7 @@ def BrouwerHaemersGraph():
     `(81,20,1,6)`. It is build in Sage as the Affine Orthogonal graph
     `VO^-(6,3)`. For more information on this graph, see its `corresponding page
     on Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/Brouwer-Haemers.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/Brouwer-Haemers.html>`_.
 
     EXAMPLES::
 
@@ -1768,7 +1768,7 @@ def CameronGraph():
     \lambda = 9, \mu = 3`.
 
     For more information on the Cameron graph, see
-    `<http://www.win.tue.nl/~aeb/graphs/Cameron.html>`_.
+    `<https://www.win.tue.nl/~aeb/graphs/Cameron.html>`_.
 
     EXAMPLES::
 
@@ -3077,7 +3077,7 @@ def HigmanSimsGraph(relabel=True):
     REFERENCES:
 
         .. [BROUWER-HS-2009] `Higman-Sims graph
-           <http://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_.
+           <https://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_.
            Andries E. Brouwer, accessed 24 October 2009.
         .. [HIGMAN1968] A simple group of order 44,352,000,
            Math.Z. 105 (1968) 110-113. D.G. Higman & C. Sims.
@@ -3616,7 +3616,7 @@ def M22Graph():
     `v = 77, k = 16, \lambda = 0, \mu = 4`.
 
     For more information on the `M_{22}` graph, see
-    `<http://www.win.tue.nl/~aeb/graphs/M22.html>`_.
+    `<https://www.win.tue.nl/~aeb/graphs/M22.html>`_.
 
     EXAMPLES::
 
@@ -3757,7 +3757,7 @@ def McLaughlinGraph():
     `(275, 112, 30, 56)`.
 
     For more information on the McLaughlin Graph, see its web page on `Andries
-    Brouwer's website <http://www.win.tue.nl/~aeb/graphs/McL.html>`_ which gives
+    Brouwer's website <https://www.win.tue.nl/~aeb/graphs/McL.html>`_ which gives
     the definition that this method implements.
 
     .. NOTE::
@@ -4038,7 +4038,7 @@ def PerkelGraph():
     The Perkel Graph is a 6-regular graph with `57` vertices and `171` edges. It
     is the unique distance-regular graph with intersection array
     `(6,5,2;1,1,3)`. For more information, see the :wikipedia:`Perkel_graph` or
-    http://www.win.tue.nl/~aeb/graphs/Perkel.html.
+    https://www.win.tue.nl/~aeb/graphs/Perkel.html.
 
     EXAMPLES::
 
@@ -4242,7 +4242,7 @@ def SylvesterGraph():
     edge.
 
     For more information on the Sylvester graph, see
-    `<http://www.win.tue.nl/~aeb/graphs/Sylvester.html>`_.
+    `<https://www.win.tue.nl/~aeb/graphs/Sylvester.html>`_.
 
     .. SEEALSO::
 
@@ -4280,7 +4280,7 @@ def SimsGewirtzGraph():
     \lambda = 0, \mu = 2`
 
     For more information on the Sylvester graph, see
-    `<http://www.win.tue.nl/~aeb/graphs/Sims-Gewirtz.html>`_ or its
+    `<https://www.win.tue.nl/~aeb/graphs/Sims-Gewirtz.html>`_ or its
     :wikipedia:`Wikipedia page <Gewirtz graph>`.
 
     .. SEEALSO::
@@ -4861,7 +4861,7 @@ def JankoKharaghaniGraph(v):
     .. [JK02] Janko, Kharaghani,
        A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
        J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
-       http://dx.doi.org/10.1006/jcta.2001.3231
+       :doi:`10.1006/jcta.2001.3231`
 
     .. [GM87] Gibbons, Mathon,
        Construction methods for Bhaskar Rao and related designs,
@@ -5206,7 +5206,7 @@ def U42Graph216():
 
     .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
        Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
-       https://arxiv.org/abs/1609.07133
+       :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
     from sage.misc.package import is_package_installed, PackageNotFoundError

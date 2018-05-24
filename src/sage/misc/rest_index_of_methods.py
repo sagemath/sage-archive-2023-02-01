@@ -80,7 +80,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
            :widths: 30, 70
            :delim: @
         ...
-           :meth:`~sage.graphs.graph.Graph.sparse6_string` @ Returns the sparse6 representation of the graph as an ASCII string.
+           :meth:`~sage.graphs.graph.Graph.sparse6_string` @ Return the sparse6 representation of the graph as an ASCII string.
         ...
 
     TESTS:
@@ -100,7 +100,7 @@ def gen_rest_table_index(list_of_entries, names=None, sort=True, only_local_func
 
     The inherited methods do not show up::
 
-        sage: gen_rest_table_index(sage.combinat.posets.lattices.FiniteLatticePoset).count('\n') < 65
+        sage: gen_rest_table_index(sage.combinat.posets.lattices.FiniteLatticePoset).count('\n') < 75
         True
         sage: from sage.graphs.generic_graph import GenericGraph
         sage: A = gen_rest_table_index(Graph).count('\n')

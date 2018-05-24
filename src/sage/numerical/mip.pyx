@@ -2,9 +2,9 @@ r"""
 Mixed Integer Linear Programming
 
 This module implements classes and methods for the efficient solving of Linear
-Programs (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_) and Mixed
-Integer Linear Programs (`MILP
-<http://en.wikipedia.org/wiki/Mixed_integer_linear_programming>`_).
+Programs (:wikipedia:`LP <Linear_programming>`) and Mixed
+Integer Linear Programs (:wikipedia:`MILP
+<Mixed_integer_linear_programming>`).
 
 *Do you want to understand how the simplex method works?* See the
 :mod:`~sage.numerical.interactive_simplex_method` module (educational purposes
@@ -13,8 +13,8 @@ only)
 Definition
 ----------
 
-A linear program (`LP <http://en.wikipedia.org/wiki/Linear_programming>`_)
-is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
+A linear program (:wikipedia:`LP <Linear_programming>`)
+is an optimization problem (:wikipedia:`Optimization_(mathematics)`)
 in the following form
 
 .. MATH::
@@ -24,7 +24,7 @@ with given `A \in \mathbb{R}^{m,n}`, `b \in \mathbb{R}^m`,
 `c \in \mathbb{R}^n` and unknown `x \in \mathbb{R}^{n}`.
 If some or all variables in the vector `x` are restricted over
 the integers `\mathbb{Z}`, the problem is called mixed integer
-linear program (`MILP <http://en.wikipedia.org/wiki/Mixed_integer_linear_programming>`_).
+linear program (:wikipedia:`MILP <Mixed_integer_linear_programming>`).
 A wide variety of problems in optimization
 can be formulated in this standard form. Then, solvers are
 able to calculate a solution.
@@ -1027,7 +1027,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         solver used, we define a short function reordering it before it is
         printed. The output would look the same without this function applied::
 
-            sage: def reorder_constraint((lb,(ind,coef),ub)):
+            sage: def reorder_constraint(lb,indcoef,ub):
+            ....:    ind, coef = indcoef
             ....:    d = dict(zip(ind, coef))
             ....:    ind.sort()
             ....:    return (lb, (ind, [d[i] for i in ind]), ub)
@@ -1037,13 +1038,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p = MixedIntegerLinearProgram(solver = "GLPK")
             sage: p.add_constraint(p[0] - p[2], min = 1, max = 4)
             sage: p.add_constraint(p[0] - 2*p[1], min = 1)
-            sage: sorted(map(reorder_constraint,p.constraints()))
+            sage: sorted(reorder_constraint(*c) for c in p.constraints())
             [(1.0, ([0, 1], [1.0, -1.0]), 4.0), (1.0, ([0, 2], [1.0, -2.0]), None)]
-            sage: reorder_constraint(p.constraints(0))
+            sage: reorder_constraint(*p.constraints(0))
             (1.0, ([0, 1], [1.0, -1.0]), 4.0)
-            sage: sorted(map(reorder_constraint,p.constraints([1])))
+            sage: sorted(reorder_constraint(*c) for c in p.constraints([1]))
             [(1.0, ([0, 2], [1.0, -2.0]), None)]
-
         """
         from sage.rings.integer import Integer as Integer
         cdef int i
@@ -1393,8 +1393,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Writing problem data to ...
             17 records were written
 
-        For information about the MPS file format :
-        http://en.wikipedia.org/wiki/MPS_%28format%29
+        For information about the MPS file format, see
+        :wikipedia:`MPS_(format)`
         """
         self._backend.write_mps(filename, modern)
 
@@ -3124,42 +3124,42 @@ cdef class MIPVariable(SageObject):
 
     def keys(self):
         r"""
-        Returns the keys already defined in the dictionary.
+        Return the keys already defined in the dictionary.
 
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: v.keys()
+            sage: list(v.keys())
             [0, 1]
         """
         return self._dict.keys()
 
     def items(self):
         r"""
-        Returns the pairs (keys,value) contained in the dictionary.
+        Return the pairs (keys,value) contained in the dictionary.
 
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: v.items()
+            sage: list(v.items())
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
 
     def values(self):
         r"""
-        Returns the symbolic variables associated to the current dictionary.
+        Return the symbolic variables associated to the current dictionary.
 
         EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: v = p.new_variable(nonnegative=True)
             sage: p.set_objective(v[0] + v[1])
-            sage: v.values()
+            sage: list(v.values())
             [x_0, x_1]
         """
         return self._dict.values()

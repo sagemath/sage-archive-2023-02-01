@@ -1231,7 +1231,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
             :meth:`__setstate__`, the state object needn't be a dictionary and these methods
             can do what they want.
 
-    .. _python pickling documentation: http://docs.python.org/library/pickle.html#pickle-protocol
+    .. _python pickling documentation: https://docs.python.org/library/pickle.html#pickle-protocol
 
     By implementing a :meth:`__setstate__` method for a class it should be
     possible to fix any unpickling problems for the class. As an example of what
@@ -1599,9 +1599,9 @@ def unpickle_all(dir, debug=False, run_test_suite=False):
     for A in sorted(os.listdir(dir)):
         if A.endswith('.sobj'):
             try:
-                object = load(os.path.join(dir,A))
+                obj = load(os.path.join(dir,A))
                 if run_test_suite:
-                    TestSuite(object).run(catch = False)
+                    TestSuite(obj).run(catch = False)
                 i += 1
             except Exception:
                 j += 1

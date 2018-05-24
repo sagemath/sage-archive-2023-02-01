@@ -567,8 +567,6 @@ def CompleteMultipartiteGraph(l):
         sage: g.chromatic_number()
         3
     """
-    
-    n = sum(l) #getting the number of vertices
     r = len(l) #getting the number of partitions
     positions = {}
 
@@ -610,9 +608,8 @@ def CompleteMultipartiteGraph(l):
     g.set_pos(positions)
     g.name("Multipartite Graph with set sizes "+str(l))
 
-
-
     return g
+
 
 def DiamondGraph():
     """

@@ -3331,7 +3331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of
-        the ``n`` multilpier spectra of this dynamical system.
+        the ``n`` multiplier spectra of this dynamical system.
 
         Can specify to instead compute the values corresponding to the
         elementary symmetric polynomials of the formal ``n`` multiplier
@@ -4841,7 +4841,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Conj = []
         for i in Arrangements(K,(n+2)):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
@@ -4961,7 +4961,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         break
         for i in Arrangements(K, n+2):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True
@@ -5021,6 +5021,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
             sage: f.is_polynomial()
             False
+
+        TESTS:
+
+        See :trac:`25242`::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem([x^2+ y^2, x*y])
+            sage: F2 = F.conjugate(matrix(QQ,2,2, [1,2,3,5]))
+            sage: F2.is_polynomial()
+            False
         """
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
@@ -5054,7 +5064,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 if p.degree() == 1:
                     if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
                         return True
-                    G = R(G/p) # we already checked this root
+                    G = R(G/(p**e)) # we already checked this root
                 else:
                     u = p #need to extend to get these roots
             if G.degree() != 0:

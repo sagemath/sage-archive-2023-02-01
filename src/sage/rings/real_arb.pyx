@@ -2,7 +2,7 @@
 r"""
 Arbitrary precision real balls using Arb
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_ for ball
+This is a binding to the `Arb library <http://arblib.org>`_ for ball
 arithmetic. It may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -68,15 +68,20 @@ Comparison
     x*x`` may set `z` to a ball enclosing the set `\{t^2 : t \in x\}` and not
     the (generally larger) set `\{tu : t \in x, u \in x\}`.
 
-Two elements are equal if and only if they are the same object
-or if both are exact and equal::
+Two elements are equal if and only if they are exact and equal (in spite of the
+above warning, inexact balls are not considered equal to themselves)::
 
     sage: a = RBF(1)
     sage: b = RBF(1)
     sage: a is b
     False
+    sage: a == a
+    True
     sage: a == b
     True
+
+::
+
     sage: a = RBF(1/3)
     sage: b = RBF(1/3)
     sage: a.is_exact()
@@ -84,6 +89,8 @@ or if both are exact and equal::
     sage: b.is_exact()
     False
     sage: a is b
+    False
+    sage: a == a
     False
     sage: a == b
     False
@@ -655,6 +662,47 @@ class RealBallField(UniqueRepresentation, Field):
                 self(sage.rings.infinity.Infinity), ~self(0),
                 self.element_class(self, sage.symbolic.constants.NotANumber())]
 
+    def _sum_of_products(self, terms):
+        r"""
+        Compute a sum of product of real balls without creating temporary
+        Python objects
+
+        The input objects should be real balls, but need not belong to this
+        parent. The computation is performed at the precision of this parent.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = RealBallField(1000)[]
+            sage: pol = (x + 1/3)^100
+            sage: RBF._sum_of_products((c, c) for c in pol)
+            [6.3308767660842e+23 +/- 4.59e+9]
+
+        TESTS::
+
+            sage: RBF._sum_of_products([])
+            0
+            sage: RBF._sum_of_products([[]])
+            1.000000000000000
+            sage: RBF._sum_of_products([["a"]])
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert str to sage.rings.real_arb.RealBall
+        """
+        cdef RealBall res = RealBall.__new__(RealBall)
+        cdef RealBall factor
+        cdef arb_t tmp
+        res._parent = self
+        arb_zero(res.value)
+        arb_init(tmp)
+        try:
+            for term in terms:
+                arb_one(tmp)
+                for factor in term:
+                    arb_mul(tmp, tmp, factor.value, self._prec)
+                arb_add(res.value, res.value, tmp, self._prec)
+        finally:
+            arb_clear(tmp)
+        return res
     # Constants
 
     def pi(self):
@@ -1097,7 +1145,7 @@ cdef inline long prec(RealBall ball):
 cdef class RealBall(RingElement):
     """
     Hold one ``arb_t`` of the `Arb library
-    <http://fredrikj.net/arb/>`_
+    <http://arblib.org>`_
 
     EXAMPLES::
 
@@ -2259,59 +2307,18 @@ cdef class RealBall(RingElement):
         lt = left
         rt = right
 
-        if arb_is_finite(lt.value) or arb_is_finite(rt.value):
-            if lt is rt:
-                return op == Py_EQ or op == Py_GE or op == Py_LE
-            if op == Py_EQ:
-                return arb_is_exact(lt.value) and arb_equal(lt.value, rt.value)
-            arb_init(difference)
-            arb_sub(difference, lt.value, rt.value, prec(lt))
-            if op == Py_NE:
-                result = arb_is_nonzero(difference)
-            elif op == Py_GT:
-                result = arb_is_positive(difference)
-            elif op == Py_GE:
-                result = arb_is_nonnegative(difference)
-            elif op == Py_LT:
-                result = arb_is_negative(difference)
-            elif op == Py_LE:
-                result = arb_is_nonpositive(difference)
-            arb_clear(difference)
-            return result
-        elif arf_is_nan(arb_midref(lt.value)) or arf_is_nan(arb_midref(rt.value)):
-            return False
-        elif mag_is_inf(arb_radref(lt.value)):
-            # left is the whole extended real line
-            if op == Py_GE:
-                return arf_is_neg_inf(arb_midref(rt.value)) and mag_is_finite(arb_radref(rt.value))
-            elif op == Py_LE:
-                return arf_is_pos_inf(arb_midref(rt.value)) and mag_is_finite(arb_radref(rt.value))
-            else:
-                return False
-        elif mag_is_inf(arb_radref(rt.value)):
-            # right is the whole extended real line
-            if op == Py_GE:
-                return arf_is_pos_inf(arb_midref(lt.value)) and mag_is_finite(arb_radref(lt.value))
-            elif op == Py_LE:
-                return arf_is_neg_inf(arb_midref(lt.value)) and mag_is_finite(arb_radref(lt.value))
-            else:
-                return False
-        else:
-            # both left and right are special, neither is nan, and neither is
-            # [-∞,∞], so they are both points at infinity
-            if op == Py_EQ:
-                return arf_equal(arb_midref(lt.value), arb_midref(rt.value))
-            elif op == Py_NE:
-                return not arf_equal(arb_midref(lt.value), arb_midref(rt.value))
-            elif op == Py_GT:
-                return (arf_is_pos_inf(arb_midref(lt.value))
-                        and arf_is_neg_inf(arb_midref(rt.value)))
-            elif op == Py_LT:
-                return (arf_is_neg_inf(arb_midref(lt.value))
-                        and arf_is_pos_inf(arb_midref(rt.value)))
-            elif op == Py_GE or op == Py_LE:
-                return True
-        assert False, "not reached"
+        if op == Py_EQ:
+            return arb_eq(lt.value, rt.value)
+        elif op == Py_NE:
+            return arb_ne(lt.value, rt.value)
+        elif op == Py_GT:
+            return arb_gt(lt.value, rt.value)
+        elif op == Py_LT:
+            return arb_lt(lt.value, rt.value)
+        elif op == Py_GE:
+            return arb_ge(lt.value, rt.value)
+        elif op == Py_LE:
+            return arb_le(lt.value, rt.value)
 
     def min(self, *others):
         """
@@ -3456,7 +3463,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1/2).polylog(1)
             [0.6931471805599 +/- 5.02e-14]
             sage: RBF(1/3).polylog(1/2)
-            [0.44210883528067 +/- 6.75e-15]
+            [0.44210883528067 +/- 6.7...e-15]
             sage: RBF(1/3).polylog(RLF(pi))
             [0.34728895057225 +/- 5.51e-15]
 
@@ -3556,7 +3563,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).agm(1)
             1.000000000000000
             sage: RBF(sqrt(2)).agm(1)^(-1)
-            [0.83462684167407 +/- 4.31e-15]
+            [0.83462684167407 +/- 3.9...e-15]
         """
         cdef RealBall other_as_ball
         cdef RealBall res = self._new()

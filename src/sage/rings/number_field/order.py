@@ -44,6 +44,8 @@ We compute a suborder, which has index a power of 17 in the maximal order::
 # ****************************************************************************
 from __future__ import absolute_import
 
+import six
+
 from sage.misc.cachefunc import cached_method
 from sage.rings.ring import IntegralDomain
 from sage.structure.sequence import Sequence
@@ -248,7 +250,7 @@ class Order(IntegralDomain):
             sage: Ok.has_coerce_map_from(ZZ)
             True
         """
-        return R is ZZ or R is int or R is long
+        return R is ZZ or R in six.integer_types
 
     def __mul__(self, right):
         """
@@ -1002,6 +1004,67 @@ class Order(IntegralDomain):
             3
         """
         return self.number_field().absolute_degree()
+
+    def valuation(self, p):
+        r"""
+        Return the ``p``-adic valuation on this order.
+
+        EXAMPLES:
+
+        The valuation can be specified with an integer ``prime`` that is
+        completely ramified or unramified::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: O = K.order(2*a)
+            sage: valuations.pAdicValuation(O, 2)
+            2-adic valuation
+
+            sage: GaussianIntegers().valuation(2)
+            2-adic valuation
+
+        ::
+
+            sage: GaussianIntegers().valuation(3)
+            3-adic valuation
+
+        A ``prime`` that factors into pairwise distinct factors, results in an error::
+
+            sage: GaussianIntegers().valuation(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        The valuation can also be selected by giving a valuation on the base
+        ring that extends uniquely::
+
+            sage: CyclotomicField(5).ring_of_integers().valuation(ZZ.valuation(5))
+            5-adic valuation
+
+        When the extension is not unique, this does not work::
+
+            sage: GaussianIntegers().valuation(ZZ.valuation(5))
+            Traceback (most recent call last):
+            ...
+            ValueError: The valuation Gauss valuation induced by 5-adic valuation does not approximate a unique extension of 5-adic valuation with respect to x^2 + 1
+
+        If the fraction field is of the form `K[x]/(G)`, you can specify a
+        valuation by providing a discrete pseudo-valuation on `K[x]` which
+        sends `G` to infinity::
+
+            sage: R.<x> = QQ[]
+            sage: v = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 2, infinity))
+            sage: w = GaussianIntegers().valuation(GaussValuation(R, QQ.valuation(5)).augmentation(x + 1/2, infinity))
+            sage: v == w
+            False
+
+        .. SEEALSO::
+
+            :meth:`NumberField_generic.valuation() <sage.rings.number_field.number_field.NumberField_generic.valuation>`,
+            :meth:`pAdicGeneric.valuation() <sage.rings.padics.padic_generic.pAdicGeneric.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
     def some_elements(self):
         """

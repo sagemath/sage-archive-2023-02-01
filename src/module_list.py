@@ -437,6 +437,10 @@ ext_modules = [
     ##
     ################################
 
+    OptionalExtension("sage.interfaces.primecount",
+              ["sage/interfaces/primecount.pyx"],
+              package = "primecount"),
+
     Extension('*', ['sage/interfaces/*.pyx']),
 
     ################################
@@ -722,6 +726,9 @@ ext_modules = [
 
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
+
+    Extension('sage.matrix.args',
+              sources = ['sage/matrix/args.pyx']),
 
     Extension('sage.matrix.echelon_matrix',
               sources = ['sage/matrix/echelon_matrix.pyx']),
@@ -1200,6 +1207,8 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
+
+    Extension('*', ['sage/rings/convert/*.pyx']),
 
     ################################
     ##

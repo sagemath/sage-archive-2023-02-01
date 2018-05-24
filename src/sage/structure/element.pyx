@@ -2843,9 +2843,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(121).divides(R(120))
             True
             sage: R(120).divides(R(121))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: reduction modulo 120 not defined
+            False
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2891,7 +2889,12 @@ cdef class CommutativeRingElement(RingElement):
             except (AttributeError, NotImplementedError):
                 pass
 
-            return (x % self) == 0
+            try:
+                return (x % self).is_zero()
+            except (TypeError, NotImplementedError):
+                pass
+
+            raise NotImplementedError
 
         else:
             #Different parents, use coercion
@@ -4076,6 +4079,8 @@ cpdef bin_op(x, y, op):
 
 
 def coerce(Parent p, x):
+    from sage.misc.superseded import deprecation
+    deprecation(25236, "sage.structure.element.coerce is deprecated")
     try:
         return p._coerce_c(x)
     except AttributeError:
@@ -4283,6 +4288,8 @@ def generic_power(a, n, one=None):
 
         sage: from sage.structure.element import generic_power
         sage: generic_power(int(12),int(0))
+        doctest:...: DeprecationWarning: import 'generic_power' from sage.arith.power instead
+        See http://trac.sagemath.org/24256 for details.
         1
         sage: generic_power(int(0),int(100))
         0
@@ -4304,8 +4311,8 @@ def generic_power(a, n, one=None):
         sage: generic_power(int(5), 0)
         1
     """
-    # from sage.misc.superseded import deprecation
-    # deprecation(24256, "import 'generic_power' from sage.arith.power instead")
+    from sage.misc.superseded import deprecation
+    deprecation(24256, "import 'generic_power' from sage.arith.power instead")
     if one is not None:
         # Special cases not handled by sage.arith.power
         if not n:

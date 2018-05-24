@@ -44,7 +44,7 @@ def test_function(n, m,level=10):
         return test_function2(m, n)
 
 
-class Debug:
+class Debug(object):
     """
     Create a debugger for the most recent stack trace.
 
@@ -70,7 +70,7 @@ class Debug:
 
             sage: a = sage0.eval("sage.interacts.debugger.test_function('n', 'm')")
             sage: sage0('sage.interacts.debugger.Debug()')
-            <sage.interacts.debugger.Debug instance at 0x...>
+            <sage.interacts.debugger.Debug object at 0x...>
         """
         import inspect
         import sys

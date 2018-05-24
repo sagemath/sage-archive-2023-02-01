@@ -23,7 +23,7 @@ and C. Pernet. The functions available are:
   matrix ``A``
 
 - ``void linbox_fmpz_mat_det(fmpz_t det, fmpz_mat_t A)``: set ``det`` to the
-  determinat of the square matrix ``A``
+  determinant of the square matrix ``A``
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Martin Albrecht

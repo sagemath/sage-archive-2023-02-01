@@ -425,7 +425,7 @@ def import_statements(*objects, **kwds):
         from sage.modular.arithgroup.farey_symbol import Farey as FareySymbol
 
         sage: import_statements('power')
-        from sage.structure.element import generic_power as power
+        from sage.arith.power import generic_power as power
 
     In order to be able to detect functions that belong to a non-loaded module,
     you might call the helper :func:`load_submodules` as in the following::
@@ -556,7 +556,7 @@ def import_statements(*objects, **kwds):
                 for o in obj:
                     modules.update(find_object_modules(o))
                 print("# **Warning**: distinct objects with name '{}' in:".format(name))
-                for module_name in modules:
+                for module_name in sorted(modules):
                     print("#   - {}".format(module_name))
 
             # choose a random object among the potentially enormous list of

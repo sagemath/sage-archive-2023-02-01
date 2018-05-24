@@ -578,18 +578,18 @@ class Posets(object):
         EXAMPLES::
 
             sage: P3 = posets.PowerPoset(3); P3
-            Finite poset containing 19 elements
+            Finite meet-semilattice containing 19 elements
             sage: all(P.is_chain() for P in P3.maximal_elements())
             True
 
         TESTS::
 
             sage: P0 = posets.PowerPoset(0); P0
-            Finite poset containing 1 elements
+            Finite meet-semilattice containing 1 elements
             sage: P0[0]
             Finite poset containing 0 elements
             sage: P1 = posets.PowerPoset(1); P1
-            Finite poset containing 1 elements
+            Finite meet-semilattice containing 1 elements
             sage: P1[0]
             Finite poset containing 1 elements
             sage: P1[0][0]
@@ -610,9 +610,9 @@ class Posets(object):
             for r in Permutations(P):
                 all_pos_n.add(P.relabel(list(r)))
 
-        return Poset((all_pos_n,
-                      lambda A, B: all(B.is_lequal(x, y) for x,y in A.cover_relations_iterator())
-                    ))
+        return MeetSemilattice((all_pos_n,
+                                lambda A, B: all(B.is_lequal(x, y) for x,y in A.cover_relations_iterator())
+                               ))
 
     @staticmethod
     def RandomPoset(n, p):

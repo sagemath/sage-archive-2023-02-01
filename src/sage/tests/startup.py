@@ -17,8 +17,8 @@ not work. Instead, we test this by starting a new Python process::
 
 Check that numpy (:trac:`11714`) and pyparsing are not imported on startup
 as they increase the startup time. Since :trac:`23696` those are imported
-by the doctest framework via a matplotlib import. Again the simple test would
-not work, but this time we don't have to avoid to load ipython.
+by the doctest framework via a matplotlib import. Again the simple test
+would not work (but we don't have to avoid loading IPython)::
 
     sage: from sage.tests.cmdline import test_executable
     sage: cmd = "print('numpy' in sys.modules)\n"

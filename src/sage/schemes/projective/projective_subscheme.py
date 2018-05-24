@@ -1119,7 +1119,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         J = phi(I) + S.ideal(l)
         #saturate the ideal with respect to the irrelevant ideal
         J2 = J.saturation(S.ideal([phi(t) for t in R.gens()]))[0]
-        #elimante the original variables to be left with the hyperplane coefficients 'u'
+        #eliminate the original variables to be left with the hyperplane coefficients 'u'
         E = J2.elimination_ideal(newcoords)
         #create the plucker coordinates
         D = binomial(N,N-d-1) #number of plucker coordinates

@@ -31,9 +31,7 @@ import sage.modular.hecke.element as element
 
 from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
 from sage.rings.fast_arith import prime_range
-from sage.arith.misc import euler_phi
 from sage.rings.morphism import RingHomomorphism
-from sage.rings.number_field.number_field import CyclotomicField
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modular.modsym.modsym import ModularSymbols
@@ -45,7 +43,6 @@ from sage.misc.superseded import deprecated_function_alias
 from sage.arith.all import lcm, divisors, moebius, sigma, factor
 from sage.structure.element import coercion_model, ModuleElement
 from sage.misc.cachefunc import cached_method
-from sage.functions.other import ceil
 
 
 def is_ModularFormElement(x):

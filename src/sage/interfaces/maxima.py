@@ -472,6 +472,7 @@ import pexpect
 
 from random import randrange
 
+from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.misc.misc import ECL_TMP
 
@@ -568,12 +569,13 @@ class Maxima(MaximaAbstract, Expect):
         self._display_prompt = '<sage-display>'
         # See #15440 for the importance of the trailing space
         self._output_prompt_re = re.compile('\(\%o[0-9]+\) ')
-        self._ask = ['zero or nonzero\\?', 'an integer\\?',
-                     'positive, negative or zero\\?', 'positive or negative\\?',
-                     'positive or zero\\?', 'equal to .*\\?']
-        self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask] + \
-                            ['Break [0-9]+'] #note that you might need to change _expect_expr if you
-                                             #change this
+        self._ask = [b'zero or nonzero\\?', b'an integer\\?',
+                     b'positive, negative or zero\\?', b'positive or negative\\?',
+                     b'positive or zero\\?', b'equal to .*\\?']
+        self._prompt_wait = ([self._prompt.encode('ascii')] +
+                             [re.compile(x) for x in self._ask] +
+                             [b'Break [0-9]+'])  # note that you might need to change _expect_expr if you
+                                                 # change this
         self._error_re = re.compile('(Principal Value|debugmode|incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
@@ -652,7 +654,7 @@ class Maxima(MaximaAbstract, Expect):
             '9'
         """
         self._sendstr(string)
-        os.write(self._expect.child_fd, os.linesep)
+        os.write(self._expect.child_fd, os.linesep.encode('ascii'))
 
     def _expect_expr(self, expr=None, timeout=None):
         """
@@ -712,11 +714,11 @@ class Maxima(MaximaAbstract, Expect):
             self._start()
         try:
             if timeout:
-                i = self._expect.expect(expr,timeout=timeout)
+                i = self._expect.expect(expr, timeout=timeout)
             else:
                 i = self._expect.expect(expr)
             if i > 0:
-                v = self._expect.before
+                v = self._before()
 
                 #We check to see if there is a "serious" error in Maxima.
                 #Note that this depends on the order of self._prompt_wait
@@ -727,7 +729,11 @@ class Maxima(MaximaAbstract, Expect):
                 j = v.find('Is ')
                 v = v[j:]
                 k = v.find(' ', 3)
-                msg = """Computation failed since Maxima requested additional constraints (try the command "maxima.assume('""" + v[3:k] + """>0')" before integral or limit evaluation, for example):\n""" + v + self._expect.after
+                msg = "Computation failed since Maxima requested additional " \
+                      "constraints (try the command " \
+                      "\"maxima.assume('{}>0')\" " \
+                      "before integral or limit evaluation, for example):\n" \
+                      "{}{}".format(v[3:k], v, self._after())
                 self._sendline(";")
                 self._expect_expr()
                 raise ValueError(msg)
@@ -786,14 +792,14 @@ class Maxima(MaximaAbstract, Expect):
         else:
             self._sendline(line)
 
-        line_echo = self._expect.readline()
+        line_echo = bytes_to_str(self._expect.readline())
         if not wait_for_prompt:
             return
         # line_echo sometimes has randomly inserted terminal echo in front #15811
         assert line_echo.strip().endswith(line.strip()), 'mismatch:\n' + line_echo + line
 
         self._expect_expr(self._display_prompt)
-        out = self._before()        # input echo + output prompt + output
+        out = self._before()  # input echo + output prompt + output
         if error_check:
             self._error_check(line, out)
         if not reformat:
@@ -842,7 +848,7 @@ class Maxima(MaximaAbstract, Expect):
         try:
             try:
                 self._expect_expr(timeout=0.5)
-                if not s in self._before():
+                if not s in bytes_to_str(self._before()):
                     self._expect_expr(s,timeout=0.5)
                     self._expect_expr(timeout=0.5)
             except pexpect.TIMEOUT:
@@ -890,7 +896,7 @@ class Maxima(MaximaAbstract, Expect):
 
         self._sendline(cmd)
         self._expect_expr(s)
-        out = self._before()
+        out = bytes_to_str(self._before())
         self._error_check(cmd, out)
         os.unlink(filename)
         return out
@@ -975,7 +981,7 @@ class Maxima(MaximaAbstract, Expect):
         self._eval_line(':lisp %s\n""'%cmd, allow_use_file=False,
                wait_for_prompt=False, reformat=False, error_check=False)
         self._expect_expr('(%i)')
-        return self._before()
+        return bytes_to_str(self._before())
 
     #####
     #

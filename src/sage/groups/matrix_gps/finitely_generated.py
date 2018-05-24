@@ -1002,7 +1002,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
             K[x]^G_{\chi} = \{f \in K[x] | \pi f = \chi(\pi) f \forall \pi\in G\}
 
-        be the ring of invarants of `G` relative to `\chi`. Then the Reynold's operator
+        be the ring of invariants of `G` relative to `\chi`. Then the Reynold's operator
         is a map `R` from `K[x]` into `K[x]^G_{\chi}` defined by
 
         .. MATH:

@@ -160,8 +160,9 @@ from sage.cpython.python_debug cimport if_Py_TRACE_REFS_then_PyObject_INIT
 from sage.libs.gmp.mpz cimport *
 from sage.libs.gmp.mpq cimport *
 from sage.misc.superseded import deprecated_function_alias
-from sage.arith.long cimport pyobject_to_long, integer_check_long
 from sage.cpython.string cimport char_to_str, str_to_bytes
+from sage.arith.long cimport (pyobject_to_long, integer_check_long,
+                              integer_check_long_py)
 
 from cpython.list cimport *
 from cpython.number cimport *
@@ -736,7 +737,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 elif is_numpy_type(type(x)):
                     import numpy
                     if isinstance(x, numpy.integer):
-                        mpz_set_pylong(self.value, x.__long__())
+                        mpz_set_pylong(self.value, long(x))
                         return
 
                 elif HAVE_GMPY2 and type(x) is gmpy2.mpz:
@@ -1036,6 +1037,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -5
         """
         return self.str()
+
+    def _symbolic_(self, sring):
+        """
+        Return this integer as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(ZZ(7)); ex
+            7
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
 
     def _sympy_(self):
         """
@@ -2723,7 +2737,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             from sage.symbolic.all import SR
             return SR(self).log()
-        if m <= 0 and m is not None:
+        if m is not None and m <= 0:
             raise ValueError("m must be positive")
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -3261,7 +3275,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # Next: Integer % C long
         cdef long yy = 0
-        cdef int err
+        cdef int err = 0
         if not isinstance(y, Element):
             # x must be an Integer in this case
             if not integer_check_long(y, &yy, &err):
@@ -4561,6 +4575,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES::
 
             sage: Integer(3).is_integral()
+            True
+        """
+        return True
+
+    def is_rational(self):
+        r"""
+        Return ``True`` as an integer is a rational number.
+
+        EXAMPLES::
+
+            sage: 5.is_rational()
             True
         """
         return True
@@ -7100,18 +7125,10 @@ cdef class int_to_Z(Morphism):
             sage: f = ZZ.coerce_map_from(int)
             sage: f(100r)
             100
-
-        Note that, for performance reasons, the type of the input is not
-        verified; it is assumed to have the memory layout of a Python int::
-
-            sage: f._call_("abc")
-            3
-            sage: f._call_(5)    # random, the Integer 5
-            140031369085760
-
-        In practice, this precondition is verified by the caller (typically
-        the coercion system).
         """
+        if type(a) is not int:
+            raise TypeError("must be a Python int object")
+
         return smallInteger(PyInt_AS_LONG(a))
 
     def _repr_type(self):
@@ -7125,6 +7142,7 @@ cdef class int_to_Z(Morphism):
               To:   Integer Ring
         """
         return "Native"
+
 
 cdef class long_to_Z(Morphism):
     """
@@ -7143,11 +7161,20 @@ cdef class long_to_Z(Morphism):
         import sage.categories.homset
         from sage.structure.parent import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
+
     cpdef Element _call_(self, a):
         cdef Integer r
+        cdef long l
+        cdef int err = 0
+
+        integer_check_long_py(a, &l, &err)
+        if not err:
+            return smallInteger(l)
+
         r = <Integer>PY_NEW(Integer)
         mpz_set_pylong(r.value, a)
         return r
+
     def _repr_type(self):
         return "Native"
 
@@ -7351,7 +7378,7 @@ cdef Integer zero = the_integer_ring._zero_element
 cdef Integer one = the_integer_ring._one_element
 
 # pool of small integer for fast sign computation
-# Use the same defaults as Python, documented at http://docs.python.org/2/c-api/int.html#PyInt_FromLong
+# Use the same defaults as Python, documented at https://docs.python.org/2/c-api/int.html#PyInt_FromLong
 DEF small_pool_min = -5
 DEF small_pool_max = 256
 # we could use the above zero and one here

@@ -27,9 +27,10 @@ limitations and lack of robustness w.r.t. input.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function, absolute_import
 
-from builtins import object
+import builtins
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
@@ -1088,7 +1089,7 @@ DECREASE  = 2
 POP       = 1
 STOP      = 0
 
-class IntegerListsLexIter(object):
+class IntegerListsLexIter(builtins.object):
     r"""
     Iterator class for IntegerListsLex.
 

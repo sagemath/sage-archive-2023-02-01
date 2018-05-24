@@ -1604,23 +1604,7 @@ class WordMorphism(SageObject):
         """
         if not self.is_endomorphism():
             raise TypeError("self (=%s) is not an endomorphism"%self)
-        m = self.incidence_matrix()
-        power = m
-        order = 1
-        dim = self.domain().alphabet().cardinality()
-        max_order = (dim-1)**2 + 1
-        while True:
-            l = power.list()
-            if len(l) == 0:
-                return False
-            try:
-                l.index(0)
-            except ValueError:
-                return True
-            if order > max_order:
-                return False
-            power *= power
-            order += order
+        return self.incidence_matrix().is_primitive()
 
     def is_prolongable(self, letter):
         r"""

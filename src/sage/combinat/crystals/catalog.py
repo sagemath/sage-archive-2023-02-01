@@ -23,6 +23,7 @@ This is a catalog of crystals that are currently implemented in Sage:
 * :class:`Induced <sage.combinat.crystals.induced_structure.InducedCrystal>`
 * :class:`KacModule <sage.combinat.crystals.kac_modules.CrystalOfKacModule>`
 * :func:`KirillovReshetikhin <sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystal>`
+* :class:`KleshchevPartitions <sage.combinat.partition_kleshchev.KleshchevPartitions_all>`
 * :class:`KyotoPathModel <sage.combinat.crystals.kyoto_path_model.KyotoPathModel>`
 * :class:`Letters <sage.combinat.crystals.letters.CrystalOfLetters>`
 * :class:`LSPaths <sage.combinat.crystals.littelmann_path.CrystalOfLSPaths>`
@@ -78,6 +79,7 @@ from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import Tenso
 from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystal as KirillovReshetikhin
 from sage.combinat.rigged_configurations.rc_crystal import CrystalOfRiggedConfigurations as RiggedConfigurations
 from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableaux_shape as ShiftedPrimedTableaux
+from sage.combinat.partition_kleshchev import KleshchevPartitions
 
 from sage.combinat.crystals.induced_structure import InducedCrystal as Induced
 

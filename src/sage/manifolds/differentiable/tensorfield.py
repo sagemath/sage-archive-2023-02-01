@@ -424,7 +424,13 @@ class TensorField(ModuleElement):
         self._ambient_domain = vector_field_module._ambient_domain
 
         self._extensions_graph = {self._domain: self}
+                    # dict. of known extensions of self on bigger domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as incomming edges on a graph.
         self._restrictions_graph = {self._domain: self}
+                    # dict. of known restrictions of self on smaller domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as outgoing edges on a graph.
 
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys

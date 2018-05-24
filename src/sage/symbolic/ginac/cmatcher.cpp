@@ -28,6 +28,7 @@
 #include "mul.h"
 #include "power.h"
 #include "function.h"
+#include "fderivative.h"
 #include "operators.h"
 #include "utils.h"
 
@@ -68,6 +69,7 @@ inline bool is_ncfunc(const ex& e)
 {
         return is_exactly_a<power>(e)
             or is_exactly_a<function>(e)
+            or is_exactly_a<fderivative>(e)
             or is_exactly_a<exprseq>(e)
             or is_exactly_a<lst>(e);
 }
@@ -76,13 +78,6 @@ inline bool is_func(const ex& e)
 {
         return is_ncfunc(e)
             or is_a<expairseq>(e);
-}
-
-inline CMatcher& CMatcher::make_cmatcher(const ex& e, size_t i, exmap& mm)
-{
-        exmap m = mm;
-        cms[i].emplace(CMatcher(e, pat[perm[i]], m));
-        return cms[i].value();
 }
 
 inline bool CMatcher::get_alt(size_t i)
@@ -128,22 +123,23 @@ opt_bool CMatcher::init()
 		map[pattern] = source;
                 ret_map = map;
 		return true;
-	}
-        // same expression type?
-	if (ex_to<basic>(source).tinfo() != ex_to<basic>(pattern).tinfo())
+	} 
+	if (ex_to<basic>(source).tinfo() != ex_to<basic>(pattern).tinfo()) {
                 return false;
+        }
         if (is_exactly_a<function>(source)
            and ex_to<function>(source).get_serial()
-            != ex_to<function>(pattern).get_serial())
+            != ex_to<function>(pattern).get_serial()) {
                 return false;
-        // less source than pattern terms?
-        if (snops < pnops)
+        }
+        if (snops < pnops) {
                 return false;
-        // symbol mismatch?
+        }
         symbolset oset = source.symbols();
         symbolset pset = substitute(pattern.wilds(), map);
-        if (not subset_of(pset, oset))
+        if (not subset_of(pset, oset)) {
                 return false;
+        }
 
         // Chop into terms
         for (size_t i=0; i<snops; i++) {
@@ -220,11 +216,9 @@ opt_bool CMatcher::init()
 
         N = ops.size();
         P = pat.size();
-        // m_cmatch indicates which of the terms needs a cmatcher itself
-        m_cmatch.assign(P, false);
+        m_cmatch.assign(N, false);
         std::transform(ops.begin(), ops.end(), m_cmatch.begin(),
                         [](const ex& e) { return is_func(e); } );
-
         if (P == 1) {
             if (not global_wild) {
                 if (not m_cmatch[0]) {
@@ -236,8 +230,7 @@ opt_bool CMatcher::init()
                 }
             }
             else {
-                // only the global wildcard left,
-                // add/mul what's left in the source
+                // only the global wildcard left
                 ret_val = true;
                 ret_map = map;
                 ex r;
@@ -256,21 +249,19 @@ opt_bool CMatcher::init()
                 return true;
             }
         }
-        // cms will contain the daughter cmatchers
         for (size_t i=0; i<P; ++i)
                 cms.emplace_back();
         map_repo = std::vector<exmap>(P);
 
         finished = false;
-        perm.reserve(P);
-        if (is_ncfunc(source)) { // source is a noncommutative structure
+        perm.reserve(P);        
+        if (is_ncfunc(source)) {
                 type = Type::noncomm;
                 // perm is not used but needs to be filled
                 for (size_t i=0; i<P; ++i)
                         perm.push_back(i);
                 if (std::all_of(m_cmatch.begin(), m_cmatch.end(),
                                 [](bool b) { return not b; } )) {
-                        // no term needs a cmatcher, let's decide early
                         finished = true;
                         for (size_t i=0; i<P; ++i)
                                 if (not trivial_match(ops[i], pat[i], map))
@@ -295,7 +286,6 @@ opt_bool CMatcher::init()
         return nullopt;
 }
 
-// run() will be called until no more solutions are found
 void CMatcher::run()
 {
         clear_ret();
@@ -319,8 +309,6 @@ void CMatcher::run()
         }
 }
 
-// noncommutative run; go through all term pairs sequentially,
-// but allow backtracking to earlier terms if a match fails
 void CMatcher::noncomm_run()
 {
         int ii = P;
@@ -357,8 +345,10 @@ void CMatcher::noncomm_run()
                         }
                 }
                 else {
-                        if (not cms[index])
-                                (void)make_cmatcher(e, index, map_repo[index]);
+                        if (not cms[index]) {
+                                exmap m = map_repo[index];
+                                cms[index].emplace(CMatcher(e, p, m));
+                        }
                         else {
                                 cms[index].value().ret_val.reset();
                                 cms[index].value().finished = false;
@@ -398,6 +388,8 @@ void CMatcher::noncomm_run()
         if (index >= P) {
                 ret_val = true;
                 ret_map = map_repo[P-1];
+                finished = std::all_of(cms.begin(), cms.end(),
+                      [](const opt_CMatcher& cm) { return not cm or cm.value().finished; } );
                 return;
         }
         finished = true;
@@ -407,11 +399,10 @@ void CMatcher::noncomm_run()
 
 void CMatcher::no_global_wild()
 {
+
         perm_run(ops, pat);
 }
 
-// This is both the run() function for commutative matching without
-// global wildcards, and the core of the global wildcards run()
 void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
 {
         // The outer loop goes though permutations of perm
@@ -451,9 +442,10 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                 }
                         }
                         else {
-                                if (not cms[index])
-                                        (void)make_cmatcher(e, index,
-                                                        map_repo[index]);
+                                if (not cms[index]) {
+                                        exmap m = map_repo[index];
+                                        cms[index].emplace(CMatcher(e, p, m));
+                                }
                                 else {
                                         cms[index].value().ret_val.reset();
                                         cms[index].value().finished = false;
@@ -540,12 +532,12 @@ void CMatcher::with_global_wild()
                                 for (size_t i=0; i<P; ++i)
                                         perm.push_back(i);
                                 gwp = pat;
-                                gwp.erase(gwp.begin() + wi);
+                                gwp.erase(gwp.begin() + wild_ind[wi]);
                                 for (size_t i=0; i<P; ++i)
                                         gws.push_back(ops[comb[i]]);
                         }
 
-                        perm_run(gws, gwp);
+                        comb_run(gws, gwp);
 
                         if (finished) {
                                 finished = false;
@@ -573,7 +565,7 @@ void CMatcher::with_global_wild()
                                         for (size_t i=0; i<ops.size(); ++i)
                                                 if (not t[i])
                                                         gwe *= ops[i];
-                                ret_map.value()[pat[wi]] = gwe;
+                                ret_map.value()[pat[wild_ind[wi]]] = gwe;
                                 finished = false;
                                 if (comb_finished
                                     and not next_combination(comb, P, N)) {
@@ -593,6 +585,121 @@ void CMatcher::with_global_wild()
         }
         while (++wi < wild_ind.size());
         finished = true;
+        ret_val = false;
+}
+
+void CMatcher::comb_run(const exvector& sterms, const exvector& pterms)
+{
+        // The outer loop goes though permutations of perm
+        while (true) {
+                int ii = P;
+                while (--ii >= 0) {
+                        if (m_cmatch[comb[ii]]
+                            and cms[comb[ii]]
+                            and not cms[comb[ii]].value().finished)
+                                break;
+                }
+                size_t index;
+                if (ii >= 0) {
+                        index = static_cast<size_t>(ii);
+                        while (unsigned(++ii) < P)
+                                cms[comb[ii]].reset();
+                }
+                else // no cmatcher or all uninitialized
+                        index = 0;
+                finished = true;
+                // The second loop increases index to get a new ops term
+                do {
+                        const ex& e = sterms[index];
+                        if (index == 0)
+                                map_repo[0] = map;
+                        else
+                                map_repo[index] = map_repo[index-1];
+                        // At this point we try matching p to e 
+                        const ex& p = pterms[perm[index]];
+                        if (not m_cmatch[comb[index]]) {
+                                // normal matching attempt
+                                exmap m = map_repo[index];
+                                bool ret = trivial_match(e, p, m);
+                                if (ret) {
+                                        map_repo[index] = m;
+                                        continue;
+                                }
+                        }
+                        else {
+                                if (not cms[comb[index]]) {
+                                        exmap m = map_repo[index];
+                                        cms[comb[index]].emplace(CMatcher(e, p, m));
+                                }
+                                else {
+                                        cms[comb[index]].value().ret_val.reset();
+                                        cms[comb[index]].value().finished = false;
+                                }
+                                if (get_alt(comb[index])) {
+                                        map_repo[index] = ret_map.value();
+                                        continue;
+                                }
+                                else
+                                        cms[comb[index]].reset();
+                        }
+                        // unfinished cmatchers in this permutation?
+                        bool alt_solution_found = false;
+                        int i = static_cast<int>(index);
+                        while (--i >= 0) {
+                                if (cms[comb[i]]) {
+                                        if (i == 0)
+                                                map_repo[0] = map;
+                                        else
+                                                map_repo[i] = map_repo[i-1];
+                                        auto& cm = cms[comb[i]].value();
+                                        cm.ret_val.reset();
+                                        cm.map = map_repo[i];
+                                        if (get_alt(comb[i])) {
+                                                map_repo[i] = ret_map.value();
+                                                index = i;
+                                                alt_solution_found = true;
+                                                break;
+                                        }
+                                        cms[comb[i]].reset();
+                                }
+                        }
+                        if (not alt_solution_found)
+                                break;
+                }
+                while (++index < P);
+
+                if (index >= P) {
+                        // give back one solution of this cmatch call
+                        // possibly still permutations left
+                        size_t i;
+                        for (i=0; i<P; ++i)
+                                if (cms[comb[i]]
+                                    and not cms[comb[i]].value().finished)
+                                        break;
+                        if (i >= P)
+                                finished = not std::next_permutation(perm.begin(),
+                                                perm.end());
+                        ret_val = true;
+                        ret_map = map_repo[P-1];
+                        return;
+                }
+                else {
+                        // no cmatch calls have alternative solutions
+                        // to their cmatch, so get the next permutation
+                        // that changes current index position
+                        size_t old = perm[index];
+                        while (perm[index] == old) {
+                                bool more = std::next_permutation(perm.begin(),
+                                                perm.end());
+                                if (not more) {
+                                        ret_val = false;
+                                        ret_map.reset();
+                                        finished = true;
+                                        return;
+                                }
+                        }
+                }
+        }
         ret_val = false;
 }
 

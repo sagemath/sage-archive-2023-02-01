@@ -259,6 +259,8 @@ import sage.rings.polynomial.toy_d_basis as toy_d_basis
 
 from warnings import warn
 
+from sage.rings.qqbar import handle_AA_and_QQbar
+
 from sage.interfaces.magma import magma_gb_standard_options
 from sage.interfaces.singular import singular_gb_standard_options
 from sage.libs.singular.standard_options import libsingular_gb_standard_options
@@ -1502,6 +1504,7 @@ class MPolynomialIdeal_singular_repr(
             self.__genus = Integer(genus(self))
             return self.__genus
 
+    @handle_AA_and_QQbar
     @libsingular_gb_standard_options
     def intersection(self, *others):
         """

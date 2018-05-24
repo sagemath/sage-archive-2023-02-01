@@ -113,7 +113,6 @@ from six.moves import range
 
 import sage.misc.latex as latex
 from . import ring, ideal, quotient_ring_element
-import sage.rings.polynomial.multi_polynomial_ideal
 from sage.structure.category_object import normalize_names
 from sage.structure.richcmp import richcmp_method, richcmp
 import sage.structure.parent_gens
@@ -954,7 +953,8 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
             gens = [gens]
         if 'coerce' in kwds and kwds['coerce']:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, **kwds)
+        from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+        return MPolynomialIdeal(self, gens, **kwds)
 
     def _element_constructor_(self, x, coerce=True):
         """

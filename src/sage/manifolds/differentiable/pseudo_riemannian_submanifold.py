@@ -1402,6 +1402,39 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         return self._shape_operator
 
     def clear_cache(self):
+        """
+        Reset all the cached functions and the derived quantities.
+
+        Use this function if you modified the immersion (or embedding) of the
+        submanifold. Note that when calling calculus function after clearing,
+        new pythons objects will be created.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+            sage: n = N.normal()
+            sage: n == N.normal()
+            True
+            sage: N.clear_cache()
+            sage: n == N.normal()
+            False
+
+        """
         self.ambient_metric.clear_cache()
         self.first_fundamental_form.clear_cache()
         self.difft.clear_cache()

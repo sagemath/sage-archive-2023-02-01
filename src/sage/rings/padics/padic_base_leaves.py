@@ -198,7 +198,6 @@ from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFloatingPointRingGeneric, \
                           pAdicFloatingPointFieldGeneric, \
-                          pAdicGeneric, \
                           pAdicLatticeGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
@@ -206,7 +205,6 @@ from .padic_fixed_mod_element import pAdicFixedModElement
 from .padic_floating_point_element import pAdicFloatingPointElement
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):

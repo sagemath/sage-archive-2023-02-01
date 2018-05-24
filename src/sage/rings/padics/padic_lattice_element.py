@@ -433,7 +433,6 @@ class pAdicLatticeElement(pAdicGenericElement):
             ...
             PrecisionError: Not enough precision
         """
-        p = self._parent.prime()
         val = self._value.valuation()
         prec = self.precision_absolute()
         if val < prec: 
@@ -1169,7 +1168,6 @@ class pAdicLatticeElement(pAdicGenericElement):
         """
         if lift_mode != 'simple':
             raise NotImplementedError("Other modes than 'simple' are not implemented yet")
-        p = self._parent.prime()
         prec = self.precision_absolute()
         val = self.valuation()
         expansion = self._value.list(prec)

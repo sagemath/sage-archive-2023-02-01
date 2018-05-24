@@ -1704,6 +1704,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = y^3 + x^3 + (u + 1)*x
             sage: with proof.WithProof('polynomial', True):
             ....:     f.factor()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Provably correct factorization not implemented. Disable this error by wrapping your code in a `with proof.WithProof('polynomial', False):` block.
             sage: with proof.WithProof('polynomial', False):
             ....:     f.factor()
             Traceback (most recent call last):

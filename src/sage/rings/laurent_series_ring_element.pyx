@@ -805,14 +805,14 @@ cdef class LaurentSeries(AlgebraElement):
         """
         cdef LaurentSeries self = _self
 
-        right = int(r)
-        if right == r:
-            return type(self)(self._parent, self.__u**right, self.__n*right)
-
         try:
             right = QQ.coerce(r)
         except TypeError:
             raise ValueError("exponent must be a rational number")
+
+        if right.denominator() == 1:
+            right = right.numerator()
+            return type(self)(self._parent, self.__u**right, self.__n*right)
 
         if self.is_zero():
             return self._parent(0).O(self.prec()*right)

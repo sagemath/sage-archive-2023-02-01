@@ -1071,14 +1071,14 @@ cdef class PowerSeries(AlgebraElement):
             O(x^2)
 
         """
-        right = int(r)
-        if right == r:
-            return super().__pow__(r, dummy)
-
         try:
             right = QQ.coerce(r)
         except TypeError:
             raise ValueError("exponent must be a rational number")
+
+        if right.denominator() == 1:
+            right = right.numerator()
+            return super().__pow__(right, dummy)
 
         if self.is_zero():
             return self.parent()(0).O((self.prec()*right).floor())

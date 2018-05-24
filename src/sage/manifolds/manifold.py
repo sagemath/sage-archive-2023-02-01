@@ -2461,7 +2461,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 raise TypeError("The parent manifold must be a manifold")
             if dim>ambient._dim:
                 raise ValueError("Embedded manifolds must be of smaller dimension than their parent")
-            return TopologicalSubmanifold(dim, name, field, structure, ambient,
+            return TopologicalSubmanifold(dim, name, field, structure,
+                                          ambient=ambient,
                                           latex_name=latex_name,
                                           start_index=start_index,
                                           unique_tag=getrandbits(128)*time())
@@ -2487,7 +2488,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 raise TypeError("The parent manifold must be a differentiable manifold")
             if dim>ambient._dim:
                 raise ValueError("Embedded manifolds must be of smaller dimension than their parent")
-            return DifferentiableSubmanifold(dim, name, field, structure, ambient,
+            return DifferentiableSubmanifold(dim, name, field, structure,
+                                             ambient=ambient,
                                              diff_degree=diff_degree,
                                              latex_name=latex_name,
                                              start_index=start_index,

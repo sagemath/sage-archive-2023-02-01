@@ -478,7 +478,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Element classes may define a method called ``_evaluate_polynomial``
         to provide an alternative evaluation algorithm for a given argument
-        type. Note that ``_evaluated_polynomial`` may not always be used:
+        type. Note that ``_evaluate_polynomial`` may not always be used:
         for instance, subclasses dedicated to specific coefficient rings
         typically do not call it.
 

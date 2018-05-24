@@ -393,23 +393,11 @@ class TopologicalSubmanifold(TopologicalManifold):
         - ``index`` -- (default: ``""``) string defining the name of the
           coordinates in the new chart. This string will be added at the end of
           the names of the old coordinates. By default, it is replace by
-<<<<<<< HEAD:src/sage/manifolds/submanifold/topological_submanifold.py
-          "_"+self._ambient._name
-        - ``latex_index`` -- (default: ``""``) string defining the latex name
-          of the coordinates in the new chart. This string will be added at the
-          end of the latex names of the old coordinates. By default, it is
-          replace by "_"+self._ambient._latex_()
-
-||||||| merged common ancestors
-          "_"+self._ambient._name
-=======
           ``"_"+self._ambient._name``
         - ``latex_index`` -- (default: ``""``) string defining the latex name
           of the coordinates in the new chart. This string will be added at the
           end of the latex names of the old coordinates. By default, it is
           replace by ``"_"+self._ambient._latex_()``
-
->>>>>>> embedding:src/sage/manifolds/topological_submanifold.py
 
         OUTPUT:
 

@@ -450,7 +450,6 @@ class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
              d]
         """
         zero = self.base_ring().zero()
-        one = self.base_ring().one()
         d = {}
         if self._kac_moody:
             d['d'] = self.d()

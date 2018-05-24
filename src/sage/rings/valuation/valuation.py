@@ -787,7 +787,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         # The order of the leafs is not predictable in parallel mode and in
         # serial mode it depends on the hash functions and so on the underlying
-        # archictecture (32/64 bit). There is no natural ordering on these
+        # architecture (32/64 bit). There is no natural ordering on these
         # valuations but it is very convenient for doctesting to return them in
         # some stable order, so we just order them by their string
         # representation which should be very fast.

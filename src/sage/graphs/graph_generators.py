@@ -337,7 +337,8 @@ __doc__ += """
 __append_to_doc(
     ["WorldMap",
      "EuropeMap",
-     "AfricaMap"]
+     "AfricaMap",
+     "USAMap"]
     )
 
 __doc__ += """
@@ -689,7 +690,7 @@ class GraphGenerators():
 #   Graph Iterators
 ###########################################################################
 
-    def __call__(self, vertices=None, property=lambda x: True, augment='edges',
+    def __call__(self, vertices=None, property=None, augment='edges',
         size=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True, copy = True):
         """
@@ -736,6 +737,17 @@ class GraphGenerators():
           Journal of Algorithms Volume 26, Issue 2, February 1998,
           pages 306-324.
         """
+        # Use nauty for the basic case, as it is much faster.
+        if (vertices and property is None and size is None and
+            degree_sequence is None and not loops and augment == 'edges' and
+            implementation == 'c_graph' and sparse and copy):
+            for g in graphs.nauty_geng(vertices):
+                yield g
+            return
+
+        if property is None:
+            property = lambda x: True
+
         from sage.graphs.all import Graph
         from sage.misc.superseded import deprecation
         from copy import copy as copyfun
@@ -997,9 +1009,9 @@ class GraphGenerators():
         """
         from sage.graphs.all import graphs as graph_gen
         if graphs is None:
-            graph_list=graph_gen(vertices)
+            graph_list=graph_gen(vertices, property=lambda _: True)
         elif callable(graphs):
-            graph_list=iter(g for g in graph_gen(vertices) if graphs(g))
+            graph_list=iter(g for g in graph_gen(vertices, property=lambda _: True) if graphs(g))
         else:
             graph_list=iter(graphs)
 
@@ -2093,6 +2105,7 @@ class GraphGenerators():
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
     EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
     AfricaMap = staticmethod(sage.graphs.generators.world_map.AfricaMap)
+    USAMap = staticmethod(sage.graphs.generators.world_map.USAMap)
 
 ###########################################################################
 # Degree Sequence

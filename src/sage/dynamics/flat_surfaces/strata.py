@@ -267,6 +267,7 @@ Rauzy diagrams from the classification of strata::
 from __future__ import print_function
 from six.moves import range
 
+from sage.structure.richcmp import richcmp_method, rich_to_bool, op_EQ, op_NE
 from sage.structure.sage_object import SageObject
 
 from sage.combinat.combinat import CombinatorialClass
@@ -687,6 +688,7 @@ class AbelianStrata_all(InfiniteAbstractCombinatorialClass):
         return AbelianStrata_g(g)
 
 
+@richcmp_method
 class AbelianStratum(SageObject):
     """
     Stratum of Abelian differentials.
@@ -883,9 +885,13 @@ class AbelianStratum(SageObject):
                     '^' + self._marked_separatrix +
                     "(" + str(self._zeroes)[1:-1] + ")")
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        TESTS:
+        The order is given by the natural:
+
+        self < other iff adherance(self) c adherance(other)
+
+        TESTS::
 
             sage: a = AbelianStratum(1,3)
             sage: b = AbelianStratum(3,1)
@@ -910,23 +916,7 @@ class AbelianStratum(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: the right member must be a stratum
-        """
-        if type(self) is not type(other):
-            raise TypeError("the right member must be a stratum")
 
-        return (self._marked_separatrix == other._marked_separatrix and
-                self._zeroes == other._zeroes)
-
-    def __ne__(self, other):
-        r"""
-        TESTS::
-
-            sage: a = AbelianStratum(1,3)
-            sage: b = AbelianStratum(3,1)
-            sage: c = AbelianStratum(1,3,marked_separatrix='out')
-            sage: d = AbelianStratum(3,1,marked_separatrix='out')
-            sage: e = AbelianStratum(1,3,marked_separatrix='in')
-            sage: f = AbelianStratum(3,1,marked_separatrix='in')
             sage: a != b  # no difference for unmarked
             False
             sage: c != d  # difference for out mark
@@ -943,20 +933,6 @@ class AbelianStratum(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: the right member must be a stratum
-        """
-        if type(self) is not type(other):
-            raise TypeError("the right member must be a stratum")
-
-        return (self._marked_separatrix != other._marked_separatrix or
-                self._zeroes != other._zeroes)
-
-    def __cmp__(self, other):
-        r"""
-        The order is given by the natural:
-
-        self < other iff adherance(self) c adherance(other)
-
-        TESTS::
 
             sage: a3 = AbelianStratum(3,2,1)
             sage: a3_out = AbelianStratum(3,2,1,marked_separatrix='out')
@@ -968,15 +944,22 @@ class AbelianStratum(SageObject):
             sage: a3_out == a3_in
             False
         """
-        if (type(self) is not type(other) or
-            self._marked_separatrix != other._marked_separatrix):
+        if type(self) is not type(other):
+            raise TypeError("the right member must be a stratum")
+
+        if op == op_EQ or op == op_NE:
+            z_eq = self._zeroes == other._zeroes
+            ms_eq = self._marked_separatrix == other._marked_separatrix
+            return (z_eq and ms_eq) == (op == op_EQ)
+
+        if self._marked_separatrix != other._marked_separatrix:
             raise TypeError("the other must be a stratum with same marking")
 
         if self._zeroes < other._zeroes:
-            return 1
+            return rich_to_bool(op, 1)
         elif self._zeroes > other._zeroes:
-            return -1
-        return 0
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
     def connected_components(self):
         """
@@ -1086,6 +1069,7 @@ class AbelianStratum(SageObject):
         return 2 * self.genus() + len(self._zeroes) - 1
 
 
+@richcmp_method
 class ConnectedComponentOfAbelianStratum(SageObject):
     r"""
     Connected component of Abelian stratum.
@@ -1418,7 +1402,7 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         """
         return self.representative(reduced=reduced).rauzy_diagram()
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         TESTS::
 
@@ -1447,10 +1431,10 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             return NotImplemented
 
         if self._parent._zeroes < other._parent._zeroes:
-            return 1
+            return rich_to_bool(op, 1)
         elif self._parent._zeroes > other._parent._zeroes:
-            return -1
-        return 0
+            return rich_to_bool(op, -1)
+        return rich_to_bool(op, 0)
 
 
 CCA = ConnectedComponentOfAbelianStratum

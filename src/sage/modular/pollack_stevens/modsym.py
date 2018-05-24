@@ -47,14 +47,13 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.arith.all import next_prime, binomial, gcd, kronecker
+from sage.arith.all import next_prime, gcd, kronecker
 from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 from .manin_map import ManinMap
 from .sigma0 import Sigma0
-from sage.misc.misc import walltime
 from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
@@ -601,7 +600,7 @@ class PSModularSymbolElement(ModuleElement):
             False
         """
         try:
-            aq = self.Tq_eigenvalue(q, p, M)
+            self.Tq_eigenvalue(q, p, M)
             return True
         except ValueError:
             return False

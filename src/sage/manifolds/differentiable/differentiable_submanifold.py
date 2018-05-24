@@ -1,12 +1,13 @@
 r"""
-Differentiable submanifold of a differentiable manifold.
+Submanifold of a differentiable manifold.
 
 Given two differentiable manifolds N and M, an immersion `\phi` is a
 differentiable map from N to M such that its differential is everywhere
-injective.
+injective. In this case, N is a differentiable immersed submanifold of M.
 
 If in addition `\phi` is a topological embedding, then it is called an embedding.
-In this case, N is a differentiable submanifold of M
+In this case, N is a differentiable embedded submanifold of M (or simply a
+differentiable submanifold).
 
 `\phi` can also depend on one or multiple parameters. As long as the differential
 of `\phi` remains injective in these parameters, it represent a foliation.
@@ -15,6 +16,10 @@ The dimension of the foliation is defined as the number of parameters.
 AUTHORS:
 
 - Florentin Jaffredo
+
+REFERENCES:
+
+- [Lee2013]_
 
 """
 

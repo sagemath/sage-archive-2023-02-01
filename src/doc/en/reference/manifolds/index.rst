@@ -19,8 +19,6 @@ More documentation (in particular example worksheets) can be found
 
    riem_manifold
 
-   submanifold
-
    sage/manifolds/utilities
 
 .. include:: ../footer.txt

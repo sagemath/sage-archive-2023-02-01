@@ -35,7 +35,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 
-from pathtableaux import PathTableaux
+from sage.categories.pathtableaux import PathTableaux
 from sage.categories.sets_cat import Sets
 
 

@@ -148,7 +148,7 @@ interface::
     20
     sage: e = magma.DirichletGroup(40)(G.1)                               # optional - magma
     sage: print(e)                                                        # optional - magma
-    Kronecker character -4
+    Kronecker character -4 in modulus 40
     sage: print(e.Modulus())                                              # optional - magma
     40
 
@@ -2081,20 +2081,12 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         EXAMPLES::
 
-            sage: G = magma.DirichletGroup(20)   # optional - magma
-            sage: G.AssignNames(['a','b'])       # optional - magma
-            sage: G.1                            # optional - magma
+            sage: S = magma.PolynomialRing(magma.Integers(), 2)   # optional - magma
+            sage: S.AssignNames(['a', 'b'])       # optional - magma
+            sage: S.1                            # optional - magma
             a
-
-        ::
-
-            sage: G.Elements()                   # optional - magma
-            [
-            1,
-            a,
-            b,
-            a*b
-            ]
+            sage: S.1^2 + S.2
+            a^2 + b
         """
         P = self._check_valid()
         cmd = 'AssignNames(~%s, [%s])' % (self.name(),

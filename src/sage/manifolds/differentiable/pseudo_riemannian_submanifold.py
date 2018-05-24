@@ -19,8 +19,8 @@ with the hyperbolic slicing of the Minkowski space.
 
 The manifolds must first be declared::
 
-    sage: M = Manifold(4,'M',structure = "Lorentzian")
-    sage: N = Manifold(3,'N',ambient = M,structure = "Riemannian")
+    sage: M = Manifold(4, 'M', structure="Lorentzian")
+    sage: N = Manifold(3, 'N', ambient=M, structure="Riemannian")
 
 Because the slice considered are spacelike hypersurface, they are Riemannian,
 despite being embedded in a Lorentzian manifold.
@@ -28,10 +28,11 @@ despite being embedded in a Lorentzian manifold.
 Let's continue with chart declaration and various free variables::
 
     sage: E.<w,x,y,z> = M.chart()
-    sage: C.<rh,th,ph> = N.chart(r'rh:(0,+oo):\rho th:(0,pi):\theta ph:(-pi,pi):\phi')
-    sage: b = var('b',domain = 'real')
+    sage: C.<rh,th,ph> = N.chart(
+    ....:       r'rh:(0,+oo):\rho th:(0,pi):\theta ph:(-pi,pi):\phi')
+    sage: b = var('b',domain='real')
     sage: assume(b>0)
-    sage: t = var('t',domain = 'real')
+    sage: t = var('t',domain='real')
 
 Here b is the hyperbola semi major axis, and t is the parameter of the
 foliation.
@@ -39,11 +40,11 @@ foliation.
 One must then define the embedding, as well as the inverse embedding and the
 inverse concerning the foliation parameter::
 
-    sage: phi = N.diff_map(M,{(C,E):[b*cosh(rh)+t,
-    ....:                            b*sinh(rh)*sin(th)*cos(ph),
-    ....:                            b*sinh(rh)*sin(th)*sin(ph),
-    ....:                            b*sinh(rh)*cos(th)]})
-    sage: phi_inv = M.diff_map(N,{(E,C):[log(sqrt(x**2+y**2+z**2+b**2)\
+    sage: phi = N.diff_map(M,{(C,E): [b*cosh(rh)+t,
+    ....:                             b*sinh(rh)*sin(th)*cos(ph),
+    ....:                             b*sinh(rh)*sin(th)*sin(ph),
+    ....:                             b*sinh(rh)*cos(th)]})
+    sage: phi_inv = M.diff_map(N,{(E,C):[log(sqrt(x**2+y**2+z**2+b**2)
     ....:                      /b+sqrt((x**2+y**2+z**2+b**2)/b^2-1)),
     ....:                      arccos(z/(b*sqrt((x**2+y**2+z**2+b**2)/b^2-1))),
     ....:                      atan2(y,x)]})
@@ -69,7 +70,8 @@ in the result::
 
 The immersion can then be declared::
 
-    sage: N.set_immersion(phi,phi_inverse = phi_inv,var = t,t_inverse = {t:phi_inv_t})
+    sage: N.set_immersion(phi, inverse=phi_inv, var=t,
+    ....:                 t_inverse = {t: phi_inv_t})
 
 This line doesn't do any calculation yet. It just check the coherence of the
 arguments, but not the inverse, the user is trusted on this point. The user can
@@ -80,7 +82,7 @@ also declare that his immersion is in fact an embedding::
 Don't forget to specify the metric of the Minkowski space::
 
     sage: g = M.metric('g')
-    sage: g[0,0], g[1,1], g[2,2], g[3,3]=-1, 1, 1, 1
+    sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
 
 With this the declaration of our manifolds is finished, and calculation can be
 performed.
@@ -117,7 +119,7 @@ The normal vector::
 
 Check that the hypersurface is indeed spacelike::
 
-    sage: N.ambient_metric()(N.normal(),N.normal()).display()
+    sage: N.ambient_metric()(N.normal(), N.normal()).display()
     M --> R
     (w, x, y, z) |--> -1
     (rh_M, th_M, ph_M, t_M) |--> -1
@@ -363,22 +365,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.ambient_metric()[:])
             [1 0 0]
             [0 1 0]
@@ -408,22 +410,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.first_fundamental_form()[:])
             [          r^2             0]
             [            0 r^2*sin(th)^2]
@@ -454,22 +456,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.difft().display())
             dr = x/sqrt(x^2 + y^2 + z^2) dx + y/sqrt(x^2 + y^2 + z^2) dy +
              z/sqrt(x^2 + y^2 + z^2) dz
@@ -500,22 +502,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.gradt().display())
             grad_r = x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
              + z/sqrt(x^2 + y^2 + z^2) d/dz
@@ -566,22 +568,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space foliated on the radius::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.normal().display())
             x/sqrt(x^2 + y^2 + z^2) d/dx + y/sqrt(x^2 + y^2 + z^2) d/dy
              + z/sqrt(x^2 + y^2 + z^2) d/dz
@@ -591,13 +593,14 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: print(N.normal().display(T[0].frame(),T[0]))
             d/dr_M
 
-        The same sphere of constant radius, ie not foliated::
+        The same sphere of constant radius, ie not foliated in stereographic
+        coordinates::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian",start_index = 1)
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian", start_index=1)
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: U = N.open_subset('U')
             sage: V = N.open_subset('V')
-            sage: N.declare_union(U,V)
+            sage: N.declare_union(U, V)
             sage: stereoN.<x,y> = U.chart()
             sage: stereoS.<xp,yp> = V.chart("xp:x' yp:y'")
             sage: stereoN_to_S = stereoN.transition_map(stereoS,
@@ -631,12 +634,24 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             ....:                                  2*yp/(1+xp^2+yp^2),
             ....:                                 (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
             ....:                  name='Phi', latex_name=r'\Phi')
-            sage: N.set_immersion(phi)
-            sage: N.declare_embedding()
+            sage: N.set_embedding(phi)
             sage: g = M.metric('g')
             sage: g[3,3],g[1,1],g[2,2]=1,1,1
             sage: N.ambient_metric()[:]
+
+
+        The normal vector is computed the same way, but now returns a
+        tensorfield along N::
+
             sage: n = N.normal()
+            sage: print(n)
+            Vector field n along the 2-dimensional pseudo-Riemannian submanifold
+             N embedded in 3-dimensional differentiable manifold M with values
+             on the 3-dimensional Riemannian manifold M
+
+        Let's check that the choice of orientation is coherent on the two top
+         frames::
+
             sage: n.restrict(V).display(format_spec = spher)
             n = -cos(ph)*sin(th) d/dX - sin(ph)*sin(th) d/dY - cos(th) d/dZ
             sage: n.restrict(U).display(format_spec = spher)
@@ -649,8 +664,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             return self._normal
 
         # case no foliation:
-
         max_frame = self._ambient.default_frame().along(self._immersion)
+        self._normal = self.vector_field("n", r"n", self._immersion)
 
         # an auxiliary functions:
         def calc_normal(chart):
@@ -684,8 +699,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             norm_rst.add_comp(max_frame.restrict(chart.domain()))[:] = n_comp[:]
             self._normal.add_comp_by_continuation(max_frame, chart.domain(),
                                                   chart)
-
-        self._normal = self.vector_field("n", r"n", self._immersion)
 
         # start breadth-first graph exploration
         marked = set()
@@ -743,22 +756,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.ambient_first_fundamental_form().\
             ....:   display(T[0].frame(),T[0]))
             gamma = r_M^2 dth_M*dth_M + r_M^2*sin(th_M)^2 dph_M*dph_M
@@ -793,22 +806,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.lapse().display())
             N: M --> R
                (x, y, z) |--> 1
@@ -839,22 +852,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.shift().display())
             beta = 0
 
@@ -885,22 +898,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidian space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.ambient_second_fundamental_form()\
             ....:       .display(T[0].frame(),T[0])) #long time
             K = -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
@@ -961,22 +974,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.second_fundamental_form().display()) # long time
             K = -r dth*dth - r*sin(th)^2 dph*dph
 
@@ -1041,22 +1054,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
 
         Print the projector::
 
@@ -1096,22 +1109,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
 
         Let's check that the first fundamental form is the projection of the
         metric on the submanifold::
@@ -1153,23 +1166,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
-            sage: print(N.gauss_curvature().display())
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             N --> R
             (th, ph) |--> r^(-2)
 
@@ -1206,22 +1218,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.principal_directions()[0][0].display())
             e_0 = d/dth
 
@@ -1267,22 +1279,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.principal_curvatures()[0].display())
             k_0: N --> R
                (th, ph) |--> -1/r
@@ -1317,22 +1329,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.mean_curvature().display())
             N --> R
             (th, ph) |--> -1/r
@@ -1364,22 +1376,22 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         A sphere embedded in euclidan space::
 
-            sage: M = Manifold(3,'M',structure = "Riemannian")
-            sage: N = Manifold(2,'N',ambient = M,structure = "Riemannian")
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
             sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
             sage: r = var('r')
             sage: assume(r>0)
             sage: E.<x,y,z> = M.chart()
-            sage: phi = N.diff_map(M,{(C,E):[r*sin(th)*cos(ph),
-            ....:                            r*sin(th)*sin(ph),r*cos(th)]})
-            sage: phi_inv = M.diff_map(N,{(E,C):[arccos(z/r),atan2(y,x)]})
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
             sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
-            sage: N.set_immersion(phi,phi_inverse = phi_inv,var = r,
+            sage: N.set_embedding(phi,phi_inverse = phi_inv,var = r,
             ....:                 t_inverse = {r:phi_inv_r})
-            sage: N.declare_embedding()
             sage: T = N.adapted_chart()
             sage: g = M.metric('g')
-            sage: g[0,0],g[1,1],g[2,2]=1,1,1
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
             sage: print(N.shape_operator()[:])
             [-1/r    0]
             [   0 -1/r]
@@ -1405,4 +1417,20 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self.principal_directions.clear_cache()
         self.principal_curvatures.clear_cache()
         self.shape_operator.clear_cache()
+        self._difft = None
+        self._gradt = None
+        self._normal = None
+        self._lapse = None
+        self._shift = None
+        self._first_fundamental_form = None
+        self._ambient_first_fundamental_form = None
+        self._second_fundamental_form = None
+        self._ambient_second_fundamental_form = None
+        self._ambient_metric = None
+        self._projector = None
+        self._gauss_curvature = None
+        self._principal_directions = {}
+        self._principal_curvatures = {}
+        self._mean_curvature = None
+        self._shape_operator = None
 

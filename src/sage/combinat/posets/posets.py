@@ -5087,10 +5087,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             TypeError: the poset is missing either top or bottom
         """
+        from copy import copy
+
         if self.is_bounded():
-            top = self.top()
-            bottom = self.bottom()
-            return self.subposet(u for u in self if u not in (top, bottom))
+            g = copy(self._hasse_diagram)
+            g.delete_vertices([0, g.order()-1])
+            g.relabel(self._vertex_to_element)
+            return Poset(g, facade=self._is_facade)
         raise TypeError('the poset is missing either top or bottom')
 
     def relabel(self, relabeling=None):

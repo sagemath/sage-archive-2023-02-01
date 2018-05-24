@@ -127,8 +127,8 @@ class DualSemistandardTableau(ClonableArray):
         Returns True if Tableau is skew and False if not.
 
         EXAMPLE:
-        sage: T = OscillatingTableau([[],[1],[2],[1],[]])
-        sage: T.is_skew()
+        sage: t = DualSemistandardTableau([[],[1],[2],[2,1]])
+        sage: t.is_skew()
         False
         """
         return self[0] != Partition([])

@@ -558,7 +558,7 @@ cdef class dancing_linksWrapper:
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: d = dlx_solver(rows)
-            sage: list(d.solutions_iterator())
+            sage: sorted(d.solutions_iterator())
             [[0, 1], [2, 3], [4, 5]]
 
         TESTS:
@@ -566,7 +566,7 @@ cdef class dancing_linksWrapper:
         The algorithm is automatically reinitialized if needed, for example
         when iterating the solutions a second time (:trac:`25125`)::
 
-            sage: list(d.solutions_iterator())
+            sage: sorted(d.solutions_iterator())
             [[0, 1], [2, 3], [4, 5]]
         """
         if self._x.search_is_started():
@@ -680,7 +680,7 @@ cdef class dancing_linksWrapper:
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: d = dlx_solver(rows)
             sage: S = d.all_solutions()
-            sage: [sorted(s) for s in S]
+            sage: sorted(sorted(s) for s in S)
             [[0, 1], [2, 3], [4, 5]]
 
         The number of CPUs can be specified as input::

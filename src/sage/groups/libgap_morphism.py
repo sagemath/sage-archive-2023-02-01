@@ -103,7 +103,9 @@ class GroupMorphism_libgap(Morphism):
             if not len(gens) == len(imgs):
                 raise ValueError("provide an image for each generator")
             self._phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
-            if check and not self._phi.IsGroupHomomorphism():
+            # if it is not a group homomorphism, then
+            # self._phi is the gap boolean fail
+            if self._phi.is_bool():     # check we did not fail
                 raise ValueError("images do not define a group homomorphism")
         else:
             ByImagesNC = libgap.function_factory("GroupHomomorphismByImagesNC")

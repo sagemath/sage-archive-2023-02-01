@@ -3718,6 +3718,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                           key=lambda p: p.degree())
 
         if algorithm == 'magma':  # faster, not working for the moment
+            from sage.interfaces.magma import magma
             elem = magma('ElementaryDivisors')
             return elem.evaluate(x - c0).sage()
 

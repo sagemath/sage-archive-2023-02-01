@@ -162,7 +162,7 @@ class ParentLibGAP(SageObject):
 
     def _Hom_(self, G, category=None):
         r"""
-        Return the set of group homomorphisms from self to `G`.
+        Return the set of group homomorphisms from ``self`` to ``G``.
 
         INPUT:
 
@@ -173,9 +173,12 @@ class ParentLibGAP(SageObject):
 
         The set of homomorphisms from ``self`` to ``G``.
 
+        EXAMPLES::
+
             sage: F.<a,b> = FreeGroup()
             sage: F.Hom(F)
-            Set of Morphisms from Free Group on generators {a, b} to Free Group on generators {a, b} in Category of groups
+            Set of Morphisms from Free Group on generators {a, b}
+             to Free Group on generators {a, b} in Category of groups
         """
         from sage.groups.libgap_morphism import GroupHomset_libgap
         return GroupHomset_libgap(self, G, category=category)

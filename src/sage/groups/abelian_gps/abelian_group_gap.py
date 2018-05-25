@@ -658,7 +658,7 @@ class AbelianGroupGap(AbelianGroup_gap):
         AbelianGroup_gap.__init__(self, G, category=category)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of this group.
 
         EXAMPLES::
@@ -666,9 +666,11 @@ class AbelianGroupGap(AbelianGroup_gap):
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: G = AbelianGroupGap([2,6])
             sage: G._latex_()
-            'Abelian group with gap, generator orders $(2, 6)$'
+            \text{\texttt{Abelian group with gap, generator orders }} \left(2, 6\right)
         """
-        return "Abelian group with gap, generator orders ${}$".format(self.gens_orders())
+        from sage.misc.latex import latex
+        base = r"\text{\texttt{Abelian group with gap, generator orders }}"
+        return base + latex(self.gens_orders())
 
     def _repr_(self):
         r"""

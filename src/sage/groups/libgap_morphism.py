@@ -158,8 +158,8 @@ class GroupMorphism_libgap(Morphism):
             sage: A = AbelianGroupGap([2,4])
             sage: f = A.hom([g^2 for g in A.gens()])
             sage: latex(f)
-            Abelian group with gap, generator orders $(2, 4)$ \rightarrow
-             Abelian group with gap, generator orders $(2, 4)$
+            \text{\texttt{Abelian group with gap, generator orders }} \left(2, 4\right)
+             \rightarrow \text{\texttt{Abelian group with gap, generator orders }} \left(2, 4\right)
         """
         return r"{} \rightarrow {}".format(latex(self.domain()), latex(self.codomain()))
 

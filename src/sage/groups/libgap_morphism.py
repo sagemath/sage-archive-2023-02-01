@@ -40,7 +40,7 @@ class GroupMorphism_libgap(Morphism):
     r"""
     Group morphism specified by the images of generators.
 
-    This wraps GAP's GroupHomomorphismByImages function.
+    This wraps GAP's ``GroupHomomorphismByImages`` function.
     Checking if the input defines a group homomorphism can be expensive
     if the group is large.
 
@@ -188,7 +188,7 @@ class GroupMorphism_libgap(Morphism):
 
         INPUT:
 
-        ``J`` -- a subgroup or an element of the domain of ``self``
+        - ``J`` -- a subgroup or an element of the domain of ``self``
 
         OUTPUT:
 
@@ -305,7 +305,7 @@ class GroupHomset_libgap(UniqueRepresentation, HomsetWithBase):
     r"""
     Homsets of groups with a libgap backend.
 
-    Do not call this directly instead use :meth:`Hom`.
+    Do not call this directly instead use :func:`Hom`.
 
     INPUT:
 

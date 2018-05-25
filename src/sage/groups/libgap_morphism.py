@@ -35,7 +35,6 @@ from sage.rings.integer_ring import ZZ
 from sage.groups.libgap_wrapper import ParentLibGAP
 from sage.misc.latex import latex
 
-
 class GroupMorphism_libgap(Morphism):
     r"""
     Group morphism specified by the images of generators.
@@ -348,7 +347,7 @@ class GroupHomset_libgap(UniqueRepresentation, HomsetWithBase):
             raise TypeError("G (={}) must be a ParentLibGAP group".format(G))
         if not isinstance(H, ParentLibGAP):
             raise TypeError("H (={}) must be a ParentLibGAP group".format(H))
-        category = Groups().or_subcategory(category)
+        category = Groups().or_subcategory(category, join=True)
         try:
             if G.is_finite() and H.is_finite():
                 category = category.Finite()

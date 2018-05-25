@@ -1211,9 +1211,80 @@ class TensorField(ModuleElement):
         - ``subdomain`` -- open subset of `e`'s domain in which the
           components have additional expressions.
 
-        EXAMPLE::
+        EXAMPLE:
 
-            sage: print("TODO")
+        Vector field in R^3 along the 2-sphere (from a non parallelizable
+        manifold to a parallelizable one::
+
+            sage: M = Manifold(3, 'M', structure="Riemannian", start_index=0)
+            sage: S = Manifold(2, 'N', structure="Riemannian")
+            sage: E.<X,Y,Z> = M.chart()
+
+        Let's define S in terms of stereographic charts::
+
+            sage: U = S.open_subset('U')
+            sage: V = S.open_subset('V')
+            sage: S.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart()
+            sage: stereoS.<xp,yp> = V.chart("xp:x' yp:y'")
+            sage: stereoN_to_S = stereoN.transition_map(stereoS,
+            ....:                                 (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                 intersection_name='W',
+            ....:                                 restrictions1= x^2+y^2!=0,
+            ....:                                 restrictions2= xp^2+yp^2!=0)
+            sage: stereoS_to_N = stereoN_to_S.inverse()
+
+        To define the change of chart, the intersection is needed.
+
+            sage: W = U.intersection(V)
+            sage: stereoN_W = stereoN.restrict(W)
+            sage: stereoS_W = stereoS.restrict(W)
+            sage: phi = S.diff_map(M, {(stereoN, E): [2*x/(1+x^2+y^2),
+            ....:                                     2*y/(1+x^2+y^2),
+            ....:                                     (x^2+y^2-1)/(1+x^2+y^2)],
+            ....:                        (stereoS, E): [2*xp/(1+xp^2+yp^2),
+            ....:                                       2*yp/(1+xp^2+yp^2),
+            ....:                               (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
+            ....:                   name='Phi', latex_name=r'\Phi')
+
+        To define a vector field from S to M. To do that, first set the
+        components on U::
+
+            sage: v = M.vector_field('v').along(phi)
+            sage: vU = v.restrict(U)
+            sage: vU[:] = [x,y,x**2+y**2]
+
+        But because M is parallelizable, this component can be extended to S
+        itself::
+
+            sage: v.add_comp_by_continuation(E.frame().along(phi), U)
+
+        One can see that the v is not yet fully defined: the components
+        (scalarfield) don't have values on the whole manifold::
+
+            sage: print(v._components.values()[0]._comp[(0,)].display())
+            S --> R
+            on U: (x, y) |--> x
+
+        To fix that, first extend the components from W to V using
+        add_comp_by_continuation::
+
+            sage: v.add_comp_by_continuation(E.frame().along(phi).restrict(V),
+            ....:                            W, stereoS)
+
+        Then, the expression on the subdomain V should be added to the already
+        known component on S, this is done using this function
+        add_expr_from_subdomain::
+
+            sage: v.add_expr_from_subdomain(E.frame().along(phi), V)
+
+        The definition of v is now complete::
+
+            sage: print(v._components.values()[0]._comp[(2,)].display())
+            S --> R
+            on U: (x, y) |--> x^2 + y^2
+            on V: (xp, yp) |--> 1/(xp^2 + yp^2)
+
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):

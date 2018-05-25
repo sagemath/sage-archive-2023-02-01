@@ -1147,7 +1147,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                       r"{" + tensor._latex_() + r"}_{" + self._latex_() + r"}")
         for i in range(tensor.tensor_type()[0]):
             resu = self.projector().contract(1, resu, i)
-        for i in range(tensor.tensor_type()[0], tensor.tensor_type()[1]):
+        for i in range(tensor.tensor_type()[1]):
             resu = self.projector().contract(0, resu, i)
         return resu
 
@@ -1177,9 +1177,36 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         EXAMPLES::
 
-            sage: print("TODO")
+        EXAMPLES:
 
+        A sphere embedded in euclidan space::
 
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian")
+            sage: C.<th,ph> = N.chart(r'th:(0,pi):\theta ph:(-pi,pi):\phi')
+            sage: r = var('r')
+            sage: assume(r>0)
+            sage: E.<x,y,z> = M.chart()
+            sage: phi = N.diff_map(M,{(C,E): [r*sin(th)*cos(ph),
+            ....:                             r*sin(th)*sin(ph),
+            ....:                             r*cos(th)]})
+            sage: phi_inv = M.diff_map(N,{(E,C): [arccos(z/r), atan2(y,x)]})
+            sage: phi_inv_r = M.scalar_field({E:sqrt(x**2+y**2+z**2)})
+            sage: N.set_embedding(phi,inverse = phi_inv,var = r,
+            ....:                 t_inverse = {r:phi_inv_r})
+            sage: T = N.adapted_chart()
+            sage: g = M.metric('g')
+            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
+
+        Let's check that the first fundamental form is the projection of the
+        metric on the submanifold::
+
+            sage: N.ambient_first_fundamental_form()==N.mixed_projection(M.metric())
+            True
+
+        The other non redundant projection are::
+
+            sage: N.mixed_projection(M.metric(), [0])
 
         """
         resu = tensor.copy()
@@ -1203,7 +1230,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                     resu = self.normal().down(self.ambient_metric).contract(0, resu, i)
                 else:
                     resu = self.projector().contract(1, resu, i)
-            for i in range(tensor.tensor_type()[0], tensor.tensor_type()[1]):
+            for i in range(tensor.tensor_type()[1]):
                 if i in indices:
                     resu = self.normal().contract(0, resu, i)
                 else:

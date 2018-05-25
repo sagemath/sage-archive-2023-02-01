@@ -184,6 +184,7 @@ from sage.functions.other import factorial
 from sage.symbolic.ring import SR
 from Queue import Queue
 from sage.misc.cachefunc import cached_method
+from sage.rings.integer import Integer
 
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
@@ -437,7 +438,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._first_fundamental_form.set_name("gamma", r"\gamma")
         return self._first_fundamental_form
 
-    induced_metric = first_fundamental_form
+    induced_metric = cached_method(first_fundamental_form)
 
     @cached_method
     def difft(self):
@@ -790,7 +791,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._ambient_first_fundamental_form.set_name("gamma", r"\gamma")
         return self._ambient_first_fundamental_form
 
-    ambient_induced_metric = ambient_first_fundamental_form
+    ambient_induced_metric = cached_method(ambient_first_fundamental_form)
 
     @cached_method
     def lapse(self):
@@ -958,7 +959,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._ambient_second_fundamental_form.set_name("K", r"K")
         return self._ambient_second_fundamental_form
 
-    ambient_extrinsic_curvature = ambient_second_fundamental_form
+    ambient_extrinsic_curvature = cached_method(ambient_second_fundamental_form)
 
     @cached_method
     def second_fundamental_form(self):
@@ -1037,7 +1038,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self._second_fundamental_form = resu
         return self._second_fundamental_form
 
-    extrinsic_curvature = second_fundamental_form
+    extrinsic_curvature = cached_method(second_fundamental_form)
 
     @cached_method
     def projector(self):
@@ -1100,7 +1101,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         INPUT:
 
-        - ``tensor`` -- any tensor field to be projected on the manifold
+        - ``tensor`` -- any tensor field to be projected on the manifold. If no
+          foliation is provided, must be a tensorfield along the submanifold.
 
         OUTPUT:
 
@@ -1142,12 +1144,72 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         resu = tensor.copy()
         resu.set_name(tensor._name + "_" + self._name,
-                      r"{" + tensor._latex_() + r"}_" + self._latex_())
+                      r"{" + tensor._latex_() + r"}_{" + self._latex_() + r"}")
         for i in range(tensor.tensor_type()[0]):
             resu = self.projector().contract(1, resu, i)
-        for i in range(tensor.tensor_type()[1]):
+        for i in range(tensor.tensor_type()[0], tensor.tensor_type()[1]):
             resu = self.projector().contract(0, resu, i)
         return resu
+
+    def mixed_projection(self, tensor, indices = []):
+        r"""
+        Return de n+1 decomposition of a tensor on the submanifold and the
+        normal vector.
+
+        The n+1 decomposition of a tensor of rank `k` can be obtained by
+        contracting each indices either with the normal vector or the projection
+        operator of the submanifold (see
+        :meth:`sage.manifold.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold.projector`).
+
+        INPUT:
+
+        - ``tensor`` -- any tensor field, eventually along the submanifold if
+          no foliation is provided.
+        - ``indices`` -- (default: ``[]``) integer or list of integers
+          containing the indices on which the projection is made on the normal
+          vector. By default, all projection are made on the submanifold. If
+          an integer `n` is provided, the `n` first contractions are made with
+          the normal vector, all the other with the projection operator.
+
+        OUTPUT:
+
+        - tensorfield of rank `k`-``len(indices)``.
+
+        EXAMPLES::
+
+            sage: print("TODO")
+
+
+
+        """
+        resu = tensor.copy()
+
+        if isinstance(indices, Integer):
+            for i in range(indices):
+                if i < tensor.tensor_type()[0]:
+                    resu = self.normal().down(self.ambient_metric).contract(
+                        0, resu, i)
+                else:
+                    resu = self.normal().contract(0, resu, i)
+            for i in range(indices, tensor.tensor_rank()):
+                if i < tensor.tensor_type()[0]:
+                    resu = self.projector().contract(1, resu, i)
+                else:
+                    resu = self.projector().contract(0, resu, i)
+            return resu
+        else:
+            for i in range(tensor.tensor_type()[0]):
+                if i in indices:
+                    resu = self.normal().down(self.ambient_metric).contract(0, resu, i)
+                else:
+                    resu = self.projector().contract(1, resu, i)
+            for i in range(tensor.tensor_type()[0], tensor.tensor_type()[1]):
+                if i in indices:
+                    resu = self.normal().contract(0, resu, i)
+                else:
+                    resu = self.projector().contract(0, resu, i)
+            return resu
+
 
     @cached_method
     def gauss_curvature(self):
@@ -1440,14 +1502,18 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         """
         self.ambient_metric.clear_cache()
         self.first_fundamental_form.clear_cache()
+        self.induced_metric.clear_cache()
         self.difft.clear_cache()
         self.gradt.clear_cache()
         self.normal.clear_cache()
         self.ambient_first_fundamental_form.clear_cache()
+        self.ambient_induced_metric.clea_cache()
         self.lapse.clear_cache()
         self.shift.clear_cache()
         self.ambient_second_fundamental_form.clear_cache()
+        self.ambient_extrinsic_curvature.clear_cache()
         self.second_fundamental_form.clear_cache()
+        self.extrinsic_curvature.clear_cache()
         self.projector.clear_cache()
         self.gauss_curvature.clear_cache()
         self.principal_directions.clear_cache()

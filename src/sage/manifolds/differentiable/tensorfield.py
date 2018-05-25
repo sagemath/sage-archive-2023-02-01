@@ -1202,6 +1202,19 @@ class TensorField(ModuleElement):
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
     def add_expr_from_subdomain(self, frame, subdomain):
+        """
+        Add an expression to an existing component from a subdomain.
+
+        INPUT:
+
+        - ``frame`` -- vector frame `e` in which the components are to be set
+        - ``subdomain`` -- open subset of `e`'s domain in which the
+          components have additional expressions.
+
+        EXAMPLE::
+
+            sage: print("TODO")
+        """
         dom = frame._domain
         if not dom.is_subset(self._domain):
             raise ValueError("the vector frame is not defined on a subset " +

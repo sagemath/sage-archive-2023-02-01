@@ -71,6 +71,8 @@ from __future__ import print_function, absolute_import
 
 from .infinity import infinity
 
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 import sage.rings.polynomial.polynomial_element as polynomial
 import sage.misc.latex
 from sage.rings.integer import Integer
@@ -819,12 +821,44 @@ cdef class LaurentSeries(AlgebraElement):
             x^7 + 7*x^8 + 21*x^9 + 56*x^10 + 161*x^11 + 336*x^12 + O(x^13)
             sage: g^7
             x^-70 - 7*x^-59 + 7*x^-58 - 7*x^-56 + O(x^-52)
+            sage: g^(1/2)
+            x^-5 - 1/2*x^6 + 1/2*x^7 - 1/2*x^9 + O(x^13)
+            sage: g^(1/5)
+            x^-2 - 1/5*x^9 + 1/5*x^10 - 1/5*x^12 + O(x^16)
+            sage: g^(2/5)
+            x^-4 - 2/5*x^7 + 2/5*x^8 - 2/5*x^10 + O(x^14)
+            sage: h = x^2 + 2*x^4 + x^6
+            sage: h^(1/2)
+            x + x^3
+
         """
         cdef LaurentSeries self = _self
-        right=int(r)
-        if right != r:
-            raise ValueError("exponent must be an integer")
-        return type(self)(self._parent, self.__u**right, self.__n*right)
+
+        try:
+            right = QQ.coerce(r)
+        except TypeError:
+            raise ValueError("exponent must be a rational number")
+
+        if right.denominator() == 1:
+            right = right.numerator()
+            return type(self)(self._parent, self.__u**right, self.__n*right)
+
+        if self.is_zero():
+            return self._parent(0).O(self.prec()*right)
+
+        d = right.denominator()
+        n = right.numerator()
+
+        val = self.valuation()
+
+        if val % d:
+            raise ValueError("power series valuation would be fractional")
+
+        u = self.valuation_zero_part().nth_root(d)
+
+        s = type(self)(self._parent, u, val // d)
+
+        return s**n
 
     def shift(self, k):
         r"""

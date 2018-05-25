@@ -1755,8 +1755,8 @@ class ContinuousMap(Morphism):
                     self._restrictions[(subdomain, subcodomain)] = res
                     self._restrictions.update(res._restrictions)
                     self._restrictions_graph.update(res._restrictions_graph)
-                    res._extension_graph.update(self._extension_graph)
-                    for ext in self._extension._graph.values():
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
                         ext._restrictions[subdomain] = res
                         ext._restrictions.update(res._restrictions)
                         ext._restrictions_graph.update(res._restrictions_graph)

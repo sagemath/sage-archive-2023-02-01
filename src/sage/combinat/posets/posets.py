@@ -3672,7 +3672,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def coxeter_smith_form(self, algorithm='singular'):
         """
-        Return the Smith normal form of the Coxeter matrix.
+        Return the Smith normal form of x minus the Coxeter matrix.
 
         INPUT:
 
@@ -3682,9 +3682,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        a list of polynomials in one variable
+        a list of polynomials in one variable, each one dividing the next one
 
-        The output is a refinement of the characteristic polynomial of
+        The output list is a refinement of the characteristic polynomial of
         the Coxeter transformation, which is its product. This list
         of polynomials only depends on the derived category of modules
         on the poset.
@@ -3705,12 +3705,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.interfaces.singular import singular
         c0 = self.coxeter_transformation()
-        x = polygen(QQ, 'x')   # not possible to use for the moment
+        x = polygen(QQ, 'x')   # not possible to use ZZ for the moment
 
-        if algorithm == 'sage':  # very slow
+        if algorithm == 'sage':  # *very slow*
             return (x - c0).smith_form()[0].diagonal()
 
-        if algorithm == 'singular':  # faster
+        if algorithm == 'singular':  # quite faster
             singular.LIB('jacobson.lib')
             sing_m = singular(x - c0)
             L = sing_m.smith().sage().diagonal()

@@ -7,8 +7,9 @@ EXAMPLES::
     sage: A = AbelianGroupGap([2, 4])
     sage: F.<a,b> = FreeGroup()
     sage: f = F.hom([g for g in A.gens()])
-    sage: f.kernel()
-    Group([ a^-2, b*a*b^-1*a^-1, b*a^-1*b^-1*a^-1, b^-1*a*b*a^-1, b^-1*a^-1*b*a^-1, b^-4, a*b^-4*a^-1, b^2*a*b^-2*a^-1, b^2*a^-1*b^-2*a^-1 ])
+    sage: K = f.kernel()
+    sage: K
+    Group(<free, no generators known>)
 
 AUTHORS:
 
@@ -42,7 +43,7 @@ class GroupMorphism_libgap(Morphism):
     Checking if the input defines a group homomorphism can be expensive
     if the group is large.
 
-    Input:
+    INPUT:
 
     - ``homset`` -- the parent
     - ``imgs`` -- a tuple of generators
@@ -181,8 +182,7 @@ class GroupMorphism_libgap(Morphism):
             4
         """
         dom = self.domain()
-        ker_gen = [dom(g) for g in self.gap().Kernel().GeneratorsOfGroup()]
-        return dom.subgroup(ker_gen)
+        return dom._subgroup_constructor(self.gap().Kernel())
 
     def pushforward(self, J, *args, **kwds):
         r"""
@@ -224,9 +224,7 @@ class GroupMorphism_libgap(Morphism):
         if not isinstance(J, ParentLibGAP):
             raise TypeError("J(=%s) must be a libgap group" %J)
         if dom.gap().IsSubgroup(J.gap()).sage():
-                im_gens = phi.Image(J.gap()).GeneratorsOfGroup()
-                im_gens = [self.codomain()(g) for g in im_gens]
-                return codom.subgroup(im_gens)
+            return codom._subgroup_constructor(phi.Image(J.gap()))
 
     image = pushforward
 
@@ -236,7 +234,7 @@ class GroupMorphism_libgap(Morphism):
 
         Some python code for wrapping GAP's ``Images`` function.
 
-        INPUT::
+        INPUT:
 
         - ``g`` -- an element of the domain
 
@@ -303,8 +301,8 @@ class GroupMorphism_libgap(Morphism):
             raise TypeError("%s must be a libGAP group of %s"%(S, self))
         if not self.codomain().gap().IsSubgroup(S.gap()).sage():
             raise ValueError("%s must be a subgroup of %s"%(S, self))
-        gens = phi.PreImage(S.gap()).GeneratorsOfGroup()
-        return self.codomain().subgroup(gens)
+        preimage = phi.PreImage(S.gap())
+        return self.codomain()._subgroup_constructor(preimage)
 
 class GroupHomset_libgap(HomsetWithBase):
     r"""
@@ -342,7 +340,7 @@ class GroupHomset_libgap(HomsetWithBase):
             sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
             sage: A = AbelianGroupGap([2,4])
             sage: H = A.Hom(A)
-            sage: TestSuite(H).run()
+            sage: TestSuite(H).run(skip="_test_elements")
 
         """
         if not isinstance(G, ParentLibGAP):

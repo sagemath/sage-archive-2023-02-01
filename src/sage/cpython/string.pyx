@@ -19,7 +19,7 @@ import sys
 
 
 # Provide this as a shortcut to calling sys.getfilesystemencoding(), which
-# after interpeter initialization is constant.
+# after interpreter initialization is constant.
 FS_ENCODING = sys.getfilesystemencoding()
 
 # Functions in this module are implemented in the .pxd file for inlining.

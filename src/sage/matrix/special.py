@@ -134,19 +134,19 @@ def column_matrix(*args, **kwds):
         generally, when creating a matrix, input vectors and lists are
         treated as rows.  This function is a convenience that turns
         around this convention when creating a matrix.  If you are not
-        familiar with the usual :class:`matrix <MatrixFactory>`
+        familiar with the usual :func:`matrix`
         constructor, you might want to consider it first.
 
     INPUT:
 
-    Inputs are almost exactly the same as for the :class:`matrix
-    <MatrixFactory>` constructor, which are documented there.  But see
+    Inputs are almost exactly the same as for the :func:`matrix`
+    constructor, which are documented there.  But see
     examples below for how dimensions are handled.
 
     OUTPUT:
 
-    Output is exactly the transpose of what the :class:`matrix
-    <MatrixFactory>` constructor would return.  In other words, the
+    Output is exactly the transpose of what the :func:`matrix`
+    constructor would return.  In other words, the
     ``matrix`` constructor builds a matrix and then this function
     exchanges rows for columns, and columns for rows.
 
@@ -155,7 +155,7 @@ def column_matrix(*args, **kwds):
     The most compelling use of this function is when you have a
     collection of lists or vectors that you would like to become the
     columns of a matrix. In almost any other situation, the
-    :class:`matrix <MatrixFactory>` constructor can probably do the
+    :func:`matrix`` constructor can probably do the
     job just as easily, or easier. ::
 
         sage: col_1 = [1,2,3]
@@ -750,12 +750,12 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: A.parent()
         Full MatrixSpace of 0 by 0 sparse matrices over Integer Ring
 
-    Giving the entries improperly may first complain about not having a length.  ::
+    Giving the entries improperly may first complain about not being iterable::
 
         sage: diagonal_matrix(QQ, 5, 10)
         Traceback (most recent call last):
         ...
-        TypeError: unable to determine number of entries for diagonal matrix construction
+        TypeError: 'sage.rings.integer.Integer' object is not iterable
 
     Giving too many entries will raise an error. ::
 
@@ -771,16 +771,21 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         ...
         ValueError: number of diagonal matrix entries (1) exceeds the requested matrix size (-2)
 
-    Types for the entries are limited, even though they may have a length.  ::
+    Types for the entries need to be iterable (tuple, list, vector, NumPy array,
+    etc)::
 
         sage: diagonal_matrix(x^2)
         Traceback (most recent call last):
         ...
-        TypeError: diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)
+        TypeError: 'sage.symbolic.expression.Expression' object is not iterable
+
+    TESTS::
+
+        sage: A = diagonal_matrix(reversed(range(4)))
 
     AUTHOR:
 
-        - Rob Beezer (2011-01-11): total rewrite
+    - Rob Beezer (2011-01-11): total rewrite
     """
     # Roll arguments leftward
     #
@@ -801,6 +806,11 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # Formats 1, 2, 3, 4
     entries = arg0
 
+    # sanity check for entries
+    from numpy import ndarray
+    if not isinstance(entries, (list, tuple, ndarray)):
+        entries = list(entries)
+
     # Reconcile matrix size and number of entries
     try:
         nentries = len(entries)
@@ -815,11 +825,6 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
     # provide a default ring for an empty list
     if len(entries) == 0 and ring is None:
       ring = rings.ZZ
-
-    # Sanity check on entries (partially, e.g. a list of lists will survive this check)
-    from numpy import ndarray
-    if not any([isinstance(entries, (list, tuple)), isinstance(entries, ndarray), is_Vector(entries)]):
-        raise TypeError('diagonal matrix entries are not a supported type (list, tuple, vector, or NumPy array)')
 
     # Convert entries to a list v over a common ring
     from sage.modules.free_module_element import prepare
@@ -1472,14 +1477,13 @@ def circulant(v, sparse=None):
         sage: matrix.circulant([0,1,-1], sparse=True).is_sparse()
         True
     """
-    from exceptions import AttributeError
     if sparse is None:
         try:
             sparse = v.is_sparse()
         except AttributeError:
             sparse = False
     n = len(v)
-    return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)
+    return matrix(n, n, lambda i, j: v[(j - i) % n], sparse=sparse)
 
 
 def _determine_block_matrix_grid(sub_matrices):
@@ -3349,7 +3353,7 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
         [ 0.00 -0.93  0.22  0.30]
         [ 0.00  0.00 -0.80  0.60]
         sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10)) * v
-        (5.5, 0.00098, 0.00098, 0.00)
+        (5.5, 0.0020, 0.00098, 0.00)
 
     AUTHORS:
 

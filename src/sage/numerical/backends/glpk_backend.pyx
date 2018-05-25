@@ -154,7 +154,7 @@ cdef class GLPKBackend(GenericBackend):
         Add ``number`` new variables.
 
         This amounts to adding new columns to the matrix. By default,
-        the variables are both positive, real and theor coefficient in
+        the variables are both positive, real and their coefficient in
         the objective function is 0.0.
 
         INPUT:
@@ -403,7 +403,7 @@ cdef class GLPKBackend(GenericBackend):
             0.30000000000000004
             sage: p.get_backend().set_verbosity(3)
             sage: p.solve()
-            GLPK Integer Optimizer, v4.63
+            GLPK Integer Optimizer...
             2 rows, 2 columns, 2 non-zeros
             0 integer variables, none of which are binary
             Preprocessing...
@@ -786,7 +786,7 @@ cdef class GLPKBackend(GenericBackend):
 
         INPUT:
 
-        - ``indices`` (list of integers) -- this list constains the
+        - ``indices`` (list of integers) -- this list contains the
           indices of the constraints in which the variable's
           coefficient is nonzero
 
@@ -1686,7 +1686,7 @@ cdef class GLPKBackend(GenericBackend):
         For example, both ``glp_gmi_cuts`` or ``"gmi_cuts"`` control whether
         to solve using Gomory cuts.
 
-        Parameter **values** are specificed as strings in upper case,
+        Parameter **values** are specified as strings in upper case,
         or as constants in lower case. For example, both ``glp_on`` and ``"GLP_ON"``
         specify the same thing.
 
@@ -1712,7 +1712,7 @@ cdef class GLPKBackend(GenericBackend):
 
          * - ``simplex_or_intopt``
 
-           - specifiy which of ``simplex``, ``exact`` and ``intopt`` routines
+           - specify which of ``simplex``, ``exact`` and ``intopt`` routines
              in GLPK to use.
              This is controlled by setting ``simplex_or_intopt`` to
              ``glp_simplex_only``, ``glp_exact_simplex_only``,

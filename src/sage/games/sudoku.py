@@ -227,6 +227,18 @@ class Sudoku(SageObject):
         """
         return self.puzzle == tuple(other.to_list())
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: a = Sudoku('.4..32....14..3.')
+            sage: hash(a) == hash(a.puzzle)
+            True
+        """
+        return hash(self.puzzle)
+
     def __ne__(self, other):
         """
         Check that ``self`` is not equal to ``other``.

@@ -284,7 +284,6 @@ from six.moves import range
 import itertools
 from sage.structure.sage_object import SageObject
 from sage.modules.free_module_element import vector
-from sage.misc.mrange import xmrange
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.superseded import deprecated_function_alias
 
@@ -1404,7 +1403,6 @@ class TilingSolver(SageObject):
         if self._reusable:
             return len(self.rows()) != 0
         else:
-            from sage.misc.misc_c import prod
             return (sum(len(p) for p in self.pieces()) == len(self._box)
                     and len(self.rows()) != 0)
 
@@ -1834,7 +1832,8 @@ class TilingSolver(SageObject):
             [[0, 7, 14], [0, 12, 10], [6, 13, 5], [6, 14, 2], [11, 9, 5], [11, 10, 3]]
         """
         if len(self.rows()) == 0:
-            raise StopIteration
+            return
+
         x = self.dlx_solver()
         while x.search() == 1:
             yield x.get_solution()
@@ -2047,7 +2046,7 @@ class TilingSolver(SageObject):
 
         """
         if not self.is_suitable():
-            raise StopIteration
+            return
         if partial is None:
             it = self._dlx_solutions_iterator()
         elif partial == 'common_prefix':

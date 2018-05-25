@@ -742,7 +742,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - an interger or a rational number.
+        - an integer or a rational number.
 
         EXAMPLES::
 

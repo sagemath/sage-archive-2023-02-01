@@ -19,8 +19,7 @@ from __future__ import absolute_import
 
 from six.moves import range
 
-from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.sets.set_from_iterator import EnumeratedSetFromIterator
 
 from inspect import isgenerator
@@ -92,7 +91,6 @@ def CartesianProduct(*iters):
     deprecation(18411, "CartesianProduct is deprecated. Use cartesian_product instead")
 
     from sage.combinat.misc import IterableFunctionCall
-    from sage.sets.set_from_iterator import EnumeratedSetFromIterator
     deprecate_ifc = False
     iiters = []
     for a in iters:
@@ -163,16 +161,28 @@ class CartesianProduct_iters(EnumeratedSetFromIterator):
         """
         TESTS::
 
-            sage: import sage.combinat.cartesian_product as cartesian_product
-            sage: cp = cartesian_product.CartesianProduct_iters([1,2],[3,4]); cp
+            sage: from sage.combinat.cartesian_product import CartesianProduct_iters
+            sage: cp = CartesianProduct_iters([1,2],[3,4]); cp
             Cartesian product of [1, 2], [3, 4]
             sage: loads(dumps(cp)) == cp
             True
             sage: TestSuite(cp).run(skip='_test_an_element')
+
+        Check that :trac:`24558` is fixed::
+
+            sage: from sage.combinat.cartesian_product import CartesianProduct_iters
+            sage: from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+            sage: I = EnumeratedSetFromIterator(Integers)
+            sage: CartesianProduct_iters(I, I)
+            Cartesian product of {0, 1, -1, 2, -2, ...}, {0, 1, -1, 2, -2, ...}
         """
         self.iters = iters
         self._mrange = xmrange_iter(iters)
-        category = FiniteEnumeratedSets() if self.is_finite() else InfiniteEnumeratedSets()
+        category = EnumeratedSets()
+        try:
+            category = category.Finite() if self.is_finite() else category.Infinite()
+        except ValueError: # Unable to determine if it is finite or not
+            pass
         def iterfunc():
             # we can not use self.__iterate__ directly because
             # that leads to an infinite recursion in __eq__

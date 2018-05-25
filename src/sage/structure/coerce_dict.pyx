@@ -41,6 +41,7 @@ However, this leak was fixed by :trac:`715`, using weak references::
     ....:     E = EllipticCurve(j=a)
     ....:     P = E.random_point()
     ....:     Q = 2*P
+    sage: L = [Partitions(n) for n in range(200)]  # purge strong cache in CachedRepresentation
     sage: import gc
     sage: n = gc.collect()
     sage: from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_field
@@ -397,7 +398,7 @@ cdef class MonoDict:
         sage: len(M)
         1000
         sage: del a
-        Exception RuntimeError: 'maximum recursion depth exceeded while calling a Python object' in <function remove at ...> ignored
+        Exception RuntimeError: 'maximum recursion depth exceeded...' in <function remove at ...> ignored
         sage: len(M)>0
         True
 

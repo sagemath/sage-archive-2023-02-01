@@ -535,7 +535,7 @@ def inf_max_abs(f, g, D):
 
     INPUT:
 
-    - ``f``, ``g`` (polynomials) -- real univariate polynomaials
+    - ``f``, ``g`` (polynomials) -- real univariate polynomials
 
     - ``D`` (UnionOfIntervals) -- a subset of `\RR`
 

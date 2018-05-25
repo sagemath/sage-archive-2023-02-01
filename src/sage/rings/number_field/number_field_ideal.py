@@ -57,7 +57,7 @@ from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import generic_power, MultiplicativeGroupElement
+from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 from sage.structure.proof.proof import get_flag
@@ -1703,8 +1703,17 @@ def is_NumberFieldIdeal(x):
 class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
     r"""
     A fractional ideal in a number field.
-    """
 
+    EXAMPLES::
+
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: K.<a> = NumberField(x^3 - 2)
+        sage: I = K.ideal(2/(5+a))
+        sage: J = I^2
+        sage: Jinv = I^(-2)
+        sage: J*Jinv
+        Fractional ideal (1)
+    """
     def __init__(self, field, gens, coerce=True):
         """
         INPUT:
@@ -1870,22 +1879,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         I = self.number_field().ideal(NumberFieldIdeal._NumberFieldIdeal__elements_from_hnf(self,hnf))
         I.__pari_hnf = hnf
         return I
-
-    def __pow__(self, r):
-        """
-        Return self to the power of r.
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: K.<a> = NumberField(x^3 - 2)
-            sage: I = K.ideal(2/(5+a))
-            sage: J = I^2
-            sage: Jinv = I^(-2)
-            sage: J*Jinv
-            Fractional ideal (1)
-        """
-        return generic_power(self, r)
 
     def is_maximal(self):
         """

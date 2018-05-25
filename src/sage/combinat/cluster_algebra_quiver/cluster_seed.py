@@ -57,6 +57,7 @@ from sage.rings.integer import Integer
 from copy import deepcopy
 
 from sage.misc.decorators import rename_keyword
+from sage.combinat.cluster_algebra_quiver.interact import cluster_interact
 
 
 class ClusterSeed(SageObject):
@@ -988,10 +989,13 @@ class ClusterSeed(SageObject):
         EXAMPLES::
 
             sage: S = ClusterSeed(['A',5])
-            sage: pl = S.plot()
-            sage: pl = S.plot(circular=True)
+            sage: S.plot()
+            Graphics object consisting of 15 graphics primitives
+            sage: S.plot(circular=True)
+            Graphics object consisting of 15 graphics primitives
+            sage: S.plot(circular=True, mark=1)
+            Graphics object consisting of 15 graphics primitives
         """
-
         greens = []
         if with_greens:
             greens = self.green_vertices()
@@ -1004,7 +1008,8 @@ class ClusterSeed(SageObject):
         else:
             quiver = self.quiver()
 
-        return quiver.plot(circular=circular,mark=mark,save_pos=save_pos, greens=greens)
+        return quiver.plot(circular=circular, mark=mark, save_pos=save_pos,
+                           greens=greens)
 
     def show(self, fig_size=1, circular=False, mark=None, save_pos=False, force_c = False, with_greens= False, add_labels = False):
         r"""
@@ -1042,77 +1047,25 @@ class ClusterSeed(SageObject):
 
     def interact(self, fig_size=1, circular=True):
         r"""
-        Only in *notebook mode*. Starts an interactive window for cluster seed mutations.
+        Start an interactive window for cluster seed mutations.
+
+        Only in *Jupyter notebook mode*.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: True) if True, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``fig_size`` -- (default: 1) factor by which the size of the
+          plot is multiplied.
+
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
 
         TESTS::
 
             sage: S = ClusterSeed(['A',4])
-            sage: S.interact() # long time
-            'The interactive mode only runs in the Sage notebook.'
+            sage: S.interact()
+            VBox(children=...
         """
-        # Also update so works in cloud and not just notebook
-        from sage.plot.plot import EMBEDDED_MODE
-        from sagenb.notebook.interact import interact, selector
-        from sage.misc.all import html,latex
-        from sage.repl.rich_output.pretty_print import pretty_print
-
-        if not EMBEDDED_MODE:
-            return "The interactive mode only runs in the Sage notebook."
-        else:
-            seq = []
-            sft = [True]
-            sss = [True]
-            ssv = [True]
-            ssm = [True]
-            ssl = [True]
-            @interact
-            def player(k=selector(values=list(range(self._n)), nrows = 1,
-                                  label='Mutate at: '),
-                       show_seq=("Mutation sequence:", True),
-                       show_vars=("Cluster variables:", True),
-                       show_matrix=("B-Matrix:", True),
-                       show_lastmutation=("Show last mutation:", True)):
-                ft, ss, sv, sm, sl = sft.pop(), sss.pop(), ssv.pop(), ssm.pop(), ssl.pop()
-                if ft:
-                    self.show(fig_size=fig_size, circular=circular)
-                elif show_seq is not ss or show_vars is not sv or show_matrix is not sm or show_lastmutation is not sl:
-                    if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular,
-                                  mark=seq[len(seq) - 1])
-                    else:
-                        self.show(fig_size=fig_size, circular=circular )
-                else:
-                    self.mutate(k)
-                    seq.append(k)
-                    if not show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular)
-                    else:
-                        self.show(fig_size=fig_size, circular=circular, mark=k)
-                sft.append(False)
-                sss.append(show_seq)
-                ssv.append(show_vars)
-                ssm.append(show_matrix)
-                ssl.append(show_lastmutation)
-                if show_seq:
-                    pretty_print(html("Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$"))
-                if show_vars:
-                    pretty_print(html("Cluster variables:"))
-                    table = "$\\begin{align*}\n"
-                    for i in range(self._n):
-                        table += "\tv_{%s} &= " % i + latex(self.cluster_variable(i)) + "\\\\ \\\\\n"
-                    table += "\\end{align*}$"
-                    pretty_print(html("$ $"))
-                    pretty_print(html(table))
-                    pretty_print(html("$ $"))
-                if show_matrix:
-                    pretty_print(html("B-Matrix:"))
-                    pretty_print(html(self._M))
-                    pretty_print(html("$ $"))
+        return cluster_interact(self, fig_size, circular, kind='seed')
 
     def save_image(self, filename, circular=False, mark=None, save_pos=False):
         r"""
@@ -2547,7 +2500,8 @@ class ClusterSeed(SageObject):
         is_vertices = set(seqq).issubset(set(seed._nlist))
         is_indices = set(seqq).issubset(set(range(n)))
 
-        # Note - this does not guarantee that the sequence consists of cluster variables, it only rules out some posibilities.
+        # Note - this does not guarantee that the sequence consists of
+        # cluster variables, it only rules out some possibilities.
         is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.
@@ -3482,7 +3436,7 @@ class ClusterSeed(SageObject):
         Check that :trac:`14638` is fixed::
 
             sage: S = ClusterSeed(['E',6])
-            sage: MC = S.mutation_class(depth=7); len(MC)
+            sage: MC = S.mutation_class(depth=7); len(MC)  # long time
             534
 
         Infinite type examples::
@@ -4673,7 +4627,7 @@ class ClusterSeed(SageObject):
             for s in psetvect:
                 pass1 = True
         #The first possible failure for compatibility is if any entry in s is larger than the corresponding entry of a.
-        #Only checks for the mutable verices since all entries in a_i i>num_cols are zero. 
+        #Only checks for the mutable vertices since all entries in a_i i>num_cols are zero. 
                 for k in range(num_cols):
                     if s[k] > a[0][k]:
                         pass1 = False
@@ -4921,7 +4875,7 @@ def is_LeeLiZel_allowable(T,n,m,b,c):
 
 def get_green_vertices(C):
     r"""
-    Get the green vertices from a matrix. Will go through each clumn and return
+    Get the green vertices from a matrix. Will go through each column and return
     the ones where no entry is greater than 0.
 
     INPUT:

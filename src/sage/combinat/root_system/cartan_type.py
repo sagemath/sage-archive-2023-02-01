@@ -473,7 +473,7 @@ this data.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 
 from six.moves import range
 from six.moves.builtins import sorted
@@ -708,17 +708,17 @@ class CartanTypeFactory(SageObject):
                             from . import type_BC_affine
                             return type_BC_affine.CartanType(n)
                     if letter == "A" and t[2] == 2:
-                        if n%2 == 0: # Kac' A_2n^(2)
-                            return CartanType(["BC", ZZ(n/2), 2])
+                        if n % 2 == 0: # Kac' A_2n^(2)
+                            return CartanType(["BC", ZZ(n//2), 2])
                         else:        # Kac' A_2n-1^(2)
-                            return CartanType(["B", ZZ((n+1)/2), 1]).dual()
+                            return CartanType(["B", ZZ((n+1)//2), 1]).dual()
                     if letter == "D" and t[2] == 2:
                         return CartanType(["C", n-1, 1]).dual()
                     if letter == "D" and t[2] == 3 and n == 4:
                         return CartanType(["G", 2, 1]).dual().relabel([0,2,1])
                     if letter == "E" and t[2] == 2 and n == 6:
                         return CartanType(["F", 4, 1]).dual()
-            raise ValueError("%s is not a valid Cartan type"%t)
+            raise ValueError("%s is not a valid Cartan type" % t)
 
         if isinstance(t[0], string_types) and isinstance(t[1], (list, tuple)):
             letter, n = t[0], t[1]
@@ -2194,9 +2194,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         REFERENCES:
 
         .. [FSS07] \G. Fourier, A. Schilling, and M. Shimozono,
-           Demazure structure inside Kirillov-Reshetikhin crystals,
+           *Demazure structure inside Kirillov-Reshetikhin crystals*,
            J. Algebra, Vol. 309, (2007), p. 386-404
-           http://arxiv.org/abs/math/0605451
+           :arxiv:`math/0605451`
         """
         a = self.a()
         acheck = self.acheck()
@@ -2361,9 +2361,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         REFERENCES:
 
         .. [HST09] \F. Hivert, A. Schilling, and N. M. Thiery,
-           Hecke group algebras as quotients of affine Hecke
-           algebras at level 0, JCT A, Vol. 116, (2009) p. 844-863
-           http://arxiv.org/abs/0804.3781
+           *Hecke group algebras as quotients of affine Hecke
+           algebras at level 0*, JCT A, Vol. 116, (2009) p. 844-863
+           :arxiv:`0804.3781`
         """
         a = self.a()
         acheck = self.acheck()

@@ -1029,7 +1029,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def degree_sequence(self, iterates=2):
         r"""
         Return sequence of degrees of normalized iterates starting with
-        the degree of this dynamcial system.
+        the degree of this dynamical system.
 
         INPUT: ``iterates`` -- (default: 2) positive integer
 
@@ -2701,7 +2701,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def critical_points(self, R=None):
         r"""
-        Return the critical points of this dynamcial system defined over
+        Return the critical points of this dynamical system defined over
         the ring ``R`` or the base ring of this map.
 
         Must be dimension 1.
@@ -3331,7 +3331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of
-        the ``n`` multilpier spectra of this dynamical system.
+        the ``n`` multiplier spectra of this dynamical system.
 
         Can specify to instead compute the values corresponding to the
         elementary symmetric polynomials of the formal ``n`` multiplier
@@ -3530,7 +3530,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if type == 'cycle':
             #now we need to deal with having the correct number of factors
             #1 multiplier for each cycle. But we need to be careful about
-            #the length of the cycle and the mutliplicities
+            #the length of the cycle and the multiplicities
             good_res = 1
             if formal:
                 #then we are working with the n-th dynatomic and just need
@@ -3539,7 +3539,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 #evaluate the resultant
                 fix_poly = psi(fix_poly)
                 res = fix_poly.resultant(mult_poly, S.gen(0))
-                #take infinty into consideration
+                #take infinity into consideration
                 if inf_per.divides(n):
                     res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
                 res = res.univariate_polynomial()
@@ -3569,7 +3569,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             #evaluate the resultant
             fix_poly = psi(fix_poly)
             res = fix_poly.resultant(mult_poly, S.gen(0))
-            #take infinty into consideration
+            #take infinity into consideration
             if inf_per.divides(n):
                 res *= (S.gen(1) - self.multiplier(inf, n)[0,0])**e_inf
             res = res.univariate_polynomial()
@@ -4841,7 +4841,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Conj = []
         for i in Arrangements(K,(n+2)):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
@@ -4851,7 +4851,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def is_conjugate(self, other):
         r"""
-        Return whether or not two dynamcial systems are conjugate.
+        Return whether or not two dynamical systems are conjugate.
 
         ALGORITHM:
 
@@ -4961,7 +4961,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         break
         for i in Arrangements(K, n+2):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True
@@ -4971,7 +4971,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
     def is_polynomial(self):
         r"""
-        Check to see if the dynamcial system has a totally ramified
+        Check to see if the dynamical system has a totally ramified
         fixed point.
 
         The function must be defined over an absolute number field or a
@@ -5021,6 +5021,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
             sage: f.is_polynomial()
             False
+
+        TESTS:
+
+        See :trac:`25242`::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem([x^2+ y^2, x*y])
+            sage: F2 = F.conjugate(matrix(QQ,2,2, [1,2,3,5]))
+            sage: F2.is_polynomial()
+            False
         """
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
@@ -5054,7 +5064,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 if p.degree() == 1:
                     if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
                         return True
-                    G = R(G/p) # we already checked this root
+                    G = R(G/(p**e)) # we already checked this root
                 else:
                     u = p #need to extend to get these roots
             if G.degree() != 0:

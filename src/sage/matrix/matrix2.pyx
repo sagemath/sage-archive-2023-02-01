@@ -2582,7 +2582,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: A = MatrixSpace(QQ,2)(['1/2', '1/3', '1/5', '1/7'])
+            sage: A = MatrixSpace(QQ,2)([1/2, 1/3, 1/5, 1/7])
             sage: A.denominator()
             210
 
@@ -4463,7 +4463,7 @@ cdef class Matrix(Matrix1):
         The integer kernel even makes sense for matrices with fractional
         entries::
 
-            sage: A = MatrixSpace(QQ, 2)(['1/2',0,  0, 0])
+            sage: A = MatrixSpace(QQ, 2)([1/2, 0, 0, 0])
             sage: A.integer_kernel()
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -6895,7 +6895,7 @@ cdef class Matrix(Matrix1):
         .. NOTE::
 
             This method returns an echelon form.  If the base ring
-            is not a field, no atttempt is made to move to the fraction field.
+            is not a field, no attempt is made to move to the fraction field.
             See an example below where the base ring is changed manually.
 
         EXAMPLES:
@@ -7046,164 +7046,6 @@ cdef class Matrix(Matrix1):
             extended.subdivide(rank, self.ncols())
             extended.set_immutable()
         return extended
-
-    def row_reduced_form(self, transformation=None):
-        r"""
-        This function computes a row reduced form of a matrix over a rational
-        function field `k(x)`, where `k` is a field.
-
-        A matrix `M` over `k(x)` is row reduced if the (row-wise) leading term
-        matrix of `dM` has the same rank as `M`, where `d \in k[x]` is a minimal
-        degree polynomial such that `dM` is in `k[x]`. The (row-wise) leading
-        term matrix of a polynomial matrix `M_0` is matrix over `k` whose
-        `(i,j)`'th entry is the `x^{d_i}` coefficient of `M_0[i,j]`, where `d_i`
-        is the greatest degree among polynomials in the `i`'th row of `M_0`.
-
-        INPUT:
-
-        - ``transformation`` -- A boolean (default: ``False``). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-
-        OUTPUT:
-
-        - `W` - a matrix over the same ring as `self` (i.e. either `k(x)` or
-          `k[x]` for a field `k`) giving a row reduced form of ``self``.
-
-        EXAMPLES:
-
-        The routine expects matrices over the rational function field. One can
-        also provide matrices over the ring of polynomials (whose quotient field
-        is the rational function field).
-
-        ::
-
-            sage: R.<t> = GF(3)['t']
-            sage: K = FractionField(R)
-            sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.row_reduced_form()
-            doctest:...: DeprecationWarning: Row reduced form will soon be supported only for matrices of polynomials.
-            See http://trac.sagemath.org/21024 for details.
-            [        0]
-            [(t + 2)/t]
-
-        If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
-        `W` has a single non-zero entry and that entry is a scalar multiple of
-        the greatest-common-divisor of the entries of ``self``.
-
-        ::
-
-            sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form()
-            sage: output1
-            [0]
-            [0]
-            [t]
-
-        We check that the output is the same for a matrix `M` if its entries are
-        rational functions instead of polynomials. We also check that the type of
-        the output follows the documentation. See :trac:`9063`
-
-        ::
-
-            sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.row_reduced_form()
-            sage: output1 == output2
-            True
-            sage: output1.base_ring() is R
-            True
-            sage: output2.base_ring() is K
-            True
-
-        The following is the first half of example 5 in [Hes2002]_ *except* that we
-        have transposed ``self``; [Hes2002]_ uses column operations and we use row.
-
-        ::
-
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form(transformation=False)
-            [      t    -t^2]
-            [t^2 - 2       t]
-
-        The next example demonstrates what happens when ``self`` is a zero matrix.
-
-        ::
-
-            sage: R.<t> = GF(5)['t']
-            sage: K = FractionField(R)
-            sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.row_reduced_form()
-            [0 0]
-            [0 0]
-
-        In the following example, ``self`` has more rows than columns.
-
-        ::
-
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]])
-            sage: M.row_reduced_form()
-            [ t  t  t]
-            [-t -t  0]
-
-        The next example shows that `M` must be a matrix with coefficients in
-        `k(t)` or in `k[t]` for some field `k`.
-
-        ::
-
-            sage: M = matrix([[1,0],[1,1]])
-            sage: M.row_reduced_form()
-            Traceback (most recent call last):
-            ...
-            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
-
-            sage: PZ.<y> = ZZ[]
-            sage: M = matrix([[y,0],[1,y]])
-            sage: M.row_reduced_form()
-            Traceback (most recent call last):
-            ...
-            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
-
-        The last example shows the usage of the transformation parameter.
-
-        ::
-
-            sage: Fq.<a> = GF(2^3)
-            sage: Fx.<x> = Fq[]
-            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: W,U = A.row_reduced_form(transformation=True);
-            sage: W,U
-            (
-            [          x^2 + a           x^4 + a]  [1 0]
-            [x^3 + a*x^2 + a^2               a^2], [a 1]
-            )
-            sage: U*W == A
-            True
-            sage: U.is_invertible()
-            True
-
-        NOTES:
-
-         - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, some references e.g. [Hes2002]_ transpose and use
-           column operations.
-
-        REFERENCES:
-
-        - [Hes2002]_
-        - [Kal1980]_
-
-        """
-        from sage.misc.superseded import deprecation
-        # When deprecation period runs out, this method should simply be removed from this class.
-        # matrix_polynomial_dense already has the replacement row_reduced_form method.
-        # The function matrix_misc.row_reduced_form should then probably just be removed.
-        deprecation(21024, "Row reduced form will soon be supported only for matrices of univariate polynomials.")
-
-        from sage.matrix.matrix_misc import row_reduced_form
-        return row_reduced_form(self, transformation)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -8002,7 +7844,7 @@ cdef class Matrix(Matrix1):
 
         ``None``.  A new subdivision is created between ``top`` and
         ``bottom`` for ``self``.  If possible, column subdivisions are
-        preserved in ``self``, but if the two sets of solumn subdivisions
+        preserved in ``self``, but if the two sets of column subdivisions
         are incompatible, they are removed.
 
         EXAMPLES::
@@ -8665,7 +8507,8 @@ cdef class Matrix(Matrix1):
 
             sage: filename = tmp_filename(ext='.png')
             sage: img.save(filename)
-            sage: open(filename).read().startswith('\x89PNG')
+            sage: with open(filename, 'rb') as fobj:
+            ....:     fobj.read().startswith(b'\x89PNG')
             True
 
         TESTS:
@@ -13226,35 +13069,82 @@ cdef class Matrix(Matrix1):
 
            :meth:`smith_form`
         """
-        d, u, v = self.smith_form()
+        d = self.smith_form(transformation=False)
         r = min(self.nrows(), self.ncols())
         return [d[i,i] for i in xrange(r)]
 
-    def smith_form(self):
+    def smith_form(self, transformation=True, integral=None, exact=True):
         r"""
-        If self is a matrix over a principal ideal domain R, return
-        matrices D, U, V over R such that D = U \* self \* V, U and V have
-        unit determinant, and D is diagonal with diagonal entries the
-        ordered elementary divisors of self, ordered so that
-        `D_{i} \mid D_{i+1}`. Note that U and V are not uniquely
-        defined in general, and D is defined only up to units.
+        Return a Smith normal form of this matrix.
+
+        For a matrix `M`, a Smith normal form is a matrix `S = UMV` such that:
+
+        * `U` and `V` are invertible matrices
+        * the only non-vanishing entries of `S` are located on the diagonal
+          (though `S` might not be a square matrix)
+        * if `d_i` denotes the entry of `S` at `(i,i)`, then `d_i` divides
+          `d_{i+1}` for all `i`, i.e., the `d_i` are the ordered
+          :meth:`elementary_divisors` of `M`
+
+        Note that the matrices `U` and `V` are not uniquely determined and the
+        `d_i` are only uniquely determined up to units. For some base rings,
+        such as local rings, the `d_i` might be further normalized, see
+        ``LOCAL RINGS`` below.
+
+        If the base ring is not a PID, the routine might work, or else it will
+        fail having found an example of a non-principal ideal. Note that we do
+        not call any methods to check whether or not the base ring is a PID,
+        since this might be quite expensive (e.g. for rings of integers of
+        number fields of large degree).
 
         INPUT:
 
+        - ``transformation`` -- a boolean (default: ``True``); whether the
+          matrices `U` and `V` should be returned
 
-        -  ``self`` - a matrix over an integral domain. If the
-           base ring is not a PID, the routine might work, or else it will
-           fail having found an example of a non-principal ideal. Note that we
-           do not call any methods to check whether or not the base ring is a
-           PID, since this might be quite expensive (e.g. for rings of
-           integers of number fields of large degree).
+        - ``integral`` -- a subring of the base ring, boolean or ``None``
+          (default: ``None``); the entries of `U` and `V` are taken
+          from this subring. If ``True``, the ring is taken to be the
+          ring of integers of the base ring; if ``False`` the fraction field
+          of the base ring; if ``None`` the base ring itself.
+          When a subring is specified, multiplying
+          by the denominator must map the entries into the subring; in this
+          case the transformation matrices will have entries in this subring.
 
+        - ``exact`` -- a boolean (default: ``True``), only used for local rings/fields.
+          See ``LOCAL RINGS`` for more details.
 
-        ALGORITHM: Lifted wholesale from :wikipedia:`Smith_normal_form`
+        OUTPUT:
 
-        .. SEEALSO::
+        The matrices `S, U, V` or the matrix `S` depending on
+        ``transformation``.
 
-           :meth:`elementary_divisors`
+        ALGORITHM:
+
+        If the base ring has a method ``_matrix_smith_form``, use it; note that
+        ``_matrix_smith_form`` might choose to further normalize the output.
+
+        Otherwise, use the algorithm from :wikipedia:`Smith_normal_form`.
+
+        LOCAL RINGS:
+
+        Over local rings, we normalize `S` to only contain powers of the uniformizer.
+
+        In order to simplify the precision handling, we truncate the absolute precision
+        of the input matrix to the minimum absolute precision of any of its entries.
+        As long as all of the elementary divisors are nonzero modulo this precision,
+        they can be determined exactly since they are defined to be powers of the
+        uniformizer.  In this case, which is specified by the keyword ``exact=True``,
+        one of the transformation matrices will be inexact: `U` in the case that
+        the number of rows is at least the number of columns, and `V` otherwise.
+
+        If ``exact=False``, we instead return an inexact Smith form.  Now the
+        transformation matrices are exact and we can deal gracefully with
+        elementary divisors that are zero modulo the working precision.  However,
+        the off-diagonal entries of the smith form carry a precision that
+        can affect the precision of future calculations.
+
+        See ``_matrix_smith_form`` on the base ring for more detail.
 
         AUTHORS:
 
@@ -13298,6 +13188,21 @@ cdef class Matrix(Matrix1):
             sage: u*m*v == d
             True
 
+        When the base ring has a ``ring_of_integers`` method and supports denominators,
+        you can get an integral version of the smith form::
+
+            sage: m = matrix(QQ, 2, 2, [17/6, 47/6, 25/6, 23/2])
+            sage: m.smith_form()
+            (
+            [1 0]  [6/17    0]  [     1 -47/17]
+            [0 1], [  75  -51], [     0      1]
+            )
+            sage: m.smith_form(integral=True)
+            (
+            [1/6   0]  [  3  -2]  [ 1  3]
+            [  0 1/3], [-25  17], [ 0 -1]
+            )
+
         Some examples over non-PID's work anyway::
 
             sage: R.<s> = EquationOrder(x^2 + 5) # class number 2
@@ -13333,12 +13238,43 @@ cdef class Matrix(Matrix1):
             True
             sage: m = matrix(OE, 3, 3, [-5*w-1,-2*w-2,4*w-10,8*w,-w,w-1,-1,1,-8]); d,u,v = m.smith_form(); u*m*v == d
             True
+
+        Over local fields, we can request the transformation matrices to be integral:;
+
+            sage: K = Qp(2, 5, print_mode='terse')
+            sage: M = matrix(K, 2, 3, [1/2, 1, 2, 1/3, 1, 3])
+            sage: M.smith_form(integral=True)
+            (
+            [1/2 + O(2^4)            0            0]  [ 1 + O(2^5)           0]
+            [           0   1 + O(2^5)            0], [42 + O(2^6)  1 + O(2^5)],
+            <BLANKLINE>
+            [ 1 + O(2^5) 26 + O(2^5)  6 + O(2^5)]
+            [ 0 + O(2^4)  3 + O(2^4) 11 + O(2^4)]
+            [          0           0  1 + O(2^5)]
+            )
+
         """
         R = self.base_ring()
-        left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
-        right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
+        if hasattr(R, '_matrix_smith_form'):
+            return R._matrix_smith_form(self, transformation=transformation, integral=integral, exact=exact)
+        if integral is True:
+            integral = R.ring_of_integers()
+        elif integral is R:
+            integral = None
+        if integral is False:
+            self = self.change_ring(R.fraction_field())
+        elif integral is not None:
+            # Try to clear denominators
+            den = self.denominator()
+            self = (den * self).change_ring(integral)
+        if transformation:
+            left_mat = self.new_matrix(self.nrows(), self.nrows(), 1)
+            right_mat = self.new_matrix(self.ncols(), self.ncols(), 1)
         if self == 0 or (self.nrows() <= 1 and self.ncols() <= 1):
-            return self.__copy__(), left_mat, right_mat
+            if transformation:
+                return self.__copy__(), left_mat, right_mat
+            else:
+                return self.__copy__()
 
         # data type checks on R
         if not R.is_integral_domain() or not R.is_noetherian():
@@ -13352,13 +13288,24 @@ cdef class Matrix(Matrix1):
         # now recurse: t now has a nonzero entry at 0,0 and zero entries in the rest
         # of the 0th row and column, so we apply smith_form to the smaller submatrix
         mm = t.submatrix(1,1)
-        dd, uu, vv = mm.smith_form()
+        if transformation:
+            dd, uu, vv = mm.smith_form(transformation=True)
+        else:
+            dd = mm.smith_form(transformation=False)
         mone = self.new_matrix(1, 1, [1])
         d = dd.new_matrix(1,1,[t[0,0]]).block_sum(dd)
-        u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
-        v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
-        dp, up, vp = _smith_diag(d)
-        return dp,up*u,v*vp
+        if transformation:
+            u = uu.new_matrix(1,1,[1]).block_sum(uu) * u
+            v = v * vv.new_matrix(1,1,[1]).block_sum(vv)
+        dp, up, vp = _smith_diag(d, transformation=transformation)
+        if integral is False:
+            dp = dp.change_ring(R)
+        elif integral is not None:
+            dp = dp.change_ring(R) / den
+        if transformation:
+            return dp, up*u, v*vp
+        else:
+            return dp
 
     def _hermite_form_euclidean(self, transformation=False, normalization=None):
         """
@@ -14717,7 +14664,7 @@ cdef class Matrix(Matrix1):
         deprecation(20904, "The I property on matrices has been deprecated. Please use the inverse() method instead.")
         return ~self
 
-def _smith_diag(d):
+def _smith_diag(d, transformation=True):
     r"""
     For internal use by the smith_form routine. Given a diagonal matrix d
     over a ring r, return matrices d', a,b such that a\*d\*b = d' and
@@ -14748,14 +14695,18 @@ def _smith_diag(d):
     dp = d.__copy__()
     n = min(d.nrows(), d.ncols())
     R = d.base_ring()
-    left = d.new_matrix(d.nrows(), d.nrows(), 1)
-    right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    if transformation:
+        left = d.new_matrix(d.nrows(), d.nrows(), 1)
+        right = d.new_matrix(d.ncols(), d.ncols(), 1)
+    else:
+        left = right = None
     for i in xrange(n):
         I = R.ideal(dp[i,i])
 
         if I == R.unit_ideal():
             if dp[i,i] != 1:
-                left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
+                if transformation:
+                    left.add_multiple_of_row(i,i,R(R(1)/(dp[i,i])) - 1)
                 dp[i,i] = R(1)
             continue
 
@@ -14779,8 +14730,9 @@ def _smith_diag(d):
                 newrmat[j,i] = mu
                 newrmat[j,j] = R(lamb*dp[i,i] / t)
 
-                left = newlmat*left
-                right = right*newrmat
+                if transformation:
+                    left = newlmat*left
+                    right = right*newrmat
                 dp = newlmat*dp*newrmat
     return dp, left, right
 
@@ -14974,28 +14926,6 @@ def decomp_seq(v):
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
 
-def cmp_pivots(x,y):
-    """
-    Compare two sequences of pivot columns.
-
-    - If x is shorter than y, return -1, i.e., x < y, "not as good".
-
-    - If x is longer than y, x > y, "better".
-
-    - If the length is the same then x is better, i.e., x > y if the
-      entries of x are correspondingly >= those of y with one being
-      greater.
-    """
-    if len(x) < len(y):
-        return -1
-    if len(x) > len(y):
-        return 1
-    if x < y:
-        return 1
-    elif x == y:
-        return 0
-    else:
-        return -1
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -15123,39 +15053,80 @@ def _jordan_form_vector_in_difference(V, W):
 
 def _matrix_power_symbolic(A, n):
     r"""
-    Symbolic matrix power.
+    Return the symbolic `n`-th power `A^n` of the matrix `A`
 
-    This function implements `f(A) = A^n` and relies in the Jordan normal form
-    of `A`, available for exact rings as ``jordan_form()``.
-    See Sec. 1.2 of [Hig2008]_ for further details.
+    This function implements the computation of `A^n` for symbolic `n`,
+    relying on the Jordan normal form of `A`, available for exact rings
+    as :meth:`jordan_form`. See [Hig2008]_, §1.2, for further details.
 
     INPUT:
 
     - ``A`` -- a square matrix over an exact field
 
-    - ``n`` -- the symbolic exponent
+    - ``n`` -- a symbolic exponent
 
     OUTPUT:
 
-    Matrix `A^n` (symbolic).
+    The matrix `A^n` (with symbolic entries involving the exponent).
 
-    EXAMPLES::
+    EXAMPLES:
 
+    General power of a two by two matrix::
+
+        sage: n = SR.var('n')
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
-        sage: n = var('n')
-        sage: A^n
+        sage: B = A^n; B
         [ n + 1     -n]
         [     n -n + 1]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
 
-    TESTS::
+    General power of a three by three matrix in Jordan form::
+
+        sage: n = SR.var('n')
+        sage: A = matrix(QQ, 3, [[2, 1, 0], [0, 2, 0], [0, 0, 3]])
+        sage: A
+        [2 1 0]
+        [0 2 0]
+        [0 0 3]
+        sage: B = A^n; B
+        [        2^n 2^(n - 1)*n           0]
+        [          0         2^n           0]
+        [          0           0         3^n]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    General power of a three by three matrix not in Jordan form::
+
+        sage: A = matrix([[4, 1, 2], [0, 2, -4], [0, 1, 6]])
+        sage: A
+        [ 4  1  2]
+        [ 0  2 -4]
+        [ 0  1  6]
+        sage: B = A^n; B
+        [                 4^n          4^(n - 1)*n        2*4^(n - 1)*n]
+        [                   0 -2*4^(n - 1)*n + 4^n       -4*4^(n - 1)*n]
+        [                   0          4^(n - 1)*n  2*4^(n - 1)*n + 4^n]
+        sage: [B.subs({n: k}) for k in range(4)]
+        [
+        [1 0 0]  [ 4  1  2]  [ 16   8  16]  [  64   48   96]
+        [0 1 0]  [ 0  2 -4]  [  0   0 -32]  [   0  -32 -192]
+        [0 0 1], [ 0  1  6], [  0   8  32], [   0   48  160]
+        ]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    TESTS:
 
     Testing exponentiation in the symbolic ring::
 
         sage: n = var('n')
         sage: A = matrix([[pi, e],[0, -2*I]])
-        sage: A^n
-        [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
-        [                                                                 0                                                           (-2*I)^n]
+        sage: (A^n).list()
+        [pi^n,
+         -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1)),
+         0,
+         (-2*I)^n]
 
     If the base ring is inexact, the Jordan normal form is not available::
 
@@ -15175,9 +15146,11 @@ def _matrix_power_symbolic(A, n):
     Check if :trac:`23215` is fixed::
 
         sage: a, b, k = var('a, b, k')
-        sage: matrix(2, [a, b, -b, a])^k
-        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
-        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
+        sage: (matrix(2, [a, b, -b, a])^k).list()
+        [1/2*(a + I*b)^k + 1/2*(a - I*b)^k,
+         -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k,
+         1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k,
+         1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
@@ -15185,50 +15158,49 @@ def _matrix_power_symbolic(A, n):
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
 
-    got_SR = True if A.base_ring() == SR else False
+    got_SR = A.base_ring() == SR
 
-    # transform to QQbar if possible
+    # Change to QQbar if possible
     try:
         A = A.change_ring(QQbar)
     except (TypeError, NotImplementedError):
         pass
 
-    # returns jordan matrix J and invertible matrix P such that A = P*J*~P
-    [J, P] = A.jordan_form(transformation=True)
+    # Get Jordan matrix J and invertible matrix P such that A = P*J*~P
+    # From that, we will compute M = J^n, and obtain A^n = P*J^n*~P
+    J, P = A.jordan_form(transformation=True)
 
-    # the number of Jordan blocks
-    num_jordan_blocks = 1+len(J.subdivisions()[0])
+    # Where each Jordan block starts, and number of blocks
+    block_start = [0] + J.subdivisions()[0]
+    num_blocks = len(block_start)
 
-    # FJ stores the application of f = x^n to the Jordan blocks
-    FJ = matrix(SR, J.ncols())
-    FJ.subdivide(J.subdivisions())
+    # Prepare matrix M to store `J^n`, computed by Jordan block
+    M = matrix(SR, J.ncols())
+    M.subdivide(J.subdivisions())
 
-    for k in range(num_jordan_blocks):
+    for k in range(num_blocks):
 
-        # get Jordan block Jk
+        # Jordan block Jk, its dimension nk, the eigenvalue m
         Jk = J.subdivision(k, k)
+        nk = Jk.ncols()
+        mk = Jk[0,0]
 
-        # dimension of Jordan block Jk
-        mk = Jk.ncols()
+        # First row of block Mk; its entries are of the form
+        # D^i(f) / i! with f = x^n and D = differentiation wrt x
+        if hasattr(mk, 'radical_expression'):
+            mk = mk.radical_expression()
+        vk = [(binomial(n, i) * mk**(n-i)).simplify_full()
+              for i in range(nk)]
 
-        # compute the first row of f(Jk)
-        vk = []
-        for i in range(mk):
-            Jk_ii = Jk[i, i]
-            if hasattr(Jk_ii, 'radical_expression'):
-                Jk_ii = Jk_ii.radical_expression()
+        # Form block Mk and insert it in M
+        Mk = matrix(SR, [[SR.zero()]*i + vk[:nk-i] for i in range(nk)])
+        M.set_block(block_start[k], block_start[k], Mk)
 
-            # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
-            vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
-
-        # insert vk into each row (above the main diagonal)
-        FJ.set_block(k, k, matrix(SR, [[SR.zero()]*i + vk[0:mk-i] for i in range(mk)]))
-
-    # we change the entries of P and P^-1 into symbolic expressions
+    # Change entries of P and P^-1 into symbolic expressions
     if not got_SR:
         Pinv = (~P).apply_map(AlgebraicNumber.radical_expression)
         P = P.apply_map(AlgebraicNumber.radical_expression)
     else:
         Pinv = ~P
 
-    return P * FJ * Pinv
+    return P * M * Pinv

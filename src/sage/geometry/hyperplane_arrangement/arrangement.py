@@ -1182,7 +1182,7 @@ class HyperplaneArrangementElement(Element):
             """helper to iterat over the echelon pivot column indices"""
             for row in row_iter:
                 if row == 0:
-                    raise StopIteration
+                    return
                 for pivot in range(self.dimension()):
                     if row[pivot] != 0:
                         break

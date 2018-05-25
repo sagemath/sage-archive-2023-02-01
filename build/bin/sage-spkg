@@ -21,6 +21,7 @@
 #      SAGE_ROOT      -- root directory of sage install
 #      SAGE_LOCAL     -- $SAGE_ROOT/local
 #      SAGE_DISTFILES -- directory that stores upstream tarballs
+#      SAGE_DESTDIR   -- temporary root the package will be installed to
 #      PKG_BASE       -- the base name of the package itself (e.g. 'patch')
 #      PKG_VER        -- the version number of the package
 #      PKG_NAME       -- $PKG_BASE-$PKG_VER
@@ -713,7 +714,7 @@ __EOF__
 }
 
 
-for script in build install check; do
+for script in build install check postinst; do
     script="spkg-$script"
     if [ -f "$script" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
@@ -801,8 +802,39 @@ export ftp_proxy=$http_proxy
 export rsync_proxy=$http_proxy
 
 ##################################################################
+# We need to run sage-rebase.sh for each package installed, but it
+# can be dangerous to do this while other packages are installing
+# so we need to use a lock to manage when rebase is allowed to
+# run.  Because of this, if multiple sage-spkg runs are waiting on
+# the rebase lock, we can end up with multiple consecutive rebase
+# calls that are redundant, but I don't see an obvious way around
+# that.  This also unfortunately slows down parallel builds since
+# all packages will eventually need to wait for this lock, but
+# again there's no simple way around that.
+##################################################################
+
+if [ "$UNAME" = "CYGWIN" ]; then
+    if [ ! -d "$SAGE_LOCAL/var/lock" ]; then
+        mkdir -p "$SAGE_LOCAL/var/lock"
+    fi
+    exec 200>"$SAGE_LOCAL/var/lock/rebase.lock"
+    sage-flock -s $lock_type 200
+fi
+
+##################################################################
 # Actually install
 ##################################################################
+
+# Set the $SAGE_DESTDIR variable to be passed to the spkg-install
+# script (the script itself could set this, but better to standardize
+# this in one place)
+export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
+
+# The actual prefix where the installation will be staged. This is the
+# directory that you need to work in if you want to change the staged
+# installation tree (before final installation to $SAGE_LOCAL) at the
+# end of spkg-install.
+export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
 
 
 if [ -f spkg-build ]; then
@@ -826,15 +858,78 @@ else
     fi
 fi
 
+# All spkgs should eventually support this, but fall back on old behavior in
+# case DESTDIR=$SAGE_DESTDIR installation was not used
+echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
+if [ -d "$SAGE_DESTDIR" ]; then
+    PREFIX="${SAGE_DESTDIR_LOCAL%/}/"
+
+    rm -f "$PREFIX"lib/*.la
+    if [ $? -ne 0 ]; then
+        error_msg "Error deleting unnecessary libtool archive files"
+        exit 1
+    fi
+
+    # Generate installed file manifest
+    FILE_LIST=""
+    FIRST=1
+    IFS=$'\n'
+    for filename in $(find "$PREFIX" -type f -o -type l | sort); do
+        filename="${filename#$PREFIX}"
+        if [ $FIRST -eq 1 ]; then
+            FILE_LIST="\"$filename\""
+            FIRST=0
+        else
+            FILE_LIST="${FILE_LIST},"$'\n        '"\"${filename}\""
+        fi
+        # Copy file from the temp install path into $SAGE_LOCAL
+        if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
+            $SAGE_SUDO mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
+        fi
+        $SAGE_SUDO mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
+        if [ $? -ne 0 ]; then
+            error_msg "Error moving files for $PKG_BASE."
+            exit 1
+        fi
+    done
+
+    # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
+    # final location.
+    rm -rf "$SAGE_DESTDIR"
+fi
+
+# At this stage the path in $SAGE_DESTDIR no longer exists, so the variable
+# should be unset
+unset SAGE_DESTDIR
+unset SAGE_DESTDIR_LOCAL
+
+# Run the post-install script, if any
+if [ -f spkg-postinst ]; then
+    time $SAGE_SUDO ./spkg-postinst
+    if [ $? -ne 0 ]; then
+        error_msg "Error running the postinst script for $PKG_BASE."
+        exit 1
+    fi
+fi
+
 if [ "$UNAME" = "CYGWIN" ]; then
+    # Drop our sage-spkg's shared lock, and try to call sage-rebase.sh
+    # under an exclusive lock
+    sage-flock -u 200
+
     # Rebase after installing each package--in case any packages load this
     # package at build time we need to ensure during the build that no binaries
     # have conflicting address spaces
+    echo "Waiting for rebase lock"
     sage-flock -x "$SAGE_LOCAL/var/lock/rebase.lock" \
         sage-rebase.sh "$SAGE_LOCAL" 2>/dev/null
 fi
 
-echo "Successfully installed $PKG_NAME"
+
+# Note: spkg-check tests are run after the package has been copied into
+# SAGE_LOCAL.  It might make more sense to run the tests before, but the
+# spkg-check scripts were written before use of DESTDIR installs, and so
+# fail in many cases.  This might be good to change later.
 
 if [ "$SAGE_CHECK" = "yes" ]; then
     if [ -f spkg-check ]; then
@@ -851,11 +946,6 @@ if [ "$SAGE_CHECK" = "yes" ]; then
     fi
 fi
 
-rm -f "$SAGE_LOCAL"/lib/*.la
-if [ $? -ne 0 ]; then
-    error_msg "Error deleting unnecessary libtool archive files"
-    exit 1
-fi
 
 # Mark that the new package has been installed (and tested, if
 # applicable).
@@ -867,9 +957,15 @@ cat > "$PKG_NAME_INSTALLED" << __EOF__
     "install_date": "$(date)",
     "system_uname": "$(uname -a)",
     "sage_version": "$(cat "${SAGE_ROOT}/VERSION.txt")",
-    "test_result": "$TEST_SUITE_RESULT"
+    "test_result": "$TEST_SUITE_RESULT",
+    "files": [
+        $FILE_LIST
+    ]
 }
 __EOF__
+
+
+echo "Successfully installed $PKG_NAME"
 
 
 ##################################################################

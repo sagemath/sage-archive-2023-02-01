@@ -71,6 +71,7 @@ import itertools
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.latex import latex
+from sage.misc.misc_c import prod
 from sage.arith.all import binomial
 from sage.rings.integer import Integer
 from sage.rings.all import ZZ
@@ -621,6 +622,10 @@ class KleberTree(UniqueRepresentation, Parent):
         self._cartan_type = cartan_type
         self.B = B
         self._classical_ct = classical_ct
+        # Our computations in _children_iter_vector use dense vectors.
+        #   Moreover, ranks are relatively small, so just use the dense
+        #   version of the Cartan matrix.
+        self._CM = self._classical_ct.cartan_matrix().dense_matrix()
         self._build_tree()
         self._latex_options = dict(edge_labels=True, use_vector_notation=False,
                                   hspace=2.5, vspace=min(-2.5, -0.75*self._classical_ct.rank()))
@@ -732,24 +737,19 @@ class KleberTree(UniqueRepresentation, Parent):
             growth = False
             depth += 1
             leaves = new_children
-            new_children = []
 
             if depth <= len(L[0]):
+                new_children = []
                 for x in full_list:
                     growth = True
                     for a in range(n):
                         for i in range(depth - 1, len(L[a])): # Subtract 1 for indexing
                             x.weight += L[a][i] * weight_basis[I[a]]
 
-                    if x in leaves:
-                        for new_child in child_itr(x):
-                            if not self._prune(new_child, depth):
-                                new_children.append(new_child)
-            else:
-                for x in leaves:
-                    for new_child in child_itr(x):
-                        if not self._prune(new_child, depth):
-                            new_children.append(new_child)
+            new_children = [new_child
+                            for x in leaves
+                            for new_child in child_itr(x)
+                            if not self._prune(new_child, depth)]
 
             # Connect the new children into the tree
             if new_children:
@@ -797,6 +797,16 @@ class KleberTree(UniqueRepresentation, Parent):
             sage: for x in KT._children_iter(KT[1]): x
             Kleber tree node with weight [0, 0, 0, 0] and upwards edge root [1, 2, 1, 1]
         """
+        # It is faster to just cycle through than build the polytope and its
+        #   lattice points when we are sufficiently small
+        # The number 500 comes from testing on my machine about where the
+        #   tradeoff occurs between the methods. However, this may grow as
+        #   the _children_iter_vector is further optimized.
+        if node != self.root and prod(val+1 for val in node.up_root.coefficients()) < 1000:
+            for x in self._children_iter_vector(node):
+                yield x
+            return
+
         n = self._classical_ct.rank()
         I = self._classical_ct.index_set()
         Q = self._classical_ct.root_system().root_lattice()
@@ -807,7 +817,7 @@ class KleberTree(UniqueRepresentation, Parent):
         # Construct the shifted weight cone
         root_weight = node.weight.to_vector()
         ieqs = [[root_weight[i]] + list(col)
-                for i,col in enumerate(self._classical_ct.cartan_matrix())]
+                for i,col in enumerate(self._CM.columns())]
         # Construct the negative weight cone
         for i in range(n):
             v = [0] * (n+1)
@@ -867,8 +877,7 @@ class KleberTree(UniqueRepresentation, Parent):
         P = self._classical_ct.root_system().weight_lattice()
         I = self._classical_ct.index_set()
         wt = node.weight.to_vector()
-        # Everything is dense at this point; moreover, ranks are relatively small
-        CM = self._classical_ct.cartan_matrix().dense_matrix()
+        cols = self._CM.columns()
         F = FreeModule(ZZ, self._classical_ct.rank())
 
         L = [range(val + 1) for val in node.up_root.to_vector()]
@@ -877,12 +886,15 @@ class KleberTree(UniqueRepresentation, Parent):
         next(it)  # First element is the zero element
         for root in it:
             # Convert the list to the weight lattice
-            converted_root = CM * F(root)
+            converted_root = sum(cols[i] * c for i,c in enumerate(root) if c != 0)
 
             if all(wt[i] >= val for i,val in enumerate(converted_root)):
-                wd = {I[i]: wt[i] - val for i, val in enumerate(converted_root)}
-                rd = {I[i]: val for i, val in enumerate(root)}
-                yield KleberTreeNode(self, P._from_dict(wd), Q._from_dict(rd), node)
+                wd = {I[i]: wt[i] - val for i,val in enumerate(converted_root)}
+                rd = {I[i]: val for i,val in enumerate(root) if val != 0}
+                yield KleberTreeNode(self,
+                                     P._from_dict(wd),
+                                     Q._from_dict(rd, remove_zeros=False),
+                                     node)
 
     def _prune(self, new_child, depth):
         r"""
@@ -1003,7 +1015,7 @@ class KleberTree(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2, 2]])
-            sage: KT.digraph()  # optional - dot2tex graphviz
+            sage: KT.digraph()
             Digraph on 3 vertices
         """
         d = {}
@@ -1026,7 +1038,7 @@ class KleberTree(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.rigged_configurations.kleber_tree import KleberTree
             sage: KT = KleberTree(['D', 4, 1], [[2, 2]])
-            sage: print(KT.plot())  # optional - dot2tex graphviz
+            sage: print(KT.plot())
             Graphics object consisting of 8 graphics primitives
         """
         return self.digraph().plot(edge_labels=True, vertex_size=0, **options)
@@ -1206,9 +1218,8 @@ class VirtualKleberTree(KleberTree):
         sigma = self._folded_ct._orbit
         for orbit in sigma[1:]:
             start = new_child.weight[orbit[0]]
-            for i in orbit[1:]:
-                if new_child.weight[i] != start:
-                    return True
+            if any(new_child.weight[i] != start for i in orbit[1:]):
+                return True
         gamma = self._folded_ct.scaling_factors()
         for a in range(1, len(gamma)):
             if (depth - 1) % gamma[a] != 0 and new_child.up_root[sigma[a][0]] \

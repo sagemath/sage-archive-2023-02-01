@@ -918,7 +918,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
     def _element(self):
         """
-        Returns the int interally representing this element.
+        Return the int internally representing this element.
 
         EXAMPLES::
 

@@ -13,6 +13,7 @@ slopes (and hence a last infinite slope).
 #
 #                  http://www.gnu.org/licenses/
 #############################################################################
+from __future__ import division
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -368,9 +369,10 @@ class NewtonPolygon_element(Element):
             return vertices[-1][1]
         if x > vertices[-1][0]:
             return vertices[-1][1] + lastslope * (x - vertices[-1][0])
-        a = 0; b = len(vertices)
+        a = 0
+        b = len(vertices)
         while b - a > 1:
-            c = floor((a+b)/2)
+            c = (a + b) // 2
             if vertices[c][0] < x:
                 a = c
             else:

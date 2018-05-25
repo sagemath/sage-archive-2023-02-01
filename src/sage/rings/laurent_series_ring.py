@@ -17,6 +17,20 @@ EXAMPLES::
 
     * :func:`sage.misc.defaults.set_series_precision`
 """
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2007 Robert Bradshaw <robertwb@math.washington.edu>
+#                     2012 David Roe <roed.math@gmail.com>
+#                     2014 Peter Bruin <P.J.Bruin@math.leidenuniv.nl>
+#                     2017 Vincent Delecroix <20100.delecroix@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from __future__ import print_function, absolute_import
 
 from sage.categories.rings import Rings
@@ -135,6 +149,28 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
         Category of infinite complete discrete valuation fields
         sage: LaurentSeriesRing(Zmod(4), 'x').category()
         Category of infinite commutative rings
+
+    Check coercions (:trac:`24431`)::
+
+        sage: pts = [LaurentSeriesRing,
+        ....:        PolynomialRing,
+        ....:        PowerSeriesRing,
+        ....:        LaurentPolynomialRing]
+        sage: LS = LaurentSeriesRing(QQ, 'x')
+        sage: LSx = LS.gen()
+
+        sage: for P in pts:
+        ....:     x = P(QQ, 'x').gen()
+        ....:     assert parent(LSx * x) is LS, "wrong parent for {}".format(P)
+
+        sage: for P in pts:
+        ....:     y = P(QQ, 'y').gen()
+        ....:     try:
+        ....:         LSx * y
+        ....:     except TypeError:
+        ....:         pass
+        ....:     else:
+        ....:         print("wrong coercion {}".format(P))
     """
     Element = LaurentSeries
 
@@ -148,6 +184,11 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             True
             sage: loads(dumps(L)) is L
             True
+
+            sage: L.variable_names()
+            ('q',)
+            sage: L.variable_name()
+            'q'
         """
         from .power_series_ring import PowerSeriesRing, is_PowerSeriesRing
 
@@ -446,6 +487,40 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
             return (x << n)
         return self.element_class(self, x, n)
 
+    def construction(self):
+        r"""
+        Return the functorial construction of this Laurent power series ring.
+
+        The construction is given as the completion of the Laurent polynomials.
+
+        EXAMPLES::
+
+            sage: L.<t> = LaurentSeriesRing(ZZ, default_prec=42)
+            sage: phi, arg = L.construction()
+            sage: phi
+            Completion[t, prec=42]
+            sage: arg
+            Univariate Laurent Polynomial Ring in t over Integer Ring
+            sage: phi(arg) is L
+            True
+
+        Because of this construction, pushout is automatically available::
+
+            sage: 1/2 * t
+            1/2*t
+            sage: parent(1/2 * t)
+            Laurent Series Ring in t over Rational Field
+
+            sage: QQbar.gen() * t
+            I*t
+            sage: parent(QQbar.gen() * t)
+            Laurent Series Ring in t over Algebraic Field
+        """
+        from sage.categories.pushout import CompletionFunctor
+        from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+        L = LaurentPolynomialRing(self.base_ring(), self._names[0])
+        return CompletionFunctor(self._names[0], self.default_prec()), L
+
     def _coerce_map_from_(self, P):
         """
         Return a coercion map from `P` to ``self``, or True, or None.
@@ -462,14 +537,31 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
 
         EXAMPLES::
 
-            sage: R.<t> = LaurentSeriesRing(ZZ)
-            sage: S.<t> = PowerSeriesRing(QQ)
-            sage: R.has_coerce_map_from(S) # indirect doctest
-            False
-            sage: R.has_coerce_map_from(R)
+            sage: S.<t> = LaurentSeriesRing(ZZ)
+            sage: S.has_coerce_map_from(ZZ)
             True
+            sage: S.has_coerce_map_from(PolynomialRing(ZZ, 't'))
+            True
+            sage: S.has_coerce_map_from(LaurentPolynomialRing(ZZ, 't'))
+            True
+            sage: S.has_coerce_map_from(PowerSeriesRing(ZZ, 't'))
+            True
+            sage: S.has_coerce_map_from(S)
+            True
+
+            sage: S.has_coerce_map_from(QQ)
+            False
+            sage: S.has_coerce_map_from(PolynomialRing(QQ, 't'))
+            False
+            sage: S.has_coerce_map_from(LaurentPolynomialRing(QQ, 't'))
+            False
+            sage: S.has_coerce_map_from(PowerSeriesRing(QQ, 't'))
+            False
+            sage: S.has_coerce_map_from(LaurentSeriesRing(QQ, 't'))
+            False
+
             sage: R.<t> = LaurentSeriesRing(QQ['x'])
-            sage: R.has_coerce_map_from(S)
+            sage: R.has_coerce_map_from(QQ[['t']])
             True
             sage: R.has_coerce_map_from(QQ['t'])
             True
@@ -489,7 +581,11 @@ class LaurentSeriesRing(UniqueRepresentation, CommutativeRing):
 
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
-        if ((is_LaurentSeriesRing(P) or is_PowerSeriesRing(P) or is_PolynomialRing(P))
+        from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
+        if ((is_LaurentSeriesRing(P) or
+             is_LaurentPolynomialRing(P) or
+             is_PowerSeriesRing(P) or
+             is_PolynomialRing(P))
             and P.variable_name() == self.variable_name()
             and A.has_coerce_map_from(P.base_ring())):
             return True

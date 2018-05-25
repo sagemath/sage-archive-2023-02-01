@@ -437,6 +437,10 @@ ext_modules = [
     ##
     ################################
 
+    OptionalExtension("sage.interfaces.primecount",
+              ["sage/interfaces/primecount.pyx"],
+              package = "primecount"),
+
     Extension('*', ['sage/interfaces/*.pyx']),
 
     ################################
@@ -493,7 +497,6 @@ ext_modules = [
                       libraries = ["braiding"],
                       package="libbraiding",
                       language = 'c++'),
-
 
     OptionalExtension('sage.libs.homfly',
                       sources = ["sage/libs/homfly.pyx"],
@@ -724,6 +727,9 @@ ext_modules = [
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
 
+    Extension('sage.matrix.args',
+              sources = ['sage/matrix/args.pyx']),
+
     Extension('sage.matrix.echelon_matrix',
               sources = ['sage/matrix/echelon_matrix.pyx']),
 
@@ -756,6 +762,9 @@ ext_modules = [
               sources = ['sage/matrix/matrix_cyclo_dense.pyx'],
               language = "c++",
               libraries=['ntl']),
+
+    Extension('sage.matrix.matrix_gap',
+              sources = ['sage/matrix/matrix_gap.pyx']),
 
     Extension('sage.matrix.matrix_dense',
               sources = ['sage/matrix/matrix_dense.pyx']),
@@ -1154,8 +1163,7 @@ ext_modules = [
               sources = ['sage/rings/morphism.pyx']),
 
     Extension('sage.rings.complex_mpc',
-              sources = ['sage/rings/complex_mpc.pyx'],
-              libraries = ['mpc']),
+              sources = ['sage/rings/complex_mpc.pyx']),
 
     Extension('sage.rings.noncommutative_ideals',
               sources = ['sage/rings/noncommutative_ideals.pyx']),
@@ -1199,6 +1207,8 @@ ext_modules = [
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']),
+
+    Extension('*', ['sage/rings/convert/*.pyx']),
 
     ################################
     ##

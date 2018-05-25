@@ -3819,7 +3819,24 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
 
+        A finite word `u` is a *subword* of a finite word `v` if `u` is a
+        subsequence of `v`. See Chapter 6 on Subwords in [1].
+
+        Some references define subword as a consecutive subsequence. Use
+        :meth:`is_factor` if this is what you need.
+
+        INPUT:
+
+        ``other`` -- a finite word
+
         EXAMPLES::
+
+            sage: Word('bb').is_subword_of(Word('ababa'))
+            True
+            sage: Word('bbb').is_subword_of(Word('ababa'))
+            False
+
+        ::
 
             sage: Word().is_subword_of(Word('123'))
             True
@@ -3831,6 +3848,13 @@ class FiniteWord_class(Word_class):
         .. SEEALSO::
 
             :meth:`longest_common_subword`
+            :meth:`nb_subword_occurrences_in`
+            :meth:`is_factor`
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
 
         """
         its = iter(self)
@@ -4425,6 +4449,9 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` if ``self`` is a factor of ``other``, and ``False`` otherwise.
 
+        A finite word `u\in A^*` is a *factor* of a finite word `v\in A^*`
+        if there exists `p,s\in A^*` such that `v=pus`.
+
         EXAMPLES::
 
             sage: u = Word('2113')
@@ -4709,7 +4736,7 @@ class FiniteWord_class(Word_class):
         -   [2] S. Marcus, Quasiperiodic infinite words, Bull. Eur. Assoc.
             Theor. Comput. Sci. 82 (2004) 170-174.
         -   [3] A. Glen, F. Levé, G. Richomme, Quasiperiodic and Lyndon
-            episturmian words, Preprint, 2008, arXiv:0805.0730.
+            episturmian words, Preprint, 2008, :arxiv:`0805.0730`.
         """
         l = self.length()
         if l <= 1:
@@ -4748,7 +4775,7 @@ class FiniteWord_class(Word_class):
         -   [2] S. Marcus, Quasiperiodic infinite words, Bull. Eur. Assoc.
             Theor. Comput. Sci. 82 (2004) 170-174.
         -   [3] A. Glen, F. Levé, G. Richomme, Quasiperiodic and Lyndon
-            episturmian words, Preprint, 2008, arXiv:0805.0730.
+            episturmian words, Preprint, 2008, :arxiv:`0805.0730`.
         """
         l = self.length()
         if l <= 1:
@@ -5289,7 +5316,7 @@ class FiniteWord_class(Word_class):
 
         [2] A. Lascoux, L. Lapointe, and J. Morse.  *Tableau atoms and a new
         Macdonald positivity conjecture.* Duke Math Journal, **116 (1)**,
-        2003.  Available at: [http://arxiv.org/abs/math/0008073]
+        2003.  :arxiv:`math/0008073`
 
         [3] A. Lascoux, B. Leclerc, and J.Y. Thibon.  *The Plactic Monoid*.
         Survey article available at
@@ -6220,8 +6247,10 @@ class FiniteWord_class(Word_class):
             Shuffle product of word: 23 and word: 23
             sage: w.shuffle(u)
             Shuffle product of word: 01 and word: 23
-            sage: w.shuffle(u,2)
+            sage: sp2 = w.shuffle(u,2); sp2
             Overlapping shuffle product of word: 01 and word: 23 with 2 overlaps
+            sage: list(sp2)
+            [word: 24]
         """
         if overlap == 0:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
@@ -6230,11 +6259,11 @@ class FiniteWord_class(Word_class):
             if any(a not in ZZ for a in self) or any(a not in ZZ for a in other):
                 raise ValueError("for a nonzero overlap, words must contain integers as letters")
             if overlap is True:
-                from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-                return ShuffleProduct_overlapping(self, other)
+                from sage.combinat.shuffle import ShuffleProduct_overlapping
+                return ShuffleProduct_overlapping(self, other, self.parent())
             elif isinstance(overlap, (int,Integer)):
-                from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping_r
-                return ShuffleProduct_overlapping_r(self, other, overlap)
+                from sage.combinat.shuffle import ShuffleProduct_overlapping_r
+                return ShuffleProduct_overlapping_r(self, other, overlap, self.parent())
             raise ValueError('overlapping must be True or an integer')
 
     def shifted_shuffle(self, other, shift=None):

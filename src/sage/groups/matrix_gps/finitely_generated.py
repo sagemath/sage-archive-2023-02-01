@@ -1002,7 +1002,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
 
             K[x]^G_{\chi} = \{f \in K[x] | \pi f = \chi(\pi) f \forall \pi\in G\}
 
-        be the ring of invarants of `G` relative to `\chi`. Then the Reynold's operator
+        be the ring of invariants of `G` relative to `\chi`. Then the Reynold's operator
         is a map `R` from `K[x]` into `K[x]^G_{\chi}` defined by
 
         .. MATH:
@@ -1110,7 +1110,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: G.reynolds_operator(f, chi)
             Traceback (most recent call last):
             ...
-            NotImplementedError: nontrivial characters not implemented for charateristic > 0
+            NotImplementedError: nontrivial characters not implemented for characteristic > 0
             sage: G.reynolds_operator(f)
             x^6
 
@@ -1194,7 +1194,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
                     L1 = fields[0].composite_fields(fields[1])[0]
                     L = L1.composite_fields(fields[2])[0]
         else:
-            raise NotImplementedError("nontrivial characters not implemented for charateristic > 0")
+            raise NotImplementedError("nontrivial characters not implemented for characteristic > 0")
         poly = poly.change_ring(L)
         poly_gens = vector(poly.parent().gens())
         F = L.zero()

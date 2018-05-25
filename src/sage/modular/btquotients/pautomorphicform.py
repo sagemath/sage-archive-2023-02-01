@@ -45,7 +45,7 @@ REFERENCES:
    Cameron Franc
    Ph.D. thesis, McGill University, 2011.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 
 from builtins import zip
 
@@ -751,7 +751,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         self._U = Symk(self._k - 2, base=self._R, act_on_left=True,
                        adjuster=_btquot_adjuster(),
-                       dettwist=-ZZ((self._k - 2) / 2), act_padic=True)
+                       dettwist=-ZZ((self._k - 2) // 2), act_padic=True)
 
         if basis_matrix is None:
             self.__rank = self._X.dimension_harmonic_cocycles(self._k)
@@ -1302,9 +1302,9 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         """
         HeckeData, alpha = self._X._get_hecke_data(l)
         if self.level() % l == 0:
-            factor = QQ(l ** (Integer((self._k - 2) / 2)) / (l + 1))
+            factor = QQ(l ** (Integer((self._k - 2) // 2)) / (l + 1))
         else:
-            factor = QQ(l ** (Integer((self._k - 2) / 2)))
+            factor = QQ(l ** (Integer((self._k - 2) // 2)))
         p = self._X._p
         alphamat = self.embed_quaternion(alpha)
         tmp = [self._U(0) for jj in range(len(self._E))]
@@ -1819,7 +1819,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         """
         MMM = self.parent()
         U = MMM._U
-        S0 = MMM._Sigma0
 
         h1 = MMM([o.lift(M=MMM.precision_cap()) for o in self._value])
         h2 = MMM._apply_Up_operator(h1, True)
@@ -1925,7 +1924,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 delta = e.determinant()
                 verbose('%s' % (R2([e[0, 1], e[0, 0]])
                                 / R2([e[1, 1], e[1, 0]])))
-                tmp = ((c * x + d) ** n * delta ** -ZZ(n / 2)) * f((a * x + b) / (c * x + d))
+                tmp = ((c * x + d) ** n * delta ** -ZZ(n // 2)) * f((a * x + b) / (c * x + d))
                 exp = R1(tmp.numerator()) / R1(tmp.denominator())
                 new = eval_dist_at_powseries(self.evaluate(e), exp)
 
@@ -2147,7 +2146,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         R = PolynomialRing(K, 'x')
         x = R.gen()
         R1 = LaurentSeriesRing(K, 'r1', default_prec=self.parent()._U.base_ring().precision_cap())
-        r1 = R1.gen()
         if E is None:
             E = self.parent()._source._BT.find_covering(t1, t2)
             # print('Got ', len(E), ' open balls.')
@@ -2283,12 +2281,12 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                                         prec_cap=U - 1 + t,
                                         act_on_left=True,
                                         adjuster=_btquot_adjuster(),
-                                        dettwist=-ZZ((U - 2) / 2),
+                                        dettwist=-ZZ((U - 2) // 2),
                                         act_padic=True)
             else:
                 self._U = Symk(U - 2, base=self._R, act_on_left=True,
                                adjuster=_btquot_adjuster(),
-                               dettwist=-ZZ((U - 2) / 2),
+                               dettwist=-ZZ((U - 2) // 2),
                                act_padic=True)
         else:
             self._U = U

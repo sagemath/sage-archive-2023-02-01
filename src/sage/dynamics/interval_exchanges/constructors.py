@@ -772,7 +772,7 @@ def RauzyDiagram(*args, **kargs):
     interval exchange transformation). The edges correspond to the action of the
     different operations considered.
 
-    It first appeard in the original article of Rauzy [Rau1979]_.
+    It first appeared in the original article of Rauzy [Rau1979]_.
 
     INPUT:
 

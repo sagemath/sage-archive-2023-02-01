@@ -2622,7 +2622,7 @@ def form_module(index, other_index, tree_root, graph):
     OUTPUT:
 
     ``[module_formed, vertices]`` where ``module_formed`` is ``True`` if
-    module is formed else ``False`` and ``vertices`` is a list of verices
+    module is formed else ``False`` and ``vertices`` is a list of vertices
     included in the formed module
 
     EXAMPLES::

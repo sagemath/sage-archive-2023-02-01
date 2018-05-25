@@ -27,6 +27,7 @@ from six.moves import range
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 from   sage.modules.free_module_element  import is_FreeModuleElement
+from sage.modules.free_module import EchelonMatrixKey
 from sage.misc.all import verbose, prod
 import sage.modular.hecke.all as hecke
 import sage.arith.all as arith
@@ -145,8 +146,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        lx = self.free_module()
-        rx = other.free_module()
+        lx = EchelonMatrixKey(self.free_module())
+        rx = EchelonMatrixKey(other.free_module())
 
         if lx == rx:
             return rich_to_bool(op, 0)
@@ -979,15 +980,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                 return self._q_expansion_module_integral(prec)
             raise NotImplementedError("base ring must be a field (or ZZ).")
 
+        V = R ** prec
         if algorithm == 'hecke' or algorithm == 'default':
-            A = R ** prec
-            return A.span([f.padded_list(prec) for f in self.q_expansion_basis(prec, algorithm)])
+            return V.span([f.padded_list(prec) for f in self.q_expansion_basis(prec, algorithm)])
 
         if algorithm != 'eigen':
             raise ValueError("unknown algorithm '%s'"%algorithm)
 
-        V = R ** prec
-        def q_eigen_gens(f):
+        def q_eigen_gens(A, f):
             r""" Temporary function for internal use.
 
             EXAMPLES::
@@ -1012,10 +1012,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         else:
             X = self
 
-        B = [sum([q_eigen_gens(f) for f in self._q_eigenform_images(A, prec, 'zeta')], []) for A, _ in X.factorization()]
+        B = [sum([q_eigen_gens(A, f) for f in self._q_eigenform_images(A, prec, 'zeta')], []) for A, _ in X.factorization()]
 
-        A = R ** prec
-        return A.span(sum(B, []))
+        return V.span(sum(B, []))
 
     def _q_expansion_module_rational(self, prec):
         """
@@ -1049,7 +1048,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         # Construct the vector space over QQ of dimension equal to
         # the degree of the base field times the dimension over C
         # of the space of cusp forms corresponding to self.
-        V = QQ**prec ## is this needed?
         def q_eigen_gens(f):
             r"""
             Temporary function for internal use.
@@ -1348,8 +1346,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             prec = self.default_prec()
         if not self.is_cuspidal():
             raise ArithmeticError("self must be cuspidal")
-        K = self.base_ring()
-        M = matrix_space.MatrixSpace(K, prec-1, self.dimension())
         T = [self.dual_hecke_matrix(n) for n in range(1,prec)]
         R = PowerSeriesRing(self.base_ring(), 'q')
         return lambda i, j: R([0] + [t[i,j] for t in T], prec)

@@ -1178,7 +1178,7 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
         [[0, 1], [0.5, 1.12419127424558], [1.0, 1.461590162288825]]
 
     Variant 1 for input - we can pass ODE in the form used by
-    desolve function In this example we integrate bakwards, since
+    desolve function In this example we integrate backwards, since
     ``end_points < ics[0]``::
 
         sage: y = function('y')(x)

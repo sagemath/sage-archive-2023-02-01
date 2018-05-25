@@ -689,7 +689,7 @@ def chang_graphs():
     Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
     called the Chang graphs. The fourth is the line graph of `K_8`. For more
     information about the Chang graphs, see :wikipedia:`Chang_graphs` or
-    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+    https://www.win.tue.nl/~aeb/graphs/Chang.html.
 
     EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
     same parameters::
@@ -933,7 +933,7 @@ def GoethalsSeidelGraph(k,r):
     vertices with degree `k=(n+r-1)/2`.
 
     It appears under this name in Andries Brouwer's `database of strongly
-    regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
+    regular graphs <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
 
     INPUT:
 
@@ -1052,15 +1052,14 @@ def FoldedCubeGraph(n):
 
 def FriendshipGraph(n):
     r"""
-    Returns the friendship graph `F_n`.
+    Return the friendship graph `F_n`.
 
     The friendship graph is also known as the Dutch windmill graph. Let
     `C_3` be the cycle graph on 3 vertices. Then `F_n` is constructed by
     joining `n \geq 1` copies of `C_3` at a common vertex. If `n = 1`,
     then `F_1` is isomorphic to `C_3` (the triangle graph). If `n = 2`,
     then `F_2` is the butterfly graph, otherwise known as the bowtie
-    graph. For more information, see this
-    `Wikipedia article on the friendship graph <http://en.wikipedia.org/wiki/Friendship_graph>`_.
+    graph. For more information, see :wikipedia:`Friendship_graph`.
 
     INPUT:
 
@@ -2478,24 +2477,22 @@ def WheelGraph(n):
     """
     Returns a Wheel graph with n nodes.
 
-    A Wheel graph is a basic structure where one node is connected to
-    all other nodes and those (outer) nodes are connected cyclically.
+    A Wheel graph is a basic structure where one node is connected to all other
+    nodes and those (outer) nodes are connected cyclically.
 
-    This constructor depends on NetworkX numeric labels.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each wheel graph will be
+    displayed with the first (0) node in the center, the second node at the top,
+    and the rest following in a counterclockwise manner.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each wheel
-    graph will be displayed with the first (0) node in the center, the
-    second node at the top, and the rest following in a
-    counterclockwise manner.
+    With the wheel graph, we see that it doesn't take a very large n at all for
+    the spring-layout to give a counter-intuitive display. (See Graphics Array
+    examples below).
 
-    With the wheel graph, we see that it doesn't take a very large n at
-    all for the spring-layout to give a counter-intuitive display. (See
-    Graphics Array examples below).
+    EXAMPLES:
 
-    EXAMPLES: We view many wheel graphs with a Sage Graphics Array,
-    first with this constructor (i.e., the position dictionary
-    filled)::
+    We view many wheel graphs with a Sage Graphics Array, first with this
+    constructor (i.e., the position dictionary filled)::
 
         sage: g = []
         sage: j = []
@@ -2539,15 +2536,16 @@ def WheelGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
-    pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n):
-        x = float(cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        y = float(sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.wheel_graph(n)
-    return Graph(G, pos=pos_dict, name="Wheel graph")
+    from sage.graphs.generators.basic import CycleGraph
+    if n < 4:
+        G = CycleGraph(n)
+    else:
+        G = CycleGraph(n-1)
+        G.relabel(perm=list(range(1, n)), inplace=True)
+        G.add_edges([(0, i) for i in range(1, n)])
+        G._pos[0] = (0, 0)
+    G.name("Wheel graph")
+    return G
 
 def WindmillGraph(k, n):
     r"""
@@ -2735,9 +2733,10 @@ def RingedTree(k, vertex_labels = True):
 
     REFERENCES:
 
-    .. [CFHM12] On the Hyperbolicity of Small-World and Tree-Like Random Graphs
-      Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney
-      http://arxiv.org/abs/1201.1717
+    .. [CFHM12] *On the Hyperbolicity of Small-World and
+       Tree-Like Random Graphs*
+       Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney
+       :arxiv:`1201.1717`
     """
     if k<1:
         raise ValueError('The number of levels must be >= 1.')

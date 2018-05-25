@@ -1011,7 +1011,7 @@ class FormsRingElement(six.with_metaclass(
         """
 
         res = self.parent().rat_field()(self._rat.sqrt())
-        new_parent = self.parent().extend_type(ring=True)
+        #new_parent = self.parent().extend_type(ring=True)
         # The sqrt of a homogeneous element is homogeneous if it exists
         return self.parent()(res).reduce()
 
@@ -1847,7 +1847,7 @@ class FormsRingElement(six.with_metaclass(
         (and fail) for certain (many) choices of
         (``base_ring``, ``tau.parent()``).
 
-        It is possible to evalutate at points of ``HyperbolicPlane()``.
+        It is possible to evaluate at points of ``HyperbolicPlane()``.
         In this case the coordinates of the upper half plane model are used.
 
         To obtain a precise and fast result the parameters
@@ -1944,8 +1944,8 @@ class FormsRingElement(six.with_metaclass(
             2.525...e-10 - 3.884...e-6*I
             sage: f_i(i)
             0
-            sage: f_i(i + 1e-1000)
-            -6.084...e-14 - 4.101...e-1000*I
+            sage: f_i(i + 1e-1000)  # rel tol 5e-2
+            -6.08402217494586e-14 - 4.10147008296517e-1000*I
             sage: f_inf(infinity)
             0
 

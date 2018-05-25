@@ -114,8 +114,6 @@ This base class provides a lot more methods than a general parent::
      '__rxor__',
      '__truediv__',
      '__xor__',
-     '_an_element',
-     '_an_element_c',
      '_an_element_impl',
      '_coerce_',
      '_coerce_c',
@@ -123,7 +121,6 @@ This base class provides a lot more methods than a general parent::
      '_coerce_try',
      '_default_category',
      '_gens',
-     '_has_coerce_map_from',
      '_ideal_class_',
      '_latex_names',
      '_list',
@@ -147,8 +144,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'get_action_c',
-     'get_action_impl',
      'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',
@@ -875,7 +870,8 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Join of Category of euclidean domains and Category of metric spaces
+          Join of Category of euclidean domains and Category of infinite sets
+          and Category of metric spaces
 
       .. end of output
 
@@ -1542,6 +1538,7 @@ Here are the tests that form the test suite of quotient fields::
      '_test_characteristic',
      '_test_characteristic_fields',
      '_test_distributivity',
+     '_test_divides',
      '_test_elements',
      '_test_elements_eq_reflexive',
      '_test_elements_eq_symmetric',
@@ -1550,7 +1547,8 @@ Here are the tests that form the test suite of quotient fields::
      '_test_euclidean_degree',
      '_test_fraction_field',
      '_test_gcd_vs_xgcd',
-     '_test_one', '_test_prod',
+     '_test_one',
+     '_test_prod',
      '_test_quo_rem',
      '_test_some_elements',
      '_test_zero',
@@ -1588,6 +1586,7 @@ Let us see what tests are actually performed::
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
     running ._test_distributivity() . . . pass
+    running ._test_divides() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
@@ -1760,6 +1759,7 @@ interesting.
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
     running ._test_distributivity() . . . pass
+    running ._test_divides() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
       running ._test_category() . . . pass

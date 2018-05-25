@@ -105,24 +105,22 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s = ShiftedPrimedTableau([[None, None,"2p",2,3],[None,"2p"]])
             sage: s.parent()
             Shifted Primed Tableaux skewed by [2, 1]
+
+        TESTS::
+
+            sage: ShiftedPrimedTableau([])
+            []
+            sage: ShiftedPrimedTableau([tuple([])])
+            []
         """
         if isinstance(T, ShiftedPrimedTableau) and T._skew == skew:
             return T
-        if not T or T == [[]]:
-            return ShiftedPrimedTableaux(skew=skew)([])
-        try:
-            entry = T[0][0]
-        except TypeError:
-            raise ValueError("input tableau must be a list of lists")
 
-        if entry is None:
-            skew_ = [row.count(None) for row in T if row[0] is None]
-            if skew is not None:
-                if skew != skew_:
-                    raise ValueError("skew shape does not agree with None entries")
-            else:
-                skew = skew_
-
+        skew_ = Partition([row.count(None) for row in T])
+        if skew_:
+            if skew and Partition(skew) != skew_:
+                raise ValueError("skew shape does not agree with None entries")
+            skew = skew_
         return ShiftedPrimedTableaux(skew=skew)(T)
 
     def __init__(self, parent, T, skew=None, check=True, preprocessed=False):
@@ -162,27 +160,39 @@ class ShiftedPrimedTableau(ClonableArray):
     def _preprocess(T, skew=None):
         """
         Preprocessing list ``T`` to initialize the tableau.
+        The output is a list of rows as tuples, with explicit
+        ``None``'s to indicate the skew shape, and entries being
+        ``PrimedEntry``s.
+
+        Trailing empty rows are removed.
 
         TESTS::
 
             sage: ShiftedPrimedTableau._preprocess([["2'", "3p", 3.5]],
             ....: skew=[1])
             [(None, 2', 3', 4')]
+            sage: ShiftedPrimedTableau._preprocess([[None]], skew=[1])
+            [(None,)]
+            sage: ShiftedPrimedTableau._preprocess([], skew=[2,1])
+            [(None, None), (None,)]
+            sage: ShiftedPrimedTableau._preprocess([], skew=[])
+            []
         """
         if isinstance(T, ShiftedPrimedTableau):
             return T
-
         # Preprocessing list t for primes and other symbols
         T = [[PrimedEntry(entry) for entry in row if entry is not None]
              for row in T]
+        while len(T) > 0 and len(T[-1]) == 0:
+            T = T[:-1]
+        row_min = min(len(skew), len(T)) if skew else 0
+        T_ = [(None,)*skew[i] + tuple(T[i]) for i in range(row_min)]
 
-        if skew is not None:
-            T = ([(None,)*skew[i] + tuple(T[i])
-                  for i in range(len(skew))]
-                 + [tuple(T[i]) for i in range(len(skew), len(T))])
-        else:
-            T = [tuple(row) for row in T]
-        return T
+        if row_min < len(T):
+            T_ += [tuple(T[i]) for i in range(row_min, len(T))]
+        elif skew:
+            T_ += [(None,)*skew[i] for i in range(row_min, len(skew))]
+        return T_
 
     def check(self):
         """
@@ -354,6 +364,12 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: ascii_art(ShiftedPrimedTableau([]))
             ++
             ++
+
+            sage: ascii_art(ShiftedPrimedTableau([], skew=[1]))
+            +---+
+            | . |
+            +---+
+
         """
         from sage.typeset.ascii_art import AsciiArt
         return AsciiArt(self._ascii_art_table(unicode=False).splitlines())
@@ -383,6 +399,10 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: unicode_art(ShiftedPrimedTableau([]))
             ┌┐
             └┘
+            sage: unicode_art(ShiftedPrimedTableau([], skew=[1]))
+            ┌───┐
+            │ . │
+            └───┘
         """
         from sage.typeset.unicode_art import UnicodeArt
         return UnicodeArt(self._ascii_art_table(unicode=True).splitlines())
@@ -492,6 +512,13 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: s.pp()
              .  .  2' 2  3
                 .  2'
+
+        TESTS::
+
+            sage: ShiftedPrimedTableau([],skew=[1]).pp()
+            .
+            sage: ShiftedPrimedTableau([]).pp()
+            <BLANKLINE>
         """
         print(self._repr_diagram())
 
@@ -523,12 +550,21 @@ class ShiftedPrimedTableau(ClonableArray):
             sage: Tab = ShiftedPrimedTableau([(1,1,'2p','3p'),(2,2)])
             sage: Tab.max_entry()
             3
-        """
-        if not self:
-            return 0
 
-        return max(entry.unprimed() for row in self
-                   for entry in row if entry is not None)
+        TESTS::
+
+            sage: Tab = ShiftedPrimedTableau([], skew=[2,1])
+            sage: Tab.max_entry()
+            0
+            sage: Tab = ShiftedPrimedTableau([["1p"]], skew=[2,1])
+            sage: Tab.max_entry()
+            1
+        """
+        flat = [entry.unprimed() for row in self
+                for entry in row if entry is not None]
+        if len(flat) == 0:
+            return 0
+        return max(flat)
 
     def shape(self):
         r"""
@@ -546,6 +582,163 @@ class ShiftedPrimedTableau(ClonableArray):
         if self._skew is None:
             return Partition([len(row) for row in self])
         return SkewPartition(([len(row) for row in self], self._skew))
+
+    def restrict(self, n):
+        """
+        Return the restriction of the shifted tableau to all
+        the numbers less than or equal to ``n``.
+
+        .. NOTE::
+
+            If only the outer shape of the restriction, rather than
+            the whole restriction, is needed, then the faster method
+            :meth:`restriction_outer_shape` is preferred. Similarly if
+            only the skew shape is needed, use :meth:`restriction_shape`.
+
+        EXAMPLES::
+
+            sage: t = ShiftedPrimedTableau([[1,'2p',2,2],[2,'3p']])
+            sage: t.restrict(2).pp()
+            1  2' 2  2
+               2
+
+            sage: t.restrict("2p").pp()
+            1  2'
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1])
+            sage: s.restrict(2).pp()
+            .  .  2' 2
+               .  2'
+            sage: s.restrict(1.5).pp()
+            .  .  2'
+               .  2'
+        """
+        t = self[:]
+        n = PrimedEntry(n)
+        return ShiftedPrimedTableau([z for z in [[y for y in x if y is not None and y <= n]
+                                                 for x in t] if z], skew=self._skew)
+
+    def restriction_outer_shape(self, n):
+        """
+        Return the outer shape of the restriction of the shifted
+        tableau ``self`` to `n`.
+
+        If `T` is a (skew) shifted tableau and `n` is a half-integer,
+        then the restriction of `T` to `n` is defined as the (skew)
+        shifted tableau obtained by removing all cells filled with
+        entries greater than `n` from `T`.
+
+        This method computes merely the outer shape of the restriction.
+        For the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+            .  .  2' 2  3
+               .  2'
+            sage: s.restriction_outer_shape(2)
+            [4, 2]
+            sage: s.restriction_outer_shape("2p")
+            [3, 2]
+
+        """
+        n = PrimedEntry(n)
+        if self._skew is None:
+            res = [len([y for y in row if y <= n]) for row in self]
+        else:
+            res = [len([y for y in row if y is None or y <= n])
+                   for i, row in enumerate(self)]
+
+        return Partition(res)
+
+    def restriction_shape(self, n):
+        """
+        Return the skew shape of the restriction of the skew tableau
+        ``self`` to ``n``.
+
+        If `T` is a shifted tableau and `n` is a half-integer, then
+        the restriction of `T` to `n` is defined as the
+        (skew) shifted tableau obtained by removing all cells
+        filled with entries greater than `n` from `T`.
+
+        This method computes merely the skew shape of the restriction.
+        For the restriction itself, use :meth:`restrict`.
+
+        EXAMPLES::
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+             .  .  2' 2  3
+                .  2'
+
+            sage: s.restriction_shape(2)
+            [4, 2] / [2, 1]
+        """
+        if self._skew is None:
+            return Partition(self.restriction_outer_shape(n))
+        else:
+            return SkewPartition([self.restriction_outer_shape(n), self._skew])
+
+    def to_chain(self):
+        """
+        Return the chain of partitions corresponding to the (skew)
+        shifted tableau ``self``, interlaced by one of the colours
+        ``1`` is the added cell is on the diagonal, ``2`` if an
+        ordinary entry is added and ``3`` if a primed entry is added.
+
+        EXAMPLES::
+
+            sage: s = ShiftedPrimedTableau([(1, 2, 3.5, 5, 6.5), (3, 5.5)]); s.pp()
+             1  2  4' 5  7'
+                3  6'
+
+            sage: s.to_chain()
+            [[], 1, [1], 2, [2], 1, [2, 1], 3, [3, 1], 2, [4, 1], 3, [4, 2], 3, [5, 2]]
+
+
+            sage: s = ShiftedPrimedTableau([(1, 3.5), (2.5,), (6,)], skew=[2,1]); s.pp()
+             .  .  1  4'
+                .  3'
+                   6
+
+            sage: s.to_chain()
+            [[2, 1], 2, [3, 1], 0, [3, 1], 3, [3, 2], 3, [4, 2], 0, [4, 2], 1, [4, 2, 1]]
+
+
+        TESTS::
+
+            sage: s = ShiftedPrimedTableau([["2p",2,3],["2p"]], skew=[2,1]); s.pp()
+             .  .  2' 2  3
+                .  2'
+            sage: s.to_chain()
+            Traceback (most recent call last):
+            ...
+            AssertionError: can compute a chain of partitions only for skew shifted tableaux without repeated entries.
+
+        """
+        assert all(e in [0,1] for e in self.weight()), "can compute a chain of partitions only for skew shifted tableaux without repeated entries."
+        entries = sorted(e for row in self for e in row if e is not None)
+        if self._skew is None:
+            mu = Partition([])
+            m = 0
+        else:
+            mu = self._skew
+            m = len(self._skew)
+        chain = [mu]
+        f = 0
+        for e in entries:
+            n = e.integer()
+            chain.extend([0, mu]*int(n-f-1))
+            mu = self.restriction_outer_shape(e)
+            if n == e:
+                if any(e == row[0] for i, row in enumerate(self) if i >= m or self._skew[i] == 0):
+                    chain.append(1)
+                else:
+                    chain.append(2)
+            else:
+                chain.append(3)
+            chain.append(mu)
+            f = n
+        return chain
 
     def weight(self):
         r"""
@@ -2019,4 +2212,3 @@ def _add_strip(sub_tab, full_tab, length):
                                                    k=len(plat_list),
                                                    outer=plat_list):
                 yield list(primed_strip) + list(non_primed_strip)
-

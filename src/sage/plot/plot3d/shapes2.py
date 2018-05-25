@@ -43,7 +43,7 @@ from .shapes import Text, Sphere
 
 from sage.structure.element import is_Vector
 
-
+@rename_keyword(alpha='opacity')
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
     r"""
     Draw a 3d line joining a sequence of points.
@@ -93,7 +93,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         ....:        color='green') + line3d([(0,1,0), (1,0,2)])
         Graphics3d Object
 
-    A Dodecahedral complex of 5 tetrahedrons (a more elaborate example
+    A Dodecahedral complex of 5 tetrahedra (a more elaborate example
     from Peter Jipsen)::
 
         sage: def tetra(col):
@@ -162,6 +162,7 @@ def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
         w._set_extra_kwds(kwds)
         return w
 
+@rename_keyword(alpha='opacity')
 @options(opacity=1, color="blue", aspect_ratio=[1,1,1], thickness=2)
 def bezier3d(path, **options):
     """
@@ -281,13 +282,18 @@ def polygon3d(points, **options):
 
     A bent transparent green triangle::
 
+        sage: polygon3d([[1, 2, 3], [0,1,0], [1,0,1], [3,0,0]], color=(0,1,0), opacity=0.7)
+        Graphics3d Object
+
+    This is the same as using ``alpha=0.7``::
+
         sage: polygon3d([[1, 2, 3], [0,1,0], [1,0,1], [3,0,0]], color=(0,1,0), alpha=0.7)
         Graphics3d Object
     """
     from sage.plot.plot3d.index_face_set import IndexFaceSet
     return IndexFaceSet([range(len(points))], points, **options)
 
-
+@rename_keyword(alpha='opacity')
 @options(opacity=1, color=(0,0,1))
 def polygons3d(faces, points, **options):
     """
@@ -329,9 +335,6 @@ def frame3d(lower_left, upper_right, **kwds):
 
     - ``upper_right`` -- the upper right corner of the frame, as a
       list, tuple, or vector.
-
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
 
     EXAMPLES:
 
@@ -389,9 +392,6 @@ def frame_labels(lower_left, upper_right,
 
     - ``eps`` -- (default: 1) a parameter for how far away from the frame
       to put the labels.
-
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
 
     EXAMPLES:
 
@@ -481,9 +481,6 @@ def ruler(start, end, ticks=4, sub_ticks=4, absolute=False, snap=False, **kwds):
 
     - ``snap`` -- (default: ``False``) if ``True``, snaps to an implied
       grid.
-
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
 
     EXAMPLES:
 
@@ -591,9 +588,6 @@ def ruler_frame(lower_left, upper_right, ticks=4, sub_ticks=4, **kwds):
     - ``sub_ticks`` -- (default: 4) the number of shown
       subdivisions between each major tick.
 
-    Type ``line3d.options`` for a dictionary of the default
-    options for lines, which are also available.
-
     EXAMPLES:
 
     A ruler frame::
@@ -616,7 +610,7 @@ def ruler_frame(lower_left, upper_right, ticks=4, sub_ticks=4, **kwds):
 
 ###########################
 
-
+@rename_keyword(alpha='opacity')
 def sphere(center=(0,0,0), size=1, **kwds):
     r"""
     Return a plot of a sphere of radius ``size`` centered at
@@ -950,7 +944,9 @@ class Line(PrimitiveObject):
             sage: from sage.plot.plot3d.shapes2 import Line
             sage: L = Line([(cos(i),sin(i),i^2) for i in srange(0,10,.01)],color='red')
             sage: L.obj_repr(L.default_render_params())[0][0][0][2][:3]
-            ['v 0.99995 0.00999983 0.0001', 'v 1.00007 0.0102504 -0.0248984', 'v 1.02376 0.010195 -0.00750607']
+            ['v 0.99995 0.00999983 0.0001',
+             'v 1.02376 0.010195 -0.00750607',
+             'v 1.00007 0.0102504 -0.0248984']
         """
         T = render_params.transform
         if T is None:
@@ -1091,7 +1087,7 @@ class Line(PrimitiveObject):
                 count += 1
             return corners
 
-
+@rename_keyword(alpha='opacity')
 def point3d(v, size=5, **kwds):
     """
     Plot a point or list of points in 3d space.

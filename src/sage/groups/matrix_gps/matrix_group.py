@@ -355,7 +355,7 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         if self is other:
             return rich_to_bool(op, 0)
-        
+
         lx = self.matrix_space()
         rx = other.matrix_space()
         if lx != rx:
@@ -390,15 +390,14 @@ class MatrixGroup_generic(MatrixGroup_base):
                 return richcmp_not_equal(lx, rx, op)
         return rich_to_bool(op, 0)
 
-    def _Hom_(self, G, cat=None):
+    def _Hom_(self, G, category):
         """
         Construct a homset.
 
         INPUT:
 
         - ``G`` -- group; the codomain
-
-        - ``cat`` -- category; must be unset
+        - ``category`` -- a category
 
         OUTPUT:
 
@@ -409,12 +408,25 @@ class MatrixGroup_generic(MatrixGroup_base):
             sage: MS = MatrixSpace(SR, 2, 2)
             sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
             sage: G.Hom(G)
-            Set of Homomorphisms from Matrix group over Symbolic Ring with 2 generators (
+            Set of Morphisms from Matrix group over Symbolic Ring with 2 generators (
             [1 0]  [1 2]
             [0 1], [3 4]
             ) to Matrix group over Symbolic Ring with 2 generators (
             [1 0]  [1 2]
             [0 1], [3 4]
+            ) in Category of groups
+
+            sage: G = MatrixGroup([matrix(GF(5), [[1,3],[0,1]])])
+            sage: H = MatrixGroup([matrix(GF(5), [[1,2],[0,1]])])
+            sage: G.hom([H.gen(0)])
+            Group morphism:
+            From: Matrix group over Finite Field of size 5 with 1 generators (
+            [1 3]
+            [0 1]
+            )
+            To:   Matrix group over Finite Field of size 5 with 1 generators (
+            [1 2]
+            [0 1]
             )
 
         TESTS:
@@ -424,47 +436,15 @@ class MatrixGroup_generic(MatrixGroup_base):
             sage: G = GL(2, GF(2))
             sage: H = GL(3, ZZ)
             sage: Hom(G, H)
-            Set of Homomorphisms from General Linear Group of degree 2
-             over Finite Field of size 2 to General Linear Group of degree 3
-             over Integer Ring
+            Set of Morphisms from General Linear Group of degree 2
+             over Finite Field of size 2
+             to General Linear Group of degree 3 over Integer Ring in Category of groups
+
         """
         if not is_MatrixGroup(G):
-            raise TypeError("G (=%s) must be a matrix group."%G)
+            super(self)._Hom_(self, G, category=category)
         from . import homset
-        return homset.MatrixGroupHomset(self, G, cat)
-
-    def hom(self, x):
-        """
-        Return the group homomorphism defined by ``x``
-
-        INPUT:
-
-        - ``x`` -- a list/tuple/iterable of matrix group elements.
-
-        OUTPUT:
-
-        The group homomorphism defined by ``x``.
-
-        EXAMPLES::
-
-            sage: G = MatrixGroup([matrix(GF(5), [[1,3],[0,1]])])
-            sage: H = MatrixGroup([matrix(GF(5), [[1,2],[0,1]])])
-            sage: G.hom([H.gen(0)])
-            Homomorphism : Matrix group over Finite Field of size 5 with 1 generators (
-            [1 3]
-            [0 1]
-            ) --> Matrix group over Finite Field of size 5 with 1 generators (
-            [1 2]
-            [0 1]
-            )
-        """
-        v = Sequence(x)
-        U = v.universe()
-        if not is_MatrixGroup(U):
-            raise TypeError("u (=%s) must have universe a matrix group."%U)
-        return self.Hom(U)(x)
-
-
+        return homset.MatrixGroupHomset(self, G, category=category)
 
 ###################################################################
 #

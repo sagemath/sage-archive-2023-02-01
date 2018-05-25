@@ -2272,6 +2272,7 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
 
       - ``diff_degree``  -- (only for differentiable manifolds; default:
         ``infinity``): the degree of differentiability
+      - ``ambient`` -- (only to construct a submanifold): the ambient manifold
       - ``metric_name`` -- (only for pseudo-Riemannian manifolds; default:
         ``'g'``) string; name (symbol) given to the metric
       - ``metric_latex_name`` -- (only for pseudo-Riemannian manifolds;
@@ -2457,10 +2458,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = TopologicalStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient,TopologicalManifold):
-                raise TypeError("The parent manifold must be a manifold")
+            if not isinstance(ambient, TopologicalManifold):
+                raise TypeError("ambient must be a manifold")
             if dim>ambient._dim:
-                raise ValueError("Embedded manifolds must be of smaller dimension than their parent")
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
             return TopologicalSubmanifold(dim, name, field, structure,
                                           ambient=ambient,
                                           latex_name=latex_name,
@@ -2484,10 +2486,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
             structure = DifferentialStructure()
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient,DifferentiableManifold):
-                raise TypeError("The parent manifold must be a differentiable manifold")
+            if not isinstance(ambient, DifferentiableManifold):
+                raise TypeError("ambient must be a differentiable manifold")
             if dim>ambient._dim:
-                raise ValueError("Embedded manifolds must be of smaller dimension than their parent")
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
             return DifferentiableSubmanifold(dim, name, field, structure,
                                              ambient=ambient,
                                              diff_degree=diff_degree,
@@ -2534,14 +2537,19 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = dim - 2  # default value for a Lorentzian manifold
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient,DifferentiableManifold):
-                raise TypeError("The parent manifold must be a differentiable manifold")
+            if not isinstance(ambient, PseudoRiemannianManifold):
+                raise TypeError("ambient must be a pseudo-Riemannian manifold")
             if dim>ambient._dim:
-                raise ValueError("An embedded manifold must be of smaller dimension than its parent")
-            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient, metric_name=metric_name,
-                                               signature=signature, diff_degree=diff_degree,
-                                               latex_name=latex_name, metric_latex_name=metric_latex_name,
-                                               start_index=start_index, unique_tag=getrandbits(128)*time())
+                raise ValueError("the submanifold must be of smaller "
+                                 + "dimension than its ambient manifold")
+            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+                                               metric_name=metric_name,
+                                               signature=signature,
+                                               diff_degree=diff_degree,
+                                               latex_name=latex_name,
+                                               metric_latex_name=metric_latex_name,
+                                               start_index=start_index,
+                                               unique_tag=getrandbits(128)*time())
 
         return PseudoRiemannianManifold(dim, name, metric_name=metric_name,
                                         signature=signature,

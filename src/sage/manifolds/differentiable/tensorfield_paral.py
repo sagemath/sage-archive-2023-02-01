@@ -18,11 +18,15 @@ tensor fields:
 * :class:`~sage.manifolds.differentiable.diff_form.DiffFormParal` for
   differential forms (fully antisymmetric covariant tensor fields)
 
+* :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal`
+  for multivector fields (fully antisymmetric contravariant tensor fields)
+
 
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
+- Eric Gourgoulhon (2018): method :meth:`TensorFieldParal.along`
 
 REFERENCES:
 
@@ -1945,9 +1949,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
-            sage: phi = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi),
-            ....:               name='phi')
+            sage: t = var('t', domain='real')
+            sage: Phi = M.curve({X: [sin(t), sin(2*t)/2]}, (t, 0, 2*pi),
+            ....:               name='Phi')
+            sage: U = Phi.domain(); U
+            Real interval (0, 2*pi)
 
         and a vector field on `M`::
 
@@ -1956,31 +1962,39 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         We have then::
 
-            sage: vU = v.along(phi); vU
+            sage: vU = v.along(Phi); vU
             Vector field v along the Real interval (0, 2*pi) with values on
              the 2-dimensional differentiable manifold M
             sage: vU.display()
             v = -cos(t)*sin(t) d/dx + sin(t) d/dy
             sage: vU.parent()
-            Free module X((0, 2*pi),phi) of vector fields along the Real
+            Free module X((0, 2*pi),Phi) of vector fields along the Real
              interval (0, 2*pi) mapped into the 2-dimensional differentiable
              manifold M
-            sage: vU.parent() is phi.tangent_vector_field().parent()
+            sage: vU.parent() is Phi.tangent_vector_field().parent()
+            True
+
+        We check that the defining relation `\tilde t(p) = t(\Phi(p))` holds::
+
+            sage: p = U(t)  # a generic point of U
+            sage: vU.at(p) == v.at(Phi(p))
             True
 
         Case of a tensor field of type ``(0,2)``::
 
             sage: a = M.tensor_field(0, 2)
             sage: a[0,0], a[0,1], a[1,1] = x+y, x*y, x^2-y^2
-            sage: aU = a.along(phi); aU
+            sage: aU = a.along(Phi); aU
             Tensor field of type (0,2) along the Real interval (0, 2*pi) with
              values on the 2-dimensional differentiable manifold M
             sage: aU.display()
             (cos(t) + 1)*sin(t) dx*dx + cos(t)*sin(t)^2 dx*dy + sin(t)^4 dy*dy
             sage: aU.parent()
-            Free module T^(0,2)((0, 2*pi),phi) of type-(0,2) tensors fields
+            Free module T^(0,2)((0, 2*pi),Phi) of type-(0,2) tensors fields
              along the Real interval (0, 2*pi) mapped into the 2-dimensional
              differentiable manifold M
+            sage: aU.at(p) == a.at(Phi(p))
+            True
 
         """
         dom = self._domain

@@ -167,7 +167,7 @@ The following example demonstrates the limitations of :code:`RDF`.
     A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^3 defined as the convex hull of 20 vertices
     sage: D_RDF = Polyhedron(vertices = [n(v.vector(),digits=6) for v in D.vertices()], base_ring=RDF)
     sage: D_RDF
-    A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 17 vertices
+    A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 19 vertices
 
 .. end of output
 

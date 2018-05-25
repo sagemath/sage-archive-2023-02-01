@@ -24,8 +24,6 @@ TESTS::
 from sage.structure.sage_object import SageObject
 from sage.rings.all import Integer, infinity, ZZ, QQ, CC
 from sage.modules.free_module import span
-from sage.modular.modform.constructor import Newform, CuspForms
-from sage.modular.arithgroup.congroup_gamma0 import is_Gamma0
 from sage.misc.misc_c import prod
 
 

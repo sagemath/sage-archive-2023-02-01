@@ -1600,7 +1600,7 @@ elements). For instance::
     2*x*y
     sage: P.prod.__module__
     'sage.categories.monoids'
-    sage: P.prod.__func__ is Monoids().ParentMethods.prod.__func__
+    sage: P.prod.__func__ is raw_getattr(Monoids().ParentMethods, "prod")
     True
 
 We recommend to study the code of one example::

@@ -3819,7 +3819,24 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
 
+        A finite word `u` is a *subword* of a finite word `v` if `u` is a
+        subsequence of `v`. See Chapter 6 on Subwords in [1].
+
+        Some references define subword as a consecutive subsequence. Use
+        :meth:`is_factor` if this is what you need.
+
+        INPUT:
+
+        ``other`` -- a finite word
+
         EXAMPLES::
+
+            sage: Word('bb').is_subword_of(Word('ababa'))
+            True
+            sage: Word('bbb').is_subword_of(Word('ababa'))
+            False
+
+        ::
 
             sage: Word().is_subword_of(Word('123'))
             True
@@ -3831,6 +3848,13 @@ class FiniteWord_class(Word_class):
         .. SEEALSO::
 
             :meth:`longest_common_subword`
+            :meth:`nb_subword_occurrences_in`
+            :meth:`is_factor`
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
 
         """
         its = iter(self)
@@ -4424,6 +4448,9 @@ class FiniteWord_class(Word_class):
     def is_factor(self, other):
         r"""
         Return ``True`` if ``self`` is a factor of ``other``, and ``False`` otherwise.
+
+        A finite word `u\in A^*` is a *factor* of a finite word `v\in A^*`
+        if there exists `p,s\in A^*` such that `v=pus`.
 
         EXAMPLES::
 

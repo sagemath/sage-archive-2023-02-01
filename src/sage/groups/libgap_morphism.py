@@ -99,11 +99,15 @@ class GroupMorphism_libgap(Morphism):
         codom = homset.codomain()
         gens = [x.gap() for x in dom.gens()]
         imgs = [codom(x).gap() for x in imgs]
-        if check and not len(gens) == len(imgs):
-            raise ValueError("provide an image for each generator")
-        self._phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
-        if check and not self._phi.IsGroupHomomorphism():
-            raise ValueError("images do not define a group homomorphism")
+        if check:
+            if not len(gens) == len(imgs):
+                raise ValueError("provide an image for each generator")
+            self._phi = libgap.GroupHomomorphismByImages(dom.gap(), codom.gap(), gens, imgs)
+            if check and not self._phi.IsGroupHomomorphism():
+                raise ValueError("images do not define a group homomorphism")
+        else:
+            ByImagesNC = libgap.function_factory("GroupHomomorphismByImagesNC")
+            self._phi = ByImagesNC(dom.gap(), codom.gap(), gens, imgs)
 
     def __reduce__(self):
         r"""

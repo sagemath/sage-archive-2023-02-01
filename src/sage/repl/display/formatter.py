@@ -175,7 +175,7 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('ipython_image')
             <IPython.core.display.Image object>
             sage: shell.run_cell('get_ipython().display_formatter.format(ipython_image)')
-            ({u'image/png': '\x89PNG...',
+            ({u'image/png': ...'\x89PNG...',
               u'text/plain': u'<IPython.core.display.Image object>'},
             {})
 

@@ -1819,7 +1819,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         """
         MMM = self.parent()
         U = MMM._U
-        S0 = MMM._Sigma0
 
         h1 = MMM([o.lift(M=MMM.precision_cap()) for o in self._value])
         h2 = MMM._apply_Up_operator(h1, True)
@@ -2147,7 +2146,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         R = PolynomialRing(K, 'x')
         x = R.gen()
         R1 = LaurentSeriesRing(K, 'r1', default_prec=self.parent()._U.base_ring().precision_cap())
-        r1 = R1.gen()
         if E is None:
             E = self.parent()._source._BT.find_covering(t1, t2)
             # print('Got ', len(E), ' open balls.')

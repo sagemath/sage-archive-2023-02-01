@@ -651,7 +651,6 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         v = list(cf)
         c = [(cf.p(k),cf.q(k)) for k in range(len(cf))]
         a = self(0)
-        zero = ZZ.zero()
         one = ZZ.one()
         two = ZZ(2)
         if self.weight() > two:
@@ -1017,13 +1016,11 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         B = self.manin_basis()
         if not rows is None:
             B = [B[i] for i in rows]
-        cols = []
         mod2term = self._mod2term
         R = self.manin_gens_to_basis()
         K = self.base_ring()
         W = R.new_matrix(nrows=len(B), ncols = R.nrows())
         syms = self.manin_symbols()
-        n = len(syms)
         j = 0
         for i in B:
             for h in H:
@@ -1753,7 +1750,6 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         # In the special case of weight 2 we have to do a bunch of
         # annoying extra work below to deal with the Eisenstein series E_2.
-        k = self.weight()
 
         ## If the characteristic of the base ring is 2,
         ## the star involution is the identity, so we
@@ -2502,7 +2498,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             32
         """
         if self.base_ring().characteristic() == 0:
-            N, k, sign = self.level(), self.weight(), self.sign()
+            k, sign = self.weight(), self.sign()
             if sign != 0: return None
             if k%2 == 1:
                 return 0
@@ -2540,7 +2536,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             18
         """
         if self.base_ring().characteristic() == 0:
-            N, k, sign = self.level(), self.weight(), self.sign()
+            k, sign = self.weight(), self.sign()
             if sign == 0:
                 m = 2
             else:
@@ -2596,7 +2592,6 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         rows = []
         B = self.manin_basis()
         syms = self.manin_symbols()
-        k = self.weight()
         H = [M2Z(h) for h in H]
         for n in B:
             z = M(0)
@@ -2626,7 +2621,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             2
         """
         if self.base_ring().characteristic() == 0:
-            N, k, sign = self.level(), self.weight(), self.sign()
+            k, sign = self.weight(), self.sign()
             if sign == 0:
                 m = 2
             else:
@@ -2788,8 +2783,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             32
         """
         if self.base_ring().characteristic() == 0:
-            N, sign = self.level(), self.sign()
-            if sign != 0: return None
+            if self.sign() != 0: return None
             return 2*self.group().dimension_cusp_forms(2) + self.group().ncusps() - 1
         else:
             raise NotImplementedError
@@ -2864,7 +2858,6 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         if not rows is None:
             B = [B[i] for i in rows]
 
-        cols = []
         N = self.level()
         P1 = self.p1list()
         mod2term = self._mod2term
@@ -3179,7 +3172,6 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
             sage: N.dimension()
             64
         """
-        level = int(M.level())
         N = self.level()
 
         # 1. Find coset representatives H for Gamma_1(M.level()) \ Gamma_1(self.level())
@@ -3193,7 +3185,6 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         rows = []
         B = self.manin_basis()
         syms = self.manin_symbols()
-        k = self.weight()
         G = matrix_space.MatrixSpace(ZZ, 2)
         H = [G(h) for h in H]
         for n in B:
@@ -3595,7 +3586,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             [ 1  0  0  0 -1 -1  3  1  0  2 -3  0]
             [ 0  5  1 -2 -3  3  0  4 -1  5 -7 -1]
         """
-        level = int(M.level())
         N = self.level()
 
         # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
@@ -3609,7 +3599,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         rows = []
         B = self.manin_basis()
         syms = self.manin_symbols()
-        k = self.weight()
         G = matrix_space.MatrixSpace(ZZ, 2)
         H = [G(h) for h in H]
         eps = self.character()  # note: in my thesis I twisted by eps^(-1), which is definitely a mistake

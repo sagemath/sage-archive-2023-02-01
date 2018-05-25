@@ -172,6 +172,7 @@ Comprehensive Module list
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
+    sage/combinat/partition_kleshchev
     sage/combinat/partition_tuple
     sage/combinat/partitions
     sage/combinat/perfect_matching

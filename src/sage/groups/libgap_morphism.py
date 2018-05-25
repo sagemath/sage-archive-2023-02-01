@@ -1,5 +1,5 @@
 r"""
-Group homomorphisms for groups with a libGAP backend.
+Group homomorphisms for groups with a libGAP backend
 
 EXAMPLES::
 

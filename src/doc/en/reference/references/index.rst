@@ -2721,6 +2721,10 @@ REFERENCES:
             submitted to NIST, (2008), available at
             http://www3.ntu.edu.sg/home/wuhj/research/jh/jh_round3.pdf
 
+.. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
+            and set partition statistics*, Journal of Combinatorial
+            Theory, Series A 56.1 (1991): 27-46.
+
 .. [WW2005] Ralf-Philipp Weinmann and Kai Wirt,
             *Analysis of the DVB Common Scrambling Algorithm*; in
             IFIP TC-6 TC-11, (2005).

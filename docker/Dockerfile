@@ -82,7 +82,7 @@ WORKDIR $HOME
 FROM run-time-dependencies as build-time-dependencies
 # Install the build time dependencies & git & rdfind
 RUN sudo apt-get -qq update \
-    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev python libssl-dev git rdfind libssl-dev \
+    && sudo apt-get -qq install -y wget build-essential automake m4 dpkg-dev python libssl-dev git rdfind \
     && sudo apt-get -qq clean \
     && sudo rm -r /var/lib/apt/lists/*
 

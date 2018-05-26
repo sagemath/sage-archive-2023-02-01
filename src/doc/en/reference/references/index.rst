@@ -2306,7 +2306,7 @@ REFERENCES:
 .. [Sch2013] Schmidt, Jens M
              "A Simple Test on 2-Vertex- and 2-Edge-Connectivity",
              Information Processing Letters, 113 (7): 241–244
-             :doi:`10.2307/2303897`              
+             :doi:`10.2307/2303897`
 
 .. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
              Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`
@@ -2747,6 +2747,10 @@ REFERENCES:
 .. [Yamada2007] Daisuke Yamada. *Scattering rule in soliton cellular automaton
                 associated with crystal base of* `U_q(D_4^{(3)})`.
                 \J. Math. Phys., **48** (4):043509, 28, (2007).
+
+.. [Yip2017] Yip, Martha. "Rook placements and Jordan forms of
+             upper-triangular nilpotent matrices."
+             :arxiv:`1703.00057`.
 
 .. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
              college de France

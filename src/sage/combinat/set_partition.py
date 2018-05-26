@@ -883,15 +883,23 @@ class SetPartition(AbstractSetPartition):
           set partitions to restricted growth functions.  These are
           currently:
 
-            - ``blocks``: the word is obtained by sorting the blocks
-              by their minimal element and setting the letters at the
-              positions of the elements in the `i`-th block to `i`.
+          - ``blocks``: the word is obtained by sorting the blocks by
+            their minimal element and setting the letters at the
+            positions of the elements in the `i`-th block to `i`.
 
-            - ``intertwining``: the `i`-th letter of the word is the
-              numbers of crossings of the arc (or half-arc) in the
-              extended arc diagram ending at `i`, with arcs (or
-              half-arcs) beginning at a smaller element and ending at
-              a larger element.
+          - ``intertwining``: the `i`-th letter of the word is the
+            numbers of crossings of the arc (or half-arc) in the
+            extended arc diagram ending at `i`, with arcs (or
+            half-arcs) beginning at a smaller element and ending at a
+            larger element.
+
+        OUTPUT:
+
+        A restricted growth word.
+
+        .. SEEALSO::
+
+            - :meth:`SetPartitions.from_restricted_growth_word`
 
         EXAMPLES::
 
@@ -975,12 +983,14 @@ class SetPartition(AbstractSetPartition):
 
         INPUT:
 
-        - ``bijection`` -- defines the bijection from set partitions
-          to rook placements.  These are currently:
+        - ``bijection`` (default: ``arcs``) -- defines the bijection
+          from set partitions to rook placements.  These are
+          currently:
 
-          - ``arcs``: :func:`arcs`
-          - ``rho``: :func:`to_rook_placement_rho`
-          - ``gamma``: :func:`to_rook_placement_gamma`
+          - ``arcs``: :meth:`arcs`
+          - ``gamma``: :meth:`to_rook_placement_gamma`
+          - ``rho``: :meth:`to_rook_placement_rho`
+          - ``psi``: :meth:`to_rook_placement_psi`
 
         EXAMPLES::
 
@@ -991,6 +1001,8 @@ class SetPartition(AbstractSetPartition):
             [(1, 4), (3, 5), (4, 6), (5, 8), (7, 11), (8, 9), (10, 12), (12, 13)]
             sage: P.to_rook_placement("rho")
             [(1, 2), (2, 6), (3, 4), (4, 10), (5, 9), (6, 7), (10, 11), (11, 13)]
+            sage: P.to_rook_placement("psi")
+            [(1, 2), (2, 6), (3, 4), (5, 9), (6, 7), (7, 10), (9, 11), (11, 13)]
 
         """
         if bijection == "arcs":
@@ -999,12 +1011,15 @@ class SetPartition(AbstractSetPartition):
             return self.to_rook_placement_gamma()
         elif bijection == "rho":
             return self.to_rook_placement_rho()
+        elif bijection == "psi":
+            return self.to_rook_placement_psi()
         else:
             raise ValueError("The given map is not valid.")
 
     def to_rook_placement_gamma(self):
-        """Return the rook diagram obtained by placing rooks according to
-        Wachs and White's algorithm gamma.
+        """
+        Return the rook diagram obtained by placing rooks according to
+        Wachs and White's bijection gamma.
 
         Note that our index convention differs from the convention in
         [WW1991]_: regarding the rook board as a lower-right
@@ -1017,6 +1032,16 @@ class SetPartition(AbstractSetPartition):
         into column `i`, such that the number of cells below the
         rook, which are not yet attacked by another rook, equals the
         index of the block to which `n+1-i` belongs.
+
+        OUTPUT:
+
+        A list of coordinates.
+
+        .. SEEALSO::
+
+            - :meth:`to_rook_placement`
+            - :meth:`SetPartitions.from_rook_placement`
+            - :meth:`SetPartitions.from_rook_placement_gamma`
 
         EXAMPLES::
 
@@ -1036,7 +1061,7 @@ class SetPartition(AbstractSetPartition):
             sage: P.to_rook_placement_gamma()
             []
             sage: S = SetPartitions(5, 2)
-            sage: all(S.from_rook_placement(P.size(), P.to_rook_placement("gamma"), "gamma") == P for P in S)
+            sage: all(S.from_rook_placement(P.to_rook_placement("gamma"), "gamma") == P for P in S)
             True
 
         """
@@ -1061,8 +1086,9 @@ class SetPartition(AbstractSetPartition):
         return sorted(rooks)
 
     def to_rook_placement_rho(self):
-        """Return the rook diagram obtained by placing rooks according to
-        Wachs and White's algorithm rho.
+        """
+        Return the rook diagram obtained by placing rooks according to
+        Wachs and White's bijection rho.
 
         Note that our index convention differs from the convention in
         [WW1991]_: regarding the rook board as a lower-right
@@ -1083,6 +1109,16 @@ class SetPartition(AbstractSetPartition):
 
         One can show that the precisely those rows which correspond
         to openers of the set partition remain empty.
+
+        OUTPUT:
+
+        A list of coordinates.
+
+        .. SEEALSO::
+
+            - :meth:`to_rook_placement`
+            - :meth:`SetPartitions.from_rook_placement`
+            - :meth:`SetPartitions.from_rook_placement_rho`
 
         EXAMPLES::
 
@@ -1107,7 +1143,7 @@ class SetPartition(AbstractSetPartition):
             sage: P.to_rook_placement_rho()
             []
             sage: S = SetPartitions(5, 2)
-            sage: all(S.from_rook_placement(P.size(), P.to_rook_placement("rho"), "rho") == P for P in S)
+            sage: all(S.from_rook_placement(P.to_rook_placement("rho"), "rho") == P for P in S)
             True
 
         """
@@ -1119,13 +1155,9 @@ class SetPartition(AbstractSetPartition):
         # the set of closers - rightmost occurrences of a letter in w
         R = sorted([n-w_rev.index(i)-1 for i in range(max(w)+1)])
         # the number of closers which are larger than i and whose
-        # block is after the block of i
-        rb = [sum(1 for j in R if j > i and w[j] > w[i]) for i in range(n)]
-        # the number of closers which are larger than i and whose
         # block is before the block of i
         rs = [sum(1 for j in R if j > i and w[j] < w[i]) for i in range(n)]
-        # empty columns
-        EC = [n-j for j in R]
+        EC = [n-j for j in R] # empty columns
         rooks = [] # pairs (row i, column j)
         for i in range(1,n):
             U = [j for j in range(n+1-i, n+1) if j not in EC]
@@ -1135,6 +1167,66 @@ class SetPartition(AbstractSetPartition):
                 EC.append(j)
         return sorted(rooks)
 
+    def to_rook_placement_psi(self):
+        r"""
+        Return the rook diagram obtained by placing rooks according to
+        Yip's bijection psi.
+
+        OUTPUT:
+
+        A list of coordinates.
+
+        .. SEEALSO::
+
+            - :meth:`to_rook_placement`
+            - :meth:`SetPartitions.from_rook_placement`
+            - :meth:`SetPartitions.from_rook_placement_psi`
+
+        EXAMPLES:
+
+        Example 4.5 in [Yip2017]_::
+
+            sage: P = SetPartition([[1, 5], [2], [3, 8, 9], [4], [6, 7]])
+            sage: P.to_rook_placement_psi()
+            [(1, 7), (3, 8), (4, 5), (7, 9)]
+
+        TESTS::
+
+            sage: P = SetPartition([])
+            sage: P.to_rook_placement_psi()
+            []
+            sage: S = SetPartitions(5,2)
+            sage: all(S.from_rook_placement(P.to_rook_placement("psi"), "psi") == P for P in S)
+            True
+
+        """
+        # Yip draws the diagram as an upper triangular matrix, thus
+        # we refer to the cell in row i and column j with (i, j)
+        n = self.size()
+        degrees = []
+        P = map(sorted, self)
+        for j in range(n, 0, -1):
+            # find the block number into which c was placed by first
+            # removing j and then sorting the blocks
+            B = next(B for B in P if B[-1] == j)
+            if len(B) == 1:
+                P.remove(B)
+            else:
+                del B[-1]
+                P = sorted(P, key=lambda B: (-len(B), min(B)))
+                b = P.index(B)
+                i = j - b - 1
+                degrees.append((j,i))
+        # reconstruct rooks from degree sequence
+        rooks = []
+        attacked_rows = []
+        for j, d in reversed(degrees):
+            i = 1
+            while d > i + sum(1 for r in attacked_rows if r > i):
+                i += 1
+            attacked_rows.append(i)
+            rooks.append((i,j))
+        return sorted(rooks)
 
     def apply_permutation(self, p):
         r"""
@@ -1927,15 +2019,23 @@ class SetPartitions(UniqueRepresentation, Parent):
           restricted growth functions to set partitions.  These are
           currently:
 
-            - ``blocks``: the word is obtained by sorting the blocks
-              by their minimal element and setting the letters at the
-              positions of the elements in the `i`-th block to `i`.
+          - ``blocks``: the word is obtained by sorting the blocks by
+            their minimal element and setting the letters at the
+            positions of the elements in the `i`-th block to `i`.
 
-            - ``intertwining``: the `i`-th letter of the word is the
-              numbers of crossings of the arc (or half-arc) in the
-              extended arc diagram ending at `i`, with arcs (or
-              half-arcs) beginning at a smaller element and ending at
-              a larger element.
+          - ``intertwining``: the `i`-th letter of the word is the
+            numbers of crossings of the arc (or half-arc) in the
+            extended arc diagram ending at `i`, with arcs (or
+            half-arcs) beginning at a smaller element and ending at a
+            larger element.
+
+        OUTPUT:
+
+        A set partition.
+
+        .. SEEALSO::
+
+            - :meth:`SetPartition.to_restricted_growth_word`
 
         EXAMPLES::
 
@@ -1978,13 +2078,16 @@ class SetPartitions(UniqueRepresentation, Parent):
         else:
             raise ValueError("The given bijection is not valid.")
 
-    def from_rook_placement(self, n, rooks, bijection="arcs"):
-        r"""Convert a rook placement of the triangular grid to a set
+    def from_rook_placement(self, rooks, bijection="arcs", n=None):
+        r"""
+        Convert a rook placement of the triangular grid to a set
         partition of `\{1,...,n\}`.
 
-        INPUT:
+        If ``n`` is not given, it is first checked whether it can be
+        determined from the parent, otherwise it is the maximal
+        occuring integer in the set of rooks.
 
-        - ``n`` -- the size of the ground set.
+        INPUT:
 
         - ``rooks`` -- a list of pairs `(i,j)` satisfying
           `0 < i < j < n+1`.
@@ -1992,56 +2095,127 @@ class SetPartitions(UniqueRepresentation, Parent):
         - ``bijection`` (default: ``arcs``) -- defines the map from
           rook placements to set partitions.  These are currently:
 
-            - ``arcs``: the set partition is obtained by putting two
-              elements connected by an arc into the same block.
+          - ``arcs``: :meth:`from_arcs`.
+          - ``gamma``: :meth:`from_rook_placement_gamma`.
+          - ``rho``: :meth:`from_rook_placement_rho`.
+          - ``psi``: :meth:`from_rook_placement_psi`.
 
-            - ``rho``: the inverse of :func:`to_rook_placement_rho`.
-
-            - ``gamma``: the inverse of :func:`to_rook_placement_gamma`.
+        - ``n`` -- (optional) the size of the ground set.
 
         EXAMPLES::
 
-            sage: SetPartitions().from_rook_placement(9, [[1,4],[2,8],[3,5],[5,6],[6,9]])
+            sage: SetPartitions(9).from_rook_placement([[1,4],[2,8],[3,5],[5,6],[6,9]])
             {{1, 4}, {2, 8}, {3, 5, 6, 9}, {7}}
 
-            sage: P = SetPartitions().from_rook_placement(13, [[12,13],[10,12],[8,9],[7,11],[5,8],[4,6],[3,5],[1,4]], "gamma")
-            sage: P
+            sage: SetPartitions(13).from_rook_placement([[12,13],[10,12],[8,9],[7,11],[5,8],[4,6],[3,5],[1,4]], "gamma")
             {{1, 2, 4, 7}, {3, 9}, {5, 6, 10, 11, 13}, {8}, {12}}
-            sage: P.to_restricted_growth_word()
-            [0, 0, 1, 0, 2, 2, 0, 3, 1, 2, 2, 4, 2]
 
         TESTS::
 
-            sage: SetPartitions().from_rook_placement(0, [])
+            sage: SetPartitions().from_rook_placement([])
             {}
-            sage: SetPartitions().from_rook_placement(0, [], "gamma")
+            sage: SetPartitions().from_rook_placement([], "gamma")
             {}
-            sage: SetPartitions().from_rook_placement(0, [], "rho")
+            sage: SetPartitions().from_rook_placement([], "rho")
             {}
-            sage: SetPartitions().from_rook_placement(2, [])
+            sage: SetPartitions().from_rook_placement([], "psi")
+            {}
+            sage: SetPartitions().from_rook_placement([], n=2)
             {{1}, {2}}
-            sage: SetPartitions().from_rook_placement(2, [], "gamma")
+            sage: SetPartitions().from_rook_placement([], "gamma", 2)
             {{1}, {2}}
-            sage: SetPartitions().from_rook_placement(2, [], "rho")
+            sage: SetPartitions().from_rook_placement([], "rho", 2)
+            {{1}, {2}}
+            sage: SetPartitions().from_rook_placement([], "psi", 2)
             {{1}, {2}}
 
         """
+        if n is None:
+            try:
+                n = self.base_set_cardinality()
+            except AttributeError:
+                if len(rooks) == 0:
+                    n = 0
+                else:
+                    n = max(max(r) for r in rooks)
+
         if bijection == "arcs":
-            return self.from_arcs(n, rooks)
+            return self.from_arcs(rooks, n)
         elif bijection == "rho":
-            return self.from_rook_placement_rho(n, rooks)
+            return self.from_rook_placement_rho(rooks, n)
         elif bijection == "gamma":
-            return self.from_rook_placement_gamma(n, rooks)
+            return self.from_rook_placement_gamma(rooks, n)
+        elif bijection == "psi":
+            return self.from_rook_placement_psi(rooks, n)
         else:
             raise ValueError("The given bijection is not valid.")
 
-    def from_arcs(self, n, rooks):
+    def from_arcs(self, arcs, n):
+        r"""
+        Return the coarsest set partition of `\{1,...,n\}` such that any
+        two elements connected by an arc are in the same block.
+
+        INPUT:
+
+        - ``n`` -- an integer specifying the size of the set
+          partition to be produced.
+
+        - ``arcs`` -- a list of pairs specifying which elements are
+          in the same block.
+
+        EXAMPLES::
+
+            sage: SetPartitions().from_arcs([(2,3)], 5)
+            {{1}, {2, 3}, {4}, {5}}
+        """
         P = DisjointSet(range(1,n+1))
-        for i,j in rooks:
+        for i,j in arcs:
             P.union(i,j)
         return self.element_class(self, P)
 
-    def from_rook_placement_gamma(self, n, rooks):
+    def from_rook_placement_gamma(self, rooks, n):
+        r"""
+        Return the set partition of `\{1,...,n\}` corresponding to the
+        given rook placement by applying Wachs and White's bijection
+        gamma.
+
+        Note that our index convention differs from the convention in
+        [WW1991]_: regarding the rook board as a lower-right
+        triangular grid, we refer with `(i,j)` to the cell in the
+        `i`-th column from the right and the `j`-th row from the top.
+
+        INPUT:
+
+        - ``n`` -- an integer specifying the size of the set
+          partition to be produced.
+
+        - ``rooks`` -- a list of pairs `(i,j)` such that `0 < i < j < n+1`.
+
+        OUTPUT:
+
+        A set partition.
+
+        .. SEEALSO::
+
+            - :meth:`from_rook_placement`
+            - :meth:`SetPartition.to_rook_placement`
+            - :meth:`SetPartition.to_rook_placement_gamma`
+
+        EXAMPLES:
+
+        Figure 5 in [WW1991]_ concerns the following rook placement::
+
+            sage: r = [(1, 4), (3, 5), (4, 6), (5, 8), (7, 11), (8, 9), (10, 12), (12, 13)]
+
+        Note that the rook `(1, 4)`, translated into Wachs and
+        White's convention, is a rook in row 4 from the top and
+        column 13 from the left.  The corresponding set partition
+        is::
+
+            sage: SetPartitions().from_rook_placement_gamma(r, 13)
+            {{1, 2, 4, 7}, {3, 9}, {5, 6, 10, 11, 13}, {8}, {12}}
+
+        """
         if n == 0:
             return self.element_class(self, [])
         # the columns of the board, beginning with column n-1
@@ -2063,7 +2237,48 @@ class SetPartitions(UniqueRepresentation, Parent):
         w = [0] + [len(c) for c in C]
         return self.from_restricted_growth_word(w, bijection="blocks")
 
-    def from_rook_placement_rho(self, n, rooks):
+    def from_rook_placement_rho(self, rooks, n):
+        r"""
+        Return the set partition of `\{1,...,n\}` corresponding to the
+        given rook placement by applying Wachs and White's bijection
+        rho.
+
+        Note that our index convention differs from the convention in
+        [WW1991]_: regarding the rook board as a lower-right
+        triangular grid, we refer with `(i,j)` to the cell in the
+        `i`-th column from the right and the `j`-th row from the top.
+
+        INPUT:
+
+        - ``n`` -- an integer specifying the size of the set
+          partition to be produced.
+
+        - ``rooks`` -- a list of pairs `(i,j)` such that `0 < i < j < n+1`.
+
+        OUTPUT:
+
+        A set partition.
+
+        .. SEEALSO::
+
+            - :meth:`from_rook_placement`
+            - :meth:`SetPartition.to_rook_placement`
+            - :meth:`SetPartition.to_rook_placement_rho`
+
+        EXAMPLES:
+
+        Figure 5 in [WW1991]_ concerns the following rook placement::
+
+            sage: r = [(1, 2), (2, 6), (3, 4), (4, 10), (5, 9), (6, 7), (10, 11), (11, 13)]
+
+        Note that the rook `(1, 2)`, translated into Wachs and
+        White's convention, is a rook in row 2 from the top and
+        column 13 from the left.  The corresponding set partition
+        is::
+
+            sage: SetPartitions().from_rook_placement_rho(r, 13)
+            {{1, 2, 4, 7}, {3, 9}, {5, 6, 10, 11, 13}, {8}, {12}}
+        """
         # the closers correspond to the empty columns
         cols = [j for j, _ in rooks]
         R = [j for j in range(1,n+1) if j not in cols]
@@ -2099,9 +2314,41 @@ class SetPartitions(UniqueRepresentation, Parent):
             P[b].append(i)
         return self.element_class(self, P)
 
-    def from_rook_placement_psi(self, n, rooks):
+    def from_rook_placement_psi(self, rooks, n):
+        r"""
+        Return the set partition of `\{1,...,n\}` corresponding to the
+        given rook placement by applying Yip's bijection psi.
+
+        INPUT:
+
+        - ``n`` -- an integer specifying the size of the set
+          partition to be produced.
+
+        - ``rooks`` -- a list of pairs `(i,j)` such that `0 < i < j <
+          n+1`.
+
+        OUTPUT:
+
+        A set partition.
+
+        .. SEEALSO::
+
+            - :meth:`from_rook_placement`
+            - :meth:`SetPartition.to_rook_placement`
+            - :meth:`SetPartition.to_rook_placement_psi`
+
+        EXAMPLES:
+
+        Example 4.5 in [Yip2017]_ concerns the following rook
+        placement::
+
+            sage: r = [(4,5), (1,7), (3, 8), (7,9)]
+            sage: SetPartitions().from_rook_placement_psi(r, 9)
+            {{1, 5}, {2}, {3, 8, 9}, {4}, {6, 7}}
+
+        """
         # Yip draws the diagram as an upper triangular matrix, thus
-        # we refer to the cell in column j and row i with (i, j)
+        # we refer to the cell in row i and column j with (i, j)
         P = []
         for c in range(1, n+1):
             # determine the weight of column c
@@ -2119,7 +2366,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             else:
                 P[b-1].append(c)
             P = sorted(P, key=lambda B: (-len(B), min(B)))
-        return self.element_class(self, P)    
+        return self.element_class(self, P)
 
     def _iterator_part(self, part):
         """

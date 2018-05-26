@@ -2843,9 +2843,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(121).divides(R(120))
             True
             sage: R(120).divides(R(121))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: reduction modulo 120 not defined
+            False
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2891,7 +2889,12 @@ cdef class CommutativeRingElement(RingElement):
             except (AttributeError, NotImplementedError):
                 pass
 
-            return (x % self) == 0
+            try:
+                return (x % self).is_zero()
+            except (TypeError, NotImplementedError):
+                pass
+
+            raise NotImplementedError
 
         else:
             #Different parents, use coercion
@@ -4076,6 +4079,8 @@ cpdef bin_op(x, y, op):
 
 
 def coerce(Parent p, x):
+    from sage.misc.superseded import deprecation
+    deprecation(25236, "sage.structure.element.coerce is deprecated")
     try:
         return p._coerce_c(x)
     except AttributeError:

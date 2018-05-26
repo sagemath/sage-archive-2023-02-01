@@ -68,7 +68,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: [i for i in sorted(a)]
             [([2, 1], 1), ([3], 1)]
         """
-        return self._monomial_coefficients.iteritems()
+        return iter(self._monomial_coefficients.iteritems())
 
     def __contains__(self, x):
         """

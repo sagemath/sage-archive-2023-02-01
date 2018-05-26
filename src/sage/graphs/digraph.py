@@ -123,6 +123,7 @@ import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
 
+from sage.misc.superseded import deprecation
 
 class DiGraph(GenericGraph):
     r"""
@@ -658,7 +659,6 @@ class DiGraph(GenericGraph):
         if format is None and isinstance(data,list):
             format = "list_of_edges"
             if weighted is None: weighted = False
-            num_verts=0
 
         if format == 'weighted_adjacency_matrix':
             if weighted is False:
@@ -3327,6 +3327,8 @@ class DiGraph(GenericGraph):
             sage: D = digraphs.Complete(4) * 2
             sage: D.add_edges([(0, 4), (7, 3)])
             sage: d = D.immediate_dominators(0)
+            doctest:...: DeprecationWarning: immediate_dominators is now deprecated. Please use method dominator_tree instead.
+            See https://trac.sagemath.org/25030 for details.
             sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
             sage: Graph(T).is_tree()
             True
@@ -3393,6 +3395,8 @@ class DiGraph(GenericGraph):
             sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
             True
         """
+        deprecation(25030, "immediate_dominators is now deprecated."
+                        + " Please use method dominator_tree instead.")
         if r not in self:
             raise ValueError("the given root must be in the digraph")
 
@@ -3473,7 +3477,7 @@ class DiGraph(GenericGraph):
         .. SEEALSO::
 
             - :meth:`~DiGraph.strongly_connected_components`
-            - :meth:`~DiGraph.immediate_dominators`
+            - :meth:`~sage.graphs.base.boost_graph.dominator_tree`
 
         TESTS:
 
@@ -3532,14 +3536,14 @@ class DiGraph(GenericGraph):
             g.add_edges(E)
 
             # 2. Compute the set of non-trivial immediate dominators in g
-            Dr = set( g.immediate_dominators(r).values() )
+            Dr = set( g.dominator_tree(r, return_dict=True).values() )
 
             # 3. Compute the set of non-trivial immediate dominators in the
             # reverse digraph
-            DRr = set( g.immediate_dominators(r, reverse=True).values() )
+            DRr = set( g.dominator_tree(r, return_dict=True, reverse=True).values() )
 
             # 4. Store D(r) + DR(r) - r
-            SAP.extend( Dr.union(DRr).difference([r]) )
+            SAP.extend( Dr.union(DRr).difference([r, None]) )
 
         return SAP
 

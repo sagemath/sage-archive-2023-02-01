@@ -652,7 +652,7 @@ cdef class BooleanFunction(SageObject):
         elif isinstance(x, list):
             if len(x) != self._nvariables:
                 raise ValueError("bad number of inputs")
-            return self(ZZ(map(bool,x),2))
+            return self(ZZ([bool(_) for _ in x], 2))
         else:
             raise TypeError("cannot apply Boolean function to provided element")
 

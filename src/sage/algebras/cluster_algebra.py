@@ -345,8 +345,7 @@ mutating at the initial seed::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from future_builtins import map
+from six.moves import range, map
 
 from copy import copy
 

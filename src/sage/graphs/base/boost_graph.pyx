@@ -51,12 +51,14 @@ cimport cython
 from cysignals.signals cimport sig_check, sig_on, sig_off
 
 
-cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
+cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage, reverse=False):
     r"""
     Initializes the Boost graph ``g`` to be equal to ``g_sage``.
 
     The Boost graph ``*g`` must represent an empty graph (an exception is raised
     otherwise).
+
+    When ``reverse==True`` the Boost graph is initialized with reversed edges.
     """
 
     from sage.graphs.generic_graph import GenericGraph
@@ -73,13 +75,18 @@ cdef boost_graph_from_sage_graph(BoostGenGraph *g, g_sage):
     for i in range(N):
         g.add_vertex()
 
-    for u,v in g_sage.edge_iterator(labels=None):
-        g.add_edge(vertex_to_int[u], vertex_to_int[v])
+    if reverse:
+        for u,v in g_sage.edge_iterator(labels=None):
+            g.add_edge(vertex_to_int[v], vertex_to_int[u])
+    else:
+        for u,v in g_sage.edge_iterator(labels=None):
+            g.add_edge(vertex_to_int[u], vertex_to_int[v])
 
 
 cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
                                           g_sage,
-                                          weight_function=None):
+                                          weight_function=None,
+                                          reverse=False):
     r"""
     Initializes the Boost weighted graph ``g`` to be equal to ``g_sage``.
 
@@ -97,6 +104,8 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
 
     In particular, the ``weight_function`` must be a function which inputs an
     edge ``e`` and outputs a number.
+
+    When ``reverse==True`` the Boost graph is initialized with reversed edges.
     """
 
     from sage.graphs.generic_graph import GenericGraph
@@ -114,16 +123,30 @@ cdef boost_weighted_graph_from_sage_graph(BoostWeightedGraph *g,
         g.add_vertex()
 
     if weight_function is not None:
-        for e in g_sage.edge_iterator():
-            g.add_edge(vertex_to_int[e[0]],
-                       vertex_to_int[e[1]],
-                       float(weight_function(e)))
+        if reverse:
+            for e in g_sage.edge_iterator():
+                g.add_edge(vertex_to_int[e[1]],
+                        vertex_to_int[e[0]],
+                        float(weight_function(e)))
+        else:
+            for e in g_sage.edge_iterator():
+                g.add_edge(vertex_to_int[e[0]],
+                        vertex_to_int[e[1]],
+                        float(weight_function(e)))
     elif g_sage.weighted():
-        for u,v,w in g_sage.edge_iterator():
-            g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
+        if reverse:
+            for u,v,w in g_sage.edge_iterator():
+                g.add_edge(vertex_to_int[v], vertex_to_int[u], float(w))
+        else:
+            for u,v,w in g_sage.edge_iterator():
+                g.add_edge(vertex_to_int[u], vertex_to_int[v], float(w))
     else:
-        for u,v in g_sage.edge_iterator(labels=False):
-            g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
+        if reverse:
+            for u,v in g_sage.edge_iterator(labels=False):
+                g.add_edge(vertex_to_int[v], vertex_to_int[u], 1)
+        else:
+            for u,v in g_sage.edge_iterator(labels=False):
+                g.add_edge(vertex_to_int[u], vertex_to_int[v], 1)
 
 
 cdef boost_edge_connectivity(BoostVecGenGraph *g):
@@ -297,7 +320,7 @@ cpdef clustering_coeff(g, vertices=None):
 
 
 @cython.binding(True)
-cpdef dominator_tree(g, root, return_dict=False):
+cpdef dominator_tree(g, root, return_dict=False, reverse=False):
     r"""
     Uses Boost to compute the dominator tree of ``g``, rooted at ``root``.
 
@@ -332,6 +355,9 @@ cpdef dominator_tree(g, root, return_dict=False):
       dictionary associating to each vertex its parent in the dominator
       tree. If ``False`` (default), it returns the whole tree, as a ``Graph``
       or a ``DiGraph``.
+
+    - ``reverse`` - boolean (default: ``False``); when set to ``True``, computes
+      the dominator tree in the reverse graph.
 
     OUTPUT:
 
@@ -368,10 +394,13 @@ cpdef dominator_tree(g, root, return_dict=False):
         sage: g = digraphs.Circuit(10).dominator_tree(5)
         sage: g.to_dictionary()
         {0: [1], 1: [2], 2: [3], 3: [4], 4: [], 5: [6], 6: [7], 7: [8], 8: [9], 9: [0]}
+        sage: g = digraphs.Circuit(10).dominator_tree(5, reverse=True)
+        sage: g.to_dictionary()
+        {0: [9], 1: [0], 2: [1], 3: [2], 4: [3], 5: [4], 6: [], 7: [6], 8: [7], 9: [8]}
 
     If the output is a dictionary::
 
-        sage: graphs.GridGraph([2,2]).dominator_tree((0,0), return_dict = True)
+        sage: graphs.GridGraph([2,2]).dominator_tree((0,0), return_dict=True)
         {(0, 0): None, (0, 1): (0, 0), (1, 0): (0, 0), (1, 1): (0, 0)}
 
     TESTS:
@@ -412,14 +441,14 @@ cpdef dominator_tree(g, root, return_dict=False):
     cdef list int_to_vertex = g.vertices()
 
     if isinstance(g, Graph):
-        boost_graph_from_sage_graph(&g_boost_und, g)
+        boost_graph_from_sage_graph(&g_boost_und, g, reverse)
         vi = vertex_to_int[root]
         sig_on()
         result = g_boost_und.dominator_tree(vi)
         sig_off()
 
     elif isinstance(g, DiGraph):
-        boost_graph_from_sage_graph(&g_boost_dir, g)
+        boost_graph_from_sage_graph(&g_boost_dir, g, reverse)
         vi = vertex_to_int[root]
         sig_on()
         result = g_boost_dir.dominator_tree(vi)

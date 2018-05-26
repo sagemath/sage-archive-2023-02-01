@@ -283,7 +283,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
         TESTS::
 
-            sage: TestSuite(f.parent()).run()
+            sage: TestSuite(f.parent()).run(skip=['_test_divides'])
         """
         self._arguments = arguments
         SymbolicRing.__init__(self, SR)

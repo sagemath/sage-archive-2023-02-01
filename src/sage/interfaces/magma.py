@@ -2083,9 +2083,9 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
 
             sage: S = magma.PolynomialRing(magma.Integers(), 2)   # optional - magma
             sage: S.AssignNames(['a', 'b'])       # optional - magma
-            sage: S.1                            # optional - magma
+            sage: S.1                             # optional - magma
             a
-            sage: S.1^2 + S.2
+            sage: S.1^2 + S.2 # optional - magma
             a^2 + b
         """
         P = self._check_valid()

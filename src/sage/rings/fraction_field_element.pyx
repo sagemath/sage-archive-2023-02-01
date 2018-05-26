@@ -993,7 +993,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: R.<x> = GF(2)[]
             sage: S.<y> = R.fraction_field()[]
             sage: (y+1)(R.one())
-            sage: 0
+            0
 
         Check that inexact elements are treated correctly::
 

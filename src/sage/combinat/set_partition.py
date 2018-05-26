@@ -2111,7 +2111,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            :meth:`Set_partititon.to_rook_placement`
+            :meth:`Set_partition.to_rook_placement`
 
         EXAMPLES::
 

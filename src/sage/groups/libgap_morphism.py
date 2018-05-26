@@ -223,7 +223,7 @@ class GroupMorphism_libgap(Morphism):
         codom = self.codomain()
         phi = self.gap()
         if isinstance(J, dom.Element) and J in dom:
-            return self(J)
+            return self._call_(dom(J))
         if not isinstance(J, ParentLibGAP):
             raise TypeError("J (={}) must be a libgap group".format(J))
         if dom.gap().IsSubgroup(J.gap()).sage():
@@ -306,7 +306,7 @@ class GroupMorphism_libgap(Morphism):
         preimage = phi.PreImage(S.gap())
         return self.codomain()._subgroup_constructor(preimage)
 
-class GroupHomset_libgap(UniqueRepresentation, HomsetWithBase):
+class GroupHomset_libgap(HomsetWithBase):
     r"""
     Homsets of groups with a libgap backend.
 

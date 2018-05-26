@@ -437,35 +437,45 @@ class DocTestReporter(SageObject):
                     postscript['cputime'] += cpu
                     postscript['walltime'] += wall
 
-                    if self.controller.options.show_skipped:
-                        try:
-                            optionals = result_dict.optionals
-                        except AttributeError:
-                            optionals = dict()
-                        if self.controller.options.optional is not True: # if True we test all optional tags
-                            untested = 0  # Report not tested/implemented tests at the end
-                            seen_other = False
-                            for tag in sorted(optionals.keys()):
-                                nskipped = optionals[tag]
-                                if tag == "long time":
-                                    if not self.controller.options.long:
-                                        seen_other = True
-                                        log("    %s not run"%(count_noun(nskipped, "long test")))
-                                elif tag in ("not tested", "not implemented"):
-                                    untested += nskipped
+                    total_skipped = 0
+                    try:
+                        optionals = result_dict.optionals
+                    except AttributeError:
+                        optionals = dict()
+                    for tag in sorted(optionals.keys()):
+                        nskipped = optionals[tag]
+                        if tag == "long time":
+                            if not self.controller.options.long:
+                                if self.controller.options.show_skipped:
+                                    log("    %s not run"%(count_noun(nskipped, "long test")))
+                        elif tag == "not tested":
+                            if self.controller.options.show_skipped:
+                                log("    %s not run"%(count_noun(nskipped, "not tested test")))
+                        elif tag == "not implemented":
+                            if self.controller.options.show_skipped:
+                                log("    %s for not implemented functionality not run"%(count_noun(nskipped, "test")))
+                        else:
+                            if tag not in self.controller.options.optional:
+                                if tag == "bug":
+                                    if self.controller.options.show_skipped:
+                                        log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
+                                elif tag == "":
+                                    if self.controller.options.show_skipped:
+                                        log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
                                 else:
-                                    if tag not in self.controller.options.optional:
-                                        seen_other = True
-                                        if tag == "bug":
-                                            log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
-                                        elif tag == "":
-                                            log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
-                                        else:
-                                            log("    %s not run"%(count_noun(nskipped, tag + " test")))
-                            if untested:
-                                log("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
-                    if not (self.controller.options.only_errors and not f):
-                        log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
+                                    if self.controller.options.show_skipped:
+                                        log("    %s not run"%(count_noun(nskipped, tag + " test")))
+
+                    nskipped = result_dict.walltime_skips
+                    if self.controller.options.show_skipped:
+                        log("    %s not run because we ran out of time"%(count_noun(nskipped, "test")))
+
+                    if nskipped != 0:
+                        total = "%s/%s"%(ntests, count_noun(ntests + nskipped, "test"))
+                    else:
+                        total = count_noun(ntests, "test")
+                    log("    [%s, %s%.2f s]" % (total, "%s, "%(count_noun(f, "failure")) if f else "", wall))
+
             self.sources_completed += 1
 
         except Exception:

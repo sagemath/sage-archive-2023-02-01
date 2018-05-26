@@ -899,7 +899,7 @@ class SetPartition(AbstractSetPartition):
 
         .. SEEALSO::
 
-            - :meth:`SetPartitions.from_restricted_growth_word`
+            :meth:`SetPartitions.from_restricted_growth_word`
 
         EXAMPLES::
 
@@ -979,7 +979,7 @@ class SetPartition(AbstractSetPartition):
         on a triangular board.
 
         The cells of the board corresponding to a set partition of
-        `\{1,...,n\}` are the pairs `(i,j)` with `0 < i < j < n+1`
+        `\{1,...,n\}` are the pairs `(i,j)` with `0 < i < j < n+1`.
 
         INPUT:
 
@@ -991,6 +991,10 @@ class SetPartition(AbstractSetPartition):
           - ``gamma``: :meth:`to_rook_placement_gamma`
           - ``rho``: :meth:`to_rook_placement_rho`
           - ``psi``: :meth:`to_rook_placement_psi`
+
+        .. SEEALSO::
+
+            :meth:`SetPartitions.from_rook_placement`
 
         EXAMPLES::
 
@@ -1189,6 +1193,9 @@ class SetPartition(AbstractSetPartition):
             sage: P = SetPartition([[1, 5], [2], [3, 8, 9], [4], [6, 7]])
             sage: P.to_rook_placement_psi()
             [(1, 7), (3, 8), (4, 5), (7, 9)]
+
+        Note that the columns corresponding to the minimal elements
+        of the blocks remain empty.
 
         TESTS::
 
@@ -2035,7 +2042,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         .. SEEALSO::
 
-            - :meth:`SetPartition.to_restricted_growth_word`
+            :meth:`SetPartition.to_restricted_growth_word`
 
         EXAMPLES::
 
@@ -2102,6 +2109,10 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         - ``n`` -- (optional) the size of the ground set.
 
+        .. SEEALSO::
+
+            :meth:`Set_partititon.to_rook_placement`
+
         EXAMPLES::
 
             sage: SetPartitions(9).from_rook_placement([[1,4],[2,8],[3,5],[5,6],[6,9]])
@@ -2162,6 +2173,12 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         - ``arcs`` -- a list of pairs specifying which elements are
           in the same block.
+
+        .. SEEALSO::
+
+            - :meth:`from_rook_placement`
+            - :meth:`SetPartition.to_rook_placement`
+            - :meth:`SetPartition.arcs`
 
         EXAMPLES::
 

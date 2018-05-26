@@ -3672,7 +3672,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def coxeter_smith_form(self, algorithm='singular'):
         """
-        Return the Smith normal form of x minus the Coxeter matrix.
+        Return the Smith normal form of `x` minus the Coxeter transformation
+        matrix.
 
         INPUT:
 
@@ -3682,7 +3683,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        a list of polynomials in one variable, each one dividing the next one
+        - list of polynomials in one variable, each one dividing the next one
 
         The output list is a refinement of the characteristic polynomial of
         the Coxeter transformation, which is its product. This list

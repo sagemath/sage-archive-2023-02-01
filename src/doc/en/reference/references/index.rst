@@ -1219,9 +1219,9 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
-.. [GriRei16] Darij Grinberg, Victor Reiner,
+.. [GriRei18] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
-              :arxiv:`1409.8356v4`.
+              :arxiv:`1409.8356v5`.
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
@@ -2171,6 +2171,11 @@ REFERENCES:
                Planar lattices and planar graphs,
                Journal of Combinatorial Theory Series B,
                Vol 21, no. 1 (1976): 30-39.
+
+.. [PoiReu95] Stephane Poirier, Christophe Reutenauer,
+              *Algebres de Hopf de tableaux*,
+              Ann. Sci. Math. Quebec, 19 (1): 79--90.
+              http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Alg%C3%A8bres%20de%20Hopf%20de%20tableaux.pdf
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.

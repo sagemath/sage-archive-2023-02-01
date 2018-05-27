@@ -26,8 +26,9 @@ if [ $? -ne 0 ]; then
     echo >&2 "Error: Cannot find SageNB data directory."
     exit 1
 fi
-# ln -s ../../../../../share/mathjax/ mathjax
-# if [ ! -d mathjax ]; then
-#     echo >&2 "Error: Cannot symlink mathjax into the SageNB data directory."
-#     exit 1
-# fi
+
+ln -s -n $SAGE_SHARE/mathjax mathjax
+if [ ! -d mathjax ]; then
+    echo >&2 "Error: Cannot symlink mathjax into the SageNB data directory."
+    exit 1
+fi

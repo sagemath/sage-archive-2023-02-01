@@ -123,16 +123,15 @@ def _interpolation_matrix_given_monomials(points, s, monomials):
         [ 0  0  1 10]
         [ 0  1  5  0]
     """
-    n = len(points)
-    def eqs_affine(x0,y0):
+    def eqs_affine(x0, y0):
         r"""
         Make equation for the affine point x0, y0. Return a list of
         equations, each equation being a list of coefficients corresponding to
         the monomials in ``monomials``.
         """
         eqs = []
-        for i in range(0, s):
-            for j in range(0, s-i):
+        for i in range(s):
+            for j in range(s - i):
                 eq = dict()
                 for monomial in monomials:
                     ihat = monomial[0]
@@ -146,6 +145,7 @@ def _interpolation_matrix_given_monomials(points, s, monomials):
                 eqs.append([eq.get(monomial, 0) for monomial in monomials])
         return eqs
     return matrix(list(_flatten_once([eqs_affine(*point) for point in points])))
+
 
 def _interpolation_max_weighted_deg(n, tau, s):
     """Return the maximal weighted degree allowed for an interpolation

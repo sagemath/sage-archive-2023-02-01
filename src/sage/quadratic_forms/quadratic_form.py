@@ -90,7 +90,8 @@ class QuadraticForm(SageObject):
        - `R` -- ring for which the quadratic form is defined
        - `n` -- an integer >= 0
        - ``entries`` -- a list of `n(n+1)/2` coefficients of the quadratic form
-         in `R` (given lexographically, or equivalently, by rows of the matrix)
+         in `R` (given lexicographically, or equivalently, by rows of the
+         matrix)
 
     #. ``QuadraticForm(R, n)``, where
 

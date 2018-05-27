@@ -1233,6 +1233,11 @@ class GraphPlot(SageObject):
             ....:      part_bbox = part.get_minmax_data()
             ....:      assert bbox['xmin'] <= part_bbox['xmin'] <= part_bbox['xmax'] <= bbox['xmax']
             ....:      assert bbox['ymin'] <= part_bbox['ymin'] <= part_bbox['ymax'] <= bbox['ymax']
+
+        Check that one can plot immutable graphs (:trac:`17340`)::
+
+            sage: Graph({0:[0]},immutable=True).plot()
+            Graphics object consisting of 3 graphics primitives
         """
         G = Graphics()
         options = self._options.copy()

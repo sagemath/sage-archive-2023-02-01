@@ -333,6 +333,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
             sage: loads(a.dumps()) == a
             True
+
+        TESTS::
+
+            sage: TestSuite(Zmod(1)).run()
+            sage: TestSuite(Zmod(2)).run()
+            sage: TestSuite(Zmod(3)).run()
+            sage: TestSuite(Zmod(4)).run()
+            sage: TestSuite(Zmod(5)).run()
+            sage: TestSuite(Zmod(6)).run()
+            sage: TestSuite(Zmod(2^10 * 3^5)).run()
+            sage: TestSuite(Zmod(2^30 * 3^50 * 5^20)).run()
         """
         self._parent = parent
         self.__modulus = parent._pyx_order
@@ -913,6 +924,31 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     cpdef bint is_unit(self):
         raise NotImplementedError
+
+    @coerce_binop
+    def divides(self, other):
+        r"""
+        Test wheter ``self`` divides ``other``.
+
+        EXAMPLES::
+
+            sage: R = Zmod(6)
+            sage: R(2).divides(R(4))
+            True
+            sage: R(4).divides(R(2))
+            True
+            sage: R(2).divides(R(3))
+            False
+        """
+        if not other:
+            return True
+        elif not self:
+            return False
+        mod = self.modulus()
+        sl = self.lift().gcd(mod)
+        if sl.is_one():
+            return True
+        return sl.divides(other.lift().gcd(mod))
 
     def is_square(self):
         r"""

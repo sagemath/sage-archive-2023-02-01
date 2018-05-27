@@ -28,14 +28,12 @@ the full Hecke algebra, only with the anemic algebra.
 from __future__ import absolute_import
 from six.moves import range
 
-import weakref
-
 import sage.arith.all as arith
 import sage.rings.infinity
-import sage.misc.latex as latex
 import sage.rings.commutative_algebra
 from sage.matrix.constructor import matrix
 from sage.arith.all import lcm
+from sage.misc.latex import latex
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.all import ZZ, QQ
 from sage.structure.element import Element
@@ -81,10 +79,8 @@ def _heckebasis(M):
         [0 5]]
     """
     d = M.rank()
-    VV = QQ**(d**2)
     WW = ZZ**(d**2)
     MM = MatrixSpace(QQ,d)
-    MMZ = MatrixSpace(ZZ,d)
     S = []; Denom = []; B = []; B1 = []
     for i in range(1, M.hecke_bound() + 1):
         v = M.hecke_operator(i).matrix()
@@ -356,7 +352,6 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             sage: latex(CuspForms(3, 24).hecke_algebra()) # indirect doctest
             \mathbf{T}_{\text{\texttt{Cuspidal...Gamma0(3)...24...}
         """
-        from sage.misc.latex import latex
         return "\\mathbf{T}_{%s}" % latex(self.__M)
 
     def level(self):
@@ -412,16 +407,28 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
             [0 0]
             [0 2])
+
+            sage: M = ModularSymbols(Gamma0(22), sign=1)
+            sage: [B[0,0] for B in M.hecke_algebra().basis()]
+            [701, 512, 413, 160, 850]
+            sage: [B[0, 0] for B in M.anemic_hecke_algebra().basis()]
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: basis not implemented for anemic Hecke algebra
         """
-        level = self.level()
         bound = self.__M.hecke_bound()
         dim = self.__M.rank()
+
+        # current implementation gets stuck in an infinite loop when dimension of Hecke alg != dimension of space
+        if self.is_anemic():
+            raise NotImplementedError("basis not implemented for anemic Hecke algebra")
+
         if dim == 0:
             basis = []
         elif dim == 1:
             basis = [self.hecke_operator(1)]
         else:
-            span = [self.hecke_operator(n) for n in range(1, bound+1) if not self.is_anemic() or gcd(n, level) == 1]
+            span = [self.hecke_operator(n) for n in range(1, bound+1)]
             rand_max = 5
             while True:
                 # Project the full Hecke module to a random submodule to ease the HNF reduction.

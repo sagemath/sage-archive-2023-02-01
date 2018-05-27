@@ -327,7 +327,6 @@ def recover_formula_internal(prefix_tree):
 
     - Paul Scurek (2013-08-06)
     """
-    formula = ''
     from .propcalc import formula as propcalc_formula
     if len(prefix_tree) == 3:
         bool_formula = '(' + prefix_tree[1] + prefix_tree[0] + prefix_tree[2] + ')'

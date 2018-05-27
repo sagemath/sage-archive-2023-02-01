@@ -66,6 +66,9 @@ cdef class Parent(parent.Parent):
         [0, a, a + 1, 1]
     """
 
+    def __cinit__(self):
+        self._has_coerce_map_from = MonoDict()
+
     def __init__(self, coerce_from=None, actions=None, embeddings=None, *, category=None):
         self.init_coerce(False)
         if coerce_from is not None:
@@ -92,8 +95,6 @@ cdef class Parent(parent.Parent):
 
         self._set_element_constructor()
 
-        # old
-        self._has_coerce_map_from = MonoDict()
         if category is not None:
             self._init_category_(category)
 
@@ -101,7 +102,37 @@ cdef class Parent(parent.Parent):
     # New Coercion support functionality
     #################################################################################
 
-    cpdef coerce_map_from_c(self, S):
+    def coerce_map_from_c(self, S):
+        """
+        TESTS::
+
+            sage: Cusps.coerce_map_from_c(QQ)
+            doctest:...: DeprecationWarning: coerce_map_from_c is deprecated
+            See https://trac.sagemath.org/25236 for details.
+            Call morphism:
+              From: Rational Field
+              To:   Set P^1(QQ) of all cusps
+
+        Check to make sure that we handle coerce maps from Python
+        native types correctly::
+
+            sage: QQ['q,t'].coerce_map_from(int)
+            Composite map:
+              From: Set of Python objects of class 'int'
+              To:   Multivariate Polynomial Ring in q, t over Rational Field
+              Defn:   Native morphism:
+                      From: Set of Python objects of class 'int'
+                      To:   Rational Field
+                    then
+                      Polynomial base injection morphism:
+                      From: Rational Field
+                      To:   Multivariate Polynomial Ring in q, t over Rational Field
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25236, "coerce_map_from_c is deprecated")
+        return self.__coerce_map_from_c(S)
+
+    cdef __coerce_map_from_c(self, S):
         """
         EXAMPLES:
 
@@ -130,7 +161,7 @@ cdef class Parent(parent.Parent):
             from sage.categories.morphism import CallMorphism
             return CallMorphism(Hom(S, self))
         elif isinstance(S, Set_PythonType_class):
-            return self.coerce_map_from_c(S._type)
+            return self.__coerce_map_from_c(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce()
         cdef object ret
@@ -140,7 +171,7 @@ cdef class Parent(parent.Parent):
         except KeyError:
             pass
 
-        mor = self.coerce_map_from_c_impl(S)
+        mor = self.__coerce_map_from_c_impl(S)
         import sage.categories.morphism
         import sage.categories.map
         if mor is True:
@@ -148,7 +179,7 @@ cdef class Parent(parent.Parent):
         elif mor is False:
             mor = None
         elif mor is not None and not isinstance(mor, sage.categories.map.Map):
-            raise TypeError("coerce_map_from_c_impl must return a boolean, None, or an explicit Map")
+            raise AssertionError("__coerce_map_from_c_impl must return a boolean, None, or an explicit Map")
 
         if mor is None and isinstance(S, type):
             #Convert Python types to native Sage types
@@ -156,7 +187,7 @@ cdef class Parent(parent.Parent):
             if sage_type is None:
                 self._coerce_from_hash[S] = None
                 return None
-            mor = self.coerce_map_from_c(sage_type)
+            mor = self.__coerce_map_from_c(sage_type)
             if mor is not None:
                 mor = mor * sage_type._internal_coerce_map_from(S)
 
@@ -165,7 +196,7 @@ cdef class Parent(parent.Parent):
 
         return mor
 
-    cdef coerce_map_from_c_impl(self, S):
+    cdef __coerce_map_from_c_impl(self, S):
         check_old_coerce(self)
         import sage.categories.morphism
         from sage.categories.map import Map
@@ -186,9 +217,7 @@ cdef class Parent(parent.Parent):
                 if connecting is not None:
                     return mor * connecting
 
-        # Piggyback off the old code for now
-        # WARNING: when working on this, make sure circular dependencies aren't introduced!
-        if self.has_coerce_map_from_c(S):
+        if self.__has_coerce_map_from_c(S):
             if isinstance(S, type):
                 S = Set_PythonType(S)
             return sage.categories.morphism.CallMorphism(Hom(S, self))
@@ -259,42 +288,42 @@ cdef class Parent(parent.Parent):
                 pass
         raise TypeError("no canonical coercion of element into self")
 
-    cpdef has_coerce_map_from_c(self, S):
-        """
-        Return True if there is a natural map from S to self.
-        Otherwise, return False.
-        """
+    cdef __has_coerce_map_from_c(self, S):
         check_old_coerce(self)
         if self == S:
             return True
-        if self._has_coerce_map_from is None:
-            self._has_coerce_map_from = MonoDict()
-        else:
-            try:
-                return self._has_coerce_map_from.get(S)
-            except KeyError:
-                pass
-        x = self.has_coerce_map_from_c_impl(S)
-        self._has_coerce_map_from.set(S, x)
-        return x
-
-    cdef has_coerce_map_from_c_impl(self, S):
-        check_old_coerce(self)
-        if not isinstance(S, parent.Parent):
-            return False
         try:
-            self._coerce_c((<parent.Parent>S).an_element())
+            return self._has_coerce_map_from.get(S)
+        except KeyError:
+            pass
+        try:
+            self._coerce_c((<parent.Parent?>S).an_element())
         except TypeError:
-            return False
-        return True
+            ans = False
+        else:
+            ans = True
+        self._has_coerce_map_from.set(S, ans)
+        return ans
+
+    def has_coerce_map_from_c(self, S):
+        """
+        Return True if there is a natural map from S to self.
+        Otherwise, return False.
+
+        TESTS::
+
+            sage: Cusps.has_coerce_map_from_c(QQ)
+            doctest:...: DeprecationWarning: has_coerce_map_from_c is deprecated
+            See https://trac.sagemath.org/25236 for details.
+            True
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25236, "has_coerce_map_from_c is deprecated")
+        return self.__has_coerce_map_from_c(S)
 
     def _an_element_impl(self):     # override this in Python
-        check_old_coerce(self)
-        return self._an_element_c_impl()
-
-    cdef _an_element_c_impl(self):  # override this in Cython
         """
-        Returns an element of self. Want it in sufficient generality
+        Return an element of self. Want it in sufficient generality
         that poorly-written functions won't work when they're not
         supposed to. This is cached so doesn't have to be super fast.
         """
@@ -316,21 +345,7 @@ cdef class Parent(parent.Parent):
             except Exception:
                 pass
 
-        raise NotImplementedError("please implement _an_element_c_impl or _an_element_impl for %s" % self)
-
-    def _an_element(self):        # do not override this (call from Python)
-        check_old_coerce(self)
-        return self._an_element_c()
-
-    cpdef _an_element_c(self):     # do not override this (call from Cython)
-        check_old_coerce(self)
-        if not self._cache_an_element is None:
-            return self._cache_an_element
-        if HAS_DICTIONARY(self):
-            self._cache_an_element = self._an_element_impl()
-        else:
-            self._cache_an_element = self._an_element_c_impl()
-        return self._cache_an_element
+        raise NotImplementedError(f"_an_element_ is not implemented for {self}")
 
     ############################################################################
     # Coercion Compatibility Layer
@@ -338,15 +353,17 @@ cdef class Parent(parent.Parent):
 
     cpdef _coerce_map_from_(self, S):
         if self._element_constructor is None:
-            return self.coerce_map_from_c(S)
+            return self.__coerce_map_from_c(S)
         else:
             return parent.Parent._coerce_map_from_(self, S)
 
     def _an_element_(self):
-        if self._element_constructor is None:
-            return self._an_element_c()
-        else:
+        if self._element_constructor is not None:
             return parent.Parent._an_element_(self)
+        if self._cache_an_element is not None:
+            return self._cache_an_element
+        self._cache_an_element = self._an_element_impl()
+        return self._cache_an_element
 
     cpdef _generic_convert_map(self, S, category=None):
         r"""

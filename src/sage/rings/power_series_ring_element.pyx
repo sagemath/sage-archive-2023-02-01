@@ -99,6 +99,9 @@ from __future__ import absolute_import
 import operator
 
 from .infinity import infinity, is_Infinite
+
+from sage.rings.rational_field import QQ
+
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.polynomial.polynomial_element
 import sage.misc.misc
@@ -467,6 +470,36 @@ cdef class PowerSeries(AlgebraElement):
             NotImplementedError        
         """
         raise NotImplementedError
+
+    def lift_to_precision(self, absprec=None):
+        """
+        Return a congruent power series with absolute precision at least
+        ``absprec``.
+
+        INPUT:
+
+        - ``absprec`` -- an integer or ``None`` (default: ``None``), the
+          absolute precision of the result. If ``None``, lifts to an exact
+          element.
+
+        EXAMPLES::
+
+            sage: A.<t> = PowerSeriesRing(GF(5))
+            sage: x = t + t^2 + O(t^5)
+            sage: x.lift_to_precision(10)
+            t + t^2 + O(t^10)
+            sage: x.lift_to_precision()
+            t + t^2
+
+        """
+        if absprec is not None and absprec <= self.precision_absolute():
+            return self
+
+        exact = self._parent(self.list())
+        if absprec is None:
+            return exact
+        else:
+            return exact.add_bigoh(absprec)
 
     def __copy__(self):
         """
@@ -1049,6 +1082,42 @@ cdef class PowerSeries(AlgebraElement):
             return PowerSeriesRing(IntegerModRing(other), self.variable())(self)
         raise NotImplementedError("Mod on power series ring elements not defined except modulo an integer.")
 
+    def __pow__(self, r, dummy):
+        """
+        EXAMPLES::
+
+            sage: x = QQ[['x']].0
+            sage: f = x^2 + x^4 + O(x^6)
+            sage: f^(1/2)
+            x + 1/2*x^3 + O(x^5)
+            sage: f^7
+            x^14 + 7*x^16 + O(x^18)
+            sage: f^(7/2)
+            x^7 + 7/2*x^9 + O(x^11)
+            sage: h = x^2 + 2*x^4 + x^6
+            sage: h^(1/2)
+            x + x^3
+            sage: O(x^4)^(1/2)
+            O(x^2)
+
+        """
+        try:
+            right = QQ.coerce(r)
+        except TypeError:
+            raise ValueError("exponent must be a rational number")
+
+        if right.denominator() == 1:
+            right = right.numerator()
+            return super().__pow__(right, dummy)
+
+        if self.is_zero():
+            return self.parent()(0).O((self.prec()*right).floor())
+
+        d = right.denominator()
+        n = right.numerator()
+
+        return self.nth_root(d)**n
+
     def shift(self, n):
         r"""
         Return this power series multiplied by the power `t^n`. If
@@ -1421,17 +1490,55 @@ cdef class PowerSeries(AlgebraElement):
             1 + 2*u^2 + u^6 + 2*u^8 + u^12 + 2*u^14 + O(u^20)
             sage: p.nth_root(4)**4
             1 + 2*u^2 + O(u^20)
+
+        TESTS:
+
+        Check that exact roots show infinite precision::
+
+            sage: ((1+x)^5).nth_root(5)
+            1 + x
+
+        Check precision on `O(x^r)`::
+
+            sage: O(x^4).nth_root(2)
+            O(x^2)
+            sage: O(x^4).nth_root(3)
+            O(x^1)
+            sage: O(x^4).nth_root(4)
+            O(x^1)
+
+        Check precision on higher valuation series::
+
+            sage: (x^5+x^6+O(x^7)).nth_root(5)
+            x + 1/5*x^2 + O(x^3)
         """
+
+        val = self.valuation()
+
+        if self.is_zero():
+            if val is infinity:
+                return self
+            else:
+                return self.parent()(0).O(val // n)
+
+        if val is not infinity and val % n != 0:
+            raise ValueError("power series valuation is not a multiple of %s" % n)
+
+        maxprec = (val // n) + self.precision_relative()
+
         if prec is None:
-            prec = self.prec()
+            prec = maxprec
             if prec == infinity:
                 prec = self.parent().default_prec()
         else:
-            prec = min(self.prec(), prec)
+            prec = min(maxprec, prec)
 
         p = self.polynomial()
         q = p._nth_root_series(n, prec)
-        return self.parent()(q) + self.parent()(0).O(prec)
+        ans = self.parent()(q)
+        if not (self.prec() == infinity and q.degree() * n <= prec and q**n == p):
+            ans = ans.add_bigoh(prec)
+        return ans
 
     def cos(self, prec=infinity):
         r"""

@@ -503,7 +503,7 @@ def merge_overlapping(A, B, key=None):
 
         Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
 
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
+        Adapted from https://stackoverflow.com/a/30056066/1052778.
         """
         matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])

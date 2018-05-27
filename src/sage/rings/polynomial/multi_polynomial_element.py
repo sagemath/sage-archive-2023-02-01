@@ -66,8 +66,10 @@ from sage.structure.sequence import Sequence
 from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
 
+
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
+
 
 class MPolynomial_element(MPolynomial):
     def __init__(self, parent, x):
@@ -150,9 +152,9 @@ class MPolynomial_element(MPolynomial):
             y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
-        Compares right to self with respect to the term order of
+        Compare ``self`` to ``right`` with respect to the term order of
         self.parent().
 
         EXAMPLES::
@@ -179,11 +181,8 @@ class MPolynomial_element(MPolynomial):
             sage: x^4*y^7*z^1 < x^4*y^2*z^3
             False
         """
-        try:
-            return self.__element.compare(right.__element,
-                                          self.parent().term_order().sortkey)
-        except AttributeError:
-            return self.__element.compare(right.__element)
+        return self.__element.rich_compare(right.__element, op,
+                                           self.parent().term_order().sortkey)
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -901,7 +900,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 return [tuple(e) for e in exp]
         except AttributeError:
-            self.__exponents = self.element().dict().keys()
+            self.__exponents = list(self.element().dict())
             try:
                 self.__exponents.sort(key=self.parent().term_order().sortkey,
                                       reverse=True)
@@ -914,12 +913,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def inverse_of_unit(self):
         d = self.element().dict()
-        k = d.keys()
+        k = list(d)
         if self.is_unit():
             if len(k) != 1:
                 raise NotImplementedError
             return ~d[k[0]]
-        raise ArithmeticError("is not a unit")        
+        raise ArithmeticError("is not a unit")
 
     def is_homogeneous(self):
         """
@@ -2017,13 +2016,13 @@ def degree_lowest_rational_function(r,x):
     f = r.numerator()
     g = r.denominator()
     M = f.dict()
-    keys = list(M.keys())
+    keys = list(M)
     numtermsf = len(M)
     degreesf = [keys[j][ix] for j in range(numtermsf)]
     lowdegf = min(degreesf)
     cf = M[keys[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
     M = g.dict()
-    keys = list(M.keys())
+    keys = list(M)
     numtermsg = len(M)
     degreesg = [keys[j][ix] for j in range(numtermsg)]
     lowdegg = min(degreesg)

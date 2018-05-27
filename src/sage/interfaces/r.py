@@ -1562,43 +1562,6 @@ class RElement(ExtraTabCompletion, ExpectElement):
         """
         return self._comparison(other, "!=")
 
-    def __cmp__(self, other):
-        r"""
-        Return 0, 1, or -1 depending on how self and other compare.
-
-        This is *not* called by the comparison operators, which
-        do term-by-term comparison and return R elements.
-
-        INPUT:
-
-        - self, other -- R elements
-
-        OUTPUT: 0, 1, or -1
-
-        EXAMPLES::
-
-            sage: one = r(1)
-            sage: two = r(2)
-            sage: one.__cmp__(one)
-            0
-            sage: one.__cmp__(two)
-            -1
-            sage: two.__cmp__(one)
-            1
-        """
-        P = self.parent()
-        if P.eval("%s %s %s" % (self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
-        elif P.eval("%s %s %s" % (self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-            return -1
-        elif P.eval("%s %s %s" % (self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-            return 1
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
-
-
     def dot_product(self, other):
         """
         Implements the notation self . other.

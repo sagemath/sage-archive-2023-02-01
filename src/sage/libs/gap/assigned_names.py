@@ -66,7 +66,7 @@ def load_or_compute(name, function):
     else:
         value = function()
         from sage.misc.temporary_file import atomic_write
-        with atomic_write(filename) as f:
+        with atomic_write(filename, binary=True) as f:
             cPickle.dump(value, f)
         return value
 
@@ -139,9 +139,3 @@ def list_functions():
 
 
 FUNCTIONS = load_or_compute('functions', list_functions)
-
-    
-
-
-
-

@@ -1267,8 +1267,8 @@ class Composition(CombinatorialElement):
             [[]]
         """
         if overlap:
-            from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-            return ShuffleProduct_overlapping(self, other)
+            from sage.combinat.shuffle import ShuffleProduct_overlapping
+            return ShuffleProduct_overlapping(self, other, Compositions())
         else:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             return ShuffleProduct_w1w2(self, other)

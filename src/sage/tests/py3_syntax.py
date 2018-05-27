@@ -182,7 +182,7 @@ class Python3SyntaxTest(SortedDirectoryWalkerABC):
               File "...py", line 1
                 print "invalid print statement"
                                               ^
-            SyntaxError: Missing parentheses in call to 'print'
+            SyntaxError: Missing parentheses in call to 'print'...
             sage: os.unlink(src.name)
         """
         cmd = [

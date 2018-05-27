@@ -43,6 +43,7 @@ from cpython.dict cimport *
 from cpython.object cimport (PyObject_RichCompare, Py_EQ, Py_NE,
                              Py_LT, Py_LE, Py_GT, Py_GE)
 from cysignals.memory cimport sig_malloc, sig_free
+from sage.structure.richcmp cimport rich_to_bool
 
 import copy
 from functools import reduce
@@ -110,14 +111,14 @@ cdef class PolyDict:
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if not c == zero:
-                        new_pdict[ETuple(list(map(int, k)))] = c
+                        new_pdict[ETuple([int(_) for _ in k])] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[ETuple(list(map(int, k)))] = c
+                    new_pdict[ETuple([int(_) for _ in k])] = c
             pdict = new_pdict
         else:
             if remove_zero:
-                for k in pdict.keys():
+                for k in list(pdict):
                     if pdict[k] == zero:
                         del pdict[k]
         self.__repn = pdict
@@ -160,7 +161,7 @@ cdef class PolyDict:
     def __richcmp__(PolyDict self, PolyDict right, int op):
         return PyObject_RichCompare(self.__repn, right.__repn, op)
 
-    def compare(PolyDict self, PolyDict other, key=None):
+    def rich_compare(PolyDict self, PolyDict other, int op, key):
         if key is not None:
             # start with biggest
             left = iter(sorted(self.__repn, key=key, reverse=True))
@@ -173,30 +174,30 @@ cdef class PolyDict:
             try:
                 n = next(right)
             except StopIteration:
-                return 1  # left has terms, right does not
+                return rich_to_bool(op, 1)  # left has terms, right does not
 
             # first compare the leading monomials
             keym = key(m)
             keyn = key(n)
             if keym > keyn:
-                return 1
+                return rich_to_bool(op, 1)
             elif keym < keyn:
-                return -1
+                return rich_to_bool(op, -1)
 
             # same leading monomial, compare their coefficients
             coefm = self.__repn[m]
             coefn = other.__repn[n]
             if coefm > coefn:
-                return 1
+                return rich_to_bool(op, 1)
             elif coefm < coefn:
-                return -1
+                return rich_to_bool(op, -1)
 
         # try next pair
         try:
             n = next(right)
-            return -1  # right has terms, left does not
+            return rich_to_bool(op, -1)  # right has terms, left does not
         except StopIteration:
-            return 0  # both have no terms
+            return rich_to_bool(op, 0)  # both have no terms
 
     def list(PolyDict self):
         """
@@ -239,7 +240,7 @@ cdef class PolyDict:
             sage: f.coefficients()
             [3, 2, 4]
         """
-        return self.__repn.values()
+        return list(self.__repn.values())
 
     def exponents(PolyDict self):
         """
@@ -252,7 +253,7 @@ cdef class PolyDict:
             sage: f.exponents()
             [(1, 2), (2, 3), (2, 1)]
         """
-        return self.__repn.keys()
+        return list(self.__repn)
 
     def __len__(PolyDict self):
         """
@@ -289,7 +290,7 @@ cdef class PolyDict:
     def degree(PolyDict self, PolyDict x=None):
         if x is None:
             return self.total_degree()
-        L = x.__repn.keys()
+        L = list(x.__repn)
         if len(L) != 1:
             raise TypeError("x must be one of the generators of the parent.")
         L = L[0]
@@ -305,7 +306,6 @@ cdef class PolyDict:
         return max(_max or [-1])
 
     def valuation(PolyDict self, PolyDict x=None):
-        L = x.__repn.keys()
         if x is None:
             _min = []
             negative = False
@@ -324,7 +324,7 @@ cdef class PolyDict:
             for k in self.__repn.keys():
                 _min.append(sum(m for m in self.__repn[k].nonzero_values(sort=False) if m < 0))
             return min(_min)
-        L = x.__repn.keys()
+        L = list(x.__repn)
         if len(L) != 1:
             raise TypeError("x must be one of the generators of the parent.")
         L = L[0]
@@ -426,7 +426,7 @@ cdef class PolyDict:
         return PolyDict(ans, force_etuples=False)
 
     def is_homogeneous(PolyDict self):
-        K = self.__repn.keys()
+        K = list(self.__repn)
         if len(K) == 0:
             return True
         # A polynomial is homogeneous if the number of different
@@ -856,7 +856,7 @@ cdef class PolyDict:
             sage: PolyDict({}).max_exp() # returns None
         """
         cdef ETuple r
-        ETuples = self.__repn.keys()
+        ETuples = list(self.__repn)
         if len(ETuples)>0:
             r = <ETuple>ETuples[0]
             for e in ETuples:

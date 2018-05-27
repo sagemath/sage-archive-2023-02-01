@@ -47,6 +47,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+
+import six
 from six.moves import range
 
 from sage.matrix.constructor import matrix
@@ -60,7 +62,6 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.functions.generalized import sign
 from sage.homology.chain_complex import ChainComplex
 from sage.misc.flatten import flatten
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from copy import deepcopy, copy
 from itertools import combinations
@@ -1333,7 +1334,7 @@ class Link(object):
             else:
                 crossing_dic = {}
 
-            pd = crossing_dic.values()
+            pd = list(six.itervalues(crossing_dic))
             self._pd_code = pd
             return self._pd_code
 

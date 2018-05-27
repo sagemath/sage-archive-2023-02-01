@@ -55,7 +55,8 @@ dual_properties = [
 selfdual_properties = ['distributive', 'modular', 'semidistributive', 'complemented',
  'relatively_complemented', 'orthocomplemented', 'uniq_orthocomplemented', 'supersolvable', 'planar',
  'dismantlable', 'vertically_decomposable', 'simple', 'isoform', 'uniform', 'regular',
-  'subdirectly_reducible', 'doubling_any', 'doubling_convex', 'doubling_interval']
+ 'subdirectly_reducible', 'doubling_any', 'doubling_convex', 'doubling_interval',
+ 'interval_dismantlable', 'interval_dismantlable']
 
 dual_elements = [
  ['atoms', 'coatoms'],

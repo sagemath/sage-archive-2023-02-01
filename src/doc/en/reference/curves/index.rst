@@ -9,7 +9,14 @@ Plane curves
    sage/schemes/curves/projective_curve
    sage/schemes/curves/curve
    sage/schemes/curves/point
-   sage/schemes/riemann_surfaces/riemann_surface
+
+   sage/schemes/jacobians/abstract_jacobian
+
+Plane conics
+============
+
+.. toctree::
+   :maxdepth: 2
 
    sage/schemes/plane_conics/constructor
    sage/schemes/plane_conics/con_field
@@ -18,8 +25,6 @@ Plane curves
    sage/schemes/plane_conics/con_finite_field
    sage/schemes/plane_conics/con_prime_finite_field
    sage/schemes/plane_conics/con_rational_function_field
-
-   sage/schemes/jacobians/abstract_jacobian
 
 Plane quartics
 =========================
@@ -30,6 +35,13 @@ Plane quartics
    sage/schemes/plane_quartics/quartic_constructor
    sage/schemes/plane_quartics/quartic_generic
 
+Riemann surfaces
+================
+
+.. toctree::
+   :maxdepth: 2
+
+   sage/schemes/riemann_surfaces/riemann_surface
 
 Elliptic curves
 =========================

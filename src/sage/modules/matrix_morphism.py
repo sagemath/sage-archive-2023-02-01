@@ -53,7 +53,6 @@ AUTHOR:
 
 import sage.categories.morphism
 import sage.categories.homset
-import sage.matrix.all as matrix
 from sage.structure.all import Sequence, parent
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
 
@@ -1294,7 +1293,6 @@ class MatrixMorphism(MatrixMorphism_abstract):
             raise ValueError("no parent given when creating this matrix morphism")
         if isinstance(A, MatrixMorphism_abstract):
             A = A.matrix()
-        R = A.base_ring()
         if A.nrows() != parent.domain().rank():
             raise ArithmeticError("number of rows of matrix (={}) must equal rank of domain (={})".format(A.nrows(), parent.domain().rank()))
         if A.ncols() != parent.codomain().rank():

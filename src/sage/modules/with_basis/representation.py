@@ -17,10 +17,8 @@ AUTHORS:
 from sage.misc.abstract_method import abstract_method
 from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.categories.groups import Groups
-from sage.categories.semigroups import Semigroups
 from sage.categories.modules import Modules
-from sage.algebras.group_algebra import GroupAlgebra
+
 
 class Representation_abstract(CombinatorialFreeModule):
     """

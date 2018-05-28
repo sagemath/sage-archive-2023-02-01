@@ -235,7 +235,7 @@ class AdjointRepresentation(CyclicRepresentation):
             v_{f_i b} + \sum_{j \neq i} [-A_{ij}]_{q_i} / [2]_{q_i} v_{y_j}
                 & \text{otherwise}
             \end{cases} \\
-        K_i v_b & = q^{\langle h_i, \operatorname{wt}(b) \rangle} v_b`,
+        K_i v_b & = q^{\langle h_i, \operatorname{wt}(b) \rangle} v_b,
         \end{aligned}
 
     where `(A_{ij})_{i,j \in I}` is the Cartan matrix, and we

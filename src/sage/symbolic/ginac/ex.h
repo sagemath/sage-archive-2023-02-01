@@ -186,8 +186,7 @@ public:
 	bool match(const ex & pattern, exvector& vec) const;
 
 	// substitutions
-	ex subs(const exmap & m, unsigned options = 0) const
-                { return bp->subs(m, options); }
+	ex subs(const exmap & m, unsigned options = 0) const;
 	ex subs(const lst & ls, const lst & lr, unsigned options = 0) const;
 	ex subs(const ex & e, unsigned options = 0) const;
 

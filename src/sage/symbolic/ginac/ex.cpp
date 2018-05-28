@@ -228,6 +228,17 @@ ex ex::subs(const ex & e, unsigned options) const
 		throw(std::invalid_argument("ex::subs(ex): argument must be a relation_equal or a list"));
 }
 
+ex ex::subs(const exmap& m, unsigned options) const
+{
+        if (options)
+                return bp->subs(m, options);
+        for (const auto& p : m)
+                if (haswild(p.first))
+                        return bp->subs(m, options);
+
+        return bp->subs(m, subs_options::no_pattern);
+}
+
 /** Traverse expression tree with given visitor, preorder traversal. */
 void ex::traverse_preorder(visitor & v) const
 {

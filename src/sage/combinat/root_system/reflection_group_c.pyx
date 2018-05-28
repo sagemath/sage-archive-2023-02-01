@@ -547,7 +547,7 @@ def parabolic_iteration_application(W, f):
 
     EXAMPLES::
 
-        sage: W = ReflectionGroup(['E',6])
+        sage: W = CoxeterGroup(['E',6], implementation="permutation")
         sage: from sage.combinat.root_system.reflection_group_c import parabolic_iteration_application
         sage: lst = []
         sage: def f(x):

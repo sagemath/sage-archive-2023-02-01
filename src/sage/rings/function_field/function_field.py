@@ -2541,22 +2541,16 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
 
-        We check that ``proof`` parameter is passed to the underlying
-        polynomial (see :trac:`24510`). However, factoring over a function
-        field over a tower of finite fields does not work yet (see
-        :trac:`24533`)::
+        Factoring over a function field over a tower of finite fields::
 
-            sage: k = GF(4)
             sage: k.<a> = GF(4)
             sage: R.<b> = k[]
-            sage: l.<b> = k.extension(a^2 + a + b)
+            sage: l.<b> = k.extension(b^2 + b + a)
             sage: K.<x> = FunctionField(l)
             sage: R.<t> = K[]
             sage: F = t*x
             sage: F.factor(proof=False)
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this ring to a Singular ring defined
+            (x) * t
 
         """
         old_variable_name = f.variable_name()
@@ -2580,7 +2574,10 @@ class RationalFunctionField(FunctionField):
             if old_variable_name != a.variable_name():
                 a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
-            w.append((a,e))
+            if a.is_unit():
+                unit *= a**e
+            else:
+                w.append((a,e))
         from sage.structure.factorization import Factorization
         return Factorization(w, unit=unit)
 

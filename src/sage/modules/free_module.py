@@ -3732,7 +3732,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             #    by clearing denominators, computing the kernel of a matrix with
             #    entries in R, then restoring denominators to the answer.
             K = self.base_ring()
-            R = other.base_ring()
             B = self.basis_matrix().transpose()
             W = B.kernel()
             phi = W.basis_matrix().transpose()
@@ -6301,7 +6300,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [  4   5   6]
         """
         if base_field is None:
-            K = self.base_ring().fraction_field()
             V = self.ambient_vector_space()
             return V.submodule_with_basis(self.basis())
         return self.change_ring(base_field)

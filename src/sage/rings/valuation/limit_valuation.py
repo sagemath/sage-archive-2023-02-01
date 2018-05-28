@@ -425,7 +425,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
     def lift(self, F):
         r"""
         Return a lift of ``F`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring` to the domain of
-        this valuatiion.
+        this valuation.
 
         EXAMPLES::
 

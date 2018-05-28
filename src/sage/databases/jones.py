@@ -110,7 +110,7 @@ class JonesDatabase:
         S = sorted([eval(z) for z in filename[i:j + 1].split("-")])
         data = open(path + "/" + filename).read()
         data = data.replace("^", "**")
-        x = PolynomialRing(RationalField(), 'x').gen()
+        x = PolynomialRing(RationalField(), 'x').gen()  # used next line
         v = eval(data)
         s = tuple(S)
         if s in self.root:
@@ -145,7 +145,6 @@ class JonesDatabase:
         This takes about 5 seconds.
         """
         from sage.misc.misc import sage_makedirs
-        n = 0
         x = PolynomialRing(RationalField(), 'x').gen()
         self.root = {}
         self.root[tuple([])] = [x - 1]

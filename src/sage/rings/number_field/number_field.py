@@ -10598,7 +10598,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         EXAMPLES::
 
             sage: v = CyclotomicField(6)._multiplicative_order_table()
-            sage: w = v.items(); w.sort(); w
+            sage: w = sorted(v.items()); w
             [(-1, 2), (1, 1), (-x, 3), (-x + 1, 6), (x - 1, 3), (x, 6)]
         """
         try:

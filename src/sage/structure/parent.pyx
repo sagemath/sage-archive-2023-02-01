@@ -1921,7 +1921,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         TESTS:
 
-        We check that `trac`:23184 has been resolved::
+        We check that :trac:`23184` has been resolved::
 
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains

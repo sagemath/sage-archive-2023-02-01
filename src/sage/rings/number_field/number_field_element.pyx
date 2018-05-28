@@ -169,7 +169,8 @@ def _inverse_mod_generic(elt, I):
         raise ValueError("inverse is not defined modulo the zero ideal")
     n = R.absolute_degree()
     B = R.basis()
-    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
+    m = matrix(ZZ, [R.coordinates(x)
+                    for x in I.integral_basis() + [elt*s for s in B]])
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
         raise ZeroDivisionError("%s is not invertible modulo %s" % (elt, I))

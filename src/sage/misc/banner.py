@@ -165,7 +165,7 @@ def version_dict():
     dict['tiny'] = 0
     dict['prerelease'] = False
     try:
-        dummy = int(v[-1])
+        int(v[-1])
     except ValueError:  # when last entry is not an integer
         dict['prerelease'] = True
     if (len(v) == 3 and not dict['prerelease']) or len(v) > 3:
@@ -176,6 +176,7 @@ def version_dict():
     except (ValueError, IndexError):
         pass
     return dict
+
 
 def require_version(major, minor=0, tiny=0, prerelease=False,
                     print_message=False):

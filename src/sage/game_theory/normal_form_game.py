@@ -620,6 +620,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
 from sage.misc.temporary_file import tmp_filename
 from sage.numerical.mip import MixedIntegerLinearProgram
+from sage.misc.package import PackageNotFoundError
 
 try:
     from gambit import Game

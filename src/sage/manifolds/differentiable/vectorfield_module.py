@@ -1389,6 +1389,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                     self._ambient_domain.identity_map()):
                     basis = self.basis(from_frame=frame)
                     self._induced_bases[frame] = basis
+
                     # basis is added to the restrictions of bases on a larger
                     # domain
                     for dom in domain._supersets:
@@ -1401,6 +1402,17 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                     supbase._restrictions[domain] = basis
                                     supbase._subframes.add(basis)
                                     basis._superframes.add(supbase)
+
+                    # basis is added as a superframe of smaller domain
+                    for superframe in basis._superframes:
+                        for subframe in superframe._subframes:
+                            if subframe.domain() is not domain and subframe.domain().is_subset(
+                                    self._domain) and self._dest_map.restrict(
+                                    subframe.domain()) is subframe.destination_map():
+                                subframe._superframes.update(basis._superframes)
+                                basis._subframes.update(subframe._subframes)
+                                basis._restrictions.update(subframe._restrictions)
+
         # Initialization of the components of the zero element:
         zero = self.zero()
         for frame in self._domain._frames:

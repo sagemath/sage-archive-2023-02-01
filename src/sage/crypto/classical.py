@@ -1465,11 +1465,10 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
             True
         """
         M = self.key_space()
-        R = M.base_ring()
         m = M.nrows()
         N = Integer(self.cipher_domain().ngens())
         while True:
-            A = M([ randint(0, N-1) for i in range(m**2) ])
+            A = M([randint(0, N-1) for i in range(m**2)])
             if N.gcd(A.det().lift()) == 1:
                 break
         return A

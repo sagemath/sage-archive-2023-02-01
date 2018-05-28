@@ -70,7 +70,7 @@ class RibbonShapedTableau(SkewTableau):
         [1, 1, 1, 1]
     """
     @staticmethod
-    def __classcall_private__(cls, r):
+    def __classcall_private__(cls, rows):
         r"""
         Return a ribbon shaped tableau object.
 
@@ -80,9 +80,9 @@ class RibbonShapedTableau(SkewTableau):
             [[None, None, 2, 3], [1, 4, 5]]
         """
         try:
-            r = map(tuple, r)
+            r = [tuple(r) for r in rows]
         except TypeError:
-            raise TypeError("r must be a list of positive integers")
+            raise TypeError("rows must be lists of positive integers")
         if not r:
             return StandardRibbonShapedTableaux()(r)
         if all(all(j is None or (isinstance(j, (int, Integer)) and j>0) for j in i) for i in r):

@@ -811,7 +811,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
                 slopes = NP.slopes(repetition=True)
                 multiplicities = {slope : len([s for s in slopes if s == slope]) for slope in slopes}
-                slopes = multiplicities.keys()
+                slopes = list(multiplicities)
                 if NP.vertices()[0][0] != 0:
                     slopes = [-infinity] + slopes
                     multiplicities[-infinity] = 1

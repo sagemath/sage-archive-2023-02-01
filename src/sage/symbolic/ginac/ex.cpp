@@ -230,13 +230,13 @@ ex ex::subs(const ex & e, unsigned options) const
 
 ex ex::subs(const exmap& m, unsigned options) const
 {
-        if (options)
+        if ((options & subs_options::no_pattern) != 0)
                 return bp->subs(m, options);
         for (const auto& p : m)
                 if (haswild(p.first))
                         return bp->subs(m, options);
 
-        return bp->subs(m, subs_options::no_pattern);
+        return bp->subs(m, options | subs_options::no_pattern);
 }
 
 /** Traverse expression tree with given visitor, preorder traversal. */

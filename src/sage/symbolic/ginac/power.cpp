@@ -730,8 +730,13 @@ ex power::subs(const exmap & m, unsigned options) const
 	const ex &subsed_exponent = exponent.subs(m, options);
 
         if (!are_ex_trivially_equal(basis, subsed_basis)
-	 || !are_ex_trivially_equal(exponent, subsed_exponent)) 
-		return power(subsed_basis, subsed_exponent).subs_one_level(m, options);
+	 || !are_ex_trivially_equal(exponent, subsed_exponent)) {
+		ex p = power(subsed_basis, subsed_exponent);
+                ex t = ex_to<power>(p).subs_one_level(m, options);
+                if ((t-*this).is_zero())
+                        return p;
+                return t;
+        }
 
 	if ((options & subs_options::algebraic) == 0u)
 		return subs_one_level(m, options);

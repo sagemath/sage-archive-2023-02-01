@@ -20,17 +20,6 @@ if [ -z "$zn_poly_version" ]; then
     exit 1
 fi
 
-if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of zn_poly."
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    CPPFLAGS="$CPPFLAGS $CFLAG64"
-    CXXFLAGS="$CXXFLAGS $CFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"
-fi
-
 if [ "$SAGE_DEBUG" = yes ]; then
     echo >&2 "Warning: Setting SAGE_DEBUG to 'yes' completely disables optimization."
     CFLAGS="-O0 -g $CFLAGS -fPIC"
@@ -152,19 +141,8 @@ if [ "$UNAME" != Darwin ]; then
         fi
     fi
 else
-    # Darwin (MacOS X):
-    # We now use LDFLAGS instead of the hardcoded '-m64' (for the .dylib64
-    # target), so we don't have to differentiate here; i.e., a single
-    # 'libzn_poly.dylib' target is sufficient for both, the extra flag (if any)
-    # used depending on the value of LDFLAGS passed to 'configure' (which in
-    # turn was set above, depending on the value of SAGE64).
-    # if [ "$SAGE64" = yes ]; then
-    #     target=libzn_poly.dylib64
-    # else
-    #     target=libzn_poly.dylib
-    # fi
-    # $MAKE $target # CC="$CC"
-    $MAKE libzn_poly.dylib # CC="$CC" CXX="$CXX"
+    # Darwin (MacOS X)
+    $MAKE libzn_poly.dylib
     if [ ! -f libzn_poly.dylib ]; then
         echo >&2 "Error building zn_poly's dylib (shared library)."
         exit 1

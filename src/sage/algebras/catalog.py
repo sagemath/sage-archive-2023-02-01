@@ -55,6 +55,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
+- :class:`algebras.WQSym <sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions>`
 - :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
@@ -94,6 +95,7 @@ lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLi
 lazy_import('sage.combinat.free_dendriform_algebra', 'FreeDendriformAlgebra', 'FreeDendriform')
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'FQSym')
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'MalvenutoReutenauer')
+lazy_import('sage.combinat.chas.wqsym', 'WordQuasiSymmetricFunctions', 'WQSym')
 lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')

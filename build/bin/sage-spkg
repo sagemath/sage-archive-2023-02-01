@@ -167,11 +167,13 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
-mkdir -p "$SAGE_SPKG_INST"
-if [ $? -ne 0 ]; then
-    error_msg "Error creating directory $SAGE_SPKG_INST"
-    exit 1
-fi
+for dir in "$SAGE_SPKG_INST" "$SAGE_SPKG_SCRIPTS"; do
+    mkdir -p "$dir"
+    if [ $? -ne 0 ]; then
+        error_msg "Error creating directory $dir"
+        exit 1
+    fi
+done
 
 
 # Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
@@ -660,7 +662,7 @@ cd ..
 # passed in as an absolute path.
 write_script_wrapper() {
     local script="$1"
-    local pkgdir="$(dirname "$script")"
+    local script_dir="$2"
 
     trap "echo >&2 Error: Unexpected error writing wrapper script for $script; exit \$_" ERR
 
@@ -676,7 +678,7 @@ write_script_wrapper() {
 
 export SAGE_ROOT="$SAGE_ROOT"
 export SAGE_SRC="$SAGE_SRC"
-export SAGE_PKG_DIR="$pkgdir"
+export SAGE_PKG_DIR="$script_dir"
 
 export PKG_NAME="$PKG_NAME"
 export PKG_BASE="$PKG_BASE"
@@ -714,8 +716,22 @@ __EOF__
 }
 
 
-for script in build install check; do
+WRAPPED_SCRIPTS="build install check postinst legacy-uninstall prerm postrm"
+INSTALLED_SCRIPTS="prerm postrm"
+
+
+for script in $WRAPPED_SCRIPTS; do
+    # 'Installed' scripts are not run immediately out of the package build
+    # directory, and may be run later, so set their root directory to
+    # $SAGE_ROOT
+    if echo "$INSTALLED_SCRIPTS" | grep -w "$script" > /dev/null; then
+        script_dir="$SAGE_ROOT"
+    else
+        script_dir="$(pwd)"
+    fi
+
     script="spkg-$script"
+
     if [ -f "$script" ]; then
         if [ "$USE_LOCAL_SCRIPTS" = "yes" ]; then
             if [ -x "$script" ]; then
@@ -731,7 +747,7 @@ for script in build install check; do
                 fi
             fi
 
-            write_script_wrapper $(pwd)/"$script"
+            write_script_wrapper "$(pwd)/$script" "$script_dir"
         else
             if [ ! -x "$script" ]; then
                 echo >&2 "WARNING: $script is not executable, making it executable"
@@ -786,12 +802,6 @@ echo "C compiler: $CC"
 echo "C compiler version:"
 $CC -v
 echo "****************************************************"
-
-##################################################################
-# Remove install markers for any other versions of this spkg.
-##################################################################
-
-rm -f "$SAGE_SPKG_INST/$PKG_BASE-"*
 
 ##################################################################
 # Poison the proxy variable to forbid downloads in spkg-install
@@ -858,6 +868,10 @@ else
     fi
 fi
 
+# We are now ready to install the new package files into $SAGE_LOCAL, so first
+# uninstall the previous version of this package, if any
+sage-spkg-uninstall "$PKG_BASE"
+
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used
 echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
@@ -873,7 +887,7 @@ if [ -d "$SAGE_DESTDIR" ]; then
     # Generate installed file manifest
     FILE_LIST=""
     FIRST=1
-    IFS=$'\n'
+    old_IFS="$IFS"; IFS=$'\n'
     for filename in $(find "$PREFIX" -type f -o -type l | sort); do
         filename="${filename#$PREFIX}"
         if [ $FIRST -eq 1 ]; then
@@ -884,18 +898,59 @@ if [ -d "$SAGE_DESTDIR" ]; then
         fi
         # Copy file from the temp install path into $SAGE_LOCAL
         if [ ! -d "$SAGE_LOCAL/$(dirname "$filename")" ]; then
-            mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
+            $SAGE_SUDO mkdir -p "$SAGE_LOCAL/$(dirname "$filename")"
         fi
-        mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
+        $SAGE_SUDO mv "$PREFIX$filename" "${SAGE_LOCAL%/}/$filename"
         if [ $? -ne 0 ]; then
-            error_msg "Error moving files for $PKG_BASE."
+            error_msg "Error moving files for $PKG_NAME."
             exit 1
         fi
     done
+    IFS="$old_IFS"
 
     # Remove the $SAGE_DESTDIR entirely once all files have been moved to their
     # final location.
     rm -rf "$SAGE_DESTDIR"
+fi
+
+
+# At this stage the path in $SAGE_DESTDIR no longer exists, so the variable
+# should be unset
+unset SAGE_DESTDIR
+unset SAGE_DESTDIR_LOCAL
+
+
+# Some spkg scripts, if they exist, should also be installed to
+# $SAGE_SPKG_SCRIPTS; they are not included in the package's manifest, but are
+# removed by sage-spkg-uninstall
+INSTALLED_SCRIPTS_DEST="$SAGE_SPKG_SCRIPTS/$PKG_BASE"
+for script in $INSTALLED_SCRIPTS; do
+    script="spkg-$script"
+
+    if [ -f "$script" ]; then
+        mkdir -p "$INSTALLED_SCRIPTS_DEST"
+        if [ $? -ne 0 ]; then
+            error_msg "Error creating the spkg scripts directory $INSTALLED_SCRIPTS_DEST."
+            exit 1
+        fi
+
+        cp -a "$script" "$INSTALLED_SCRIPTS_DEST"
+        if [ $? -ne 0 ]; then
+            error_msg "Error copying the $script script to $INSTALLED_SCRIPTS_DEST."
+            exit 1
+        fi
+    fi
+done
+
+
+# Run the post-install script, if any
+if [ -f spkg-postinst ]; then
+    echo "Running post-install script for $PKG_NAME."
+    time $SAGE_SUDO ./spkg-postinst
+    if [ $? -ne 0 ]; then
+        error_msg "Error running the postinst script for $PKG_NAME."
+        exit 1
+    fi
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then

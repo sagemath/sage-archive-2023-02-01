@@ -141,13 +141,13 @@ class TwoGraph(IncidenceStructure):
 
         EXAMPLES::
 
-            sage: p=graphs.PetersenGraph().twograph().descendant(0)
+            sage: p = graphs.PetersenGraph().twograph().descendant(0)
             sage: p.is_strongly_regular(parameters=True)
             (9, 4, 1, 2)
         """
         from sage.graphs.graph import Graph
-        return Graph(map(lambda y: filter(lambda z: z != v, y),
-                            filter(lambda x: v in x, self.blocks())))
+        return Graph([[z for z in x if z != v]
+                      for x in self.blocks() if v in x])
 
     def complement(self):
         """

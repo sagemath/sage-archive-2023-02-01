@@ -23,19 +23,20 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
 def q_int(n, q=None):
     r"""
-    Return the `q`-analog of the integer `n`.
+    Return the `q`-analog of the nonnegative integer `n`.
 
-    The `q`-analog of the integer `n` is given by
+    The `q`-analog of the nonnegative integer `n` is given by
 
     .. MATH::
 
-        [n]_q = \frac{q^n - q^{-n}}{q - q^-1}
+        [n]_q = \frac{q^n - q^{-n}}{q - q^{-1}}
         = q^{n-1} + q^{n-3} + \cdots + q^{-n+3} + q^{-n+1}.
 
     INPUT:
 
-    - ``n`` -- the integer `n` defined above
-    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the variable `q`
+    - ``n`` -- the nonnegative integer `n` defined above
+    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the parameter `q`
+      (should be invertible)
 
     If ``q`` is unspecified, then it defaults to using the generator `q`
     for a Laurent polynomial ring over the integers.
@@ -91,8 +92,9 @@ def q_factorial(n, q=None):
 
     INPUT:
 
-    - ``n`` -- the value `n` defined above
-    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the variable `q`
+    - ``n`` -- the nonnegative integer `n` defined above
+    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the parameter `q`
+      (should be invertible)
 
     If ``q`` is unspecified, then it defaults to using the generator `q`
     for a Laurent polynomial ring over the integers.
@@ -143,10 +145,11 @@ def q_binomial(n, k, q=None):
 
     INPUT:
 
-    - ``n, k`` -- the values, `n` and `k` defined above
-    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the variable `q`
+    - ``n, k`` -- the nonnegative integers `n` and `k` defined above
+    - ``q`` -- (default: `q \in \ZZ[q, q^{-1}]`) the parameter `q`
+      (should be invertible)
 
-    If ``q`` is unspecified, then the variable is the generator `q` for
+    If ``q`` is unspecified, then it is taken to be the generator `q` for
     a Laurent polynomial ring over the integers.
 
     .. NOTE::
@@ -154,6 +157,13 @@ def q_binomial(n, k, q=None):
         This is not the "usual" `q`-binomial but a variant
         useful for quantum groups. For the version used in
         combinatorics, see :mod:`sage.combinat.q_analogues`.
+
+    .. WARNING::
+
+        This method uses division by `q`-factorials.
+        If `[k]_q!` or `[n-k]_q!` are zero-divisors, or
+        division is not implemented in the ring containing `q`,
+        then it will not work.
 
     EXAMPLES:
 

@@ -860,7 +860,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         r"""
         Raise ``self`` to the ``right`` exponent.
 
-        This takes `a^b` and compues `\exp(b \log(a))`.
+        This takes `a^b` and computes `\exp(b \log(a))`.
 
         EXAMPLES::
 

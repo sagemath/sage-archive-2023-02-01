@@ -5,6 +5,7 @@ Word Quasi-symmetric functions
 AUTHORS:
 
 - Travis Scrimshaw (2018-04-09): initial implementation
+- Darij Grinberg and Amy Pang (2018-04-12): further bases and methods
 """
 
 # ****************************************************************************
@@ -20,21 +21,22 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.global_options import GlobalOptions
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
-from sage.combinat.shuffle import ShuffleProduct_overlapping
+from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     """
-    Abstract base class for bases of `WQSym`.
+    Abstract base class for bases of `W QSym`.
 
     This must define two attributes:
 
     - ``_prefix`` -- the basis prefix
     - ``_basis_name`` -- the name of the basis (must match one
-      of the names that the basis can be constructed from `WQSym`)
+      of the names that the basis can be constructed from `W QSym`)
     """
     def __init__(self, alg, graded=True):
         r"""
@@ -49,6 +51,95 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
                                          OrderedSetPartitions(),
                                          category=WQSymBases(alg, graded),
                                          bracket="", prefix=self._prefix)
+
+    def _repr_term(self, osp):
+        r"""
+        Return a string representation of an element of WordQuasiSymmetricFunctions
+        in the basis ``self``.
+
+        TESTS::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: elt = M[[1,2]]*M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.objects = "words"
+            sage: elt
+            M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options._reset()
+        """
+        return self._prefix + self.options._dispatch(self, '_repr_', 'objects', osp)
+
+
+    def _repr_compositions(self, osp):
+        """
+        Return a string representation of ``osp`` indexed by ordered set partitions.
+
+        This method is called by ``self_repr_term``.
+
+        EXAMPLES::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: elt = M[[1,2]] * M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.display = "tight";
+            sage: elt
+            M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
+            sage: M.options.display = "compact";
+            sage: elt
+            M[12.3] + M[123] + M[3.12]
+            sage: osp = OrderedSetPartition([[2,4], [1,3,7],[5,6]])
+            sage: M._repr_compositions(osp) == '[24.137.56]'
+            True
+            sage: M.options._reset(); elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+        """
+        display = self.options.display
+        disp = repr(osp)
+        if display == 'tight':
+            disp = disp.replace(", ", ",")
+            return disp
+        elif display == 'compact':
+            disp = disp.replace("}, ", ".").replace("}", "").replace("{", "")
+            return disp.replace(", ", "")
+        else:
+            # treat display as 'normal'
+            return disp
+
+    def _repr_words(self, osp):
+        """
+        Return a string representation of ``self`` indexed by packed words.
+
+        This method is called by ``self_repr_term``.
+
+        EXAMPLES::
+
+            sage: M = WordQuasiSymmetricFunctions(QQ).M()
+            sage: elt = M[[1,2]]*M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.objects = "words";
+            sage: elt
+            M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options.display = "tight";
+            sage: elt
+            M[1,1,2] + M[1,1,1] + M[2,2,1]
+            sage: M.options.display = "compact";
+            sage: elt
+            M[112] + M[111] + M[221]
+            sage: osp = OrderedSetPartition([[2,4], [1,3,7],[5,6]])
+            sage: M._repr_words(osp) == '[2121332]'
+            True
+            sage: M.options._reset(); elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+        """
+        display = self.options.display
+        disp = repr(list(osp.to_packed_word()))
+        if display == 'tight':
+            return disp.replace(", ", ",")
+        elif display == 'compact':
+            return disp.replace(", ", "")
+        else:
+            # treat display as 'normal'
+            return disp
 
     def _coerce_map_from_(self, R):
         r"""
@@ -175,7 +266,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     satisfying `\operatorname{pack}(w) = u`.
     The span of these power series `\mathbf{M}_u` is a subring of the
     ring of all noncommutative power series; it is called the ring of
-    word quasi-symmetric functions, and is denoted by `WQSym`.
+    word quasi-symmetric functions, and is denoted by `W QSym`.
 
     For each nonnegative integer `n`, there is a bijection between
     packed words of length `n` and ordered set partitions of
@@ -188,10 +279,13 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
     The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and
-    is implemented at
-    :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.M`.
+    is implemented as
+    :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Monomial`.
 
-    `WQSym` is endowed with a connected graded Hopf algebra structure (see
+    Other bases are the cone basis (aka C basis), the characteristic
+    basis (aka X basis), the Q basis and the Phi basis.
+
+    `W QSym` is endowed with a connected graded Hopf algebra structure (see
     Section 2.2 of [NoThWi08]_, Section 1.1 of [FoiMal14]_ and
     Section 4.3.2 of [MeNoTh11]_) given by
 
@@ -210,8 +304,9 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     A rule for multiplying elements of the monomial basis relies on the
     *quasi-shuffle product* of two ordered set partitions.
     The quasi-shuffle product `\Box` is given by
-    :class:`~sage.combinat.shuffle.ShuffleProduct_overlapping` with ``+``
-    being the union of the sets. The product `\mathbf{M}_P \mathbf{M}_Q`
+    :class:`~sage.combinat.shuffle.ShuffleProduct_overlapping` with the
+    ``+`` operation in the overlapping of the shuffles being the
+    union of the sets.  The product `\mathbf{M}_P \mathbf{M}_Q`
     for two ordered set partitions `P` and `Q` of `[n]` and `[m]`
     is then given by
 
@@ -222,13 +317,14 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     where `Q^+` means `Q` with all numbers shifted upwards by `n`.
 
-    Sometimes, `WQSym` is also denoted as `NCQSym`.
+    Sometimes, `W QSym` is also denoted as `NCQSym`.
 
     REFERENCES:
 
     - [FoiMal14]_
     - [MeNoTh11]_
     - [NoThWi08]_
+    - [BerZab05]_
 
     EXAMPLES::
 
@@ -275,7 +371,6 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     .. TODO::
 
         - Dendriform structure.
-        - Bergeron-Zabrocki and Menous-Novelli-Thibon bases.
     """
     def __init__(self, R):
         """
@@ -312,9 +407,68 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.M()
 
-    _shorthands = tuple(['M', 'X', 'C'])
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
 
-    class M(WQSymBasis_abstract):
+    # add options to class
+    class options(GlobalOptions):
+        r"""
+        Set and display the global options for bases of WordQuasiSymmetricFunctions.
+        If no parameters are set, then the function returns a copy of the options
+        dictionary.
+
+        The ``options`` can be accessed as the method
+        :obj:`WordQuasiSymmetricFunctions.options` of
+        :class:`WordQuasiSymmetricFunctions` or of any associated basis.
+
+        @OPTIONS@
+
+        The ``'words'`` representation of a basis element of
+        :class:`WordQuasiSymmetricFunctions`, indexed by an ordered
+        set partition `A`, is the packed word associated to `A`.
+        See :meth:`OrderedSetPartition.to_packed_word` for details.)
+
+        EXAMPLES::
+
+            sage: WQ = WordQuasiSymmetricFunctions(QQ)
+            sage: M = WQ.M()
+            sage: elt = M[[1,2]]*M[[1]]; elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M.options.display = "tight"
+            sage: elt
+            M[{1,2},{3}] + M[{1,2,3}] + M[{3},{1,2}]
+            sage: M.options.display = "compact"
+            sage: elt
+            M[12.3] + M[123] + M[3.12]
+            sage: WQ.options._reset()
+            sage: M.options.objects = "words"
+            sage: elt
+            M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
+            sage: M.options.display = "tight"
+            sage: elt
+            M[1,1,2] + M[1,1,1] + M[2,2,1]
+            sage: WQ.options.display = "compact"
+            sage: elt
+            M[112] + M[111] + M[221]
+            sage: M.options._reset()
+            sage: elt
+            M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+        """
+        NAME = 'WordQuasiSymmetricFunctions element'
+        module = 'sage.combinat.chas.wqsym'
+        option_class='WordQuasiSymmetricFunctions'
+        objects = dict(default="compositions",
+                       description='Specifies how basis elements of WordQuasiSymmetricFunctions should be indexed',
+                       values=dict(compositions="Indexing the basis by ordered set partitions",
+                                   words="Indexing the basis by packed words"),
+                                   case_sensitive=False)
+        display = dict(default="normal",
+                       description='Specifies how basis elements of WordQuasiSymmetricFunctions should be printed',
+                       values=dict(normal="Using the normal representation",
+                                   tight="Dropping spaces after commas",
+                                   compact="Using a severely compacted representation"),
+                                   case_sensitive=False)
+
+    class Monomial(WQSymBasis_abstract):
         r"""
         The Monomial basis of `WQSym`.
 
@@ -411,13 +565,13 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
                                       for i in range(len(x) + 1))
 
-    Monomial = M
+    M = Monomial
 
-    class X(WQSymBasis_abstract):
+    class Characteristic(WQSymBasis_abstract):
         r"""
-        The Characteristic basis of `WQSym`.
+        The Characteristic basis of `W QSym`.
 
-        The *Characteristic basis* is a graded basis `(X_P)` of `WQSym`,
+        The *Characteristic basis* is a graded basis `(X_P)` of `W QSym`,
         indexed by ordered set partitions `P`. It is defined by
 
         .. MATH::
@@ -473,13 +627,13 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             self.module_morphism(codomain=M, diagonal=sgn).register_as_coercion()
             M.module_morphism(codomain=self, diagonal=sgn).register_as_coercion()
 
-    Characteristic = X
+    X = Characteristic
 
-    class C(WQSymBasis_abstract):
+    class Cone(WQSymBasis_abstract):
         r"""
-        The Cone basis of `WQSym`.
+        The Cone basis of `W QSym`.
 
-        Let `(X_P)_P` denote the Characteristic basis of `WQSym`.
+        Let `(X_P)_P` denote the Characteristic basis of `W QSym`.
         Denote the quasi-shuffle of two ordered set partitions `A` and
         `B` by `A \Box B`. For an ordered set partition
         `P = (P_1, \ldots, P_{\ell})`, we form a list of ordered set
@@ -607,11 +761,628 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # Return the result in the X basis
             return X._from_dict(cur, coerce=True)
 
-    Cone = C
+    C = Cone
+
+    class StronglyCoarser(WQSymBasis_abstract):
+        r"""
+        The Q basis of `W QSym`.
+
+        We define a partial order `\leq` on the set of all ordered
+        set partitions as follows: `A \leq B` if and only if
+        `A` is strongly finer than `B` (see
+        :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+        for a definition of this).
+
+        The *Q basis* `(Q_P)_P` is a basis of `W QSym` indexed by ordered
+        set partitions, and is defined by
+
+        .. MATH::
+
+            Q_P = \sum \mathbf{M}_W,
+
+        where the sum is over ordered set partitions `W` satisfying
+        `P \leq W`.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: M = WQSym.M(); Q = WQSym.Q()
+            sage: Q
+            Word Quasi-symmetric functions over Rational Field in the Q basis
+
+            sage: Q(M[[2,3],[1,4]])
+            Q[{2, 3}, {1, 4}]
+            sage: Q(M[[1,2],[3,4]])
+            Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+            sage: M(Q[[1,2],[3,4]])
+            M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+            sage: M(Q[[2,3],[1],[4]])
+            M[{2, 3}, {1}, {4}] + M[{2, 3}, {1, 4}]
+            sage: M(Q[[3], [2, 5], [1, 4]])
+            M[{3}, {2, 5}, {1, 4}]
+            sage: M(Q[[1, 4], [2, 3], [5], [6]])
+            M[{1, 4}, {2, 3}, {5}, {6}] + M[{1, 4}, {2, 3}, {5, 6}]
+             + M[{1, 4}, {2, 3, 5}, {6}] + M[{1, 4}, {2, 3, 5, 6}]
+
+            sage: Q[[1, 3], [2]] * Q[[1], [2]]
+            Q[{1, 3}, {2}, {4}, {5}] + Q[{1, 3}, {4}, {2}, {5}]
+             + Q[{1, 3}, {4}, {5}, {2}] + Q[{4}, {1, 3}, {2}, {5}]
+             + Q[{4}, {1, 3}, {5}, {2}] + Q[{4}, {5}, {1, 3}, {2}]
+
+            sage: Q[[1, 3], [2]].coproduct()
+            Q[] # Q[{1, 3}, {2}] + Q[{1, 2}] # Q[{1}] + Q[{1, 3}, {2}] # Q[]
+
+        REFERENCES:
+
+        - Section 6 of [BerZab05]_
+        """
+        _prefix = "Q"
+        _basis_name = "Q"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: TestSuite(Q).run()  # long time
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+
+            M = self.realization_of().M()
+            phi = self.module_morphism(self._Q_to_M, codomain=M, unitriangular="lower")
+            phi.register_as_coercion()
+            phi_inv = M.module_morphism(self._M_to_Q, codomain=self, unitriangular="lower")
+            phi_inv.register_as_coercion()
+
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Q basis.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: Q.some_elements()
+                [Q[], Q[{1}], Q[{1, 2}], Q[] + 1/2*Q[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        def _Q_to_M(self, P):
+            """
+            Return the image of the basis element of ``self`` indexed
+            by ``P`` in the Monomial basis.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: OSP = Q.basis().keys()
+                sage: Q._Q_to_M(OSP([[2,3],[1,4]]))
+                M[{2, 3}, {1, 4}]
+                sage: Q._Q_to_M(OSP([[1,2],[3,4]]))
+                M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}]
+            """
+            M = self.realization_of().M()
+            if not P:
+                return M.one()
+
+            OSP = self.basis().keys()
+            R = M.base_ring()
+            one = R.one()
+            return M._from_dict({OSP(G): one for G in P.strongly_fatter()},
+                                coerce=False)
+
+        def _M_to_Q(self, P):
+            """
+            Return the image of the basis element of the monomial
+            basis indexed by ``P`` in the Q basis ``self``.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP = Q.basis().keys()
+                sage: Q._M_to_Q(OSP([[2,3],[1,4]]))
+                Q[{2, 3}, {1, 4}]
+                sage: Q._M_to_Q(OSP([[1,2],[3,4]]))
+                Q[{1, 2}, {3, 4}] - Q[{1, 2, 3, 4}]
+
+            TESTS::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP4 = OrderedSetPartitions(4)
+                sage: all(M(Q(M[P])) == M[P] for P in OSP4) # long time
+                True
+                sage: all(Q(M(Q[P])) == Q[P] for P in OSP4) # long time
+                True
+            """
+            Q = self
+            if not P:
+                return Q.one()
+
+            OSP = self.basis().keys()
+            R = self.base_ring()
+            one = R.one()
+            lenP = len(P)
+            def sign(R): # the coefficient with which another
+                         # ordered set partition will appear
+                if len(R) % 2 == lenP % 2:
+                    return one
+                return -one
+            return Q._from_dict({OSP(G): sign(G) for G in P.strongly_fatter()},
+                                coerce=False)
+
+        def product_on_basis(self, x, y):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of the Q basis ``self`` indexed by the ordered set partitions
+            `x` and `y`.
+
+            This is the shifted shuffle product of `x` and `y`.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).Q()
+                sage: x = OrderedSetPartition([[1],[2,3]])
+                sage: y = OrderedSetPartition([[1,2]])
+                sage: z = OrderedSetPartition([[1,2],[3]])
+                sage: A.product_on_basis(x, y)
+                Q[{1}, {2, 3}, {4, 5}] + Q[{1}, {4, 5}, {2, 3}]
+                 + Q[{4, 5}, {1}, {2, 3}]
+                sage: A.product_on_basis(x, z)
+                Q[{1}, {2, 3}, {4, 5}, {6}] + Q[{1}, {4, 5}, {2, 3}, {6}]
+                 + Q[{1}, {4, 5}, {6}, {2, 3}] + Q[{4, 5}, {1}, {2, 3}, {6}]
+                 + Q[{4, 5}, {1}, {6}, {2, 3}] + Q[{4, 5}, {6}, {1}, {2, 3}]
+                sage: A.product_on_basis(y, y)
+                Q[{1, 2}, {3, 4}] + Q[{3, 4}, {1, 2}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+            """
+            K = self.basis().keys()
+            if not x:
+                return self.monomial(y)
+            m = max(max(part) for part in x) # The degree of x
+            x = [set(part) for part in x]
+            yshift = [[val + m for val in part] for part in y]
+            def union(X,Y): return X.union(Y)
+            return self.sum_of_monomials(ShuffleProduct(x, yshift, K))
+
+        def coproduct_on_basis(self, x):
+            r"""
+            Return the coproduct of ``self`` on the basis element
+            indexed by the ordered set partition ``x``.
+
+            EXAMPLES::
+
+                sage: Q = algebras.WQSym(QQ).Q()
+
+                sage: Q.coproduct(Q.one())  # indirect doctest
+                Q[] # Q[]
+                sage: Q.coproduct( Q([[1]]) )  # indirect doctest
+                Q[] # Q[{1}] + Q[{1}] # Q[]
+                sage: Q.coproduct( Q([[1,2]]) )
+                Q[] # Q[{1, 2}] + Q[{1, 2}] # Q[]
+                sage: Q.coproduct( Q([[1], [2]]) )
+                Q[] # Q[{1}, {2}] + Q[{1}] # Q[{1}] + Q[{1}, {2}] # Q[]
+                sage: Q[[1,2],[3],[4]].coproduct()
+                Q[] # Q[{1, 2}, {3}, {4}] + Q[{1, 2}] # Q[{1}, {2}]
+                 + Q[{1, 2}, {3}] # Q[{1}] + Q[{1, 2}, {3}, {4}] # Q[]
+            """
+            # The coproduct on the Q basis satisfies the same formula
+            # as on the M basis. This is easily derived from the
+            # formula on the M basis.
+            if not len(x):
+                return self.one().tensor(self.one())
+            K = self.indices()
+            def standardize(P): # standardize an ordered set partition
+                base = sorted(sum((list(part) for part in P), []))
+                # base is the ground set of P, as a sorted list.
+                d = {val: i+1 for i,val in enumerate(base)}
+                # d is the unique order isomorphism from base to
+                # {1, 2, ..., |base|} (encoded as dict).
+                return K([[d[x] for x in part] for part in P])
+            T = self.tensor_square()
+            return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
+                                      for i in range(len(x) + 1))
+
+    Q = StronglyCoarser
+
+    class StronglyFiner(WQSymBasis_abstract):
+        r"""
+        The Phi basis of `W QSym`.
+
+        We define a partial order `\leq` on the set of all ordered
+        set partitions as follows: `A \leq B` if and only if
+        `A` is strongly finer than `B` (see
+        :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+        for a definition of this).
+
+        The *Phi basis* `(\Phi_P)_P` is a basis of `W QSym` indexed by ordered
+        set partitions, and is defined by
+
+        .. MATH::
+
+            \Phi_P = \sum \mathbf{M}_W,
+
+        where the sum is over ordered set partitions `W` satisfying
+        `W \leq P`.
+
+        Novelli and Thibon introduced this basis in [NovThi06]_
+        Section 2.7.2, and called it the quasi-ribbon basis.
+        It later reappeared in [MeNoTh11]_ Section 4.3.2.
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: M = WQSym.M(); Phi = WQSym.Phi()
+            sage: Phi
+            Word Quasi-symmetric functions over Rational Field in the Phi basis
+
+            sage: Phi(M[[2,3],[1,4]])
+            Phi[{2}, {3}, {1}, {4}] - Phi[{2}, {3}, {1, 4}]
+             - Phi[{2, 3}, {1}, {4}] + Phi[{2, 3}, {1, 4}]
+            sage: Phi(M[[1,2],[3,4]])
+            Phi[{1}, {2}, {3}, {4}] - Phi[{1}, {2}, {3, 4}]
+             - Phi[{1, 2}, {3}, {4}] + Phi[{1, 2}, {3, 4}]
+            sage: M(Phi[[1,2],[3,4]])
+            M[{1}, {2}, {3}, {4}] + M[{1}, {2}, {3, 4}]
+             + M[{1, 2}, {3}, {4}] + M[{1, 2}, {3, 4}]
+            sage: M(Phi[[2,3],[1],[4]])
+            M[{2}, {3}, {1}, {4}] + M[{2, 3}, {1}, {4}]
+            sage: M(Phi[[3], [2, 5], [1, 4]])
+            M[{3}, {2}, {5}, {1}, {4}] + M[{3}, {2}, {5}, {1, 4}]
+             + M[{3}, {2, 5}, {1}, {4}] + M[{3}, {2, 5}, {1, 4}]
+            sage: M(Phi[[1, 4], [2, 3], [5], [6]])
+            M[{1}, {4}, {2}, {3}, {5}, {6}] + M[{1}, {4}, {2, 3}, {5}, {6}]
+             + M[{1, 4}, {2}, {3}, {5}, {6}] + M[{1, 4}, {2, 3}, {5}, {6}]
+
+            sage: Phi[[1]] * Phi[[1, 3], [2]]
+            Phi[{1, 2, 4}, {3}] + Phi[{2}, {1, 4}, {3}]
+             + Phi[{2, 4}, {1, 3}] + Phi[{2, 4}, {3}, {1}]
+            sage: Phi[[3, 5], [1, 4], [2]].coproduct()
+            Phi[] # Phi[{3, 5}, {1, 4}, {2}]
+             + Phi[{1}] # Phi[{4}, {1, 3}, {2}]
+             + Phi[{1, 2}] # Phi[{1, 3}, {2}]
+             + Phi[{2, 3}, {1}] # Phi[{2}, {1}]
+             + Phi[{2, 4}, {1, 3}] # Phi[{1}]
+             + Phi[{3, 5}, {1, 4}, {2}] # Phi[]
+
+        REFERENCES:
+
+        - Section 2.7.2 of [NovThi06]_
+        """
+        _prefix = "Phi"
+        _basis_name = "Phi"
+
+        def __init__(self, alg):
+            """
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: TestSuite(Phi).run()  # long time
+            """
+            WQSymBasis_abstract.__init__(self, alg)
+
+            M = self.realization_of().M()
+            phi = self.module_morphism(self._Phi_to_M, codomain=M, unitriangular="lower")
+            phi.register_as_coercion()
+            phi_inv = M.module_morphism(self._M_to_Phi, codomain=self, unitriangular="lower")
+            phi_inv.register_as_coercion()
+
+        def some_elements(self):
+            """
+            Return some elements of the word quasi-symmetric functions
+            in the Phi basis.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: Phi.some_elements()
+                [Phi[], Phi[{1}], Phi[{1, 2}], Phi[] + 1/2*Phi[{1}]]
+            """
+            u = self.one()
+            o = self([[1]])
+            s = self.base_ring().an_element()
+            return [u, o, self([[1,2]]), u + s*o]
+
+        def _Phi_to_M(self, P):
+            """
+            Return the image of the basis element of ``self`` indexed
+            by ``P`` in the Monomial basis.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: OSP = Phi.basis().keys()
+                sage: Phi._Phi_to_M(OSP([[2,3],[1,4]]))
+                M[{2}, {3}, {1}, {4}] + M[{2}, {3}, {1, 4}]
+                 + M[{2, 3}, {1}, {4}] + M[{2, 3}, {1, 4}]
+                sage: Phi._Phi_to_M(OSP([[1,2],[3,4]]))
+                M[{1}, {2}, {3}, {4}] + M[{1}, {2}, {3, 4}]
+                 + M[{1, 2}, {3}, {4}] + M[{1, 2}, {3, 4}]
+            """
+            M = self.realization_of().M()
+            if not P:
+                return M.one()
+
+            OSP = self.basis().keys()
+            R = M.base_ring()
+            one = R.one()
+            return M._from_dict({OSP(G): one for G in P.strongly_finer()},
+                                coerce=False)
+
+        def _M_to_Phi(self, P):
+            """
+            Return the image of the basis element of the monomial
+            basis indexed by ``P`` in the Phi basis ``self``.
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP = Phi.basis().keys()
+                sage: Phi._M_to_Phi(OSP([[2,3],[1,4]]))
+                Phi[{2}, {3}, {1}, {4}] - Phi[{2}, {3}, {1, 4}]
+                 - Phi[{2, 3}, {1}, {4}] + Phi[{2, 3}, {1, 4}]
+                sage: Phi._M_to_Phi(OSP([[1,2],[3,4]]))
+                Phi[{1}, {2}, {3}, {4}] - Phi[{1}, {2}, {3, 4}]
+                 - Phi[{1, 2}, {3}, {4}] + Phi[{1, 2}, {3, 4}]
+
+            TESTS::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+                sage: M = algebras.WQSym(QQ).M()
+                sage: OSP4 = OrderedSetPartitions(4)
+                sage: all(M(Phi(M[P])) == M[P] for P in OSP4) # long time
+                True
+                sage: all(Phi(M(Phi[P])) == Phi[P] for P in OSP4) # long time
+                True
+            """
+            Phi = self
+            if not P:
+                return Phi.one()
+
+            OSP = self.basis().keys()
+            R = self.base_ring()
+            one = R.one()
+            lenP = len(P)
+            def sign(R): # the coefficient with which another
+                         # ordered set partition will appear
+                if len(R) % 2 == len(P) % 2:
+                    return one
+                return -one
+            return Phi._from_dict({OSP(G): sign(G) for G in P.strongly_finer()},
+                                  coerce=False)
+
+        def product_on_basis(self, x, y):
+            r"""
+            Return the (associative) `*` product of the basis elements
+            of the Phi basis ``self`` indexed by the ordered set partitions
+            `x` and `y`.
+
+            This is obtained by the following algorithm (going back to
+            [NovThi06]_):
+
+            Let `x` be an ordered set partition of `[m]`, and `y` an
+            ordered set partition of `[n]`.
+            Transform `x` into a list `u` of all the `m` elements of `[m]`
+            by writing out each block of `x` (in increasing order) and
+            putting bars between each two consecutive blocks; this is
+            called a barred permutation.
+            Do the same for `y`, but also shift each entry of the
+            resulting barred permutation by `m`. Let `v` be the barred
+            permutation of `[m+n] \setminus [m]` thus obtained.
+            Now, shuffle the two barred permutations `u` and `v`
+            (ignoring the bars) in all the `\binom{n+m}{n}` possible ways.
+            For each shuffle obtained, place bars between some entries
+            of the shuffle, according to the following rule:
+
+            * If two consecutive entries of the shuffle both come from
+              `u`, then place a bar between them if the corresponding
+              entries of `u` had a bar between them.
+
+            * If the first of two consecutive entries of the shuffle
+              comes from `v` and the second from `u`, then place a bar
+              between them.
+
+            This results in a barred permutation of `[m+n]`.
+            Transform it into an ordered set partition of `[m+n]`,
+            by treating the bars as dividers separating consecutive
+            blocks.
+
+            The product `\Phi_x \Phi_y` is the sum of `\Phi_p` with
+            `p` ranging over all ordered set partitions obtained this
+            way.
+
+            EXAMPLES::
+
+                sage: A = algebras.WQSym(QQ).Phi()
+                sage: x = OrderedSetPartition([[1],[2,3]])
+                sage: y = OrderedSetPartition([[1,2]])
+                sage: z = OrderedSetPartition([[1,2],[3]])
+                sage: A.product_on_basis(x, y)
+                Phi[{1}, {2, 3, 4, 5}] + Phi[{1}, {2, 4}, {3, 5}]
+                 + Phi[{1}, {2, 4, 5}, {3}] + Phi[{1, 4}, {2, 3, 5}]
+                 + Phi[{1, 4}, {2, 5}, {3}] + Phi[{1, 4, 5}, {2, 3}]
+                 + Phi[{4}, {1}, {2, 3, 5}] + Phi[{4}, {1}, {2, 5}, {3}]
+                 + Phi[{4}, {1, 5}, {2, 3}] + Phi[{4, 5}, {1}, {2, 3}]
+                sage: A.product_on_basis(x, z)
+                Phi[{1}, {2, 3, 4, 5}, {6}] + Phi[{1}, {2, 4}, {3, 5}, {6}]
+                 + Phi[{1}, {2, 4, 5}, {3, 6}] + Phi[{1}, {2, 4, 5}, {6}, {3}]
+                 + Phi[{1, 4}, {2, 3, 5}, {6}] + Phi[{1, 4}, {2, 5}, {3, 6}]
+                 + Phi[{1, 4}, {2, 5}, {6}, {3}] + Phi[{1, 4, 5}, {2, 3, 6}]
+                 + Phi[{1, 4, 5}, {2, 6}, {3}] + Phi[{1, 4, 5}, {6}, {2, 3}]
+                 + Phi[{4}, {1}, {2, 3, 5}, {6}]
+                 + Phi[{4}, {1}, {2, 5}, {3, 6}]
+                 + Phi[{4}, {1}, {2, 5}, {6}, {3}]
+                 + Phi[{4}, {1, 5}, {2, 3, 6}] + Phi[{4}, {1, 5}, {2, 6}, {3}]
+                 + Phi[{4}, {1, 5}, {6}, {2, 3}] + Phi[{4, 5}, {1}, {2, 3, 6}]
+                 + Phi[{4, 5}, {1}, {2, 6}, {3}] + Phi[{4, 5}, {1, 6}, {2, 3}]
+                 + Phi[{4, 5}, {6}, {1}, {2, 3}]
+                sage: A.product_on_basis(y, y)
+                Phi[{1, 2, 3, 4}] + Phi[{1, 3}, {2, 4}] + Phi[{1, 3, 4}, {2}]
+                 + Phi[{3}, {1, 2, 4}] + Phi[{3}, {1, 4}, {2}]
+                 + Phi[{3, 4}, {1, 2}]
+
+            TESTS::
+
+                sage: one = OrderedSetPartition([])
+                sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: all(A.product_on_basis(z, one) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
+                True
+                sage: M = algebras.WQSym(QQ).M()
+                sage: x = A[[2, 4], [1, 3]]
+                sage: y = A[[1, 3], [2]]
+                sage: A(M(x) * M(y)) == x * y
+                True
+                sage: A(M(x) ** 2) == x**2 # long time
+                True
+                sage: A(M(y) ** 2) == y**2
+                True
+            """
+            K = self.basis().keys()
+            if not x:
+                return self.monomial(y)
+            if not y:
+                return self.monomial(x)
+            xlist = [(j, (k == 0))
+                     for part in x
+                     for (k, j) in enumerate(sorted(part))]
+            # xlist is a list of the form
+            # [(e_1, s_1), (e_2, s_2), ..., (e_n, s_n)],
+            # where e_1, e_2, ..., e_n are the entries of the parts of
+            # x in the order in which they appear in x (reading each
+            # part from bottom to top), and where s_i = True if e_i is
+            # the smallest element of its part and False otherwise.
+            m = max(max(part) for part in x) # The degree of x
+            ylist = [(m + j, (k == 0))
+                     for part in y
+                     for (k, j) in enumerate(sorted(part))]
+            # ylist is like xlist, but for y instead of x, and with
+            # a shift by m.
+            def digest(s):
+                # Turn a shuffle of xlist with ylist into the appropriate
+                # ordered set partition.
+                s0 = [p[0] for p in s]
+                s1 = [p[1] for p in s]
+                N = len(s)
+                bars = [False] * N
+                for i in range(N-1):
+                    s0i = s0[i]
+                    s0i1 = s0[i+1]
+                    if s0i <= m and s0i1 <= m:
+                        bars[i+1] = s1[i+1]
+                    elif s0i > m and s0i1 > m:
+                        bars[i+1] = s1[i+1]
+                    elif s0i > m and s0i1 <= m:
+                        bars[i+1] = True
+                blocks = []
+                block = []
+                for i in range(N):
+                    if bars[i]:
+                        blocks.append(block)
+                        block = [s0[i]]
+                    else:
+                        block.append(s0[i])
+                blocks.append(block)
+                return K(blocks)
+            return self.sum_of_monomials(digest(s) for s in ShuffleProduct(xlist, ylist))
+
+        def coproduct_on_basis(self, x):
+            r"""
+            Return the coproduct of ``self`` on the basis element
+            indexed by the ordered set partition ``x``.
+
+            The coproduct of the basis element `\Phi_x` indexed by
+            an ordered set partition `x` of `[n]` can be computed by the
+            following formula ([NovThi06]_):
+
+            .. MATH::
+
+                \Delta \Phi_x
+                = \sum \Phi_y \otimes \Phi_z ,
+
+            where the sum ranges over all pairs `(y, z)` of ordered set
+            partitions `y` and `z` such that:
+
+            * `y` and `z` are ordered set partitions of two complementary
+              subsets of `[n]`;
+
+            * `x` is obtained either by concatenating `y` and `z`, or by
+              first concatenating `y` and `z` and then merging the two
+              "middle blocks" (i.e., the last block of `y` and the first
+              block of `z`); in the latter case, the maximum of the last
+              block of `y` has to be smaller than the minimum of the first
+              block of `z` (so that when merging these blocks, their
+              entries don't need to be sorted).
+
+            EXAMPLES::
+
+                sage: Phi = algebras.WQSym(QQ).Phi()
+
+                sage: Phi.coproduct(Phi.one())  # indirect doctest
+                Phi[] # Phi[]
+                sage: Phi.coproduct( Phi([[1]]) )  # indirect doctest
+                Phi[] # Phi[{1}] + Phi[{1}] # Phi[]
+                sage: Phi.coproduct( Phi([[1,2]]) )
+                Phi[] # Phi[{1, 2}] + Phi[{1}] # Phi[{1}] + Phi[{1, 2}] # Phi[]
+                sage: Phi.coproduct( Phi([[1], [2]]) )
+                Phi[] # Phi[{1}, {2}] + Phi[{1}] # Phi[{1}] + Phi[{1}, {2}] # Phi[]
+                sage: Phi[[1,2],[3],[4]].coproduct()
+                Phi[] # Phi[{1, 2}, {3}, {4}] + Phi[{1}] # Phi[{1}, {2}, {3}]
+                 + Phi[{1, 2}] # Phi[{1}, {2}] + Phi[{1, 2}, {3}] # Phi[{1}]
+                 + Phi[{1, 2}, {3}, {4}] # Phi[]
+
+            TESTS::
+
+                sage: M = algebras.WQSym(QQ).M()
+                sage: x = Phi[[2, 4], [6], [1, 3], [5, 7]]
+                sage: MM = M.tensor(M); AA = Phi.tensor(Phi)
+                sage: AA(M(x).coproduct()) == x.coproduct()
+                True
+            """
+            if not len(x):
+                return self.one().tensor(self.one())
+            K = self.indices()
+            def standardize(P): # standardize an ordered set partition
+                base = sorted(sum((list(part) for part in P), []))
+                # base is the ground set of P, as a sorted list.
+                d = {val: i+1 for i,val in enumerate(base)}
+                # d is the unique order isomorphism from base to
+                # {1, 2, ..., |base|} (encoded as dict).
+                return K([[d[x] for x in part] for part in P])
+            deconcatenates = [(x[:i], x[i:]) for i in range(len(x) + 1)]
+            for i in range(len(x)):
+                xi = sorted(x[i])
+                for j in range(1, len(xi)):
+                    left = K(list(x[:i]) + [xi[:j]])
+                    right = K([xi[j:]] + list(x[i+1:]))
+                    deconcatenates.append((left, right))
+            T = self.tensor_square()
+            return T.sum_of_monomials((standardize(left), standardize(right))
+                                      for (left, right) in deconcatenates)
+
+    Phi = StronglyFiner
+
+WQSymBasis_abstract.options = WordQuasiSymmetricFunctions.options
 
 class WQSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `WQSym`.
+    The category of bases of `W QSym`.
     """
     def __init__(self, base, graded):
         r"""
@@ -619,7 +1390,7 @@ class WQSymBases(Category_realization_of_parent):
 
         INPUT:
 
-        - ``base`` -- an instance of `WQSym`
+        - ``base`` -- an instance of `W QSym`
         - ``graded`` -- boolean; if the basis is graded or filtered
 
         TESTS::
@@ -688,7 +1459,7 @@ class WQSymBases(Category_realization_of_parent):
     class ParentMethods:
         def _repr_(self):
             """
-            Text representation of this basis of `WQSym`.
+            Text representation of this basis of `W QSym`.
 
             EXAMPLES::
 
@@ -784,9 +1555,9 @@ class WQSymBases(Category_realization_of_parent):
             The projection of ``self`` to the ring `QSym` of
             quasisymmetric functions.
 
-            There is a canonical projection `\pi : WQSym \to QSym`
+            There is a canonical projection `\pi : W QSym \to QSym`
             that sends every element `\mathbf{M}_P` of the monomial
-            basis of `WQSym` to the monomial quasisymmetric function
+            basis of `W QSym` to the monomial quasisymmetric function
             `M_c`, where `c` is the composition whose parts are the
             sizes of the blocks of `P`.
             This `\pi` is a ring homomorphism.

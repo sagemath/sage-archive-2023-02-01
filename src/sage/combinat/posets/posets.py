@@ -232,7 +232,7 @@ List of Poset methods
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
-    :meth:`~FinitePoset.level_sets` | Return a list l such that l[i+1] is the set of minimal elements of the poset obtained by removing the elements in l[0], l[1], ..., l[i].
+    :meth:`~FinitePoset.level_sets` | Return elements grouped by maximal number of cover relations from a minimal element.
     :meth:`~FinitePoset.order_complex` | Return the order complex associated to this poset.
     :meth:`~FinitePoset.p_partition_enumerator` | Return a `P`-partition enumerator of the poset.
     :meth:`~FinitePoset.random_order_ideal` | Return a random order ideal of ``self`` with uniform probability.
@@ -2888,9 +2888,15 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().is_series_parallel()
             True
         """
-        # TODO: Add series-parallel decomposition later.
-        N = Poset({0: [2, 3], 1: [3]})
-        return not self.has_isomorphic_subposet(N)
+        if self.cardinality() < 4:
+            return True
+        if not self.is_connected():
+            return all(part.is_series_parallel() for part in
+                       self.connected_components())
+        parts = self.ordinal_summands()
+        if len(parts) == 1:
+            return False
+        return all(part.is_series_parallel() for part in parts)
 
     def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
@@ -4207,11 +4213,22 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: V(7) < V(8)  # Facade argument should be inherited
             False
         """
-        comps = self._hasse_diagram.connected_components()
+        comps = self._hasse_diagram.connected_components_subgraphs()
         if len(comps) == 1:
             return [self]
-        return [self.subposet(self._vertex_to_element(x) for x in cc)
-                for cc in comps]
+        result = []
+        if self._is_facade:
+            for part in comps:
+                G = part.relabel(self._vertex_to_element, inplace=False)
+                result.append(Poset(G, cover_relations=True,
+                                    facade=True))
+        else:
+            for part in comps:
+                G = part.relabel(lambda v: self._vertex_to_element(v).element,
+                                 inplace=False)
+                result.append(Poset(G, cover_relations=True,
+                                    facade=False))
+        return result
 
     def ordinal_summands(self):
         r"""
@@ -4299,8 +4316,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         parts = []
         for i,j in zip(cut_points,cut_points[1:]):
-            parts.append(self.subposet([self._vertex_to_element(e)
-                                        for e in range(i+1,j+1)]))
+            G = self._hasse_diagram.subgraph(range(i+1,j+1))
+            parts.append(Poset(G.relabel(self._vertex_to_element,
+                                         inplace=False)))
         return parts
 
     def product(self, other):
@@ -5080,10 +5098,13 @@ class FinitePoset(UniqueRepresentation, Parent):
             ...
             TypeError: the poset is missing either top or bottom
         """
+        from copy import copy
+
         if self.is_bounded():
-            top = self.top()
-            bottom = self.bottom()
-            return self.subposet(u for u in self if u not in (top, bottom))
+            g = copy(self._hasse_diagram)
+            g.delete_vertices([0, g.order()-1])
+            g.relabel(self._vertex_to_element)
+            return Poset(g, facade=self._is_facade)
         raise TypeError('the poset is missing either top or bottom')
 
     def relabel(self, relabeling=None):
@@ -5416,23 +5437,36 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.subposet(["a","b","x"])
             Traceback (most recent call last):
             ...
-            ValueError: <... 'str'> is not an element of this poset
+            ValueError: element (=x) not in poset
             sage: P.subposet(3)
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
-        # Type checking is performed by the following line:
-        elements = [self(e) for e in elements]
+        from sage.misc.misc import uniq
+
+        H = self._hasse_diagram
+        elms = uniq([self._element_to_vertex(e) for e in elements])
+
+        if not elms:
+            return Poset()
+
         relations = []
-        for u in elements:
-            for v in elements:
-                if self.is_less_than(u,v):
-                    relations.append([u,v])
-        if not self._is_facade:
-            elements = [e.element for e in elements]
-            relations = [[u.element,v.element] for u,v in relations]
-        return Poset((elements, relations), cover_relations=False, facade=self._is_facade)
+        lt = [set() for _ in range(elms[-1]+1)]
+
+        for i in range(elms[0], elms[-1]+1):
+            for low in H.neighbor_in_iterator(i):
+                lt[i].update(lt[low])
+            if i in elms:
+                relations += [(x, i) for x in lt[i]]
+                lt[i] = set([i])
+
+        g = DiGraph([elms, relations], format='vertices_and_edges')
+        if self._is_facade:
+            g.relabel(self._vertex_to_element, inplace=True)
+        else:
+            g.relabel(lambda v: self._vertex_to_element(v).element, inplace=True)
+        return Poset(g, cover_relations=False, facade=self._is_facade)
 
     def random_subposet(self, p):
         """

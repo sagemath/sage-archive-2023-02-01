@@ -47,7 +47,6 @@ from sage.env import SAGE_ROOT, SAGE_PKGS
 
 import json
 import os
-import re
 import subprocess
 try:
     # Python 3.3+

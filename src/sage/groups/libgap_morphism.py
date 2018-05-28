@@ -308,7 +308,7 @@ class GroupMorphism_libgap(Morphism):
         preimage = phi.PreImage(S.gap())
         return self.domain()._subgroup_constructor(preimage)
 
-class GroupHomset_libgap(UniqueRepresentation, HomsetWithBase):
+class GroupHomset_libgap(HomsetWithBase):
     r"""
     Homsets of groups with a libgap backend.
 
@@ -350,11 +350,6 @@ class GroupHomset_libgap(UniqueRepresentation, HomsetWithBase):
         if not isinstance(H, ParentLibGAP):
             raise TypeError("H (={}) must be a ParentLibGAP group".format(H))
         category = Groups().or_subcategory(category, join=True)
-        try:
-            if G.is_finite() and H.is_finite():
-                category = category.Finite()
-        except NotImplementedError:
-            pass
         HomsetWithBase.__init__(self, G, H, category, ZZ)
 
     Element = GroupMorphism_libgap

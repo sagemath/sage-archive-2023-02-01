@@ -334,7 +334,7 @@ class GroupHomset_libgap(HomsetWithBase):
          to Abelian group with gap, generator orders (2, 4)
          in Category of finite enumerated commutative groups
     """
-    def __init__(self, G, H, category=None):
+    def __init__(self, G, H, category=None, check=True):
         r"""
         Return the homset of two libgap groups.
 
@@ -345,12 +345,12 @@ class GroupHomset_libgap(HomsetWithBase):
             sage: H = A.Hom(A)
             sage: TestSuite(H).run()
         """
-        if not isinstance(G, ParentLibGAP):
-            raise TypeError("G (={}) must be a ParentLibGAP group".format(G))
-        if not isinstance(H, ParentLibGAP):
-            raise TypeError("H (={}) must be a ParentLibGAP group".format(H))
-        category = Groups().or_subcategory(category, join=True)
-        HomsetWithBase.__init__(self, G, H, category, ZZ)
+        if check:
+            if not isinstance(G, ParentLibGAP):
+                raise TypeError("G (={}) must be a ParentLibGAP group".format(G))
+            if not isinstance(H, ParentLibGAP):
+                raise TypeError("H (={}) must be a ParentLibGAP group".format(H))
+        HomsetWithBase.__init__(self, G, H, category, check=check, base=ZZ)
 
     Element = GroupMorphism_libgap
 

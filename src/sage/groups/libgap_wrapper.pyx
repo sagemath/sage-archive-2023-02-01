@@ -160,7 +160,7 @@ class ParentLibGAP(SageObject):
         """
         return self._ambient is not None
 
-    def _Hom_(self, G, category=None):
+    def _Hom_(self, G, category=None, check=True):
         r"""
         Return the set of group homomorphisms from ``self`` to ``G``.
 
@@ -181,7 +181,7 @@ class ParentLibGAP(SageObject):
              to Free Group on generators {a, b} in Category of groups
         """
         from sage.groups.libgap_morphism import GroupHomset_libgap
-        return GroupHomset_libgap(self, G, category=category)
+        return GroupHomset_libgap(self, G, category=category, check=check)
 
     def _subgroup_constructor(self, libgap_subgroup):
         """

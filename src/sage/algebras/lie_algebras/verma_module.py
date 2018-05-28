@@ -164,6 +164,8 @@ class VermaModule(CombinatorialFreeModule):
             sage: monoid = M.basis().keys()
             sage: prod(monoid.gens())  # indirect doctest
             f[-alpha[2]]*f[-alpha[1]]*f[-alpha[1] - alpha[2]]
+            sage: [M._monoid_key(x) for x in monoid.an_element()._sorted_items()]
+            [5, 6, 7]
 
             sage: def neg_key(x):
             ....:     return -L.basis().keys().index(x)
@@ -171,6 +173,8 @@ class VermaModule(CombinatorialFreeModule):
             sage: monoid = M.basis().keys()
             sage: prod(monoid.gens())  # indirect doctest
             f[-alpha[1] - alpha[2]]*f[-alpha[1]]*f[-alpha[2]]
+            sage: [M._monoid_key(x) for x in monoid.an_element()._sorted_items()]
+            [-7, -6, -5]
         """
         return self._basis_key(x[0])
 

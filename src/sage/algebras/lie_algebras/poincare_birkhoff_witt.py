@@ -358,6 +358,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         return self._indices.one()
 
+    @cached_method
     def product_on_basis(self, lhs, rhs):
         """
         Return the product of the two basis elements ``lhs`` and ``rhs``.

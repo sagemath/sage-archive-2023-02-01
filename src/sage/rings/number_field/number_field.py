@@ -9278,7 +9278,7 @@ class NumberField_absolute(NumberField_generic):
                 d *= p
         return d
 
-    def elements_of_bounded_height(self,bound,precision=53,LLL=False):
+    def elements_of_bounded_height(self,bound,tolerance=0.2,precision=53):
         r"""
         Return an iterator over the elements of ``self`` with relative
         multiplicative height at most ``bound``.
@@ -9298,8 +9298,8 @@ class NumberField_absolute(NumberField_generic):
         INPUT:
 
         - ``bound`` - a real number
+        - ``tolerance`` - a rational number in (0,1]
         - ``precision`` - (default: 53) a positive integer
-        - ``LLL`` - (default: False) a boolean value
 
         OUTPUT:
 
@@ -9313,11 +9313,6 @@ class NumberField_absolute(NumberField_generic):
            considerably lower than would be required for the algorithm to
            generate correct output.
 
-        .. TODO::
-
-           Should implement a version of the algorithm that guarantees correct
-           output. See Algorithm 4 in [Doyle-Krumm]_ for details of an
-           implementation that takes precision issues into account.
 
         EXAMPLES:
 
@@ -9399,7 +9394,7 @@ class NumberField_absolute(NumberField_generic):
         ::
 
             sage: K.<a> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
-            sage: L = K.elements_of_bounded_height(10, LLL=true)
+            sage: L = K.elements_of_bounded_height(10, tolerance=0.1)
             sage: len(list(L))
             99
 
@@ -9415,7 +9410,7 @@ class NumberField_absolute(NumberField_generic):
         if self.degree() == 2 and r == 0:
             return bdd_height_iq(self, bound)
         else:
-            return bdd_height(self, bound, precision, LLL)
+            return bdd_height(self, bound, tolerance, precision)
 
 class NumberField_cyclotomic(NumberField_absolute):
     """

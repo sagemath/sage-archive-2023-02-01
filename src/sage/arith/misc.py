@@ -25,7 +25,7 @@ from sage.misc.misc_c import prod
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent, Element
+from sage.structure.element import parent
 from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ

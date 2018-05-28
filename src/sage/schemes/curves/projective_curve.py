@@ -1,5 +1,5 @@
 """
-Projective curves.
+Projective curves
 
 EXAMPLES:
 
@@ -26,6 +26,7 @@ AUTHORS:
 - Moritz Minzlaff (2010-11)
 
 - Grayson Jorgenson (2016-8)
+
 """
 
 #*****************************************************************************
@@ -240,7 +241,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             ...
             TypeError: (=Projective Space of dimension 2 over Finite Field of size
             7) must have dimension (=3)
-            
+
 
         ::
 

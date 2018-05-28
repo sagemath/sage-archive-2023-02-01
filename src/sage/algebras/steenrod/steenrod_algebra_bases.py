@@ -906,7 +906,7 @@ def atomic_basis(n, basis, **kwds):
     else:
         result = []
         degrees_etc = degree_dictionary(n, basis)
-        degrees = degrees_etc.keys()
+        degrees = list(degrees_etc)
         for sigma in restricted_partitions(n, degrees, no_repeats=True):
             big_list = [degrees_etc[part] for part in sigma]
             big_list.sort(key=lambda x: sorting_pair(x[0], x[1], basis))

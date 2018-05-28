@@ -982,7 +982,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 M = sum([list(IntegerVectors(_d,n)) for _d in xrange(degree+1)],[])
                 for mi in xrange(total - terms): # we throw away those we don't need
                     M.pop( ZZ.random_element(0,len(M)-1) )
-                M = map(tuple, M)
+                M = [tuple(m) for m in M]
             else:
                 M = [list(IntegerVectors(_d,n)) for _d in xrange(degree+1)]
                 Mbar = []
@@ -992,7 +992,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                     Mbar.append( M[d].pop(m) ) # remove and insert
                     if len(M[d]) == 0:
                         M.pop(d) # bookkeeping
-                M = map(tuple, Mbar)
+                M = [tuple(m) for m in Mbar]
 
         C = [k.random_element(*args,**kwargs) for _ in range(len(M))]
 

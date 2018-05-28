@@ -1,5 +1,5 @@
 """
-Klyachko Bundles and Sheaves.
+Klyachko bundles and sheaves
 
 Klyachko bundles are torus-equivariant bundles on toric
 varieties. That is, the action of the maximal torus on the toric
@@ -774,7 +774,7 @@ class KlyachkoBundle_class(SageObject):
         rx = other.variety()
         if lx != rx:
             return richcmp_not_equal(lr, rx, op)
-        
+
         return richcmp(self._filt, other._filt, op)
 
     def is_isomorphic(self, other):

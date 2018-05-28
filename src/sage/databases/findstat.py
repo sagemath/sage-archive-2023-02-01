@@ -174,7 +174,6 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.categories.sets_cat import Sets
@@ -528,17 +527,19 @@ class FindStat(SageObject):
                 return (FindStatCollection(collection), lambda x: x)
 
         def query_by_dict(query, collection=None):
-            # we expect a dictionary from objects or strings to
-            # integers
+            """
+            we expect a dictionary from objects or strings to
+            integers
+            """
             l = iteritems(query)
             (key, value) = next(l)
 
             (collection, to_str) = get_collection(collection, key)
 
             data = ([([key], [to_str(key)], [Integer(value)])] +
-                    [([key], [to_str(key)], [Integer(value)]) for (key, value) in l])
+                    [([ky], [to_str(ky)], [Integer(val)]) for (ky, val) in l])
 
-            first_terms = [(key[0], value[0]) for (key, key_str, value) in data]
+            first_terms = [(ky[0], val[0]) for (ky, key_str, val) in data]
 
             return FindStatStatistic(id=0, data=data,
                                      first_terms=first_terms,
@@ -633,7 +634,7 @@ class FindStat(SageObject):
                 try:
                     code = inspect.getsource(query_2)
                 except IOError:
-                    _ = verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
+                    verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
                     code = ""
                 return FindStatStatistic(id=0, first_terms=first_terms,
                                          data=data, function=query_2, code=code,
@@ -953,7 +954,7 @@ class FindStatStatistic(SageObject):
 
         # get the database entry from FindStat
         url = FINDSTAT_URL_DOWNLOADS_STATISTICS %self.id_str()
-        _ = verbose("Fetching URL %s ..." %url, caller_name='FindStat')
+        verbose("Fetching URL %s ..." % url, caller_name='FindStat')
         try:
             self._raw = json.load(urlopen(url), object_pairs_hook=OrderedDict)
         except HTTPError as error:
@@ -1036,16 +1037,16 @@ class FindStatStatistic(SageObject):
         stat = [(elements_str, str(values)[1:-1]) for (elements, elements_str, values) in data]
 
         stat_str = "\n".join(["\n".join(keys) + "\n====> " + values for (keys, values) in stat])
-        _ = verbose("Sending the following data to FindStat\r\n %s" %stat_str, caller_name='FindStat')
+        verbose("Sending the following data to FindStat\r\n %s" % stat_str, caller_name='FindStat')
 
         values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
-        _ = verbose("Fetching URL %s with encoded data %s" %(url, values), caller_name='FindStat')
+        verbose("Fetching URL %s with encoded data %s" % (url, values), caller_name='FindStat')
 
         request = Request(url, data=values)
-        _ = verbose("Requesting %s" %request, caller_name='FindStat')
+        verbose("Requesting %s" % request, caller_name='FindStat')
 
         response = urlopen(request)
-        _ = verbose("Response was %s" %response.info(), caller_name='FindStat')
+        verbose("Response was %s" % response.info(), caller_name='FindStat')
 
         try:
             result = json.load(response)
@@ -1756,23 +1757,23 @@ class FindStatStatistic(SageObject):
 
         # write the file
         f = tempfile.NamedTemporaryFile(delete=False)
-        _ = verbose("Created temporary file %s" %f.name, caller_name='FindStat')
+        verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %FINDSTAT_URL_NEW)
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))
         for key, value in iteritems(args):
-            _ = verbose("writing argument %s" %key, caller_name='FindStat')
+            verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = cgi.escape(str(value), quote=True)
-            _ = verbose("%s" %value_encoded, caller_name='FindStat')
+            verbose("%s" % value_encoded, caller_name='FindStat')
             f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, value_encoded)))
         f.write(FINDSTAT_NEWSTATISTIC_FORM_FOOTER)
         f.close()
-        _ = verbose("Opening file with webbrowser", caller_name='FindStat')
-        _ = webbrowser.open(f.name)
+        verbose("Opening file with webbrowser", caller_name='FindStat')
+        webbrowser.open(f.name)
 
-        _ = verbose("Waiting a little before deleting the temporary file", caller_name='FindStat')
+        verbose("Waiting a little before deleting the temporary file", caller_name='FindStat')
         time.sleep(1)
 
         f.unlink(f.name)
@@ -1951,7 +1952,7 @@ class FindStatCollection(Element):
             sage: sorted(c for c in FindStatCollections())[0]                                       # optional -- internet
             Cc0001: Permutations
         """
-        return richchmp(self.id(), other.id(), op)
+        return richcmp(self.id(), other.id(), op)
 
     def is_supported(self):
         """

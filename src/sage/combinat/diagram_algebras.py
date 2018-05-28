@@ -9,6 +9,7 @@ AUTHORS:
 - Stephen Doty, Aaron Lauve, George H. Seelinger (2015): Implementation of
   ``*Diagram`` classes and other methods to improve diagram algebras.
 - Mike Zabrocki (2018): Implementation of individual element diagram classes
+- Aaron Lauve, Mike Zabrocki (2018): Implementation of orbit basis for Partition algebra.
 """
 
 #*****************************************************************************
@@ -24,7 +25,7 @@ AUTHORS:
 from __future__ import division
 from six.moves import range
 
-from sage.categories.algebras import Algebras
+from sage.categories.associative_algebras import AssociativeAlgebras
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.arith.power import generic_power
 from sage.combinat.free_module import CombinatorialFreeModule
@@ -41,8 +42,11 @@ from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.flatten import flatten
+from sage.misc.misc_c import prod
 from sage.rings.all import ZZ
+from sage.functions.other import ceil
 
+import itertools
 
 def partition_diagrams(k):
     r"""
@@ -226,7 +230,7 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         sage: pd4 = da.AbstractPartitionDiagram(pd, [[1,2],[3,4]])
         Traceback (most recent call last):
         ...
-        ValueError: {{1, 2}, {3, 4}} does not represent two rows of vertices
+        ValueError: {{1, 2}, {3, 4}} does not represent two rows of vertices of order 2
     """
     def __init__(self, parent, d):
         r"""
@@ -253,12 +257,34 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[3,4]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: {{1, 2}, {3, 4}} does not represent two rows of vertices
+            ValueError: {{1, 2}, {3, 4}} does not represent two rows of vertices of order 2
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1],[-1]]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: {{-1}, {1}} does not represent two rows of vertices of order 2
         """
         if self._base_diagram:
-            tst = sorted(flatten(self._base_diagram))
-            if len(tst) % 2 or tst != list(range(-len(tst)//2,0)) + list(range(1,len(tst)//2+1)):
-                raise ValueError("%s does not represent two rows of vertices"%(self))
+            tst = frozenset(flatten(self._base_diagram))
+            if tst != self.parent()._set:
+                raise ValueError("{} does not represent two rows of vertices of order {}".format(
+                                     self, self.parent().order))
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+        
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(2)
+            sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: hash(pd1) == hash(pd2)
+            True
+            sage: hash(pd1) == hash( ((-2,-1), (1,2)) )
+            True
+        """
+        return hash(self._base_diagram)
 
     def __eq__(self, other):
         r"""
@@ -279,6 +305,15 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             sage: pd3 = da.AbstractPartitionDiagram(pd, [[1,-2],[-1,2]])
             sage: pd1 == pd3
             False
+
+        Check the inherited inequality::
+
+            sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,-2],[-1,2]])
+            sage: pd1 != pd2
+            True
+            sage: pd1 != ((-2,-1),(2,1))
+            False
         """
         try:
             return self._base_diagram == other._base_diagram
@@ -291,22 +326,28 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         except (TypeError, ValueError, AttributeError):
             return False
 
-    def __ne__(self, other):
+    def __lt__(self, other):
         """
-        Check not equals.
+        Compare less than.
 
-        TESTS::
+        EXAMPLES::
 
             sage: import sage.combinat.diagram_algebras as da
             sage: pd = da.AbstractPartitionDiagrams(2)
             sage: pd1 = da.AbstractPartitionDiagram(pd, [[1,2],[-1,-2]])
             sage: pd2 = da.AbstractPartitionDiagram(pd, [[1,-2],[-1,2]])
-            sage: pd1 != pd2
+            sage: pd1 < pd2
             True
-            sage: pd1 != ((-2,-1),(2,1))
+            sage: pd2 < pd1
+            False
+            sage: pd2 > pd1
+            True
+            sage: pd1 > pd2
             False
         """
-        return not self == other
+        if not isinstance(other, AbstractPartitionDiagram):
+            return False
+        return self._base_diagram < other._base_diagram
 
     def base_diagram(self):
         r"""
@@ -326,6 +367,21 @@ class AbstractPartitionDiagram(AbstractSetPartition):
         return self._base_diagram # note, this works because self._base_diagram is immutable
 
     diagram = base_diagram
+
+    def set_partition(self):
+        r"""
+        Return the underlying implementation of the diagram as a set of sets.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: pd = da.AbstractPartitionDiagrams(2)
+            sage: X = pd([[1,2],[-1,-2]]).set_partition(); X
+            {{-2, -1}, {1, 2}}
+            sage: X.parent()
+            Set partitions
+        """
+        return SetPartitions()(self)
 
     def compose(self, other):
         r"""
@@ -435,16 +491,16 @@ class IdealDiagram(AbstractPartitionDiagram):
     r"""
     The element class for a ideal diagram.
 
-    A partition diagram for an integer `k` is a partition of the set
-    `\{1, \ldots, k, -1, \ldots, -k\}` and the propagating number is
+    An ideal diagram for an integer `k` is a partition of the set
+    `\{1, \ldots, k, -1, \ldots, -k\}` where the propagating number is
     strictly smaller than the order.
 
     EXAMPLES::
 
-        sage: from sage.combinat.diagram_algebras import IdealDiagrams
-        sage: IdealDiagrams(2)
+        sage: from sage.combinat.diagram_algebras import IdealDiagrams as IDs
+        sage: IDs(2)
         Ideal diagrams of order 2
-        sage: IdealDiagrams(2).list()
+        sage: IDs(2).list()
         [{{-2, -1, 1, 2}}, {{-2, -1, 2}, {1}},
          {{-2, -1, 1}, {2}}, {{-2, 1, 2}, {-1}},
          {{-2}, {-1, 1, 2}}, {{-2, -1}, {1, 2}},
@@ -452,6 +508,9 @@ class IdealDiagram(AbstractPartitionDiagram):
          {{-2}, {-1, 2}, {1}}, {{-2, 1}, {-1}, {2}},
          {{-2}, {-1, 1}, {2}}, {{-2}, {-1}, {1, 2}},
          {{-2}, {-1}, {1}, {2}}]
+        sage: from sage.combinat.diagram_algebras import PartitionDiagrams as PDs
+        sage: PDs(4).cardinality() == factorial(4) + IDs(4).cardinality()  # long time
+        True
     """
     @staticmethod
     def __classcall_private__(cls, diag):
@@ -483,23 +542,23 @@ class IdealDiagram(AbstractPartitionDiagram):
             sage: pd2 = IdealDiagram([[1,-2],[2,-1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: the diagram must have a propagating number smaller than the order
+            ValueError: the diagram {{-2, 1}, {-1, 2}} must have a propagating number smaller than the order
             sage: pd3 = IdealDiagram([[1,2,-1,-3]])    # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: {{-3, -1, 1, 2}} does not represent two rows of vertices
+            ValueError: {{-3, -1, 1, 2}} does not represent two rows of vertices of order 2
             sage: pd4 = IdealDiagram([[1,-2,-1],[2]])  # indirect doctest
         """
         super(IdealDiagram, self).check()
         if self.propagating_number() >= self.order():
-            raise ValueError("the diagram must have a propagating number smaller than the order")
+            raise ValueError("the diagram %s must have a propagating number smaller than the order"%(self))
 
 class PlanarDiagram(AbstractPartitionDiagram):
     r"""
     The element class for a planar diagram.
 
-    A partition diagram for an integer `k` is a partition of the set
-    `\{1, \ldots, k, -1, \ldots, -k\}`, the diagram is non-crossing
+    A planar diagram for an integer `k` is a partition of the set
+    `\{1, \ldots, k, -1, \ldots, -k\}` so that the diagram is non-crossing.
 
     EXAMPLES::
 
@@ -550,7 +609,7 @@ class PlanarDiagram(AbstractPartitionDiagram):
             sage: pd3 = PlanarDiagram([[1,2,-1,-3]])    # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: {{-3, -1, 1, 2}} does not represent two rows of vertices
+            ValueError: {{-3, -1, 1, 2}} does not represent two rows of vertices of order 2
             sage: pd4 = PlanarDiagram([[1,-2,-1],[2]])  # indirect doctest
         """
         super(PlanarDiagram, self).check()
@@ -561,8 +620,8 @@ class TemperleyLiebDiagram(AbstractPartitionDiagram):
     r"""
     The element class for a Temperley-Lieb diagram.
 
-    A partition diagram for an integer `k` is a partition of the set
-    `\{1, \ldots, k, -1, \ldots, -k\}`, the blocks are all of size
+    A Temperley-Lieb diagram for an integer `k` is a partition of the set
+    `\{1, \ldots, k, -1, \ldots, -k\}` so that the blocks are all of size
     2 and the diagram is planar.
 
     EXAMPLES::
@@ -608,7 +667,7 @@ class TemperleyLiebDiagram(AbstractPartitionDiagram):
             sage: pd3 = TemperleyLiebDiagram([[1,2,-1,-3]])    # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: {{-3, -1, 1, 2}} does not represent two rows of vertices
+            ValueError: {{-3, -1, 1, 2}} does not represent two rows of vertices of order 2
             sage: pd4 = TemperleyLiebDiagram([[1,-2,-1],[2]])  # indirect doctest
             Traceback (most recent call last):
             ...
@@ -749,8 +808,8 @@ class BrauerDiagram(AbstractPartitionDiagram):
         The compact representation ``[A/B;pi]`` of the Brauer algebra diagram
         (see [GL1996]_) has the following components:
 
-        - ``A`` -- is a list of pairs of positive elements (upper row) that 
-          are connected, 
+        - ``A`` -- is a list of pairs of positive elements (upper row) that
+          are connected,
 
         - ``B`` -- is a list of pairs of negative elements (lower row) that
           are connected, and
@@ -809,6 +868,9 @@ class BrauerDiagram(AbstractPartitionDiagram):
             '[12/12;]'
             sage: bd([[1,-2],[2,-1]])._repr_compact()
             '[/;21]'
+            sage: bd = da.BrauerDiagrams(7)
+            sage: bd([[1,4],[6,7], [-2,-6],[-5,-7], [2,-4],[3,-1],[5,-3]])._repr_compact()
+            '[14.67/26.57;312]'
         """
         (top, bot, thru) = self.involution_permutation_triple()
         bot.reverse()
@@ -929,8 +991,6 @@ class BrauerDiagram(AbstractPartitionDiagram):
         of the Brauer diagram `d`. We say `d` is *elementary symmetric*
         if `D_1 = D_2` and `\pi` is the identity.
 
-        .. TODO:: Come up with a better name?
-
         EXAMPLES::
 
             sage: import sage.combinat.diagram_algebras as da
@@ -951,7 +1011,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
     r"""
     This is an abstract base class for partition diagrams.
 
-    Thee primary use of this class is to serve as basis keys for
+    The primary use of this class is to serve as basis keys for
     diagram algebras, but diagrams also have properties in their
     own right. Furthermore, this class is meant to be extended to
     create more efficient contains methods.
@@ -1014,6 +1074,13 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
             category = FiniteEnumeratedSets()
         Parent.__init__(self, category=category)
         self.order = order
+        if order in ZZ:
+            base_set = frozenset(list(range(1,order+1)) + list(range(-order,0)))
+        else:
+            #order is a half-integer.
+            base_set = frozenset(list(range(1,ZZ(ZZ(1)/ZZ(2) + order)+1))
+                                 + list(range(ZZ(-ZZ(1)/ZZ(2) - order),0)))
+        self._set = base_set
 
     def _repr_(self):
         r"""
@@ -1112,7 +1179,7 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
                 obj = self._element_constructor_(obj)
             except (ValueError, TypeError):
                 return False
-        if len(obj.base_diagram()) > 0:
+        if obj.base_diagram():
             tst = sorted(flatten(obj.base_diagram()))
             if len(tst) % 2 or tst != list(range(-len(tst)//2,0)) + list(range(1,len(tst)//2+1)):
                 return False
@@ -1510,15 +1577,14 @@ class IdealDiagrams(AbstractPartitionDiagrams):
 class DiagramAlgebra(CombinatorialFreeModule):
     r"""
     Abstract class for diagram algebras and is not designed to be used
-    directly. If used directly, the class could create an "algebra"
-    that is not actually an algebra.
+    directly.
 
     TESTS::
 
         sage: import sage.combinat.diagram_algebras as da
         sage: R.<x> = QQ[]
         sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
-        sage: sorted(D.basis())
+        sage: list(D.basis())
         [P{{-2, -1, 1, 2}}, P{{-2, -1, 2}, {1}},
          P{{-2, -1, 1}, {2}}, P{{-2, 1, 2}, {-1}},
          P{{-2}, {-1, 1, 2}}, P{{-2, 1}, {-1, 2}},
@@ -1545,15 +1611,17 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
             sage: import sage.combinat.diagram_algebras as da
             sage: R.<x> = QQ[]
-            sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
+            sage: D = da.DiagramBasis(2, x, R, 'P', da.PartitionDiagrams(2))
             sage: TestSuite(D).run()
         """
         self._prefix = prefix
         self._q = base_ring(q)
         self._k = k
         self._base_diagrams = diagrams
-        category = Algebras(base_ring.category()).FiniteDimensional().WithBasis()
-        category = category.or_subcategory(category)
+        cat = AssociativeAlgebras(base_ring.category()).FiniteDimensional().WithBasis()
+        if isinstance(self, UnitDiagramMixin):
+            cat = cat.Unital()
+        category = cat.or_subcategory(category)
         CombinatorialFreeModule.__init__(self, base_ring, diagrams,
                     category=category, prefix=prefix, bracket=False)
 
@@ -1596,9 +1664,9 @@ class DiagramAlgebra(CombinatorialFreeModule):
 
         raise ValueError("invalid input of {0}".format(set_partition))
 
-    def __getitem__(self, i):
+    def __getitem__(self, d):
         """
-        Get the basis item of ``self`` indexed by ``i``.
+        Get the basis item of ``self`` indexed by ``d``.
 
         EXAMPLES::
 
@@ -1608,11 +1676,29 @@ class DiagramAlgebra(CombinatorialFreeModule):
             sage: sp = da.PartitionDiagrams(2)( [[1,2], [-1,-2]] )
             sage: D[sp]
             P{{-2, -1}, {1, 2}}
+            sage: D[[1,-1,2,-2]]
+            P{{-2, -1, 1, 2}}
+            sage: D3 = da.DiagramAlgebra(3, x, R, 'P', da.PartitionDiagrams(3))
+            sage: da.PartitionDiagrams(3)( [[1,2], [-1,-2]] )
+            Traceback (most recent call last):
+            ...
+            ValueError: {{-2, -1}, {1, 2}} does not represent two rows of vertices of order 3
+            sage: D3[sp]
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: D3[[1,-1,2,-2]]
+            P{{-3, 3}, {-2, -1, 1, 2}}
+            sage: D3[[1,2,-2]]
+            P{{-3, 3}, {-2, 1, 2}, {-1}}
+            sage: P = PartitionAlgebra(3,x)
+            sage: P[[1]]
+            P{{-3, 3}, {-2, 2}, {-1}, {1}}
         """
-        i = self._base_diagrams(i)
-        if i in self.basis().keys():
-            return self.basis()[i]
-        raise ValueError("{0} is not an index of a basis element".format(i))
+        if isinstance(d, (list, tuple)) and all(a in ZZ for a in d):
+            d = [d]
+        d = self._base_diagrams(to_set_partition(d, self._k))
+        if d in self.basis().keys():
+            return self.basis()[d]
+        raise ValueError("{0} is not an index of a basis element".format(d))
 
     def _perm_to_Blst(self, w):
         """
@@ -1633,7 +1719,51 @@ class DiagramAlgebra(CombinatorialFreeModule):
         ## turns w into an expression suitable for the element constructor.
         u = sorted(w)
         p = [[u[i],-x] for i,x in enumerate(w)]
+        if len(u) < self.order():
+            p1 = [[j,-j] for j in range(len(u)+1,self.order()+1)]
+            p.extend(p1)
         return self[p]
+
+    def _diag_to_Blst(self, d):
+        """
+        Return an element of ``self`` from the input ``d``.
+
+        If ``d`` is a partial diagram of `\{1,2,\ldots,k,-1,-2,\ldots,-k\}`
+        then the set partition is filled in by adding the parts `\{i,-i\}`
+        if possible, and singletons sets for the remaining parts.
+
+        INPUT:
+
+        - ``d`` -- an iterable that behaves like
+          :class:`AbstractPartitionDiagram` or :class:`Permutation`
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: PartitionAlgebra(3, x, R)._diag_to_Blst([[1,2], [-3,-1]])
+            P{{-3, -1}, {-2}, {1, 2}, {3}}
+            sage: BrauerAlgebra(4, x, R)._diag_to_Blst([3,1,2])
+            B{{-4, 4}, {-3, 1}, {-2, 3}, {-1, 2}}
+            sage: import sage.combinat.diagram_algebras as da
+            sage: D3 = da.DiagramAlgebra(3, x, R, 'P', da.PlanarDiagrams(3))
+            sage: D3._diag_to_Blst([[1, 2], [-2,-1]])
+            P{{-3, 3}, {-2, -1}, {1, 2}}
+            sage: D3._diag_to_Blst([[-1,2], [-2,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the diagram {{-3, 3}, {-2, 1}, {-1, 2}} must be planar
+            sage: D3._diag_to_Blst([[-1,2], [-3,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the diagram {{-3, 1}, {-2}, {-1, 2}, {3}} must be planar
+        """
+        d = list(d)
+        if not d:
+            return self.one()
+        if d[0] in ZZ:
+            return self._perm_to_Blst(d)
+        d = to_set_partition(d, self._k)
+        return self[self._base_diagrams(d)]
 
     def order(self):
         r"""
@@ -1656,7 +1786,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
         Return the collection of underlying set partitions indexing the
         basis elements of a given diagram algebra.
 
-        .. TODO:: Is this really necessary?
+        .. TODO:: Is this really necessary? deprecate?
 
         TESTS::
 
@@ -1667,44 +1797,6 @@ class DiagramAlgebra(CombinatorialFreeModule):
             True
         """
         return self.basis().keys()
-
-    def product_on_basis(self, d1, d2):
-        r"""
-        Return the product `D_{d_1} D_{d_2}` by two basis diagrams.
-
-        TESTS::
-
-            sage: import sage.combinat.diagram_algebras as da
-            sage: R.<x> = QQ[]
-            sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
-            sage: sp = da.PartitionDiagrams(2)([[1,2],[-1,-2]])
-            sage: D.product_on_basis(sp, sp)
-            x*P{{-2, -1}, {1, 2}}
-        """
-        if not self._indices.is_parent_of(d1):
-            d1 = self._indices(d1)
-        if not self._indices.is_parent_of(d2):
-            d2 = self._indices(d2)
-        (composite_diagram, loops_removed) = d1.compose(d2)
-        return self.term(composite_diagram, self._q**loops_removed)
-
-    @cached_method
-    def one_basis(self):
-        r"""
-        The following constructs the identity element of ``self``.
-
-        It is not called directly; instead one should use ``DA.one()`` if
-        ``DA`` is a defined diagram algebra.
-
-        EXAMPLES::
-
-            sage: import sage.combinat.diagram_algebras as da
-            sage: R.<x> = QQ[]
-            sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
-            sage: D.one_basis()
-            {{-2, 2}, {-1, 1}}
-        """
-        return self._base_diagrams(identity_set_partition(self._k))
 
     def _latex_term(self, diagram):
         r"""
@@ -1725,11 +1817,27 @@ class DiagramAlgebra(CombinatorialFreeModule):
             \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
             \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
             \end{tikzpicture}
+
+            sage: latex(P.orbit_basis()([[1,2],[-2,-1]])) # indirect doctest
+            \begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}]
+            \tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt]
+            \node[vertex] (G--2) at (1.5, -1) [shape = circle, draw, fill] {};
+            \node[vertex] (G--1) at (0.0, -1) [shape = circle, draw, fill] {};
+            \node[vertex] (G-1) at (0.0, 1) [shape = circle, draw, fill] {};
+            \node[vertex] (G-2) at (1.5, 1) [shape = circle, draw, fill] {};
+            \draw (G--2) .. controls +(-0.5, 0.5) and +(0.5, 0.5) .. (G--1);
+            \draw (G-1) .. controls +(0.5, -0.5) and +(-0.5, -0.5) .. (G-2);
+            \end{tikzpicture}
+
         """
         # these allow the view command to work (maybe move them somewhere more appropriate?)
         from sage.misc.latex import latex
         latex.add_to_mathjax_avoid_list('tikzpicture')
         latex.add_package_to_preamble_if_available('tikz')
+        if hasattr(self, '_fill'):
+            filled_str = ", fill"
+        else:
+            filled_str = ""
         # Define the sign function
         def sgn(x):
             if x > 0:
@@ -1745,7 +1853,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
                 l2.append(j)
         output = "\\begin{tikzpicture}[scale = 0.5,thick, baseline={(0,-1ex/2)}] \n\\tikzstyle{vertex} = [shape = circle, minimum size = 7pt, inner sep = 1pt] \n" #setup beginning of picture
         for i in l2: #add nodes
-            output = output + "\\node[vertex] (G-{}) at ({}, {}) [shape = circle, draw] {{}}; \n".format(i, (abs(i)-1)*1.5, sgn(i))
+            output = output + "\\node[vertex] (G-{}) at ({}, {}) [shape = circle, draw{}] {{}}; \n".format(i, (abs(i)-1)*1.5, sgn(i), filled_str)
         for i in l1: #add edges
             if len(i) > 1:
                 l4 = list(i)
@@ -1784,7 +1892,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
         return output
 
     # The following subclass provides a few additional methods for
-    # partition algebra elements.
+    # (sub)partition algebra elements.
     class Element(CombinatorialFreeModule.Element):
         r"""
         An element of a diagram algebra.
@@ -1828,7 +1936,53 @@ class DiagramAlgebra(CombinatorialFreeModule):
             """
             return self.support()
 
-class PartitionAlgebra(DiagramAlgebra):
+class UnitDiagramMixin(object):
+    """
+    Mixin class for diagram algebras that have the unit indexed by
+    the :func:`identity_set_partition`.
+    """
+    @cached_method
+    def one_basis(self):
+        r"""
+        The following constructs the identity element of ``self``.
+
+        It is not called directly; instead one should use ``DA.one()`` if
+        ``DA`` is a defined diagram algebra.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(2, x, R)
+            sage: P.one_basis()
+            {{-2, 2}, {-1, 1}}
+        """
+        return self._base_diagrams(identity_set_partition(self._k))
+
+class DiagramBasis(DiagramAlgebra):
+    """
+    Abstract base class for diagram algebras in the diagram basis.
+    """
+    def product_on_basis(self, d1, d2):
+        r"""
+        Return the product `D_{d_1} D_{d_2}` by two basis diagrams.
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: R.<x> = QQ[]
+            sage: D = da.DiagramBasis(2, x, R, 'P', da.PartitionDiagrams(2))
+            sage: sp = da.PartitionDiagrams(2)([[1,2],[-1,-2]])
+            sage: D.product_on_basis(sp, sp)
+            x*P{{-2, -1}, {1, 2}}
+        """
+        if not self._indices.is_parent_of(d1):
+            d1 = self._indices(d1)
+        if not self._indices.is_parent_of(d2):
+            d2 = self._indices(d2)
+        (composite_diagram, loops_removed) = d1.compose(d2)
+        return self.term(composite_diagram, self._q**loops_removed)
+
+class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
     r"""
     A partition algebra.
 
@@ -1936,7 +2090,7 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: E^5
         x^4*P{{-2, -1}, {1, 2}}
         sage: (P([[2,-2],[-1,1]]) - 2*P([[1,2],[-1,-2]]))^2
-        P{{-2, 2}, {-1, 1}} + (4*x-4)*P{{-2, -1}, {1, 2}}
+        (4*x-4)*P{{-2, -1}, {1, 2}} + P{{-2, 2}, {-1, 1}}
 
     One can work with partition algebras using a symbol for the parameter,
     leaving the base ring unspecified. This implies that the underlying
@@ -1992,13 +2146,51 @@ class PartitionAlgebra(DiagramAlgebra):
         sage: a*a
         17*P{{-1}, {1}}
 
-    Symmetric group algebra elements can also be coerced into the
-    partition algebra::
+    Symmetric group algebra elements and elements from other subalgebras of the
+    partition algebra (e.g., ``BrauerAlgebra`` and ``TemperleyLiebAlgebra``) can also
+    be coerced into the partition algebra::
 
         sage: S = SymmetricGroupAlgebra(SR, 2)
+        sage: B = BrauerAlgebra(2, x, SR)
         sage: A = PartitionAlgebra(2, x, SR)
         sage: S([2,1])*A([[1,-1],[2,-2]])
         P{{-2, 1}, {-1, 2}}
+        sage: B([[-1,-2],[2,1]]) * A([[1],[-1],[2,-2]])
+        P{{-2}, {-1}, {1, 2}}
+        sage: A([[1],[-1],[2,-2]]) * B([[-1,-2],[2,1]])
+        P{{-2, -1}, {1}, {2}}
+
+    The same is true if the elements come from a subalgebra of a partition algebra of
+    smaller order, or if they are defined over a different base ring::
+
+        sage: R = FractionField(ZZ['q']); q = R.gen()
+        sage: S = SymmetricGroupAlgebra(ZZ, 2)
+        sage: B = BrauerAlgebra(2, q, ZZ[q])
+        sage: A = PartitionAlgebra(3, q, R)
+        sage: S([2,1])*A([[1,-1],[2,-3],[3,-2]])
+        P{{-3, 1}, {-2, 3}, {-1, 2}}
+        sage: A(B([[-1,-2],[2,1]]))
+        P{{-3, 3}, {-2, -1}, {1, 2}}
+
+    Shorthands for working with basis elements are as follows::
+
+        sage: S = SymmetricGroupAlgebra(ZZ, 3)
+        sage: A = PartitionAlgebra(3, x, SR)
+
+        sage: A([[1,3],[-1],[-3]]) # pair up the omitted nodes as `{-i, i}`, if possible
+        P{{-3}, {-2, 2}, {-1}, {1, 3}}
+        sage: A([[1,3],[-1],[-3]]) == A[[1,3],[-1],[-3]]
+        True
+
+        sage: A([[1,2]])
+        P{{-3, 3}, {-2}, {-1}, {1, 2}}
+        sage: A([[1,2]]) == A[[1,2]]
+        True
+
+        sage: A([2,3,1]) # permutations in one-line notation are imported as well
+        P{{-3, 2}, {-2, 1}, {-1, 3}}
+        sage: A([2,3,1]) == A(S([2,3,1]))
+        True
 
     REFERENCES:
 
@@ -2040,6 +2232,109 @@ class PartitionAlgebra(DiagramAlgebra):
         self._q = base_ring(q)
         DiagramAlgebra.__init__(self, k, q, base_ring, prefix, PartitionDiagrams(k))
 
+    def _element_constructor_(self, x):
+        r"""
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: A2 = PartitionAlgebra(2, x, R)
+            sage: O2 = A2.orbit_basis()
+            sage: S = SymmetricGroupAlgebra(ZZ, 3)
+            sage: A = PartitionAlgebra(3, x, R)
+            sage: B = BrauerAlgebra(3, x, R)
+            sage: O = A.orbit_basis()
+            sage: O2.an_element()
+            3*O{{-2, -1, 1}, {2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, -1, 2}, {1}}
+            sage: A(O2.an_element())
+            3*P{{-3, 3}, {-2, -1, 1}, {2}} - 3*P{{-3, 3}, {-2, -1, 1, 2}}
+             + 2*P{{-3, 3}, {-2, -1, 2}, {1}}
+            sage: A2.an_element()
+            3*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, -1, 2}, {1}}
+            sage: A(A2.an_element())
+            3*P{{-3, 3}, {-2, -1, 1}, {2}} + 2*P{{-3, 3}, {-2, -1, 1, 2}}
+             + 2*P{{-3, 3}, {-2, -1, 2}, {1}}
+            sage: S.an_element()
+            [1, 2, 3] + 2*[1, 3, 2] + 3*[2, 1, 3] + [3, 1, 2]
+            sage: A(S.an_element())
+            P{{-3, 1}, {-2, 3}, {-1, 2}} + 2*P{{-3, 2}, {-2, 3}, {-1, 1}}
+             + 3*P{{-3, 3}, {-2, 1}, {-1, 2}} + P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: B.an_element()
+            3*B{{-3, 1}, {-2, -1}, {2, 3}} + 2*B{{-3, 1}, {-2, 2}, {-1, 3}}
+             + 2*B{{-3, 1}, {-2, 3}, {-1, 2}}
+            sage: A(B.an_element())
+            3*P{{-3, 1}, {-2, -1}, {2, 3}} + 2*P{{-3, 1}, {-2, 2}, {-1, 3}}
+             + 2*P{{-3, 1}, {-2, 3}, {-1, 2}}
+            sage: O.an_element()
+            2*O{{-3, -2, -1, 1, 2, 3}} + 3*O{{-3, -2, -1, 1, 3}, {2}}
+             + 2*O{{-3, -2, -1, 2, 3}, {1}}
+            sage: A(O.an_element())
+            -3*P{{-3, -2, -1, 1, 2, 3}} + 3*P{{-3, -2, -1, 1, 3}, {2}}
+             + 2*P{{-3, -2, -1, 2, 3}, {1}}
+            sage: A([])
+            P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: A(4)
+            4*P{{-3, 3}, {-2, 2}, {-1, 1}}
+            sage: A([2,1])
+            P{{-3, 3}, {-2, 1}, {-1, 2}}
+            sage: A([[2,1]])
+            P{{-3, 3}, {-2}, {-1}, {1, 2}}
+            sage: A([[-1,3],[-2,-3,1]])
+            P{{-3, -2, 1}, {-1, 3}, {2}}
+
+        TESTS::
+
+            sage: import sage.combinat.diagram_algebras as da
+            sage: R.<x> = QQ[]
+            sage: PA = PartitionAlgebra(2, x, R, 'P')
+            sage: PA([]) == PA.one()
+            True
+            sage: D = da.DiagramAlgebra(2, x, R, 'P', da.PartitionDiagrams(2))
+            sage: D([]) == D.one()
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid input of []
+            sage: sp = da.to_set_partition( [[1,2], [-1,-2]] )
+            sage: b_elt = D(sp); b_elt
+            P{{-2, -1}, {1, 2}}
+            sage: b_elt in D
+            True
+            sage: D([[1,2],[-1,-2]]) == b_elt
+            True
+            sage: D([{1,2},{-1,-2}]) == b_elt
+            True
+            sage: S = SymmetricGroupAlgebra(R,2)
+            sage: D(S([2,1]))
+            P{{-2, 1}, {-1, 2}}
+            sage: D2 = da.DiagramAlgebra(2, x, R, 'P', da.PlanarDiagrams(2))
+            sage: D2(S([1,2]))
+            P{{-2, 2}, {-1, 1}}
+            sage: D2(S([2,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: the diagram {{-2, 1}, {-1, 2}} must be planar
+        """
+        # coercion from basis keys
+        if self.basis().keys().is_parent_of(x):
+            return self.basis()[x]
+
+        # conversion from (smaller) diagram or permutation
+        if isinstance(x, (AbstractPartitionDiagram, list, tuple, Permutations.Element)):
+            return self._diag_to_Blst(x)
+
+        # conversion from orbit basis
+        if (isinstance(x, OrbitBasis.Element)
+                and self.base_ring().has_coerce_map_from(x.parent().base_ring())):
+            return self(x.parent().to_diagram_basis(x))
+
+        # conversion from SubPartitionAlgebra
+        if (isinstance(x, (PartitionAlgebra.Element, SubPartitionAlgebra.Element))
+                and self.has_coerce_map_from(x.parent().base_ring())):
+            return sum(a * self._diag_to_Blst(d) for (d,a) in x)
+
+        return super(PartitionAlgebra, self)._element_constructor_(x)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -2058,30 +2353,558 @@ class PartitionAlgebra(DiagramAlgebra):
         """
         Return a coerce map from ``R`` if one exists and ``None`` otherwise.
 
+        .. TODO::
+
+            - Refactor some of these generic morphisms as compositions
+              of morphisms.
+            - Allow for coercion if base_rings and parameters are the same,
+              up to relabeling/isomorphism?
+
         EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: S = SymmetricGroupAlgebra(R, 4)
             sage: A = PartitionAlgebra(4, x, R)
+            sage: O = A.orbit_basis()
             sage: A._coerce_map_from_(S)
             Generic morphism:
               From: Symmetric group algebra of order 4 over Univariate Polynomial Ring in x over Rational Field
               To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
-            sage: Sp = SymmetricGroupAlgebra(QQ, 4)
-            sage: A._coerce_map_from_(Sp)
+            sage: A._coerce_map_from_(O)
             Generic morphism:
-              From: Symmetric group algebra of order 4 over Rational Field
+              From: Orbit basis of Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
               To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
-        """
+            sage: Sp3 = SymmetricGroupAlgebra(ZZ, 3)
+            sage: A._coerce_map_from_(Sp3)
+            Generic morphism:
+              From: Symmetric group algebra of order 3 over Integer Ring
+              To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+            sage: B3 = BrauerAlgebra(3, x, R)
+            sage: A._coerce_map_from_(B3)
+            Generic morphism:
+              From: Brauer Algebra of rank 3 with parameter x over Univariate Polynomial Ring in x over Rational Field
+              To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+            sage: A3 = PartitionAlgebra(3, x, R)
+            sage: A._coerce_map_from_(A3)
+            Generic morphism:
+              From: Partition Algebra of rank 3 with parameter x over Univariate Polynomial Ring in x over Rational Field
+              To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+            sage: O3 = A3.orbit_basis()
+            sage: A._coerce_map_from_(O3)
+            Generic morphism:
+              From: Orbit basis of Partition Algebra of rank 3 with parameter x over Univariate Polynomial Ring in x over Rational Field
+              To:   Partition Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+
+        TESTS::
+
+            sage: elt = O3.an_element(); elt
+            2*O{{-3, -2, -1, 1, 2, 3}} + 3*O{{-3, -2, -1, 1, 3}, {2}}
+             + 2*O{{-3, -2, -1, 2, 3}, {1}}
+            sage: A._coerce_map_from_(O3)(elt)
+            -3*P{{-4, 4}, {-3, -2, -1, 1, 2, 3}}
+             + 3*P{{-4, 4}, {-3, -2, -1, 1, 3}, {2}}
+             + 2*P{{-4, 4}, {-3, -2, -1, 2, 3}, {1}}
+          """
+        # coerce from Orbit basis.
+        if isinstance(R, OrbitBasis):
+            if R._k <= self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
+                return R.module_morphism(self._orbit_to_diagram_on_basis, codomain=self)
+            return None
+
+        # coerce from sub-partition algebras.
+        if isinstance(R, (PartitionAlgebra, SubPartitionAlgebra)):
+            if R._k <= self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
+                return R.module_morphism(self._diag_to_Blst, codomain=self)
+            return None
+
+        # coerce from Symmetric group algebras.
         if isinstance(R, SymmetricGroupAlgebra_n):
-            if R.n == self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
+            if R.n <= self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
                 return R.module_morphism(self._perm_to_Blst, codomain=self)
             return None
         return super(PartitionAlgebra, self)._coerce_map_from_(R)
 
-class SubPartitionAlgebra(DiagramAlgebra):
+    def orbit_basis(self):
+        r"""
+        Return the orbit basis of ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: O2 = P2.orbit_basis(); O2
+            Orbit basis of Partition Algebra of rank 2 with parameter x over
+             Univariate Polynomial Ring in x over Rational Field
+            sage: pp = 7 * P2[{-1}, {-2, 1, 2}] - 2 * P2[{-2}, {-1, 1}, {2}]; pp
+            -2*P{{-2}, {-1, 1}, {2}} + 7*P{{-2, 1, 2}, {-1}}
+            sage: op = pp.to_orbit_basis(); op
+            -2*O{{-2}, {-1, 1}, {2}} - 2*O{{-2}, {-1, 1, 2}}
+             - 2*O{{-2, -1, 1}, {2}} + 5*O{{-2, -1, 1, 2}}
+             + 7*O{{-2, 1, 2}, {-1}} - 2*O{{-2, 2}, {-1, 1}}
+            sage: op == O2(op)
+            True
+            sage: pp * op.leading_term()
+            4*P{{-2}, {-1, 1}, {2}} - 4*P{{-2, -1, 1}, {2}}
+             + 14*P{{-2, -1, 1, 2}} - 14*P{{-2, 1, 2}, {-1}}
+        """
+        return OrbitBasis(self)
+
+    def _orbit_to_diagram_on_basis(self, d):
+        r"""
+        Return the orbit basis element, indexed by the partition
+        diagram ``d``, in the diagram basis of the partition algebra.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: from sage.combinat.diagram_algebras import PartitionDiagrams
+            sage: PD = PartitionDiagrams(2)
+            sage: P2._orbit_to_diagram_on_basis(PD([[1,2,-2],[-1]]))
+            -P{{-2, -1, 1, 2}} + P{{-2, 1, 2}, {-1}}
+        """
+        # Mobius inversion in the poset of coarsenings of ``d``
+        SPd = SetPartitions(len(d))
+        return self.sum((-1)**(len(d)-len(sp)) * prod(ZZ(len(p)-1).factorial() for p in sp)
+                        * self([sum((list(d[i-1]) for i in p),[]) for p in sp])
+                        for sp in SPd)
+
+    class Element(DiagramBasis.Element):
+        def to_orbit_basis(self):
+            """
+            Return ``self`` in the orbit basis of the associated
+            partition algebra.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: P = PartitionAlgebra(2, x, R)
+                sage: pp = P.an_element(); pp
+                3*P{{-2, -1, 1}, {2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, -1, 2}, {1}}
+                sage: pp.to_orbit_basis()
+                3*O{{-2, -1, 1}, {2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, -1, 2}, {1}}
+            """
+            OP = self.parent().orbit_basis()
+            return OP(self)
+
+class OrbitBasis(DiagramAlgebra):
+    r"""
+    The orbit basis of the partition algebra.
+
+    Let `D_\pi` represent the diagram basis element indexed by the
+    partition `\pi`, then (see equations (2.14), (2.17) and (2.18) of [BH2017]_)
+
+    .. MATH::
+
+        D_\pi = \sum_{\tau \geq \pi} O_\tau,
+
+    where the sum is over all partitions `\tau` which are coarser than `\pi`
+    and `O_\tau` is the orbit basis element indexed by the partition `\tau`.
+
+    If `\mu_{2k}(\pi,\tau)` represents the mobius function of the partition
+    lattice, then
+
+    .. MATH::
+
+        O_\pi = \sum_{\tau \geq \pi} \mu_{2k}(\pi, \tau) D_\tau.
+
+    If `\tau` is a partition of `\ell` blocks and the `i^{th}` block of
+    `\tau` is a union of `b_i` blocks of `\pi`, then
+
+    .. MATH::
+
+        \mu_{2k}(\pi, \tau) = \prod_{i=1}^\ell (-1)^{b_i-1} (b_i-1)! .
+
+    EXAMPLES::
+
+        sage: R.<x> = QQ[]
+        sage: P2 = PartitionAlgebra(2, x, R)
+        sage: O2 = P2.orbit_basis(); O2
+        Orbit basis of Partition Algebra of rank 2 with parameter x over
+         Univariate Polynomial Ring in x over Rational Field
+        sage: oa = O2([[1],[-1],[2,-2]]); ob = O2([[-1,-2,2],[1]]); oa, ob
+        (O{{-2, 2}, {-1}, {1}}, O{{-2, -1, 2}, {1}})
+        sage: oa * ob
+        (x-2)*O{{-2, -1, 2}, {1}}
+
+    We can convert between the two bases::
+
+        sage: pa = P2(oa); pa
+        2*P{{-2, -1, 1, 2}} - P{{-2, -1, 2}, {1}} - P{{-2, 1, 2}, {-1}}
+         + P{{-2, 2}, {-1}, {1}} - P{{-2, 2}, {-1, 1}}
+        sage: pa * ob
+        (-x+2)*P{{-2, -1, 1, 2}} + (x-2)*P{{-2, -1, 2}, {1}}
+        sage: _ == pa * P2(ob)
+        True
+        sage: O2(pa * ob)
+        (x-2)*O{{-2, -1, 2}, {1}}
+
+    Note that the unit in the orbit basis is not a single diagram,
+    in contrast to the natural diagram basis::
+
+        sage: P2.one()
+        P{{-2, 2}, {-1, 1}}
+        sage: O2.one()
+        O{{-2, -1, 1, 2}} + O{{-2, 2}, {-1, 1}}
+        sage: O2.one() == P2.one()
+        True
+
+    TESTS:
+
+    Check that going between the two bases is the identity::
+
+        sage: R.<x> = QQ[]
+        sage: P2 = PartitionAlgebra(2, x, R)
+        sage: O2 = P2.orbit_basis(); O2
+        Orbit basis of Partition Algebra of rank 2 with parameter x over
+         Univariate Polynomial Ring in x over Rational Field
+        sage: PD = P2.basis().keys()
+        sage: all(O2(P2(O2(m))) == O2(m) for m in PD)
+        True
+        sage: all(P2(O2(P2(m))) == P2(m) for m in PD)
+        True
     """
-    A subalgebra of the partition algebra indexed by a subset of the diagrams.
+    @staticmethod
+    def __classcall_private__(cls, *args):
+        """
+        Normalize input to ensure a unique representation.
+
+        INPUT:
+
+        Either:
+
+        - ``A`` -- an abstract diagram algebra
+
+        or the arguments to construct a diagram algebra:
+
+        - ``k`` -- the rank
+        - ``q`` -- the parameter
+        - ``R`` -- the base ring
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: from sage.combinat.diagram_algebras import OrbitBasis
+            sage: O2a = P2.orbit_basis()
+            sage: O2b = OrbitBasis(P2)
+            sage: O2c = OrbitBasis(2, x, R)
+            sage: O2a is O2b and O2a is O2c
+            True
+            sage: O2d = OrbitBasis(2, x, QQ[x])
+            sage: O2a is O2d
+            True
+        """
+        if len(args) == 1:
+            PA = args[0]
+            if not isinstance(PA, DiagramAlgebra):
+                raise ValueError("{} is not a partition algebra".format(PA))
+            alg = PA
+        elif len(args) != 3:
+            raise ValueError("expected 1 or 3 arguments, received %s: %s"%(len(args), args))
+        else:
+            (k,q,R) = args
+            q = R(q)
+            alg = PartitionAlgebra(k, q, R)
+        return super(OrbitBasis, cls).__classcall__(cls, alg)
+
+    def __init__(self, alg):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: O2 = PartitionAlgebra(2, -1, QQ).orbit_basis()
+            sage: TestSuite(O2).run()
+        """
+        base_ring = alg.base_ring()
+        k = alg._k
+        q = alg._q
+        diagrams = alg._base_diagrams
+        # TODO: should we add additional categories?
+        category = alg.category()
+        DiagramAlgebra.__init__(self, k, q, base_ring, "O", diagrams, category)
+        self._fill = True
+        self._alg = alg
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: PartitionAlgebra(2, -1, QQ).orbit_basis()
+            Orbit basis of Partition Algebra of rank 2 with parameter -1 over Rational Field
+        """
+        return "Orbit basis of {}".format(self._alg)
+
+    def _element_constructor_(self, x):
+        """
+        Convert ``x`` into ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: O2 = P2.orbit_basis()
+            sage: O2(P2([]))
+            O{{-2, -1, 1, 2}} + O{{-2, 2}, {-1, 1}}
+            sage: O2(3).to_diagram_basis() == 3 * P2.one()
+            True
+            sage: O2(P2([[1,2,-2],[-1]]))
+            O{{-2, -1, 1, 2}} + O{{-2, 1, 2}, {-1}}
+        """
+        if isinstance(x, (PartitionAlgebra.Element, SubPartitionAlgebra.Element)):
+            return self._alg(x).to_orbit_basis()
+        d = self._alg._diag_to_Blst(x).diagram()
+        return CombinatorialFreeModule._element_constructor_(self, d)
+
+    def _coerce_map_from_(self, R):
+        r"""
+        Return a coerce map from ``R`` if one exists and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: O2 = P2.orbit_basis()
+            sage: O2(P2([]))
+            O{{-2, -1, 1, 2}} + O{{-2, 2}, {-1, 1}}
+            sage: O2(3)
+            3*O{{-2, -1, 1, 2}} + 3*O{{-2, 2}, {-1, 1}}
+            sage: O2([[1,2,-2],[-1]])
+            O{{-2, 1, 2}, {-1}}
+        """
+        if R is self._alg:
+            return self._alg.module_morphism(self._diagram_to_orbit_on_basis, codomain=self)
+        if self._alg.coerce_map_from(R):
+            return self._coerce_map_via([self._alg], R)
+        return super(OrbitBasis, self)._coerce_map_from_(R)
+
+    @cached_method
+    def one(self):
+        """
+        Return the element `1` of the partition algebra in the orbit basis.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: O2 = P2.orbit_basis()
+            sage: O2.one()
+            O{{-2, -1, 1, 2}} + O{{-2, 2}, {-1, 1}}
+        """
+        PDs = self._base_diagrams
+        base = SetPartitions()(identity_set_partition(self._k))
+        brone = self.base_ring().one()
+        return self._from_dict({PDs(d): brone for d in base.coarsenings()},
+                               coerce=False, remove_zeros=False)
+
+    def diagram_basis(self):
+        """
+        Return the associated partition algebra of ``self``
+        in the diagram basis.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: O2 = PartitionAlgebra(2, x, R).orbit_basis()
+            sage: P2 = O2.diagram_basis(); P2
+            Partition Algebra of rank 2 with parameter x over Univariate
+            Polynomial Ring in x over Rational Field
+            sage: P2(O2.an_element())
+            3*P{{-2, -1, 1}, {2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, -1, 2}, {1}}
+
+        TESTS::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: O2 = P2.orbit_basis()
+            sage: op = O2([]); op
+            O{{-2, 2}, {-1, 1}}
+            sage: PA = O2.diagram_basis()
+            sage: P2 == PA
+            True
+            sage: PA([]) == P2.one()
+            True
+            sage: PA(op)
+            -P{{-2, -1, 1, 2}} + P{{-2, 2}, {-1, 1}}
+            sage: op == PA(op).to_orbit_basis()
+            True
+        """
+        return self._alg
+
+    def _diagram_to_orbit_on_basis(self, diag):
+        """
+        Return the element ``diag`` in the orbit basis.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: P2 = PartitionAlgebra(2, x, R)
+            sage: O2 = P2.orbit_basis()
+            sage: from sage.combinat.diagram_algebras import PartitionDiagrams
+            sage: PD = PartitionDiagrams(2)
+            sage: O2._diagram_to_orbit_on_basis(PD([[1,2,-2],[-1]]))
+            O{{-2, -1, 1, 2}} + O{{-2, 1, 2}, {-1}}
+            sage: P2.one().to_orbit_basis()
+            O{{-2, -1, 1, 2}} + O{{-2, 2}, {-1, 1}}
+            sage: pp = P2[{-2}, {-1, 1}, {2}]
+            sage: O2(pp)
+            O{{-2}, {-1, 1}, {2}} + O{{-2}, {-1, 1, 2}} + O{{-2, -1, 1}, {2}}
+             + O{{-2, -1, 1, 2}} + O{{-2, 2}, {-1, 1}}
+
+        TESTS::
+
+            sage: P2([]).to_orbit_basis() == O2.one()
+            True
+            sage: O2([]) == O2.one()
+            False
+            sage: op = O2.an_element()
+            sage: op == op.to_diagram_basis().to_orbit_basis()
+            True
+        """
+        PDs = PartitionDiagrams(self._alg._k)
+        one = self.base_ring().one()
+        return self._from_dict({PDs(d): one for d in diag.set_partition().coarsenings()},
+                               coerce=False, remove_zeros=False)
+
+    def product_on_basis(self, d1, d2):
+        r"""
+        Return the product `O_{d_1} O_{d_2}` of two elements
+        in the orbit basis ``self``.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: OP = PartitionAlgebra(2, x, R).orbit_basis()
+            sage: SP = OP.basis().keys()
+            sage: OP.product_on_basis(SP.an_element(), SP.an_element())
+            O{{-2, -1, 1, 2}}
+            sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
+            sage: o2 == o1
+            False
+            sage: o1 * o1 == o1
+            True
+            sage: o3 * o1 == o1 * o3 and o3 * o1 == o3
+            True
+            sage: o3 * o3
+            6*O{{-2, -1, 1}, {2}} + 4*O{{-2, -1, 1, 2}} + 4*O{{-2, -1, 2}, {1}}
+
+        We compute Examples 4.5 in [BH2017]_::
+
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(3,x); O = P.orbit_basis()
+            sage: O[[1,2,3],[-1,-2,-3]] * O[[1,2,3],[-1,-2,-3]]
+            (x-2)*O{{-3, -2, -1}, {1, 2, 3}} + (x-1)*O{{-3, -2, -1, 1, 2, 3}}
+
+            sage: P = PartitionAlgebra(4,x); O = P.orbit_basis()
+            sage: O[[1],[-1],[2,3],[4,-2],[-3,-4]] * O[[1],[2,-2],[3,4],[-1,-3],[-4]]
+            (x^2-11*x+30)*O{{-4}, {-3, -1}, {-2, 4}, {1}, {2, 3}}
+             + (x^2-9*x+20)*O{{-4}, {-3, -1, 1}, {-2, 4}, {2, 3}}
+             + (x^2-9*x+20)*O{{-4}, {-3, -1, 2, 3}, {-2, 4}, {1}}
+             + (x^2-9*x+20)*O{{-4, 1}, {-3, -1}, {-2, 4}, {2, 3}}
+             + (x^2-7*x+12)*O{{-4, 1}, {-3, -1, 2, 3}, {-2, 4}}
+             + (x^2-9*x+20)*O{{-4, 2, 3}, {-3, -1}, {-2, 4}, {1}}
+             + (x^2-7*x+12)*O{{-4, 2, 3}, {-3, -1, 1}, {-2, 4}}
+
+            sage: O[[1,-1],[2,-2],[3],[4,-3],[-4]] * O[[1,-2],[2],[3,-1],[4],[-3],[-4]]
+            (x-6)*O{{-4}, {-3}, {-2, 1}, {-1, 4}, {2}, {3}}
+             + (x-5)*O{{-4}, {-3, 3}, {-2, 1}, {-1, 4}, {2}}
+             + (x-5)*O{{-4, 3}, {-3}, {-2, 1}, {-1, 4}, {2}}
+
+            sage: P = PartitionAlgebra(6,x); O = P.orbit_basis()
+            sage: (O[[1,-2,-3],[2,4],[3,5,-6],[6],[-1],[-4,-5]]
+            ....:  * O[[1,-2],[2,3],[4],[5],[6,-4,-5,-6],[-1,-3]])
+            0
+
+            sage: (O[[1,-2],[2,-3],[3,5],[4,-5],[6,-4],[-1],[-6]]
+            ....:  * O[[1,-2],[2,-1],[3,-4],[4,-6],[5,-3],[6,-5]])
+            O{{-6, 6}, {-5}, {-4, 2}, {-3, 4}, {-2}, {-1, 1}, {3, 5}}
+
+        TESTS:
+
+        Check that multiplication agrees with the multiplication in the
+        partition algebra::
+
+            sage: R.<x> = QQ[]
+            sage: OP = PartitionAlgebra(2, x).orbit_basis()
+            sage: P = OP.diagram_basis()
+            sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
+            sage: p1 = P(o1); p2 = P(o2); p3 = P(o3)
+            sage: (p2 * p3).to_orbit_basis() == o2 * o3
+            True
+            sage: (3*p3 * (p1 - 2*p2)).to_orbit_basis() == 3*o3 * (o1 - 2*o2)
+            True
+
+            sage: R.<x> = QQ[]
+            sage: P = PartitionAlgebra(2,x); O = P.orbit_basis()
+            sage: all(b * bp == OP(P(b) * P(bp)) for b in OP.basis() # long time
+            ....:     for bp in OP.basis())
+            True
+
+        REFERENCES:
+
+        - [BH2017]_
+        """
+        ## According to Corollary 4.12 in [BH2017]_, product is zero unless the
+        ## stacked diagrams "exactly match" in the middle.
+        pi_1 = [frozenset([-i for i in part if i < 0]) for part in d1]
+        pi_2 = [frozenset([i for i in part if i > 0]) for part in d2]
+        if set([part for part in pi_1 if part]) != set([part for part in pi_2 if part]):
+            return self.zero()
+
+        q = self._q
+        R = q.parent()
+        PDs = self._base_diagrams
+        def matchings(A, B):
+            for i in range(min(len(A), len(B))+1):
+                for X in itertools.combinations(A, i):
+                    restA = list(A.difference(X))
+                    for Y in itertools.combinations(B, i):
+                        restB = list(B.difference(Y))
+                        for sigma in Permutations(Y):
+                            yield [x.union(y) for x,y in zip(X, sigma)] + restA + restB
+
+        D, removed = d1.compose(d2)
+        only_top = set([frozenset(part) for part in d1 if all(i > 0 for i in part)])
+        only_bottom = set([frozenset(part) for part in d2 if all(i < 0 for i in part)])
+        only_both = only_top.union(only_bottom)
+        restD = [P for P in D if frozenset(P) not in only_both]
+        term_dict = {PDs(restD + X):
+                      R.prod(q - t for t in range(len(X)+len(restD),
+                                                  len(X)+len(restD)+removed))
+                     for X in matchings(only_top, only_bottom)}
+        return self._from_dict(term_dict)
+
+    class Element(PartitionAlgebra.Element):
+        def to_diagram_basis(self):
+            """
+            Expand ``self`` in the natural diagram basis of the partition algebra.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: P = PartitionAlgebra(2, x, R)
+                sage: O = P.orbit_basis()
+                sage: elt = O.an_element(); elt
+                3*O{{-2, -1, 1}, {2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, -1, 2}, {1}}
+                sage: elt.to_diagram_basis()
+                3*P{{-2, -1, 1}, {2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, -1, 2}, {1}}
+                sage: pp = P.an_element()
+                sage: op = pp.to_orbit_basis(); op
+                3*O{{-2, -1, 1}, {2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, -1, 2}, {1}}
+                sage: pp == op.to_diagram_basis()
+                True
+            """
+            # use _coerce_map_from_
+            return self.parent()._alg(self)
+            #return self._alg.coerce_map_from(self)
+
+class SubPartitionAlgebra(DiagramBasis):
+    """
+    A subalgebra of the partition algebra in the diagram basis indexed
+    by a subset of the diagrams.
     """
     def __init__(self, k, q, base_ring, prefix, diagrams, category=None):
         """
@@ -2094,7 +2917,7 @@ class SubPartitionAlgebra(DiagramAlgebra):
             sage: BA.ambient().has_coerce_map_from(BA)
             True
         """
-        DiagramAlgebra.__init__(self, k, q, base_ring, prefix, diagrams, category)
+        DiagramBasis.__init__(self, k, q, base_ring, prefix, diagrams, category)
 
     #These methods allow for a subalgebra to be correctly identified in a partition algebra
     def ambient(self):
@@ -2126,8 +2949,7 @@ class SubPartitionAlgebra(DiagramAlgebra):
             True
         """
         amb = PartitionAlgebra(self._k, self._q, self.base_ring(), prefix=self._prefix)
-        phi = self.module_morphism(lambda d: amb.monomial(d),
-                                   codomain=amb, category=self.category())
+        phi = self.module_morphism(amb.monomial, codomain=amb, category=self.category())
         phi.register_as_coercion()
         return phi
 
@@ -2150,7 +2972,27 @@ class SubPartitionAlgebra(DiagramAlgebra):
             raise ValueError("{0} cannot retract to {1}".format(x, self))
         return self._from_dict(x._monomial_coefficients, remove_zeros=False)
 
-class BrauerAlgebra(SubPartitionAlgebra):
+    class Element(DiagramBasis.Element):
+        def to_orbit_basis(self):
+            """
+            Return ``self`` in the orbit basis of the associated
+            ambient partition algebra.
+
+            EXAMPLES::
+
+                sage: R.<x> = QQ[]
+                sage: B = BrauerAlgebra(2, x, R)
+                sage: bb = B.an_element(); bb
+                3*B{{-2, -1}, {1, 2}} + 2*B{{-2, 1}, {-1, 2}} + 2*B{{-2, 2}, {-1, 1}}
+                sage: bb.to_orbit_basis()
+                3*O{{-2, -1}, {1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1}, {-1, 2}}
+                 + 2*O{{-2, 2}, {-1, 1}}
+            """
+            P = self.parent().lift.codomain()
+            OP = P.orbit_basis()
+            return OP(P(self))
+
+class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     r"""
     A Brauer algebra.
 
@@ -2188,11 +3030,11 @@ class BrauerAlgebra(SubPartitionAlgebra):
         Lazy family (Term map from Brauer diagrams of order 2 to Brauer Algebra
          of rank 2 with parameter x over Univariate Polynomial Ring in x
          over Integer Ring(i))_{i in Brauer diagrams of order 2}
-        sage: b = B.basis().list()
         sage: B.basis().keys()
         Brauer diagrams of order 2
         sage: B.basis().keys()([[-2, 1], [2, -1]])
         {{-2, 1}, {-1, 2}}
+        sage: b = B.basis().list()
         sage: b
         [B{{-2, 1}, {-1, 2}}, B{{-2, 2}, {-1, 1}}, B{{-2, -1}, {1, 2}}]
         sage: b[2]
@@ -2277,9 +3119,14 @@ class BrauerAlgebra(SubPartitionAlgebra):
             Generic morphism:
               From: Symmetric group algebra of order 4 over Rational Field
               To:   Brauer Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
+            sage: Sp3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: A._coerce_map_from_(Sp3)
+            Generic morphism:
+              From: Symmetric group algebra of order 3 over Rational Field
+              To:   Brauer Algebra of rank 4 with parameter x over Univariate Polynomial Ring in x over Rational Field
         """
         if isinstance(R, SymmetricGroupAlgebra_n):
-            if R.n == self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
+            if R.n <= self._k and self.base_ring().has_coerce_map_from(R.base_ring()):
                 return R.module_morphism(self._perm_to_Blst, codomain=self)
             return None
         return super(BrauerAlgebra, self)._coerce_map_from_(R)
@@ -2312,7 +3159,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
         The `j`-th Jucys-Murphy element of a Brauer algebra is simply
         the `j`-th Jucys-Murphy element of the symmetric group algebra
         with an extra `(z-1)/2` term, where ``z`` is the parameter
-        of the Brauer algebra. 
+        of the Brauer algebra.
 
         REFERENCES:
 
@@ -2326,10 +3173,9 @@ class BrauerAlgebra(SubPartitionAlgebra):
             sage: B.jucys_murphy(1)
             (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
             sage: B.jucys_murphy(3)
-            -B{{-3, -1}, {-2, 2}, {1, 3}}
-             + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
+            -B{{-3, -2}, {-1, 1}, {2, 3}} - B{{-3, -1}, {-2, 2}, {1, 3}}
              + B{{-3, 1}, {-2, 2}, {-1, 3}} + B{{-3, 2}, {-2, 3}, {-1, 1}}
-             - B{{-3, -2}, {-1, 1}, {2, 3}}
+             + (1/2*z-1/2)*B{{-3, 3}, {-2, 2}, {-1, 1}}
         """
         if j < 1:
             raise ValueError("Jucys-Murphy index must be positive")
@@ -2345,7 +3191,7 @@ class BrauerAlgebra(SubPartitionAlgebra):
             d[I([[i,j],[-i,-j]])] = -one
         return self._from_dict(d, remove_zeros=True)
 
-class TemperleyLiebAlgebra(SubPartitionAlgebra):
+class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     r"""
     A Temperley--Lieb algebra.
 
@@ -2471,7 +3317,7 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra):
         set_partition = to_Brauer_partition(set_partition, k=self.order())
         return SubPartitionAlgebra._element_constructor_(self, set_partition)
 
-class PlanarAlgebra(SubPartitionAlgebra):
+class PlanarAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
     """
     A planar algebra.
 
@@ -2642,34 +3488,11 @@ class PropagatingIdeal(SubPartitionAlgebra):
 
             sage: R.<q> = QQ[]
             sage: I = PropagatingIdeal(2, q, R)
-            sage: TestSuite(I).run() # Not tested -- needs non-unital algebras category
+            sage: TestSuite(I).run()
         """
-        # This should be the category of non-unital fin-dim algebras with basis
-        category = Algebras(base_ring.category()).FiniteDimensional().WithBasis()
+        category = AssociativeAlgebras(base_ring.category()).FiniteDimensional().WithBasis()
         SubPartitionAlgebra.__init__(self, k, q, base_ring, prefix,
                                      IdealDiagrams(k), category)
-
-    @cached_method
-    def one_basis(self):
-        r"""
-        The propagating ideal is a non-unital algebra, i.e. it does not have a
-        multiplicative identity.
-
-        EXAMPLES::
-
-            sage: R.<q> = QQ[]
-            sage: I = PropagatingIdeal(2, q, R)
-            sage: I.one_basis()
-            Traceback (most recent call last):
-            ...
-            ValueError: The ideal partition algebra is not unital
-            sage: I.one()
-            Traceback (most recent call last):
-            ...
-            ValueError: The ideal partition algebra is not unital
-        """
-        raise ValueError("The ideal partition algebra is not unital")
-        #return identity_set_partition(self._k)
 
     def _repr_(self):
         """
@@ -2737,22 +3560,22 @@ def is_planar(sp):
         True
     """
     #Singletons don't affect planarity
-    to_consider = [x for x in (list(_) for _ in sp) if len(x) > 1]
+    to_consider = [x for x in map(list, sp) if len(x) > 1]
     n = len(to_consider)
 
     for i in range(n):
         #Get the positive and negative entries of this part
-        ap = [x for x in to_consider[i] if x>0]
-        an = [abs(x) for x in to_consider[i] if x<0]
+        ap = [x for x in to_consider[i] if x > 0]
+        an = [abs(x) for x in to_consider[i] if x < 0]
 
         #Check if a includes numbers in both the top and bottom rows
-        if len(ap) > 0 and len(an) > 0:
+        if ap and an:
             for j in range(n):
                 if i == j:
                     continue
                 #Get the positive and negative entries of this part
-                bp = [x for x in to_consider[j] if x>0]
-                bn = [abs(x) for x in to_consider[j] if x<0]
+                bp = [x for x in to_consider[j] if x > 0]
+                bn = [abs(x) for x in to_consider[j] if x < 0]
 
                 #Skip the ones that don't involve numbers in both
                 #the bottom and top rows
@@ -2868,8 +3691,8 @@ def pair_to_graph(sp1, sp2):
     #Add the first set partition to the graph
     for part in sp1:
         part_list = list(part)
-        if len(part_list) > 0:
-            g.add_vertex( (part_list[0],1) )
+        if part_list:
+            g.add_vertex( (part_list[0], 1) )
 
             #Add the edge to the second part of the graph
             if part_list[0] < 0:
@@ -2888,7 +3711,7 @@ def pair_to_graph(sp1, sp2):
     #Add the second set partition to the graph
     for part in sp2:
         part_list = list(part)
-        if len(part_list) > 0:
+        if part_list:
             g.add_vertex( (part_list[0], 2) )
         for i in range(1, len(part_list)):
             g.add_vertex( (part_list[i], 2) )
@@ -2921,6 +3744,8 @@ def propagating_number(sp):
 
 def to_set_partition(l, k=None):
     r"""
+    Convert input to a set partition of `\{1, \ldots, k, -1, \ldots, -k\}`
+
     Convert a list of a list of numbers to a set partitions. Each list
     of numbers in the outer list specifies the numbers contained in one
     of the blocks in the set partition.
@@ -2929,12 +3754,25 @@ def to_set_partition(l, k=None):
     of `\{1, \ldots, k, -1, \ldots, -k\}`. Otherwise, `k` will default to
     the minimum number needed to contain all of the specified numbers.
 
+    INPUT:
+
+    - ``l`` - a list of lists of integers
+    - ``k`` - integer (optional, default ``None``)
+
+    OUTPUT:
+
+    - a list of sets
+
     EXAMPLES::
 
         sage: import sage.combinat.diagram_algebras as da
         sage: f = lambda sp: SetPartition(da.to_set_partition(sp))
         sage: f([[1,-1],[2,-2]]) == SetPartition(da.identity_set_partition(2))
         True
+        sage: da.to_set_partition([[1]])
+        [{1}, {-1}]
+        sage: da.to_set_partition([[1,-1],[-2,3]],9/2)
+        [{-1, 1}, {-2, 3}, {2}, {-4, 4}, {-5, 5}, {-3}]
     """
     if k is None:
         if l == []:
@@ -2942,7 +3780,7 @@ def to_set_partition(l, k=None):
         else:
             k = max( (max( map(abs, x) ) for x in l) )
 
-    to_be_added = set( list(range(1, k+1)) + [-1*x for x in range(1, k+1)] )
+    to_be_added = set( list(range(1, ceil(k+1))) + [-1*x for x in range(1, ceil(k+1))] )
 
     sp = []
     for part in l:
@@ -2950,8 +3788,13 @@ def to_set_partition(l, k=None):
         to_be_added -= spart
         sp.append(spart)
 
-    for singleton in to_be_added:
-        sp.append(set([singleton]))
+    while to_be_added:
+        i = to_be_added.pop()
+        if -i in to_be_added:
+            to_be_added.remove(-i)
+            sp.append(set([i,-i]))
+        else:
+            sp.append(set([i]))
 
     return sp
 
@@ -2981,23 +3824,23 @@ def to_Brauer_partition(l, k=None):
     for i in L:
         L2.append(list(i))
     for i in L2:
-        if len(i) >= 3:
-            raise ValueError("blocks must have size at most 2, but {0} has {1}".format(i, len(i)))
+        if len(i) > 2:
+            raise ValueError("blocks must have size at most 2, but {} has {}".format(i, len(i)))
         if len(i) == 2:
             paired.append(i)
         if len(i) == 1:
             not_paired.append(i)
     if any(i[0] in j or -1*i[0] in j for i in not_paired for j in paired):
-        raise ValueError("unable to convert {0} to a Brauer partition due to the invalid block {1}".format(l, i))
+        raise ValueError("unable to convert {} to a Brauer partition due to the invalid block {}".format(l, i))
     for i in not_paired:
-        if [-1*i[0]] in not_paired:
-            not_paired.remove([-1*i[0]])
-        paired.append([i[0], -1*i[0]])
+        if [-i[0]] in not_paired:
+            not_paired.remove([-i[0]])
+        paired.append([i[0], -i[0]])
     return to_set_partition(paired)
 
 def identity_set_partition(k):
-    """
-    Return the identity set partition `\{\{1, -1\}, \ldots, \{k, -k\}\}`
+    r"""
+    Return the identity set partition `\{\{1, -1\}, \ldots, \{k, -k\}\}`.
 
     EXAMPLES::
 
@@ -3042,7 +3885,7 @@ def set_partition_composition(sp1, sp2):
 
     return (res, total_removed)
 
-
 ##########################################################################
 # END BORROWED CODE
 ##########################################################################
+

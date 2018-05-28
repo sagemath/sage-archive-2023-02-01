@@ -1903,7 +1903,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         """
         to_base_ring = self.base_ring()
-        points = [map(to_base_ring, x) for x in points]
+        points = [tuple(to_base_ring(c) for c in p) for p in points]
         n = len(points)
         F = [[points[i][1]] for i in range(n)]
         for i in range(1, n):

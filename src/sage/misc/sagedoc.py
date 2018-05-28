@@ -20,7 +20,7 @@ see :trac:`12849`::
 
     sage: from sage.env import SAGE_DOC
     sage: docfilename = os.path.join(SAGE_DOC, 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
-    sage: with open(docfilename) as fobj:
+    sage: with open(docfilename) as fobj: # requires a built documentation, optional: doc
     ....:     for line in fobj:
     ....:         if "#sage.symbolic.expression.Expression.numerical_approx" in line:
     ....:             print(line)
@@ -1332,7 +1332,7 @@ class _sage_doc:
 
     EXAMPLES::
 
-        sage: browse_sage_doc._open("reference", testing=True)[0]  # indirect doctest
+        sage: browse_sage_doc._open("reference", testing=True)[0]  # indirect doctest, requires a built documentation, optional: doc
         'http://localhost:8000/doc/live/reference/index.html'
         sage: browse_sage_doc(identity_matrix, 'rst')[-107:-47]
         'Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring'
@@ -1494,9 +1494,9 @@ class _sage_doc:
 
         EXAMPLES::
 
-            sage: browse_sage_doc._open("reference", testing=True)[0]
+            sage: browse_sage_doc._open("reference", testing=True)[0] # requires a built documentation, optional: doc
             'http://localhost:8000/doc/live/reference/index.html'
-            sage: browse_sage_doc._open("tutorial", testing=True)[1]
+            sage: browse_sage_doc._open("tutorial", testing=True)[1] # requires a built documentation, optional: doc
             '.../html/en/tutorial/index.html'
         """
         url = self._base_url + os.path.join(name, "index.html")

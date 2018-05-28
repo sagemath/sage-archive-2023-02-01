@@ -2431,15 +2431,19 @@ def prime_to_m_part(n,m):
 
     EXAMPLES::
 
+        sage: prime_to_m_part(240,2)
+        15
+        sage: prime_to_m_part(240,3)
+        80
+        sage: prime_to_m_part(240,5)
+        48
+        sage: prime_to_m_part(43434,20)
+        21717
+
+    Note that integers also have a method with the same name::
+
         sage: 240.prime_to_m_part(2)
         15
-        sage: 240.prime_to_m_part(3)
-        80
-        sage: 240.prime_to_m_part(5)
-        48
-
-        sage: 43434.prime_to_m_part(20)
-        21717
     """
     return ZZ(n).prime_to_m_part(m)
 

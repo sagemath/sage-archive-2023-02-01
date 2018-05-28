@@ -1535,9 +1535,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                                   MPolynomialRing_polydict_domain)):
             return op == Py_NE
 
-        lx = (left.base_ring(), map(str, left.gens()), left.term_order())
-        rx = (right.base_ring(), map(str, right.gens()), right.term_order())
-        return richcmp(lx, rx, op)
+        def cmp_key(x):
+            return (x.base_ring(), [str(v) for v in x.gens()], x.term_order())
+        return richcmp(cmp_key(left), cmp_key(right), op)
 
     def __reduce__(self):
         """

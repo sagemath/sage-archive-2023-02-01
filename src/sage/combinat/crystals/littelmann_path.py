@@ -1337,7 +1337,6 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
             endpoint = sum(p for p in value)
             rho = WLR.rho()
             h = WLR.simple_coroots()
-            I = self.parent().index_set()
 
             if not positively_parallel_weights(value[-1], rho):
                 value.append(rho)

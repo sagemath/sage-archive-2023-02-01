@@ -30,6 +30,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+from collections import defaultdict
 
 from sage.misc.misc import walltime
 
@@ -1880,16 +1881,13 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
         col = self._matrix[ref]
         n = len(self._elements)
 
-        rows_by_val = { }
+        rows_by_val = defaultdict(list)
         for i in range(len(col)):
             v = col[i].valuation()
-            if v >= prec: continue
-            if v in rows_by_val:
-                rows_by_val[v].append(i)
-            else:
-                rows_by_val[v] = [i]
-        vals = rows_by_val.keys()
-        vals.sort()
+            if v >= prec:
+                continue
+            rows_by_val[v].append(i)
+        vals = sorted(rows_by_val)
         vals.append(prec)
 
         for t in range(len(vals)-1):
@@ -2516,16 +2514,13 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
         col = self._matrix[ref]
         n = len(self._elements)
 
-        rows_by_val = { }
+        rows_by_val = defaultdict(list)
         for i in range(len(col)):
             v = col[i].valuation()
-            if v >= prec: continue
-            if v in rows_by_val:
-                rows_by_val[v].append(i)
-            else:
-                rows_by_val[v] = [i]
-        vals = rows_by_val.keys()
-        vals.sort()
+            if v >= prec:
+                continue
+            rows_by_val[v].append(i)
+        vals = sorted(rows_by_val)
         vals.append(prec)
 
         for t in range(len(vals)-1):

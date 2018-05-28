@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-p-adic L-functions of elliptic curves
+`p`-adic `L`-functions of elliptic curves
 
 To an elliptic curve `E` over the rational numbers and a prime `p`, one
 can associate a `p`-adic L-function; at least if `E` does not have additive

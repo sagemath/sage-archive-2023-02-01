@@ -900,7 +900,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 return [tuple(e) for e in exp]
         except AttributeError:
-            self.__exponents = self.element().dict().keys()
+            self.__exponents = list(self.element().dict())
             try:
                 self.__exponents.sort(key=self.parent().term_order().sortkey,
                                       reverse=True)
@@ -913,12 +913,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def inverse_of_unit(self):
         d = self.element().dict()
-        k = d.keys()
+        k = list(d)
         if self.is_unit():
             if len(k) != 1:
                 raise NotImplementedError
             return ~d[k[0]]
-        raise ArithmeticError("is not a unit")        
+        raise ArithmeticError("is not a unit")
 
     def is_homogeneous(self):
         """
@@ -2041,13 +2041,13 @@ def degree_lowest_rational_function(r,x):
     f = r.numerator()
     g = r.denominator()
     M = f.dict()
-    keys = list(M.keys())
+    keys = list(M)
     numtermsf = len(M)
     degreesf = [keys[j][ix] for j in range(numtermsf)]
     lowdegf = min(degreesf)
     cf = M[keys[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
     M = g.dict()
-    keys = list(M.keys())
+    keys = list(M)
     numtermsg = len(M)
     degreesg = [keys[j][ix] for j in range(numtermsg)]
     lowdegg = min(degreesg)

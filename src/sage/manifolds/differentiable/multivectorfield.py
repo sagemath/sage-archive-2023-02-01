@@ -883,6 +883,8 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
         self._vmodule = vector_field_module
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
         # initialization of derived quantities:
         self._init_derived()
 

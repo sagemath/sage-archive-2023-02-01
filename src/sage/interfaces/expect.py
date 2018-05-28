@@ -40,6 +40,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six import string_types
+from six import reraise as raise_
 
 import io
 import os
@@ -57,7 +58,7 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import (Interface, InterfaceElement,
-        InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
+            InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
 
 from sage.structure.element import RingElement
 
@@ -65,11 +66,8 @@ from sage.misc.misc import SAGE_TMP_INTERFACE
 from sage.env import SAGE_EXTCODE, LOCAL_IDENTIFIER
 from sage.misc.object_multiplexer import Multiplex
 from sage.docs.instancedoc import instancedoc
-from sage.cpython.string import bytes_to_str
 
 from sage.cpython.string import str_to_bytes, bytes_to_str
-
-from six import reraise as raise_
 
 BAD_SESSION = -2
 
@@ -264,12 +262,12 @@ class Expect(Interface):
             # contents of E.before, if consisting of multi-byte encoded text,
             # may be incomplete and contain errors, so merely calling
             # bytes_to_str here is probably not sufficient.
-            return False, bytes_to_str(E.before)
+            return False, self._before()
         except pexpect.EOF:
-            return True, bytes_to_str(E.before)
+            return True, self._before()
         except Exception:   # weird major problem!
-            return True, bytes_to_str(E.before)
-        return True, bytes_to_str(E.before)
+            return True, self._before()
+        return True, self._before()
 
     def _send(self, cmd):
         if self._expect is None:
@@ -974,9 +972,9 @@ If this all works, you can then make calls like:
                             pass
                     raise RuntimeError("%s\n%s crashed executing %s"%(msg,self, line))
                 if self._terminal_echo:
-                    out = bytes_to_str(E.before)
+                    out = self._before()
                 else:
-                    out = bytes_to_str(E.before).rstrip('\n\r')
+                    out = self._before().rstrip('\n\r')
             else:
                 if self._terminal_echo:
                     out = '\n\r'
@@ -1075,6 +1073,22 @@ If this all works, you can then make calls like:
 
         return after
 
+    def _readline(self, size=-1, encoding=None, errors=None):
+        r"""
+        Wraps ``spawn.readline`` to pass the return values through
+        ``bytes_to_str``, like `Expect._before` and `Expect._after`.
+
+        EXAMPLES::
+
+            sage: a = singular(1)
+            sage: singular._expect.sendline('1+1;')
+            5
+            sage: singular._readline()
+            '2\r\n'
+        """
+
+        return bytes_to_str(self._expect.readline(size=size), encoding, errors)
+
     def _interrupt(self):
         for i in range(15):
             try:
@@ -1172,7 +1186,7 @@ If this all works, you can then make calls like:
             else:
                 i = self._expect.expect(expr)
             if i > 0:
-                v = bytes_to_str(self._expect.before)
+                v = self._before()
                 self.quit()
                 raise ValueError("%s\nComputation failed due to a bug in %s -- NOTE: Had to restart."%(v, self))
         except KeyboardInterrupt:
@@ -1270,8 +1284,8 @@ If this all works, you can then make calls like:
         self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
-            if not s in bytes_to_str(self._expect.before):
-                self._expect_expr(s,timeout=0.5)
+            if not s in self._before():
+                self._expect_expr(s, timeout=0.5)
                 self._expect_expr(timeout=0.5)
         except pexpect.TIMEOUT:
             self._interrupt()

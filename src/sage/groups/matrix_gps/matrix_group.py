@@ -429,6 +429,14 @@ class MatrixGroup_generic(MatrixGroup_base):
             [0 1]
             )
 
+            sage: G = GO(2,2,e=1)
+            sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+            sage: A = AbelianGroupGap([2])
+            sage: G.hom([A.one(),A.gen(0)])
+            Group morphism:
+            From: General Orthogonal Group of degree 2 and form parameter 1 over Finite Field of size 2
+            To:   Abelian group with gap, generator orders (2,)
+
         TESTS:
 
         Check that :trac:`19407` is fixed::
@@ -442,7 +450,8 @@ class MatrixGroup_generic(MatrixGroup_base):
 
         """
         if not is_MatrixGroup(G):
-            super(self)._Hom_(self, G, category=category)
+            from sage.groups.libgap_morphism import GroupHomset_libgap
+            return GroupHomset_libgap(self, G, category=category)
         from . import homset
         return homset.MatrixGroupHomset(self, G, category=category)
 

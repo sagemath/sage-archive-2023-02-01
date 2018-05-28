@@ -321,6 +321,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             if len(self._reflection_index_set) != len(N_set):
                 raise ValueError("the given reflection index set (= %s) does not have the right size"%self._index_set.values())
         self._reflection_index_set_inverse = {i: ii for ii,i in enumerate(self._reflection_index_set)}
+        self._number_of_reflections = len(self._reflection_index_set)
 
     def _irrcomp_repr_(self,W_type):
         r"""

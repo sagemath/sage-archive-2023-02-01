@@ -1903,23 +1903,27 @@ class GenericGraph(GenericGraph_pyx):
 
     def distance_matrix(self):
         """
-        Returns the distance matrix of the (strongly) connected (di)graph.
+        Return the distance matrix of (di)graph.
 
-        The distance matrix of a (strongly) connected (di)graph is a matrix whose
-        rows and columns are indexed with the vertices of the (di) graph. The
-        intersection of a row and column contains the respective distance between
-        the vertices indexed at these position.
+        The (di)graph is expected to be (strongly) connected.
 
-        .. WARNING::
+        The distance matrix of a (strongly) connected (di)graph is a matrix
+        whose rows and columns are indexed with the positions of the vertices
+        of the (di)graph in the ordering ``G.vertices()``. The intersection
+        of a row and a column contains the respective distance between the
+        vertices indexed at these positions.
 
-            The ordering of vertices in the matrix has no reason to correspond
-            to the order of vertices in
-            :meth:`~sage.graphs.generic_graph.GenericGraph.vertices`. In
-            particular, if two integers `i,j` are vertices of a graph `G` with
-            distance matrix ``M``, then ``M[i][i]`` is not necessarily the
-            distance between vertices `i` and `j`.
+        Note that even when the vertices are consecutive integers
+        starting from one, usually the vertex is not equal to it's index.
 
         EXAMPLES::
+
+            sage: d = DiGraph({1: [2, 3], 2: [3], 3: [4], 4: [1]})
+            sage: d.distance_matrix()
+            [0 1 1 2]
+            [1 0 1 2]
+            [1 1 0 1]
+            [2 2 1 0]
 
             sage: G = graphs.CubeGraph(3)
             sage: G.distance_matrix()
@@ -1932,8 +1936,9 @@ class GenericGraph(GenericGraph_pyx):
             [2 3 1 2 1 2 0 1]
             [3 2 2 1 2 1 1 0]
 
-        The well known result of Graham and Pollak states that the determinant of
-        the distance matrix of any tree of order n is (-1)^{n-1}(n-1)2^{n-2} ::
+        The well known result of Graham and Pollak states that the determinant
+        of the distance matrix of any tree of order n is
+        `(-1)^{n-1}(n-1)2^{n-2}`::
 
             sage: all(T.distance_matrix().det() == (-1)^9*(9)*2^8 for T in graphs.trees(10))
             True
@@ -1943,21 +1948,21 @@ class GenericGraph(GenericGraph_pyx):
             * :meth:`~sage.graphs.generic_graph.GenericGraph.distance_all_pairs`
               -- computes the distance between any two vertices.
         """
-
         from sage.matrix.constructor import matrix
 
+        if ((self.is_directed() and not self.is_strongly_connected()) or
+            (not self.is_directed() and not self.is_connected())):
+            raise ValueError("input (di)graph must be (strongly) connected")
+
         n = self.order()
-        ret = matrix(n,n)
+        ret = matrix(n, n)
         V = self.vertices()
 
         dist = self.distance_all_pairs()
 
         for i in range(n):
             for j in range(i+1,n):
-                d = (dist[V[i]])[V[j]]
-                if d > n :
-                    raise ValueError("Input (di)graph must be (strongly) connected.")
-                ret[i,j] = ret[j,i] = d
+                ret[i, j] = ret[j, i] = (dist[V[i]])[V[j]]
 
         return ret
 
@@ -5360,7 +5365,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         return sorted((len(cc) for cc in self.connected_components()),reverse=True)
 
-    def blocks_and_cut_vertices(self):
+    def blocks_and_cut_vertices(self, algorithm="Tarjan_Boost"):
         """
         Computes the blocks and cut vertices of the graph.
 
@@ -5371,6 +5376,17 @@ class GenericGraph(GenericGraph_pyx):
         components. A block is a maximal induced subgraph which itself has no
         cut vertices. Two distinct blocks cannot overlap in more than a single
         cut vertex.
+
+        INPUT:
+
+        - ``algorithm`` -- The algorithm to use in computing the blocks
+            and cut vertices of ``G``. The following algorithms are supported:
+
+          - ``"Tarjan_Boost"`` (default) -- Tarjan's algorithm
+            (Boost implementation).
+
+          - ``"Tarjan_Sage"`` -- Tarjan's algorithm
+            (Sage implementation).
 
         OUTPUT: ``(B, C)``, where ``B`` is a list of blocks - each is a list of
         vertices and the blocks are the corresponding induced subgraphs - and
@@ -5384,6 +5400,7 @@ class GenericGraph(GenericGraph_pyx):
         .. SEEALSO::
 
             - :meth:`blocks_and_cuts_tree`
+            - :func:`sage.graphs.base.boost_graph.blocks_and_cut_vertices`
             - :meth:`~Graph.is_biconnected`
             - :meth:`~Graph.bridges`
 
@@ -5394,18 +5411,26 @@ class GenericGraph(GenericGraph_pyx):
             sage: rings = graphs.CycleGraph(10)
             sage: rings.merge_vertices([0, 5])
             sage: rings.blocks_and_cut_vertices()
+            ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
+            sage: rings.blocks_and_cut_vertices(algorithm="Tarjan_Sage")
             ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
 
         The Petersen graph is biconnected, hence has no cut vertices::
 
             sage: graphs.PetersenGraph().blocks_and_cut_vertices()
-            ([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], [])
+            ([[0, 1, 4, 5, 2, 6, 3, 7, 8, 9]], [])
 
         Decomposing paths to pairs::
 
             sage: g = graphs.PathGraph(4) + graphs.PathGraph(5)
             sage: g.blocks_and_cut_vertices()
             ([[2, 3], [1, 2], [0, 1], [7, 8], [6, 7], [5, 6], [4, 5]], [1, 2, 5, 6, 7])
+
+        A disconnected graph::
+
+            sage: g = Graph({1:{2:28, 3:10}, 2:{1:10, 3:16}, 4:{}, 5:{6:3, 7:10, 8:4}})
+            sage: g.blocks_and_cut_vertices()
+            ([[1, 2, 3], [5, 6], [5, 7], [5, 8], [4]], [5])
 
         TESTS::
 
@@ -5421,6 +5446,15 @@ class GenericGraph(GenericGraph_pyx):
         .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
           Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
         """
+
+        if (algorithm=="Tarjan_Boost"):
+            from sage.graphs.base.boost_graph import blocks_and_cut_vertices
+            return blocks_and_cut_vertices(self)
+
+        if (algorithm!="Tarjan_Sage"):
+            raise NotImplementedError("Blocks and cut vertices algorithm '%s' is not implemented." % algorithm)
+
+        # If algorithm is "Tarjan_Sage"
         blocks = []
         cut_vertices = set()
 
@@ -5569,7 +5603,7 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
             sage: T.vertices()
-            [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
+            [('B', (0, 1, 4, 5, 2, 6, 3, 7, 8, 9))]
 
         TESTS:
 
@@ -12572,7 +12606,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g.subgraph([3..5])
-            sage: h.get_pos().keys()
+            sage: sorted(h.get_pos().keys())
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
@@ -12705,7 +12739,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g._subgraph_by_adding([3..5])
-            sage: h.get_pos().keys()
+            sage: sorted(h.get_pos().keys())
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
@@ -12859,7 +12893,7 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: g.set_vertices(dict((v, 'v%d'%v) for v in g.vertices()))
             sage: h = g._subgraph_by_deleting([3..5])
-            sage: h.get_pos().keys()
+            sage: sorted(h.get_pos().keys())
             [3, 4, 5]
             sage: h.get_vertices()
             {3: 'v3', 4: 'v4', 5: 'v5'}
@@ -14703,7 +14737,7 @@ class GenericGraph(GenericGraph_pyx):
             if len(e) == 1:
                 v, = e.values()
                 return v # return single value
-            return e.values()
+            return list(itervalues(e))
 
     def radius(self, by_weight=False, algorithm=None, weight_function=None,
                check_weight=True):
@@ -18854,7 +18888,7 @@ class GenericGraph(GenericGraph_pyx):
         We check what happens when several labels have the same color::
 
             sage: result = G._color_by_label({1: "blue", 2: "blue", 3: "green"})
-            sage: result.keys()
+            sage: sorted(result)
             ['blue', 'green']
             sage: len(result['blue'])
             48
@@ -21736,8 +21770,7 @@ class GenericGraph(GenericGraph_pyx):
            respecting the partition.
 
         -  ``edge_labels`` - default False, otherwise allows
-           only permutations respecting edge labels. Note that this option
-           is not supported if ``algorithm="bliss"``
+           only permutations respecting edge labels.
 
         -  ``order`` - (default False) if True, compute the
            order of the automorphism group
@@ -21815,6 +21848,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: G = Graph(sparse=True)
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.automorphism_group(edge_labels=True)
+            Permutation Group with generators [(1,4)(2,3)]
+
+            sage: G.automorphism_group(edge_labels=True, algorithm="bliss") # optional - bliss
+            Permutation Group with generators [(1,4)(2,3)]
+
+            sage: G.automorphism_group(edge_labels=True, algorithm="sage")
             Permutation Group with generators [(1,4)(2,3)]
 
         ::
@@ -21918,15 +21957,12 @@ class GenericGraph(GenericGraph_pyx):
 
         if (algorithm == 'bliss'           or   # explicit choice from the user; or
             (algorithm is None             and  # by default
-             not edge_labels               and
              have_bliss)):
-            if edge_labels:
-                raise ValueError("bliss cannot be used when edge_labels is True")
 
             Bliss().require()
 
             from sage.graphs.bliss import automorphism_group
-            A = automorphism_group(self, partition)
+            A = automorphism_group(self, partition, use_edge_labels=edge_labels)
 
             # If the user only wants the automorphism group, lets return it
             # without much hassle
@@ -22493,8 +22529,7 @@ class GenericGraph(GenericGraph_pyx):
           currently available:
 
           * ``'bliss'``: use the optional package bliss
-            (http://www.tcs.tkk.fi/Software/bliss/index.html); can not
-            be combined with ``edge_labels``
+            (http://www.tcs.tkk.fi/Software/bliss/index.html);
           * ``'sage'``: always use Sage's implementation.
           * ``None`` (default): use bliss when available and possible
 
@@ -22562,11 +22597,14 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.add_edges( [(0,1,'a'),(1,2,'b'),(2,3,'c'),(3,4,'b'),(4,0,'a')] )
             sage: G.canonical_label(edge_labels=True)
             Graph on 5 vertices
-            sage: G.canonical_label(edge_labels=True, certificate=True)
+            sage: G.canonical_label(edge_labels=True, algorithm="bliss", certificate=True) # optional - bliss
+            (Graph on 5 vertices, {0: 4, 1: 3, 2: 1, 3: 0, 4: 2})
+
+            sage: G.canonical_label(edge_labels=True, algorithm="sage", certificate=True)
             (Graph on 5 vertices, {0: 4, 1: 3, 2: 0, 3: 1, 4: 2})
 
-        Canonical forms can be computed by bliss as well. Different
-        canonization algorithms give different graphs::
+        Another example where different canonization algorithms give
+        different graphs::
 
             sage: g = Graph({'a': ['b'], 'c': ['d']})
             sage: g_sage = g.canonical_label(algorithm='sage')
@@ -22623,8 +22661,6 @@ class GenericGraph(GenericGraph_pyx):
         has_multiedges = self.has_multiple_edges()
         if has_multiedges and algorithm == 'bliss':  # See trac #21704
             raise NotImplementedError("algorithm 'bliss' can not be used for graph with multiedges")
-        if edge_labels and algorithm == 'bliss':
-            raise NotImplementedError("algorithm 'bliss' can not be used when edge_labels=True")
 
         # Check bliss if explicitly requested, raise if not found.
         if algorithm == 'bliss':
@@ -22633,7 +22669,7 @@ class GenericGraph(GenericGraph_pyx):
         # By default use bliss when possible
         if algorithm is None:
             algorithm = 'sage'
-            if not has_multiedges and not edge_labels:
+            if not has_multiedges:
                 try:
                     from sage.graphs.bliss import canonical_form
                     algorithm = 'bliss'

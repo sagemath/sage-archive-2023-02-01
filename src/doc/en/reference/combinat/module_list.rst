@@ -121,6 +121,7 @@ Comprehensive Module list
     sage/combinat/finite_class
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
+    sage/combinat/fqsym
     sage/combinat/free_module
     sage/combinat/free_dendriform_algebra
     sage/combinat/free_prelie_algebra
@@ -172,6 +173,7 @@ Comprehensive Module list
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
+    sage/combinat/partition_kleshchev
     sage/combinat/partition_tuple
     sage/combinat/partitions
     sage/combinat/perfect_matching

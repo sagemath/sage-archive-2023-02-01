@@ -11,11 +11,10 @@
 {% endblock in_prompt %}
 
 {% block output_prompt %}
-
 {% endblock output_prompt %}
 
-{% block input %}
-{% if cell.source.strip() %}
+{% block input scoped%}
+{%- if cell.source.strip() -%}
 ::
 
 {{ cell.source | add_prompts(first='sage: ', cont='....: ') | indent}}
@@ -30,13 +29,11 @@
 {% endblock error %}
 
 {% block traceback_line %}
-
 {{ line | indent | strip_ansi }}
 {% endblock traceback_line %}
 
-{% block execute_result %}
-
-{% block data_priority scoped %}
+{%- block execute_result -%}
+{%- block data_priority scoped -%}
 {{ super() }}
 {% endblock %}
 {% endblock execute_result %}
@@ -61,8 +58,7 @@
 {% endblock data_jpg %}
 
 {% block data_markdown %}
-
-{{ output.data['text/markdown'] | markdown2rst }}
+{{ output.data['text/markdown'] | convert_pandoc("markdown", "rst") }}
 {% endblock data_markdown %}
 
 {% block data_latex %}
@@ -72,10 +68,7 @@
 {{ output.data['text/latex'] | strip_dollars | indent }}
 {% endblock data_latex %}
 
-{% block data_text scoped %}
-
-.. parsed-literal::
-
+{%- block data_text scoped -%}
 {{ output.data['text/plain'] | indent }}
 {% endblock data_text %}
 
@@ -88,22 +81,19 @@
 
 {% block markdowncell scoped %}
 
-{{ cell.source | markdown2rst }}
+{{ cell.source | convert_pandoc("markdown", "rst") }}
 {% endblock markdowncell %}
 
-{% block rawcell scoped %}
-
+{%- block rawcell scoped -%}
 {%- if cell.metadata.get('raw_mimetype', '').lower() in resources.get('raw_mimetypes', ['']) %}
 {{cell.source}}
 {% endif -%}
 {%- endblock rawcell -%}
 
 {% block headingcell scoped %}
-
-{{ ("#" * cell.level + cell.source) | replace('\n', ' ') | markdown2rst }}
+{{ ("#" * cell.level + cell.source) | replace('\n', ' ') | convert_pandoc("markdown", "rst") }}
 {% endblock headingcell %}
 
 {% block unknowncell scoped %}
-
 unknown type  {{cell.type}}
 {% endblock unknowncell %}

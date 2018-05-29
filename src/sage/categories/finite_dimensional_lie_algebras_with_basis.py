@@ -927,6 +927,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  4: Vector space of dimension 0 over Finite Field of size 5,
                  5: Vector space of dimension 1 over Finite Field of size 5}
 
+                sage: d = {('x', 'y'): {'y': 2}}
+                sage: L.<x,y> = LieAlgebra(ZZ, d)
+                sage: L.homology()
+                {0: Z, 1: Z x C2, 2: 0}
+
             .. SEEALSO::
 
                 :meth:`chevalley_eilenberg_complex`
@@ -989,6 +994,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  3: Vector space of dimension 5 over Rational Field,
                  4: Vector space of dimension 4 over Rational Field,
                  5: Vector space of dimension 1 over Rational Field}
+
+                sage: d = {('x', 'y'): {'y': 2}}
+                sage: L.<x,y> = LieAlgebra(ZZ, d)
+                sage: L.cohomology()
+                {0: Z, 1: Z, 2: C2}
 
             .. SEEALSO::
 

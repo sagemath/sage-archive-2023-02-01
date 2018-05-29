@@ -950,7 +950,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             Let `\mathfrak{g}` be a Lie algebra and `M` a left
             `\mathfrak{g}`-module. It is known that `H^0(\mathfrak{g}; M)`
-            is the `\mathfrak{g}`-invariants of `M`:
+            is the subspace of `\mathfrak{g}`-invariants of `M`:
 
             .. MATH::
 
@@ -960,9 +960,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             Additionally, `H^1(\mathfrak{g}; M)` is the space of
             derivations `\mathfrak{g} \to M`
-            modulo the space of inner derivations and
-            `H^2(\mathfrak{g}; M)` is the equivalence classes of
-            Lie algebra extensions of `\mathfrak{g}` by `M`.
+            modulo the space of inner derivations, and
+            `H^2(\mathfrak{g}; M)` is the space of equivalence classes
+            of Lie algebra extensions of `\mathfrak{g}` by `M`.
 
             INPUT:
 

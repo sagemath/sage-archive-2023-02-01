@@ -50,7 +50,7 @@ def is_MatrixGroupHomset(x):
 
 class MatrixGroupHomset(GroupHomset_libgap):
     r"""
-    Homsets of matrix groups.
+    This class is deprecated use :class:`sage.groups.libgap_morphism.GroupHomset_libgap` instead.
 
     EXAMPLES::
 

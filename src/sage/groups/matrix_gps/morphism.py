@@ -9,7 +9,9 @@ AUTHORS:
 
 - Simon King (2011-01): cleaning and improving code
 
-- Volker Braun (2013-1) port to new Parent, libGAP.
+- Volker Braun (2013-1): port to new Parent, libGAP.
+
+- Simon Brandhorst (2018-5): deprecation
 """
 
 #*****************************************************************************
@@ -55,6 +57,7 @@ def to_libgap(x):
 
 class MatrixGroupMap(Morphism):
     r"""
+    This class is deprecated; use :class:`sage.groups.libgap_morphism.GroupMorphism_libgap` instead.
     """
     def _repr_type(self):
         """
@@ -76,12 +79,17 @@ class MatrixGroupMap(Morphism):
         return "MatrixGroup"
 
 class MatrixGroupMorphism(MatrixGroupMap):
+    r"""
+    This class is deprecated; use :class:`sage.groups.libgap_morphism.GroupMorphism_libgap` instead.
+    """
     deprecation(25444, "MatrixGroupMorphism is deprecated."
                 "Use GroupMorphism_libgap instead.")
 
 
 class MatrixGroupMorphism_im_gens(GroupMorphism_libgap):
     """
+    This class is deprecated; use :class:`sage.groups.libgap_morphism.GroupMorphism_libgap` instead.
+
     Group morphism specified by images of generators.
 
     EXAMPLES::

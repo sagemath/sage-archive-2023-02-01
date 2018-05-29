@@ -978,7 +978,7 @@ class HypergeometricData(object):
         beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.padic_H_value(p, f, ~t, prec))
+            return H.padic_H_value(p, f, ~t, prec)
         t = QQ(t)
         gamma = self.gamma_array()
         q = p ** f
@@ -1072,7 +1072,7 @@ class HypergeometricData(object):
         beta = self._beta
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.H_value(p, f, ~t, ring))
+            return H.H_value(p, f, ~t, ring)
         if ring is None:
             ring = UniversalCyclotomicField()
         t = QQ(t)
@@ -1138,7 +1138,7 @@ class HypergeometricData(object):
             sign = -kronecker_symbol((1 - t) * self._sign_param, p)
         else:
             sign = kronecker_symbol(t * (t - 1) * self._sign_param, p)
-        return(sign)
+        return sign
     
     @cached_method
     def euler_factor(self, t, p):
@@ -1222,7 +1222,7 @@ class HypergeometricData(object):
         alpha = self._alpha
         if 0 in alpha:
             H = self.swap_alpha_beta()
-            return(H.euler_factor(~t, p))
+            return H.euler_factor(~t, p)
 
         if t not in QQ or t in [0, 1]:
             raise ValueError('wrong t')

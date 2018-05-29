@@ -1045,7 +1045,7 @@ class pAdicLatticeElement(pAdicGenericElement):
             sage: x - y
             O(2^20)
 
-        This function can also be used for coersion/conversion as follows::
+        This function can also be used for coercion/conversion as follows::
 
             sage: K = QpLC(2)
             sage: y = x._copy(K)

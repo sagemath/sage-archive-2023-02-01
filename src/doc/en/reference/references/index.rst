@@ -2133,6 +2133,10 @@ REFERENCES:
             (accepted
             2016-06-12). http://www.optimization-online.org/DB_HTML/2015/10/5135.html. :doi:`10.1080/10556788.2016.1202246`
 
+.. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
+            Langlands dual quantum affine algebras: Exceptional cases*.
+            Preprint: :arxiv:`1802.09253` (2018).
+
 .. [Oxl1992] James Oxley, *Matroid theory*, Oxford University
              Press, 1992.
 

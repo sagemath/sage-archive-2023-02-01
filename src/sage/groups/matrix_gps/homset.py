@@ -18,8 +18,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.groups.group_homset import GroupHomset_generic
 from sage.groups.libgap_morphism import GroupHomset_libgap
+from sage.misc.superseded import deprecation
 
 def is_MatrixGroupHomset(x):
     r"""
@@ -28,7 +28,11 @@ def is_MatrixGroupHomset(x):
     EXAMPLES::
 
         sage: from sage.groups.matrix_gps.homset import is_MatrixGroupHomset
+        doctest:...: DeprecationWarning: MatrixGroupHomset is deprecated. Use GroupHomset_libgap instead.
+        See https://trac.sagemath.org/25444 for details.
         sage: is_MatrixGroupHomset(4)
+        doctest:...: DeprecationWarning: MatrixGroupHomset is deprecated. Use GroupHomset_libgap instead.
+        See https://trac.sagemath.org/25444 for details.
         False
 
         sage: F = GF(5)
@@ -39,6 +43,8 @@ def is_MatrixGroupHomset(x):
         sage: is_MatrixGroupHomset(M)
         True
     """
+    deprecation(25444, "MatrixGroupHomset is deprecated. "
+                "Use GroupHomset_libgap instead.")
     return isinstance(x, MatrixGroupHomset)
 
 
@@ -71,4 +77,5 @@ class MatrixGroupHomset(GroupHomset_libgap):
         [4 1], [0 1]
         )
     """
-    pass
+    deprecation(25444, "MatrixGroupHomset is deprecated. "
+                "Use GroupHomset_libgap instead.")

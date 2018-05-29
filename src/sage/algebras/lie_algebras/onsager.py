@@ -676,6 +676,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
         """
         return m.length()
 
+    @cached_method
     def product_on_basis(self, lhs, rhs):
         """
         Return the product of the two basis elements ``lhs`` and ``rhs``.

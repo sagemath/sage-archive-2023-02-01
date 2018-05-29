@@ -842,7 +842,7 @@ REFERENCES:
              Boulder: Westview, 2005, 331.
 
 .. [DG1982] Louise Dolan and Michael Grady.
-            *Conversed charages from self-duality*,
+            *Conserved charges from self-duality*,
             Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
 
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard

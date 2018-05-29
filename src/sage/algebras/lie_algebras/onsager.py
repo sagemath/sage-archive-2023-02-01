@@ -311,7 +311,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
     of a quantum symmetric pair coideal subalgebra of affine type.
 
     The `q`-Onsager algebra depends on a parameter `c` such that
-    `c(1) = 1`. We denote the `q`-Onsager algebra with parameter `c`
+    `c(1) = 1`. The `q`-Onsager algebra with parameter `c` is denoted
     `U_q(\mathcal{O}_R)_c`, where `R` is the base ring of the
     defining Onsager algebra.
 

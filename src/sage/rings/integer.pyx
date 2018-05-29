@@ -5451,28 +5451,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         flag =  self < 0 and proof
         return objtogen(self).qfbclassno(flag).sage()
 
-    def radical(self, *args, **kwds):
-        r"""
-        Return the product of the prime divisors of self. Computing
-        the radical of zero gives an error.
-
-        EXAMPLES::
-
-            sage: Integer(10).radical()
-            10
-            sage: Integer(20).radical()
-            10
-            sage: Integer(-100).radical()
-            10
-            sage: Integer(0).radical()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Radical of 0 not defined.
-        """
-        if self.is_zero():
-            raise ArithmeticError("Radical of 0 not defined.")
-        return self.factor(*args, **kwds).radical_value()
-
     def squarefree_part(self, long bound=-1):
         r"""
         Return the square free part of `x` (=self), i.e., the unique integer

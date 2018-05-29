@@ -2329,9 +2329,7 @@ def radical(n, *args, **kwds):
     """
     Return the product of the prime divisors of n.
 
-    This calls ``n.radical(*args, **kwds)``.  If that doesn't work, it
-    does ``n.factor(*args, **kwds)`` and returns the product of the prime
-    factors in the resulting factorization.
+    This calls ``n.radical(*args, **kwds)``.
 
     EXAMPLES::
 
@@ -2344,12 +2342,6 @@ def radical(n, *args, **kwds):
         sage: K.<i> = QuadraticField(-1)
         sage: radical(K(2))
         i + 1
-
-    The next example shows how to compute the radical of a number,
-    assuming no prime > 100000 has exponent > 1 in the factorization::
-
-        sage: n = 2^1000-1; n / radical(n, limit=100000)
-        125
     """
     try:
         return n.radical(*args, **kwds)

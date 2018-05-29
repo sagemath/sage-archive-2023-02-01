@@ -67,11 +67,8 @@ class MatrixGroupMap(Morphism):
 
             sage: from sage.groups.matrix_gps.morphism import MatrixGroupMap
             sage: MatrixGroupMap(ZZ.Hom(ZZ))._repr_type()
-            ...
             doctest:...: DeprecationWarning: MatrixGroupMap is deprecated.Use GroupMorphism_libgap instead.
             See https://trac.sagemath.org/25444 for details.
-            'MatrixGroup'
-
             'MatrixGroup'
         """
         deprecation(25444, "MatrixGroupMap is deprecated."
@@ -94,17 +91,7 @@ class MatrixGroupMorphism_im_gens(GroupMorphism_libgap):
 
     EXAMPLES::
 
-        sage: F = GF(5); MS = MatrixSpace(F,2,2)
-        sage: G = MatrixGroup([MS([1,1,0,1])])
-        sage: H = MatrixGroup([MS([1,0,1,1])])
-        sage: G.Hom(H)
-        Set of Morphisms from Matrix group over Finite Field of size 5 with 1 generators (
-        [1 1]
-        [0 1]
-        ) to Matrix group over Finite Field of size 5 with 1 generators (
-        [1 0]
-        [1 1]
-        ) in Category of finite groups
+        sage: from sage.groups.matrix_gps.morphism import MatrixGroupMorphism_im_gens
     """
     deprecation(25444, "MatrixGroupMorphism_im_gens is deprecated. "
                 "Use GroupMorphism_libgap instead.")

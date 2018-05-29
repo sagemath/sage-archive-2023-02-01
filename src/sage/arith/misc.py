@@ -186,6 +186,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None, use_dig
         x
 
     Tests with numpy and gmpy2 numbers::
+
         sage: from numpy import int8, float64
         sage: algdep(float64(1.888888888888888), int8(1))
         9*x - 17
@@ -426,7 +427,8 @@ def factorial(n, algorithm='gmp'):
         ...
         ValueError: factorial -- must be nonnegative
 
-    TESTS with numpy and gmpy2 numbers::
+    Tests with numpy and gmpy2 numbers::
+
         sage: from numpy import int8
         sage: factorial(int8(4))
         24
@@ -657,6 +659,7 @@ def is_pseudoprime_power(n, get_data=False):
         (15, 0)
 
     Tests with numpy and gmpy2 numbers::
+
         sage: from numpy import int16
         sage: is_pseudoprime_power(int16(1024))
         True
@@ -2020,7 +2023,7 @@ def inverse_mod(a, m):
         sage: inverse_mod(3,-5)
         2
 
-    TESTS with numpy and mpz numbers::
+    Tests with numpy and mpz numbers::
 
         sage: from numpy import int8
         sage: inverse_mod(int8(5),int8(14))

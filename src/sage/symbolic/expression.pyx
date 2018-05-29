@@ -2497,6 +2497,29 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
 
+
+    def is_square(self):
+        """
+        Returns ``True`` if ``self`` is a perfect square.
+
+        EXAMPLES::
+
+            sage: f(n,m) = n*2 + m
+            sage: f(2,1).is_square()
+            False
+            sage: f(3,3).is_square()
+            True
+            sage: f(n,m).is_square()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be a numeric expression
+            sage: SR(42).is_square()
+            False
+            sage: SR(4).is_square()
+            True
+        """
+        return self.pyobject().is_square()
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side

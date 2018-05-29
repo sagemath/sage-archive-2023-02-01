@@ -1,5 +1,5 @@
 r"""
-Elliptic curves with prescribed good reduction.
+Elliptic curves with prescribed good reduction
 
 Construction of elliptic curves with good reduction outside a finite
 set of primes
@@ -71,6 +71,7 @@ required have conductors 13068 and 52272 so are in the database)::
 AUTHORS:
 
 - John Cremona (6 April 2009): initial version (over `\QQ` only).
+
 """
 
 #*****************************************************************************

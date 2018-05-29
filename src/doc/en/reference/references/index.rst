@@ -51,6 +51,13 @@ REFERENCES:
                 and T. Yalcin, *Block ciphers - focus on the linear layer
                 (feat. PRIDE)*; in CRYPTO, (2014), pp. 57-76.
 
+.. [AguSot05] Marcelo Aguiar and Frank Sottile,
+              *Structure of the Malvenuto-Reutenauer Hopf algebra of
+              permutations*,
+              Advances in Mathematics, Volume 191, Issue 2, 1 March 2005,
+              pp. 225--275,
+              :arxiv:`math/0203282v2`.
+
 .. [AH2002] \R. J. Aumann and S. Hart, Elsevier, eds. *Computing
             equilibria for two-person
             games*. http://www.maths.lse.ac.uk/personal/stengel/TEXTE/nashsurvey.pdf (2002)
@@ -260,6 +267,10 @@ REFERENCES:
                        *PRINCE - A low-latency block cipher for pervasive computing
                        applications*; in ASIACRYPT, (2012), pp. 208-225.
 
+.. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
+           Fast and Simple Computation of Top-k Closeness Centralities.
+           :arXiv:`1507.01490`.
+
 .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
@@ -302,6 +313,13 @@ REFERENCES:
              Memoirs of the American Mathematical Society, vol. 192
              (2008); :doi:`10.1090/memo/0900`; :arxiv:`math/0502168`
 
+.. [BerZab05] Nantel Bergeron, Mike Zabrocki,
+              *The Hopf algebras of symmetric functions and quasisymmetric
+              functions in non-commutative variables are free and cofree*,
+              J. of Algebra and its Applications (8)(2009), No 4, pp. 581--600,
+              :doi:`10.1142/S0219498809003485`,
+              :arxiv:`math/0509265v3`.
+
 .. [BeukersHeckman] \F. Beukers and \G. Heckman,
    *Monodromy for the hypergeometric function `{}_n F_{n-1}`*,
    Invent. Math. 95 (1989)
@@ -329,6 +347,11 @@ REFERENCES:
 
 .. [BH1994] \S. Billey, M. Haiman. *Schubert polynomials for the
             classical groups*. J. Amer. Math. Soc., 1994.
+
+.. [BH2017] Georgia Benkart and Tom Halverson. *Partition algebras*
+            `\mathsf{P}_k(n)` *with* `2k > n` *and the fundamental theorems
+            of invariant theory for the symmetric group* `\mathsf{S}_n`.
+            Preprint (2017). :arXiv:`1707.1410`
 
 .. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
@@ -454,6 +477,10 @@ REFERENCES:
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
 
+.. [Brandes01] Ulrik Brandes,
+               A faster algorithm for betweenness centrality,
+               Journal of Mathematical Sociology 25.2 (2001): 163-177,
+               http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
 .. [Bre2008] \A. Bretscher and D. G. Corneil and M. Habib and C. Paul (2008), "A
              simple Linear Time LexBFS Cograph Recognition Algorithm", SIAM
              Journal on Discrete Mathematics, 22 (4): 1277–1296,
@@ -744,7 +771,10 @@ REFERENCES:
 
 .. [Cun1986] \W. H. Cunningham, Improved Bounds for Matroid Partition
              and Intersection Algorithms. SIAM Journal on Computing
-             1986 15:4, 948-957
+             1986 15:4, 948-957.
+
+.. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
+            curves. preprint, 2005.
 
 .. _ref-D:
 
@@ -923,6 +953,11 @@ REFERENCES:
 
 .. [Ed1974] \A. R. Edmonds, 'Angular Momentum in Quantum Mechanics',
             Princeton University Press (1974)
+
+.. [EDI2014] EDITH COHEN,DANIEL DELLING,THOMAS PAJOR and RENATO F. WERNECK
+             Computing Classic Closeness Centrality, at Scale
+             In Proceedings of the second ACM conference on Online social networks (COSN '14)
+             :doi:`10.1145/2660460.2660465`
 
 .. [Eh2013] Ehrhardt, Wolfgang. "The AMath and DAMath Special
             Functions: Reference Manual and Implementation Notes,
@@ -1371,6 +1406,9 @@ REFERENCES:
 
 **I**
 
+.. [IJ1960] Igusa, Jun-ichi. *Arithmetic variety of moduli for genus two*.
+            Ann. of Math. (2) 72 1960 612--649.
+
 .. [IK2010] Kenji Iohara and Yoshiyuki Koga.
             *Representation Theory of the Virasoro Algebra*.
             Springer, (2010).
@@ -1574,6 +1612,10 @@ REFERENCES:
              1998), Advanced Studies in Pure Mathematics, 30,
              177-196, 2000.
 
+.. [KohECHIDNA] Kohel, David.  ECHIDNA: Databases for Elliptic Curves and Higher
+                Dimensional Analogues.  Available at
+                http://echidna.maths.usyd.edu.au/~kohel/dbs/
+
 .. [Koh2007] \A. Kohnert, *Constructing two-weight codes with prescribed
              groups of automorphisms*, Discrete applied mathematics 155,
              no. 11 (2007):
@@ -1628,6 +1670,9 @@ REFERENCES:
 .. [KT1986] \N. Kerzman and M. R. Trummer. "Numerical Conformal
             Mapping via the Szego kernel". Journal of Computational
             and Applied Mathematics, 14(1-2): 111--123, 1986.
+
+.. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
+            PhD thesis, University of Warwick, 2013.
 
 .. [Kuh1987] \W. Kühnel, "Minimal triangulations of Kummer varieties",
              Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
@@ -1928,11 +1973,6 @@ REFERENCES:
               :doi:`10.1016/j.aam.2013.02.003`,
               :arxiv:`1109.1634v2`.
 
-.. [MKO1998] Hans Munthe--Kaas and Brynjulf Owren.
-             *Computations in a free Lie algebra*. (1998).
-             `Downloadable from Munthe-Kaas's website
-             <http://hans.munthe-kaas.no/work/Blog/Entries/1999/1/1_Article__Computations_in_a_Free_Lie-algebra.html>`_
-
 .. [Mil1958] \J. W. Milnor, "The Steenrod algebra and its dual,"
              Ann. of Math. (2) 67 (1958), 150-171.
 
@@ -1943,6 +1983,15 @@ REFERENCES:
 
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
+
+.. [MJ1991] Mestre, Jean-Francois. *Construction de courbes de genre 2 a partir de
+            leurs modules*. Effective methods in algebraic geometry (Castiglioncello,
+            1990), 313--334, Progr. Math., 94, Birkhauser Boston, Boston, MA, 1991.
+
+.. [MKO1998] Hans Munthe--Kaas and Brynjulf Owren.
+             *Computations in a free Lie algebra*. (1998).
+             `Downloadable from Munthe-Kaas's website
+             <http://hans.munthe-kaas.no/work/Blog/Entries/1999/1/1_Article__Computations_in_a_Free_Lie-algebra.html>`_
 
 .. [MMIB2012] \Y. Matsumoto, S. Moriyama, H. Imai, D. Bremner:
               Matroid Enumeration for Incidence Geometry,
@@ -2048,6 +2097,10 @@ REFERENCES:
               pp. 1311--1348,
               :doi:`10.1016/j.aim.2010.01.006`,
               :arxiv:`0804.0995v3`.
+
+.. [NovThi06] Jean-Christophe Novelli, Jean-Yves Thibon,
+              *Polynomial realizations of some trialgebras*, FPSAC 2006.
+              :arxiv:`math/0605061v1`.
 
 .. [NZ2012] \T. Nakanishi and \A. Zelevinsky, *On tropical dualities in
             cluster algebras*, Algebraic groups and quantum groups,
@@ -2318,7 +2371,7 @@ REFERENCES:
 .. [Sch2013] Schmidt, Jens M
              "A Simple Test on 2-Vertex- and 2-Edge-Connectivity",
              Information Processing Letters, 113 (7): 241–244
-             :doi:`10.2307/2303897`              
+             :doi:`10.2307/2303897`
 
 .. [Sch2015] George Schaeffer. *Hecke stability and weight 1 modular forms*.
              Math. Z. 281:159–191, 2015. :doi:`10.1007/s00209-015-1477-9`
@@ -2670,6 +2723,9 @@ REFERENCES:
 .. [Wal1970] David W. Walkup, "The lower bound conjecture for 3- and
              4-manifolds", Acta Math. 125 (1970), 75-107.
 
+.. [Wam1999] van Wamelen, Paul. *Examples of genus two CM curves defined
+             over the rationals*. Math. Comp. 68 (1999), no. 225, 307--320.
+
 .. [Wan1998] Daqing Wan, "Dimension variation of classical and p-adic
              modular forms", Invent. Math. 133, (1998) 449-463.
 
@@ -2680,9 +2736,8 @@ REFERENCES:
 .. [Was1997] \L. C. Washington, *Cyclotomic Fields*, Springer-Verlag,
              GTM volume 83, 1997.
 
-.. [Watkins] Mark Watkins,
-   *Hypergeometric motives over Q and their L-functions*,
-   http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
+.. [Watkins] Mark Watkins, *Hypergeometric motives over Q and their
+             L-functions*, http://magma.maths.usyd.edu.au/~watkins/papers/known.pdf
 
 .. [Wat2003] Joel Watson. *Strategy: an introduction to game
              theory*. WW Norton, 2002.

@@ -470,7 +470,7 @@ class DifferentialWeylAlgebraElement(AlgebraElement):
              ((0, 0, 0), (0, 0, 0)),
              ((0, 0, 1), (1, 0, 0))]
         """
-        return self.__monomials.keys()
+        return list(self.__monomials)
 
     # This is essentially copied from
     #   sage.combinat.free_module.CombinatorialFreeModuleElement

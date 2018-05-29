@@ -433,7 +433,14 @@ class ContinuousMap(Morphism):
             else:
                 self._latex_name = latex_name
         self._init_derived()  # initialization of derived quantities
-
+        self._restrictions_graph = {(domain, codomain): self}
+                # dict. of known extensions of self on bigger domains,
+                # including self, with pairs of domain codomain as keys.
+                # Its elements can be seen as incomming edges on a graph.
+        self._extensions_graph = {(domain, codomain): self}
+                # dict. of known restrictions of self on samller domains,
+                # including self, with pairs of domain codomain as keys.
+                # Its elements can be seen as outgoing edges on a graph.
     #
     # SageObject methods
     #
@@ -1715,6 +1722,46 @@ class ContinuousMap(Morphism):
             if self._is_identity:
                 self._restrictions[(subdomain, subcodomain)] = subdomain.identity_map()
                 return self._restrictions[(subdomain, subcodomain)]
+
+            # First one tries to get the restriction from a tighter domain:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom[0]) and (subdomain, subcodomain) in rst._restrictions:
+                    res = rst._restrictions[(subdomain, subcodomain)]
+                    self._restrictions[(subdomain, subcodomain)] = res
+                    self._restrictions.update(res._restrictions)
+                    self._restrictions_graph.update(res._restrictions_graph)
+                    res._extension_graph.update(self._extension_graph)
+                    for ext in self._extension._graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions.update(res._restrictions)
+                        ext._restrictions_graph.update(res._restrictions_graph)
+                    return self._restrictions[(subdomain, subcodomain)]
+
+            # Maybe it didn't exist but could have:
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom[0]) and subcodomain.is_subset(dom[1]):
+                    res = rst.restrict(subdomain,subcodomain) # all propagation
+                                                              # is done here
+                    # should be useless:
+                    self._restrictions[(subdomain,subcodomain)] = res
+                    self._restrictions_graph[(subdomain, subcodomain)] = res
+                    return self._restrictions[(subdomain,subcodomain)]
+
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for dom, ext in self._extensions_graph.items():
+                if (subdomain,subcodomain) in ext._restrictions:
+                    res = ext._restrictions[(subdomain,subcodomain)]
+                    self._restrictions[(subdomain, subcodomain)] = res
+                    self._restrictions.update(res._restrictions)
+                    self._restrictions_graph.update(res._restrictions_graph)
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions.update(res._restrictions)
+                        ext._restrictions_graph.update(res._restrictions_graph)
+                    return self._restrictions[(subdomain, subcodomain)]
+
             # Generic case:
             homset = Hom(subdomain, subcodomain)
             resu = type(self)(homset, name=self._name,
@@ -1734,7 +1781,24 @@ class ContinuousMap(Morphism):
                                     coord_functions = self._coord_expression[charts].expr()
                                     resu._coord_expression[(ch1, ch2)] = \
                                             ch1.multifunction(*coord_functions)
+
+            # propagate extensions
+            for dom, ext in self._extensions_graph.items(): # includes self
+                ext._restrictions[(subdomain, subcodomain)] = resu
+                ext._restrictions_graph[(subdomain, subcodomain)] = resu
+
+            # propagate restrictions
+            for dom, rst in self._restrictions.items():
+                if dom[0].is_subset(subdomain) and dom[1].is_subset(subcodomain):
+                    if rst is not resu:
+                        resu._restrictions.update(rst._restrictions_graph)
+                        resu._restrictions_graph.update(rst._restrictions_graph)
+                        rst._extensions_graph.update(resu._extensions_graph)
+
             self._restrictions[(subdomain, subcodomain)] = resu
+            self._restrictions_graph[(subdomain, subcodomain)] = resu
+            resu._extensions_graph.update(self._extensions_graph)
+
         return self._restrictions[(subdomain, subcodomain)]
 
     def __invert__(self):

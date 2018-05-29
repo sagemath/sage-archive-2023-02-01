@@ -494,7 +494,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             sage: toy_inverse_transition_matrices[2]
             [ 1 -2]
             [ 0  1]
-            sage: toy_transition_matrices.keys()
+            sage: sorted(toy_transition_matrices)
             [0, 1, 2]
         """
         # Much of this code is adapted from dual.py
@@ -627,7 +627,7 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
             sage: w._h_inverse_transition_matrices[2]
             [ 1 -1]
             [ 0  1]
-            sage: w._h_transition_matrices.keys()
+            sage: sorted(w._h_transition_matrices)
             [0, 1, 2]
         """
         l = len(self._h_transition_matrices)

@@ -2531,12 +2531,12 @@ def test_maximal_modules(tree_root, graph):
     INPUT:
 
     - ``tree_root`` -- Modular decomposition tree whose modules are tested for
-                       maximal nature
+      maximal nature
     - ``graph`` -- Graph whose modular decomposition tree is tested
 
     OUTPUT:
 
-    ``True`` if all modules at first level in the modular ddecomposition tree
+    ``True`` if all modules at first level in the modular decomposition tree
     are maximal in nature
 
     EXAMPLES::

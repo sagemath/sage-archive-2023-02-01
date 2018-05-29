@@ -67,7 +67,7 @@ class MatrixGroupMorphism(MatrixGroupMap):
     pass
 
 
-class MatrixGroupMorphism_im_gens(MatrixGroupMorphism, GroupMorphism_libgap):
+class MatrixGroupMorphism_im_gens(GroupMorphism_libgap):
     """
     Group morphism specified by images of generators.
 

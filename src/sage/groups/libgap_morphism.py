@@ -26,11 +26,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function
 from sage.categories.homset import HomsetWithBase
 from sage.categories.groups import Groups
 from sage.categories.morphism import Morphism
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.groups.libgap_wrapper import ParentLibGAP
 from sage.misc.latex import latex
@@ -75,6 +73,49 @@ class GroupMorphism_libgap(Morphism):
         Group morphism:
           From: Free Group on generators {a, b}
           To:   Finitely presented group < a, b | a, b^3 >
+
+    TESTS:
+
+        sage: MS = MatrixSpace(SR, 2, 2)
+        sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
+        sage: G.Hom(G)
+        Set of Morphisms from Matrix group over Symbolic Ring with 2 generators (
+        [1 0]  [1 2]
+        [0 1], [3 4]
+        ) to Matrix group over Symbolic Ring with 2 generators (
+        [1 0]  [1 2]
+        [0 1], [3 4]
+        ) in Category of groups
+
+        sage: G = MatrixGroup([matrix(GF(5), [[1,3],[0,1]])])
+        sage: H = MatrixGroup([matrix(GF(5), [[1,2],[0,1]])])
+        sage: G.hom([H.gen(0)])
+        Group morphism:
+        From: Matrix group over Finite Field of size 5 with 1 generators (
+        [1 3]
+        [0 1]
+        )
+        To:   Matrix group over Finite Field of size 5 with 1 generators (
+        [1 2]
+        [0 1]
+        )
+
+        sage: G = GO(2,2,e=1)
+        sage: from sage.groups.abelian_gps.abelian_group_gap import AbelianGroupGap
+        sage: A = AbelianGroupGap([2])
+        sage: G.hom([A.one(),A.gen(0)])
+        Group morphism:
+        From: General Orthogonal Group of degree 2 and form parameter 1 over Finite Field of size 2
+        To:   Abelian group with gap, generator orders (2,)
+
+    Check that :trac:`19407` is fixed::
+
+        sage: G = GL(2, GF(2))
+        sage: H = GL(3, ZZ)
+        sage: Hom(G, H)
+        Set of Morphisms from General Linear Group of degree 2
+         over Finite Field of size 2
+         to General Linear Group of degree 3 over Integer Ring in Category of groups
     """
     def __init__(self, homset, imgs, check=True):
         r"""

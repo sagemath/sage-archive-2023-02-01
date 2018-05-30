@@ -1537,6 +1537,19 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return Matrix([[invariant_value(i,j) / self.cardinality() for j in range(n)]
                        for i in range(n)])
 
+    def invariant_form_standardization(self):
+        r"""
+        Return the transformation of the space that turns the invriant
+        form into the standard scalar product. This is, it returns a
+        matrix `A` such that `A^2` is the invariant form `Ì` of `self`
+        and we have
+
+        .. MATH::
+
+            x I y^T = (xA)(yA)^T
+        """
+        return self.invariant_form().principal_square_root()
+
     def set_reflection_representation(self,refl_repr=None):
         r"""
         Set the reflection representation of ``self``.

@@ -249,7 +249,7 @@ opt_bool CMatcher::init()
                 return true;
             }
         }
-        for (size_t i=0; i<P; ++i)
+        for (size_t i=0; i<N; ++i)
                 cms.emplace_back();
         map_repo = std::vector<exmap>(P);
 

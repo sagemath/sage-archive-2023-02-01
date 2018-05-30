@@ -48,7 +48,7 @@ class PathTableaux(Category):
         """
 
 ############################ Abstract Methods #################################
-        
+
         @abstract_method(optional=False)
         def check(self):
             """
@@ -95,7 +95,7 @@ class PathTableaux(Category):
             return self[-1]
 
 ############################# Jeu de taquin ###################################
-            
+
         def local_rule(self,i):
             """
             This is the local that is used for the remaining constructions.
@@ -127,7 +127,7 @@ class PathTableaux(Category):
             """
             if self.size() < 3:
                 return self
-            
+
             T = self
             L = list(T)
             result = []
@@ -161,10 +161,10 @@ class PathTableaux(Category):
             This constructs the action of the generators of the cactus group.
             These generators are involutions and are usually denoted by
             $s_{i,\,j$}$.
-            """          
+            """
             if not 0 < i < j < self.size():
                 raise ValueError("Integers out of bounds.")
-                
+
             if i == j:
                 return self
 
@@ -178,7 +178,7 @@ class PathTableaux(Category):
             return self.cactus(1,j).cactus(1,j-i).cactus(1,j)
 
 ########################### Visualisation and checking ########################
-            
+
         def cylindrical_diagram(self):
             """
             This constructs the cylindrical growth diagram. This provides
@@ -223,7 +223,7 @@ class PathTableaux(Category):
             lhs = self.promotion()
             rhs = self.cactus(1,n).cactus(2,n)
             return lhs == rhs
-        
+
         def check_commutation(self):
             """
             This is to check the commutation relations in the presentation
@@ -316,9 +316,9 @@ class PathTableaux(Category):
 
         def csp(self):
             import sage.combinat.cyclic_sieving_phenomenon
-            
+
 #### These functions don't belong here but I don't have a home for them. ####
-            
+
         def drawL(self):
             """
             This assumes we have a sequence of partitions.

@@ -20,7 +20,7 @@ dual equivalence graphs.
 AUTHORS:
 
 - Bruce Westbury (2018): initial version
-
+"""
 #*****************************************************************************
 #       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
 #
@@ -31,9 +31,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-"""
-
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -42,20 +39,22 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 
 from sage.categories.pathtableaux import PathTableaux
-
+from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.tableau import SemistandardTableau
+from sage.combinat.partition import Partition
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DualSemistandardTableau(ClonableArray):
     """
        An instance is the sequence of partitions correspond to the
        chain of partitions of a dual semistandard skew tableau.
-       
+
     The acceptable inputs are:
         - a sequence such that each term defines a partition
         - a semistandard skew tableau
 
     EXAMPLES:
-        
+
     sage: DualSemistandardTableau([[],[1],[2],[2,1]])
     [[], [1], [2], [2, 1]]
 
@@ -66,12 +65,12 @@ class DualSemistandardTableau(ClonableArray):
     """
     @staticmethod
     def __classcall_private__(self, ot):
-        
+
         w = None
 
         if isinstance(ot,(SkewTableau,SemistandardTableau)):
             w = ot.conjugate().to_chain()
-            
+
         if isinstance(ot,(list,tuple)):
             try:
                 w = tuple([ Partition(a) for a in ot ])
@@ -79,8 +78,8 @@ class DualSemistandardTableau(ClonableArray):
                 raise ValueError("%s is not a sequence of partitions." % str(ot) )
 
         if w == None:
-            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )  
-                        
+            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )
+
         return DualSemistandardTableaux()(w)
 
     def _hash_(self):
@@ -111,7 +110,7 @@ class DualSemistandardTableau(ClonableArray):
     def evaluation(self):
         z = [ p.size() for p in self ]
         return [ z[i+1] - z[i] for i in range(len(self)-1) ]
-    
+
     def to_tableau(self):
         """
         Returns the conjugate skew tableau. This will be semistandard.
@@ -121,7 +120,7 @@ class DualSemistandardTableau(ClonableArray):
             return SkewTableau(chain=ch)
         except TypeError:
             return SemistandardTableau(chain=ch)
-    
+
     def is_skew(self):
         """
         Returns True if Tableau is skew and False if not.
@@ -135,17 +134,17 @@ class DualSemistandardTableau(ClonableArray):
 
     def rectify(self):
         pass
-    
+
     def check_bender_knuth(self,i):
         lhs = self.local_rule(i).to_tableau()
         rhs = self.to_tableau().bender_knuth_involution(i)
         return lhs == rhs
-    
+
     def check_rectify(self):
         lhs = self.rectify().to_tableau()
         rhs = self.to_tableau().rectify()
         return lhs == rhs
-        
+
     def check_evacuation(self):
         lhs = self.evacuation().to_tableau()
         rhs = self.to_tableau().evacuation()

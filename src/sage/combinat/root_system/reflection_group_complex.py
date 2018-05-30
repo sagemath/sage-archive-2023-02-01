@@ -592,6 +592,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1, -2)
             (0, 1)
             (1, 0)
+
+            sage: for H in W.reflection_hyperplanes(as_linear_functionals=True, with_order=True): H  # optional - gap3
+            ((1, -1), 2)
+            ((1, -2), 2)
+            ((0, 1), 2)
+            ((1, 0), 2)
         """
         Hs = []
         for r in self.distinguished_reflections():
@@ -740,6 +746,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         where `\alpha_H` is the linear form of the hyperplane `H` and
         `e_H` is its stabilizer order.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
+            sage: W.discriminant()                                      # optional - gap3    
+            x0^6 - 3*x0^5*x1 - 3/4*x0^4*x1^2 + 13/2*x0^3*x1^3 - 3/4*x0^2*x1^4 - 3*x0*x1^5 + x1^6
+
+            sage: W = ReflectionGroup(['B',2])                          # optional - gap3
+            sage: W.discriminant()                                      # optional - gap3
+            x0^6*x1^2 - 6*x0^5*x1^3 + 13*x0^4*x1^4 - 12*x0^3*x1^5 + 4*x0^2*x1^6
         """
         from sage.rings.polynomial.all import PolynomialRing
         n = self.rank()
@@ -763,16 +779,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3])
-            sage: W.discriminant_in_quotient()
+            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
+            sage: W.discriminant_in_quotient()                          # optional - gap3
             6*t0^3*t1^2 - 18*t0^4*t2 + 9*t1^4 - 36*t0*t1^2*t2 + 24*t0^2*t2^2 - 8*t2^3
 
-            sage: W = ReflectionGroup(['B',3])
-            sage: W.discriminant_in_quotient()
+            sage: W = ReflectionGroup(['B',3])                          # optional - gap3    
+            sage: W.discriminant_in_quotient()                          # optional - gap3
             -t0^2*t1^2*t2 + 16*t0^3*t2^2 + 2*t1^3*t2 - 36*t0*t1*t2^2 + 108*t2^3
 
-            sage: W = ReflectionGroup(['H',3])
-            sage: W.discriminant_in_quotient()
+            sage: W = ReflectionGroup(['H',3])                          # optional - gap3
+            sage: W.discriminant_in_quotient()                          # optional - gap3    
             (-829*E(5) - 1658*E(5)^2 - 1658*E(5)^3 - 829*E(5)^4)*t0^15 + (213700*E(5) + 427400*E(5)^2 + 427400*E(5)^3 + 213700*E(5)^4)*t0^12*t1 + (-22233750*E(5) - 44467500*E(5)^2 - 44467500*E(5)^3 - 22233750*E(5)^4)*t0^9*t1^2 + (438750*E(5) + 877500*E(5)^2 + 877500*E(5)^3 + 438750*E(5)^4)*t0^10*t2 + (1162187500*E(5) + 2324375000*E(5)^2 + 2324375000*E(5)^3 + 1162187500*E(5)^4)*t0^6*t1^3 + (-74250000*E(5) - 148500000*E(5)^2 - 148500000*E(5)^3 - 74250000*E(5)^4)*t0^7*t1*t2 + (-28369140625*E(5) - 56738281250*E(5)^2 - 56738281250*E(5)^3 - 28369140625*E(5)^4)*t0^3*t1^4 + (1371093750*E(5) + 2742187500*E(5)^2 + 2742187500*E(5)^3 + 1371093750*E(5)^4)*t0^4*t1^2*t2 + (1191796875*E(5) + 2383593750*E(5)^2 + 2383593750*E(5)^3 + 1191796875*E(5)^4)*t0^5*t2^2 + (175781250000*E(5) + 351562500000*E(5)^2 + 351562500000*E(5)^3 + 175781250000*E(5)^4)*t1^5 + (131835937500*E(5) + 263671875000*E(5)^2 + 263671875000*E(5)^3 + 131835937500*E(5)^4)*t0*t1^3*t2 + (-100195312500*E(5) - 200390625000*E(5)^2 - 200390625000*E(5)^3 - 100195312500*E(5)^4)*t0^2*t1*t2^2 + (395507812500*E(5) + 791015625000*E(5)^2 + 791015625000*E(5)^3 + 395507812500*E(5)^4)*t2^3
         """
         from sage.arith.functions import lcm

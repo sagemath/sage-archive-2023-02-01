@@ -19,6 +19,7 @@ AUTHORS:
 ##############################################################################
 
 from sage.groups.libgap_morphism import GroupHomset_libgap
+from sage.misc.lazy_import import lazy_import
 from sage.misc.superseded import deprecation
 
 def is_MatrixGroupHomset(x):
@@ -28,10 +29,9 @@ def is_MatrixGroupHomset(x):
     EXAMPLES::
 
         sage: from sage.groups.matrix_gps.homset import is_MatrixGroupHomset
-        doctest:...: DeprecationWarning: MatrixGroupHomset is deprecated. Use GroupHomset_libgap instead.
-        See https://trac.sagemath.org/25444 for details.
         sage: is_MatrixGroupHomset(4)
-        doctest:...: DeprecationWarning: MatrixGroupHomset is deprecated. Use GroupHomset_libgap instead.
+        doctest:...: DeprecationWarning:
+        Importing MatrixGroupHomset from here is deprecated. If you need to use it, please import it directly from sage.groups.libgap_morphism
         See https://trac.sagemath.org/25444 for details.
         False
 
@@ -48,34 +48,5 @@ def is_MatrixGroupHomset(x):
     return isinstance(x, MatrixGroupHomset)
 
 
-class MatrixGroupHomset(GroupHomset_libgap):
-    r"""
-    This class is deprecated use :class:`sage.groups.libgap_morphism.GroupHomset_libgap` instead.
-
-    EXAMPLES::
-
-        sage: F = GF(5)
-        sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
-        sage: G = MatrixGroup(gens)
-        sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
-        sage: MatrixGroupHomset(G, G)
-        Set of Morphisms from Matrix group over Finite Field of size 5 with 2 generators (
-        [1 2]  [1 1]
-        [4 1], [0 1]
-        ) to Matrix group over Finite Field of size 5 with 2 generators (
-        [1 2]  [1 1]
-        [4 1], [0 1]
-        ) in Category of finite groups
-        sage: F = GF(5)
-        sage: gens = [matrix(F,2,[1,2, -1, 1]), matrix(F,2, [1,1, 0,1])]
-        sage: G = MatrixGroup(gens)
-        sage: from sage.groups.matrix_gps.homset import MatrixGroupHomset
-        sage: M = MatrixGroupHomset(G, G)
-        sage: M(gens)
-        Group endomorphism of Matrix group over Finite Field of size 5 with 2 generators (
-        [1 2]  [1 1]
-        [4 1], [0 1]
-        )
-    """
-    deprecation(25444, "MatrixGroupHomset is deprecated. "
-                "Use GroupHomset_libgap instead.")
+lazy_import('sage.groups.libgap_morphism', 'GroupHomset_libgap',
+            'MatrixGroupHomset', deprecation=25444)

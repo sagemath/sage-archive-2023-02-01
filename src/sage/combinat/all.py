@@ -219,4 +219,4 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramBinWord', 'GrowthDiagramDomino',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
 
-from .catalan import CatalanTableau, CatalanTableaux
+lazy_import('sage.combinat.catalan', ['CatalanTableaux','CatalanTableau'])

@@ -32,6 +32,11 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 
+from sage.combinat.dyck_word import DyckWord
+from sage.combinat.perfect_matching import PerfectMatching
+from sage.combinat.skew_tableau import SkewTableau
+from sage.rings.integer import Integer
+
 from sage.categories.pathtableaux import PathTableaux
 #from sage.categories.sets_cat import Sets
 #from sage.combinat.catalan import CatalanTableau

@@ -221,12 +221,12 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             sage: all(ak.cardinality() == len(ak.list()) for ak in aks)
             True
         """
-        kp = Set([-self.k-1])
+        kp = frozenset([-self.k-1])
         for sp in SetPartitions_set.__iter__(self):
             res = []
             for part in sp:
                 if self.k+1 in part:
-                    res.append( part + kp )
+                    res.append( part.union(kp) )
                 else:
                     res.append(part)
             yield self.element_class(self, res)

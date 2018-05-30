@@ -296,7 +296,7 @@ class AbstractSetPartition(ClonableArray):
 
             sage: def mul2(s, t):
             ....:     temp = [ss.intersection(ts) for ss in s for ts in t]
-            ....:     temp = filter(lambda x: x != Set([]), temp)
+            ....:     temp = filter(lambda x: x, temp)
             ....:     return s.__class__(s.parent(), temp)
 
         Let us check that this gives the same as ``__mul__`` on set
@@ -308,8 +308,8 @@ class AbstractSetPartition(ClonableArray):
         """
         new_composition = []
         for B in self:
-           for C in other:
-                BintC = B.intersection(C)
+            for C in other:
+                BintC = [b for b in B if b in C]
                 if BintC:
                     new_composition.append(BintC)
         return SetPartition(new_composition)
@@ -339,10 +339,16 @@ class AbstractSetPartition(ClonableArray):
             sage: sp1.sup(sp2) == s
             True
         """
-        res = Set(list(self))
+        res = list(self)
         for p in t:
-            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
-            res = res.difference(inters).union(_set_union(inters))
+            # find blocks in res which intersect p
+            inters = [(i, b) for i, b in enumerate(res)
+                      if any(a in res[i] for a in p)]
+            # remove these blocks from res
+            for i, _ in reversed(inters):
+                del res[i]
+            # add the union
+            res.append([e for _, b in inters for e in b])
         return self.parent()(res)
 
     def standard_form(self):
@@ -429,9 +435,9 @@ class AbstractSetPartition(ClonableArray):
             # the elements of this part of s into a single part.
             ret = []
             for part in s:
-                cur = Set([])
+                cur = []
                 for i in part:
-                    cur = cur.union(self[i-1]) # -1 for indexing
+                    cur.extend(self[i-1]) # -1 for indexing
                 ret.append(cur)
             return ret
         return [self.parent()(union(s)) for s in SP]
@@ -490,11 +496,7 @@ class SetPartition(AbstractSetPartition):
     Here is the list of them::
 
         sage: SetPartitions(3).list()
-        [{{1, 2, 3}},
-         {{1}, {2, 3}},
-         {{1, 3}, {2}},
-         {{1, 2}, {3}},
-         {{1}, {2}, {3}}]
+        [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
 
     There are 6 set partitions of `\{1,2,3,4\}` whose underlying partition is
     `[2, 1, 1]`::
@@ -544,7 +546,9 @@ class SetPartition(AbstractSetPartition):
             {}
         """
         self._latex_options = {}
-        ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min), check=check)
+        sets = map(frozenset, s)
+        blocks = sorted(sets, key=min)
+        ClonableArray.__init__(self, parent, blocks, check=check)
 
     def check(self):
         """
@@ -567,7 +571,7 @@ class SetPartition(AbstractSetPartition):
             sage: s = S([1, 2, 3])
             Traceback (most recent call last):
             ...
-            TypeError: Element has no defined underlying set
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
         if self not in self.parent():
             raise ValueError("%s is not an element of %s"%(self, self.parent()))
@@ -1722,7 +1726,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         for p in s:
-            x = p[0]
+            x = next(iter(p))
             for t_ in t:
                 if x in t_:
                     break
@@ -1817,8 +1821,16 @@ class SetPartitions_all(SetPartitions):
 
             sage: it = SetPartitions().__iter__()
             sage: [next(it) for x in range(10)]
-            [{}, {{1}}, {{1, 2}}, {{1}, {2}}, {{1, 2, 3}}, {{1}, {2, 3}},
-             {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}, {{1, 2, 3, 4}}]
+            [{},
+             {{1}},
+             {{1, 2}},
+             {{1}, {2}},
+             {{1, 2, 3}},
+             {{1}, {2, 3}},
+             {{1, 3}, {2}},
+             {{1, 2}, {3}},
+             {{1}, {2}, {3}},
+             {{1, 2, 3, 4}}]
         """
         n = 0
         while True:
@@ -1958,9 +1970,37 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartitions(3).list()
             [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
         """
+
         for p in Partitions(len(self._set)):
             for sp in self._iterator_part(p):
                 yield self.element_class(self, sp)
+#        base_set = list(self.base_set())
+#        def from_word(w):
+#            sp = []
+#            for i, b in zip(base_set, w):
+#                if len(sp) <= b:
+#                    sp.append([i])
+#                else:
+#                    sp[b].append(i)
+#            return self.element_class(self, sp, check=False)
+#
+#        # Ruskey, Combinatorial Generation, Algorithm 4.22
+#
+#        N = len(base_set)
+#        a = [0]*N
+#        def gen(l, m):
+#            if l >= N:
+#                yield from_word(a)
+#            else:
+#                for i in range(m+1):
+#                    a[l] = i
+#                    for P in gen(l+1, m):
+#                        yield P
+#                if m < N-1:
+#                    a[l] = m+1
+#                    for P in gen(l+1, m+1):
+#                        yield P
+#        return gen(1, 0)
 
     def base_set(self):
         """
@@ -2335,4 +2375,3 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
-

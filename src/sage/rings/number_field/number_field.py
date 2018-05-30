@@ -9278,17 +9278,13 @@ class NumberField_absolute(NumberField_generic):
                 d *= p
         return d
 
-    def elements_of_bounded_height(self,bound,tolerance=0.2,precision=53):
+    def elements_of_bounded_height(self, bound, tolerance=0.2, precision=53):
         r"""
         Return an iterator over the elements of ``self`` with relative
         multiplicative height at most ``bound``.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
-
-        It might be helpful to work with an LLL-reduced system of fundamental
-        units, so the user has the option to perform an LLL reduction for the
-        fundamental units by setting ``LLL`` to True.
 
         Certain computations may be faster assuming GRH, which may be done
         globally by using the number_field(True/False) switch.
@@ -9298,7 +9294,9 @@ class NumberField_absolute(NumberField_generic):
         INPUT:
 
         - ``bound`` - a real number
+
         - ``tolerance`` - a rational number in (0,1]
+
         - ``precision`` - (default: 53) a positive integer
 
         OUTPUT:

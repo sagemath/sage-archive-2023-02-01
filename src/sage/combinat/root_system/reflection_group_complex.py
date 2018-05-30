@@ -735,67 +735,74 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def discriminant(self):
         r"""
-        Return the discriminant of `self` in the polynomial ring on
+        Return the discriminant of ``se`lf` in the polynomial ring on
         which the group acts.
 
         This is the product
 
         .. MATH::
 
-           \prod \alpha_H^{e_H}
+           \prod_H \alpha_H^{e_H},
 
         where `\alpha_H` is the linear form of the hyperplane `H` and
         `e_H` is its stabilizer order.
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
-            sage: W.discriminant()                                      # optional - gap3    
-            x0^6 - 3*x0^5*x1 - 3/4*x0^4*x1^2 + 13/2*x0^3*x1^3 - 3/4*x0^2*x1^4 - 3*x0*x1^5 + x1^6
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.discriminant()                           # optional - gap3
+            x0^6 - 3*x0^5*x1 - 3/4*x0^4*x1^2 + 13/2*x0^3*x1^3
+             - 3/4*x0^2*x1^4 - 3*x0*x1^5 + x1^6
 
-            sage: W = ReflectionGroup(['B',2])                          # optional - gap3
-            sage: W.discriminant()                                      # optional - gap3
+            sage: W = ReflectionGroup(['B',2])               # optional - gap3
+            sage: W.discriminant()                           # optional - gap3
             x0^6*x1^2 - 6*x0^5*x1^3 + 13*x0^4*x1^4 - 12*x0^3*x1^5 + 4*x0^2*x1^6
         """
         from sage.rings.polynomial.all import PolynomialRing
         n = self.rank()
-        P = PolynomialRing(QQ,"x", n)
+        P = PolynomialRing(QQ, 'x', n)
         x = P.gens()
 
-        return prod( sum(x[i]*alpha[i] for i in range(n))**o for alpha,o in self.reflection_hyperplanes(as_linear_functionals=True, with_order=True) )
+        return prod(sum(x[i] * alpha[i] for i in range(n)) ** o
+                    for alpha,o in self.reflection_hyperplanes(True, True))
 
     @cached_method
-    def discriminant_in_quotient(self, invariants=None):
+    def discriminant_in_invariant_ring(self, invariants=None):
         r"""
-        Return the discriminant of `self` in the invariant ring.
+        Return the discriminant of ``self`` in the invariant ring.
 
         This is the function `f` in the invariants such that
-
-        .. MATH::
-
-            f(F_1(x),\ldots,F_n(x))
-
-        is the discriminant.
+        `f(F_1(x), \ldots, F_n(x))` is the discriminant.
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',3])                          # optional - gap3
-            sage: W.discriminant_in_quotient()                          # optional - gap3
+            sage: W = ReflectionGroup(['A',3])               # optional - gap3
+            sage: W.discriminant_in_invariant_ring()         # optional - gap3
             6*t0^3*t1^2 - 18*t0^4*t2 + 9*t1^4 - 36*t0*t1^2*t2 + 24*t0^2*t2^2 - 8*t2^3
 
-            sage: W = ReflectionGroup(['B',3])                          # optional - gap3    
-            sage: W.discriminant_in_quotient()                          # optional - gap3
+            sage: W = ReflectionGroup(['B',3])               # optional - gap3
+            sage: W.discriminant_in_invariant_ring()         # optional - gap3
             -t0^2*t1^2*t2 + 16*t0^3*t2^2 + 2*t1^3*t2 - 36*t0*t1*t2^2 + 108*t2^3
 
-            sage: W = ReflectionGroup(['H',3])                          # optional - gap3
-            sage: W.discriminant_in_quotient()                          # optional - gap3    
-            (-829*E(5) - 1658*E(5)^2 - 1658*E(5)^3 - 829*E(5)^4)*t0^15 + (213700*E(5) + 427400*E(5)^2 + 427400*E(5)^3 + 213700*E(5)^4)*t0^12*t1 + (-22233750*E(5) - 44467500*E(5)^2 - 44467500*E(5)^3 - 22233750*E(5)^4)*t0^9*t1^2 + (438750*E(5) + 877500*E(5)^2 + 877500*E(5)^3 + 438750*E(5)^4)*t0^10*t2 + (1162187500*E(5) + 2324375000*E(5)^2 + 2324375000*E(5)^3 + 1162187500*E(5)^4)*t0^6*t1^3 + (-74250000*E(5) - 148500000*E(5)^2 - 148500000*E(5)^3 - 74250000*E(5)^4)*t0^7*t1*t2 + (-28369140625*E(5) - 56738281250*E(5)^2 - 56738281250*E(5)^3 - 28369140625*E(5)^4)*t0^3*t1^4 + (1371093750*E(5) + 2742187500*E(5)^2 + 2742187500*E(5)^3 + 1371093750*E(5)^4)*t0^4*t1^2*t2 + (1191796875*E(5) + 2383593750*E(5)^2 + 2383593750*E(5)^3 + 1191796875*E(5)^4)*t0^5*t2^2 + (175781250000*E(5) + 351562500000*E(5)^2 + 351562500000*E(5)^3 + 175781250000*E(5)^4)*t1^5 + (131835937500*E(5) + 263671875000*E(5)^2 + 263671875000*E(5)^3 + 131835937500*E(5)^4)*t0*t1^3*t2 + (-100195312500*E(5) - 200390625000*E(5)^2 - 200390625000*E(5)^3 - 100195312500*E(5)^4)*t0^2*t1*t2^2 + (395507812500*E(5) + 791015625000*E(5)^2 + 791015625000*E(5)^3 + 395507812500*E(5)^4)*t2^3
+            sage: W = ReflectionGroup(['H',3])               # optional - gap3
+            sage: W.discriminant_in_invariant_ring()  # long time  # optional - gap3
+            (-829*E(5) - 1658*E(5)^2 - 1658*E(5)^3 - 829*E(5)^4)*t0^15
+             + (213700*E(5) + 427400*E(5)^2 + 427400*E(5)^3 + 213700*E(5)^4)*t0^12*t1
+             + (-22233750*E(5) - 44467500*E(5)^2 - 44467500*E(5)^3 - 22233750*E(5)^4)*t0^9*t1^2
+             + (438750*E(5) + 877500*E(5)^2 + 877500*E(5)^3 + 438750*E(5)^4)*t0^10*t2
+             + (1162187500*E(5) + 2324375000*E(5)^2 + 2324375000*E(5)^3 + 1162187500*E(5)^4)*t0^6*t1^3
+             + (-74250000*E(5) - 148500000*E(5)^2 - 148500000*E(5)^3 - 74250000*E(5)^4)*t0^7*t1*t2
+             + (-28369140625*E(5) - 56738281250*E(5)^2 - 56738281250*E(5)^3 - 28369140625*E(5)^4)*t0^3*t1^4
+             + (1371093750*E(5) + 2742187500*E(5)^2 + 2742187500*E(5)^3 + 1371093750*E(5)^4)*t0^4*t1^2*t2
+             + (1191796875*E(5) + 2383593750*E(5)^2 + 2383593750*E(5)^3 + 1191796875*E(5)^4)*t0^5*t2^2
+             + (175781250000*E(5) + 351562500000*E(5)^2 + 351562500000*E(5)^3 + 175781250000*E(5)^4)*t1^5
+             + (131835937500*E(5) + 263671875000*E(5)^2 + 263671875000*E(5)^3 + 131835937500*E(5)^4)*t0*t1^3*t2
+             + (-100195312500*E(5) - 200390625000*E(5)^2 - 200390625000*E(5)^3 - 100195312500*E(5)^4)*t0^2*t1*t2^2
+             + (395507812500*E(5) + 791015625000*E(5)^2 + 791015625000*E(5)^3 + 395507812500*E(5)^4)*t2^3
         """
         from sage.arith.functions import lcm
-        from sage.rings.polynomial.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         n = self.rank()
-        P = PolynomialRing(QQ,"t", n)
-        t = P.gens()
 
         if invariants is None:
             Fs = self.fundamental_invariants()
@@ -809,35 +816,36 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
             R = UniversalCyclotomicField()
 
-        def solve_eq(D, Fs, R):
-            Dd = D.degree()       
-            Fd = [ F.degree() for F in Fs ]                   
+        # TODO: The rest of this could be split off as a general function
+        #   to express a polynomial D as a polynomial in the polynomials Fs
+        #   with coefficients in the ring R.
+        Dd = D.degree()
+        Fd = [F.degree() for F in Fs]
 
-            Ps = multi_partitions(Dd,Fd)
+        Ps = multi_partitions(Dd, Fd)
 
-            m = len(Ps)
-            P = PolynomialRing(R,"X",m)
-            X = P.gens()
+        m = len(Ps)
+        P = PolynomialRing(R, 'X', m)
+        X = P.gens()
 
-            T = PolynomialRing(R,"t",n)
-            t = T.gens()
+        T = PolynomialRing(R, 't', n)
 
-            FsPowers = [ prod(power(Fs[j],Ps[i][j]) for j in range(len(Fs))) for i in range(len(Ps)) ]
-            FsPowers = [ F.change_ring(P) for F in FsPowers ]
+        FsPowers = [prod(power(val, part[j]) for j,val in enumerate(Fs)).change_ring(P)
+                    for part in Ps]
 
-            D  = D.change_ring(P)
-            f  = D - sum(X[i]*F for i,F in enumerate(FsPowers))
-            coeffs = f.coefficients()
-            lhs = Matrix(R, [[coeff.coefficient(X[i]) for i in range(m)] for coeff in coeffs ])
-            rhs = vector([coeff.constant_coefficient() for coeff in coeffs ])
+        D = D.change_ring(P)
+        f = D - sum(X[i] * F for i,F in enumerate(FsPowers))
+        coeffs = f.coefficients()
+        lhs = Matrix(R, [[coeff.coefficient(X[i]) for i in range(m)]
+                         for coeff in coeffs])
+        rhs = vector([coeff.constant_coefficient() for coeff in coeffs])
 
-            coeffs = lhs.solve_right(rhs)
-            
-            coeffs = lcm( i.denominator() for i in coeffs ) * coeffs
-            mons = vector(prod(t[j]**Ps[i][j] for j in range(n)) for i in range(m))
-            return sum(coeffs[i]*mons[i] for i in range(m))
-
-        return solve_eq(D,Fs,R)
+        coeffs = lhs.solve_right(rhs)
+        # Cancel denominators
+        coeffs = lcm(i.denominator() for i in coeffs) * coeffs
+        mons = vector([prod(tj**part[j] for j,tj in enumerate(T.gens()))
+                       for part in Ps])
+        return sum(coeffs[i] * mons[i] for i in range(m))
 
     @cached_method
     def is_crystallographic(self):
@@ -1980,12 +1988,13 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
 def multi_partitions(n, S, i=None):
     r"""
-    Return all vectors of the same length as `S` whose inner product
-    with `S` equals `n`.
+    Return all vectors as lists of the same length as ``S`` whose
+    standard inner product with ``S`` equals ``n``.
 
     EXAMPLES::
 
-        sage: multi_partitions(10,[2,3,3,4])
+        sage: from sage.combinat.root_system.reflection_group_complex import multi_partitions
+        sage: multi_partitions(10, [2,3,3,4])
         [[5, 0, 0, 0],
          [3, 0, 0, 1],
          [2, 2, 0, 0],
@@ -2001,24 +2010,25 @@ def multi_partitions(n, S, i=None):
         S = sorted(S)
     if n == 0:
         return [[0]*len(S)]
-    elif i == len(S):
+    if i == len(S):
         return []
-    else:
-        k = S[i]
-        if k > n:
-            return []
-        else:
-            coeffs1 = multi_partitions(n-k, S, i  )
-            coeffs2 = multi_partitions(n  , S, i+1)
-            for coeff in coeffs1:
-                coeff[i] += 1
-            coeffs = coeffs1 + coeffs2
-            return coeffs
+
+    k = S[i]
+    if k > n:
+        return []
+
+    coeffs1 = multi_partitions(n-k, S, i  )
+    coeffs2 = multi_partitions(n  , S, i+1)
+    for coeff in coeffs1:
+        coeff[i] += 1
+    coeffs = coeffs1 + coeffs2
+    return coeffs
 
 @cached_function
 def power(f, k):
     r"""
     Return `f^k` and caching all intermediate results.
+
     Speeds the computation if one has to compute `f^k`'s for many
     values of `k`.
 
@@ -2040,3 +2050,4 @@ def power(f, k):
             return power(f,2**b.index(1)/2)**2
     else:
         return prod(power(f,2**i) for i,a in enumerate(b) if a)
+

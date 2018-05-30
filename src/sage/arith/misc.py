@@ -2757,26 +2757,21 @@ def is_square(n, root=False):
         sage: is_square(mpz(4))     # optional - gmpy2
         True
     """
-    if isinstance(n, integer_types):
-        n = ZZ(n)
     try:
-        if root:
-            try:
-                return n.is_square(root)
-            except TypeError:
-                if n.is_square():
-                    return True, n.sqrt()
-                else:
-                    return False, None
-        return n.is_square()
+        m = n.is_square
     except (AttributeError, NotImplementedError):
-        pass
-    t, x = pari(n).issquare(find_root=True)
+        n = py_scalar_to_element(n)
+        m = n.is_square
+
     if root:
-        if t:
-            x = parent(n)(x)
-        return t, x
-    return t
+        try:
+            return m(root)
+        except TypeError:
+            if n.is_square():
+                return True, n.sqrt()
+            else:
+                return False, None
+    return m()
 
 def is_squarefree(n):
     """

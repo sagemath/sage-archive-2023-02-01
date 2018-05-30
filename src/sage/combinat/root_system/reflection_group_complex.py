@@ -541,7 +541,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return self.distinguished_reflections()[i]
 
     @cached_method
-    def reflection_hyperplanes(self, as_linear_functionals=False):
+    def reflection_hyperplanes(self, as_linear_functionals=False, with_order=False):
         r"""
         Return the list of all reflection hyperplanes of ``self``,
         either as a codimension 1 space, or as its linear functional.
@@ -600,6 +600,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 Hs.append( mat.row_space().gen() )
             else:
                 Hs.append( mat.right_kernel() )
+            if with_order:
+                Hs[-1] = (Hs[-1],r.order())
         return Family(self._hyperplane_index_set,
                       lambda i: Hs[self._hyperplane_index_set_inverse[i]])
 
@@ -723,6 +725,21 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [2, 0, -1]
         """
         return self._gap_group.ReflectionCharacter().sage()
+
+    def discriminant(self, quotient=False):
+        r"""
+        Return the discriminant of `self`.
+
+        This is the product
+
+        .. MATH::
+
+           \prod \alpha_H^{e_H}
+
+        where `\alpha_H` is the linear form of the hyperplane `H` and
+        `e_H` is its stabilizer order.
+        """
+        return prod( self.reflection_hyperplanes(as_linear_functionals=True)
 
     def is_crystallographic(self):
         r"""

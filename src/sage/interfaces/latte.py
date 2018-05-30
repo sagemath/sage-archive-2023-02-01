@@ -13,13 +13,10 @@ Interface to LattE integrale programs
 
 import six
 
-# check on import that LattE is present
-from sage.features.latte import Latte
-Latte().require()
-
 from subprocess import Popen, PIPE
 from sage.misc.misc import SAGE_TMP
 
+from sage.features.latte import Latte
 
 def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False, raw_output=False, verbose=False, **kwds):
     r"""
@@ -112,6 +109,9 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         1
 
     """
+    # Check that LattE is present
+    Latte().require()
+
     args = ['count']
     if ehrhart_polynomial and multivariate_generating_function:
         raise ValueError
@@ -301,6 +301,9 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
         Invocation: integrate --valuation=volume --triangulate --redundancy-check=none --cdd /dev/stdin
         ...
     """
+    # Check that LattE is present
+    Latte().require()
+
     args = ['integrate']
 
     got_polynomial = True if polynomial is not None else False
@@ -387,16 +390,16 @@ def to_latte_polynomial(polynomial):
 
     Testing a polynomial in three variables::
 
-        sage: from sage.interfaces.latte import to_latte_polynomial   # optional - latte_int
+        sage: from sage.interfaces.latte import to_latte_polynomial
         sage: x, y, z = polygens(QQ, 'x, y, z')
         sage: f = 3*x^2*y^4*z^6 + 7*y^3*z^5
-        sage: to_latte_polynomial(f)   # optional - latte_int
+        sage: to_latte_polynomial(f)
         '[[3, [2, 4, 6]], [7, [0, 3, 5]]]'
 
     Testing a univariate polynomial::
 
         sage: x = polygen(QQ, 'x')
-        sage: to_latte_polynomial((x-1)^2)   # optional - latte_int
+        sage: to_latte_polynomial((x-1)^2)
         '[[1, [0]], [-2, [1]], [1, [2]]]'
     """
     from sage.rings.polynomial.polydict import ETuple

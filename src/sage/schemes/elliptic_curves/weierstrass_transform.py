@@ -51,12 +51,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-
-from sage.categories.morphism import Morphism
-from .constructor import EllipticCurve
-from sage.categories.homset import Hom
 
 
 class WeierstrassTransformation(SchemeMorphism_polynomial):

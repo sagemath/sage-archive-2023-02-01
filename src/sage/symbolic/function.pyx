@@ -989,7 +989,7 @@ cdef class BuiltinFunction(Function):
             if callable(method):
                 try:
                     res = method()
-                except Exception:
+                except (ValueError, ArithmeticError):
                     pass
 
         if res is None:

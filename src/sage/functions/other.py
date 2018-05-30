@@ -1259,7 +1259,7 @@ class Function_factorial(GinacFunction):
 
         INPUT:
 
-        -  ``n`` - a non-negative integer, a complex numberargument (except negative
+        -  ``n`` - a non-negative integer, a complex number (except negative
            integers) or any symbolic expression
 
 

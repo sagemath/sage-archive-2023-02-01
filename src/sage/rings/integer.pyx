@@ -4356,10 +4356,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Compute the k-th factorial `n!^{(k)}` of self.
 
-        For k=1 this is the standard factorial, and for k greater than
-        one it is the product of every k-th terms down from self to
-        1. The recursive definition is used to extend this function to
-        the negative integers.
+        The multifactorial number `n!^{(k)}` is defined for non-negative
+        integers `n` as follows. For `k=1` this is the standard factorial,
+        and for `k` greater than `1` it is the product of every `k`-th
+        terms down from `n` to `1`. The recursive definition is used to
+        extend this function to the negative integers `n`.
+
+        This function uses direct call to GMP if `k` and `n` are non-negative
+        and uses simple transformation for other cases.
 
         EXAMPLES::
 

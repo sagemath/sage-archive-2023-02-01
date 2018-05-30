@@ -15,7 +15,6 @@ Miscellaneous arithmetic functions
 
 from __future__ import absolute_import, print_function
 from six.moves import range
-from six import integer_types
 
 import math
 import collections
@@ -1719,9 +1718,11 @@ def gcd(a, b=None, **kwargs):
         sage: from numpy import int8
         sage: GCD(int8(97),int8(100))
         1
-        sage: from gmpy2 import mpq     # optional - gmpy2
-        sage: GCD(mpq(2/3), mpq(4/5))   # optional - gmpy2
+        sage: from gmpy2 import mpq, mpz    # optional - gmpy2
+        sage: GCD(mpq(2/3), mpq(4/5))       # optional - gmpy2
         2/15
+        sage: GCD((mpz(2), mpz(4)))         # optional - gmpy2
+        2
     """
     # Most common use case first:
     if b is not None:
@@ -1738,12 +1739,12 @@ def gcd(a, b=None, **kwargs):
         except TypeError:
             return m(py_scalar_to_element(b), **kwargs)
 
-    from sage.structure.sequence import Sequence
-    seq = Sequence(a)
-    U = seq.universe()
-    if U is ZZ or U in integer_types:  # ZZ.has_coerce_map_from(U):
+    try:
         return GCD_list(a)
-    return __GCD_sequence(seq, **kwargs)
+    except TypeError:
+        from sage.structure.sequence import Sequence
+        return __GCD_sequence(Sequence(a), **kwargs)
+
 
 GCD = gcd
 

@@ -161,7 +161,6 @@ class Lseries_ell(SageObject):
                        eps = self.__E.root_number(),
                        poles = [],
                        prec = prec)
-        gp = L.gp()
         s = 'e = ellinit(%s);'%list(self.__E.minimal_model().a_invariants())
         s += 'a(k) = ellak(e, k);'
         L.init_coeffs('a(k)', 1, pari_precode = s,

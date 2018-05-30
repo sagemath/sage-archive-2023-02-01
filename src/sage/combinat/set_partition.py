@@ -1970,37 +1970,32 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartitions(3).list()
             [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
         """
+        base_set = list(self.base_set())
+        def from_word(w):
+            sp = []
+            for i, b in zip(base_set, w):
+                if len(sp) <= b:
+                    sp.append([i])
+                else:
+                    sp[b].append(i)
+            return self.element_class(self, sp, check=False)
 
-        for p in Partitions(len(self._set)):
-            for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
-#        base_set = list(self.base_set())
-#        def from_word(w):
-#            sp = []
-#            for i, b in zip(base_set, w):
-#                if len(sp) <= b:
-#                    sp.append([i])
-#                else:
-#                    sp[b].append(i)
-#            return self.element_class(self, sp, check=False)
-#
-#        # Ruskey, Combinatorial Generation, Algorithm 4.22
-#
-#        N = len(base_set)
-#        a = [0]*N
-#        def gen(l, m):
-#            if l >= N:
-#                yield from_word(a)
-#            else:
-#                for i in range(m+1):
-#                    a[l] = i
-#                    for P in gen(l+1, m):
-#                        yield P
-#                if m < N-1:
-#                    a[l] = m+1
-#                    for P in gen(l+1, m+1):
-#                        yield P
-#        return gen(1, 0)
+        # Ruskey, Combinatorial Generation, Algorithm 4.22
+        N = len(base_set)
+        a = [0]*N
+        def gen(l, m):
+            if l >= N:
+                yield from_word(a)
+            else:
+                for i in range(m+1):
+                    a[l] = i
+                    for P in gen(l+1, m):
+                        yield P
+                if m < N-1:
+                    a[l] = m+1
+                    for P in gen(l+1, m+1):
+                        yield P
+        return gen(1, 0)
 
     def base_set(self):
         """

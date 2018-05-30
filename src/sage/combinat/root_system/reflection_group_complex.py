@@ -2008,6 +2008,10 @@ def power(f, k):
 
     EXAMPLES::
 
+        sage: P.<x,y,z> = PolynomialRing(QQ)
+        sage: f = -2*x^2 + 2*x*y - 2*y^2 + 2*y*z - 2*z^2
+        sage: all( f^k == power(f,k) for k in range(20) )
+        True
     """
     if k == 1:
         return f

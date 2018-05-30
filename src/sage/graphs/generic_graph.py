@@ -21856,7 +21856,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import connected_components_subgraphs
     from sage.graphs.connectivity import connected_component_containing_vertex
     from sage.graphs.connectivity import connected_components_sizes
-    from sage.graphs.connectivity import blocks_and_cut_vertices   
+    from sage.graphs.connectivity import blocks_and_cut_vertices
     from sage.graphs.connectivity import blocks_and_cuts_tree
     from sage.graphs.connectivity import is_cut_edge
     from sage.graphs.connectivity import is_cut_vertex

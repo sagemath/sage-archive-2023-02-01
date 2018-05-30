@@ -4,7 +4,8 @@ Connectivity related functions
 
 This module implements the connectivity based functions for graphs and digraphs.
 The methods in this module are also available as part of GenericGraph, DiGraph 
-or Graph classes, and can be accessed through this module or through the class.
+or Graph classes as aliases, and these methods can be accessed through this module
+or as class methods.
 Here is what the module can do:
 
 **For both directed and undirected graphs:**

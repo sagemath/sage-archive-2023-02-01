@@ -1540,13 +1540,29 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     def invariant_form_standardization(self):
         r"""
         Return the transformation of the space that turns the invriant
-        form into the standard scalar product. This is, it returns a
-        matrix `A` such that `A^2` is the invariant form `Ì` of `self`
-        and we have
+        form of ``self`` into the standard scalar product.
+
+        Let `I` be the invariant form of a complex reflection group is
+        the matrix `A` such that `A^2 = I` and we have
 
         .. MATH::
 
-            x I y^T = (xA)(yA)^T
+            x I y^T = (xA) (yA)^T.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((4,2,5))             # optional - gap3
+            sage: I = W.invariant_form()                   # optional - gap3
+            sage: A = W.invariant_form_standardization()   # optional - gap3
+            sage: A^2 == I                                 # optional - gap3
+            True
+
+        TESTS::
+
+            sage: S = W.simple_reflections()                                # optional - gap3
+            sage: all((S[i].matrix()*A) (S[j].matrix()*A).transpose() == 1  # optional - gap3
+            ....:     for i in W.index_set() for j in W.index_set() )
+            True
         """
         return self.invariant_form().principal_square_root()
 

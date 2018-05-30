@@ -1624,10 +1624,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
         n = arith.LCM(E.tamagawa_numbers())
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
 
-        if p < 5:
-            phi = self.frobenius(min(6,prec),algorithm="approx")
-        else:
-            phi = self.frobenius(prec+2,algorithm="mw")
+        # if p < 5:
+        #     phi = self.frobenius(min(6,prec),algorithm="approx")
+        # else:
+        #     phi = self.frobenius(prec+2,algorithm="mw")
 
         def height(P,check=True):
             if P.is_finite_order():

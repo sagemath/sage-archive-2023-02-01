@@ -332,14 +332,12 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         p = 2: True by 2-descent
         True for p not in {2, 3, 5} by Kolyvagin.
         Kolyvagin's bound for p = 3 applies by Lawson-Wuthrich
+        Kolyvagin's bound for p = 5 applies by Lawson-Wuthrich
         True for p = 3 by Kolyvagin bound
-        Remaining primes:
-        p = 5: reducible, not surjective, additive, divides a Tamagawa number
-            (no bounds found)
-            ord_p(#Sha_an) = 0
-        [5]
+        True for p = 5 by Kolyvagin bound
+        []
         sage: E.prove_BSD(two_desc='simon')
-        [5]
+        []
 
     A rank two curve::
 
@@ -395,11 +393,9 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         sage: E.prove_BSD(verbosity=2)
         p = 2: True by 2-descent
         True for p not in {2, 5} by Kolyvagin.
-        Remaining primes:
-        p = 5: reducible, not surjective, good ordinary, divides a Tamagawa number
-            (no bounds found)
-            ord_p(#Sha_an) = 0
-        [5]
+        Kolyvagin's bound for p = 5 applies by Lawson-Wuthrich
+        True for p = 5 by Kolyvagin bound
+        []
 
     A curve for which 3 divides the order of the Tate-Shafarevich group::
 

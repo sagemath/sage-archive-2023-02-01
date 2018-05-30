@@ -25,10 +25,9 @@ def to_libgap(x):
     EXAMPLES::
 
         sage: from sage.groups.matrix_gps.morphism import to_libgap
-        doctest:...: DeprecationWarning: MatrixGroupMorphism_im_gens is deprecated. Use GroupMorphism_libgap instead.
-        See https://trac.sagemath.org/25444 for details.
         sage: to_libgap(GL(2,3).gen(0))
-        doctest:...: DeprecationWarning: this function is deprecated.Try x.gap() or libgap(x) instead
+        doctest:...: DeprecationWarning: this function is deprecated.
+         Use x.gap() or libgap(x) instead.
         See https://trac.sagemath.org/25444 for details.
         [ [ Z(3), 0*Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
         sage: to_libgap(matrix(QQ, [[1,2],[3,4]]))
@@ -36,7 +35,7 @@ def to_libgap(x):
     """
     from sage.misc.superseded import deprecation
     deprecation(25444, "this function is deprecated."
-                "Use x.gap() or libgap(x) instead")
+                " Use x.gap() or libgap(x) instead.")
     try:
         return x.gap()
     except AttributeError:

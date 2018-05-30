@@ -3,7 +3,9 @@ r"""
 Connectivity related functions
 
 This module implements the connectivity based functions for graphs and digraphs.
-Here is what it can do:
+The methods in this module are also available as part of GenericGraph, DiGraph 
+or Graph classes, and can be accessed through this module or through the class.
+Here is what the module can do:
 
 **For both directed and undirected graphs:**
 
@@ -72,6 +74,8 @@ def is_connected(G):
         sage: G = Graph( { 0 : [1, 2], 1 : [2], 3 : [4, 5], 4 : [5] } )
         sage: is_connected(G)
         False
+        sage: G.is_connected()
+        False
         sage: G.add_edge(0,3)
         sage: is_connected(G)
         True
@@ -128,6 +132,8 @@ def connected_components(G):
         sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: connected_components(G)
         [[0, 1, 2, 3], [4, 5, 6]]
+        sage: G.connected_components()
+        [[0, 1, 2, 3], [4, 5, 6]]
         sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: connected_components(D)
         [[0, 1, 2, 3], [4, 5, 6]]
@@ -171,6 +177,8 @@ def connected_components_number(G):
         sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: connected_components_number(G)
         2
+        sage: G.connected_components_number()
+        2
         sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: connected_components_number(D)
         2
@@ -192,10 +200,6 @@ def connected_components_subgraphs(G):
     """
     Returns a list of connected components as graph objects.
 
-    INPUT:
-
-    - ``G`` (generic_graph) - the input graph.
-
     EXAMPLES::
 
         sage: from sage.graphs.connectivity import connected_components_subgraphs
@@ -204,6 +208,8 @@ def connected_components_subgraphs(G):
         sage: graphs_list.show_graphs(L)
         sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: L = connected_components_subgraphs(D)
+        sage: graphs_list.show_graphs(L)
+        sage: L = D.connected_components_subgraphs()
         sage: graphs_list.show_graphs(L)
 
     TESTS:
@@ -243,6 +249,8 @@ def connected_component_containing_vertex(G, vertex):
         sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: connected_component_containing_vertex(G,0)
         [0, 1, 2, 3]
+        sage: G.connected_component_containing_vertex(0)
+        [0, 1, 2, 3]
         sage: D = DiGraph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
         sage: connected_component_containing_vertex(D,0)
         [0, 1, 2, 3]
@@ -280,6 +288,11 @@ def connected_components_sizes(G):
 
         sage: from sage.graphs.connectivity import connected_components_sizes
         sage: for x in graphs(3):    print(connected_components_sizes(x))
+        [1, 1, 1]
+        [2, 1]
+        [3]
+        [3]
+        sage: for x in graphs(3):    print(x.connected_components_sizes())
         [1, 1, 1]
         [2, 1]
         [3]
@@ -349,6 +362,8 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
         sage: rings = graphs.CycleGraph(10)
         sage: rings.merge_vertices([0, 5])
         sage: blocks_and_cut_vertices(rings)
+        ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
+        sage: rings.blocks_and_cut_vertices()
         ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
         sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Sage")
         ([[0, 1, 2, 3, 4], [0, 6, 7, 8, 9]], [0])
@@ -540,6 +555,9 @@ def blocks_and_cuts_tree(G):
         Graph on 5 vertices
         sage: T.is_isomorphic(graphs.PathGraph(5))
         True
+        sage: from sage.graphs.connectivity import blocks_and_cuts_tree
+        sage: T = graphs.KrackhardtKiteGraph().blocks_and_cuts_tree(); T
+        Graph on 5 vertices
 
     The distance between two leaves is even::
 
@@ -624,6 +642,8 @@ def is_cut_edge(G, u, v=None, label=None):
         sage: from sage.graphs.connectivity import is_cut_edge
         sage: G = graphs.CompleteGraph(4)
         sage: is_cut_edge(G,0,2)
+        False
+        sage: G.is_cut_edge(0,2)
         False
 
         sage: G = graphs.CompleteGraph(4)
@@ -728,6 +748,8 @@ def is_cut_vertex(G, u, weak=False):
         sage: is_cut_vertex(G,0)
         False
         sage: is_cut_vertex(G,3)
+        True
+        sage: G.is_cut_vertex(3)
         True
 
     Comparing the weak and strong connectivity of a digraph::
@@ -897,6 +919,8 @@ def edge_connectivity(G,
         sage: from sage.graphs.connectivity import edge_connectivity
         sage: g = graphs.PappusGraph()
         sage: edge_connectivity(g)
+        3
+        sage: g.edge_connectivity()
         3
 
     The edge connectivity of a complete graph ( and of a random graph )
@@ -1210,6 +1234,8 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
        sage: g=graphs.PappusGraph()
        sage: vertex_connectivity(g)
        3
+       sage: g.vertex_connectivity()
+       3
 
     In a grid, the vertex connectivity is equal to the minimum degree, in
     which case one of the two sets is of cardinality `1`::
@@ -1427,6 +1453,8 @@ def is_strongly_connected(G):
         sage: g = digraphs.Circuit(5)
         sage: is_strongly_connected(g)
         True
+        sage: g.is_strongly_connected()
+        True
 
     But a transitive triangle is not::
 
@@ -1479,6 +1507,9 @@ def strongly_connected_components_digraph(G, keep_labels = False):
         sage: from sage.graphs.connectivity import strongly_connected_components_digraph
         sage: g = digraphs.RandomDirectedGNP(15,.1)
         sage: scc_digraph = strongly_connected_components_digraph(g)
+        sage: scc_digraph.is_directed_acyclic()
+        True
+        sage: scc_digraph = g.strongly_connected_components_digraph()
         sage: scc_digraph.is_directed_acyclic()
         True
 
@@ -1576,6 +1607,8 @@ def strongly_connected_components_subgraphs(G):
         sage: d = DiGraph(g)
         sage: strongly_connected_components_subgraphs(d)
         [Subgraph of (Petersen graph): Digraph on 10 vertices]
+        sage: d.strongly_connected_components_subgraphs()
+        [Subgraph of (Petersen graph): Digraph on 10 vertices]
 
     TESTS:
 
@@ -1612,6 +1645,8 @@ def strongly_connected_component_containing_vertex(G, v):
         sage: g = graphs.PetersenGraph()
         sage: d = DiGraph(g)
         sage: strongly_connected_component_containing_vertex(d,0)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: d.strongly_connected_component_containing_vertex(0)
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     TESTS:
@@ -1656,6 +1691,8 @@ def strong_articulation_points(G):
         sage: D = digraphs.Complete(4)
         sage: D.add_clique([3, 4, 5, 6])
         sage: strong_articulation_points(D)
+        [3]
+        sage: D.strong_articulation_points()
         [3]
 
     Two cliques connected by some arcs::
@@ -1778,6 +1815,9 @@ def bridges(G, labels=True):
         True
         sage: bridges(g)
         [(1, 10, None)]
+        sage: g.bridges()
+        [(1, 10, None)]
+
 
     TESTS:
 

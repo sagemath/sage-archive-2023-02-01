@@ -1032,7 +1032,6 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     """
     from sage.schemes.curves.constructor import Curve
     from sage.matrix.all import Matrix
-    from sage.modules.all import vector
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse
 

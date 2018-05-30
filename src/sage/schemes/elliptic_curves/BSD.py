@@ -537,7 +537,6 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         raise RuntimeError("It seems that the rank conjecture does not hold for this curve (%s)! This may be a counterexample to BSD, but is more likely a bug."%(BSD.curve))
 
     # reduce set of remaining primes to a finite set
-    import signal
     kolyvagin_primes = []
     heegner_index = None
     if BSD.rank == 0:
@@ -667,7 +666,6 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
         for p in kolyvagin_primes:
             BSD.primes.remove(p)
     # apply other hypotheses which imply Kolyvagin's bound holds
-    bounded_primes = []
     D_K = rings.QuadraticField(D, 'a').disc()
 
     # Cha's hypothesis
@@ -708,7 +706,7 @@ def prove_BSD(E, verbosity=0, two_desc='mwrank', proof=None, secs_hi=5,
                 else:  # p == 5
                     Et = BSD.curve.quadratic_twist(5)
                     if Et.torsion_order() % p != 0 and C.torsion_order() % p != 0:
-                        crite_lw = True
+                        crit_lw = True
         if crit_lw:
             if verbosity > 0:
                 print('Kolyvagin\'s bound for p = %d applies by Lawson-Wuthrich' % p)

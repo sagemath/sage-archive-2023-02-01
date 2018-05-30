@@ -25,7 +25,7 @@ from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.all import RealField, RationalField
-from math import sqrt, exp, log, ceil
+from math import sqrt, log, ceil
 import sage.functions.exp_integral as exp_integral
 from sage.misc.all import verbose
 

@@ -17,7 +17,7 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, division
 
-from sage.plot.hyperbolic_polygon import HyperbolicPolygon, hyperbolic_polygon
+from sage.plot.hyperbolic_polygon import HyperbolicPolygon
 from sage.plot.all import Graphics
 from sage.rings.all import CC
 from sage.rings.integer import Integer
@@ -27,6 +27,7 @@ from sage.functions.hyperbolic import arccosh
 from sage.functions.trig import sin, cos, cot
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
+
 
 class HyperbolicRegularPolygon(HyperbolicPolygon):
     r"""

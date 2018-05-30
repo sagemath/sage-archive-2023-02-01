@@ -4,7 +4,7 @@ Pseudo-Riemannian submanifolds
 An *embedded (resp. immersed) submanifold of a pseudo-Riemannian manifold*
 `(M,g)` is an embedded (resp. immersed) submanifold `N` of `M` as a
 differentiable manifold such that pull back of the metric tensor `g` via the
-embedding (resp. immersion) endowes `N` with the structure of a
+embedding (resp. immersion) endows `N` with the structure of a
 pseudo-Riemannian manifold.
 
 An actual limitation of this implementation is that a foliation is required to
@@ -185,7 +185,6 @@ from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
 from sage.manifolds.differentiable.differentiable_submanifold import \
     DifferentiableSubmanifold
-from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.functions.other import factorial
@@ -203,7 +202,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
     An *embedded (resp. immersed) submanifold of a pseudo-Riemannian manifold*
     `(M,g)` is an embedded (resp. immersed) submanifold `N` of `M` as a
     differentiable manifold such that pull back of the metric tensor `g` via
-    the embedding (resp. immersion) endowes `N` with the structure of a
+    the embedding (resp. immersion) endows `N` with the structure of a
     pseudo-Riemannian manifold.
 
     INPUT:
@@ -712,7 +711,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n_comp = n_comp / n_comp.norm(
                 self.ambient_metric().along(self._immersion))
 
-
             norm_rst = self._normal.restrict(chart.domain())
             norm_rst.add_comp(max_frame.restrict(chart.domain()))[:] = n_comp[:]
             self._normal.add_comp_by_continuation(max_frame, chart.domain(),
@@ -941,8 +939,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self.normal()
         if self._dim_foliation == 0:
             self._ambient_second_fundamental_form = \
-                           self.tensor_field(0, 2, sym = [(0, 1)], antisym = [],
-                                             dest_map = self._immersion)
+                           self.tensor_field(0, 2, sym=[(0, 1)], antisym=[],
+                                             dest_map=self._immersion)
             k = self.second_fundamental_form()
             g = self.ambient_metric().along(self._immersion)
             max_frame = self._ambient.default_frame().along(self._immersion)
@@ -950,13 +948,13 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 pf = [self._immersion.restrict(chart.domain()).pushforward(
                     chart.frame()[i]) for i in self.irange()]
                 for i in range(self._dim):
-                    pf[i] = pf[i]/g(pf[i],pf[i])
+                    pf[i] = pf[i]/g(pf[i], pf[i])
                 gam_rst = sum(
                     g.restrict(chart.domain()).contract(pf[i]) *
                     g.restrict(chart.domain()).contract(pf[j]) *
                     self.scalar_field({chart: k.comp(chart.frame())[:][i, j]})
                     for i in range(self._dim) for j in range(self._dim))
-                gam_rst._sym=[(0,1)]
+                gam_rst._sym = [(0, 1)]
                 self._ambient_second_fundamental_form.set_restriction(gam_rst)
 
             charts = iter(self.top_charts())
@@ -1102,11 +1100,11 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
 
-        g =  self.ambient_metric().inverse()
-        if(self._dim_foliation == 0):
+        g = self.ambient_metric().inverse()
+        if self._dim_foliation == 0:
             g = g.along(self._immersion)
 
-        self._projector = self.ambient_first_fundamental_form().contract(0,g)
+        self._projector = self.ambient_first_fundamental_form().contract(0, g)
         self._projector.set_name("gamma", r"\overrightarrow{\gamma}")
         return self._projector
 
@@ -1166,7 +1164,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             resu = self.projector().contract(0, resu, i)
         return resu
 
-    def mixed_projection(self, tensor, indices = []):
+    def mixed_projection(self, tensor, indices=0):
         r"""
         Return de n+1 decomposition of a tensor on the submanifold and the
         normal vector.
@@ -1180,17 +1178,15 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         - ``tensor`` -- any tensor field, eventually along the submanifold if
           no foliation is provided.
-        - ``indices`` -- (default: ``[]``) integer or list of integers
-          containing the indices on which the projection is made on the normal
-          vector. By default, all projection are made on the submanifold. If
+        - ``indices`` -- (default: ``0``) list of integers containing the
+          indices on which the projection is made on the normal vector.
+          By default, all projection are made on the submanifold. If
           an integer `n` is provided, the `n` first contractions are made with
           the normal vector, all the other with the projection operator.
 
         OUTPUT:
 
         - tensorfield of rank `k`-``len(indices)``.
-
-        EXAMPLES::
 
         EXAMPLES:
 
@@ -1221,37 +1217,44 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         The other non redundant projection are::
 
-            sage: N.mixed_projection(M.metric(), [0])
+            sage: N.mixed_projection(M.metric(), [0]) # long time
+            1-form on the 3-dimensional Riemannian manifold M
+
+        and::
+            sage: N.mixed_projection(M.metric(), [0,1]) # long time
+            Scalar field on the 3-dimensional Riemannian manifold M
+
+        Which is constant and equal to 1::
+
+            sage: N.mixed_projection(M.metric(), [0,1]).display() # long time
+            M --> R
+            (x, y, z) |--> 1
+            (th_M, ph_M, r_M) |--> 1
 
         """
-        resu = tensor.copy()
+        if isinstance(indices, (Integer, int)):
+            indices = range(indices)
 
-        if isinstance(indices, Integer):
-            for i in range(indices):
-                if i < tensor.tensor_type()[0]:
-                    resu = self.normal().down(self.ambient_metric).contract(
-                        0, resu, i)
-                else:
-                    resu = self.normal().contract(0, resu, i)
-            for i in range(indices, tensor.tensor_rank()):
-                if i < tensor.tensor_type()[0]:
-                    resu = self.projector().contract(1, resu, i)
-                else:
-                    resu = self.projector().contract(0, resu, i)
-            return resu
-        else:
-            for i in range(tensor.tensor_type()[0]):
-                if i in indices:
-                    resu = self.normal().down(self.ambient_metric).contract(0, resu, i)
-                else:
-                    resu = self.projector().contract(1, resu, i)
-            for i in range(tensor.tensor_type()[1]):
-                if i in indices:
-                    resu = self.normal().contract(0, resu, i)
-                else:
-                    resu = self.projector().contract(0, resu, i)
-            return resu
+        g = self.ambient_metric()
+        if self._dim_foliation == 0:
+            g = g.along(self._immersion)
 
+        multiprojector = 1
+        k = tensor.tensor_rank()    # order of the tensor
+        kp = 2*k-len(indices)       # order of the multiprojector
+        for i in range(tensor.tensor_type()[1]):
+            if i in indices:
+                multiprojector = multiprojector * self.normal()
+            else:
+                multiprojector = multiprojector * self.projector()
+        for i in range(tensor.tensor_type()[0]):
+            if i in indices:
+                multiprojector = multiprojector * self.normal().contract(g)
+            else:
+                multiprojector = multiprojector * self.projector()
+        args = range(kp - tensor.tensor_type()[0], kp) + range(
+            tensor.tensor_type()[1]) + [tensor] + range(k)
+        return multiprojector.contract(*args)
 
     @cached_method
     def gauss_curvature(self):
@@ -1549,7 +1552,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         self.gradt.clear_cache()
         self.normal.clear_cache()
         self.ambient_first_fundamental_form.clear_cache()
-        self.ambient_induced_metric.clea_cache()
+        self.ambient_induced_metric.clear_cache()
         self.lapse.clear_cache()
         self.shift.clear_cache()
         self.ambient_second_fundamental_form.clear_cache()

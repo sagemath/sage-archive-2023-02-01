@@ -14,7 +14,7 @@ and end at height zero are in bijection with noncrossing perfect matchings.
 AUTHORS:
 
 - Bruce Westbury (2018): initial version
-
+"""
 #*****************************************************************************
 #       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
 #
@@ -25,9 +25,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-"""
-
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
@@ -36,7 +33,9 @@ from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 
 from sage.categories.pathtableaux import PathTableaux
-from sage.categories.sets_cat import Sets
+#from sage.categories.sets_cat import Sets
+#from sage.combinat.catalan import CatalanTableau
+#from sage.combinat.catalan import CatalanTableaux
 
 
 ###############################################################################
@@ -51,12 +50,12 @@ class CatalanTableau(ClonableArray):
         - a two row standard skew tableau
         - a Dyck word
         - a noncrossing perfect matching
-        
+
     EXAMPLES:
 
         sage: CatalanTableau([0,1,2,1,0])
         [0, 1, 2, 1, 0]
-        
+
         sage: w = DyckWord([1,1,0,0])
         sage: CatalanTableau(w)
         [0, 1, 2, 1, 0]
@@ -70,14 +69,14 @@ class CatalanTableau(ClonableArray):
         sage: t = SkewTableau([[1,2],[3,4]])
         sage: CatalanTableau(t)
         [1, 1, 0, 0]
-        
-    
+
+
     """
     @staticmethod
     def __classcall_private__(self, ot):
 
         w = None
-        
+
         if isinstance(ot,DyckWord):
             w = ot.heights()
 
@@ -107,8 +106,8 @@ class CatalanTableau(ClonableArray):
                 raise ValueError("%s is not a sequence of integers." % str(ot) )
 
         if w == None:
-            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )  
-            
+            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )
+
         return CatalanTableaux()(w)
 
     def check(self):
@@ -224,7 +223,7 @@ class CatalanTableau(ClonableArray):
         top = [ i for i, a in enumerate(self) if a == 1 ]
         bot = [ i for i, a in enumerate(self) if a == 0 ]
         return SkewTableau([[None]*self[0]+top,bot])
-    
+
     def draw(self):
         """
         This draws the Dyck path.

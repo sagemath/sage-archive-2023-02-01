@@ -59,6 +59,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.algebras import Algebras
 from sage.categories.rings import Rings
 from sage.categories.realizations import Realizations, Category_realization_of_parent
+from sage.categories.cartesian_product import cartesian_product
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.integer_ring import ZZ
@@ -86,9 +87,8 @@ class _Basis(CombinatorialFreeModule, BindableClass):
         self._zero_tuple = tuple([0] * self._n)
         self._Pn = Permutations(self._n)
         self._one_perm = self._Pn.one()
-        import itertools
-        C = itertools.product( *([range(self._r)] * self._n) )
-        indices = list(itertools.product(C, self._Pn))
+        C = cartesian_product([range(self._r)] * self._n)
+        indices = cartesian_product([C, self._Pn])
         CombinatorialFreeModule.__init__(self, algebra.base_ring(), indices,
                                          prefix=prefix,
                                          category=algebra._BasesCategory())
@@ -549,7 +549,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
                     sage: LT = algebras.ArikiKoike(4, 3).LT()
                     sage: LT.some_elements()
-                    [2 + 2*T[2] + 3*T[1],
+                    [1 + T[2,1] + 3*T[1] + 2*T[2],
                      T[2] + T[1] + L3 + L2 + L1,
                      L1, L2, L3, T[1], T[2]]
                 """

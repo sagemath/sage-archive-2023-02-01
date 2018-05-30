@@ -2512,13 +2512,19 @@ cdef class Expression(CommutativeRingElement):
             sage: f(n,m).is_square()
             Traceback (most recent call last):
             ...
-            TypeError: self must be a numeric expression
+            NotImplementedError: is_square() not implemented for non numeric elements of Symbolic Ring
             sage: SR(42).is_square()
             False
             sage: SR(4).is_square()
             True
         """
-        return self.pyobject().is_square()
+        try:
+            obj = self.pyobject()
+        except TypeError as e:
+            raise NotImplementedError("is_square() not implemented for non numeric elements of Symbolic Ring")
+
+        return obj.is_square()
+
 
     def left_hand_side(self):
         """

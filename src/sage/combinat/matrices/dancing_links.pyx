@@ -18,12 +18,12 @@ The number of solutions::
 
 Iterate over the solutions::
 
-    sage: sorted(x.solutions_iterator())
+    sage: sorted(map(sorted, x.solutions_iterator()))
     [[0, 1], [2, 3], [4, 5]]
 
 All solutions (computed in parallel)::
 
-    sage: sorted(sorted(s) for s in x.all_solutions())
+    sage: sorted(map(sorted, x.all_solutions()))
     [[0, 1], [2, 3], [4, 5]]
 
 Return the first solution found when the computation is done in parallel::
@@ -36,7 +36,7 @@ Find all solutions using some specific rows::
     sage: x_using_row_2 = x.restrict([2])
     sage: x_using_row_2
     Dancing links solver for 7 columns and 6 rows
-    sage: list(x_using_row_2.solutions_iterator())
+    sage: sorted(map(sorted, x_using_row_2.solutions_iterator()))
     [[2, 3]]
 
 The two basic methods that are wrapped in this class are ``search`` which
@@ -425,7 +425,7 @@ cdef class dancing_linksWrapper:
             sage: d = dlx_solver(rows)
             sage: d
             Dancing links solver for 6 columns and 6 rows
-            sage: sorted(d.solutions_iterator())
+            sage: sorted(map(sorted, d.solutions_iterator()))
             [[0, 1], [2, 3], [4, 5]]
 
         To impose that the 0th row is part of the solution, the rows of the new
@@ -448,16 +448,16 @@ cdef class dancing_linksWrapper:
         This method allows to find solutions where the 0th row is part of a
         solution::
 
-            sage: map(sorted, d.restrict([0]).solutions_iterator())
+            sage: sorted(map(sorted, d.restrict([0]).solutions_iterator()))
             [[0, 1]]
 
         Some other examples::
 
-            sage: map(sorted, d.restrict([1]).solutions_iterator())
+            sage: sorted(map(sorted, d.restrict([1]).solutions_iterator()))
             [[0, 1]]
-            sage: map(sorted, d.restrict([2]).solutions_iterator())
+            sage: sorted(map(sorted, d.restrict([2]).solutions_iterator()))
             [[2, 3]]
-            sage: map(sorted, d.restrict([3]).solutions_iterator())
+            sage: sorted(map(sorted, d.restrict([3]).solutions_iterator()))
             [[2, 3]]
 
         Here there are no solution using both 0th and 3rd row::
@@ -504,7 +504,7 @@ cdef class dancing_linksWrapper:
             sage: d = dlx_solver(rows)
             sage: d
             Dancing links solver for 6 columns and 6 rows
-            sage: sorted(d.solutions_iterator())
+            sage: sorted(map(sorted, d.solutions_iterator()))
             [[0, 1], [2, 3], [4, 5]]
 
         After the split each subproblem has one more column and the same
@@ -519,7 +519,7 @@ cdef class dancing_linksWrapper:
         The (disjoint) union of the solutions of the subproblems is equal to the
         set of solutions shown above::
 
-            sage: for x in D.values(): list(x.solutions_iterator())
+            sage: for x in D.values(): sorted(map(sorted, x.solutions_iterator()))
             [[0, 1]]
             [[2, 3]]
             [[4, 5]]
@@ -558,7 +558,7 @@ cdef class dancing_linksWrapper:
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: d = dlx_solver(rows)
-            sage: sorted(d.solutions_iterator())
+            sage: sorted(map(sorted, d.solutions_iterator()))
             [[0, 1], [2, 3], [4, 5]]
 
         TESTS:
@@ -566,7 +566,7 @@ cdef class dancing_linksWrapper:
         The algorithm is automatically reinitialized if needed, for example
         when iterating the solutions a second time (:trac:`25125`)::
 
-            sage: sorted(d.solutions_iterator())
+            sage: sorted(map(sorted, d.solutions_iterator()))
             [[0, 1], [2, 3], [4, 5]]
         """
         if self._x.search_is_started():
@@ -600,14 +600,18 @@ cdef class dancing_linksWrapper:
             sage: from sage.combinat.matrices.dancing_links import dlx_solver
             sage: rows = [[0,1,2], [3,4,5], [0,1], [2,3,4,5], [0], [1,2,3,4,5]]
             sage: d = dlx_solver(rows)
-            sage: sorted(d.one_solution())
-            [0, 1]
+            sage: solutions = [[0,1], [2,3], [4,5]]
+            sage: sorted(d.one_solution()) in solutions
+            True
 
         The number of CPUs can be specified as input::
 
-            sage: solutions = [[0,1], [2,3], [4,5]]
             sage: sorted(d.one_solution(ncpus=2)) in solutions
             True
+
+        The column used to split the problem for parallel computations can
+        be given::
+
             sage: sorted(d.one_solution(ncpus=2, column=4)) in solutions
             True
 
@@ -631,8 +635,16 @@ cdef class dancing_linksWrapper:
             sage: dlx = dlx_solver(rows)
             sage: dlx
             Dancing links solver for 11 columns and 2048 rows
-            sage: sorted(dlx.one_solution())
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            sage: solution = dlx.one_solution()
+            sage: subsets = [set(rows[i]) for i in solution]
+
+        We make sure the solution is an exact cover::
+
+            sage: set.union(*subsets)
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+            sage: from itertools import combinations
+            sage: any(p.intersection(q) for p,q in combinations(subsets, 2))
+            False
         """
         if column is None:
             from random import randrange

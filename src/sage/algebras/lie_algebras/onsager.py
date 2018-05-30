@@ -39,6 +39,9 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
         \qquad
         [A_1, [A_1, [A_1, A_0]]] = -4 [A_1, A_0].
 
+    .. NOTE:: We are using a rescaled version of the usual defining
+              generators.
+
     There exist a basis `\{A_m, G_n \mid m \in \ZZ, n \in \ZZ_{>0}\}`
     for `\mathcal{O}` with structure coefficients
 
@@ -53,14 +56,17 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
     where `m > m'`.
 
     The Onsager algebra is isomorphic to the subalgebra of the affine
-    Lie algebra `\widehat{\mathfrak{sl}}_2[t]` that is invariant under
+    Lie algebra `\widehat{\mathfrak{sl}}_2 = \mathfrak{sl}_2\otimes
+    \CC[t,t^{-1}] \oplus \CC K \oplus \CC d` that is invariant under
     the Chevalley involution. In particular, we have
 
     .. MATH::
 
-        A_i \mapsto f_1 \otimes t^i - e_1 \otimes t^{-i},
+        A_i \mapsto f \otimes t^i - e \otimes t^{-i},
         \qquad
-        G_i \mapsto h_1 \otimes t^{-i} - h_1 \otimes t^i.
+        G_i \mapsto h \otimes t^{-i} - h \otimes t^i.
+
+    where `e,f,h` are the Chevalley generators of `\mathfrak{sl}_2`.
 
     EXAMPLES:
 
@@ -311,7 +317,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
     of a quantum symmetric pair coideal subalgebra of affine type.
 
     The `q`-Onsager algebra depends on a parameter `c` such that
-    `c(1) = 1`. We denote the `q`-Onsager algebra with parameter `c`
+    `c(1) = 1`. The `q`-Onsager algebra with parameter `c` is denoted
     `U_q(\mathcal{O}_R)_c`, where `R` is the base ring of the
     defining Onsager algebra.
 

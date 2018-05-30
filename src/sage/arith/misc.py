@@ -2822,15 +2822,14 @@ def is_squarefree(n):
         sage: is_squarefree(mpz(101))   # optional - gmpy2
         True
     """
-    if isinstance(n, integer_types):
-        n = Integer(n)
+    e = py_scalar_to_element(n)
 
     try:
-        return n.is_squarefree()
+        return e.is_squarefree()
     except AttributeError:
         pass
 
-    if n == 0:
+    if e == 0:
         return False
     return all(r[1] == 1 for r in factor(n))
 
@@ -4153,9 +4152,9 @@ class Moebius:
             sage: Moebius().__call__(7)
             -1
         """
-        if isinstance(n, integer_types):
-            n = ZZ(n)
-        elif not isinstance(n, Integer):
+        n = py_scalar_to_element(n)
+
+        if not isinstance(n, Integer):
             # Use a generic algorithm.
             if n < 0:
                 n = -n
@@ -4735,7 +4734,7 @@ def falling_factorial(x, a):
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
     a = py_scalar_to_element(a)
-    if (isinstance(a, (Integer,) + integer_types) or
+    if (isinstance(a, Integer) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x - i) for i in range(a)), z=x.parent().one())
@@ -4840,7 +4839,7 @@ def rising_factorial(x, a):
     from sage.symbolic.expression import Expression
     x = py_scalar_to_element(x)
     a = py_scalar_to_element(a)
-    if (isinstance(a, (Integer,) + integer_types) or
+    if (isinstance(a, Integer) or
         (isinstance(a, Expression) and
          a.is_integer())) and a >= 0:
         return prod(((x + i) for i in range(a)), z=x.parent().one())

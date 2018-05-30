@@ -364,7 +364,6 @@ cdef class Iterator(object):
         for i in range(1, self.n):
             coset_reps = reduced_coset_repesentatives(W, self.order[:i],
                                                       self.order[:i-1], True)
-            # WARNING: This still uses the below hardly tested method
             elts = [_new_mul_(<PermutationGroupElement>w, <PermutationGroupElement>v)
                     for w in elts for v in coset_reps]
         # the list ``elts`` now contains all prods of red coset reps
@@ -372,12 +371,6 @@ cdef class Iterator(object):
         coset_reps = reduced_coset_repesentatives(W, self.order,
                                                   self.order[:len(self.order)-1], True)
 
-    #    cdef int coset_reps_len = len(coset_reps)
-    #    cdef int elts_len = len(elts)
-    #    for i in range(elts_len):
-    #        w = elts[i]
-    #        for j in range(coset_reps_len):
-    #            v = coset_reps[j]
         for w in elts:
             for v in coset_reps:
                 yield _new_mul_(<PermutationGroupElement>w, <PermutationGroupElement>v)

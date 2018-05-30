@@ -183,7 +183,6 @@ from .gap_workspace import gap_workspace_file, prepare_workspace_dir
 from sage.cpython.string import bytes_to_str
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
-from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion

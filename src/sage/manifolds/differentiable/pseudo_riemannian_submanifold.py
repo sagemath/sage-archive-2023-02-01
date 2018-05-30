@@ -1,8 +1,11 @@
 r"""
-Pseudo-Riemannian submanifold of a differentiable manifold
+Pseudo-Riemannian submanifolds
 
-A pseudo-Riemannian submanifold of a differentiable manifold is a differentiable
-submanifold which is also pseudo-Riemannian.
+An *embedded (resp. immersed) submanifold of a pseudo-Riemannian manifold*
+`(M,g)` is an embedded (resp. immersed) submanifold `N` of `M` as a
+differentiable manifold such that pull back of the metric tensor `g` via the
+embedding (resp. immersion) endowes `N` with the structure of a
+pseudo-Riemannian manifold.
 
 An actual limitation of this implementation is that a foliation is required to
 perform nearly all the calculations (except the induced metric). This is because
@@ -159,12 +162,17 @@ seconds)::
 
 AUTHORS:
 
-- Florentin Jaffredo
+- Florentin Jaffredo (2018): initial version
+
+REFERENCES:
+
+- \B. O'Neill : *Semi-Riemannian Geometry* [ONe1983]_
+- \J. M. Lee : *Riemannian Manifolds* [Lee1997]_
 
 """
 
 # *****************************************************************************
-#   Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -190,10 +198,13 @@ from sage.rings.integer import Integer
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                   DifferentiableSubmanifold):
     r"""
-    Pseudo-Riemannian submanifold of a differentiable manifold
+    Pseudo-Riemannian submanifold.
 
-    A pseudo-Riemannian submanifold of a differentiable manifold is a
-    differentiable submanifold which is also pseudo-Riemannian.
+    An *embedded (resp. immersed) submanifold of a pseudo-Riemannian manifold*
+    `(M,g)` is an embedded (resp. immersed) submanifold `N` of `M` as a
+    differentiable manifold such that pull back of the metric tensor `g` via
+    the embedding (resp. immersion) endowes `N` with the structure of a
+    pseudo-Riemannian manifold.
 
     INPUT:
 
@@ -238,7 +249,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     EXAMPLES:
 
-    Let N be a 2-dimensional submanifold of M, 3-dimensional manifold::
+    Let `N` be a 2-dimensional submanifold of a 3-dimensional manifold `M`::
 
         sage: M = Manifold(3, 'M', structure ="pseudo-Riemannian")
         sage: N = Manifold(2, 'N', ambient=M, structure="pseudo-Riemannian")
@@ -248,8 +259,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
-    Let's define a 1-dimension foliation indexed by t. The inverse map is needed
-    in order to compute the adapted chart in the ambient manifold::
+    Let us define a 1-dimension foliation indexed by `t`. The inverse map is
+    needed in order to compute the adapted chart in the ambient manifold::
 
         sage: t = var('t')
         sage: phi = N.diff_map(M, {(CN,CM):[u, v, t+u**2+v**2]}); phi
@@ -259,31 +270,33 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         sage: phi_inv = M.diff_map(N,{(CM, CN): [x,y]})
         sage: phi_inv_t = M.scalar_field({CM: z-x**2-y**2})
 
-    `\phi` can then be declared as an embedding from N to M::
+    `\phi` can then be declared as an embedding `N\to M`::
 
         sage: N.set_embedding(phi, inverse=phi_inv, var=t,
         ....:                 t_inverse={t: phi_inv_t})
 
     The foliation can also be used to find new charts on the ambient manifold
     that are adapted to the foliation, ie in which the expression of the
-    immersion is trivial. At the same time coordinates changes or computed::
+    immersion is trivial. At the same time, the appropriate coordinate changes
+    are computed::
 
         sage: N.adapted_chart()
         [Chart (M, (u_M, v_M, t_M))]
-        sage: len(M._coord_changes)
+        sage: len(M.coord_changes())
         2
 
     .. SEEALSO::
 
-        :mod:`sage.manifolds.manifold`
-        :mod:`sage.manifolds.submanifold.differentiable_submanifold`
+        :mod:`~sage.manifolds.manifold` and
+        :mod:`~sage.manifolds.differentiable.differentiable_submanifold`
+
    """
     def __init__(self, n, name, ambient=None, metric_name='g', signature=None,
                  base_manifold=None, diff_degree=infinity, latex_name=None,
                  metric_latex_name=None, start_index=0, category=None,
                  unique_tag=None):
         r"""
-        Construct an immersion of a given differentiable manifold.
+        Construct a pseudo-Riemannian submanifold.
 
         EXAMPLES::
 
@@ -331,8 +344,10 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
     def _repr_(self):
         r"""
-        Return a string representation of the submanifold. If no ambient
-        manifold is specified, the submanifold is considered as a manifold
+        Return a string representation of the submanifold.
+
+        If no ambient manifold is specified, the submanifold is considered
+        as a manifold.
 
         TESTS::
 

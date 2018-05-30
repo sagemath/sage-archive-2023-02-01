@@ -1,21 +1,23 @@
 r"""
-Submanifold of a differentiable manifold.
+Submanifolds of differentiable manifolds
 
-Given two differentiable manifolds N and M, an immersion `\phi` is a
-differentiable map from N to M such that its differential is everywhere
-injective. In this case, N is a differentiable immersed submanifold of M.
+Given two differentiable manifolds `N` and `M`, an *immersion* `\phi` is a
+differentiable map `N\to M` whose differential is everywhere
+injective. One then says that `N` is an *immersed submanifold* of `M`, via
+`\phi`.
 
-If in addition `\phi` is a topological embedding, then it is called an embedding.
-In this case, N is a differentiable embedded submanifold of M (or simply a
-differentiable submanifold).
+If in addition, `\phi` is a differentiable embedding (i.e. `\phi` is an
+immersion that is a homeomorphism onto its image), then `N` is called an
+*embedded submanifold* of `M` (or simply a *submanifold*).
 
-`\phi` can also depend on one or multiple parameters. As long as the differential
-of `\phi` remains injective in these parameters, it represent a foliation.
-The dimension of the foliation is defined as the number of parameters.
+`\phi` can also depend on one or multiple parameters. As long as the
+differential of `\phi` remains injective in these parameters, it represents a
+*foliation*. The *dimension* of the foliation is defined as the number of
+parameters.
 
 AUTHORS:
 
-- Florentin Jaffredo
+- Florentin Jaffredo (2018): initial version
 
 REFERENCES:
 
@@ -40,26 +42,28 @@ from sage.rings.infinity import infinity
 
 class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
     r"""
-    Differentiable submanifold of a differentiable manifold.
+    Submanifold of a differentiable manifold.
 
-    Given two differentiable manifolds N and M, an immersion `\phi` is a
-    differentiable map from N to M such that its differential is everywhere
-    injective.
+    Given two differentiable manifolds `N` and `M`, an *immersion* `\phi` is a
+    differentiable map `N\to M` whose differential is everywhere
+    injective. One then says that `N` is an *immersed submanifold* of `M`, via
+    `\phi`.
 
-    If in addition `\phi` is a topological embedding, then it is called an
-    embedding. In this case, N is a differentiable submanifold of M
+    If in addition, `\phi` is a differentiable embedding (i.e. `\phi` is an
+    immersion that is a homeomorphism onto its image), then `N` is called an
+    *embedded submanifold* of `M` (or simply a *submanifold*).
 
     `\phi` can also depend on one or multiple parameters. As long as the
-    differential of `\phi` remains injective in these parameters, it represent
-    a foliation. The dimension of the foliation is defined as the number of
+    differential of `\phi` remains injective in these parameters, it represents
+    a *foliation*. The *dimension* of the foliation is defined as the number of
     parameters.
 
     INPUT:
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is
-      defined; allowed values are
+    - ``field`` -- field `K` on which the manifold is defined; allowed values
+      are
 
         - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
            a manifold over `\RR`
@@ -97,7 +101,7 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
 
     EXAMPLES:
 
-    Let N be a 2-dimensional submanifold of M, 3-dimensional manifold::
+    Let `N` be a 2-dimensional submanifold of a 3-dimensional manifold `M`::
 
         sage: M = Manifold(3, 'M')
         sage: N = Manifold(2, 'N', ambient=M)
@@ -107,8 +111,8 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
-    Let's define a 1-dimension foliation indexed by t. The inverse map is needed
-    in order to compute the adapted chart in the ambient manifold::
+    Let us define a 1-dimension foliation indexed by `t`. The inverse map is
+    needed in order to compute the adapted chart in the ambient manifold::
 
         sage: t = var('t')
         sage: phi = N.diff_map(M,{(CN, CM):[u, v, t+u**2+v**2]}); phi
@@ -118,35 +122,38 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         sage: phi_inv = M.diff_map(N, {(CM, CN):[x, y]})
         sage: phi_inv_t = M.scalar_field({CM: z-x**2-y**2})
 
-    `\phi` can then be declared as an embedding from N to M::
+    `\phi` can then be declared as an embedding `N\to M`::
 
         sage: N.set_embedding(phi, inverse=phi_inv, var=t,
         ....:                 t_inverse={t: phi_inv_t})
 
     The foliation can also be used to find new charts on the ambient manifold
     that are adapted to the foliation, ie in which the expression of the
-    immersion is trivial. At the same time coordinates changes or computed::
+    immersion is trivial. At the same time, the appropriate coordinate changes
+    are computed::
 
         sage: N.adapted_chart()
         [Chart (M, (u_M, v_M, t_M))]
-        sage: len(M._coord_changes)
+        sage: len(M.coord_changes())
         2
 
     .. SEEALSO::
 
-        :mod:`sage.manifolds.manifold`
-       """
+        :mod:`~sage.manifolds.manifold` and
+        :mod:`~sage.manifolds.topological_submanifold`
+
+    """
     def __init__(self, n, name, field, structure, ambient=None,
                  base_manifold=None, diff_degree=infinity,
                  latex_name=None, start_index=0, category=None,
                  unique_tag=None):
         r"""
-        Construct an immersion of a given differentiable manifold.
+        Construct a submanifold of a differentiable manifold.
 
         EXAMPLES::
 
-            sage: M = Manifold(3,'M')
-            sage: N = Manifold(2,'N',ambient = M)
+            sage: M = Manifold(3, 'M')
+            sage: N = Manifold(2, 'N', ambient=M)
             sage: N
             2-dimensional differentiable submanifold N embedded in 3-dimensional
              differentiable manifold M
@@ -165,13 +172,15 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
 
     def _repr_(self):
         r"""
-        Return a string representation of the submanifold. If no ambient
-        manifold is specified, the submanifold is considered as a manifold
+        Return a string representation of the submanifold.
+
+        If no ambient manifold is specified, the submanifold is considered as
+        a manifold.
 
         TESTS::
 
-            sage: M = Manifold(3,'M')
-            sage: N = Manifold(2,'N',ambient = M)
+            sage: M = Manifold(3, 'M')
+            sage: N = Manifold(2, 'N', ambient=M)
             sage: N._repr_()
             '2-dimensional differentiable submanifold N embedded in
              3-dimensional differentiable manifold M'

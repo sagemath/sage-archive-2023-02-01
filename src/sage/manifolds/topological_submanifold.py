@@ -1,28 +1,29 @@
 r"""
-Topological Submanifold
+Submanifolds of topological manifolds
 
-Given a topological manifold M over the topological field K, a topological
-submanifold of M is defined by a manifold N on the same field K of dimension
-smaller than M and a topological embedding `\phi` from N to M (ie `\phi` is an
-homeomorphism onto its image).
+Given a topological manifold `M` over a topological field `K`, a *topological
+submanifold of* `M` is defined by a topological manifold `N` over the same
+field `K` of dimension lower than the dimension of `M` and a topological
+embedding `\phi` from `N` to `M` (i.e. `\phi` is a homeomorphism onto its
+image).
 
 In the case where the map `\phi` is only an embedding locally, it is called an
-immersion, and define an immersed submanifold.
+*topological immersion*, and defines an *immersed submanifold*.
 
-the global embedding property cannot be checked in sage, so the immersed or
+The global embedding property cannot be checked in sage, so the immersed or
 embedded aspect of the manifold must be declared by the user, by calling either
-:meth:`sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_embedding`
+:meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_embedding`
 or
-:meth:`sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_immersion`
+:meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_immersion`
 while declaring the map `\phi`.
 
-`\phi` can also depend on one or multiple parameters. As long as `\phi` remains
-injective in these parameters, it represent a foliation. The dimension of
-the foliation is defined as the number of parameters.
+The map `\phi: N\to M` can also depend on one or multiple parameters. As long
+as `\phi` remains injective in these parameters, it represents a *foliation*.
+The *dimension* of the foliation is defined as the number of parameters.
 
 AUTHORS:
 
-- Florentin Jaffredo
+- Florentin Jaffredo (2018): initial version
 
 REFERENCES:
 
@@ -32,7 +33,7 @@ REFERENCES:
 
 
 # *****************************************************************************
-#   Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
+#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -56,25 +57,28 @@ from sage.plot.plot3d.parametric_surface import ParametricSurface
 
 class TopologicalSubmanifold(TopologicalManifold):
     r"""
-    Topological Submanifold of a topological manifold.
+    Submanifold of a topological manifold.
 
-    Given a topological manifold M over the topological field K, a topological
-    submanifold of M is defined by a manifold N on the same field K of dimension
-    smaller than M and a topological immersion, i.e. a continuous map `\phi`
-    from N to M which is locally a topological embedding (i.e. an homeomorphism
-    onto its image).
+    Given a topological manifold `M` over a topological field `K`, a
+    *topological submanifold of* `M` is defined by a topological manifold `N`
+    over the same field `K` of dimension lower than the dimension of `M` and
+    a topological embedding `\phi` from `N` to `M` (i.e. `\phi` is an
+    homeomorphism onto its image).
 
-    `\phi` can also depend on one or multiple parameters.
-    as long as `\phi` remains injective in these parameters, it represent
-    a foliation. The dimension of the foliation is defined as the numbers of
+    In the case where `\phi` is only an topological immersion (i.e. is only
+    locally an embedding), one says that `N` is an *immersed submanifold*.
+
+    The map `\phi` can also depend on one or multiple parameters.
+    As long as `\phi` remains injective in these parameters, it represents
+    a *foliation*. The *dimension* of the foliation is defined as the number of
     parameters.
 
     INPUT:
 
     - ``n`` -- positive integer; dimension of the manifold
     - ``name`` -- string; name (symbol) given to the manifold
-    - ``field`` -- field `K` on which the manifold is
-      defined; allowed values are
+    - ``field`` -- field `K` on which the manifold is defined; allowed values
+      are
 
       - ``'real'`` or an object of type ``RealField`` (e.g., ``RR``) for
         a manifold over `\RR`
@@ -112,7 +116,7 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     EXAMPLES:
 
-    Let N be a 2-dimensional submanifold of M, 3-dimensional manifold::
+    Let `N` be a 2-dimensional submanifold of a 3-dimensional manifold `M`::
 
         sage: M = Manifold(3, 'M', structure="topological")
         sage: N = Manifold(2, 'N', ambient=M, structure="topological")
@@ -121,8 +125,8 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: CM.<x,y,z> = M.chart()
         sage: CN.<u,v> = N.chart()
 
-    Let's define a 1-dimension foliation indexed by t. The inverse map is needed
-    in order to compute the adapted chart in the ambient manifold::
+    Let us define a 1-dimensional foliation indexed by `t`. The inverse map is
+    needed in order to compute the adapted chart in the ambient manifold::
 
         sage: t = var('t')
         sage: phi = N.continuous_map(M, {(CN,CM):[u, v, t+u**2+v**2]}); phi
@@ -131,31 +135,33 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: phi_inv = M.continuous_map(N, {(CM, CN):[x, y]})
         sage: phi_inv_t = M.scalar_field({CM: z-x**2-y**2})
 
-    `\phi` can then be declared as an embedding from N to M::
+    `\phi` can then be declared as an embedding `N\to M`::
 
         sage: N.set_embedding(phi, inverse=phi_inv, var=t,
         ....:                 t_inverse={t: phi_inv_t})
 
     The foliation can also be used to find new charts on the ambient manifold
-    that are adapted to the foliation, ie in which the expression of the
-    immersion is trivial. At the same time coordinates changes are computed::
+    that are adapted to the foliation, i.e. in which the expression of the
+    immersion is trivial. At the same time, the appropriate coordinate changes
+    are computed::
 
         sage: N.adapted_chart()
         [Chart (M, (u_M, v_M, t_M))]
-        sage: len(M._coord_changes)
+        sage: len(M.coord_changes())
         2
 
     The foliations parameters are always added as the last coordinates.
 
     .. SEEALSO::
 
-        :mod:`sage.manifolds.manifold`
+        :mod:`~sage.manifolds.manifold`
+
     """
     def __init__(self, n, name, field, structure, ambient=None,
                  base_manifold=None, latex_name=None, start_index=0,
                  category=None, unique_tag=None):
         r"""
-        Construct a topological immersion of a given manifold.
+        Construct a submanifold of a topological manifold.
 
         EXAMPLES::
             sage: M = Manifold(3, 'M', structure="topological")
@@ -185,8 +191,10 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     def _repr_(self):
         r"""
-        Return a string representation of the submanifold. If no ambient
-        manifold is specified, the submanifold is considered as a manifold
+        Return a string representation of the submanifold.
+
+        If no ambient manifold is specified, the submanifold is considered as
+        a manifold.
 
         TESTS::
 
@@ -208,10 +216,14 @@ class TopologicalSubmanifold(TopologicalManifold):
         r"""
         Register the immersion of the immersed submanifold.
 
-        The immersion is a continuous map from the submanifold to the ambient
-        manifold. If an inverse onto its image exists, it can be registered at
-        the same time. If the immersion depends on parameters, they must also be
-        declared here.
+        A *topological immersion* is a continuous map that is locally a
+        topological embedding (i.e. a homeomorphism onto its image).
+        A *differentiable immersion* is a differentiable map whose differential
+        is injective at each point.
+
+        If an inverse of the immersion onto its image exists, it can be
+        registered at the same time. If the immersion depends on parameters,
+        they must also be declared here.
 
         INPUTS:
 
@@ -247,7 +259,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             raise TypeError("phi must be a or differentiable (or at least"
                             " continuous) map")
         if phi._domain is not self or phi._codomain is not self._ambient:
-            raise ValueError("{} is not an homeomorphism "
+            raise ValueError("{} is not a homeomorphism "
                              "from {} to {}".format(phi._name, self._name,
                                                     self._ambient.name()))
         self._immersion = phi
@@ -281,12 +293,12 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     def declare_embedding(self):
         r"""
-        Declare that the immersion provided previously is in fact en embedding
+        Declare that the immersion provided by :meth:`set_immersion` is in
+        fact an embedding.
 
-        A topological embedding is an immersion that is an homeomorphism on
-        its image. A differential embedding must also have a non-zero
-        differential in every point. Having an invertible immersion is not
-        enough.
+        A *topological embedding* is a continuous map that is a homeomorphism
+        onto its image. A *differentiable embedding* is a topological embedding
+        that is also a differentiable immersion.
 
         EXAMPLES::
 
@@ -305,20 +317,19 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: phi_inv_t = M.scalar_field({CM:z-x**2-y**2})
             sage: N.set_immersion(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
-            sage: print(N._immersed)
+            sage: N._immersed
             True
-            sage: print(N._embedded)
+            sage: N._embedded
             False
             sage: N.declare_embedding()
-            sage: print(N._immersed)
+            sage: N._immersed
             True
-            sage: print(N._embedded)
+            sage: N._embedded
             True
 
         """
-
         if not self._immersed:
-            raise ValueError("Please declare an embedding using set_immersion "
+            raise ValueError("please declare an embedding using set_immersion "
                              "before calling declare_embedding()")
         self._immersion._is_isomorphism = True
         self._embedded = True
@@ -328,10 +339,9 @@ class TopologicalSubmanifold(TopologicalManifold):
         r"""
         Register the embedding of an embedded submanifold.
 
-        A topological embedding is an immersion that is an homeomorphism on
-        its image. A differential embedding must also have a non-zero
-        differential in every point. Having an invertible immersion is not
-        enough.
+        A *topological embedding* is a continuous map that is a homeomorphism
+        onto its image. A *differentiable embedding* is a topological embedding
+        that is also a differentiable immersion.
 
         INPUTS:
 
@@ -370,15 +380,15 @@ class TopologicalSubmanifold(TopologicalManifold):
     def adapted_chart(self, index="", latex_index=""):
         r"""
         Create charts and changes of charts in the ambient manifold adapted
-        to the foliation
+        to the foliation.
 
-        A manifold M of dimension `m` can be foliated by a submanifolds N of
+        A manifold `M` of dimension `m` can be foliated by submanifolds `N` of
         dimension `n`. The corresponding embedding needs `m-n` free parameters
         to describe the whole manifold.
 
         A set of coordinates adapted to a foliation is a set of coordinates
         `(x_1,...,x_n,t_1,...t_{m-n})` such that `(x_1,...x_n)` are coordinates
-        of N and `(t_1,...t_{m-n})` are the `m-n` free parameters of the
+        of `N` and `(t_1,...t_{m-n})` are the `m-n` free parameters of the
         foliation.
 
         Provided that an embedding with free variables is already defined, this
@@ -392,16 +402,16 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         - ``index`` -- (default: ``""``) string defining the name of the
           coordinates in the new chart. This string will be added at the end of
-          the names of the old coordinates. By default, it is replace by
+          the names of the old coordinates. By default, it is replaced by
           ``"_"+self._ambient._name``
         - ``latex_index`` -- (default: ``""``) string defining the latex name
           of the coordinates in the new chart. This string will be added at the
           end of the latex names of the old coordinates. By default, it is
-          replace by ``"_"+self._ambient._latex_()``
+          replaced by ``"_"+self._ambient._latex_()``
 
         OUTPUT:
 
-        -list of charts created from the charts of ``self``
+        - list of charts created from the charts of ``self``
 
         EXAMPLES::
 
@@ -422,10 +432,10 @@ class TopologicalSubmanifold(TopologicalManifold):
             [Chart (M, (u_M, v_M, t_M))]
         """
         if not self._embedded:
-            raise ValueError("An embedding is required")
+            raise ValueError("an embedding is required")
 
         if self._dim_foliation+self._dim != self._ambient._dim:
-            raise ValueError("A foliation of dimension Dim(M)-Dim(N) is "
+            raise ValueError("a foliation of dimension Dim(M)-Dim(N) is "
                              "needed to find an adapted chart")
         if not isinstance(index, str):
             raise TypeError("index must be a string")
@@ -494,12 +504,12 @@ class TopologicalSubmanifold(TopologicalManifold):
 
     def plot(self, param, u, v, chart1=None, chart2=None, **kwargs):
         r"""
-        Plot an embedding
+        Plot an embedding.
 
         Plot the embedding defined by the foliation and a set of values for the
         free parameters. This function can only plot 2-dimensional surfaces
-        embedded in 3-dimensional manifolds.
-        This function ultimately calls ``ParametricSurface``.
+        embedded in 3-dimensional manifolds. It ultimately calls
+        :class:`~sage.plot.plot3d.parametric_surface.ParametricSurface`.
 
         INPUT:
 
@@ -513,7 +523,8 @@ class TopologicalSubmanifold(TopologicalManifold):
           considered. By default, the default chart of the submanifold is used
         - ``chart1`` -- (default: ``None``) destination chart. By default, the
           default chart of the manifold is used
-        - ``**kwargs`` other argument as used in  ``ParametricSurface``
+        - ``**kwargs`` -- other arguments as used in
+          :class:`~sage.plot.plot3d.parametric_surface.ParametricSurface`
 
         EXAMPLES::
 
@@ -547,7 +558,7 @@ class TopologicalSubmanifold(TopologicalManifold):
         """
 
         if self._dim != 2 or self._ambient._dim != 3:
-            raise ValueError("Plot only for 2-dimensional hypersurfaces")
+            raise ValueError("plot only for 2-dimensional hypersurfaces")
         if chart1 is None:
             chart1 = self.default_chart()
         if chart2 is None:
@@ -564,9 +575,6 @@ class TopologicalSubmanifold(TopologicalManifold):
     def ambient(self):
         r"""
         Return the ambient manifold in which ``self`` is immersed or embedded.
-        If the submanifold is neither immersed nor embedded, (this can only
-        happen if the manifold was not created using the function
-        :func:`Manifold`) it returns ``self``.
 
         EXAMPLES::
 
@@ -580,10 +588,6 @@ class TopologicalSubmanifold(TopologicalManifold):
     def immersion(self):
         r"""
         Return the immersion of the submanifold.
-
-        If no immersion is declared, this function raises an error.
-        Because an embedding is also an immersion, this function returns returns
-        the embedding in the case of an embedded submanifold.
 
         EXAMPLES::
 
@@ -603,15 +607,12 @@ class TopologicalSubmanifold(TopologicalManifold):
              manifold M
         """
         if not self._immersed:
-            raise ValueError("The submanifold is not immersed")
+            raise ValueError("the submanifold is not immersed")
         return self._immersion
 
     def embedding(self):
         r"""
         Return the embedding of the submanifold.
-
-        If the submanifold is not embedded, (ie just not embedding declared or
-        simply immersed) this function raises an error.
 
         EXAMPLES::
 
@@ -631,5 +632,5 @@ class TopologicalSubmanifold(TopologicalManifold):
              M
         """
         if not self._embedded:
-            raise ValueError("The submanifold is not embedded")
+            raise ValueError("the submanifold is not embedded")
         return self._immersion

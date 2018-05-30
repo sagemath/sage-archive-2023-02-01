@@ -579,7 +579,7 @@ fi
 
 if [ "$1" = '-python' -o "$1" = '--python' ]; then
     shift
-    if "$SAGE_PYTHON3" = 'yes'; then
+    if [ "$SAGE_PYTHON3" = 'yes' ]; then
         exec python3 "$@"
     else
         exec python2 "$@"

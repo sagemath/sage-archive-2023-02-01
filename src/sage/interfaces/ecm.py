@@ -211,6 +211,10 @@ class ECM(SageObject):
         if PY2:
             enc_kwds = {}
         else:
+            # Under normal usage this program only returns ASCII; anything
+            # else mixed is garbage and an error
+            # So just accept latin-1 without encoding errors, and let the
+            # output parser deal with the rest
             enc_kwds = {'encoding': 'latin-1'}
 
         p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE, **enc_kwds)

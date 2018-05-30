@@ -1449,41 +1449,54 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             7 True
         """
         if brute_force:
-            return self._invariant_form_brute_force()
+            form = self._invariant_form_brute_force()
 
-        n = self.rank()
-        from sage.matrix.constructor import zero_matrix
-
-        if self.is_crystallographic():
-            ring = QQ
         else:
-            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-            ring = UniversalCyclotomicField()
+            n = self.rank()
+            from sage.matrix.constructor import zero_matrix
 
-        form = zero_matrix(ring, n, n)
+            if self.is_crystallographic():
+                ring = QQ
+            else:
+                from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+                ring = UniversalCyclotomicField()
 
-        C = self.cartan_matrix()
-        if not self.is_well_generated():
-            indep_inds = sorted(self._index_set_inverse[key]
-                                for key in self.independent_roots().keys())
-            C = C.matrix_from_rows_and_columns(indep_inds,indep_inds)
+            form = zero_matrix(ring, n, n)
 
-        for j in range(n):
-            for i in range(j):
-                if C[j,i] != 0:
-                    form[j,j] = form[i,i] * \
-                                ( C[i,j] * C[j,j].conjugate() ) / \
-                                ( C[j,i].conjugate() * C[i,i] )
-            if form[j,j] == 0:
-                form[j,j] = ring.one()
-        for j in range(n):
-            for i in range(j):
-                form[j, i] = C[i, j] * form[i, i] / C[i,i]
-                form[i, j] = form[j, i].conjugate()
+            C = self.cartan_matrix()
+            if not self.is_well_generated():
+                indep_inds = sorted(self._index_set_inverse[key]
+                                    for key in self.independent_roots().keys())
+                C = C.matrix_from_rows_and_columns(indep_inds,indep_inds)
 
-        B = self.base_change_matrix()
-        form = B*form*B.conjugate().transpose()
-        form /= form[0,0]
+            for j in range(n):
+                for i in range(j):
+                    if C[j,i] != 0:
+                        form[j,j] = form[i,i] * \
+                                    ( C[i,j] * C[j,j].conjugate() ) / \
+                                    ( C[j,i].conjugate() * C[i,i] )
+                if form[j,j] == 0:
+                    form[j,j] = ring.one()
+            for j in range(n):
+                for i in range(j):
+                    form[j, i] = C[i, j] * form[i, i] / C[i,i]
+                    form[i, j] = form[j, i].conjugate()
+
+            B = self.base_change_matrix()
+            form = B*form*B.conjugate().transpose()
+            form /= form[0,0]
+
+        # normalization
+        try:
+            form = form.change_ring(QQ)
+        except TypeError:
+            pass
+        else:
+            try:
+                form = form.change_ring(ZZ)
+            except TypeError:
+                pass
+
         form.set_immutable()
         return form
 

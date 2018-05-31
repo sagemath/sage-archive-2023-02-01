@@ -25,6 +25,8 @@ from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
+from sage.categories.coxeter_groups_c import BraidOrbit
+
 class CoxeterGroups(Category_singleton):
     r"""
     The category of Coxeter groups.
@@ -191,6 +193,31 @@ class CoxeterGroups(Category_singleton):
                 Coxeter type of ['H', 3]
             """
             return self.coxeter_matrix().coxeter_type()
+
+        def braid_relations(self):
+            r"""
+            Return the braid relations of ``self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A",2])
+                sage: W.braid_relations()
+                [[[1, 2, 1], [2, 1, 2]]]
+
+                sage: W = WeylGroup(["B",3])
+                sage: W.braid_relations()
+                [[[1, 2, 1], [2, 1, 2]], [[1, 3], [3, 1]], [[2, 3, 2, 3], [3, 2, 3, 2]]]
+            """
+            rels = []
+            M = self.coxeter_matrix()
+            I = self.index_set()
+            for i in I:
+                for j in I:
+                    if i < j:
+                        m = M[i,j]
+                        rel = [i,j]*m
+                        rels.append([rel[:m],rel[m:] if m%2 == 1 else list(reversed(rel[m:]))])
+            return rels
 
         def __iter__(self):
             r"""
@@ -1184,6 +1211,36 @@ class CoxeterGroups(Category_singleton):
             result = list(self.reduced_word_reverse_iterator())
             return list(reversed(result))
 
+        def reduced_words(self):
+            r"""
+            Return all reduced words for ``self``.
+
+            See :meth:`reduced_word` for the definition of a reduced
+            word.
+
+            EXAMPLES::
+
+                sage: W=CoxeterGroups().example()
+                sage: s=W.simple_reflections()
+                sage: w=s[0]*s[2]
+                sage: w.reduced_words()
+                [[2, 0], [0, 2]]
+                sage: W=WeylGroup(['E',6])
+                sage: w=W.from_reduced_word([2,3,4,2])
+                sage: w.reduced_words()
+                [[3, 2, 4, 2], [2, 3, 4, 2], [3, 4, 2, 4]]
+
+            TODO: the result should be full featured finite enumerated
+            set (e.g. counting can be done much faster than iterating).
+
+            .. SEEALSO::
+
+                :meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
+                :meth:`length`, :meth:`reduced_word_graph`
+            """
+            word = self.reduced_word()
+            return BraidOrbit(word, self.parent().braid_relations())
+
         #def lex_min_reduced_word(w):
         #    return list(reversed((w.inverse()).reduced_word()))
 
@@ -1224,41 +1281,41 @@ class CoxeterGroups(Category_singleton):
                 """
             return self.support() == set(self.parent().index_set())
 
-        def reduced_words(self):
-            r"""
-            Return all reduced words for ``self``.
+        #def reduced_words(self):
+            #r"""
+            #Return all reduced words for ``self``.
 
-            See :meth:`reduced_word` for the definition of a reduced
-            word.
+            #See :meth:`reduced_word` for the definition of a reduced
+            #word.
 
-            EXAMPLES::
+            #EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
-                sage: s=W.simple_reflections()
-                sage: w=s[0]*s[2]
-                sage: w.reduced_words()
-                [[2, 0], [0, 2]]
-                sage: W=WeylGroup(['E',6])
-                sage: w=W.from_reduced_word([2,3,4,2])
-                sage: w.reduced_words()
-                [[3, 2, 4, 2], [2, 3, 4, 2], [3, 4, 2, 4]]
+                #sage: W=CoxeterGroups().example()
+                #sage: s=W.simple_reflections()
+                #sage: w=s[0]*s[2]
+                #sage: w.reduced_words()
+                #[[2, 0], [0, 2]]
+                #sage: W=WeylGroup(['E',6])
+                #sage: w=W.from_reduced_word([2,3,4,2])
+                #sage: w.reduced_words()
+                #[[3, 2, 4, 2], [2, 3, 4, 2], [3, 4, 2, 4]]
 
-            TODO: the result should be full featured finite enumerated
-            set (e.g. counting can be done much faster than iterating).
+            #TODO: the result should be full featured finite enumerated
+            #set (e.g. counting can be done much faster than iterating).
 
-            .. SEEALSO::
+            #.. SEEALSO::
 
-                :meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
-                :meth:`length`, :meth:`reduced_word_graph`
-            """
-            descents = self.descents()
-            if descents == []:
-                return [[]]
-            else:
-                return [ r + [i]
-                         for i in self.descents()
-                         for r in (self.apply_simple_reflection(i)).reduced_words()
-                         ]
+                #:meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
+                #:meth:`length`, :meth:`reduced_word_graph`
+            #"""
+            #descents = self.descents()
+            #if descents == []:
+                #return [[]]
+            #else:
+                #return [ r + [i]
+                         #for i in self.descents()
+                         #for r in (self.apply_simple_reflection(i)).reduced_words()
+                         #]
 
         def reduced_word_graph(self):
             r"""

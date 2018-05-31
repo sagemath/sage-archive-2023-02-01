@@ -1603,18 +1603,15 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     def coxeter_number(self,chi=None):
         r"""
         Returns the Coxeter number associated to the irreducible character 
-        chi of the reflection group. This is defined as the trace in chi
+        chi of the reflection group ``self``. This is defined as the trace in chi
         of `\sum (Id - t)` where t runs over all reflections. It is always an integer.
-        
         
         When chi is the reflection representation, the Coxeter number
         is equal to `\frac{N + N^*}{n}` where
         `N` is the number of reflections, `N^*` is the
         number of reflection hyperplanes, and `n` is the
-        rank of ``self``.
-        
-        Further, when ``self`` is well-generated and chi is the reflection representation,
-        the Coxeter number is equal to the highest degree d_n and to the order
+        rank of ``self``. If ``self`` is further well-generated,
+        this quantity is equal to the highest degree d_n and to the order
         of the Coxeter element c of W.
 
         EXAMPLES::
@@ -1626,16 +1623,16 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         if chi is None:
             return (self.number_of_reflection_hyperplanes()+ self.number_of_reflections())/self.rank()
         else:
-            CoxChi=0
-            GapHypRec=self._gap_group.HyperplaneOrbits()
+            cox_chi=0
+            gap_hyp_rec=self._gap_group.HyperplaneOrbits()
             # We access gap3: 
             # rec is a record of a hyperplane orbit; 
             # rec.s is the first generator in that orbit and rec.e_s its order; 
             # rec.N_s is the size of the orbit 
-            for rec in GapHypRec:
+            for rec in gap_hyp_rec:
                 for k in range(1,rec.e_s):
-                    CoxChi=CoxChi+chi( (self.gens()[int(rec.s-1)])**k )*int(rec.N_s)
-            return self.number_of_reflections()-CoxChi/chi.degree()
+                    cox_chi=cox_chi+chi( (self.gens()[int(rec.s-1)])**k )*int(rec.N_s)
+            return self.number_of_reflections()-cox_chi/chi.degree()
             
             
 

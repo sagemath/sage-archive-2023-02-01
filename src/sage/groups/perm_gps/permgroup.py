@@ -842,14 +842,16 @@ class PermutationGroup_generic(group.FiniteGroup):
             if SGS is None:
                 SGS = self.strong_generating_system(self.base())
                 SGS.reverse()
-            if len(SGS) == 0:
-                yield self.identity()
+
+            S = SGS.pop()
+            if not SGS:
+                for g in S:
+                    yield g
             else:
-                S = SGS.pop()
-                elmts = elements(self, SGS)
-                for s in elmts:
+                for s in elements(self, SGS):
                     for g in S:
                         yield s._mul_(g)
+
         for _ in elements(self):
             yield _
 

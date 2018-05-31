@@ -198,7 +198,7 @@ from __future__ import print_function
 
 #from six.moves import range
 
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.misc_c import prod
 from sage.categories.category import Category
 from sage.categories.permutation_groups import PermutationGroups
@@ -541,7 +541,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return self.distinguished_reflections()[i]
 
     @cached_method
-    def reflection_hyperplanes(self, as_linear_functionals=False):
+    def reflection_hyperplanes(self, as_linear_functionals=False, with_order=False):
         r"""
         Return the list of all reflection hyperplanes of ``self``,
         either as a codimension 1 space, or as its linear functional.
@@ -592,6 +592,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (1, -2)
             (0, 1)
             (1, 0)
+
+            sage: for H in W.reflection_hyperplanes(as_linear_functionals=True, with_order=True): H  # optional - gap3
+            ((1, -1), 2)
+            ((1, -2), 2)
+            ((0, 1), 2)
+            ((1, 0), 2)
         """
         Hs = []
         for r in self.distinguished_reflections():
@@ -600,10 +606,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 Hs.append( mat.row_space().gen() )
             else:
                 Hs.append( mat.right_kernel() )
+            if with_order:
+                Hs[-1] = (Hs[-1],r.order())
         return Family(self._hyperplane_index_set,
                       lambda i: Hs[self._hyperplane_index_set_inverse[i]])
 
-    def reflection_hyperplane(self, i, as_linear_functional=False):
+    def reflection_hyperplane(self, i, as_linear_functional=False, with_order=False):
         r"""
         Return the ``i``-th reflection hyperplane of ``self``.
 
@@ -630,7 +638,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.reflection_hyperplane(3, True)                      # optional - gap3
             (0, 1)
         """
-        return self.reflection_hyperplanes(as_linear_functionals=as_linear_functional)[i]
+        return self.reflection_hyperplanes(as_linear_functionals=as_linear_functional, with_order=with_order)[i]
 
     @cached_method
     def reflection_index_set(self):
@@ -724,6 +732,122 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         return self._gap_group.ReflectionCharacter().sage()
 
+    @cached_method
+    def discriminant(self):
+        r"""
+        Return the discriminant of ``se`lf` in the polynomial ring on
+        which the group acts.
+
+        This is the product
+
+        .. MATH::
+
+           \prod_H \alpha_H^{e_H},
+
+        where `\alpha_H` is the linear form of the hyperplane `H` and
+        `e_H` is its stabilizer order.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.discriminant()                           # optional - gap3
+            x0^6 - 3*x0^5*x1 - 3/4*x0^4*x1^2 + 13/2*x0^3*x1^3
+             - 3/4*x0^2*x1^4 - 3*x0*x1^5 + x1^6
+
+            sage: W = ReflectionGroup(['B',2])               # optional - gap3
+            sage: W.discriminant()                           # optional - gap3
+            x0^6*x1^2 - 6*x0^5*x1^3 + 13*x0^4*x1^4 - 12*x0^3*x1^5 + 4*x0^2*x1^6
+        """
+        from sage.rings.polynomial.all import PolynomialRing
+        n = self.rank()
+        P = PolynomialRing(QQ, 'x', n)
+        x = P.gens()
+
+        return prod(sum(x[i] * alpha[i] for i in range(n)) ** o
+                    for alpha,o in self.reflection_hyperplanes(True, True))
+
+    @cached_method
+    def discriminant_in_invariant_ring(self, invariants=None):
+        r"""
+        Return the discriminant of ``self`` in the invariant ring.
+
+        This is the function `f` in the invariants such that
+        `f(F_1(x), \ldots, F_n(x))` is the discriminant.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',3])               # optional - gap3
+            sage: W.discriminant_in_invariant_ring()         # optional - gap3
+            6*t0^3*t1^2 - 18*t0^4*t2 + 9*t1^4 - 36*t0*t1^2*t2 + 24*t0^2*t2^2 - 8*t2^3
+
+            sage: W = ReflectionGroup(['B',3])               # optional - gap3
+            sage: W.discriminant_in_invariant_ring()         # optional - gap3
+            -t0^2*t1^2*t2 + 16*t0^3*t2^2 + 2*t1^3*t2 - 36*t0*t1*t2^2 + 108*t2^3
+
+            sage: W = ReflectionGroup(['H',3])               # optional - gap3
+            sage: W.discriminant_in_invariant_ring()  # long time  # optional - gap3
+            (-829*E(5) - 1658*E(5)^2 - 1658*E(5)^3 - 829*E(5)^4)*t0^15
+             + (213700*E(5) + 427400*E(5)^2 + 427400*E(5)^3 + 213700*E(5)^4)*t0^12*t1
+             + (-22233750*E(5) - 44467500*E(5)^2 - 44467500*E(5)^3 - 22233750*E(5)^4)*t0^9*t1^2
+             + (438750*E(5) + 877500*E(5)^2 + 877500*E(5)^3 + 438750*E(5)^4)*t0^10*t2
+             + (1162187500*E(5) + 2324375000*E(5)^2 + 2324375000*E(5)^3 + 1162187500*E(5)^4)*t0^6*t1^3
+             + (-74250000*E(5) - 148500000*E(5)^2 - 148500000*E(5)^3 - 74250000*E(5)^4)*t0^7*t1*t2
+             + (-28369140625*E(5) - 56738281250*E(5)^2 - 56738281250*E(5)^3 - 28369140625*E(5)^4)*t0^3*t1^4
+             + (1371093750*E(5) + 2742187500*E(5)^2 + 2742187500*E(5)^3 + 1371093750*E(5)^4)*t0^4*t1^2*t2
+             + (1191796875*E(5) + 2383593750*E(5)^2 + 2383593750*E(5)^3 + 1191796875*E(5)^4)*t0^5*t2^2
+             + (175781250000*E(5) + 351562500000*E(5)^2 + 351562500000*E(5)^3 + 175781250000*E(5)^4)*t1^5
+             + (131835937500*E(5) + 263671875000*E(5)^2 + 263671875000*E(5)^3 + 131835937500*E(5)^4)*t0*t1^3*t2
+             + (-100195312500*E(5) - 200390625000*E(5)^2 - 200390625000*E(5)^3 - 100195312500*E(5)^4)*t0^2*t1*t2^2
+             + (395507812500*E(5) + 791015625000*E(5)^2 + 791015625000*E(5)^3 + 395507812500*E(5)^4)*t2^3
+        """
+        from sage.arith.functions import lcm
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        n = self.rank()
+
+        if invariants is None:
+            Fs = self.fundamental_invariants()
+        else:
+            Fs = invariants
+        D = self.discriminant()
+
+        if self.is_crystallographic():
+            R = QQ
+        else:
+            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+            R = UniversalCyclotomicField()
+
+        # TODO: The rest of this could be split off as a general function
+        #   to express a polynomial D as a polynomial in the polynomials Fs
+        #   with coefficients in the ring R.
+        Dd = D.degree()
+        Fd = [F.degree() for F in Fs]
+
+        Ps = multi_partitions(Dd, Fd)
+
+        m = len(Ps)
+        P = PolynomialRing(R, 'X', m)
+        X = P.gens()
+
+        T = PolynomialRing(R, 't', n)
+
+        FsPowers = [prod(power(val, part[j]) for j,val in enumerate(Fs)).change_ring(P)
+                    for part in Ps]
+
+        D = D.change_ring(P)
+        f = D - sum(X[i] * F for i,F in enumerate(FsPowers))
+        coeffs = f.coefficients()
+        lhs = Matrix(R, [[coeff.coefficient(X[i]) for i in range(m)]
+                         for coeff in coeffs])
+        rhs = vector([coeff.constant_coefficient() for coeff in coeffs])
+
+        coeffs = lhs.solve_right(rhs)
+        # Cancel denominators
+        coeffs = lcm(i.denominator() for i in coeffs) * coeffs
+        mons = vector([prod(tj**part[j] for j,tj in enumerate(T.gens()))
+                       for part in Ps])
+        return sum(coeffs[i] * mons[i] for i in range(m))
+
+    @cached_method
     def is_crystallographic(self):
         r"""
         Return ``True`` if self is crystallographic.
@@ -1301,7 +1425,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             return sum([W.fundamental_invariants() for W in self.irreducible_components() ],tuple())
 
         I = [ str(p) for p in gap3('List(Invariants(%s),x->ApplyFunc(x,List([0..%s],i->Mvp(SPrint("x",i)))))'%(self._gap_group._name,self.rank()-1)) ]
-        P = PolynomialRing(QQ,['x%s'%i for i in range(0,self.rank())])
+        P = PolynomialRing(QQ,['x%s'%i for i in range(self.rank())])
         x = P.gens()
         for i in range(len(I)):
             I[i] = I[i].replace('^','**')
@@ -1883,4 +2007,69 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                     if all(not V.is_subspace(H) for H in self.parent().reflection_hyperplanes()):
                         return True
             return False
+
+def multi_partitions(n, S, i=None):
+    r"""
+    Return all vectors as lists of the same length as ``S`` whose
+    standard inner product with ``S`` equals ``n``.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.reflection_group_complex import multi_partitions
+        sage: multi_partitions(10, [2,3,3,4])
+        [[5, 0, 0, 0],
+         [3, 0, 0, 1],
+         [2, 2, 0, 0],
+         [2, 1, 1, 0],
+         [2, 0, 2, 0],
+         [1, 0, 0, 2],
+         [0, 2, 0, 1],
+         [0, 1, 1, 1],
+         [0, 0, 2, 1]]
+    """
+    if i is None:
+        i = 0
+        S = sorted(S)
+    if n == 0:
+        return [[0]*len(S)]
+    if i == len(S):
+        return []
+
+    k = S[i]
+    if k > n:
+        return []
+
+    coeffs1 = multi_partitions(n-k, S, i  )
+    coeffs2 = multi_partitions(n  , S, i+1)
+    for coeff in coeffs1:
+        coeff[i] += 1
+    coeffs = coeffs1 + coeffs2
+    return coeffs
+
+@cached_function
+def power(f, k):
+    r"""
+    Return `f^k` and caching all intermediate results.
+
+    Speeds the computation if one has to compute `f^k`'s for many
+    values of `k`.
+
+    EXAMPLES::
+
+        sage: P.<x,y,z> = PolynomialRing(QQ)
+        sage: f = -2*x^2 + 2*x*y - 2*y^2 + 2*y*z - 2*z^2
+        sage: all( f^k == power(f,k) for k in range(20) )
+        True
+    """
+    if k == 1:
+        return f
+
+    b = [int(a) for a in reversed(ZZ(k).binary())]
+    if sum(b) == 1:
+        if b[1] == 1:
+            return f**2
+        else:
+            return power(f,2**b.index(1)/2)**2
+    else:
+        return prod(power(f,2**i) for i,a in enumerate(b) if a)
 

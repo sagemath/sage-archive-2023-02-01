@@ -1314,6 +1314,28 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         I = [sage_eval(p, locals={'x': x}) for p in I]
         return tuple(sorted(I, key=lambda f: f.degree()))
 
+    def jacobian_of_fundamental_invariants(self, invs=None):
+        if invs is None:
+            invs = self.fundamental_invariants()
+        P = invs[0].parent()
+        X = P.gens()
+        return Matrix(P, [[ P(g).derivative(x) for x in X ] for g in invs ])
+
+    def primitive_vector_field(self, invs=None):
+        # primitive vector field D
+        # as coefficients in the basis [ \partial_i ]_i
+        h = self.coxeter_number()
+        if invs is None:
+            invs = self.fundamental_invariants()
+        degs = [ f.degree() for f in invs ]
+        J = self.jacobian_of_fundamental_invariants(invs)
+        return J.inverse().row(degs.index(h))
+
+    def apply_vector_field(self, f, vf=None):
+        if vf is None:
+            vf = self.primitive_vector_field()
+        return sum( vf[i]*f.derivative(gen) for i,gen in enumerate(f.parent().gens()) )
+
     def cartan_matrix(self):
         r"""
         Return the Cartan matrix associated with ``self``.

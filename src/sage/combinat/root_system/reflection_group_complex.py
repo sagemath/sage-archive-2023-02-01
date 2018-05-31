@@ -1449,41 +1449,54 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             7 True
         """
         if brute_force:
-            return self._invariant_form_brute_force()
+            form = self._invariant_form_brute_force()
 
-        n = self.rank()
-        from sage.matrix.constructor import zero_matrix
-
-        if self.is_crystallographic():
-            ring = QQ
         else:
-            from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
-            ring = UniversalCyclotomicField()
+            n = self.rank()
+            from sage.matrix.constructor import zero_matrix
 
-        form = zero_matrix(ring, n, n)
+            if self.is_crystallographic():
+                ring = QQ
+            else:
+                from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+                ring = UniversalCyclotomicField()
 
-        C = self.cartan_matrix()
-        if not self.is_well_generated():
-            indep_inds = sorted(self._index_set_inverse[key]
-                                for key in self.independent_roots().keys())
-            C = C.matrix_from_rows_and_columns(indep_inds,indep_inds)
+            form = zero_matrix(ring, n, n)
 
-        for j in range(n):
-            for i in range(j):
-                if C[j,i] != 0:
-                    form[j,j] = form[i,i] * \
-                                ( C[i,j] * C[j,j].conjugate() ) / \
-                                ( C[j,i].conjugate() * C[i,i] )
-            if form[j,j] == 0:
-                form[j,j] = ring.one()
-        for j in range(n):
-            for i in range(j):
-                form[j, i] = C[i, j] * form[i, i] / C[i,i]
-                form[i, j] = form[j, i].conjugate()
+            C = self.cartan_matrix()
+            if not self.is_well_generated():
+                indep_inds = sorted(self._index_set_inverse[key]
+                                    for key in self.independent_roots().keys())
+                C = C.matrix_from_rows_and_columns(indep_inds,indep_inds)
 
-        B = self.base_change_matrix()
-        form = B*form*B.conjugate().transpose()
-        form /= form[0,0]
+            for j in range(n):
+                for i in range(j):
+                    if C[j,i] != 0:
+                        form[j,j] = (form[i,i]
+                                     * (C[i,j] * C[j,j].conjugate())
+                                     / (C[j,i].conjugate() * C[i,i]))
+                if form[j,j] == 0:
+                    form[j,j] = ring.one()
+            for j in range(n):
+                for i in range(j):
+                    form[j, i] = C[i, j] * form[i, i] / C[i,i]
+                    form[i, j] = form[j, i].conjugate()
+
+            B = self.base_change_matrix()
+            form = B * form * B.conjugate().transpose()
+            form /= form[0,0]
+
+        # normalization
+        try:
+            form = form.change_ring(QQ)
+        except TypeError:
+            pass
+        else:
+            try:
+                form = form.change_ring(ZZ)
+            except TypeError:
+                pass
+
         form.set_immutable()
         return form
 
@@ -1536,6 +1549,44 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         return Matrix([[invariant_value(i,j) / self.cardinality() for j in range(n)]
                        for i in range(n)])
+
+    def invariant_form_standardization(self):
+        r"""
+        Return the transformation of the space that turns the invariant
+        form of ``self`` into the standard scalar product.
+
+        Let `I` be the invariant form of a complex reflection group, and
+        let `A` be the Hermitian matrix such that `A^2 = I`. The matrix
+        `A` defines a change of basis such that the identity matrix is
+        the invariant form. Indeed, we have
+
+        .. MATH::
+
+            (A^{-1} x A) \mathcal{I} (A^{-1} y A)^* = A^{-1} x I y^* A^{-1}
+            = A^{-1} I A^{-1} = \mathcal{I},
+
+        where `\mathcal{I}` is the identity matrix.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup((4,2,5))             # optional - gap3
+            sage: I = W.invariant_form()                   # optional - gap3
+            sage: A = W.invariant_form_standardization()   # optional - gap3
+            sage: A^2 == I                                 # optional - gap3
+            True
+
+        TESTS::
+
+            sage: W = ReflectionGroup(9)                              # optional - gap3
+            sage: A = W.invariant_form_standardization()              # optional - gap3
+            sage: S = W.simple_reflections()                          # optional - gap3
+            sage: Ainv = A.inverse()                                  # optional - gap3
+            sage: T = {i: Ainv * S[i] * A for i in W.index_set()}     # optional - gap3
+            sage: all(T[i] * T[i].conjugate_transpose()               # optional - gap3
+            ....:     == 1 for i in W.index_set() )
+            True
+        """
+        return self.invariant_form().principal_square_root()
 
     def set_reflection_representation(self,refl_repr=None):
         r"""

@@ -1603,6 +1603,43 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         else:
             raise ValueError("the reflection representation must be defined for the complete index set")
 
+    def fake_degrees(self):
+        r"""
+        Returns a list of the fake degrees associated to ``self``. The ordering
+        follows the one in Chevie and is not compatible with the current 
+        implementation of ``self``.irredubile_characters().     
+        
+        The fake degrees are q-versions of the degree of the character. In particular,
+        they sum to Hilbert series of the coinvariant algebra of ``self``.
+        
+        Examples::
+        
+            sage: W=ReflectionGroup(["H",4])
+            sage: W.cardinality()
+            14400
+            sage: sum(fdeg.subs(q=1)**2 for fdeg in W.fake_degrees())
+            14400
+        
+        """
+        
+        from sage.calculus.var import var
+        
+        q=var("q")
+
+        fake_deg_list = []
+        gap_fak_deg = gap3.FakeDegrees(self._gap_group,'X(Rationals)')
+        for i in range(1,len(gap_fak_deg)+1):
+            fake_poly = gap_fak_deg[i]
+            fake_coef = fake_poly.coefficients.sage()
+            poly_entry = 0
+            for j in range(len(fake_coef)):
+                if fake_coef[j] != 0:
+                    poly_entry += fake_coef[j]*q**(fake_poly.Degree().sage()-j)
+            fake_deg_list.append(poly_entry)
+ 
+        return fake_deg_list    
+
+
     class Element(ComplexReflectionGroupElement):
         #@cached_in_parent_method
         def conjugacy_class_representative(self):

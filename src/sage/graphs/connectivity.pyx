@@ -50,6 +50,20 @@ Here is what the module can do:
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
 
+
+REFERENCES
+----------
+
+.. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
+    Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
+
+.. [HarPri] \F. Harary and G. Prins. The block-cutpoint-tree of
+    a graph. Publ. Math. Debrecen 13 1966 103-107.
+
+.. [Gallai] \T. Gallai, Elementare Relationen bezueglich der
+    Glieder und trennenden Punkte von Graphen, Magyar
+    Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
+
 Methods
 -------
 """
@@ -403,10 +417,7 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
         ...
         TypeError: the input must be a Sage graph
 
-    REFERENCE:
-
-    .. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
-      Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
+    
     """
     from sage.graphs.generic_graph import GenericGraph
     if not isinstance(G, GenericGraph):
@@ -544,6 +555,8 @@ def blocks_and_cuts_tree(G):
     When ``self`` is biconnected, the tree is reduced to a single node of
     type `B`.
 
+    We referred to [HarPri]_ and [Gallai]_ for blocks and cuts tree.
+
     .. SEEALSO::
 
         - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
@@ -591,13 +604,7 @@ def blocks_and_cuts_tree(G):
         ...
         TypeError: the input must be a Sage graph
 
-    REFERENCES:
-
-    .. [HarPri] \F. Harary and G. Prins. The block-cutpoint-tree of
-       a graph. Publ. Math. Debrecen 13 1966 103-107.
-    .. [Gallai] \T. Gallai, Elementare Relationen bezueglich der
-       Glieder und trennenden Punkte von Graphen, Magyar
-       Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
+    
     """
     from sage.graphs.generic_graph import GenericGraph
     if not isinstance(G, GenericGraph):

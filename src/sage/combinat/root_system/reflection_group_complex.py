@@ -1855,12 +1855,12 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
  
             Check that #25478 is fixed::
 
-                sage: W=ReflectionGroup(["A",5])
-                sage: w=W.from_reduced_word([1,2,3,5])
-                sage: w.is_regular(4)
+                sage: W=ReflectionGroup(["A",5])                        # optional - gap3
+                sage: w=W.from_reduced_word([1,2,3,5])                  # optional - gap3
+                sage: w.is_regular(4)                                   # optional - gap3
                 False
-                sage: W=ReflectionGroup(["A",3])
-                sage: len([w for w in W if w.is_regular(w.order())])
+                sage: W=ReflectionGroup(["A",3])                        # optional - gap3
+                sage: len([w for w in W if w.is_regular(w.order())])    # optional - gap3
                 18
 
             """

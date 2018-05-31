@@ -202,8 +202,8 @@ class PathTableaux(Category):
             This is to check that the local rule gives an involution.
             This is crucial.
             """
-            for i in range(self.size()):
-                if self.local_rule(i+1).self.local_rule(i+1) != self:
+            for i in range(self.size()-2):
+                if self.local_rule(i+1).local_rule(i+1) != self:
                     return False
             return True
 

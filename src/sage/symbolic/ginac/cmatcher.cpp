@@ -251,7 +251,7 @@ opt_bool CMatcher::init()
         }
         for (size_t i=0; i<N; ++i)
                 cms.emplace_back();
-        map_repo = std::vector<exmap>(P);
+        map_repo = std::vector<exmap>(N);
 
         finished = false;
         perm.reserve(P);        

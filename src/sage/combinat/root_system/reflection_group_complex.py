@@ -1472,9 +1472,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             for j in range(n):
                 for i in range(j):
                     if C[j,i] != 0:
-                        form[j,j] = form[i,i] * \
-                                    ( C[i,j] * C[j,j].conjugate() ) / \
-                                    ( C[j,i].conjugate() * C[i,i] )
+                        form[j,j] = (form[i,i]
+                                     * (C[i,j] * C[j,j].conjugate())
+                                     / (C[j,i].conjugate() * C[i,i]))
                 if form[j,j] == 0:
                     form[j,j] = ring.one()
             for j in range(n):
@@ -1483,7 +1483,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                     form[i, j] = form[j, i].conjugate()
 
             B = self.base_change_matrix()
-            form = B*form*B.conjugate().transpose()
+            form = B * form * B.conjugate().transpose()
             form /= form[0,0]
 
         # normalization
@@ -1552,15 +1552,20 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     def invariant_form_standardization(self):
         r"""
-        Return the transformation of the space that turns the invriant
+        Return the transformation of the space that turns the invariant
         form of ``self`` into the standard scalar product.
 
-        Let `I` be the invariant form of a complex reflection group is
-        the matrix `A` such that `A^2 = I` and we have
+        Let `I` be the invariant form of a complex reflection group, and
+        let `A` be the Hermitian matrix such that `A^2 = I`. The matrix
+        `A` defines a change of basis such that the identity matrix is
+        the invariant form. Indeed, we have
 
         .. MATH::
 
-            x I y^T = (xA) (yA)^T.
+            (A^{-1} x A) \mathcal{I} (A^{-1} y A)^* = A^{-1} x I y^* A^{-1}
+            = A^{-1} I A^{-1} = \mathcal{I},
+
+        where `\mathcal{I}` is the identity matrix.
 
         EXAMPLES::
 
@@ -1572,9 +1577,13 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         TESTS::
 
-            sage: S = W.simple_reflections()                                # optional - gap3
-            sage: all((S[i].matrix()*A) (S[j].matrix()*A).transpose() == 1  # optional - gap3
-            ....:     for i in W.index_set() for j in W.index_set() )
+            sage: W = ReflectionGroup(9)                              # optional - gap3
+            sage: A = W.invariant_form_standardization()              # optional - gap3
+            sage: S = W.simple_reflections()                          # optional - gap3
+            sage: Ainv = A.inverse()                                  # optional - gap3
+            sage: T = {i: Ainv * S[i] * A for i in W.index_set()}     # optional - gap3
+            sage: all(T[i] * T[i].conjugate_transpose()               # optional - gap3
+            ....:     == 1 for i in W.index_set() )
             True
         """
         return self.invariant_form().principal_square_root()

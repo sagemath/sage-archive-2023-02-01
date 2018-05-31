@@ -1234,6 +1234,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         if isinstance(indices, (Integer, int)):
             indices = range(indices)
 
+        if len(indices)>tensor.tensor_rank():
+            raise ValueError("Too much contractions")
+
         g = self.ambient_metric()
         if self._dim_foliation == 0:
             g = g.along(self._immersion)

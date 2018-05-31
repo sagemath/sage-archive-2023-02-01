@@ -1299,17 +1299,6 @@ class VectorFrame(FreeModuleBasis):
         vmodule = rmapping.domain().vector_field_module(dest_map=rmapping)
         return vmodule.basis(from_frame=self)
 
-    def is_subframe(self, other):
-        if other in self._superframes and self in other._subframes:
-            return True
-        if self._from_frame is other._from_frame and self.domain().is_subset(
-                    other.domain()):
-            self._superframes.add(other)
-            other._subframes.add(self)
-            return True
-        return False
-
-
     def at(self, point):
         r"""
         Return the value of ``self`` at a given point, this value being

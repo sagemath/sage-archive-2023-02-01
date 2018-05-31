@@ -148,7 +148,7 @@ from sage.groups.class_function import ClassFunction
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
-from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
+from sage.structure.richcmp import (richcmp_method,
                                     richcmp, rich_to_bool, op_EQ)
 
 
@@ -825,6 +825,33 @@ class PermutationGroup_generic(group.FiniteGroup):
         from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
         return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
                 successors=lambda g: (g._mul_(h) for h in self.gens())))
+
+    def __iter_alt__(self):
+        """
+        Return an iterator over the elements of this group. In some cases, this
+        is much faster then the standard iterator.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
+            sage: sorted([a for a in G.__iter_alt__()])
+            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
+
+        """
+        def elements(self, SGS=None):
+            if SGS is None:
+                SGS = self.strong_generating_system(self.base())
+                SGS.reverse()
+            if len(SGS) == 0:
+                yield self.identity()
+            else:
+                S = SGS.pop()
+                elmts = elements(self, SGS)
+                for s in elmts:
+                    for g in S:
+                        yield s._mul_(g)
+        for _ in elements(self):
+            yield _
 
     def gens(self):
         """

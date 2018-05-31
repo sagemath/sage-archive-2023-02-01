@@ -1852,6 +1852,17 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1]
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
                 [1, 2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
+ 
+            Check that #25478 is fixed::
+
+                sage: W=ReflectionGroup(["A",5])
+                sage: w=W.from_reduced_word([1,2,3,5])
+                sage: w.is_regular(4)
+                False
+                sage: W=ReflectionGroup(["A",3])
+                sage: len([w for w in W if w.is_regular(w.order())])
+                18
+
             """
             evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
             I = identity_matrix(self.parent().rank())

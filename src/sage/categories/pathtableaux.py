@@ -162,20 +162,20 @@ class PathTableaux(Category):
             These generators are involutions and are usually denoted by
             $s_{i,\,j$}$.
             """
-            if not 0 < i < j < self.size():
+            if not 0 < i < j <= self.size():
                 raise ValueError("Integers out of bounds.")
 
             if i == j:
                 return self
 
             if i == 1:
-                h = list(self)[:j-1]
-                t = list(self)[j-1:]
+                h = list(self)[:j]
+                t = list(self)[j:]
                 T = self.parent()(h)
                 L = list(T.evacuation()) + t
                 return self.parent()(L)
 
-            return self.cactus(1,j).cactus(1,j-i).cactus(1,j)
+            return self.cactus(1,j).cactus(1,j-i+1).cactus(1,j)
 
 ########################### Visualisation and checking ########################
 
@@ -212,17 +212,15 @@ class PathTableaux(Category):
             This is to check that the cactus group generators are
             involutions..
             """
-            return all([ self.cactus(1,i).cactus(1,i) == self for i in range(2,self.size() ) ])
+            return all([ self.cactus(1,i).cactus(1,i) == self for i in range(2,self.size()+1 ) ])
 
         def check_promotion(self):
             """
             Promotion can be expressed in terms of the cactus generators.
             Here we check this relation.
             """
-            n = self.size()
-            lhs = self.promotion()
-            rhs = self.cactus(1,n).cactus(2,n)
-            return lhs == rhs
+            n = self.size()-1
+            return self == self.cactus(1,n-1).cactus(1,n).promotion()
 
         def check_commutation(self):
             """
@@ -232,7 +230,9 @@ class PathTableaux(Category):
             from itertools import combinations
 
             n = self.size()
-            for i,j,r,s in combinations(range(n),4):
+            if n < 5:
+                return True
+            for i,j,r,s in combinations(range(1,n+1),4):
                 lhs = self.cactus(i,j).cactus(r,s)
                 rhs = self.cactus(r,s).cactus(i,j)
                 if lhs != rhs:
@@ -247,9 +247,11 @@ class PathTableaux(Category):
             from itertools import combinations
 
             n = self.size()
-            for i,j,r,s in combinations(range(n),4):
-                lhs = self.cactus(i,s).cactus(j,r)
-                rhs = self.cactus(i+s-r,i+s-j).cactus(i,s)
+            if n < 4:
+                return True
+            for i,j,r,s in combinations(range(1,n+3),4):
+                lhs = self.cactus(i,s-2).cactus(j-1,r-1)
+                rhs = self.cactus(i+s-r-1,i+s-j-1).cactus(i,s-2)
                 if lhs != rhs:
                     return False
             return True
@@ -281,12 +283,12 @@ class PathTableaux(Category):
             new = set([])
             while rec != set([]):
                 for a in rec:
-                    for i in range(self.size()):
-                        b = a.cactus(1,i+1)
-                        if b not in orb and b not in rec:
+                    for i in range(2,self.size()):
+                        b = a.cactus(1,i)
+                        if (b not in orb) and (b not in rec):
                             new.add(b)
-                orbit.join(new)
-                rec = copy(new)
+                orb = orb.union(rec)
+                rec = new.copy()
                 new = set([])
 
             return orb
@@ -305,11 +307,11 @@ class PathTableaux(Category):
             from itertools import combinations
 
             G = Graph()
-            orb = orbit(self)
+            orb = self.orbit()
 
             for a in orb:
-                for i,j in combinations(range(self.size(),2)):
-                    b = a.cactus(i+1,j+1)
+                for i,j in combinations(range(1,self.size()+1),2):
+                    b = a.cactus(i,j)
                     if a != b:
                         G.add_edge(a,b,"%d,%d" % (i,j))
             return G

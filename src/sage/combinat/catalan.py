@@ -271,13 +271,32 @@ sage: SkewTableau(t.cylindrical_diagram()).pp()
 """ 
 sage: t = CatalanTableau([0,1,2,3,2,1,0])
 sage: t.evacuation()
-[0, 1, 0, 1, 2]
-sage: t.cactus(1,6)
-[0, 1, 0, 1, 2, 1, 0]
-sage: t.cactus(1,5)
 [0, 1, 2, 3, 2, 1, 0]
-sage: t == t.cactus(1,5).cactus(1,6).promotion()
+sage: t.cactus(1,5)
+[0, 1, 0, 1, 2, 1, 0]
+sage: t.cactus(1,6)
+[0, 1, 2, 1, 0, 1, 0]
+sage: t.cactus(1,7) == t.evacuation()
 True
+sage: t.cactus(1,7).cactus(1,6) == t.promotion()
+True
+sage: t.check_involution_rule()
+True
+sage: t.check_involution_cactus()
+True
+sage: t.check_promotion()
+True
+sage: t.check_involution_cactus()
+True
+sage: t.check_commutation()
+True
+sage: t.orbit()
+{[0, 1, 0, 1, 0, 1, 0],
+ [0, 1, 0, 1, 2, 1, 0],
+ [0, 1, 2, 1, 0, 1, 0],
+ [0, 1, 2, 1, 2, 1, 0],
+ [0, 1, 2, 3, 2, 1, 0]}
+
 
 
 """

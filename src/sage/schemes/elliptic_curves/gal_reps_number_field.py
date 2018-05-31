@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 r"""
-Galois representations for elliptic curves over number fields.
+Galois representations for elliptic curves over number fields
 
 This file contains the code to compute for which primes the Galois
-representation attached to an elliptic curve (over an arbitrary
-number field) is surjective. The functions in this file are called by
-the ``is_surjective`` and ``non_surjective`` methods of an elliptic curve
-over a number field.
+representation attached to an elliptic curve (over an arbitrary number field)
+is surjective. The functions in this file are called by the ``is_surjective``
+and ``non_surjective`` methods of an elliptic curve over a number field.
 
 EXAMPLES::
 

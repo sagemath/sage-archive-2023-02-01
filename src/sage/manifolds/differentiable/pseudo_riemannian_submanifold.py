@@ -936,7 +936,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         nab = self.ambient_metric().connection('nabla', r'\nabla')
-        self.normal()
         if self._dim_foliation == 0:
             self._ambient_second_fundamental_form = \
                            self.tensor_field(0, 2, sym=[(0, 1)], antisym=[],

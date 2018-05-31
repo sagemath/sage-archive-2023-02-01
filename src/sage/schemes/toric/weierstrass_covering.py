@@ -1,5 +1,5 @@
 r"""
-Map to the Weierstrass form of a toric elliptic curve.
+Map to the Weierstrass form of a toric elliptic curve
 
 There are 16 reflexive polygons in 2-d. Each defines a toric Fano
 variety, which (since it is 2-d) has a unique crepant resolution to a smooth

@@ -573,7 +573,6 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.phi
             [None, a, b, c, a*b]
         """
-        res = []
         for f in F:
             self.clauses(f)
         return self.phi

@@ -1413,8 +1413,6 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                 basis._subframes.update(subframe._subframes)
                                 basis._restrictions.update(subframe._restrictions)
 
-
-
         # Initialization of the components of the zero element:
         zero = self.zero()
         for frame in self._domain._frames:

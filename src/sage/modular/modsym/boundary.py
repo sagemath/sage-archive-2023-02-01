@@ -105,7 +105,6 @@ import sage.modular.hecke.all as hecke
 from sage.modular.modsym.manin_symbol import ManinSymbol
 
 import sage.rings.all as rings
-import sage.arith.all as arith
 
 from . import element
 
@@ -1147,7 +1146,6 @@ class BoundarySpace_wtk_gamma_h(BoundarySpace):
             sage: S.dimension()
             8
         """
-        N    = self.level()
         k    = self.weight()
         sign = self.sign()
         i, eps = self._cusp_index(c)
@@ -1367,7 +1365,6 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             sage: B._coerce_cusp(Cusp(0))
             0
         """
-        N    = self.level()
         sign = self.sign()
         i, eps = self._cusp_index(c)
         if i != -1:

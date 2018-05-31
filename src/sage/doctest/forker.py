@@ -111,13 +111,17 @@ def init_sage():
         sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
         {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
-    # We need to ensure that the Matplotlib font cache is built to
-    # avoid spurious warnings (see Trac #20222).
-    import matplotlib.font_manager
-
-    # Make sure that the agg backend is selected during doctesting.
-    # This needs to be done before any other matplotlib calls.
-    matplotlib.use('agg')
+    try:
+        # We need to ensure that the Matplotlib font cache is built to
+        # avoid spurious warnings (see Trac #20222).
+        import matplotlib.font_manager
+    except ImportError:
+        # Do not require matplotlib for running doctests (Trac #25106).
+        pass
+    else:
+        # Make sure that the agg backend is selected during doctesting.
+        # This needs to be done before any other matplotlib calls.
+        matplotlib.use('agg')
 
     # Do this once before forking off child processes running the tests.
     # This is more efficient because we only need to wait once for the
@@ -157,9 +161,15 @@ def init_sage():
     # os OS X: http://trac.sagemath.org/14289
     import readline
 
-    # Disable SymPy terminal width detection
-    from sympy.printing.pretty.stringpict import stringPict
-    stringPict.terminal_width = lambda self:0
+    try:
+        import sympy
+    except ImportError:
+        # Do not require sympy for running doctests (Trac #25106).
+        pass
+    else:
+        # Disable SymPy terminal width detection
+        from sympy.printing.pretty.stringpict import stringPict
+        stringPict.terminal_width = lambda self:0
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=None, line=None):

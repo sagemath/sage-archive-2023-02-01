@@ -434,7 +434,13 @@ class ContinuousMap(Morphism):
                 self._latex_name = latex_name
         self._init_derived()  # initialization of derived quantities
         self._restrictions_graph = {(domain, codomain): self}
+                # dict. of known extensions of self on bigger domains,
+                # including self, with pairs of domain codomain as keys.
+                # Its elements can be seen as incomming edges on a graph.
         self._extensions_graph = {(domain, codomain): self}
+                # dict. of known restrictions of self on samller domains,
+                # including self, with pairs of domain codomain as keys.
+                # Its elements can be seen as outgoing edges on a graph.
     #
     # SageObject methods
     #
@@ -1749,8 +1755,8 @@ class ContinuousMap(Morphism):
                     self._restrictions[(subdomain, subcodomain)] = res
                     self._restrictions.update(res._restrictions)
                     self._restrictions_graph.update(res._restrictions_graph)
-                    res._extension_graph.update(self._extension_graph)
-                    for ext in self._extension._graph.values():
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
                         ext._restrictions[subdomain] = res
                         ext._restrictions.update(res._restrictions)
                         ext._restrictions_graph.update(res._restrictions_graph)

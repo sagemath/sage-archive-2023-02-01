@@ -1357,7 +1357,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #def log_artin_hasse(self):
     #    raise NotImplementedError
 
-    def multiplicative_order(self, prec = None): #needs to be rewritten for lazy elements
+    def multiplicative_order(self, prec = None):
         r"""
         Returns the multiplicative order of self, where self is
         considered to be one if it is one modulo `p^{\mbox{prec}}`.
@@ -1380,20 +1380,35 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1
             sage: K(2).multiplicative_order(20)
             +Infinity
-            sage: K(3).multiplicative_order(20)
-            +Infinity
-            sage: K(4).multiplicative_order(20)
-            +Infinity
             sage: K(5).multiplicative_order(20)
-            +Infinity
-            sage: K(25).multiplicative_order(20)
             +Infinity
             sage: K(1/5).multiplicative_order(20)
             +Infinity
-            sage: K(1/25).multiplicative_order(20)
-            +Infinity
             sage: K.zeta().multiplicative_order(20)
             4
+
+        Over unramified extensions::
+
+            sage: L1.<a> = Qq(5^3)
+            sage: c = L1.teichmuller(a)
+            sage: c.multiplicative_order()
+            124
+            sage: c^124
+            1 + O(5^20)
+
+        Over totally ramified extensions::
+
+            sage: L2.<pi> = Qp(5).extension(x^4 + 5*x^3 + 10*x^2 + 10*x + 5)
+            sage: u = 1 + pi
+            sage: u.multiplicative_order()
+            5
+            sage: v = L2.teichmuller(2)
+            sage: v.multiplicative_order()
+            4
+            sage: (u*v).multiplicative_order()
+            20
+
+        TESTS::
 
             sage: R = Zp(5,20,'capped-rel')
             sage: R(-1).multiplicative_order(20)
@@ -1413,13 +1428,31 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R.zeta().multiplicative_order(20)
             4
         """
-        if self.valuation() != 0:
+        if prec is not None:
+            self = self.add_bigoh(prec)
+        if self == 0 or self.valuation() != 0:
             return infinity
-        res = self.residue(1)
-        if self.is_equal_to(self.parent().teichmuller(res.lift()),prec): #should this be made more efficient?
-            return res.multiplicative_order()
-        else:
+        parent = self.parent()
+        p = parent.prime()
+
+        # Compute the multiplicative order outside p
+        res = self.residue()
+        order = res.multiplicative_order()
+        self /= parent.teichmuller(self)
+        if self == 1:
+            return order
+
+        # Compute multiplicative order at p
+        e = parent.e()
+        if not (p-1).divides(e):
             return infinity
+        n = e.valuation(p)
+        for _ in range(n+1):
+            order *= p
+            self = self**p
+            if self == 1:
+                return order
+        return infinity
 
     def valuation(self, p = None):
         """

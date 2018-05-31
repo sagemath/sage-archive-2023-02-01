@@ -469,7 +469,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         cdef Matrix_gfpn_dense retval = self._new(self._nrows, self._ncols)
         retval._is_immutable = False  # a copy of a matrix is mutable!
-        retval._cache = dict(self._cache.iteritems()) if self._cache is not None else {}
+        retval._cache = dict(self._cache) if self._cache is not None else {}
         if self.Data:
             retval.Data = MatDup(self.Data)
         else:

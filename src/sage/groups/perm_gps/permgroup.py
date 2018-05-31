@@ -839,10 +839,6 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         """
         def elements(self, SGS=None):
-            if SGS is None:
-                SGS = self.strong_generating_system(self.base())
-                SGS.reverse()
-
             S = SGS.pop()
             if not SGS:
                 for g in S:
@@ -851,8 +847,14 @@ class PermutationGroup_generic(group.FiniteGroup):
                 for s in elements(self, SGS):
                     for g in S:
                         yield s._mul_(g)
+        base = self.base()
+        # catching the emtpy base for PermutationGroup([()])
+        if not base:
+            base = None
+        SGS = self.strong_generating_system(base)
+        SGS.reverse()
 
-        for _ in elements(self):
+        for _ in elements(self, SGS):
             yield _
 
     def gens(self):

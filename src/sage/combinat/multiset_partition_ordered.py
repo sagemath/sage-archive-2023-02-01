@@ -20,7 +20,6 @@ This module provides tools for manipulating ordered multiset partitions.
 
 EXAMPLES::
 
-    sage: from sage.combinat.multiset_partition_ordered import *
     sage: OrderedMultisetPartition([[5, 3], [1, 3]])
     [{3,5}, {1,3}]
     sage: list(OrderedMultisetPartitions(4))
@@ -30,6 +29,8 @@ EXAMPLES::
     [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
      [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
      [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
+    sage: OrderedMultisetPartitions([1,4], 3, length=2).list()
+    [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}]]
 
 AUTHORS:
 
@@ -60,25 +61,27 @@ from sage.categories.tensor import tensor
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
+from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.flatten import flatten
 from sage.misc.all import prod
 from sage.sets.set import Set, Set_object
-from sage.sets.family import Family
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.functions.other import binomial
 from sage.calculus.var import var
 
-from sage.combinat.subset import Subsets
+from sage.combinat.words.word import Word
+from sage.combinat.subset import Subsets_sk
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.permutation import Permutations_mset
 from sage.combinat.partition import RegularPartitions_n
 from sage.combinat.integer_lists.invlex import IntegerListsLex
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.shuffle import ShuffleProduct, ShuffleProduct_overlapping
-from sage.combinat.crystals.letters import CrystalOfLetters
+from sage.combinat.crystals.letters import CrystalOfLetters as Letters
+#from sage.combinat.crystals.catalog import Letters
 from sage.combinat.root_system.cartan_type import CartanType
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -107,13 +110,13 @@ class OrderedMultisetPartition(ClonableArray):
 
         sage: OrderedMultisetPartition([i for i in range(2,5)])
         [{2}, {3}, {4}]
+        sage: OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1])
+        [{1}, {1,3,5}, {1,2}]
         sage: OrderedMultisetPartition([1, 1, 0, 3, 5, 0, 2, 1])
         Traceback (most recent call last):
         ...
-        ValueError: Ordered multiset partitions do not have repeated entries
+        ValueError: ordered multiset partitions do not have repeated entries
         within blocks ([[1, 1], [3, 5], [2, 1]] received)
-        sage: OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1])
-        [{1}, {1,3,5}, {1,2}]
 
     TESTS::
 
@@ -130,19 +133,19 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: OrderedMultisetPartition([[3], [2,1]])
             [{3}, {1,2}]
-            sage: OrderedMultisetPartition([2, 3, 4, 5])
+            sage: mu = OrderedMultisetPartition([2, 3, 4, 5]); mu
             [{2}, {3}, {4}, {5}]
-            sage: OrderedMultisetPartition([1, 1, 0, 3, 5, 0, 2, 1])
-            Traceback (most recent call last):
-            ...
-            ValueError: Ordered multiset partitions do not have repeated entries
-             within blocks ([[1, 1], [3, 5], [2, 1]] received)
-            sage: OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1])
+            sage: nu = OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1]); nu
             [{1}, {1,3,5}, {1,2}]
-            sage: OrderedMultisetPartition([2, 3, 4, 5])
-            [{2}, {3}, {4}, {5}]
-            sage: OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1])
-            [{1}, {1,3,5}, {1,2}]
+
+        TESTS::
+
+            sage: mu.parent() == OrderedMultisetPartitions([2,3,4,5])
+            True
+            sage: nu.parent() == OrderedMultisetPartitions([1,1,1,2,3,5])
+            True
+            sage: repr(OrderedMultisetPartition([]).parent())
+            'Ordered Multiset Partitions of multiset {{}}'
         """
         if not co:
             P = OrderedMultisetPartitions([])
@@ -189,7 +192,11 @@ class OrderedMultisetPartition(ClonableArray):
             parent = args[0]
         co = args[-1]
         if co and not isinstance(co[0], (list, tuple, set, frozenset, Set_object)):
+            # Assume `co` is a list with (or without) zeros, representing an OMP
             co = parent.from_list(co)
+        else:
+            # Delte empty blocks
+            co = [block for block in co if block]
         ClonableArray.__init__(self, parent, [Set(list(k)) for k in co])
         self._multiset = _get_multiset(co)
         self._weight = _get_weight(self._multiset)
@@ -203,8 +210,6 @@ class OrderedMultisetPartition(ClonableArray):
         """
         Check that we are a valid ordered multiset partition.
 
-        .. TODO:: make tests work.
-
         EXAMPLES::
 
             sage: OMP4 = OrderedMultisetPartitions(4)
@@ -216,13 +221,6 @@ class OrderedMultisetPartition(ClonableArray):
             sage: co.check()
 
         TESTS::
-
-            sage: co = OMP4([[1, 3], [1, 4]], check=False)
-            sage: co.check()
-            Traceback (most recent call last):
-            ...
-            AssertionError: [{1,3}, {1,4}] is not an element
-             of Ordered Multiset Partitions of integer 4
 
             sage: co = OMP([[1, 1], [1, 4]])
             Traceback (most recent call last):
@@ -279,7 +277,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C = OMP([[1,2], [1]])
             sage: A == C
             False
-            sage: D = OMP.from_zero_list([1,0,1,2])
+            sage: D = OMP.from_list([1,0,1,2])
             sage: A == D
             True
         """
@@ -382,7 +380,7 @@ class OrderedMultisetPartition(ClonableArray):
 
     def multiset(self, as_dict=False):
         r"""
-        Return the multiset corresponding to ``self`` as a list or as a dictionary.
+        Return the multiset corresponding to ``self`` as a tuple or as a dictionary.
 
         Counts frequency of each letter in ``self.letters()``
 
@@ -393,7 +391,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C.multiset()
             (1, 1, 2, 2, 3, 3, 4, 7)
             sage: C.multiset(as_dict=True)
-            {1:2, 2:2, 3:3, 4:1, 7:1}
+            {1: 2, 2: 2, 3: 2, 4: 1, 7: 1}
             sage: OrderedMultisetPartition([]).multiset() == ()
             True
         """
@@ -435,7 +433,12 @@ class OrderedMultisetPartition(ClonableArray):
             True
             sage: OrderedMultisetPartition([[7,1],[3]]).size()
             11
+
+        TESTS::
+
             sage: OrderedMultisetPartition([]).size() == 0
+            True
+            sage: OrderedMultisetPartition('ab0abc').size() is None
             True
         """
         return self._n
@@ -482,16 +485,28 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
+            sage: OrderedMultisetPartition([[6,1],[1,3],[1,3,6]]).weight()
+            {1: 3, 3: 2, 6: 2}
             sage: OrderedMultisetPartition([[6,1],[1,3],[1,3,6]]).weight(as_weak_comp=True)
             [3, 0, 2, 0, 0, 2]
-            sage: OrderedMultisetPartition([[6,1],[1,3],[1,3,6]]).weight()
-            {1:3, 3:2, 6:2}
             sage: OrderedMultisetPartition([]).weight() == {}
             True
+
+        TESTS::
+
+            sage: OrderedMultisetPartition('ab0abc0b0b0c').weight()
+            {'a': 2, 'b': 4, 'c': 2}
+            sage: OrderedMultisetPartition('ab0abc0b0b0c').weight(as_weak_comp=True)
+            Traceback (most recent call last):
+            ...
+            AssertionError: {'a': 2, 'c': 2, 'b': 4} is not a numeric multiset
         """
         w = self._weight
         if as_weak_comp:
-            w = [w.get(i, 0) for i in range(1,self.max_letter()+1)]
+            if all(v in ZZ for v in w):
+                w = [w.get(i, 0) for i in range(1,self.max_letter()+1)]
+            else:
+                raise AssertionError("%s is not a numeric multiset"%w)
         return w
 
     def deconcatenate(self, k=2):
@@ -507,13 +522,13 @@ class OrderedMultisetPartition(ClonableArray):
         EXAMPLES::
 
             sage: OrderedMultisetPartition([[7,1],[3]]).deconcatenate()
-            [([], [{1,7}, {3}]), ([{1,7}], [{3}]), ([{1,7}, {3}], [])]
+            {([{1,7}], [{3}]), ([], [{1,7}, {3}]), ([{1,7}, {3}], [])}
             sage: OrderedMultisetPartition('bc0a').deconcatenate()
-            [([], [{'b','c'}, {'a'}]), ([{'b','c'}], [{'a'}]), ([{'b','c'}, {'a'}], [])]
+            {([], [{'b','c'}, {'a'}]), ([{'b','c'}, {'a'}], []), ([{'b','c'}], [{'a'}])}
             sage: OrderedMultisetPartition('abc0').deconcatenate(3)
-            [([], [], [{'a','b','c'}]),
+            {([{'a','b','c'}], [], []),
              ([], [{'a','b','c'}], []),
-             ([{'a','b','c'}], [], [])]
+             ([], [], [{'a','b','c'}])}
 
         TESTS::
 
@@ -848,7 +863,7 @@ class OrderedMultisetPartition(ClonableArray):
         EXAMPLES::
 
             sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
-            sage: to_tableau(mu)
+            sage: OrderedMultisetPartition(mu).to_tableau()
             [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
         """
         if not self:
@@ -927,7 +942,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C = OrderedMultisetPartition([2,1,0,1,2,3,0,1,2,0,3,0,1]); C
             [{1,2}, {1,2,3}, {1,2}, {3}, {1}]
             sage: C._multiset_partition()
-            [{1}, {3}, {1,2}, {1,2}, {1,2,3}]
+            [{1}, {3}, {1, 2}, {1, 2}, {1, 2, 3}]
         """
         return sorted(self, key=lambda x: (len(x),min(x)))
 
@@ -954,19 +969,20 @@ class OrderedMultisetPartition(ClonableArray):
             sage: list(A.shuffle_product(B, overlap=True))
             [[{1,2,3}, {1,2}, {3,4}], [{1,2,3}, {3,4}, {1,2}],
              [{3,4}, {1,2,3}, {1,2}], [{1,2,3}, {1,2,3,4}]]
-
             sage: list(A.shuffle_product(C, overlap=True))
             [[{1,2,3}, {1,2}, {4,5}], [{1,2,3}, {4,5}, {1,2}], [{4,5}, {1,2,3}, {1,2}],
              [{1,2,3,4,5}, {1,2}], [{1,2,3}, {1,2,4,5}]]
         """
         other = OrderedMultisetPartition(other)
-        if overlap is True:
-            for term in ShuffleProduct_overlapping(self, other):
-                if list(term._multiset) == sorted(self._multiset + other._multiset):
-                    yield term
-        else:
-            for term in ShuffleProduct(self, other):
+        P = OrderedMultisetPartitions(self._multiset + other._multiset)
+        if not overlap:
+            for term in ShuffleProduct(self, other, element_constructor=P):
                 yield term
+        else:
+            A = map(tuple, self); B = map(tuple, other)
+            for term in ShuffleProduct_overlapping(A, B):
+                if len(_concatenate(map(Set, term))) == len(P._Xtup):
+                    yield P(term)
 
     # A sorting scheme.
     # An alternative to that served up by ``OrderedMultisetPartitions().__iter__()``
@@ -1043,7 +1059,7 @@ class OrderedMultisetPartition(ClonableArray):
             return False
         # check lex.
         if co1._n and co2._n:
-            # give preference to blocks with larger sum.
+            # give preference to blocks with larger sum
             co1 = [Word([sum(k)]+sorted(k)) for k in co1]
             co2 = [Word([sum(k)]+sorted(k)) for k in co2]
         else:
@@ -1064,25 +1080,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     An ordered multiset partition `c` of a nonnegative integer `n` is a list of
     subsets of positive integers (called blocks) with total sum of all integers
     appearing in all blocks equal to `n`.
-
-    .. TODO::
-
-    - Fix this error (should return the empty list):
-        sage: OrderedMultisetPartitions([1,4], 3, length=3).list()
-        Traceback (most recent call last):
-        ...
-        TypeError: _iterator_from_list() takes exactly 1 argument (3 given)
-        sage: OrderedMultisetPartitions([1,4], 3, min_order=5).list()
-        Traceback (most recent call last):
-        ...
-        TypeError: _iterator_from_list() takes exactly 1 argument (3 given)
-
-    - Fix ``check`` error (should return the empty list):
-        sage: OrderedMultisetPartitions(4, weight=[0,0,0,0,1]).list()
-        Traceback (most recent call last):
-        ...
-        ValueError: [{5}] not an element of Ordered Multiset Partitions of
-         integer 4 with constraint: weight={5: 1}
 
     INPUT:
 
@@ -1235,13 +1232,13 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
         [[{4}]]
         sage: OrderedMultisetPartitions(4, weight=[1,0,1]).list()
-        [[{1}, {3}], [{3}, {1}], [{1,3}]]
+        [[{1,3}], [{1}, {3}], [{3}, {1}]]
         sage: OrderedMultisetPartitions(4, weight=[0,2]).list()
         [[{2}, {2}]]
         sage: OrderedMultisetPartitions(4, weight=[0,1,1]).list()
         []
         sage: OrderedMultisetPartitions(4, weight=[2,1]).list()
-        [[{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}], [{2}, {1}, {1}], [{1,2}, {1}]]
+        [[{1}, {1,2}], [{1}, {1}, {2}], [{1,2}, {1}], [{1}, {2}, {1}], [{2}, {1}, {1}]]
         sage: O1 = OrderedMultisetPartitions(weight=[2,0,1])
         sage: O2 = OrderedMultisetPartitions(weight={1:2, 3:1})
         sage: O1 == O2
@@ -1267,11 +1264,11 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     provided by the user via the required arguments::
 
         sage: OrderedMultisetPartitions([1,1,4], order=2).list() # order should be three
-        [[{1, 4}, {1}], [{1}, {1, 4}], [{1}, {1}, {4}], [{1}, {4}, {1}], [{4}, {1}, {1}]]
+        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
         sage: OrderedMultisetPartitions([1,4], 3, order=2).list() # order should be three
-        [[{1,4}, {1}], [{1}, {1,4}], [{1}, {1}, {1}], [{1}, {1}, {4}],
-         [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}], [{4}, {1}, {4}],
-         [{4}, {4}, {1}], [{4}, {4}, {4}]]
+        [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
+         [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
+         [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
 
     TESTS::
 
@@ -1469,8 +1466,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         """
         Construct an element of ``self`` from ``lst``.
 
-        .. TODO:: correctly implement ``check`` here and within OrderedMultisetPartition.
-
         EXAMPLES::
 
             sage: P = OrderedMultisetPartitions()
@@ -1540,7 +1535,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         for block in x:
             if not isinstance(block, (list, tuple, set, Set_object)):
                 return False
-            if not block or len(Set(block)) != len(block):
+            if not tuple(block) or Set(block).cardinality() != len(tuple(block)):
                 return False
         return True
 
@@ -1601,11 +1596,13 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: OrderedMultisetPartitions().from_list([1,2,0,2,0,1,3,4,0,0,4])
-            [{1,2}, {2}, {1,3,4}, {4}]
+            sage: OrderedMultisetPartitions().from_list([1,2,4])
+            [{1}, {2}, {4}]
             sage: OrderedMultisetPartitions()._from_zero_list([1,2,4])
             [{1,2,4}]
-            sage: OrderedMultisetPartitions()._from_zero_list('abc0a0b')
+            sage: OrderedMultisetPartitions()._from_zero_list([1,0,2,0,0,4])
+            [{1}, {2}, {4}]
+            sage: OrderedMultisetPartitions()._from_zero_list('abc00a0b')
             [{'a','b','c'}, {'a'}, {'b'}]
         """
         from_zero_lst = list(lst_with_zeros)
@@ -1668,6 +1665,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             [[{1}, {1}], [{2}, {1}], [{1}, {2}], [{3}, {1}], [{2}, {2}],
              [{1}, {3}], [{4}, {1}], [{3}, {2}], [{2}, {3}], [{1}, {4}],
              [{5}, {1}], [{4}, {2}], [{3}, {3}], [{2}, {4}], [{1}, {5}]]
+            sage: OrderedMultisetPartitions(alphabet=[1,3], min_length=2).list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot list an infinite set
         """
         iterator = _base_iterator(self.full_constraints)
         if iterator:
@@ -1679,8 +1680,14 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             # or over letters over an alphabet
             if "alphabet" in self.constraints:
                 A = self.constraints["alphabet"]
+                # establish a cutoff order `max_ell`
+                max = self.constraints.get("max_length", infinity)
+                max = self.constraints.get("length", max)
+                max = max * len(A)
+                max = self.constraints.get("max_order", max)
+                max_ell = self.constraints.get("order", max)
                 ell = 0
-                while True:
+                while True and ell <= max_ell:
                     for co in _iterator_order(A, ell):
                         if self._satisfies_constraints(co):
                             yield self.element_class(self, co)
@@ -1718,10 +1725,12 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
         sage: D3 = OrderedMultisetPartitions(5, weight={1:2, 3:1}, length=2)
         sage: D4 = OrderedMultisetPartitions([1,3], 3, weight={1:2, 3:1}, length=2)
         sage: D5 = OrderedMultisetPartitions([1,3], 3, size=5, length=2)
-        sage: all(C == eval('D'+str(i)) for i in range(1,6))
+        sage: any(C == eval('D'+str(i)) for i in range(1,6))
+        False
+        sage: all(Set(C) == Set(eval('D'+str(i))) for i in range(1,6))
         True
         sage: E = OrderedMultisetPartitions({1:2, 3:1}, size=5, min_length=2)
-        sage: C == E
+        sage: Set(C) == Set(E)
         False
     """
     def __init__(self, **constraints):
@@ -1791,7 +1800,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
             Traceback (most recent call last):
             ...
             ValueError:  7/2 must be a nonnegative integer or a list or
-             a dictionary representing a multiset
+             dictionary representing a multiset
         """
         self._n = n
         OrderedMultisetPartitions.__init__(self, True)
@@ -1826,7 +1835,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         # Dispense with the complex computation for small orders.
         orders = {0:1, 1:1, 2:2, 3:5, 4:11, 5:25}
         if self._n <= 5:
-            return orders[self._n]
+            return ZZ(orders[self._n])
 
         # We view an ordered multiset partition as a list of 2-regular integer partitions.
         #
@@ -1838,7 +1847,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         deg = 0
         for alpha in Compositions(self._n):
             deg += prod([partspoly_coeff(d) for d in alpha])
-        return deg
+        return ZZ(deg)
 
     def an_element(self):
         r"""
@@ -1862,7 +1871,8 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         Return a random ``OrderedMultisetPartition_n`` with uniform probability.
 
         .. TODO::
-        Is it really uniform probability?
+
+            Is it really uniform probability?
 
         This method generates a random composition and then
         then creates new blocks after positions that are not ascents.
@@ -1884,8 +1894,6 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
 class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
     """
     Class of ordered multiset partitions of a fixed integer `n` satisfying constraints.
-
-    .. TODO:: add ``an_element`` method?
     """
     def __init__(self, n, **constraints):
         """
@@ -1929,7 +1937,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             True
         """
         self._X = X
-        self._Xlist = tuple([k for (k,v) in sorted(X) for _ in range(v)])
+        self._Xtup = tuple([k for (k,v) in sorted(X) for _ in range(v)])
         OrderedMultisetPartitions.__init__(self, True)
 
     def _repr_(self):
@@ -1941,7 +1949,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             sage: repr(OrderedMultisetPartitions([1,1,4]))
             'Ordered Multiset Partitions of multiset {{1, 1, 4}}'
         """
-        ms_rep = "{{" + ", ".join(map(str, self._Xlist)) + "}}"
+        ms_rep = "{{" + ", ".join(map(str, self._Xtup)) + "}}"
         return "Ordered Multiset Partitions" + " of multiset %s"%ms_rep
 
     def _has_valid_blocks(self, x):
@@ -1951,32 +1959,32 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         Blocks should be nonempty sets/lists/tuples whose union is the given multiset.
         """
         no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
-        valid_partition = _get_multiset(x) == self._Xlist
+        valid_partition = _get_multiset(x) == self._Xtup
         return no_repeats and valid_partition
 
     def cardinality(self):
         """
         Return the number of ordered partitions of multiset ``X``.
         """
-        if self._Xlist == ():
-            return 0
+        if self._Xtup == ():
+            return ZZ(0)
 
         # We build ordered multiset partitions of `X` by permutation + deconcatenation
         # Is there a balls-and-boxes formula for this?
 
         deg = 0
-        for alpha in Permutations_mset(self._Xlist):
+        for alpha in Permutations_mset(self._Xtup):
             fattest = _break_at_descents(alpha)
             deg += prod(2**(len(k)-1) for k in fattest)
-        return deg
+        return ZZ(deg)
 
     def an_element(self):
         r"""
         Return a typical ``OrderedMultisetPartition_X``.
         """
-        if not self._Xlist:
+        if not self._Xtup:
             return self.element_class(self, [])
-        alpha = Permutations_mset(self._Xlist).an_element()
+        alpha = Permutations_mset(self._Xtup).an_element()
         co = _break_at_descents(alpha)
 
         # construct "an element" by breaking the first fat block of `co` in two
@@ -2013,10 +2021,10 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             sage: OrderedMultisetPartitions([1,1,3]).random_element() # random
             [{3}, {1}, {1}]
         """
-        if not self._Xlist:
+        if not self._Xtup:
             return self.element_class(self, [])
 
-        alpha = Permutations_mset(self._Xlist).random_element()
+        alpha = Permutations_mset(self._Xtup).random_element()
         co = _break_at_descents(alpha)
         finer = self.element_class(self, map(Set,co)).finer()
         return finer.random_element()
@@ -2028,15 +2036,13 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
     """
     Class of ordered multiset partitions of a fixed multiset `X`
     satisfying constraints.
-
-    .. TODO:: add ``an_element`` method?
     """
     def __init__(self, X, **constraints):
         """
         Mimic class ``OrderedMultisetPartitions_X`` to initialize.
         """
         self._X = X
-        self._Xlist = tuple(k for (k,v) in sorted(X) for _ in range(v))
+        self._Xtup = tuple(k for (k,v) in sorted(X) for _ in range(v))
         OrderedMultisetPartitions.__init__(self, True, **constraints)
 
     def _repr_(self):
@@ -2045,7 +2051,7 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         """
         cdict = dict(self.constraints)
         cdict.pop("weight", None)
-        ms_rep = "{{" + ", ".join(map(str, self._Xlist)) + "}}"
+        ms_rep = "{{" + ", ".join(map(str, self._Xtup)) + "}}"
         base_repr = "Ordered Multiset Partitions" + " of multiset %s"%ms_rep
         return base_repr + self._constraint_repr_(cdict)
 
@@ -2106,7 +2112,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         all of whose elements are taken from ``self._alphabet``.
         """
         no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
-        valid_order = sum(map(len,x)) == self._order
+        valid_order = sum([len(tuple(block)) for block in x]) == self._order
         valid_letters = self._alphabet.issuperset(Set(_concatenate(x)))
         return no_repeats and valid_order and valid_letters
 
@@ -2115,7 +2121,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         Return a typical ``OrderedMultisetPartition_A``.
         """
         alpha = Compositions(self._order).an_element()
-        co = [Subsets(self._alphabet, a).an_element() for a in alpha]
+        co = [Subsets_sk(self._alphabet, a).an_element() for a in alpha]
         return self.element_class(self, map(Set, co))
 
     def random_element(self):
@@ -2144,7 +2150,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
             return self.element_class(self, [])
 
         alpha = Compositions(self._order, max_part=len(self._alphabet)).random_element()
-        co = [Subsets(self._alphabet, a).random_element() for a in alpha]
+        co = [Subsets_sk(self._alphabet, a).random_element() for a in alpha]
         return self.element_class(self, map(Set, co))
 
     def __iter__(self):
@@ -2161,7 +2167,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
             12
         """
         if self._order == 0:
-            return 0
+            return ZZ(0)
 
         # iteration scheme:
         # - start from an integer composition ``alpha`` of ``self._order``.
@@ -2173,7 +2179,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         for k in range(min_length, max_length+1):
             for alpha in Compositions(self._order, length=k, max_part=len(self._alphabet)):
                 deg += prod(binomial(len(self._alphabet), a) for a in alpha)
-        return deg
+        return ZZ(deg)
 
 class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
     """
@@ -2218,7 +2224,7 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
             if (ell < kmin) or (n * kmax < ell):
                 raise EmptySetError("%s is the empty set"%self)
             alpha = Compositions(ell, length=k, max_part=n).an_element()
-            co = [Subsets(self._alphabet, a).an_element() for a in alpha]
+            co = [Subsets_sk(self._alphabet, a).an_element() for a in alpha]
             #assume ``co`` satisfies all constraints
             return self.element_class(self, map(Set, co))
         else:
@@ -2312,13 +2318,11 @@ def _iterator_weight(weight):
 
     EXAMPLES::
 
-        sage: from sage.combinat.multiset_partition_ordered import *
-        sage: it = _iterator_weight({'a':2, 'b':1})
-        sage: list(next(it))
+        sage: from sage.combinat.multiset_partition_ordered import _iterator_weight
+        sage: list(_iterator_weight({'a':2, 'b':1}))
         [[{'a'}, {'a'}, {'b'}], [{'a'}, {'a','b'}], [{'a'}, {'b'}, {'a'}],
          [{'a','b'}, {'a'}], [{'b'}, {'a'}, {'a'}]]
-        sage: it = _iterator_weight([3,0,1])
-        sage: list(next(it))
+        sage: list(_iterator_weight([3,0,1]))
         [[{1}, {1}, {1}, {3}], [{1}, {1}, {1,3}], [{1}, {1}, {3}, {1}],
          [{1}, {1,3}, {1}], [{1}, {3}, {1}, {1}],
          [{1,3}, {1}, {1}], [{3}, {1}, {1}, {1}]]
@@ -2351,10 +2355,10 @@ def _iterator_size(size, length=None, alphabet=None):
 
     TESTS::
 
-        sage: from sage.combinat.multiset_partition_ordered import *
-        sage: _iterator_size(3)
+        sage: from sage.combinat.multiset_partition_ordered import _iterator_size
+        sage: list(_iterator_size(3))
         [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
-        sage: _iterator_size(5, {1,3})
+        sage: list(_iterator_size(5, alphabet={1,3}))
         [[{1,3}, {1}], [{3}, {1}, {1}], [{1}, {1,3}], [{1}, {3}, {1}],
          [{1}, {1}, {3}], [{1}, {1}, {1}, {1}, {1}]]
     """
@@ -2368,7 +2372,7 @@ def _iterator_size(size, length=None, alphabet=None):
         for alpha in Compositions(size, length=length):
             for p in cartesian_product([IntegerListsLex(a, min_slope=1, \
                     min_part=min_p, max_part=min(a, max_p)) for a in alpha]):
-                if Set(_concatenate(p)).issubset(alphabet):
+                if Set(_concatenate(p)).issubset(Set(alphabet)):
                     yield P([Set(list(k)) for k in p])
     else:
         for alpha in Compositions(size, length=length):
@@ -2383,30 +2387,29 @@ def _iterator_order(A, ord, lengths=None):
     If optional argument ``lengths`` is given, it should be a list of integers.
     Then only yield ordered multiset partitions with length in ``lengths``.
 
-    .. TODO:: check that these tests pass.
-
     TESTS::
 
-        sage: from sage.combinat.multiset_partition_ordered import *
-        sage: _iterator_order({1,4}, 3).list()
+        sage: from sage.combinat.multiset_partition_ordered import _iterator_order
+        sage: list(_iterator_order({1,4}, 3))
         [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
          [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
          [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
-        sage: _iterator_order([1,4], 3, [3]).list()
+        sage: list(_iterator_order([1,4], 3, [3]))
         [[{1}, {1}, {1}], [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}],
          [{4}, {1}, {1}], [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
-        sage: _iterator_order([1,2,4], 3, [1,2]).list()[:10]
+        sage: list(_iterator_order([1,2,4], 3, [1,2]))[:10]
         [[{1,2,4}],  [{1,2}, {1}], [{1,2}, {2}], [{1,2}, {4}], [{1,4}, {1}],
          [{1,4}, {2}], [{1,4}, {4}], [{2,4}, {1}], [{2,4}, {2}], [{2,4}, {4}]]
-        sage: _iterator_order([1,4], 3, [4]).list()
+        sage: list(_iterator_order([1,4], 3, [4]))
         []
-        sage: _iterator_order([1,4], 0, [3]).list()
+        sage: list(_iterator_order([1,4], 0, [3]))
         []
-        sage: _iterator_order([1,4], 0, [0,3]).list()
+        sage: list(_iterator_order([1,4], 0, [0,3]))
         [[]]
-        sage: _iterator_order([1,4], 0).list()
+        sage: list(_iterator_order([1,4], 0))
         [[]]
     """
+    A = Set(A)
     P = OrderedMultisetPartitions_A(A, ord)
 
     # iteration scheme:
@@ -2424,11 +2427,8 @@ def _iterator_order(A, ord, lengths=None):
             yield P([])
         else:
             for alpha in Compositions(ord, length=k, max_part=n):
-                for co in cartesian_product([Subsets(A, a) for a in alpha]):
+                for co in cartesian_product([Subsets_sk(A, a) for a in alpha]):
                     yield P(co)
-
-
-
 
 def _partial_sum(lst):
     """
@@ -2436,8 +2436,9 @@ def _partial_sum(lst):
 
     EXAMPLES::
 
-        sage: list = [1,3,5]
-        sage: partial_sum(list)
+        sage: from sage.combinat.multiset_partition_ordered import _partial_sum
+        sage: lst = [1,3,5]
+        sage: _partial_sum(lst)
         [0, 1, 4, 9]
     """
     result = [0]
@@ -2515,25 +2516,25 @@ def _split_block(S, k=2):
         out.append(a)
     return Set([tuple(map(Set,x)) for x in out])
 
-def _from_tableau(T):
+def _to_minimaj_blocks(T):
     """
-        Return an ordered multiset partition from a sequence of row words
-        corresponding to (skew-)tableaux.
+    Return a tuple of tuples, representing a ordered multiset partition in
+    the minimaj ordering on blocks
 
-        Output is the minimaj bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``T``.
+    Input: a sequence ``T`` of row words corresponding to (skew-)tableaux.
 
-    .. TODO:: implement option for mapping from sequence of actual (skew-)tableaux?
+    Output: the minimaj bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``T``.
 
     EXAMPLES::
 
+        sage: from sage.combinat.multiset_partition_ordered import _to_minimaj_blocks
         sage: mu = OrderedMultisetPartitions(14).an_element(); mu
         [{2,3}, {2,3}, {4}]
         sage: mu.to_tableau()
         [[3, 2], [], [3, 2, 4]]
-        sage: _from_tableau(mu.to_tableau()) == mu
+        sage: _to_minimaj_blocks(mu.to_tableau()) == mu.minimaj_blocks()
         True
     """
-    X = _concatenate(T)
     mu = [(i,) for i in T[-1]]
     breaks = [0] + _descents(T[-1]) + [len(mu)-1]
     T = [T[i][::-1] for i in range(len(T)-1)][::-1]
@@ -2541,7 +2542,8 @@ def _from_tableau(T):
         for j in range(breaks[f],breaks[f+1]+1):
             mu[j] += tuple(i for i in T[f] if (mu[j][0] < i or j == breaks[f])
                                                and (j == breaks[f+1] or i <= mu[j+1][0]))
-    return OrderedMultisetPartitions(X)(mu)
+    return tuple(mu)
+
 
 ###############
 
@@ -2549,6 +2551,10 @@ class MinimajCrystal(UniqueRepresentation, Parent):
     r"""
     Crystal of ordered multiset partitions with `ell` letters from alphabet
     `\{1,2,...,n\}` divided into `k` blocks.
+
+    Elements are stored as tableau via the bijection `\varphi` of [BCHOPSYxx], but
+    represented as ordered multiset partitions in the minimaj ordering on blocks.
+
 
     EXAMPLES::
 
@@ -2570,22 +2576,25 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         self.k = k
         self.ell = ell
         self._cartan_type = CartanType(['A',n-1])
-        self._full_module = OrderedMultisetPartitions(n, ell, length=k)
-        if n == 1:
-            self.module_generators = [self(b) for b in self._full_module]
-        else:
-            self.module_generators = []
-            for mu in self._full_module:
-                b = self(mu)
-                if Set([b.e(i) for i in range(1,n)]) == Set([None]):
-                    self.module_generators.append(b)
+        B = Letters(['A', n-1])
+        T = tensor([B]*ell)
+        self._BT = (B, T)
+        self._OMPs = OrderedMultisetPartitions(n, ell, length=k)
+        self.module_generators = []
+        for b in self._OMPs:
+            t = b.to_tableau()
+            blocks = [len(h) for h in t]
+            breaks = _partial_sum(blocks)
+            wp = [T(*[B(a) for a in _concatenate(t)]), breaks]
+            b = self.element_class(self, wp)
+            self.module_generators.append(b)
 
     def _repr_(self):
         """
         EXAMPLES::
 
             sage: B = crystals.Minimaj(2,4,3); B
-            Minimaj Crystal of type A_3 of words of length 4 into 2 blocks
+            Minimaj Crystal of type A_2 of words of length 4 into 2 blocks
         """
         return "Minimaj Crystal of type A_%s of words of length %s into %s blocks"%(self.n-1, self.ell, self.k)
 
@@ -2593,14 +2602,37 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         """
         Return a typical element of ``self``.
         """
-        return self(OrderedMultisetPartitions(self.n, self.ell, length=self.k).an_element())
+        t = self._OMPs.an_element().to_tableau()
+        breaks = _partial_sum([len(h) for h in t])
+        B,T = self._BT
+        return self.element_class(self, [T(*[B(a) for a in _concatenate(t)]), breaks])
+
+    def _element_constructor_(self, x):
+        """
+        Build an element of Minimaj from the ordered multiset partition ``x``.
+        """
+        # trap for case x is already an element of Minimaj.
+        if hasattr(x, "value"):
+            return self.element_class(self, x)
+        else:
+            # Assume ``x`` is an ordered multiset partition.
+            t = self._OMPs(x).to_tableau()
+            breaks = _partial_sum([len(h) for h in t])
+            B,T = self._BT
+            return self.element_class(self, [T(*[B(a) for a in _concatenate(t)]), breaks])
 
     def __contains__(self, x):
-        return x in self._full_module
+        """
+        Return ``True`` if ``x`` is an element of ``self`` or an ordered set partition.
+        """
+        if hasattr(x,"parent"):
+            return x.parent() == self
+        else:
+            return x in self._OMPs
 
-    def from_tableau(self, T):
+    def from_tableau(self, t):
         r"""
-        Return the minimaj bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``T``.
+        Return the bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``t``.
 
         EXAMPLES::
 
@@ -2620,10 +2652,10 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: B1.from_tableau(t)
             Traceback (most recent call last):
             ...
-            AssertionError: [{1,2,3}, {1,3}, {2}] is not an element of Minimaj Crystal
-             of type A_2 of words of length 6 into 2 blocks
+            AssertionError: ((1, 2, 3), (3, 1), (2,)) is not an element of
+             Minimaj Crystal of type A_2 of words of length 6 into 2 blocks
         """
-        mu = _from_tableau(T)
+        mu = _to_minimaj_blocks(t)
         if mu in self:
             return self(mu)
         else:
@@ -2641,16 +2673,61 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: B.val()
             (q^2+q+1)*s[2, 1, 1] + q*s[2, 2]
         """
-        H = self.module_generators
-        Sym = SymmetricFunctions(QQ[q])
+        H = [self._OMPs(list(b)) for b in self.highest_weight_vectors()]
+        Sym = SymmetricFunctions(ZZ[q])
         q = Sym.base_ring().gens()[0]
         s = Sym.schur()
         return sum((q**(t.minimaj()) * s[sorted(t.weight().values(), reverse=True)]
                    for t in H), Sym.zero())
 
-    class Element(OrderedMultisetPartition):
+    class Element(ElementWrapper):
+        """
+        An element of a Minimaj crystal.
+
+        .. NOTE::
+
+            Minimaj elements `b` are stored internally as pairs `(w, breaks)`, where:
+            - `w` is a word of length ``self.parent().ell`` over the letters
+                `1` up to ``self.parent().n``;
+            - `breaks` is a list of de-concatenation points to turn `w` into a list
+                of row words of (skew-)tableaux that represent `b` under the minimaj
+                bijection `\varphi` of [BCHOPSYxx]_.
+            The pair `(w, breaks)` may be recovered via ``b.value``
+        """
         def _repr_(self):
-            return repr(self.minimaj_blocks())
+            """
+            Return the representation of self as a tuple of tuples in
+            the minimaj ordering on blocks of ordered multiset partitions.
+            """
+            return repr(self._minimaj_blocks_from_word_pair())
+
+        def __iter__(self):
+            """
+            Iterate over ``self._minimaj_blocks_from_word_pair()``.
+            """
+            return self._minimaj_blocks_from_word_pair().__iter__()
+
+        def _minimaj_blocks_from_word_pair(self):
+            r"""
+            Return the representation of ``self`` as a tuple of tuples in
+            the minimaj ordering on blocks of ordered multiset partitions.
+            """
+            return _to_minimaj_blocks(self.to_tableau())
+
+        def to_tableau(self):
+            r"""
+            Return the image of the ordered multiset partition ``self`` under
+            the minimaj bijection `\varphi` of [BCHOPSYxx].
+
+            EXAMPLES::
+
+                sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
+                sage: OrderedMultisetPartition(mu).to_tableau()
+                [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
+            """
+            w, breaks = self.value
+            return [[ZZ(w[a].value) for a in range(breaks[j], breaks[j+1])]
+                        for j in range(len(breaks)-1)]
 
         def e(self, i):
             r"""
@@ -2660,22 +2737,16 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
                 sage: B = crystals.Minimaj(2,3,4)
                 sage: b = B.an_element(); b
-                ((3,), (2, 3))
+                ((2, 3), (3,))
                 sage: [b.e(i) for i in range(1,4)]
-                [((3,), (1, 3)), ((3, 2), (2,)), None]
+                [((1, 3), (3,)), ((2,), (2, 3)), None]
             """
-            t = self.to_tableau()
-            B = CrystalOfLetters(['A', self.parent().n-1])
-            T = tensor([B]*self.parent().ell)
-            blocks = [len(h) for h in t]
-            partial = _partial_sum(blocks)
-            b = T(*[B(a) for a in flatten(t)])
-            if b.e(i) is None:
+            P = self.parent()
+            w, breaks = self.value
+            if w.e(i) is None:
                 return None
-            b = b.e(i)
-            b = [[ZZ(b[a].value) for a in range(partial[j], partial[j+1])]
-                 for j in range(len(partial)-1)]
-            return self.parent().from_tableau(b)
+            w = w.e(i)
+            return P.element_class(P, [w, breaks])
 
         def f(self,i):
             r"""
@@ -2685,19 +2756,13 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
                 sage: B = crystals.Minimaj(2,3,4)
                 sage: b = B.an_element(); b
-                ((3,), (2, 3))
+                ((2, 3), (3,))
                 sage: [b.f(i) for i in range(1,4)]
-                [None, None, ((4,), (2, 3))]
+                [None, None, ((2, 3), (4,))]
             """
-            t = self.to_tableau()
-            B = CrystalOfLetters(['A',self.parent().n-1])
-            T = tensor([B]*self.parent().ell)
-            blocks = [len(h) for h in t]
-            partial = _partial_sum(blocks)
-            b = T(*[B(a) for a in flatten(t)])
-            if b.f(i) is None:
+            P = self.parent()
+            w, breaks = self.value
+            if w.f(i) is None:
                 return None
-            b = b.f(i)
-            b = [[ZZ(b[a].value) for a in range(partial[j],partial[j+1])]
-                 for j in range(len(partial)-1)]
-            return self.parent().from_tableau(b)
+            w = w.f(i)
+            return P.element_class(P, [w, breaks])

@@ -12521,7 +12521,7 @@ cdef class Matrix(Matrix1):
 
         .. MATH::
 
-            \vec{x}^\ast A\vec{x} > 0
+            \vec{x}^\ast A\vec{x} > 0.
 
         Here `\vec{x}^\ast` is the conjugate-transpose, which can be
         simplified to just the transpose in the real case.
@@ -12539,8 +12539,8 @@ cdef class Matrix(Matrix1):
 
         Any square matrix.
 
-        - ``certificate`` - default: ``False``.  Return the
-          decomposition from the indefinite factorization if possible.
+        - ``certificate`` -- (default: ``False``) return the
+          decomposition from the indefinite factorization if possible
 
         OUTPUT:
 
@@ -12714,7 +12714,10 @@ cdef class Matrix(Matrix1):
             is_pos = all(x.real() > zero for x in d)
 
         if certificate:
-            return is_pos, L, d
+            if is_pos:
+                return is_pos, L, d
+            else:
+                return is_pos, None, None
         else:
             return is_pos
 
@@ -12726,10 +12729,6 @@ cdef class Matrix(Matrix1):
         matrix `M` such that `M^2 = A`.
 
         See :wikipedia:`Square_root_of_a_matrix`.
-
-        INPUT:
-
-        - ``self`` - any matrix.
 
         EXAMPLES::
 
@@ -12744,8 +12743,8 @@ cdef class Matrix(Matrix1):
         if check_positivity and not self.is_positive_definite():
             return False
 
-        d, L = self.eigenmatrix_right()
-        return L * diagonal_matrix([sqrt(a) for a in d.diagonal()]) * L.inverse()
+        d, L = self.eigenmatrix_left()
+        return L.inverse() * diagonal_matrix([sqrt(a) for a in d.diagonal()]) * L
 
     def hadamard_bound(self):
         r"""

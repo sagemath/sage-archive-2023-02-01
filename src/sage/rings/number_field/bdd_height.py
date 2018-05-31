@@ -610,7 +610,7 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     fund_unit_log_approx = [vector_delta_approximation(fund_unit_logs[i], delta_2) for i in range(r)]
     S_tilde = column_matrix(fund_unit_log_approx).delete_rows([r])
     S_tilde_inverse = S_tilde.inverse()
-    U = integer_points_in_polytope(S_tilde_inverse, d_tilde)
+    U = integer_points_in_polytope(S_tilde_inverse, RR(d_tilde))
 
 
     # Step 10

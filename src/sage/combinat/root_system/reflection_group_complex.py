@@ -1336,6 +1336,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     def primitive_vector_field(self, invs=None):
         # primitive vector field D
         # as coefficients in the basis [ \partial_i ]_i
+        if not self.is_irreducible():
+            raise ValueError("only possible for irreducible complex reflection groups")
+        if not self.is_well_generated():
+            raise ValueError("only possible for well-generated complex reflection groups")
         h = self.coxeter_number()
         if invs is None:
             invs = self.fundamental_invariants()

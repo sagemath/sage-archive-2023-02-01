@@ -215,6 +215,8 @@ from sage.interfaces.gap3 import gap3
 from sage.rings.universal_cyclotomic_field import E
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+
 
 from sage.misc.sage_eval import sage_eval
 
@@ -1856,9 +1858,9 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
-                    M = self.to_matrix() - E(ev.denom(),ev.numer()) * I
+                    M = self.to_matrix().transpose() - E(ev.denom(),ev.numer()) * I
                     V = M.right_kernel()
-                    if all(not V.is_subspace(H) for H in self.parent().reflection_hyperplanes()):
+                    if all(not V.is_subspace( H.change_ring(UniversalCyclotomicField()) ) for H in self.parent().reflection_hyperplanes()):
                         return True
             return False
 

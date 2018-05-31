@@ -1853,13 +1853,13 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
                 [1, 2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
  
-            Check that #25478 is fixed::
+            Check that :trac:`25478` is fixed::
 
-                sage: W=ReflectionGroup(["A",5])                        # optional - gap3
-                sage: w=W.from_reduced_word([1,2,3,5])                  # optional - gap3
+                sage: W = ReflectionGroup(["A",5])                        # optional - gap3
+                sage: w = W.from_reduced_word([1,2,3,5])                  # optional - gap3
                 sage: w.is_regular(4)                                   # optional - gap3
                 False
-                sage: W=ReflectionGroup(["A",3])                        # optional - gap3
+                sage: W = ReflectionGroup(["A",3])                        # optional - gap3
                 sage: len([w for w in W if w.is_regular(w.order())])    # optional - gap3
                 18
 
@@ -1871,7 +1871,11 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 if h == ev.denom():
                     M = self.to_matrix().transpose() - E(ev.denom(),ev.numer()) * I
                     V = M.right_kernel()
-                    if all(not V.is_subspace( H.change_ring(UniversalCyclotomicField()) ) for H in self.parent().reflection_hyperplanes()):
+                    if self.parent().is_crystallographic():
+                        f = lambda H : H
+                    else:
+                        f = lambda H : H.change_ring(UniversalCyclotomicField())
+                    if all(not V.is_subspace( f(H) ) for H in self.parent().reflection_hyperplanes()):
                         return True
             return False
 

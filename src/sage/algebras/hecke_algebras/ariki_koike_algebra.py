@@ -2,7 +2,7 @@
 r"""
 Ariki-Koike Algebras
 
-The *Ariki-Koike algebras* were introduced by Ariki and Koike [AK94]_ as
+The *Ariki-Koike algebras* were introduced by Ariki and Koike [AK1994]_ as
 a natural generalization of the Iwahori-Hecke algebras of types `A` and `B`
 (see class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`).
 Soon afterwards,  Broué and Malle defined analogues of the Hecke
@@ -78,6 +78,9 @@ class _Basis(CombinatorialFreeModule, BindableClass):
         Initialize ``self``.
 
         EXAMPLES::
+
+            sage: LT = algebras.ArikiKoike(2, 3).LT()
+            sage: TestSuite(LT).run()
         """
         self._r = algebra._r
         self._n = algebra._n
@@ -195,7 +198,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
         sage: H = algebras.ArikiKoike(3, 4)
 
-    Next, we do some computations using the `LT` basis
+    Next, we do some computations using the `LT` basis::
 
         sage: LT = H.LT()
         sage: LT.inject_variables()
@@ -1366,6 +1369,8 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
                 sage: T = algebras.ArikiKoike(2, 3).T()
                 sage: T0, T1, T2 = T.T()
+                sage: T.product_on_basis(T0.leading_support(), T1.leading_support())
+                T[0,1]
                 sage: T1 * T2
                 T[1,2]
                 sage: T2 * T1

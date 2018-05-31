@@ -131,7 +131,9 @@ class SymmetricGroup(UniqueRepresentation, Parent):
 
     def cartan_type(self):
         from sage.combinat.root_system.cartan_type import CartanType
-        return CartanType(['A',self.n-1])
+        C = CartanType(['A',self.n-1])
+        C = C.relabel(lambda i:i-1)
+        return C
 
     def product(self, x, y):
         """

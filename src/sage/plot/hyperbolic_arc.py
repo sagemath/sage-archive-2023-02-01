@@ -24,7 +24,7 @@ AUTHORS:
 from __future__ import print_function
 
 from sage.plot.bezier_path import BezierPath
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 from sage.rings.all import CC
 
 

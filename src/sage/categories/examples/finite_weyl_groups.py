@@ -129,6 +129,10 @@ class SymmetricGroup(UniqueRepresentation, Parent):
         assert i in self.index_set()
         return self(tuple(range(i)) + (i + 1, i) + tuple(range(i + 2, self.n)))
 
+    def cartan_type(self):
+        from sage.combinat.root_system.cartan_type import CartanType
+        return CartanType(['A',self.n-1])
+
     def product(self, x, y):
         """
         Implements :meth:`Semigroups.ParentMethods.product`.

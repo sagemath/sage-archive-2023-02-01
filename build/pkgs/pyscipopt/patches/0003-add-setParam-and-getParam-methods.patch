@@ -1,0 +1,124 @@
+From 8b7116a42bc4f4dca05b219e4ccf2ea6a392b5c3 Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Tue, 10 Apr 2018 01:31:33 +0200
+Subject: [PATCH 3/5] add setParam and getParam methods
+
+---
+ src/pyscipopt/scip.pxd | 25 ++++++++++++++++++
+ src/pyscipopt/scip.pyx | 60 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
+
+diff --git a/src/pyscipopt/scip.pxd b/src/pyscipopt/scip.pxd
+index a6baf68..857d8b8 100644
+--- a/src/pyscipopt/scip.pxd
++++ b/src/pyscipopt/scip.pxd
+@@ -820,6 +820,10 @@ cdef extern from "scip/scip.h":
+     SCIP_RETCODE SCIPsetEmphasis(SCIP* scip, SCIP_PARAMEMPHASIS paramemphasis, SCIP_Bool quiet)
+     SCIP_RETCODE SCIPresetParam(SCIP* scip, const char* name)
+     SCIP_RETCODE SCIPresetParams(SCIP* scip)
++    SCIP_RETCODE SCIPsetParam(SCIP* scip,  const char*  name, void* value)
++    SCIP_PARAM* SCIPgetParam(SCIP* scip,  const char*  name)
++
++
+ 
+     # LPI Functions
+     SCIP_RETCODE SCIPgetLPI(SCIP* scip, SCIP_LPI** lpi)
+@@ -1114,3 +1118,24 @@ cdef extern from "scip/cons_countsols.h":
+     SCIP_RETCODE SCIPcount(SCIP* scip)
+     SCIP_RETCODE SCIPsetParamsCountsols(SCIP* scip)
+     SCIP_Longint SCIPgetNCountedSols(SCIP* scip, SCIP_Bool* valid)
++
++cdef extern from "scip/paramset.h":
++    ctypedef enum SCIP_PARAMTYPE:
++        SCIP_PARAMTYPE_BOOL    = 0
++        SCIP_PARAMTYPE_INT     = 1
++        SCIP_PARAMTYPE_LONGINT = 2
++        SCIP_PARAMTYPE_REAL    = 3
++        SCIP_PARAMTYPE_CHAR    = 4
++        SCIP_PARAMTYPE_STRING  = 5
++
++    ctypedef struct SCIP_PARAM:
++        pass
++
++    SCIP_PARAMTYPE SCIPparamGetType(SCIP_PARAM* param)
++    SCIP_Bool SCIPparamGetBool(SCIP_PARAM* param)
++    int SCIPparamGetInt(SCIP_PARAM* param)
++    SCIP_Longint SCIPparamGetLongint(SCIP_PARAM* param)
++    SCIP_Real SCIPparamGetReal(SCIP_PARAM* param)
++    char SCIPparamGetChar(SCIP_PARAM* param)
++    char* SCIPparamGetString(SCIP_PARAM* param)
++
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index c288229..cd70778 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -2330,6 +2330,66 @@ cdef class Model:
+         n = str_conversion(name)
+         PY_SCIP_CALL(SCIPsetStringParam(self._scip, n, value))
+ 
++    def setParam(self, name, value):
++        """Set a parameter with value in int, bool, real, long, char or str.
++
++        :param name: name of parameter
++        :param value: value of parameter
++        """
++        cdef SCIP_PARAM* param
++
++        n = str_conversion(name)
++        param = SCIPgetParam(self._scip, n)
++
++        if param == NULL:
++            raise KeyError("Not a valid parameter name")
++
++        paramtype =  SCIPparamGetType(param)
++
++        if paramtype == SCIP_PARAMTYPE_BOOL:
++            PY_SCIP_CALL(SCIPsetBoolParam(self._scip, n, value))
++        elif paramtype == SCIP_PARAMTYPE_INT:
++            PY_SCIP_CALL(SCIPsetIntParam(self._scip, n, value))
++        elif paramtype == SCIP_PARAMTYPE_LONGINT:
++            PY_SCIP_CALL(SCIPsetLongintParam(self._scip, n, value))
++        elif paramtype == SCIP_PARAMTYPE_REAL:
++            PY_SCIP_CALL(SCIPsetRealParam(self._scip, n, value))
++        elif paramtype == SCIP_PARAMTYPE_CHAR:
++            PY_SCIP_CALL(SCIPsetCharParam(self._scip, n, value))
++        elif paramtype == SCIP_PARAMTYPE_STRING:
++            PY_SCIP_CALL(SCIPsetStringParam(self._scip, n, value))
++
++
++    def getParam(self, name):
++        """Get the value of a parameter of type
++        int, bool, real, long, char or str.
++
++        :param name: name of parameter
++        """
++        cdef SCIP_PARAM* param
++
++        n = str_conversion(name)
++        param = SCIPgetParam(self._scip, n)
++
++        if param == NULL:
++            raise KeyError("Not a valid parameter name")
++
++        paramtype =  SCIPparamGetType(param)
++
++        if paramtype == SCIP_PARAMTYPE_BOOL:
++            return SCIPparamGetBool(param)
++        elif paramtype == SCIP_PARAMTYPE_INT:
++            return SCIPparamGetInt(param)
++        elif paramtype == SCIP_PARAMTYPE_LONGINT:
++            return SCIPparamGetLongint(param)
++        elif paramtype == SCIP_PARAMTYPE_REAL:
++            return SCIPparamGetReal(param)
++        elif paramtype == SCIP_PARAMTYPE_CHAR:
++            return SCIPparamGetChar(param)
++        elif paramtype == SCIP_PARAMTYPE_STRING:
++            return SCIPparamGetString(param)
++
++
+     def readParams(self, file):
+         """Read an external parameter file.
+ 
+-- 
+2.17.0
+

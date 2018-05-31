@@ -1,0 +1,56 @@
+From 823e6adececeb06a914570372ffc1a331628cf27 Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Tue, 10 Apr 2018 02:17:06 +0200
+Subject: [PATCH 4/5] a few typos
+
+---
+ src/pyscipopt/scip.pyx | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index c288229..35b96c0 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -432,7 +432,7 @@ cdef class Constraint:
+         return SCIPconsIsEnforced(self.cons)
+ 
+     def isChecked(self):
+-        """Retrieve True if conestraint should be checked for feasibility"""
++        """Retrieve True if constraint should be checked for feasibility"""
+         return SCIPconsIsChecked(self.cons)
+ 
+     def isPropagated(self):
+@@ -510,7 +510,7 @@ cdef class Model:
+         PY_SCIP_CALL(SCIPincludeDefaultPlugins(self._scip))
+ 
+     def createProbBasic(self, problemName='model'):
+-        """Create new problem iinstance with given name
++        """Create new problem instance with given name
+ 
+         :param problemName: name of model or problem (Default value = 'model')
+ 
+@@ -1480,10 +1480,10 @@ cdef class Model:
+             raise Warning("method cannot be called for constraints of type " + constype)
+ 
+     def getActivity(self, Constraint cons, Solution sol = None):
+-        """Retrieve slack of given contraint.
++        """Retrieve activity of given constraint.
+ 
+         :param Constraint cons: linear or quadratic constraint
+-        :param Solution sol: solution to compute slack of, None to use current node's solution (Default value = None)
++        :param Solution sol: solution to compute activity of, None to use current node's solution (Default value = None)
+ 
+         """
+         cdef SCIP_Real activity
+@@ -1506,7 +1506,7 @@ cdef class Model:
+ 
+ 
+     def getSlack(self, Constraint cons, Solution sol = None, side = None):
+-        """Retrieve slack of given contraint.
++        """Retrieve slack of given constraint.
+ 
+         :param Constraint cons: linear or quadratic constraint
+         :param Solution sol: solution to compute slack of, None to use current node's solution (Default value = None)
+-- 
+2.17.0
+

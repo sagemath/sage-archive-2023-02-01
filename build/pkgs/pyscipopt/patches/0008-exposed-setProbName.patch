@@ -1,0 +1,41 @@
+From 14d19e14d3d7a8595585d35677960f4eac79f3d8 Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Wed, 11 Apr 2018 00:30:39 +0200
+Subject: [PATCH 8/8] exposed setProbName
+
+---
+ src/pyscipopt/scip.pxd | 1 +
+ src/pyscipopt/scip.pyx | 5 +++++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/src/pyscipopt/scip.pxd b/src/pyscipopt/scip.pxd
+index 887c7b9..a7cc218 100644
+--- a/src/pyscipopt/scip.pxd
++++ b/src/pyscipopt/scip.pxd
+@@ -394,6 +394,7 @@ cdef extern from "scip/scip.h":
+     SCIP_Real SCIPgetReadingTime(SCIP* scip)
+     SCIP_Real SCIPgetPresolvingTime(SCIP* scip)
+     SCIP_STAGE SCIPgetStage(SCIP* scip)
++    SCIP_RETCODE SCIPsetProbName(SCIP* scip, char* name)
+     const char* SCIPgetProbName(SCIP* scip)
+ 
+     # Event Methods
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index 407ef8d..182d71d 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -699,6 +699,11 @@ cdef class Model:
+         """
+         PY_SCIP_CALL(SCIPsetPresolving(self._scip, setting, True))
+ 
++    def setProbName(self, name):
++        """Set problem name"""
++        n = str_conversion(name)
++        PY_SCIP_CALL(SCIPsetProbName(self._scip, name))
++
+     def setSeparating(self, setting):
+         """Set separating parameter settings.
+ 
+-- 
+2.17.0
+

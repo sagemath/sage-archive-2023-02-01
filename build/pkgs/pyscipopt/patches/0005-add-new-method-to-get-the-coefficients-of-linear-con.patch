@@ -1,0 +1,58 @@
+From dda15c688c75d6f4947d1cda5363c51c56fde491 Mon Sep 17 00:00:00 2001
+From: Matthias Miltenberger <miltenberger@zib.de>
+Date: Thu, 5 Apr 2018 16:13:24 +0200
+Subject: [PATCH 5/5] add new method to get the coefficients of linear
+ constraints
+
+---
+ src/pyscipopt/scip.pxd |  1 +
+ src/pyscipopt/scip.pyx | 21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
+
+diff --git a/src/pyscipopt/scip.pxd b/src/pyscipopt/scip.pxd
+index a6baf68..1b28879 100644
+--- a/src/pyscipopt/scip.pxd
++++ b/src/pyscipopt/scip.pxd
+@@ -527,6 +527,7 @@ cdef extern from "scip/scip.h":
+     SCIP_RETCODE SCIPdelCons(SCIP* scip, SCIP_CONS* cons)
+     SCIP_VAR** SCIPgetVarsLinear(SCIP* scip, SCIP_CONS* cons)
+     int SCIPgetNVarsLinear(SCIP* scip, SCIP_CONS* cons)
++    SCIP_Real* SCIPgetValsLinear(SCIP* scip, SCIP_CONS* cons)
+     SCIP_RETCODE SCIPsetConsChecked(SCIP *scip, SCIP_CONS *cons, SCIP_Bool check)
+     SCIP_RETCODE SCIPsetConsRemovable(SCIP *scip, SCIP_CONS *cons, SCIP_Bool removable)
+     SCIP_RETCODE SCIPsetConsInitial(SCIP *scip, SCIP_CONS *cons, SCIP_Bool initial)
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index c288229..5163d03 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -1628,6 +1628,27 @@ cdef class Model:
+         """
+         PY_SCIP_CALL(SCIPdelConsLocal(self._scip, cons.cons))
+ 
++    def getValsLinear(self, Constraint cons):
++        """Retrieve the coefficients of a linear constraint
++
++        :param Constraint cons: linear constraint to get the coefficients of
++
++        """
++        cdef SCIP_Real* _vals
++        cdef SCIP_VAR** _vars
++
++        constype = bytes(SCIPconshdlrGetName(SCIPconsGetHdlr(cons.cons))).decode('UTF-8')
++        if not constype == 'linear':
++            raise Warning("coefficients not available for constraints of type ", constype)
++
++        _vals = SCIPgetValsLinear(self._scip, cons.cons)
++        _vars = SCIPgetVarsLinear(self._scip, cons.cons)
++
++        valsdict = {}
++        for i in range(SCIPgetNVarsLinear(self._scip, cons.cons)):
++            valsdict[bytes(SCIPvarGetName(_vars[i])).decode('utf-8')] = _vals[i]
++        return valsdict
++
+     def getDualsolLinear(self, Constraint cons):
+         """Retrieve the dual solution to a linear constraint.
+ 
+-- 
+2.17.0
+

@@ -2059,7 +2059,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
               <BLANKLINE>
               Constraints:
                 1.0 <= x_0 - x_1
-                -2.0 <= -2.0 x_0 + 2.0 x_1 
+                -2.0 <= -2.0 x_0 + 2.0 x_1
               Variables:
                 x_0 is a continuous variable (min=-oo, max=+oo)
                 x_1 is a continuous variable (min=-oo, max=+oo)
@@ -2717,7 +2717,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solver_parameter("timelimit", 60)
 
         Sets the solver to stop its computations after 60 seconds, and works
-        with GLPK, CPLEX and Gurobi.
+        with GLPK, CPLEX , SCIP, and Gurobi.
 
             - ``"timelimit"`` -- defines the maximum time spent on a
               computation. Measured in seconds.
@@ -2759,6 +2759,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             - Gurobi's parameters should all be available through this
               method. Their list is available on Gurobi's website
               `<http://www.gurobi.com/documentation/5.5/reference-manual/node798>`_.
+
+              SCIP's parameter can be found here:
+              `<http://scip.zib.de/doc-5.0.1/html/PARAMETERS.php>`_.
 
         INPUT:
 

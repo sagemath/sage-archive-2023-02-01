@@ -1,0 +1,25 @@
+From 39af3e98d1117ccd0477f65f46e0f7217fac4381 Mon Sep 17 00:00:00 2001
+From: Moritz Firsching <moritz@math.fu-berlin.de>
+Date: Wed, 11 Apr 2018 01:27:32 +0200
+Subject: [PATCH 9/9] name to n
+
+---
+ src/pyscipopt/scip.pyx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/pyscipopt/scip.pyx b/src/pyscipopt/scip.pyx
+index 182d71d..dbe1792 100644
+--- a/src/pyscipopt/scip.pyx
++++ b/src/pyscipopt/scip.pyx
+@@ -702,7 +702,7 @@ cdef class Model:
+     def setProbName(self, name):
+         """Set problem name"""
+         n = str_conversion(name)
+-        PY_SCIP_CALL(SCIPsetProbName(self._scip, name))
++        PY_SCIP_CALL(SCIPsetProbName(self._scip, n))
+ 
+     def setSeparating(self, setting):
+         """Set separating parameter settings.
+-- 
+2.17.0
+

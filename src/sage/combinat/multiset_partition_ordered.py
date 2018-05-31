@@ -81,7 +81,6 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.combinat.shuffle import ShuffleProduct, ShuffleProduct_overlapping
 from sage.combinat.crystals.letters import CrystalOfLetters as Letters
-#from sage.combinat.crystals.catalog import Letters
 from sage.combinat.root_system.cartan_type import CartanType
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -2584,8 +2583,8 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         for b in self._OMPs:
             t = b.to_tableau()
             blocks = [len(h) for h in t]
-            breaks = _partial_sum(blocks)
-            wp = [T(*[B(a) for a in _concatenate(t)]), breaks]
+            breaks = tuple(_partial_sum(blocks))
+            wp = (T(*[B(a) for a in _concatenate(t)]), breaks)
             b = self.element_class(self, wp)
             self.module_generators.append(b)
 
@@ -2603,9 +2602,9 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         Return a typical element of ``self``.
         """
         t = self._OMPs.an_element().to_tableau()
-        breaks = _partial_sum([len(h) for h in t])
+        breaks = tuple(_partial_sum([len(h) for h in t]))
         B,T = self._BT
-        return self.element_class(self, [T(*[B(a) for a in _concatenate(t)]), breaks])
+        return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
 
     def _element_constructor_(self, x):
         """
@@ -2617,9 +2616,9 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         else:
             # Assume ``x`` is an ordered multiset partition.
             t = self._OMPs(x).to_tableau()
-            breaks = _partial_sum([len(h) for h in t])
+            breaks = tuple(_partial_sum([len(h) for h in t]))
             B,T = self._BT
-            return self.element_class(self, [T(*[B(a) for a in _concatenate(t)]), breaks])
+            return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
 
     def __contains__(self, x):
         """
@@ -2746,7 +2745,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             if w.e(i) is None:
                 return None
             w = w.e(i)
-            return P.element_class(P, [w, breaks])
+            return P.element_class(P, (w, breaks))
 
         def f(self,i):
             r"""
@@ -2765,4 +2764,4 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             if w.f(i) is None:
                 return None
             w = w.f(i)
-            return P.element_class(P, [w, breaks])
+            return P.element_class(P, (w, breaks))

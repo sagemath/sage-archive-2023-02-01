@@ -1211,6 +1211,8 @@ class CoxeterGroups(Category_singleton):
             result = list(self.reduced_word_reverse_iterator())
             return list(reversed(result))
 
+        reduced_word_lex_min = reduced_word
+
         def reduced_words(self):
             r"""
             Return all reduced words for ``self``.
@@ -1240,9 +1242,6 @@ class CoxeterGroups(Category_singleton):
             """
             word = self.reduced_word()
             return BraidOrbit(word, self.parent().braid_relations())
-
-        #def lex_min_reduced_word(w):
-        #    return list(reversed((w.inverse()).reduced_word()))
 
         def support(self):
             r"""
@@ -1280,42 +1279,6 @@ class CoxeterGroups(Category_singleton):
                 True
                 """
             return self.support() == set(self.parent().index_set())
-
-        #def reduced_words(self):
-            #r"""
-            #Return all reduced words for ``self``.
-
-            #See :meth:`reduced_word` for the definition of a reduced
-            #word.
-
-            #EXAMPLES::
-
-                #sage: W=CoxeterGroups().example()
-                #sage: s=W.simple_reflections()
-                #sage: w=s[0]*s[2]
-                #sage: w.reduced_words()
-                #[[2, 0], [0, 2]]
-                #sage: W=WeylGroup(['E',6])
-                #sage: w=W.from_reduced_word([2,3,4,2])
-                #sage: w.reduced_words()
-                #[[3, 2, 4, 2], [2, 3, 4, 2], [3, 4, 2, 4]]
-
-            #TODO: the result should be full featured finite enumerated
-            #set (e.g. counting can be done much faster than iterating).
-
-            #.. SEEALSO::
-
-                #:meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
-                #:meth:`length`, :meth:`reduced_word_graph`
-            #"""
-            #descents = self.descents()
-            #if descents == []:
-                #return [[]]
-            #else:
-                #return [ r + [i]
-                         #for i in self.descents()
-                         #for r in (self.apply_simple_reflection(i)).reduced_words()
-                         #]
 
         def reduced_word_graph(self):
             r"""

@@ -46,10 +46,9 @@ from sage.categories.sets_cat import EmptySetError
 #  * derive from Polyhedron_base
 #
 #  * you must implement _init_from_Vrepresentation and
-#    _init_from_Vrepresentationa
+#    _init_from_Hrepresentation
 #
-#  * You might want to override _init_empty_polyhedron,
-#    _init_facet_adjacency_matrix, _init_vertex_adjacency_matrix, and
+#  * You might want to override _init_empty_polyhedron and
 #    _make_polyhedron_face.
 #
 #  * You can of course also override any other method for which you

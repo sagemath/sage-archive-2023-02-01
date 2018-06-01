@@ -1100,18 +1100,23 @@ class Polytopes():
 
         EXAMPLES::
 
-            sage: td = polytopes.truncated_dodecahedron()   # long time - 6secs
-            sage: td.f_vector()                # long time
-            (1, 60, 90, 32, 1)
-            sage: td.base_ring()               # long time
-            Number Field in sqrt5 with defining polynomial x^2 - 5
-
-        A much faster implementation using floating point approximations::
-
-            sage: td = polytopes.truncated_dodecahedron(exact=False)
+            sage: td = polytopes.truncated_dodecahedron()
             sage: td.f_vector()
             (1, 60, 90, 32, 1)
             sage: td.base_ring()
+            Number Field in sqrt5 with defining polynomial x^2 - 5
+
+        The faster implementation using floating point approximations does not
+        work unfortunately, see https://github.com/cddlib/cddlib/pull/7 for a
+        detailed discussion of this case::
+
+            sage: td = polytopes.truncated_dodecahedron(exact=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
+            sage: td.f_vector() # not tested
+            (1, 60, 90, 32, 1)
+            sage: td.base_ring() # not tested
             Real Double Field
 
         Its faces are 20 triangles and 12 regular decagons::
@@ -1323,21 +1328,25 @@ class Polytopes():
             sage: ti.base_ring()               # long time
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
-        A much faster implementation using floating point approximations::
+        The faster implementation using floating point approximations does not
+        work unfortunately::
 
             sage: ti = polytopes.truncated_icosidodecahedron(exact=False)
-            sage: ti.f_vector()
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
+            sage: ti.f_vector() # not tested
             (1, 120, 180, 62, 1)
-            sage: ti.base_ring()
+            sage: ti.base_ring() # not tested
             Real Double Field
 
         Its faces are 30 squares, 20 hexagons and 12 decagons::
 
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 4)
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 4) # long time
             30
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 6)
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 6) # long time
             20
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10)
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10) # long time
             12
         """
         if base_ring is None and exact:
@@ -1382,26 +1391,32 @@ class Polytopes():
 
         - ``backend`` -- the backend to use to create the polytope.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Unfortunately, no polyhedra backend supports the construction of the
+        snub dodecahedron at the moment::
 
             sage: sd = polytopes.snub_dodecahedron()
-            sage: sd.f_vector()
+            Traceback (most recent call last):
+            ...
+            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
+            sage: sd.f_vector() # not tested
             (1, 60, 150, 92, 1)
-            sage: sd.base_ring()
+            sage: sd.base_ring() # not tested
             Real Double Field
 
         Its faces are 80 triangles and 12 pentagons::
 
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3)
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 3) # not tested
             80
-            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5)
+            sage: sum(1 for f in sd.faces(2) if len(f.vertices()) == 5) # not tested
             12
         """
         if base_ring is None:
             base_ring = RDF
         phi = (1 + base_ring(5).sqrt()) / 2
-        xi = ((phi/2 + (phi - 5/27).sqrt()/2).nth_root(3) +
-              (phi/2 - (phi - 5/27).sqrt()/2).nth_root(3))
+        xi = ((phi/2 + (phi - 5/27).sqrt()/2)**(~ZZ(3)) +
+              (phi/2 - (phi - 5/27).sqrt()/2)**(~ZZ(3)))
 
         alpha = xi - 1 / xi
         beta = xi * phi + phi**2 + phi / xi
@@ -1549,14 +1564,18 @@ class Polytopes():
             sage: gap                                # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
 
-        Computation with approximated coordinates is much faster::
+        Computation with approximated coordinates would be much faster but is
+        not supported currently::
 
             sage: gap = polytopes.grand_antiprism(exact=False)
-            sage: gap
+            Traceback (most recent call last):
+            ...
+            ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
+            sage: gap # not tested
             A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 100 vertices
-            sage: gap.f_vector()
+            sage: gap.f_vector() # not tested
             (1, 100, 500, 720, 320, 1)
-            sage: len(list(gap.bounded_edges()))
+            sage: len(list(gap.bounded_edges())) # not tested
             500
         """
         from itertools import product

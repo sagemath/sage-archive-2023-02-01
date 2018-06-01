@@ -1980,53 +1980,17 @@ class SetPartitions_set(SetPartitions):
                     sp[b].append(i)
             return self.element_class(self, sp, check=False)
 
-        # Ruskey, Combinatorial Generation, Algorithm 4.22
-        N = len(base_set)
-        a = [0]*N
-        def gen(l, m):
-            if l >= N:
-                yield from_word(a)
-            else:
-                for i in range(m+1):
-                    a[l] = i
-                    for P in gen(l+1, m):
-                        yield P
-                if m < N-1:
-                    a[l] = m+1
-                    for P in gen(l+1, m+1):
-                        yield P
-        return gen(1, 0)
-
-    def _iter_Knuth(self):
-        """
-        Iterate over ``self``.
-
-        EXAMPLES::
-
-            sage: SetPartitions(3).list()
-            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
-        """
-        base_set = list(self.base_set())
-        def from_word(w):
-            sp = []
-            for i, b in zip(base_set, w):
-                if len(sp) <= b:
-                    sp.append([i])
-                else:
-                    sp[b].append(i)
-            return self.element_class(self, sp, check=False)
-
         # Knuth, TAOCP 4A 7.2.1.5, Algorithm H
         N = len(base_set)
         # H1: initialize
         a = [0]*N
         if N <= 1:
-            yield self.from_word(base_set, a)
+            yield from_word(a)
             return
         b = [1]*N
         while True:
             # H2: visit
-            yield self.from_word(base_set, a)
+            yield from_word(a)
             if a[-1] == b[-1]:
                 # H4: find j
                 j = N-2
@@ -2036,7 +2000,7 @@ class SetPartitions_set(SetPartitions):
                 if j == 0:
                     break
                 a[j] += 1
-                # H6: zero out a_{j+1},...,a_n
+                # H6: zero out a_{j+1},...,a_{n-1}
                 b[-1] = b[j] + (1 if a[j] == b[j] else 0)
                 j += 1
                 while j < N-1:
@@ -2045,7 +2009,7 @@ class SetPartitions_set(SetPartitions):
                     j += 1
                 a[-1] = 0
             else:
-                # increase a_n
+                # H3: increase a_{n-1}
                 a[-1] += 1
 
     def base_set(self):
@@ -2189,7 +2153,7 @@ class SetPartitions_setparts(SetPartitions_set):
 
 class SetPartitions_setn(SetPartitions_set):
     @staticmethod
-    def __classcall_private__(cls, s, n):
+    def __classcall_private__(cls, s, k):
         """
         Normalize ``s`` to ensure a unique representation.
 
@@ -2201,16 +2165,16 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S1 is S2, S1 is S3
             (True, True)
         """
-        return super(SetPartitions_setn, cls).__classcall__(cls, frozenset(s), n)
+        return super(SetPartitions_setn, cls).__classcall__(cls, frozenset(s), k)
 
-    def __init__(self, s, n):
+    def __init__(self, s, k):
         """
         TESTS::
 
             sage: S = SetPartitions(5, 3)
             sage: TestSuite(S).run()
         """
-        self.n = n
+        self._k = k
         SetPartitions_set.__init__(self, s)
 
     def _repr_(self):
@@ -2220,7 +2184,7 @@ class SetPartitions_setn(SetPartitions_set):
             sage: SetPartitions(5, 3)
             Set partitions of {1, 2, 3, 4, 5} with 3 parts
         """
-        return "Set partitions of %s with %s parts"%(Set(self._set), self.n)
+        return "Set partitions of %s with %s parts"%(Set(self._set), self._k)
 
     def cardinality(self):
         """
@@ -2234,7 +2198,7 @@ class SetPartitions_setn(SetPartitions_set):
             sage: stirling_number2(5,3)
             25
         """
-        return stirling_number2(len(self._set), self.n)
+        return stirling_number2(len(self._set), self._k)
 
     def __iter__(self):
         """
@@ -2245,9 +2209,34 @@ class SetPartitions_setn(SetPartitions_set):
             sage: SetPartitions(3).list()
             [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
         """
-        for p in Partitions(len(self._set), length=self.n):
-            for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+        base_set = list(self.base_set())
+        def from_word(w):
+            sp = []
+            for i, b in zip(base_set, w):
+                if len(sp) <= b:
+                    sp.append([i])
+                else:
+                    sp[b].append(i)
+            return self.element_class(self, sp, check=False)
+
+        # Ruskey, Combinatorial Generation, Algorithm 4.23
+        n = len(base_set)
+        a = list(range(n))
+        def gen(n, k):
+            if n == k:
+                yield from_word(a)
+            else:
+                for i in range(k):
+                    a[n-1] = i
+                    for P in gen(n-1, k):
+                        yield P
+                    a[n-1] = n-1
+                if k > 1:
+                    a[n-1] = k-1
+                    for P in gen(n-1, k-1):
+                        yield P
+                    a[n-1] = n-1
+        return gen(n, self._k)
 
     def __contains__(self, x):
         """
@@ -2265,7 +2254,7 @@ class SetPartitions_setn(SetPartitions_set):
         """
         if not SetPartitions_set.__contains__(self, x):
             return False
-        return len(x) == self.n
+        return len(x) == self._k
 
     def random_element(self):
         r"""
@@ -2293,7 +2282,7 @@ class SetPartitions_setn(SetPartitions_set):
 
         base_set = list(self.base_set())
         N = len(base_set)
-        k = self.n
+        k = self._k
         p = re(N, k)
         return SetPartition([[base_set[e] for e in b] for b in p])
 

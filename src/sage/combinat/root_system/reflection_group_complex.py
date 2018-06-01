@@ -1384,9 +1384,9 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
+            sage: W = ReflectionGroup(['A',2])
             sage: for x in W.primitive_vector_field()[0].parent().gens():
-            ....:     print W.apply_vector_field(x)
-            ....:     
+            ....:     print(W.apply_vector_field(x))
             3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
             1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
         """

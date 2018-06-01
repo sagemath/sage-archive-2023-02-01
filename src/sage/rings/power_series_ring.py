@@ -134,7 +134,8 @@ from sage.structure.nonexact import Nonexact
 from sage.interfaces.magma import MagmaElement
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
-
+from sage.misc.superseded import deprecation
+    
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import normalize_names
 import sage.categories.commutative_rings as commutative_rings
@@ -360,7 +361,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     ## too many things (padics, elliptic curves) depend on this behavior,
     ## so no warning for now.
     ##
-    # from sage.misc.superseded import deprecation
+
     # if isinstance(name, (int,integer.Integer)) or isinstance(arg2,(int,integer.Integer)):
     #     deprecation(trac_number, "This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
 

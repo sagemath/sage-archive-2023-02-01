@@ -15,6 +15,18 @@
 
 set -ex
 
+# The maintainer of the CI environment, e.g., the people administrating the
+# SageMath account on gitlab.com, can decide to inject an arbitrary
+# base64-encoded script early into the CI execution. The script has access to
+# all the CI variables, e.g., to find out which job is being executed, and
+# it could do things such as "exit 1" to fail early, or "git merge" a fix for a
+# known bug in CI. The CI_MONKEY_PATCH could of course also curl a more
+# complicated script and execute that.
+if [ -n "$CI_MONKEY_PATCH" ]; then
+    SCRIPT=$(base64 -d <<< "$CI_MONKEY_PATCH")
+    $SCRIPT
+fi
+
 # From the docker documentation: "A tag name must be valid ASCII and may
 # contain lowercase and uppercase letters, digits, underscores, periods and
 # dashes. A tag name may not start with a period or a dash and may contain a

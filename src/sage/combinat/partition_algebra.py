@@ -81,11 +81,11 @@ class SetPartitionsXkElement(SetPartition):
         EXAMPLES::
 
             sage: A2p5 = SetPartitionsAk(2.5)
-            sage: x = A2p5.first(); x # random
-            {{1, 2, 3, -1, -3, -2}}
+            sage: x = A2p5.first(); x
+            {{-3, -2, -1, 1, 2, 3}}
             sage: x.check()
             sage: y = A2p5.next(x); y
-            {{-3, -2, -1, 2, 3}, {1}}
+            {{-3, -1, 1, 2, 3}, {-2}}
             sage: y.check()
         """
         #Check to make sure each element of x is a set

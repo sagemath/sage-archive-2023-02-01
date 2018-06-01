@@ -309,7 +309,7 @@ class AbstractSetPartition(ClonableArray):
         new_composition = []
         for B in self:
             for C in other:
-                BintC = [b for b in B if b in C]
+                BintC = B.intersection(C)
                 if BintC:
                     new_composition.append(BintC)
         return SetPartition(new_composition)
@@ -421,9 +421,9 @@ class AbstractSetPartition(ClonableArray):
             [{{1, 2, 3, 4}}, {{1, 3}, {2, 4}}]
             sage: SetPartition([[1],[2,4],[3]]).coarsenings()
             [{{1, 2, 3, 4}},
-             {{1}, {2, 3, 4}},
-             {{1, 3}, {2, 4}},
              {{1, 2, 4}, {3}},
+             {{1, 3}, {2, 4}},
+             {{1}, {2, 3, 4}},
              {{1}, {2, 4}, {3}}]
             sage: SetPartition([]).coarsenings()
             [{}]
@@ -496,7 +496,7 @@ class SetPartition(AbstractSetPartition):
     Here is the list of them::
 
         sage: SetPartitions(3).list()
-        [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+        [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
 
     There are 6 set partitions of `\{1,2,3,4\}` whose underlying partition is
     `[2, 1, 1]`::
@@ -1826,9 +1826,9 @@ class SetPartitions_all(SetPartitions):
              {{1, 2}},
              {{1}, {2}},
              {{1, 2, 3}},
-             {{1}, {2, 3}},
-             {{1, 3}, {2}},
              {{1, 2}, {3}},
+             {{1, 3}, {2}},
+             {{1}, {2, 3}},
              {{1}, {2}, {3}},
              {{1, 2, 3, 4}}]
         """
@@ -1968,7 +1968,7 @@ class SetPartitions_set(SetPartitions):
         EXAMPLES::
 
             sage: SetPartitions(3).list()
-            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+            [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
         """
         base_set = list(self.base_set())
         def from_word(w):
@@ -2036,8 +2036,8 @@ class SetPartitions_set(SetPartitions):
 
 class SetPartitions_setparts(SetPartitions_set):
     r"""
-    Class of all set partitions with fixed partition sizes corresponding to
-    an integer partition `\lambda`.
+    Set partitions with fixed partition sizes corresponding to an
+    integer partition `\lambda`.
     """
     @staticmethod
     def __classcall_private__(cls, s, parts):
@@ -2152,6 +2152,9 @@ class SetPartitions_setparts(SetPartitions_set):
         return sorted(map(len, x)) == list(reversed(self.parts))
 
 class SetPartitions_setn(SetPartitions_set):
+    """
+    Set partitions with a given number of blocks.
+    """
     @staticmethod
     def __classcall_private__(cls, s, k):
         """
@@ -2206,8 +2209,14 @@ class SetPartitions_setn(SetPartitions_set):
 
         EXAMPLES::
 
-            sage: SetPartitions(3).list()
-            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+            sage: SetPartitions(4, 2).list()
+            [{{1, 3, 4}, {2}},
+             {{1, 4}, {2, 3}},
+             {{1, 2, 4}, {3}},
+             {{1, 3}, {2, 4}},
+             {{1}, {2, 3, 4}},
+             {{1, 2}, {3, 4}},
+             {{1, 2, 3}, {4}}]
         """
         base_set = list(self.base_set())
         def from_word(w):

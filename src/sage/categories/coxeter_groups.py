@@ -192,7 +192,7 @@ class CoxeterGroups(Category_singleton):
             """
             return self.coxeter_matrix().coxeter_type()
 
-        def _braid_relations(self):
+        def braid_relations(self):
             r"""
             Return the braid relations of ``self`` as a list of reduced
             words of the braid relations.
@@ -200,11 +200,11 @@ class CoxeterGroups(Category_singleton):
             EXAMPLES::
 
                 sage: W = WeylGroup(["A",2])
-                sage: W._braid_relations()
+                sage: W.braid_relations()
                 [[[1, 2, 1], [2, 1, 2]]]
 
                 sage: W = WeylGroup(["B",3])
-                sage: W._braid_relations()
+                sage: W.braid_relations()
                 [[[1, 2, 1], [2, 1, 2]], [[1, 3], [3, 1]], [[2, 3, 2, 3], [3, 2, 3, 2]]]
             """
             rels = []
@@ -1241,7 +1241,7 @@ class CoxeterGroups(Category_singleton):
             """
             word = self.reduced_word()
             from sage.combinat.root_system.braid_orbit import BraidOrbit
-            return list(BraidOrbit(word, self.parent()._braid_relations()))
+            return list(BraidOrbit(word, self.parent().braid_relations()))
 
         def support(self):
             r"""

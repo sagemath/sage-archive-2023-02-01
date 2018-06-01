@@ -699,6 +699,37 @@ class KashElement(ExpectElement):
         self._check_valid()
         return int(self.parent().eval('Length(%s)'%self.name()))
 
+    def __bool__(self):
+        """
+        Returns ``True`` if this Kash element is not 0 or FALSE.
+
+        EXAMPLES::
+
+            sage: bool(kash('FALSE'))                   # optional -- kash
+            False
+            sage: bool(kash('TRUE'))                    # optional -- kash
+            True
+
+            sage: bool(kash(0))                         # optional -- kash
+            False
+            sage: bool(kash(1))                         # optional -- kash
+            True
+        """
+
+        # Kash has separate integer and boolean types, and FALSE does not
+        # compare equal to 0 (i.e, FALSE = 0 is FALSE)
+
+        # Python 2.x uses __nonzero__ for type conversion to 'bool', so we
+        # have to test against FALSE, and sage.structure.element.Element's
+        # default implementation of is_zero() is to return 'not self', so
+        # our boolean conversion also has to test against 0.
+
+        P = self.parent()
+        return P.eval('%s = FALSE' % self.name()) == 'FALSE' \
+           and P.eval('%s = 0' % self.name()) == 'FALSE'
+
+    __nonzero__ = __bool__
+
     def _sage_(self, locals={}, *args):
         """
         Convert this object to Sage.
@@ -720,7 +751,7 @@ class KashElement(ExpectElement):
             sage: R.<x> = QQ[]                          # optional -- kash
             sage: ka = (x^2+x).subs({x : kR.1})         # random; optional -- kash
             sage541.1^2 + sage541.1
-            sage: ka.sage({kR.1: x})                    # known bug; optional -- kash
+            sage: ka.sage({kR.1: x})                    # optional -- kash
             x^2 + x
 
             sage: R.<x,y> = QQ[]                        # optional -- kash

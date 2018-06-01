@@ -1811,7 +1811,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
 
             INPUT:
 
-            - ``h`` -- the eigenvalue
+            - ``h`` -- the order of the eigenvalue
             - ``is_class_representative`` -- boolean (default ``True``) whether
               to compute instead on the conjugacy class representative
 
@@ -1862,7 +1862,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 sage: W = ReflectionGroup(["A",5])                      # optional - gap3
                 sage: w = W.from_reduced_word([1,2,3,5])                # optional - gap3
                 sage: w.is_regular(4)                                   # optional - gap3
-                True
+                False
                 sage: W = ReflectionGroup(["A",3])                      # optional - gap3
                 sage: len([w for w in W if w.is_regular(w.order())])    # optional - gap3
                 18
@@ -1872,18 +1872,13 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             I = identity_matrix(P.rank())
 
 
-            UCF = UniversalCyclotomicField()
-            def test(V):
-                return all(not V.is_subspace(H.change_ring(UCF))
-                           for H in P.reflection_hyperplanes())
-                               
-                                                
             mat = self.to_matrix().transpose()
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
                     M = mat - E(ev.denom(), ev.numer()) * I
-                    if test(M.right_kernel()):
+                    if all(not M.right_kernel().is_subspace( H.change_ring(UniversalCyclotomicField()) )
+                           for H in P.reflection_hyperplanes()):
                         return True
             return False
 

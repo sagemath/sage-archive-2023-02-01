@@ -29,7 +29,7 @@ from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableArray
+from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 
 from sage.combinat.dyck_word import DyckWord
@@ -46,7 +46,7 @@ from sage.categories.pathtableaux import PathTableaux
 ###############################################################################
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class CatalanTableau(ClonableArray):
+class CatalanTableau(ClonableList):
     """
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word. The acceptable inputs
@@ -67,8 +67,7 @@ class CatalanTableau(ClonableArray):
 
         sage: p = PerfectMatching([(1,2),(3,4)])
         sage: CatalanTableau(p)
-        /home/bruce/sage-8.1/src/bin/sage-ipython:76: DeprecationWarning: is_non_crossing is deprecated. Please use is_noncrossing instead.
-        See http://trac.sagemath.org/23982 for details.
+        ...
         [1, 0, 1, 0]
 
         sage: t = SkewTableau([[1,2],[3,4]])
@@ -127,9 +126,11 @@ class CatalanTableau(ClonableArray):
         [0, 1, 2, 3, 2, 3]
 
         sage: CatalanTableau([0,1,0,-1,0])
+        ...
         ValueError: [0, 1, 0, -1, 0] has a negative entry.
 
         sage: CatalanTableau([0,1,3,3,2,3])
+        ...
         ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path.
 
         """
@@ -189,18 +190,6 @@ class CatalanTableau(ClonableArray):
 
         """
         return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
-
-    def to_dyck_word(self):
-        """
-        This converts to a Dyck path.
-
-        EXAMPLE:
-
-        sage: CatalanTableau([1,0,1,2,1]).to_dyck_word()
-        [0, 1, 1, 0]
-
-        """
-        return DyckWord(self.to_word())
 
     def to_perfect_matching(self):
         """
@@ -289,6 +278,8 @@ True
 sage: t.check_involution_cactus()
 True
 sage: t.check_commutation()
+True
+sage: t.check_coboundary()
 True
 sage: t.orbit()
 {[0, 1, 0, 1, 0, 1, 0],

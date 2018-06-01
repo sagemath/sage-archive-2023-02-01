@@ -35,16 +35,17 @@ from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableArray
+from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
 
 from sage.categories.pathtableaux import PathTableaux
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.partition import Partition
+from sage.modules.free_module_element import vector
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class DualSemistandardTableau(ClonableArray):
+class DualSemistandardTableau(ClonableList):
     """
        An instance is the sequence of partitions correspond to the
        chain of partitions of a dual semistandard skew tableau.
@@ -104,7 +105,7 @@ class DualSemistandardTableau(ClonableArray):
         m = max([ len(u) for u in y ])
         z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
         result = list(z[0]-z[1]+z[2])
-        result.sort(reverse=true)
+        result.sort(reverse=True)
         return Partition(result)
 
     def evaluation(self):
@@ -150,8 +151,23 @@ class DualSemistandardTableau(ClonableArray):
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
 """
-I wanted to put in checks of the claims I made. However SkewTableaux
-does not have the operations of promotion or evacuation
+
+sage: T = DualSemistandardTableau([[],[1],[2],[2,1]])
+sage: T.evacuation()
+[[], [1], [1, 1], [2, 1]]
+
+sage: Tableau([[1,2],[3]]).evacuation()
+[[1, 3], [2]]
+
+sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
+sage: ST.cardinality()
+84
+sage: t = ST.an_element()
+sage: s = DualSemistandardTableau(t.conjugate().to_chain())
+sage: v = Tableau(list(SkewTableau(chain=s.evacuation())))
+sage: v.conjugate() == t.evacuation()
+True
+
 
 """
 ###############################################################################

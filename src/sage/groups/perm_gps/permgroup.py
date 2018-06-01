@@ -854,8 +854,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         SGS = self.strong_generating_system(base)
         SGS.reverse()
 
-        for _ in elements(self, SGS):
-            yield _
+        return elements(self, SGS)
 
     def gens(self):
         """

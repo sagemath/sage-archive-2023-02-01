@@ -90,11 +90,6 @@ REFERENCES:
              *The modular branching rule for affine Hecke algebras of type A*.
              Adv. Math. 228:481-526, 2011.
 
-.. [AK1994] Susumu Ariki and Kazuhiko Koike.
-            *A Hecke algebra of* `(\ZZ / r\ZZ) \wr \mathfrak{S}_n`
-            *and construction of its irreducible representations*.
-            Advances in Mathematics **106**, (1994) pp. 216-243.
-
 .. [Aki1980] \J. Akiyama. and G. Exoo and F. Harary. Covering and packing in
              graphs. III: Cyclic and acyclic invariants. Mathematical Institute
              of the Slovak Academy of Sciences. Mathematica Slovaca vol 30, n 4,

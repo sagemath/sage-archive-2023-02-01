@@ -1349,8 +1349,21 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     @cached_method
     def primitive_vector_field(self, invs=None):
-        # primitive vector field D
-        # as coefficients in the basis [ \partial_i ]_i
+        r"""
+        Return the primitive vector field of self is irreducible and
+        well-generated. It is given as the coefficients (being rational
+        functions) in the basis `\partial_{x_1},\ldots,\partial_{x_n}`.
+
+        This is the partial derivation along the unique invariant of
+        degree given by the Coxeter number. It can be computed as the
+        row of the inverse of the Jacobian given by the highest degree.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])
+            sage: W.primitive_vector_field()
+            (3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2), 1/(6*x0^2 - 6*x0*x1 - 12*x1^2))
+        """
         if not self.is_irreducible():
             raise ValueError("only possible for irreducible complex reflection groups")
         if not self.is_well_generated():
@@ -1363,6 +1376,20 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         return J.inverse().row(degs.index(h))
 
     def apply_vector_field(self, f, vf=None):
+        r"""
+        Returns a rational function obtained by applying the vector
+        field ``vf`` to the rational function ``f``.
+
+        If ``vf`` is not given, the primitive vector field is used.
+
+        EXAMPLES::
+
+            sage: for x in W.primitive_vector_field()[0].parent().gens():
+            ....:     print W.apply_vector_field(x)
+            ....:     
+            3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
+            1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
+        """
         if vf is None:
             vf = self.primitive_vector_field()
         return sum( vf[i]*f.derivative(gen) for i,gen in enumerate(f.parent().gens()) )

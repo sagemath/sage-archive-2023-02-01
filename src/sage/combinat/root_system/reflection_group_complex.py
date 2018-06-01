@@ -992,7 +992,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             (2, 1, 0, 66, 60, 54, 48, 42, 36, 30, 24, 18, 12, 6, 0, 8, 4, 0)
         """
         if self.is_irreducible():
-            return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(), reverse=True))
+            if self.is_well_generated():
+                h = self.coxeter_number()
+                return tuple([h-d for d in self.degrees()])
+            else:
+                return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(),
+                                    reverse=True))
         else:
             return sum([comp.codegrees() for comp in self.irreducible_components()],tuple())
 
@@ -1598,43 +1603,49 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             self._reflection_representation = refl_repr
         else:
             raise ValueError("the reflection representation must be defined for the complete index set")
-            
-            
-    def coxeter_number(self,chi=None):
+
+    def coxeter_number(self, chi=None):
         r"""
-        Returns the Coxeter number associated to the irreducible character 
-        chi of the reflection group ``self``. This is defined as the trace in chi
-        of `\sum (Id - t)` where t runs over all reflections. It is always an integer.
-        
-        When chi is the reflection representation, the Coxeter number
-        is equal to `\frac{N + N^*}{n}` where
-        `N` is the number of reflections, `N^*` is the
-        number of reflection hyperplanes, and `n` is the
-        rank of ``self``. If ``self`` is further well-generated,
-        this quantity is equal to the highest degree d_n and to the order
-        of the Coxeter element c of W.
+        Return the Coxeter number associated to the irreducible character
+        chi of the reflection group ``self``.
+
+        The *Coxeter number* of a complex reflection group `W` is the trace
+        in a character `\chi` of `\sum_t (Id - t)`, where `t` runs over all
+        reflections. The result is always an integer.
+
+        When `\chi` is the reflection representation, the Coxeter number
+        is equal to `\frac{N + N^*}{n}` where `N` is the number of
+        reflections, `N^*` is the number of reflection hyperplanes, and
+        `n` is the rank of `W`. If `W` is further well-generated, the
+        Coxeter number is equal to the highest degree d_n and to the
+        order of a Coxeter element `c` of `W`.
 
         EXAMPLES::
 
-            sage: W=ReflectionGroup(["H",4])                            # optional - gap3
-            sage: all([W.coxeter_number(chi).is_integer() for chi in W.irreducible_characters()])               # optional - gap3
+            sage: W = ReflectionGroup(["H",4])               # optional - gap3
+            sage: W.coxeter_number()                         # optional - gap3
+            30
+            sage: all([W.coxeter_number(chi).is_integer()    # optional - gap3
+            ....:     for chi in W.irreducible_characters()])
             True
+            sage: W = ReflectionGroup(14)                    # optional - gap3
+            sage: W.coxeter_number()                         # optional - gap3
+            24
         """
         if chi is None:
-            return (self.number_of_reflection_hyperplanes()+ self.number_of_reflections())/self.rank()
-        else:
-            cox_chi=0
-            gap_hyp_rec=self._gap_group.HyperplaneOrbits()
-            # We access gap3: 
-            # rec is a record of a hyperplane orbit; 
-            # rec.s is the first generator in that orbit and rec.e_s its order; 
-            # rec.N_s is the size of the orbit 
-            for rec in gap_hyp_rec:
-                for k in range(1,rec.e_s):
-                    cox_chi=cox_chi+chi( (self.gens()[int(rec.s-1)])**k )*int(rec.N_s)
-            return self.number_of_reflections()-cox_chi/chi.degree()
-            
-            
+            return super(ComplexReflectionGroup, self).coxeter_number()
+
+        G = self.gens()
+        cox_chi = 0
+        gap_hyp_rec = self._gap_group.HyperplaneOrbits()
+        # We access gap3:
+        # rec is a record of a hyperplane orbit;
+        # rec.s is the first generator in that orbit and rec.e_s its order;
+        # rec.N_s is the size of the orbit
+        for rec in gap_hyp_rec:
+            for k in range(1, int(rec.e_s)):
+                cox_chi += chi( G[int(rec.s)-1]**k ) * rec.N_s.sage()
+        return self.number_of_reflections() - cox_chi // chi.degree()
 
     class Element(ComplexReflectionGroupElement):
         #@cached_in_parent_method

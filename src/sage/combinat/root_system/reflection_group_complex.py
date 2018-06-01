@@ -215,6 +215,8 @@ from sage.interfaces.gap3 import gap3
 from sage.rings.universal_cyclotomic_field import E
 from sage.modules.free_module_element import vector
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
+from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
+
 
 from sage.misc.sage_eval import sage_eval
 
@@ -1979,15 +1981,19 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             r"""
             Return whether ``self`` is regular.
 
-            This is, if ``self`` has an eigenvector with eigenvalue
+            This is, if ``self`` has an eigenvector with eigenvalue of order
             ``h`` and which does not lie in any reflection hyperplane.
 
+            INPUT:
+
+            - ``h`` -- the order of the eigenvalue
             - ``is_class_representative`` -- boolean (default ``True``) whether
               to compute instead on the conjugacy class representative
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup((1,1,3)); h = W.coxeter_number()  # optional - gap3
+                sage: W = ReflectionGroup((1,1,3))                      # optional - gap3
+                sage: h = W.coxeter_number()                            # optional - gap3
                 sage: for w in W:                                       # optional - gap3
                 ....:     print("{} {}".format(w.reduced_word(), w.is_regular(h)))
                 [] False
@@ -2025,15 +2031,29 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1]
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
                 [1, 2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
+
+            Check that :trac:`25478` is fixed::
+
+                sage: W = ReflectionGroup(["A",5])                      # optional - gap3
+                sage: w = W.from_reduced_word([1,2,3,5])                # optional - gap3
+                sage: w.is_regular(4)                                   # optional - gap3
+                False
+                sage: W = ReflectionGroup(["A",3])                      # optional - gap3
+                sage: len([w for w in W if w.is_regular(w.order())])    # optional - gap3
+                18
             """
             evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
-            I = identity_matrix(self.parent().rank())
+            P = self.parent()
+            I = identity_matrix(P.rank())
+            UCF = UniversalCyclotomicField()
+            mat = self.to_matrix().transpose()
+
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
-                    M = self.to_matrix() - E(ev.denom(),ev.numer()) * I
-                    V = M.right_kernel()
-                    if all(not V.is_subspace(H) for H in self.parent().reflection_hyperplanes()):
+                    M = mat - E(ev.denom(), ev.numer()) * I
+                    if all(not M.right_kernel().is_subspace( H.change_ring(UCF) )
+                           for H in P.reflection_hyperplanes()):
                         return True
             return False
 

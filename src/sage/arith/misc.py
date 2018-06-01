@@ -1452,10 +1452,11 @@ def divisors(n):
         sage: import gmpy2              # optional - gmpy2
         sage: divisors(gmpy2.mpz(100))  # optional - gmpy2
         [1, 2, 4, 5, 10, 20, 25, 50, 100]
+        sage: divisors([])
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to factor []
     """
-    if not n:
-        raise ValueError("n must be nonzero")
-
     try:
         m = n.divisors
     except AttributeError:
@@ -1476,6 +1477,10 @@ def divisors(n):
             return output
         n = e
         m = n.divisors
+
+    if not n:
+        raise ValueError("n must be nonzero")
+
     return m()
 
 class Sigma:

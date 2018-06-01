@@ -1224,11 +1224,11 @@ class CoxeterGroups(Category_singleton):
                 sage: s=W.simple_reflections()
                 sage: w=s[0]*s[2]
                 sage: w.reduced_words()
-                [[2, 0], [0, 2]]
+                [[0, 2], [2, 0]]
                 sage: W=WeylGroup(['E',6])
                 sage: w=W.from_reduced_word([2,3,4,2])
                 sage: w.reduced_words()
-                [[3, 2, 4, 2], [2, 3, 4, 2], [3, 4, 2, 4]]
+                [(2, 3, 4, 2), (2, 3, 4, 2), (3, 2, 4, 2), (3, 4, 2, 4)]
 
             TODO: the result should be full featured finite enumerated
             set (e.g. counting can be done much faster than iterating).

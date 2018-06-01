@@ -4,7 +4,7 @@ Ariki-Koike Algebras
 
 The *Ariki-Koike algebras* were introduced by Ariki and Koike [AK1994]_ as
 a natural generalization of the Iwahori-Hecke algebras of types `A` and `B`
-(see class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`).
+(see :class:`~sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra`).
 Soon afterwards,  Broué and Malle defined analogues of the Hecke
 algebras for all complex reflection groups
 
@@ -19,10 +19,10 @@ the Ariki-Koike algebra `H_n(q, u_1, \ldots, u_r)` is the unital associative
 
     \begin{aligned}
         \prod_{i=0}^{r-1} (T_0 - u_i) & = 0, \\
-        T_i^2 & = (q - 1) T_i + q \qquad \text{for } 1 \leq i < n, \\
+        T_i^2 & = (q - 1) T_i + q && \text{for } 1 \leq i < n, \\
         T_0 T_1 T_0 T_1 & = T_1 T_0 T_1 T_0, \\
-        T_i T_j & = T_j T_i \qquad \text{if } |i - j| \geq 2, \\
-        T_i T_{i+1} T_i = T_{i+1} T_i T_{i+1} \qquad \text{for } 1 \leq i < n.
+        T_i T_j & = T_j T_i && \text{if } |i - j| \geq 2, \\
+        T_i T_{i+1} T_i & = T_{i+1} T_i T_{i+1} && \text{for } 1 \leq i < n.
     \end{aligned}
 
 AUTHORS:
@@ -127,10 +127,10 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
         \begin{aligned}
             \prod_{i=0}^{r-1} (T_0 - u_i) & = 0, \\
-            T_i^2 & = (q - 1) T_i + q \qquad \text{for } 1 \leq i < n, \\
+            T_i^2 & = (q - 1) T_i + q && \text{for } 1 \leq i < n, \\
             T_0 T_1 T_0 T_1 & = T_1 T_0 T_1 T_0, \\
-            T_i T_j & = T_j T_i \qquad \text{if } |i - j| \geq 2, \\
-            T_i T_{i+1} T_i = T_{i+1} T_i T_{i+1} \qquad \text{for } 1 \leq i < n.
+            T_i T_j & = T_j T_i && \text{if } |i - j| \geq 2, \\
+            T_i T_{i+1} T_i & = T_{i+1} T_i T_{i+1} && \text{for } 1 \leq i < n.
         \end{aligned}
 
     The parameter `q` is called the *Hecke parameter* and the parameters
@@ -157,7 +157,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
 
     .. MATH::
 
-        \{ L_1^c_i \cdots L_n^c_n T_w | w \in S_n, 0 \leq c_i < r \}.
+        \{ L_1^{c_i} \cdots L_n^{c_n} T_w \mid w \in S_n, 0 \leq c_i < r \}.
 
     In particular, we have `\dim H_{r,n}(q,u) = r^n n! = |G(r, 1, n)|`.
     Moreover, we have `L_i L_j = L_i L_j` for all `1 \leq i, j \leq n`.

@@ -735,7 +735,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
     @cached_method
     def discriminant(self):
         r"""
-        Return the discriminant of ``se`lf` in the polynomial ring on
+        Return the discriminant of ``self`` in the polynomial ring on
         which the group acts.
 
         This is the product

@@ -49,7 +49,6 @@ from __future__ import absolute_import
 from .inductive_valuation import NonFinalInductiveValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.factory import UniqueFactory
 
 
@@ -799,7 +798,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import infinity, QQ
+        from sage.rings.all import infinity
         coefficients = f.coefficients(sparse=True)
         coefficients.reverse()
         ret = infinity

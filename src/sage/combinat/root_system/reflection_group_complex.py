@@ -1806,7 +1806,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             r"""
             Return whether ``self`` is regular.
 
-            This is, if ``self`` has an eigenvector with eigenvalue
+            This is, if ``self`` has an eigenvector with eigenvalue of order
             ``h`` and which does not lie in any reflection hyperplane.
 
             INPUT:
@@ -1865,22 +1865,19 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 True
                 sage: W = ReflectionGroup(["A",3])                      # optional - gap3
                 sage: len([w for w in W if w.is_regular(w.order())])    # optional - gap3
-                24
+                18
             """
             evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
             P = self.parent()
             I = identity_matrix(P.rank())
 
-            if P.is_crystallographic():
-                def test(V):
-                    return all(not V.is_subspace(H)
-                               for H in P.reflection_hyperplanes())
-            else:
-                UCF = UniversalCyclotomicField()
-                def test(V):
-                    return all(not V.is_subspace(H.change_ring(UCF))
-                               for H in P.reflection_hyperplanes())
 
+            UCF = UniversalCyclotomicField()
+            def test(V):
+                return all(not V.is_subspace(H.change_ring(UCF))
+                           for H in P.reflection_hyperplanes())
+                               
+                                                
             mat = self.to_matrix().transpose()
             for ev in evs:
                 ev = QQ(ev)

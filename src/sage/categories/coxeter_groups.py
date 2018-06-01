@@ -218,6 +218,33 @@ class CoxeterGroups(Category_singleton):
                                 list(reversed(rel[m:]))])
             return rels
 
+        def braid_group_as_finitely_presented_group(self):
+            r"""
+            Return the associated braid group.
+
+            EXAMPLES::
+
+                sage: W = ReflectionGroup(['A',2])
+                sage: W.braid_group_abstract()
+                Finitely presented group < S1, S2 | S1*S2*S1*S2^-1*S1^-1*S2^-1 >
+
+                sage: W = ReflectionGroup(['B',2])
+                sage: W.braid_group_abstract()
+                Finitely presented group < S1, S2 | (S1*S2)^2*(S1^-1*S2^-1)^2 >
+
+                sage: W = ReflectionGroup(['B',3], index_set=["AA","BB",5])
+                sage: W.braid_group_abstract()
+                Finitely presented group < SAA, SBB, S5 | SAA*SBB*SAA*SBB^-1*SAA^-1*SBB^-1, SAA*S5*SAA^-1*S5^-1, (SBB*S5)^2*(SBB^-1*S5^-1)^2 >
+            """
+            from sage.groups.free_group import FreeGroup
+            from sage.misc.misc_c import prod
+
+            I = self.index_set()
+            F = FreeGroup(["S%s"%i for i in I])
+            S = F.gens()
+            rels = self.braid_relations()
+            return F / [ prod(S[I.index(i)] for i in l)*prod(S[I.index(i)]**-1 for i in reversed(r)) for l,r in rels ]
+
         def __iter__(self):
             r"""
             Returns an iterator over the elements of this Coxeter group.

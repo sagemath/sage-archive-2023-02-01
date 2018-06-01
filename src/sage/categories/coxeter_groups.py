@@ -25,8 +25,6 @@ from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
-from sage.categories.coxeter_groups_c import BraidOrbit
-
 class CoxeterGroups(Category_singleton):
     r"""
     The category of Coxeter groups.
@@ -194,29 +192,30 @@ class CoxeterGroups(Category_singleton):
             """
             return self.coxeter_matrix().coxeter_type()
 
-        def braid_relations(self):
+        def _braid_relations(self):
             r"""
-            Return the braid relations of ``self``.
+            Return the braid relations of ``self`` as a list of reduced
+            words of the braid relations.
 
             EXAMPLES::
 
                 sage: W = WeylGroup(["A",2])
-                sage: W.braid_relations()
+                sage: W._braid_relations()
                 [[[1, 2, 1], [2, 1, 2]]]
 
                 sage: W = WeylGroup(["B",3])
-                sage: W.braid_relations()
+                sage: W._braid_relations()
                 [[[1, 2, 1], [2, 1, 2]], [[1, 3], [3, 1]], [[2, 3, 2, 3], [3, 2, 3, 2]]]
             """
             rels = []
             M = self.coxeter_matrix()
             I = self.index_set()
-            for i in I:
-                for j in I:
-                    if i < j:
-                        m = M[i,j]
-                        rel = [i,j]*m
-                        rels.append([rel[:m],rel[m:] if m%2 == 1 else list(reversed(rel[m:]))])
+            for ii,i in enumerate(I):
+                for j in I[ii+1:]:
+                    m = M[i,j]
+                    rel = [i,j] * m
+                    rels.append([rel[:m], rel[m:] if m % 2 == 1 else
+                                list(reversed(rel[m:]))])
             return rels
 
         def __iter__(self):
@@ -1211,8 +1210,6 @@ class CoxeterGroups(Category_singleton):
             result = list(self.reduced_word_reverse_iterator())
             return list(reversed(result))
 
-        reduced_word_lex_min = reduced_word
-
         def reduced_words(self):
             r"""
             Return all reduced words for ``self``.
@@ -1222,18 +1219,20 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
-                sage: s=W.simple_reflections()
-                sage: w=s[0]*s[2]
-                sage: w.reduced_words()
-                [[0, 2], [2, 0]]
-                sage: W=WeylGroup(['E',6])
-                sage: w=W.from_reduced_word([2,3,4,2])
-                sage: w.reduced_words()
-                [(2, 3, 4, 2), (2, 3, 4, 2), (3, 2, 4, 2), (3, 4, 2, 4)]
+                sage: W = CoxeterGroups().example()
+                sage: s = W.simple_reflections()
+                sage: w = s[0] * s[2]
+                sage: sorted(w.reduced_words())
+                [(0, 2), (2, 0)]
+                sage: W = WeylGroup(['E',6])
+                sage: w = W.from_reduced_word([2,3,4,2])
+                sage: sorted(w.reduced_words())
+                [(2, 3, 4, 2), (3, 2, 4, 2), (3, 4, 2, 4)]
 
-            TODO: the result should be full featured finite enumerated
-            set (e.g. counting can be done much faster than iterating).
+            .. TODO::
+
+                The result should be full featured finite enumerated set
+                (e.g., counting can be done much faster than iterating).
 
             .. SEEALSO::
 
@@ -1241,7 +1240,8 @@ class CoxeterGroups(Category_singleton):
                 :meth:`length`, :meth:`reduced_word_graph`
             """
             word = self.reduced_word()
-            return BraidOrbit(word, self.parent().braid_relations())
+            from sage.combinat.root_system.braid_orbit import BraidOrbit
+            return list(BraidOrbit(word, self.parent()._braid_relations()))
 
         def support(self):
             r"""

@@ -3889,7 +3889,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if len(A) == 1:
             for a in A[0]:
                 if len(a) > 1:
-                    x, y = a
+                    x, y = min(a), max(a)
                     return (False, (self._vertex_to_element(x),
                                     self._vertex_to_element(y)))
 

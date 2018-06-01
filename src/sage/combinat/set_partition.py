@@ -1997,6 +1997,57 @@ class SetPartitions_set(SetPartitions):
                         yield P
         return gen(1, 0)
 
+    def _iter_Knuth(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions(3).list()
+            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+        """
+        base_set = list(self.base_set())
+        def from_word(w):
+            sp = []
+            for i, b in zip(base_set, w):
+                if len(sp) <= b:
+                    sp.append([i])
+                else:
+                    sp[b].append(i)
+            return self.element_class(self, sp, check=False)
+
+        # Knuth, TAOCP 4A 7.2.1.5, Algorithm H
+        N = len(base_set)
+        # H1: initialize
+        a = [0]*N
+        if N <= 1:
+            yield self.from_word(base_set, a)
+            return
+        b = [1]*N
+        while True:
+            # H2: visit
+            yield self.from_word(base_set, a)
+            if a[-1] == b[-1]:
+                # H4: find j
+                j = N-2
+                while a[j] == b[j]:
+                    j -= 1
+                # H5: increase a_j
+                if j == 0:
+                    break
+                a[j] += 1
+                # H6: zero out a_{j+1},...,a_n
+                b[-1] = b[j] + (1 if a[j] == b[j] else 0)
+                j += 1
+                while j < N-1:
+                    a[j] = 0
+                    b[j] = b[-1]
+                    j += 1
+                a[-1] = 0
+            else:
+                # increase a_n
+                a[-1] += 1
+
     def base_set(self):
         """
         Return the base set of ``self``.

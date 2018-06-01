@@ -1856,7 +1856,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1]
                 [2, 1, 2, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
                 [1, 2, 1, 3, 2, 1, 2, 1, 3, 2, 1, 2, 3]
- 
+
             Check that :trac:`25478` is fixed::
 
                 sage: W = ReflectionGroup(["A",5])                      # optional - gap3
@@ -1870,14 +1870,14 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
             P = self.parent()
             I = identity_matrix(P.rank())
-
-
+            UFC = UniversalCyclotomicField()
             mat = self.to_matrix().transpose()
+
             for ev in evs:
                 ev = QQ(ev)
                 if h == ev.denom():
                     M = mat - E(ev.denom(), ev.numer()) * I
-                    if all(not M.right_kernel().is_subspace( H.change_ring(UniversalCyclotomicField()) )
+                    if all(not M.right_kernel().is_subspace( H.change_ring(UCF) )
                            for H in P.reflection_hyperplanes()):
                         return True
             return False

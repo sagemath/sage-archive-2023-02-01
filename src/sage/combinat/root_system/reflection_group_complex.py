@@ -1326,6 +1326,21 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
     @cached_method
     def jacobian_of_fundamental_invariants(self, invs=None):
+        r"""
+        Return the matrix `[ \partial_{x_i} F_j ]` where
+        `invs = F_1,\ldots,F_n` are any polynomials in `x_1,\ldots,x_n`.
+        If ``invs is None``, the fundamental invariants are used.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])
+            sage: W.fundamental_invariants()
+            (-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2)
+
+            sage: W.jacobian_of_fundamental_invariants()
+            [     -4*x0 + 2*x1       2*x0 - 4*x1]
+            [12*x0*x1 - 6*x1^2 6*x0^2 - 12*x0*x1]
+        """
         if invs is None:
             invs = self.fundamental_invariants()
         P = invs[0].parent()

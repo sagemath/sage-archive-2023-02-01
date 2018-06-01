@@ -1224,7 +1224,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             raise ValueError(str(p) + " must be prime")
         if a.is_zero():
             return Infinity
-        u, v = self(a).val_unit()
+        v, u = self(a).val_unit(p)
         if v % 2 == 1:
             return v
         if p != 2:

@@ -2078,7 +2078,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^2 + 2)
             sage: p = K.primes_above(2)[0]
-            sage: K(5).is_square_in_completion(p)
+            sage: K(5).is_padic_square(p)
             False
         """
         infinity = sage.rings.infinity.infinity

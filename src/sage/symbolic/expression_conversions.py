@@ -1801,8 +1801,9 @@ class RingConverter(Converter):
 
     def symbol(self, ex):
         """
-        All symbols appearing in the expression must appear in *subs_dict*
-        in order for the conversion to be successful.
+        All symbols appearing in the expression must either appear in *subs_dict*
+        or be convertable by the ring's element constructor in order for the
+        conversion to be successful.
 
         EXAMPLES::
 
@@ -1815,12 +1816,18 @@ class RingConverter(Converter):
             sage: R(x+pi)
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: unable to simplify to a real interval approximation
+
+            sage: R = RingConverter(QQ['x'])
+            sage: R(x^2+x)
+            x^2 + x
+            sage: R(x^2+x).parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         try:
             return self.ring(self.subs_dict[ex])
         except KeyError:
-            raise TypeError
+            return self.ring(ex)
 
     def pyobject(self, ex, obj):
         """

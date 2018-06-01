@@ -1,5 +1,50 @@
 """
 Cyclic covers curves over a finite field
+
+EXAMPLES::
+    sage: p = 5;
+    sage: x = PolynomialRing(GF(p),"x").gen();
+    sage: C = CyclicCover(6, x^6 + 1);
+    sage: C.frobenius_polynomial()
+    x^20 + 50*x^18 + 1125*x^16 + 15000*x^14 + 131250*x^12 + 787500*x^10 + 3281250*x^8 + 9375000*x^6 + 17578125*x^4 + 19531250*x^2 + 9765625
+    sage: R.<t> = PowerSeriesRing(Integers());
+    sage: C.projective_closure().zeta_series(4,t)
+    1 + 6*t + 81*t^2 + 456*t^3 + 3456*t^4 + O(t^5)
+    sage: C.frobenius_polynomial().reverse()(t)/((1-t)*(1-p*t)) + O(t^5)
+    1 + 6*t + 81*t^2 + 456*t^3 + 3456*t^4 + O(t^5)
+
+
+    sage: p = 49999;
+    sage: x = PolynomialRing(GF(p),"x").gen();
+    sage: CyclicCover(5, x^5 + x ).frobenius_polynomial()
+    x^12 + 299994*x^10 + 37498500015*x^8 + 2499850002999980*x^6 + 93742500224997000015*x^4 + 1874812507499850001499994*x^2 + 15623125093747500037499700001
+    sage: CyclicCover(5, 2*x^5 + x).frobenius_polynomial()
+    x^12 + 299994*x^10 + 37498500015*x^8 + 2499850002999980*x^6 + 93742500224997000015*x^4 + 1874812507499850001499994*x^2 + 15623125093747500037499700001
+
+    sage: p = 107;
+    sage: x = PolynomialRing(GF(p),"x").gen();
+    sage: CyclicCover(2, x^5 + x).frobenius_matrix()
+    [              O(107^2)      89*107 + O(107^2)               O(107^2)               O(107^2)]
+    [     89*107 + O(107^2)               O(107^2)               O(107^2)               O(107^2)]
+    [              O(107^2)               O(107^2)               O(107^2) 105 + 5*107 + O(107^2)]
+    [              O(107^2)               O(107^2) 89 + 53*107 + O(107^2)               O(107^2)]
+    sage: CyclicCover(2, 3*x^5 + x).frobenius_matrix()
+    [              O(107^2)      14*107 + O(107^2)               O(107^2)               O(107^2)]
+    [     69*107 + O(107^2)               O(107^2)               O(107^2)               O(107^2)]
+    [              O(107^2)               O(107^2)               O(107^2) 61 + 58*107 + O(107^2)]
+    [              O(107^2)               O(107^2) 69 + 53*107 + O(107^2)               O(107^2)]
+    sage: CyclicCover(3, x^3 + x).frobenius_matrix()
+    [          0           0      O(107)      O(107)]
+    [          0           0 52 + O(107)      O(107)]
+    [     O(107) 35 + O(107)           0           0]
+    [44 + O(107)      O(107)           0           0]
+    sage: CyclicCover(3, 3*x^3 + x).frobenius_matrix()
+    [          0           0      O(107)      O(107)]
+    [          0           0 79 + O(107)      O(107)]
+    [     O(107) 42 + O(107)           0           0]
+    [30 + O(107)      O(107)           0           0]
+
+
 """
 from __future__ import absolute_import
 

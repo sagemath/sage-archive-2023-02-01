@@ -1870,7 +1870,7 @@ class IrreducibleComplexReflectionGroup(ComplexReflectionGroup):
             evs = self.reflection_eigenvalues(is_class_representative=is_class_representative)
             P = self.parent()
             I = identity_matrix(P.rank())
-            UFC = UniversalCyclotomicField()
+            UCF = UniversalCyclotomicField()
             mat = self.to_matrix().transpose()
 
             for ev in evs:

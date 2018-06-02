@@ -601,17 +601,10 @@ class CNFEncoder(ANF2CNFConverter):
             sage: e.to_polynomial( (1,-2,3) )
             a*b*c + a*b + b*c + b
         """
-        def product(l):
-            # order of these multiplications for performance
-            res = l[0]
-            for p in l[1:]:
-                res = res*p
-            return res
-
         phi = self.phi
-        product = self.ring(1)
+        product = self.ring.one()
         for v in c:
             if phi[abs(v)] is None:
                 raise ValueError("clause contains an XOR glueing variable")
-            product *= phi[abs(v)] + int(v>0)
+            product *= phi[abs(v)] + int(v > 0)
         return product

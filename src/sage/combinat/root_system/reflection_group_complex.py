@@ -1406,6 +1406,7 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         return self._gap_group.BraidRelations().sage()
 
+    @cached_method
     def fundamental_invariants(self):
         r"""
         Return the fundamental invariants of ``self``.
@@ -1439,6 +1440,82 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         # sage_eval is used since eval kills the rational entries!
         I = [sage_eval(p, locals={'x': x}) for p in I]
         return tuple(sorted(I, key=lambda f: f.degree()))
+
+    @cached_method
+    def jacobian_of_fundamental_invariants(self, invs=None):
+        r"""
+        Return the matrix `[ \partial_{x_i} F_j ]`, where ``invs`` are
+        are any polynomials `F_1,\ldots,F_n` in `x_1,\ldots,x_n`.
+
+        INPUT:
+
+        - ``invs`` -- (default: the fundamental invariants) the polynomials
+          `F_1, \ldots, F_n`
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.fundamental_invariants()                 # optional - gap3
+            (-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2)
+
+            sage: W.jacobian_of_fundamental_invariants()     # optional - gap3
+            [     -4*x0 + 2*x1       2*x0 - 4*x1]
+            [12*x0*x1 - 6*x1^2 6*x0^2 - 12*x0*x1]
+        """
+        if invs is None:
+            invs = self.fundamental_invariants()
+        P = invs[0].parent()
+        X = P.gens()
+        return Matrix(P, [[ P(g).derivative(x) for x in X ] for g in invs ])
+
+    @cached_method
+    def primitive_vector_field(self, invs=None):
+        r"""
+        Return the primitive vector field of ``self`` is irreducible and
+        well-generated.
+
+        The primitive vector field is given as the coefficients (being rational
+        functions) in the basis `\partial_{x_1}, \ldots, \partial_{x_n}`.
+
+        This is the partial derivation along the unique invariant of
+        degree given by the Coxeter number. It can be computed as the
+        row of the inverse of the Jacobian given by the highest degree.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.primitive_vector_field()                 # optional - gap3
+            (3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2), 1/(6*x0^2 - 6*x0*x1 - 12*x1^2))
+        """
+        if not self.is_irreducible():
+            raise ValueError("only possible for irreducible complex reflection groups")
+        if not self.is_well_generated():
+            raise ValueError("only possible for well-generated complex reflection groups")
+        h = self.coxeter_number()
+        if invs is None:
+            invs = self.fundamental_invariants()
+        degs = [ f.degree() for f in invs ]
+        J = self.jacobian_of_fundamental_invariants(invs)
+        return J.inverse().row(degs.index(h))
+
+    def apply_vector_field(self, f, vf=None):
+        r"""
+        Returns a rational function obtained by applying the vector
+        field ``vf`` to the rational function ``f``.
+
+        If ``vf`` is not given, the primitive vector field is used.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: for x in W.primitive_vector_field()[0].parent().gens():  # optional - gap3
+            ....:     print(W.apply_vector_field(x))
+            3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
+            1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
+        """
+        if vf is None:
+            vf = self.primitive_vector_field()
+        return sum( vf[i]*f.derivative(gen) for i,gen in enumerate(f.parent().gens()) )
 
     def cartan_matrix(self):
         r"""
@@ -1639,8 +1716,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [1 0]
             [0 1]
         """
-        from sage.misc.cachefunc import cached_function
-
         base_change = self.base_change_matrix()
         Delta = tuple(self.independent_roots())
         basis_is_Delta = base_change.is_one()
@@ -2121,4 +2196,3 @@ def power(f, k):
             return power(f,2**b.index(1)/2)**2
     else:
         return prod(power(f,2**i) for i,a in enumerate(b) if a)
-

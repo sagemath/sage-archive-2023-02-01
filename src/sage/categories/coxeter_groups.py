@@ -25,6 +25,8 @@ from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
 
+from sage.rings.integer_ring import ZZ
+
 class CoxeterGroups(Category_singleton):
     r"""
     The category of Coxeter groups.
@@ -192,6 +194,7 @@ class CoxeterGroups(Category_singleton):
             """
             return self.coxeter_matrix().coxeter_type()
 
+        @cached_method
         def braid_relations(self):
             r"""
             Return the braid relations of ``self`` as a list of reduced
@@ -1253,10 +1256,32 @@ class CoxeterGroups(Category_singleton):
                 sage: w = s[0] * s[2]
                 sage: sorted(w.reduced_words())
                 [(0, 2), (2, 0)]
+
                 sage: W = WeylGroup(['E',6])
                 sage: w = W.from_reduced_word([2,3,4,2])
                 sage: sorted(w.reduced_words())
                 [(2, 3, 4, 2), (3, 2, 4, 2), (3, 4, 2, 4)]
+
+                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])
+                sage: w = W.long_element()
+                sage: w.reduced_words()
+                [('AA', 5, 'BB', 5, 'AA', 'BB'),
+                 ('AA', 'BB', 5, 'BB', 'AA', 'BB'),
+                 (5, 'BB', 'AA', 5, 'BB', 5),
+                 ('BB', 5, 'AA', 'BB', 5, 'AA'),
+                 (5, 'BB', 5, 'AA', 'BB', 5),
+                 ('BB', 5, 'AA', 'BB', 'AA', 5),
+                 (5, 'AA', 'BB', 'AA', 5, 'BB'),
+                 ('BB', 'AA', 5, 'BB', 5, 'AA'),
+                 ('AA', 'BB', 'AA', 5, 'BB', 'AA'),
+                 (5, 'BB', 'AA', 'BB', 5, 'BB'),
+                 ('BB', 'AA', 5, 'BB', 'AA', 5),
+                 (5, 'AA', 'BB', 5, 'AA', 'BB'),
+                 ('AA', 'BB', 5, 'AA', 'BB', 'AA'),
+                 ('BB', 5, 'BB', 'AA', 'BB', 5),
+                 ('AA', 5, 'BB', 'AA', 5, 'BB'),
+                 ('BB', 'AA', 'BB', 5, 'BB', 'AA')]
+
 
             .. TODO::
 
@@ -1268,9 +1293,28 @@ class CoxeterGroups(Category_singleton):
                 :meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
                 :meth:`length`, :meth:`reduced_word_graph`
             """
-            word = self.reduced_word()
             from sage.combinat.root_system.braid_orbit import BraidOrbit
-            return list(BraidOrbit(word, self.parent().braid_relations()))
+
+            word        = self.reduced_word()
+            W           = self.parent()
+            braid_rels  = W.braid_relations()
+            I           = W.index_set()
+
+            be_careful  = any(i not in ZZ for i in I)
+
+            if be_careful:
+                Iinv        = { i:j for j,i in enumerate(I) }
+                word        = [ Iinv[i] for i in word ]
+                braid_rels  = [ [[Iinv[i] for i in l],[Iinv[i] for i in r]] for l,r in braid_rels ]
+
+            orb = BraidOrbit(word, braid_rels)
+
+            if be_careful:
+                orb = [ tuple( I[i] for i in word ) for word in orb ]
+            else:
+                orb = list(orb)
+
+            return orb
 
         def support(self):
             r"""

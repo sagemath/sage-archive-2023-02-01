@@ -173,6 +173,9 @@ from sage.rings.integer import Integer
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+# the import below is just a redirection
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
+
 # We don't late import this because this means trouble with the Givaro library
 # On a Macbook Pro OSX 10.5.8, this manifests as a Bus Error on exiting Sage.
 # TODO: figure out why

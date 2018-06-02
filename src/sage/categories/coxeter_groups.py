@@ -224,17 +224,19 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W = ReflectionGroup(['A',2])
-                sage: W.braid_group_abstract()
+                sage: W = CoxeterGroup(['A',2])
+                sage: W.braid_group_as_finitely_presented_group()
                 Finitely presented group < S1, S2 | S1*S2*S1*S2^-1*S1^-1*S2^-1 >
 
-                sage: W = ReflectionGroup(['B',2])
-                sage: W.braid_group_abstract()
+                sage: W = WeylGroup(['B',2])
+                sage: W.braid_group_as_finitely_presented_group()
                 Finitely presented group < S1, S2 | (S1*S2)^2*(S1^-1*S2^-1)^2 >
 
-                sage: W = ReflectionGroup(['B',3], index_set=["AA","BB",5])
-                sage: W.braid_group_abstract()
-                Finitely presented group < SAA, SBB, S5 | SAA*SBB*SAA*SBB^-1*SAA^-1*SBB^-1, SAA*S5*SAA^-1*S5^-1, (SBB*S5)^2*(SBB^-1*S5^-1)^2 >
+                sage: W = ReflectionGroup(['B',3], index_set=["AA","BB",5])  # optional - gap3
+                sage: W.braid_group_as_finitely_presented_group()            # optional - gap3
+                Finitely presented group < SAA, SBB, S5 |
+                 SAA*SBB*SAA*SBB^-1*SAA^-1*SBB^-1, SAA*S5*SAA^-1*S5^-1,
+                 (SBB*S5)^2*(SBB^-1*S5^-1)^2 >
             """
             from sage.groups.free_group import FreeGroup
             from sage.misc.misc_c import prod

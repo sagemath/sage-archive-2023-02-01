@@ -309,7 +309,7 @@ def test_finite_lattice(L):
         c = L.is_regular(certificate=True)[1]
         if len(c[0]) == 1:
             raise ValueError("certificate error 1 in is_regular")
-        if set(c[1]) not in c[0]:
+        if Set(c[1]) not in c[0]:
             raise ValueError("certificate error 2 in is_regular")
         if L.congruence([c[1]]) == c[0]:
             raise ValueError("certificate error 3 in is_regular")

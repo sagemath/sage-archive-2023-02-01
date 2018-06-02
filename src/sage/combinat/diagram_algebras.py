@@ -77,20 +77,12 @@ def partition_diagrams(k):
     """
     if k in ZZ:
         S = SetPartitions(list(range(1, k+1)) + list(range(-k,0)))
-        for p in Partitions(2*k):
-            for i in S._iterator_part(p):
-                yield i
     elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
         S = SetPartitions(list(range(1, k+1)) + list(range(-k+1,0)))
-        for p in Partitions(2*k-1):
-            for sp in S._iterator_part(p):
-                sp = list(sp)
-                for i in range(len(sp)):
-                    if k in sp[i]:
-                        sp[i] += Set([-k])
-                        break
-                yield sp
+    else:
+        raise ValueError("argument %s must be a half-integer"%k)
+    return S
 
 def brauer_diagrams(k):
     r"""
@@ -262,17 +254,25 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             Traceback (most recent call last):
             ...
             ValueError: {{-1}, {1}} does not represent two rows of vertices of order 2
+
+            sage: pd2 = da.AbstractPartitionDiagram(pd, [[[1,2],[-1,-2]]]) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: {{[-1, -2], [1, 2]}} does not represent two rows of vertices of order 2
         """
         if self._base_diagram:
-            tst = frozenset(flatten(self._base_diagram))
-            if tst != self.parent()._set:
+            try:
+                tst = frozenset(e for B in self._base_diagram for e in B)
+                if tst != self.parent()._set:
+                    raise TypeError
+            except TypeError:
                 raise ValueError("{} does not represent two rows of vertices of order {}".format(
                                      self, self.parent().order))
 
     def __hash__(self):
         """
         Return the hash of ``self``.
-        
+
         TESTS::
 
             sage: import sage.combinat.diagram_algebras as da
@@ -3888,4 +3888,3 @@ def set_partition_composition(sp1, sp2):
 ##########################################################################
 # END BORROWED CODE
 ##########################################################################
-

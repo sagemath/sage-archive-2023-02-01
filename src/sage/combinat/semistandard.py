@@ -117,11 +117,12 @@ class DualSemistandardTableau(ClonableList):
         Returns the conjugate skew tableau. This will be semistandard.
         """
         ch = [ p.conjugate() for p in self]
-        try:
-            return SkewTableau(chain=ch)
-        except TypeError:
-            return SemistandardTableau(chain=ch)
-
+        s = SkewTableau(chain=ch)
+        if self.is_skew():
+            return s
+        else:
+            return SemistandardTableau(list(s))
+        
     def is_skew(self):
         """
         Returns True if Tableau is skew and False if not.
@@ -134,9 +135,51 @@ class DualSemistandardTableau(ClonableList):
         return self[0] != Partition([])
 
     def rectify(self):
-        pass
+        """
+        This is the same function as skew_tableau.rectify
+        """
+        p = self[0].conjugate()
+        path = [[]]
+        for i in range(len(p)):
+            path += p[:i+1]
+            
+        return DualSemistandardTableau(path).commutor(self)[0]
 
+    def multiply(self,other):
+        """
+        This is the same function as tableau.slide_multiply and tableau.bump_multiply.
+        """
+        
+        left = list(self)
+        right = list(other)
+        
+        m = max([len(a) for a in right])
+        n = max([ a[0] for a in left])
+        
+        right = [a+[0]*(m-len(a)) for a in right]
+        
+        p = max(len(left),len(right))
+        left = left + left[-1]*(p-len(left))
+        right = right + right[-1]*(p-len(right))
+        
+        result = [Partition([a+n for a in y]+x) for x,y in zip(left,right)]
+        
+        return DualSemistandardTableau(result).rectify()
+    
     def check_bender_knuth(self,i):
+        """
+        Check that the i-th Bender-Knuth move on the conjugate
+        tableau is the i-th local rule.
+
+        sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])        
+        sage: s = DualSemistandardTableau(ST.an_element())
+        sage: s.check_bender_knuth(5)
+        True
+        sage: s.check_bender_knuth(4)
+        True
+        
+        """"
+
         lhs = self.local_rule(i).to_tableau()
         rhs = self.to_tableau().bender_knuth_involution(i)
         return lhs == rhs
@@ -147,6 +190,16 @@ class DualSemistandardTableau(ClonableList):
         return lhs == rhs
 
     def check_evacuation(self):
+        """
+        Check that jdt-evacuation on the conjugate tableaux 
+        is the evacuation defined here.
+        
+        sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])        
+        sage: s = DualSemistandardTableau(ST.an_element())
+        sage: s.check_evacuation()
+        True
+
+        """
         lhs = self.evacuation().to_tableau()
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
@@ -167,6 +220,38 @@ sage: s = DualSemistandardTableau(t.conjugate().to_chain())
 sage: v = Tableau(list(SkewTableau(chain=s.evacuation())))
 sage: v.conjugate() == t.evacuation()
 True
+
+sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
+sage: s = DualSemistandardTableau(ST.an_element())
+sage: s.check_involution_cactus()
+True
+sage: s.check_commutation()
+True
+sage: s.check_coboundary()
+True
+
+sage: ST = StandardTableaux([3,3,3])
+sage: ST.cardinality()
+42
+sage: t = ST.an_element()
+sage: t.promotion()
+[[1, 2, 5], [3, 6, 8], [4, 7, 9]]
+
+
+sage: ST = StandardTableaux([3,3,3])
+sage: t = ST.an_element()
+sage: s = DualSemistandardTableau(t.to_chain())
+sage: u = StandardTableau(list(SkewTableau(chain=s.promotion())))
+sage: u.promotion() == t
+True
+
+sage: ST.cardinality()
+42
+sage: t = ST.an_element()
+sage: s = DualSemistandardTableau(t.to_chain())
+sage: len(s.orbit())
+42
+
 
 
 """

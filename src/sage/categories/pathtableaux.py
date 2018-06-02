@@ -145,16 +145,23 @@ class PathTableaux(Category):
             """
             n = len(self)
             m = len(other)
-
-            row = list(self)
-            col = list(other)
+            if n == 0 or m == 0:
+                raise ValueError("This requires nonempty lists.")
+            if n == 1 or m == 1:
+                return (other,self)
+            
+            row = list(other)
+            col = list(self)
+            if col[-1] != row[0]:
+                raise ValueError("%s is not a composable pair." % (self,other))
+            
+            path = col + row[1:]
             for i in range(1,m):
-                row[0] = self._rule([col[i-1],row[0],row[1]])
-                for j in range(1,n):
-                    row[j] = self._rule(row[i-1:i+2])
+                for j in range(n):
+                    path = path.local_rule(i-j)
+                    
 
-            return self.parent()(result) # Result is not defined.
-
+            return (self.parent()(path[:n]),self.parent()(path[n-1:]))
 
         def cactus(self,i,j):
             """

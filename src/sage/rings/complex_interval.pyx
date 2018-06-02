@@ -1128,13 +1128,27 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: for x in cpts:
             ....:     assert (x * (~x) - 1).contains_zero()
 
+        Test that the bug reported in :trac:`25414` has been fixed::
+
+            sage: 1 / CIF(RIF(-1,1),0)
+            [.. NaN ..] + [.. NaN ..]*I
+
         REFERENCES:
 
         .. [RL] \J. Rokne, P. Lancaster. Complex interval arithmetic.
            Communications of the ACM 14. 1971.
         """
+        # Constructor sets intervals for real and imaginary part to NaN
         x = self._new()
 
+        if mpfi_nan_p(self.__re) or mpfi_nan_p(self.__im):
+            # Early bail
+            return x
+
+        # We checked for NaN, so we can assume we have
+        # valid intervals now.
+
+        # Allocate memory
         cdef mpfr_t a, b, c, d
         mpfr_init2(a, self._prec)
         mpfr_init2(b, self._prec)
@@ -1150,11 +1164,6 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         cdef mpfr_t r
         mpfr_init2(r, self._prec)
 
-        mpfi_get_left(a, self.__re)
-        mpfi_get_right(b, self.__re)
-        mpfi_get_left(c, self.__im)
-        mpfi_get_right(d, self.__im)
-
         cdef mpfr_t a2, b2, d2, c2
         mpfr_init2(a2, self._prec)
         mpfr_init2(b2, self._prec)
@@ -1167,8 +1176,67 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfr_init2(aux, self._prec)
         mpfr_init2(aux2, self._prec)
 
-        if mpfr_sgn(a) >= 0 and mpfr_sgn(c)>=0:  #input interval lies in first quadrant
-            # left endpoint
+        # Variables to remember what we do to make the complex
+        # interval lie in the first quadrant or cross the line between
+        # first and second quadrant.
+        cdef int flipped_real_imag = 0
+        cdef int negated_real = 0
+        cdef int negated_imag = 0
+
+        # Get endpoints of real and imaginary part
+        mpfi_get_left(a, self.__re)
+        mpfi_get_right(b, self.__re)
+        mpfi_get_left(c, self.__im)
+        mpfi_get_right(d, self.__im)
+
+        # In the next three steps, we try to make the interval lie in the
+        # first quadrant or cross the line between the first and second
+        # quadrant.
+
+        # First, we flip the complex plane about the diagonal if the
+        # input interval crosses the real line.
+        if mpfr_sgn(c) < 0 and mpfr_sgn(d) > 0:
+            # Switch real and imaginary part.
+            flipped_real_imag = 1
+            mpfr_swap(a, c)
+            mpfr_swap(b, d)
+
+        # Second, we flip the complex plane about the real line if
+        # part of the interval is (still) below the real line.
+        if mpfr_sgn(c) < 0:
+            # Negate imaginary part interval.
+            negated_imag = 1
+            mpfr_swap(c, d)
+            mpfr_neg(c, c, MPFR_RNDD)
+            mpfr_neg(d, d, MPFR_RNDU)
+
+        # Third, we flip the complex plane about the imaginary line if
+        # the interval is entirely to the left of the imaginary line
+        # (or touches it).
+        if mpfr_sgn(b) <= 0:
+            # Negate real part
+            negated_real = 1
+            mpfr_swap(a, b)
+            mpfr_neg(a, a, MPFR_RNDD)
+            mpfr_neg(b, b, MPFR_RNDU)
+
+        # The last step ensures that the interval for the real part
+        # always contains a non-negative number.
+
+        # The imaginary part could still contain a negative number, but
+        # only if the input interval contained zero to begin with in
+        # which case we will return NaN anyway. We check for this in
+        # the below branches with mpfr_sgn(c).
+
+        # We now distinguish between the cases where the interval
+        # is entirely contained in the first quadrant and where it is
+        # crossing the line between the first and second quadrant.
+        if mpfr_sgn(a) >= 0 and mpfr_sgn(c)>=0:
+            # Input interval lies in first quadrant
+
+            # Computation follows Rokne-Lancaster.
+
+            # Left endpoint
             mpfr_mul(a2, a, a, MPFR_RNDU)
             mpfr_mul(b2, b, b, MPFR_RNDU)
             mpfr_mul(d2, d, d, MPFR_RNDU)
@@ -1177,7 +1245,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             mpfr_div(rmin, a, div1, MPFR_RNDD)
             mpfr_div(aux, b, div2, MPFR_RNDD)
             mpfr_min(rmin, rmin, aux, MPFR_RNDD)
-            #higher endpoint
+            # Higher endpoint
             mpfr_mul(c2, c, c, MPFR_RNDU)
             mpfr_add(div1, b2, c2, MPFR_RNDU)
             mpfr_div(imax, c, div1, MPFR_RNDU)
@@ -1186,7 +1254,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             mpfr_div(aux2, d, div2, MPFR_RNDU)
             mpfr_sub(aux2, aux, aux2, MPFR_RNDU)
             mpfr_max(imax, aux2, imax, MPFR_RNDU)
-            # lower endpoint, it is the lowest point of the circle or one of
+            # Lower endpoint, it is the lowest point of the circle or one of
             if mpfr_cmp(d, a) >=0 and mpfr_cmp(c, a) <= 0:
                 mpfr_add(imin, a, a, MPFR_RNDD)
                 mpfr_set_si(aux, -1, MPFR_RNDD)
@@ -1205,7 +1273,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 mpfr_div(imin, d, div1, MPFR_RNDU)
                 mpfr_set_si(aux, 0, MPFR_RNDD)
                 mpfr_sub(imin, aux, imin, MPFR_RNDD)
-            #right endpoint
+            # Right endpoint
             if mpfr_cmp(c, a) >=0 and mpfr_cmp(b, c) >= 0:
                 mpfr_add(rmax, c, c, MPFR_RNDD)
                 mpfr_set_si(aux, 1, MPFR_RNDU)
@@ -1220,8 +1288,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 mpfr_mul(c2, c, c, MPFR_RNDD)
                 mpfr_add(div1, b2, c2, MPFR_RNDD)
                 mpfr_div(rmax, b, div1, MPFR_RNDU)
-        elif mpfr_sgn(c) > 0  and mpfr_sgn(b) > 0: #between first and second quadrant
-            # left endpoint
+        elif mpfr_sgn(c) > 0:
+            # Input interval crosses line between first and second quadrant.
+
+            # Computation follows Rokne-Lancaster.
+
+            # Left endpoint
             mpfr_abs(aux, a, MPFR_RNDU)
             if mpfr_cmp(aux, c) >= 0:
                 mpfr_set_str(aux, '-0.5', 10, MPFR_RNDD)
@@ -1231,10 +1303,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 mpfr_mul(c2, c, c, MPFR_RNDD)
                 mpfr_add(div1, a2, c2, MPFR_RNDD)
                 mpfr_div(rmin, a, div1, MPFR_RNDU)
-            # lower endpoint
+            # Lower endpoint
             mpfr_set_si(aux2, -1, MPFR_RNDD)
             mpfr_div(imin, aux2, c, MPFR_RNDD)
-            #right endpoint
+            # Right endpoint
             if mpfr_cmp(b, c) >=0:
                 mpfr_set_str(aux2, '0.5', 10, MPFR_RNDU)
                 mpfr_div(rmax, aux2, c, MPFR_RNDU)
@@ -1243,7 +1315,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 mpfr_mul(c2, c, c, MPFR_RNDD)
                 mpfr_add(div1, b2, c2, MPFR_RNDD)
                 mpfr_div(rmax, b, div1, MPFR_RNDU)
-            # upper endpoint
+            # Upper endpoint
             mpfr_mul(a2, a, a, MPFR_RNDU)
             mpfr_mul(b2, b, b, MPFR_RNDU)
             mpfr_mul(c2, c, c, MPFR_RNDU)
@@ -1264,22 +1336,44 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
                 mpfr_set(imax, aux, MPFR_RNDD)
             mpfr_set_zero(aux, -1)
             mpfr_sub(imax, aux, imax, MPFR_RNDU)
-        elif mpfr_sgn(b) <= 0 and mpfr_sgn(d) >=0: #second quadrant or between second and thirthd
-            I = self.parent().gen(0)
-            return -I*(-I*self).__invert__()
-        elif mpfr_sgn(a) <= 0 and mpfr_sgn(d) <= 0: # thirthd quadrant or between thirthd and fourth
-            return -(-self).__invert__()
-        elif mpfr_sgn(a) >=0: #fourth or between fourth and first
-            I = self.parent().gen(0)
-            return I*(I*self).__invert__()
+        else:
+            # The interval must have contained the origin.
 
+            # Return NaN intervals by doing nothing
+            # (rmin, rmax, imin, imax were initialized as NaN)
+            #
+            # Note that we cannot "return x" here since
+            # that would not call mpfr_clear and produce a memory leak
+            pass
 
-        mpfi_set_fr(x.__re, rmin)
-        mpfi_put_fr(x.__re, rmax)
+        # Negate the real and imaginary part if we did so for the input
+        # interval.
+        # Note that
+        #      Re(1/(b+ai)) = -Im(1/(a+bi))
+        #      Im(1/(b+ai)) = -Re(1/(a+bi))
+        # so we also need to negate (again) both real and imaginary part
+        # again if we flipped them.
 
-        mpfi_set_fr(x.__im, imin)
-        mpfi_put_fr(x.__im, imax)
+        if flipped_real_imag ^ negated_real:
+            mpfr_swap(rmin, rmax)
+            mpfr_neg(rmin, rmin, MPFR_RNDD)
+            mpfr_neg(rmax, rmax, MPFR_RNDU)
 
+        if flipped_real_imag ^ negated_imag:
+            mpfr_swap(imin, imax)
+            mpfr_neg(imin, imin, MPFR_RNDD)
+            mpfr_neg(imax, imax, MPFR_RNDU)
+
+        # Flip real and imaginary part if we did so for the input interval.
+        if flipped_real_imag:
+            mpfr_swap(rmin, imin)
+            mpfr_swap(rmax, imax)
+
+        # Set the intervals.
+        mpfi_interv_fr(x.__re, rmin, rmax)
+        mpfi_interv_fr(x.__im, imin, imax)
+
+        # Free memory
         mpfr_clear(a)
         mpfr_clear(b)
         mpfr_clear(c)

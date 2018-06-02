@@ -12,7 +12,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import integer_types
+from six import integer_types, iteritems
 
 from copy import copy
 from sage.misc.abstract_method import abstract_method
@@ -30,9 +30,8 @@ from sage.categories.sets_cat import Sets
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.rings.all import ZZ
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.family import Family
-from six import iteritems
+
 
 class IndexedMonoidElement(MonoidElement):
     """

@@ -1452,11 +1452,11 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',2])
-            sage: W.fundamental_invariants()
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.fundamental_invariants()                 # optional - gap3
             (-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2)
 
-            sage: W.jacobian_of_fundamental_invariants()
+            sage: W.jacobian_of_fundamental_invariants()     # optional - gap3
             [     -4*x0 + 2*x1       2*x0 - 4*x1]
             [12*x0*x1 - 6*x1^2 6*x0^2 - 12*x0*x1]
         """
@@ -1481,8 +1481,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',2])
-            sage: W.primitive_vector_field()
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.primitive_vector_field()                 # optional - gap3
             (3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2), 1/(6*x0^2 - 6*x0*x1 - 12*x1^2))
         """
         if not self.is_irreducible():
@@ -1505,8 +1505,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
 
         EXAMPLES::
 
-            sage: W = ReflectionGroup(['A',2])
-            sage: for x in W.primitive_vector_field()[0].parent().gens():
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: for x in W.primitive_vector_field()[0].parent().gens():  # optional - gap3
             ....:     print(W.apply_vector_field(x))
             3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
             1/(6*x0^2 - 6*x0*x1 - 12*x1^2)

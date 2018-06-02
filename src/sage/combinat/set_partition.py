@@ -296,7 +296,7 @@ class AbstractSetPartition(ClonableArray):
 
             sage: def mul2(s, t):
             ....:     temp = [ss.intersection(ts) for ss in s for ts in t]
-            ....:     temp = filter(lambda x: x, temp)
+            ....:     temp = filter(bool, temp)
             ....:     return s.__class__(s.parent(), temp)
 
         Let us check that this gives the same as ``__mul__`` on set
@@ -342,13 +342,13 @@ class AbstractSetPartition(ClonableArray):
         res = list(self)
         for p in t:
             # find blocks in res which intersect p
-            inters = [(i, b) for i, b in enumerate(res)
-                      if any(a in res[i] for a in p)]
+            inters = [(i, q) for i, q in enumerate(res)
+                      if any(a in q for a in p)]
             # remove these blocks from res
             for i, _ in reversed(inters):
                 del res[i]
             # add the union
-            res.append([e for _, b in inters for e in b])
+            res.append([e for _, q in inters for e in q])
         return self.parent()(res)
 
     def standard_form(self):
@@ -452,10 +452,10 @@ class AbstractSetPartition(ClonableArray):
             sage: pd = PartitionDiagram([[1,-3,-5],[2,4],[3,-1,-2],[5],[-4]])
             sage: pd.max_block_size()
             3
-            sage: [d.max_block_size() for d in PartitionDiagrams(2)]
-            [4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
-            sage: [sp.max_block_size() for sp in SetPartitions(3)]
-            [3, 2, 2, 2, 1]
+            sage: sorted(d.max_block_size() for d in PartitionDiagrams(2))
+            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4]
+            sage: sorted(sp.max_block_size() for sp in SetPartitions(3))
+            [1, 2, 2, 2, 3]
         """
         return max(len(block) for block in self)
 
@@ -1614,7 +1614,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         # Check that all parts are disjoint
-        base_set = Set([e for p in x for e in p])
+        base_set = set([e for p in x for e in p])
         if len(base_set) != sum(map(len, x)):
             return False
 

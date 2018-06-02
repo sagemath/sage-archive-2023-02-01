@@ -21,7 +21,6 @@ from sage.rings.rational_field import QQ
 from sage.symbolic.all import I, SR
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
-from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -822,11 +821,11 @@ class SympyConverter(Converter):
         """
         import sympy
 
-        # retrive derivated function
+        # retrieve derivated function
         f = operator.function()
         f_sympy = self.composition(ex, f)
 
-        # retrive order
+        # retrieve order
         order = operator._parameter_set
         # arguments
         _args = ex.arguments()

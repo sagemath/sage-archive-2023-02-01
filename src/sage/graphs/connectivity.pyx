@@ -50,20 +50,6 @@ Here is what the module can do:
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
 
-
-REFERENCES
-----------
-
-.. [Tarjan72] \R.E. Tarjan. Depth-First Search and Linear Graph
-    Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
-
-.. [HarPri] \F. Harary and G. Prins. The block-cutpoint-tree of
-    a graph. Publ. Math. Debrecen 13 1966 103-107.
-
-.. [Gallai] \T. Gallai, Elementare Relationen bezueglich der
-    Glieder und trennenden Punkte von Graphen, Magyar
-    Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
-
 Methods
 -------
 """
@@ -416,8 +402,6 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
         Traceback (most recent call last):
         ...
         TypeError: the input must be a Sage graph
-
-    
     """
     from sage.graphs.generic_graph import GenericGraph
     if not isinstance(G, GenericGraph):
@@ -603,8 +587,6 @@ def blocks_and_cuts_tree(G):
         Traceback (most recent call last):
         ...
         TypeError: the input must be a Sage graph
-
-    
     """
     from sage.graphs.generic_graph import GenericGraph
     if not isinstance(G, GenericGraph):

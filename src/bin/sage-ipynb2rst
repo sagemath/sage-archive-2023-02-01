@@ -34,9 +34,13 @@ pandoc -v > /dev/null 2>&1 || fail 'sage -ipynb2rst requires pandoc; please inst
 
 case  "${#}" in
     (1)
-        jupyter nbconvert --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --NbConvertApp.output_files_dir='.' --output-dir='.' "${1}" || ( echo -e '\n' ; help ) ;;
+        jupyter nbconvert --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --NbConvertApp.output_files_dir='.' --output-dir='.' "${1}" || ( echo -e '\n' ; help )
+        $SAGE_EXTCODE/nbconvert/postprocess.py "${1/.ipynb/.rst}"
+        ;;
     (2)
-        jupyter nbconvert --output="${2}" --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --NbConvertApp.output_files_dir='.' "${1}" || ( echo -e '\n' ; help ) ;;
+        jupyter nbconvert --output="${2}" --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --NbConvertApp.output_files_dir='.' "${1}" || ( echo -e '\n' ; help )
+        $SAGE_EXTCODE/nbconvert/postprocess.py "${2}"
+        ;;
     (*)
         help ;;
 esac

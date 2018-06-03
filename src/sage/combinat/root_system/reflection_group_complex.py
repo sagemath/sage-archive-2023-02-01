@@ -1856,6 +1856,45 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         else:
             raise ValueError("the reflection representation must be defined for the complete index set")
 
+    def fake_degrees(self):
+        r"""
+        Return the list of the fake degrees associated to ``self``.
+
+        The fake degrees are `q`-versions of the degree of the character.
+        In particular, they sum to Hilbert series of the coinvariant
+        algebra of ``self``.
+
+        ..NOTE::
+
+            The ordering follows the one in Chevie and is not compatible with
+            the current implementation of :meth:`irredubile_characters()`.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(12)                              # optional - gap3
+            sage: W.fake_degrees()                                     # optional - gap3
+            [1, q^12, q^11 + q, q^8 + q^4, q^7 + q^5, q^6 + q^4 + q^2,
+             q^10 + q^8 + q^6, q^9 + q^7 + q^5 + q^3]
+
+            sage: W = ReflectionGroup(["H",4])                         # optional - gap3
+            sage: W.cardinality()                                      # optional - gap3
+            14400
+            sage: sum(fdeg.subs(q=1)**2 for fdeg in W.fake_degrees())  # optional - gap3
+            14400
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(ZZ, 'q')
+        fake_deg_list = []
+        gap_fak_deg = gap3.FakeDegrees(self._gap_group, 'X(Rationals)')
+
+        for fake_poly in gap_fak_deg:
+            fake_coef = fake_poly.coefficients.sage()
+            coeffs = [ZZ.zero()] * (fake_poly.Degree().sage()-len(fake_coef)+1)
+            coeffs.extend(fake_coef)
+            fake_deg_list.append(R(coeffs))
+
+        return fake_deg_list
+
     def coxeter_number(self, chi=None):
         r"""
         Return the Coxeter number associated to the irreducible character

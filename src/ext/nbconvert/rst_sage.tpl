@@ -1,6 +1,6 @@
 {%- extends 'display_priority.tpl' -%}
 
-{% block header %}
+{%- block header -%}
 .. escape-backslashes
 .. default-role:: math
 {% endblock header %}

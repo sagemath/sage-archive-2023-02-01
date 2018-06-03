@@ -37,6 +37,7 @@ test.spyx
 --R
 --root
 --rst2ipynb
+--ipynb2rst
 --rst2txt
 --rst2sws
 --sh
@@ -753,6 +754,76 @@ def test_executable(args, input="", timeout=100.0, **kwds):
           }
          }
         }
+
+    Test ``sage --ipynb2rst file.ipynb file.rst`` on a ipynb file::
+
+        sage: s = r'''{
+        ....:  "cells": [
+        ....:   {
+        ....:    "cell_type": "code",
+        ....:    "execution_count": 1,
+        ....:    "metadata": {},
+        ....:    "outputs": [
+        ....:     {
+        ....:      "data": {
+        ....:       "text/plain": [
+        ....:        "2"
+        ....:       ]
+        ....:      },
+        ....:      "execution_count": 1,
+        ....:      "metadata": {},
+        ....:      "output_type": "execute_result"
+        ....:     }
+        ....:    ],
+        ....:    "source": [
+        ....:     "1+1"
+        ....:    ]
+        ....:   },
+        ....:   {
+        ....:    "cell_type": "code",
+        ....:    "execution_count": null,
+        ....:    "metadata": {},
+        ....:    "outputs": [],
+        ....:    "source": []
+        ....:   }
+        ....:  ],
+        ....:  "metadata": {
+        ....:   "kernelspec": {
+        ....:    "display_name": "SageMath 8.3.beta4",
+        ....:    "language": "",
+        ....:    "name": "sagemath"
+        ....:   },
+        ....:   "language_info": {
+        ....:    "codemirror_mode": {
+        ....:     "name": "ipython",
+        ....:     "version": 2
+        ....:    },
+        ....:    "file_extension": ".py",
+        ....:    "mimetype": "text/x-python",
+        ....:    "name": "python",
+        ....:    "nbconvert_exporter": "python",
+        ....:    "pygments_lexer": "ipython2",
+        ....:    "version": "2.7.15"
+        ....:   }
+        ....:  },
+        ....:  "nbformat": 4,
+        ....:  "nbformat_minor": 2
+        ....: }
+        ....: '''
+        sage: t = '.. escape-backslashes\n.. default-role:: math\n\n\n::\n\n    sage: 1+1\n    2\n\n\n'
+        sage: input = tmp_filename(ext='.ipynb')
+        sage: output = tmp_filename(ext='.rst')
+        sage: with open(input, 'w') as F:
+        ....:     _ = F.write(s)
+        sage: L = ["sage", "--ipynb2rst", input, output]
+        sage: try:
+        ....:     _ = test_executable(['pandoc', '--version'])
+        ....: except OSError:
+        ....:     print('True')
+        ....: else:
+        ....:     _ = test_executable(L)
+        ....:     print(open(output, 'r').read() == t)
+        True
 
     Test ``sage --rst2txt file.rst`` on a ReST file::
 

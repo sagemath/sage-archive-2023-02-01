@@ -1255,33 +1255,32 @@ class CoxeterGroups(Category_singleton):
                 sage: s = W.simple_reflections()
                 sage: w = s[0] * s[2]
                 sage: sorted(w.reduced_words())
-                [(0, 2), (2, 0)]
+                [[0, 2], [2, 0]]
 
                 sage: W = WeylGroup(['E',6])
                 sage: w = W.from_reduced_word([2,3,4,2])
                 sage: sorted(w.reduced_words())
-                [(2, 3, 4, 2), (3, 2, 4, 2), (3, 4, 2, 4)]
+                [[2, 3, 4, 2], [3, 2, 4, 2], [3, 4, 2, 4]]
 
                 sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])
                 sage: w = W.long_element()
                 sage: w.reduced_words()
-                [('AA', 5, 'BB', 5, 'AA', 'BB'),
-                 ('AA', 'BB', 5, 'BB', 'AA', 'BB'),
-                 (5, 'BB', 'AA', 5, 'BB', 5),
-                 ('BB', 5, 'AA', 'BB', 5, 'AA'),
-                 (5, 'BB', 5, 'AA', 'BB', 5),
-                 ('BB', 5, 'AA', 'BB', 'AA', 5),
-                 (5, 'AA', 'BB', 'AA', 5, 'BB'),
-                 ('BB', 'AA', 5, 'BB', 5, 'AA'),
-                 ('AA', 'BB', 'AA', 5, 'BB', 'AA'),
-                 (5, 'BB', 'AA', 'BB', 5, 'BB'),
-                 ('BB', 'AA', 5, 'BB', 'AA', 5),
-                 (5, 'AA', 'BB', 5, 'AA', 'BB'),
-                 ('AA', 'BB', 5, 'AA', 'BB', 'AA'),
-                 ('BB', 5, 'BB', 'AA', 'BB', 5),
-                 ('AA', 5, 'BB', 'AA', 5, 'BB'),
-                 ('BB', 'AA', 'BB', 5, 'BB', 'AA')]
-
+                [['AA', 5, 'BB', 5, 'AA', 'BB'],
+                 ['AA', 'BB', 5, 'BB', 'AA', 'BB'],
+                 [5, 'BB', 'AA', 5, 'BB', 5],
+                 ['BB', 5, 'AA', 'BB', 5, 'AA'],
+                 [5, 'BB', 5, 'AA', 'BB', 5],
+                 ['BB', 5, 'AA', 'BB', 'AA', 5],
+                 [5, 'AA', 'BB', 'AA', 5, 'BB'],
+                 ['BB', 'AA', 5, 'BB', 5, 'AA'],
+                 ['AA', 'BB', 'AA', 5, 'BB', 'AA'],
+                 [5, 'BB', 'AA', 'BB', 5, 'BB'],
+                 ['BB', 'AA', 5, 'BB', 'AA', 5],
+                 [5, 'AA', 'BB', 5, 'AA', 'BB'],
+                 ['AA', 'BB', 5, 'AA', 'BB', 'AA'],
+                 ['BB', 5, 'BB', 'AA', 'BB', 5],
+                 ['AA', 5, 'BB', 'AA', 5, 'BB'],
+                 ['BB', 'AA', 'BB', 5, 'BB', 'AA']]
 
             .. TODO::
 
@@ -1310,9 +1309,9 @@ class CoxeterGroups(Category_singleton):
             orb = BraidOrbit(word, braid_rels)
 
             if be_careful:
-                orb = [ tuple( I[i] for i in word ) for word in orb ]
+                orb = [ [ I[i] for i in word ] for word in orb ]
             else:
-                orb = list(orb)
+                orb = list(map(list, orb))
 
             return orb
 

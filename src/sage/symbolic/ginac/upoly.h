@@ -27,6 +27,7 @@
 #ifndef __PYNAC_UPOLY_H__
 #define __PYNAC_UPOLY_H__
 
+#include <utility>
 
 namespace GiNaC {
 
@@ -38,6 +39,8 @@ extern ex quo(const ex &a, const ex &b, const ex &x, bool check_args = true);
 
 // Remainder r(x) of polynomials a(x) and b(x) in Q[x], so that a(x)=b(x)*q(x)+r(x)
 extern ex rem(const ex &a, const ex &b, const ex &x, bool check_args = true);
+extern std::pair<ex,ex> quo_rem(const ex &a, const ex &b, const ex &x,
+                bool check_args);
 
 // Decompose rational function a(x)=N(x)/D(x) into Q(x)+R(x)/D(x) with degree(R, x) < degree(D, x)
 extern ex decomp_rational(const ex &a, const ex &x);

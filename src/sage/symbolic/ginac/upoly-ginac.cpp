@@ -74,7 +74,6 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 #endif
 	if (check_args && (!a.info(info_flags::rational_polynomial) || !b.info(info_flags::rational_polynomial)))
 		throw(std::invalid_argument("quo: arguments must be polynomials over the rationals"));
-
 	// Polynomial long division
 	ex r = a.expand();
 	if (r.is_zero())
@@ -99,9 +98,8 @@ ex quo(const ex &a, const ex &b, const ex &x, bool check_args)
 			break;
 		rdeg = r.degree(x);
 	}
-	return (new add(v))->setflag(status_flags::dynallocated);
+        return (new add(v))->setflag(status_flags::dynallocated);
 }
-
 
 /** Remainder r(x) of polynomials a(x) and b(x) in Q[x].
  *  It satisfies a(x)=b(x)*q(x)+r(x).
@@ -151,6 +149,79 @@ ex rem(const ex &a, const ex &b, const ex &x, bool check_args)
 		rdeg = r.degree(x);
 	}
 	return r;
+}
+
+
+std::pair<ex,ex> quo_rem(const ex &a, const ex &b, const ex &x, bool check_args)
+{
+	if (b.is_zero())
+		throw(std::overflow_error("quo: division by zero"));
+	if (is_exactly_a<numeric>(a) && is_exactly_a<numeric>(b))
+		return std::make_pair(a / b, _ex0);
+#if FAST_COMPARE
+	if (a.is_equal(b))
+		return std::make_pair(_ex1, _ex0);
+#endif
+        expairvec vec1, vec2;
+        using pair_t = std::pair<ex,ex>;
+        a.expand().coefficients(x, vec1);
+        b.expand().coefficients(x, vec2);
+        if (check_args) {
+                if (std::any_of(vec1.begin(), vec1.end(),
+                             [](const pair_t& p) {
+                                return not is_exactly_a<numeric>(p.second)
+                                    or (not p.second.is_zero()
+                                        and not p.second.info(info_flags::posint)); } 
+                                    ))
+                        throw std::runtime_error("nonposint exponent in quo()");
+                if (std::any_of(vec2.begin(), vec2.end(),
+                             [](const pair_t& p) {
+                                return not is_exactly_a<numeric>(p.second)
+                                    or (not p.second.is_zero()
+                                        and not p.second.info(info_flags::posint)); } 
+                                    ))
+                        throw std::runtime_error("nonposint exponent in quo()");
+        }
+        const auto& mit1 = std::max_element(vec1.begin(), vec1.end(),
+                        [](const pair_t& p1, const pair_t& p2) {
+                           return ex_to<numeric>(p1.second) <
+                                  ex_to<numeric>(p2.second); } );
+        const auto& mit2 = std::max_element(vec2.begin(), vec2.end(),
+                        [](const pair_t& p1, const pair_t& p2) {
+                           return ex_to<numeric>(p1.second) <
+                                  ex_to<numeric>(p2.second); } );
+        size_t adeg = ex_to<numeric>(mit1->second).to_long();
+        size_t bdeg = ex_to<numeric>(mit2->second).to_long();
+        if (adeg < bdeg)
+                return std::make_pair(_ex0, _ex0);
+        // make flat coeff vectors
+        std::vector<ex> avec, bvec;
+        avec.assign(adeg+1, _ex0);
+        bvec.assign(bdeg+1, _ex0);
+        for (const pair_t& p : vec1)
+                *(avec.begin() + ex_to<numeric>(p.second).to_long()) = p.first;
+        for (const pair_t& p : vec2)
+                *(bvec.begin() + ex_to<numeric>(p.second).to_long()) = p.first;
+
+        // poly division
+        ex lc2 = bvec[bdeg];
+        exvector qvec;
+        for (int k=adeg-bdeg; k>=0; --k) {
+                ex q = avec[bdeg+k] / lc2;
+                avec[bdeg+k] = _ex0;
+                for (int j=bdeg+k-1; j>=k; --j)
+                        avec[j] = avec[j] - q * bvec[j-k];
+                qvec.insert(qvec.begin(), q);
+        }
+        for (size_t i=0; i<qvec.size(); ++i)
+                if (not qvec[i].is_zero())
+                        qvec[i] = qvec[i] * power(x, numeric(i));
+        if (avec.size() > bdeg)
+                avec.resize(bdeg);
+        for (size_t i=0; i<bdeg; ++i)
+                if (not avec[i].is_zero())
+                        avec[i] = avec[i] * power(x, numeric(i));
+        return std::make_pair(add(qvec), add(avec));
 }
 
 

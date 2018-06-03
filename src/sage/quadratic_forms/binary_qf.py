@@ -701,6 +701,7 @@ class BinaryQF(SageObject):
           reduced form.  Currently only implemented for indefinite forms.
 
         - ``algorithm`` -- String. The algorithm to use: Valid options are:
+
           * ``'default'`` -- Let Sage pick an algorithm (default).
           * ``'pari'`` -- use PARI
           * ``'sage'`` -- use Sage

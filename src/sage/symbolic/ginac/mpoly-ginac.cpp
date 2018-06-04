@@ -546,77 +546,8 @@ ex sqrfree(const ex &a, const lst &l)
 	// Put in the reational overall factor again and return
 	return result *	lcm.inverse();
 }
-
-
-/** Compute square-free partial fraction decomposition of rational function
- *  a(x).
- *
- *  @param a rational function over Z[x], treated as univariate polynomial
- *           in x
- *  @param x variable to factor in
- *  @return decomposed rational function */
-ex sqrfree_parfrac(const ex & a, const symbol & x)
-{
-	// Find numerator and denominator
-	ex nd = numer_denom(a);
-	ex numer = nd.op(0), denom = nd.op(1);
-//clog << "numer = " << numer << ", denom = " << denom << endl;
-
-	// Convert N(x)/D(x) -> Q(x) + R(x)/D(x), so degree(R) < degree(D)
-	ex red_poly = quo(numer, denom, x), red_numer = rem(numer, denom, x).expand();
-//clog << "red_poly = " << red_poly << ", red_numer = " << red_numer << endl;
-
-	// Factorize denominator and compute cofactors
-	exvector yun = sqrfree_yun(denom, x);
-//clog << "yun factors: " << exprseq(yun) << endl;
-	size_t num_yun = yun.size();
-	exvector factor; factor.reserve(num_yun);
-	exvector cofac; cofac.reserve(num_yun);
-	for (unsigned i=0; i<num_yun; i++) {
-		if (!yun[i].is_one()) {
-			for (unsigned j=0; j<=i; j++) {
-				factor.push_back(pow(yun[i], j+1));
-				ex prod = _ex1;
-				for (unsigned k=0; k<num_yun; k++) {
-					if (k == i)
-						prod *= pow(yun[k], i-j);
-					else
-						prod *= pow(yun[k], k+1);
-				}
-				cofac.push_back(prod.expand());
-			}
-		}
-	}
-	size_t num_factors = factor.size();
-//clog << "factors  : " << exprseq(factor) << endl;
-//clog << "cofactors: " << exprseq(cofac) << endl;
-
-	// Construct coefficient matrix for decomposition
-	int max_denom_deg = denom.degree(x);
-	matrix sys(max_denom_deg + 1, num_factors);
-	matrix rhs(max_denom_deg + 1, 1);
-	for (int i=0; i<=max_denom_deg; i++) {
-		for (size_t j=0; j<num_factors; j++)
-			sys(i, j) = cofac[j].coeff(x, i);
-		rhs(i, 0) = red_numer.coeff(x, i);
-	}
-//clog << "coeffs: " << sys << endl;
-//clog << "rhs   : " << rhs << endl;
-
-	// Solve resulting linear system
-	matrix vars(num_factors, 1);
-	for (size_t i=0; i<num_factors; i++)
-		vars(i, 0) = symbol();
-	matrix sol = sys.solve(vars, rhs);
-
-	// Sum up decomposed fractions
-	ex sum = 0;
-	for (size_t i=0; i<num_factors; i++)
-		sum += sol(i, 0) / factor[i];
-
-	return red_poly + sum;
-}
 #endif
+
 
 #endif // HAVE_LIBGIAC
 

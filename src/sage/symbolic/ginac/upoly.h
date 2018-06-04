@@ -54,6 +54,8 @@ extern ex sprem(const ex &a, const ex &b, const ex &x, bool check_args = true);
 // Exact polynomial division of a(X) by b(X) in Q[X] (quotient returned in q), returns false when exact division fails
 extern bool divide(const ex &a, const ex &b, ex &q, bool check_args = true);
 
+extern ex parfrac(const ex & a, const ex & x);
+
 } // namespace GiNaC
 
 #endif // __PYNAC_UPOLY_H__

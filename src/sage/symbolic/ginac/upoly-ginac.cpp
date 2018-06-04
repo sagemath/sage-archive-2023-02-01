@@ -31,11 +31,14 @@
 #include "ex.h"
 #include "ex_utils.h"
 #include "numeric.h"
+#include "normal.h"
 #include "upoly.h"
 #include "symbol.h"
+#include "exprseq.h"
 #include "add.h"
 #include "mul.h"
 #include "power.h"
+#include "matrix.h"
 #include "operators.h"
 #include "utils.h"
 
@@ -193,7 +196,7 @@ std::pair<ex,ex> quo_rem(const ex &a, const ex &b, const ex &x, bool check_args)
         size_t adeg = ex_to<numeric>(mit1->second).to_long();
         size_t bdeg = ex_to<numeric>(mit2->second).to_long();
         if (adeg < bdeg)
-                return std::make_pair(_ex0, _ex0);
+                return std::make_pair(_ex0, a);
         // make flat coeff vectors
         std::vector<ex> avec, bvec;
         avec.assign(adeg+1, _ex0);
@@ -483,6 +486,92 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 		rdeg = r.degree(x);
 	}
 	return false;
+}
+
+/** Compute square-free partial fraction decomposition of rational function
+ *  a(x).
+ *
+ *  @param a rational function over Z[x], treated as univariate polynomial
+ *           in x
+ *  @param x variable to factor in
+ *  @return decomposed rational function */
+ex parfrac(const ex & a, const ex & x)
+{
+	// Find numerator and denominator
+	ex nd = numer_denom(a);
+	ex numer = nd.op(0), denom = nd.op(1);
+
+	// Convert N(x)/D(x) -> Q(x) + R(x)/D(x), so degree(R) < degree(D)
+        const auto& qr = quo_rem(numer, denom, x, false);
+
+	// Factorize denominator and compute cofactors
+        ex facmul;
+        bool r = factor(denom, facmul);
+        if (not r)
+                return qr.first + qr.second/denom;
+        ex oc = _ex1;
+	exvector factor, cofac;
+        if (is_exactly_a<mul>(facmul)) {
+                size_t fsize = facmul.nops();
+                for (size_t i=0; i<fsize; i++) {
+                        const ex& e = facmul.op(i);
+                        if (is_exactly_a<numeric>(e)) {
+                                oc = e;
+                                continue;
+                        }
+                        if (is_exactly_a<power>(e)) {
+                                size_t expo = ex_to<numeric>(e.op(1)).to_int();
+                                for (size_t j=1; j<=expo; ++j) {
+                                        ex ee = power(e.op(0), numeric(j));
+                                        factor.push_back(ee);
+                                        cofac.push_back((facmul/ee).expand());
+                                }
+                        }
+                        else {
+                                factor.push_back(e);
+                                cofac.push_back((facmul/e).expand());
+                        }
+                }
+        }
+        else if (is_exactly_a<power>(facmul)) {
+                size_t expo = ex_to<numeric>(facmul.op(1)).to_int();
+                for (size_t j=1; j<=expo; ++j) {
+                        ex ee = power(facmul.op(0), numeric(j));
+                        factor.push_back(ee);
+                        cofac.push_back((facmul/ee).expand());
+                }
+        }
+        else {
+                return qr.first + qr.second/denom;
+        }
+	size_t num_factors = factor.size();
+        //std::cerr << "factors  : " << exprseq(factor) << std::endl;
+        //std::cerr << "cofactors: " << exprseq(cofac) << std::endl;
+
+	// Construct coefficient matrix for decomposition
+	int max_denom_deg = ex_to<numeric>(denom.degree(x)).to_int();
+	matrix sys(max_denom_deg + 1, num_factors);
+	matrix rhs(max_denom_deg + 1, 1);
+	for (int i=0; i<=max_denom_deg; i++) {
+		for (size_t j=0; j<num_factors; j++)
+			sys(i, j) = cofac[j].coeff(x, i);
+		rhs(i, 0) = qr.second.coeff(x, i);
+	}
+//clog << "coeffs: " << sys << endl;
+//clog << "rhs   : " << rhs << endl;
+
+	// Solve resulting linear system
+	matrix vars(num_factors, 1);
+	for (size_t i=0; i<num_factors; i++)
+		vars(i, 0) = symbol();
+	matrix sol = sys.solve(vars, rhs);
+
+	// Sum up decomposed fractions
+	ex sum = _ex0;
+	for (size_t i=0; i<num_factors; i++)
+		sum += sol(i, 0) / oc / factor[i];
+
+	return qr.first + sum;
 }
 
 

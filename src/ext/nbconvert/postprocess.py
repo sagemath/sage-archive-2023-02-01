@@ -4,7 +4,7 @@ r"""
 This postprocess script fixes some issues with .rst files returned by nbconvert:
 
 - it fixes the rendering of the first title (that looks like markdown not rst)
-- it removes the header that define some LaTeX macros
+- it removes the header that defines some LaTeX macros
 - it removes the :math: role since this is the default one
 
 AUTHORS:

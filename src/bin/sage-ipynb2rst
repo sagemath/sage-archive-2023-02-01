@@ -29,9 +29,6 @@ EOF
 
 if [ "${1}" = '-h' ] || [ "${1}" = '--help' ] ; then help ; exit 0 ; fi
 
-# tests if dependencies are available
-pandoc -v > /dev/null 2>&1 || fail 'sage -ipynb2rst requires pandoc; please install it on your system.'
-
 case  "${#}" in
     (1)
         jupyter nbconvert --to rst --RSTExporter.template_path=[\'$SAGE_EXTCODE/nbconvert/\'] --RSTExporter.template_file='rst_sage.tpl' --NbConvertApp.output_files_dir='.' --output-dir='.' "${1}" || ( echo -e '\n' ; help )

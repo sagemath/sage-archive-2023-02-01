@@ -194,7 +194,6 @@ class CoxeterGroups(Category_singleton):
             """
             return self.coxeter_matrix().coxeter_type()
 
-        @cached_method
         def braid_relations(self):
             r"""
             Return the braid relations of ``self`` as a list of reduced

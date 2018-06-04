@@ -138,10 +138,13 @@ class PathTableaux(Category):
             result.reverse()
             return self.parent()(result)
 
-        def commutor(self,other):
+        def path_rule(self,other,display=False):
             """
             This constructs the commutor of a pair of tableau.
             This is given by a rectangular diagram.
+            
+            If display=True then the function will print
+            the rectangle.
             """
             n = len(self)
             m = len(other)
@@ -156,12 +159,16 @@ class PathTableaux(Category):
                 raise ValueError("%s is not a composable pair." % (self,other))
             
             path = col + row[1:]
-            for i in range(1,m):
-                for j in range(n):
-                    path = path.local_rule(i-j)
+            if display:
+                print row
+            for i in range(1:n):
+                for j in range(m-1):
+                    path = path.local_rule(n+j-i)
+                    if display:
+                        print path[n-i:n+m-i-2]
                     
 
-            return (self.parent()(path[:n]),self.parent()(path[n-1:]))
+            return (self.parent()(path[:m]),self.parent()(path[n-1:]))
 
         def cactus(self,i,j):
             """

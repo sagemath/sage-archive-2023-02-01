@@ -143,7 +143,7 @@ class DualSemistandardTableau(ClonableList):
         for i in range(len(p)):
             path += p[:i+1]
             
-        return DualSemistandardTableau(path).commutor(self)[0]
+        return DualSemistandardTableau(path).path_rule(self)[0]
 
     def multiply(self,other):
         """

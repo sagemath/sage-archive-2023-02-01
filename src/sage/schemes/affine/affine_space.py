@@ -927,8 +927,8 @@ class AffineSpace_field(AffineSpace_generic):
 
             sage: u = QQ['u'].0
             sage: A.<x,y> = AffineSpace(NumberField(u^2 - 2, 'v'), 2)
-            sage: len(list(A.points_of_bounded_height(6)))
-            121
+            sage: len(list(A.points_of_bounded_height(2)))
+            529
         """
         if (is_RationalField(self.base_ring())):
             ftype = False # stores whether field is a number field or the rational field
@@ -937,7 +937,7 @@ class AffineSpace_field(AffineSpace_generic):
         else:
             raise NotImplementedError("self must be affine space over a number field.")
 
-        bound = bound**(1/self.base_ring().absolute_degree()) # convert to relative height
+        bound = bound**self.base_ring().absolute_degree() # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()

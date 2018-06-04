@@ -1018,8 +1018,8 @@ def primes(start, stop=None, proof=None):
         sage: from numpy import int8
         sage: list(primes(int8(13)))
         [2, 3, 5, 7, 11]
-        sage: from gmpy2 import mpz
-        sage: list(primes(mpz(13)))
+        sage: from gmpy2 import mpz     # optional - gmpy2
+        sage: list(primes(mpz(13)))     # optional - gmpy2
         [2, 3, 5, 7, 11]
     """
     from sage.rings.infinity import infinity
@@ -1744,11 +1744,12 @@ def gcd(a, b=None, **kwargs):
         except TypeError:
             return m(py_scalar_to_element(b), **kwargs)
 
-    try:
+    from sage.structure.sequence import Sequence
+    seq = Sequence(py_scalar_to_element(el) for el in a)
+    if seq.universe() is ZZ:
         return GCD_list(a)
-    except TypeError:
-        from sage.structure.sequence import Sequence
-        return __GCD_sequence(Sequence(a), **kwargs)
+    else:
+        return __GCD_sequence(seq, **kwargs)
 
 
 GCD = gcd
@@ -2356,8 +2357,8 @@ def trial_division(n, bound=None):
         sage: from numpy import int8
         sage: trial_division(int8(91))
         7
-        sage: from gmpy2 import mpz     # optinal - gmpy2
-        sage: trial_division(mpz(91))   # optinal - gmpy2
+        sage: from gmpy2 import mpz     # optional - gmpy2
+        sage: trial_division(mpz(91))   # optional - gmpy2
         7
     """
     if bound is None:
@@ -2764,6 +2765,11 @@ def is_square(n, root=False):
         sage: from gmpy2 import mpz # optional - gmpy2
         sage: is_square(mpz(4))     # optional - gmpy2
         True
+
+    Indirect test with LaurentPolynomial_univariate::
+
+        sage: R.<v> = LaurentPolynomialRing(QQ, 'v')
+        sage: H = IwahoriHeckeAlgebra('A3', v**2)
     """
     try:
         m = n.is_square
@@ -2780,6 +2786,7 @@ def is_square(n, root=False):
             else:
                 return False, None
     return m()
+
 
 def is_squarefree(n):
     """
@@ -2839,7 +2846,7 @@ def is_squarefree(n):
 
     if e == 0:
         return False
-    return all(r[1] == 1 for r in factor(n))
+    return all(r[1] == 1 for r in factor(e))
 
 
 #################################################################

@@ -1428,11 +1428,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def __init__(self, is_finite=None, **constraints):
         """
         Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: OS = OrderedMultisetPartitions(4)
-            sage: TestSuite(OS).run()
         """
         constraints = dict(constraints)
 
@@ -1755,36 +1750,44 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
     """
     Class of all ordered multiset partitions (with or without constraints).
 
-    TESTS::
+    EXAMPLES::
 
-        sage: C = OrderedMultisetPartitions(); repr(C)
-        'Ordered Multiset Partitions'
-        sage: C == loads(dumps(C))
+        sage: C = OrderedMultisetPartitions(); C
+        Ordered Multiset Partitions
+        sage: [[1],[1,'a']] in C
         True
-        sage: TestSuite(C).run()
 
-        sage: C = OrderedMultisetPartitions(weight=[2,0,1], length=2); repr(C)
-        'Ordered Multiset Partitions with constraints: length=2, weight={1: 2, 3: 1}'
-        sage: C == loads(dumps(C))
-        True
-        sage: TestSuite(C).run()
-
-        sage: D1 = OrderedMultisetPartitions(weight={1:2, 3:1}, min_length=2, max_length=2)
-        sage: D2 = OrderedMultisetPartitions({1:2, 3:1}, min_length=2, max_length=2)
-        sage: D3 = OrderedMultisetPartitions(5, weight={1:2, 3:1}, length=2)
-        sage: D4 = OrderedMultisetPartitions([1,3], 3, weight={1:2, 3:1}, length=2)
-        sage: D5 = OrderedMultisetPartitions([1,3], 3, size=5, length=2)
-        sage: any(C == eval('D'+str(i)) for i in range(1,6))
-        False
-        sage: all(Set(C) == Set(eval('D'+str(i))) for i in range(1,6))
-        True
-        sage: E = OrderedMultisetPartitions({1:2, 3:1}, size=5, min_length=2)
-        sage: Set(C) == Set(E)
-        False
+        sage: OrderedMultisetPartitions(weight=[2,0,1], length=2)
+        Ordered Multiset Partitions with constraints: length=2, weight={1: 2, 3: 1}
     """
     def __init__(self, **constraints):
         """
         Initialize ``self``.
+
+        TESTS::
+
+            sage: C = OrderedMultisetPartitions()
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
+
+            sage: C = OrderedMultisetPartitions(weight=[2,0,1], length=2)
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
+
+            sage: D1 = OrderedMultisetPartitions(weight={1:2, 3:1}, min_length=2, max_length=2)
+            sage: D2 = OrderedMultisetPartitions({1:2, 3:1}, min_length=2, max_length=2)
+            sage: D3 = OrderedMultisetPartitions(5, weight={1:2, 3:1}, length=2)
+            sage: D4 = OrderedMultisetPartitions([1,3], 3, weight={1:2, 3:1}, length=2)
+            sage: D5 = OrderedMultisetPartitions([1,3], 3, size=5, length=2)
+            sage: any(C == eval('D'+str(i)) for i in range(1,6))
+            False
+            sage: all(Set(C) == Set(eval('D'+str(i))) for i in range(1,6))
+            True
+            sage: E = OrderedMultisetPartitions({1:2, 3:1}, size=5, min_length=2)
+            sage: Set(C) == Set(E)
+            False
         """
         OrderedMultisetPartitions.__init__(self, None, **constraints)
 
@@ -1836,13 +1839,14 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
     """
     def __init__(self, n):
         """
+
         TESTS::
 
-            sage: C = OrderedMultisetPartitions(Integer(3))
+            sage: C = OrderedMultisetPartitions(Integer(4))
             sage: C == loads(dumps(C))
             True
             sage: TestSuite(C).run()
-            sage: C2 = OrderedMultisetPartitions(int(3))
+            sage: C2 = OrderedMultisetPartitions(int(4))
             sage: C is C2
             True
             sage: C3 = OrderedMultisetPartitions(7/2)
@@ -1947,6 +1951,18 @@ class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
     def __init__(self, n, **constraints):
         """
         Mimic class ``OrderedMultisetPartitions_n`` to initialize.
+
+        TESTS::
+
+            sage: C = OrderedMultisetPartitions(6, length=3)
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
+
+            sage: C = OrderedMultisetPartitions(6, weight=[3,0,1], length=3)
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
         """
         self._n = n
         OrderedMultisetPartitions.__init__(self, True, size=n, **constraints)
@@ -2089,6 +2105,18 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
     def __init__(self, X, **constraints):
         """
         Mimic class ``OrderedMultisetPartitions_X`` to initialize.
+
+        TESTS::
+
+            sage: C = OrderedMultisetPartitions([1,1,2,4], length=3)
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
+
+            sage: C = OrderedMultisetPartitions([1,1,2,4], weight=[3,0,1], max_length=3) # weight ignored
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
         """
         self._X = X
         self._Xtup = tuple(k for (k,v) in sorted(X) for _ in range(v))
@@ -2131,8 +2159,6 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
             sage: list(OrderedMultisetPartitions([1,2,3], 2))
             [[{1,2}], [{1,3}], [{2,3}], [{1}, {1}], [{1}, {2}], [{1}, {3}], [{2}, {1}],
              [{2}, {2}], [{2}, {3}], [{3}, {1}], [{3}, {2}], [{3}, {3}]]
-            sage: list(OrderedMultisetPartitions([1,2,3], 2, length=1))
-            [[{1,2}], [{1,3}], [{2,3}]]
         """
         self._alphabet = A
         self._order = order
@@ -2238,6 +2264,24 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
     def __init__(self, A, order, **constraints):
         """
         Mimic class ``OrderedMultisetPartitions_A`` to initialize.
+
+        EXAMPLES::
+
+            sage: list(OrderedMultisetPartitions(3, 2, length=3)) # should be empty
+            []
+            sage: list(OrderedMultisetPartitions([1,2,4], 2, length=1))
+            [[{1,2}], [{1,4}], [{2,4}]]
+
+        TESTS::
+
+            sage: C = OrderedMultisetPartitions(3, 2, length=3)
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
+            sage: C = OrderedMultisetPartitions([1,2,4], 4, min_length=3)
+            sage: C == loads(dumps(C))
+            True
+            sage: TestSuite(C).run()
         """
         self._alphabet = A
         self._order = order
@@ -2619,16 +2663,30 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         sage: list(crystals.Minimaj(2,3,2))
         [((2, 1), (1,)), ((2,), (1, 2)), ((1,), (1, 2)), ((1, 2), (2,))]
 
-    TESTS::
-
-        sage: list(crystals.Minimaj(3,2,4)) # more blocks than letters
-        []
-        sage: list(crystals.Minimaj(3,6,2))
-        [((1, 2), (2, 1), (1, 2))]
-        sage: list(crystals.Minimaj(2,5,2)) # blocks too fat for alphabet
-        []
+        sage: b = crystals.Minimaj(2,5,3).an_element(); b
+        ((2, 3, 1), (1, 3))
+        sage: b.e(2)
+        ((2, 3, 1), (1, 2))
     """
     def __init__(self, k, ell, n):
+        r"""
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: B = crystals.Minimaj(2,3,2)
+            sage: B = loads(dumps(B))
+            True
+            sage: B = crystals.Minimaj(2,5,3)
+            sage: TestSuite(B).run()
+
+            sage: list(crystals.Minimaj(3,2,4)) # more blocks than letters
+            []
+            sage: list(crystals.Minimaj(3,6,2))
+            [((1, 2), (2, 1), (1, 2))]
+            sage: list(crystals.Minimaj(2,5,2)) # blocks too fat for alphabet
+            []
+        """
         Parent.__init__(self, category=ClassicalCrystals())
         self.n = n
         self.k = k

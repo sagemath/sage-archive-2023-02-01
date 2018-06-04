@@ -2675,7 +2675,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         TESTS::
 
             sage: B = crystals.Minimaj(2,3,2)
-            sage: B = loads(dumps(B))
+            sage: B == loads(dumps(B))
             True
             sage: B = crystals.Minimaj(3, 5, 2)
             sage: TestSuite(B).run()

@@ -838,23 +838,25 @@ class PermutationGroup_generic(group.FiniteGroup):
             [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
 
         """
-        def elements(self, SGS):
+        def elements(SGS):
             S = SGS.pop()
             if not SGS:
                 for g in S:
                     yield g
             else:
-                for s in elements(self, SGS):
+                for s in elements(SGS):
                     for g in S:
                         yield s._mul_(g)
+
         base = self.base()
         # catching the emtpy base for PermutationGroup([()])
         if not base:
             base = None
+
         SGS = self.strong_generating_system(base)
         SGS.reverse()
 
-        return elements(self, SGS)
+        return elements(SGS)
 
     def gens(self):
         """

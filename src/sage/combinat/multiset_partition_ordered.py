@@ -50,7 +50,7 @@ Ordered multiset partitions on the alphabet `\{1, 4\}` of order 3::
 Crystal of ordered multiset partitions on the alphabet `\{1,2,3\}` with 4 letters
 divided into 2 blocks::
 
-    sage: crystals.Minimaj(2, 4, 3).list()
+    sage: crystals.Minimaj(3, 4, 2).list()
     [((2, 3, 1), (1,)), ((2, 3), (1, 2)), ((2, 3), (1, 3)), ((2, 1), (1, 2)),
      ((3, 1), (1, 2)), ((3, 1, 2), (2,)), ((3, 1), (1, 3)), ((3, 1), (2, 3)),
      ((3, 2), (2, 3)), ((2, 1), (1, 3)), ((2,), (1, 2, 3)), ((3,), (1, 2, 3)),
@@ -2663,12 +2663,12 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         sage: list(crystals.Minimaj(2,3,2))
         [((2, 1), (1,)), ((2,), (1, 2)), ((1,), (1, 2)), ((1, 2), (2,))]
 
-        sage: b = crystals.Minimaj(2,5,3).an_element(); b
+        sage: b = crystals.Minimaj(3, 5, 2).an_element(); b
         ((2, 3, 1), (1, 3))
         sage: b.e(2)
         ((2, 3, 1), (1, 2))
     """
-    def __init__(self, k, ell, n):
+    def __init__(self, n, ell, k):
         r"""
         Initialize ``self``.
 
@@ -2677,12 +2677,12 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.Minimaj(2,3,2)
             sage: B = loads(dumps(B))
             True
-            sage: B = crystals.Minimaj(2,5,3)
+            sage: B = crystals.Minimaj(3, 5, 2)
             sage: TestSuite(B).run()
 
-            sage: list(crystals.Minimaj(3,2,4)) # more blocks than letters
+            sage: list(crystals.Minimaj(4,2,3)) # more blocks than letters
             []
-            sage: list(crystals.Minimaj(3,6,2))
+            sage: list(crystals.Minimaj(2,6,3))
             [((1, 2), (2, 1), (1, 2))]
             sage: list(crystals.Minimaj(2,5,2)) # blocks too fat for alphabet
             []
@@ -2709,7 +2709,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: B = crystals.Minimaj(2,4,3); B
+            sage: B = crystals.Minimaj(3,4,2); B
             Minimaj Crystal of type A_2 of words of length 4 into 2 blocks
         """
         return "Minimaj Crystal of type A_%s of words of length %s into %s blocks"%(self.n-1, self.ell, self.k)
@@ -2764,7 +2764,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: all(mu == B.from_tableau(mu.to_tableau()) for mu in B)
             True
             sage: t = B.an_element().to_tableau()
-            sage: B1 = crystals.Minimaj(2,6,3)
+            sage: B1 = crystals.Minimaj(3,6,2)
             sage: B1.from_tableau(t)
             Traceback (most recent call last):
             ...
@@ -2785,7 +2785,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
         Verifying Example 4.5 from [BCHOPSY]_::
 
-            sage: B = crystals.Minimaj(2, 4, 3) # for `Val_{4,1}^{(3)}`
+            sage: B = crystals.Minimaj(3, 4, 2) # for `Val_{4,1}^{(3)}`
             sage: B.val()
             (q^2+q+1)*s[2, 1, 1] + q*s[2, 2]
         """
@@ -2837,7 +2837,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: B = crystals.Minimaj(3,5,4)
+                sage: B = crystals.Minimaj(4,5,3)
                 sage: b = B.an_element(); b
                 ((4, 1, 3), (3,), (3,))
                 sage: b.to_tableau()
@@ -2853,7 +2853,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: B = crystals.Minimaj(2,3,4)
+                sage: B = crystals.Minimaj(4,3,2)
                 sage: b = B.an_element(); b
                 ((2, 3), (3,))
                 sage: [b.e(i) for i in range(1,4)]
@@ -2872,7 +2872,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: B = crystals.Minimaj(2,3,4)
+                sage: B = crystals.Minimaj(4,3,2)
                 sage: b = B.an_element(); b
                 ((2, 3), (3,))
                 sage: [b.f(i) for i in range(1,4)]

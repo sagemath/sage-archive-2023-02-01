@@ -1,40 +1,60 @@
 r"""
-Ordered Multiset Partitions
+Ordered Multiset Partitions and the Minimaj Crystal
 
-An ordered multiset partition `c` of a multiset `X` is a list of nonempty
-subsets of `X` (not multisets), called the blocks of `c`, whose multi-union
-is `X`.
+This module provides element and parent classes for ordered multiset partitions.
+It also implements the minimaj crystal of Benkart, et al. (See :class:`MinimajCrystal`.)
 
-This module provides tools for manipulating ordered multiset partitions.
+AUTHORS:
 
-.. NOTE::
+- Aaron Lauve (2018): initial implementation. First draft of minimaj crystal code
+  provided by Anne Schilling.
 
-    An (ordered) multiset partition connotates an (ordered) collection
-    of *multisets* (not sets), whose multi-union is a given multiset.
-    Perhaps a better name would be "strict" ordered multiset partition.
-    Terminology is taken from:
+REFERENCES:
 
-    - [HRWxx] - arXiv:1509.07058
-    - [HRSxx] - arXiv:1609.07575
-    - [BCHOPSYxx] - arXiv:1707.08709v2
+.. [BCHOPSY] \G. Benkart, L. Colmenarejo, P. E. Harris, R. Orellana, G. Panova,
+             A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
+             multiset partitions*. :arXiv:`1707.08709v2`.
+.. [HRW] \J. Haglund, J. B. Remmel, A. T. Wilson. *The Delta Conjecture*.
+         :arXiv:`1509.07058`.
+.. [HRS] \J. Haglund, B. Rhoades, M. Shimozono. *Ordered set partitions,
+         generalized coinvariant algebras, and the Delta Conjecture*.
+         arXiv:`1609.07575`.of an ordered multiset partition
+.. [LM] \A. Lauve and M. Mastnak. *Bialgebra coverings and transfer
+        of structure*. :arXiv:`1803.02691`.
 
-EXAMPLES::
+EXAMPLES:
+
+An ordered multiset partition of the multiset `\{\{1, 3, 3, 5\}\}`::
 
     sage: OrderedMultisetPartition([[5, 3], [1, 3]])
     [{3,5}, {1,3}]
-    sage: list(OrderedMultisetPartitions(4))
+
+Ordered multiset partitions of the multiset `\{\{1, 3, 3\}\}`::
+
+    sage: OrderedMultisetPartitions([1,1,3]).list()
+    [[{1}, {1}, {3}], [{1}, {1,3}], [{1}, {3}, {1}], [{1,3}, {1}], [{3}, {1}, {1}]]
+
+Ordered multiset partitions of the integer 4::
+
+    sage: OrderedMultisetPartitions(4).list()
     [[{4}], [{1,3}], [{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{2}, {1}, {1}],
      [{1}, {3}], [{1}, {1,2}], [{1}, {2}, {1}], [{1}, {1}, {2}], [{1}, {1}, {1}, {1}]]
+
+Ordered multiset partitions on the alphabet `\{1, 4\}` of order 3::
+
     sage: OrderedMultisetPartitions([1,4], 3).list()
     [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
      [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
      [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
-    sage: OrderedMultisetPartitions([1,4], 3, length=2).list()
-    [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}]]
 
-AUTHORS:
+Crystal of ordered multiset partitions on the alphabet `\{1,2,3\}` with 4 letters
+divided into 2 blocks::
 
-- Aaron Lauve (2018)
+    sage: crystals.Minimaj(2, 4, 3).list()
+    [((2, 3, 1), (1,)), ((2, 3), (1, 2)), ((2, 3), (1, 3)), ((2, 1), (1, 2)),
+     ((3, 1), (1, 2)), ((3, 1, 2), (2,)), ((3, 1), (1, 3)), ((3, 1), (2, 3)),
+     ((3, 2), (2, 3)), ((2, 1), (1, 3)), ((2,), (1, 2, 3)), ((3,), (1, 2, 3)),
+     ((1,), (1, 2, 3)), ((1, 2), (2, 3)), ((1, 2, 3), (3,))]
 """
 #*****************************************************************************
 #       Copyright (C) 2018 Aaron Lauve       <lauve at math.luc.edu>
@@ -44,7 +64,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-
 from __future__ import absolute_import, division
 from six.moves import range
 from six import add_metaclass
@@ -89,7 +108,9 @@ class OrderedMultisetPartition(ClonableArray):
     Ordered Multiset Partition
 
     An ordered multiset partition `c` of a multiset `X` is a list of nonempty
-    subsets (not multisets), called the blocks of `c`, whose multi-union is `X`.
+    subsets of `X` (note: not sub-multisets), called the blocks of `c`,
+    whose multi-union is `X`.
+
 
     EXAMPLES:
 
@@ -117,10 +138,12 @@ class OrderedMultisetPartition(ClonableArray):
         ValueError: ordered multiset partitions do not have repeated entries
         within blocks ([[1, 1], [3, 5], [2, 1]] received)
 
-    TESTS::
 
-        sage: C = OrderedMultisetPartition([[3,1],[2]])
-        sage: TestSuite(C).run()
+    REFERENCES:
+
+    - [HRW]_
+    - [HRS]_
+    - [LM]_
     """
     @staticmethod
     def __classcall_private__(cls, co):
@@ -132,16 +155,16 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: OrderedMultisetPartition([[3], [2,1]])
             [{3}, {1,2}]
-            sage: mu = OrderedMultisetPartition([2, 3, 4, 5]); mu
+            sage: c = OrderedMultisetPartition([2, 3, 4, 5]); c
             [{2}, {3}, {4}, {5}]
-            sage: nu = OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1]); nu
+            sage: d = OrderedMultisetPartition([1, 0, 1, 3, 5, 0, 2, 1]); d
             [{1}, {1,3,5}, {1,2}]
 
         TESTS::
 
-            sage: mu.parent() == OrderedMultisetPartitions([2,3,4,5])
+            sage: c.parent() == OrderedMultisetPartitions([2,3,4,5])
             True
-            sage: nu.parent() == OrderedMultisetPartitions([1,1,1,2,3,5])
+            sage: d.parent() == OrderedMultisetPartitions([1,1,1,2,3,5])
             True
             sage: repr(OrderedMultisetPartition([]).parent())
             'Ordered Multiset Partitions of multiset {{}}'
@@ -166,18 +189,21 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: OMPs = OrderedMultisetPartitions()
-            sage: co = OMPs([[1,3], [1,'a']])
-            sage: OrderedMultisetPartition([[1,3], [1,'a']]) == co
+            sage: c = OrderedMultisetPartitions(7)([[1,3], [1,2]])
+            sage: OrderedMultisetPartition([[1,3], [1,2]]) == c
             True
 
         TESTS::
 
+            sage: TestSuite(c).run()
+
             sage: OMP = OrderedMultisetPartition
-            sage: co = OMP([[1,3], [1,'a']])
-            sage: TestSuite(co).run()
-            sage: co = OMP('abc0ab0a')
-            sage: TestSuite(co).run()
+            sage: c = OMP([[1, 3], [1, 'a', 'b']])
+            sage: TestSuite(c).run()
+
+            sage: c = OMP('abc0ab0a')
+            sage: TestSuite(c).run()
+
             sage: OMP([]) == OMP('')
             True
             sage: OMP([1,2,3,1]) == OMP([[1],[2],[3],[1]])
@@ -211,17 +237,16 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: OMP4 = OrderedMultisetPartitions(4)
-            sage: co = OMP4([[1], [1,2]])
-            sage: co.check()
+            sage: c = OrderedMultisetPartitions(4)([[1], [1,2]])
+            sage: c.check()
 
-            sage: OMP = OrderedMultisetPartitions()
-            sage: co = OMP([[1], [1], ['a']])
-            sage: co.check()
+            sage: OMPs = OrderedMultisetPartitions()
+            sage: c = OMPs([[1], [1], ['a']])
+            sage: c.check()
 
         TESTS::
 
-            sage: co = OMP([[1, 1], [1, 4]])
+            sage: c = OMPs([[1, 1], [1, 4]])
             Traceback (most recent call last):
             ...
             AssertionError: cannot convert [[1, 1], [1, 4]] into an element
@@ -296,16 +321,20 @@ class OrderedMultisetPartition(ClonableArray):
         """
         Return the concatenation of two ordered multiset partitions.
 
+        This operation represents the product in Hopf algebra of ordered multiset
+        partitions in its natural basis [LM]_.
+
         EXAMPLES::
 
-            sage: OrderedMultisetPartition([1, 1, 3]) + OrderedMultisetPartition([4, 1, 0, 2])
+            sage: OrderedMultisetPartition([1,1,3]) + OrderedMultisetPartition([4,1,0,2])
             [{1}, {1}, {3}, {1,4}, {2}]
 
         TESTS::
 
-            sage: OrderedMultisetPartition([]) + OrderedMultisetPartition([]) == OrderedMultisetPartition([])
+            sage: OMP = OrderedMultisetPartition
+            sage: OMP([]) + OMP([]) == OMP([])
             True
-            sage: OrderedMultisetPartition([1,0,1,0,3]) + OrderedMultisetPartition([1,4,0,2]) == OrderedMultisetPartition([{1}, {1}, {3}, {1,4}, {2}])
+            sage: OMP([1,0,1,0,3]) + OMP([1,4,0,2]) == OMP([{1}, {1}, {3}, {1,4}, {2}])
             True
         """
         co = list(self) + list(other)
@@ -370,18 +399,12 @@ class OrderedMultisetPartition(ClonableArray):
     def letters(self):
         r"""
         Return the set of distinct elements occurring within the blocks of ``self``.
-
-        .. SEEALSO::
-
-            :meth:`Words.letters`
         """
         return _union_of_sets(list(self))
 
     def multiset(self, as_dict=False):
         r"""
         Return the multiset corresponding to ``self`` as a tuple or as a dictionary.
-
-        Counts frequency of each letter in ``self.letters()``
 
         EXAMPLES::
 
@@ -419,7 +442,9 @@ class OrderedMultisetPartition(ClonableArray):
 
     def size(self):
         """
-        Return the size of ``self``, that is the sum of all integers in all blocks.
+        Return the size of ``self`` (that is, the sum of all integers in all blocks)
+        if ``self`` is a list of subsets of positive integers.
+
         Else, return ``None``.
 
         EXAMPLES::
@@ -444,7 +469,7 @@ class OrderedMultisetPartition(ClonableArray):
 
     def order(self):
         """
-        Return the total number of integers in all blocks.
+        Return the total number of elements in all blocks.
 
         EXAMPLES::
 
@@ -510,13 +535,16 @@ class OrderedMultisetPartition(ClonableArray):
 
     def deconcatenate(self, k=2):
         """
-        Choose `k-1` cut points to deconcatenate the ordered list ``self`` into
-        k (possibly) empty lists. (A "balls and boxes" operation.)
+        Return the set of `k`-deconcatenations of ``self``.
 
-        This is not to be confused with ``self.split()``,
-        which splits each block of ``self`` before making k-tuples of ordered multiset partitions.
+        A `k`-tuple `(C_1, \ldots, C_k)` of ordered multiset partitions represents
+        a `k`-deconcatenation of an ordered multiset partition `C` if
+        `C_1 + \cdots + C_k = C`.
 
-        Returns a set of k-tuples of ordered multiset partitions.
+        .. NOTE::
+
+            This is not to be confused with ``self.split()``, which splits each block
+            of ``self`` before making `k`-tuples of ordered multiset partitions.
 
         EXAMPLES::
 
@@ -547,17 +575,17 @@ class OrderedMultisetPartition(ClonableArray):
 
     def split(self, k=2):
         """
-        Return a set of `k`-tuples of ordered multiset partitions, each member of which is
-        formed by first splitting each block of ``self`` into `k` (possibly empty) sets.
+        Return the set of `k`-splittings of ``self``.
 
-        First: form a `k`-splitting `(b_i^1,\ldots, b_i^k)` for each block `B_i`
-        of ``self``; that is, `b_i^1 \cup \ldots \cup b_i^k = B_i`.
-        Next, the `k`-tuple `(A_1, \ldots, A_k)` is formed by first creating (for all `j`),
-        the list `[b_1^j, b_2^j, \ldots]`, then excising any empty sets `b_i^j` appearing
-        here before creating the ordered multiset partition `A_j`.
+        A `k`-tuple `(A^1, \ldots, A^k)` of ordered multiset partitions represents
+        a `k`-splitting of an ordered multiset partition `A=[b_1, \ldots, b_r]` if
+        one can express each block `b_i` as an (ordered) disjoint union of sets
+        `b_i = b^1_i \sqcup \cdots \sqcup b^k_i` (some possibly empty) so that
+        each `A^j` is the ordered multiset partition corresponding to the list
+        `[b^j_1, b^j_2, \ldots, b^j_r]`, excising empty sets appearing therein.
 
-        This is not to be confused with ``self.deconcatenate()``, which serves as
-        the preimage of the ``+`` operation on ordered multiset partitions.
+        This operation represents the coproduct in Hopf algebra of ordered multiset
+        partitions in its natural basis [LM]_.
 
         EXAMPLES::
 
@@ -598,11 +626,13 @@ class OrderedMultisetPartition(ClonableArray):
         """
         Return the set of ordered multiset partitions that are finer than ``self``.
 
-        An ordered multiset partition `A` is finer than another `B` if, reading left-to-right,
-        every block of `B` is the union of some consecutive blocks of `A`.
+        An ordered multiset partition `A` is finer than another `B` if,
+        reading left-to-right, every block of `B` is the union of some consecutive
+        blocks of `A`.
 
-        If optional argument ``strong`` is set to ``True``, then return only those `A`
-        where blocks are deconcatenation of blocks of `B`.
+        If optional argument ``strong`` is set to ``True``, then return only those
+        `A` whose blocks are deconcatenations of blocks of `B`. (Here, we view
+        blocks of `B` as sorted lists instead of sets.)
 
 
         EXAMPLES::
@@ -661,8 +691,9 @@ class OrderedMultisetPartition(ClonableArray):
 
     def fatten(self, grouping):
         r"""
-        Return the ordered multiset partition fatter than ``self``, obtained by grouping
-        together consecutive parts according to ``grouping`` (whenever this does not violate the strictness condition).
+        Return the ordered multiset partition fatter than ``self``, obtained by
+        grouping together consecutive parts according to ``grouping`` (whenever
+        this does not violate the strictness condition).
 
         INPUT:
 
@@ -680,14 +711,16 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C.fatten([1,1,1])
             [{1,4,5}, {2}, {1,7}]
 
-        With ``grouping`` equal to `(2,1)` or `(1,2)`, a union of consecutive parts is achieved::
+        With ``grouping`` equal to `(2,1)` or `(1,2)`, a union of consecutive parts
+        is achieved::
 
             sage: C.fatten([2,1])
             [{1,2,4,5}, {1,7}]
             sage: C.fatten([1,2])
             [{1,4,5}, {1,2,7}]
 
-        However, the ``grouping`` `(3)` will throw an error, as `1` cannot appear twice in any block of ``C``::
+        However, the ``grouping`` `(3)` will throw an error, as `1` cannot appear twice
+        in any block of ``C``::
 
             sage: C.fatten(Composition([3]))
             Traceback (most recent call last):
@@ -721,8 +754,9 @@ class OrderedMultisetPartition(ClonableArray):
         """
         Return the set of ordered multiset partitions which are fatter than ``self``.
 
-        An ordered multiset partition `A` is fatter than another `B` if, reading left-to-right,
-        every block of `A` is the union of some consecutive blocks of `B`.
+        An ordered multiset partition `A` is fatter than another `B` if, reading
+        left-to-right, every block of `A` is the union of some consecutive blocks
+        of `B`.
 
         EXAMPLES::
 
@@ -758,40 +792,41 @@ class OrderedMultisetPartition(ClonableArray):
 
         We define `minimaj` via an example:
 
-        1. Sort the block in ``self`` as prescribed by ``self.minimaj_ordering()``,
+        1. Sort the block in ``self`` as prescribed by ``self.minimaj_word()``,
            keeping track of the original separation into blocks.
            - in:   [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
-           - out:  [ 5,7,1 /  2,4 /  5,6 /  4,6,8 /  3,1 /  1,2,3 ]
+           - out:  ( 5,7,1 /  2,4 /  5,6 /  4,6,8 /  3,1 /  1,2,3 )
 
         2. Record the indices where descents in this word occur.
-           - word:      [5, 7, 1 / 2, 4 / 5, 6 / 4, 6, 8 / 3, 1 / 1, 2, 3]
+           - word:      (5, 7, 1 / 2, 4 / 5, 6 / 4, 6, 8 / 3, 1 / 1, 2, 3)
            - indices:    1  2  3   4  5   6  7   8  9 10  11 12  13 14 15
            - descents:  {   2,               7,       10, 11             }
 
         3. Compute the sum of the descents
            - minimaj = 2 + 7 + 10 + 11 = 30
 
-        See:
-        [HRWxx] - arXiv:1509.07058
+        REFERENCES:
+
+        - [HRW]_
 
         EXAMPLES::
 
             sage: C = OrderedMultisetPartition([{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}])
             sage: C, C.minimaj_word()
             ([{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}],
-             [5, 7, 1, 2, 4, 5, 6, 4, 6, 8, 3, 1, 1, 2, 3])
+             (5, 7, 1, 2, 4, 5, 6, 4, 6, 8, 3, 1, 1, 2, 3))
             sage: C.minimaj()
             30
             sage: C = OrderedMultisetPartition([{2,4}, {1,2,3}, {1,6,8}, {2,3}])
             sage: C, C.minimaj_word()
-            ([{2,4}, {1,2,3}, {1,6,8}, {2,3}], [2, 4, 1, 2, 3, 6, 8, 1, 2, 3])
+            ([{2,4}, {1,2,3}, {1,6,8}, {2,3}], (2, 4, 1, 2, 3, 6, 8, 1, 2, 3))
             sage: C.minimaj()
             9
             sage: OrderedMultisetPartition([]).minimaj()
             0
             sage: C = OrderedMultisetPartition('bd0abc0b')
             sage: C, C.minimaj_word()
-            ([{'b','d'}, {'a','b','c'}, {'b'}], ['d', 'b', 'c', 'a', 'b', 'b'])
+            ([{'b','d'}, {'a','b','c'}, {'b'}], ('d', 'b', 'c', 'a', 'b', 'b'))
             sage: C.minimaj()
             4
         """
@@ -800,9 +835,29 @@ class OrderedMultisetPartition(ClonableArray):
 
     def minimaj_word(self):
         r"""
-        Return an ordering of ``self._multiset`` derived by concatenating the blocks of
-        ``self`` after first ordering them in a prescribed order, which we define
-        via an example below.
+        Return an ordering of ``self._multiset`` derived from the minimaj ordering
+        on blocks of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`OrderedMultisetPartition.minimaj_blocks()`.
+
+        EXAMPLES::
+
+            sage: C = OrderedMultisetPartition([2,1,0,1,2,3,0,1,2,0,3,0,1]); C
+            [{1,2}, {1,2,3}, {1,2}, {3}, {1}]
+            sage: C.minimaj_blocks()
+            ((1, 2), (2, 3, 1), (1, 2), (3,), (1,))
+            sage: C.minimaj_word()
+            (1, 2, 2, 3, 1, 1, 2, 3, 1)
+        """
+        return _concatenate(self.minimaj_blocks())
+
+    def minimaj_blocks(self):
+        r"""
+        Return the minimaj ordering on blocks of ``self``.
+
+        We define the ordering via the example below.
 
         Sort the blocks `[B_1,...,B_k]` of ``self`` from right to left via:
 
@@ -817,25 +872,15 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: C = OrderedMultisetPartition([2,1,0,1,2,3,0,1,2,0,3,0,1]); C
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}]
-            sage: C.minimaj_word()
-            [1, 2, 2, 3, 1, 1, 2, 3, 1]
-            sage: C = OrderedMultisetPartition([{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]); C
+            sage: OrderedMultisetPartition([1,5,7,0,2,4,0,5,6,0,4,6,8,0,1,3,0,1,2,3])
             [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
-            sage: C.minimaj_word()
-            [5, 7, 1, 2, 4, 5, 6, 4, 6, 8, 3, 1, 1, 2, 3]
-            sage: OrderedMultisetPartition([]).minimaj_word()
-            []
-        """
-        return [_ for block in self.minimaj_blocks() for _ in block]
-
-    def minimaj_blocks(self):
-        r"""
-        Return the ordering on blocks of ``self`` leading to ``self.minimaj_word()``.
+            sage: _.minimaj_blocks()
+            ((5, 7, 1), (2, 4), (5, 6), (4, 6, 8), (3, 1), (1, 2, 3))
+            sage: OrderedMultisetPartition([]).minimaj_blocks()
+            ()
         """
         if len(self) == 0:
-            return []
+            return ()
 
         C = [sorted(self[-1])]
         for i in range(1,len(self)):
@@ -850,19 +895,22 @@ class OrderedMultisetPartition(ClonableArray):
 
     def to_tableau(self):
         r"""
-        Return a sequence of row words corresponding to (skew-)tableaux.
+        Return a sequence of lists corresponding to row words of (skew-)tableaux.
 
-        Output is the minimaj bijection `\varphi` of [BCHOPSYxx]_
-        applied to ``self``.
+        Output is the minimaj bijection `\varphi` of Benkart, et al. applied to ``self``.
 
         .. TODO::
 
             Implement option for mapping to sequence of (skew-)tableaux?
 
+        REFERENCES:
+
+        - [BCHOPSY]_
+
         EXAMPLES::
 
-            sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
-            sage: OrderedMultisetPartition(mu).to_tableau()
+            sage: co = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
+            sage: OrderedMultisetPartition(co).to_tableau()
             [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
         """
         if not self:
@@ -880,7 +928,10 @@ class OrderedMultisetPartition(ClonableArray):
 
     def major_index(self):
         r"""
-        A statistic on ordered multiset partitions, which we define via an example.
+        Return the major index of ``self``.
+
+        The major index is a statistic on ordered multiset partitions, which
+        we define here via an example.
 
         1. Sort each block in the list ``self`` in descending order to create
            a word `w`, keeping track of the original separation into blocks:
@@ -905,9 +956,9 @@ class OrderedMultisetPartition(ClonableArray):
                   v: (0 0, 0, 1, 1, 1, 2, 3, 3, 4)
            - maj :=     0 +0    +1 +1 +2    +3     = 7
 
-        See:
+        REFERENCES:
 
-        [Wil16] -  An extension of MacMahon's equidistribution theorem to ordered multiset partitions
+        - [HRW]_
 
         EXAMPLES::
 
@@ -931,29 +982,19 @@ class OrderedMultisetPartition(ClonableArray):
         maj = [v[j+1] for j in range(len(w)-1) if w[j] > w[j+1]]
         return sum(maj)
 
-    def _multiset_partition(self):
-        """
-        Return the (strict) (unordered) multiset partition, realized as a list of sets
-        (built by sorting ``self`` by block size and least element in each block).
-
-        EXAMPLES::
-
-            sage: C = OrderedMultisetPartition([2,1,0,1,2,3,0,1,2,0,3,0,1]); C
-            [{1,2}, {1,2,3}, {1,2}, {3}, {1}]
-            sage: C._multiset_partition()
-            [{1}, {3}, {1, 2}, {1, 2}, {1, 2, 3}]
-        """
-        return sorted(self, key=lambda x: (len(x),min(x)))
-
-
     def shuffle_product(self, other, overlap=False):
         r"""
-        Return the shuffles (with multiplicity) of parts of ``self`` with parts of ``other``.
-        In case overlap is True, it also takes the union of adjacent disjoint parts (one from ``self`` and the other from ``other``)
+        Return the shuffles (with multiplicity) of blocks of ``self``
+        with blocks of ``other``.
+
+        In case optional argument ``overlap`` is ``True``, instead return the allowable
+        overlapping shuffles. An overlapping shuffle `C` is allowable if, whenever one
+        of its blocks `c` comes from the union `c = a \cup b` of a block of ``self``
+        and a block of ``other``, then this union is disjoint.
 
         .. SEEALSO::
 
-            :meth:`Composition.shuffle`
+            :meth:`Composition.shuffle_product()`
 
         EXAMPLES::
 
@@ -1073,12 +1114,14 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     Ordered Multiset Partitions
 
     An ordered multiset partition `c` of a multiset `X` is a list of nonempty subsets
-    (not multisets), called the blocks of `c`, whose multi-union is `X`.
+    (not multisets), called the *blocks* of `c`, whose multi-union is `X`.
 
-    Alternatively:
-    An ordered multiset partition `c` of a nonnegative integer `n` is a list of
-    subsets of positive integers (called blocks) with total sum of all integers
-    appearing in all blocks equal to `n`.
+    The number of blocks of `c` is called its *length*. The *order* of `c` is the
+    cardinality of the multiset `X`. If, additionally, `X` is a multiset of positive
+    integers, then the *size* of `c` represents the sum of all elements of `X`.
+
+    The user may wish to focus on ordered multiset partitions of a given size, or
+    over a given alphabet. Hence, this class allows a variety of arguments as input.
 
     INPUT:
 
@@ -1087,26 +1130,28 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         + `X` -- a dictionary (representing a multiset for `c`),
                   or an integer (representing the size of `c`)
     - Two Arguments:
-        + `alph` -- a list (representing allowable letters within `c`),
+        + `alph` -- a list (representing allowable letters within blocks of `c`),
                     or a positive integer (representing the maximal allowable letter)
         + `ord`  -- a nonnegative integer (the total number of letters within `c`)
 
     Optional keyword arguments are as follows:
     (See corresponding methods in see :class:`OrderedMultisetPartition` for more details.)
 
-    - ``weight=X``     (iterable or dictionary `X`) specifies the multiset for `c`
-    - ``size=n``       (integer `n`) specifies sum of integers across all blocks in the partition
+    - ``weight=X``     (list or dictionary `X`) specifies the multiset for `c`
+    - ``size=n``       (integer `n`) specifies the size of `c`
     - ``alphabet=S``   (iterable `S`) specifies allowable elements for the blocks of `c`
     - ``length=k``     (integer `k`) specifies the number of blocks in the partition
     - ``min_length=k`` (integer `k`) specifies minimum number of blocks in the partition
     - ``max_length=k`` (integer `k`) specifies maximum number of blocks in the partition
-    - ``order=n``      (integer `n`) specifies the number of integers in the partition (=sum of cardinalities of its blocks)
-    - ``min_order=n``  (integer `n`) specifies minimum number of integers in the partition (=sum of cardinalities of its blocks)
-    - ``max_order=n``  (integer `n`) specifies maximum number of integers in the partition (=sum of cardinalities of its blocks)
+    - ``order=n``      (integer `n`) specifies the cardinality of the multiset that `c` partitions
+    - ``min_order=n``  (integer `n`) specifies minimum number of elements in the partition
+    - ``max_order=n``  (integer `n`) specifies maximum number of elements in the partition
 
     EXAMPLES:
 
-    There are 5 ordered multiset partitions of multiset `{{1, 1, 4}}`::
+    Passing one argument to ``OrderedMultisetPartitions``:
+
+    There are 5 ordered multiset partitions of the multiset `\{\{1, 1, 4\}\}`::
 
         sage: OrderedMultisetPartitions([1,1,4]).cardinality()
         5
@@ -1116,7 +1161,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions([1,1,4]).list()
         [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
 
-    There are 5 ordered multiset partitions of integer 3::
+    By chance, there are also 5 ordered multiset partitions of the integer 3::
 
         sage: OrderedMultisetPartitions(3).cardinality()
         5
@@ -1126,21 +1171,22 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions(3).list()
         [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
 
-    You can use the ``.first()`` method to get the 'first' ordered multiset partition of
-    a number::
+    Passing two argument to ``OrderedMultisetPartitions``:
 
-        sage: OrderedMultisetPartitions(3).first()
-        [{3}]
+    There are also 5 ordered multiset partitions of order 2 over the alphabet `\{1, 4\}`::
 
-    You can also calculate the 'next' ordered multiset partition given the current
-    one::
+        sage: OrderedMultisetPartitions([1, 4], 2)
+        Ordered Multiset Partitions of order 2 over alphabet {1, 4}
+        sage: OrderedMultisetPartitions([1, 4], 2).cardinality()
+        5
 
-        sage: P = OrderedMultisetPartitions(3)
-        sage: P.next(P([[2],[1]]))
-        [{1}, {2}]
+    Here is the list of them:
 
-    If no arguments are specified, this returns the combinatorial class of
-    all ordered multiset partitions::
+        sage: OrderedMultisetPartitions([1, 4], 2).list()
+        [[{1,4}], [{1}, {1}], [{1}, {4}], [{4}, {1}], [{4}, {4}]]
+
+    If no arguments are passed to ``OrderedMultisetPartitions``, then the code returns
+    the combinatorial class of all ordered multiset partitions::
 
         sage: OrderedMultisetPartitions()
         Ordered Multiset Partitions
@@ -1155,25 +1201,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: [[2], [3,3]] in OrderedMultisetPartitions()
         False
 
-    If `n` is specified, it returns the class of ordered multiset partitions of `n`::
-
-        sage: OrderedMultisetPartitions(3)
-        Ordered Multiset Partitions of integer 3
-        sage: list(OrderedMultisetPartitions(3))
-        [[{3}], [{1,2}], [{2}, {1}], [{1}, {2}], [{1}, {1}, {1}]]
-        sage: OrderedMultisetPartitions(3).cardinality()
-        5
-
-    If, alternatively, two arguments `alpha` and `ord` are specified, it returns the class of
-    ordered multiset partitions of order `ord` over the alphabet `alph`::
-
-        sage: OrderedMultisetPartitions([1, 4], 2)
-        Ordered Multiset Partitions of order 2 over alphabet {1, 4}
-        sage: list(OrderedMultisetPartitions([1, 4], 2))
-        [[{1,4}], [{1}, {1}], [{1}, {4}], [{4}, {1}], [{4}, {4}]]
-        sage: OrderedMultisetPartitions([1, 4], 2).cardinality()
-        5
-
     The following examples show how to test whether or not an object
     is an ordered multiset partition::
 
@@ -1186,10 +1213,12 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: [[3,2],[2]] in OrderedMultisetPartitions(5)
         False
 
-    The options ``length``, ``min_length``, and ``max_length`` can be used
-    to set length constraints on the ordered multiset partitions. For example, the
-    ordered multiset partitions of 4 of length equal to, at least, and at most 2 are
-    given by::
+    Specifying optional arguments:
+
+    - The options ``length``, ``min_length``, and ``max_length`` can be used
+      to set length constraints on the ordered multiset partitions. For example, the
+      ordered multiset partitions of 4 of length equal to, at least, and at most 2 are
+      given by::
 
         sage: OrderedMultisetPartitions(4, length=2).list()
         [[{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}], [{1}, {1,2}]]
@@ -1198,10 +1227,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions(4, max_length=2).list()
         [[{4}], [{1,3}], [{3}, {1}], [{1,2}, {1}], [{2}, {2}], [{1}, {3}], [{1}, {1,2}]]
 
-    The option ``alphabet`` constrains which integers appear across all blocks of
-    the ordered multiset partition. For example, the ordered multiset partitions of 4
-    are listed for different choices of alphabet below. Note that ``alphabet``
-    is allowed to be an integer or an iterable::
+    - The option ``alphabet`` constrains which integers appear across all blocks of
+      the ordered multiset partition. For example, the ordered multiset partitions of 4
+      are listed for different choices of alphabet below. Note that ``alphabet``
+      is allowed to be an integer or an iterable::
 
         sage: OMPs = OrderedMultisetPartitions
         sage: OMPs(4, alphabet=3).list()
@@ -1221,10 +1250,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OMPs(4, alphabet=4).list() == OMPs(4).list()
         True
 
-    The option ``weight`` can also be used to constrain the ordered multiset partitions.
-    It is a refinement of ``alphabet`` in that it specifies the number of times each integer
-    appears. In principle, it is a dictionary, but weak compositions are also allowed.
-    For example, the ordered multiset partitions of 4 are listed by weight below::
+    - The option ``weight`` specifies which multiset `X` is to be considered, if it was
+      not passed as one of the required arguments for ``OrderedMultisetPartitions``.
+      In principle, it is a dictionary, but weak compositions are also allowed.
+      For example, the ordered multiset partitions of 4 are listed by weight below::
 
         sage: OrderedMultisetPartitions(4, weight=[0,0,0,1])
         Ordered Multiset Partitions of integer 4 with constraint: weight={4: 1}
@@ -1245,8 +1274,14 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions(4, weight=[4]).list()
         [[{1}, {1}, {1}, {1}]]
 
-    The ``order`` options are coarse versions of ``weight`` when the multiset is not
-    specified. The ordered multiset partitions of integer 4 are listed by order below::
+      This option is ignored if a multiset `X` is passed as a required argument::
+
+        sage: OrderedMultisetPartitions([1,4], weight={1:3, 2:1}).list()
+        [[{1}, {4}], [{1,4}], [{4}, {1}]]
+
+    - The (max/min) ``order`` options place constraints on ordered multiset partitions
+      when the multiset `X` is not given as required argument or via the ``weight``
+      keyword. The ordered multiset partitions of integer 4 are listed by order below::
 
         sage: OrderedMultisetPartitions(4, order=1).list()
         [[{4}]]
@@ -1256,18 +1291,25 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         [[{1,2}, {1}], [{2}, {1}, {1}], [{1}, {1,2}], [{1}, {2}, {1}], [{1}, {1}, {2}]]
         sage: OrderedMultisetPartitions(4, order=4).list()
         [[{1}, {1}, {1}, {1}]]
+
+      And here is a use of ``max_order``, giving the ordered multiset partitions of
+      integer 4 with order 1 or 2::
+
         sage: OrderedMultisetPartitions(4, max_order=2).list()
         [[{4}], [{1,3}], [{3}, {1}], [{2}, {2}], [{1}, {3}]]
 
-    An explicit use of keyword ``order`` is overwritten if it is also implicitly
-    provided by the user via the required arguments::
+      An explicit use of keyword ``order`` is ignored if the order is also implicitly
+      provided by the user via other required (or keyword argument ``weight``). In
+      each example below, the order must be 3, so the call ``order=2`` is ignored::
 
-        sage: OrderedMultisetPartitions([1,1,4], order=2).list() # order should be three
+        sage: OrderedMultisetPartitions([1,1,4], order=2).list()
         [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
-        sage: OrderedMultisetPartitions([1,4], 3, order=2).list() # order should be three
+        sage: OrderedMultisetPartitions([1,4], 3, order=2).list()
         [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
          [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
          [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
+        sage: OrderedMultisetPartitions(6, weight=[2,0,0,1], order=2).list()
+        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
 
     TESTS::
 
@@ -1279,7 +1321,15 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     @staticmethod
     def __classcall_private__(self, *args, **constraints):
         """
-        Return the correct parent based upon the input.
+        Return the correct parent based upon the input:
+
+            * :class:`OrderedMultisetPartitions_all_constraints`
+            * :class:`OrderedMultisetPartitions_X`
+            * :class:`OrderedMultisetPartitions_X_constraints`
+            * :class:`OrderedMultisetPartitions_n`
+            * :class:`OrderedMultisetPartitions_n_constraints`
+            * :class:`OrderedMultisetPartitions_A`
+            * :class:`OrderedMultisetPartitions_A_constraints`
 
         EXAMPLES::
 
@@ -1566,7 +1616,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
     def from_list(self, lst):
         """
-        Return an ordered multiset partition `c` into singleton blocks, whose singletons
+        Return an ordered multiset partition of singleton blocks, whose singletons
         are the elements `lst`.
 
         INPUT:
@@ -2522,16 +2572,16 @@ def _to_minimaj_blocks(T):
 
     Input: a sequence ``T`` of row words corresponding to (skew-)tableaux.
 
-    Output: the minimaj bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``T``.
+    Output: the minimaj bijection `\varphi^{-1}` of [BCHOPSY]_ applied to ``T``.
 
     EXAMPLES::
 
         sage: from sage.combinat.multiset_partition_ordered import _to_minimaj_blocks
-        sage: mu = OrderedMultisetPartitions(14).an_element(); mu
+        sage: co = OrderedMultisetPartitions(14).an_element(); co
         [{2,3}, {2,3}, {4}]
-        sage: mu.to_tableau()
+        sage: co.to_tableau()
         [[3, 2], [], [3, 2, 4]]
-        sage: _to_minimaj_blocks(mu.to_tableau()) == mu.minimaj_blocks()
+        sage: _to_minimaj_blocks(co.to_tableau()) == co.minimaj_blocks()
         True
     """
     mu = [(i,) for i in T[-1]]
@@ -2551,9 +2601,18 @@ class MinimajCrystal(UniqueRepresentation, Parent):
     Crystal of ordered multiset partitions with `ell` letters from alphabet
     `\{1,2,...,n\}` divided into `k` blocks.
 
-    Elements are stored as tableau via the bijection `\varphi` of [BCHOPSYxx], but
-    represented as ordered multiset partitions in the minimaj ordering on blocks.
+    Elements are represented in the minimaj ordering of blocks as in Benkart, et al.
 
+    .. NOTES:
+
+    - Elements are not stored internally as ordered multiset partitions, but as words
+      according to the minimaj bijection `\varphi` of Benkart, et al.
+
+    - Initial draft of code provided by Anne Schilling.
+
+    REFERENCES:
+
+    - [BCHOPSY]_
 
     EXAMPLES::
 
@@ -2580,13 +2639,13 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         self._BT = (B, T)
         self._OMPs = OrderedMultisetPartitions(n, ell, length=k)
         self.module_generators = []
-        for b in self._OMPs:
-            t = b.to_tableau()
+        for co in self._OMPs:
+            t = co.to_tableau()
+            word = T(*[B(a) for a in _concatenate(t)])
             blocks = [len(h) for h in t]
             breaks = tuple(_partial_sum(blocks))
-            wp = (T(*[B(a) for a in _concatenate(t)]), breaks)
-            b = self.element_class(self, wp)
-            self.module_generators.append(b)
+            mu = self.element_class(self, (word, breaks))
+            self.module_generators.append(mu)
 
     def _repr_(self):
         """
@@ -2631,7 +2690,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     def from_tableau(self, t):
         r"""
-        Return the bijection `\varphi^{-1}` of [BCHOPSYxx]_ applied to ``t``.
+        Return the bijection `\varphi^{-1}` of [BCHOPSY]_ applied to ``t``.
 
         EXAMPLES::
 
@@ -2666,7 +2725,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
         EXAMPLES:
 
-        Verifying Example 4.5 from [BCHOPSYxx]_::
+        Verifying Example 4.5 from [BCHOPSY]_::
 
             sage: B = crystals.Minimaj(2, 4, 3) # for `Val_{4,1}^{(3)}`
             sage: B.val()
@@ -2690,7 +2749,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                 `1` up to ``self.parent().n``;
             - `breaks` is a list of de-concatenation points to turn `w` into a list
                 of row words of (skew-)tableaux that represent `b` under the minimaj
-                bijection `\varphi` of [BCHOPSYxx]_.
+                bijection `\varphi` of [BCHOPSY]_.
             The pair `(w, breaks)` may be recovered via ``b.value``
         """
         def _repr_(self):
@@ -2716,13 +2775,15 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         def to_tableau(self):
             r"""
             Return the image of the ordered multiset partition ``self`` under
-            the minimaj bijection `\varphi` of [BCHOPSYxx].
+            the minimaj bijection `\varphi` of [BCHOPSY]_.
 
             EXAMPLES::
 
-                sage: mu = ((1,2,4),(4,5),(3,),(4,6,1),(2,3,1),(1,),(2,5))
-                sage: OrderedMultisetPartition(mu).to_tableau()
-                [[5, 1], [3, 1], [6], [5, 4, 2], [1, 4, 3, 4, 2, 1, 2]]
+                sage: B = crystals.Minimaj(3,5,4)
+                sage: b = B.an_element(); b
+                ((4, 1, 3), (3,), (3,))
+                sage: b.to_tableau()
+                [[3, 1], [], [4, 3, 3]]
             """
             w, breaks = self.value
             return [[ZZ(w[a].value) for a in range(breaks[j], breaks[j+1])]

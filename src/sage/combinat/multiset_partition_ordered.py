@@ -250,15 +250,35 @@ class OrderedMultisetPartition(ClonableArray):
             raise ValueError("{} not an element of {}".format(self, self.parent()))
 
     def _repr_(self):
+        """
+        Return a string representation of ``self.``
+        """
         return self._repr_tight()
 
     def _repr_normal(self):
+        r"""
+        Viewing ``self`` as a list `[A_1, \ldots, A_r]` of sets,
+        return the standard Sage string representation of `[A_1, \ldots, A_r]`.
+        """
         # TODO: simplify if/once ``_repr_`` method for ``Set`` sorts its elements.
         string_parts = map(lambda k: str(sorted(k)), self)
         string_parts = ", ".join(string_parts).replace("[","{").replace("]","}")
         return "[" + string_parts + "]"
 
     def _repr_tight(self):
+        r"""
+        Starting from the standard Sage string representation of ``self``
+        as a list `[A_1, \ldots, A_r]` of sets, return the shorter string
+        gotten by deleting spaces within ``rpr(A_i)``.
+
+        EXAMPLES::
+
+            sage: A = OrderedMultisetPartition([4,0,1,2,4,0,2,3,0,1])
+            sage: A._repr_normal()
+            [{4}, {1, 2, 4}, {2, 3}, {1}]
+            sage: A._repr_tight()
+            [{4}, {1,2,4}, {2,3}, {1}]
+        """
         repr = self._repr_normal()
         # eliminate spacing within blocks
         return repr.replace(", ", ",").replace("},{", "}, {")
@@ -1490,6 +1510,12 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         return "Ordered Multiset Partitions"
 
     def _constraint_repr_(self, cdict=None):
+        """
+        Return a string representation of all constraints
+        appearing within ``self.constraints``.
+
+        A helper method for ``self._repr_()``.
+        """
         if not cdict:
             cdict = self.constraints
         constr = ""
@@ -1578,6 +1604,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         return True
 
     def _satisfies_constraints(self, x):
+        """
+        Check whether or not ``x`` satisfies all of the constraints
+        appearing within ``self.full_constraints`` (Boolean output).
+        """
         X = _concatenate(x)
         co = OrderedMultisetPartitions(_get_weight(X))(x)
         def pass_test(co, (key,tst)):
@@ -1936,6 +1966,9 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         return self.element_class(self, map(Set, co))
 
     def __iter__(self):
+        """
+        Iterate over ``self``.
+        """
         return _iterator_size(self._n)
 
 class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
@@ -2089,6 +2122,9 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         return finer.random_element()
 
     def __iter__(self):
+        """
+        Iterate over ``self``.
+        """
         return _iterator_weight(weight=dict(self._X))
 
 class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
@@ -2224,6 +2260,9 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         return self.element_class(self, map(Set, co))
 
     def __iter__(self):
+        """
+        Iterate over ``self``.
+        """
         return _iterator_order(self._alphabet, self._order)
 
     def cardinality(self):
@@ -2541,6 +2580,20 @@ def _descents(w):
     return [j for j in range(len(w)-1) if w[j] > w[j+1]]
 
 def _break_at_descents(alpha, weak=True):
+    r"""
+    Return the deconcatenation of the composition ``alpha`` at its
+    set of descents.
+
+    Output is a list `[a_1, \ldots, a_r]` of nonempty lists whose
+    concatenation is ``list(alpha)`` with the property that
+    ``alpha[i] >= alpha[i+1]`` if and only if positions `i` and `i+1`
+    correspond to different lists. (Specifically, ``alpha[i]`` is
+    the last letter of some `a_j` and ``alpha[i+1]`` is the first
+    letter of `a_{j+1}`.)
+
+    If the optional argument ``weak`` is ``False``, then only make
+    breaks when ``alpha[i] > alpha[i+1]``.
+    """
     if not alpha:
         return []
 

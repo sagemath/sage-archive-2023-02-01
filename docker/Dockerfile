@@ -198,12 +198,13 @@ RUN make micro_release
 # interface if no parameters are passed in.                                    #
 ################################################################################
 FROM run-time-dependencies as sagemath
+ARG HOME=/home/sage
 ARG SAGE_ROOT=/home/sage/sage
 COPY --chown=sage:sage --from=make-release $SAGE_ROOT/ $SAGE_ROOT/
 # Put scripts to start gap, gp, maxima, ... in /usr/bin
-WORKDIR $SAGE_ROOT
-RUN sudo sage --nodotsage -c "install_scripts('/usr/bin')"
+RUN sudo $SAGE_ROOT/sage --nodotsage -c "install_scripts('/usr/bin')"
 COPY ./docker/entrypoint.sh /usr/local/bin/sage-entrypoint
+WORKDIR $HOME
 ENTRYPOINT ["/usr/local/bin/sage-entrypoint"]
 EXPOSE 8888
 CMD ["sage"]

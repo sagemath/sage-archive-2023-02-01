@@ -1530,12 +1530,12 @@ class RealChart(Chart):
             coord_var = SR.var(coord_symb, domain='real',
                                latex_name=coord_latex)
             assume(coord_var, 'real')
-            if xmin != -Infinity:
+            if not (xmin == -Infinity):
                 if xmin_included:
                     assume(coord_var >= xmin)
                 else:
                     assume(coord_var > xmin)
-            if xmax != Infinity:
+            if not (xmax == Infinity):
                 if xmax_included:
                     assume(coord_var <= xmax)
                 else:

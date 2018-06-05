@@ -48,6 +48,10 @@ Every push to our [GitLab repository](https://gitlab.com/sagemath/sage) triggers
 
 Have a look at `.circleci/` and `.gitlab-ci.yml` if you want to setup either continuous integration service for your own fork of the SageMath repository.
 
+# Report bugs and issues
+
+Please tell us of any bugs or omissions at our [Issue Tracker](https://trac.sagemath.org) or contact us through the [sage-support](https://groups.google.com/forum/#!forum/sage-support) or the [sage-devel](https://groups.google.com/forum/#!forum/sage-devel) mailing lists.
+
 # License
 
 The whole Sage software distribution is licensed under the General Public License, version 3. More details can be found in our [COPYING.txt](https://github.com/sagemath/sage/blob/master/COPYING.txt)

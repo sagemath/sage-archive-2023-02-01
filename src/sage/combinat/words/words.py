@@ -57,7 +57,7 @@ from sage.rings.all import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
-from sage.plot.misc import rename_keyword
+from sage.misc.decorators import rename_keyword
 
 
 def Words(alphabet=None, length=None, finite=True, infinite=True):

@@ -74,7 +74,7 @@ from .sage_eval import sage_eval, sageobj
 
 from .sage_input import sage_input
 
-lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"]) 
+lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"])
 lazy_import("sage.misc.cython", "cython_compile", "cython")
 
 from .persist import save, load, dumps, loads, db, db_save

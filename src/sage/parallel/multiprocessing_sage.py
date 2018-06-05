@@ -44,6 +44,7 @@ def pyprocessing(processes=0):
         processes = ncpus.ncpus()
     return partial(parallel_iter, processes)
 
+
 def parallel_iter(processes, f, inputs):
     """
     Return a parallel iterator.
@@ -68,13 +69,14 @@ def parallel_iter(processes, f, inputs):
     """
     from twisted.internet import reactor   # do not delete this (!)  -- see trac 8785
 
-    if processes == 0: processes = ncpus.ncpus()
+    if processes == 0:
+        processes = ncpus.ncpus()
     p = Pool(processes)
     fp = pickle_function(f)
 
-    result = p.imap_unordered(call_pickled_function, [ (fp, t) for t in inputs ])
+    result = p.imap_unordered(call_pickled_function,
+                              [(fp, t) for t in inputs])
     for res in result:
         yield res
     p.close()
     p.join()
-

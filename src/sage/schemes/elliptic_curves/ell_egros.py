@@ -420,9 +420,6 @@ def egros_get_j(S=[], proof=None, verbose=False):
             print("w = ", w, "=", w.factor())
             sys.stdout.flush()
         a6 = -1728*w
-        d2 = 0
-        d3 = 0
-        u0 = (2**d2)*(3**d3)
         E = EllipticCurve([0,0,0,0,a6])
         # This curve may not be minimal at 2 or 3, but the
         # S-integral_points function requires minimality at primes in

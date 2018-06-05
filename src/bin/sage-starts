@@ -9,7 +9,8 @@ fi
 
 echo
 echo "Testing that Sage starts..."
-echo "[`date +'%Y-%m-%d %H:%M:%S'`] `cat VERSION.txt 2>/dev/null`" | tee -a logs/start.log
+. src/bin/sage-version.sh
+echo "[`date +'%Y-%m-%d %H:%M:%S'`] $SAGE_VERSION_BANNER" | tee -a logs/start.log
 # This script is run by the top-level Makefile, so may be run by a
 # sysadmin.  We use --nodotsage so we don't force a .sage directory
 # in the sysadmin's HOME directory.

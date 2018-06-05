@@ -1219,9 +1219,9 @@ REFERENCES:
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
             Verlag, 2007.
 
-.. [GriRei16] Darij Grinberg, Victor Reiner,
+.. [GriRei18] Darij Grinberg, Victor Reiner,
               *Hopf Algebras in Combinatorics*,
-              :arxiv:`1409.8356v4`.
+              :arxiv:`1409.8356v5`.
 
 .. [GR2013] Darij Grinberg, Tom Roby. *Iterative properties of
             birational rowmotion*.
@@ -1653,6 +1653,11 @@ REFERENCES:
             Jacobi Elliptic Functions",
             preprint 2002. :arxiv:`math-ph/0201004`
 
+.. [KS2006] Atsuo Kuniba and Reiho Sakamoto,
+            *The Bethe ansatz in a periodic box-ball system and the
+            ultradiscrete Riemann theta function*, J. Stat. Mech.,
+            P09005 (2006).
+
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London
              Math. Soc. (2011) 83 (1): 96-120,
@@ -1665,6 +1670,10 @@ REFERENCES:
 
 .. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
             PhD thesis, University of Warwick, 2013.
+
+.. [KTT2006] \A. Kuniba, T. Takagi, and A. Takenouchi,
+             *Bethe ansatz and inverse scattering transform in a periodic
+             box-ball system*, Nuclear Phys. B **747**, no. 3 (2006), 354--397.
 
 .. [Kuh1987] \W. Kühnel, "Minimal triangulations of Kummer varieties",
              Abh. Math. Sem. Univ. Hamburg 57 (1987), 7-20.
@@ -2124,6 +2133,10 @@ REFERENCES:
             (accepted
             2016-06-12). http://www.optimization-online.org/DB_HTML/2015/10/5135.html. :doi:`10.1080/10556788.2016.1202246`
 
+.. [OS2018] Se-jin Oh and Travis Scrimshaw. *Categorical relations between
+            Langlands dual quantum affine algebras: Exceptional cases*.
+            Preprint: :arxiv:`1802.09253` (2018).
+
 .. [Oxl1992] James Oxley, *Matroid theory*, Oxford University
              Press, 1992.
 
@@ -2171,6 +2184,11 @@ REFERENCES:
                Planar lattices and planar graphs,
                Journal of Combinatorial Theory Series B,
                Vol 21, no. 1 (1976): 30-39.
+
+.. [PoiReu95] Stephane Poirier, Christophe Reutenauer,
+              *Algebres de Hopf de tableaux*,
+              Ann. Sci. Math. Quebec, 19 (1): 79--90.
+              http://www.lacim.uqam.ca/~christo/Publi%C3%A9s/1995/Alg%C3%A8bres%20de%20Hopf%20de%20tableaux.pdf
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.
@@ -2813,6 +2831,14 @@ REFERENCES:
 
 .. [YWHWXSW2014] \D. Ye, P. Wang, L. Hu, L. Wang, Y. Xie, S. Sun, and P. Wang,
                  *Panda v1*; in CAESAR Competition, (2014).
+
+.. [YT2002] \F. Yura and T. Tokihiro,
+            *On a periodic soliton cellular automaton*, J. Phys. A: Math. Gen.
+            **35** (2002) 3787-3801.
+
+.. [YYT2003] \D. Yoshihara, F. Yura, and T. Tokihiro,
+             *Fundamental cycle of a periodic box-ball system*, J. Phys. A:
+             Math. Gen. **36** (2003) 99-121.
 
 .. _ref-Z:
 

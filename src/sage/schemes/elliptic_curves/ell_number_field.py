@@ -2501,7 +2501,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         try:
             return self.gens_quadratic(**kwds)
         except ValueError:
-            _ = self.simon_two_descent(**kwds)
+            self.simon_two_descent(**kwds)
             return self._known_points
 
     def period_lattice(self, embedding):

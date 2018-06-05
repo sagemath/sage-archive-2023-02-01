@@ -329,7 +329,7 @@ from .dot2tex_utils import assert_have_dot2tex
 from sage.misc.decorators import options
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import random
-from sage.misc.superseded import deprecation, deprecated_function_alias
+from sage.misc.superseded import deprecation
 from sage.misc.lazy_import import LazyImport
 
 from sage.rings.integer_ring import ZZ
@@ -1810,7 +1810,7 @@ class GenericGraph(GenericGraph_pyx):
         loop will correspond to a zero column. In particular, it is not possible
         to recover the loops of an oriented graph from its incidence matrix.
 
-        See :wikipedia:`Incidence_Matrix` for more informations.
+        See :wikipedia:`Incidence_matrix` for more information.
 
         INPUT:
 

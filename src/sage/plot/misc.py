@@ -13,9 +13,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from functools import wraps
-
-from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
+from sage.ext.fast_eval import fast_float
 
 from sage.structure.element import is_Vector
 
@@ -207,10 +205,8 @@ def unify_arguments(funcs):
             pass
     return tuple(sorted(vars, key=lambda x: str(x))), tuple(sorted(free_variables, key=lambda x: str(x)))
 
-#For backward compatibility -- see #9907.
-from sage.misc.decorators import options, suboptions, rename_keyword
 
-def _multiple_of_constant(n,pos,const):
+def _multiple_of_constant(n, pos, const):
     """
     Function for internal use in formatting ticks on axes with
     nice-looking multiples of various symbolic constants, such

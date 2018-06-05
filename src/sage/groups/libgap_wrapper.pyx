@@ -160,6 +160,29 @@ class ParentLibGAP(SageObject):
         """
         return self._ambient is not None
 
+    def _Hom_(self, G, category=None, check=True):
+        r"""
+        Return the set of group homomorphisms from ``self`` to ``G``.
+
+        INPUT:
+
+        - ``G`` -- group; the codomain
+        - ``cat`` -- category
+
+        OUTPUT:
+
+        The set of homomorphisms from ``self`` to ``G``.
+
+        EXAMPLES::
+
+            sage: F.<a,b> = FreeGroup()
+            sage: F.Hom(F)
+            Set of Morphisms from Free Group on generators {a, b}
+             to Free Group on generators {a, b} in Category of groups
+        """
+        from sage.groups.libgap_morphism import GroupHomset_libgap
+        return GroupHomset_libgap(self, G, category=category, check=check)
+
     def _subgroup_constructor(self, libgap_subgroup):
         """
         Return the class of a subgroup.

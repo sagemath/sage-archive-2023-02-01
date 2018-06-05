@@ -1196,7 +1196,7 @@ class BinaryQF(SageObject):
         return None
 
 
-def BinaryQF_reduced_representatives(D, primitive_only=True):
+def BinaryQF_reduced_representatives(D, primitive_only=False):
     r"""
     Return representatives for the classes of binary quadratic forms
     of discriminant `D`.
@@ -1218,37 +1218,37 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
 
     EXAMPLES::
 
-        sage: BinaryQF_reduced_representatives(-4, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(-4)
         [x^2 + y^2]
 
-        sage: BinaryQF_reduced_representatives(-163, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(-163)
         [x^2 + x*y + 41*y^2]
 
-        sage: BinaryQF_reduced_representatives(-12, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(-12)
         [x^2 + 3*y^2, 2*x^2 + 2*x*y + 2*y^2]
 
-        sage: BinaryQF_reduced_representatives(-16, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(-16)
         [x^2 + 4*y^2, 2*x^2 + 2*y^2]
 
-        sage: BinaryQF_reduced_representatives(-63, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(-63)
         [x^2 + x*y + 16*y^2, 2*x^2 - x*y + 8*y^2, 2*x^2 + x*y + 8*y^2, 3*x^2 + 3*x*y + 6*y^2, 4*x^2 + x*y + 4*y^2]
 
     The number of inequivalent reduced binary forms with a fixed negative
     fundamental discriminant D is the class number of the quadratic field
     `\QQ(\sqrt{D})`::
 
-        sage: len(BinaryQF_reduced_representatives(-13*4, primitive_only=False))
+        sage: len(BinaryQF_reduced_representatives(-13*4))
         2
         sage: QuadraticField(-13*4, 'a').class_number()
         2
         sage: p=next_prime(2^20); p
         1048583
-        sage: len(BinaryQF_reduced_representatives(-p, primitive_only=False))
+        sage: len(BinaryQF_reduced_representatives(-p))
         689
         sage: QuadraticField(-p, 'a').class_number()
         689
 
-        sage: BinaryQF_reduced_representatives(-23*9, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(-23*9)
         [x^2 + x*y + 52*y^2,
         2*x^2 - x*y + 26*y^2,
         2*x^2 + x*y + 26*y^2,
@@ -1258,7 +1258,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
         6*x^2 - 3*x*y + 9*y^2,
         6*x^2 + 3*x*y + 9*y^2,
         8*x^2 + 7*x*y + 8*y^2]
-        sage: BinaryQF_reduced_representatives(-23*9)
+        sage: BinaryQF_reduced_representatives(-23*9, primitive_only=True)
         [x^2 + x*y + 52*y^2,
         2*x^2 - x*y + 26*y^2,
         2*x^2 + x*y + 26*y^2,
@@ -1268,7 +1268,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
 
     TESTS::
 
-        sage: BinaryQF_reduced_representatives(73, primitive_only=False)
+        sage: BinaryQF_reduced_representatives(73)
         [-6*x^2 + 5*x*y + 2*y^2,
         -6*x^2 + 7*x*y + y^2,
         -4*x^2 + 3*x*y + 4*y^2,
@@ -1289,7 +1289,7 @@ def BinaryQF_reduced_representatives(D, primitive_only=True):
         4*x^2 + 5*x*y - 3*y^2,
         6*x^2 + 5*x*y - 2*y^2,
         6*x^2 + 7*x*y - y^2]
-        sage: BinaryQF_reduced_representatives(76)
+        sage: BinaryQF_reduced_representatives(76, primitive_only=True)
         [-5*x^2 + 4*x*y + 3*y^2,
         -5*x^2 + 6*x*y + 2*y^2,
          -3*x^2 + 4*x*y + 5*y^2,

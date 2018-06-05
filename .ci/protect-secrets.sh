@@ -29,7 +29,7 @@ function encrypt {
 }
 
 for name in `awk 'END { for (name in ENVIRON) { print name; } }' < /dev/null`; do
-case "$name" in 
+case "$name" in
   SECRET_*)
     export $name="$(encrypt $name)"
     echo "Protected $name"

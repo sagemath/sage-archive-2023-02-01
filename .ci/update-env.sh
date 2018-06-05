@@ -23,7 +23,7 @@ set -ex
 # known bug in CI. The CI_MONKEY_PATCH could of course also curl a more
 # complicated script and execute that.
 if [ -n "$CI_MONKEY_PATCH" ]; then
-    SCRIPT=$(base64 -d <<< "$CI_MONKEY_PATCH")
+    SCRIPT=$(echo "$CI_MONKEY_PATCH" | base64 -d)
     $SCRIPT
 fi
 

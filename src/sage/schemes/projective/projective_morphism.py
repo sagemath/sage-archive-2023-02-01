@@ -541,7 +541,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2, y^2])
             sage: type(f.as_dynamical_system())
             <class 'sage.dynamics.arithmetic_dynamics.projective_ds.DynamicalSystem_projective_finite_field'>
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(RR, 1)
+            sage: f = DynamicalSystem([x^2 + y^2, y^2], P)
+            sage: g = f.as_dynamical_system()
+            sage: g is f
+            True
         """
+        from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
+        if isinstance(self, DynamicalSystem):
+            return self
         if not self.is_endomorphism():
             raise TypeError("must be an endomorphism")
         from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective

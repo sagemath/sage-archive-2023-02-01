@@ -415,24 +415,7 @@ cpdef __matrix_from_rows_of_matrices(X):
 
 
 cdef class Matrix_modn_dense_template(Matrix_dense):
-    def __cinit__(self, parent, entries, copy, coerce):
-        """
-        Create a new matrix.
-
-        EXAMPLES::
-
-            sage: A = random_matrix(GF(3),1000,1000)
-            sage: type(A)
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: A = random_matrix(Integers(10),1000,1000)
-            sage: type(A)
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: A = random_matrix(Integers(2^16),1000,1000)
-            sage: type(A)
-            <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
-        """
-        Matrix_dense.__init__(self, parent)
-
+    def __cinit__(self):
         cdef long p = self._base_ring.characteristic()
         self.p = p
         if p >= MAX_MODULUS:

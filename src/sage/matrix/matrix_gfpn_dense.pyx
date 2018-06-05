@@ -294,7 +294,6 @@ cdef Matrix_gfpn_dense new_mtx(Matrix_t* mat, Matrix_gfpn_dense template):
         MS = MatrixSpace(B, mat.Nor, mat.Noc, implementation=Matrix_gfpn_dense)
 
     ret = <Matrix_gfpn_dense>Matrix_gfpn_dense.__new__(Matrix_gfpn_dense, MS)
-    Matrix_dense.__init__(ret, MS)
     ret.Data = mat
     ret._converter = conv
     return ret
@@ -333,8 +332,9 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         TESTS::
 
+            sage: MS = MatrixSpace(GF(64), 0)
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
-            sage: Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
+            sage: Matrix_gfpn_dense.__new__(Matrix_gfpn_dense, MS)   # optional: meataxe
             []
             sage: M = None
             sage: M = Matrix_gfpn_dense(MatrixSpace(GF(64,'z'),4), None)  # optional: meataxe
@@ -405,7 +405,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 1]
         """
         ma = MatrixArgs_init(parent, entries)
-        Matrix_dense.__init__(self, ma.space)
         cdef long fl = ma.base.order()
         cdef long nr = ma.nrows
         cdef long nc = ma.ncols
@@ -471,7 +470,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: N is M
             False
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
-            sage: M = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
+            sage: M = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense, parent(M))  # optional: meataxe
             sage: copy(M)  # optional: meataxe
             Traceback (most recent call last):
             ...
@@ -1408,7 +1407,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         cdef Matrix_gfpn_dense OUT = self.fetch("left_kernel_matrix")
         if OUT is not None:
             return OUT
-        if self.Data == NULL:
+        if self.Data is NULL:
             raise ValueError("The matrix must not be empty")
         sig_on()
         mat = MatNullSpace(self.Data)
@@ -1738,18 +1737,17 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         ValueError: Inconsistent dimensions in this matrix pickle
         sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
-
     """
-    cdef Matrix_gfpn_dense OUT
-    OUT = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)
     if isinstance(f, (int, long)):
         # This is for old pickles created with the group cohomology spkg
-        Matrix_dense.__init__(OUT, MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense))
+        MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)
     else:
-        if f.nrows() != nr or f.ncols() != nc:
+        MS = f
+        if MS.nrows() != nr or MS.ncols() != nc:
             raise ValueError("Inconsistent dimensions in this matrix pickle")
-        Matrix_dense.__init__(OUT, f)
-        f = OUT._base_ring.order()
+        f = MS.base_ring().order()
+
+    OUT = <Matrix_gfpn_dense>Matrix_gfpn_dense.__new__(Matrix_gfpn_dense, MS)
     OUT.Data = MatAlloc(f, nr, nc)
     OUT._is_immutable = not m
     OUT._converter = FieldConverter(OUT._base_ring)

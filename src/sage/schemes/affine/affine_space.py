@@ -806,13 +806,13 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        OUTPUT: :class:`SchemeMorphism_polynomial_affine_space`
+        OUTPUT: :class:`DynamicalSystem_affine`
 
         EXAMPLES::
 
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: A.chebyshev_polynomial(5, 'first')
-            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
+            Dynamical System of Affine Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x) to
             (16*x^5 - 20*x^3 + 5*x)
 
@@ -820,7 +820,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
             sage: A.<x> = AffineSpace(QQ, 1)
             sage: A.chebyshev_polynomial(3, 'second')
-            Scheme endomorphism of Affine Space of dimension 1 over Rational Field
+            Dynamical System of Affine Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x) to
             (8*x^3 - 4*x)
 
@@ -853,11 +853,11 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         n = ZZ(n)
         if (n < 0):
             raise ValueError("first parameter 'n' must be a non-negative integer")
-        H = End(self)
+        from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
         if kind == 'first':
-            return H([chebyshev_T(n, self.gen(0))])
+            return DynamicalSystem_affine([chebyshev_T(n, self.gen(0))], domain=self)
         elif kind == 'second':
-            return H([chebyshev_U(n, self.gen(0))])
+            return DynamicalSystem_affine([chebyshev_U(n, self.gen(0))], domain=self)
         else:
             raise ValueError("keyword 'kind' must have a value of either 'first' or 'second'")
 

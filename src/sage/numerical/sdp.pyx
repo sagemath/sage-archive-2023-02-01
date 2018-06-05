@@ -517,8 +517,8 @@ cdef class SemidefiniteProgram(SageObject):
         """
         Construct the first `n` SDPVariables.
 
-        This method is used for the generater syntax (see below). You
-        probably shouldn't use it for anything else.
+        This method is used for the generator syntax (see below). You
+        probably should not use it for anything else.
 
         INPUT:
 
@@ -988,7 +988,7 @@ cdef class SemidefiniteProgram(SageObject):
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
             sage: p.solve()                                                         # tol 1e-08
             -3.0
-            sage: x=p.get_values(x).values()
+            sage: x = p.get_values(x).values()
             sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()  # tol 1e-07
             -3.0
 
@@ -1285,43 +1285,42 @@ cdef class SDPVariable(Element):
 
     def keys(self):
         r"""
-        Returns the keys already defined in the dictionary.
+        Return the keys already defined in the dictionary.
 
         EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: v.keys()
+            sage: list(v.keys())
             [0, 1]
         """
         return self._dict.keys()
 
     def items(self):
         r"""
-        Returns the pairs (keys,value) contained in the dictionary.
+        Return the pairs (keys,value) contained in the dictionary.
 
         EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: v.items()
+            sage: list(v.items())
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
 
-
     def values(self):
         r"""
-        Returns the symbolic variables associated to the current dictionary.
+        Return the symbolic variables associated to the current dictionary.
 
         EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: v.values()
+            sage: list(v.values())
             [x_0, x_1]
         """
         return self._dict.values()

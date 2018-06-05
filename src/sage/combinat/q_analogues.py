@@ -2,21 +2,17 @@
 r"""
 `q`-Analogues
 """
+
 # ****************************************************************************
-#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
+#       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
-# python3
+
 from __future__ import division
 
 from sage.misc.cachefunc import cached_function
@@ -238,17 +234,17 @@ def q_binomial(n, k, q=None, algorithm='auto'):
 
     This also works for complex roots of unity::
 
-        sage: q_binomial(6, 1, QQbar(I))
-        I + 1
+        sage: q_binomial(10, 4, QQbar(I))
+        2
 
     Note that the symbolic computation works (see :trac:`14982`)::
 
-        sage: q_binomial(6, 1, I)
-        I + 1
+        sage: q_binomial(10, 4, I)
+        2
 
     Check that the algorithm does not matter::
 
-        sage: q_binomial(6,3, algorithm='naive') == q_binomial(6,3, algorithm='cyclotomic')
+        sage: q_binomial(6, 3, algorithm='naive') == q_binomial(6, 3, algorithm='cyclotomic')
         True
 
     One more test::
@@ -256,10 +252,36 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(4, 2, Zmod(6)(2), algorithm='naive')
         5
 
-    Check that it works with Python integer for ``q``::
+    Check that it works with Python integers::
 
-        sage: q_binomial(3r, 2r, 1r)
+        sage: r = q_binomial(3r, 2r, 1r); r
         3
+        sage: type(r)
+        <type 'int'>
+
+    Check that arbitrary polynomials work::
+
+        sage: R.<x> = ZZ[]
+        sage: q_binomial(2, 1, x^2 - 1, algorithm="naive")
+        x^2
+        sage: q_binomial(2, 1, x^2 - 1, algorithm="cyclotomic")
+        x^2
+
+    Check that the parent is always the parent of ``q``::
+
+        sage: R.<q> = CyclotomicField(3)
+        sage: for algo in ["naive", "cyclotomic"]:
+        ....:     for n in range(4):
+        ....:         for k in range(4):
+        ....:             a = q_binomial(n, k, q, algorithm=algo)
+        ....:             assert a.parent() is R
+
+    ::
+
+        sage: q_binomial(2, 1, x^2 - 1, algorithm="quantum")
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown algorithm 'quantum'
 
     REFERENCES:
 
@@ -277,6 +299,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     if n < 0:
         raise ValueError('n must be nonnegative')
 
+    k = min(n - k, k)  # Pick the smallest k
+
     # polynomiality test
     if q is None:
         from sage.rings.polynomial.polynomial_ring import polygen
@@ -286,47 +310,35 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         from sage.rings.polynomial.polynomial_element import Polynomial
         is_polynomial = isinstance(q, Polynomial)
 
+    # We support non-Sage Elements too, where parent(q) is really
+    # type(q). The calls R(0) and R(1) should work in all cases to
+    # generate the correct 0 and 1 elements.
     R = parent(q)
-    try:
-        zero = R.zero()
-    except AttributeError:
-        zero = R('0')
-    try:
-        one = R.one()
-    except AttributeError:
-        one = R('1')
+    zero = R(0)
+    one = R(1)
 
-    if not(0 <= k and k <= n):
-        return zero
-
-    k = min(n - k, k)  # Pick the smallest k
+    if k <= 0:
+        return one if k == 0 else zero
 
     # heuristic choice of the fastest algorithm
     if algorithm == 'auto':
-        from sage.symbolic.ring import SR
-        if is_polynomial:
-            if n <= 70 or k <= n // 4:
-                algorithm = 'naive'
-            else:
-                algorithm = 'cyclo_polynomial'
-        elif q in SR:
-            algorithm = 'cyclo_generic'
-        else:
+        if n <= 70 or k <= n // 4:
             algorithm = 'naive'
-    elif algorithm == 'cyclotomic':
-        if is_polynomial:
-            algorithm = 'cyclo_polynomial'
+        elif is_polynomial:
+            algorithm = 'cyclotomic'
         else:
-            algorithm = 'cyclo_generic'
-    elif algorithm != 'naive':
-        raise ValueError("invalid algorithm choice")
+            from sage.symbolic.ring import SR
+            if R is SR:
+                algorithm = 'cyclotomic'
+            else:
+                algorithm = 'naive'
 
     # the algorithms
-    if algorithm == 'naive':
+    while algorithm == 'naive':
         denom = prod(one - q**i for i in range(1, k+1))
         if not denom:  # q is a root of unity, use the cyclotomic algorithm
-            from sage.rings.polynomial.cyclotomic import cyclotomic_value
-            return cyclotomic_value(n, k, q, algorithm='cyclotomic')
+            algorithm = 'cyclotomic'
+            break
         else:
             num = prod(one - q**i for i in range(n-k+1, n+1))
             try:
@@ -336,16 +348,14 @@ def q_binomial(n, k, q=None, algorithm='auto'):
                     return num / denom
             except (TypeError, ZeroDivisionError):
                 # use substitution instead
-                return q_binomial(n,k)(q)
-    elif algorithm == 'cyclo_generic':
+                return q_binomial(n, k)(q)
+    if algorithm == 'cyclotomic':
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
         return prod(cyclotomic_value(d,q)
                     for d in range(2,n+1)
                     if (n//d) != (k//d) + ((n-k)//d))
-    elif algorithm == 'cyclo_polynomial':
-        return prod(R.cyclotomic_polynomial(d)
-                    for d in range(2,n+1)
-                    if (n//d) != (k//d) + ((n-k)//d))
+    else:
+        raise ValueError("unknown algorithm {!r}".format(algorithm))
 
 
 def gaussian_binomial(n, k, q=None, algorithm='auto'):
@@ -846,3 +856,59 @@ def q_stirling_number1(n, k, q=None):
         return A.zero()
     return (q_stirling_number1(n - 1, k - 1, q=q) +
             q_int(n - 1) * q_stirling_number1(n - 1, k, q=q))
+
+@cached_function
+def q_stirling_number2(n, k, q=None):
+    r"""
+    Return the (unsigned) `q`-Stirling number of the second kind.
+
+    This is a `q`-analogue of :func:`sage.combinat.combinat.stirling_number2`.
+
+    INPUT:
+
+    - ``n``, ``k`` -- integers with ``1 <= k <= n``
+
+    - ``q`` -- optional variable (default `q`)
+
+    OUTPUT: a polynomial in the variable `q`
+
+    These polynomials satisfy the recurrence
+
+    .. MATH::
+
+         S_{n,k} = q^{k-1} S_{n-1,k-1} + [k]_q s_{n-1, k}.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.q_analogues import q_stirling_number2
+        sage: q_stirling_number2(4,2)
+        q^3 + 3*q^2 + 3*q
+
+        sage: all(stirling_number2(6,k) == q_stirling_number2(6,k)(1)
+        ....:     for k in range(7))
+        True
+
+
+    TESTS::
+
+        sage: q_stirling_number2(-1,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q-Stirling numbers are not defined for n < 0
+
+    REFERENCES:
+
+    - [Mil1978]_
+
+    """
+    if q is None:
+        q = ZZ['q'].gen()
+    A = q.parent()
+    if n < 0:
+        raise ValueError('q-Stirling numbers are not defined for n < 0')
+    if n == 0 == k:
+        return A.one()
+    if k > n or k < 0:
+        return A.zero()
+    return (q**(k-1)*q_stirling_number2(n - 1, k - 1, q=q) +
+            q_int(k) * q_stirling_number2(n - 1, k, q=q))

@@ -47,14 +47,13 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.arith.all import next_prime, binomial, gcd, kronecker
+from sage.arith.all import next_prime, gcd, kronecker
 from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 from .manin_map import ManinMap
 from .sigma0 import Sigma0
-from sage.misc.misc import walltime
 from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
@@ -92,7 +91,7 @@ def _iterate_Up(Phi, p, M, ap, q, aq, check):
     if ap.valuation(p) > 0:
         raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
 
-    ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation
+    ## Act by Hecke to ensure values are in D and not D^dag after solving difference equation
     verbose("Applying Hecke", level = 2)
 
     apinv = ~ap
@@ -219,10 +218,10 @@ class PSModularSymbolElement(ModuleElement):
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.values()
             [-1/5, 1, 0]
-            sage: phi.dict().keys()
+            sage: sorted(phi.dict())
             [
-            [-1 -1]  [1 0]  [ 0 -1]
-            [ 3  2], [0 1], [ 1  3]
+            [-1 -1]  [ 0 -1]  [1 0]
+            [ 3  2], [ 1  3], [0 1]
             ]
             sage: sorted(phi.values()) == sorted(phi.dict().values())
             True
@@ -601,7 +600,7 @@ class PSModularSymbolElement(ModuleElement):
             False
         """
         try:
-            aq = self.Tq_eigenvalue(q, p, M)
+            self.Tq_eigenvalue(q, p, M)
             return True
         except ValueError:
             return False

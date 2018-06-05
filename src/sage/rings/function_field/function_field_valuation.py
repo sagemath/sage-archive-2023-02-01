@@ -143,8 +143,7 @@ developed for number fields in [Mac1936I]_ and [Mac1936II]_.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.structure.factory import UniqueFactory
-from sage.rings.all import QQ, ZZ, infinity
-from sage.misc.abstract_method import abstract_method
+from sage.rings.all import QQ
 
 from sage.rings.valuation.valuation import DiscreteValuation, DiscretePseudoValuation, InfiniteDiscretePseudoValuation, NegativeInfiniteDiscretePseudoValuation
 from sage.rings.valuation.trivial_valuation import TrivialValuation
@@ -295,6 +294,16 @@ class FunctionFieldValuationFactory(UniqueFactory):
             sage: w = GaussValuation(R, valuations.TrivialValuation(QQ)).augmentation(x - 1, 1)
             sage: v = K.valuation(w) # indirect doctest
 
+        Check that :trac:`25294` has been resolved::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^3 + 1/x^3*y + 2/x^4)
+            sage: v = K.valuation(x)
+            sage: v.extensions(L)
+            [[ (x)-adic valuation, v(y) = 1 ]-adic valuation (in Function field in y defined by y^3 + x*y + 2*x^2 after y |--> 1/x^2*y),
+             [ (x)-adic valuation, v(y) = 1/2 ]-adic valuation (in Function field in y defined by y^3 + x*y + 2*x^2 after y |--> 1/x^2*y)]
+
         """
         # this should have been handled by create_key already
         assert valuation.domain() is not domain
@@ -310,7 +319,7 @@ class FunctionFieldValuationFactory(UniqueFactory):
                 # and easier pickling) we need to find a normal form of
                 # valuation, i.e., the smallest approximant that describes this
                 # valuation
-                approximants = vK.mac_lane_approximants(domain.polynomial())
+                approximants = vK.mac_lane_approximants(domain.polynomial(), require_incomparability=True)
                 approximant = vK.mac_lane_approximant(domain.polynomial(), valuation, approximants)
                 return (domain, approximant), {'approximants': approximants}
             else:
@@ -520,6 +529,16 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
             sage: v.extensions(L)
             [2-adic valuation]
 
+        Test that this works in towers::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y - x)
+            sage: R.<z> = L[]
+            sage: L.<z> = L.extension(z - y)
+            sage: v = K.valuation(x)
+            sage: v.extensions(L)
+            [(x)-adic valuation]
         """
         K = self.domain()
         from sage.categories.function_fields import FunctionFields
@@ -544,10 +563,12 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
                         if type(y_to_u) == RingHomomorphism_im_gens and type(u_to_y) == RingHomomorphism_im_gens:
                             return [L.valuation((w, L.hom([M(y_to_u(y_to_u.domain().gen()))]), M.hom([L(u_to_y(u_to_y.domain().gen()))]))) for w in H_extensions]
                         raise NotImplementedError
-                    return [L.valuation(w) for w in self.mac_lane_approximants(L.polynomial())]
+                    return [L.valuation(w) for w in self.mac_lane_approximants(L.polynomial(), require_incomparability=True)]
                 elif L.base() is not L and K.is_subring(L):
                     # recursively call this method for the tower of fields
                     from operator import add
+                    from functools import reduce
+                    A = [base_valuation.extensions(L) for base_valuation in self.extensions(L.base())]
                     return reduce(add, A, [])
                 elif L.constant_field() is not K.constant_field() and K.constant_field().is_subring(L):
                     # subclasses should override this method and handle this case, so we never get here
@@ -897,7 +918,7 @@ class NonClassicalRationalFunctionFieldValuation(InducedFunctionFieldValuation_b
 
         There is some support for discrete pseudo-valuations on rational
         function fields in the code. However, since these valuations must send
-        elments to `-\infty`, they are not supported yet::
+        elements to `-\infty`, they are not supported yet::
 
             sage: R.<x> = QQ[]
             sage: v = GaussValuation(QQ['x'], QQ.valuation(2)).augmentation(x, infinity)
@@ -1248,4 +1269,4 @@ class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
         """
         if ring.is_subring(self.domain().base()):
             return self._base_valuation.restriction(ring)
-        return super(FunctionFieldMappedValuation, self).restriction(ring)
+        return super(FunctionFieldExtensionMappedValuation, self).restriction(ring)

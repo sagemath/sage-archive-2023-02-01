@@ -24,19 +24,16 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
-from sage.misc.randstate import current_randstate
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from .ell_field import EllipticCurve_field
 from .constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
-import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
-from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
 
 import sage.plot.all as plot
@@ -1447,7 +1444,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         k = self.base_field()
         q = k.order()
-        p = k.characteristic()
         d = k.degree()
         j = self.j_invariant()
         if d>1:

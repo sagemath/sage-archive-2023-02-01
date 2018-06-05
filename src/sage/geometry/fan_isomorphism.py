@@ -11,9 +11,6 @@ Find isomorphisms between fans.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from exceptions import Exception
-
 from sage.rings.all import ZZ
 from sage.matrix.constructor import column_matrix, matrix
 from sage.geometry.cone import Cone
@@ -348,9 +345,9 @@ def fan_2d_echelon_forms(fan):
         ....:     perm_rays = [ rays[perm(i+1)-1] for i in range(len(rays)) ]
         ....:     fan2 = Fan(perm_cones, rays=[m*vector(r) for r in perm_rays])
         ....:     assert fan_2d_echelon_form(fan2) in echelon_forms
-        
+
     The trivial case was fixed in :trac:`18613`::
-        
+
         sage: fan = Fan([], lattice=ToricLattice(2))
         sage: fan_2d_echelon_forms(fan)
         frozenset({[]})

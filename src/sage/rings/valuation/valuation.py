@@ -54,10 +54,13 @@ send more than just zero to infinity::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
+
 from sage.categories.morphism import Morphism
 from sage.structure.richcmp import op_EQ, op_NE, op_LE, op_LT, op_GE, op_GT
 
 from sage.misc.cachefunc import cached_method
+
 
 class DiscretePseudoValuation(Morphism):
     r"""
@@ -135,7 +138,7 @@ class DiscretePseudoValuation(Morphism):
         Return a hash value for this valuation.
 
         We override the strange default provided by
-        :class:`sage.categories.marphism.Morphism` here and implement equality by
+        :class:`sage.categories.morphism.Morphism` here and implement equality by
         ``id``. This works fine for objects which use unique representation.
 
         Note that the vast majority of valuations come out of a
@@ -209,7 +212,7 @@ class DiscretePseudoValuation(Morphism):
         Return whether this valuation and ``other`` are indistinguishable.
 
         We override the strange default provided by
-        :class:`sage.categories.marphism.Morphism` here and implement equality by
+        :class:`sage.categories.morphism.Morphism` here and implement equality by
         ``id``. This is the right behaviour in many cases.
 
         Note that the vast majority of valuations come out of a
@@ -287,7 +290,7 @@ class DiscretePseudoValuation(Morphism):
 
         """
         if self == other: return True
-        from scaled_valuation import ScaledValuation_generic
+        from .scaled_valuation import ScaledValuation_generic
         if isinstance(other, ScaledValuation_generic):
             return other <= self
         raise NotImplementedError("Operator not implemented for this valuation")
@@ -784,7 +787,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         # The order of the leafs is not predictable in parallel mode and in
         # serial mode it depends on the hash functions and so on the underlying
-        # archictecture (32/64 bit). There is no natural ordering on these
+        # architecture (32/64 bit). There is no natural ordering on these
         # valuations but it is very convenient for doctesting to return them in
         # some stable order, so we just order them by their string
         # representation which should be very fast.

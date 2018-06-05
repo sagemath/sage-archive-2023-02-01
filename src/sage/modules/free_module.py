@@ -2884,6 +2884,15 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [  0 2/5   0]
 
+        TESTS:
+
+        Check that :trac:`24702` is fixed::
+
+            sage: L = FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: S1 = L.submodule([(1,0)])
+            sage: S2 = L.submodule([(0,1)])
+            sage: S1.intersection(S2).ambient_module() == S1.ambient_module()
+            True
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError("other must be a free module")
@@ -2919,7 +2928,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         n  = int(V1.dimension())
         K = K.matrix_from_columns(range(n))
         B = K*A1
-        return B.row_module(self.base_ring())
+        return self.span(B)
 
     def __and__(self, other):
         r"""
@@ -3054,13 +3063,22 @@ class FreeModule_generic_pid(FreeModule_generic):
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1 2 6]
+
+        TESTS:
+
+        We check that :trac:`24702` is fixed::
+
+            sage: L = FreeQuadraticModule(ZZ,1,matrix.identity(1))
+            sage: S = 2*L
+            sage: S.saturation().ambient_module() == L
+            True
         """
         R = self.base_ring()
         if R.is_field():
             return self
         try:
             A, _ = self.basis_matrix()._clear_denom()
-            S = A.saturation().row_space()
+            S = self.span(A.saturation())
         except AttributeError:
             # fallback in case _clear_denom isn't written
             V = self.vector_space()
@@ -3714,7 +3732,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             #    by clearing denominators, computing the kernel of a matrix with
             #    entries in R, then restoring denominators to the answer.
             K = self.base_ring()
-            R = other.base_ring()
             B = self.basis_matrix().transpose()
             W = B.kernel()
             phi = W.basis_matrix().transpose()
@@ -6283,7 +6300,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [  4   5   6]
         """
         if base_field is None:
-            K = self.base_ring().fraction_field()
             V = self.ambient_vector_space()
             return V.submodule_with_basis(self.basis())
         return self.change_ring(base_field)

@@ -274,7 +274,8 @@ cimport sage.rings.real_mpfr as real_mpfr
 import math # for log
 import sys
 import operator
-from sage.cpython.string cimport char_to_str
+
+from sage.cpython.string cimport char_to_str, bytes_to_str
 
 import sage.rings.complex_field
 import sage.rings.infinity
@@ -2126,15 +2127,15 @@ cdef class RealIntervalFieldElement(RingElement):
         digits = strlen(tmp_cstr)
         if tmp_cstr[0] == '-':
             digits -= 1
-            mant_string = str(tmp_cstr+1)
-            sign_string = '-'
+            mant_string = bytes_to_str(tmp_cstr+1)
+            sign_string = bytes_to_str(b'-')
         else:
-            mant_string = str(tmp_cstr)
-            sign_string = ''
+            mant_string = bytes_to_str(tmp_cstr)
+            sign_string = bytes_to_str(b'')
         PyMem_Free(tmp_cstr)
 
         if error_digits == 0:
-            error_string = ''
+            error_string = bytes_to_str(b'')
         else:
             tmp_cstr = <char *>PyMem_Malloc(mpz_sizeinbase(cur_error, 10) + 2)
             if tmp_cstr == NULL:
@@ -4931,7 +4932,7 @@ cdef class RealIntervalFieldElement(RingElement):
 
     def gamma(self):
         """
-        Return the gamma function evalutated on ``self``.
+        Return the gamma function evaluated on ``self``.
 
         EXAMPLES::
 

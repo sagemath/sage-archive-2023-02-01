@@ -189,7 +189,7 @@ class SetPartitionsAkhalf_k(SetPartitions_set):
             sage: all(sp in A2p5 for sp in A2p5)
             True
             sage: A3 = SetPartitionsAk(3)
-            sage: len(filter(lambda x: x in A2p5, A3))
+            sage: len([x for x in A3 if x in A2p5])
             52
             sage: A2p5.cardinality()
             52
@@ -307,7 +307,7 @@ class SetPartitionsSk_k(SetPartitionsAk_k):
             True
             sage: S3.cardinality()
             6
-            sage: len(filter(lambda x: x in S3, A3))
+            sage: len([x for x in A3 if x in S3])
             6
         """
         if not SetPartitionsAk_k.__contains__(self, x):
@@ -366,7 +366,7 @@ class SetPartitionsSkhalf_k(SetPartitionsAkhalf_k):
             sage: A3 = SetPartitionsAk(3)
             sage: all(sp in S2p5 for sp in S2p5)
             True
-            sage: len(filter(lambda x: x in S2p5, A3))
+            sage: len([x for x in A3 if x in S2p5])
             2
             sage: S2p5.cardinality()
             2
@@ -488,7 +488,7 @@ class SetPartitionsIk_k(SetPartitionsAk_k):
             sage: A3 = SetPartitionsAk(3)
             sage: all(sp in I3 for sp in I3)
             True
-            sage: len(filter(lambda x: x in I3, A3))
+            sage: len([x for x in A3 if x in I3])
             197
             sage: I3.cardinality()
             197
@@ -540,7 +540,7 @@ class SetPartitionsIkhalf_k(SetPartitionsAkhalf_k):
             sage: A3 = SetPartitionsAk(3)
             sage: all(sp in I2p5 for sp in I2p5)
             True
-            sage: len(filter(lambda x: x in I2p5, A3))
+            sage: len([x for x in A3 if x in I2p5])
             50
             sage: I2p5.cardinality()
             50
@@ -646,7 +646,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
 
             sage: B3 = SetPartitionsBk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: len(filter(lambda x: x in B3, A3))
+            sage: len([x for x in A3 if x in B3])
             15
             sage: B3.cardinality()
             15
@@ -742,7 +742,7 @@ class SetPartitionsBkhalf_k(SetPartitionsAkhalf_k):
             sage: B2p5 = SetPartitionsBk(2.5)
             sage: all(sp in B2p5 for sp in B2p5)
             True
-            sage: len(filter(lambda x: x in B2p5, A3))
+            sage: len([x for x in A3 if x in B2p5])
             3
             sage: B2p5.cardinality()
             3
@@ -853,7 +853,7 @@ class SetPartitionsPk_k(SetPartitionsAk_k):
 
             sage: P3 = SetPartitionsPk(3)
             sage: A3 = SetPartitionsAk(3)
-            sage: len(filter(lambda x: x in P3, A3))
+            sage: len([x for x in A3 if x in P3])
             132
             sage: P3.cardinality()
             132
@@ -914,7 +914,7 @@ class SetPartitionsPkhalf_k(SetPartitionsAkhalf_k):
             sage: P2p5 = SetPartitionsPk(2.5)
             sage: all(sp in P2p5 for sp in P2p5)
             True
-            sage: len(filter(lambda x: x in P2p5, A3))
+            sage: len([x for x in A3 if x in P2p5])
             42
             sage: P2p5.cardinality()
             42
@@ -1019,7 +1019,7 @@ class SetPartitionsTk_k(SetPartitionsBk_k):
             sage: A3 = SetPartitionsAk(3)
             sage: all(sp in T3 for sp in T3)
             True
-            sage: len(filter(lambda x: x in T3, A3))
+            sage: len([x for x in A3 if x in T3])
             5
             sage: T3.cardinality()
             5
@@ -1071,7 +1071,7 @@ class SetPartitionsTkhalf_k(SetPartitionsBkhalf_k):
             sage: T2p5 = SetPartitionsTk(2.5)
             sage: all(sp in T2p5 for sp in T2p5)
             True
-            sage: len(filter(lambda x: x in T2p5, A3))
+            sage: len([x for x in A3 if x in T2p5])
             2
             sage: T2p5.cardinality()
             2
@@ -1167,7 +1167,7 @@ class SetPartitionsRk_k(SetPartitionsAk_k):
             sage: A3 = SetPartitionsAk(3)
             sage: all(sp in R3 for sp in R3)
             True
-            sage: len(filter(lambda x: x in R3, A3))
+            sage: len([x for x in A3 if x in R3])
             34
             sage: R3.cardinality()
             34
@@ -1237,7 +1237,7 @@ class SetPartitionsRkhalf_k(SetPartitionsAkhalf_k):
             sage: R2p5 = SetPartitionsRk(2.5)
             sage: all(sp in R2p5 for sp in R2p5)
             True
-            sage: len(filter(lambda x: x in R2p5, A3))
+            sage: len([x for x in A3 if x in R2p5])
             7
             sage: R2p5.cardinality()
             7
@@ -1360,7 +1360,7 @@ class SetPartitionsPRk_k(SetPartitionsRk_k):
             sage: A3 = SetPartitionsAk(3)
             sage: all(sp in PR3 for sp in PR3)
             True
-            sage: len(filter(lambda x: x in PR3, A3))
+            sage: len([x for x in A3 if x in PR3])
             20
             sage: PR3.cardinality()
             20
@@ -1418,7 +1418,7 @@ class SetPartitionsPRkhalf_k(SetPartitionsRkhalf_k):
             sage: PR2p5 = SetPartitionsPRk(2.5)
             sage: all(sp in PR2p5 for sp in PR2p5)
             True
-            sage: len(filter(lambda x: x in PR2p5, A3))
+            sage: len([x for x in A3 if x in PR2p5])
             6
             sage: PR2p5.cardinality()
             6

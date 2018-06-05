@@ -2227,7 +2227,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = ideal([x^2+2*y-5,x+y+3])
             sage: v = I.variety(AA)[0]; v
             {x: 4.464101615137755?, y: -7.464101615137755?}
-            sage: v.keys()[0].parent()
+            sage: list(v)[0].parent()
             Multivariate Polynomial Ring in x, y over Algebraic Real Field
             sage: v[x]
             4.464101615137755?
@@ -3837,7 +3837,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.subs(a=x, b=y)
             Ideal (x^2 + y^2 + x - y + 2) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        The resulting ring need not be a mulitvariate polynomial ring::
+        The resulting ring need not be a multivariate polynomial ring::
 
             sage: T.<t> = PolynomialRing(QQ)
             sage: I.subs(a=t, b=t)

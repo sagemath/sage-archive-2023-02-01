@@ -22,6 +22,8 @@ AUTHORS:
 from __future__ import print_function, absolute_import
 from six import iteritems, integer_types
 
+from sage.cpython.string  import str_to_bytes
+
 EMBEDDED_MODE = False
 
 COMMON_HEADER = \
@@ -54,12 +56,10 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-import sys
 import shutil, re
 import os.path
 import random
 import subprocess
-import types
 
 from sage.misc.temporary_file import tmp_dir
 from . import sage_eval
@@ -1009,7 +1009,7 @@ class Latex(LatexCall):
         EXAMPLES::
 
             sage: s = 2
-            sage: sage.misc.latex.Latex()._latex_preparse('\sage{s}', locals())
+            sage: sage.misc.latex.Latex()._latex_preparse(r'\sage{s}', locals())
             '2'
         """
         i0 = -1
@@ -1034,7 +1034,7 @@ class Latex(LatexCall):
     def eval(self, x, globals, strip=False, filename=None, debug=None,
              density=None, pdflatex=None, engine=None, locals={}):
         r"""
-        Compiles the formatted tex given by ``x`` as a png and writes the
+        Compile the formatted tex given by ``x`` as a png and writes the
         output file to the directory given by ``filename``.
 
         INPUT:
@@ -1065,7 +1065,7 @@ class Latex(LatexCall):
 
            When using latex (the default), you must have 'dvipng' (or
            'dvips' and 'convert') installed on your operating system,
-           or this command won't work.  When using pdflatex or xelatex, you
+           or this command will not work.  When using pdflatex or xelatex, you
            must have 'convert' installed.
 
         OUTPUT:
@@ -1075,11 +1075,8 @@ class Latex(LatexCall):
 
         EXAMPLES::
 
-            # This would generate a file named "test.png"
-            sage: latex.eval("\\ZZ[x]", locals(), filename="test") # not tested
-            ''
-            # This would generate a file named "/path/to/test.png"
-            sage: latex.eval("\\ZZ[x]", locals(), filename="/path/to/test") # not tested
+            sage: fn = tmp_filename()
+            sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
             sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
             An error occurred...
@@ -1090,7 +1087,7 @@ class Latex(LatexCall):
         if density is None:
             density = self.__density
         if filename is None:
-            filename = 'sage%s'%random.randint(1,100) # to defeat browser caches
+            filename = 'sage%s' % random.randint(1, 100) # to defeat browser caches
         else:
             filename = os.path.splitext(filename)[0]  # get rid of extension
         base = tmp_dir()
@@ -1110,8 +1107,7 @@ class Latex(LatexCall):
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        from sagenb.misc.misc import encoded_str
-        O.write(encoded_str(x))
+        O.write(str_to_bytes(x, encoding='utf-8'))
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:

@@ -230,6 +230,7 @@ from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 
+from sage.cpython.string import bytes_to_str
 from sage.env import DOT_SAGE
 from sage.misc.pager import pager
 from sage.docs.instancedoc import instancedoc
@@ -491,7 +492,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             E.timeout = t
             return []
         E.timeout = t
-        v = E.before
+        v = bytes_to_str(E.before)
         E.expect(self._prompt)
         E.expect(self._prompt)
         return v.split()[1:]
@@ -869,13 +870,12 @@ class GiacElement(ExpectElement):
         """
         return hash(giac.eval('string(%s);'%self.name()))
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using giac.
 
         These examples are optional, and require Giac to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
@@ -945,7 +945,6 @@ class GiacElement(ExpectElement):
             True
         """
         return self.parent()._tab_completion()
-
 
     def __len__(self):
         """

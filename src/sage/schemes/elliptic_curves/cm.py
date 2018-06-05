@@ -126,7 +126,7 @@ def hilbert_class_polynomial(D, algorithm=None):
         raise ValueError("%s is not a valid algorithm"%algorithm)
 
     from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-    from sage.rings.all import RR, ZZ, ComplexField
+    from sage.rings.all import RR, ComplexField
     from sage.functions.all import elliptic_j
 
     # get all primitive reduced quadratic forms, (necessary to exclude
@@ -136,10 +136,10 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     # compute needed precision
     #
-    # NB: [http://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
+    # NB: [https://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
     # incorrect.  Enge writes (2009-04-20 email to John Cremona) "The
     # source is my paper on class polynomials
-    # [http://hal.inria.fr/inria-00001040] It was pointed out to me by
+    # [https://hal.inria.fr/inria-00001040] It was pointed out to me by
     # the referee after ANTS that the constant given there was
     # wrong. The final version contains a corrected constant on p.7
     # which is consistent with your example. It says:
@@ -317,7 +317,6 @@ def cm_orders(h, proof=None):
         84
     """
     h = Integer(h)
-    T = None
     if h <= 0:
         # trivial case
         return []
@@ -451,8 +450,6 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
     # imports that are needed only for this function
     from sage.structure.proof.proof import get_flag
-    import math
-    from sage.misc.functional import round
 
     # deal with input defaults and type checking
     proof = get_flag(proof, 'number_field')
@@ -554,10 +551,11 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         # discriminants; we might as well, since Watkins provides this
         # data.
         for h in T:
-            if len([D for D,f in T[h] if f==1]) != fund_count[h]:
+            if len([DD for DD, ff in T[h] if ff == 1]) != fund_count[h]:
                 raise RuntimeError("number of discriminants inconsistent with Watkins's table")
 
     return T
+
 
 @cached_function
 def is_cm_j_invariant(j, method='new'):

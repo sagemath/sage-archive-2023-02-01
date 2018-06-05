@@ -537,6 +537,7 @@ from sage.arith.all import factor
 from . import infinity
 from sage.categories.action import Action
 
+from sage.structure.global_options import GlobalOptions
 
 CC = ComplexField()
 CIF = ComplexIntervalField()
@@ -547,6 +548,12 @@ class AlgebraicField_common(sage.rings.ring.Field):
     Common base class for the classes :class:`~AlgebraicRealField` and
     :class:`~AlgebraicField`.
     """
+
+    class options(GlobalOptions):
+        NAME = 'AlgebraicField'
+        display_format = dict(default='decimal',
+                              values=dict(decimal='Always display a decimal approximation',
+                                          radical='Display using radicals (if possible)'))
 
     def default_interval_prec(self):
         r"""
@@ -672,25 +679,25 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
 
         TESTS::
 
-            sage: s = loads('x\x9cmQ\xcbR\x141\x14\xad\x11A\x083\xe2\x03T|'
-            ....: '\x82l`\xd3\xff\xe0\x86\x8de/\xba*\xcb\xa9[\xe9\xf4'
-            ....: '\xa5;e:=\'I+,\xa6J\x17B\xf9\xd7f\x08\xe2s\x95\xa4\xee9\xf7<'
-            ....: '\xf2\xe5\x8e\x0e\xaa\xe5"D?\xea8z.\x9a\x0b\xa7z\xa3I[\x15'
-            ....: '\x82\xf8\xf3\x85\xc9\xb1<xg[\xae\xbd2\xbabeO\r\xdb\x86>\x9b'
-            ....: '\xd8\x91V\x91\xdb\xc1_\xe0f\xa57\xae\r\x05P+/\xfe\xe5\x08'
-            ....: '\xaci\xa2z46\x1aG$Z\x8e*F/p\xf7oC\xa33\x18\x99</<\x07v\tf'
-            ....: '\x06\'F\xe7\xb9\x195\x0b\xacg\xc2\x8d\xbc\xe1P\x9c\xad\x04'
-            ....: '\x828\xcd\x076N\x96W\xb8WaSN\x17\xca\xa7\r9\r\xb6.+\x88Kl'
-            ....: '\x97e\xb7\x16+LO\xbeb\xb6\xc4\xfdc)\x88\xfb\x9a\x9b&\x05'
-            ....: '\xc0N)wI\x0f\xee\x13\xfbH=\xc7nh(U\xc2xP\xca\r\xd2\x8d'
-            ....: '\x8a\n\x0fK\xb9\xf5+\xfe\xa3n3MV\x98\x80\xc7rr\xfe\r\xbbr'
-            ....: '\x9bZv\xecU\x1c|\xc0\xde\x12O\xe4:\xd5*0\x9ev3\xb9C\x0b'
-            ....: '\xa3?Z\xa6\xa4\x11R6<{?I\xa2l\xb9\xbf6;\xb8\\\xc6\xe0\xb1'
-            ....: '\x9f\xb3\xf6&\xe8\xe2,\xb3R\x13\xf9\xf2\xe1\xda\x9c\xc0s'
-            ....: '\xb9\xf7?.\xe1E7\xeb\xa6W\x15^&\x80q&\x1aeo\x93Y\x13"^\xcd'
-            ....: '\xf1Z\xee\xdf\x92W\x18Z\xa4\xa6(\xd7\x867\xdf\x93\xad\x9fL'
-            ....: '\xa5W\xff\x90\x89\x07s\x1c\xfe6\xd2\x03{\xcdy\xf4v\x8e\xa3'
-            ....: '\xb1.~\x000\xc2\xe0\xa1')
+            sage: s = loads(b'x\x9cmQ\xcbR\x141\x14\xad\x11A\x083\xe2\x03T|'
+            ....: b'\x82l`\xd3\xff\xe0\x86\x8de/\xba*\xcb\xa9[\xe9\xf4'
+            ....: b'\xa5;e:=\'I+,\xa6J\x17B\xf9\xd7f\x08\xe2s\x95\xa4\xee9\xf7<'
+            ....: b'\xf2\xe5\x8e\x0e\xaa\xe5"D?\xea8z.\x9a\x0b\xa7z\xa3I[\x15'
+            ....: b'\x82\xf8\xf3\x85\xc9\xb1<xg[\xae\xbd2\xbabeO\r\xdb\x86>\x9b'
+            ....: b'\xd8\x91V\x91\xdb\xc1_\xe0f\xa57\xae\r\x05P+/\xfe\xe5\x08'
+            ....: b'\xaci\xa2z46\x1aG$Z\x8e*F/p\xf7oC\xa33\x18\x99</<\x07v\tf'
+            ....: b'\x06\'F\xe7\xb9\x195\x0b\xacg\xc2\x8d\xbc\xe1P\x9c\xad\x04'
+            ....: b'\x828\xcd\x076N\x96W\xb8WaSN\x17\xca\xa7\r9\r\xb6.+\x88Kl'
+            ....: b'\x97e\xb7\x16+LO\xbeb\xb6\xc4\xfdc)\x88\xfb\x9a\x9b&\x05'
+            ....: b'\xc0N)wI\x0f\xee\x13\xfbH=\xc7nh(U\xc2xP\xca\r\xd2\x8d'
+            ....: b'\x8a\n\x0fK\xb9\xf5+\xfe\xa3n3MV\x98\x80\xc7rr\xfe\r\xbbr'
+            ....: b'\x9bZv\xecU\x1c|\xc0\xde\x12O\xe4:\xd5*0\x9ev3\xb9C\x0b'
+            ....: b'\xa3?Z\xa6\xa4\x11R6<{?I\xa2l\xb9\xbf6;\xb8\\\xc6\xe0\xb1'
+            ....: b'\x9f\xb3\xf6&\xe8\xe2,\xb3R\x13\xf9\xf2\xe1\xda\x9c\xc0s'
+            ....: b'\xb9\xf7?.\xe1E7\xeb\xa6W\x15^&\x80q&\x1aeo\x93Y\x13"^\xcd'
+            ....: b'\xf1Z\xee\xdf\x92W\x18Z\xa4\xa6(\xd7\x867\xdf\x93\xad\x9fL'
+            ....: b'\xa5W\xff\x90\x89\x07s\x1c\xfe6\xd2\x03{\xcdy\xf4v\x8e\xa3'
+            ....: b'\xb1.~\x000\xc2\xe0\xa1')
             sage: s is AA
             True
 
@@ -841,7 +848,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             raise NotImplementedError
@@ -1086,30 +1093,30 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
         TESTS::
 
-            sage: s = loads('x\x9c}RMo\x131\x10U(-\xad\x9b\x92\x16ZJh\x80~'
-            ....: '\x00MZX~\x03\x97J\x08\xb1\x87H>F\x96\xd7;\xdd\xb1\xd8x3\xb6'
-            ....: '\x17\xe8!\x12\x1c\xda\xaa\xff\x9aI\xb7\x04\x8a*N\xb65\xef'
-            ....: '\xcd\xbc\xf7\xc6?\xee\x99\xa0\x0bHB\xf4\xb5\x89\xb5'
-            ....: '\x87$?szl\x8d2\xa5\x0eA\xdc~Q\xab/{\x1f\xca\x022\xaf\xad9'
-            ....: '\xb1P\xe6\xea\x9b\x8d\xa8\x8c\x8ePT\xfe\x8cn\xday\xeb\x8a'
-            ....: '\x90\x10e\xda\x8b\xdbxA\x0bF\xa9\xac\xb6e\xb4N)Q@\xd41zA'
-            ....: '\xf7\xff\x15R;K5(\x0f\x13\x0f\x01\x1c\xc3l\xe5D\xed<\xe4'
-            ....: '\xb5\x01A\x8b\r\xe1f\xb4\x85\x90\x9c\xce\x06\x04q\xd2\x1c'
-            ....: '\xb44\x98^\xd2\x83!-\xcb\xf6D{\xee\xd0\xb8\xa0\x95\x8b!\x89'
-            ....: '\x0bZMS\\\x88Cj\x0f~\xd2\xda\x94\x1e\xf6\xa5P0\xce \xcfY<uR'
-            ....: '\xb9\xa9L\xe5\xbe\x82\x8fj\x0c\x11\xab\\q\x14@\xeb\xa9\\R&'
-            ....: '\xd7Q\xd3F*W\xfeX\x7f\x84\xcb\\\x99a\x02=\x96\xad\x8f\xe7'
-            ....: '\xb4)WU\x01\x0e\xbc\x8e\x95\x0f\xb45\xa5\'rQe:\x00m#G\xb9;'
-            ....: '\x8ff\x08\xba\xbc+\xce\xa7\xff\x89s\xce\x11\xd4E\xf6\xf3'
-            ....: '\x8c\xfdt\xd9\xcf\x0e\xfb\xe9M\xe9y\x1f;)\xae\xa7\xb8'
-            ....: '\x91"KC\x96\xf4\xfd\x9c^ \xabx\x89\xdb\xd8\x93\x1d5\xb1'
-            ....: '\xe6K\t\x8a-\x06\x8e\x96v?\xb5\xd83\x940\xbe\xce\xaar'
-            ....: '\xcd.*O{\x8d\x8c\xb1\r&9mX\xbc\x88\xe6\xf2\xf9:\x1bA\xfbr'
-            ....: '\xeb.\xae\xa2\x03\xec\xe1\xce\xe5\x90^1\xc0:\x1b\xad.\xe7'
-            ....: '\xc1\x966Dz=\xa27\xb2;\'\xcf0j\xc2\x8bR\xcd\xd6\xe8\xf0'
-            ....: '\x8ae\xfdfj3\xfb\x06\r\xb1?\xa2\xc1_%S\x817\xd0\x94'
-            ....: '\x8eFt\\g\xc8\x96p\x0f\xf7\xf1\x00\xd7\xb0\xcd\x1a\xde"'
-            ....: '\x0f{\x87\x87W\xc8\xdc\x04\x19\xf5\xbe\xce\x92_p\'\x13\xc5')
+            sage: s = loads(b'x\x9c}RMo\x131\x10U(-\xad\x9b\x92\x16ZJh\x80~'
+            ....: b'\x00MZX~\x03\x97J\x08\xb1\x87H>F\x96\xd7;\xdd\xb1\xd8x3\xb6'
+            ....: b'\x17\xe8!\x12\x1c\xda\xaa\xff\x9aI\xb7\x04\x8a*N\xb65\xef'
+            ....: b'\xcd\xbc\xf7\xc6?\xee\x99\xa0\x0bHB\xf4\xb5\x89\xb5'
+            ....: b'\x87$?szl\x8d2\xa5\x0eA\xdc~Q\xab/{\x1f\xca\x022\xaf\xad9'
+            ....: b'\xb1P\xe6\xea\x9b\x8d\xa8\x8c\x8ePT\xfe\x8cn\xday\xeb\x8a'
+            ....: b'\x90\x10e\xda\x8b\xdbxA\x0bF\xa9\xac\xb6e\xb4N)Q@\xd41zA'
+            ....: b'\xf7\xff\x15R;K5(\x0f\x13\x0f\x01\x1c\xc3l\xe5D\xed<\xe4'
+            ....: b'\xb5\x01A\x8b\r\xe1f\xb4\x85\x90\x9c\xce\x06\x04q\xd2\x1c'
+            ....: b'\xb44\x98^\xd2\x83!-\xcb\xf6D{\xee\xd0\xb8\xa0\x95\x8b!\x89'
+            ....: b'\x0bZMS\\\x88Cj\x0f~\xd2\xda\x94\x1e\xf6\xa5P0\xce \xcfY<uR'
+            ....: b'\xb9\xa9L\xe5\xbe\x82\x8fj\x0c\x11\xab\\q\x14@\xeb\xa9\\R&'
+            ....: b'\xd7Q\xd3F*W\xfeX\x7f\x84\xcb\\\x99a\x02=\x96\xad\x8f\xe7'
+            ....: b'\xb4)WU\x01\x0e\xbc\x8e\x95\x0f\xb45\xa5\'rQe:\x00m#G\xb9;'
+            ....: b'\x8ff\x08\xba\xbc+\xce\xa7\xff\x89s\xce\x11\xd4E\xf6\xf3'
+            ....: b'\x8c\xfdt\xd9\xcf\x0e\xfb\xe9M\xe9y\x1f;)\xae\xa7\xb8'
+            ....: b'\x91"KC\x96\xf4\xfd\x9c^ \xabx\x89\xdb\xd8\x93\x1d5\xb1'
+            ....: b'\xe6K\t\x8a-\x06\x8e\x96v?\xb5\xd83\x940\xbe\xce\xaar'
+            ....: b'\xcd.*O{\x8d\x8c\xb1\r&9mX\xbc\x88\xe6\xf2\xf9:\x1bA\xfbr'
+            ....: b'\xeb.\xae\xa2\x03\xec\xe1\xce\xe5\x90^1\xc0:\x1b\xad.\xe7'
+            ....: b'\xc1\x966Dz=\xa27\xb2;\'\xcf0j\xc2\x8bR\xcd\xd6\xe8\xf0'
+            ....: b'\x8ae\xfdfj3\xfb\x06\r\xb1?\xa2\xc1_%S\x817\xd0\x94'
+            ....: b'\x8eFt\\g\xc8\x96p\x0f\xf7\xf1\x00\xd7\xb0\xcd\x1a\xde"'
+            ....: b'\x0f{\x87\x87W\xc8\xdc\x04\x19\xf5\xbe\xce\x92_p\'\x13\xc5')
             sage: s is QQbar
             True
         """
@@ -1236,7 +1243,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras).complex_field()
         else:
             raise NotImplementedError
@@ -1924,7 +1931,7 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-def number_field_elements_from_algebraics(numbers, minimal=False):
+def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False):
     r"""
     Given a sequence of elements of either ``AA`` or ``QQbar``
     (or a mixture), computes a number field containing all of these
@@ -1934,6 +1941,13 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     This may not return the smallest such number field, unless
     ``minimal=True`` is specified.
+
+    If ``same_field=True`` is specified, and all of the elements are
+    from the same field (either ``AA`` or ``QQbar``), the generated
+    homomorphism will map back to that field.  Otherwise, if all specified
+    elements are real, the homomorphism might map back to ``AA``
+    (and will, if ``minimal=True`` is specified), even if the
+    elements were in ``QQbar``.
 
     Also, a single number can be passed, rather than a sequence; and
     any values which are not elements of ``AA`` or ``QQbar``
@@ -1960,6 +1974,8 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         1.414213562373095?
         sage: rt3 = AA(sqrt(3)); rt3
         1.732050807568878?
+        sage: rt3a = QQbar(sqrt(3)); rt3a
+        1.732050807568878?
         sage: qqI = QQbar.zeta(4); qqI
         I
         sage: z3 = QQbar.zeta(3); z3
@@ -1980,6 +1996,22 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
             Defn: a |--> 0.5176380902050415?)
+
+    ``rt3a`` is a real number in ``QQbar``.  Ordinarily, we'd get a homomorphism
+    to ``AA`` (because all elements are real), but if we specify ``same_field=True``,
+    we'll get a homomorphism back to ``QQbar``::
+
+        sage: number_field_elements_from_algebraics(rt3a)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 3
+            To:   Algebraic Real Field
+            Defn: a |--> 1.732050807568878?)
+
+        sage: number_field_elements_from_algebraics(rt3a, same_field=True)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 3
+            To:   Algebraic Field
+            Defn: a |--> 1.732050807568878?)
 
     We've created ``rt2b`` in such a way that \sage doesn't initially know
     that it's in a degree-2 extension of `\QQ`::
@@ -2059,9 +2091,12 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     Note that for the first example, where \sage doesn't realize that
     the number is real, we get a homomorphism to ``QQbar``; but with
-    ``minimal=True``, we get a homomorphism to ``AA``. Also note
-    that the exact answer depends on a Pari function that gives
-    different answers for 32-bit and 64-bit machines::
+    ``minimal=True``, we get a homomorphism to ``AA``.  If we specify
+    both ``minimal=True`` and ``same_field=True``, we get a second
+    degree extension (minimal) that maps back to ``QQbar``.
+
+    Also note that the exact answer depends on a Pari function that
+    gives different answers for 32-bit and 64-bit machines::
 
         sage: number_field_elements_from_algebraics(rt2c)
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
@@ -2072,6 +2107,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
+            Defn: a |--> 1.414213562373095?)
+        sage: number_field_elements_from_algebraics(rt2c, minimal=True, same_field=True)
+        (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 2
+            To:   Algebraic Field
             Defn: a |--> 1.414213562373095?)
 
     """
@@ -2084,6 +2124,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     except TypeError:
         numbers = [numbers]
         single_number = True
+
+    if any([isinstance(_, AlgebraicNumber) for _ in numbers]):
+        algebraic_field = QQbar
+    else:
+        algebraic_field = AA
 
     def mk_algebraic(x):
         if isinstance(x, AlgebraicNumber_base):
@@ -2104,7 +2149,10 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     if single_number:
         nums = nums[0]
 
-    hom = fld.hom([gen.root_as_algebraic()])
+    if same_field:
+        hom = fld.hom([gen.root_as_algebraic()], codomain=algebraic_field)
+    else:
+        hom = fld.hom([gen.root_as_algebraic()])
 
     return (fld, nums, hom)
 
@@ -2904,6 +2952,11 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         Returns the print representation of this number.
 
+        :class:`AlgebraicField_common`'s option display_format controls
+        whether irrational numbers will always be printed using a decimal
+        approximation (display_format = 'decimal'), or whether an attempt
+        will be made to print them as radicals (display_format = 'radical')
+
         EXAMPLES::
 
             sage: AA(22/7) # indirect doctest
@@ -2920,11 +2973,23 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530?*I
             sage: AA(19).sqrt()
             4.358898943540674?
+            sage: AA.options.display_format = 'radical'
+            sage: AA(19).sqrt()
+            sqrt(19)
+            sage: QQbar.zeta(6)
+            1/2*I*sqrt(3) + 1/2
+            sage: QQbar.zeta(17)
+            0.9324722294043558? + 0.3612416661871530?*I
+            sage: AA.options.display_format = 'decimal'
         """
         if isinstance(self._descr, ANRational):
             return repr(self._descr)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return repr(self._descr._value)
+        if self.parent().options.display_format == 'radical':
+            radical = self.radical_expression()
+            if radical is not self:
+                return repr(radical)
         if self.parent() is QQbar:
             return repr(CIF(self._value))
         else:
@@ -2950,12 +3015,24 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
             sage: latex(AA(19).sqrt())
             4.358898943540674?
+            sage: AA.options.display_format = 'radical'
+            sage: latex(AA(19).sqrt())
+            \sqrt{19}
+            sage: latex(QQbar.zeta(6))
+            \frac{1}{2} i \, \sqrt{3} + \frac{1}{2}
+            sage: latex(QQbar.zeta(17))
+            0.9324722294043558? + 0.3612416661871530? \sqrt{-1}
+            sage: AA.options.display_format = 'decimal'
         """
         from sage.misc.latex import latex
         if isinstance(self._descr, ANRational):
             return latex(self._descr._value)
         if isinstance(self._descr, ANExtensionElement) and self._descr._generator is QQbar_I_generator:
             return latex(self._descr._value)
+        if self.parent().options.display_format == 'radical':
+            radical = self.radical_expression()
+            if radical is not self:
+                return latex(radical)
         return repr(self).replace('*I', r' \sqrt{-1}')
 
     def _sage_input_(self, sib, coerce):

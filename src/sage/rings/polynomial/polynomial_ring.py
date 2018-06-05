@@ -146,6 +146,7 @@ from six.moves import range
 from sage.structure.element import Element
 
 import sage.categories as categories
+from sage.categories.morphism import IdentityMorphism
 
 import sage.algebras.algebra
 import sage.rings.commutative_algebra as commutative_algebra
@@ -162,6 +163,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import polynomial_default
 import sage.misc.latex as latex
 from sage.misc.prandom import randint
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -291,14 +293,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 #coerce_list = [base_inject],
                 #convert_list = [list, base_inject],
                 convert_method_name = '_polynomial_')
-        if is_PolynomialRing(base_ring):
-            self._Karatsuba_threshold = 0
-        else:
-            from sage.matrix.matrix_space import MatrixSpace
-            if isinstance(base_ring, MatrixSpace):
-                self._Karatsuba_threshold = 0
-            else:
-                self._Karatsuba_threshold = 8
 
     def __reduce__(self):
         from sage.rings.polynomial.polynomial_ring_constructor import unpickle_PolynomialRing
@@ -589,6 +583,29 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self([one,0,one]), # an irreducible element
             self([2*one,0,2*one]), # an element with non-trivial content
         ]
+
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x'].flattening_morphism()
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x over Rational Field
+
+            sage: QQ['x'].flattening_morphism()
+            Identity endomorphism of Univariate Polynomial Ring in x over Rational Field
+        """
+        from .multi_polynomial_ring import is_MPolynomialRing
+        base = self.base_ring()
+        if is_PolynomialRing(base) or is_MPolynomialRing(base):
+            from .flatten import FlatteningMorphism
+            return FlatteningMorphism(self)
+        else:
+            return IdentityMorphism(self)
 
     def construction(self):
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
@@ -907,14 +924,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return False
         return True
 
-#    Polynomial rings should be unique parents. Hence,
-#    no need for __cmp__. Or actually, having a __cmp__
-#    method that identifies a dense with a sparse ring
-#    is a bad bad idea!
-#    def __cmp__(left, right):
-#        c = cmp(type(left),type(right))
-#        if c: return c
-#        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
+    #    Polynomial rings should be unique parents. Hence,
+    #    no need for any comparison method
 
     def __hash__(self):
         # should be faster than just relying on the string representation
@@ -1399,6 +1410,30 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             coeffs.reverse()
             yield self(coeffs)
 
+    @lazy_attribute
+    def _Karatsuba_threshold(self):
+        """
+        Return the default Karatsuba threshold.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQbar[]
+            sage: R._Karatsuba_threshold
+            8
+            sage: MS = MatrixSpace(ZZ, 2, 2)
+            sage: R.<x> = MS[]
+            sage: R._Karatsuba_threshold
+            0
+        """
+        base_ring = self.base_ring()
+        if is_PolynomialRing(base_ring):
+            return 0
+        from sage.matrix.matrix_space import MatrixSpace
+        if isinstance(base_ring, MatrixSpace):
+            return 0
+        # Generic default value
+        return 8
+
     def karatsuba_threshold(self):
         """
         Return the Karatsuba threshold used for this ring by the method
@@ -1434,7 +1469,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: K.karatsuba_threshold()
             0
         """
-        self._Karatsuba_threshold = ZZ(Karatsuba_threshold)
+        self._Karatsuba_threshold = int(Karatsuba_threshold)
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """
@@ -1892,7 +1927,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         """
         to_base_ring = self.base_ring()
-        points = [map(to_base_ring, x) for x in points]
+        points = [tuple(to_base_ring(c) for c in p) for p in points]
         n = len(points)
         F = [[points[i][1]] for i in range(n)]
         for i in range(1, n):
@@ -2128,6 +2163,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             raise ValueError("algorithm must be one of 'divided_difference' or 'neville'")
 
+    @cached_method
     def fraction_field(self):
         """
         Returns the fraction field of self.
@@ -2138,18 +2174,14 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.fraction_field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         """
-        try:
-            return self._fraction_field
-        except AttributeError:
-            R = self.base_ring()
-            p = R.characteristic()
-            if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
-                from sage.rings.fraction_field_FpT import FpT
-                self._fraction_field = FpT(self)
-            else:
-                from sage.rings.fraction_field import FractionField_1poly_field
-                self._fraction_field = FractionField_1poly_field(self)
-            return self._fraction_field
+        R = self.base_ring()
+        p = R.characteristic()
+        if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
+            from sage.rings.fraction_field_FpT import FpT
+            return FpT(self)
+        else:
+            from sage.rings.fraction_field import FractionField_1poly_field
+            return FractionField_1poly_field(self)
 
 
 class PolynomialRing_dense_finite_field(PolynomialRing_field):

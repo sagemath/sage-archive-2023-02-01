@@ -1288,28 +1288,22 @@ def input_parsing(data):
     """
     if isinstance(data, SimilarityClassType):
         case = 'sim'
-        output = data
     elif isinstance(data, PrimarySimilarityClassType):
         case = 'pri'
-        output = data
     elif isinstance(data, Partition):
         case = 'par'
-        output = data
     else:
         try:
             data = Partition(data)
             case = 'par'
-            output = data
         except(TypeError, ValueError):
             try:
                 data = SimilarityClassType(data)
                 case = 'sim'
-                output = data
             except(TypeError, ValueError):
                 try:
                     data = PrimarySimilarityClassType(*data)
                     case = 'pri'
-                    output = data
                 except(TypeError, ValueError):
                     raise ValueError("Expected a Partition, a SimilarityClassType or a PrimarySimilarityClassType, got a %s" % type(data))
     return case, data

@@ -253,10 +253,6 @@ class CartanType(SageObject, CartanType_abstract):
         reducibility but the subdivision can be suppressed with
         the option ``subdivide = False``.
 
-        .. TODO::
-
-            Currently ``subdivide`` is currently ignored.
-
         EXAMPLES::
 
             sage: ct = CartanType("A2","B2")
@@ -566,8 +562,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             [(1, -1, 0, 0, 0), (0, 0, 1, -1, 0), (0, 0, 1, 0, -1), (0, 0, 0, 1, -1)]
         """
         res = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            res.extend(self.inject_weights(i, v) for v in ambient_space.positive_roots())
+        for i, ambient_sp in enumerate(self.ambient_spaces()):
+            res.extend(self.inject_weights(i, v) for v in ambient_sp.positive_roots())
         return res
 
     def negative_roots(self):
@@ -578,8 +574,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             [(-1, 1, 0, 0, 0), (0, 0, -1, 1, 0), (0, 0, -1, 0, 1), (0, 0, 0, -1, 1)]
         """
         ret = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            ret.extend(self.inject_weights(i, v) for v in ambient_space.negative_roots())
+        for i, ambient_sp in enumerate(self.ambient_spaces()):
+            ret.extend(self.inject_weights(i, v) for v in ambient_sp.negative_roots())
         return ret
 
     def fundamental_weights(self):
@@ -590,8 +586,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             Finite family {1: (1, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0), 3: (0, 0, 0, 1, 0), 4: (0, 0, 0, 1/2, 1/2)}
         """
         fw = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            fw.extend(self.inject_weights(i, v) for v in ambient_space.fundamental_weights())
+        for i, ambient_sp in enumerate(self.ambient_spaces()):
+            fw.extend(self.inject_weights(i, v) for v in ambient_sp.fundamental_weights())
         return Family(dict([i,fw[i-1]] for i in range(1,len(fw)+1)))
 
 

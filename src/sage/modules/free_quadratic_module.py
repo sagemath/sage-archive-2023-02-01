@@ -76,7 +76,6 @@ import sage.rings.ring as ring
 import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from . import free_module
-from sage.structure.richcmp import richcmp_not_equal, rich_to_bool, richcmp
 
 ###############################################################################
 #
@@ -123,19 +122,35 @@ def FreeQuadraticModule(
         sage: M3 = FreeModule(ZZ,2,inner_product_matrix=[[1,2],[3,4]])
         sage: M3 is M2
         True
+
+    TESTS::
+
+    Check for :trac:`10577`::
+
+        sage: m = matrix.diagonal(GF(2), [1,1])
+        sage: V2 = VectorSpace(GF(2), 2, inner_product_matrix=m)
+        sage: deepcopy(V2)
+        Ambient quadratic space of dimension 2 over Finite Field of size 2
+        Inner product matrix:
+        [1 0]
+        [0 1]
     """
     global _cache
     rank = int(rank)
-
-    if inner_product_matrix is None:
-        raise ValueError("An inner_product_matrix must be specified.")
 
     # In order to use coercion into the inner_product_ring we need to pass
     # this ring into the vector classes.
     if inner_product_ring is not None:
         raise NotImplementedError("An inner_product_ring can not currently be defined.")
 
-    inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
+    # We intentionally create a new matrix instead of using the given
+    # inner_product_matrix. This ensures that the matrix has the correct
+    # parent space. It also gets rid of subdivisions which is good
+    # because matrices with and without subdivisions compare equal.
+    # Because of uniqueness, we need a canonical matrix, which is the one
+    # without subdivisions.
+    MS = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)
+    inner_product_matrix = MS(list(inner_product_matrix))
     inner_product_matrix.set_immutable()
 
     key = (base_ring, rank, inner_product_matrix, sparse)
@@ -203,8 +218,8 @@ def QuadraticSpace(K, dimension, inner_product_matrix, sparse=False):
     """
     if not K.is_field():
         raise TypeError("Argument K (= %s) must be a field." % K)
-    if not sparse in (True,False):
-        raise TypeError("Argument sparse (= %s) must be a boolean."%sparse)
+    if sparse not in (True, False):
+        raise TypeError("Argument sparse (= %s) must be a boolean." % sparse)
     return FreeQuadraticModule(K, rank=dimension, inner_product_matrix=inner_product_matrix, sparse=sparse)
 
 InnerProductSpace = QuadraticSpace
@@ -245,7 +260,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
     We compare rank three free modules over the integers,
     rationals, and complex numbers::
 
-        sage: Q3 = FreeQuadraticModule(QQ,3,matrix.identity(3)) 
+        sage: Q3 = FreeQuadraticModule(QQ,3,matrix.identity(3))
         sage: C3 = FreeQuadraticModule(CC,3,matrix.identity(3))
         sage: Z3 = FreeQuadraticModule(ZZ,3,matrix.identity(3))
         sage: Q3 < C3
@@ -312,7 +327,7 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         free_module.FreeModule_generic.__init__(
             self, base_ring=base_ring, rank=rank, degree=degree, sparse=sparse)
-        self._inner_product_matrix=inner_product_matrix
+        self._inner_product_matrix = inner_product_matrix
 
     def _dense_module(self):
         """
@@ -404,16 +419,16 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: P = M.span([[1,2,3], [1,1,1]])
             sage: P.discriminant()
             6
-        
+
         TESTS::
-        
+
             sage: M=FreeQuadraticModule(ZZ,2,matrix.identity(2))
             sage: M.discriminant()
             -1
             sage: M=FreeQuadraticModule(QQ,3,matrix.identity(3))
             sage: M.discriminant()
             -1
-            
+
         """
         n = self.rank()
         r = n//2
@@ -525,7 +540,6 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
         """
         return self.inner_product_matrix() == 1
 
-
     def _inner_product_is_diagonal(self):
         """
         Return whether or not the inner product on this module is induced by
@@ -553,11 +567,13 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
             sage: M3._inner_product_is_diagonal()
             False
 
-        TODO: Actually use the diagonal form of the inner product.
+        .. TODO:: Actually use the diagonal form of the inner product.
         """
         A = self.inner_product_matrix()
-        D = sage.matrix.constructor.diagonal_matrix([ A[i,i] for i in range(A.nrows()) ])
+        D = sage.matrix.constructor.diagonal_matrix([A[i, i]
+                                                     for i in range(A.nrows())])
         return A == D
+
 
 class FreeQuadraticModule_generic_pid(
     free_module.FreeModule_generic_pid, FreeQuadraticModule_generic):
@@ -803,7 +819,7 @@ class FreeQuadraticModule_ambient(
 
             sage: FreeModule(ZZ, 4)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
-        
+
         """
         free_module.FreeModule_ambient.__init__(self, base_ring=base_ring, rank=rank, sparse=sparse)
         #self._FreeQuadraticModule_generic_inner_product_matrix = inner_product_matrix
@@ -1109,6 +1125,19 @@ class FreeQuadraticModule_ambient_field(
             [2 1 0]
             [1 2 0]
             [0 1 2]
+
+        TESTS:
+
+        Check for :trac:`10606`::
+
+            sage: D = matrix.diagonal(ZZ, [1,1])
+            sage: V = VectorSpace(GF(46349), 2, inner_product_matrix=D)
+            sage: deepcopy(V)
+            Ambient quadratic space of dimension 2 over Finite Field
+            of size 46349
+            Inner product matrix:
+            [1 0]
+            [0 1]
         """
         free_module.FreeModule_ambient_field.__init__(
             self, base_field=base_field, dimension=dimension, sparse=sparse)
@@ -1680,4 +1709,3 @@ class FreeQuadraticModule_submodule_field(
 #        self._inner_product_matrix = inner_product_matrix
 
 ######################################################
-

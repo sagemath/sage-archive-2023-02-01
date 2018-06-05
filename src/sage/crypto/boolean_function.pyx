@@ -33,6 +33,7 @@ from __future__ import absolute_import
 from libc.string cimport memcpy
 
 from sage.structure.sage_object cimport SageObject
+from sage.structure.richcmp cimport rich_to_bool
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
@@ -597,7 +598,7 @@ cdef class BooleanFunction(SageObject):
         """
         return 2**self._nvariables
 
-    def __cmp__(self, other):
+    def __richcmp__(BooleanFunction self, other, int op):
         """
         Boolean functions are considered to be equal if the number of
         input variables is the same, and all the values are equal.
@@ -616,8 +617,10 @@ cdef class BooleanFunction(SageObject):
             sage: b1 == b4
             False
         """
-        cdef BooleanFunction o=other
-        return bitset_cmp(self._truth_table, o._truth_table)
+        if not isinstance(other, BooleanFunction):
+            return NotImplemented
+        o = <BooleanFunction>other
+        return rich_to_bool(op, bitset_cmp(self._truth_table, o._truth_table))
 
     def __call__(self, x):
         """
@@ -649,7 +652,7 @@ cdef class BooleanFunction(SageObject):
         elif isinstance(x, list):
             if len(x) != self._nvariables:
                 raise ValueError("bad number of inputs")
-            return self(ZZ(map(bool,x),2))
+            return self(ZZ([bool(_) for _ in x], 2))
         else:
             raise TypeError("cannot apply Boolean function to provided element")
 

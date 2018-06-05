@@ -718,7 +718,7 @@ def TD_product(k,TD1,n1,TD2,n2, check=True):
 
         This function uses transversal designs with
         `V_1=\{0,\dots,n-1\},\dots,V_k=\{(k-1)n,\dots,kn-1\}` both as input and
-        ouptut.
+        output.
 
     EXAMPLES::
 
@@ -1678,7 +1678,7 @@ def OA_n_times_2_pow_c_from_matrix(k,c,G,A,Y,check=True):
     F = FiniteField(2**c,'w')
     GG = G.cartesian_product(F)
 
-    # dictionary from integers to elments of GF(2^c): i -> w^i, None -> 0
+    # dictionary from integers to elements of GF(2^c): i -> w^i, None -> 0
     w = F.multiplicative_generator()
     r = {i:w**i for i in range(2**c-1)}
     r[None] = F.zero()

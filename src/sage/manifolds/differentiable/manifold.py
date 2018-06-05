@@ -623,7 +623,7 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, field, structure, ambient=None,
+    def __init__(self, n, name, field, structure, base_manifold=None,
                  diff_degree=infinity, latex_name=None, start_index=0,
                  category=None, unique_tag=None):
         r"""
@@ -653,7 +653,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: TestSuite(U).run()
 
         """
-        if ambient is None:
+        if base_manifold is None:
             if category is None:
                 if field == 'real':
                     field_c = RR
@@ -665,11 +665,11 @@ class DifferentiableManifold(TopologicalManifold):
                     category = Manifolds(field_c).Smooth()
                 else:
                     category = Manifolds(field_c).Differentiable()
-        elif not isinstance(ambient, DifferentiableManifold):
-            raise TypeError("the argument 'ambient' must be a " +
+        elif not isinstance(base_manifold, DifferentiableManifold):
+            raise TypeError("the argument 'base_manifold' must be a " +
                             "differentiable manifold")
         TopologicalManifold.__init__(self, n, name, field, structure,
-                                     ambient=ambient,
+                                     base_manifold=base_manifold,
                                      latex_name=latex_name,
                                      start_index=start_index,
                                      category=category)
@@ -818,10 +818,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         resu = DifferentiableManifold(self._dim, name, self._field,
-                                   self._structure, ambient=self._manifold,
-                                   diff_degree=self._diff_degree,
-                                   latex_name=latex_name,
-                                   start_index=self._sindex)
+                                      self._structure, base_manifold=self._manifold,
+                                      diff_degree=self._diff_degree,
+                                      latex_name=latex_name,
+                                      start_index=self._sindex)
         resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
@@ -1449,7 +1449,7 @@ class DifferentiableManifold(TopologicalManifold):
           ``name``
         - ``dest_map`` -- (default: ``None``) the destination map
           `\Phi:\ M \rightarrow N`; if ``None``, it is assumed that `N = M`
-          andthat `\Phi` is the identity map (case of a vector field
+          and that `\Phi` is the identity map (case of a vector field
           *on* `M`), otherwise ``dest_map`` must be a
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
 
@@ -2343,12 +2343,14 @@ class DifferentiableManifold(TopologicalManifold):
                     sdom._frame_changes[(frame2, frame1)] = change_of_frame.inverse()
 
     def vector_frame(self, symbol=None, latex_symbol=None, dest_map=None,
-                     from_frame=None):
+                     from_frame=None, indices=None, latex_indices=None,
+                     symbol_dual=None, latex_symbol_dual=None):
         r"""
         Define a vector frame on ``self``.
 
         A *vector frame* is a field on the manifold that provides, at each
-        point `p` of the manifold, a vector basis of the tangent space at `p`.
+        point `p` of the manifold, a vector basis of the tangent space at `p`
+        (or at `\Phi(p)` when ``dest_map`` is not ``None``, see below).
 
         .. SEEALSO::
 
@@ -2357,19 +2359,40 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``symbol`` -- (default: ``None``) a letter (of a few letters) to
-          denote a generic vector of the frame; can be set to ``None`` if the
-          parameter ``from_frame`` is filled
-        - ``latex_symbol`` -- (default: ``None``) symbol to denote a generic
-          vector of the frame; if None, the value of ``symbol`` is used.
+        - ``symbol`` -- (default: ``None``) either a string, to be used as a
+          common base for the symbols of the vector fields constituting the
+          vector frame, or a list/tuple of strings, representing the individual
+          symbols of the vector fields; can be ``None`` only if ``from_frame``
+          is not ``None`` (see below)
+        - ``latex_symbol`` -- (default: ``None``) either a string, to be used
+          as a common base for the LaTeX symbols of the vector fields
+          constituting the vector frame, or a list/tuple of strings,
+          representing the individual LaTeX symbols of the vector fields;
+          if ``None``, ``symbol`` is used in place of ``latex_symbol``
         - ``dest_map`` -- (default: ``None``)
           :class:`~sage.manifolds.differentiable.diff_map.DiffMap`;
-          destination map `\Phi:\ U \rightarrow V`; if ``None``, the
-          identity is assumed (case of a vector frame *on* `U`)
+          destination map `\Phi:\ U \rightarrow M`, where `U` is ``self`` and
+          `M` is a differentiable manifold; for each `p\in U`, the vector
+          frame evaluated at `p` is a basis of the tangent space
+          `T_{\Phi(p)}M`; if ``dest_map`` is ``None``, the identity is assumed
+          (case of a vector frame *on* `U`)
         - ``from_frame`` -- (default: ``None``) vector frame `\tilde{e}`
-          on the codomain `V` of the destination map `\Phi`; the returned
+          on the codomain `M` of the destination map `\Phi`; the returned
           frame `e` is then such that for all `p \in U`,
           we have `e(p) = \tilde{e}(\Phi(p))`
+        - ``indices`` -- (default: ``None``; used only if ``symbol`` is a
+          single string) tuple of strings representing the indices labelling
+          the vector fields of the frame; if ``None``, the indices will be
+          generated as integers within the range declared on ``self``
+        - ``latex_indices`` -- (default: ``None``) tuple of strings
+          representing the indices for the LaTeX symbols of the vector fields;
+          if ``None``, ``indices`` is used instead
+        - ``symbol_dual`` -- (default: ``None``) same as ``symbol`` but for the
+          dual coframe; if ``None``, ``symbol`` must be a string and is used
+          for the common base of the symbols of the elements of the dual
+          coframe
+        - ``latex_symbol_dual`` -- (default: ``None``) same as ``latex_symbol``
+          but for the dual coframe
 
         OUTPUT:
 
@@ -2378,21 +2401,19 @@ class DifferentiableManifold(TopologicalManifold):
 
         EXAMPLES:
 
-        Setting a vector frame on a 3-dimensional open subset::
+        Setting a vector frame on a 3-dimensional manifold::
 
             sage: M = Manifold(3, 'M')
-            sage: A = M.open_subset('A', latex_name=r'\mathcal{A}'); A
-            Open subset A of the 3-dimensional differentiable manifold M
-            sage: c_xyz.<x,y,z> = A.chart()
-            sage: e = A.vector_frame('e'); e
-            Vector frame (A, (e_0,e_1,e_2))
+            sage: X.<x,y,z> = M.chart()
+            sage: e = M.vector_frame('e'); e
+            Vector frame (M, (e_0,e_1,e_2))
             sage: e[0]
-            Vector field e_0 on the Open subset A of the 3-dimensional
-             differentiable manifold M
+            Vector field e_0 on the 3-dimensional differentiable manifold M
 
         .. SEEALSO::
 
-            For more examples, see
+            For more options, in particular for the choice of symbols and
+            indices, see
             :class:`~sage.manifolds.differentiable.vectorframe.VectorFrame`.
 
         """
@@ -2400,7 +2421,9 @@ class DifferentiableManifold(TopologicalManifold):
         return VectorFrame(self.vector_field_module(dest_map=dest_map,
                                                     force_free=True),
                            symbol=symbol, latex_symbol=latex_symbol,
-                           from_frame=from_frame)
+                           from_frame=from_frame, indices=indices,
+                           latex_indices=latex_indices, symbol_dual=symbol_dual,
+                           latex_symbol_dual=latex_symbol_dual)
 
     def _set_covering_frame(self, frame):
         r"""
@@ -3152,7 +3175,7 @@ class DifferentiableManifold(TopologicalManifold):
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
-          (case of a metric field *on* `U`)
+          (case of a metric tensor field *on* `U`)
 
         OUTPUT:
 
@@ -3198,7 +3221,7 @@ class DifferentiableManifold(TopologicalManifold):
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
-          (case of a metric field *on* `U`)
+          (case of a metric tensor field *on* `U`)
 
         OUTPUT:
 
@@ -3281,7 +3304,7 @@ class DifferentiableManifold(TopologicalManifold):
           class :class:`~sage.manifolds.differentiable.diff_map.DiffMap`
           representing the destination map `\Phi:\ U \rightarrow M`, where `U`
           is the current manifold; if ``None``, the identity map is assumed
-          (case of a metric field *on* `U`)
+          (case of a metric tensor field *on* `U`)
 
         OUTPUT:
 

@@ -937,10 +937,10 @@ class CubicalComplex(GenericCellComplex):
 
     def __ne__(self, other):
         r"""
-        Return True if ``self`` and ``other`` are not equal
+        Return True if ``self`` and ``other`` are not equal.
 
         :param other: another cubical complex
-        :return: True if the compexes are not equal
+        :return: True if the complexes are not equal
         :rtype: bool
 
         EXAMPLES::

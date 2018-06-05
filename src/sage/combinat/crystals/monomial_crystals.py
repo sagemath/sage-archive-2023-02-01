@@ -106,7 +106,6 @@ from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.root_system import RootSystem
-from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace

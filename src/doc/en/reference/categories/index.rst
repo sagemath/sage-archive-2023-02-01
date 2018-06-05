@@ -148,6 +148,7 @@ Individual Categories
    sage/categories/posets
    sage/categories/principal_ideal_domains
    sage/categories/quotient_fields
+   sage/categories/quantum_group_representations
    sage/categories/regular_crystals
    sage/categories/regular_supercrystals
    sage/categories/right_modules

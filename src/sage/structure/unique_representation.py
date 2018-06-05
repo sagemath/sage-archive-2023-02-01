@@ -603,10 +603,10 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         sage: class MyClass(CachedRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         return cmp(self.value, other.value)
+        ....:     def __eq__(self, other):
+        ....:         if type(self) != type(other):
+        ....:             return False
+        ....:         return self.value == other.value
 
     Two coexisting instances of ``MyClass`` created with the same argument data
     are guaranteed to share the same identity. Since :trac:`12215`, this is
@@ -803,12 +803,13 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
 
     .. rubric:: More on cached representation and identity
 
-    :class:`CachedRepresentation` is implemented by means of a cache. This
-    cache uses weak references. Hence, when all other references to, say,
-    ``MyClass(1)`` have been deleted, the instance is actually deleted from
-    memory. A later call to ``MyClass(1)`` reconstructs the instance from
-    scratch.
-    ::
+    :class:`CachedRepresentation` is implemented by means of a cache.
+    This cache uses weak references in general, but strong references to
+    the most recently created objects. Hence, when all other references
+    to, say, ``MyClass(1)`` have been deleted, the instance is
+    eventually deleted from memory (after enough other objects have been
+    created to remove the strong reference to ``MyClass(1)``). A later
+    call to ``MyClass(1)`` reconstructs the instance from scratch::
 
         sage: class SomeClass(UniqueRepresentation):
         ....:     def __init__(self, i):
@@ -816,20 +817,25 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
         ....:         self.i = i
         ....:     def __del__(self):
         ....:         print("deleting instance for argument %s" % self.i)
-        ....:
+        sage: class OtherClass(UniqueRepresentation):
+        ....:     def __init__(self, i):
+        ....:         pass
         sage: O = SomeClass(1)
         creating new instance for argument 1
         sage: O is SomeClass(1)
         True
         sage: O is SomeClass(2)
         creating new instance for argument 2
-        deleting instance for argument 2
         False
+        sage: L = [OtherClass(i) for i in range(200)]
+        deleting instance for argument 2
         sage: del O
         deleting instance for argument 1
         sage: O = SomeClass(1)
         creating new instance for argument 1
         sage: del O
+        sage: del L
+        sage: L = [OtherClass(i) for i in range(200)]
         deleting instance for argument 1
 
     .. rubric:: Cached representation and pickling
@@ -1001,9 +1007,8 @@ class CachedRepresentation(six.with_metaclass(ClasscallMetaclass)):
     unprocessed arguments will be passed down to
     :meth:`__init__<object.__init__>`.
     """
-    _included_private_doc_ = ["__classcall__"]
 
-    @weak_cached_function # automatically a staticmethod
+    @weak_cached_function(cache=128)  # automatically a staticmethod
     def __classcall__(cls, *args, **options):
         """
         Construct a new object of this class or reuse an existing one.
@@ -1260,12 +1265,6 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: class MyClass(UniqueRepresentation):
         ....:     def __init__(self, value):
         ....:         self.value = value
-        ....:     def __cmp__(self, other):
-        ....:         c = cmp(type(self),type(other))
-        ....:         if c: return c
-        ....:         print("custom cmp")
-        ....:         return cmp(self.value, other.value)
-        ....:
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1290,26 +1289,22 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
         sage: x.value, y.value
         (1, 1)
 
-    Rich comparison by identity is used when possible (hence, for ``==``, for
-    ``!=``, and for identical arguments in the case of ``<``, ``<=``, ``>=``
-    and ``>``), which is as fast as it can get. Only if identity is not enough
-    to decide the answer of a comparison, the custom comparison is called::
+    When comparing two instances of a unique representation with ``==``
+    or ``!=`` comparison by identity is used::
 
         sage: x == y
         True
-        sage: z = MyClass(2)
-        sage: x == z, x is z
-        (False, False)
-        sage: x <= x
+        sage: x is y
         True
+        sage: z = MyClass(2)
+        sage: x == z
+        False
+        sage: x is z
+        False
+        sage: x != y
+        False
         sage: x != z
         True
-        sage: x <= z
-        custom cmp
-        True
-        sage: x > z
-        custom cmp
-        False
 
     A hash function equivalent to :meth:`object.__hash__` is used, which is
     compatible with comparison by identity. However this means that the hash

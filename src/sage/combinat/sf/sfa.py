@@ -1014,7 +1014,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             basis ``self``. These functions are defined below.
 
             The Carlitz-Shareshian-Wachs symmetric functions have been
-            introduced in [GriRei2014]_, Exercise 2.87, as
+            introduced in [GriRei18]_, Exercise 2.9.11, as
             refinements of a certain particular case of chromatic
             quasisymmetric functions defined by Shareshian and Wachs.
             Their definitions are as follows:
@@ -1036,7 +1036,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
 
             This is a symmetric function (according to
-            [GriRei2014]_, Exercise 2.87(b)), and for `s = 0` equals
+            [GriRei18]_, Exercise 2.9.11(b)), and for `s = 0` equals
             the `t^d`-coefficient of the descent enumerator of Smirnov
             words of length `n` (an example of a chromatic
             quasisymmetric function which happens to be symmetric --
@@ -1055,14 +1055,16 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
             three power series `U_{n, d, s}`, `V_{n, d, s}` and
             `W_{n, d, s}` are symmetric functions as well
-            ([GriRei2014]_, Exercise 2.87(c)). Their sum is
+            ([GriRei18]_, Exercise 2.9.11(c)). Their sum is
             `X_{n, d, s}`.
 
             REFERENCES:
 
             .. [ShaWach2014] John Shareshian, Michelle L. Wachs.
                *Chromatic quasisymmetric functions*.
-               :arxiv:`1405.4629v1`.
+               :arxiv:`1405.4629v2`.
+
+            .. [GriRei18]_
 
             INPUT:
 
@@ -2819,7 +2821,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).plethysm(s(0))
             s[]
 
-        Sage also handles plethsym of tensor products of symmetric functions::
+        Sage also handles plethysm of tensor products of symmetric functions::
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: X = tensor([s[1],s[[]]])

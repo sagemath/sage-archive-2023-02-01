@@ -181,9 +181,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.exponents()
             [0, 1997, 10000]
         """
-        keys = self.__coeffs.keys()
-        keys.sort()
-        return keys
+        return sorted(self.__coeffs)
 
     def valuation(self):
         """

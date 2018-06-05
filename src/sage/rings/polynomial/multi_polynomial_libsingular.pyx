@@ -178,6 +178,8 @@ from cpython.object cimport Py_NE
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
+from sage.cpython.string cimport char_to_str, str_to_bytes
+
 # singular types
 from sage.libs.singular.decl cimport ring, poly, ideal, intvec, number, currRing
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF
@@ -521,7 +523,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
     Element = MPolynomial_libsingular
 
-    def _element_constructor_(self, element):
+    def _element_constructor_(self, element, check=True):
         """
         Construct a new element in this polynomial ring by converting
         ``element`` into ``self`` if possible.
@@ -889,8 +891,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if element.parent().ngens() <= self.ngens():
                 # Map the variables by indices
                 _p = p_ISet(0, _ring)
-                K = self.base_ring()
-                base = self._base
                 Element = <MPolynomial_libsingular>element
                 El_poly = Element._poly
                 El_parent = Element._parent
@@ -899,11 +899,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
                 while El_poly:
                     c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
-                    try:
-                        c = K(c)
-                    except TypeError:
-                        p_Delete(&_p, _ring)
-                        raise
+                    if check:
+                        try:
+                            c = base_ring(c)
+                        except TypeError:
+                            p_Delete(&_p, _ring)
+                            raise
                     if c:
                         mon = p_Init(_ring)
                         p_SetCoeff(mon, sa2si(c, _ring), _ring)
@@ -929,14 +930,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if element.parent().ngens() <= self.ngens():
                 # Map variables by indices
                 _p = p_ISet(0, _ring)
-                K = self.base_ring()
                 for (m,c) in element.element().dict().iteritems():
-                    try:
-                        c = K(c)
-                        if not c: continue
-                    except TypeError:
-                        p_Delete(&_p, _ring)
-                        raise
+                    if check:
+                        try:
+                            c = base_ring(c)
+                        except TypeError:
+                            p_Delete(&_p, _ring)
+                            raise
+                    if not c:
+                        continue
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, sa2si(c , _ring), _ring)
                     for pos in m.nonzero_positions():
@@ -965,7 +967,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 gens_map = dict(zip(Q.variable_names(),self.gens()[:Q.ngens()]))
                 return eval(str(element),gens_map)
 
-        if isinstance(element, basestring):
+        if isinstance(element, str):
             # let python do the parsing
             d = self.gens_dict()
             if self.base_ring().gen() != 1:
@@ -985,14 +987,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         if isinstance(element, dict):
             _p = p_ISet(0, _ring)
-            K = self.base_ring()
             for (m,c) in element.iteritems():
-                try:
-                    c = K(c)
-                    if not c: continue
-                except TypeError:
-                    p_Delete(&_p, _ring)
-                    raise
+                if check:
+                    try:
+                        c = base_ring(c)
+                    except TypeError:
+                        p_Delete(&_p, _ring)
+                        raise
+                if not c:
+                    continue
                 mon = p_Init(_ring)
                 p_SetCoeff(mon, sa2si(c , _ring), _ring)
                 if len(m) != self.ngens():
@@ -1035,8 +1038,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: P # indirect doctest
             Multivariate Polynomial Ring in x, y over Rational Field
         """
-        varstr = ", ".join([ rRingVar(i,self._ring)  for i in range(self.__ngens) ])
-        return "Multivariate Polynomial Ring in %s over %s"%(varstr,self.base_ring())
+        varstr = ", ".join(char_to_str(rRingVar(i,self._ring))
+                           for i in range(self.__ngens))
+        return "Multivariate Polynomial Ring in %s over %s" % (varstr, self.base_ring())
 
     def ngens(self):
         """
@@ -1532,9 +1536,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                                   MPolynomialRing_polydict_domain)):
             return op == Py_NE
 
-        lx = (left.base_ring(), map(str, left.gens()), left.term_order())
-        rx = (right.base_ring(), map(str, right.gens()), right.term_order())
-        return richcmp(lx, rx, op)
+        def cmp_key(x):
+            return (x.base_ring(), [str(v) for v in x.gens()], x.term_order())
+        return richcmp(cmp_key(left), cmp_key(right), op)
 
     def __reduce__(self):
         """
@@ -1582,7 +1586,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef ring *_ring = self._ring
         cdef char **_names
         cdef char **_orig_names
-        cdef char *_name
         cdef int i
 
         if len(names) != _ring.N:
@@ -1593,7 +1596,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         _names = <char**>omAlloc0(sizeof(char*)*_ring.N)
         for i from 0 <= i < _ring.N:
-            _name = names[i]
+            _name = str_to_bytes(names[i])
             _names[i] = omStrDup(_name)
 
         _orig_names = _ring.names
@@ -2553,7 +2556,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             _ring.ShortOut = 0
         else:
             s = p_String(self._poly, _ring, _ring)
-        return s
+        return char_to_str(s)
 
     def _latex_(self):
         """
@@ -4020,6 +4023,16 @@ cdef class MPolynomial_libsingular(MPolynomial):
             Traceback (most recent call last):
             ...
             NotImplementedError: Division of multivariate polynomials over non fields by non-monomials not implemented.
+
+        TESTS::
+
+            sage: P.<x,y> = ZZ[]
+            sage: p = 3*(-x^8*y^2 - x*y^9 + 6*x^8*y + 17*x^2*y^6 - x^3*y^2)
+            sage: q = 7*(x^2 + x*y + y^2 + 1)
+            sage: p*q//q == p
+            True
+            sage: p*q//p == q
+            True
         """
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef ring *r = self._parent_ring
@@ -4039,11 +4052,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
         _right = <MPolynomial_libsingular>right
 
         if r.cf.type != n_unknown:
-            if r.cf.type == n_Z:
-                P = parent.change_ring(RationalField())
-                f = P(self)//P(right)
-                CM = list(f)
-                return parent(sum([c.floor()*m for c,m in CM]))
             if _right.is_monomial():
                 p = _self._poly
                 quo = p_ISet(0,r)
@@ -4315,6 +4323,13 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 248301045*a^2*r^10*n^2*o^10+570807000*a^2*r^9*n*o^9-137945025*a^2*r^8*n^2*o^8+328050000*a^2*r^8*o^8-253692000*a^2*r^7*n*o^7+30654450*a^2*r^6*n^2*o^6-109350000*a^2*r^6*o^6+42282000*a^2*r^5*n*o^5-3406050*a^2*r^4*n^2*o^4-22457088*a*r^2*v*n^2*o^6+12150000*a^2*r^4*o^4-3132000*a^2*r^3*n*o^3+189225*a^2*r^2*n^2*o^2+2495232*a*v*n^2*o^4-450000*a^2*r^2*o^2+87000*a^2*r*n*o-4205*a^2*n^2
             sage: len(factor(f))
             4
+
+        Test for :trac:`17251`::
+
+            sage: R.<z,a,b> = PolynomialRing(QQ)
+            sage: N = -a^4*z^8 + 2*a^2*b^2*z^8 - b^4*z^8 - 16*a^3*b*z^7 + 16*a*b^3*z^7 + 28*a^4*z^6 - 56*a^2*b^2*z^6 + 28*b^4*z^6 + 112*a^3*b*z^5 - 112*a*b^3*z^5 - 70*a^4*z^4 + 140*a^2*b^2*z^4 - 70*b^4*z^4 - 112*a^3*b*z^3 + 112*a*b^3*z^3 + 28*a^4*z^2 - 56*a^2*b^2*z^2 + 28*b^4*z^2 + 16*a^3*b*z - 16*a*b^3*z - a^4 + 2*a^2*b^2 - b^4
+            sage: N.factor()
+            (-1) * (-a + b) * (a + b) * (-z^4*a + z^4*b - 4*z^3*a - 4*z^3*b + 6*z^2*a - 6*z^2*b + 4*z*a + 4*z*b - a + b) * (z^4*a + z^4*b - 4*z^3*a + 4*z^3*b - 6*z^2*a - 6*z^2*b + 4*z*a - 4*z*b + a + b)
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ptemp
@@ -4444,7 +4459,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
         fI.m[0]= p_Copy(self._poly, r)
 
         if r!=currRing: rChangeCurrRing(r)  # idLift
+        sig_on()
         res = idLift(_I, fI, NULL, 0, 0, 0)
+        sig_off()
         if errorreported != 0 :
             errorcode = errorreported
             errorreported = 0
@@ -4689,6 +4706,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
             1
             sage: x.gcd(R.change_ring(GF(3)).gen())
             x
+
+            sage: Pol.<x,y,z> = ZZ[]
+            sage: p = x*y - 5*y^2 + x*z - z^2 + z
+            sage: q = -3*x^2*y^7*z + 2*x*y^6*z^3 + 2*x^2*y^3*z^4 + x^2*y^5 - 7*x*y^5*z
+            sage: (21^3*p^2*q).gcd(35^2*p*q^2) == -49*p*q
+            True
         """
         cdef MPolynomial_libsingular _right
         cdef poly *_res
@@ -4707,16 +4730,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
             raise TypeError("algorithm %s not supported" % algorithm)
 
         if _ring.cf.type != n_unknown:
-            if _ring.cf.type == n_Z:
-                P = self._parent.change_ring(RationalField())
-                res = P(self).gcd(P(right))
-                coef = GCD_list(self.coefficients() + right.coefficients())
-                return self._parent(coef*res)
-
-            #TODO:
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise NotImplementedError("GCD over rings not implemented.")
-            #raise NotImplementedError("GCD over rings not implemented.")
 
         if self._parent._base.is_finite() and self._parent._base.characteristic() > 1<<29:
             raise NotImplementedError("GCD of multivariate polynomials over prime fields with characteristic > 2^29 is not implemented.")
@@ -4772,6 +4787,13 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
             (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
+
+        TESTS::
+
+            sage: Pol.<x,y,z> = ZZ[]
+            sage: p = -x*y + x*z + 54*x - 2
+            sage: (5*p^2).lcm(3*p) == 15*p^2
+            True
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ret
@@ -4781,14 +4803,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring!=currRing: rChangeCurrRing(_ring)
 
         if _ring.cf.type != n_unknown:
-            if _ring.cf.type == n_Z:
-                P = self.parent().change_ring(RationalField())
-                py_gcd = P(self).gcd(P(g))
-                py_prod = P(self*g)
-                return self.parent(py_prod//py_gcd)
-            else:
-                if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
-                    raise TypeError("LCM over non-integral domains not available.")
+            if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
+                raise TypeError("LCM over non-integral domains not available.")
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)
@@ -5329,59 +5345,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if count >= 20:
             sig_off()
         return new_MP(self._parent, rt)
-
-    def discriminant(self,variable):
-        """
-        Returns the discriminant of self with respect to the given variable.
-
-        INPUT:
-
-          - ``variable`` - The variable with respect to which we compute
-              the discriminant
-
-        OUTPUT:
-
-          - An element of the base ring of the polynomial ring.
-
-
-        EXAMPLES::
-
-            sage: R.<x,y,z>=QQ[]
-            sage: f=4*x*y^2 + 1/4*x*y*z + 3/2*x*z^2 - 1/2*z^2
-            sage: f.discriminant(x)
-            1
-            sage: f.discriminant(y)
-            -383/16*x^2*z^2 + 8*x*z^2
-            sage: f.discriminant(z)
-            -383/16*x^2*y^2 + 8*x*y^2
-
-        Note that, unlike the univariate case, the result lives in
-        the same ring as the polynomial::
-
-            sage: R.<x,y>=QQ[]
-            sage: f=x^5*y+3*x^2*y^2-2*x+y-1
-            sage: f.discriminant(y)
-            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
-            sage: f.polynomial(y).discriminant()
-            x^10 + 2*x^5 + 24*x^3 + 12*x^2 + 1
-            sage: f.discriminant(y).parent()==f.polynomial(y).discriminant().parent()
-            False
-
-        AUTHOR:
-            Miguel Marco
-        """
-        if self.is_zero():
-            return self.parent().zero()
-        n = self.degree(variable)
-        d = self.derivative(variable)
-        k = d.degree(variable)
-
-        r = n % 4
-        u = -1 # (-1)**(n*(n-1)/2)
-        if r == 0 or r == 1:
-            u = 1
-        an = self.coefficient(variable**n)**(n - k - 2)
-        return self.parent()(u * self.resultant(d, variable) * an)
 
     def coefficients(self):
         """

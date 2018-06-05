@@ -706,7 +706,7 @@ class BinaryQF(SageObject):
           * ``'pari'`` -- use PARI
           * ``'sage'`` -- use Sage
 
-        .. SEEALSO:
+        .. SEEALSO::
 
         - :meth:`~is_reduced`
 

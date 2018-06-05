@@ -558,7 +558,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         .. MATH::
 
-            n = \overrightarrow{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...
+            n = \vec{*}(\mathrm{d}x_0\wedge\mathrm{d}x_1\wedge...
             \wedge\mathrm{d}x_{n-1})
 
         where the star is the hodge dual operator and de wedge the product on
@@ -695,7 +695,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             args = list(range(self._dim)) + [eps] + list(range(self._dim))
             r = self.irange()
             n_form = self._immersion.restrict(chart.domain()).pushforward(
-                chart.frame()[r.next()]).down(
+                chart.frame()[next(r)]).down(
                 self.ambient_metric().along(self._immersion).restrict(
                     chart.domain()))
             for i in r:
@@ -935,7 +935,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -r_M dth_M*dth_M - r_M*sin(th_M)^2 dph_M*dph_M
 
         """
-        nab = self.ambient_metric().connection('nabla', r'\nabla')
         if self._dim_foliation == 0:
             self._ambient_second_fundamental_form = \
                            self.tensor_field(0, 2, sym=[(0, 1)], antisym=[],
@@ -958,11 +957,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
             charts = iter(self.top_charts())
             self._ambient_second_fundamental_form.add_comp_by_continuation(
-                max_frame, charts.next().domain())
+                max_frame, next(charts).domain())
             for chart in charts:
                 self._ambient_second_fundamental_form.add_expr_from_subdomain(
                     max_frame, chart.domain())
         else:
+            nab = self.ambient_metric().connection('nabla', r'\nabla')
             self._ambient_second_fundamental_form = \
                 -self.ambient_metric().contract(nab(self.normal())) \
                 - nab(self.normal()).contract(self.normal())\
@@ -1104,7 +1104,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             g = g.along(self._immersion)
 
         self._projector = self.ambient_first_fundamental_form().contract(0, g)
-        self._projector.set_name("gamma", r"\overrightarrow{\gamma}")
+        self._projector.set_name("gamma", r"\vec{\gamma}")
         return self._projector
 
     def project(self, tensor):
@@ -1361,7 +1361,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             for eigen_vector in eigen_space[1]:
                 v[chart.frame(), :] = eigen_vector
                 res.append((v.copy(), eigen_space[0]))
-                res[-1][0].set_name("e_%i" % counter.next())
+                res[-1][0].set_name("e_{}".format(next(counter)))
         self._principal_directions[chart] = res
         return res
 
@@ -1418,7 +1418,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         counter = self.irange()
         for i in range(self._dim):
             res[i] = self.scalar_field({chart: res[i]},
-                                       name="k_%i" % counter.next())
+                                       name="k_{}".format(next(counter)))
         self._principal_curvatures[chart] = res
         return res
 

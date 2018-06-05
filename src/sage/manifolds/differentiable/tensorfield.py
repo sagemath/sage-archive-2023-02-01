@@ -1221,13 +1221,13 @@ class TensorField(ModuleElement):
         - ``subdomain`` -- open subset of `e`'s domain in which the
           components have additional expressions.
 
-        EXAMPLE:
+        EXAMPLES:
 
         Vector field in R^3 along the 2-sphere (from a non parallelizable
         manifold to a parallelizable one::
 
             sage: M = Manifold(3, 'M', structure="Riemannian", start_index=0)
-            sage: S = Manifold(2, 'N', structure="Riemannian")
+            sage: S = Manifold(2, 'S', structure="Riemannian")
             sage: E.<X,Y,Z> = M.chart()
 
         Let's define S in terms of stereographic charts::

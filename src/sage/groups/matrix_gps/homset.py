@@ -18,7 +18,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.groups.libgap_morphism import GroupHomset_libgap
 from sage.misc.lazy_import import lazy_import
 from sage.misc.superseded import deprecation
 
@@ -31,7 +30,9 @@ def is_MatrixGroupHomset(x):
         sage: from sage.groups.matrix_gps.homset import is_MatrixGroupHomset
         sage: is_MatrixGroupHomset(4)
         doctest:...: DeprecationWarning:
-        Importing MatrixGroupHomset from here is deprecated. If you need to use it, please import it directly from sage.groups.libgap_morphism
+        Importing MatrixGroupHomset from here is deprecated.
+        If you need to use it, please import it directly from
+         sage.groups.libgap_morphism
         See https://trac.sagemath.org/25444 for details.
         False
 

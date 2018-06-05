@@ -1,7 +1,7 @@
 """
 Homomorphisms Between Matrix Groups
 
-Deprecated May, 2018.
+Deprecated May, 2018; use :class:`sage.groups.libgap_morphism` instead.
 """
 
 #*****************************************************************************

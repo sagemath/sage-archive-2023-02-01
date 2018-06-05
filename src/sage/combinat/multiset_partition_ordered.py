@@ -11,16 +11,10 @@ AUTHORS:
 
 REFERENCES:
 
-.. [BCHOPSY] \G. Benkart, L. Colmenarejo, P. E. Harris, R. Orellana, G. Panova,
-             A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
-             multiset partitions*. :arXiv:`1707.08709v2`.
-.. [HRW] \J. Haglund, J. B. Remmel, A. T. Wilson. *The Delta Conjecture*.
-         :arXiv:`1509.07058`.
-.. [HRS] \J. Haglund, B. Rhoades, M. Shimozono. *Ordered set partitions,
-         generalized coinvariant algebras, and the Delta Conjecture*.
-         arXiv:`1609.07575`.of an ordered multiset partition
-.. [LM] \A. Lauve and M. Mastnak. *Bialgebra coverings and transfer
-        of structure*. :arXiv:`1803.02691`.
+- [BCHOPSY2017]_
+- [HRW2015]_
+- [HRS2016]_
+- [LM2018]_
 
 EXAMPLES:
 
@@ -107,15 +101,14 @@ class OrderedMultisetPartition(ClonableArray):
     r"""
     Ordered Multiset Partition
 
-    An ordered multiset partition `c` of a multiset `X` is a list of nonempty
-    subsets of `X` (note: not sub-multisets), called the blocks of `c`,
-    whose multi-union is `X`.
-
+    An ordered multiset partition `c` of a multiset `X` is a list
+    `[c_1, \ldots, c_r]` of nonempty subsets of `X` (note: not
+    sub-multisets), called the blocks of `c`, whose multi-union is `X`.
 
     EXAMPLES:
 
-    The simplest way to create a ordered multiset partition is by specifying its
-    entries as a list, tuple::
+    The simplest way to create a ordered multiset partition is by specifying
+    its entries as a list, tuple::
 
         sage: OrderedMultisetPartition([[3],[2,1]])
         [{3}, {1,2}]
@@ -124,9 +117,10 @@ class OrderedMultisetPartition(ClonableArray):
         sage: OrderedMultisetPartition([set([i]) for i in range(2,5)])
         [{2}, {3}, {4}]
 
-    You can also create a ordered multiset partition `c` from a list of positive integers
-    and from a list of nonnegative integers. In the former case, each integer is given
-    its own block of `c`. In the latter case, zeros separate the blocks of `c`::
+    You can also create a ordered multiset partition `c` from a list of positive
+    integers and from a list of nonnegative integers. In the former case, each
+    integer is given its own block of `c`. In the latter case, zeros separate the
+    blocks of `c`::
 
         sage: OrderedMultisetPartition([i for i in range(2,5)])
         [{2}, {3}, {4}]
@@ -141,9 +135,9 @@ class OrderedMultisetPartition(ClonableArray):
 
     REFERENCES:
 
-    - [HRW]_
-    - [HRS]_
-    - [LM]_
+    - [HRW2015]_
+    - [HRS2016]_
+    - [LM2018]_
     """
     @staticmethod
     def __classcall_private__(cls, co):
@@ -322,7 +316,7 @@ class OrderedMultisetPartition(ClonableArray):
         Return the concatenation of two ordered multiset partitions.
 
         This operation represents the product in Hopf algebra of ordered multiset
-        partitions in its natural basis [LM]_.
+        partitions in its natural basis [LM2018]_.
 
         EXAMPLES::
 
@@ -359,7 +353,7 @@ class OrderedMultisetPartition(ClonableArray):
         return self.parent()(list(reversed(self)))
 
     def shape_from_cardinality(self):
-        r"""
+        """
         Return a composition that records the cardinality of each block of ``self``.
 
         EXAMPLES::
@@ -374,7 +368,7 @@ class OrderedMultisetPartition(ClonableArray):
         return Composition([len(k) for k in self])
 
     def shape_from_size(self):
-        r"""
+        """
         Return a composition that records the sum of entries of each block of ``self``.
 
         EXAMPLES::
@@ -397,13 +391,13 @@ class OrderedMultisetPartition(ClonableArray):
             return Composition([sum(k) for k in self])
 
     def letters(self):
-        r"""
+        """
         Return the set of distinct elements occurring within the blocks of ``self``.
         """
         return _union_of_sets(list(self))
 
     def multiset(self, as_dict=False):
-        r"""
+        """
         Return the multiset corresponding to ``self`` as a tuple or as a dictionary.
 
         EXAMPLES::
@@ -423,7 +417,7 @@ class OrderedMultisetPartition(ClonableArray):
             return self._multiset
 
     def max_letter(self):
-        r"""
+        """
         Return the maximum letter appearing in ``self.letters()``.
 
         EXAMPLES::
@@ -498,7 +492,7 @@ class OrderedMultisetPartition(ClonableArray):
         return len(self)
 
     def weight(self, as_weak_comp=False):
-        """
+        r"""
         Return a dictionary, with keys being the letters in ``self.letters()``
         and values being their (positive) frequency.
 
@@ -534,7 +528,7 @@ class OrderedMultisetPartition(ClonableArray):
         return w
 
     def deconcatenate(self, k=2):
-        """
+        r"""
         Return the set of `k`-deconcatenations of ``self``.
 
         A `k`-tuple `(C_1, \ldots, C_k)` of ordered multiset partitions represents
@@ -574,7 +568,7 @@ class OrderedMultisetPartition(ClonableArray):
         return Set(out)
 
     def split(self, k=2):
-        """
+        r"""
         Return the set of `k`-splittings of ``self``.
 
         A `k`-tuple `(A^1, \ldots, A^k)` of ordered multiset partitions represents
@@ -690,7 +684,7 @@ class OrderedMultisetPartition(ClonableArray):
         return co1 in co2.finer()
 
     def fatten(self, grouping):
-        r"""
+        """
         Return the ordered multiset partition fatter than ``self``, obtained by
         grouping together consecutive parts according to ``grouping`` (whenever
         this does not violate the strictness condition).
@@ -787,7 +781,7 @@ class OrderedMultisetPartition(ClonableArray):
 
 
     def minimaj(self):
-        r"""
+        """
         Return the minimaj statistic on ordered multiset partitions.
 
         We define `minimaj` via an example:
@@ -807,7 +801,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         REFERENCES:
 
-        - [HRW]_
+        - [HRW2015]_
 
         EXAMPLES::
 
@@ -834,7 +828,7 @@ class OrderedMultisetPartition(ClonableArray):
         return sum(D) + len(D)
 
     def minimaj_word(self):
-        r"""
+        """
         Return an ordering of ``self._multiset`` derived from the minimaj ordering
         on blocks of ``self``.
 
@@ -905,7 +899,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         REFERENCES:
 
-        - [BCHOPSY]_
+        - [BCHOPSY2017]_
 
         EXAMPLES::
 
@@ -958,7 +952,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         REFERENCES:
 
-        - [HRW]_
+        - [HRW2015]_
 
         EXAMPLES::
 
@@ -1103,9 +1097,9 @@ class OrderedMultisetPartition(ClonableArray):
             co1 = [Word([sum(k)]+sorted(k)) for k in co1]
             co2 = [Word([sum(k)]+sorted(k)) for k in co2]
         else:
-            co1 = [Word(sorted(k)) for k in co1]
-            co2 = [Word(sorted(k)) for k in co2]
-        return co1 > co2
+            w1 = [Word(map(str, sorted(k))) for k in co1]
+            w2 = [Word(map(str, sorted(k))) for k in co2]
+        return w1 > w2
 
 ##############################################################
 
@@ -1612,7 +1606,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def from_list(self, lst):
         """
         Return an ordered multiset partition of singleton blocks, whose singletons
-        are the elements `lst`.
+        are the elements ``lst``.
 
         INPUT:
 
@@ -1799,7 +1793,7 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
 
     def subset(self, *args):
         """
-        Return a subset of all ordered multiset partitions.
+        Return a subset of all ordered multiset partitions `c`.
 
         Expects one or two arguments, with different subsets resulting:
 
@@ -1883,7 +1877,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
 
     def cardinality(self):
         """
-        Return the number of ordered multiset partitions of `n`.
+        Return the number of ordered multiset partitions of integer ``self._n``.
         """
         # Dispense with the complex computation for small orders.
         orders = {0:1, 1:1, 2:2, 3:5, 4:11, 5:25}
@@ -1903,7 +1897,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         return ZZ(deg)
 
     def an_element(self):
-        r"""
+        """
         Return a typical element of ``OrderedMultisetPartition_n``.
         """
         #output will have at most three blocks, each of size 1, 2, or 3.
@@ -1920,7 +1914,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         return self.element_class(self, map(Set, out))
 
     def random_element(self):
-        r"""
+        """
         Return a random ``OrderedMultisetPartition_n`` with uniform probability.
 
         .. TODO::
@@ -1968,7 +1962,7 @@ class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
         OrderedMultisetPartitions.__init__(self, True, size=n, **constraints)
 
     def _repr_(self):
-        r"""
+        """
         Return a string representation of ``self``.
         """
         cdict = dict(self.constraints)
@@ -2044,7 +2038,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         return ZZ(deg)
 
     def an_element(self):
-        r"""
+        """
         Return a typical ``OrderedMultisetPartition_X``.
         """
         if not self._Xtup:
@@ -2065,7 +2059,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         return self.element_class(self, map(Set, elt))
 
     def random_element(self):
-        r"""
+        """
         Return a random ``OrderedMultisetPartition`` with uniform probability.
 
         .. TODO::
@@ -2123,7 +2117,7 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         OrderedMultisetPartitions.__init__(self, True, **constraints)
 
     def _repr_(self):
-        r"""
+        """
         Return a string representation of ``self``.
         """
         cdict = dict(self.constraints)
@@ -2143,9 +2137,10 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
 
 class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
     """
-    Class of ordered multiset partitions of specified order over a fixed alphabet.
+    Class of ordered multiset partitions of specified order `d`
+    over a fixed alphabet `A`.
     """
-    def __init__(self, A, order):
+    def __init__(self, A, d):
         """
         TESTS::
 
@@ -2161,7 +2156,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
              [{2}, {2}], [{2}, {3}], [{3}, {1}], [{3}, {2}], [{3}, {3}]]
         """
         self._alphabet = A
-        self._order = order
+        self._order = d
         OrderedMultisetPartitions.__init__(self, True)
 
     def _repr_(self):
@@ -2192,7 +2187,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         return no_repeats and valid_order and valid_letters
 
     def an_element(self):
-        r"""
+        """
         Return a typical ``OrderedMultisetPartition_A``.
         """
         alpha = Compositions(self._order).an_element()
@@ -2200,7 +2195,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         return self.element_class(self, map(Set, co))
 
     def random_element(self):
-        r"""
+        """
         Return a random ``OrderedMultisetPartition_A`` with uniform probability.
 
         .. TODO::
@@ -2258,10 +2253,10 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
 
 class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
     """
-    Class of ordered multiset partitions of specified order over a fixed alphabet
-    satisfying constraints.
+    Class of ordered multiset partitions of specified order `d`
+    over a fixed alphabet `A` satisfying constraints.
     """
-    def __init__(self, A, order, **constraints):
+    def __init__(self, A, d, **constraints):
         """
         Mimic class ``OrderedMultisetPartitions_A`` to initialize.
 
@@ -2284,11 +2279,11 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
             sage: TestSuite(C).run()
         """
         self._alphabet = A
-        self._order = order
+        self._order = d
         OrderedMultisetPartitions.__init__(self, True, **constraints)
 
     def _repr_(self):
-        r"""
+        """
         Return a string representation of ``self``.
         """
         cdict = dict(self.constraints)
@@ -2306,7 +2301,7 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
         return valid and self._satisfies_constraints(x)
 
     def an_element(self):
-        r"""
+        """
         Return a typical ``OrderedMultisetPartition_A``.
         """
         keys = self.constraints.keys()
@@ -2359,7 +2354,7 @@ def _concatenate(list_of_iters):
     return tuple(_ for block in list_of_iters for _ in block)
 
 def _is_finite(constraints):
-    r"""
+    """
     Return ``True`` if the dictionary ``constraints`` corresponds to
     a finite collection of ordered multiset partitions.
     """
@@ -2370,7 +2365,7 @@ def _is_finite(constraints):
         return Bounds.intersection(Set(constraints)) != Set()
 
 def _base_iterator(constraints):
-    r"""
+    """
     Return a base iterator for ordered multiset partitions or ``None``.
 
     If the keys within ``constraints`` dictionary correspond to a finite set
@@ -2437,7 +2432,7 @@ def _iterator_weight(weight):
 
 
 def _iterator_size(size, length=None, alphabet=None):
-    """
+    r"""
     An iterator for the ordered multiset partitions of integer `n`.
 
     The degree `n` part of ordered multiset partition contains all sequences of
@@ -2473,9 +2468,9 @@ def _iterator_size(size, length=None, alphabet=None):
                     min_part=1) for a in alpha]):
                 yield P([Set(list(k)) for k in p])
 
-def _iterator_order(A, ord, lengths=None):
+def _iterator_order(A, d, lengths=None):
     """
-    An iterator for the ordered multiset partitions of order `ord` over alphabet `A`.
+    An iterator for the ordered multiset partitions of order `d` over alphabet `A`.
 
     If optional argument ``lengths`` is given, it should be a list of integers.
     Then only yield ordered multiset partitions with length in ``lengths``.
@@ -2503,23 +2498,23 @@ def _iterator_order(A, ord, lengths=None):
         [[]]
     """
     A = Set(A)
-    P = OrderedMultisetPartitions_A(A, ord)
+    P = OrderedMultisetPartitions_A(A, d)
 
     # iteration scheme:
-    # start from an integer composition ``alpha`` of ``ord``.
+    # start from an integer composition ``alpha`` of ``d``.
     # for each ``a`` in ``alpha``, pick ``a`` letters from ``A``
     n = len(A)
     if not lengths:
-        if ord:
-            lengths = range(max(1, ord // n), ord+1)
+        if d:
+            lengths = range(max(1, d // n), d+1)
         else:
             lengths = (0,)
 
     for k in lengths:
-        if not k and not ord:
+        if not k and not d:
             yield P([])
         else:
-            for alpha in Compositions(ord, length=k, max_part=n):
+            for alpha in Compositions(d, length=k, max_part=n):
                 for co in cartesian_product([Subsets_sk(A, a) for a in alpha]):
                     yield P(co)
 
@@ -2568,7 +2563,7 @@ def _refine_block(S, strong=False):
     A refinement of `S` is a tuple of nonempty subsets whose union is `S`.
 
     If optional argument ``strong`` is set to ``True``, then only those
-    refinements that are deconcatenations of the list `sorted(S)` are returned.
+    refinements that are deconcatenations of the list ``sorted(S)`` are returned.
     """
     X = list(S)
     n = len(X)
@@ -2587,13 +2582,13 @@ def _refine_block(S, strong=False):
     return Set([tuple(map(Set,x)) for x in out])
 
 def _is_initial_segment(lst):
-    """
-    Return True if ``lst`` is an interval in `ZZ` of the form `[0, 1, \ldots, n]`.
+    r"""
+    Return True if ``lst`` is an interval in `\ZZ` of the form `[0, 1, \ldots, n]`.
     """
     return list(range(max(lst)+1)) == lst
 
 def _split_block(S, k=2):
-    r"""
+    """
     Return the set of all possible splittings of a set `S` into `k` parts.
 
     A splitting of `S` is a tuple of (possibly empty) subsets whose union is `S`.
@@ -2610,13 +2605,13 @@ def _split_block(S, k=2):
     return Set([tuple(map(Set,x)) for x in out])
 
 def _to_minimaj_blocks(T):
-    """
+    r"""
     Return a tuple of tuples, representing a ordered multiset partition in
     the minimaj ordering on blocks
 
     Input: a sequence ``T`` of row words corresponding to (skew-)tableaux.
 
-    Output: the minimaj bijection `\varphi^{-1}` of [BCHOPSY]_ applied to ``T``.
+    Output: the minimaj bijection `\varphi^{-1}` of [BCHOPSY2017]_ applied to ``T``.
 
     EXAMPLES::
 
@@ -2656,7 +2651,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    - [BCHOPSY]_
+    - [BCHOPSY2017]_
 
     EXAMPLES::
 
@@ -2669,7 +2664,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         ((2, 3, 1), (1, 2))
     """
     def __init__(self, n, ell, k):
-        r"""
+        """
         Initialize ``self``.
 
         TESTS::
@@ -2707,6 +2702,8 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
+        Return the string representation of ``self``.
+
         EXAMPLES::
 
             sage: B = crystals.Minimaj(3,4,2); B
@@ -2739,7 +2736,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     def __contains__(self, x):
         """
-        Return ``True`` if ``x`` is an element of ``self`` or an ordered set partition.
+        Return ``True`` if ``x`` is an element of ``self`` or an ordered multiset partition.
         """
         if hasattr(x,"parent"):
             return x.parent() == self
@@ -2748,7 +2745,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     def from_tableau(self, t):
         r"""
-        Return the bijection `\varphi^{-1}` of [BCHOPSY]_ applied to ``t``.
+        Return the bijection `\varphi^{-1}` of [BCHOPSY2017]_ applied to ``t``.
 
         EXAMPLES::
 
@@ -2778,12 +2775,12 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             raise AssertionError("%s is not an element of %s"%(mu, self))
 
     def val(self, q='q'):
-        r"""
+        """
         Return `Val` polynomial corresponding to ``self``.
 
         EXAMPLES:
 
-        Verifying Example 4.5 from [BCHOPSY]_::
+        Verifying Example 4.5 from [BCHOPSY2017]_::
 
             sage: B = crystals.Minimaj(3, 4, 2) # for `Val_{4,1}^{(3)}`
             sage: B.val()
@@ -2797,7 +2794,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                    for t in H), Sym.zero())
 
     class Element(ElementWrapper):
-        """
+        r"""
         An element of a Minimaj crystal.
 
         .. NOTE::
@@ -2807,13 +2804,12 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                 `1` up to ``self.parent().n``;
             - `breaks` is a list of de-concatenation points to turn `w` into a list
                 of row words of (skew-)tableaux that represent `b` under the minimaj
-                bijection `\varphi` of [BCHOPSY]_.
+                bijection `\varphi` of [BCHOPSY2017]_.
             The pair `(w, breaks)` may be recovered via ``b.value``
         """
         def _repr_(self):
             """
-            Return the representation of self as a tuple of tuples in
-            the minimaj ordering on blocks of ordered multiset partitions.
+            Return the string representation of ``self``.
             """
             return repr(self._minimaj_blocks_from_word_pair())
 
@@ -2824,16 +2820,16 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             return self._minimaj_blocks_from_word_pair().__iter__()
 
         def _minimaj_blocks_from_word_pair(self):
-            r"""
-            Return the representation of ``self`` as a tuple of tuples in
-            the minimaj ordering on blocks of ordered multiset partitions.
+            """
+            Return the tuple of tuples (in the minimaj ordering on blocks
+            of ordered multiset partitions) corresponding to ``self``.
             """
             return _to_minimaj_blocks(self.to_tableau())
 
         def to_tableau(self):
             r"""
             Return the image of the ordered multiset partition ``self`` under
-            the minimaj bijection `\varphi` of [BCHOPSY]_.
+            the minimaj bijection `\varphi` of [BCHOPSY2017]_.
 
             EXAMPLES::
 

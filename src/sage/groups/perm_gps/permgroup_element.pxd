@@ -10,6 +10,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     cdef __tuple
     cdef PermutationGroupElement _new_c(self)
     cpdef _mul_(self, other)
+    cpdef _generate_new(self, list new_list)
     cpdef _gap_list(self)
     cpdef domain(self)
     cdef public __custom_name

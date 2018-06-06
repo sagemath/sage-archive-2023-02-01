@@ -1559,10 +1559,13 @@ class PermutationGroup_generic(group.FiniteGroup):
         sgs = []
         stab = self
         if implementation == "gap":
+            from sage.libs.gap.libgap import libgap
             if not base_of_group is None:
                 raise ValueError("The optional argument 'base_of_group' (='%s' must be 'None' if 'implementation' = 'gap'"%base_of_group)
 
-            gap_cosets = """CosetsStabChain := function ( S )
+            gap_cosets = libgap.function_factory("""function ( S0 )
+                local   CosetsStabChain;
+                CosetsStabChain := function(S)  # for the recursive call
                 local   cosets,             # element list, result
                         new_coset,          # new coset computed along the way
                         pnt,                # point in the orbit of <S>
@@ -1594,15 +1597,16 @@ class PermutationGroup_generic(group.FiniteGroup):
 
                # return the result
                return cosets;
-            end;
-            """
-            gap.execute(gap_cosets)
-            S = self._gap_().StabChain()
-            cosets = S.CosetsStabChain()
-            elt_class = self._element_class()
+               end;
+               return CosetsStabChain(S0);
+            end;""")
+            G = libgap.Group(self.gens())
+            S = G.StabChain()
+            cosets = gap_cosets(S)
             # the following case from the gap permutation elt to a
             # sage permutation is much too slow -- stumpc5, 2018-06-05
-            gap2sage = lambda elt: elt_class(elt, self, check=False)
+            one = self.one()
+            gap2sage = lambda elt: one._generate_new(libgap.ListPerm(elt).sage())
             return [ [ gap2sage(elt) for elt in coset] for coset in cosets ]
 
         if implementation == "sage":

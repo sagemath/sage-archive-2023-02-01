@@ -867,6 +867,26 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             prod.perm[i] = right.perm[left.perm[i]]
         return prod
 
+    cpdef _generate_new(old, list v):
+        """
+        EXAMPLES::
+
+            sage: S = SymmetricGroup(['a', 'b'])
+            sage: s = S([('a', 'b')]); s
+            ('a','b')
+            sage: s*s
+            ()
+        """
+        cdef PermutationGroupElement new = old._new_c()
+        cdef int i, j, vn = len(v)
+        assert(vn <= old.n)
+        for i from 0 <= i < vn:
+            j = v[i]
+            new.perm[i] = j - 1
+        for i from vn <= i < old.n:
+            new.perm[i] = i
+        return new
+
     def __invert__(self):
         """
         Return the inverse of this permutation.
@@ -1567,4 +1587,3 @@ cdef bint is_valid_permutation(int* perm, int n):
         perm[i] = -1-perm[i]
 
     return True
-

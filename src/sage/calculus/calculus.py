@@ -1522,6 +1522,13 @@ def laplace(ex, t, s, algorithm='maxima'):
         (-1/2*sqrt(pi)*(sqrt(2)*cos(1/4*s^2)*fresnel_sin(1/2*sqrt(2)*s/sqrt(pi)) -
         sqrt(2)*fresnel_cos(1/2*sqrt(2)*s/sqrt(pi))*sin(1/4*s^2) - cos(1/4*pi + 1/4*s^2)),
         0, True)
+
+    Testing result from SymPy that Sage doesn't know how to handle::
+
+        sage: laplace(cos(-1/t), t, s, algorithm='sympy')
+        Traceback (most recent call last):
+        ...
+        AttributeError: Unable to convert SymPy result (=meijerg(((), ()), ((-1/2, 0, 1/2), (0,)), s**2/16)/4) into Sage
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)

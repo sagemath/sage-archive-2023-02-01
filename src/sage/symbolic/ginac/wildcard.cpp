@@ -132,6 +132,17 @@ bool haswild(const ex & x)
 	return false;
 }
 
+bool haswild(const ex & x, const wildcard& w)
+{
+	if (is_exactly_a<wildcard>(x)
+            and ex_to<wildcard>(x).label == w.label)
+		return true;
+	for (size_t i=0; i<x.nops(); ++i)
+		if (haswild(x.op(i), w))
+			return true;
+	return false;
+}
+
 symbolset substitute(const wildset& w, const exmap& m)
 {
         symbolset s;

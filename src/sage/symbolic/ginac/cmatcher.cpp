@@ -526,6 +526,16 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
 void CMatcher::with_global_wild()
 {
         do {
+                // global wildcard used elsewhere?
+                size_t wwi = wild_ind[wi];
+                const wildcard& gw = ex_to<wildcard>(pat[wwi]);
+                size_t ii;
+                for (ii=0; ii<P+1; ++ii)
+                        if (ii != wwi and haswild(pat[ii], gw))
+                                break;
+                if (ii < P+1)
+                        continue;
+
                 do {
                         bool comb_finished = finished = false;
                         if (perm.empty()) { // new combination
@@ -612,23 +622,23 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms)
                 do {
                         const ex& e = sterms[index];
                         if (index == 0)
-                                map_repo[0] = map;
+                                map_repo[comb[0]] = map;
                         else
-                                map_repo[index] = map_repo[index-1];
+                                map_repo[comb[index]] = map_repo[comb[index-1]];
                         // At this point we try matching p to e 
                         const ex& p = pterms[perm[index]];
                         if (not m_cmatch[comb[index]]) {
                                 // normal matching attempt
-                                exmap m = map_repo[index];
+                                exmap m = map_repo[comb[index]];
                                 bool ret = trivial_match(e, p, m);
                                 if (ret) {
-                                        map_repo[index] = m;
+                                        map_repo[comb[index]] = m;
                                         continue;
                                 }
                         }
                         else {
                                 if (not cms[comb[index]]) {
-                                        exmap m = map_repo[index];
+                                        exmap m = map_repo[comb[index]];
                                         cms[comb[index]].emplace(CMatcher(e, p, m));
                                 }
                                 else {
@@ -636,7 +646,7 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms)
                                         cms[comb[index]].value().finished = false;
                                 }
                                 if (get_alt(comb[index])) {
-                                        map_repo[index] = ret_map.value();
+                                        map_repo[comb[index]] = ret_map.value();
                                         continue;
                                 }
                                 else
@@ -648,14 +658,14 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms)
                         while (--i >= 0) {
                                 if (cms[comb[i]]) {
                                         if (i == 0)
-                                                map_repo[0] = map;
+                                                map_repo[comb[0]] = map;
                                         else
-                                                map_repo[i] = map_repo[i-1];
+                                                map_repo[comb[i]] = map_repo[comb[i-1]];
                                         auto& cm = cms[comb[i]].value();
                                         cm.ret_val.reset();
-                                        cm.map = map_repo[i];
+                                        cm.map = map_repo[comb[i]];
                                         if (get_alt(comb[i])) {
-                                                map_repo[i] = ret_map.value();
+                                                map_repo[comb[i]] = ret_map.value();
                                                 index = i;
                                                 alt_solution_found = true;
                                                 break;
@@ -680,7 +690,7 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms)
                                 finished = not std::next_permutation(perm.begin(),
                                                 perm.end());
                         ret_val = true;
-                        ret_map = map_repo[P-1];
+                        ret_map = map_repo[comb[P-1]];
                         return;
                 }
                 else {

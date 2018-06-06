@@ -40,6 +40,7 @@ public:
 	/** Construct wildcard with specified label. */
 	wildcard(unsigned label);
 
+        friend bool haswild(const ex & x, const wildcard& w);
 	// functions overriding virtual functions from base classes
 public:
         bool operator==(const wildcard& other) const

@@ -470,12 +470,12 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     class Monomial(WQSymBasis_abstract):
         r"""
-        The Monomial basis of `WQSym`.
+        The Monomial basis of `W QSym`.
 
         The family `(\mathbf{M}_u)`, as defined in
         :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions`
         with `u` ranging over all packed words, is a basis for the
-        free `R`-module `WQSym` and called the *Monomial basis*.
+        free `R`-module `W QSym` and called the *Monomial basis*.
         Here it is labelled using ordered set partitions.
 
         EXAMPLES::
@@ -1550,6 +1550,224 @@ class WQSymBases(Category_realization_of_parent):
             return sum(len(part) for part in t)
 
     class ElementMethods:
+        def algebraic_complement(self):
+            r"""
+            Return the image of the element ``self`` of `W QSym`
+            under the algebraic complement involution.
+
+            If `u = (u_1, u_2, \ldots, u_n)` is a packed word
+            that contains the letters `1, 2, \ldots, k` and no
+            others, then the *complement* of `u` is defined to
+            be the packed word
+            `(k+1 - u_1, k+1 - u_2, \ldots, k+1 - u_n)`.
+            This complement is denoted by `\overline{u}`.
+
+            The algebraic complement involution is defined as the
+            linear map `W QSym \to W QSym` that sends each basis
+            element `\mathbf{M}_u` of the monomial basis of `W QSym`
+            to the basis element `\mathbf{M}_{\overline{u}}`.
+            This is a graded algebra automorphism and a coalgebra
+            anti-automorphism of `W QSym`.
+            Denoting by `\overline{f}` the image of an element
+            `f \in W QSym` under the algebraic complement involution,
+            it can be shown that every packed word `u` satisfies
+
+            .. MATH::
+
+                \overline{\mathbf{M}_u} = \mathbf{M}_{\overline{u}}, \quad
+                \overline{X_u} = X_{\overline{u}},
+
+            where standard notations for classical bases of `W QSym` are
+            being used (that is, `\mathbf{M}` for the monomial
+            basis, and `X` for the characteristic basis).
+
+            This can be restated in terms of ordered set partitions:
+            For any ordered set partition `R = (R_1, R_2, \ldots, R_k)`,
+            let `R^r` denote the ordered set partition
+            `(R_k, R_{k-1}, \ldots, R_1)`; this is known as the *reversal*
+            of `R`. Then,
+
+            .. MATH::
+
+                \overline{\mathbf{M}_A} = \mathbf{M}_{A^r}, \quad
+                \overline{X_A} = X_{A^r}
+
+            for any ordered set partition `A`.
+
+            The formula describing algebraic complements on the Q basis
+            (:class:`WordQuasiSymmetricFunctions.StronglyCoarser`)
+            is more complicated, and requires some definitions.
+            We define a partial order `\leq` on the set of all ordered
+            set partitions as follows: `A \leq B` if and only if
+            `A` is strongly finer than `B` (see
+            :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+            for a definition of this).
+            The *length* `\ell(R)` of an ordered set partition `R` shall
+            be defined as the number of parts of `R`.
+            Use the notation `Q` for the Q basis.
+            For any ordered set partition `A` of `[n]`, we have
+
+            .. MATH::
+
+                \overline{Q_A} = \sum_P c_{A, P} Q_P ,
+
+            where the sum is over all ordered set partitions `P` of
+            `[n]`, and where the coefficient `c_{A, P}` is defined
+            as follows:
+
+            * If there exists an ordered set partition `R` satisfying
+              `R \leq P` and `A \leq R^r`, then this `R` is unique,
+              and `c_{A, P} = \left(-1\right)^{\ell(R) - \ell(P)}`.
+
+            * If there exists no such `R`, then `c_{A, P} = 0`.
+
+            The formula describing algebraic complements on the Phi basis
+            (:class:`WordQuasiSymmetricFunctions.StronglyFiner`) is
+            identical to the above formula for the Q basis, except
+            that the `\leq` sign has to be replaced by `\geq` in the
+            definition of the coefficients `c_{A, P}`. In fact, both
+            formulas are particular cases of a general formula for
+            involutions:
+            Assume that `V` is an (additive) abelian group, and that
+            `I` is a poset. For each `i \in I`, let `M_i` be an element
+            of `V`. Also, let `\omega` be an involution of the set `I`
+            (not necesssarily order-preserving or order-reversing),
+            and let `\omega'` be an involutive group endomorphism of
+            `V` such that each `i \in I` satisfies
+            `\omega'(M_i) = M_{\omega(i)}`.
+            For each `i \in I`, let `F_i = \sum_{j \geq i} M_j`,
+            where we assume that the sum is finite.
+            Then, each `i \in I` satisfies
+
+            .. MATH::
+
+                \omega'(F_i)
+                = \sum_j \sum_{k \leq j ; \  \omega(k) \geq i} \mu(k, j) F_j,
+
+            where `\mu` denotes the Mobius function. This formula becomes
+            particularly useful when the `k` satisfying `k \leq j`
+            and `\omega(k) \geq i` is unique (if it exists).
+            In our situation, `V` is `W QSym`, and `I` is the set of
+            ordered set partitions equipped either with the `\leq` partial
+            ordere defined above or with its opposite order.
+            The `M_i` is the `\mathbf{M}_A`, whereas the `F_i` is either
+            `Q_i` or `\Phi_i`.
+
+            .. TODO::
+
+                Experiments suggest that the coefficients of the
+                output on any element of the C basis are always 0, 1, -1.
+                Is this true? What is the formula? What is the poset?
+
+            .. TODO::
+
+                Override this method on the other bases, reusing doctests
+                as implementations.
+
+            If we denote the star involution
+            (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
+            of the quasisymmetric functions by `f \mapsto f^{\ast}`,
+            and if we let `\pi` be the canonical projection
+            `W QSym \to QSym`, then each `f \in W QSym` satisfies
+            `\pi(\overline{f}) = (\pi(f))^{\ast}`.
+
+            .. TODO::
+
+                More commutative diagrams? NSym doesn't work.
+                FQSym and FSym need their own algebraic_complement
+                methods defined first.
+
+            .. SEEALSO::
+
+                :meth:`coalgebraic_complement`, :meth:`star_involution`.
+
+            EXAMPLES:
+
+            Keep in mind that the default input method for basis keys
+            of `W QSym` is by entering an ordered set partition, not a
+            packed word. Translated into the language of ordered set
+            partitions, the algebraic complement involution acts on the
+            Monomial basis by reversing the ordered set partition --
+            i.e., we have
+
+            .. MATH::
+
+                \overline{\mathbf{M}_{(P_1, P_2, \ldots, P_k)}}
+                = \mathbf{M}_{(P_k, P_{k-1}, \ldots, P_1)}
+
+            for any standard ordered set partition
+            `(P_1, P_2, \ldots, P_k)`. Let us check this in practice::
+
+                sage: WQSym = algebras.WQSym(ZZ)
+                sage: M = WQSym.M()
+                sage: M[[1,3],[2]].algebraic_complement()
+                M[{2}, {1, 3}]
+                sage: M[[1,4],[2,5],[3,6]].algebraic_complement()
+                M[{3, 6}, {2, 5}, {1, 4}]
+                sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).algebraic_complement()
+                -4*M[] + 3*M[{1}] + 5*M[{2}, {1}]
+                sage: X = WQSym.X()
+                sage: X[[1,3],[2]].algebraic_complement()
+                X[{2}, {1, 3}]
+                sage: C = WQSym.C()
+                sage: C[[1,3],[2]].algebraic_complement()
+                -C[{1, 2, 3}] - C[{1, 3}, {2}] + C[{2}, {1, 3}]
+                sage: Q = WQSym.Q()
+                sage: Q[[1,2],[5,6],[3,4]].algebraic_complement()
+                Q[{3, 4}, {1, 2, 5, 6}] + Q[{3, 4}, {5, 6}, {1, 2}] - Q[{3, 4, 5, 6}, {1, 2}]
+                sage: Phi = WQSym.Phi()
+                sage: Phi[[2], [1,3]].algebraic_complement()
+                -Phi[{1}, {3}, {2}] + Phi[{1, 3}, {2}] + Phi[{3}, {1}, {2}]
+
+            Testing the formula for `\overline{Q_A}`::
+
+                sage: def test(A):
+                ....:     Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
+                ....:     RHS = Q.sum((-1) ** (len(R) - len(P)) * Q[P] for R in Rs for P in R.strongly_fatter())
+                ....:     if Q[A].algebraic_complement() != RHS:
+                ....:         return False
+                ....:     return True
+                sage: all(test(A) for A in OrderedSetPartitions(4))
+                True
+
+            Testing the similar formula for `\overline{\Phi_A}`::
+
+                sage: def test(A):
+                ....:     Rs = [Rr.reversed() for Rr in A.strongly_finer()]
+                ....:     RHS = Phi.sum((-1) ** (len(P) - len(R)) * Phi[P] for R in Rs for P in R.strongly_finer())
+                ....:     if Phi[A].algebraic_complement() != RHS:
+                ....:         return False
+                ....:     return True
+                sage: all(test(A) for A in OrderedSetPartitions(4))
+                True
+
+            The algebraic complement involution intertwines the antipode
+            and the inverse of the antipode::
+
+                sage: all( M(I).antipode().algebraic_complement().antipode()
+                ....:      == M(I).algebraic_complement()
+                ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            Testing the `\pi(\overline{f}) = (\pi(f))^{\ast}` relation
+            noticed above::
+
+                sage: all( M[I].algebraic_complement().to_quasisymmetric_function()
+                ....:      == M[I].to_quasisymmetric_function().star_involution()
+                ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            .. TODO::
+
+                Check further commutative squares.
+            """
+            # Convert to the Monomial basis, there apply the algebraic
+            # complement componentwise, then convert back.
+            parent = self.parent()
+            M = parent.realization_of().M()
+            dct = {I.reversed(): coeff for (I, coeff) in M(self)}
+            return parent(M._from_dict(dct))
+
         def to_quasisymmetric_function(self):
             r"""
             The projection of ``self`` to the ring `QSym` of

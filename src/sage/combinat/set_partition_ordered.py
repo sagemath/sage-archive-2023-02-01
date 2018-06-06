@@ -348,6 +348,65 @@ class OrderedSetPartition(ClonableArray):
         """
         return OrderedSetPartitions()(sum((list(i) for i in osps), []))
 
+    def reversed(self):
+        """
+        Return the reversal of the ordered set partition ``self``.
+
+        The *reversal* of an ordered set partition
+        `(P_1, P_2, \ldots, P_k)` is defined to be the ordered
+        set partition `(P_k, P_{k-1}, \ldots, P_1)`.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1, 3], [2]]).reversed()
+            [{2}, {1, 3}]
+            sage: OrderedSetPartition([[1, 5], [2, 4]]).reversed()
+            [{2, 4}, {1, 5}]
+            sage: OrderedSetPartition([[-1], [-2], [3, 4], [0]]).reversed()
+            [{0}, {3, 4}, {-2}, {-1}]
+            sage: OrderedSetPartition([]).reversed()
+            []
+        """
+        par = parent(self)
+        return par(list(reversed(list(self))))
+
+    def complement(self):
+        """
+        Return the complement of the ordered set partition ``self``.
+
+        This assumes that ``self`` is an ordered set partition of
+        an interval of `\ZZ`.
+
+        Let `(P_1, P_2, \ldots, P_k)` be an ordered set partition
+        of some interval `I` of `\ZZ`. Let `\omega` be the unique
+        strictly decreasing bijection `I \to I`. Then, the
+        *complement* of `(P_1, P_2, \ldots, P_k)` is defined to be
+        the ordered set partition
+        `(\omega(P_1), \omega(P_2), \ldots, \omega(P_k))`.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1, 2], [3]]).complement()
+            [{2, 3}, {1}]
+            sage: OrderedSetPartition([[1, 3], [2]]).complement()
+            [{1, 3}, {2}]
+            sage: OrderedSetPartition([[2, 3]]).complement()
+            [{2, 3}]
+            sage: OrderedSetPartition([[1, 5], [2, 3], [4]]).complement()
+            [{1, 5}, {3, 4}, {2}]
+            sage: OrderedSetPartition([[-1], [-2], [1, 2], [0]]).complement()
+            [{1}, {2}, {-2, -1}, {0}]
+            sage: OrderedSetPartition([]).complement()
+            []
+        """
+        if len(self) <= 1:
+            return self
+        base_set = self.base_set()
+        m = min(base_set)
+        M = max(base_set)
+        mM = m + M
+        return OrderedSetPartitions()([[mM - i for i in part] for part in self])
+
     def finer(self):
         """
         Return the set of ordered set partitions which are finer

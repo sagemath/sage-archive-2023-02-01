@@ -1973,6 +1973,130 @@ class WQSymBases(Category_realization_of_parent):
             dct = {I.complement(): coeff for (I, coeff) in M(self)}
             return parent(M._from_dict(dct))
 
+        def star_involution(self):
+            r"""
+            Return the image of the element ``self`` of `W QSym`
+            under the star involution.
+
+            The star involution is the composition of the
+            algebraic complement involution
+            (:meth:`algebraic_complement`) with the coalgebraic
+            complement involution (:meth:`coalgebraic_complement`).
+            The composition can be performed in either order, as the
+            involutions commute.
+
+            The star involution is a graded Hopf algebra
+            anti-automorphism of `W QSym`.
+            Let `f^{\ast}` denote the image of an element
+            `f \in W QSym` under the star involution.
+            Let `\mathbf{M}`, `X`, `Q` and `\Phi` stand for the
+            monomial, characteristic, Q and Phi bases of `W QSym`.
+            For any ordered set partition `A` of `[n]`, we let
+            `A^{\ast}` denote the complement
+            (:meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.complement`)
+            of the reversal
+            (:meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.reversed`)
+            of `A`. Then, for any ordered set partition `A` of `[n]`,
+            we have
+
+            .. MATH::
+
+                (\mathbf{M}_A)^{\ast} = \mathbf{M}_{A^{\ast}}, \quad
+                (X_A)^{\ast} = X_{A^{\ast}}, \qquad
+                (Q_A)^{\ast} = Q_{A^{\ast}}, \qquad
+                (\Phi_A)^{\ast} = \Phi_{A^{\ast}} .
+
+            .. TODO::
+
+                Experiments suggest that the coefficients of the
+                output on any element of the C basis are always 0, 1, -1.
+                Is this true? What is the formula? What is the poset?
+
+            .. TODO::
+
+                Override this method on the other bases, reusing doctests
+                as implementations.
+
+            If we denote the star involution
+            (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
+            of the quasisymmetric functions by `f \mapsto f^{\ast}`,
+            and if we let `\pi` be the canonical projection
+            `W QSym \to QSym`, then each `f \in W QSym` satisfies
+            `\pi(f^{\ast}) = (\pi(f))^{\ast}`.
+
+            .. TODO::
+
+                More commutative diagrams? NSym in particular.
+                FQSym and FSym need their own algebraic_complement
+                methods defined first.
+
+            .. SEEALSO::
+
+                :meth:`coalgebraic_complement`, :meth:`star_involution`.
+
+            EXAMPLES:
+
+            Keep in mind that the default input method for basis keys
+            of `W QSym` is by entering an ordered set partition, not a
+            packed word. Let us check the basis formulas for the
+            star involution::
+
+                sage: WQSym = algebras.WQSym(ZZ)
+                sage: M = WQSym.M()
+                sage: M[[1,3], [2,4,5]].star_involution()
+                M[{1, 2, 4}, {3, 5}]
+                sage: M[[1,3],[2]].star_involution()
+                M[{2}, {1, 3}]
+                sage: M[[1,4],[2,5],[3,6]].star_involution()
+                M[{1, 4}, {2, 5}, {3, 6}]
+                sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).star_involution()
+                -4*M[] + 3*M[{1}] + 5*M[{1}, {2}]
+                sage: X = WQSym.X()
+                sage: X[[1,3],[2]].star_involution()
+                X[{2}, {1, 3}]
+                sage: C = WQSym.C()
+                sage: C[[1,3],[2]].star_involution()
+                -C[{1, 2, 3}] - C[{1, 3}, {2}] + C[{2}, {1, 3}]
+                sage: Q = WQSym.Q()
+                sage: Q[[1,3], [2,4,5]].star_involution()
+                Q[{1, 2, 4}, {3, 5}]
+                sage: Phi = WQSym.Phi()
+                sage: Phi[[1,3], [2,4,5]].star_involution()
+                Phi[{1, 2, 4}, {3, 5}]
+
+            Testing the formulas for `(Q_A)^{\ast}` and `(\Phi_A)^{\ast}`::
+
+                sage: all(Q[A].star_involution() == Q[A.complement().reversed()] for A in OrderedSetPartitions(4))
+                True
+                sage: all(Phi[A].star_involution() == Phi[A.complement().reversed()] for A in OrderedSetPartitions(4))
+                True
+
+            The star involution commutes with the antipode::
+
+                sage: all( M(I).antipode().star_involution()
+                ....:      == M(I).star_involution().antipode()
+                ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            Testing the `\pi(f^{\ast}) = (\pi(f))^{\ast}` relation
+            noticed above::
+
+                sage: all( M[I].star_involution().to_quasisymmetric_function()
+                ....:      == M[I].to_quasisymmetric_function().star_involution()
+                ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            .. TODO::
+
+                Check further commutative squares.
+            """
+            # Convert to the Monomial basis, there apply the algebraic
+            # complement componentwise, then convert back.
+            parent = self.parent()
+            M = parent.realization_of().M()
+            dct = {I.reversed().complement(): coeff for (I, coeff) in M(self)}
+            return parent(M._from_dict(dct))
+
         def to_quasisymmetric_function(self):
             r"""
             The projection of ``self`` to the ring `QSym` of

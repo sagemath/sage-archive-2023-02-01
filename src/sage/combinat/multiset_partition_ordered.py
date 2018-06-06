@@ -880,9 +880,10 @@ class OrderedMultisetPartition(ClonableArray):
         2. If blocks `B_{i+1}, \ldots, B_k` have been converted to words
            `W_{i+1}, \ldots, W_k`, use the letters in `B_i` to make the unique
            word `W_i` that has a factorization `W_i=(u,v)` satisfying:
-           - letters of `u` and `v` appear in increasing order, with `v` possibly empty
-           - letters in `vu` appear in increasing order
-           - ``v[-1]`` is the largest letter `a \in B_i` satisfying ``a <= W_{i+1}[0]``
+
+           - letters of `u` and `v` appear in increasing order, with `v` possibly empty;
+           - letters in `vu` appear in increasing order;
+           - ``v[-1]`` is the largest letter `a \in B_i` satisfying ``a <= W_{i+1}[0]``.
 
         EXAMPLES::
 
@@ -1142,7 +1143,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     Expects one or two arguments, with different behaviors resulting:
     - One Argument:
         + `X` -- a dictionary (representing a multiset for `c`),
-                  or an integer (representing the size of `c`)
+                 or an integer (representing the size of `c`)
     - Two Arguments:
         + `alph` -- a list (representing allowable letters within blocks of `c`),
                     or a positive integer (representing the maximal allowable letter)
@@ -1821,39 +1822,39 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
         """
         return "Ordered Multiset Partitions" + self._constraint_repr_()
 
-    def subset(self, *args):
+    def subset(self, size):
         """
-        Return a subset of all ordered multiset partitions `c`.
+        Return a subset of all ordered multiset partitions.
 
-        Expects one or two arguments, with different subsets resulting:
+        INPUT:
 
-        - One Argument:
+        - ``size`` -- an integer representing a slice of all ordered
+                      multiset partitions.
 
-          * ``X`` -- a dictionary (representing a multiset for `c`),
-            or an integer (representing the size of `c`)
-
-        - Two Arguments:
-
-          * ``alph`` -- a list (representing allowable letters within `c`),
-            or a positive integer (representing the maximal allowable letter)
-          * ``ord``  -- a nonnegative integer (the total number of letters
-            within `c`)
+        The slice alluded to above is taken with respect to length, or
+        to order or to size, depending on the constraints of  ``self``.
 
         EXAMPLES::
 
+            sage: C = OrderedMultisetPartitions(weight={2:2, 3:1, 5:1})
+            sage: C.subset(3)
+            Ordered Multiset Partitions of multiset {{2, 2, 3, 5}} with constraint: length=3
+            sage: C = OrderedMultisetPartitions(alphabet=[2,3,5])
+            sage: C.subset(3)
+            Ordered Multiset Partitions of order 3 over alphabet {2, 3, 5}
             sage: C = OrderedMultisetPartitions()
             sage: C.subset(3)
             Ordered Multiset Partitions of integer 3
             sage: C.subset(3) == OrderedMultisetPartitions(3)
             True
-            sage: C.subset([1,1,4])
-            Ordered Multiset Partitions of multiset {{1, 1, 4}}
-            sage: C.subset([1,4], 2)
-            Ordered Multiset Partitions of order 2 over alphabet {1, 4}
         """
-        if not args:
-            return self
-        return OrderedMultisetPartitions(*args, **self.constraints)
+        fc = self.full_constraints
+        if "weight" in fc:
+            return OrderedMultisetPartitions(fc["weight"], length=size, **self.constraints)
+        elif "alphabet" in fc:
+            return OrderedMultisetPartitions(fc["alphabet"], size, **self.constraints)
+        else:
+            return OrderedMultisetPartitions(size, **self.constraints)
 
 ###############
 
@@ -2788,21 +2789,17 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         """
         Build an element of Minimaj from the ordered multiset partition ``x``.
         """
-        # trap for case x is already an element of Minimaj.
-        if hasattr(x, "value"):
-            return self.element_class(self, x)
-        else:
-            # Assume ``x`` is an ordered multiset partition.
-            t = self._OMPs(x).to_tableau()
-            breaks = tuple(_partial_sum([len(h) for h in t]))
-            B,T = self._BT
-            return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
+        # Assume ``x`` is an ordered multiset partition.
+        t = self._OMPs(x).to_tableau()
+        breaks = tuple(_partial_sum([len(h) for h in t]))
+        B,T = self._BT
+        return self.element_class(self, (T(*[B(a) for a in _concatenate(t)]), breaks))
 
     def __contains__(self, x):
         """
         Return ``True`` if ``x`` is an element of ``self`` or an ordered multiset partition.
         """
-        if hasattr(x,"parent"):
+        if isinstance(x, MinimajCrystal.Element):
             return x.parent() == self
         else:
             return x in self._OMPs
@@ -2864,12 +2861,14 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         .. NOTE::
 
             Minimaj elements `b` are stored internally as pairs `(w, breaks)`, where:
+
             - `w` is a word of length ``self.parent().ell`` over the letters
                 `1` up to ``self.parent().n``;
             - `breaks` is a list of de-concatenation points to turn `w` into a list
                 of row words of (skew-)tableaux that represent `b` under the minimaj
                 bijection `\varphi` of [BCHOPSY2017]_.
-            The pair `(w, breaks)` may be recovered via ``b.value``
+
+            The pair `(w, breaks)` may be recovered via ``b.value``.
         """
         def _repr_(self):
             """

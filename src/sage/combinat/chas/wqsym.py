@@ -1768,6 +1768,211 @@ class WQSymBases(Category_realization_of_parent):
             dct = {I.reversed(): coeff for (I, coeff) in M(self)}
             return parent(M._from_dict(dct))
 
+        def coalgebraic_complement(self):
+            r"""
+            Return the image of the element ``self`` of `W QSym`
+            under the coalgebraic complement involution.
+
+            If `u = (u_1, u_2, \ldots, u_n)` is a packed word,
+            then the *reversal* of `u` is defined to be the
+            packed word `(u_n, u_{n-1}, \ldots, u_1)`.
+            This reversal is denoted by `u^r`.
+
+            The coalgebraic complement involution is defined as the
+            linear map `W QSym \to W QSym` that sends each basis
+            element `\mathbf{M}_u` of the monomial basis of `W QSym`
+            to the basis element `\mathbf{M}_{u^r}`.
+            This is a graded coalgebra automorphism and an algebra
+            anti-automorphism of `W QSym`.
+            Denoting by `f^r` the image of an element `f \in W QSym`
+            under the coalgebraic complement involution,
+            it can be shown that every packed word `u` satisfies
+
+            .. MATH::
+
+                (\mathbf{M}_u)^r = \mathbf{M}_{u^r}, \quad
+                (X_u)^r = X_{u^r},
+
+            where standard notations for classical bases of `W QSym` are
+            being used (that is, `\mathbf{M}` for the monomial
+            basis, and `X` for the characteristic basis).
+
+            This can be restated in terms of ordered set partitions:
+            For any ordered set partition `R` of `[n]`, let
+            `\overline{R}` denote the complement of `R` (defined in
+            :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.complement`).
+            Then,
+
+            .. MATH::
+
+                (\mathbf{M}_A)^r = \mathbf{M}_{\overline{A}}, \quad
+                (X_A)^r = X_{\overline{A}}
+
+            for any ordered set partition `A`.
+
+            Recall that `W QSym` is a subring of the ring of all
+            bounded-degree noncommutative power series in countably many
+            indeterminates. The latter ring has an obvious continuous
+            algebra anti-endomorphism which sends each letter `x_i` to
+            `x_i` (and thus sends each monomial
+            `x_{i_1} x_{i_2} \cdots x_{i_n}` to
+            `x_{i_n} x_{i_{n-1}} \cdots x_{i_1}`).
+            This anti-endomorphism is actually an involution.
+            The coalgebraic complement involution is simply the
+            restriction of this involution to the subring `W QSym`.
+
+            The formula describing coalgebraic complements on the Q basis
+            (:class:`WordQuasiSymmetricFunctions.StronglyCoarser`)
+            is more complicated, and requires some definitions.
+            We define a partial order `\leq` on the set of all ordered
+            set partitions as follows: `A \leq B` if and only if
+            `A` is strongly finer than `B` (see
+            :meth:`~sage.combinat.set_partition_ordered.OrderedSetPartition.is_strongly_finer`
+            for a definition of this).
+            The *length* `\ell(R)` of an ordered set partition `R` shall
+            be defined as the number of parts of `R`.
+            Use the notation `Q` for the Q basis.
+            For any ordered set partition `A` of `[n]`, we have
+
+            .. MATH::
+
+                (Q_A)^r = \sum_P c_{A, P} Q_P ,
+
+            where the sum is over all ordered set partitions `P` of
+            `[n]`, and where the coefficient `c_{A, P}` is defined
+            as follows:
+
+            * If there exists an ordered set partition `R` satisfying
+              `R \leq P` and `A \leq \overline{R}`, then this `R` is
+              unique,
+              and `c_{A, P} = \left(-1\right)^{\ell(R) - \ell(P)}`.
+
+            * If there exists no such `R`, then `c_{A, P} = 0`.
+
+            The formula describing coalgebraic complements on the Phi basis
+            (:class:`WordQuasiSymmetricFunctions.StronglyFiner`) is
+            identical to the above formula for the Q basis, except
+            that the `\leq` sign has to be replaced by `\geq` in the
+            definition of the coefficients `c_{A, P}`. In fact, both
+            formulas are particular cases of the general formula for
+            involutions described in the documentation of
+            :meth:`algebraic_complement`.
+
+            .. TODO::
+
+                Experiments suggest that the coefficients of the
+                output on any element of the C basis are always 0, 1, -1.
+                Is this true? What is the formula? What is the poset?
+
+            .. TODO::
+
+                Override this method on the other bases, reusing doctests
+                as implementations.
+
+            If we let `\pi` be the canonical projection
+            `W QSym \to QSym`, then each `f \in W QSym` satisfies
+            `\pi(f^r) = \pi(f)`.
+
+            .. TODO::
+
+                More commutative diagrams? NSym doesn't work.
+                FQSym and FSym need their own coalgebraic_complement
+                methods defined first.
+
+            .. SEEALSO::
+
+                :meth:`algebraic_complement`, :meth:`star_involution`.
+
+            EXAMPLES:
+
+            Keep in mind that the default input method for basis keys
+            of `W QSym` is by entering an ordered set partition, not a
+            packed word. Translated into the language of ordered set
+            partitions, the coalgebraic complement involution acts on the
+            Monomial basis by complementing the ordered set partition --
+            i.e., we have
+
+            .. MATH::
+
+                (\mathbf{M}_A)^r = \mathbf{M}_{\overline{A}}
+
+            for any standard ordered set partition `P`.
+            Let us check this in practice::
+
+                sage: WQSym = algebras.WQSym(ZZ)
+                sage: M = WQSym.M()
+                sage: M[[1,3],[2]].coalgebraic_complement()
+                M[{1, 3}, {2}]
+                sage: M[[1,2],[3]].coalgebraic_complement()
+                M[{2, 3}, {1}]
+                sage: M[[1], [4], [2,3]].coalgebraic_complement()
+                M[{4}, {1}, {2, 3}]
+                sage: M[[1,4],[2,5],[3,6]].coalgebraic_complement()
+                M[{3, 6}, {2, 5}, {1, 4}]
+                sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).coalgebraic_complement()
+                -4*M[] + 3*M[{1}] + 5*M[{2}, {1}]
+                sage: X = WQSym.X()
+                sage: X[[1,3],[2]].coalgebraic_complement()
+                X[{1, 3}, {2}]
+                sage: C = WQSym.C()
+                sage: C[[1,3],[2]].coalgebraic_complement()
+                C[{1, 3}, {2}]
+                sage: Q = WQSym.Q()
+                sage: Q[[1,2],[5,6],[3,4]].coalgebraic_complement()
+                Q[{1, 2, 5, 6}, {3, 4}] + Q[{5, 6}, {1, 2}, {3, 4}] - Q[{5, 6}, {1, 2, 3, 4}]
+                sage: Phi = WQSym.Phi()
+                sage: Phi[[2], [1,3]].coalgebraic_complement()
+                -Phi[{2}, {1}, {3}] + Phi[{2}, {1, 3}] + Phi[{2}, {3}, {1}]
+
+            Testing the formula for `(Q_A)^r`::
+
+                sage: def test(A):
+                ....:     Rs = [Rr.complement() for Rr in A.strongly_fatter()]
+                ....:     RHS = Q.sum((-1) ** (len(R) - len(P)) * Q[P] for R in Rs for P in R.strongly_fatter())
+                ....:     if Q[A].coalgebraic_complement() != RHS:
+                ....:         return False
+                ....:     return True
+                sage: all(test(A) for A in OrderedSetPartitions(4))
+                True
+
+            Testing the similar formula for `(\Phi_A)^r`::
+
+                sage: def test(A):
+                ....:     Rs = [Rr.complement() for Rr in A.strongly_finer()]
+                ....:     RHS = Phi.sum((-1) ** (len(P) - len(R)) * Phi[P] for R in Rs for P in R.strongly_finer())
+                ....:     if Phi[A].coalgebraic_complement() != RHS:
+                ....:         return False
+                ....:     return True
+                sage: all(test(A) for A in OrderedSetPartitions(4))
+                True
+
+            The coalgebraic complement involution intertwines the antipode
+            and the inverse of the antipode::
+
+                sage: all( M(I).antipode().coalgebraic_complement().antipode()
+                ....:      == M(I).coalgebraic_complement()
+                ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            Testing the `\pi(f^r) = \pi(f)` relation
+            noticed above::
+
+                sage: all( M[I].coalgebraic_complement().to_quasisymmetric_function()
+                ....:      == M[I].to_quasisymmetric_function()
+                ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            .. TODO::
+
+                Check further commutative squares.
+            """
+            # Convert to the Monomial basis, there apply the coalgebraic
+            # complement componentwise, then convert back.
+            parent = self.parent()
+            M = parent.realization_of().M()
+            dct = {I.complement(): coeff for (I, coeff) in M(self)}
+            return parent(M._from_dict(dct))
+
         def to_quasisymmetric_function(self):
             r"""
             The projection of ``self`` to the ring `QSym` of

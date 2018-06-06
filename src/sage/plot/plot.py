@@ -574,9 +574,9 @@ from sage.arith.srange import srange
 from sage.misc.randstate import current_randstate #for plot adaptive refinement
 from math import sin, cos, pi #for polar_plot
 
-from sage.ext.fast_eval import fast_float, fast_float_constant, is_fast_float
+from sage.ext.fast_eval import fast_float, is_fast_float
 
-from sage.misc.decorators import options, rename_keyword
+from sage.misc.decorators import options
 
 from .graphics import Graphics, GraphicsArray
 
@@ -2064,6 +2064,7 @@ def _plot(funcs, xrange, parametric=False,
 
     """
     from sage.plot.colors import Color
+    from sage.plot.polygon import polygon
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()
@@ -2088,10 +2089,9 @@ def _plot(funcs, xrange, parametric=False,
 
     # Check to see if funcs is a list of functions that will be all plotted together.
     if isinstance(funcs, (list, tuple)) and not parametric:
-        from sage.rings.integer import Integer
         def golden_rainbow(i,lightness=0.4):
             # note: sage's "blue" has hue-saturation-lightness values (2/3, 1, 1/2).
-            g = golden_ratio_conjugate = 0.61803398875
+            g = 0.61803398875
             return Color((0.66666666666666 + i*g) % 1, 1, lightness, space='hsl')
 
         default_line_styles = ("-", "--", "-.", ":")*len(funcs)
@@ -2345,7 +2345,7 @@ def _plot(funcs, xrange, parametric=False,
     if polar:
         data = [(y*cos(x), y*sin(x)) for x, y in data]
 
-    from sage.plot.all import line, text
+    from sage.plot.all import line
 
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
@@ -2985,7 +2985,7 @@ def list_plot(data, plotjoined=False, **kwargs):
         return list_plot(list_data, plotjoined=plotjoined, **kwargs)
     try:
         from sage.rings.all import RDF
-        tmp = RDF(data[0])
+        RDF(data[0])
         data = list(enumerate(data))
     except TypeError: # we can get this TypeError if the element is a list
                       # or tuple or numpy array, or an element of CC, CDF
@@ -3757,6 +3757,7 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     else:
         return []
 
+
 def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adaptive_recursion=5, randomize=True, initial_points=None):
     r"""
     Calculate plot points for a function f in the interval xrange.  The
@@ -3916,21 +3917,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
        i += 1
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points."%exceptions, level=0)
+        sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
         sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
 
     return data
-
-
-# Old imports required for unpickling old pickles
-from .line import line, line2d, Line as GraphicPrimitive_Line
-from .arrow import arrow, Arrow as GraphicPrimitive_Arrow
-from .bar_chart import bar_chart, BarChart as GraphicPrimitive_BarChart
-from .disk import disk, Disk as GraphicPrimitive_Disk
-from .point import point, points, point2d, Point as GraphicPrimitive_Point
-from .matrix_plot import matrix_plot, MatrixPlot as GraphicPrimitive_MatrixPlot
-from .plot_field import plot_vector_field, plot_slope_field, PlotField as GraphicPrimitive_PlotField
-from .text import text, Text as GraphicPrimitive_Text
-from .polygon import polygon, Polygon as GraphicPrimitive_Polygon
-from .circle import circle, Circle as GraphicPrimtive_Circle
-from .contour_plot import contour_plot, implicit_plot, ContourPlot as GraphicPrimitive_ContourPlot

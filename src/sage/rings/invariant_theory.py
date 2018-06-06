@@ -116,7 +116,6 @@ from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.cachefunc import cached_method
-from sage.functions.other import binomial, factorial, sqrt
 
 
 
@@ -215,6 +214,7 @@ def transvectant(f, g, h=1):
     if h > f._d or h > g._d:
         tv = R(0)
     else:
+        from sage.functions.other import binomial, factorial
         scalar = factorial(f._d-h) * factorial(g._d-h) * R(factorial(f._d)*factorial(g._d))**(-1)
         def diff(j):
             df = f.form().derivative(x,j).derivative(y,h-j)
@@ -4011,3 +4011,4 @@ can then be queried for invariant and covariants. For example,
 
 
 invariant_theory = InvariantTheoryFactory()
+

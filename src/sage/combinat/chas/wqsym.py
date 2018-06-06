@@ -1161,7 +1161,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             lenP = len(P)
             def sign(R): # the coefficient with which another
                          # ordered set partition will appear
-                if len(R) % 2 == len(P) % 2:
+                if len(R) % 2 == lenP % 2:
                     return one
                 return -one
             return Phi._from_dict({OSP(G): sign(G) for G in P.strongly_finer()},

@@ -1439,60 +1439,6 @@ class Graph(GenericGraph):
         """
         return False
 
-    @doc_index("Connectivity, orientations, trees")
-    def bridges(self, labels=True):
-        r"""
-        Returns a list of the bridges (or cut edges).
-
-        A bridge is an edge whose deletion disconnects the graph.
-        A disconnected graph has no bridge.
-
-        INPUT:
-
-        - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
-          `(u, v)` of vertices
-
-        EXAMPLES::
-
-            sage: g = 2*graphs.PetersenGraph()
-            sage: g.add_edge(1,10)
-            sage: g.is_connected()
-            True
-            sage: g.bridges()
-            [(1, 10, None)]
-
-        TESTS:
-
-        Ticket :trac:`23817` is solved::
-
-            sage: G = Graph()
-            sage: G.add_edge(0, 1)
-            sage: G.bridges()
-            [(0, 1, None)]
-            sage: G.allow_loops(True)
-            sage: G.add_edge(0, 0)
-            sage: G.add_edge(1, 1)
-            sage: G.bridges()
-            [(0, 1, None)]
-        """
-        # Small graphs and disconnected graphs have no bridge
-        if self.order() < 2 or not self.is_connected():
-            return []
-
-        B,C = self.blocks_and_cut_vertices()
-
-        # A block of size 2 is a bridge, unless the vertices are connected with
-        # multiple edges.
-        ME = set(self.multiple_edges(labels=False))
-        my_bridges = []
-        for b in B:
-            if len(b) == 2 and not tuple(b) in ME:
-                if labels:
-                    my_bridges.append((b[0], b[1], self.edge_label(b[0], b[1])))
-                else:
-                    my_bridges.append(tuple(b))
-
-        return my_bridges
 
     @doc_index("Connectivity, orientations, trees")
     def spanning_trees(self):
@@ -8368,6 +8314,7 @@ class Graph(GenericGraph):
     from sage.graphs.lovasz_theta import lovasz_theta
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
+    from sage.graphs.connectivity import bridges
 
 
 _additional_categories = {

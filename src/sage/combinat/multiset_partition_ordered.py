@@ -544,7 +544,7 @@ class OrderedMultisetPartition(ClonableArray):
             if all(v in ZZ for v in w):
                 w = [w.get(i, 0) for i in range(1,self.max_letter()+1)]
             else:
-                raise AssertionError("%s is not a numeric multiset"%w)
+                raise ValueError("%s is not a numeric multiset"%w)
         return w
 
     def deconcatenate(self, k=2):
@@ -659,9 +659,9 @@ class OrderedMultisetPartition(ClonableArray):
             sage: OrderedMultisetPartition([]).finer()
             {[]}
             sage: O = OrderedMultisetPartitions([1, 1, 'a', 'b'])
-            sage: o = O.an_element()
+            sage: o = O([{1}, {'a', 'b'}, {1}])
             sage: o.finer()
-            {[{'b'}, {'a'}, {1}, {1}], [{'a'}, {'b'}, {1}, {1}], [{'a','b'}, {1}, {1}]}
+            {[{1}, {'b'}, {'a'}, {1}], [{1}, {'a'}, {'b'}, {1}], [{1}, {'a','b'}, {1}]}
             sage: o.finer() & o.fatter() == Set([o])
             True
         """
@@ -1563,7 +1563,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if omp in self:
             return self.element_class(self, map(Set, omp))
         else:
-            raise AssertionError("cannot convert %s into an element of %s"%(lst, self))
+            raise ValueError("cannot convert %s into an element of %s"%(lst, self))
 
     Element = OrderedMultisetPartition
 
@@ -2695,16 +2695,21 @@ class MinimajCrystal(UniqueRepresentation, Parent):
 
     Elements are represented in the minimaj ordering of blocks as in Benkart, et al.
 
-    .. NOTES:
+    .. NOTE::
 
-    - Elements are not stored internally as ordered multiset partitions, but as words
-      according to the minimaj bijection `\varphi` of Benkart, et al.
-
-    - Initial draft of code provided by Anne Schilling.
+        Elements are not stored internally as ordered multiset partitions,
+        but as certain (pairs of) words stemming from the minimaj bijection
+        `\varphi` of Benkart, et al.. See :class:`crystals.Minimaj.Element`
+        for further details.
 
     REFERENCES:
 
     - [BCHOPSY2017]_
+
+    AUTHORS:
+
+    - Anne Schilling (2018): initial draft
+    - Aaron Lauve (2018): changed to use ``Letters`` crystal for elements
 
     EXAMPLES::
 
@@ -2825,7 +2830,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         if mu in self:
             return self(mu)
         else:
-            raise AssertionError("%s is not an element of %s"%(mu, self))
+            raise ValueError("%s is not an element of %s"%(mu, self))
 
     def val(self, q='q'):
         """

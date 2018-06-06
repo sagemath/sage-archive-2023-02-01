@@ -1430,9 +1430,54 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache("left_kernel_matrix", OUT)
         return OUT
 
-    def _echelon_in_place_classical(self, reduced=True, **kwds):
+    cpdef _echelon_in_place(self, str algorithm):
         """
-        Change this matrix into echelon form, using classical Gaussian elimination.
+        Change this matrix into echelon form, using classical
+        Gaussian elimination, and return the pivots.
+
+        .. NOTE::
+
+            Use :meth:`_echelon_in_place_classical`, which can take the
+            keyword ``reduced``.
+
+
+        EXAMPLES::
+
+            sage: K.<x> = GF(25)
+            sage: M = MatrixSpace(K, 9, 3)()
+            sage: entries = [((0, 2), x), ((0, 4), 3*x + 2),
+            ....: ((0, 8), 2*x), ((1, 1), x + 3), ((1, 5), 3*x),
+            ....: ((1, 6), x + 4), ((2, 0), 2*x), ((2, 5), 4*x + 1)]
+            sage: for (i,j),v in entries: M[j,i] = v
+            sage: M
+            [      0       0     2*x]
+            [      0   x + 3       0]
+            [      x       0       0]
+            [      0       0       0]
+            [3*x + 2       0       0]
+            [      0     3*x 4*x + 1]
+            [      0   x + 4       0]
+            [      0       0       0]
+            [    2*x       0       0]
+            sage: M._echelon_in_place("classical")
+            (0, 1, 2)
+            sage: M
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+        """
+        return self._echelon_in_place_classical()
+
+    def _echelon_in_place_classical(self, bint reduced=True, **kwds):
+        """
+        Change this matrix into echelon form, using classical Gaussian elimination
+        and return its pivots.
 
         INPUT:
 
@@ -1480,6 +1525,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: N = copy(M)
             sage: N._echelon_in_place_classical(reduced=False)      # optional: meataxe
+            (2, 1, 3, 4, 5, 6, 7, 8)
             sage: N                                                 # optional: meataxe
             [      0       0       x       0 3*x + 2       0       0       0     2*x       0]
             [      0   x + 3       0       0       0     3*x   x + 4       0       0       0]
@@ -1532,7 +1578,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.cache('in_echelon_form',True)
             self.cache('rank', 0)
             self.cache('pivots', ())
-            return self
+            return ()
         sig_on()
         MatEchelonize(self.Data)
         sig_off()
@@ -1588,6 +1634,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.Data.Nor = self._nrows
         self.cache('pivots', tuple(self.Data.PivotTable[i] for i in range(r)))
         self.cache('in_echelon_form',True)
+        return self._cache['pivots']
 
 from sage.misc.superseded import deprecation
 

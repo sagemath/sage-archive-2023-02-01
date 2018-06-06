@@ -6910,7 +6910,7 @@ cdef class Matrix(Matrix1):
 
     cpdef _echelon_in_place(self, str algorithm):
         """
-        Transform ``self`` into echelon form and set the pivots of ``self``.
+        Transform ``self`` into echelon form and return the pivots of ``self``.
 
         EXAMPLES::
 
@@ -7045,7 +7045,7 @@ cdef class Matrix(Matrix1):
 
     def _echelon_in_place_classical(self):
         """
-        Transform self into echelon form and set the pivots of self.
+        Transform self into echelon form and return the pivots of self.
 
         EXAMPLES::
 

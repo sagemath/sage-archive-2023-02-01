@@ -262,7 +262,9 @@ REFERENCES:
 
 .. [BCHOPSY2017] \G. Benkart, L. Colmenarejo, P. E. Harris, R. Orellana, G. Panova,
                  A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
-                 multiset partitions*. Preprint, :arxiv:`1707.08709v2`.
+                 multiset partitions*.
+                 Advances in Applied Math. 95 (2018) 96-115,
+                 :doi:`10.1016/j.aam.2017.11.006`
 
 .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation

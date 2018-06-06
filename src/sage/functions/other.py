@@ -1880,7 +1880,7 @@ class Function_cases(GinacFunction):
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
-            
+
             sage: cases(x)
             Traceback (most recent call last):
             ...

@@ -25,6 +25,13 @@ is needed for them::
     sage: assert sgn(x)._sympy_() == sign(sx)
     sage: assert sgn(x) == sign(sx)._sage_()
 
+TESTS:
+
+Check that :trac:`24212` is fixed::
+
+    sage: integrate(sin(x^2), x, algorithm='sympy')
+    3/8*sqrt(2)*sqrt(pi)*fresnel_sin(sqrt(2)*x/sqrt(pi))*gamma(3/4)/gamma(7/4)
+
 AUTHORS:
 
 - Ralf Stephan (2017-10)
@@ -502,6 +509,34 @@ def _sympysage_piecewise(self):
     from sage.functions.other import cases
     return cases([(p.cond._sage_(),p.expr._sage_()) for p in self.args])
 
+def _sympysage_fresnels(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, pi as spi, fresnels
+        sage: sx = Symbol('x')
+        sage: sp = fresnels(sx)
+        sage: ex =  fresnel_sin(x)
+        sage: assert ex._sympy_() == sp
+        sage: assert ex == sp._sage_()
+    """
+    from sage.functions.error import fresnel_sin
+    return fresnel_sin(self.args[0]._sage_())
+
+def _sympysage_fresnelc(self):
+    """
+    EXAMPLES::
+
+        sage: from sympy import Symbol, pi as spi, fresnelc
+        sage: sx = Symbol('x')
+        sage: sp = fresnelc(sx)
+        sage: ex =  fresnel_cos(x)
+        sage: assert ex._sympy_() == sp
+        sage: assert ex == sp._sage_()
+    """
+    from sage.functions.error import fresnel_cos
+    return fresnel_cos(self.args[0]._sage_())
+
 def _sympysage_besselj(self):
     """
     EXAMPLES::
@@ -706,6 +741,7 @@ def sympy_init():
     from sympy.functions.elementary.exponential import LambertW
     from sympy.functions.elementary.integers import ceiling
     from sympy.functions.elementary.piecewise import Piecewise
+    from sympy.functions.special.error_functions import fresnels, fresnelc
     from sympy.functions.special.bessel import (besselj, bessely, besseli, besselk)
     from sympy.functions.special.delta_functions import (DiracDelta, Heaviside)
     from sympy.functions.special.error_functions import expint
@@ -754,6 +790,8 @@ def sympy_init():
     elliptic_k._sage_ = _sympysage_elliptic_k
     KroneckerDelta._sage_ = _sympysage_kronecker_delta
     Piecewise._sage_ = _sympysage_piecewise
+    fresnels._sage_ = _sympysage_fresnels
+    fresnelc._sage_ = _sympysage_fresnelc
     besselj._sage_ = _sympysage_besselj
     bessely._sage_ = _sympysage_bessely
     besseli._sage_ = _sympysage_besseli

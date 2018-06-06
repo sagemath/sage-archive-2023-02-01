@@ -871,11 +871,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         EXAMPLES::
 
-            sage: S = SymmetricGroup(['a', 'b'])
-            sage: s = S([('a', 'b')]); s
-            ('a','b')
-            sage: s*s
+            sage: P = PermutationGroup([(1,2),(1,2,3,4)])
+            sage: one = P.one()
+            sage: one._generate_new([])
             ()
+            sage: one._generate_new([4,3,2,1])
+            (1,4)(2,3)
         """
         cdef PermutationGroupElement new = old._new_c()
         cdef int i, j, vn = len(v)

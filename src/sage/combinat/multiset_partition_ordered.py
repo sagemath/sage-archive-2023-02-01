@@ -216,7 +216,7 @@ class OrderedMultisetPartition(ClonableArray):
         else:
             # Delte empty blocks
             co = [block for block in co if block]
-        ClonableArray.__init__(self, parent, [Set(list(k)) for k in co])
+        ClonableArray.__init__(self, parent, [frozenset(list(k)) for k in co])
         self._multiset = _get_multiset(co)
         self._weight = _get_weight(self._multiset)
         self._order = sum([len(block) for block in self])
@@ -243,7 +243,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: c = OMPs([[1, 1], [1, 4]])
             Traceback (most recent call last):
             ...
-            AssertionError: cannot convert [[1, 1], [1, 4]] into an element
+            ValueError: cannot convert [[1, 1], [1, 4]] into an element
              of Ordered Multiset Partitions
         """
         if self not in self.parent():
@@ -275,9 +275,9 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: A = OrderedMultisetPartition([4,0,1,2,4,0,2,3,0,1])
             sage: A._repr_normal()
-            [{4}, {1, 2, 4}, {2, 3}, {1}]
+            '[{4}, {1, 2, 4}, {2, 3}, {1}]'
             sage: A._repr_tight()
-            [{4}, {1,2,4}, {2,3}, {1}]
+            '[{4}, {1,2,4}, {2,3}, {1}]'
         """
         repr = self._repr_normal()
         # eliminate spacing within blocks
@@ -537,7 +537,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: OrderedMultisetPartition('ab0abc0b0b0c').weight(as_weak_comp=True)
             Traceback (most recent call last):
             ...
-            AssertionError: {'a': 2, 'c': 2, 'b': 4} is not a numeric multiset
+            ValueError: {'a': 2, 'c': 2, 'b': 4} is not a numeric multiset
         """
         w = self._weight
         if as_weak_comp:
@@ -604,13 +604,13 @@ class OrderedMultisetPartition(ClonableArray):
         EXAMPLES::
 
             sage: sorted(OrderedMultisetPartition([[1,2],[4]]).split())
-            [([], [{1,2}, {4}]), ([{2}, {4}], [{1}]), ([{1,2}], [{4}]),
-             ([{4}], [{1,2}]), ([{1}], [{2}, {4}]), ([{1}, {4}], [{2}]),
-             ([{2}], [{1}, {4}]), ([{1,2}, {4}], [])]
+            [([], [{1,2}, {4}]), ([{2}], [{1}, {4}]), ([{1}], [{2}, {4}]),
+             ([{1}, {4}], [{2}]), ([{1,2}, {4}], []), ([{4}], [{1,2}]),
+             ([{2}, {4}], [{1}]), ([{1,2}], [{4}])]
             sage: sorted(OrderedMultisetPartition([[1,2]]).split(3))
-            [([], [], [{1,2}]), ([], [{2}], [{1}]), ([], [{1}], [{2}]),
-             ([], [{1,2}], []), ([{2}], [{1}], []), ([{1}], [], [{2}]),
-             ([{1}], [{2}], []), ([{2}], [], [{1}]), ([{1,2}], [], [])]
+            [([], [], [{1,2}]), ([], [{1}], [{2}]), ([], [{2}], [{1}]),
+             ([], [{1,2}], []), ([{2}], [], [{1}]), ([{1}], [], [{2}]),
+             ([{1}], [{2}], []), ([{2}], [{1}], []), ([{1,2}], [], [])]
 
         TESTS::
 
@@ -1035,7 +1035,7 @@ class OrderedMultisetPartition(ClonableArray):
         else:
             A = map(tuple, self); B = map(tuple, other)
             for term in ShuffleProduct_overlapping(A, B):
-                if len(_concatenate(map(Set, term))) == len(P._Xtup):
+                if len(_concatenate(map(frozenset, term))) == len(P._Xtup):
                     yield P(term)
 
     # A sorting scheme.
@@ -1114,8 +1114,8 @@ class OrderedMultisetPartition(ClonableArray):
         # check lex.
         if co1._n and co2._n:
             # give preference to blocks with larger sum
-            co1 = [Word([sum(k)]+sorted(k)) for k in co1]
-            co2 = [Word([sum(k)]+sorted(k)) for k in co2]
+            w1 = [Word([sum(k)]+sorted(k)) for k in co1]
+            w2 = [Word([sum(k)]+sorted(k)) for k in co2]
         else:
             w1 = [Word(map(str, sorted(k))) for k in co1]
             w2 = [Word(map(str, sorted(k))) for k in co2]
@@ -1390,7 +1390,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             A = constraints["alphabet"]
             if A in ZZ:
                 A = range(1,A+1)
-            constraints["alphabet"] = Set(A)
+            constraints["alphabet"] = frozenset(A)
 
         if len(args) == 2: # treat as `alphabet` & `order`
             alph = args[0]; ord = args[1]
@@ -1400,11 +1400,11 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                 constraints.pop("alphabet", None)
                 constraints.pop("order", None)
                 if constraints == {}:
-                    return OrderedMultisetPartitions_A(Set(alph), ord)
+                    return OrderedMultisetPartitions_A(frozenset(alph), ord)
                 else:
-                    return OrderedMultisetPartitions_A_constraints(Set(alph), ord, **constraints)
-            elif Set(alph) == Set([]) and ord == 0:
-                return OrderedMultisetPartitions_A_constraints(Set(alph), ord, **constraints)
+                    return OrderedMultisetPartitions_A_constraints(frozenset(alph), ord, **constraints)
+            elif frozenset(alph) == frozenset() and ord == 0:
+                return OrderedMultisetPartitions_A_constraints(frozenset(alph), ord, **constraints)
             else:
                 raise ValueError("alphabet=%s must be a nonempty set and order=%s must be a nonnegative integer"%(alph,ord))
 
@@ -1448,9 +1448,9 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         # standardize values for certain keywords
         if "alphabet" in constraints:
             if constraints["alphabet"] in ZZ:
-                constraints["alphabet"] = Set(range(1, constraints["alphabet"]+1))
+                constraints["alphabet"] = frozenset(range(1, constraints["alphabet"]+1))
             else:
-                constraints["alphabet"] = Set(constraints["alphabet"])
+                constraints["alphabet"] = frozenset(constraints["alphabet"])
 
         if "weight" in constraints:
             X = dict(constraints["weight"])
@@ -1547,7 +1547,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: P([[3],[3,1]])
             Traceback (most recent call last):
             ...
-            AssertionError: cannot convert [[3], [3, 1]] into an element of
+            ValueError: cannot convert [[3], [3, 1]] into an element of
              Ordered Multiset Partitions of integer 3
         """
         ## construction for user shorthands
@@ -1561,7 +1561,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             omp = map(list, lst)
 
         if omp in self:
-            return self.element_class(self, map(Set, omp))
+            return self.element_class(self, map(frozenset, omp))
         else:
             raise ValueError("cannot convert %s into an element of %s"%(lst, self))
 
@@ -1597,7 +1597,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         Blocks should be nonempty sets/lists/tuples of distinct elements.
         """
         for block in x:
-            if not isinstance(block, (list, tuple, set, Set_object)):
+            if not isinstance(block, (list, tuple, set, frozenset, Set_object)):
                 return False
             if not tuple(block) or Set(block).cardinality() != len(tuple(block)):
                 return False
@@ -1654,7 +1654,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if 0 in list(lst) or '0' in list(lst):
             return self._from_zero_list(lst)
         else:
-            d = [Set([x]) for x in lst]
+            d = [frozenset([x]) for x in lst]
             return self.element_class(self, d)
 
     def _from_zero_list(self, lst_with_zeros):
@@ -1685,7 +1685,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             else:
                 block.append(a)
         if self._has_valid_blocks(co):
-            return self.element_class(self, map(Set, co))
+            return self.element_class(self, map(frozenset, co))
         else:
             raise ValueError("ordered multiset partitions do not have repeated entries within blocks (%s received)"%str(co))
 
@@ -1941,7 +1941,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
                     out.append([a//2+1, a//2])
                 else:
                     out.append([a//2, a//2-1, 1])
-        return self.element_class(self, map(Set, out))
+        return self.element_class(self, map(frozenset, out))
 
     def random_element(self):
         """
@@ -1963,7 +1963,7 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         """
         C = Compositions(self._n).random_element()
         co = _break_at_descents(C)
-        return self.element_class(self, map(Set, co))
+        return self.element_class(self, map(frozenset, co))
 
     def __iter__(self):
         """
@@ -2089,7 +2089,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         elt.append(co[i][:len(co[i])//2 + 1])
         elt.append(co[i][len(co[i])//2 + 1:])
         elt.extend(co[i+1:])
-        return self.element_class(self, map(Set, elt))
+        return self.element_class(self, map(frozenset, elt))
 
     def random_element(self):
         """
@@ -2118,7 +2118,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
 
         alpha = Permutations_mset(self._Xtup).random_element()
         co = _break_at_descents(alpha)
-        finer = self.element_class(self, map(Set,co)).finer()
+        finer = self.element_class(self, map(frozenset,co)).finer()
         return finer.random_element()
 
     def __iter__(self):
@@ -2219,7 +2219,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         """
         no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
         valid_order = sum([len(tuple(block)) for block in x]) == self._order
-        valid_letters = self._alphabet.issuperset(Set(_concatenate(x)))
+        valid_letters = self._alphabet.issuperset(frozenset(_concatenate(x)))
         return no_repeats and valid_order and valid_letters
 
     def an_element(self):
@@ -2228,7 +2228,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         """
         alpha = Compositions(self._order).an_element()
         co = [Subsets_sk(self._alphabet, a).an_element() for a in alpha]
-        return self.element_class(self, map(Set, co))
+        return self.element_class(self, map(frozenset, co))
 
     def random_element(self):
         """
@@ -2257,7 +2257,7 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
 
         alpha = Compositions(self._order, max_part=len(self._alphabet)).random_element()
         co = [Subsets_sk(self._alphabet, a).random_element() for a in alpha]
-        return self.element_class(self, map(Set, co))
+        return self.element_class(self, map(frozenset, co))
 
     def __iter__(self):
         """
@@ -2353,7 +2353,7 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
             alpha = Compositions(ell, length=k, max_part=n).an_element()
             co = [Subsets_sk(self._alphabet, a).an_element() for a in alpha]
             #assume ``co`` satisfies all constraints
-            return self.element_class(self, map(Set, co))
+            return self.element_class(self, map(frozenset, co))
         else:
             try:
                 return next(self.__iter__())
@@ -2381,7 +2381,7 @@ def _union_of_sets(list_of_sets):
     """
     Return the union of a list of iterables as a Set object.
     """
-    return reduce(lambda a,b: Set(a)|Set(b), list_of_sets, Set([]))
+    return reduce(lambda a,b: frozenset(a)|frozenset(b), list_of_sets, frozenset())
 
 def _concatenate(list_of_iters):
     """
@@ -2499,13 +2499,13 @@ def _iterator_size(size, length=None, alphabet=None):
         for alpha in Compositions(size, length=length):
             for p in cartesian_product([IntegerListsLex(a, min_slope=1, \
                     min_part=min_p, max_part=min(a, max_p)) for a in alpha]):
-                if Set(_concatenate(p)).issubset(Set(alphabet)):
-                    yield P([Set(list(k)) for k in p])
+                if frozenset(_concatenate(p)).issubset(frozenset(alphabet)):
+                    yield P([frozenset(list(k)) for k in p])
     else:
         for alpha in Compositions(size, length=length):
             for p in cartesian_product([IntegerListsLex(a, min_slope=1, \
                     min_part=1) for a in alpha]):
-                yield P([Set(list(k)) for k in p])
+                yield P([frozenset(list(k)) for k in p])
 
 def _iterator_order(A, d, lengths=None):
     """
@@ -2536,7 +2536,7 @@ def _iterator_order(A, d, lengths=None):
         sage: list(_iterator_order([1,4], 0))
         [[]]
     """
-    A = Set(A)
+    A = frozenset(A)
     P = OrderedMultisetPartitions_A(A, d)
 
     # iteration scheme:
@@ -2618,7 +2618,10 @@ def _refine_block(S, strong=False):
     If optional argument ``strong`` is set to ``True``, then only those
     refinements that are deconcatenations of the list ``sorted(S)`` are returned.
     """
-    X = list(S)
+    if all(s in ZZ for s in S):
+        X = sorted(S)
+    else:
+        X = sorted(S, key=str)
     n = len(X)
     out = []
     if not strong:
@@ -2628,7 +2631,7 @@ def _refine_block(S, strong=False):
 
     for w in WordSet:
         if _is_initial_segment(sorted(set(w))):
-            a = [set([]) for _ in range(max(w)+1)]
+            a = [set() for _ in range(max(w)+1)]
             for pos in range(n):
                 a[w[pos]].add(X[pos])
             out.append(a)
@@ -2646,7 +2649,10 @@ def _split_block(S, k=2):
 
     A splitting of `S` is a tuple of (possibly empty) subsets whose union is `S`.
     """
-    X = list(S)
+    if all(s in ZZ for s in S):
+        X = sorted(S)
+    else:
+        X = sorted(S, key=str)
     n = len(X)
     out = []
     WordSet = IntegerListsLex(min_part=0, max_part=k-1, length=n)
@@ -2823,7 +2829,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: B1.from_tableau(t)
             Traceback (most recent call last):
             ...
-            AssertionError: ((1, 2, 3), (3, 1), (2,)) is not an element of
+            ValueError: ((1, 2, 3), (3, 1), (2,)) is not an element of
              Minimaj Crystal of type A_2 of words of length 6 into 2 blocks
         """
         mu = _to_minimaj_blocks(t)

@@ -220,13 +220,14 @@ from builtins import zip
 
 from six import iteritems
 from six.moves import range
+from six import iteritems
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
-from sage.rings.all import Integer, Infinity, ZZ
+from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
 
@@ -3594,13 +3595,46 @@ class FiniteWord_class(Word_class):
             sage: words.ThueMorseWord()[:20].critical_exponent()
             2
 
+        For the Fibonacci word, the critical exponent is known to be
+        `(5+\sqrt(5))/2`. With a prefix of length 500, we obtain a lower bound::
+
+            sage: words.FibonacciWord()[:500].critical_exponent()
+            320/89
+
         REFERENCES:
 
         .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
            Ser. A 13:90--99, 1972.
         """
-        return max(map(FiniteWord_class.order, self.factor_iterator()))
-
+        st = self.suffix_tree()
+        w = self
+        wlen = self.length()
+        pft = [0] * wlen
+        m = 0
+        queue = [(0, 0, -1, 0)]
+        best_exp = 1
+        while queue:
+            (v,i,j,l) = queue.pop()
+            for k in range(i,j+1):
+                if l-j+k-1 != 0:
+                    m = pft[l-j+k-2]
+                    while m > 0 and w[j-l+m] != w[k-1]:
+                        m = pft[m-1]
+                    if w[j-l+m] == w[k-1]:
+                        m += 1
+                else:
+                    m = 0
+                current_pos = k-j+l-1  
+                pft[current_pos] = m
+                current_exp = QQ((current_pos+1, current_pos+1-m))
+                if current_exp > best_exp:
+                    best_exp = current_exp
+            for ((i,j),u) in iteritems(st._transition_function[v]):
+                if j is None:
+                    j = wlen
+                queue.append((u,i,j, l+j-i+1))
+        return best_exp
+     
     def is_overlap(self):
         r"""
         Return ``True`` if ``self`` is an overlap, and ``False`` otherwise.

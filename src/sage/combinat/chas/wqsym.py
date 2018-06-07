@@ -642,7 +642,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the algebraic complement involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.algebraic_complement`
+                :meth:`WQSymBases.ElementMethods.algebraic_complement`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -678,7 +678,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the coalgebraic complement involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.coalgebraic_complement`
+                :meth:`WQSymBases.ElementMethods.coalgebraic_complement`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -714,7 +714,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the star involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.star_involution`
+                :meth:`WQSymBases.ElementMethods.star_involution`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -1129,7 +1129,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the algebraic complement involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.algebraic_complement`
+                :meth:`WQSymBases.ElementMethods.algebraic_complement`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -1173,7 +1173,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the coalgebraic complement involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.coalgebraic_complement`
+                :meth:`WQSymBases.ElementMethods.coalgebraic_complement`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -1217,7 +1217,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the star involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.star_involution`
+                :meth:`WQSymBases.ElementMethods.star_involution`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -1634,7 +1634,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the algebraic complement involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.algebraic_complement`
+                :meth:`WQSymBases.ElementMethods.algebraic_complement`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -1678,7 +1678,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the coalgebraic complement involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.coalgebraic_complement`
+                :meth:`WQSymBases.ElementMethods.coalgebraic_complement`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::
@@ -1722,7 +1722,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the star involution.
     
                 See
-                :meth:`~WQSymBases.ElementMethods.star_involution`
+                :meth:`WQSymBases.ElementMethods.star_involution`
                 for a definition of the involution and for examples.
     
                 .. SEEALSO::

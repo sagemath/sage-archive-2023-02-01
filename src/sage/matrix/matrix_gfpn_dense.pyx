@@ -31,6 +31,7 @@ from __future__ import print_function, absolute_import, division
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
+cimport cython
 
 import os
 
@@ -911,8 +912,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         Rescale row number `i` in-place by multiplication with the scalar `s`.
 
-        The argument ``start_col`` is ignored. The scalar `s` is
-        converted into the base ring.
+        The scalar `s` is converted into the base ring.
 
         EXAMPLES::
 
@@ -939,14 +939,54 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [    3*x 3*x + 1 3*x + 2 3*x + 3 3*x + 4]
             [4*x + 2       2   x + 2 2*x + 2 3*x + 2]
 
+        TESTS:
+
+        The following tests against bugs fixed in :trac:`25490`. It shows
+        that the optional argument ``start_col`` is correctly dealt with,
+        in an example where several marks are packed into one byte, and
+        so that temporarily the current field and row size are changed.
+        ::
+
+            sage: L.<y> = GF(9)
+            sage: N = MatrixSpace(L,5,5)((3*sorted(list(L)))[:25])
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2     2*y 2*y + 1 2*y + 2       0]
+            [      1       2       y   y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+            sage: M = MatrixSpace(K,1,25)(sorted(list(K)))
+            sage: N.rescale_row(1,1/y,1)
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2       2   y + 1     2*y       0]
+            [      1       2       y   y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+
         """
-        if start_col != 0 or self.Data == NULL:
-            raise ValueError("We can only rescale a full row of a non-empty matrix")
-        FfMulRow(MatGetPtr(self.Data, i), FfFromInt(self._converter.field_to_int(self._base_ring(s))))
+        if self.Data == NULL or start_col >= self.Data.Noc:
+            return
+        FfSetField(self.Data.Field)
+        cdef FEL c = FfFromInt(self._converter.field_to_int(self._base_ring(s)))
+        cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
+        cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
+        cdef ssize_t noc                              # what bunch of cols will be treated together?
+        cdef int j
+        cdef PTR row_head = MatGetPtr(self.Data, i) + byte_offset
+        if remains:
+            for j in range(remains,MPB):
+                FfInsert(row_head, j, FfMul(FfExtract(row_head,j), c))
+            byte_offset += 1
+            row_head    += 1
+        noc = self.Data.Noc - byte_offset*MPB
+        if noc:
+            FfSetNoc(noc)
+            FfMulRow(row_head, c)
 
     cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple, Py_ssize_t start_col):
         """
-        Add the ``multiple``-fold of row ``row_from`` in-place to row ``row_to``.
+        Add the ``multiple``-fold of row ``row_from`` in-place to row ``row_to``, beginning with ``start_col``
 
         EXAMPLES::
 
@@ -966,10 +1006,53 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [    3*x 3*x + 1 3*x + 2 3*x + 3 3*x + 4]
             [    4*x 4*x + 1 4*x + 2 4*x + 3 4*x + 4]
 
+        TESTS:
+
+        The following tests against bugs fixed at :trac:`25490`. It demonstrates
+        that the optional argument ``start_col`` is correctly dealt with,
+        in a situation where several marks are packed into one byte
+        and the current field and row size are temporarily changed.
+        ::
+
+            sage: L.<y> = GF(9)
+            sage: N = MatrixSpace(L,5,5)((3*sorted(list(L)))[:25])
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2     2*y 2*y + 1 2*y + 2       0]
+            [      1       2       y   y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+            sage: M = MatrixSpace(K,1,25)(sorted(list(K)))
+            sage: N.add_multiple_of_row(2,1,-N[2,1]/N[1,1],1)
+            sage: N
+            [      0       1       2       y   y + 1]
+            [  y + 2     2*y 2*y + 1 2*y + 2       0]
+            [      1       0       2 2*y + 1   y + 2]
+            [    2*y 2*y + 1 2*y + 2       0       1]
+            [      2       y   y + 1   y + 2     2*y]
+            sage: y-(2*y+1)/y
+            2
+
         """
-        if start_col != 0 or self.Data == NULL:
-            raise ValueError("We can only rescale a full row of a non-empty matrix")
-        FfAddMulRow(MatGetPtr(self.Data, row_to), MatGetPtr(self.Data, row_from), FfFromInt(self._converter.field_to_int(self._base_ring(multiple))))
+        if self.Data == NULL or start_col >= self.Data.Noc:
+            return
+        FfSetField(self.Data.Field)
+        cdef FEL c = FfFromInt(self._converter.field_to_int(self._base_ring(multiple)))
+        cdef ssize_t byte_offset = start_col//MPB     # how many full bytes will remain unchanged?
+        cdef ssize_t remains = start_col % MPB        # how many cols have to be treated separately?
+        cdef ssize_t noc                              # what bunch of cols will be treated together?
+        cdef PTR row_to_head = MatGetPtr(self.Data, row_to)+byte_offset
+        cdef PTR row_from_head = MatGetPtr(self.Data, row_from)+byte_offset
+        if remains:
+            for j in range(remains,MPB):
+                FfInsert(row_to_head, j, FfAdd(FfExtract(row_to_head,j), FfMul(FfExtract(row_from_head,j), c)))
+            byte_offset += 1
+            row_to_head   += 1
+            row_from_head += 1
+        noc = self.Data.Noc - byte_offset*MPB
+        if noc:
+            FfSetNoc(noc)
+            FfAddMulRow(row_to_head, row_from_head, c)
 
     cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
         """
@@ -994,6 +1077,10 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [    4*x 4*x + 1 4*x + 2 4*x + 3 4*x + 4]
 
         """
+        if not self.Data:
+            raise ValueError("This matrix is empty")
+        FfSetField(self.Data.Field)
+        FfSetNoc(self.Data.Noc)
         FfSwapRows(MatGetPtr(self.Data, row1), MatGetPtr(self.Data, row2))
 
     def trace(self):
@@ -1218,15 +1305,24 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     cdef _mul_long(self, long n):
         """
         Multiply an MTX matrix with a field element represented by an integer.
+
+        TESTS::
+
+            sage: M = random_matrix(GF(9,'x'), 64,51)
+            sage: M == M*int(4) == int(4)*M
+            True
+            sage: M*int(-1)+M == 0
+            True
+
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
+        FfSetField(self.Data.Field)
         cdef Matrix_gfpn_dense left
+        FfSetField(self.Data.Field)
         cdef FEL r
-        if n < 0:
-            r = mtx_taddinv[FfFromInt(-n)]
-        else:
-            r = FfFromInt(n)
+        with cython.cdivision(False):
+            r = FfFromInt(n%FfChar)
         left = self.__copy__()
         left._cache = {}
         MatMulScalar(left.Data, r)
@@ -1430,9 +1526,54 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache("left_kernel_matrix", OUT)
         return OUT
 
-    def _echelon_in_place_classical(self, reduced=True, **kwds):
+    cpdef _echelon_in_place(self, str algorithm):
         """
-        Change this matrix into echelon form, using classical Gaussian elimination.
+        Change this matrix into echelon form, using classical
+        Gaussian elimination, and return the pivots.
+
+        .. NOTE::
+
+            Use :meth:`_echelon_in_place_classical`, which can take the
+            keyword ``reduced``.
+
+
+        EXAMPLES::
+
+            sage: K.<x> = GF(25)
+            sage: M = MatrixSpace(K, 9, 3)()
+            sage: entries = [((0, 2), x), ((0, 4), 3*x + 2),
+            ....: ((0, 8), 2*x), ((1, 1), x + 3), ((1, 5), 3*x),
+            ....: ((1, 6), x + 4), ((2, 0), 2*x), ((2, 5), 4*x + 1)]
+            sage: for (i,j),v in entries: M[j,i] = v
+            sage: M
+            [      0       0     2*x]
+            [      0   x + 3       0]
+            [      x       0       0]
+            [      0       0       0]
+            [3*x + 2       0       0]
+            [      0     3*x 4*x + 1]
+            [      0   x + 4       0]
+            [      0       0       0]
+            [    2*x       0       0]
+            sage: M._echelon_in_place("classical")
+            (0, 1, 2)
+            sage: M
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+        """
+        return self._echelon_in_place_classical()
+
+    def _echelon_in_place_classical(self, bint reduced=True, **kwds):
+        """
+        Change this matrix into echelon form, using classical Gaussian elimination
+        and return its pivots.
 
         INPUT:
 
@@ -1480,6 +1621,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: N = copy(M)
             sage: N._echelon_in_place_classical(reduced=False)      # optional: meataxe
+            (2, 1, 3, 4, 5, 6, 7, 8)
             sage: N                                                 # optional: meataxe
             [      0       0       x       0 3*x + 2       0       0       0     2*x       0]
             [      0   x + 3       0       0       0     3*x   x + 4       0       0       0]
@@ -1532,7 +1674,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.cache('in_echelon_form',True)
             self.cache('rank', 0)
             self.cache('pivots', ())
-            return self
+            return ()
         sig_on()
         MatEchelonize(self.Data)
         sig_off()
@@ -1588,6 +1730,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.Data.Nor = self._nrows
         self.cache('pivots', tuple(self.Data.PivotTable[i] for i in range(r)))
         self.cache('in_echelon_form',True)
+        return self._cache['pivots']
 
 from sage.misc.superseded import deprecation
 

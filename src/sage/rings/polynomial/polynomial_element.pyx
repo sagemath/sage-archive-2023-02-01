@@ -112,6 +112,7 @@ from . import polynomial_fateman
 from sage.rings.ideal import is_Ideal
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.misc.cachefunc import cached_function
 
 from sage.categories.map cimport Map
@@ -6786,9 +6787,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: P.discriminant()
             4 + 4*T + O(T^2)
         """
-        # Late imports to avoid cyclic dependencies:
+        # Late import to avoid cyclic dependencies:
         from sage.rings.power_series_ring import is_PowerSeriesRing
-        from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
         if self.is_zero():
             return self._parent.zero()
         n = self.degree()

@@ -259,7 +259,7 @@ import sage.rings.polynomial.toy_d_basis as toy_d_basis
 
 from warnings import warn
 
-from sage.rings.qqbar import handle_AA_and_QQbar
+from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 
 from sage.interfaces.magma import magma_gb_standard_options
 from sage.interfaces.singular import singular_gb_standard_options

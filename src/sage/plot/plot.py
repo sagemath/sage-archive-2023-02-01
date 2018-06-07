@@ -579,6 +579,12 @@ from sage.ext.fast_eval import fast_float, is_fast_float
 from sage.misc.decorators import options
 
 from .graphics import Graphics, GraphicsArray
+from sage.plot.polygon import polygon
+
+# line below is only for redirection of imports
+from sage.plot.line import line, line2d
+
+
 
 #Currently not used - see comment immediately above about
 #figure.canvas.mpl_connect('draw_event', pad_for_tick_labels)
@@ -2064,7 +2070,6 @@ def _plot(funcs, xrange, parametric=False,
 
     """
     from sage.plot.colors import Color
-    from sage.plot.polygon import polygon
     from sage.plot.misc import setup_for_eval_on_grid
     if funcs == []:
         return Graphics()

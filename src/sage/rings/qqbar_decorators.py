@@ -18,6 +18,9 @@ def handle_AA_and_QQbar(func):
     The argument list is scanned for ideals and/or polynomials over algebraic
     fields (``QQbar`` or ``AA``).  If any exist, they are converted to a common
     number field before calling the function, and the results are converted back.
+    Lists, sets, and tuples are converted recursively.
+
+    Keyword arguments are currently not converted.
 
     Only works for functions that don't depend on polynomial factorization.
     Thus, :meth:`intersection` is suitable, but :meth:`associated_primes`
@@ -29,6 +32,7 @@ def handle_AA_and_QQbar(func):
     @sage_wraps(func)
     def wrapper(*args, **kwds):
 
+        from sage.misc.flatten import flatten
         from sage.rings.polynomial.multi_polynomial import MPolynomial
         from sage.rings.ideal import Ideal, Ideal_generic
         from sage.rings.qqbar import AlgebraicField_common, number_field_elements_from_algebraics
@@ -38,7 +42,7 @@ def handle_AA_and_QQbar(func):
             return func(*args, **kwds)
 
         orig_elems = []
-        for a in args:
+        for a in flatten(args, ltypes=(list, tuple, set)):
             if isinstance(a, Ideal_generic):
                 for g in a.gens():
                     orig_elems.extend(g.coefficients())
@@ -60,6 +64,10 @@ def handle_AA_and_QQbar(func):
                 return ideal_map(item)
             elif isinstance(item, MPolynomial):
                 return polynomial_map(item)
+            elif isinstance(item, (list, tuple)):
+                return map(generic_map, item)
+            elif isinstance(item, set):
+                return set(map(generic_map, list(item)))
             else:
                 return item
 
@@ -76,6 +84,8 @@ def handle_AA_and_QQbar(func):
                 return inverse_polynomial_map(item)
             elif isinstance(item, (list, tuple)):
                 return map(inverse_generic_map, item)
+            elif isinstance(item, set):
+                return set(map(inverse_generic_map, list(item)))
             else:
                 return item
 

@@ -1083,6 +1083,7 @@ class MPolynomialIdeal_singular_repr(
         return sorted(T, key=lambda x: x.gens())
 
     @require_field
+    @handle_AA_and_QQbar
     def dimension(self, singular=singular_default):
         """
         The dimension of the ring modulo this ideal.
@@ -1191,6 +1192,7 @@ class MPolynomialIdeal_singular_repr(
         return self.__dimension
 
     @require_field
+    @handle_AA_and_QQbar
     def vector_space_dimension(self):
         """
         Return the vector space dimension of the ring modulo this ideal. If
@@ -1304,6 +1306,7 @@ class MPolynomialIdeal_singular_repr(
         G = Sequence([P(str(f)) for f in G.iterGB()])
         return G
 
+    @handle_AA_and_QQbar
     @singular_gb_standard_options
     def _groebner_basis_singular(self, algorithm="groebner", *args, **kwds):
         """
@@ -1371,6 +1374,7 @@ class MPolynomialIdeal_singular_repr(
         return S
 
     @cached_method
+    @handle_AA_and_QQbar
     def _groebner_basis_singular_raw(self, algorithm="groebner", singular=singular_default, *args, **kwds):
         r"""
         Return a Groebner basis in Singular format.
@@ -1454,6 +1458,7 @@ class MPolynomialIdeal_singular_repr(
         return S
 
     @require_field
+    @handle_AA_and_QQbar
     def genus(self):
         """
         Return the genus of the projective curve defined by this ideal,
@@ -1689,6 +1694,7 @@ class MPolynomialIdeal_singular_repr(
         return ret
 
     @require_field
+    @handle_AA_and_QQbar
     def syzygy_module(self):
         r"""
         Computes the first syzygy (i.e., the module of relations of the
@@ -1720,6 +1726,7 @@ class MPolynomialIdeal_singular_repr(
         S = syz(self)
         return matrix(self.ring(), S)
 
+    @handle_AA_and_QQbar
     @singular_gb_standard_options
     @libsingular_gb_standard_options
     def interreduced_basis(self):
@@ -1774,6 +1781,7 @@ class MPolynomialIdeal_singular_repr(
         return self.basis.reduced()
 
     @cached_method
+    @handle_AA_and_QQbar
     @singular_gb_standard_options
     def basis_is_groebner(self, singular=singular_default):
         r"""
@@ -1882,6 +1890,7 @@ class MPolynomialIdeal_singular_repr(
         return True
 
     @require_field
+    @handle_AA_and_QQbar
     @singular_gb_standard_options
     @libsingular_gb_standard_options
     def transformed_basis(self, algorithm="gwalk", other_ring=None, singular=singular_default):
@@ -1973,6 +1982,7 @@ class MPolynomialIdeal_singular_repr(
         else:
             raise TypeError("Cannot convert basis with given algorithm")
 
+    @handle_AA_and_QQbar
     @libsingular_gb_standard_options
     def elimination_ideal(self, variables):
         r"""
@@ -2010,6 +2020,7 @@ class MPolynomialIdeal_singular_repr(
         Is = MPolynomialIdeal(R,self.groebner_basis())
         return MPolynomialIdeal(R, eliminate(Is, prod(variables)) )
 
+    @handle_AA_and_QQbar
     @libsingular_gb_standard_options
     def quotient(self, J):
         r"""
@@ -2062,6 +2073,7 @@ class MPolynomialIdeal_singular_repr(
         quotient = sage.libs.singular.function_factory.ff.quotient
         return R.ideal(quotient(self, J))
 
+    @handle_AA_and_QQbar
     def saturation(self, other):
         r"""
         Returns the saturation (and saturation exponent) of the ideal ``self`` with respect to the ideal ``other``
@@ -2385,6 +2397,7 @@ class MPolynomialIdeal_singular_repr(
         return V
 
     @require_field
+    @handle_AA_and_QQbar
     def hilbert_polynomial(self):
         r"""
         Return the Hilbert polynomial of this ideal.
@@ -2415,6 +2428,7 @@ class MPolynomialIdeal_singular_repr(
         return sum(ZZ(hp[i]) * t ** i for i in range(len(hp))) / fp
 
     @require_field
+    @handle_AA_and_QQbar
     def hilbert_series(self, singular=singular_default, grading=None):
         r"""
         Return the Hilbert series of this ideal.
@@ -2479,6 +2493,7 @@ class MPolynomialIdeal_singular_repr(
                 / prod((1 - t**a) for a in grading))
 
     @require_field
+    @handle_AA_and_QQbar
     def hilbert_numerator(self, singular=singular_default, grading=None):
         r"""
         Return the Hilbert numerator of this ideal.
@@ -2536,6 +2551,7 @@ class MPolynomialIdeal_singular_repr(
 
 
     @require_field
+    @handle_AA_and_QQbar
     def _normal_basis_libsingular(self):
         r"""
         Returns the normal basis for a given groebner basis. It will use
@@ -2556,6 +2572,7 @@ class MPolynomialIdeal_singular_repr(
         return PolynomialSequence(self.ring(), kbase_libsingular(self.ring().ideal(gb)), immutable=True)
 
     @require_field
+    @handle_AA_and_QQbar
     def normal_basis(self, algorithm='libsingular', singular=singular_default):
         """
         Returns a vector space basis (consisting of monomials) of the

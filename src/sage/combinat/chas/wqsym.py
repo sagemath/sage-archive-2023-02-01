@@ -384,6 +384,14 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         category = HopfAlgebras(R).Graded().Connected()
         Parent.__init__(self, base=R, category=category.WithRealizations())
 
+        # Register bases, to avoid garbage-collection of
+        # intermediate nodes on coercion paths.
+        M = self.M()
+        X = self.X()
+        C = self.C()
+        Q = self.Q()
+        Phi = self.Phi()
+
     def _repr_(self):
         """
         Return the string representation of ``self``.
@@ -626,6 +634,115 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             def sgn(P): return mone**len(P)
             self.module_morphism(codomain=M, diagonal=sgn).register_as_coercion()
             M.module_morphism(codomain=self, diagonal=sgn).register_as_coercion()
+
+        class Element(WQSymBasis_abstract.Element):
+            def algebraic_complement(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the algebraic complement involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.algebraic_complement`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`coalgebraic_complement`, :meth:`star_involution`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: X = WQSym.X()
+                    sage: X[[1,2],[5,6],[3,4]].algebraic_complement()
+                    X[{3, 4}, {5, 6}, {1, 2}]
+                    sage: X[[3], [1, 2], [4]].algebraic_complement()
+                    X[{4}, {1, 2}, {3}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(X[A]).algebraic_complement() == M(X[A].algebraic_complement())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.algebraic_complement doc
+                # for the formula we're using here.
+                Q = self.parent()
+                OSPs = Q.basis().keys()
+                return Q._from_dict({OSPs(A.reversed()): c for (A, c) in self},
+                                    remove_zeros=False)
+
+            def coalgebraic_complement(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the coalgebraic complement involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.coalgebraic_complement`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`algebraic_complement`, :meth:`star_involution`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: X = WQSym.X()
+                    sage: X[[1,2],[5,6],[3,4]].coalgebraic_complement()
+                    X[{5, 6}, {1, 2}, {3, 4}]
+                    sage: X[[3], [1, 2], [4]].coalgebraic_complement()
+                    X[{2}, {3, 4}, {1}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(X[A]).coalgebraic_complement() == M(X[A].coalgebraic_complement())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.coalgebraic_complement doc
+                # for the formula we're using here.
+                Q = self.parent()
+                OSPs = Q.basis().keys()
+                return Q._from_dict({OSPs(A.complement()): c for (A, c) in self},
+                                    remove_zeros=False)
+
+            def star_involution(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the star involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.star_involution`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`algebraic_complement`, :meth:`coalgebraic_complement`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: X = WQSym.X()
+                    sage: X[[1,2],[5,6],[3,4]].star_involution()
+                    X[{3, 4}, {1, 2}, {5, 6}]
+                    sage: X[[3], [1, 2], [4]].star_involution()
+                    X[{1}, {3, 4}, {2}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(X[A]).star_involution() == M(X[A].star_involution())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.star_involution doc
+                # for the formula we're using here.
+                Q = self.parent()
+                OSPs = Q.basis().keys()
+                return Q._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
+                                    remove_zeros=False)
 
     X = Characteristic
 
@@ -1004,6 +1121,131 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             T = self.tensor_square()
             return T.sum_of_monomials((standardize(x[:i]), standardize(x[i:]))
                                       for i in range(len(x) + 1))
+
+        class Element(WQSymBasis_abstract.Element):
+            def algebraic_complement(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the algebraic complement involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.algebraic_complement`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`coalgebraic_complement`, :meth:`star_involution`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: Q = WQSym.Q()
+                    sage: Q[[1,2],[5,6],[3,4]].algebraic_complement()
+                    Q[{3, 4}, {1, 2, 5, 6}] + Q[{3, 4}, {5, 6}, {1, 2}] - Q[{3, 4, 5, 6}, {1, 2}]
+                    sage: Q[[3], [1, 2], [4]].algebraic_complement()
+                    Q[{1, 2, 4}, {3}] + Q[{4}, {1, 2}, {3}] - Q[{4}, {1, 2, 3}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(Q[A]).algebraic_complement() == M(Q[A].algebraic_complement())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.algebraic_complement doc
+                # for the formula we're using here.
+                BR = self.base_ring()
+                one = BR.one()
+                mine = -one
+                Q = self.parent()
+                OSPs = Q.basis().keys()
+                def img(A):
+                    # The image of the basis element Q[A].
+                    Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
+                    return Q._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                                   else mine)
+                                         for R in Rs for P in R.strongly_fatter()})
+                return Q.sum(c * img(A) for (A, c) in self)
+
+            def coalgebraic_complement(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the coalgebraic complement involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.coalgebraic_complement`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`algebraic_complement`, :meth:`star_involution`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: Q = WQSym.Q()
+                    sage: Q[[1,2],[5,6],[3,4]].coalgebraic_complement()
+                    Q[{1, 2, 5, 6}, {3, 4}] + Q[{5, 6}, {1, 2}, {3, 4}] - Q[{5, 6}, {1, 2, 3, 4}]
+                    sage: Q[[3], [1, 2], [4]].coalgebraic_complement()
+                    Q[{2}, {1, 3, 4}] + Q[{2}, {3, 4}, {1}] - Q[{2, 3, 4}, {1}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(Q[A]).coalgebraic_complement() == M(Q[A].coalgebraic_complement())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.coalgebraic_complement doc
+                # for the formula we're using here.
+                BR = self.base_ring()
+                one = BR.one()
+                mine = -one
+                Q = self.parent()
+                OSPs = Q.basis().keys()
+                def img(A):
+                    # The image of the basis element Q[A].
+                    Rs = [Rr.complement() for Rr in A.strongly_fatter()]
+                    return Q._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                                   else mine)
+                                         for R in Rs for P in R.strongly_fatter()})
+                return Q.sum(c * img(A) for (A, c) in self)
+
+            def star_involution(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the star involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.star_involution`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`algebraic_complement`, :meth:`coalgebraic_complement`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: Q = WQSym.Q()
+                    sage: Q[[1,2],[5,6],[3,4]].star_involution()
+                    Q[{3, 4}, {1, 2}, {5, 6}]
+                    sage: Q[[3], [1, 2], [4]].star_involution()
+                    Q[{1}, {3, 4}, {2}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(Q[A]).star_involution() == M(Q[A].star_involution())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.star_involution doc
+                # for the formula we're using here.
+                Q = self.parent()
+                OSPs = Q.basis().keys()
+                return Q._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
+                                    remove_zeros=False)
 
     Q = StronglyCoarser
 
@@ -1385,6 +1627,131 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             return T.sum_of_monomials((standardize(left), standardize(right))
                                       for (left, right) in deconcatenates)
 
+        class Element(WQSymBasis_abstract.Element):
+            def algebraic_complement(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the algebraic complement involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.algebraic_complement`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`coalgebraic_complement`, :meth:`star_involution`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: Phi = WQSym.Phi()
+                    sage: Phi[[1],[2,4],[3]].algebraic_complement()
+                    -Phi[{3}, {2}, {4}, {1}] + Phi[{3}, {2, 4}, {1}] + Phi[{3}, {4}, {2}, {1}]
+                    sage: Phi[[1],[2,3],[4]].algebraic_complement()
+                    -Phi[{4}, {2}, {3}, {1}] + Phi[{4}, {2, 3}, {1}] + Phi[{4}, {3}, {2}, {1}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(Phi[A]).algebraic_complement() == M(Phi[A].algebraic_complement())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.algebraic_complement doc
+                # for the formula we're using here.
+                BR = self.base_ring()
+                one = BR.one()
+                mine = -one
+                Phi = self.parent()
+                OSPs = Phi.basis().keys()
+                def img(A):
+                    # The image of the basis element Phi[A].
+                    Rs = [Rr.reversed() for Rr in A.strongly_finer()]
+                    return Phi._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                                   else mine)
+                                         for R in Rs for P in R.strongly_finer()})
+                return Phi.sum(c * img(A) for (A, c) in self)
+
+            def coalgebraic_complement(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the coalgebraic complement involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.coalgebraic_complement`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`algebraic_complement`, :meth:`star_involution`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: Phi = WQSym.Phi()
+                    sage: Phi[[1],[2],[3,4]].coalgebraic_complement()
+                    -Phi[{4}, {3}, {1}, {2}] + Phi[{4}, {3}, {1, 2}] + Phi[{4}, {3}, {2}, {1}]
+                    sage: Phi[[2],[1,4],[3]].coalgebraic_complement()
+                    -Phi[{3}, {1}, {4}, {2}] + Phi[{3}, {1, 4}, {2}] + Phi[{3}, {4}, {1}, {2}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(Phi[A]).coalgebraic_complement() == M(Phi[A].coalgebraic_complement())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.coalgebraic_complement doc
+                # for the formula we're using here.
+                BR = self.base_ring()
+                one = BR.one()
+                mine = -one
+                Phi = self.parent()
+                OSPs = Phi.basis().keys()
+                def img(A):
+                    # The image of the basis element Phi[A].
+                    Rs = [Rr.complement() for Rr in A.strongly_finer()]
+                    return Phi._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                                   else mine)
+                                         for R in Rs for P in R.strongly_finer()})
+                return Phi.sum(c * img(A) for (A, c) in self)
+
+            def star_involution(self):
+                r"""
+                Return the image of the element ``self`` of `W QSym`
+                under the star involution.
+    
+                See
+                :meth:`~WQSymBases.ElementMethods.star_involution`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`algebraic_complement`, :meth:`coalgebraic_complement`.
+    
+                EXAMPLES:
+
+                    sage: WQSym = algebras.WQSym(ZZ)
+                    sage: Phi = WQSym.Phi()
+                    sage: Phi[[1,2],[5,6],[3,4]].star_involution()
+                    Phi[{3, 4}, {1, 2}, {5, 6}]
+                    sage: Phi[[3], [1, 2], [4]].star_involution()
+                    Phi[{1}, {3, 4}, {2}]
+
+                TESTS:
+
+                    sage: M = WQSym.M()
+                    sage: all(M(Phi[A]).star_involution() == M(Phi[A].star_involution())
+                    ....:     for A in OrderedSetPartitions(4))
+                    True
+                """
+                # See the WQSymBases.ElementMethods.star_involution doc
+                # for the formula we're using here.
+                Phi = self.parent()
+                OSPs = Phi.basis().keys()
+                return Phi._from_dict({OSPs(A.complement().reversed()): c for (A, c) in self},
+                                    remove_zeros=False)
+
     Phi = StronglyFiner
 
 WQSymBasis_abstract.options = WordQuasiSymmetricFunctions.options
@@ -1722,28 +2089,6 @@ class WQSymBases(Category_realization_of_parent):
                 sage: Phi[[2], [1,3]].algebraic_complement()
                 -Phi[{1}, {3}, {2}] + Phi[{1, 3}, {2}] + Phi[{3}, {1}, {2}]
 
-            Testing the formula for `\overline{Q_A}`::
-
-                sage: def test(A):
-                ....:     Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
-                ....:     RHS = Q.sum((-1) ** (len(R) - len(P)) * Q[P] for R in Rs for P in R.strongly_fatter())
-                ....:     if Q[A].algebraic_complement() != RHS:
-                ....:         return False
-                ....:     return True
-                sage: all(test(A) for A in OrderedSetPartitions(4))
-                True
-
-            Testing the similar formula for `\overline{\Phi_A}`::
-
-                sage: def test(A):
-                ....:     Rs = [Rr.reversed() for Rr in A.strongly_finer()]
-                ....:     RHS = Phi.sum((-1) ** (len(P) - len(R)) * Phi[P] for R in Rs for P in R.strongly_finer())
-                ....:     if Phi[A].algebraic_complement() != RHS:
-                ....:         return False
-                ....:     return True
-                sage: all(test(A) for A in OrderedSetPartitions(4))
-                True
-
             The algebraic complement involution intertwines the antipode
             and the inverse of the antipode::
 
@@ -1920,28 +2265,6 @@ class WQSymBases(Category_realization_of_parent):
                 sage: Phi = WQSym.Phi()
                 sage: Phi[[2], [1,3]].coalgebraic_complement()
                 -Phi[{2}, {1}, {3}] + Phi[{2}, {1, 3}] + Phi[{2}, {3}, {1}]
-
-            Testing the formula for `(Q_A)^r`::
-
-                sage: def test(A):
-                ....:     Rs = [Rr.complement() for Rr in A.strongly_fatter()]
-                ....:     RHS = Q.sum((-1) ** (len(R) - len(P)) * Q[P] for R in Rs for P in R.strongly_fatter())
-                ....:     if Q[A].coalgebraic_complement() != RHS:
-                ....:         return False
-                ....:     return True
-                sage: all(test(A) for A in OrderedSetPartitions(4))
-                True
-
-            Testing the similar formula for `(\Phi_A)^r`::
-
-                sage: def test(A):
-                ....:     Rs = [Rr.complement() for Rr in A.strongly_finer()]
-                ....:     RHS = Phi.sum((-1) ** (len(P) - len(R)) * Phi[P] for R in Rs for P in R.strongly_finer())
-                ....:     if Phi[A].coalgebraic_complement() != RHS:
-                ....:         return False
-                ....:     return True
-                sage: all(test(A) for A in OrderedSetPartitions(4))
-                True
 
             The coalgebraic complement involution intertwines the antipode
             and the inverse of the antipode::
@@ -2134,6 +2457,12 @@ class WQSymBases(Category_realization_of_parent):
                 sage: C = algebras.WQSym(QQ).C()
                 sage: C[[2,3],[1,4]].to_quasisymmetric_function() == M(C[[2,3],[1,4]]).to_quasisymmetric_function()
                 True
+
+                sage: C2 = algebras.WQSym(GF(2)).C()
+                sage: C2[[1,2],[3,4]].to_quasisymmetric_function()
+                M[2, 2]
+                sage: C2[[2,3],[1,4]].to_quasisymmetric_function()
+                M[4]
             """
             from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
             M = QuasiSymmetricFunctions(self.parent().base_ring()).Monomial()

@@ -3882,7 +3882,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError) as msg:
+                    except (ArithmeticError, TypeError, ValueError):
                         pass
                 else:
                     exceptions += 1
@@ -3897,7 +3897,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                         if data[i][1] != data[i][1]:
                             continue
                         break
-                    except (ArithmeticError, TypeError, ValueError) as msg:
+                    except (ArithmeticError, TypeError, ValueError):
                         pass
                 else:
                     exceptions += 1

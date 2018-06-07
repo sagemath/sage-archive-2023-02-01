@@ -252,6 +252,12 @@ class OrderedMultisetPartition(ClonableArray):
     def _repr_(self):
         """
         Return a string representation of ``self.``
+
+        EXAMPLES::
+
+            sage: A = OrderedMultisetPartition([4,0,1,2,4,0,2,3,0,1])
+            sage: A._repr_()
+            '[{4}, {1,2,4}, {2,3}, {1}]'
         """
         return self._repr_tight()
 
@@ -315,18 +321,19 @@ class OrderedMultisetPartition(ClonableArray):
 
         The parent is not included as part of the equality check.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: OMP = OrderedMultisetPartitions(4)
-            sage: A = OMP([[1], [1, 2]])
-            sage: B = OMP([{1}, {3}])
-            sage: A == B
+            sage: OMP_n = OrderedMultisetPartitions(4)
+            sage: OMP_X = OrderedMultisetPartitions([1,1,2])
+            sage: OMP_A = OrderedMultisetPartitions(2, 3)
+            sage: mu = [[1], [1, 2]]
+            sage: OMP_n(mu) == OMP_X(mu) == OMP_A(mu)
+            True
+            sage: OMP_n(mu) == mu
             False
-            sage: C = OMP([[1,2], [1]])
-            sage: A == C
+            sage: OMP_n(mu) == OMP_n([{1}, {3}])
             False
-            sage: D = OMP.from_list([1,0,1,2])
-            sage: A == D
+            sage: OMP_n(mu) == OMP_X.from_list([1,0,1,2])
             True
         """
         if not isinstance(y, OrderedMultisetPartition):
@@ -338,6 +345,16 @@ class OrderedMultisetPartition(ClonableArray):
         Check lack of equality of ``self`` and ``y``.
 
         The parent is not included as part of the equality check.
+
+        TESTS::
+
+            sage: OMP = OrderedMultisetPartitions(4)
+            sage: mu = [[1], [1, 2]]
+            sage: OMP(mu).__ne__(mu)
+            True
+            sage: nu = [[1], [2], [1]]
+            sage: OMP_n(mu).__ne__(OMP_n(nu))
+            True
         """
         return not (self == y)
 
@@ -423,6 +440,13 @@ class OrderedMultisetPartition(ClonableArray):
     def letters(self):
         """
         Return the set of distinct elements occurring within the blocks of ``self``.
+
+        EXAMPLES::
+
+            sage: C = OrderedMultisetPartition([3, 4, 1, 0, 2, 0, 1, 2, 3, 7]); C
+            [{1,3,4}, {2}, {1,2,3,7}]
+            sage: C.letters()
+            frozenset([1, 2, 3, 4, 7])
         """
         return _union_of_sets(list(self))
 
@@ -1455,6 +1479,41 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def __init__(self, is_finite=None, **constraints):
         """
         Initialize ``self``.
+
+        .. TODO::
+
+            Fix code to yield outputs indicated below.
+
+        TESTS::
+
+            sage: c = {"length":4, "max_order":6, "alphabet":[2,4,5,6]}
+            sage: OrderedMultisetPartitions(**c).constraints
+            {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6}
+            sage: OrderedMultisetPartitions(17, **c).constraints
+            #??? wrong output
+            {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6}
+            sage: OrderedMultisetPartitions(17, **c).full_constraints
+            {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6, 'size': 17}
+
+            sage: c = {"length":4, "min_length":5, "max_order":6, "order":5, "alphabet":4}
+            sage: OrderedMultisetPartitions(**c).constraints
+            {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
+            sage: OrderedMultisetPartitions(4, 5, **c).constraints
+            #??? wrong output
+            {'length': 4}
+            sage: OrderedMultisetPartitions(4, 5, **c).full_constraints
+            #??? wrong output
+            {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
+
+            sage: c = {"weight":[2,2,0,3], "min_length":5, "max_order":6, "order":5, "alphabet":4}
+            sage: OrderedMultisetPartitions(**c).constraints
+            {'min_length': 5, 'weight': {1: 2, 2: 2, 4: 3}}
+            sage: OrderedMultisetPartitions([1,1,2,2,4,4,4], **c).constraints
+            #??? wrong output
+            {'min_length': 5}
+            sage: OrderedMultisetPartitions([1,1,2,2,4,4,4], **c).full_constraints
+            #??? wrong output
+            {'min_length': 5, 'weight': {1: 2, 2: 2, 4: 3}}
         """
         constraints = dict(constraints)
 
@@ -1519,6 +1578,11 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: OrderedMultisetPartitions()._repr_()
+            'Ordered Multiset Partitions'
         """
         return "Ordered Multiset Partitions"
 
@@ -1528,9 +1592,21 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         appearing within ``self.constraints``.
 
         A helper method for ``self._repr_()``.
+
+        EXAMPLES::
+
+            sage: OMP = OrderedMultisetPartitions()
+            sage: c = {"length":4, "max_order":6, "alphabet":frozenset([2,4,5,6])}
+            sage: OMP._constraint_repr_(c)
+            ' with constraints: alphabet={2, 4, 5, 6}, length=4, max_order=6'
+            sage: c = {"size":14}
+            sage: OMP._constraint_repr_(c)
+            ' with constraint: size=14'
         """
         if not cdict:
-            cdict = self.constraints
+            cdict = dict(self.constraints)
+        if "alphabet" in cdict:
+            cdict["alphabet"] = Set(cdict["alphabet"])
         constr = ""
         ss = ['%s=%s'%(key, val) for (key,val) in cdict.iteritems()]
         if len(ss) > 1:
@@ -1608,6 +1684,16 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def _has_valid_blocks(self, x):
         """
         Blocks should be nonempty sets/lists/tuples of distinct elements.
+
+        TESTS::
+
+            sage: OMPs = OrderedMultisetPartitions()
+            sage: OMPs._has_valid_blocks([[2,4], {1}, (1,4)])
+            True
+            sage: OMPs._has_valid_blocks([[2,4], {}, (1,4)])
+            False
+            sage: OMPs._has_valid_blocks([(2,4), (1,1), (1,4)])
+            False
         """
         for block in x:
             if not isinstance(block, (list, tuple, set, frozenset, Set_object)):
@@ -1620,10 +1706,29 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         """
         Check whether or not ``x`` satisfies all of the constraints
         appearing within ``self.full_constraints`` (Boolean output).
+
+        TESTS::
+
+            sage: c = {"length":3, "max_order":5, "alphabet":[1,2,4], "size":12}
+            sage: OMPs = OrderedMultisetPartitions(**c)
+            sage: OMPs._satisfies_constraints([{2,4}, {1}, {1,4}])
+            True
+            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)),
+                              ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
+            sage: any(OMPs._satisfies_constraints(x) for x in failures)
+            False
+            sage: c = {"max_length":4, "order":6, "weight":{1:2, 2:1, 4:2}}
+            sage: OMPs = OrderedMultisetPartitions(**c) # order constraint is ignored
+            sage: OMPs._satisfies_constraints([{2,4}, {1}, {1,4}])
+            True
+            sage: failures = {((2,), (4,), (1,), (1,), (4,)), ((1,), (1,), (2,4), (2,4))}
+            sage: any(OMPs._satisfies_constraints(x) for x in failures)
+            False
         """
         X = _concatenate(x)
         co = OrderedMultisetPartitions(_get_weight(X))(x)
         def pass_test(co, (key,tst)):
+            #
             if key == 'size':
                 return co.size() == tst
             if key == 'length':
@@ -1633,18 +1738,16 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             if key == 'max_length':
                 return co.length() <= tst
             if key == 'weight':
-                return co.weight() == dict(tst)
+                return co.weight() == tst
             if key == 'alphabet':
-                if tst in ZZ:
-                    tst = range(1,tst+1)
-                return set(tst).issuperset(set(co.letters()))
+                return frozenset(co.letters()).issubset(tst)
             if key == 'order':
                 return co.order() == tst
             if key == 'min_order':
                 return co.order() >= tst
             if key == 'max_order':
                 return co.order() <= tst
-        return all(pass_test(co, (key,val)) for (key,val) in self.full_constraints.iteritems() if val)
+        return all(pass_test(co, (key,tst)) for (key,tst) in self.full_constraints.iteritems() if tst)
 
     def from_list(self, lst):
         """
@@ -1707,6 +1810,18 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         Return an element of ``self``.
 
         Rudimentary. Picks the first valid element served up by ``self.__iter__()``.
+
+        EXAMPLES::
+
+            sage: OMP = OrderedMultisetPartitions
+            sage: OMP().an_element()
+            []
+            sage: OMP(length=4).an_element()
+            [{1}, {1}, {1}, {1}]
+            sage: OMP(length=4, min_order=6).an_element()
+            [{1,2}, {1,2}, {1}, {1}]
+            sage: OMP(length=4, min_order=6, alphabet=[1,2,'a']).an_element()
+            [{1,2,'a'}, {'a'}, {'a'}, {'a'}]
         """
         try:
             iteration = self.__iter__()
@@ -1831,6 +1946,13 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
     def _repr_(self):
         """
         Return a string representation of ``self``.
+
+        TESTS::
+
+            sage: OrderedMultisetPartitions(min_length=3, max_order=5)._repr_()
+            'Ordered Multiset Partitions with constraints: min_length=3, max_order=5'
+            sage: OrderedMultisetPartitions(min_length=3, max_order=5, alphabet=[1,'a'])._repr_()
+            "Ordered Multiset Partitions with constraints: alphabet={'a', 1}, max_order=5, min_length=3"
         """
         return "Ordered Multiset Partitions" + self._constraint_repr_()
 
@@ -2915,6 +3037,7 @@ def _refine_block(S, strong=False):
          ({1}, {3}, {2})}
         sage: _refine_block([1, 2, 3], strong=True)
         {({1}, {2, 3}), ({1, 2}, {3}), ({1}, {2}, {3}), ({1, 2, 3},)}
+
     TESTS::
 
         sage: len(_refine_block([1, 2, 3, 4])) == 1 + binomial(4,1)*2 + binomial(4,2) + binomial(4,2)*factorial(3) + factorial(4)

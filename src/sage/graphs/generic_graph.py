@@ -19033,7 +19033,7 @@ class GenericGraph(GenericGraph_pyx):
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
-            sage: for key, value in list(sorted(layout_options.items())):
+            sage: for key, value in sorted(layout_options.items()):
             ....:     print("option {} : {}".format(key, value))
             option by_component : Whether to do the spring layout by connected component -- a boolean.
             option dim : The dimension of the layout -- 2 or 3.
@@ -19764,7 +19764,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: from sage.graphs.graph_plot import graphplot_options
-            sage: list(sorted(graphplot_options.items()))
+            sage: sorted(graphplot_options.items())
             [...]
 
             sage: from math import sin, cos, pi

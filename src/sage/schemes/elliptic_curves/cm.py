@@ -211,7 +211,8 @@ def cm_j_invariants(K, proof=None):
         sage: len(cm_j_invariants(K))
         23
     """
-    return list(sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]))
+    return sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)])
+
 
 @cached_function
 def cm_j_invariants_and_orders(K, proof=None):

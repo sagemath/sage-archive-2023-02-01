@@ -2155,17 +2155,17 @@ class MaximaAbstractElementFunction(MaximaAbstractElement):
         """
         P = self._check_valid()
         if isinstance(f, P._object_function_class()):
-            tmp = list(sorted(set(self.arguments() + f.arguments())))
+            tmp = sorted(set(self.arguments() + f.arguments()))
             args = ','.join(tmp)
-            defn = "(%s)%s(%s)"%(self.definition(), operation, f.definition())
+            defn = "(%s)%s(%s)" % (self.definition(), operation, f.definition())
         elif f is None:
             args = self.arguments(split=False)
-            defn = "%s(%s)"%(operation, self.definition())
+            defn = "%s(%s)" % (operation, self.definition())
         else:
             args = self.arguments(split=False)
-            defn = "(%s)%s(%s)"%(self.definition(), operation, repr(f))
+            defn = "(%s)%s(%s)" % (self.definition(), operation, repr(f))
 
-        return P.function(args,P.eval(defn))
+        return P.function(args, P.eval(defn))
 
 
 def reduce_load_MaximaAbstract_function(parent, defn, args, latex):

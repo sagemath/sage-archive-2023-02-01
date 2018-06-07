@@ -775,9 +775,8 @@ cdef class WeakValueDictionary(dict):
         item in the dictionary got deleted as well. Therefore, the
         corresponding key 4 is missing in the list of keys::
 
-            sage: list(sorted(D))
+            sage: sorted(D)
             [0, 1, 2, 3, 5, 6, 7, 8, 9]
-
         """
         cdef PyObject *key
         cdef PyObject *wr

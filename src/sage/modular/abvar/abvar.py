@@ -4830,13 +4830,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
                 else:
                     raise NotImplementedError("Atkin-Lehner at p must act as a scalar")
         else:
-            mul_primes = list(sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)])))
+            mul_primes = sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)]))
         div = Integer(div)
         mul = Integer(mul)
         mul_primes = tuple(mul_primes)
         self.__tamagawa_number_bounds[p] = (div, mul, mul_primes)
         return (div, mul, mul_primes)
-
 
     def brandt_module(self, p):
         """

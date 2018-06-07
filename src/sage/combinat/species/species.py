@@ -192,7 +192,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: args, kwds = C.__getstate__()
             sage: args
             {0: 5}
-            sage: list(sorted(kwds.items()))
+            sage: sorted(kwds.items())
             [('max', None), ('min', None), ('weight', 1)]
         """
         kwds = {'weight':self._weight, 'min':self._min, 'max':self._max}
@@ -714,12 +714,12 @@ class GenericCombinatorialSpecies(SageObject):
             sage: g_r = g.canonical_label()
             sage: g_c == g_r
             True
-            sage: list(sorted(labels))
+            sage: sorted(labels)
             [Combinatorial species,
              Product of (Combinatorial species) and (Combinatorial species),
              Singleton species,
              Sum of (Singleton species) and (Product of (Combinatorial species) and (Combinatorial species))]
-            sage: list(sorted(labels.values()))
+            sage: sorted(labels.values())
             [0, 1, 2, 3]
         """
         from sage.graphs.digraph import DiGraph

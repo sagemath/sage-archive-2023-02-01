@@ -1556,8 +1556,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: prod(len(x) for x in H.strong_generating_system()) == H.cardinality()
             True
         """
-        sgs = []
-        stab = self
         if implementation == "gap":
             from sage.libs.gap.libgap import libgap
             if not base_of_group is None:
@@ -1610,6 +1608,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             return [ [ gap2sage(elt) for elt in coset] for coset in cosets ]
 
         if implementation == "sage":
+            sgs = []
+            stab = self
             if base_of_group is None:
                 base_of_group = self.domain()
             for j in base_of_group:

@@ -681,6 +681,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         REFERENCES:
 
         - Section 4 of [Early2017]_
+
+        .. TODO::
+
+            Experiments suggest that the algebraic_complement,
+            coalgebraic_complement and star_involution methods
+            should have reasonable formulas on the C basis; at least
+            the coefficients of the outputs on any element of the C
+            basis seem to be always 0, 1, -1.
+            Is this true? What is the formula?
         """
         _prefix = "C"
         _basis_name = "Cone"
@@ -1649,15 +1658,9 @@ class WQSymBases(Category_realization_of_parent):
             and `\omega(k) \geq i` is unique (if it exists).
             In our situation, `V` is `W QSym`, and `I` is the set of
             ordered set partitions equipped either with the `\leq` partial
-            ordere defined above or with its opposite order.
+            order defined above or with its opposite order.
             The `M_i` is the `\mathbf{M}_A`, whereas the `F_i` is either
             `Q_i` or `\Phi_i`.
-
-            .. TODO::
-
-                Experiments suggest that the coefficients of the
-                output on any element of the C basis are always 0, 1, -1.
-                Is this true? What is the formula? What is the poset?
 
             .. TODO::
 
@@ -1860,12 +1863,6 @@ class WQSymBases(Category_realization_of_parent):
 
             .. TODO::
 
-                Experiments suggest that the coefficients of the
-                output on any element of the C basis are always 0, 1, -1.
-                Is this true? What is the formula? What is the poset?
-
-            .. TODO::
-
                 Override this method on the other bases, reusing doctests
                 as implementations.
 
@@ -2008,14 +2005,13 @@ class WQSymBases(Category_realization_of_parent):
 
             .. TODO::
 
-                Experiments suggest that the coefficients of the
-                output on any element of the C basis are always 0, 1, -1.
-                Is this true? What is the formula? What is the poset?
-
-            .. TODO::
-
                 Override this method on the other bases, reusing doctests
                 as implementations.
+
+            The star involution
+            (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`)
+            on the ring of noncommutative symmetric functions is a
+            restriction of the star involution on `W QSym`.
 
             If we denote the star involution
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
@@ -2026,13 +2022,13 @@ class WQSymBases(Category_realization_of_parent):
 
             .. TODO::
 
-                More commutative diagrams? NSym in particular.
-                FQSym and FSym need their own algebraic_complement
+                More commutative diagrams?
+                FQSym and FSym need their own star_involution
                 methods defined first.
 
             .. SEEALSO::
 
-                :meth:`coalgebraic_complement`, :meth:`star_involution`.
+                :meth:`algebraic_complement`, :meth:`coalgebraic_complement`.
 
             EXAMPLES:
 
@@ -2084,6 +2080,17 @@ class WQSymBases(Category_realization_of_parent):
                 sage: all( M[I].star_involution().to_quasisymmetric_function()
                 ....:      == M[I].to_quasisymmetric_function().star_involution()
                 ....:      for I in OrderedSetPartitions(4) )
+                True
+
+            Testing the fact that the star involution on the
+            noncommutative symmetric functions is a restriction of
+            the star involution on `W QSym`::
+
+                sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+                sage: R = NCSF.R()
+                sage: all(R[I].star_involution().to_fqsym().to_wqsym()
+                ....:     == R[I].to_fqsym().to_wqsym().star_involution()
+                ....:     for I in Compositions(4))
                 True
 
             .. TODO::

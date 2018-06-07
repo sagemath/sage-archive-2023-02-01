@@ -353,7 +353,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: OMP(mu).__ne__(mu)
             True
             sage: nu = [[1], [2], [1]]
-            sage: OMP_n(mu).__ne__(OMP_n(nu))
+            sage: OMP(mu).__ne__(OMP(nu))
             True
         """
         return not (self == y)
@@ -446,7 +446,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C = OrderedMultisetPartition([3, 4, 1, 0, 2, 0, 1, 2, 3, 7]); C
             [{1,3,4}, {2}, {1,2,3,7}]
             sage: C.letters()
-            frozenset([1, 2, 3, 4, 7])
+            frozenset({1, 2, 3, 4, 7})
         """
         return _union_of_sets(list(self))
 
@@ -1490,7 +1490,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitions(**c).constraints
             {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6}
             sage: OrderedMultisetPartitions(17, **c).constraints
-            #??? wrong output
             {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6}
             sage: OrderedMultisetPartitions(17, **c).full_constraints
             {'alphabet': frozenset({2, 4, 5, 6}), 'length': 4, 'max_order': 6, 'size': 17}
@@ -1499,20 +1498,16 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: OrderedMultisetPartitions(**c).constraints
             {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
             sage: OrderedMultisetPartitions(4, 5, **c).constraints
-            #??? wrong output
             {'length': 4}
             sage: OrderedMultisetPartitions(4, 5, **c).full_constraints
-            #??? wrong output
             {'alphabet': frozenset({1, 2, 3, 4}), 'length': 4, 'order': 5}
 
             sage: c = {"weight":[2,2,0,3], "min_length":5, "max_order":6, "order":5, "alphabet":4}
             sage: OrderedMultisetPartitions(**c).constraints
             {'min_length': 5, 'weight': {1: 2, 2: 2, 4: 3}}
             sage: OrderedMultisetPartitions([1,1,2,2,4,4,4], **c).constraints
-            #??? wrong output
             {'min_length': 5}
             sage: OrderedMultisetPartitions([1,1,2,2,4,4,4], **c).full_constraints
-            #??? wrong output
             {'min_length': 5, 'weight': {1: 2, 2: 2, 4: 3}}
         """
         constraints = dict(constraints)
@@ -1564,11 +1559,15 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         self.full_constraints = dict(self.constraints)
         if hasattr(self, "_X"):
             self.full_constraints["weight"] = dict(self._X)
+            self.constraints.pop("weight", None)
         if hasattr(self, "_n"):
             self.full_constraints["size"] = self._n
+            self.constraints.pop("size", None)
         if hasattr(self, "_alphabet"):
             self.full_constraints["alphabet"] = self._alphabet
+            self.constraints.pop("alphabet", None)
             self.full_constraints["order"] = self._order
+            self.constraints.pop("order", None)
 
         if is_finite or _is_finite(constraints):
             Parent.__init__(self, category=FiniteEnumeratedSets())
@@ -1713,7 +1712,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             sage: OMPs = OrderedMultisetPartitions(**c)
             sage: OMPs._satisfies_constraints([{2,4}, {1}, {1,4}])
             True
-            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)),
+            sage: failures = {((2,4), (2,4)), ((1,2,4), (1,), (1,4)), \
                               ((2,4), (3,), (3,)), ((2,4), (1,), (2,4))}
             sage: any(OMPs._satisfies_constraints(x) for x in failures)
             False
@@ -2054,10 +2053,10 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
 
         TESTS::
 
-            sage: len(OrderedMultisetPartitions(14).list())
-            662
-            sage: OrderedMultisetPartitions(14).cardinality()
-            662
+            sage: len(OrderedMultisetPartitions(10).list())
+            1500
+            sage: OrderedMultisetPartitions(10).cardinality()
+            1500
         """
         # Dispense with the complex computation for small orders.
         orders = {0:1, 1:1, 2:2, 3:5, 4:11, 5:25}
@@ -2169,7 +2168,7 @@ class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
             sage: O = OrderedMultisetPartitions(14, length=4, max_order=6, alphabet={2,4,5,6})
             sage: O._repr_()
             'Ordered Multiset Partitions of integer 14 with constraints:
-             length=4, max_order=6'
+             alphabet={2, 4, 5, 6}, length=4, max_order=6'
         """
         cdict = dict(self.constraints)
         cdict.pop("size", None)
@@ -2185,9 +2184,9 @@ class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
             sage: O = OrderedMultisetPartitions(14, length=4, max_order=6, alphabet={1,2,3,4,5,6})
             sage: O._has_valid_blocks([{4}, {2,4}, {2}, {2}])
             True
-            sage: failures = {((4,), (2,), (4,), (2,), (2,)),
-                    ((1,2), (1,2), (1,5), (2,)),
-                    ((1,2), (1,), (1,7), (2,))}
+            sage: failures = {((4,), (2,), (4,), (2,), (2,)), \
+                              ((1,2), (1,2), (1,5), (2,)),    \
+                              ((1,2), (1,), (1,7), (2,))}
             sage: any(O._has_valid_blocks(x) for x in failures)
             False
         """
@@ -2370,7 +2369,7 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         """
         self._X = X
         self._Xtup = tuple(k for (k,v) in sorted(X) for _ in range(v))
-        OrderedMultisetPartitions.__init__(self, True, **constraints)
+        OrderedMultisetPartitions.__init__(self, True, weight=X, **constraints)
 
     def _repr_(self):
         """
@@ -2581,7 +2580,7 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
         """
         self._alphabet = A
         self._order = d
-        OrderedMultisetPartitions.__init__(self, True, **constraints)
+        OrderedMultisetPartitions.__init__(self, True, alphabet=A, order=d, **constraints)
 
     def _repr_(self):
         """
@@ -2637,7 +2636,7 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
             [{2,4,5}, {4}]
             sage: O2 = OrderedMultisetPartitions_A_constraints(S, 4, max_length=4)
             sage: O2.an_element()
-            [{2,3}]
+            [{2,3,4,5}]
         """
         keys = self.constraints.keys()
         n = len(self._alphabet)
@@ -2762,7 +2761,7 @@ def _base_iterator(constraints):
         sage: from sage.combinat.multiset_partition_ordered import _base_iterator
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}
         sage: it = _base_iterator(constraints)
-        sage: [next(it) for _ in range(8)] # note the partitions of length 6 and 7
+        sage: [next(it) for _ in range(4)] # note the partitions of length 6 and 7
         [[{1}, {1}, {1,2}, {2}, {2}, {4}], [{1}, {1}, {1}, {2}, {2}, {2}, {4}],
          [{1}, {1}, {1,2}, {2}, {2,4}], [{1}, {1}, {1}, {2}, {2}, {2,4}]]
 
@@ -3100,12 +3099,12 @@ def _split_block(S, k=2):
         sage: _split_block(S, 1)
         {({1, 2, 3},)}
         sage: _split_block(S, 2)
-        {({1, 2}, {3}), ({2}, {1, 3}), ({3}, {1, 2}), ({1}, {2, 3}),
-         ({}, {1, 2, 3}), ({2, 3}, {1}), ({1, 3}, {2}), ({1, 2, 3}, {})}
+        {({3}, {1, 2}), ({}, {1, 2, 3}), ({1, 3}, {2}), ({1}, {2, 3}),
+         ({2, 3}, {1}), ({1, 2}, {3}), ({1, 2, 3}, {}), ({2}, {1, 3})}
         sage: _split_block({2, 4}, 3)
-        {({2, 4}, {}, {}), ({2}, {}, {4}), ({2}, {4}, {}),
-         ({}, {2}, {4}), ({}, {2, 4}, {}), ({}, {}, {2, 4}),
-         ({}, {4}, {2}), ({4}, {2}, {}), ({4}, {}, {2})}
+        {({}, {2, 4}, {}), ({}, {2}, {4}), ({4}, {2}, {}),
+         ({2, 4}, {}, {}), ({4}, {}, {2}), ({}, {4}, {2}),
+         ({2}, {4}, {}), ({2}, {}, {4}), ({}, {}, {2, 4})}
     """
     if all(s in ZZ for s in S):
         X = sorted(S)
@@ -3201,12 +3200,14 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             sage: B = crystals.Minimaj(3, 5, 2)
             sage: TestSuite(B).run()
 
-            sage: list(crystals.Minimaj(4,2,3)) # more blocks than letters
-            []
             sage: list(crystals.Minimaj(2,6,3))
             [((1, 2), (2, 1), (1, 2))]
             sage: list(crystals.Minimaj(2,5,2)) # blocks too fat for alphabet
             []
+            sage: list(crystals.Minimaj(4,2,3)) # more blocks than letters
+            Traceback (most recent call last):
+            ...
+            ValueError: n (=4), ell (=2), and k (=3) must all be positive integers
         """
         Parent.__init__(self, category=ClassicalCrystals())
         self.n = n
@@ -3252,7 +3253,7 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             ((4, 1, 3), (3,), (3,))
             sage: B = crystals.Minimaj(2,2,1)
             sage: B.an_element()
-            ((1,2),)
+            ((1, 2),)
             sage: B = crystals.Minimaj(1,2,1)
             sage: B.an_element()
             Traceback (most recent call last):

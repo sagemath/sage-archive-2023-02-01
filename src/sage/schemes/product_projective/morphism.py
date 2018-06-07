@@ -23,7 +23,6 @@ EXAMPLES::
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.categories.fields import Fields
 _Fields = Fields()
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 
 class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):

@@ -1609,6 +1609,9 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             sage: R.<x,y> = QQbar[]
 
+            sage: L = QQbar._factor_multivariate_polynomial(x^2-y^2)
+            sage: L
+            (x - y) * (x + y)
             sage: L = QQbar._factor_multivariate_polynomial(x^2+y^2)
             sage: L
             ((-1*I)*x - y) * (1*I*x - y)
@@ -1695,12 +1698,23 @@ class AlgebraicField(Singleton, AlgebraicField_common):
         singular.setring(R)
         L = singular('absolute_factors')
 
-        factorization = []
+        # We're going to do some polynomial operations below that
+        # require Singular to change to a different base ring, which
+        # will make L "disappear".  Convert its contents now.
+
+        factors = []
 
         for i in range(2, len(L[1])+1):
+
             factor = L[1][i].sage()
-            multiplicity = int(L[2][i].sage())
+            #multiplicity = L[2][i].sage()
             minpoly = L[3][i].sage()
+
+            factors.append((factor, minpoly))
+
+        factorization = []
+
+        for factor, minpoly in factors:
 
             # minpoly is in a multivariate polynomial ring
             # over a univariate fraction field
@@ -1722,51 +1736,17 @@ class AlgebraicField(Singleton, AlgebraicField_common):
 
             # We now have a number field and a factor in that number field such
             # that the factor and all of its conjugates multiply together to
-            # form a factor of the original polynomial's norm.
+            # form a factor of the original polynomial's norm.  Each of those
+            # conjugate factors may (or may not) be a factor of the original
+            # polynomial, so check each one.
 
-            homs = numfield.embeddings(NF)
-
-            # Can we embed our original numfield into NF?
-
-            if len(homs) > 0:
-
-                for numfield_into_NF in homs:
-
-                    # We can't rely on the multiplicity computed by Singular,
-                    # since there might be multiple factors in the original
-                    # polynomial that give rise to the same factor in the
-                    # norm.  Therefore, we recompute the multiplicity here
-                    # for each possible embedding.
-
-                    numfield_NF = numfield_f.map_coefficients(numfield_into_NF)
-
-                    for i in itertools.count(1):
-                        if numfield_NF % (factor_NF)**i != 0:
-                            multiplicity = i-1
-                            break
-
-                    # Then, for all of the conjugates, check to see if composing
-                    # with numfield_into_NF produces the original morphism that
-                    # maps number_field into QQbar.  If so, this conjugate is
-                    # a factor of the original polynomial, and not just its norm.
-
-                    if multiplicity > 0:
-                        for hom in NF.embeddings(QQbar):
-                            if hom * numfield_into_NF == morphism:
-                                QQbar_factor = factor_NF.map_coefficients(hom)
-                                factorization.append((QQbar_factor, multiplicity))
-
-            else:
-
-                # No.  This corresponds to a factor of the original polynomial
-                # that doesn't require numfield, so add all of its conjugates
-                # to factorization.
-
-                assert multiplicity % numfield.degree() == 0
-                multiplicity = multiplicity // numfield.degree()
-
-                for hom in NF.embeddings(QQbar):
-                    QQbar_factor = factor_NF.map_coefficients(hom)
+            for hom in NF.embeddings(QQbar):
+                QQbar_factor = factor_NF.map_coefficients(hom)
+                for i in itertools.count(1):
+                    if f % QQbar_factor**i != 0:
+                        multiplicity = i-1
+                        break
+                if multiplicity > 0:
                     factorization.append((QQbar_factor, multiplicity))
 
         # What we'd now like to do is

@@ -1317,7 +1317,6 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
-        FfSetField(self.Data.Field)
         cdef Matrix_gfpn_dense left
         FfSetField(self.Data.Field)
         cdef FEL r

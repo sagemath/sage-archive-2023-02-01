@@ -466,13 +466,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
             [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-            sage: N== M
+            sage: N == M
             True
             sage: N is M
             False
             sage: from sage.matrix.matrix_gfpn_dense import Matrix_gfpn_dense  # optional: meataxe
             sage: M = Matrix_gfpn_dense.__new__(Matrix_gfpn_dense)   # optional: meataxe
-            sage: copy(M)
+            sage: copy(M)  # optional: meataxe
             Traceback (most recent call last):
             ...
             ValueError: cannot copy an uninitialized matrix

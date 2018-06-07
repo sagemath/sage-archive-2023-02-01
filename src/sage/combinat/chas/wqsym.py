@@ -2029,23 +2029,12 @@ class WQSymBases(Category_realization_of_parent):
             The `M_i` is the `\mathbf{M}_A`, whereas the `F_i` is either
             `Q_i` or `\Phi_i`.
 
-            .. TODO::
-
-                Override this method on the other bases, reusing doctests
-                as implementations.
-
             If we denote the star involution
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
             of the quasisymmetric functions by `f \mapsto f^{\ast}`,
             and if we let `\pi` be the canonical projection
             `W QSym \to QSym`, then each `f \in W QSym` satisfies
             `\pi(\overline{f}) = (\pi(f))^{\ast}`.
-
-            .. TODO::
-
-                More commutative diagrams? NSym doesn't work.
-                FQSym and FSym need their own algebraic_complement
-                methods defined first.
 
             .. SEEALSO::
 
@@ -2114,7 +2103,7 @@ class WQSymBases(Category_realization_of_parent):
             parent = self.parent()
             M = parent.realization_of().M()
             dct = {I.reversed(): coeff for (I, coeff) in M(self)}
-            return parent(M._from_dict(dct))
+            return parent(M._from_dict(dct, remove_zeros=False))
 
         def coalgebraic_complement(self):
             r"""
@@ -2206,20 +2195,9 @@ class WQSymBases(Category_realization_of_parent):
             involutions described in the documentation of
             :meth:`algebraic_complement`.
 
-            .. TODO::
-
-                Override this method on the other bases, reusing doctests
-                as implementations.
-
             If we let `\pi` be the canonical projection
             `W QSym \to QSym`, then each `f \in W QSym` satisfies
             `\pi(f^r) = \pi(f)`.
-
-            .. TODO::
-
-                More commutative diagrams? NSym doesn't work.
-                FQSym and FSym need their own coalgebraic_complement
-                methods defined first.
 
             .. SEEALSO::
 
@@ -2291,7 +2269,7 @@ class WQSymBases(Category_realization_of_parent):
             parent = self.parent()
             M = parent.realization_of().M()
             dct = {I.complement(): coeff for (I, coeff) in M(self)}
-            return parent(M._from_dict(dct))
+            return parent(M._from_dict(dct, remove_zeros=False))
 
         def star_involution(self):
             r"""
@@ -2325,11 +2303,6 @@ class WQSymBases(Category_realization_of_parent):
                 (X_A)^{\ast} = X_{A^{\ast}}, \qquad
                 (Q_A)^{\ast} = Q_{A^{\ast}}, \qquad
                 (\Phi_A)^{\ast} = \Phi_{A^{\ast}} .
-
-            .. TODO::
-
-                Override this method on the other bases, reusing doctests
-                as implementations.
 
             The star involution
             (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`)
@@ -2425,7 +2398,7 @@ class WQSymBases(Category_realization_of_parent):
             parent = self.parent()
             M = parent.realization_of().M()
             dct = {I.reversed().complement(): coeff for (I, coeff) in M(self)}
-            return parent(M._from_dict(dct))
+            return parent(M._from_dict(dct, remove_zeros=False))
 
         def to_quasisymmetric_function(self):
             r"""

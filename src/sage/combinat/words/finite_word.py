@@ -3601,39 +3601,46 @@ class FiniteWord_class(Word_class):
             sage: words.FibonacciWord()[:500].critical_exponent()
             320/89
 
+        It is an error to compute the critical exponent of the empty word::
+
+            sage: Word('').critical_exponent()
+            Traceback (most recent call last):
+            ...
+            ValueError: The empty word has no critical exponent.
+
         REFERENCES:
 
         .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
            Ser. A 13:90--99, 1972.
         """
-        st = self.suffix_tree()
-        w = self
-        wlen = self.length()
-        pft = [0] * wlen
-        m = 0
-        queue = [(0, 0, -1, 0)]
-        best_exp = 1
-        while queue:
-            (v,i,j,l) = queue.pop()
-            for k in range(i,j+1):
-                if l-j+k-1 != 0:
-                    m = pft[l-j+k-2]
-                    while m > 0 and w[j-l+m] != w[k-1]:
-                        m = pft[m-1]
-                    if w[j-l+m] == w[k-1]:
-                        m += 1
-                else:
-                    m = 0
-                current_pos = k-j+l-1  
-                pft[current_pos] = m
-                current_exp = QQ((current_pos+1, current_pos+1-m))
-                if current_exp > best_exp:
-                    best_exp = current_exp
-            for ((i,j),u) in iteritems(st._transition_function[v]):
-                if j is None:
-                    j = wlen
-                queue.append((u,i,j, l+j-i+1))
-        return best_exp
+        if self.length() == 0:
+            raise ValueError, 'The empty word has no critical exponent.'
+        else:
+            st = self.suffix_tree()
+            pft = [0] * self.length()  # the prefix function table
+            queue = [(0, 0, -1, 0)]    # suffix tree vertices to visit for Depth First Search
+            best_exp = 1               # best exponent so far
+            while queue:
+                (v,i,j,l) = queue.pop()
+                for k in range(i,j+1):
+                    if l-j+k-1 != 0:
+                        m = pft[l-j+k-2]
+                        while m > 0 and self[j-l+m] != self[k-1]:
+                            m = pft[m-1]
+                        if self[j-l+m] == self[k-1]:
+                            m += 1
+                    else:
+                        m = 0
+                    current_pos = k-j+l-1  
+                    pft[current_pos] = m
+                    current_exp = QQ((current_pos+1, current_pos+1-m))
+                    if current_exp > best_exp:
+                        best_exp = current_exp
+                for ((i,j),u) in iteritems(st._transition_function[v]):
+                    if j is None:
+                        j = self.length()
+                    queue.append((u,i,j, l+j-i+1))
+            return best_exp
      
     def is_overlap(self):
         r"""

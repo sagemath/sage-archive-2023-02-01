@@ -180,6 +180,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         """
         o = self([1])
         return o + 2 * o * o
+
 class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The free quasi-symmetric functions.
@@ -401,7 +402,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.F()
 
-    _shorthands = tuple(['F', 'G'])
+    _shorthands = tuple(['F', 'G', 'M'])
 
     class F(FQSymBasis_abstract):
         r"""

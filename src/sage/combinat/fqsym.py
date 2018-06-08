@@ -301,12 +301,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        Explain what `1 \prec 1` and `1 \succ 1` are.
-
-    .. TODO::
-
-        Doctest all 6 possibilities involving `1` on one
-        side of a `\prec` or `\succ`.
+        Decide what `1 \prec 1` and `1 \succ 1` are.
 
     .. NOTE::
 
@@ -545,7 +540,11 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: u = A.one().support()[0]
+                sage: u = A.one().support()[0] # this is F[]
+                sage: A.succ_product_on_basis(x, u)
+                0
+                sage: A.succ_product_on_basis(u, x)
+                F[1, 2]
                 sage: A.succ_product_on_basis(u, u)
                 Traceback (most recent call last):
                 ...
@@ -593,7 +592,11 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: u = A.one().support()[0]
+                sage: u = A.one().support()[0] # this is F[]
+                sage: A.prec_product_on_basis(x, u)
+                F[1, 2]
+                sage: A.prec_product_on_basis(u, x)
+                0
                 sage: A.prec_product_on_basis(u, u)
                 Traceback (most recent call last):
                 ...
@@ -1468,10 +1471,6 @@ class FQSymBases(Category_realization_of_parent):
                 \omega(G_{(u_1, u_2, \ldots, u_n)})
                 = G_{(n+1-u_1, n+1-u_2, \ldots, n+1-u_n)}.
 
-            .. TODO::
-
-                Override this method on the other bases.
-
             If we denote the omega involution
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.omega_involution`)
             of the quasisymmetric functions by `\omega` as well,
@@ -1588,10 +1587,6 @@ class FQSymBases(Category_realization_of_parent):
                 = F_{(n+1-u_1, n+1-u_2, \ldots, n+1-u_n)}, \qquad
                 \psi(G_{(u_1, u_2, \ldots, u_n)})
                 = G_{(u_n, u_{n-1}, \ldots, u_1)}.
-
-            .. TODO::
-
-                Override this method on the other bases.
 
             If we denote the psi involution
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`)
@@ -1710,10 +1705,6 @@ class FQSymBases(Category_realization_of_parent):
 
                 (\mathcal{M}_{(u_1, u_2, \ldots, u_n)})^{\ast}
                 = \mathcal{M}_{(n+1-u_n, n+1-u_{n-1}, \ldots, n+1-u_1)}.
-
-            .. TODO::
-
-                Override this method on the other bases.
 
             Let us denote the star involution by `(\ast)` as well.
 

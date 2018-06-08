@@ -226,7 +226,6 @@ from __future__ import print_function
 import os
 
 from sage.interfaces.expect import Expect, ExpectElement, ExpectFunction, FunctionElement, gc_disabled
-from sage.interfaces.tab_completion import ExtraTabCompletion
 
 import pexpect
 

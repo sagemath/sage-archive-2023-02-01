@@ -58,7 +58,7 @@ import pexpect
 from pexpect import ExceptionPexpect
 from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import (Interface, InterfaceElement,
-            InterfaceFunction, InterfaceFunctionElement, AsciiArtString)
+            InterfaceFunction, InterfaceFunctionElement)
 
 from sage.structure.element import RingElement
 

@@ -187,8 +187,8 @@ def count(arg, ehrhart_polynomial=False, multivariate_generating_function=False,
         if raw_output:
             return ans
         else:
-            from sage.rings.integer import Integer
             return Integer(ans)
+
 
 def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, verbose=False, **kwds):
     r"""
@@ -303,7 +303,7 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
     """
     from subprocess import Popen, PIPE
     from sage.misc.misc import SAGE_TMP
-    from sage.rings.integer import Integer
+    from sage.rings.rational import Rational
 
     args = ['integrate']
 
@@ -376,8 +376,8 @@ def integrate(arg, polynomial=None, algorithm='triangulate', raw_output=False, v
     if raw_output:
         return ans
     else:
-        from sage.rings.rational import Rational
         return Rational(ans)
+
 
 def to_latte_polynomial(polynomial):
     r"""

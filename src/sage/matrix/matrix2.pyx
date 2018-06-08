@@ -689,7 +689,13 @@ cdef class Matrix(Matrix1):
             sage: A.elementwise_product(vector(ZZ, [1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: operand must be a matrix, not an element of Ambient free module of rank 4 over the principal ideal domain Integer Ring
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 5 by 10 dense matrices over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Integer Ring'
+
+            sage: A = matrix(2, 2, range(4))
+            sage: A.elementwise_product(polygen(parent(A)))
+            Traceback (most recent call last):
+            ...
+            TypeError: elementwise_product() argument should be a matrix or coercible to a matrix
 
         Matrices of different sizes for operands will raise an error. ::
 
@@ -698,7 +704,7 @@ cdef class Matrix(Matrix1):
             sage: A.elementwise_product(B)
             Traceback (most recent call last):
             ...
-            TypeError: incompatible sizes for matrices from: Full MatrixSpace of 5 by 10 dense matrices over Integer Ring and Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 5 by 10 dense matrices over Integer Ring' and 'Full MatrixSpace of 10 by 5 dense matrices over Integer Ring'
 
         Some pairs of rings do not have a common parent where
         multiplication makes sense.  This will raise an error. ::
@@ -758,14 +764,13 @@ cdef class Matrix(Matrix1):
         """
         # Optimized routines for specialized classes would likely be faster
         # See the "pairwise_product" of vectors for some guidance on doing this
-        from sage.structure.element import canonical_coercion
-        if not isinstance(right, Matrix):
-            raise TypeError('operand must be a matrix, not an element of %s' % right.parent())
-        if (self.nrows() != right.nrows()) or (self.ncols() != right.ncols()):
-            raise TypeError('incompatible sizes for matrices from: %s and %s'%(self.parent(), right.parent()))
-        if self._parent is not (<Matrix>right)._parent:
-            self, right = canonical_coercion(self, right)
-        return self._elementwise_product(right)
+        if have_same_parent(self, right):
+            return self._elementwise_product(right)
+        A, B = coercion_model.canonical_coercion(self, right)
+        if not isinstance(A, Matrix):
+            # Canonical coercion is not a matrix?!
+            raise TypeError("elementwise_product() argument should be a matrix or coercible to a matrix")
+        return (<Matrix>A)._elementwise_product(B)
 
     def permanent(self, algorithm="Ryser"):
         r"""

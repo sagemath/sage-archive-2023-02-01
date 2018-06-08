@@ -1678,33 +1678,18 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if not isinstance(x, (OrderedMultisetPartition, list, tuple)):
             return False
         else:
-            return self._has_valid_blocks(x)
-
-    def _has_valid_blocks(self, x):
-        """
-        Blocks should be nonempty sets/lists/tuples of distinct elements.
-
-        TESTS::
-
-            sage: OMPs = OrderedMultisetPartitions()
-            sage: OMPs._has_valid_blocks([[2,4], {1}, (1,4)])
-            True
-            sage: OMPs._has_valid_blocks([[2,4], {}, (1,4)])
-            False
-            sage: OMPs._has_valid_blocks([(2,4), (1,1), (1,4)])
-            False
-        """
-        for block in x:
-            if not isinstance(block, (list, tuple, set, frozenset, Set_object)):
-                return False
-            if not tuple(block) or Set(block).cardinality() != len(tuple(block)):
-                return False
-        return True
+            return _has_nonempty_sets(x) and self._satisfies_constraints(x)
 
     def _satisfies_constraints(self, x):
         """
         Check whether or not ``x`` satisfies all of the constraints
         appearing within ``self.full_constraints`` (Boolean output).
+
+        NOTES::
+
+            This test will cause an infinite recursion with
+            ``self._element_constructor()`` if the ``__contains__``
+            method in ``OrderedMultisetPartitions_X`` is removed.
 
         TESTS::
 
@@ -1725,9 +1710,10 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             False
         """
         X = _concatenate(x)
-        co = OrderedMultisetPartitions(_get_weight(X))(x)
-        def pass_test(co, (key,tst)):
-            #
+        P = OrderedMultisetPartitions_X(tuple(_get_weight(X).iteritems()))
+        x = P.element_class(P, [frozenset(block) for block in x])
+        def pass_test(co, key, tst):
+            # define simple tests for each possible constraint
             if key == 'size':
                 return co.size() == tst
             if key == 'length':
@@ -1746,7 +1732,8 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                 return co.order() >= tst
             if key == 'max_order':
                 return co.order() <= tst
-        return all(pass_test(co, (key,tst)) for (key,tst) in self.full_constraints.iteritems() if tst)
+
+        return all(pass_test(x, key, tst) for (key, tst) in self.full_constraints.iteritems() if tst)
 
     def from_list(self, lst):
         """
@@ -1799,7 +1786,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                     block = []
             else:
                 block.append(a)
-        if self._has_valid_blocks(co):
+        if co in self:
             return self.element_class(self, map(frozenset, co))
         else:
             raise ValueError("ordered multiset partitions do not have repeated entries within blocks (%s received)"%str(co))
@@ -1865,14 +1852,15 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             ...
             NotImplementedError: cannot list an infinite set
         """
+        # Look for evidence of ``FiniteEnumeratedSets()`` among constraints.
+        # ``_base_iterator`` ignores most constraints in ``self.full_constraints``.
         iterator = _base_iterator(self.full_constraints)
         if iterator:
             for co in iterator:
                 if self._satisfies_constraints(co):
                     yield self.element_class(self, co)
         else:
-            # iterate over partitions of multisets of positive integers
-            # or over letters over an alphabet
+            # iterate over blocks of letters over an alphabet
             if "alphabet" in self.constraints:
                 A = self.constraints["alphabet"]
                 # establish a cutoff order `max_ell`
@@ -1887,6 +1875,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                         if self._satisfies_constraints(co):
                             yield self.element_class(self, co)
                     ell += 1
+            # or iterate over partitions of multisets of positive integers
             else:
                 n = 0
                 while True:
@@ -2027,26 +2016,6 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         """
         return "Ordered Multiset Partitions of integer %s" % self._n
 
-    def _has_valid_blocks(self, x):
-        """
-        Check that blocks of ``x`` are valid.
-
-        Blocks should be nonempty sets/lists/tuples of distinct positive
-        integers. Also the sum of all integers should be ``self._n``.
-
-        EXAMPLES::
-
-            sage: O = OrderedMultisetPartitions(10)
-            sage: O._has_valid_blocks([(2,3), (2,), (3,)])
-            True
-            sage: O._has_valid_blocks([(2,3), (2,), (5,)])
-            False
-        """
-        no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
-        nonnegative = all((i in ZZ and i > 0) for block in x for i in block)
-        valid_sum = sum(map(sum, x)) == self._n
-        return no_repeats and nonnegative and valid_sum
-
     def cardinality(self):
         """
         Return the number of ordered multiset partitions of integer ``self._n``.
@@ -2175,24 +2144,6 @@ class OrderedMultisetPartitions_n_constraints(OrderedMultisetPartitions):
         base_repr = "Ordered Multiset Partitions of integer %s" % self._n
         return base_repr + self._constraint_repr_(cdict)
 
-    def _has_valid_blocks(self, x):
-        """
-        Check that blocks of ``x`` are valid and satisfy constraints.
-
-        EXAMPLES::
-
-            sage: O = OrderedMultisetPartitions(14, length=4, max_order=6, alphabet={1,2,3,4,5,6})
-            sage: O._has_valid_blocks([{4}, {2,4}, {2}, {2}])
-            True
-            sage: failures = {((4,), (2,), (4,), (2,), (2,)), \
-                              ((1,2), (1,2), (1,5), (2,)),    \
-                              ((1,2), (1,), (1,7), (2,))}
-            sage: any(O._has_valid_blocks(x) for x in failures)
-            False
-        """
-        valid = OrderedMultisetPartitions_n(self._n)._has_valid_blocks(x)
-        return valid and self._satisfies_constraints(x)
-
 ###############
 
 class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
@@ -2212,7 +2163,11 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             True
         """
         self._X = X
-        self._Xtup = tuple([k for (k,v) in sorted(X) for _ in range(v)])
+        # sort the multiset
+        if all((k in ZZ and k > 0) for (k,v) in X):
+            self._Xtup = tuple([k for (k,v) in sorted(X) for _ in range(v)])
+        else:
+            self._Xtup = tuple([k for (k,v) in sorted(X, key=str) for _ in range(v)])
         OrderedMultisetPartitions.__init__(self, True)
 
     def _repr_(self):
@@ -2227,23 +2182,29 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         ms_rep = "{{" + ", ".join(map(str, self._Xtup)) + "}}"
         return "Ordered Multiset Partitions" + " of multiset %s"%ms_rep
 
-    def _has_valid_blocks(self, x):
+    def __contains__(self, x):
         """
-        Check that blocks of ``x`` are valid.
+        TESTS::
 
-        Blocks should be nonempty sets/lists/tuples whose union is the given multiset.
-
-        EXAMPLES::
-
-            sage: O = OrderedMultisetPartitions([2,2,2,3,4,4,5])
-            sage: O._has_valid_blocks([(2,3,4), (2,), (2,4,5)])
+            sage: from sage.combinat.multiset_partition_ordered import OrderedMultisetPartitions_X as OMPX
+            sage: [[2,1], [1,3]] in OMPX(((1,2), (2,1), (3,1)))
             True
-            sage: O._has_valid_blocks([(2,2,4), (2,), (2,4,5)])
+            sage: co = OrderedMultisetPartition([[2,1], [1,3]])
+            sage: co in OMPX(((1,2), (2,1), (3,1)))
+            True
+            sage: [[2,1], [2,3]] in OMPX(((1,2), (2,1), (3,1)))
             False
+            sage: [] in OMPX(())
+            True
+            sage: [[2, -1], [2,'a']] in OMPX(((2,2), (-1,1), ('a',1)))
+            True
         """
-        no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
-        valid_partition = _get_multiset(x) == self._Xtup
-        return no_repeats and valid_partition
+        if not isinstance(x, (OrderedMultisetPartition, list, tuple)):
+            return False
+        else:
+            x_Xtup = sorted(_concatenate(x), key=str)
+            self_Xtup = sorted(self._Xtup, key=str)
+            return _has_nonempty_sets(x) and x_Xtup == self_Xtup
 
     def cardinality(self):
         """
@@ -2388,22 +2349,6 @@ class OrderedMultisetPartitions_X_constraints(OrderedMultisetPartitions):
         base_repr = "Ordered Multiset Partitions" + " of multiset %s"%ms_rep
         return base_repr + self._constraint_repr_(cdict)
 
-    def _has_valid_blocks(self, x):
-        """
-        Check that blocks of ``x`` are valid and satisfy constraints.
-
-        EXAMPLES::
-
-            sage: O = OrderedMultisetPartitions([2,2,2,3,4,4,5], max_length=4)
-            sage: O._has_valid_blocks([(2,3,4), (2,), (2,4,5)])
-            True
-            sage: failures = {((2,2,4), (2,), (2,4,5)), ((2,3), (4,), (2,), (2,4), (5,))}
-            sage: any(O._has_valid_blocks(x) for x in failures)
-            False
-        """
-        valid = OrderedMultisetPartitions_X(self._X)._has_valid_blocks(x)
-        return valid and self._satisfies_constraints(x)
-
 ###############
 
 class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
@@ -2444,27 +2389,6 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
         A_rep = "Ordered Multiset Partitions of order " + str(self._order)
         A_rep += " over alphabet {%s}"%(", ".join(map(str, sorted(self._alphabet))))
         return A_rep
-
-    def _has_valid_blocks(self, x):
-        """
-        Check that blocks of ``x`` are valid.
-
-        Blocks should be nonempty sets/lists/tuples of order ``self._order``
-        all of whose elements are taken from ``self._alphabet``.
-
-        EXAMPLES::
-
-            sage: O = OrderedMultisetPartitions([2,3,4,5], 4)
-            sage: O._has_valid_blocks([(2,3), (2,), (3,)])
-            True
-            sage: failures = {((2,3), (1,), (4,)), ((2,3), (5,))}
-            sage: any(O._has_valid_blocks(x) for x in failures)
-            False
-        """
-        no_repeats = OrderedMultisetPartitions._has_valid_blocks(self, x)
-        valid_order = sum([len(tuple(block)) for block in x]) == self._order
-        valid_letters = self._alphabet.issuperset(frozenset(_concatenate(x)))
-        return no_repeats and valid_order and valid_letters
 
     def an_element(self):
         """
@@ -2604,22 +2528,6 @@ class OrderedMultisetPartitions_A_constraints(OrderedMultisetPartitions):
         base_repr += " over alphabet {%s}"%(", ".join(map(str, sorted(self._alphabet))))
         return base_repr + self._constraint_repr_(cdict)
 
-    def _has_valid_blocks(self, x):
-        """
-        Check that blocks of ``x`` are valid and satisfy constraints.
-
-        EXAMPLES::
-
-            sage: O = OrderedMultisetPartitions([2,3,4,5], 4, max_length=4, size=10)
-            sage: O._has_valid_blocks([(2,3), (2,), (3,)])
-            True
-            sage: failures = {((2,3), (1,), (4,)), ((2,3), (5,)), ((2,3), (2,), (5,))}
-            sage: any(O._has_valid_blocks(x) for x in failures)
-            False
-        """
-        valid = OrderedMultisetPartitions_A(self._alphabet, self._order)._has_valid_blocks(x)
-        return valid and self._satisfies_constraints(x)
-
     def an_element(self):
         """
         Return a typical element of ``self``.
@@ -2685,6 +2593,27 @@ def _get_weight(lst):
     for k in lst:
         out[k] = out.get(k,0) + 1
     return out
+
+def _has_nonempty_sets(x):
+    """
+    Blocks should be nonempty sets/lists/tuples of distinct elements.
+
+    TESTS::
+
+        sage: from sage.combinat.multiset_partition_ordered import _has_nonempty_sets
+        sage: _has_nonempty_sets([[2,4], {1}, (1,4)])
+        True
+        sage: _has_nonempty_sets([[2,4], {}, (1,4)])
+        False
+        sage: _has_nonempty_sets([(2,4), (1,1), (1,4)])
+        False
+    """
+    for block in x:
+        if not isinstance(block, (list, tuple, set, frozenset, Set_object)):
+            return False
+        if not tuple(block) or Set(block).cardinality() != len(tuple(block)):
+            return False
+    return True
 
 def _union_of_sets(list_of_sets):
     """

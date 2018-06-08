@@ -9278,7 +9278,7 @@ class NumberField_absolute(NumberField_generic):
                 d *= p
         return d
 
-    def elements_of_bounded_height(self, bound, tolerance=0.2, precision=53):
+    def elements_of_bounded_height(self, bound, tolerance=1e-2, precision=53):
         r"""
         Return an iterator over the elements of ``self`` with relative
         multiplicative height at most ``bound``.
@@ -9295,7 +9295,7 @@ class NumberField_absolute(NumberField_generic):
 
         - ``bound`` - a real number
 
-        - ``tolerance`` - a rational number in (0,1]
+        - ``tolerance`` - (default: 0.01) a rational number in (0,1]
 
         - ``precision`` - (default: 53) a positive integer
 
@@ -9373,7 +9373,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^4 - 5)
             sage: L = K.elements_of_bounded_height(50)
             sage: len(list(L)) # long time (2 s)
-            2171
+            2163
 
         ::
 

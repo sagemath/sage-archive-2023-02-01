@@ -371,7 +371,7 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     INPUT:
 
     - ``height_bound`` - real number
-    - ``tolerance`` - a rational number in (0,1]
+    - ``tolerance`` - (default: 0.01) a rational number in (0,1]
     - ``precision`` - (default: 53) positive integer
 
     OUTPUT:

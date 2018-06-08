@@ -1037,7 +1037,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
         def _M_to_F_on_basis(self, w):
             r"""
-            Return `M_w` in terms of the F basis.
+            Return `\mathcal{M}_w` in terms of the F basis.
 
             INPUT:
 
@@ -1049,9 +1049,36 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             ALGORITHM:
 
-            Use the formula (1.13) in [AguSot05]_.
-            Use Corollary 3.2.8 in [BB05]_ to compute the Mobius
-            function of the weak order.
+            If `w` is any permutation in `S_n`, then
+
+            .. MATH::
+
+                \mathcal{M}_w = \sum_u (-1)^{j(w, u)} F_u,
+
+            where the sum ranges over all permutations `u \in S_n`
+            obtained as follows:
+
+            * Let `v = w^{-1}`.
+
+            * Subdivide the list `(v(1), v(2), \ldots, v(n))` into
+              an arbitrary number of nonempty blocks (by putting
+              dividers between adjacent entries) in such a way that
+              each block is strictly increasing (i.e., each descent
+              of `v` is followed by a divider, but not every
+              divider must necessarily follow a descent).
+
+            * Reverse the order of entries in each block.
+
+            * Remove the dividers. The resulting list is the
+              one-line notation `(x(1), x(2), \ldots, x(n))` of
+              some permutation `x \in S_n`.
+
+            * Set `u = x^{-1}`. Also, let `j(w, u)` be `n` minus
+              the number of blocks in our subdivision.
+
+            This formula is equivalent to the formula (1.13) in
+            [AguSot05]_, since Corollary 3.2.8 in [BB05]_ expresses
+            the Mobius function of the weak order.
 
             TESTS::
 

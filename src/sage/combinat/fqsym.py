@@ -1097,6 +1097,42 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                        for i in range(n + 1)
                        if (i == 0 or i == n or min(x[:i]) > max(x[i:])))
 
+        class Element(FQSymBasis_abstract.Element):
+            def star_involution(self):
+                r"""
+                Return the image of the element ``self`` of `FQSym`
+                under the star involution.
+    
+                See
+                :meth:`FQSymBases.ElementMethods.star_involution`
+                for a definition of the involution and for examples.
+    
+                .. SEEALSO::
+    
+                    :meth:`omega_involution`, :meth:`psi_involution`.
+    
+                EXAMPLES:
+
+                    sage: FQSym = algebras.FQSym(ZZ)
+                    sage: M = FQSym.M()
+                    sage: M[[2,3,1]].star_involution()
+                    M[3, 1, 2]
+                    sage: M[[]].star_involution()
+                    M[]
+
+                TESTS:
+
+                    sage: F = FQSym.F()
+                    sage: all(M(F[w]).star_involution() == M(F[w].star_involution())
+                    ....:     for w in Permutations(4))
+                    True
+                """
+                # See the FQSymBases.ElementMethods.star_involution doc
+                # for the formula we're using here.
+                M = self.parent()
+                return M._from_dict({w.complement().reverse(): c for (w, c) in self},
+                                    remove_zeros=False)
+
 class FQSymBases(Category_realization_of_parent):
     r"""
     The category of graded bases of `FQSym` indexed by permutations.

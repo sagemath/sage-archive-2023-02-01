@@ -9373,7 +9373,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K.<a> = NumberField(x^4 - 5)
             sage: L = K.elements_of_bounded_height(50)
             sage: len(list(L)) # long time (2 s)
-            2163
+            2171
 
         ::
 

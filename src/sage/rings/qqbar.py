@@ -694,7 +694,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             (x - y) * (x + y)
             sage: L = QQbar._factor_multivariate_polynomial(x^2+y^2)
             sage: L
-            ((-1*I)*x - y) * (1*I*x - y)
+            (x + (-1*I)*y) * (x + 1*I*y)
             sage: L.value()
             x^2 + y^2
 
@@ -710,18 +710,20 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: p = (-7*x^2 + 2*x*y^2 + 6*x + y^4 + 14*y^2 + 47)*(5*x^2+y^2)^3*(x-y)^4
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (1/21125) * (5*x + (-2.236067977499790?*I)*y)^3
-            * (5*x + 2.236067977499790?*I*y)^3 * (x - y)^4
-            * (13*y^2 + (-23.76955262170047?)*x + 72.6152236891498?)
-            * (13*y^2 + 49.76955262170047?*x + 109.3847763108503?)
+            (125) * (x + (-0.4472135954999580?*I)*y)^3
+            * (x + 0.4472135954999580?*I*y)^3 * (x - y)^4
+            * (y^2 + (-1.828427124746191?)*x + 5.585786437626905?)
+            * (y^2 + 3.828427124746190?*x + 8.414213562373095?)
             sage: F.value() == p
             True
 
             sage: p = (-7*u^2 + 2*u*v^2 + 6*u + v^4 + 14*v^2 + 47)*(5*u^2+v^2)^3*(u-v)^4
             sage: F = AA._factor_multivariate_polynomial(p)
             sage: F
-            (1/21125) * (u - v)^4 * (13*v^2 - 23.76955262170047?*u + 72.6152236891498?)
-            * (13*v^2 + 49.76955262170047?*u + 109.3847763108503?) * (25*u^2 + 5*v^2)^3
+            (125) * (u - v)^4
+            * (v^2 - 1.828427124746191?*u + 5.585786437626905?)
+            * (v^2 + 3.828427124746190?*u + 8.414213562373095?)
+            * (u^2 + 1/5*v^2)^3
             sage: F.value() == p
             True
 
@@ -731,15 +733,14 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: p = x^2 + QQbar(sqrt(2))*y^2
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (1.414213562373095?) * ((-0.8408964152537146?*I)*x - y)
-            * (0.8408964152537146?*I*x - y)
+            (x + (-1.189207115002722?*I)*y) * (x + 1.189207115002722?*I*y)
             sage: F.value() == p
             True
 
             sage: p = u^2 + AA(sqrt(2))*v^2
             sage: F = AA._factor_multivariate_polynomial(p)
             sage: F
-            (1.414213562373095?) * (0.7071067811865475?*u^2 + v^2)
+            u^2 + 1.414213562373095?*v^2
             sage: F.value() == p
             True
 
@@ -749,7 +750,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: p = QQbar(sqrt(2))*(x^2+y^2)
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (1.414213562373095?) * ((-1*I)*x - y) * (1*I*x - y)
+            (1.414213562373095?) * (x + (-1*I)*y) * (x + 1*I*y)
             sage: F.value() == p
             True
 
@@ -766,16 +767,16 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: p = QQbar(sqrt(2))*(x^2-2*y^2)^2
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (5.656854249492380?) * ((-0.7071067811865475?)*x - y)^2
-            * (0.7071067811865475?*x - y)^2
+            (1.414213562373095?)
+            * (x + (-1.414213562373095?)*y)^2 * (x + 1.414213562373095?*y)^2
             sage: F.value() == p
             True
 
             sage: p = AA(sqrt(2))*(u^2-2*v^2)^2
             sage: F = AA._factor_multivariate_polynomial(p)
             sage: F
-            (5.656854249492380?) * (-0.7071067811865475?*u - v)^2
-            * (0.7071067811865475?*u - v)^2
+            (1.414213562373095?)
+            * (u - 1.414213562373095?*v)^2 * (u + 1.414213562373095?*v)^2
             sage: F.value() == p
             True
 
@@ -784,18 +785,16 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: p = (x^2+QQbar(sqrt(2))*y^2)*(x^4-2*y^4)
             sage: F = QQbar._factor_multivariate_polynomial(p)
             sage: F
-            (-2.828427124746190?) * ((-0.8408964152537146?)*x - y)
-            * (0.8408964152537146?*x - y) * ((-0.8408964152537146?*I)*x - y)^2
-            * (0.8408964152537146?*I*x - y)^2
+            (x + (-1.189207115002722?)*y) * (x + 1.189207115002722?*y)
+            * (x + (-1.189207115002722?*I)*y)^2 * (x + 1.189207115002722?*I*y)^2
             sage: F.value() == p
             True
 
             sage: p = (u^2+AA(sqrt(2))*v^2)*(u^4-2*v^4)
             sage: F = AA._factor_multivariate_polynomial(p)
             sage: F
-            (-2.828427124746190?)
-            * (-0.8408964152537146?*u - v) * (0.8408964152537146?*u - v)
-            * (0.7071067811865475?*u^2 + v^2)^2
+            (u - 1.189207115002722?*v) * (u + 1.189207115002722?*v)
+            * (u^2 + 1.414213562373095?*v^2)^2
             sage: F.value() == p
             True
 
@@ -883,7 +882,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
                         multiplicity = i-1
                         break
                 if multiplicity > 0:
-                    factorization.append((factor_f, multiplicity))
+                    factorization.append((factor_f / factor_f.lc(), multiplicity))
 
         # What we'd now like to do is
         #     return Factorization(factorization, unit=QQ(L[1][1].sage()))

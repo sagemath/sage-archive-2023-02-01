@@ -2025,6 +2025,15 @@ class FindStatCollection(Element):
     def __hash__(self):
         """
         Returns a hash value for the collection.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatCollections
+            sage: set(c for c in FindStatCollections())                         # optional -- internet
+            {Cc0001: Permutations,
+             Cc0002: Integer partitions,
+             ...
+
         """
         return self.id()
 
@@ -2784,6 +2793,19 @@ class FindStatMap(Element):
     def __hash__(self):
         """
         Returns a hash value for the map.
+
+        EXAMPLES::
+
+            sage: from sage.databases.findstat import FindStatMaps
+            sage: set(c for c in FindStatMaps())                                # optional -- internet
+            {Mp00001: to semistandard tableau,
+             Mp00002: to left key permutation,
+             Mp00003: rotate counterclockwise,
+             Mp00004: rotate clockwise,
+             Mp00005: transpose,
+             Mp00006: gyration,
+             ...
+
         """
         return self.id()
 

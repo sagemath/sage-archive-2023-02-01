@@ -84,9 +84,7 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.matrix.special import block_matrix
 import sage.libs.mpmath.all as mpall
-import operator
 from sage.arith.misc import GCD
-
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""

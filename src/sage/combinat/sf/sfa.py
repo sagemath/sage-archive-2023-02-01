@@ -2397,7 +2397,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
             (f \cdot g) \{ h \} = (f \{ h \}) \ast (g \{ h \})~.
 
-        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`, 
+        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.itensor`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.inner_plethysm`
 
@@ -4267,7 +4267,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar(self, x, zee=None):
         r"""
-        Return the standard scalar product between ``self`` and ``x``.
+        Return the standard scalar product between ``self`` and ``x``, also known as the "Hall inner product" or the "Hall scalar product".
 
         INPUT:
 

@@ -49,7 +49,10 @@ def handle_AA_and_QQbar(func):
             elif isinstance(a, MPolynomial):
                 orig_elems.extend(a.coefficients())
 
-        numfield, new_elems, morphism = number_field_elements_from_algebraics(orig_elems, same_field=True)
+        # We need minimal=True if these elements are over AA, because
+        # same_field=True might trigger an exception otherwise.
+
+        numfield, new_elems, morphism = number_field_elements_from_algebraics(orig_elems, same_field=True, minimal=True)
 
         elem_dict = dict(zip(orig_elems, new_elems))
 

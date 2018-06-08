@@ -890,15 +890,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: M([1, 2]) * M([1])
             M[1, 2, 3] + 2*M[1, 3, 2] + M[2, 3, 1] + M[3, 1, 2]
-
-        .. TODO::
-
-            Currently, the conversion of M to F bases is implemented
-            by inverting a unitriangular matrix. This works, but
-            there might be better ways -- it boils down to computing
-            the Mobius function of the weak order on the symmetric
-            group (more precisely, computing it on intervals whose
-            maximum is `w_0`).
         """
         _prefix = "M"
         _basis_name = "Monomial"
@@ -918,7 +909,9 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             phi = F.module_morphism(self._F_to_M_on_basis, codomain=self,
                                     unitriangular="lower")
             phi.register_as_coercion()
-            (~phi).register_as_coercion()
+            phi_i = self.module_morphism(self._M_to_F_on_basis, codomain=F,
+                                         unitriangular="lower")
+            phi_i.register_as_coercion()
 
         def _element_constructor_(self, x):
             r"""
@@ -1041,6 +1034,74 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 False
             """
             return self.sum_of_monomials(w.permutohedron_greater(side='left'))
+
+        def _M_to_F_on_basis(self, w):
+            r"""
+            Return `M_w` in terms of the F basis.
+
+            INPUT:
+
+            - ``w`` -- a permutation
+
+            OUTPUT:
+
+            - An element of the F basis
+
+            ALGORITHM:
+
+            Use the formula (1.13) in [AguSot05]_.
+            Use Corollary 3.2.8 in [BB05]_ to compute the Mobius
+            function of the weak order.
+
+            TESTS::
+
+                sage: FQSym = algebras.FQSym(ZZ)
+                sage: F = FQSym.F()
+                sage: M = FQSym.M()
+                sage: F(M[3, 2, 1] - 4 * F[4, 2, 1, 3])
+                F[3, 2, 1] - 4*F[4, 2, 1, 3]
+                sage: all(F(M._M_to_F_on_basis(w)) == M[w] for i in range(5)
+                ....:     for w in Permutations(i))
+                True
+                sage: all(M(F(M[w])) == M[w] for i in range(5)
+                ....:     for w in Permutations(i)) # indirect doctest
+                True
+                sage: M[3, 2, 1] == F[3, 2, 1]
+                True
+                sage: M[3, 2, 4, 1] == F[4, 2, 1, 3]
+                False
+                sage: F(M[[]]) == F[[]]
+                True
+            """
+            F = self.realization_of().F()
+            if len(w) == 0:
+                return F.monomial(w)
+
+            w_i = w.inverse()
+            w_i_des = tuple([0] + w_i.descents(final_descent=True))
+            n = w_i_des[-1]
+            non_des = list(range(n+1))
+            for d in w_i_des:
+                non_des.remove(d)
+            # Now, non_des is a list of all non-descents of w_i.
+
+            Perms = self.basis().keys()
+
+            R = self.base_ring()
+            one = R.one()
+            mine = -one
+
+            dc = {}
+            from itertools import combinations
+            for k in range(len(non_des) + 1):
+                for extra_des in combinations(non_des, k):
+                    breakpoints = sorted(w_i_des + extra_des)
+                    p = sum([list(reversed(w_i[breakpoints[g] : breakpoints[g+1]])) for g in range(len(breakpoints) - 1)],
+                            [])
+                    u = Perms(p).inverse()
+                    dc[u] = one if (n - len(breakpoints)) % 2 else mine
+
+            return F._from_dict(dc)
 
         def degree_on_basis(self, t):
             """

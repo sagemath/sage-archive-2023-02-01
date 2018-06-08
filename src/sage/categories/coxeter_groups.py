@@ -280,9 +280,9 @@ class CoxeterGroups(Category_singleton):
                 sage: W.braid_orbit([2,1,1,2,1])
                 [[2, 2, 1, 2, 2], [2, 1, 1, 2, 1], [1, 2, 1, 1, 2], [2, 1, 2, 1, 2]]
 
-                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])
-                sage: w = W.long_element()
-                sage: W.braid_orbit(w.reduced_word())
+                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])  # optional - gap3
+                sage: w = W.long_element()                                   # optional - gap3
+                sage: W.braid_orbit(w.reduced_word())                        # optional - gap3
                 [['AA', 5, 'BB', 5, 'AA', 'BB'],
                  ['AA', 'BB', 5, 'BB', 'AA', 'BB'],
                  [5, 'BB', 'AA', 5, 'BB', 5],
@@ -1357,9 +1357,9 @@ class CoxeterGroups(Category_singleton):
                 sage: sorted(w.reduced_words())
                 [[2, 3, 4, 2], [3, 2, 4, 2], [3, 4, 2, 4]]
 
-                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])
-                sage: w = W.long_element()
-                sage: w.reduced_words()
+                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])  # optional - gap3
+                sage: w = W.long_element()                                   # optional - gap3
+                sage: w.reduced_words()                                      # optional - gap3
                 [['AA', 5, 'BB', 5, 'AA', 'BB'],
                  ['AA', 'BB', 5, 'BB', 'AA', 'BB'],
                  [5, 'BB', 'AA', 5, 'BB', 5],

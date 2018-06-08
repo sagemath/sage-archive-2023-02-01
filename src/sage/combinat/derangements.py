@@ -481,7 +481,7 @@ class Derangements(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-        .. [Martinez08] Conrado Martinez Alois Panholzer and Helmut Prodinger,
+        .. [Martinez08] Conrado Martinez, Alois Panholzer and Helmut Prodinger,
            *Generating random derangements*
            :doi:`10.1137/1.9781611972986.7`
            http://www.siam.org/proceedings/analco/2008/anl08_022martinezc.pdf

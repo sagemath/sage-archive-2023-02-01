@@ -195,6 +195,14 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         Traceback (most recent call last):
         ...
         TypeError: Symbolic Ring cannot be the base ring
+
+    ::
+
+            R.<x,y>=AffineSpace(QQ,1)
+            f=DynamicalSystem([CC.0*x^2+2*y^2,1*y^2], domain=R)
+            Traceback (most recent call last):
+            ...
+            ValueError: coefficients not in base ring Rational Field
     """
 
     @staticmethod
@@ -286,6 +294,9 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             if fraction_field:
                 CR = CR.ring()
             domain = AffineSpace(CR)
+        else:
+            if not all([bool(poly.base_ring() == domain.base_ring()) for poly in list(morphism_or_polys)]):
+                raise ValueError('coefficients not in base ring {}'.format(domain.base_ring()))
 
         R = domain.base_ring()
         if R is SR:

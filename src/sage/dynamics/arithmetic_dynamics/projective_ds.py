@@ -334,6 +334,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             ValueError: list/tuple must have at least 2 polynomials
+
+        ::
+
+            P.<x,y>=ProjectiveSpace(QQ,1)
+            f=DynamicalSystem([CC.0*x^2+2*y^2,1*y^2], domain=P)
+            Traceback (most recent call last):
+            ...
+            ValueError: coefficients not in base ring Rational Field
         """
         from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective
 
@@ -385,6 +393,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f = polys[0]
             proj_CR = f.parent()
             domain = ProjectiveSpace(proj_CR)
+        else:
+            if not all([bool(poly.base_ring() == domain.base_ring()) for poly in list(morphism_or_polys)]):
+                raise ValueError('coefficients not in base ring {}'.format(domain.base_ring()))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")

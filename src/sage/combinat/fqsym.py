@@ -1074,16 +1074,16 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 True
             """
             F = self.realization_of().F()
-            if len(w) == 0:
+            if len(w) <= 1:
                 return F.monomial(w)
 
             w_i = w.inverse()
-            w_i_des = tuple([0] + w_i.descents(final_descent=True))
-            n = w_i_des[-1]
-            non_des = list(range(n+1))
-            for d in w_i_des:
-                non_des.remove(d)
-            # Now, non_des is a list of all non-descents of w_i.
+            w_i = w_i[:]
+            n = len(w_i)
+            des = tuple([0] + [g for g in range(1, n) if w_i[g-1] > w_i[g]] + [n])
+            non_des = [g for g in range(1, n) if w_i[g-1] < w_i[g]]
+            # Now, des is a list of all descents of w_i and also 0 and n,
+            # whereas non_des is a list of all non-descents of w_i.
 
             Perms = self.basis().keys()
 
@@ -1091,15 +1091,17 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             one = R.one()
             mine = -one
 
-            dc = {}
+            dc = {w: one}
             from itertools import combinations
-            for k in range(len(non_des) + 1):
+            for k in range(len(non_des)):
+                kk = k + len(des)
                 for extra_des in combinations(non_des, k):
-                    breakpoints = sorted(w_i_des + extra_des)
-                    p = sum([list(reversed(w_i[breakpoints[g] : breakpoints[g+1]])) for g in range(len(breakpoints) - 1)],
+                    breakpoints = sorted(des + extra_des)
+                    # so that kk == len(breakpoints)
+                    p = sum([w_i[breakpoints[g] : breakpoints[g+1]][::-1] for g in range(kk - 1)],
                             [])
                     u = Perms(p).inverse()
-                    dc[u] = one if (n - len(breakpoints)) % 2 else mine
+                    dc[u] = one if n % 2 != kk % 2 else mine
 
             return F._from_dict(dc)
 

@@ -516,8 +516,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: A.product_on_basis(x, x)
                 F[1, 2] + F[2, 1]
             """
-            basis = self.basis()
-            return self.sum(basis[u] for u in x.shifted_shuffle(y))
+            return self.sum_of_monomials(u for u in x.shifted_shuffle(y))
 
         def succ_product_on_basis(self, x, y):
             r"""
@@ -564,8 +563,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             n = len(x)
             shy = Word([a + n for a in y])
             shy0 = shy[0]
-            return self.sum(basis[K([shy0] + list(u))]
-                            for u in Word(x).shuffle(Word(shy[1:])))
+            return self.sum_of_monomials(K([shy0] + list(u))
+                                         for u in Word(x).shuffle(Word(shy[1:])))
 
         def prec_product_on_basis(self, x, y):
             r"""
@@ -611,8 +610,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             n = len(x)
             shy = Word([a + n for a in y])
             x0 = x[0]
-            return self.sum(basis[K([x0] + list(u))]
-                            for u in Word(x[1:]).shuffle(shy))
+            return self.sum_of_monomials(K([x0] + list(u))
+                                         for u in Word(x[1:]).shuffle(shy))
 
         def coproduct_on_basis(self, x):
             r"""
@@ -915,7 +914,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             F = self.realization_of().F()
             phi = F.module_morphism(self._F_to_M_on_basis, codomain=self,
                                     unitriangular="lower")
-            # check if really upper
             phi.register_as_coercion()
             (~phi).register_as_coercion()
 
@@ -1909,12 +1907,17 @@ class FQSymBases(Category_realization_of_parent):
                 F[2, 1]
                 sage: (F[2, 3, 1] + F[1, 3, 2] + F[1, 2, 3]).to_qsym()
                 2*F[2, 1] + F[3]
+                sage: F2 = algebras.FQSym(GF(2)).F()
+                sage: F2[2, 3, 1].to_qsym()
+                F[2, 1]
+                sage: (F2[2, 3, 1] + F2[1, 3, 2] + F2[1, 2, 3]).to_qsym()
+                F[3]
             """
             parent = self.parent()
             FQSym = parent.realization_of()
             F = FQSym.F()
             from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
             QF = QuasiSymmetricFunctions(parent.base_ring()).F()
-            return QF.sum(coeff * QF[w.descents_composition()]
-                          for w, coeff in F(self))
+            return QF.sum_of_terms((w.descents_composition(), coeff)
+                                    for w, coeff in F(self))
 

@@ -1159,13 +1159,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 mine = -one
                 Q = self.parent()
                 OSPs = Q.basis().keys()
+                from sage.data_structures.blas_dict import linear_combination
                 def img(A):
-                    # The image of the basis element Q[A].
+                    # The image of the basis element Q[A], written as a
+                    # dictionary (of its coordinates in the Q-basis).
                     Rs = [Rr.reversed() for Rr in A.strongly_fatter()]
-                    return Q._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-                                                   else mine)
-                                         for R in Rs for P in R.strongly_fatter()})
-                return Q.sum(c * img(A) for (A, c) in self)
+                    return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                      else mine)
+                            for R in Rs for P in R.strongly_fatter()}
+                return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
 
             def coalgebraic_complement(self):
                 r"""
@@ -1203,13 +1205,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 mine = -one
                 Q = self.parent()
                 OSPs = Q.basis().keys()
+                from sage.data_structures.blas_dict import linear_combination
                 def img(A):
-                    # The image of the basis element Q[A].
+                    # The image of the basis element Q[A], written as a
+                    # dictionary (of its coordinates in the Q-basis).
                     Rs = [Rr.complement() for Rr in A.strongly_fatter()]
-                    return Q._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-                                                   else mine)
-                                         for R in Rs for P in R.strongly_fatter()})
-                return Q.sum(c * img(A) for (A, c) in self)
+                    return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                      else mine)
+                            for R in Rs for P in R.strongly_fatter()}
+                return Q._from_dict(linear_combination((img(A), c) for (A, c) in self))
 
             def star_involution(self):
                 r"""
@@ -1664,13 +1668,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 mine = -one
                 Phi = self.parent()
                 OSPs = Phi.basis().keys()
+                from sage.data_structures.blas_dict import linear_combination
                 def img(A):
-                    # The image of the basis element Phi[A].
+                    # The image of the basis element Phi[A], written as a
+                    # dictionary (of its coordinates in the Phi-basis).
                     Rs = [Rr.reversed() for Rr in A.strongly_finer()]
-                    return Phi._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-                                                   else mine)
-                                         for R in Rs for P in R.strongly_finer()})
-                return Phi.sum(c * img(A) for (A, c) in self)
+                    return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                      else mine)
+                            for R in Rs for P in R.strongly_finer()}
+                return Phi._from_dict(linear_combination((img(A), c) for (A, c) in self))
 
             def coalgebraic_complement(self):
                 r"""
@@ -1708,13 +1714,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 mine = -one
                 Phi = self.parent()
                 OSPs = Phi.basis().keys()
+                from sage.data_structures.blas_dict import linear_combination
                 def img(A):
-                    # The image of the basis element Phi[A].
+                    # The image of the basis element Phi[A], written as a
+                    # dictionary (of its coordinates in the Phi-basis).
                     Rs = [Rr.complement() for Rr in A.strongly_finer()]
-                    return Phi._from_dict({OSPs(P): (one if (len(R) % 2 == len(P) % 2)
-                                                   else mine)
-                                         for R in Rs for P in R.strongly_finer()})
-                return Phi.sum(c * img(A) for (A, c) in self)
+                    return {OSPs(P): (one if (len(R) % 2 == len(P) % 2)
+                                      else mine)
+                            for R in Rs for P in R.strongly_finer()}
+                return Phi._from_dict(linear_combination((img(A), c) for (A, c) in self))
 
             def star_involution(self):
                 r"""

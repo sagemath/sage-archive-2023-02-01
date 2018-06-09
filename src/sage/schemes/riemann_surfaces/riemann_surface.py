@@ -1,5 +1,5 @@
 r"""
-Computation of Riemann matrices and endomorphism rings of algebraic Riemann surfaces.
+Riemann matrices and endomorphism rings of algebraic Riemann surfaces
 
 This module provides a class, RiemannSurface, to model the Riemann surface
 determined by a plane algebraic curve over a subfield of the complex numbers.

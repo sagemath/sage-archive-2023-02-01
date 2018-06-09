@@ -218,7 +218,7 @@ class SetShuffleProduct(SageObject):
 
 class ShuffleProduct(SageObject):
     """
-    Shuffle product of two iterable.
+    Shuffle product of two iterables.
 
     EXAMPLES::
 

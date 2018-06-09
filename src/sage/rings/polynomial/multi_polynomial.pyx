@@ -1920,17 +1920,18 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+
+        TESTS::
+
+            sage: Pol = QQ['x']['x','y']
+            sage: Pol.one().gcd(1)
+            1
         """
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > self._parent.ngens():
-            base = self._parent._mpoly_base_ring()
-            d1 = self._mpoly_dict_recursive()
-            d2 = other._mpoly_dict_recursive()
-            ring = PolynomialRing(base, variables)
-            try:
-                return self._parent(ring(d1).gcd(ring(d2)))
-            except (AttributeError, NotImplementedError):
-                pass
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt is not self._parent and tgt._has_singular:
+            g = flatten(self).gcd(flatten(other))
+            return flatten.section()(g)
 
         try:
             self._parent._singular_().set_ring()
@@ -1942,10 +1943,12 @@ cdef class MPolynomial(CommutativeRingElement):
         x = self._parent.gens()[-1]
         uniself = self.polynomial(x)
         unibase = uniself.base_ring()
-        if hasattr(unibase, "_gcd_univariate_polynomial"):
-            return self._parent(unibase._gcd_univariate_polynomial(uniself, other.polynomial(x)))
-        else:
+        try:
+            doit = unibase._gcd_univariate_polynomial
+        except AttributeError:
             raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
+        else:
+            return self.parent()(doit(uniself, other.polynomial(x)))
 
     def nth_root(self, n):
         r"""
@@ -2165,7 +2168,7 @@ cdef class MPolynomial(CommutativeRingElement):
             sage: f.reduced_form(prec=200)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(1.5551623876686905873160660564410782587973928631765344695031 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(1.5551623876686905871173822301513235862915980531542297136320 > 1e-06), increase precision
             sage: f.reduced_form(prec=400)
             (
             -1872*x^5*h + 468*x^4*h^2 + 2340*x^3*h^3 - 2340*x^2*h^4 - 468*x*h^5 + 1872*h^6,

@@ -428,9 +428,7 @@ from sage.matrix.constructor import matrix
 from sage.matrix.constructor import column_matrix
 from sage.structure.element import Matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.sageinspect import sage_getargspec
 

@@ -138,7 +138,6 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
     """
     if not sign in [-1,0,1]:
         raise TypeError('sign must -1, 0 or 1')
-    _sign = int(sign)
     N = E.conductor()
     M = ModularSymbols(N, sign=sign, base_ring=base_ring)
     if bound is None:
@@ -153,6 +152,7 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
         p = next_prime(p)
 
     return V
+
 
 class ModularSymbol(SageObject):
     r"""

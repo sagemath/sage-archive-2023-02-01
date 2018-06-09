@@ -478,7 +478,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Element classes may define a method called ``_evaluate_polynomial``
         to provide an alternative evaluation algorithm for a given argument
-        type. Note that ``_evaluated_polynomial`` may not always be used:
+        type. Note that ``_evaluate_polynomial`` may not always be used:
         for instance, subclasses dedicated to specific coefficient rings
         typically do not call it.
 
@@ -4692,23 +4692,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: q = r * (x*y^2 - x + 1/3)
             sage: p.gcd(q)
             2*x*y + 1
-        """
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > 1:
-            base = self._parent._mpoly_base_ring()
-            ring = PolynomialRing(base, variables)
-            if ring._has_singular:
-                try:
-                    d1 = self._mpoly_dict_recursive()
-                    d2 = other._mpoly_dict_recursive()
-                    return self._parent(ring(d1).gcd(ring(d2)))
-                except NotImplementedError:
-                    pass
 
-        if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
-            return self.base_ring()._gcd_univariate_polynomial(self, other)
+        TESTS::
+
+            sage: Pol = QQ['x','y']['x']
+            sage: Pol.one().gcd(1)
+            1
+        """
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt.ngens() > 1 and tgt._has_singular:
+            g = flatten(self).gcd(flatten(other))
+            return flatten.section()(g)
+        try:
+            doit = self._parent._base._gcd_univariate_polynomial
+        except AttributeError:
+            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self._parent._base)
         else:
-            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
+            return doit(self, other)
 
     @coerce_binop
     def lcm(self, other):

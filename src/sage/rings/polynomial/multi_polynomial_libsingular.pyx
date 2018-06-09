@@ -523,7 +523,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
     Element = MPolynomial_libsingular
 
-    def _element_constructor_(self, element):
+    def _element_constructor_(self, element, check=True):
         """
         Construct a new element in this polynomial ring by converting
         ``element`` into ``self`` if possible.
@@ -891,8 +891,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if element.parent().ngens() <= self.ngens():
                 # Map the variables by indices
                 _p = p_ISet(0, _ring)
-                K = self.base_ring()
-                base = self._base
                 Element = <MPolynomial_libsingular>element
                 El_poly = Element._poly
                 El_parent = Element._parent
@@ -901,11 +899,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
                 while El_poly:
                     c = si2sa(p_GetCoeff(El_poly, El_ring), El_ring, El_base)
-                    try:
-                        c = K(c)
-                    except TypeError:
-                        p_Delete(&_p, _ring)
-                        raise
+                    if check:
+                        try:
+                            c = base_ring(c)
+                        except TypeError:
+                            p_Delete(&_p, _ring)
+                            raise
                     if c:
                         mon = p_Init(_ring)
                         p_SetCoeff(mon, sa2si(c, _ring), _ring)
@@ -931,14 +930,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if element.parent().ngens() <= self.ngens():
                 # Map variables by indices
                 _p = p_ISet(0, _ring)
-                K = self.base_ring()
                 for (m,c) in element.element().dict().iteritems():
-                    try:
-                        c = K(c)
-                        if not c: continue
-                    except TypeError:
-                        p_Delete(&_p, _ring)
-                        raise
+                    if check:
+                        try:
+                            c = base_ring(c)
+                        except TypeError:
+                            p_Delete(&_p, _ring)
+                            raise
+                    if not c:
+                        continue
                     mon = p_Init(_ring)
                     p_SetCoeff(mon, sa2si(c , _ring), _ring)
                     for pos in m.nonzero_positions():
@@ -987,14 +987,15 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         if isinstance(element, dict):
             _p = p_ISet(0, _ring)
-            K = self.base_ring()
             for (m,c) in element.iteritems():
-                try:
-                    c = K(c)
-                    if not c: continue
-                except TypeError:
-                    p_Delete(&_p, _ring)
-                    raise
+                if check:
+                    try:
+                        c = base_ring(c)
+                    except TypeError:
+                        p_Delete(&_p, _ring)
+                        raise
+                if not c:
+                    continue
                 mon = p_Init(_ring)
                 p_SetCoeff(mon, sa2si(c , _ring), _ring)
                 if len(m) != self.ngens():
@@ -1535,9 +1536,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                                   MPolynomialRing_polydict_domain)):
             return op == Py_NE
 
-        lx = (left.base_ring(), map(str, left.gens()), left.term_order())
-        rx = (right.base_ring(), map(str, right.gens()), right.term_order())
-        return richcmp(lx, rx, op)
+        def cmp_key(x):
+            return (x.base_ring(), [str(v) for v in x.gens()], x.term_order())
+        return richcmp(cmp_key(left), cmp_key(right), op)
 
     def __reduce__(self):
         """

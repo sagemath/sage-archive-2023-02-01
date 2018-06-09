@@ -210,9 +210,10 @@ cdef class Functor(SageObject):
             True
             sage: F.codomain()
             Category of rings
-
         """
-        return _Functor_unpickle, (self.__class__, self.__dict__.items(), self.__domain, self.__codomain)
+        return (_Functor_unpickle,
+                (self.__class__, list(self.__dict__.items()),
+                 self.__domain, self.__codomain))
 
     def _apply_functor(self, x):
         """

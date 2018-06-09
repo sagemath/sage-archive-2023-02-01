@@ -61,6 +61,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_planar` | Return ``True`` if the lattice has an upward planar drawing.
     :meth:`~FiniteLatticePoset.is_dismantlable` | Return ``True`` if the lattice is dismantlable.
     :meth:`~FiniteLatticePoset.is_interval_dismantlable` | Return ``True`` if the lattice is interval dismantlable.
+    :meth:`~FiniteLatticePoset.is_sublattice_dismantlable` | Return ``True`` if the lattice is sublattice dismantlable.
     :meth:`~FiniteLatticePoset.is_stone` | Return ``True`` if the lattice is a Stone lattice.
     :meth:`~FiniteLatticePoset.is_vertically_decomposable` | Return ``True`` if the lattice is vertically decomposable.
     :meth:`~FiniteLatticePoset.is_simple` | Return ``True`` if the lattice has no nontrivial congruences.
@@ -3578,6 +3579,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Stronger properties: :meth:`is_planar`
+            - Weaker properties: :meth:`is_sublattice_dismantlable`
 
         TESTS::
 
@@ -3686,6 +3688,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
             - Stronger properties: :meth:`is_join_semidistributive`,
               :meth:`is_meet_semidistributive`
+            - Weaker properties: :meth:`is_sublattice_dismantlable`
 
         TESTS::
 
@@ -3745,6 +3748,79 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if result[0]:
             return result if certificate else True
         return (False, minimal_non_int_dismant(self)) if certificate else False
+
+    def is_sublattice_dismantlable(self):
+        """
+        Return ``True`` if the lattice is sublattice dismantlable, and
+        ``False`` otherwise.
+
+        A sublattice dismantling is a subdivision of a lattice into two
+        non-empty sublattices. A lattice is  *sublattice dismantlable*
+        if it can be decomposed into 1-element lattices by consecutive
+        sublattice dismantlings.
+
+        EXAMPLES:
+
+        The smallest non-example is this (and the dual)::
+
+            sage: P = Poset({1: [11, 12, 13], 2: [11, 14, 15],
+            ....:            3: [12, 14, 16], 4: [13, 15, 16]})
+            sage: L = LatticePoset(P.with_bounds())
+            sage: L.is_sublattice_dismantlable()
+            False
+
+        Here we adjoin a (double-irreducible-)dismantlable lattice
+        as a part to an interval-dismantlable lattice::
+
+            sage: B3 = posets.BooleanLattice(3)
+            sage: N5 = posets.PentagonPoset()
+            sage: L = B3.adjunct(N5, 1, 7)
+            sage: L.is_dismantlable(), L.is_interval_dismantlable()
+            (False, False)
+            sage: L.is_sublattice_dismantlable()
+            True
+
+        .. SEEALSO::
+
+            - Stronger properties: :meth:`is_dismantlable`, :meth:`is_interval_dismantlable`
+
+        TESTS::
+
+            sage: LatticePoset().is_sublattice_dismantlable()
+            True
+
+        .. TODO::
+
+            Add a certificate-option.
+        """
+        # Todo: This can be made much faster, if we don't regenerate meet- and
+        # join-matrices every time, but instead remove some rows and colums
+        # from them.
+
+        from sage.combinat.subset import Subsets
+
+        # All lattices up to 11 elements have been tested to be sublattice
+        # dismantlable, hence the limit.
+        if self.cardinality() <= 11:
+            return True
+
+        for low in self:
+            if len(self.lower_covers(low)) <= 1:
+                for up in self.principal_upper_set(low):
+                    if len(self.upper_covers(up)) <= 1:
+                        if low == self.bottom() and up == self.top():
+                            continue
+                        S1 = self.interval(low, up)
+                        S2 = [e for e in self if e not in S1]
+                        if all(self.meet(a, b) in S2 and
+                               self.join(a, b) in S2
+                               for a, b in Subsets(S2, 2)):
+                            sub1 = self.sublattice(S1)
+                            sub2 = self.sublattice(S2)
+                            return (sub1.is_sublattice_dismantlable() and
+                                    sub2.is_sublattice_dismantlable())
+
+        return False
 
     def is_subdirectly_reducible(self, certificate=False):
         r"""

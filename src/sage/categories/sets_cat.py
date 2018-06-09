@@ -2163,7 +2163,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
-                wheels = map(iter, factors)
+                wheels = [iter(f) for f in factors]
                 digits = [next(it) for it in wheels]
                 while True:
                     yield self._cartesian_product_of_elements(digits)

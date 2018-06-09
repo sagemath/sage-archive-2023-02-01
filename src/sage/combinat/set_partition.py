@@ -110,7 +110,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A == D
             False
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return list(self) == list(y)
 
@@ -174,7 +174,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A < C
             True
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return [sorted(_) for _ in self] < [sorted(_) for _ in y]
 
@@ -202,7 +202,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A > B
             False
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return [sorted(_) for _ in self] > [sorted(_) for _ in y]
 

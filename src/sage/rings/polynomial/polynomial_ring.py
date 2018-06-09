@@ -146,6 +146,7 @@ from six.moves import range
 from sage.structure.element import Element
 
 import sage.categories as categories
+from sage.categories.morphism import IdentityMorphism
 
 import sage.algebras.algebra
 import sage.rings.commutative_algebra as commutative_algebra
@@ -582,6 +583,29 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self([one,0,one]), # an irreducible element
             self([2*one,0,2*one]), # an element with non-trivial content
         ]
+
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x'].flattening_morphism()
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x over Rational Field
+
+            sage: QQ['x'].flattening_morphism()
+            Identity endomorphism of Univariate Polynomial Ring in x over Rational Field
+        """
+        from .multi_polynomial_ring import is_MPolynomialRing
+        base = self.base_ring()
+        if is_PolynomialRing(base) or is_MPolynomialRing(base):
+            from .flatten import FlatteningMorphism
+            return FlatteningMorphism(self)
+        else:
+            return IdentityMorphism(self)
 
     def construction(self):
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
@@ -1903,7 +1927,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         """
         to_base_ring = self.base_ring()
-        points = [map(to_base_ring, x) for x in points]
+        points = [tuple(to_base_ring(c) for c in p) for p in points]
         n = len(points)
         F = [[points[i][1]] for i in range(n)]
         for i in range(1, n):

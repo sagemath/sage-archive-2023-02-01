@@ -772,8 +772,6 @@ class ChowGroup_class(FGP_Module_class):
             sage: matrix(rel).submatrix(col=21, ncols=6).elementary_divisors()
             [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """
-        fan = self._variety.fan()
-        dim = self._variety.dimension()
         relations = []
         for rho in self._cones:
             for u in rho.orthogonal_sublattice().gens():
@@ -782,10 +780,9 @@ class ChowGroup_class(FGP_Module_class):
                     sigma_idx = self._cones.index(sigma)
                     Q = sigma.relative_quotient(rho)
                     for v in [n.lift() for n in Q.gens()]:
-                        rel += (u*v) * V.gen(sigma_idx)
+                        rel += (u * v) * V.gen(sigma_idx)
                 relations.append(rel)
         return V.span(relations)
-
 
     def __truediv__(self, other):
         r"""

@@ -38,12 +38,9 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.calculus.functions import jacobian
-from sage.categories.number_fields import NumberFields
-from sage.categories.homset import Hom, End
 from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import Integer
@@ -52,22 +49,21 @@ from sage.rings.complex_field import ComplexField_class
 from sage.rings.complex_interval_field import ComplexIntervalField_class
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.fraction_field import FractionField
-from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.order import is_NumberFieldOrder
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.qqbar import QQbar
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField_class
 from sage.rings.real_mpfi import RealIntervalField_class
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
-from sage.symbolic.constants import e
 from sage.ext.fast_callable import fast_callable
 from sage.misc.lazy_attribute import lazy_attribute
 import sys
+
 from sage.categories.number_fields import NumberFields
+from sage.categories.homset import Hom, End
 _NumberFields = NumberFields()
 from sage.categories.fields import Fields
 _Fields = Fields()
@@ -213,13 +209,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             # morphisms from projective space are always given by
             # homogeneous polynomials of the same degree
             try:
-                d = polys[0].degree()
+                polys[0].degree()
             except AttributeError:
                 polys = [f.lift() for f in polys]
-            if not all([f.is_homogeneous() for f in polys]):
+            if not all(f.is_homogeneous() for f in polys):
                 raise  ValueError("polys (=%s) must be homogeneous" % polys)
             degs = [f.degree() for f in polys]
-            if not all([d == degs[0] for d in degs[1:]]):
+            if not all(d == degs[0] for d in degs[1:]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
 
@@ -2497,4 +2493,4 @@ class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_pol
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.automorphism_group instead")
         return self.as_dynamical_system().automorphism_group(**kwds)
-    
+

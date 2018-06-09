@@ -1081,7 +1081,7 @@ class Polyomino(SageObject):
 
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0,0),(0,0,1)])
-            sage: list(sorted(edge) for edge in p.neighbor_edges())
+            sage: [sorted(edge) for edge in p.neighbor_edges()]
             [[(0, 0, 0), (0, 0, 1)]]
 
         In 3d::

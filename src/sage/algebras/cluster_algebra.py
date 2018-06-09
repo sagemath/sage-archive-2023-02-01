@@ -2038,7 +2038,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         mutating_F = kwargs.get('mutating_F', True)
 
         # which directions are we allowed to mutate into
-        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rank()))))
+        allowed_dirs = sorted(kwargs.get('allowed_directions',
+                                         range(self.rank())))
 
         # setup seeds storage
         cl = frozenset(seed.g_vectors())

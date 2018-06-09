@@ -284,7 +284,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                     for i in range(len(points)):
                         if numerical:
                             if len(points[i]) == N:
-                                S = X.ambient_space()([points[i][R.gen(j)] for j in range(N)])
+                                S = PS([points[i][R.gen(j)] for j in range(N)])
                                 if all([g(list(S)) < zero_tol for g in X.defining_polynomials()]):
                                     rat_points.append(S)
                         else:
@@ -314,7 +314,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
 
     def numerical_points(self, F=None, **kwds):
         """
-        Return some or all numerical approximations of rational points of a projective scheme.
+        Return some or all numerical approximations of rational points of an affine scheme.
 
         This is for dimension 0 subschemes only and the points are determined
         through a groebner calculation over the base ring and then numerically

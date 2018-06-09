@@ -246,7 +246,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                         for i in range(len(points)):
                             if numerical:
                                 if len(points[i]) == N + 1:
-                                    S = X.ambient_space()([points[i][R.gen(j)] for j in range(N + 1)])
+                                    S = PS([points[i][R.gen(j)] for j in range(N + 1)])
                                     S.normalize_coordinates()
                                     if all([g(list(S)) < zero_tol for g in X.defining_polynomials()]):
                                         rat_points.add(S)
@@ -292,7 +292,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         """
         Return some or all numerical approximations of rational points of a projective scheme.
 
-        This is for dimension 0 subschemes only and the points are determined
+        This is for dimension 1 subschemes only and the points are determined
         through a groebner calculation over the base ring and then numerically
         approximating the roots of the resulting polynomials.
 
@@ -331,7 +331,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
             sage: S.<a> = QQ[]
             sage: K.<v> = NumberField(a^5 - 7, embedding=CC((7)**(1/5)))
-            sage: P.<x,y,z>=ProjectiveSpace(K,2)
+            sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: X = P.subscheme([x^2 - v^2*z^2, y-v*z])
             sage: X(K).numerical_points(F=CDF)
             [(-1.475773161594552 : 1.475773161594552 : 1.0),

@@ -433,7 +433,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
     """
     _no_generic_basering_coercion = True
 
-
     @staticmethod
     def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None):
         """
@@ -464,17 +463,25 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
-        if ncols is None: ncols = nrows
-        nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
+        nrows = int(nrows)
+        if ncols is None:
+            ncols = nrows
+        else:
+            ncols = int(ncols)
+        sparse = bool(sparse)
+
+        if nrows < 0:
+            raise ArithmeticError("nrows must be nonnegative")
+        if ncols < 0:
+            raise ArithmeticError("ncols must be nonnegative")
+        if nrows > sys.maxsize or ncols > sys.maxsize:
+            raise OverflowError("number of rows and columns may be at most %s" % sys.maxsize)
+
         matrix_cls = get_matrix_class(base_ring, nrows, ncols, sparse, implementation)
         return super(MatrixSpace, cls).__classcall__(
                 cls, base_ring, nrows, ncols, sparse, matrix_cls)
 
-    def __init__(self,  base_ring,
-                        nrows,
-                        ncols=None,
-                        sparse=False,
-                        implementation=None):
+    def __init__(self, base_ring, nrows, ncols, sparse, implementation):
         """
         INPUT:
 
@@ -2088,34 +2095,6 @@ def dict_to_list(entries, nrows, ncols):
         i, j = ij
         v[i * ncols + j] = y
     return v
-
-def list_to_dict(entries, nrows, ncols, rows=True):
-    """
-    Given a list of entries, create a dictionary whose keys are
-    coordinate tuples and values are the entries.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix_space import list_to_dict
-        sage: d = list_to_dict([1,2,3,4],2,2)
-        sage: d[(0,1)]
-        2
-        sage: d = list_to_dict([1,2,3,4],2,2,rows=False)
-        sage: d[(0,1)]
-        3
-    """
-    d = {}
-    if ncols == 0 or nrows == 0:
-        return d
-    for i, x in enumerate(entries):
-        if x != 0:
-            col = i % ncols
-            row = i // ncols
-            if rows:
-                d[(row,col)] = x
-            else:
-                d[(col,row)] = x
-    return d
 
 
 def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):

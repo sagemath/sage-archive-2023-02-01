@@ -16,10 +16,9 @@ of undirected graphs.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 """
-
-from sage.graphs.graph import Graph
 from collections import deque
 from enum import Enum
+
 
 class NodeType(Enum):
     """
@@ -51,6 +50,7 @@ class NodeType(Enum):
     def __repr__(self):
         return self.name
 
+
 class NodeSplit(Enum):
     """
     NodeSplit is an enumeration class which is used to specify the split that 
@@ -74,6 +74,7 @@ class NodeSplit(Enum):
     BOTH_SPLIT = 3
     NO_SPLIT = 0
 
+
 class VertexPosition(Enum):
     """
     VertexPosition is an enumeration class used to define position of a vertex 
@@ -95,6 +96,7 @@ class VertexPosition(Enum):
     LEFT_OF_SOURCE = -1
     RIGHT_OF_SOURCE = 1
     SOURCE = 0
+
 
 class Node:
     """
@@ -239,6 +241,7 @@ class Node:
                self.comp_num == other.comp_num and \
                self.is_separated == other.is_separated and \
                self.children == other.children
+
 
 def modular_decomposition(graph):
     """
@@ -463,6 +466,7 @@ def modular_decomposition(graph):
     else:
         return root
 
+
 def number_components(root, vertex_status):
     """
     Function to number the components to the right of SOURCE vertex in the
@@ -530,6 +534,7 @@ def number_components(root, vertex_status):
             continue
 
         comp_num += recursively_number_parts(node, comp_num, NodeType.PARALLEL)
+
 
 def number_cocomponents(root, vertex_status):
     """

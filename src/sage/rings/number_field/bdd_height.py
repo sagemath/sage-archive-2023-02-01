@@ -362,6 +362,8 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     In current implementation both lists (L,L') are merged and returned in
     form of iterator.
 
+    Due to floating point issues one may get extra points which can be
+    corrected by lowering the tolerance.
 
     ALGORITHM:
 

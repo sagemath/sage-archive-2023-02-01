@@ -408,7 +408,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         if len(self._type) == 1:
             ct = self._type[0]
-            return CartanType([ct['series'], ct['rank']])
+            C = CartanType([ct['series'], ct['rank']])
+            return C.relabel({ i+1 : ii for i,ii in enumerate(self.index_set()) })
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 

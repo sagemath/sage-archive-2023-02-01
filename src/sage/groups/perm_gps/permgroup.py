@@ -1604,7 +1604,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             # the following case from the gap permutation elt to a
             # sage permutation is much too slow -- stumpc5, 2018-06-05
             one = self.one()
-            gap2sage = lambda elt: one._generate_new(libgap.ListPerm(elt).sage())
+            #gap2sage = lambda elt: one._generate_new(libgap.ListPerm(elt).sage())
+            gap2sage = lambda elt: libgap.ListPerm(elt)._generate_perm(one)
             return [ [ gap2sage(elt) for elt in coset] for coset in cosets ]
 
         if implementation == "sage":

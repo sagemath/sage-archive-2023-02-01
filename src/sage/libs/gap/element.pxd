@@ -88,7 +88,7 @@ cdef class GapElement_RecordIterator(object):
     cdef libGAP_UInt i
 
 cdef class GapElement_List(GapElement):
-    pass
+    cpdef _generate_perm(self, old)
 
 cdef class GapElement_Permutation(GapElement):
     pass

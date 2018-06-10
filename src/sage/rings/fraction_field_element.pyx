@@ -1030,7 +1030,7 @@ cdef class FractionFieldElement(FieldElement):
             sage: L = R.fraction_field()
             sage: S.<y> = L[]
             sage: y(K(1,1)/x)
-            ((1 + O(2)))/((1 + O(2^5))*x)
+            ((1 + O(2)))/((1 + O(2))*x)
 
         """
         if self.numerator().is_one():

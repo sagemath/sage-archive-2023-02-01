@@ -156,19 +156,20 @@ class PathTableaux(Category):
             row = list(other)
             col = list(self)
             if col[-1] != row[0]:
-                raise ValueError("%s is not a composable pair." % (self,other))
+                raise ValueError("%s,%s is not a composable pair." % (self,other))
             
-            path = col + row[1:]
-            if display:
-                print row
-            for i in range(1:n):
+            path = self.parent()(col + row[1:])
+
+            for i in range(1,n):
+                if display:
+                    print path[n-i:n+m-i]
                 for j in range(m-1):
                     path = path.local_rule(n+j-i)
-                    if display:
-                        print path[n-i:n+m-i-2]
+            if display:
+                print path[:m]
                     
 
-            return (self.parent()(path[:m]),self.parent()(path[n-1:]))
+            return (self.parent()(path[:m]),self.parent()(path[m-1:]))
 
         def cactus(self,i,j):
             """

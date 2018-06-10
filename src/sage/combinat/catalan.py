@@ -35,6 +35,7 @@ from sage.structure.parent import Parent
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
+from sage.combinat.tableau import Tableau
 from sage.rings.integer import Integer
 
 from sage.categories.pathtableaux import PathTableaux
@@ -92,12 +93,13 @@ class CatalanTableau(ClonableList):
             else:
                 raise ValueError("The perfect matching must be non crossing.")
 
-        if isinstance(ot,SkewTableau):
+        if isinstance(ot,Tableau):
             if len(ot) == 2:
                 if ot.is_standard():
-                    w = [1]*ot.size()
+                    u = [1]*ot.size()
                     for i in ot[1]:
-                        w[i-1] = 0
+                        u[i-1] = 0
+                    w = DyckWord(u).heights()
                 else:
                     raise ValueError("The tableau must be standard.")
             else:

@@ -1514,10 +1514,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             Also, both algorithms might yield different results based on the
             order in which ``base_of_group`` is given in the first situation.
 
-        .. TODO::
-
-            - speed up the casting from gap permutations to sage permutations.
-
         EXAMPLES::
 
             sage: G = PermutationGroup([[(7,8)],[(3,4)],[(4,5)]])

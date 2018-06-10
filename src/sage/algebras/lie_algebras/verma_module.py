@@ -933,7 +933,7 @@ class VermaModuleMorphism(Morphism):
         Return if ``self`` is injective or not.
 
         A Verma module morphism `\phi : M \to M'` is injective if
-        and only if `\dim \Hom(M, M') = 1` and `\phi \neq 0`.
+        and only if `\dim \hom(M, M') = 1` and `\phi \neq 0`.
 
         EXAMPLES::
 
@@ -989,7 +989,7 @@ class VermaModuleHomset(Homset):
 
     .. MATH::
 
-        \dim(\Hom(M_{w \cdot \lambda}, M_{w' \cdot \lambda'})) = 1
+        \dim \hom(M_{w \cdot \lambda}, M_{w' \cdot \lambda'}) = 1
 
     if and only if `\lambda = \lambda'` and `w' \leq w` in Bruhat
     order. Otherwise the homset is 0 dimensional.
@@ -1114,7 +1114,7 @@ class VermaModuleHomset(Homset):
             sage: v = H.singular_vector()
             sage: pbw = M.pbw_basis()
             sage: E = [pbw(e) for e in L.e()]
-            sage: all(e * v == M.zero() for e in E)  # long time
+            sage: all(e * v == M.zero() for e in E)
             True
 
         When `w \cdot \lambda \notin \lambda + Q^-`, there does not

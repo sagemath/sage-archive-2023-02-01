@@ -155,10 +155,9 @@ from __future__ import absolute_import
 
 from .inductive_valuation import _lift_to_maximal_precision
 from .inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
-from .valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import infinity, QQ, ZZ
+from sage.rings.all import infinity, QQ
 from sage.structure.factory import UniqueFactory
 
 
@@ -565,8 +564,7 @@ class AugmentedValuation_base(InductiveValuation):
                     ret.append(AugmentedValuation(v, phi, self._mu))
                 else:
                     F = v.equivalence_decomposition(phi)
-                    mu0 = v(phi)
-                    for f,e in F:
+                    for f, e in F:
                         # We construct a valuation with [v, w(phi) = mu] which should be such that
                         # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
                         # the sum runs over all the factors in the equivalence decomposition of phi

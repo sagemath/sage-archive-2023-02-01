@@ -2029,7 +2029,7 @@ class FiniteWordPath_square_grid(FiniteWordPath_2d):
             sage: [words.dual_fibonacci_tile(i).area() for i in range(6)]
             [1, 5, 29, 169, 985, 5741]
             sage: oeis(_)[0]                            # optional -- internet
-            A001653: Numbers n such that 2*n^2 - 1 is a square.
+            A001653: Numbers k such that 2*k^2 - 1 is a square.
             sage: _.first_terms()                       # optional -- internet
             (1,
              5,

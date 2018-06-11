@@ -1037,25 +1037,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         ::
 
             sage: A = random_matrix(Integers(8),2,2); A
-            [7 2]
-            [6 1]
+            [0 5]
+            [6 4]
 
             sage: B = random_matrix(Integers(8),2,2); B
-            [4 0]
+            [4 4]
             [5 6]
 
             sage: A*B
-            [6 4]
-            [5 6]
+            [1 6]
+            [4 0]
 
             sage: 3*A
-            [5 6]
-            [2 3]
+            [0 7]
+            [2 4]
 
             sage: MS = parent(A)
             sage: MS(3) * A
-            [5 6]
-            [2 3]
+            [0 7]
+            [2 4]
 
         ::
 
@@ -1082,25 +1082,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         ::
 
             sage: A = random_matrix(GF(16007),2,2); A
-            [ 7856  5786]
-            [10134 14607]
+            [ 6194 13327]
+            [ 5985  5926]
 
             sage: B = random_matrix(GF(16007),2,2); B
-            [10839  6194]
-            [13327  5985]
+            [ 6901  1242]
+            [13032   859]
 
             sage: A*B
-            [14254  4853]
-            [ 8754 15217]
+            [ 7618 12476]
+            [14289  6330]
 
             sage: 3*A
-            [ 7561  1351]
-            [14395 11807]
+            [2575 7967]
+            [1948 1771]
 
             sage: MS = parent(A)
             sage: MS(3) * A
-            [ 7561  1351]
-            [14395 11807]
+            [2575 7967]
+            [1948 1771]
 
         ::
 
@@ -1129,25 +1129,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         ::
 
             sage: A = random_matrix(Integers(1008),2,2); A
-            [354 413]
-            [307 499]
+            [ 41 973]
+            [851 876]
 
             sage: B = random_matrix(Integers(1008),2,2); B
-            [952  41]
-            [973 851]
+            [180 234]
+            [680 640]
 
             sage: A*B
-            [1001   73]
-            [ 623  772]
+            [716 298]
+            [924 750]
 
             sage: 3*A
-            [ 54 231]
-            [921 489]
+            [123 903]
+            [537 612]
 
             sage: MS = parent(A)
             sage: MS(3) * A
-            [ 54 231]
-            [921 489]
+            [123 903]
+            [537 612]
 
         ::
 

@@ -147,11 +147,16 @@ def enum_projective_number_field(X, **kwds):
     Simply checks all of the points of absolute height of at most ``B``
     and adds those that are on the scheme to the list.
 
-    Uses the Doyle-Krumm algorithm for computing algebraic numbers up to
-    a given height [Doyle-Krumm]_. The algorithm requires floating point
-    arithmetic, so the user is allowed to specify the precision for such
-    calculations.
+    This algorithm computes 2 lists: L containing elements x in `K` such that
+    H_k(x) <= B, and a list L' containing elements x in `K` that, due to
+    floating point issues,
+    may be slightly larger then the bound. This can be controlled
+    by lowering the tolerance.
 
+    ALGORITHM:
+
+    This is an implementation of the revised algorithm (Algorithm 4) in
+    [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
     INPUT:
 
     kwds:

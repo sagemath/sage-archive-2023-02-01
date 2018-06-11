@@ -1272,11 +1272,15 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         Returns an iterator of the points in self of absolute height of at most the given bound.
 
         Bound check is strict for the rational field. Requires self to be projective space
-        over a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
-        up to a given height [Doyle-Krumm]_.
+        over a number field. Uses the
+        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
 
-        The algorithm requires floating point arithmetic, so the user is allowed to specify
-        the precision for such calculations.
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
 
         INPUT:
 
@@ -1290,7 +1294,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         OUTPUT:
 
-        - an iterator of points in this space.
+        - an iterator of points in this space
 
         EXAMPLES::
 

@@ -1122,7 +1122,16 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         components of at most the given bound.
 
         Bound check is strict for the rational field. Requires the base field of this space to be a number field.
-        Uses the Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        Uses the
+        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
+
 
         INPUT:
 

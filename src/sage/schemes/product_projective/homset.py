@@ -67,15 +67,27 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the base
         ring is a field or not.
 
+        For number fields, this uses the
+        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
+
+
         INPUT:
 
         - `B` -- integer (optional, default=0). The bound for the
           coordinates.
+
         - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
 
         OUTPUT:
 
-        - a list of rational points of a projective scheme.
+        - a list of rational points of a projective scheme
 
         EXAMPLES::
 

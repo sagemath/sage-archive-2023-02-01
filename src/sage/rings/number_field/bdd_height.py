@@ -360,9 +360,9 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     rank. An error will occur if `K` is `QQ` or an imaginary quadratic field.
 
     This algorithm computes 2 lists: L containing elements x in `K` such that
-    H_k(x) <= B, and a list L' containing elements x in `K` such that
-    abs(H_k(x) - B) < tolerance. However, due to floating point issues
-    one may get points larger than specified bound which can be corrected
+    H_k(x) <= B, and a list L' containing elements x in `K` that, due to
+    floating point issues,
+    may be slightly larger then the bound. This can be controlled
     by lowering the tolerance.
 
     In current implementation both lists (L,L') are merged and returned in

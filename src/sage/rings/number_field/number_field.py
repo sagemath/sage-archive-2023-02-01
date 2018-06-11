@@ -9283,13 +9283,19 @@ class NumberField_absolute(NumberField_generic):
         Return an iterator over the elements of ``self`` with relative
         multiplicative height at most ``bound``.
 
-        The algorithm requires floating point arithmetic, so the user is
-        allowed to specify the precision for such calculations.
+        This algorithm computes 2 lists: L containing elements x in `K` such that
+        H_k(x) <= B, and a list L' containing elements x in `K` that, due to
+        floating point issues,
+        may be slightly larger then the bound. This can be controlled
+        by lowering the tolerance.
 
-        Certain computations may be faster assuming GRH, which may be done
-        globally by using the number_field(True/False) switch.
+        In current implementation both lists (L,L') are merged and returned in
+        form of iterator.
 
-        For details: See [Doyle-Krumm]_.
+        ALGORITHM:
+
+        This is an implementation of the revised algorithm (Algorithm 4) in
+        [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
 
         INPUT:
 
@@ -9394,6 +9400,8 @@ class NumberField_absolute(NumberField_generic):
         - John Doyle (2013)
 
         - David Krumm (2013)
+
+        - Raman Raghukul (2018)
         """
         from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq
         r1, r2 = self.signature()
@@ -9404,7 +9412,7 @@ class NumberField_absolute(NumberField_generic):
         else:
             tol = kwds.pop('tolerance', 1e-2)
             prec = kwds.pop('precision', 53)
-            return bdd_height(self, B, tol, prec)
+            return bdd_height(self, B, tolerance=tol, precision=prec)
 
 class NumberField_cyclotomic(NumberField_absolute):
     """

@@ -900,11 +900,14 @@ class AffineSpace_field(AffineSpace_generic):
 
         Bound check  is strict for the rational field.
         Requires this space to be affine space over a number field. Uses the
-        Doyle-Krumm algorithm for computing algebraic numbers up to a given
-        height [Doyle-Krumm]_.
+        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
 
         The algorithm requires floating point arithmetic, so the user is
         allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
 
         INPUT:
 
@@ -918,7 +921,7 @@ class AffineSpace_field(AffineSpace_generic):
 
         OUTPUT:
 
-        - an iterator of points in self.
+        - an iterator of points in self
 
         EXAMPLES::
 

@@ -238,7 +238,7 @@ class QuantumGroupRepresentations(Category_module):
             def tensor(*factors):
                 """
                 Return the tensor product of ``self`` with the
-                represenations ``factors``.
+                representations ``factors``.
 
                 EXAMPLES::
 

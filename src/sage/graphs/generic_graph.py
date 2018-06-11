@@ -253,6 +253,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
     :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
+    :meth:`~GenericGraph.connected_subgraph_iterator` | Iterator over the connected subgraphs of order at most `k`
 
 **Plot/embedding-related methods:**
 
@@ -21862,7 +21863,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import is_cut_vertex
     from sage.graphs.connectivity import edge_connectivity
     from sage.graphs.connectivity import vertex_connectivity
-
+    from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
 
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),

@@ -514,6 +514,32 @@ class ContinuousMap(Morphism):
         else:
            return self._latex_name
 
+    #
+    # Hash and equality
+    #
+
+    def __hash__(self):
+        """
+        Hash function.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: N = Manifold(2, 'N', structure='topological')
+            sage: Y.<u,v> = N.chart()
+            sage: f = M.continuous_map(N, {(X,Y): (x+y,x*y)})
+            sage: hash(f) == f.__hash__()
+            True
+
+        Let us check that ``f`` can be used as a dictionary key::
+
+            sage: {f: 1}[f]
+            1
+
+        """
+        return hash((self._domain, self._codomain))
+
     def __eq__(self, other):
         r"""
         Comparison (equality) operator.

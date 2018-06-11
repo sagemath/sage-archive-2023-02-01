@@ -320,7 +320,8 @@ def isogenies_prime_degree_genus_0(E, l=None):
         return isogs
 
     if l is None:
-        return sum([isogenies_prime_degree_genus_0(E, l) for l in [2,3,5,7,13]],[])
+        return sum([isogenies_prime_degree_genus_0(E, ell)
+                    for ell in [2, 3, 5, 7, 13]],[])
 
 
 # The following code computes data to be used in
@@ -1485,7 +1486,6 @@ def Psi2(l):
     data = _hyperelliptic_isogeny_data(l)
 
     R = PolynomialRing(QQ, 'u')
-    u = R.gen()
     L = PolynomialRing(R, 'v')
     v = L.gen()
     K = R.extension(v*v - R(data['hyper_poly']), 'v')
@@ -1607,10 +1607,11 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
 
     """
     if l is None:
-        return sum([isogenies_prime_degree_genus_plus_0(E, l) for l in hyperelliptic_primes],[])
+        return sum([isogenies_prime_degree_genus_plus_0(E, ell)
+                    for ell in hyperelliptic_primes],[])
 
     if not l in hyperelliptic_primes:
-        raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
+        raise ValueError("%s must be one of %s." % (l, hyperelliptic_primes))
 
     F = E.base_ring()
     j = E.j_invariant()

@@ -118,24 +118,20 @@ def is_GlobalGenus(G):
     for loc in G._local_symbols:
         p = loc._prime
         sym = loc._symbol
-        v = sum([ s[0]*s[1] for s in sym ])
+        v = sum([ss[0] * ss[1] for ss in sym])
         a = D // (p**v)
-        b = Integer(prod([ s[2] for s in sym ]))
+        b = Integer(prod([ss[2] for ss in sym]))
         if p == 2:
             if not is_2_adic_genus(sym):
-                # print "False in is_2_adic_genus(sym)"
                 return False
             if (a*b).kronecker(p) != 1:
-                # print "False in (%s*%s).kronecker(%s)"%(a,b,p)
                 return False
             oddity -= loc.excess()
         else:
             if a.kronecker(p) != b:
-                # print "False in %s.kronecker(%s) != *%s"%(a,p,b)
                 return False
             oddity += loc.excess()
-    if oddity%8 != 0:
-        # print "False in oddity"
+    if oddity % 8 != 0:
         return False
     return True
 
@@ -446,7 +442,6 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         for i in compart:
             genus_symbol_quintuple_list[i][4] = 0
         genus_symbol_quintuple_list[compart[0]][4] = oddity
-    #print "End oddity fusion:", canonical_symbol
     # Sign walking:
     trains = canonical_2_adic_trains(genus_symbol_quintuple_list)
     for train in trains:
@@ -460,11 +455,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
                     if t1-1 in compart or t1 in compart:
                         o = canonical_symbol[compart[0]][4]
                         canonical_symbol[compart[0]][4] = (o+4) % 8
-    #print "End sign walking:", canonical_symbol
     return canonical_symbol
-
-
-
 
 
 def basis_complement(B):

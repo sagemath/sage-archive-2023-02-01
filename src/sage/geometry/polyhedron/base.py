@@ -4433,15 +4433,12 @@ class Polyhedron_base(Element):
             sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) #optional - latte_int
             '20/3'
         """
-        if is_package_installed('latte_int'):
-            from sage.interfaces.latte import integrate
-            if self.base_ring() == RDF:
-                raise ValueError("LattE integrale cannot be applied over inexact rings.")
-            else:
-                return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
-
+        from sage.interfaces.latte import integrate
+        if self.base_ring() == RDF:
+            raise ValueError("LattE integrale cannot be applied over inexact rings.")
         else:
-            raise PackageNotFoundError('latte_int')
+            return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
+
 
     @cached_method
     def volume(self, measure='ambient', engine='auto', **kwds):
@@ -4697,17 +4694,13 @@ class Polyhedron_base(Element):
             ...
             TypeError: LattE integrale cannot be applied over inexact rings.
         """
-        if is_package_installed('latte_int'):
-            from sage.interfaces.latte import integrate
-            if self.base_ring() == RDF:
-                raise TypeError("LattE integrale cannot be applied over inexact rings.")
-            elif not self.is_full_dimensional():
-                raise NotImplementedError("The polytope must be full-dimensional.")
-            else:
-                return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
-
+        if self.base_ring() == RDF:
+            raise TypeError("LattE integrale cannot be applied over inexact rings.")
+        elif not self.is_full_dimensional():
+            raise NotImplementedError("The polytope must be full-dimensional.")
         else:
-            raise PackageNotFoundError('latte_int')
+            from sage.interfaces.latte import integrate
+            return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 
     def contains(self, point):
         """

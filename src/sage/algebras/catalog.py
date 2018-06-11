@@ -23,6 +23,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.FreeZinbiel <sage.algebras.free_zinbiel_algebra.FreeZinbielAlgebra>`
 - :class:`algebras.FreePreLie <sage.combinat.free_prelie_algebra.FreePreLieAlgebra>`
 - :class:`algebras.FreeDendriform <sage.combinat.free_dendriform_algebra.FreeDendriformAlgebra>`
+- :class:`algebras.FSym <sage.combinat.chas.fsym.FreeSymmetricFunctions>`
 - :func:`algebras.GradedCommutative
   <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
 - :class:`algebras.Group <sage.algebras.group_algebra.GroupAlgebra>`
@@ -96,6 +97,7 @@ lazy_import('sage.combinat.free_dendriform_algebra', 'FreeDendriformAlgebra', 'F
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'FQSym')
 lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'MalvenutoReutenauer')
 lazy_import('sage.combinat.chas.wqsym', 'WordQuasiSymmetricFunctions', 'WQSym')
+lazy_import('sage.combinat.chas.fsym', 'FreeSymmetricFunctions', 'FSym')
 lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')

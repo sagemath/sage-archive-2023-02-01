@@ -897,15 +897,21 @@ class Homset(Set_generic):
             sage: H()
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 0 to an element of Set of Morphisms from Free Group on generators {x, y, z} to Free Group on generators {x, y, z} in Category of groups
+            TypeError: unable to convert 0 to an element of
+             Set of Morphisms from Free Group on generators {x, y, z}
+             to Free Group on generators {x, y, z} in Category of groups
             sage: H("whatever")
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 'whatever' to an element of Set of Morphisms from Free Group on generators {x, y, z} to Free Group on generators {x, y, z} in Category of groups
-            sage: H(H.identity(), foo="bar")
+            TypeError: unable to convert 'whatever' to an element of
+             Set of Morphisms from Free Group on generators {x, y, z}
+             to Free Group on generators {x, y, z} in Category of groups
+            sage: HH = Hom(H, H)
+            sage: HH(HH.identity(), foo="bar")
             Traceback (most recent call last):
             ...
-            NotImplementedError: no keywords are implemented for constructing elements of Set of Morphisms from Free Group on generators {x, y, z} to Free Group on generators {x, y, z} in Category of groups
+            NotImplementedError: no keywords are implemented for
+             constructing elements of ...
 
         AUTHORS:
 

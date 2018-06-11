@@ -92,7 +92,6 @@ from sage.structure.sage_object import SageObject
 from sage.misc.misc import verbose
 
 from sage.rings.all import PolynomialRing, QQ, ZZ, Integer
-from sage.rings.number_field.number_field_element import is_NumberFieldElement
 from sage.rings.number_field.number_field_ideal import is_NumberFieldFractionalIdeal
 
 from sage.rings.number_field.number_field import is_NumberField
@@ -752,7 +751,7 @@ class EllipticCurveLocalData(SageObject):
         from sage.categories.pushout import pushout, CoercionException
         try:
             if hasattr(F.p.ring(), 'maximal_order'): # it is not ZZ
-                _tmp_ = pushout(F.p.ring().maximal_order(),K)
+                pushout(F.p.ring().maximal_order(), K)
             pinv = lambda x: F.lift(~F(x))
             proot = lambda x,e: F.lift(F(x).nth_root(e, extend = False, all = True)[0])
             preduce = lambda x: F.lift(F(x))

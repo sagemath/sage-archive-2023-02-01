@@ -6,4 +6,5 @@ Quantum Groups
 
    sage/algebras/quantum_groups/fock_space
    sage/algebras/quantum_groups/q_numbers
+   sage/algebras/quantum_groups/representations
 

@@ -2500,7 +2500,7 @@ class RationalFunctionField(FunctionField):
         phi = S.hom([t])
         return sum([phi((denom * v[i]).numerator()) * x**i for i in range(len(v))]), denom
 
-    def _factor_univariate_polynomial(self, f, proof=True):
+    def _factor_univariate_polynomial(self, f):
         """
         Factor the univariate polynomial f over the function field.
 
@@ -2560,7 +2560,7 @@ class RationalFunctionField(FunctionField):
             f = f.change_variable_name(old_variable_name + old_variable_name)
 
         F, d = self._to_bivariate_polynomial(f)
-        fac = F.factor(proof=proof)
+        fac = F.factor()
         x = f.parent().gen()
         t = f.parent().base_ring().gen()
         phi = F.parent().hom([x, t])

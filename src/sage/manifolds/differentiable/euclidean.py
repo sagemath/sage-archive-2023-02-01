@@ -1200,7 +1200,7 @@ class EuclideanPlane(EuclideanSpace):
                                 init_coord_methods=init_coord_methods)
         if coordinates == 'polar':
             # The default frame is the polar coordinate frame; we change it
-            # to the orthornormal polar frame
+            # to the orthonormal polar frame
             self.set_default_frame(self.polar_frame())
 
     def _repr_(self):
@@ -1733,11 +1733,11 @@ class Euclidean3dimSpace(EuclideanSpace):
                                 init_coord_methods=init_coord_methods)
         if coordinates == 'spherical':
             # The default frame is the spherical coordinate frame; we change it
-            # to the orthornormal spherical frame
+            # to the orthonormal spherical frame
             self.set_default_frame(self.spherical_frame())
         if coordinates == 'cylindrical':
             # The default frame is the cylindrical coordinate frame; we change
-            # it to the orthornormal cylindrical frame
+            # it to the orthonormal cylindrical frame
             self.set_default_frame(self.cylindrical_frame())
 
     def _repr_(self):

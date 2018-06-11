@@ -153,6 +153,7 @@ public:
 
 	// operand access
 	size_t nops() const { return bp->nops(); }
+        size_t treesize() const;
 	size_t nsymbols() const;
         bool get_first_symbol(ex &x) const;
         symbolset symbols() const;

@@ -393,6 +393,20 @@ void ex::set_domain(unsigned d)
         }
 }
 
+static void _treesize(const ex& e, size_t& n)
+{
+        ++n;
+        for (size_t i=0; i < e.nops(); i++)
+                _treesize(e.op(i), n);
+}
+
+size_t ex::treesize() const
+{
+        size_t n = 0;
+        _treesize(*this, n);
+        return n;
+}
+
 size_t ex::nsymbols() const
 // DON'T USE if you want the number of symbols, instead use symbols().size()
 {

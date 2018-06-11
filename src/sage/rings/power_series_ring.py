@@ -138,6 +138,7 @@ from sage.misc.superseded import deprecation
     
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import normalize_names
+from sage.structure.element import parent
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -1152,13 +1153,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: s in R
             False
         """
-        if x.parent() == self:
-            return True
-        try:
-            self._coerce_(x)
-        except TypeError:
-            return False
-        return True
+        return self.has_coerce_map_from(parent(x))
 
     def is_field(self, proof = True):
         """

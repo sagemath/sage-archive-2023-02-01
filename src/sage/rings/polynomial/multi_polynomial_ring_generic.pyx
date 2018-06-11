@@ -480,15 +480,11 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         return multi_polynomial_ideal.MPolynomialIdeal
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
-        try:
-            # all that is needed is that elements of the base ring
-            # of the polynomial ring canonically coerce into codomain.
-            # Since poly rings are free, any image of the gen
-            # determines a homomorphism
-            codomain._coerce_(self.base_ring()(1))
-        except TypeError:
-            return False
-        return True
+        # all that is needed is that elements of the base ring
+        # of the polynomial ring canonically coerce into codomain.
+        # Since poly rings are free, any image of the gen
+        # determines a homomorphism
+        return codomain.has_coerce_map_from(self._base)
 
     def _magma_init_(self, magma):
         """

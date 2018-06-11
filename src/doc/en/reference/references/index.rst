@@ -826,6 +826,10 @@ REFERENCES:
              North-Holland Mathematical Library. (2000).
              Elsevier Science B.V.
 
+.. [deG2005] Willem A. de Graaf.
+             *Constructing homomorphisms between Verma modules*.
+             Journal of Lie Theory. **15** (2005) pp. 415-428.
+
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,
               15:1889-1894, 1987.

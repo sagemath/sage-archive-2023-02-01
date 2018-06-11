@@ -110,7 +110,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.all import QQ
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
@@ -547,7 +546,7 @@ class AlgebraicForm(FormsBase):
             F = self._ring.base_ring()
             g = random_matrix(F, self._n, algorithm='unimodular')
         v = vector(self.variables())
-        g_v = g*v
+        g_v = g * v
         transform = dict( (v[i], g_v[i]) for i in range(self._n) )
         # The covariant of the transformed polynomial
         g_self = self.__class__(self._n, self._d, self.form().subs(transform), self.variables())
@@ -807,7 +806,6 @@ class AlgebraicForm(FormsBase):
             sage: cubic.transformed(g).transformed(g.inverse()) == cubic
             True
         """
-        form = self.homogenized()
         if isinstance(g, dict):
             transform = g
         else:
@@ -816,7 +814,8 @@ class AlgebraicForm(FormsBase):
             g_v = vector(self._ring, g*v)
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
         # The covariant of the transformed polynomial
-        return self.__class__(self._n, self._d, self.form().subs(transform), self.variables())
+        return self.__class__(self._n, self._d,
+                              self.form().subs(transform), self.variables())
 
 
 ######################################################################
@@ -1204,14 +1203,12 @@ class BinaryQuartic(AlgebraicForm):
             sage: quartic.monomials()
             (y^4, x*y^3, x^2*y^2, x^3*y, x^4)
         """
-        quartic = self._polynomial
         x0 = self._x
         x1 = self._y
         if self._homogeneous:
             return (x1**4, x1**3*x0, x1**2*x0**2, x1*x0**3, x0**4)
         else:
             return (self._ring.one(), x0, x0**2, x0**3, x0**4)
-
 
     @cached_method
     def coeffs(self):
@@ -1462,7 +1459,7 @@ class BinaryQuintic(AlgebraicForm):
 
     REFERENCES:
 
-    For a description of all invariants and covariants of a binary 
+    For a description of all invariants and covariants of a binary
     quintic, see section 73 of _[Cle1872].
 
     TESTS::
@@ -3798,7 +3795,7 @@ can then be queried for invariant and covariants. For example,
         REFERENCES:
 
         - :wikipedia:`Invariant_of_a_binary_form`
-        - [Cle1872]_ 
+        - [Cle1872]_
 
         EXAMPLES::
 
@@ -3806,7 +3803,7 @@ can then be queried for invariant and covariants. For example,
             sage: quintic = invariant_theory.binary_quintic(x^5+y^5)
             sage: quintic
             Binary quintic with coefficients (1, 0, 0, 0, 0, 1)
-            
+
             sage: type(quintic)
             <class 'sage.rings.invariant_theory.BinaryQuintic'>
         """

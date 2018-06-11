@@ -614,7 +614,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Check some things requiring an internet connection::
 
         sage: (out, err, ret) = test_executable(["sage", "--standard"])  # optional - internet
-        sage: out.find("atlas") >= 0  # optional - internet
+        sage: out.find("cython") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -630,7 +630,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--experimental"])  # optional - internet
-        sage: out.find("macaulay2") >= 0  # optional - internet
+        sage: out.find("valgrind") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''

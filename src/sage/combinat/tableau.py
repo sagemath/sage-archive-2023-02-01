@@ -84,6 +84,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
@@ -103,7 +104,7 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.posets.posets import Poset
 
-
+@richcmp_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class Tableau(ClonableList):
     """
@@ -246,21 +247,21 @@ class Tableau(ClonableList):
         # This dispatches the input verification to the :meth:`check`
         # method.
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Check whether ``self`` is equal to ``other``.
+        Compare ``self`` to ``other``.
 
         .. TODO::
 
-            This overwrites the equality check of
+            This overwrites the comparison check of
             :class:`~sage.structure.list_clone.ClonableList`
             in order to circumvent the coercion framework.
             Eventually this should be solved more elegantly,
             for example along the lines of what was done for
             `k`-tableaux.
 
-            For now, two elements are equal if their underlying
-            defining lists compare equal.
+            For now, this compares two elements by their underlying
+            defining lists.
 
         INPUT:
 
@@ -277,36 +278,22 @@ class Tableau(ClonableList):
             False
             sage: t == Tableaux(2)([[1,2]])
             True
-        """
-        if isinstance(other, Tableau):
-            return list(self) == list(other)
-        else:
-            return list(self) == other
 
-    def __ne__(self, other):
-        r"""
-        Check whether ``self`` is unequal to ``other``.
+            sage: s = Tableau([[2,3],[1]])
+            sage: s != []
+            True
 
-        See the documentation of :meth:`__eq__`.
-
-        INPUT:
-
-        ``other`` -- the element that ``self`` is compared to
-
-        OUTPUT:
-
-        A Boolean.
-
-        TESTS::
-
-            sage: t = Tableau([[2,3],[1]])
-            sage: t != []
+            sage: t < s
+            True
+            sage: s < t
+            False
+            sage: s > t
             True
         """
         if isinstance(other, Tableau):
-            return list(self) != list(other)
+            return richcmp(list(self), list(other), op)
         else:
-            return list(self) != other
+            return richcmp(list(self), other, op)
 
     def __hash__(self):
         """

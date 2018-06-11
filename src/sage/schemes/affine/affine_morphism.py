@@ -563,7 +563,7 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             #remove possible gcd of coefficients
             gc = gcd([f.content() for f in F])
             F = [S(f/gc) for f in F]
-        except (AttributeError, ValueError, NotImplementedError, TypeError): #no gcd
+        except (AttributeError, ValueError, NotImplementedError, TypeError, ArithmeticError): #no gcd
             pass
         d = max([F[i].degree() for i in range(M+1)])
         F = [F[i].homogenize(str(newvar))*newvar**(d-F[i].degree()) for i in range(M+1)]

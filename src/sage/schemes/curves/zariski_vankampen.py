@@ -229,7 +229,7 @@ def segments(points):
 
 def followstrand(f, x0, x1, y0a, prec=53):
     r"""
-    Return a piecewise linear aproximation of the homotopy continuation
+    Return a piecewise linear approximation of the homotopy continuation
     of the root ``y0a`` from ``x0`` to ``x1``.
 
     INPUT:
@@ -246,7 +246,7 @@ def followstrand(f, x0, x1, y0a, prec=53):
 
     - ``t`` is a real number between zero and one
     - `f(t \cdot x_1 + (1-t) \cdot x_0, y_{tr} + I \cdot y_{ti})`
-      is zero (or a good enough aproximation)
+      is zero (or a good enough approximation)
     - the piecewise linear path determined by the points has a tubular
       neighborhood  where the actual homotopy continuation path lies, and
       no other root intersects it.

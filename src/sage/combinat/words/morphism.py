@@ -1261,7 +1261,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('6->ab,y->5,0->asd').images()
             [word: 5, word: asd, word: ab]
         """
-        return self._morph.values()
+        return list(six.itervalues(self._morph))
 
     def reversal(self):
         r"""

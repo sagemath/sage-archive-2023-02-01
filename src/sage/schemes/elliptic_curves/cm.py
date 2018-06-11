@@ -126,7 +126,7 @@ def hilbert_class_polynomial(D, algorithm=None):
         raise ValueError("%s is not a valid algorithm"%algorithm)
 
     from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-    from sage.rings.all import RR, ZZ, ComplexField
+    from sage.rings.all import RR, ComplexField
     from sage.functions.all import elliptic_j
 
     # get all primitive reduced quadratic forms, (necessary to exclude
@@ -450,8 +450,6 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
     # imports that are needed only for this function
     from sage.structure.proof.proof import get_flag
-    import math
-    from sage.misc.functional import round
 
     # deal with input defaults and type checking
     proof = get_flag(proof, 'number_field')
@@ -553,10 +551,11 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         # discriminants; we might as well, since Watkins provides this
         # data.
         for h in T:
-            if len([D for D,f in T[h] if f==1]) != fund_count[h]:
+            if len([DD for DD, ff in T[h] if ff == 1]) != fund_count[h]:
                 raise RuntimeError("number of discriminants inconsistent with Watkins's table")
 
     return T
+
 
 @cached_function
 def is_cm_j_invariant(j, method='new'):

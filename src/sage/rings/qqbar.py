@@ -848,7 +848,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             raise NotImplementedError
@@ -1243,7 +1243,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras).complex_field()
         else:
             raise NotImplementedError
@@ -1821,7 +1821,6 @@ def isolating_interval(intv_fn, pol):
 
     for prec in prec_seq():
         intv = intv_fn(prec)
-        ifld = intv.parent()
 
         # We need to verify that pol has exactly one root in the
         # interval intv. We know (because it is a precondition of
@@ -1835,6 +1834,7 @@ def isolating_interval(intv_fn, pol):
 
         if not dpol(intv).contains_zero():
             return intv
+
 
 def find_zero_result(fn, l):
     """
@@ -1931,7 +1931,7 @@ def conjugate_shrink(v):
         return v.real()
     return v
 
-def number_field_elements_from_algebraics(numbers, minimal=False):
+def number_field_elements_from_algebraics(numbers, minimal=False, same_field=False):
     r"""
     Given a sequence of elements of either ``AA`` or ``QQbar``
     (or a mixture), computes a number field containing all of these
@@ -1941,6 +1941,13 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     This may not return the smallest such number field, unless
     ``minimal=True`` is specified.
+
+    If ``same_field=True`` is specified, and all of the elements are
+    from the same field (either ``AA`` or ``QQbar``), the generated
+    homomorphism will map back to that field.  Otherwise, if all specified
+    elements are real, the homomorphism might map back to ``AA``
+    (and will, if ``minimal=True`` is specified), even if the
+    elements were in ``QQbar``.
 
     Also, a single number can be passed, rather than a sequence; and
     any values which are not elements of ``AA`` or ``QQbar``
@@ -1967,6 +1974,8 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         1.414213562373095?
         sage: rt3 = AA(sqrt(3)); rt3
         1.732050807568878?
+        sage: rt3a = QQbar(sqrt(3)); rt3a
+        1.732050807568878?
         sage: qqI = QQbar.zeta(4); qqI
         I
         sage: z3 = QQbar.zeta(3); z3
@@ -1987,6 +1996,22 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
             Defn: a |--> 0.5176380902050415?)
+
+    ``rt3a`` is a real number in ``QQbar``.  Ordinarily, we'd get a homomorphism
+    to ``AA`` (because all elements are real), but if we specify ``same_field=True``,
+    we'll get a homomorphism back to ``QQbar``::
+
+        sage: number_field_elements_from_algebraics(rt3a)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 3
+            To:   Algebraic Real Field
+            Defn: a |--> 1.732050807568878?)
+
+        sage: number_field_elements_from_algebraics(rt3a, same_field=True)
+        (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 3
+            To:   Algebraic Field
+            Defn: a |--> 1.732050807568878?)
 
     We've created ``rt2b`` in such a way that \sage doesn't initially know
     that it's in a degree-2 extension of `\QQ`::
@@ -2066,9 +2091,12 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
 
     Note that for the first example, where \sage doesn't realize that
     the number is real, we get a homomorphism to ``QQbar``; but with
-    ``minimal=True``, we get a homomorphism to ``AA``. Also note
-    that the exact answer depends on a Pari function that gives
-    different answers for 32-bit and 64-bit machines::
+    ``minimal=True``, we get a homomorphism to ``AA``.  If we specify
+    both ``minimal=True`` and ``same_field=True``, we get a second
+    degree extension (minimal) that maps back to ``QQbar``.
+
+    Also note that the exact answer depends on a Pari function that
+    gives different answers for 32-bit and 64-bit machines::
 
         sage: number_field_elements_from_algebraics(rt2c)
         (Number Field in a with defining polynomial y^4 + 2*y^2 + 4, 1/2*a^3, Ring morphism:
@@ -2079,6 +2107,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
         (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
             From: Number Field in a with defining polynomial y^2 - 2
             To:   Algebraic Real Field
+            Defn: a |--> 1.414213562373095?)
+        sage: number_field_elements_from_algebraics(rt2c, minimal=True, same_field=True)
+        (Number Field in a with defining polynomial y^2 - 2, a, Ring morphism:
+            From: Number Field in a with defining polynomial y^2 - 2
+            To:   Algebraic Field
             Defn: a |--> 1.414213562373095?)
 
     """
@@ -2091,6 +2124,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     except TypeError:
         numbers = [numbers]
         single_number = True
+
+    if any([isinstance(_, AlgebraicNumber) for _ in numbers]):
+        algebraic_field = QQbar
+    else:
+        algebraic_field = AA
 
     def mk_algebraic(x):
         if isinstance(x, AlgebraicNumber_base):
@@ -2111,7 +2149,10 @@ def number_field_elements_from_algebraics(numbers, minimal=False):
     if single_number:
         nums = nums[0]
 
-    hom = fld.hom([gen.root_as_algebraic()])
+    if same_field:
+        hom = fld.hom([gen.root_as_algebraic()], codomain=algebraic_field)
+    else:
+        hom = fld.hom([gen.root_as_algebraic()])
 
     return (fld, nums, hom)
 
@@ -2520,7 +2561,6 @@ class AlgebraicGenerator(SageObject):
         elif other._cyclotomic:
             self, other = other, self
 
-        sp = self._field.polynomial()
         op = other._field.polynomial()
         op = QQx(op)
         # pari_nf = self._field.pari_nf()
@@ -2559,8 +2599,6 @@ class AlgebraicGenerator(SageObject):
         new_nf = NumberField(red_pol, name='a', check=False)
 
         self_pol_sage = QQx(self_pol.lift())
-
-        new_nf_a = new_nf.gen()
 
         def intv_fn(prec):
             return conjugate_expand(red_elt(self._root._interval_fast(prec) * k + other._root._interval_fast(prec)))
@@ -3068,7 +3106,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3077,7 +3115,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: ~AA(sqrt(~2))
             1.414213562373095?
         """
-        sd = self._descr
         return type(self)(self._descr.invert(self))
 
     def _add_(self, other):
@@ -3908,7 +3945,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # Adapted from NumberFieldElement._symbolic_()
         poly = self.minpoly()
-        var = SR(poly.variable_name())
         if is_ComplexIntervalFieldElement(self._value):
             interval_field = self._value.parent()
         else:
@@ -6479,8 +6515,6 @@ class ANRoot(ANDescr):
 
             return ANExtensionElement(new_gen, red_back(field.gen())/den)
         else:
-            fld = gen.field()
-
             fpf = self._poly.factors()
 
             def find_fn(factor, prec):
@@ -6535,8 +6569,6 @@ class ANRoot(ANDescr):
             new_nf = NumberField(red_pol, name='a', check=False)
 
             self_pol_sage = QQx(self_pol.lift())
-
-            new_nf_a = new_nf.gen()
 
             def intv_fn(prec):
                 return conjugate_expand(red_elt(gen._interval_fast(prec) * k + self._interval_fast(prec) * den))
@@ -7599,7 +7631,6 @@ def an_binop_element(a, b, op):
         bdg2 = bdg.super_poly(p)
         av = ad._value.polynomial()(adg2)
         bv = bd._value.polynomial()(bdg2)
-        v = op(av, bv)
         return ANExtensionElement(p, op(av, bv))
 
     adg2 = adg.super_poly(bdg)

@@ -47,6 +47,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import division
+
+import six
 from six.moves import range
 
 from sage.matrix.constructor import matrix
@@ -1332,7 +1334,7 @@ class Link(object):
             else:
                 crossing_dic = {}
 
-            pd = crossing_dic.values()
+            pd = list(six.itervalues(crossing_dic))
             self._pd_code = pd
             return self._pd_code
 
@@ -2903,11 +2905,11 @@ class Link(object):
             MLP.add_constraint(MLP.sum(horp) - MLP.sum(horm) == 0)
             MLP.add_constraint(MLP.sum(verp) - MLP.sum(verm) == 0)
         MLP.set_objective(MLP.sum(v.values()))
-        solved = MLP.solve()
+        MLP.solve()
         v = MLP.get_values(v)
         lengths = {piece: sum(v[a] for a in pieces[piece]) for piece in pieces}
         image = line([], **kwargs)
-        crossings = {tuple(self.pd_code()[0]): (0,0,0)}
+        crossings = {tuple(self.pd_code()[0]): (0, 0, 0)}
         availables = self.pd_code()[1:]
         used_edges = []
         ims = line([], **kwargs)

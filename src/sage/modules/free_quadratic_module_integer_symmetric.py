@@ -379,7 +379,6 @@ def IntegralLatticeDirectSum(Lattices, return_embeddings=False):
     N = len(Lattices)
     dims = [L_i.dimension() for L_i in Lattices]
     degrees = [L_i.degree() for L_i in Lattices]
-    dim_tot = sum(dims)
     degree_tot = sum(degrees)
     sum_degree = [sum(degrees[:i]) for i in range(N+1)]
     inner_product_list = [copy(L_i.inner_product_matrix()) for L_i in Lattices]
@@ -633,7 +632,7 @@ def IntegralLatticeGluing(Lattices, glue, return_embeddings=False):
         ALi = Lattices[i].discriminant_group()
         for g in glue:
             try:
-                x = ALi(g[i])
+                ALi(g[i])
             except:
                 raise ValueError("the gluing vectors must be in the"
                                  "corresponding discriminant groups")

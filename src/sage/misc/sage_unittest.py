@@ -15,7 +15,7 @@ Unit testing for Sage objects
 import unittest
 import sys
 import traceback
-import random
+
 
 class TestSuite(object):
     """

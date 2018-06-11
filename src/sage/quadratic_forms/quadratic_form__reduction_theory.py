@@ -187,12 +187,10 @@ def minkowski_reduction(self):
     """
     R = self.base_ring()
     n = self.dim()
-    interior_reduced_flag = False
     Q = deepcopy(self)
     M = matrix(R, n, n)
     for i in range(n):
-        M[i,i] = 1
-
+        M[i, i] = 1
 
     ## Begin the reduction
     done_flag = False

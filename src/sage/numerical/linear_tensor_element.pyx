@@ -235,8 +235,8 @@ cdef class LinearTensor(ModuleElement):
             sage: from sage.numerical.linear_functions import LinearFunctionsParent
             sage: LT = LinearFunctionsParent(RDF).tensor(RDF^(2,2))
             sage: LT.an_element()  # indirect doctest
-            [1 + 5*x_2 + 7*x_5 0]
-            [0                 0]
+            [1 + 5*x_2 + 7*x_5 1 + 5*x_2 + 7*x_5]
+            [1 + 5*x_2 + 7*x_5 1 + 5*x_2 + 7*x_5]
         """
         MS = self.parent().free_module()
         assert self.parent().is_matrix_space()

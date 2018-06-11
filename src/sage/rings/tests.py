@@ -172,7 +172,7 @@ def rings0():
         sage: type(sage.rings.tests.rings0())
         <... 'list'>
     """
-    from sage.all import IntegerRing, RationalField, ZZ, IntegerModRing
+    from sage.all import IntegerRing, RationalField
     v = [(IntegerRing, 'ring of integers'),
          (RationalField, 'field of rational numbers'),
          (integer_mod_ring, 'integers modulo n for n at most 50000'),
@@ -185,6 +185,7 @@ def rings0():
          ]
 
     return v
+
 
 def rings1():
     """

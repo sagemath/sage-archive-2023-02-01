@@ -1643,7 +1643,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_free(entry_list)
         return res
 
-    def _echelon_in_place_classical(self):
+    cpdef _echelon_in_place(self, str algorithm):
         cdef Matrix_integer_dense E
         E = self.echelon_form()
         sig_on()
@@ -2975,7 +2975,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                                    prune=prune, verbose=verbose)
 
             self.cache("rank",ZZ(r))
-            R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+            R = <Matrix_integer_dense>self.new_matrix(
+                    entries=[ZZ(z) for z in A.list()])
 
         elif algorithm == "fpLLL":
             from fpylll import BKZ, IntegerMatrix, load_strategies_json
@@ -3216,7 +3217,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 raise TypeError("eta must be >= 0.5")
 
         if algorithm.startswith('NTL:'):
-            A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
+            A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),
+                    [ntl_ZZ(z) for z in self.list()])
 
             if algorithm == "NTL:LLL":
                 r, det2 = A.LLL(a,b, verbose=verb)
@@ -3251,7 +3253,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             r = ZZ(r)
 
-            R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+            R = <Matrix_integer_dense>self.new_matrix(
+                    entries=[ZZ(z) for z in A.list()])
             self.cache("rank",r)
 
         elif algorithm.startswith('fpLLL:'):

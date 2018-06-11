@@ -161,8 +161,6 @@ values and should be preferred::
 
     sage: RBF(NaN) < RBF(infinity)
     False
-    sage: 1/RBF(0) <= RBF(infinity)
-    True
 
 TESTS::
 
@@ -653,7 +651,7 @@ class RealBallField(UniqueRepresentation, Field):
             [0.3333333333333333 +/- 7.04e-17],
             [-4.733045976388941e+363922934236666733021124 +/- 3.46e+363922934236666733021108],
             [+/- inf],
-            [+/- inf],
+            nan,
             nan]
         """
         import sage.symbolic.constants
@@ -881,7 +879,7 @@ class RealBallField(UniqueRepresentation, Field):
             sage: RBF.gamma(5)
             24.00000000000000
             sage: RBF.gamma(10**20)
-            [+/- 5.92e+1956570551809674821757]
+            [+/- 5.50e+1956570552410610660600]
             sage: RBF.gamma(1/3)
             [2.678938534707747 +/- 8.99e-16]
             sage: RBF.gamma(-5)
@@ -2247,7 +2245,7 @@ cdef class RealBall(RingElement):
             sage: inf = RBF(+infinity)
             sage: other_inf = RBF(+infinity, 42.r)
             sage: neg_inf = RBF(-infinity)
-            sage: extended_line = 1/RBF(0)
+            sage: extended_line = ~RBF(0)
             sage: exact_nan = inf - inf
             sage: exact_nan.mid(), exact_nan.rad()
             (NaN, 0.00000000)
@@ -2659,7 +2657,7 @@ cdef class RealBall(RingElement):
             sage: ~RBF(5)
             [0.2000000000000000 +/- 4.45e-17]
             sage: ~RBF(0)
-            [+/- inf]
+            nan
             sage: RBF(RIF(-0.1,0.1))
             [+/- 0.101]
 
@@ -2739,7 +2737,7 @@ cdef class RealBall(RingElement):
             sage: RBF(pi)/RBF(e)
             [1.155727349790922 +/- 8.43e-16]
             sage: RBF(2)/RBF(0)
-            [+/- inf]
+            nan
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2765,7 +2763,7 @@ cdef class RealBall(RingElement):
             sage: RBF(-1)^(1/3)
             nan
             sage: RBF(0)^(-1)
-            [+/- inf]
+            nan
             sage: RBF(-e)**RBF(pi)
             nan
 
@@ -3129,7 +3127,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).tan()
             [1.557407724654902 +/- 3.26e-16]
             sage: RBF(pi/2).tan()
-            [+/- inf]
+            nan
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3146,7 +3144,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).cot()
             [0.642092615934331 +/- 4.79e-16]
             sage: RBF(pi).cot()
-            [+/- inf]
+            nan
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -3257,7 +3255,7 @@ cdef class RealBall(RingElement):
             sage: RBF(1).coth()
             [1.313035285499331 +/- 4.97e-16]
             sage: RBF(0).coth()
-            [+/- inf]
+            nan
         """
         cdef RealBall res = self._new()
         if _do_sig(prec(self)): sig_on()

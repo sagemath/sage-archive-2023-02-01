@@ -217,7 +217,6 @@ from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
-from sage.categories.algebras import Algebras
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
@@ -4267,7 +4266,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def scalar(self, x, zee=None):
         r"""
-        Return the standard scalar product between ``self`` and ``x``, also known as the "Hall inner product" or the "Hall scalar product".
+        Return the standard scalar product between ``self`` and ``x``.
+
+        This is also known as the "Hall inner product" or the
+        "Hall scalar product".
 
         INPUT:
 

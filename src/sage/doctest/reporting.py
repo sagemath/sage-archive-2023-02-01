@@ -437,7 +437,6 @@ class DocTestReporter(SageObject):
                     postscript['cputime'] += cpu
                     postscript['walltime'] += wall
 
-                    total_skipped = 0
                     try:
                         optionals = result_dict.optionals
                     except AttributeError:
@@ -471,7 +470,15 @@ class DocTestReporter(SageObject):
                         log("    %s not run because we ran out of time"%(count_noun(nskipped, "test")))
 
                     if nskipped != 0:
-                        total = "%s/%s"%(ntests, count_noun(ntests + nskipped, "test"))
+                        # It would be nice to report "a/b tests run" instead of
+                        # the percentage that is printed here.  However, it is
+                        # not clear how to pull out the actual part of "ntests"
+                        # that has been run for a variety of reasons, such as
+                        # the sig_on_count() tests, the possibility to run
+                        # tests multiple times, and some other unclear mangling
+                        # of these numbers that was not clear to the author.
+                        ntests_run = result_dict.tests
+                        total = "%d%% of tests run"%(round(100*ntests_run/float(ntests_run + nskipped)))
                     else:
                         total = count_noun(ntests, "test")
                     log("    [%s, %s%.2f s]" % (total, "%s, "%(count_noun(f, "failure")) if f else "", wall))

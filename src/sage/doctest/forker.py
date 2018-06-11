@@ -468,6 +468,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         self.setters = {}
         self.running_global_digest = hashlib.md5()
         self.total_walltime_skips = 0
+        self.total_performed_tests = 0
         self.total_walltime = 0
 
     def _run(self, test, compileflags, out):
@@ -692,6 +693,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         # Record and return the number of failures and tries.
         self._DocTestRunner__record_outcome(test, failures, tries)
         self.total_walltime_skips += walltime_skips
+        self.total_performed_tests += tries
         return TestResults(failures, tries)
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
@@ -1475,6 +1477,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])
+        D['tests'] = self.total_performed_tests
         D['walltime_skips'] = self.total_walltime_skips
         if hasattr(self, 'failures'):
             D['failures'] = self.failures

@@ -11,7 +11,10 @@ Decorators
 ==========
 """
 
-def handle_AA_and_QQbar(func):
+from sage.misc.decorators import decorator_keywords, sage_wraps
+
+@decorator_keywords
+def handle_AA_and_QQbar(func, factor_field=False):
     r"""
     Decorator to call a function that only accepts arguments in number fields.
 
@@ -22,12 +25,11 @@ def handle_AA_and_QQbar(func):
 
     Keyword arguments are currently not converted.
 
-    Only works for functions that don't depend on polynomial factorization.
-    Thus, :meth:`intersection` is suitable, but :meth:`associated_primes`
-    is not.
+    If the decorator is used with the optional argument `factor_field=True`,
+    the polynomials and/or ideals are converted to a larger number field in
+    which they can be factored.  While slower, this option is required for
+    methods that depend the ability to factor their arguments.
     """
-
-    from sage.misc.decorators import sage_wraps
 
     @sage_wraps(func)
     def wrapper(*args, **kwds):
@@ -41,13 +43,19 @@ def handle_AA_and_QQbar(func):
                     and isinstance(a.base_ring(), AlgebraicField_common) for a in args]):
             return func(*args, **kwds)
 
-        orig_elems = []
+        polynomials = []
+
         for a in flatten(args, ltypes=(list, tuple, set)):
             if isinstance(a, Ideal_generic):
-                for g in a.gens():
-                    orig_elems.extend(g.coefficients())
+                polynomials.extend(a.gens())
             elif isinstance(a, MPolynomial):
-                orig_elems.extend(a.coefficients())
+                polynomials.append(a)
+
+        orig_elems = flatten([p.coefficients() for p in polynomials])
+
+        if factor_field is True:
+            for p in polynomials:
+                orig_elems.extend(flatten([f[0].coefficients() for f in p.factor()]))
 
         # We need minimal=True if these elements are over AA, because
         # same_field=True might trigger an exception otherwise.

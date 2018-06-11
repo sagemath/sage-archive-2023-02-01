@@ -669,6 +669,7 @@ class MPolynomialIdeal_singular_repr(
         I.plot()
 
     @require_field
+    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def complete_primary_decomposition(self, algorithm="sy"):
         r"""
@@ -969,6 +970,7 @@ class MPolynomialIdeal_singular_repr(
         return self == P
 
     @require_field
+    @handle_AA_and_QQbar
     @singular_gb_standard_options
     @libsingular_gb_standard_options
     def triangular_decomposition(self, algorithm=None, singular=singular_default):
@@ -1571,6 +1573,7 @@ class MPolynomialIdeal_singular_repr(
         return R.ideal(K)
 
     @require_field
+    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def minimal_associated_primes(self):
         """
@@ -1601,6 +1604,7 @@ class MPolynomialIdeal_singular_repr(
         return [R.ideal(J) for J in M]
 
     @require_field
+    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def radical(self):
         r"""
@@ -1654,6 +1658,7 @@ class MPolynomialIdeal_singular_repr(
         return S.ideal(r)
 
     @require_field
+    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def integral_closure(self, p=0, r=True, singular=singular_default):
         """
@@ -2101,6 +2106,7 @@ class MPolynomialIdeal_singular_repr(
         return (R.ideal(ideal), ZZ(expo))
 
     @require_field
+    @handle_AA_and_QQbar(factor_field=True)
     def variety(self, ring=None):
         r"""
         Return the variety of this ideal.

@@ -87,18 +87,6 @@ See :trac:`12091`::
     2*x_0 <= x_1 <= 1
     sage: b[2] >= b[1] >= 2*b[0]
     2*x_0 <= x_1 <= x_2
-
-Some checks kept from :trac:`25419`::
-
-    sage: p = MixedIntegerLinearProgram()
-    sage: LF = p.linear_functions_parent()
-    sage: f = LF({2 : 5, 3 : 2})
-    sage: len(set([f, f]))
-    1
-    sage: len(set([f, f+0]))
-    2
-    sage: len(set([f, f+1]))
-    2
 """
 
 #*****************************************************************************
@@ -495,12 +483,26 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
             sage: f = LF({2 : 5, 3 : 2})
-            sage: f.__hash__()   # random output
+            sage: hash(f)  # indirect doctest; random
             103987752
+
+        Since we hash by ``id()``, linear functions and constraints are
+        only considered equal for sets and dicts if they are the same
+        object::
+
+            sage: f = LF.0
+            sage: set([f, f])
+            {x_0}
+            sage: set([f, f+0])
+            {x_0, x_0}
+            sage: len(set([f, f+1]))
+            2
             sage: d = {}
-            sage: d[f] = 3
+            sage: d[f] = 123
+            sage: d[f+0] = 456
+            sage: list(d)
+            [x_0, x_0]
         """
-        # see __cmp__() if you want to change the hash function
         return hash_by_id(<void*>self)
 
 

@@ -46,7 +46,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         EXAMPLES::
 
-            sage: TestSuite(algebras.FQSym(QQ).F()).run()
+            sage: TestSuite(algebras.FQSym(QQ).F()).run()  # long time
         """
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          Permutations(),
@@ -61,6 +61,8 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         The things that coerce into ``self`` are
 
         - free quasi-symmetric functions over a base with
+          a coercion map into ``self.base_ring()``
+        - free symmetric functions over a base with
           a coercion map into ``self.base_ring()``
 
         EXAMPLES::
@@ -95,6 +97,21 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
              over Finite Field of size 7 in the F basis to
              Free Quasi-symmetric functions over Integer Ring in the F basis
 
+        Check that `FSym` bases coerce in::
+
+            sage: FSym = algebras.FSym(ZZ)
+            sage: TG = FSym.G()
+            sage: t = StandardTableau([[1,3],[2,4],[5]])
+            sage: F(TG[t])
+            F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+             + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+            sage: algebras.FQSym(QQ)(TG[t])
+            F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+             + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+            sage: G7 = algebras.FQSym(GF(7)).G()
+            sage: G7(TG[[1,2],[3,4]])
+            G[2, 4, 1, 3] + G[3, 4, 1, 2]
+
         TESTS::
 
             sage: F = algebras.FQSym(ZZ).F()
@@ -124,6 +141,23 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             # Otherwise lift that basis up and then coerce over
             target = getattr(self.realization_of(), R._basis_name)()
             return self._coerce_map_via([target], R)
+
+        # FSym coerces in:
+        from sage.combinat.chas.fsym import FreeSymmetricFunctions
+        if isinstance(R, FreeSymmetricFunctions.Fundamental):
+            if not self.base_ring().has_coerce_map_from(R.base_ring()):
+                return False
+            G = self.realization_of().G()
+            P = G._indices
+            def G_to_G_on_basis(t):
+                return G.sum_of_monomials(P(sigma) for sigma in Permutations(t.size())
+                                          if sigma.right_tableau() == t)
+            phi = R.module_morphism(G_to_G_on_basis, codomain=G)
+            if self is G:
+                return phi
+            else:
+                return self.coerce_map_from(G) * phi
+
         return super(FQSymBasis_abstract, self)._coerce_map_from_(R)
 
     @cached_method
@@ -159,7 +193,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     a permutation (regarded as a word) into two (at every
     possible point) and standardizing the two pieces.
     This Hopf algebra was introduced in [MR]_.
-    See [GriRei16]_ (Chapter 8) for a treatment using modern
+    See [GriRei18]_ (Chapter 8) for a treatment using modern
     notations.
 
     In more detail:
@@ -220,7 +254,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     Consider the `R`-linear map that sends each `G_u` to the sum of
     all words whose standardization (also known as "standard
     permutation"; see
-    :meth:`~sage.combinat.words.finite_word.standard_permutation`)
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.standard_permutation`)
     is `u`. This map is an injective `R`-algebra homomorphism, and
     thus embeds `FQSym` into the latter ring.
 
@@ -313,7 +347,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     - [MR]_
     - [LodayRonco]_
-    - [GriRei16]_
+    - [GriRei18]_
     """
 
     def __init__(self, R):
@@ -370,12 +404,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     _shorthands = tuple(['F', 'G'])
 
     class F(FQSymBasis_abstract):
-        """
+        r"""
         The F-basis of `FQSym`.
 
         This is the basis `(F_w)`, with `w` ranging over all
-        permutations. See the documentation of :class:`FQSym`
-        for details.
+        permutations. See the documentation of
+        :class:`FreeQuasisymmetricFunctions` for details.
 
         EXAMPLES::
 
@@ -651,12 +685,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 return SGA._from_dict({Permutations(n)(key): c for (key, c) in self})
 
     class G(FQSymBasis_abstract):
-        """
+        r"""
         The G-basis of `FQSym`.
 
         This is the basis `(G_w)`, with `w` ranging over all
-        permutations. See the documentation of :class:`FQSym`
-        for details.
+        permutations. See the documentation of
+        :class:`FreeQuasisymmetricFunctions` for details.
 
         EXAMPLES::
 
@@ -1064,7 +1098,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
 class FQSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `FQSym`.
+    The category of graded bases of `FQSym` indexed by permutations.
     """
     def __init__(self, base):
         r"""
@@ -1150,6 +1184,31 @@ class FQSymBases(Category_realization_of_parent):
             """
             return self.monomial(Permutation(p))
 
+        def basis(self, degree=None):
+            r"""
+            The basis elements (optionally: of the specified degree).
+
+            OUTPUT: Family
+
+            EXAMPLES::
+
+                sage: FQSym = algebras.FQSym(QQ)
+                sage: G = FQSym.G()
+                sage: G.basis()
+                Lazy family (Term map from Standard permutations to Free Quasi-symmetric functions over Rational Field in the G basis(i))_{i in Standard permutations}
+                sage: G.basis().keys()
+                Standard permutations
+                sage: G.basis(degree=3).keys()
+                Standard permutations of 3
+                sage: G.basis(degree=3).list()
+                [G[1, 2, 3], G[1, 3, 2], G[2, 1, 3], G[2, 3, 1], G[3, 1, 2], G[3, 2, 1]]
+            """
+            from sage.combinat.family import Family
+            if degree is None:
+                return Family(self._indices, self.monomial)
+            else:
+                return Family(Permutations(degree), self.monomial)
+
         def is_field(self, proof=True):
             """
             Return whether this `FQSym` is a field.
@@ -1225,7 +1284,8 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`product`, :meth:`prec`, :meth:`over`, :meth:`under`
+                :meth:`~sage.categories.magmas.Magmas.ParentMethods.product`,
+                :meth:`prec`
 
             EXAMPLES::
 
@@ -1276,7 +1336,8 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`product`, :meth:`succ`, :meth:`over`, :meth:`under`
+                :meth:`~sage.categories.magmas.Magmas.ParentMethods.product`,
+                :meth:`succ`
 
             EXAMPLES::
 

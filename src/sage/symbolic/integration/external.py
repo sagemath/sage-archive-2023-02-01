@@ -184,12 +184,12 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         else:
             result = ex.integrate(seg)
 
-    locals = {str(v): v for v in expression.variables()}
     if str(result) == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
 
     return result.sage()
+
 
 def giac_integrator(expression, v, a=None, b=None):
     """

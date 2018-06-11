@@ -83,7 +83,7 @@ overview can also be found in Section 4.6 of [Rüt2014]_.
 from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method
-from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, DiscreteValuation
+from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation
 from sage.structure.factory import UniqueFactory
 
 

@@ -5710,66 +5710,6 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     return RealLiteral(R, s, base)
 
 
-# here because this imports the other real fields
-def create_RealField(prec=53, type="MPFR", rnd="RNDN", sci_not=0):
-    """
-    Create a real field with given precision, type, rounding mode and
-    scientific notation.
-
-    Some options are ignored for certain types (RDF for example).
-
-    INPUT:
-
-    - ``prec`` -- a positive integer
-
-    - ``type`` -- type of real field:
-
-      - ``'RDF'`` -- the Sage real field corresponding to native doubles
-      - ``'Interval'`` -- real fields implementing interval arithmetic
-      - ``'RLF'`` -- the real lazy field
-      - ``'MPFR'`` -- floating point real numbers implemented using the MPFR
-        library
-
-    - ``rnd`` -- rounding mode:
-
-      - ``'RNDN'`` -- round to nearest
-      - ``'RNDZ'`` -- round toward zero
-      - ``'RNDD'`` -- round down
-      - ``'RNDU'`` -- round up
-
-    - ``sci_not`` -- boolean, whether to use scientific notation for printing
-
-    OUTPUT:
-
-    the appropriate real field
-
-    EXAMPLES::
-
-        sage: from sage.rings.real_mpfr import create_RealField
-        sage: create_RealField(30)
-        Real Field with 30 bits of precision
-        sage: create_RealField(20, 'RDF') # ignores precision
-        Real Double Field
-        sage: create_RealField(60, 'Interval')
-        Real Interval Field with 60 bits of precision
-        sage: create_RealField(40, 'RLF') # ignores precision
-        Real Lazy Field
-    """
-    if type == "RDF":
-        return RDF
-    elif type == "Interval":
-        from .real_mpfi import RealIntervalField
-        return RealIntervalField(prec, sci_not)
-    elif type == "Ball":
-        from .real_arb import RealBallField
-        return RealBallField(prec)
-    elif type == "RLF":
-        from .real_lazy import RLF
-        return RLF
-    else:
-        return RealField(prec, sci_not, rnd)
-
-
 def is_RealField(x):
     """
     Returns ``True`` if ``x`` is technically of a Python real field type.
@@ -5968,3 +5908,21 @@ cdef class int_toRR(Map):
             raise TypeError("argument cannot be converted to a Python int/long")
 
         return y
+
+
+def create_RealField(*args, **kwds):
+    r"""
+    Deprecated function moved to :mod:`sage.rings.real_field`.
+
+    TESTS::
+
+        sage: from sage.rings.real_mpfr import create_RealField
+        sage: create_RealField()
+        doctest:...: DeprecationWarning: Please import create_RealField from sage.rings.real_field
+        See http://trac.sagemath.org/24511 for details.
+        Real Field with 53 bits of precision
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(24511, "Please import create_RealField from sage.rings.real_field")
+    from sage.rings.real_field import create_RealField as cr
+    return cr(*args, **kwds)

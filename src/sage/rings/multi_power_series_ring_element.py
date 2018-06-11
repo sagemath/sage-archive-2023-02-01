@@ -580,10 +580,19 @@ class MPowerSeries(PowerSeries):
             sage: f._latex_()
             '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
-            + O(t0, t1, t2)^{15}'
+            + O(t_{0}, t_{1}, t_{2})^{15}'
+
+        TESTS:
+
+        Check that :trac:`25156` is fixed::
+
+            sage: R.<x1,y1> = PowerSeriesRing(QQ, ('x', 'y'))
+            sage: element = 1 + y1^10 + x1^5
+            sage: element._latex_()
+            '1 + x_{1}^{5} + y_{1}^{10}'
         """
         if self._prec == infinity:
-            return "%s" % self._value()
+            return "%s" % self._value()._latex_()
         return "%(val)s + O(%(gens)s)^{%(prec)s}" \
                %{'val':self._value()._latex_(),
                  'gens':', '.join(g._latex_() for g in self.parent().gens()),

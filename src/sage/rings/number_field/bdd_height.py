@@ -59,6 +59,7 @@ def bdd_norm_pr_gens_iq(K, norm_list):
     INPUT:
 
     - `K` - an imaginary quadratic number field
+
     - ``norm_list`` - a list of positive integers
 
     OUTPUT:
@@ -125,6 +126,7 @@ def bdd_height_iq(K, height_bound):
     INPUT:
 
     - `K` - an imaginary quadratic number field
+
     - ``height_bound`` - a real number
 
     OUTPUT:
@@ -231,6 +233,7 @@ def bdd_norm_pr_ideal_gens(K, norm_list):
     INPUT:
 
     - `K` - a number field
+
     - ``norm_list`` - a list of positive integers
 
     OUTPUT:
@@ -291,6 +294,7 @@ def integer_points_in_polytope(matrix, interval_radius):
     INPUT:
 
     - ``matrix`` - a square matrix of real numbers
+
     - ``interval_radius`` - a real number
 
     OUTPUT:
@@ -357,13 +361,12 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
 
     This algorithm computes 2 lists: L containing elements x in `K` such that
     H_k(x) <= B, and a list L' containing elements x in `K` such that
-    abs(H_k(x) - B) < tolerance.
+    abs(H_k(x) - B) < tolerance. However, due to floating point issues
+    one may get points larger than specified bound which can be corrected
+    by lowering the tolerance.
 
     In current implementation both lists (L,L') are merged and returned in
     form of iterator.
-
-    Due to floating point issues one may get extra points which can be
-    corrected by lowering the tolerance.
 
     ALGORITHM:
 
@@ -373,7 +376,9 @@ def bdd_height(K, height_bound, tolerance=1e-2, precision=53):
     INPUT:
 
     - ``height_bound`` - real number
+
     - ``tolerance`` - (default: 0.01) a rational number in (0,1]
+
     - ``precision`` - (default: 53) positive integer
 
     OUTPUT:

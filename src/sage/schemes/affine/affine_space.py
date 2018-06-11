@@ -893,19 +893,28 @@ class AffineSpace_field(AffineSpace_generic):
         """
         return SchemeMorphism_polynomial_affine_space_field(*args, **kwds)
 
-    def points_of_bounded_height(self,bound):
+    def points_of_bounded_height(self, **kwds):
         r"""
         Returns an iterator of the points in this affine space of
         absolute height of at most the given bound.
 
         Bound check  is strict for the rational field.
         Requires this space to be affine space over a number field. Uses the
-        Doyle-Krumm algorithm for computing algebraic numbers up
-        to a given height [Doyle-Krumm]_.
+        Doyle-Krumm algorithm for computing algebraic numbers up to a given
+        height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
 
         INPUT:
 
-        - ``bound`` - a real number.
+        kwds:
+
+        - ``bound`` - a real number
+
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields
 
         OUTPUT:
 
@@ -914,7 +923,7 @@ class AffineSpace_field(AffineSpace_generic):
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
-            sage: list(A.points_of_bounded_height(3))
+            sage: list(A.points_of_bounded_height(bound=3))
             [(0, 0), (1, 0), (-1, 0), (1/2, 0), (-1/2, 0), (2, 0), (-2, 0), (0, 1),
             (1, 1), (-1, 1), (1/2, 1), (-1/2, 1), (2, 1), (-2, 1), (0, -1), (1, -1),
             (-1, -1), (1/2, -1), (-1/2, -1), (2, -1), (-2, -1), (0, 1/2), (1, 1/2),
@@ -927,7 +936,7 @@ class AffineSpace_field(AffineSpace_generic):
 
             sage: u = QQ['u'].0
             sage: A.<x,y> = AffineSpace(NumberField(u^2 - 2, 'v'), 2)
-            sage: len(list(A.points_of_bounded_height(2)))
+            sage: len(list(A.points_of_bounded_height(bound=2, tolerance=0.1)))
             529
         """
         if (is_RationalField(self.base_ring())):
@@ -936,8 +945,8 @@ class AffineSpace_field(AffineSpace_generic):
             ftype = True
         else:
             raise NotImplementedError("self must be affine space over a number field.")
-
-        bound = bound**self.base_ring().absolute_degree() # convert to relative height
+        bound = kwds.pop('bound')
+        B = bound**self.base_ring().absolute_degree() # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()
@@ -945,9 +954,11 @@ class AffineSpace_field(AffineSpace_generic):
         P = [ zero for _ in range(n) ]
         yield self(P)
         if not ftype:
-            iters = [ R.range_by_height(bound) for _ in range(n) ]
+            iters = [ R.range_by_height(B) for _ in range(n) ]
         else:
-            iters = [ R.elements_of_bounded_height(bound) for _ in range(n) ]
+            tol = kwds.pop('tolerance', 1e-2)
+            prec = kwds.pop('precision', 53)
+            iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(n) ]
         for x in iters: next(x) # put at zero
         i = 0
         while i < n:
@@ -957,9 +968,9 @@ class AffineSpace_field(AffineSpace_generic):
                 i = 0
             except StopIteration:
                 if not ftype:
-                    iters[i] = R.range_by_height(bound) # reset
+                    iters[i] = R.range_by_height(B) # reset
                 else:
-                    iters[i] = R.elements_of_bounded_height(bound)
+                    iters[i] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec)
                 next(iters[i]) # put at zero
                 P[i] = zero
                 i += 1

@@ -152,16 +152,24 @@ def enum_affine_rational_field(X, B):
     return pts
 
 
-def enum_affine_number_field(X, B):
+def enum_affine_number_field(X, **kwds):
     """
     Enumerates affine points on scheme ``X`` defined over a number field. Simply checks all of the
     points of absolute height up to ``B`` and adds those that are on the scheme to the list.
 
+    Uses the Doyle-Krumm algorithm for computing algebraic numbers up to a given height
+    [Doyle-Krumm]_. The algorithm requires floating point arithmetic, so the user is allowed
+    to specify the precision for such calculations.
+
     INPUT:
 
-    - ``X`` - a scheme defined over a number field.
+    kwds:
 
-    - ``B`` - a real number.
+    - ``bound`` - a real number
+
+    - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+    - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
     OUTPUT:
 
@@ -175,7 +183,7 @@ def enum_affine_number_field(X, B):
         sage: K = NumberField(u^2 + 2, 'v')
         sage: A.<x,y,z> = AffineSpace(K, 3)
         sage: X = A.subscheme([y^2 - x])
-        sage: enum_affine_number_field(X(K), 2**0.5)
+        sage: enum_affine_number_field(X(K), bound=2**0.5)
         [(0, 0, -1), (0, 0, -v), (0, 0, -1/2*v), (0, 0, 0), (0, 0, 1/2*v), (0, 0, v), (0, 0, 1),
         (1, -1, -1), (1, -1, -v), (1, -1, -1/2*v), (1, -1, 0), (1, -1, 1/2*v), (1, -1, v), (1, -1, 1),
         (1, 1, -1), (1, 1, -v), (1, 1, -1/2*v), (1, 1, 0), (1, 1, 1/2*v), (1, 1, v), (1, 1, 1)]
@@ -187,10 +195,13 @@ def enum_affine_number_field(X, B):
         sage: A.<x,y> = AffineSpace(K, 2)
         sage: X=A.subscheme(x-y)
         sage: from sage.schemes.affine.affine_rational_point import enum_affine_number_field
-        sage: enum_affine_number_field(X, 3**0.25)
+        sage: enum_affine_number_field(X, bound=3**0.25)
         [(-1, -1), (-1/2*v - 1/2, -1/2*v - 1/2), (1/2*v - 1/2, 1/2*v - 1/2), (0, 0), (-1/2*v + 1/2, -1/2*v + 1/2),
         (1/2*v + 1/2, 1/2*v + 1/2), (1, 1)]
     """
+    B = kwds.pop('bound')
+    tol = kwds.pop('tolerance', 1e-2)
+    prec = kwds.pop('precision', 53)
     from sage.schemes.affine.affine_space import is_AffineSpace
     if(is_Scheme(X)):
         if (not is_AffineSpace(X.ambient_space())):
@@ -203,7 +214,7 @@ def enum_affine_number_field(X, B):
     R = X.codomain().ambient_space()
 
     pts = []
-    for P in R.points_of_bounded_height(B):
+    for P in R.points_of_bounded_height(bound=B, tolerance=tol, precision=prec):
         try:
             pts.append(X(P))
         except TypeError:

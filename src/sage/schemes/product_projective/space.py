@@ -1134,14 +1134,6 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
         - an iterator of points in this space
 
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
         EXAMPLES::
 
             sage: PP = ProductProjectiveSpaces(QQ, [1, 2])

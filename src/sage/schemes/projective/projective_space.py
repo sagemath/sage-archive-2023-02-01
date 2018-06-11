@@ -1267,7 +1267,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
-    def points_of_bounded_height(self, bound, prec=53):
+    def points_of_bounded_height(self, **kwds):
         r"""
         Returns an iterator of the points in self of absolute height of at most the given bound.
 
@@ -1275,28 +1275,27 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         over a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
         up to a given height [Doyle-Krumm]_.
 
+        The algorithm requires floating point arithmetic, so the user is allowed to specify
+        the precision for such calculations.
+
         INPUT:
 
-        - ``bound`` - a real number.
+        kwds:
 
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
+        - ``bound`` - a real number
+
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
         - an iterator of points in this space.
 
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: list(P.points_of_bounded_height(5))
+            sage: list(P.points_of_bounded_height(bound=5))
             [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
             (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
             (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
@@ -1305,7 +1304,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
-            sage: len(list(P.points_of_bounded_height(1.5)))
+            sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
             57
         """
         if (is_RationalField(self.base_ring())):
@@ -1315,7 +1314,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         else:
             raise NotImplementedError("self must be projective space over a number field")
 
-        bound = bound**(self.base_ring().absolute_degree()) # convert to relative height
+        bound = kwds.pop('bound')
+        B = bound**(self.base_ring().absolute_degree()) # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()
@@ -1325,9 +1325,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
             if not ftype: # if rational field
-                iters = [ R.range_by_height(bound) for _ in range(i) ]
+                iters = [ R.range_by_height(B) for _ in range(i) ]
             else: # if number field
-                iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
+                tol = kwds.pop('tolerance', 1e-2)
+                prec = kwds.pop('precision', 53)
+                iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i) ]
             for x in iters: next(x) # put at zero
             j = 0
             while j < i:
@@ -1337,9 +1339,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     j = 0
                 except StopIteration:
                     if not ftype: # if rational field
-                        iters[j] = R.range_by_height(bound) # reset
+                        iters[j] = R.range_by_height(B) # reset
                     else: # if number field
-                        iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
+                        iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) # reset
                     next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1

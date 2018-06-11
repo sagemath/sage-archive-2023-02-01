@@ -77,14 +77,6 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         - a list of rational points of a projective scheme.
 
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
         EXAMPLES::
 
             sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], QQ)

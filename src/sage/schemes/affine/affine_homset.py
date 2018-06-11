@@ -197,7 +197,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_number_field
-            return enum_affine_number_field(self,B)
+            return enum_affine_number_field(self, bound=B)
         elif is_FiniteField(R):
             from sage.schemes.affine.affine_rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)

@@ -80,14 +80,6 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         returned. Over an infinite field, all points satisfying the
         bound are returned.
 
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
@@ -194,7 +186,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-            return enum_projective_number_field(self,B, prec=prec)
+            return enum_projective_number_field(self, bound=B, precision=prec)
         elif is_FiniteField(R):
             from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())

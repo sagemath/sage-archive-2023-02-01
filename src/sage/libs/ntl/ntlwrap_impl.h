@@ -8,9 +8,6 @@
 #include <sstream>
 #include <gmp.h>
 
-static CYTHON_INLINE void del_charstar(char* a) {
-    delete[] a;
-}
 
 //////// ZZ //////////
 
@@ -19,15 +16,6 @@ static CYTHON_INLINE void del_charstar(char* a) {
 static CYTHON_INLINE int ZZ_to_int(const ZZ* x)
 {
     return to_int(*x);
-}
-
-/* Returns a *new* ZZ object.
-   AUTHOR: David Harvey (2008-06-08) */
-static CYTHON_INLINE struct ZZ* int_to_ZZ(int value)
-{
-    ZZ* output = new ZZ();
-    conv(*output, value);
-    return output;
 }
 
 /* Copies the ZZ into the mpz_t
@@ -64,13 +52,6 @@ static void mpz_to_ZZ(struct ZZ* output, mpz_srcptr x)
         NTL::negate(*output, *output);
     if (use_heap)
         free(bytes);
-}
-
-/* Sets given ZZ to value
-   AUTHOR: David Harvey (2008-06-08) */
-static CYTHON_INLINE void ZZ_set_from_int(ZZ* x, int value)
-{
-    conv(*x, value);
 }
 
 static long ZZ_remove(struct ZZ &dest, const struct ZZ &src, const struct ZZ &f)
@@ -143,56 +124,10 @@ static CYTHON_INLINE int ZZ_p_to_int(const ZZ_p& x )
     return ZZ_to_int(&rep(x));
 }
 
-/* Returns a *new* ZZ_p object.
-   AUTHOR: David Harvey (2008-06-08) */
-static CYTHON_INLINE ZZ_p int_to_ZZ_p(int value)
-{
-    ZZ_p r;
-    r = value;
-    return r;
-}
-
-/* Sets given ZZ_p to value
-   AUTHOR: David Harvey (2008-06-08) */
-static CYTHON_INLINE void ZZ_p_set_from_int(ZZ_p* x, int value)
-{
-    conv(*x, value);
-}
 
 static CYTHON_INLINE void ZZ_p_modulus(struct ZZ* mod, const struct ZZ_p* x)
 {
     (*mod) = x->modulus();
-}
-
-static CYTHON_INLINE struct ZZ_p* ZZ_p_pow(const struct ZZ_p* x, long e)
-{
-    ZZ_p *z = new ZZ_p();
-    NTL::power(*z, *x, e);
-    return z;
-}
-
-static CYTHON_INLINE void ntl_ZZ_set_modulus(ZZ* x)
-{
-    ZZ_p::init(*x);
-}
-
-static CYTHON_INLINE ZZ_p* ZZ_p_inv(ZZ_p* x)
-{
-    ZZ_p *z = new ZZ_p();
-    inv(*z, *x);
-    return z;
-}
-
-static CYTHON_INLINE ZZ_p* ZZ_p_random(void)
-{
-    ZZ_p *z = new ZZ_p();
-    random(*z);
-    return z;
-}
-
-static CYTHON_INLINE struct ZZ_p* ZZ_p_neg(struct ZZ_p* x)
-{
-    return new ZZ_p(-(*x));
 }
 
 
@@ -262,12 +197,6 @@ static CYTHON_INLINE struct ZZX* ZZX_square(struct ZZX* x)
 }
 
 
-static CYTHON_INLINE int ZZX_is_monic(struct ZZX* x)
-{
-    return IsOne(LeadCoeff(*x));
-}
-
-
 static CYTHON_INLINE struct ZZX* ZZX_neg(struct ZZX* x)
 {
     struct ZZX* y = new ZZX();
@@ -324,11 +253,6 @@ static CYTHON_INLINE void ZZX_xgcd(struct ZZX* x, struct ZZX* y, struct ZZ** r, 
     XGCD(**r, **s, **t, *x, *y, proof);
 }
 
-
-static CYTHON_INLINE long ZZX_degree(struct ZZX* x)
-{
-    return deg(*x);
-}
 
 static CYTHON_INLINE void ZZX_set_x(struct ZZX* x)
 {
@@ -541,13 +465,6 @@ static CYTHON_INLINE struct ZZ_pX ZZ_pE_to_ZZ_pX(struct ZZ_pE x)
 
 //////// mat_ZZ //////////
 
-static CYTHON_INLINE mat_ZZ* mat_ZZ_pow(const mat_ZZ* x, long e)
-{
-    mat_ZZ *z = new mat_ZZ();
-    NTL::power(*z, *x, e);
-    return z;
-}
-
 static CYTHON_INLINE void mat_ZZ_setitem(mat_ZZ* x, int i, int j, const struct ZZ* z)
 {
     (*x)[i][j] = *z;
@@ -585,13 +502,6 @@ static CYTHON_INLINE long mat_ZZ_LLL_U(struct ZZ **det, mat_ZZ *x, mat_ZZ *U, lo
     return LLL(**det,*x,*U,a,b,verbose);
 }
 
-
-static CYTHON_INLINE struct ZZX* mat_ZZ_charpoly(const mat_ZZ* A)
-{
-    ZZX* f = new ZZX();
-    CharPoly(*f, *A);
-    return f;
-}
 
 static CYTHON_INLINE void mat_GF2E_setitem(mat_GF2E* x, int i, int j, const struct GF2E* z)
 {

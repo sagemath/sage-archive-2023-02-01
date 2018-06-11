@@ -1033,7 +1033,10 @@ framework. Here is a comprehensive list:
 
   - **internet:** For lines that require an internet connection::
 
-       sage: sloane_sequence(60843)       # optional - internet
+       sage: oeis(60843)                 # optional - internet
+       A060843: Busy Beaver problem: a(n) = maximal number of steps that an
+       n-state Turing machine can make on an initially blank tape before
+       eventually halting.
 
   - **bug:** For lines that describe bugs. Alternatively, use ``# known bug``
     instead: it is an alias for ``optional bug``. ::

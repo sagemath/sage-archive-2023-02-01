@@ -2507,7 +2507,7 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
-    from .real_mpfi import RealIntervalField, RealIntervalFieldElement
+    from .real_mpfi import RealIntervalField
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
@@ -2519,7 +2519,7 @@ def continued_fraction(x, value=None):
             pass
 
     if is_real is False:
-        raise ValueError("the number %s does not seem to be a real number"%x)
+        raise ValueError("the number %s does not seem to be a real number" % x)
 
     if x.parent().is_exact():
         return ContinuedFraction_real(x)

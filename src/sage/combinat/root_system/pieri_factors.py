@@ -780,12 +780,12 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             [[0], [1], [2], [3], [4], [1, 0]]
         """
         from sage.combinat.subset import Subsets
-        index_set = self.W.index_set()
         for l in range(self._min_length, self._max_length+1):
-            for extra in Subsets(self._extra_support, l - len(self._min_support)):
+            for extra in Subsets(self._extra_support,
+                                 l - len(self._min_support)):
                 yield self[self._min_support.union(extra)]
 
-    def stanley_symm_poly_weight(self,w):
+    def stanley_symm_poly_weight(self, w):
         r"""
         Weight used in computing (affine) Stanley symmetric polynomials for affine type A.
 

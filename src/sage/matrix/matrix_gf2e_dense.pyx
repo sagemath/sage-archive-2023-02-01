@@ -938,7 +938,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sig_off()
 
         elif algorithm == 'builtin':
-            self._echelon_in_place_classical()
+            self._echelon_in_place(algorithm="classical")
 
         else:
             raise ValueError("No algorithm '%s'."%algorithm)

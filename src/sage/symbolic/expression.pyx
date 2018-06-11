@@ -2497,6 +2497,35 @@ cdef class Expression(CommutativeRingElement):
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
 
+
+    def is_square(self):
+        """
+        Returns ``True`` if ``self`` is a perfect square.
+
+        EXAMPLES::
+
+            sage: f(n,m) = n*2 + m
+            sage: f(2,1).is_square()
+            False
+            sage: f(3,3).is_square()
+            True
+            sage: f(n,m).is_square()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for non numeric elements of Symbolic Ring
+            sage: SR(42).is_square()
+            False
+            sage: SR(4).is_square()
+            True
+        """
+        try:
+            obj = self.pyobject()
+        except TypeError as e:
+            raise NotImplementedError("is_square() not implemented for non numeric elements of Symbolic Ring")
+
+        return obj.is_square()
+
+
     def left_hand_side(self):
         """
         If self is a relational expression, return the left hand side

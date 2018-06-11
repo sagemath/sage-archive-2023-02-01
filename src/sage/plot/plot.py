@@ -559,7 +559,6 @@ from __future__ import print_function, absolute_import
 from six.moves import range
 from six import iteritems
 
-import os
 from functools import reduce
 
 ## IMPORTANT: Do *not* import matplotlib at module scope.  It takes a

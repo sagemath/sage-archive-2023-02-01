@@ -6910,7 +6910,7 @@ cdef class Matrix(Matrix1):
 
     cpdef _echelon_in_place(self, str algorithm):
         """
-        Transform ``self`` into echelon form and set the pivots of ``self``.
+        Transform ``self`` into echelon form and return the pivots of ``self``.
 
         EXAMPLES::
 
@@ -7045,7 +7045,7 @@ cdef class Matrix(Matrix1):
 
     def _echelon_in_place_classical(self):
         """
-        Transform self into echelon form and set the pivots of self.
+        Transform self into echelon form and return the pivots of self.
 
         EXAMPLES::
 
@@ -12511,7 +12511,7 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
-    def is_positive_definite(self):
+    def is_positive_definite(self, certificate=False):
         r"""
         Determines if a real or symmetric matrix is positive definite.
 
@@ -12521,7 +12521,7 @@ cdef class Matrix(Matrix1):
 
         .. MATH::
 
-            \vec{x}^\ast A\vec{x} > 0
+            \vec{x}^\ast A\vec{x} > 0.
 
         Here `\vec{x}^\ast` is the conjugate-transpose, which can be
         simplified to just the transpose in the real case.
@@ -12538,6 +12538,9 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         Any square matrix.
+
+        - ``certificate`` -- (default: ``False``) return the
+          decomposition from the indefinite factorization if possible
 
         OUTPUT:
 
@@ -12706,9 +12709,42 @@ cdef class Matrix(Matrix1):
         # positive definite iff all entries of d are positive
         zero = R.fraction_field().zero()
         if real:
-            return all(x > zero for x in d)
+            is_pos = all(x > zero for x in d)
         else:
-            return all(x.real() > zero for x in d)
+            is_pos = all(x.real() > zero for x in d)
+
+        if certificate:
+            if is_pos:
+                return is_pos, L, d
+            else:
+                return is_pos, None, None
+        else:
+            return is_pos
+
+    def principal_square_root(self, check_positivity=True):
+        r"""
+        Return the principal square root of a positive definte matrix.
+
+        A positive definite matrix `A` has a unique positive definite
+        matrix `M` such that `M^2 = A`.
+
+        See :wikipedia:`Square_root_of_a_matrix`.
+
+        EXAMPLES::
+
+            sage: A = Matrix([[1,-1/2,0],[-1/2,1,-1/2],[0,-1/2,1]])
+            sage: B = A.principal_square_root()
+            sage: A == B^2
+            True
+        """
+        from sage.matrix.special import diagonal_matrix
+        from sage.functions.other import sqrt
+
+        if check_positivity and not self.is_positive_definite():
+            return False
+
+        d, L = self.eigenmatrix_left()
+        return L.inverse() * diagonal_matrix([sqrt(a) for a in d.diagonal()]) * L
 
     def hadamard_bound(self):
         r"""

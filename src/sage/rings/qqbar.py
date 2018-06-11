@@ -848,7 +848,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             raise NotImplementedError
@@ -1243,7 +1243,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             NotImplementedError
         """
         if p == infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras).complex_field()
         else:
             raise NotImplementedError
@@ -1821,7 +1821,6 @@ def isolating_interval(intv_fn, pol):
 
     for prec in prec_seq():
         intv = intv_fn(prec)
-        ifld = intv.parent()
 
         # We need to verify that pol has exactly one root in the
         # interval intv. We know (because it is a precondition of
@@ -1835,6 +1834,7 @@ def isolating_interval(intv_fn, pol):
 
         if not dpol(intv).contains_zero():
             return intv
+
 
 def find_zero_result(fn, l):
     """
@@ -2561,7 +2561,6 @@ class AlgebraicGenerator(SageObject):
         elif other._cyclotomic:
             self, other = other, self
 
-        sp = self._field.polynomial()
         op = other._field.polynomial()
         op = QQx(op)
         # pari_nf = self._field.pari_nf()
@@ -2600,8 +2599,6 @@ class AlgebraicGenerator(SageObject):
         new_nf = NumberField(red_pol, name='a', check=False)
 
         self_pol_sage = QQx(self_pol.lift())
-
-        new_nf_a = new_nf.gen()
 
         def intv_fn(prec):
             return conjugate_expand(red_elt(self._root._interval_fast(prec) * k + other._root._interval_fast(prec)))
@@ -3109,7 +3106,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3118,7 +3115,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: ~AA(sqrt(~2))
             1.414213562373095?
         """
-        sd = self._descr
         return type(self)(self._descr.invert(self))
 
     def _add_(self, other):
@@ -3949,7 +3945,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # Adapted from NumberFieldElement._symbolic_()
         poly = self.minpoly()
-        var = SR(poly.variable_name())
         if is_ComplexIntervalFieldElement(self._value):
             interval_field = self._value.parent()
         else:
@@ -6520,8 +6515,6 @@ class ANRoot(ANDescr):
 
             return ANExtensionElement(new_gen, red_back(field.gen())/den)
         else:
-            fld = gen.field()
-
             fpf = self._poly.factors()
 
             def find_fn(factor, prec):
@@ -6576,8 +6569,6 @@ class ANRoot(ANDescr):
             new_nf = NumberField(red_pol, name='a', check=False)
 
             self_pol_sage = QQx(self_pol.lift())
-
-            new_nf_a = new_nf.gen()
 
             def intv_fn(prec):
                 return conjugate_expand(red_elt(gen._interval_fast(prec) * k + self._interval_fast(prec) * den))
@@ -7640,7 +7631,6 @@ def an_binop_element(a, b, op):
         bdg2 = bdg.super_poly(p)
         av = ad._value.polynomial()(adg2)
         bv = bd._value.polynomial()(bdg2)
-        v = op(av, bv)
         return ANExtensionElement(p, op(av, bv))
 
     adg2 = adg.super_poly(bdg)

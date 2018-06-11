@@ -159,7 +159,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             Right action by Integer Ring on Discrete pseudo-valuations on Rational Field
 
         """
-        from operator import mul, div
+        from operator import mul
         from sage.rings.all import QQ, InfinityRing, ZZ
         if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
             return ScaleAction(S, self, not self_on_left, op)
@@ -474,7 +474,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 1024
 
             """
-            from sage.rings.all import QQ, ZZ, infinity
+            from sage.rings.all import QQ, ZZ
             s = QQ.coerce(s)
             if s not in self.value_semigroup():
                 raise ValueError("s must be in the value semigroup of this valuation but %r is not in %r"%(s, self.value_semigroup()))
@@ -794,7 +794,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
                 2/3
 
             """
-            from sage.rings.all import ZZ, NN, infinity
+            from sage.rings.all import infinity
 
             numerator = self._weakly_separating_element(other)
             n = self(numerator)
@@ -1115,7 +1115,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             try:
-                k = self.residue_ring()
+                self.residue_ring()
                 has_residue_ring = True
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
@@ -1411,7 +1411,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             try:
-                k = self.residue_ring()
+                self.residue_ring()
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
                 # non-fields) computation of the residue ring is often
@@ -1450,7 +1450,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             tester = self._tester(**options)
 
             try:
-                k = self.residue_ring()
+                self.residue_ring()
             except NotImplementedError:
                 # over non-fields (and especially polynomial rings over
                 # non-fields) computation of the residue ring is often
@@ -1544,7 +1544,7 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
             tester = self._tester(**options)
             try:
-                k = self.residue_field()
+                self.residue_field()
             except ValueError:
                 from sage.categories.fields import Fields
                 # a discrete valuation on a field has a residue field

@@ -310,14 +310,14 @@ def sieve(X, bound):
 
     INPUT:
 
-    - ``X`` - a scheme with ambient space defined over projective sapce
+    - ``X`` - a scheme with ambient space defined over projective space
 
     - ``bound`` - a positive integer bound
 
     OUTPUT:
 
      - a list containing the projective rational points of ``X`` of height
-     up to ``B``, sorted
+    up to ``B``, sorted
 
     EXAMPLES::
         
@@ -471,7 +471,7 @@ def sieve(X, bound):
     def parallel_function_combination(point_p_max):
         r"""
         Function used in parallel computation, computes rational
-        points lifted. 
+        points lifted.
         """
         rat_points = set()
         for tupl in xmrange(len_modulo_points):
@@ -511,7 +511,7 @@ def sieve(X, bound):
         normalized_input = []
         points = modulo_points[-1]
         modulo_points.pop() # remove the list of points corresponding to largest prime
-        len_modulo_points.pop() 
+        len_modulo_points.pop()
 
         for point in points:
             normalized_input.append(( (point, ), {}))
@@ -547,4 +547,3 @@ def sieve(X, bound):
     rat_points = lift_all_points()
 
     return sorted(rat_points)
-

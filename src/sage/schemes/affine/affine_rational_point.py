@@ -54,6 +54,7 @@ from six.moves import range
 from sage.rings.all import ZZ
 from sage.misc.all import cartesian_product_iterator
 from sage.schemes.generic.scheme import is_Scheme
+from sage.schemes.projective.projective_rational_point import sieve as projective_sieve
 
 
 def enum_affine_rational_field(X, B):
@@ -285,3 +286,52 @@ def enum_affine_finite_field(X):
             pass
     pts.sort()
     return pts
+
+
+def sieve(X, bound):
+    r"""
+    Returns the list of all affine, rational points on scheme ``X`` of
+    height up to ``bound``.
+
+    This algorithm algorithm works correctly only if dimension of given
+    scheme is positive.
+
+    INPUT:
+
+    - ``X`` - a scheme with ambient space defined over affine space
+
+    - ``bound`` - a positive integer bound
+
+    OUTPUT:
+
+     - a list containing the affine rational points of ``X`` of height
+    up to ``B``, sorted
+
+    EXAMPLES::
+        
+        sage: from sage.schemes.affine.affine_rational_point import sieve
+        sage: A.<x,y,z> = AffineSpace(3, QQ)
+        sage: S = A.subscheme([x - 2*y - 3*z,x^2 - z^2])
+        sage: sieve(S, 2)
+        [(-2, 2, -2), (-1, -2, 1), (-1, 1, -1), (-1/2, -1, 1/2),
+         (-1/2, 1/2, -1/2), (0, 0, 0), (1/2, -1/2, 1/2),
+         (1/2, 1, -1/2), (1, -1, 1), (1, 2, -1), (2, -2, 2)]
+
+    """
+    pi = X.projective_embedding(0)
+    P = pi.codomain()
+    AA = P.affine_patch(0)
+    
+    proj_L = projective_sieve(P, bound)
+    LL = set()
+    for point in proj_L:
+        pt = []
+        denom = point[0]
+        if denom == 0:
+            continue
+
+        for i in range(1,len(point)):
+            pt.append(point[i] / denom)
+        LL.add(AA(pt))
+
+    return sorted(list(LL))

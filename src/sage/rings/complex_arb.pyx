@@ -1045,7 +1045,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
             sage: correct = CBF.integral(my_sqrt, 1, 2); correct
             [1.21895141649746 +/- 3.73e-15]
-            sage: RBF(integral(sqrt(x), x, 1, 2))
+            sage: RBF(integral(sqrt(x), x, 1, 2))  # long time
             [1.21895141649746 +/- 1.79e-15]
             sage: wrong = CBF.integral(lambda z, _: z.sqrt(), 1, 2) # WRONG!
             sage: correct - wrong
@@ -1100,10 +1100,11 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, rel_tol=1e-4, abs_tol=0)
             [2.304377151e-439 +/- 7.25e-449]
 
-            sage: CBF.integral(lambda x, _: x*(1/x).sin(), 0, 1)
-            [+/- 0.644]
-            sage: CBF.integral(lambda x, _: x*(1/x).sin(), 0, 1, use_heap=True)
-            [0.3785300 +/- 4.32e-8]
+            sage: epsi = CBF(1e-10)
+            sage: CBF.integral(lambda x, _: x*(1/x).sin(), epsi, 1)
+            [0.38 +/- 8.54e-3]
+            sage: CBF.integral(lambda x, _: x*(1/x).sin(), epsi, 1, use_heap=True)
+            [0.37853002 +/- 8.73e-9]
 
         ALGORITHM:
 
@@ -1121,7 +1122,7 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.integral(lambda x, _: (1 + i*x).gamma(), -1, 1)
             [1.5723926694981 +/- 4...e-14] + [+/- 4...e-15]*I
 
-            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, rel_tol=1e-400)
+            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, rel_tol=1e-400)   # long time
             [0.459... +/- ...e-3...]
             sage: CBF.integral(lambda x, _: x.sin(), 0, 100, rel_tol=10)
             [0.138 +/- 5.53e-4]

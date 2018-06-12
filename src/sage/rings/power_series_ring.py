@@ -121,7 +121,7 @@ from .power_series_pari import PowerSeries_pari
 from . import power_series_ring_element
 
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from .polynomial.polynomial_ring_constructor import PolynomialRing
 from . import laurent_series_ring
 from . import laurent_series_ring_element

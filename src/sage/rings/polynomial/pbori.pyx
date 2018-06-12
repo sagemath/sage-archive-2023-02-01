@@ -262,7 +262,7 @@ block_dp_asc = int(pbblock_dp_asc)
 
 rings = sage.misc.weak_dict.WeakValueDictionary()
 
-cdef class BooleanPolynomialRing(MPolynomialRing_generic):
+cdef class BooleanPolynomialRing(MPolynomialRing_base):
     """
     Construct a boolean polynomial ring with the following parameters:
 
@@ -421,7 +421,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             pbnames = tuple(names)
             names = [name.replace('(','').replace(')','') for name in pbnames]
 
-        MPolynomialRing_generic.__init__(self, GF(2), n, names, order)
+        MPolynomialRing_base.__init__(self, GF(2), n, names, order)
 
         counter = 0
         for i in range(len(order.blocks())-1):
@@ -668,7 +668,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
         """
         if self._base.has_coerce_map_from(S):
             return True
-        if isinstance(S,(MPolynomialRing_generic,PolynomialRing_general,BooleanMonomialMonoid)):
+        if isinstance(S,(MPolynomialRing_base,PolynomialRing_general,BooleanMonomialMonoid)):
             try:
                 get_var_mapping(self,S)
             except NameError:
@@ -7671,7 +7671,7 @@ cdef BooleanPolynomialRing BooleanPolynomialRing_from_PBRing(PBRing _ring):
 
     self._pbring = _ring
 
-    MPolynomialRing_generic.__init__(self, GF(2), n, names, T)
+    MPolynomialRing_base.__init__(self, GF(2), n, names, T)
 
     self._zero_element = new_BP(self)
     (<BooleanPolynomial>self._zero_element)._pbpoly = PBBoolePolynomial(0, self._pbring)

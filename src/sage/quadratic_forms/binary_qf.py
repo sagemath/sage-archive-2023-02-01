@@ -55,7 +55,7 @@ from functools import total_ordering
 
 from sage.libs.pari.all import pari_gen
 from sage.rings.all import ZZ, is_fundamental_discriminant
-from sage.arith.all import gcd, integer_ceil, integer_floor
+from sage.arith.all import gcd
 from sage.structure.sage_object import SageObject
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import Matrix

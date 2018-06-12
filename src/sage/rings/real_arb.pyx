@@ -2245,7 +2245,6 @@ cdef class RealBall(RingElement):
             sage: inf = RBF(+infinity)
             sage: other_inf = RBF(+infinity, 42.r)
             sage: neg_inf = RBF(-infinity)
-            sage: extended_line = ~RBF(0)
             sage: exact_nan = inf - inf
             sage: exact_nan.mid(), exact_nan.rad()
             (NaN, 0.00000000)
@@ -2261,7 +2260,7 @@ cdef class RealBall(RingElement):
             sage: ops = [eq, ne, le, lt, ge, gt]
             sage: any(op(exact_nan, other_exact_nan) for op in ops)
             False
-            sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), extended_line, inf, neg_inf])
+            sage: any(op(exact_nan, b) for op in ops for b in [RBF(1), inf, neg_inf])
             False
 
         ::
@@ -2270,20 +2269,16 @@ cdef class RealBall(RingElement):
             True
             sage: neg_inf <= b <= inf and inf >= b >= neg_inf
             True
-            sage: neg_inf <= extended_line <= inf and inf >= extended_line >= neg_inf
+            sage: neg_inf <= inf and inf >= neg_inf
             True
-            sage: neg_inf < extended_line or extended_line < inf
-            False
-            sage: inf > extended_line or extended_line > neg_inf
-            False
 
         ::
 
             sage: all(b <= b == b >= b and not (b < b or b != b or b > b)
             ....:     for b in [inf, neg_inf, other_inf])
             True
-            sage: any(b1 == b2 for b1 in [inf, neg_inf, a, extended_line]
-            ....:              for b2 in [inf, neg_inf, a, extended_line]
+            sage: any(b1 == b2 for b1 in [inf, neg_inf, a]
+            ....:              for b2 in [inf, neg_inf, a]
             ....:              if not b1 is b2)
             False
             sage: all(b1 != b2 and not b1 == b2
@@ -2294,9 +2289,9 @@ cdef class RealBall(RingElement):
             sage: neg_inf <= -other_inf == neg_inf == -other_inf < other_inf == inf <= other_inf
             True
             sage: any(inf < b or b > inf
-            ....:     for b in [inf, other_inf,  a, extended_line])
+            ....:     for b in [inf, other_inf, a])
             False
-            sage: any(inf <= b or b >= inf for b in [a, extended_line])
+            sage: any(inf <= b or b >= inf for b in [a])
             False
         """
         cdef RealBall lt, rt

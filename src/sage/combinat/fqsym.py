@@ -901,7 +901,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: M = algebras.FQSym(QQ).M()
-                sage: TestSuite(M).run()  # long time
+                sage: TestSuite(M).run(elements=M.some_elements()[:-1])  # long time
             """
             FQSymBasis_abstract.__init__(self, alg)
 

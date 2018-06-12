@@ -1987,8 +1987,8 @@ class WQSymBases(Category_realization_of_parent):
 
             .. MATH::
 
-                \overline{\mathbf{M}}_u = \mathbf{M}_{\overline{u}},
-                \qquad \overline{X}_u = X_{\overline{u}},
+                \overline{\mathbf{M}_u} = \mathbf{M}_{\overline{u}},
+                \qquad \overline{X_u} = X_{\overline{u}},
 
             where standard notations for classical bases of `WQSym`
             are being used (that is, `\mathbf{M}` for the monomial
@@ -2055,7 +2055,7 @@ class WQSymBases(Category_realization_of_parent):
             .. MATH::
 
                 \omega'(F_i)
-                = \sum_j \sum_{\substack{k \leq j \\ \omega(k) \geq i}}
+                = \sum_j \sum_{\substack{k \leq j; \\ \omega(k) \geq i}}
                   \mu(k, j) F_j,
 
             where `\mu` denotes the Möbius function. This formula becomes
@@ -2081,7 +2081,7 @@ class WQSymBases(Category_realization_of_parent):
             EXAMPLES:
 
             Recall that the index set for the bases of `WQSym` is
-            given by ordered set partitions, not a packed words.
+            given by ordered set partitions, not packed words.
             Translated into the language of ordered set partitions,
             the algebraic complement involution acts on the
             Monomial basis by reversing the ordered set partition.
@@ -2243,7 +2243,7 @@ class WQSymBases(Category_realization_of_parent):
             EXAMPLES:
 
             Recall that the index set for the bases of `WQSym` is
-            given by ordered set partitions, not a packed words.
+            given by ordered set partitions, not packed words.
             Translated into the language of ordered set partitions,
             the coalgebraic complement involution acts on the
             Monomial basis by complementing the ordered set partition.

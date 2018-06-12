@@ -97,6 +97,28 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
             X.extended_codomain()._check_satisfies_equations(v)
         self._coords = tuple(v)
 
+    def __hash__(self):
+        r"""
+        Computes the hash value of this affine point.
+
+        OUTPUT: Integer.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: hash(A([1, 1]))
+            1300952125                      # 32-bit
+            3713081631935493181             # 64-bit
+        
+        ::
+
+            sage: A.<x,y,z> = AffineSpace(CC, 3)
+            sage: hash(A([1, 2, i])) is hash(A([3, 6, 3*i]))
+            False
+
+        """
+        return hash(tuple(self))
+
     def nth_iterate(self, f, n):
         r"""
         Returns the point `f^n(self)`

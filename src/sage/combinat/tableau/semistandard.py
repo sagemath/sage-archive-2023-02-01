@@ -32,11 +32,9 @@ AUTHORS:
 from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.list_clone import ClonableList
-from sage.structure.parent import Parent
 
-from sage.categories.pathtableaux import PathTableaux
+
+from sage.combinat.tableau.pathtableaux import PathTableau
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.partition import Partition
@@ -98,7 +96,7 @@ EXAMPLES::
 """
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class DualSemistandardTableau(ClonableList):
+class DualSemistandardTableau(PathTableau):
     """
        An instance is the sequence of partitions correspond to the
        chain of partitions of a dual semistandard skew tableau.

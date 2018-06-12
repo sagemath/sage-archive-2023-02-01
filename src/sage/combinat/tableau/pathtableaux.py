@@ -1,5 +1,5 @@
 """
-This is a category for using local rules to construct rectification
+This is an abstract base class for using local rules to construct rectification
 and the action of the cactus group. This is an effective version
 of the Henriques-Kamnitzer construction of the action of the cactus
 group on tensor powers of a crystal. This is a generalisation of
@@ -28,24 +28,9 @@ AUTHORS:
 
 
 from sage.misc.abstract_method import abstract_method
-from sage.categories.category import Category
-from sage.categories.sets_cat import Sets
+from sage.structure.list_clone import ClonableList
 
-class PathTableaux(Category):
-    """
-    This defines the category of PathTableaux.
-    """
-    def super_categories(self):
-        return [Sets()]
-
-    class ElementMethods:
-        """
-        These methods are not called directly. Instead, when a Element class
-        for this Category is created these methods are automatically added
-        to the class methods.
-        """
-
-############################ Abstract Methods #################################
+class PathTableau(ClonableList):
 
         @abstract_method(optional=False)
         def check(self):
@@ -60,13 +45,8 @@ class PathTableaux(Category):
         @abstract_method(optional=False)
         def _rule(self,p):
             """
-            This is an abstract method. It must be overwritten in any
-            Element class for this Category. This rule provides the
-            functionality for this Category. It is called in local_rule.
-
-            An instance of an Element class of this Category is a list
-            of objects of some type. This function takes a list of length
-            three of objects of this type and returns an object of this type.
+            This is an abstract method. It must be overwritten.
+            This rule provides the functionality. It is called in local_rule.
 
             The key property is that the following operation on lists
             of length three is an involution: apply the rule to a list
@@ -74,6 +54,7 @@ class PathTableaux(Category):
             """
 
 ################################# Book Keeping ################################
+            
         def size(self):
             """
             Returns the size or length.
@@ -268,23 +249,6 @@ class PathTableaux(Category):
                 if lhs != rhs:
                     return False
             return True
-
-        def check_consistent(self):
-            """
-            This checks that two different constructions of the
-            operators $s_{1,\,i}$ give the same result. The first
-            construction is the direct construction which uses
-            evacuation. The second method reads this off the
-            cylindrical diagram; which is constructed using promotion.
-            """
-            d = self.cylindrical_diagram()
-            for i in range(1,n):
-                t = [ d[i][i-j] for j in range(i-1) ]
-                x = self.parent()(t+d[0][i:])
-                if x != self.cactus(1,i):
-                    return False
-            return True
-
 
         def orbit(self):
             """

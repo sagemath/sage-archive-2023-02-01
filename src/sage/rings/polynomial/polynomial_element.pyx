@@ -10020,6 +10020,67 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 q = mi * (mp1 * q - p._mul_trunc_(q._power_trunc(mp1, i), i))
             return q.inverse_series_trunc(prec)
 
+    @coerce_binop
+    def divides(self, p):
+        r"""
+        Return `True` if this polynomial divides `p`.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: (2*x + 1).divides(4*x**2 - 1)
+            True
+            sage: (2*x + 1).divides(4*x**2 + 1)
+            False
+            sage: (2*x + 1).divides(R(0))
+            True
+            sage: R(0).divides(2*x + 1)
+            False
+            sage: R(0).divides(R(0))
+            True
+            sage: S.<y> = R[]
+            sage: p = x * y**2 + (2*x + 1) * y + x + 1
+            sage: q = (x + 1) * y + (3*x + 2)
+            sage: q.divides(p)
+            False
+            sage: q.divides(p * q)
+            True
+
+        TESTS::
+            sage: R.<x> = PolynomialRing(ZZ, implementation="NTL")
+            sage: (2*x + 1).divides(4*x**2 + 1)
+            False
+            sage: K.<z> = GF(4)
+            sage: R.<x> = K[]
+            sage: S.<y> = R[]
+            sage: p = ((3*z + 2)*x + 2*z - 1) * y + 2*x + z
+            sage: q = y^2 + z*y*x + 2*y + z
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+            sage: R.<x,y> = GF(2)[]
+            sage: S.<z> = R[]
+            sage: p = (x+y+1) * z + x*y
+            sage: q = (y^2-x^2) * z^2 + z + x-y
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+            sage: R.<x> = Zmod(6)[]
+            sage: p = 4*x + 3
+            sage: q = 5*x**2 + x + 2
+            sage: p.divides(q), p.divides(p*q)
+            (False, True)
+        """
+        if p.is_zero(): return True          # everything divides 0
+        if self.is_zero(): return False      # 0 only divides 0
+        try:
+            if self.is_unit(): return True   # units divide everything
+        except NotImplementedError:
+            if self.is_one(): return True    # if is_unit is not implemented
+
+        try:
+            return (p % self).is_zero()      # if quo_rem is defined
+        except ArithmeticError:
+            return False                     # if division is not exact
+
     def specialization(self, D=None, phi=None):
         r"""
         Specialization of this polynomial.
@@ -10207,7 +10268,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -1/3*x^3 + x
         """
         raise NotImplementedError
-
 
 # ----------------- inner functions -------------
 # Cython can't handle function definitions inside other function

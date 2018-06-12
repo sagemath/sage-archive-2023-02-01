@@ -205,16 +205,18 @@ class CatalanTableau(ClonableList):
             [0, 1, 2, 3, 2, 3]
 
             sage: CatalanTableau([0,1,0,-1,0])
+            Traceback (most recent call last):
             ...
             ValueError: [0, 1, 0, -1, 0] has a negative entry.
 
             sage: CatalanTableau([0,1,3,3,2,3])
+            Traceback (most recent call last):
             ...
             ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path.
 
         """
         n = len(self)
-        if any([ a < 0 for a in self]):
+        if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry." % (str(self)) )
         for i in range(n-1):
             if abs(self[i+1]-self[i]) > 1:

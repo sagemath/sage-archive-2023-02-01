@@ -35,7 +35,7 @@ from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.tableau import Tableau
 from sage.rings.integer import Integer
 
-from sage.categories.pathtableaux import PathTableaux
+#from sage.categories.pathtableaux import PathTableaux
 #from sage.categories.sets_cat import Sets
 #from sage.combinat.catalan import CatalanTableau
 #from sage.combinat.catalan import CatalanTableaux

@@ -24,11 +24,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import add_metaclass
+#from six import add_metaclass
 
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+#from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
-from sage.combinat.tableau.pathtableaux import PathTableau
+from sage.combinat.pathtableau.pathtableaux import PathTableau
+#from sage.combinat.pathtableau.catalan import CatalanTableau
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
@@ -121,7 +122,7 @@ EXAMPLE::
 
 """
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
+#@add_metaclass(InheritComparisonClasscallMetaclass)
 class CatalanTableau(PathTableau):
     """
     An instance is the sequence of nonnegative
@@ -151,8 +152,8 @@ class CatalanTableau(PathTableau):
         [0, 1, 2, 1, 0]
 
     """
-    @staticmethod
-    def __classcall_private__(self, ot):
+    
+    def __init__(self, ot):
 
         w = None
 
@@ -188,8 +189,8 @@ class CatalanTableau(PathTableau):
         if w == None:
             raise ValueError( "Sorry; I don't know what to do with %s." % str(ot) )
 
-        return CatalanTableaux()(w)
-
+        Parent.__init__(self,category=Sets())
+        
     def check(self):
         """
         This overwrites the abstract method.
@@ -305,3 +306,6 @@ class CatalanTableau(PathTableau):
         """
         return line([ (i,a) for i, a in enumerate(self)])
 
+class CatalanTableaux(PathTableaux):
+    
+    Element = CatalanTableau

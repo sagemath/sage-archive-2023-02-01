@@ -34,7 +34,7 @@ from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 
-from sage.combinat.tableau.pathtableaux import PathTableau
+from sage.combinat.pathtableau.pathtableaux import PathTableau
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.partition import Partition
@@ -270,3 +270,6 @@ class DualSemistandardTableau(PathTableau):
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
 
+class DualSemistandardTableaux(PathTableaux):
+    
+    Element = DualSemistandardTableau

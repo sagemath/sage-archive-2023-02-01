@@ -10076,6 +10076,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except NotImplementedError:
             if self.is_one(): return True    # if is_unit is not implemented
 
+        if self.degree() > p.degree():
+            return False
+
+        if not p.leading_coefficient().divides(q.leading_coefficient()):
+            return False
+
         try:
             return (p % self).is_zero()      # if quo_rem is defined
         except ArithmeticError:

@@ -708,7 +708,7 @@ class BinaryQF(SageObject):
 
         .. SEEALSO::
 
-        - :meth:`~is_reduced`
+            :meth:`is_reduced`
 
         EXAMPLES::
 

@@ -766,7 +766,7 @@ class BinaryQF(SageObject):
             return BinaryQF(self.__pari__().qfbred())
         else:
             raise ValueError('unknown implementation for binary quadratic form '
-                'reduction: %s' % implementation)
+                             'reduction: %s' % algorithm)
 
     # Buchmann/Vollmer cycle algorithm
     def _RhoTau(self):

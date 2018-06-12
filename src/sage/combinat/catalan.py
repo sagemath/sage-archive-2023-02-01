@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+
 """
 This is an implementation of the Category PathTableaux.
 This is the simplest implementation of PathTableaux and is included to
@@ -46,6 +45,84 @@ from sage.categories.pathtableaux import PathTableaux
 
 ###############################################################################
 
+"""
+
+Here we illustrate the slogan that promotion = rotation.
+
+EXAMPLE::
+
+    sage: t = CatalanTableau([0,1,2,3,2,1,0])
+    sage: t.to_perfect_matching()
+    [(0, 5), (1, 4), (2, 3)]
+
+    sage: t = t.promotion()
+    sage: t.to_perfect_matching()
+    [(0, 3), (1, 2), (4, 5)]
+
+    sage: t = t.promotion()
+    sage: t.to_perfect_matching()
+    [(0, 1), (2, 5), (3, 4)]
+
+    sage: t = t.promotion()
+    sage: t.to_perfect_matching()
+    [(0, 5), (1, 4), (2, 3)]
+
+EXAMPLE::
+
+    sage: t = CatalanTableau([0,1,2,3,2,1,0])
+    sage: SkewTableau(t.cylindrical_diagram()).pp()
+      0  1  2  3  2  1  0
+      .  0  1  2  1  0  1  0
+      .  .  0  1  0  1  2  1  0
+      .  .  .  0  1  2  3  2  1  0
+      .  .  .  .  0  1  2  1  0  1  0
+      .  .  .  .  .  0  1  0  1  2  1  0
+      .  .  .  .  .  .  0  1  2  3  2  1  0
+
+
+    sage: t = CatalanTableau([0,1,2,3,2,1,0])
+    sage: t.evacuation()
+    [0, 1, 2, 3, 2, 1, 0]
+
+    sage: t.cactus(1,5)
+    [0, 1, 0, 1, 2, 1, 0]
+
+    sage: t.cactus(1,6)
+    [0, 1, 2, 1, 0, 1, 0]
+
+    sage: t.cactus(1,7) == t.evacuation()
+    True
+
+    sage: t.cactus(1,7).cactus(1,6) == t.promotion()
+    True
+
+    sage: t.check_involution_rule()
+    True
+
+    sage: t.check_involution_cactus()
+    True
+
+    sage: t.check_promotion()
+    True
+
+    sage: t.check_involution_cactus()
+    True
+
+    sage: t.check_commutation()
+    True
+
+    sage: t.check_coboundary()
+    True
+
+    sage: t.orbit()
+    {[0, 1, 0, 1, 0, 1, 0],
+     [0, 1, 0, 1, 2, 1, 0],
+     [0, 1, 2, 1, 0, 1, 0],
+     [0, 1, 2, 1, 2, 1, 0],
+     [0, 1, 2, 3, 2, 1, 0]}
+
+"""
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class CatalanTableau(ClonableList):
     """
@@ -57,7 +134,7 @@ class CatalanTableau(ClonableList):
         - a Dyck word
         - a noncrossing perfect matching
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: CatalanTableau([0,1,2,1,0])
         [0, 1, 2, 1, 0]
@@ -71,10 +148,9 @@ class CatalanTableau(ClonableList):
         ...
         [1, 0, 1, 0]
 
-        sage: t = SkewTableau([[1,2],[3,4]])
+        sage: t = Tableau([[1,2],[3,4]])
         sage: CatalanTableau(t)
-        [1, 1, 0, 0]
-
+        [0, 1, 2, 1, 0]
 
     """
     @staticmethod
@@ -86,7 +162,7 @@ class CatalanTableau(ClonableList):
             w = ot.heights()
 
         if isinstance(ot,PerfectMatching):
-            if ot.is_non_crossing():
+            if ot.is_noncrossing():
                 w = [1]*ot.size()
                 for a in ot.arcs():
                     w[a[1]-1] = 0
@@ -112,7 +188,7 @@ class CatalanTableau(ClonableList):
                 raise ValueError("%s is not a sequence of integers." % str(ot) )
 
         if w == None:
-            raise ValueError( "Sorry, not sorry; I don't know what to do with %s." % str(ot) )
+            raise ValueError( "Sorry; I don't know what to do with %s." % str(ot) )
 
         return CatalanTableaux()(w)
 
@@ -123,17 +199,18 @@ class CatalanTableau(ClonableList):
         This checks that heights are nonnegative and that succesive heights
         differ by +1 or -1.
 
-        EXAMPLES:
-        sage: CatalanTableau([0,1,2,3,2,3])
-        [0, 1, 2, 3, 2, 3]
+        EXAMPLES::
 
-        sage: CatalanTableau([0,1,0,-1,0])
-        ...
-        ValueError: [0, 1, 0, -1, 0] has a negative entry.
+            sage: CatalanTableau([0,1,2,3,2,3])
+            [0, 1, 2, 3, 2, 3]
 
-        sage: CatalanTableau([0,1,3,3,2,3])
-        ...
-        ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path.
+            sage: CatalanTableau([0,1,0,-1,0])
+            ...
+            ValueError: [0, 1, 0, -1, 0] has a negative entry.
+
+            sage: CatalanTableau([0,1,3,3,2,3])
+            ...
+            ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path.
 
         """
         n = len(self)
@@ -154,11 +231,13 @@ class CatalanTableau(ClonableList):
         """
         Returns True if Tableau is skew and False if not.
 
-        EXAMPLES:
-        sage: CatalanTableau([0,1,2,1]).is_skew()
-        False
-        sage: CatalanTableau([1,0,1,2,1]).is_skew()
-        True
+        EXAMPLES::
+
+            sage: CatalanTableau([0,1,2,1]).is_skew()
+            False
+
+            sage: CatalanTableau([1,0,1,2,1]).is_skew()
+            True
 
         """
         return self[0] != 0
@@ -167,10 +246,10 @@ class CatalanTableau(ClonableList):
         """
         Returns the descent set.
 
-        EXAMPLE:
+        EXAMPLE::
 
-        sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).descents()
-        {3, 6}
+            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).descents()
+            {3, 6}
 
         """
         result = set()
@@ -185,10 +264,10 @@ class CatalanTableau(ClonableList):
         """
         Converts to a word in the alphabet 0,1
 
-        EXAMPLE:
+        EXAMPLE::
 
-        sage: CatalanTableau([1,0,1,2,1]).to_word()
-        [0, 1, 1, 0]
+            sage: CatalanTableau([1,0,1,2,1]).to_word()
+            [0, 1, 1, 0]
 
         """
         return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
@@ -197,10 +276,10 @@ class CatalanTableau(ClonableList):
         """
         This converts to a perfect matching.
 
-        EXAMPLE:
+        EXAMPLE::
 
-        sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
-        [(0, 5), (1, 2), (3, 4), (6, 7)]
+            sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
+            [(0, 5), (1, 2), (3, 4), (6, 7)]
 
         """
         w = self.to_word()
@@ -226,73 +305,6 @@ class CatalanTableau(ClonableList):
         """
         return line([ (i,a) for i, a in enumerate(self)])
 
-"""
-
-Here we illustrate the slogan that promotion = rotation.
-
-sage: t = CatalanTableau([0,1,2,3,2,1,0])
-sage: t.to_perfect_matching()
-[(0, 5), (1, 4), (2, 3)]
-sage: t = t.promotion()
-sage: t.to_perfect_matching()
-[(0, 3), (1, 2), (4, 5)]
-sage: t = t.promotion()
-sage: t.to_perfect_matching()
-[(0, 1), (2, 5), (3, 4)]
-sage: t = t.promotion()
-sage: t.to_perfect_matching()
-[(0, 5), (1, 4), (2, 3)]
-
-Here we test the Category methods.
-
-sage: t = CatalanTableau([0,1,2,3,2,1,0])
-sage: SkewTableau(t.cylindrical_diagram()).pp()
-  0  1  2  3  2  1  0
-  .  0  1  2  1  0  1  0
-  .  .  0  1  0  1  2  1  0
-  .  .  .  0  1  2  3  2  1  0
-  .  .  .  .  0  1  2  1  0  1  0
-  .  .  .  .  .  0  1  0  1  2  1  0
-  .  .  .  .  .  .  0  1  2  3  2  1  0
-
-
-
-"""
-
-""" 
-sage: t = CatalanTableau([0,1,2,3,2,1,0])
-sage: t.evacuation()
-[0, 1, 2, 3, 2, 1, 0]
-sage: t.cactus(1,5)
-[0, 1, 0, 1, 2, 1, 0]
-sage: t.cactus(1,6)
-[0, 1, 2, 1, 0, 1, 0]
-sage: t.cactus(1,7) == t.evacuation()
-True
-sage: t.cactus(1,7).cactus(1,6) == t.promotion()
-True
-sage: t.check_involution_rule()
-True
-sage: t.check_involution_cactus()
-True
-sage: t.check_promotion()
-True
-sage: t.check_involution_cactus()
-True
-sage: t.check_commutation()
-True
-sage: t.check_coboundary()
-True
-sage: t.orbit()
-{[0, 1, 0, 1, 0, 1, 0],
- [0, 1, 0, 1, 2, 1, 0],
- [0, 1, 2, 1, 0, 1, 0],
- [0, 1, 2, 1, 2, 1, 0],
- [0, 1, 2, 3, 2, 1, 0]}
-
-
-
-"""
 ###############################################################################
 
 class CatalanTableaux(UniqueRepresentation,Parent):

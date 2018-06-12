@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
 This is an impementation of the Category PathTableaux.
 
@@ -44,6 +42,61 @@ from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.partition import Partition
 from sage.modules.free_module_element import vector
 
+"""
+EXAMPLES::
+
+    sage: T = DualSemistandardTableau([[],[1],[2],[2,1]])
+    sage: T.evacuation()
+    [[], [1], [1, 1], [2, 1]]
+
+    sage: Tableau([[1,2],[3]]).evacuation()
+    [[1, 3], [2]]
+
+    sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
+    sage: ST.cardinality()
+    84
+
+    sage: t = ST.an_element()
+    sage: s = DualSemistandardTableau(t.conjugate().to_chain())
+    sage: v = Tableau(list(SkewTableau(chain=s.evacuation())))
+    sage: v.conjugate() == t.evacuation()
+    True
+
+    sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
+    sage: s = DualSemistandardTableau(ST.an_element())
+    sage: s.check_involution_cactus()
+    True
+
+    sage: s.check_commutation()
+    True
+
+    sage: s.check_coboundary()
+    True
+
+    sage: ST = StandardTableaux([3,3,3])
+    sage: ST.cardinality()
+    42
+
+    sage: t = ST.an_element()
+    sage: t.promotion()
+    [[1, 2, 5], [3, 6, 8], [4, 7, 9]]
+
+    sage: ST = StandardTableaux([3,3,3])
+    sage: t = ST.an_element()
+    sage: s = DualSemistandardTableau(t.to_chain())
+    sage: u = StandardTableau(list(SkewTableau(chain=s.promotion())))
+    sage: u.promotion() == t
+    True
+
+    sage: ST.cardinality()
+    42
+    sage: t = ST.an_element()
+    sage: s = DualSemistandardTableau(t.to_chain())
+    sage: len(s.orbit())
+    42
+
+"""
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DualSemistandardTableau(ClonableList):
     """
@@ -54,14 +107,14 @@ class DualSemistandardTableau(ClonableList):
         - a sequence such that each term defines a partition
         - a semistandard skew tableau
 
-    EXAMPLES:
+    EXAMPLES::
 
-    sage: DualSemistandardTableau([[],[1],[2],[2,1]])
-    [[], [1], [2], [2, 1]]
+        sage: DualSemistandardTableau([[],[1],[2],[2,1]])
+        [[], [1], [2], [2, 1]]
 
-    sage: t = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
-    sage: DualSemistandardTableau(t)
-    [[6, 1, 1], [6, 1, 1], [6, 2, 1], [6, 2, 1], [7, 3, 2, 1, 1], [7, 3, 3, 1, 1, 1], [7, 4, 3, 2, 1, 1, 1], [7, 4, 4, 2, 2, 2, 2, 1], [7, 5, 5, 3, 3, 2, 2, 1], [7, 5, 5, 3, 3, 3, 2, 1], [7, 5, 5, 4, 3, 3, 2, 1], [7, 5, 5, 5, 3, 3, 2, 1]]
+        sage: t = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
+        sage: DualSemistandardTableau(t)
+        [[6, 1, 1], [6, 1, 1], [6, 2, 1], [6, 2, 1], [7, 3, 2, 1, 1], [7, 3, 3, 1, 1, 1], [7, 4, 3, 2, 1, 1, 1], [7, 4, 4, 2, 2, 2, 2, 1], [7, 5, 5, 3, 3, 2, 2, 1], [7, 5, 5, 3, 3, 3, 2, 1], [7, 5, 5, 4, 3, 3, 2, 1], [7, 5, 5, 5, 3, 3, 2, 1]]
 
     """
     @staticmethod
@@ -127,24 +180,27 @@ class DualSemistandardTableau(ClonableList):
         """
         Returns True if Tableau is skew and False if not.
 
-        EXAMPLE:
-        sage: t = DualSemistandardTableau([[],[1],[2],[2,1]])
-        sage: t.is_skew()
-        False
+        EXAMPLE::
+            sage: t = DualSemistandardTableau([[],[1],[2],[2,1]])
+            sage: t.is_skew()
+            False
         """
         return self[0] != Partition([])
 
     def rectify(self,display=False):
         """
         This is the same function as skew_tableau.rectify
-        
-        sage: t = SkewTableau([[None,None,2,4],[1,3,5]])
-        sage: s = DualSemistandardTableau(t.to_chain())
-        sage: s.rectify(display=True)
-        [[2], [2, 1], [3, 1], [3, 2], [4, 2], [4, 3]]
-        [[1], [1, 1], [2, 1], [2, 2], [3, 2], [3, 3]]
-        [[], [1], [2], [2, 1], [3, 1], [3, 2]]
-        [[], [1], [2], [2, 1], [3, 1], [3, 2]]
+
+        EXAMPLE::
+
+            sage: t = SkewTableau([[None,None,2,4],[1,3,5]])
+            sage: s = DualSemistandardTableau(t.to_chain())
+            sage: s.rectify(display=True)
+            [[2], [2, 1], [3, 1], [3, 2], [4, 2], [4, 3]]
+            [[1], [1, 1], [2, 1], [2, 2], [3, 2], [3, 3]]
+            [[], [1], [2], [2, 1], [3, 1], [3, 2]]
+            [[], [1], [2], [2, 1], [3, 1], [3, 2]]
+
         """
         p = self[0].conjugate()
         path = [[]]
@@ -179,12 +235,15 @@ class DualSemistandardTableau(ClonableList):
         Check that the i-th Bender-Knuth move on the conjugate
         tableau is the i-th local rule.
 
-        sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
-        sage: s = DualSemistandardTableau(ST.an_element())
-        sage: s.check_bender_knuth(5)
-        True
-        sage: s.check_bender_knuth(4)
-        True
+        EXAMPLE::
+
+            sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
+            sage: s = DualSemistandardTableau(ST.an_element())
+            sage: s.check_bender_knuth(5)
+            True
+            sage: s.check_bender_knuth(4)
+            True
+
         """
 
         lhs = self.local_rule(i).to_tableau()
@@ -201,67 +260,18 @@ class DualSemistandardTableau(ClonableList):
         Check that jdt-evacuation on the conjugate tableaux
         is the evacuation defined here.
 
-        sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
-        sage: s = DualSemistandardTableau(ST.an_element())
-        sage: s.check_evacuation()
-        True
+        EXAMPLE::
+
+            sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
+            sage: s = DualSemistandardTableau(ST.an_element())
+            sage: s.check_evacuation()
+            True
 
         """
         lhs = self.evacuation().to_tableau()
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
-"""
 
-sage: T = DualSemistandardTableau([[],[1],[2],[2,1]])
-sage: T.evacuation()
-[[], [1], [1, 1], [2, 1]]
-
-sage: Tableau([[1,2],[3]]).evacuation()
-[[1, 3], [2]]
-
-sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
-sage: ST.cardinality()
-84
-sage: t = ST.an_element()
-sage: s = DualSemistandardTableau(t.conjugate().to_chain())
-sage: v = Tableau(list(SkewTableau(chain=s.evacuation())))
-sage: v.conjugate() == t.evacuation()
-True
-
-sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
-sage: s = DualSemistandardTableau(ST.an_element())
-sage: s.check_involution_cactus()
-True
-sage: s.check_commutation()
-True
-sage: s.check_coboundary()
-True
-
-sage: ST = StandardTableaux([3,3,3])
-sage: ST.cardinality()
-42
-sage: t = ST.an_element()
-sage: t.promotion()
-[[1, 2, 5], [3, 6, 8], [4, 7, 9]]
-
-
-sage: ST = StandardTableaux([3,3,3])
-sage: t = ST.an_element()
-sage: s = DualSemistandardTableau(t.to_chain())
-sage: u = StandardTableau(list(SkewTableau(chain=s.promotion())))
-sage: u.promotion() == t
-True
-
-sage: ST.cardinality()
-42
-sage: t = ST.an_element()
-sage: s = DualSemistandardTableau(t.to_chain())
-sage: len(s.orbit())
-42
-
-
-
-"""
 ###############################################################################
 
 class DualSemistandardTableaux(UniqueRepresentation,Parent):

@@ -14,6 +14,7 @@ by jeu-de-taquin on rectangular tableaux but in general they are different.
 AUTHORS:
 
 - Bruce Westbury (2018): initial version
+"""
 
 #*****************************************************************************
 #       Copyright (C) 2018 Bruce Westbury <bruce.westbury@gmail.com>,
@@ -24,9 +25,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
-"""
 
 
 from sage.misc.abstract_method import abstract_method
@@ -142,7 +140,7 @@ class PathTableaux(Category):
             """
             This constructs the commutor of a pair of tableau.
             This is given by a rectangular diagram.
-            
+
             If display=True then the function will print
             the rectangle.
             """
@@ -152,12 +150,12 @@ class PathTableaux(Category):
                 raise ValueError("This requires nonempty lists.")
             if n == 1 or m == 1:
                 return (other,self)
-            
+
             row = list(other)
             col = list(self)
             if col[-1] != row[0]:
                 raise ValueError("%s,%s is not a composable pair." % (self,other))
-            
+
             path = self.parent()(col + row[1:])
 
             for i in range(1,n):
@@ -167,7 +165,7 @@ class PathTableaux(Category):
                     path = path.local_rule(n+j-i)
             if display:
                 print path[:m]
-                    
+
 
             return (self.parent()(path[:m]),self.parent()(path[m-1:]))
 

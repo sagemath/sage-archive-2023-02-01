@@ -1193,16 +1193,16 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 r"""
                 Return the image of the element ``self`` of `FQSym`
                 under the star involution.
-    
+
                 See
                 :meth:`FQSymBases.ElementMethods.star_involution`
                 for a definition of the involution and for examples.
-    
+
                 .. SEEALSO::
-    
-                    :meth:`omega_involution`, :meth:`psi_involution`.
-    
-                EXAMPLES:
+
+                    :meth:`omega_involution`, :meth:`psi_involution`
+
+                EXAMPLES::
 
                     sage: FQSym = algebras.FQSym(ZZ)
                     sage: M = FQSym.M()
@@ -1211,7 +1211,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                     sage: M[[]].star_involution()
                     M[]
 
-                TESTS:
+                TESTS::
 
                     sage: F = FQSym.F()
                     sage: all(M(F[w]).star_involution() == M(F[w].star_involution())
@@ -1529,23 +1529,19 @@ class FQSymBases(Category_realization_of_parent):
             Return the image of the element ``self`` of `FQSym`
             under the omega involution.
 
-            The omega involution is defined as the
+            The `\omega` involution is defined as the
             linear map `FQSym \to FQSym` that sends each basis
             element `F_u` of the F-basis of `FQSym`
             to the basis element `F_{u \circ w_0}`, where `w_0` is
-            the longest word in the symmetric group that contains
-            `u` (that is: if `u \in S_n`, then `w_0` is the
-            permutation in `S_n` sending each `i` to `n+1-i`).
-            Here, composition of permutations is defined such
-            that `u \circ w_0` applies `w_0` first, then `u`.
-            The omega involution is a graded algebra automorphism
-            and a coalgebra anti-automorphism of `FQSym`.
-            It is denoted by `\omega`. Every permutation
+            the longest word in the smallest symmetric group `S_n`
+            such that `u \in S_n`. The `\omega` involution is a
+            graded algebra automorphism and a coalgebra
+            anti-automorphism of `FQSym`. Every permutation
             `u \in S_n` satisfies
 
             .. MATH::
 
-                \omega(F_u) = F_{u \circ w_0}, \quad
+                \omega(F_u) = F_{u \circ w_0}, \qquad
                 \omega(G_u) = G_{w_0 \circ u},
 
             where standard notations for classical bases of `FQSym`
@@ -1561,19 +1557,18 @@ class FQSymBases(Category_realization_of_parent):
                 \omega(G_{(u_1, u_2, \ldots, u_n)})
                 = G_{(n+1-u_1, n+1-u_2, \ldots, n+1-u_n)}.
 
-            If we denote the omega involution
+            If we also consider the `\omega` involution
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.omega_involution`)
-            of the quasisymmetric functions by `\omega` as well,
-            and if we let `\pi` be the canonical projection
-            `FQSym \to QSym`, then
+            of the quasisymmetric functions (by slight abuse
+            of notation), and if we let `\pi` be the canonical
+            projection `FQSym \to QSym`, then
             `\pi \circ \omega = \omega \circ \pi`.
 
-            If we denote the psi involution
+            Additionally, consider the `\psi` involution
             (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`)
-            of the noncommutative symmetric functions by `\psi`,
-            and if we let `\iota` be the canonical projection
-            `NSym \to FQSym`, then
-            `\omega \circ \iota = \iota \circ \psi`.
+            of the noncommutative symmetric functions, and if we let
+            `\iota` be the canonical projection `NSym \to FQSym`,
+            then `\omega \circ \iota = \iota \circ \psi`.
 
             .. TODO::
 
@@ -1581,7 +1576,7 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`psi_involution`, :meth:`star_involution`.
+                :meth:`psi_involution`, :meth:`star_involution`
 
             EXAMPLES::
 
@@ -1621,8 +1616,7 @@ class FQSymBases(Category_realization_of_parent):
                 ....:      for I in Permutations(4) )
                 True
 
-            Testing the `\omega \circ \iota = \iota \circ \psi`
-            relation::
+            Testing the `\omega \circ \iota = \iota \circ \psi` relation::
 
                 sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
                 sage: S = NSym.S()
@@ -1646,30 +1640,25 @@ class FQSymBases(Category_realization_of_parent):
             Return the image of the element ``self`` of `FQSym`
             under the psi involution.
 
-            The psi involution is defined as the
+            The `\psi` involution is defined as the
             linear map `FQSym \to FQSym` that sends each basis
             element `F_u` of the F-basis of `FQSym`
             to the basis element `F_{w_0 \circ u}`, where `w_0` is
-            the longest word in the symmetric group that contains
-            `u` (that is: if `u \in S_n`, then `w_0` is the
-            permutation in `S_n` sending each `i` to `n+1-i`).
-            Here, composition of permutations is defined such
-            that `w_0 \circ u` applies `u` first, then `w_0`.
-            The psi involution is a graded coalgebra automorphism
-            and an algebra anti-automorphism of `FQSym`.
-            It is denoted by `\psi`. Every permutation
+            the longest word in the smallest symmetric group `S_n`
+            such that `u \in S_n`. The `\psi` involution is a
+            graded coalgebra automorphism and an algebra
+            anti-automorphism of `FQSym`. Every permutation
             `u \in S_n` satisfies
 
             .. MATH::
 
-                \psi(F_u) = F_{w_0 \circ u}, \quad
+                \psi(F_u) = F_{w_0 \circ u}, \qquad
                 \psi(G_u) = G_{u \circ w_0},
 
             where standard notations for classical bases of `FQSym`
             are being used (that is, `F` for the F-basis, and
-            `G` for the G-basis).
-            In other words, writing permutations in one-line notation,
-            we have
+            `G` for the G-basis). In other words, writing
+            permutations in one-line notation, we have
 
             .. MATH::
 
@@ -1678,19 +1667,18 @@ class FQSymBases(Category_realization_of_parent):
                 \psi(G_{(u_1, u_2, \ldots, u_n)})
                 = G_{(u_n, u_{n-1}, \ldots, u_1)}.
 
-            If we denote the psi involution
+            If we also consider the `\psi` involution
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`)
-            of the quasisymmetric functions by `\psi` as well,
-            and if we let `\pi` be the canonical projection
-            `FQSym \to QSym`, then
+            of the quasisymmetric functions (by slight abuse of
+            notation), and if we let `\pi` be the canonical
+            projection `FQSym \to QSym`, then
             `\pi \circ \psi = \psi \circ \pi`.
 
-            If we denote the omega involution
+            Additionally, consider the `\omega` involution
             (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.omega_involution`)
-            of the noncommutative symmetric functions by `\omega`,
-            and if we let `\iota` be the canonical projection
-            `NSym \to FQSym`, then
-            `\psi \circ \iota = \iota \circ \omega`.
+            of the noncommutative symmetric functions, and if we let
+            `\iota` be the canonical projection `NSym \to FQSym`,
+            then `\psi \circ \iota = \iota \circ \omega`.
 
             .. TODO::
 
@@ -1698,7 +1686,7 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`omega_involution`, :meth:`star_involution`.
+                :meth:`omega_involution`, :meth:`star_involution`
 
             EXAMPLES::
 
@@ -1715,7 +1703,7 @@ class FQSymBases(Category_realization_of_parent):
                 sage: M[[2,3,1]].psi_involution()
                 -M[1, 2, 3] - M[1, 3, 2] - M[2, 3, 1]
 
-            The psi involution intertwines the antipode
+            The `\psi` involution intertwines the antipode
             and the inverse of the antipode::
 
                 sage: all( F(I).antipode().psi_involution().antipode()
@@ -1723,16 +1711,14 @@ class FQSymBases(Category_realization_of_parent):
                 ....:      for I in Permutations(4) )
                 True
 
-            Testing the `\pi \circ \psi = \psi \circ \pi` relation
-            noticed above::
+            Testing the `\pi \circ \psi = \psi \circ \pi` relation above::
 
                 sage: all( M[I].psi_involution().to_qsym()
                 ....:      == M[I].to_qsym().psi_involution()
                 ....:      for I in Permutations(4) )
                 True
 
-            Testing the `\psi \circ \iota = \iota \circ \omega`
-            relation::
+            Testing the `\psi \circ \iota = \iota \circ \omega` relation::
 
                 sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
                 sage: S = NSym.S()
@@ -1760,27 +1746,24 @@ class FQSymBases(Category_realization_of_parent):
             linear map `FQSym \to FQSym` that sends each basis
             element `F_u` of the F-basis of `FQSym`
             to the basis element `F_{w_0 \circ u \circ w_0}`,
-            where `w_0` is the longest word in the symmetric
-            group that contains `u` (that is: if `u \in S_n`,
-            then `w_0` is the permutation in `S_n` sending each
-            `i` to `n+1-i`).
+            where `w_0` is the longest word in the smallest
+            symmetric group `S_n` such that `u \in S_n`.
             The star involution is a graded Hopf algebra
             anti-automorphism of `FQSym`.
-            It is denoted by `f \mapsto f^{\ast}`. Every permutation
+            It is denoted by `f \mapsto f^*`. Every permutation
             `u \in S_n` satisfies
 
             .. MATH::
 
-                (F_u)^{\ast} = F_{w_0 \circ u \circ w_0}, \quad
-                (G_u)^{\ast} = G_{w_0 \circ u \circ w_0}, \quad
+                (F_u)^{\ast} = F_{w_0 \circ u \circ w_0}, \qquad
+                (G_u)^{\ast} = G_{w_0 \circ u \circ w_0}, \qquad
                 (\mathcal{M}_u)^{\ast} = \mathcal{M}_{w_0 \circ u \circ w_0},
 
             where standard notations for classical bases of `FQSym`
             are being used (that is, `F` for the F-basis,
             `G` for the G-basis, and `\mathcal{M}` for the Monomial
-            basis).
-            In other words, writing permutations in one-line notation,
-            we have
+            basis). In other words, writing permutations in one-line
+            notation, we have
 
             .. MATH::
 
@@ -1789,7 +1772,7 @@ class FQSymBases(Category_realization_of_parent):
                 (G_{(u_1, u_2, \ldots, u_n)})^{\ast}
                 = G_{(n+1-u_n, n+1-u_{n-1}, \ldots, n+1-u_1)},
 
-            and ::
+            and
 
             .. MATH::
 
@@ -1798,26 +1781,17 @@ class FQSymBases(Category_realization_of_parent):
 
             Let us denote the star involution by `(\ast)` as well.
 
-            If we denote the star involution
+            If we also denote by `(\ast)` the star involution of
+            of the quasisymmetric functions
             (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
-            of the quasisymmetric functions by `(\ast)` as well,
             and if we let `\pi` be the canonical projection
             `FQSym \to QSym`, then
             `\pi \circ (\ast) = (\ast) \circ \pi`.
-
-            If we denote the star involution
+            Similar for the noncommutative symmetric functions
             (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`)
-            of the noncommutative symmetric functions by `(\ast)`
-            as well, and if we let `\iota` be the canonical
-            projection `NSym \to FQSym`, then
-            `(\ast) \circ \iota = \iota \circ (\ast)`.
-
-            If we denote the star involution
+            with `\pi : NSym \to FQSym` and the word quasisymmetric functions
             (:meth:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
-            of the word quasisymmetric functions by `(\ast)`
-            as well, and if we let `\iota` be the canonical
-            projection `FQSym \to WQSym`, then
-            `(\ast) \circ \iota = \iota \circ (\ast)`.
+            with `\pi : FQSym \to WQSym`.
 
             .. TODO::
 
@@ -1825,7 +1799,7 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`omega_involution`, :meth:`psi_involution`.
+                :meth:`omega_involution`, :meth:`psi_involution`
 
             EXAMPLES::
 
@@ -1849,16 +1823,14 @@ class FQSymBases(Category_realization_of_parent):
                 ....:      for I in Permutations(4) )
                 True
 
-            Testing the `\pi \circ (\ast) = (\ast) \circ \pi` relation
-            noticed above::
+            Testing the `\pi \circ (\ast) = (\ast) \circ \pi` relation::
 
                 sage: all( M[I].star_involution().to_qsym()
                 ....:      == M[I].to_qsym().star_involution()
                 ....:      for I in Permutations(4) )
                 True
 
-            Testing the first `(\ast) \circ \iota = \iota \circ (\ast)`
-            relation::
+            Similar for the `NSym`::
 
                 sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
                 sage: S = NSym.S()
@@ -1866,8 +1838,7 @@ class FQSymBases(Category_realization_of_parent):
                 ....:      for I in Compositions(4) )
                 True
 
-            Testing the second `(\ast) \circ \iota = \iota \circ (\ast)`
-            relation::
+            Similar for `WQSym`::
 
                 sage: WQSym = algebras.WQSym(ZZ)
                 sage: all( F(I).to_wqsym().star_involution()

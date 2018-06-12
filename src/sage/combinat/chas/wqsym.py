@@ -404,14 +404,6 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         category = HopfAlgebras(R).Graded().Connected()
         Parent.__init__(self, base=R, category=category.WithRealizations())
 
-        # Register bases, to avoid garbage-collection of
-        # intermediate nodes on coercion paths.
-        #M = self.M()
-        #X = self.X()
-        #C = self.C()
-        #Q = self.Q()
-        #Phi = self.Phi()
-
     def _repr_(self):
         """
         Return the string representation of ``self``.
@@ -822,11 +814,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. TODO::
 
-            Experiments suggest that the algebraic_complement,
-            coalgebraic_complement and star_involution methods
+            Experiments suggest that :meth:`algebraic_complement`,
+            :meth:`coalgebraic_complement`, and :meth:`star_involution`
             should have reasonable formulas on the C basis; at least
             the coefficients of the outputs on any element of the C
-            basis seem to be always 0, 1, -1.
+            basis seem to be always `0, 1, -1`.
             Is this true? What is the formula?
         """
         _prefix = "C"
@@ -1981,8 +1973,7 @@ class WQSymBases(Category_realization_of_parent):
             that contains the letters `1, 2, \ldots, k` and no
             others, then the *complement* of `u` is defined to
             be the packed word
-            `(k+1 - u_1, k+1 - u_2, \ldots, k+1 - u_n)`.
-            This complement is denoted by `\overline{u}`.
+            `\overline{u} := (k+1 - u_1, k+1 - u_2, \ldots, k+1 - u_n)`.
 
             The algebraic complement involution is defined as the
             linear map `WQSym \to WQSym` that sends each basis
@@ -1996,22 +1987,22 @@ class WQSymBases(Category_realization_of_parent):
 
             .. MATH::
 
-                \overline{\mathbf{M}_u} = \mathbf{M}_{\overline{u}}, \quad
-                \overline{X_u} = X_{\overline{u}},
+                \overline{\mathbf{M}}_u = \mathbf{M}_{\overline{u}},
+                \qquad \overline{X}_u = X_{\overline{u}},
 
-            where standard notations for classical bases of `WQSym` are
-            being used (that is, `\mathbf{M}` for the monomial
+            where standard notations for classical bases of `WQSym`
+            are being used (that is, `\mathbf{M}` for the monomial
             basis, and `X` for the characteristic basis).
 
             This can be restated in terms of ordered set partitions:
             For any ordered set partition `R = (R_1, R_2, \ldots, R_k)`,
             let `R^r` denote the ordered set partition
-            `(R_k, R_{k-1}, \ldots, R_1)`; this is known as the *reversal*
-            of `R`. Then,
+            `(R_k, R_{k-1}, \ldots, R_1)`; this is known as
+            the *reversal* of `R`. Then,
 
             .. MATH::
 
-                \overline{\mathbf{M}_A} = \mathbf{M}_{A^r}, \quad
+                \overline{\mathbf{M}_A} = \mathbf{M}_{A^r}, \qquad
                 \overline{X_A} = X_{A^r}
 
             for any ordered set partition `A`.
@@ -2031,7 +2022,7 @@ class WQSymBases(Category_realization_of_parent):
 
             .. MATH::
 
-                \overline{Q_A} = \sum_P c_{A, P} Q_P ,
+                \overline{Q_A} = \sum_P c_{A, P} Q_P,
 
             where the sum is over all ordered set partitions `P` of
             `[n]`, and where the coefficient `c_{A, P}` is defined
@@ -2043,9 +2034,9 @@ class WQSymBases(Category_realization_of_parent):
 
             * If there exists no such `R`, then `c_{A, P} = 0`.
 
-            The formula describing algebraic complements on the Phi basis
-            (:class:`WordQuasiSymmetricFunctions.StronglyFiner`) is
-            identical to the above formula for the Q basis, except
+            The formula describing algebraic complements on the `\Phi`
+            basis (:class:`WordQuasiSymmetricFunctions.StronglyFiner`)
+            is identical to the above formula for the Q basis, except
             that the `\leq` sign has to be replaced by `\geq` in the
             definition of the coefficients `c_{A, P}`. In fact, both
             formulas are particular cases of a general formula for
@@ -2064,9 +2055,10 @@ class WQSymBases(Category_realization_of_parent):
             .. MATH::
 
                 \omega'(F_i)
-                = \sum_j \sum_{k \leq j ; \  \omega(k) \geq i} \mu(k, j) F_j,
+                = \sum_j \sum_{\substack{k \leq j \\ \omega(k) \geq i}}
+                  \mu(k, j) F_j,
 
-            where `\mu` denotes the Mobius function. This formula becomes
+            where `\mu` denotes the Möbius function. This formula becomes
             particularly useful when the `k` satisfying `k \leq j`
             and `\omega(k) \geq i` is unique (if it exists).
             In our situation, `V` is `WQSym`, and `I` is the set of
@@ -2088,12 +2080,12 @@ class WQSymBases(Category_realization_of_parent):
 
             EXAMPLES:
 
-            Keep in mind that the default input method for basis keys
-            of `WQSym` is by entering an ordered set partition, not a
-            packed word. Translated into the language of ordered set
-            partitions, the algebraic complement involution acts on the
-            Monomial basis by reversing the ordered set partition --
-            i.e., we have
+            Recall that the index set for the bases of `WQSym` is
+            given by ordered set partitions, not a packed words.
+            Translated into the language of ordered set partitions,
+            the algebraic complement involution acts on the
+            Monomial basis by reversing the ordered set partition.
+            In other words, we have
 
             .. MATH::
 
@@ -2132,8 +2124,7 @@ class WQSymBases(Category_realization_of_parent):
                 ....:      for I in OrderedSetPartitions(4) )
                 True
 
-            Testing the `\pi(\overline{f}) = (\pi(f))^{\ast}` relation
-            noticed above::
+            Testing the `\pi(\overline{f}) = (\pi(f))^{\ast}` relation::
 
                 sage: all( M[I].algebraic_complement().to_quasisymmetric_function()
                 ....:      == M[I].to_quasisymmetric_function().star_involution()
@@ -2173,11 +2164,11 @@ class WQSymBases(Category_realization_of_parent):
 
             .. MATH::
 
-                (\mathbf{M}_u)^r = \mathbf{M}_{u^r}, \quad
+                (\mathbf{M}_u)^r = \mathbf{M}_{u^r}, \qquad
                 (X_u)^r = X_{u^r},
 
-            where standard notations for classical bases of `WQSym` are
-            being used (that is, `\mathbf{M}` for the monomial
+            where standard notations for classical bases of `WQSym`
+            are being used (that is, `\mathbf{M}` for the monomial
             basis, and `X` for the characteristic basis).
 
             This can be restated in terms of ordered set partitions:
@@ -2188,7 +2179,7 @@ class WQSymBases(Category_realization_of_parent):
 
             .. MATH::
 
-                (\mathbf{M}_A)^r = \mathbf{M}_{\overline{A}}, \quad
+                (\mathbf{M}_A)^r = \mathbf{M}_{\overline{A}}, \qquad
                 (X_A)^r = X_{\overline{A}}
 
             for any ordered set partition `A`.
@@ -2232,9 +2223,9 @@ class WQSymBases(Category_realization_of_parent):
 
             * If there exists no such `R`, then `c_{A, P} = 0`.
 
-            The formula describing coalgebraic complements on the Phi basis
-            (:class:`WordQuasiSymmetricFunctions.StronglyFiner`) is
-            identical to the above formula for the Q basis, except
+            The formula describing coalgebraic complements on the `\Phi`
+            basis (:class:`WordQuasiSymmetricFunctions.StronglyFiner`)
+            is identical to the above formula for the Q basis, except
             that the `\leq` sign has to be replaced by `\geq` in the
             definition of the coefficients `c_{A, P}`. In fact, both
             formulas are particular cases of the general formula for
@@ -2251,12 +2242,12 @@ class WQSymBases(Category_realization_of_parent):
 
             EXAMPLES:
 
-            Keep in mind that the default input method for basis keys
-            of `WQSym` is by entering an ordered set partition, not a
-            packed word. Translated into the language of ordered set
-            partitions, the coalgebraic complement involution acts on the
-            Monomial basis by complementing the ordered set partition --
-            i.e., we have
+            Recall that the index set for the bases of `WQSym` is
+            given by ordered set partitions, not a packed words.
+            Translated into the language of ordered set partitions,
+            the coalgebraic complement involution acts on the
+            Monomial basis by complementing the ordered set partition.
+            In other words, we have
 
             .. MATH::
 
@@ -2344,7 +2335,7 @@ class WQSymBases(Category_realization_of_parent):
 
             .. MATH::
 
-                (\mathbf{M}_A)^{\ast} = \mathbf{M}_{A^{\ast}}, \quad
+                (\mathbf{M}_A)^{\ast} = \mathbf{M}_{A^{\ast}}, \qquad
                 (X_A)^{\ast} = X_{A^{\ast}}, \qquad
                 (Q_A)^{\ast} = Q_{A^{\ast}}, \qquad
                 (\Phi_A)^{\ast} = \Phi_{A^{\ast}} .
@@ -2415,8 +2406,7 @@ class WQSymBases(Category_realization_of_parent):
                 ....:      for I in OrderedSetPartitions(4) )
                 True
 
-            Testing the `\pi(f^{\ast}) = (\pi(f))^{\ast}` relation
-            noticed above::
+            Testing the `\pi(f^{\ast}) = (\pi(f))^{\ast}` relation::
 
                 sage: all( M[I].star_involution().to_quasisymmetric_function()
                 ....:      == M[I].to_quasisymmetric_function().star_involution()
@@ -2487,5 +2477,4 @@ class WQSymBases(Category_realization_of_parent):
             MW = self.parent().realization_of().M()
             return M.sum_of_terms((i.to_composition(), coeff)
                                   for (i, coeff) in MW(self))
-
 

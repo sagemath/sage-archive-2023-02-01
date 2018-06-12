@@ -32,7 +32,7 @@ from sage.combinat.tableau.pathtableaux import PathTableau
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.tableau import Tableau
+from sage.combinat.tableau import Tableau, Tableaux
 from sage.rings.integer import Integer
 
 #from sage.categories.pathtableaux import PathTableaux
@@ -304,31 +304,4 @@ class CatalanTableau(PathTableau):
         This draws the Dyck path.
         """
         return line([ (i,a) for i, a in enumerate(self)])
-
-###############################################################################
-
-class CatalanTableaux(UniqueRepresentation,Parent):
-    """
-    This constructs the Parent class.
-    """
-    @staticmethod
-    def __classcall_private__(cls):
-        return super(CatalanTableaux, cls).__classcall__(cls)
-
-    def __init__(self):
-
-        Parent.__init__(self, category=PathTableaux())
-
-    def __contains__(self, ot):
-
-        return isinstance(ot, (list, tuple, CatalanTableau))
-
-    def _element_constructor_(self, ot, check=True):
-
-        if isinstance(ot, CatalanTableaux) and ot.parent() == self:
-            return ot
-
-        return self.element_class(self, list(ot))
-
-    Element = CatalanTableau
 

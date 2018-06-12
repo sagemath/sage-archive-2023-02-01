@@ -270,28 +270,3 @@ class DualSemistandardTableau(PathTableau):
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
 
-###############################################################################
-
-class DualSemistandardTableaux(UniqueRepresentation,Parent):
-
-    @staticmethod
-    def __classcall_private__(cls):
-        return super(DualSemistandardTableaux, cls).__classcall__(cls)
-
-    def __init__(self):
-
-        Parent.__init__(self, category=PathTableaux())
-
-    def __contains__(self, ot):
-
-        return isinstance(ot, (list, tuple, DualSemistandardTableau))
-
-    def _element_constructor_(self, ot, check=True):
-
-        if isinstance(ot, DualSemistandardTableaux) and ot.parent() == self:
-            return ot
-
-        return self.element_class(self, list(ot))
-
-    Element = DualSemistandardTableau
-

@@ -246,17 +246,17 @@ class EllipticCurve_number_field(EllipticCurve_field):
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
-               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Search for trivial points on the curve
              Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
               zc = Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               Hilbert symbol (Mod(1, y^2 + 7),Mod(-2*y + 2, y^2 + 7)) =
               sol of quadratic equation = [1, 1, 0]~
-              zc*z1^2 = Mod(Mod(4, y^2 + 7)*x + Mod(-2*y + 6, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
+              zc*z1^2 = Mod(4*x + Mod(-2*y + 6, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
               quartic: (-1)*Y^2 = x^4 + (3*y - 9)*x^2 + (-8*y + 16)*x + (9/2*y - 11/2)
               reduced: Y^2 = -x^4 + (-3*y + 9)*x^2 + (-8*y + 16)*x + (-9/2*y + 11/2)
               not ELS at [2, [0, 1]~, 1, 1, [1, -2; 1, 0]]

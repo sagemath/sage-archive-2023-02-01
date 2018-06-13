@@ -1460,8 +1460,8 @@ class PeriodLattice_ell(PeriodLattice):
 
         Note that this is actually the inverse of the Weierstrass isomorphism::
 
-            sage: L.elliptic_exponential(_)
-            (3.00000000000000000000000000... : 5.00000000000000000000000000... : 1.000000000000000000000000000)
+            sage: L.elliptic_exponential(_)  # abs tol 1e-26
+            (3.000000000000000000000000000 : 5.000000000000000000000000000 : 1.000000000000000000000000000)
 
         An example with negative discriminant, and a torsion point::
 

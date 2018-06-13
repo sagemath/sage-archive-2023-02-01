@@ -81,7 +81,10 @@ class TorsionQuadraticModuleElement(FGP_Element):
     INPUT:
 
     - ``parent`` -- parent
+
     - ``x`` -- element of ``parent.V()``
+
+    - ``check`` -- bool (default: ``True``)
 
     TESTS::
 
@@ -92,22 +95,15 @@ class TorsionQuadraticModuleElement(FGP_Element):
         sage: t = T.gen(0)
         sage: loads(dumps(t)) == t
         True
-    """
-    def __init__(self, parent, x, check=DEBUG):
-        r"""
-        Initialize ``self``
 
-        EXAMPLES::
-
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-            sage: V = span([[1/2,1,1], [3/2,2,1], [0,0,1]], ZZ)
-            sage: b = V.basis()
-            sage: W = V.span([2*b[0]+4*b[1], 9*b[0]+12*b[1], 4*b[2]])
-            sage: Q = TorsionQuadraticModule(V, W)
-            sage: x = Q(b[0] - b[1])
-            sage: TestSuite(x).run()
+        sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+        sage: V = span([[1/2,1,1], [3/2,2,1], [0,0,1]], ZZ)
+        sage: b = V.basis()
+        sage: W = V.span([2*b[0]+4*b[1], 9*b[0]+12*b[1], 4*b[2]])
+        sage: Q = TorsionQuadraticModule(V, W)
+        sage: x = Q(b[0] - b[1])
+        sage: TestSuite(x).run()
         """
-        FGP_Element.__init__(self, parent=parent, x=x, check=check)
 
     def _mul_(self, other):
         r"""
@@ -240,10 +236,12 @@ class TorsionQuadraticModule(FGP_Module_class):
                 raise ValueError("provided gens do not generate the quotient")
 
         FGP_Module_class.__init__(self, V, W, check=check)
-        if gens is None:
-            self._gens = FGP_Module_class.gens(self)
-        else:
+        if not gens is None:
             self._gens = [self(v) for v in gens]
+        else:
+            # this is taken care of in the .gens method
+            # we do not want this at initialization
+            self._gens = None
 
         if modulus is not None:
             if check:
@@ -513,6 +511,8 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.gens()
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         """
+        if self._gens is None:
+            return self.smith_form_gens()
         return self._gens
 
     def is_genus(self, signature_pair, even=True):
@@ -851,30 +851,6 @@ class TorsionQuadraticModule(FGP_Module_class):
         annihilator = self.annihilator().gen()
         a = annihilator.prime_to_m_part(m)
         return self.submodule( (a*self.V()).gens() )
-
-    def submodule(self, x):
-        r"""
-        Return the submodule defined by ``x``.
-
-        The modulus of the inner product is inherited from ``self``.
-
-        INPUT:
-
-        - ``x`` -- list, tuple, or FGP module
-
-        OUTPUT:
-
-        - a :class:`TorsionQuadraticModule`
-
-        EXAMPLES::
-
-        """
-        T = FGP_Module_class.submodule(self, x)
-        # We need to explicitly set the _modulus and _modulus_qf
-        #   else the modulus might increase.
-        # T._modulus = self._modulus
-        # T._modulus_qf = self._modulus_qf
-        return T
 
     def submodule_with_gens(self, gens):
         r"""

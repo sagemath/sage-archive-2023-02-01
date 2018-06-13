@@ -475,18 +475,22 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M = Matrix(pR, 0, 0)
             sage: M._is_empty_popov()
             True
+            sage: M._is_empty_popov(include_zero_vectors=False)
+            True
 
             sage: M = Matrix(pR, 0, 3)
-            sage: M._is_empty_popov()
+            sage: M._is_empty_popov(include_zero_vectors=False)
             True
             sage: M._is_empty_popov(row_wise=False)
+            True
+            sage: M._is_empty_popov(row_wise=False,include_zero_vectors=False)
             False
 
         .. SEEALSO::
         
             :meth:`is_popov` .
         """
-        if not include_zero_vectors:
+        if include_zero_vectors:
             return True
         else:
             # assume we work row-wise, self is in shifted Popov form iff self.nrows()==0:

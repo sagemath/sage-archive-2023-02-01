@@ -1585,7 +1585,7 @@ Integers = IntegerModRing
 
 # Register unpickling methods for backward compatibility.
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.integer_mod_ring', 'IntegerModRing_generic', IntegerModRing_generic)
 
 def crt(v):

@@ -240,14 +240,6 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    # stop the twisted reactor
-    try:
-       from twisted.internet import reactor
-       if reactor.running:
-          reactor.callFromThread(reactor.stop)
-    except ImportError:
-       pass
-
     # Free globally allocated mpir integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()

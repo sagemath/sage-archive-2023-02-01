@@ -1092,9 +1092,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         INPUT:
 
         - ``transformation`` -- (optional, default: ``False``). If this
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is a unimodular matrix over `\Bold{K}[x]` such that ``self`` equals
-          `UW`, where `W` is the output matrix.
+          is ``True``, the transformation matrix `U` will be returned as well:
+          this is a unimodular matrix over `\Bold{K}[x]` such that ``self``
+          equals `UW`, where `W` is the output matrix.
 
         - ``shifts`` -- (optional, default: ``None``) list of integers;
           ``None`` is interpreted as ``shifts=[0,...,0]``.

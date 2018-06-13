@@ -4966,42 +4966,41 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: T.lexicographic_sum(P)
             Traceback (most recent call last):
             ...
-            TypeError...
+            ValueError: lexicographic sum of the empty poset is not defined
 
             sage: P = {1: T, 2: T, 3: T}
             sage: T.lexicographic_sum(P)
             Traceback (most recent call last):
             ...
-            ValueError...
+            ValueError: keys of dict P does not match to elements of the poset
             sage: P = {1: T}
             sage: T.lexicographic_sum(P)
             Traceback (most recent call last):
             ...
-            ValueError...
+            ValueError: keys of dict P does not match to elements of the poset
 
             sage: P = {1: Poset({1: []}, facade=True), 2: Poset({1: []}, facade=False)}
             sage: T.lexicographic_sum(P)
             Traceback (most recent call last):
             ...
-            TypeError...
+            TypeError: mixing facade and non-facade posets is not defined
 
-            sage: P = Poset({42: []}, facade=False)
-            sage: type(P.lexicographic_sum(P)[0]) == type(P[0])
-            True
-            sage: P = Poset({42: []}, facade=True)
-            sage: type(P.lexicographic_sum(P)[0]) == type(P[0])
+            sage: T = Poset({42: []}, facade=False)
+            sage: P = {T[0]: Poset({57: []}, facade=False)}
+            sage: T.lexicographic_sum(P)._is_facade
+            False
+            sage: T = Poset({42: []}, facade=True)
+            sage: P = {T[0]: Poset({57: []}, facade=True)}
+            sage: T.lexicographic_sum(P)._is_facade
             True
         """
         # P might be defaultdict, hence the test
         if type(P) == type({}):
             if set(P) != set(self):
                 raise ValueError("keys of dict P does not match to elements of the poset")
-        else:
-            if not all(e in P for e in self):
-                raise ValueError("keys of dict P does not match to elements of the poset")
 
         d = DiGraph()
-        for t in P:
+        for t in self:
             if P[t]._is_facade != self._is_facade:
                 raise TypeError("mixing facade and non-facade posets is not defined")
             if P[t].cardinality() == 0:

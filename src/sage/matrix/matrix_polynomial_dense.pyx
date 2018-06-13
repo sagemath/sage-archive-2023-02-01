@@ -10,6 +10,8 @@ AUTHORS:
 
 - Johan Rosenkilde (2017-02-07): added weak_popov_form()
 
+- Vincent Neiger: added basic functions (degrees, leading positions, testing forms)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>

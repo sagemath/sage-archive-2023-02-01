@@ -10,7 +10,8 @@ AUTHORS:
 
 - Johan Rosenkilde (2017-02-07): added weak_popov_form()
 
-- Vincent Neiger: added basic functions (degrees, leading positions, testing forms)
+- Vincent Neiger (2018-06-13): added basic functions (row/column degrees,
+  leading positions, leading matrix, testing reduced and canonical forms)
 
 """
 #*****************************************************************************
@@ -78,7 +79,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     with the shifts $(0,d,2d,\ldots,(n-1)d)$.
     """
 
-    def _check_shift_dimension(self, shifts=None, row_wise=True):
+    def _check_shift_dimension(self, shifts, row_wise=True):
         r"""
         Raises an exception if the ``shifts`` argument does not have the right
         length.
@@ -89,8 +90,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``shifts`` -- (optional, default: ``None``) list of integers;
-          ``None`` is interpreted as ``shifts=[0,...,0]``.
+        - ``shifts`` -- list of integers, or ``None``.
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, if ``True``
           then shifts apply to the columns of the matrix and otherwise to its
@@ -100,8 +100,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             sage: pR.<x> = GF(7)[]
             sage: M = Matrix( pR, [[3*x+1, 0, 1], [x^3+3, 0, 0]])
-            sage: M._check_shift_dimension()
-
             sage: M._check_shift_dimension(shifts=[1,3,2])
 
             sage: M._check_shift_dimension(shifts=[1,3,2], row_wise=False)
@@ -350,11 +348,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             The documentation of :meth:`row_degrees`.
         """
+        self._check_shift_dimension(shifts,row_wise=False)
         if self.ncols() == 0 or self.nrows() == 0:
             raise ValueError('Empty matrix does not have column degrees.')
-        self._check_shift_dimension(shifts,row_wise=False)
-        if self.nrows() == 0:
-            return [None]*(self.ncols())
         if shifts is None:
             return [ max([ self[i,j].degree() for i in range(self.nrows()) ])
                     for j in range(self.ncols()) ]

@@ -1284,6 +1284,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``shifts`` -- (optional, default: ``None``) list of integers;
           ``None`` is interpreted as ``shifts=[0,...,0]``.
 
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
         OUTPUT:
 
         - A polynomial matrix `R` which is a reduced form of ``self`` if

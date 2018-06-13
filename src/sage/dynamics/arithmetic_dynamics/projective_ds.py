@@ -3232,7 +3232,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
             sage: f.multiplier_spectra(2, formal=False, embedding=K.embeddings(QQbar)[0], type='cycle')
             [0,
-             5.931851652578137? + 0.?e-47*I,
+             5.931851652578137? + 0.?e-49*I,
              0.0681483474218635? - 1.930649271699173?*I,
              0.0681483474218635? + 1.930649271699173?*I]
 

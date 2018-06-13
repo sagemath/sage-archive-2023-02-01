@@ -495,7 +495,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         else:
             # assume we work row-wise, self is in shifted Popov form iff self.nrows()==0:
             # --> if self.nrows()==0, then self is in shifted Popov form
-            # --> if self.nrows()>0, then self.ncols()>0 and self is not in shifted Popov form
+            # --> if self.nrows()>0, then self.ncols()==0 and thus self is not
+            # in shifted Popov form
             return self.nrows() == 0 if row_wise else self.ncols() == 0
 
     def is_reduced(self,
@@ -567,7 +568,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise)
         if self.ncols() == 0 or self.nrows() == 0:
-            return self._is_empty_popov(row_wise)
+            return self._is_empty_popov(row_wise,include_zero_vectors)
         if include_zero_vectors:
             number_generators =                                           \
                 [self[i,:] != 0 for i in range(self.nrows())].count(True) \
@@ -583,8 +584,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             row_wise=True,
             return_degree=False):
         r"""
-        Return the (shifted) leading positions (also known as the pivot index),
-        and optionally the (shifted) pivot degree of this matrix.
+        Return the (shifted) leading positions (also known as the pivot
+        indices), and optionally the (shifted) pivot degrees of this matrix.
 
         If working row-wise, for a given shift $s_1,\ldots,s_n \in
         \ZZ$, taken as $(0,\ldots,0)$ by default, and a row vector of
@@ -595,10 +596,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         
         For the zero row, both the leading positions and degree are $-1$.  For
         a $m \times n$ polynomial matrix, the leading positions and pivot
-        degree are the two lists containing the leading positions and the pivot
-        degree of its rows.
+        degrees are the two lists containing the leading positions and the
+        pivot degrees of its rows.
 
-        The definition is similar if working column-wise.
+        The definition is similar if working column-wise (instead of rightmost
+        nonzero entry, we choose the bottommost nonzero entry).
 
         INPUT:
 
@@ -648,7 +650,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.leading_positions(shifts=[2,0], row_wise=False,return_degree=True)
             ([1, -1, 0], [3, -1, 0])
 
-        The leading positions and pivot degree of an empty matrix ($0\times n$
+        The leading positions and pivot degrees of an empty matrix ($0\times n$
         or $m\times 0$) is not defined::
 
             sage: M = Matrix( pR, 0, 3 )
@@ -723,7 +725,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         If working row-wise (resp. column-wise), a polynomial matrix is said to
         be in weak Popov form if the leading positions of its nonzero rows
         (resp. columns) are pairwise distinct (for the ordered weak Popov form,
-        this pivot index must be strictly increasing, except for the possibly
+        these positions must be strictly increasing, except for the possibly
         repeated -1 entries which are at the end).
 
         Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
@@ -761,8 +763,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.is_weak_popov()
             True
 
-        One can check whether the pivot index, in addition to being pairwise
-        distinct, are actually in increasing order::
+        One can check whether the leading positions, in addition to being
+        pairwise distinct, are actually in increasing order::
 
             sage: M.is_weak_popov(ordered=True)
             True
@@ -819,7 +821,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # here, it will be convenient to have leading position
         # larger than ncols for zero/empty rows
         leading_positions = [pos if pos>=0 else self.ncols() + 1 for pos in leading_positions]
-        # pivot index should not have duplicates, which is equivalent to:
+        # leading positions should not have duplicates, which is equivalent to:
         # once sorted, it doesn't contain a pair of equal successive entries
         if not ordered:
             leading_positions.sort()

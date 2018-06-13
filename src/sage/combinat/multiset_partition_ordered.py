@@ -623,7 +623,7 @@ class OrderedMultisetPartition(ClonableArray):
 
     def split(self, k=2):
         r"""
-        Return the set of `k`-splittings of ``self``.
+        Return a dictionary representing the `k`-splittings of ``self``.
 
         A `k`-tuple `(A^1, \ldots, A^k)` of ordered multiset partitions represents
         a `k`-splitting of an ordered multiset partition `A=[b_1, \ldots, b_r]` if
@@ -641,34 +641,37 @@ class OrderedMultisetPartition(ClonableArray):
             [([], [{1,2}, {4}]), ([{2}], [{1}, {4}]), ([{1}], [{2}, {4}]),
              ([{1}, {4}], [{2}]), ([{1,2}, {4}], []), ([{4}], [{1,2}]),
              ([{2}, {4}], [{1}]), ([{1,2}], [{4}])]
-            sage: sorted(OrderedMultisetPartition([[1,2]]).split(3))
-            [([], [], [{1,2}]), ([], [{1}], [{2}]), ([], [{2}], [{1}]),
-             ([], [{1,2}], []), ([{2}], [], [{1}]), ([{1}], [], [{2}]),
-             ([{1}], [{2}], []), ([{2}], [{1}], []), ([{1,2}], [], [])]
+            sage: OrderedMultisetPartition([[1,2]]).split(3)
+            {([], [], [{1,2}]): 1, ([], [{1}], [{2}]): 1, ([], [{2}], [{1}]): 1,
+             ([], [{1,2}], []): 1, ([{2}], [], [{1}]): 1, ([{1}], [], [{2}]): 1,
+             ([{1}], [{2}], []): 1, ([{2}], [{1}], []): 1, ([{1,2}], [], []): 1}
+            sage: OrderedMultisetPartition([[4],[4]]).split()
+            {([], [{4}, {4}]): 1, ([{4}], [{4}]): 2, ([{4}, {4}], []): 1}
 
         TESTS::
 
             sage: C = OrderedMultisetPartition([1,2,0,4,5,6]); C
             [{1,2}, {4,5,6}]
-            sage: C.split().cardinality() == 2**len(C[0]) * 2**len(C[1])
+            sage: sum(C.split().values()) == 2**len(C[0]) * 2**len(C[1])
             True
-            sage: C.split(3).cardinality() == (1+2)**len(C[0]) * (1+2)**len(C[1])
+            sage: sum(C.split(3).values()) == (1+2)**len(C[0]) * (1+2)**len(C[1])
             True
             sage: C = OrderedMultisetPartition([])
-            sage: C.split(3) == Set([(C, C, C)])
+            sage: C.split(3) == {(C, C, C): 1}
             True
         """
         P = OrderedMultisetPartitions(alphabet=self.letters(),max_length=self.length())
 
         # corner case
         if not self:
-            return Set([tuple([self]*k)])
+            return {tuple([self]*k): 1}
         else:
-            out = set()
+            out = {}
             tmp = cartesian_product([_split_block(block, k) for block in self])
             for t in tmp:
-                out.add(tuple([P([k for k in c if len(k)>0]) for c in zip(*t)]))
-            return Set(out)
+                tt = tuple([P([k for k in c if len(k)>0]) for c in zip(*t)])
+                out[tt] = out.get(tt,0) + 1
+            return out
 
     def finer(self, strong=False):
         """

@@ -105,7 +105,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M._check_shift_dimension(shifts=[1,3,2], row_wise=False)
             Traceback (most recent call last):
             ...
-            ValueError: Shifts length should be the row dimension.
+            ValueError: shifts length should be the row dimension
         """
         if shifts != None and (not row_wise) and len(shifts) != self.nrows():
             raise ValueError('shifts length should be the row dimension')
@@ -141,7 +141,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.degree()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have a degree.
+            ValueError: empty matrix does not have a degree
         """
         if self.nrows() == 0 or self.ncols() == 0:
             raise ValueError('empty matrix does not have a degree')
@@ -273,13 +273,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.row_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have row degrees.
+            ValueError: empty matrix does not have row degrees
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.row_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have row degrees.
+            ValueError: empty matrix does not have row degrees
         """
         self._check_shift_dimension(shifts,row_wise=True)
         if self.ncols() == 0 or self.nrows() == 0:
@@ -336,13 +336,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.column_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have column degrees.
+            ValueError: empty matrix does not have column degrees
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.column_degrees()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have column degrees.
+            ValueError: empty matrix does not have column degrees
 
         .. SEEALSO::
 
@@ -651,18 +651,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.leading_positions()
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have leading positions.
+            ValueError: empty matrix does not have leading positions
 
             sage: M.leading_positions(row_wise=False)
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have leading positions.
+            ValueError: empty matrix does not have leading positions
 
             sage: M = Matrix( pR, 3, 0 )
             sage: M.leading_positions(row_wise=False)
             Traceback (most recent call last):
             ...
-            ValueError: Empty matrix does not have leading positions.
+            ValueError: empty matrix does not have leading positions
         """
         self._check_shift_dimension(shifts,row_wise)
 

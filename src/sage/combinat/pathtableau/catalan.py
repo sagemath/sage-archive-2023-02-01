@@ -149,7 +149,7 @@ class CatalanTableau(PathTableau):
         [0, 1, 2, 1, 0]
 
     """
-    
+
     @staticmethod
     def __classcall_private__(cls, ot):
 
@@ -188,7 +188,7 @@ class CatalanTableau(PathTableau):
             raise NotImplementedError( "Sorry; I don't know what to do with %s." % str(ot) )
 
         return CatalanTableaux()(w)
-    
+
     def check(self):
         """
         This overwrites the abstract method.
@@ -306,7 +306,7 @@ class CatalanTableau(PathTableau):
         return line([ (i,a) for i, a in enumerate(self)])
 
 #class PathTableaux(UniqueRepresentation,Parent):
-#    
+#
 #    def __init__(self):
 #        Parent.__init__(self, category = Sets())
 #
@@ -316,5 +316,5 @@ class CatalanTableau(PathTableau):
 #    Element = PathTableau
 
 class CatalanTableaux(PathTableaux):
-        
+
     Element = CatalanTableau

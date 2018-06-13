@@ -31,16 +31,10 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.abstract_method import abstract_method
-from sage.structure.list_clone import ClonableList
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-
-from sage.combinat.pathtableau.pathtableaux import PathTableau, PathTableaux
+from sage.combinat.pathtableau.pathtableaux import PathTableau_partitions, PathTableaux
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.partition import Partition
-from sage.modules.free_module_element import vector
 
 """
 EXAMPLES::
@@ -98,7 +92,7 @@ EXAMPLES::
 """
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
-class DualSemistandardTableau(PathTableau):
+class DualSemistandardTableau(PathTableau_partitions):
     """
        An instance is the sequence of partitions correspond to the
        chain of partitions of a dual semistandard skew tableau.
@@ -152,14 +146,6 @@ class DualSemistandardTableau(PathTableau):
             for a in t[len(h):]:
                 if a > 1:
                     raise ValueError( "%s / %s is not a vertical strip" % (str(t),str(h)) )
-    @staticmethod
-    def _rule(x):
-        y = map(list,x)
-        m = max([ len(u) for u in y ])
-        z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
-        result = list(z[0]-z[1]+z[2])
-        result.sort(reverse=True)
-        return Partition(result)
 
     def evaluation(self):
         z = [ p.size() for p in self ]
@@ -251,6 +237,14 @@ class DualSemistandardTableau(PathTableau):
         return lhs == rhs
 
     def check_rectify(self):
+        """
+        Check that jdt-rectification on the conjugate tableaux
+        is the rectification defined here.
+
+        EXAMPLE::
+
+        """
+
         lhs = self.rectify().to_tableau()
         rhs = self.to_tableau().rectify()
         return lhs == rhs
@@ -272,6 +266,18 @@ class DualSemistandardTableau(PathTableau):
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
 
+    def plot(self):
+        """
+        This provides a plot of the dual semistandard tableau.
+        PLOT::
+
+            sage: t = SkewTableau([[None,None,2,2],[3,4,4],[4]])
+            sage: DualSemistandardTableau(t).plot()
+            Graphics object consisting of 16 graphics primitives
+
+        """
+        return self._plotC()
+
 class DualSemistandardTableaux(PathTableaux):
-    
+
     Element = DualSemistandardTableau

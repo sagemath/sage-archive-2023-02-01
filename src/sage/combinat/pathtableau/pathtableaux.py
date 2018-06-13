@@ -32,7 +32,9 @@ from sage.misc.abstract_method import abstract_method
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.categories.sets_cat import Sets
+from sage.combinat.partition import Partition
+from sage.modules.free_module_element import vector
+
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
@@ -44,11 +46,11 @@ class PathTableau(ClonableList):
             return t
 
         raise NotImplementedError("This needs to be overwritten.")
-        
+
     @abstract_method(optional=False)
     def check(self):
         """
-        This is an abstract method. It must be overwritten 
+        This is an abstract method. It must be overwritten
         Typically an instance of
         an Element class is a sequence of partitions with conditions
         on adjacent partitions in the sequence. This function checks
@@ -67,7 +69,7 @@ class PathTableau(ClonableList):
         """
 
 ################################# Book Keeping ################################
-        
+
     def size(self):
         """
         Returns the size or length.
@@ -292,6 +294,14 @@ class PathTableau(ClonableList):
         as the identity operators. The usual dual equivalence graphs
         are given by replacing the label $i,i+2$ by $i$ and removing
         edges with other labels.
+
+        PLOT::
+
+            sage: t = SkewTableau([[None,1,1],[2,2]])
+            sage: s = DualSemistandardTableau(t)
+            sage: s.dual_equivalence_graph().show()
+            Launched png viewer for Graphics object consisting of 4 graphics primitives
+
         """
         from sage.graphs.graph import Graph
         from itertools import combinations
@@ -311,14 +321,53 @@ class PathTableau(ClonableList):
 
 #### These functions don't belong here but I don't have a home for them. ####
 
-    def drawL(self):
-        """
-        This assumes we have a sequence of partitions.
-        This is the default case but need not always be the case.
 
+
+class PathTableaux(UniqueRepresentation,Parent):
+#
+#    def __init__(self):
+#        Parent.__init__(self, category = Sets())
+#
+    def _element_constructor_(self, *args, **keywords):
+        return self.element_class(self, *args, **keywords)
+#
+#    Element = PathTableau
+
+class PathTableau_partitions(PathTableau):
+    """
+    This is an abstract base class. This class assumes that we have
+    a sequence of partitions. The main examples are the minuscule
+    representations of classical groups.
+    """
+
+    @staticmethod
+    def _rule(x):
+        y = map(list,x)
+        m = max([ len(u) for u in y ])
+        z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
+        result = list(z[0]-z[1]+z[2])
+        result.sort(reverse=True)
+        return Partition(result)
+
+    def _plotL(self):
+        """
         This draws a plot of the sequence of partitions.
-        """
+        This plot assumes we do not have a chain of partitions
+        and plots the partitions in a line.
 
+        PLOT::
+
+            sage: t = SkewTableau([[None,1,1],[2,2]])
+            sage: s = DualSemistandardTableau(t)
+            sage: s._plotL()
+            Launched png viewer for Graphics object consisting of 11 graphics primitives
+
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from copy import copy
+
+        global gap
         gap = 1
 
         def draw_partition(p,origin):
@@ -373,13 +422,23 @@ class PathTableau(ClonableList):
 
         return G
 
-    def drawC(self):
+    def _plotC(self):
         """
-        This assumes we have a sequence of partitions.
-        This is the default case but need not always be the case.
-
         This draws a plot of the sequence of partitions.
+        This plot assumes the sequence is not a chain and so
+        plots the sequence.
+
+        PLOT::
+
+            sage: t = SkewTableau([[None,1,1],[2,2]])
+            sage: s = DualSemistandardTableau(t)
+            sage: s._plotC()
+            Launched png viewer for Graphics object consisting of 10 graphics primitives
+
         """
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from copy import copy
 
         def draw_partition(p):
 
@@ -427,13 +486,3 @@ class PathTableau(ClonableList):
         G.set_aspect_ratio(1)
 
         return G
-
-class PathTableaux(UniqueRepresentation,Parent):
-#    
-#    def __init__(self):
-#        Parent.__init__(self, category = Sets())
-#
-    def _element_constructor_(self, *args, **keywords):
-        return self.element_class(self, *args, **keywords)
-#
-#    Element = PathTableau

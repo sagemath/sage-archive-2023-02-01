@@ -1920,7 +1920,6 @@ def absolute_order_from_ring_generators(gens, check_is_integral=True,
     if check_is_integral and not each_is_integral(gens):
         raise ValueError("each generator must be integral")
     gens = Sequence(gens)
-    K = gens.universe()
     n = [x.absolute_minpoly().degree() for x in gens]
     module_gens = monomials(gens, n)
     return absolute_order_from_module_generators(module_gens,

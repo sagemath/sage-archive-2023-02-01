@@ -31,9 +31,10 @@ from .polynomial_ring_constructor import (PolynomialRing, polynomial_default_cat
 
 
 def is_MPolynomialRing(x):
-    return isinstance(x, MPolynomialRing_generic)
+    return isinstance(x, MPolynomialRing_base)
 
-cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
+
+cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
         """
         Create a polynomial ring in several variables over a commutative ring.
@@ -410,8 +411,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         if not is_MPolynomialRing(right):
             return op == Py_NE
 
-        lft = <MPolynomialRing_generic>left
-        other = <MPolynomialRing_generic>right
+        lft = <MPolynomialRing_base>left
+        other = <MPolynomialRing_base>right
 
         lx = (lft.base_ring(), lft.__ngens,
               lft.variable_names(),

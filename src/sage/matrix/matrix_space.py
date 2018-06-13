@@ -67,7 +67,7 @@ import sage.rings.integer as integer
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.finite_rings.finite_field_constructor
-import sage.rings.polynomial.multi_polynomial_ring_generic
+import sage.rings.polynomial.multi_polynomial_ring_base
 import sage.misc.latex as latex
 import sage.modules.free_module
 
@@ -282,7 +282,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if implementation is None:
                 return matrix_polynomial_dense.Matrix_polynomial_dense
 
-        elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
+        elif sage.rings.polynomial.multi_polynomial_ring_base.is_MPolynomialRing(R) and R.base_ring() in _Fields:
             if implementation is None:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
 

@@ -453,7 +453,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             [  0 1/5   0]
             [  0   0 1/5]
         """
-        gens = self._gens
+        gens = self.gens()
         n = len(gens)
         Q = self.base_ring().fraction_field()
         G = matrix.zero(Q, n)
@@ -486,7 +486,7 @@ class TorsionQuadraticModule(FGP_Module_class):
             [  0 1/2]
             [1/2   0]
         """
-        gens = self._gens
+        gens = self.gens()
         n = len(gens)
         Q = self.base_ring().fraction_field()
         G = matrix.zero(Q, n)

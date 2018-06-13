@@ -372,23 +372,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         be a shift, and let $(d_1,\ldots,d_m)$ denote the shifted row degrees of
         $M$. Then, the shifted leading matrix of $M$ is the matrix in
         $\Bold{K}^{m \times n}$ whose entry $i,j$ is the coefficient of degree
-        $d_i-s_j$ of the entry $i,j$ of $M$. Going over the Laurent
-        polynomials, the shifted leading matrix of $M$ can also be described as
-        the coefficient of degree $0$ of the polynomial matrix
-        $\mathrm{diag}(x^{-d_1},\ldots,x^{-d_m}) M
-        \mathrm{diag}(x^{s_1},\ldots,x^{s_m})$ (whose entries have nonpositive
-        degree).
+        $d_i-s_j$ of the entry $i,j$ of $M$.
 
         If working column-wise, let $s_1,\ldots,s_m \in \ZZ$ be a shift,
         and let $(d_1,\ldots,d_n)$ denote the shifted column degrees of $M$.
         Then, the shifted leading matrix of $M$ is the matrix in $\Bold{K}^{m
         \times n}$ whose entry $i,j$ is the coefficient of degree $d_j-s_i$ of
-        the entry $i,j$ of $M$. Going over the Laurent polynomials, the shifted
-        leading matrix of $M$ can also be described as the coefficient of
-        degree $0$ of the polynomial matrix
-        $\mathrm{diag}(x^{s_1},\ldots,x^{s_m}) M
-        \mathrm{diag}(x^{-d_1},\ldots,x^{-d_m})$ (whose entries have
-        nonpositive degree).
+        the entry $i,j$ of $M$.
 
         INPUT:
 

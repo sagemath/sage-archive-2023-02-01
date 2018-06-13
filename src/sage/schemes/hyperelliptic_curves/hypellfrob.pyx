@@ -112,7 +112,7 @@ def interval_products(M0, M1, target):
         for j from 0 <= j < dim:
             for i from 0 <= i < dim:
                 sig_on()
-                tmp.x = out.get(j + 1, i + dim * k + 1)
+                tmp.x = out.get(j, i + dim * k)
                 sig_off()
                 mats[k][j,i] = tmp._integer_()
 

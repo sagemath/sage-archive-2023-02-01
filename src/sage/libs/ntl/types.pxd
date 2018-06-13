@@ -116,7 +116,7 @@ cdef extern from "ntlwrap.h":
         void SetDims(long nrows, long ncols)
         long NumRows()
         long NumCols()
-        ZZ_p_c (*get "operator()") (long i, long j)
+        ZZ_p_c get(long i, long j)
         void put(long i, long j, ZZ_p_c &a)
 
     cdef cppclass mat_GF2_c "mat_GF2":

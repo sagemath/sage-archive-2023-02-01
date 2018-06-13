@@ -16,6 +16,7 @@ in the module ``ntl_flint_interface``.
 #       Copyright (C) 2007 Martin Albrecht
 #       Copyright (C) 2008 Clement Pernet
 #       Copyright (C) 2018 Vincent Delecroix
+#       Copyright (C) 2018 Alex J. Best
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,16 +25,18 @@ in the module ``ntl_flint_interface``.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .ntl cimport mat_ZZ_p_c, ZZ_pContext
+from .types cimport mat_ZZ_p_c
+from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
+from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 
-from sage.matrix.matrix_modn_dense cimport Matrix_modn_dense
+from sage.matrix.matrix_modn_dense_float cimport Matrix_modn_dense_float
 
 
 ################################################
-# matrix_modn_sparse (sparse matrix over Z/nZ) #
+# matrix_modn_dense (dense matrix over Z/nZ) #
 ################################################
 
-cdef inline void set_ntl_matrix_modn_sparse(mat_ZZ_p_c& A, Matrix_modn_dense m):
+cdef inline void set_ntl_matrix_modn_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_modn_dense_float m):
     r"""
     set the entries of a LinBox matrix from a Sage matrix.
 
@@ -43,11 +46,13 @@ cdef inline void set_ntl_matrix_modn_sparse(mat_ZZ_p_c& A, Matrix_modn_dense m):
     - m -- Sage matrix
     """
     cdef size_t i, j
+    cdef ntl_ZZ_p tmp
     for i in range(m._nrows):
         for j in range(m._ncols):
-            A.put(i, j, m[i,j])
+            tmp = ntl_ZZ_p(m[i,j], c)
+            A.put(i, j, tmp.x)
 
-cdef inline mat_ZZ_p_c * new_ntl_matrix_modn_sparse(ZZ_pContext &F, Matrix_modn_dense m):
+cdef inline mat_ZZ_p_c * new_ntl_matrix_modn_dense(ntl_ZZ_pContext_class c, Matrix_modn_dense_float m):
     r"""
     Return a new LinBox matrix from a Sage matrix.
 
@@ -55,9 +60,10 @@ cdef inline mat_ZZ_p_c * new_ntl_matrix_modn_sparse(ZZ_pContext &F, Matrix_modn_
 
     INPUT:
 
-    - F -- LinBox field
+    - c -- LinBox field
     - m -- Sage matrix
     """
-    cdef mat_ZZ_p_c * A = new mat_ZZ_p_c(m._nrows, m._ncols)
-    set_ntl_matrix_modn_sparse(A[0], m)
+    cdef mat_ZZ_p_c * A = new mat_ZZ_p_c()
+    A.SetDims(m._nrows, m._ncols)
+    set_ntl_matrix_modn_dense(A[0], c, m)
     return A

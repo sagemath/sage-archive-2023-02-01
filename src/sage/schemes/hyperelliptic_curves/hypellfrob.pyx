@@ -23,11 +23,17 @@ AUTHOR:
 #*****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
+from libcpp.vector cimport vector
+
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
 from sage.libs.ntl.ntl_mat_ZZ cimport ntl_mat_ZZ
+from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class, ntl_ZZ_pContext_factory
+from sage.libs.ntl.ntl_ZZ_pContext import ZZ_pContext_factory
 from sage.libs.ntl.all import ZZ, ZZX
+from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
+
 from sage.matrix.all import Matrix
 from sage.rings.all import Qp, O as big_oh
 from sage.arith.all import is_prime
@@ -35,8 +41,86 @@ from sage.arith.all import is_prime
 include "sage/libs/ntl/decl.pxi"
 
 
+from sage.libs.ntl.conversion cimport (
+    new_ntl_matrix_modn_dense)
+
 cdef extern from "hypellfrob.h":
     int hypellfrob_matrix "hypellfrob::matrix" (mat_ZZ_c output, ZZ_c p, int N, ZZX_c Q)
+    void interval_products_wrapper "hypellfrob::hypellfrob_interval_products_wrapper" (mat_ZZ_p_c &output, const mat_ZZ_p_c &M0, const mat_ZZ_p_c &M1, const vector[ZZ_c] target, int force_ntl)
+
+def interval_products(M0, M1, target):
+    r"""
+    Given a matrix `M` with coefficients linear polynomials over `\ZZ/N\ZZ` and a list of integers `a_0 \lt b_0 \le a_1 \lt b_1 \le \cdots \le a_n \lt b_n` compute the matrices
+    ``\prod_{t = a_i + 1}^{b_i} M(t)``
+    for `i = 0` to `n`.
+
+    This is a wrapper for code in the hypellfrob package.
+
+    INPUT:
+
+    - M0, M1 -- matrices over `\ZZ/N\ZZ`, so that `M = M0 + M1*x`
+    - target -- a list of integers
+
+    ALGORITHM:
+
+    Described in "Kedlaya's algorithm in larger characteristic" by David
+    Harvey. Based on the work of Bostan-Gaudry-Schost.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.hyperelliptic_curves.hypellfrob import interval_products
+        sage: interval_products(Matrix(Integers(9), 2,2, [1,0,1,0]), Matrix(Integers(9), 2, 2, [1, 1, 0, 2]),[0,2,2,4])
+        [
+        [7 8]  [5 4]
+        [5 1], [2 7]
+        ]
+        sage: [prod(Matrix(Integers(9), 2, 2, [t + 1, t, 1, 2*t]) for t in range(2*i + 1, 2*i + 1 + 2)) for i in range(2)]
+        [
+        [7 8]  [5 4]
+        [5 1], [2 7]
+        ]
+
+    AUTHORS:
+
+    - David Harvey (2007-12): Original code
+    - Alex J. Best (2018-02): Wrapper
+    """
+    # Sage objects that wrap the NTL objects
+    cdef mat_ZZ_p_c * mm0, * mm1
+    cdef mat_ZZ_p_c * out
+    cdef vector[ZZ_c] targ
+    cdef ntl_ZZ_pContext_class c = (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(ntl_ZZ(M0.base_ring().characteristic()))
+    cdef long dim = M0.nrows()
+    mm0 = new_ntl_matrix_modn_dense(c,M0)
+    mm1 = new_ntl_matrix_modn_dense(c,M1)
+    for t in target:
+        targ.push_back(ntl_ZZ(t).x)
+    numintervals = len(target)/2
+    out = new mat_ZZ_p_c()
+    sig_on()
+    out.SetDims(dim, dim*numintervals)
+
+    c.restore_c()
+    interval_products_wrapper(out[0], mm0[0], mm1[0], targ, 1)
+    sig_off()
+
+    R = M0.matrix_space()
+    mats = [R(0) for 0 <= k < numintervals]
+    cdef ntl_ZZ_p tmp
+    tmp = ntl_ZZ_p(modulus=c)
+    for k from 0 <= k < numintervals:
+        for j from 0 <= j < dim:
+            for i from 0 <= i < dim:
+                sig_on()
+                tmp.x = out.get(j + 1, i + dim * k + 1)
+                sig_off()
+                mats[k][j,i] = tmp._integer_()
+
+    del mm0
+    del mm1
+    del out
+    return mats
+
 
 
 def hypellfrob(p, N, Q):

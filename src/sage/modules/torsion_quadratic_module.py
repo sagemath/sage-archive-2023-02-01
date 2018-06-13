@@ -295,15 +295,20 @@ class TorsionQuadraticModule(FGP_Module_class):
                  "Gram matrix of the quadratic form with values in %r:\n%r"
                  % (self.value_module_qf(),self.gram_matrix_quadratic()) )
 
-    def _module_constructor(self, V, W, check=True):
+    def _module_constructor(self, V, W, check=False):
         r"""
         Construct a torsion quadratic module ``V / W``.
 
         INPUT:
 
         - ``V`` -- an module
+
         - ``W`` -- an submodule of ``V`` over the same base ring
-        - ``check`` -- bool (default: ``True``)
+
+        - ``check`` -- bool (default: ``False``);
+
+          * if ``False``, then the value modulus is inherited from ``self``
+          * if ``True``, it figures it out on its own. But that is expensive
 
         OUTPUT:
 
@@ -326,7 +331,13 @@ class TorsionQuadraticModule(FGP_Module_class):
             [0 0]
             [0 0]
         """
-        return TorsionQuadraticModule(V, W, check=check)
+        if check:
+            return TorsionQuadraticModule(V, W, check=check)
+        else:
+            # figuring out the modulus can be expensive
+            return TorsionQuadraticModule(V, W, check=check,
+                                          modulus=self._modulus,
+                                          modulus_qf=self._modulus_qf)
 
     def all_submodules(self):
         r"""
@@ -857,26 +868,12 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         EXAMPLES::
 
-            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
-            sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*5)
-            sage: T = TorsionQuadraticModule((1/5)*V, V)
-            sage: T
-            Finite quadratic module over Integer Ring with invariants (5, 5, 5)
-            Gram matrix of the quadratic form with values in Q/Z:
-            [1/5   0   0]
-            [  0 1/5   0]
-            [  0   0 1/5]
-            sage: T.submodule(T.gens()[:2])
-            Finite quadratic module over Integer Ring with invariants (5, 5)
-            Gram matrix of the quadratic form with values in Q/Z:
-            [1/5   0]
-            [  0 1/5]
         """
         T = FGP_Module_class.submodule(self, x)
         # We need to explicitly set the _modulus and _modulus_qf
         #   else the modulus might increase.
-        T._modulus = self._modulus
-        T._modulus_qf = self._modulus_qf
+        # T._modulus = self._modulus
+        # T._modulus_qf = self._modulus_qf
         return T
 
     def submodule_with_gens(self, gens):
@@ -914,6 +911,25 @@ class TorsionQuadraticModule(FGP_Module_class):
             [   0  2/5    0  1/5]
             [1/10    0 1/10    0]
             [   0  1/5    0 1/10]
+
+        TESTS:
+
+        Test that things work without specified gens too::
+
+            sage: from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
+            sage: V = FreeQuadraticModule(ZZ,3,matrix.identity(3)*5)
+            sage: T = TorsionQuadraticModule((1/5)*V, V)
+            sage: T
+            Finite quadratic module over Integer Ring with invariants (5, 5, 5)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/5   0   0]
+            [  0 1/5   0]
+            [  0   0 1/5]
+            sage: T.submodule(T.gens()[:2])
+            Finite quadratic module over Integer Ring with invariants (5, 5)
+            Gram matrix of the quadratic form with values in Q/Z:
+            [1/5   0]
+            [  0 1/5]
         """
         T = self.submodule(gens)
         T._gens = [self(v) for v in gens]

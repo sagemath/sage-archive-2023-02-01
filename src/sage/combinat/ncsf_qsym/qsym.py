@@ -11,9 +11,7 @@ REFERENCES:
    functions and the Solomon descent algebra*, J. Algebra **177** (1995),
    no. 3, 967-982. http://www.mat.uniroma1.it/people/malvenuto/Duality.pdf
 
-.. [GriRei2014] Darij Grinberg, Victor Reiner,
-   *Hopf algebras in combinatorics*,
-   25 August 2015. :arxiv:`1409.8356v3`.
+.. [GriRei18]_
 
 .. [Mal1993] Claudia Malvenuto, *Produits et coproduits des fonctions
    quasi-symetriques et de l'algebre des descentes*,
@@ -59,6 +57,10 @@ REFERENCES:
 
 .. [BDHMN2017] Cristina Ballantine, Zajj Daugherty, Angela Hicks, Sarah Mason,
    Elizabeth Niese. *Quasisymmetric power sums*. :arxiv:`1710.11613`.
+
+.. [AHM2018] Edward Allen, Joshua Hallam, Sarah Mason, *Dual Immaculate
+   Quasisymmetric Functions Expand Positively into Young Quasisymmetric
+   Schur Functions*. :arxiv:`1606.03519`
 
 AUTHOR:
 
@@ -172,7 +174,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     a bialgebra). These quasi-symmetric functions are actual polynomials
     then, not just power series.
 
-    Chapter 5 of [GriRei2014]_ and Section 11 of [HazWitt1]_ are devoted
+    Chapter 5 of [GriRei18]_ and Section 11 of [HazWitt1]_ are devoted
     to quasi-symmetric functions, as are Malvenuto's thesis [Mal1993]_
     and part of Chapter 7 of [Sta-EC2]_.
 
@@ -619,7 +621,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.Monomial()
 
-    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'phi', 'psi'])
+    _shorthands = tuple(['M', 'F', 'E', 'dI', 'QS', 'YQS', 'phi', 'psi'])
 
     def dual(self):
         r"""
@@ -1087,7 +1089,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 .. SEEALSO::
 
-                    :meth:`Symmetric functions plethsym
+                    :meth:`Symmetric functions plethysm
                     <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.plethysm>`
 
                 INPUT:
@@ -1843,7 +1845,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             the reduced Lyndon compositions (i. e., compositions
             which are Lyndon words and have the gcd of their entries
             equal to `1`) form a set of free polynomial generators
-            for `\mathrm{QSym}`. See [GriRei2014]_, Chapter 6, for
+            for `\mathrm{QSym}`. See [GriRei18]_, Chapter 6, for
             the proof, and [Haz2004]_ for a major part of it.
 
             INPUT:
@@ -2938,7 +2940,153 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     for comp_content in Compositions(sum(comp_shape))),
                     distinct=True )
 
+        def dual(self):
+            r"""
+            The dual basis to the Quasisymmetric Schur basis.
+
+            The dual basis to the Quasisymmetric Schur basis is
+            implemented as dual.
+
+            OUTPUT:
+
+            - the dual Quasisymmetric Schur basis of the
+              non-commutative symmetric functions
+
+            EXAMPLES::
+
+                sage: QS = QuasiSymmetricFunctions(QQ).Quasisymmetric_Schur()
+                sage: QS.dual()
+                Non-Commutative Symmetric Functions over the Rational Field
+                 in the dual Quasisymmetric-Schur basis
+            """
+            return self.realization_of().dual().dualQuasisymmetric_Schur()
+
     QS = Quasisymmetric_Schur
+
+    class Young_Quasisymmetric_Schur(CombinatorialFreeModule, BindableClass):
+        r"""
+        The Hopf algebra of quasi-symmetric functions in the Young
+        Quasisymmetric Schur basis.
+
+        The basis of Young Quasisymmetric Schur functions is from
+        Definition 5.2.1 of [LMvW13]_.
+
+        This basis is related to the Quasisymmetric Schur basis ``QS`` by
+        ``QS(alpha.reversed()) == YQS(alpha).star_involution()`` .
+
+        EXAMPLES::
+
+            sage: QSym = QuasiSymmetricFunctions(QQ)
+            sage: YQS = QSym.YQS()
+            sage: F = QSym.F()
+            sage: QS = QSym.QS()
+            sage: F(YQS[1,2])
+            F[1, 2]
+            sage: all(QS(al.reversed())==YQS(al).star_involution() for al in Compositions(5))
+            True
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: YQS(s[2,1,1])
+            YQS[1, 1, 2] + YQS[1, 2, 1] + YQS[2, 1, 1]
+        """
+        def __init__(self, QSym):
+            r"""
+            Initialize ``self``.
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: F = QSym.Fundamental()
+                sage: YQS = QSym.Young_Quasisymmetric_Schur()
+                sage: YQS(F(YQS.an_element())) == YQS.an_element()
+                True
+                sage: F(YQS(F.an_element())) == F.an_element()
+                True
+                sage: M = QSym.Monomial()
+                sage: YQS(M(YQS.an_element())) == YQS.an_element()
+                True
+                sage: M(YQS(M.an_element())) == M.an_element()
+                True
+                sage: TestSuite(YQS).run() # long time
+            """
+            self._QS = QSym.QS()
+            self._M = QSym.M()
+            CombinatorialFreeModule.__init__(self, QSym.base_ring(),
+                                             Compositions(), prefix='YQS',
+                                             bracket=False, category=QSym.Bases())
+            self.module_morphism(self._to_monomial_on_basis,
+                                 codomain=self._M, category=QSym.Bases()).register_as_coercion()
+            self._M.module_morphism(self._from_monomial_on_basis,
+                                    codomain=self, category=QSym.Bases()).register_as_coercion()
+
+
+        def _realization_name(self):
+            r"""
+            Return a nicer name for ``self`` than what is inherited
+            from :mod:`sage.categories.sets_cat`.
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: QS = QSym.QS()
+                sage: QS._realization_name()
+                'Quasisymmetric Schur'
+            """
+            return "Young Quasisymmetric Schur"
+
+        @cached_method
+        def _to_monomial_on_basis(self, comp):
+            r"""
+            Expand the Young quasi-symmetric Schur function in the
+            Monomial basis.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the Monomial basis
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: YQS = QSym.QS()
+                sage: YQS._to_monomial_on_basis(Composition([2]))
+                M[1, 1] + M[2]
+                sage: YQS._to_monomial_on_basis(Composition([1,3,1]))
+                2*M[1, 1, 1, 1, 1] + 2*M[1, 1, 2, 1] + M[1, 2, 1, 1] + M[1, 3, 1] + M[2, 1, 1, 1] + M[2, 2, 1]
+             """
+            return self._M(self._QS.monomial(comp.reversed())).star_involution()
+
+        @cached_method
+        def _from_monomial_on_basis(self, comp):
+            r"""
+            The expansion of the quasi-symmetric Schur function indexed
+            by ``comp_shape`` has coefficients which are given by the method
+            :meth:`~sage.combinat.ncsf_qsym.combinatorics.number_of_SSRCT`.
+
+            INPUT:
+
+            - ``comp`` -- a composition
+
+            OUTPUT:
+
+            - a quasi-symmetric function in the Young Quasisymmetric Schur basis
+
+            EXAMPLES::
+
+                sage: QSym = QuasiSymmetricFunctions(QQ)
+                sage: YQS = QSym.YQS()
+                sage: YQS._from_monomial_on_basis(Composition([2]))
+                -YQS[1, 1] + YQS[2]
+                sage: YQS._from_monomial_on_basis(Composition([1,3,1]))
+                YQS[1, 1, 1, 1, 1] - YQS[1, 2, 1, 1] - YQS[1, 2, 2] + YQS[1, 3, 1]
+            """
+            elt = self._QS(self._M.monomial(comp.reversed()))
+            return self._from_dict({al.reversed(): c for al,c in elt},
+                                   coerce=False, remove_zeros=False)
+
+    YQS = Young_Quasisymmetric_Schur
 
     class dualImmaculate(CombinatorialFreeModule, BindableClass):
         def __init__(self, QSym):
@@ -3086,7 +3234,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         the `n`-fold concatenation of this Lyndon word with
         itself, occurring `n!` times in that shuffle power. But this
         can be deduced from Section 2 of [Rad1979]_. See also
-        Chapter 6 of [GriRei2014]_, specifically Theorem 6.107, for a
+        Chapter 6 of [GriRei18]_, specifically Theorem 6.5.13, for a
         complete proof.) More precisely, he showed that
         `\mathrm{QSym}` is generated, as a free commutative
         `\mathbf{k}`-algebra, by the elements `\lambda^n(M_I)`, where
@@ -3301,7 +3449,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: toy_inverse_transition_matrices[2]
                 [2 1]
                 [0 1]
-                sage: toy_transition_matrices.keys()
+                sage: sorted(toy_transition_matrices)
                 [0, 1, 2]
 
             As we see from the fractions in the transition matrices, this
@@ -3474,7 +3622,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: HWL._M_inverse_transition_matrices[2]
                 [2 1]
                 [1 0]
-                sage: HWL._M_transition_matrices.keys()
+                sage: sorted(HWL._M_transition_matrices)
                 [0, 1, 2]
 
             We did not have to call ``HWL._precompute_M(0)``,

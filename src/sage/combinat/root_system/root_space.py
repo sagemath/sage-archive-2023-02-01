@@ -7,15 +7,14 @@ Root lattices and root spaces
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.rings.all import ZZ
 from sage.combinat.free_module import CombinatorialFreeModule
 from .root_lattice_realizations import RootLatticeRealizations
-from sage.misc.cachefunc import cached_in_parent_method
 import functools
+
 
 class RootSpace(CombinatorialFreeModule):
     r"""

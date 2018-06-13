@@ -15,7 +15,7 @@ intended effect of your patch.
     sage: from sage import *
     sage: frames = [x for x in gc.get_objects() if inspect.isframe(x)]
 
-We exclude the dependencies and check to see that there are no others 
+We exclude the dependencies and check to see that there are no others
 except for the known bad apples::
 
     sage: allowed = [
@@ -209,6 +209,7 @@ copyright = license
 
 _cpu_time_ = cputime()
 _wall_time_ = walltime()
+
 
 def quit_sage(verbose=True):
     """

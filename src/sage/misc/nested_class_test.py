@@ -202,26 +202,14 @@ class ALBMeta(object):
 
 CMeta = ALBMeta.CMeta
 
+
 class TestNestedParent(UniqueRepresentation, Parent):
     """
     This is a dummy for testing source inspection of nested classes.
 
-    EXAMPLES::
-
-        sage: from sage.misc.nested_class_test import TestNestedParent
-        sage: from sage.misc.sageinspect import sage_getsource
-        sage: P = TestNestedParent()
-        sage: E = P.element_class
-        sage: E.__bases__
-        (<class sage.misc.nested_class_test.TestNestedParent.Element at ...>,
-         <class 'sage.categories.sets_cat.Sets.element_class'>)
-        sage: print(sage_getsource(E))
-            class Element:
-                "This is a dummy element class"
-                pass
-
+    See the test in ``sage.misc.sageinspect.sage_getsourcelines``.
     """
+
     class Element:
         "This is a dummy element class"
         pass
-

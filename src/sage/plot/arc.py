@@ -20,7 +20,7 @@ from __future__ import print_function
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.colors import to_mpl_color
 
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 
 from math import fmod, sin, cos, pi, atan
 

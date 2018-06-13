@@ -720,6 +720,298 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return not self.killing_form_matrix().is_singular()
 
+        @cached_method(key=lambda self,M,d,s,n: (M,d,s))
+        def chevalley_eilenberg_complex(self, M=None, dual=False, sparse=True, ncpus=None):
+            r"""
+            Return the Chevalley-Eilenberg complex of ``self``.
+
+            Let `\mathfrak{g}` be a Lie algebra and `M` be a right
+            `\mathfrak{g}`-module. The *Chevalley-Eilenberg complex*
+            is the chain complex on
+
+            .. MATH::
+
+                C_{\bullet}(\mathfrak{g}, M) =
+                M \otimes \bigwedge\nolimits^{\bullet} \mathfrak{g},
+
+            where the differential is given by
+
+            .. MATH::
+
+                d(m \otimes g_1 \wedge \cdots \wedge g_p) =
+                \sum_{i=1}^p (-1)^{i+1}
+                  (m g_i) \otimes g_1 \wedge \cdots \wedge
+                  \hat{g}_i \wedge \cdots \wedge g_p +
+                \sum_{1 \leq i < j \leq p} (-1)^{i+j}
+                  m \otimes [g_i, g_j] \wedge
+                  g_1 \wedge \cdots \wedge \hat{g}_i
+                  \wedge \cdots \wedge \hat{g}_j
+                  \wedge \cdots \wedge g_p.
+
+            INPUT:
+
+            - ``M`` -- (default: the trivial 1-dimensional module)
+              the module `M`
+            - ``dual`` -- (default: ``False``) if ``True``, causes
+              the dual of the complex to be computed
+            - ``sparse`` -- (default: ``True``) whether to use sparse
+              or dense matrices
+            - ``ncpus`` -- (optional) how many cpus to use
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.sl(ZZ, 2)
+                sage: C = L.chevalley_eilenberg_complex(); C
+                Chain complex with at most 4 nonzero terms over Integer Ring
+                sage: ascii_art(C)
+                                          [ 2  0  0]       [0]
+                                          [ 0 -1  0]       [0]
+                            [0 0 0]       [ 0  0  2]       [0]
+                 0 <-- C_0 <-------- C_1 <----------- C_2 <---- C_3 <-- 0
+
+                sage: L = LieAlgebra(QQ, cartan_type=['C',2])
+                sage: C = L.chevalley_eilenberg_complex()  # long time
+                sage: [C.free_module_rank(i) for i in range(11)]  # long time
+                [1, 10, 45, 120, 210, 252, 210, 120, 45, 10, 1]
+
+            REFERENCES:
+
+            - :wikipedia:`Lie_algebra_cohomology#Chevalley-Eilenberg_complex`
+            - [Wei1994]_ Chapter 7
+
+            .. TODO::
+
+                Currently this is only implemented for coefficients
+                given by the trivial module `R`, where `R` is the
+                base ring and `g R = 0` for all `g \in \mathfrak{g}`.
+                Allow generic coefficient modules `M`.
+            """
+            if dual:
+                return self.chevalley_eilenberg_complex(M, dual=False,
+                                                        sparse=sparse,
+                                                        ncpus=ncpus).dual()
+
+            if M is not None:
+                raise NotImplementedError("only implemented for the default"
+                                          " (the trivial module)")
+
+            from itertools import combinations
+            from sage.functions.other import binomial
+            from sage.matrix.matrix_space import MatrixSpace
+            R = self.base_ring()
+            zero = R.zero()
+            mone = -R.one()
+            if M is not None:
+                raise NotImplementedError("coefficient module M cannot be passed")
+
+            # Make sure we specify the ordering of the basis
+            B = self.basis()
+            K = list(B.keys())
+            B = [B[k] for k in K]
+            Ind = list(range(len(K)))
+
+            def sgn(k, X):
+                """
+                Insert a new entry ``k`` into a strictly increasing
+                list ``X`` in such a way that the resulting list is
+                still strictly increasing.
+                The return value is the pair ``(s, Y)``, where ``Y``
+                is the resulting list (as tuple) and ``s`` is the
+                Koszul sign incurred by the insertion (with the
+                understanding that ``k`` originally stood to the
+                left of the list).
+                If ``k`` is already in ``X``, then the return value
+                is ``(zero, None)``.
+                """
+                Y = list(X)
+                for i in range(len(X)-1, -1, -1):
+                    val = X[i]
+                    if val == k:
+                        return zero, None
+                    if k > val:
+                        Y.insert(i+1, k)
+                        return mone**(i+1), tuple(Y)
+                Y.insert(0, k)
+                return R.one(), tuple(Y)
+
+            from sage.parallel.decorate import parallel
+            @parallel(ncpus=ncpus)
+            def compute_diff(k):
+                """
+                Build the ``k``-th differential (in parallel).
+                """
+                indices = {tuple(X): i for i,X in enumerate(combinations(Ind, k-1))}
+                if sparse:
+                    data = {}
+                    row = 0
+                else:
+                    data = []
+                for X in combinations(Ind, k):
+                    if not sparse:
+                        ret = [zero] * len(indices)
+                    for i in range(k):
+                        Y = list(X)
+                        Y.pop(i)
+                        # We do mone**i because we are 0-based
+                        # This is where we would do the action on
+                        #   the coefficients module
+                        #ret[indices[tuple(Y)]] += mone**i * zero
+                        for j in range(i+1,k):
+                            # We shift j by 1 because we already removed
+                            #   an earlier element from X.
+                            Z = tuple(Y[:j-1] + Y[j:])
+                            elt = mone**(i+j) * B[X[i]].bracket(B[X[j]])
+                            for key, coeff in elt.to_vector().iteritems():
+                                s, A = sgn(key, Z)
+                                if A is None:
+                                    continue
+                                if sparse:
+                                    coords = (row,indices[A])
+                                    if coords in data:
+                                        data[coords] += s * coeff
+                                    else:
+                                        data[coords] = s * coeff
+                                else:
+                                    ret[indices[A]] += s * coeff
+                    if sparse:
+                        row += 1
+                    else:
+                        data.append(ret)
+                nrows = binomial(len(Ind), k)
+                ncols = binomial(len(Ind), k-1)
+                MS = MatrixSpace(R, nrows, ncols, sparse=sparse)
+                ret = MS(data).transpose()
+                ret.set_immutable()
+                return ret
+
+            chain_data = {X[0][0]: M for X, M in compute_diff(list( range(1,len(Ind)+1) ))}
+
+            from sage.homology.chain_complex import ChainComplex
+            try:
+                return ChainComplex(chain_data, degree_of_differential=-1)
+            except TypeError:
+                return chain_data
+
+        def homology(self, deg=None, M=None, sparse=True, ncpus=None):
+            r"""
+            Return the Lie algebra homology of ``self``.
+
+            The Lie algebra homology is the homology of the
+            Chevalley-Eilenberg chain complex.
+
+            INPUT:
+
+            - ``deg`` -- the degree of the homology (optional)
+            - ``M`` -- (default: the trivial module) a right module
+              of ``self``
+            - ``sparse`` -- (default: ``True``) whether to use sparse
+              matrices for the Chevalley-Eilenberg chain complex
+            - ``ncpus`` -- (optional) how many cpus to use when
+              computing the Chevalley-Eilenberg chain complex
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.cross_product(QQ)
+                sage: L.homology()
+                {0: Vector space of dimension 1 over Rational Field,
+                 1: Vector space of dimension 0 over Rational Field,
+                 2: Vector space of dimension 0 over Rational Field,
+                 3: Vector space of dimension 1 over Rational Field}
+
+                sage: L = lie_algebras.pwitt(GF(5), 5)
+                sage: L.homology()
+                {0: Vector space of dimension 1 over Finite Field of size 5,
+                 1: Vector space of dimension 0 over Finite Field of size 5,
+                 2: Vector space of dimension 1 over Finite Field of size 5,
+                 3: Vector space of dimension 1 over Finite Field of size 5,
+                 4: Vector space of dimension 0 over Finite Field of size 5,
+                 5: Vector space of dimension 1 over Finite Field of size 5}
+
+                sage: d = {('x', 'y'): {'y': 2}}
+                sage: L.<x,y> = LieAlgebra(ZZ, d)
+                sage: L.homology()
+                {0: Z, 1: Z x C2, 2: 0}
+
+            .. SEEALSO::
+
+                :meth:`chevalley_eilenberg_complex`
+            """
+            C = self.chevalley_eilenberg_complex(M=M, sparse=sparse,
+                                                 ncpus=ncpus)
+            return C.homology(deg=deg)
+
+        def cohomology(self, deg=None, M=None, sparse=True, ncpus=None):
+            r"""
+            Return the Lie algebra cohomology of ``self``.
+
+            The Lie algebra cohomology is the cohomology of the
+            Chevalley-Eilenberg cochain complex (which is the dual
+            of the Chevalley-Eilenberg chain complex).
+
+            Let `\mathfrak{g}` be a Lie algebra and `M` a left
+            `\mathfrak{g}`-module. It is known that `H^0(\mathfrak{g}; M)`
+            is the subspace of `\mathfrak{g}`-invariants of `M`:
+
+            .. MATH::
+
+                H^0(\mathfrak{g}; M) = M^{\mathfrak{g}}
+                = \{ m \in M \mid g m = 0
+                    \text{ for all } g \in \mathfrak{g} \}.
+
+            Additionally, `H^1(\mathfrak{g}; M)` is the space of
+            derivations `\mathfrak{g} \to M`
+            modulo the space of inner derivations, and
+            `H^2(\mathfrak{g}; M)` is the space of equivalence classes
+            of Lie algebra extensions of `\mathfrak{g}` by `M`.
+
+            INPUT:
+
+            - ``deg`` -- the degree of the homology (optional)
+            - ``M`` -- (default: the trivial module) a right module
+              of ``self``
+            - ``sparse`` -- (default: ``True``) whether to use sparse
+              matrices for the Chevalley-Eilenberg chain complex
+            - ``ncpus`` -- (optional) how many cpus to use when
+              computing the Chevalley-Eilenberg chain complex
+
+            EXAMPLES::
+
+                sage: L = lie_algebras.so(QQ, 4)
+                sage: L.cohomology()
+                {0: Vector space of dimension 1 over Rational Field,
+                 1: Vector space of dimension 0 over Rational Field,
+                 2: Vector space of dimension 0 over Rational Field,
+                 3: Vector space of dimension 2 over Rational Field,
+                 4: Vector space of dimension 0 over Rational Field,
+                 5: Vector space of dimension 0 over Rational Field,
+                 6: Vector space of dimension 1 over Rational Field}
+
+                sage: L = lie_algebras.Heisenberg(QQ, 2)
+                sage: L.cohomology()
+                {0: Vector space of dimension 1 over Rational Field,
+                 1: Vector space of dimension 4 over Rational Field,
+                 2: Vector space of dimension 5 over Rational Field,
+                 3: Vector space of dimension 5 over Rational Field,
+                 4: Vector space of dimension 4 over Rational Field,
+                 5: Vector space of dimension 1 over Rational Field}
+
+                sage: d = {('x', 'y'): {'y': 2}}
+                sage: L.<x,y> = LieAlgebra(ZZ, d)
+                sage: L.cohomology()
+                {0: Z, 1: Z, 2: C2}
+
+            .. SEEALSO::
+
+                :meth:`chevalley_eilenberg_complex`
+
+            REFERENCES:
+
+            - :wikipedia:`Lie_algebra_cohomology`
+            """
+            C = self.chevalley_eilenberg_complex(M=M, dual=True, sparse=sparse,
+                                                 ncpus=ncpus)
+            return C.homology(deg=deg)
+
         def as_finite_dimensional_algebra(self):
             """
             Return ``self`` as a :class:`FiniteDimensionalAlgebra`.
@@ -803,10 +1095,28 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: L = LieAlgebra(associative=D)
                 sage: L.an_element().to_vector()
                 (1, 1, 1, 1, 1, 1, 1, 1)
+
+            TESTS:
+
+            Check that the error raised agrees with the one
+            from ``monomial_coefficients()`` (see :trac:`25007`)::
+
+                sage: L = lie_algebras.sp(QQ, 4, representation='matrix')
+                sage: x = L.an_element()
+                sage: x.monomial_coefficients()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: the basis is not defined
+                sage: x.to_vector()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: the basis is not defined
             """
+            mc = self.monomial_coefficients(copy=False)
             M = self.parent().module()
             B = M.basis()
-            return M.sum(self[k] * B[i] for i,k in enumerate(self.parent()._basis_ordering))
+            return M.sum(mc[k] * B[i] for i,k in enumerate(self.parent()._basis_ordering)
+                         if k in mc)
 
         _vector_ = to_vector
 

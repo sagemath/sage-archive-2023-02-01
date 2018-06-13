@@ -13,6 +13,8 @@ cdef class FieldConverter_class:
     cpdef object int_to_field(self, int x)
     cpdef int field_to_int(self, x)
 
+cdef FieldConverter_class FieldConverter(field)
+
 from sage.matrix.matrix_dense cimport Matrix_dense
 from sage.structure.element cimport Matrix
 from sage.libs.meataxe cimport *

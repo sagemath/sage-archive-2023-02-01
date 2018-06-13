@@ -596,7 +596,7 @@ class FreeModuleTensor(ModuleElement):
             sage: w = - 3/4 * de[1] + de[2] ; w
             Linear form on the 2-dimensional vector space M over the Rational
              Field
-            sage: w.set_name('w', latex_name='\omega')
+            sage: w.set_name('w', latex_name='\\omega')
             sage: w.display()
             w = -3/4 e^1 + e^2
             sage: latex(w.display())  # display in the notebook
@@ -1171,7 +1171,7 @@ class FreeModuleTensor(ModuleElement):
             sage: M.set_change_of_basis(e, f, a)
             sage: t.display(e)
             t = -4 e_1*e^2
-            sage: sorted(t._components)  # random output (dictionary keys)
+            sage: sorted(t._components, key=repr)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
@@ -1237,7 +1237,7 @@ class FreeModuleTensor(ModuleElement):
 
         The components w.r.t. basis e have been kept::
 
-            sage: sorted(t._components) # # random output (dictionary keys)
+            sage: sorted(t._components, key=repr)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
             sage: t.display(f)
@@ -1274,7 +1274,7 @@ class FreeModuleTensor(ModuleElement):
             sage: u = M([2,1,-5])
             sage: f = M.basis('f')
             sage: u.add_comp(f)[:] = [0,4,2]
-            sage: sorted(u._components) # random output (dictionary keys)
+            sage: sorted(u._components, key=repr)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp(f)
@@ -1284,7 +1284,7 @@ class FreeModuleTensor(ModuleElement):
         Let us restore the components w.r.t. e and delete those w.r.t. f::
 
             sage: u.add_comp(e)[:] = [2,1,-5]
-            sage: sorted(u._components)  # random output (dictionary keys)
+            sage: sorted(u._components, key=repr)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp()  # default argument: basis = e
@@ -1507,9 +1507,9 @@ class FreeModuleTensor(ModuleElement):
 
         Indeed, v is now known in basis e::
 
-            sage: sorted(v._components) # random output (dictionary keys)
-            [Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring,
-             Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
+            sage: sorted(v._components, key=repr)
+            [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
+             Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
 
         """
         # Compatibility checks:

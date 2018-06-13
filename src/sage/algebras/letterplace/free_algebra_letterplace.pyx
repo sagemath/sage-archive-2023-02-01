@@ -145,7 +145,7 @@ cdef MPolynomialRing_libsingular make_letterplace_ring(base_ring,blocks):
 
     Note that, since the algebras are cached, we need to choose
     a different base ring, since other doctests could have a
-    side effect on the atteined degree bound::
+    side effect on the attained degree bound::
 
         sage: F.<x,y,z> = FreeAlgebra(GF(17), implementation='letterplace')
         sage: L.<a,b,c> = FreeAlgebra(GF(17), implementation='letterplace', order='lex')
@@ -241,36 +241,7 @@ cdef class FreeAlgebra_letterplace(Algebra):
 
             sage: K.<z> = GF(25)
             sage: F.<a,b,c> = FreeAlgebra(K, implementation='letterplace')
-            sage: TestSuite(F).run(verbose=True)
-            running ._test_additive_associativity() . . . pass
-            running ._test_an_element() . . . pass
-            running ._test_associativity() . . . pass
-            running ._test_cardinality() . . . pass
-            running ._test_category() . . . pass
-            running ._test_characteristic() . . . pass
-            running ._test_distributivity() . . . pass
-            running ._test_elements() . . .
-              Running the test suite of self.an_element()
-              running ._test_category() . . . pass
-              running ._test_eq() . . . pass
-              running ._test_new() . . . pass
-              running ._test_nonzero_equal() . . . pass
-              running ._test_not_implemented_methods() . . . pass
-              running ._test_pickling() . . . pass
-              pass
-            running ._test_elements_eq_reflexive() . . . pass
-            running ._test_elements_eq_symmetric() . . . pass
-            running ._test_elements_eq_transitive() . . . pass
-            running ._test_elements_neq() . . . pass
-            running ._test_eq() . . . pass
-            running ._test_new() . . . pass
-            running ._test_not_implemented_methods() . . . pass
-            running ._test_one() . . . pass
-            running ._test_pickling() . . . pass
-            running ._test_prod() . . . pass
-            running ._test_some_elements() . . . pass
-            running ._test_zero() . . . pass
-
+            sage: TestSuite(F).run()
         """
         if not isinstance(R,MPolynomialRing_libsingular):
             raise TypeError("A letterplace algebra must be provided by a polynomial ring of type %s" % MPolynomialRing_libsingular)

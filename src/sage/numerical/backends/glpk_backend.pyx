@@ -403,7 +403,7 @@ cdef class GLPKBackend(GenericBackend):
             0.30000000000000004
             sage: p.get_backend().set_verbosity(3)
             sage: p.solve()
-            GLPK Integer Optimizer, v4.63
+            GLPK Integer Optimizer...
             2 rows, 2 columns, 2 non-zeros
             0 integer variables, none of which are binary
             Preprocessing...

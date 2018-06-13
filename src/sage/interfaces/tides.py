@@ -475,12 +475,12 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
     remove_repeated(l1, l2)
     remove_constants(l1, l2)
-    l0 = map(str, l1)
+    l0 = [str(l) for l in l1]
     #generate the corresponding c lines
 
     l3=[]
     var = f[0].arguments()
-    lv = map(str, var)
+    lv = [str(v) for v in var]
     for i in l2:
         oper = i[0]
         if oper in ["log", "exp", "sin", "cos"]:
@@ -762,9 +762,9 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
     remove_constants(l1, l2)
     l3=[]
     var = f[0].arguments()
-    l0 = map(str, l1)
-    lv = map(str, var)
-    lp = map(str, parameters)
+    l0 = [str(l) for l in l1]
+    lv = [str(v) for v in var]
+    lp = [str(p) for p in parameters]
     for i in l2:
         oper = i[0]
         if oper in ["log", "exp", "sin", "cos", "atan", "asin", "acos"]:

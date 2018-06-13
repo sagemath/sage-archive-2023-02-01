@@ -83,7 +83,7 @@ overview can also be found in Section 4.6 of [Rüt2014]_.
 from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method
-from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, DiscreteValuation
+from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation
 from sage.structure.factory import UniqueFactory
 
 
@@ -425,7 +425,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
     def lift(self, F):
         r"""
         Return a lift of ``F`` from the :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring` to the domain of
-        this valuatiion.
+        this valuation.
 
         EXAMPLES::
 

@@ -1744,22 +1744,21 @@ class NumberField_relative(NumberField_generic):
             self.__abs_gen = self._element_class(self, QQ['x'].gen())
             return self.__abs_gen
 
-    @cached_method
     def absolute_field(self, names):
-        r"""
-        Return an absolute number field `K` that is isomorphic to this
-        field along with a field-theoretic bijection from self to `K`
-        and from `K` to self.
+        """
+        Return ``self`` as an absolute number field.
 
         INPUT:
 
         - ``names`` -- string; name of generator of the absolute field
 
-        OUTPUT: an absolute number field
+        OUTPUT:
+
+        An absolute number field `K` that is isomorphic to this field.
 
         Also, ``K.structure()`` returns ``from_K`` and ``to_K``, where
-        ``from_K`` is an isomorphism from `K` to self and ``to_K`` is
-        an isomorphism from self to `K`.
+        ``from_K`` is an isomorphism from `K` to ``self`` and ``to_K``
+        is an isomorphism from ``self`` to `K`.
 
         EXAMPLES::
 

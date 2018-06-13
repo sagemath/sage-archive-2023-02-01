@@ -223,9 +223,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__polynomial[name]
         except  AttributeError:
-            from sage.rings.finite_rings.finite_field_constructor import FiniteField
-            R = FiniteField(self.characteristic())[name]
-            f = self[name]([0,1])
+            f = self[name]([0, 1])
             try:
                 self.__polynomial[name] = f
             except (KeyError, AttributeError):

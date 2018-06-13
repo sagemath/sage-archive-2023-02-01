@@ -349,7 +349,6 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         .. SEEALSO:: :class:`TestSuite`.
         """
-        tester = self._tester(**options)
         options.pop('tester', None)
         from sage.misc.sage_unittest import TestSuite
         TestSuite(self.root_lattice()).run(**options)

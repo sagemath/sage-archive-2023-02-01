@@ -105,7 +105,6 @@ REFERENCES:
 #*****************************************************************************
 
 
-from sage.rings.all import QQ
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
@@ -752,16 +751,16 @@ class AlgebraicForm(FormsBase):
             sage: cubic.transformed(g).transformed(g.inverse()) == cubic
             True
         """
-        form = self.homogenized()
         if isinstance(g, dict):
             transform = g
         else:
             from sage.modules.all import vector
             v = vector(self._ring, self._variables)
-            g_v = g*v
+            g_v = g * v
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
         # The covariant of the transformed polynomial
-        return self.__class__(self._n, self._d, self.form().subs(transform), self.variables())
+        return self.__class__(self._n, self._d,
+                              self.form().subs(transform), self.variables())
 
 
 ######################################################################
@@ -1149,14 +1148,12 @@ class BinaryQuartic(AlgebraicForm):
             sage: quartic.monomials()
             (y^4, x*y^3, x^2*y^2, x^3*y, x^4)
         """
-        quartic = self._polynomial
         x0 = self._x
         x1 = self._y
         if self._homogeneous:
             return (x1**4, x1**3*x0, x1**2*x0**2, x1*x0**3, x0**4)
         else:
             return (self._ring.one(), x0, x0**2, x0**3, x0**4)
-
 
     @cached_method
     def coeffs(self):

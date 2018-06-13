@@ -29,7 +29,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function

@@ -18,7 +18,6 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.knots.link import Link
-from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod import Mod
 
 

@@ -1,5 +1,6 @@
 r"""
-Frobenius on Monsky-Washnitzer cohomology of a hyperelliptic curve over a largish prime finite field
+Frobenius on Monsky-Washnitzer cohomology of a hyperelliptic curve over a
+largish prime finite field
 
 This is a wrapper for the matrix() function in hypellfrob.cpp.
 
@@ -11,7 +12,7 @@ AUTHOR:
 
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2007 David Harvey <dmharvey@math.harvard.edu>
 #                          William Stein <wstein@gmail.com>
 #
@@ -20,30 +21,136 @@ AUTHOR:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# *****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
+from libcpp.vector cimport vector
 
-from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
-from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
-from sage.libs.ntl.ntl_mat_ZZ cimport ntl_mat_ZZ
+from sage.libs.ntl.ntl_ZZ_pContext import ZZ_pContext_factory
 from sage.libs.ntl.all import ZZ, ZZX
 from sage.matrix.all import Matrix
 from sage.rings.all import Qp, O as big_oh
 from sage.arith.all import is_prime
 
+from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
+from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
+from sage.libs.ntl.ntl_ZZX cimport ntl_ZZX
+from sage.libs.ntl.ntl_mat_ZZ cimport ntl_mat_ZZ
+from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class, \
+    ntl_ZZ_pContext_factory
+
+from sage.libs.ntl.conversion cimport set_ntl_matrix_modn_dense
+
 include "sage/libs/ntl/decl.pxi"
 
 
 cdef extern from "hypellfrob.h":
-    int hypellfrob_matrix "hypellfrob::matrix" (mat_ZZ_c output, ZZ_c p, int N, ZZX_c Q)
+    int hypellfrob_matrix "hypellfrob::matrix" (mat_ZZ_c output, ZZ_c p,
+                                                int N, ZZX_c Q)
+    void interval_products_wrapper \
+        "hypellfrob::hypellfrob_interval_products_wrapper" \
+        (mat_ZZ_p_c &output, const mat_ZZ_p_c &M0, const mat_ZZ_p_c &M1,
+         const vector[ZZ_c] target, int force_ntl)
+
+
+def interval_products(M0, M1, target):
+    r"""
+    Given a matrix `M` with coefficients linear polynomials over `\ZZ/N\ZZ` and
+    a list of integers `a_0 < b_0 \le a_1 < b_1 \le \cdots \le a_n < b_n`
+    compute the matrices
+    ``\prod_{t = a_i + 1}^{b_i} M(t)``
+    for `i = 0` to `n`.
+
+    This is a wrapper for code in the hypellfrob package.
+
+    INPUT:
+
+    - M0, M1 -- matrices over `\ZZ/N\ZZ`, so that `M = M0 + M1*x`
+    - target -- a list of integers
+
+    ALGORITHM:
+
+    Described in "Kedlaya's algorithm in larger characteristic" by David
+    Harvey. Based on the work of Bostan-Gaudry-Schost.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.hyperelliptic_curves.hypellfrob import \
+                interval_products
+        sage: interval_products(Matrix(Integers(9), 2,2, [1,0,1,0]), \
+                Matrix(Integers(9), 2, 2, [1, 1, 0, 2]),[0,2,2,4])
+        [
+        [7 8]  [5 4]
+        [5 1], [2 7]
+        ]
+        sage: [prod(Matrix(Integers(9), 2, 2, [t + 1, t, 1, 2*t]) for t in \
+            range(2*i + 1, 2*i + 1 + 2)) for i in range(2)]
+        [
+        [7 8]  [5 4]
+        [5 1], [2 7]
+        ]
+
+    An example with larger modulus::
+
+        sage: interval_products(Matrix(Integers(3^8), 1, 1, [1]), \
+                Matrix(Integers(3^8), 1, 1, [1]), [2,4])
+        [[20]]
+        sage: [prod(Matrix(Integers(3^8), 1, 1, [t + 1]) for t in range(3,5))]
+        [[20]]
+
+    An even larger modulus::
+
+        sage: interval_products(Matrix(Integers(3^18), 1, 1, [1]), \
+                Matrix(Integers(3^18), 1, 1, [1]), [2,4])
+        [[20]]
+        sage: [prod(Matrix(Integers(3^18), 1, 1, [t + 1]) for t in range(3,5))]
+        [[20]]
+
+    AUTHORS:
+
+    - David Harvey (2007-12): Original code
+    - Alex J. Best (2018-02): Wrapper
+    """
+    # Sage objects that wrap the NTL objects
+    cdef mat_ZZ_p_c mm0, mm1
+    cdef mat_ZZ_p_c out
+    cdef vector[ZZ_c] targ
+    cdef ntl_ZZ_pContext_class c = \
+        (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(
+        ntl_ZZ(M0.base_ring().characteristic()))
+    cdef long dim = M0.nrows()
+    set_ntl_matrix_modn_dense(mm0, c, M0)
+    set_ntl_matrix_modn_dense(mm1, c, M1)
+    for t in target:
+        targ.push_back(ntl_ZZ(t).x)
+    numintervals = len(target)/2
+    sig_on()
+    out.SetDims(dim, dim*numintervals)
+
+    c.restore_c()
+    interval_products_wrapper(out, mm0, mm1, targ, 1)
+    sig_off()
+
+    R = M0.matrix_space()
+    mats = [R(0) for k in range(numintervals)]
+    cdef ntl_ZZ_p tmp
+    tmp = ntl_ZZ_p(modulus=c)
+    for k in range(numintervals):
+        for j in range(dim):
+            for i in range(dim):
+                sig_on()
+                tmp.x = out.get(j, i + dim * k)
+                sig_off()
+                mats[k][j, i] = tmp._integer_()
+
+    return mats
 
 
 def hypellfrob(p, N, Q):
     r"""
     Compute the matrix of Frobenius acting on the Monsky-Washnitzer cohomology
-    of a hyperelliptic curve `y^2 = Q(x)`, with respect to the basis `x^i dx/y`,
-    `0 \leq i < 2g`.
+    of a hyperelliptic curve `y^2 = Q(x)`, with respect to the basis
+    `x^i dx/y`, `0 \leq i < 2g`.
 
     INPUT:
 
@@ -69,7 +176,8 @@ def hypellfrob(p, N, Q):
 
     EXAMPLES::
 
-        sage: from sage.schemes.hyperelliptic_curves.hypellfrob import hypellfrob
+        sage: from sage.schemes.hyperelliptic_curves.hypellfrob \
+        import hypellfrob
         sage: R.<x> = PolynomialRing(ZZ)
         sage: f = x^5 + 2*x^2 + x + 1; p = 101
         sage: M = hypellfrob(p, 4, f); M
@@ -110,7 +218,8 @@ def hypellfrob(p, N, Q):
 
     bound = (len(Q) - 1) * (2*N - 1)
     if p <= bound:
-        raise ValueError("In the current implementation, p must be greater than (2g+1)(2N-1) = %s" % bound)
+        raise ValueError("In the current implementation, p must be greater "
+                         "than (2g+1)(2N-1) = %s" % bound)
 
     if not is_prime(p):
         raise ValueError("p (= %s) must be prime" % p)
@@ -132,11 +241,13 @@ def hypellfrob(p, N, Q):
     sig_off()
 
     if not result:
-        raise ValueError("Could not compute frobenius matrix, because the curve is singular at p.")
+        raise ValueError("Could not compute frobenius matrix"
+                         ", because the curve is singular at p.")
 
     R = Qp(p, N, print_mode="terse")
     prec = big_oh(p**N)
-    data = [[mm[j, i]._integer_() + prec for i from 0 <= i < 2*g] for j from 0 <= j < 2*g]
+    data = [[mm[j, i]._integer_() + prec for i from 0 <= i < 2*g]
+            for j from 0 <= j < 2*g]
     return Matrix(R, data)
 
-################ end of file
+# end of file

@@ -1917,8 +1917,12 @@ def _gram_from_jordan_block(p, block, discr_form=False):
 
     INPUT:
 
-    -``p`` -- a prime number
-    -``block`` -- a list of 3 integers or 5 integers if `p` is `2`
+    - ``p`` -- a prime number
+
+    - ``block`` -- a list of 3 integers or 5 integers if `p` is `2`
+
+    - ``discr_form`` -- bool (default: ``False``); if ``True`` invert the scales
+      to obtain a gram matrix for the discriminant form instead.
 
     EXAMPLES::
 

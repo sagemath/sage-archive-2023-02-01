@@ -1,7 +1,7 @@
 r"""
-Inline conversions between LinBox and Sage
+Inline conversions between NTL and Sage
 
-Each LinBox type has a corresponding Sage types and we use the following
+Each NTL type has a corresponding Sage types and we use the following
 conventions for conversion functions
 
 - ``new_ntl_XXX`` : create a new ntl object
@@ -9,8 +9,6 @@ conventions for conversion functions
 - ``set_ntl_XXX`` : set the entries of the ntl object
 - ``set_sage_XXX``   : set the entries of the Sage object
 
-For matrices that uses a flint datastructure, see the lower level conversions
-in the module ``ntl_flint_interface``.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Martin Albrecht
@@ -30,19 +28,21 @@ from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p
 
 from sage.matrix.matrix_modn_dense_float cimport Matrix_modn_dense_float
+from sage.matrix.matrix_modn_dense_double cimport Matrix_modn_dense_double
+from sage.matrix.matrix_generic_dense cimport Matrix_generic_dense
 
 
 ################################################
-# matrix_modn_dense (dense matrix over Z/nZ) #
+# matrix_modn_dense_float (dense matrix over Z/nZ) #
 ################################################
 
-cdef inline void set_ntl_matrix_modn_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_modn_dense_float m):
+cdef inline void set_ntl_matrix_modn_dense_float(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_modn_dense_float m):
     r"""
-    set the entries of a LinBox matrix from a Sage matrix.
+    set the entries of a NTL matrix from a Sage matrix.
 
     INPUT:
 
-    - A -- LinBox matrix
+    - A -- NTL matrix
     - m -- Sage matrix
     """
     cdef size_t i, j
@@ -53,3 +53,54 @@ cdef inline void set_ntl_matrix_modn_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class 
             tmp = ntl_ZZ_p(m[i,j], c)
             A.put(i, j, tmp.x)
 
+cdef inline void set_ntl_matrix_modn_dense_double(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_modn_dense_double m):
+    r"""
+    set the entries of a NTL matrix from a Sage matrix.
+
+    INPUT:
+
+    - A -- NTL matrix
+    - m -- Sage matrix
+    """
+    cdef size_t i, j
+    cdef ntl_ZZ_p tmp
+    A.SetDims(m._nrows, m._ncols)
+    for i in range(m._nrows):
+        for j in range(m._ncols):
+            tmp = ntl_ZZ_p(m[i,j], c)
+            A.put(i, j, tmp.x)
+
+cdef inline void set_ntl_matrix_modn_generic_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, Matrix_generic_dense m):
+    r"""
+    set the entries of a NTL matrix from a Sage matrix.
+
+    INPUT:
+
+    - A -- NTL matrix
+    - m -- Sage matrix
+    """
+    cdef size_t i, j
+    cdef ntl_ZZ_p tmp
+    A.SetDims(m._nrows, m._ncols)
+    for i in range(m._nrows):
+        for j in range(m._ncols):
+            tmp = ntl_ZZ_p(m[i,j], c)
+            A.put(i, j, tmp.x)
+
+cdef inline void set_ntl_matrix_modn_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class c, m):
+    r"""
+    set the entries of a NTL matrix from a Sage matrix.
+
+    INPUT:
+
+    - A -- NTL matrix
+    - m -- Sage matrix
+    """
+    if isinstance(m, Matrix_modn_dense_float):
+        set_ntl_matrix_modn_dense_float(A, c, m)
+    elif isinstance(m, Matrix_modn_dense_double):
+        set_ntl_matrix_modn_dense_double(A, c, m)
+    elif isinstance(m, Matrix_generic_dense):
+        set_ntl_matrix_modn_generic_dense(A, c, m)
+    else:
+        raise NotImplementedError("Matrix type not yet implemented")

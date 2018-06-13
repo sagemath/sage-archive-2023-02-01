@@ -80,6 +80,20 @@ def interval_products(M0, M1, target):
         [5 1], [2 7]
         ]
 
+    An example with larger modulus::
+
+        sage: interval_products(Matrix(Integers(3^8), 1, 1, [1]), Matrix(Integers(3^8), 1, 1, [1]), [2,4])
+        [[20]]
+        sage: [prod(Matrix(Integers(3^8), 1, 1, [t + 1]) for t in range(3,5))]
+        [[20]]
+
+    An even larger modulus::
+
+        sage: interval_products(Matrix(Integers(3^18), 1, 1, [1]), Matrix(Integers(3^18), 1, 1, [1]), [2,4])
+        [[20]]
+        sage: [prod(Matrix(Integers(3^18), 1, 1, [t + 1]) for t in range(3,5))]
+        [[20]]
+
     AUTHORS:
 
     - David Harvey (2007-12): Original code

@@ -1,3 +1,7 @@
+Fix pari_mainstack_mreset() on Cygwin
+
+Rejected upstream because Cygwin is considered a dead platform
+
 diff --git a/src/language/init.c b/src/language/init.c
 index 2d13684..6ea2888 100644
 --- a/src/language/init.c

@@ -5353,7 +5353,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
     def cyclegraph(self):
         r"""
-        Return the digraph of all orbits of this dyanmical system.
+        Return the digraph of all orbits of this dynamical system.
 
         Over a finite field this is a finite graph. For subscheme domains, only points
         on the subscheme whose image are also on the subscheme are in the digraph.

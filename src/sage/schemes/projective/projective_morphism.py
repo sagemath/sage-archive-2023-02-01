@@ -2033,7 +2033,7 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
     def connected_rational_component(self, P, n=0):
         """
-        Return the component of all ratioanl preimage and forward images.
+        Return the component of all rational preimage and forward images.
 
         EXAMPLES::
 

@@ -679,7 +679,7 @@ def is_cm_j_invariant(j, method='new'):
     # divides all the values a_P^2-4N(P), since that is the
     # discriminant of the order containing the Frobenius at P.  So we
     # end up with a finite number (usually one) of candidate
-    # discriminats to test.  Each is tested by checking that its class
+    # discriminants to test.  Each is tested by checking that its class
     # number is h, and if so then that j is a root of its Hilbert
     # class polynomial.  In practice non CM curves will be eliminated
     # by the local test at a small number of primes (probably just 2).

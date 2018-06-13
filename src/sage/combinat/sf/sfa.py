@@ -1557,7 +1557,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         self._sym = Sym
         if graded:
             cat = GradedSymmetricFunctionsBases(Sym)
-        else: # Right now, there are no non-filted bases
+        else: # Right now, there are no non-filtered bases
             cat = FilteredSymmetricFunctionsBases(Sym)
         CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
                                          category=cat,

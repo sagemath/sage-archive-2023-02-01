@@ -42,7 +42,7 @@ include "sage/libs/ntl/decl.pxi"
 
 
 from sage.libs.ntl.conversion cimport (
-    new_ntl_matrix_modn_dense)
+    set_ntl_matrix_modn_dense)
 
 cdef extern from "hypellfrob.h":
     int hypellfrob_matrix "hypellfrob::matrix" (mat_ZZ_c output, ZZ_c p, int N, ZZX_c Q)
@@ -86,39 +86,35 @@ def interval_products(M0, M1, target):
     - Alex J. Best (2018-02): Wrapper
     """
     # Sage objects that wrap the NTL objects
-    cdef mat_ZZ_p_c * mm0, * mm1
-    cdef mat_ZZ_p_c * out
+    cdef mat_ZZ_p_c mm0, mm1
+    cdef mat_ZZ_p_c out
     cdef vector[ZZ_c] targ
     cdef ntl_ZZ_pContext_class c = (<ntl_ZZ_pContext_factory>ZZ_pContext_factory).make_c(ntl_ZZ(M0.base_ring().characteristic()))
     cdef long dim = M0.nrows()
-    mm0 = new_ntl_matrix_modn_dense(c,M0)
-    mm1 = new_ntl_matrix_modn_dense(c,M1)
+    set_ntl_matrix_modn_dense(mm0,c,M0)
+    set_ntl_matrix_modn_dense(mm1,c,M1)
     for t in target:
         targ.push_back(ntl_ZZ(t).x)
     numintervals = len(target)/2
-    out = new mat_ZZ_p_c()
     sig_on()
     out.SetDims(dim, dim*numintervals)
 
     c.restore_c()
-    interval_products_wrapper(out[0], mm0[0], mm1[0], targ, 1)
+    interval_products_wrapper(out, mm0, mm1, targ, 1)
     sig_off()
 
     R = M0.matrix_space()
-    mats = [R(0) for 0 <= k < numintervals]
+    mats = [R(0) for k in range(numintervals)]
     cdef ntl_ZZ_p tmp
     tmp = ntl_ZZ_p(modulus=c)
-    for k from 0 <= k < numintervals:
-        for j from 0 <= j < dim:
-            for i from 0 <= i < dim:
+    for k in range(numintervals):
+        for j in range(dim):
+            for i in range(dim):
                 sig_on()
                 tmp.x = out.get(j, i + dim * k)
                 sig_off()
                 mats[k][j,i] = tmp._integer_()
 
-    del mm0
-    del mm1
-    del out
     return mats
 
 

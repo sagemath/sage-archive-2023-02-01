@@ -47,23 +47,9 @@ cdef inline void set_ntl_matrix_modn_dense(mat_ZZ_p_c& A, ntl_ZZ_pContext_class 
     """
     cdef size_t i, j
     cdef ntl_ZZ_p tmp
+    A.SetDims(m._nrows, m._ncols)
     for i in range(m._nrows):
         for j in range(m._ncols):
             tmp = ntl_ZZ_p(m[i,j], c)
             A.put(i, j, tmp.x)
 
-cdef inline mat_ZZ_p_c * new_ntl_matrix_modn_dense(ntl_ZZ_pContext_class c, Matrix_modn_dense_float m):
-    r"""
-    Return a new LinBox matrix from a Sage matrix.
-
-    Such matrix has to be deallocated with a "del" statement.
-
-    INPUT:
-
-    - c -- LinBox field
-    - m -- Sage matrix
-    """
-    cdef mat_ZZ_p_c * A = new mat_ZZ_p_c()
-    A.SetDims(m._nrows, m._ncols)
-    set_ntl_matrix_modn_dense(A[0], c, m)
-    return A

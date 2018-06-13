@@ -1274,7 +1274,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     def reduced_form(self, transformation=None, shifts=None, row_wise=True):
         r"""
-        Return a row reduced form of this matrix.
+        Return a row reduced form of this matrix (resp. a column reduced form
+        if the optional parameter `row_wise` is set to `False`).
 
         An $m \times n$ univariate polynomial matrix $M$ is said to be in
         (shifted) row reduced form if it has $k$ nonzero rows with $k \leq n$

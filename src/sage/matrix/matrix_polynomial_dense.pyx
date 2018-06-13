@@ -108,9 +108,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ValueError: Shifts length should be the row dimension.
         """
         if shifts != None and (not row_wise) and len(shifts) != self.nrows():
-            raise ValueError('Shifts length should be the row dimension.')
+            raise ValueError('shifts length should be the row dimension')
         if shifts != None and (row_wise and len(shifts) != self.ncols()):
-            raise ValueError('Shifts length should be the column dimension.')
+            raise ValueError('shifts length should be the column dimension')
 
     def degree(self):
         r"""
@@ -144,7 +144,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ValueError: Empty matrix does not have a degree.
         """
         if self.nrows() == 0 or self.ncols() == 0:
-            raise ValueError('Empty matrix does not have a degree.')
+            raise ValueError('empty matrix does not have a degree')
         return max([ self[i,j].degree()
             for i in range(self.nrows()) for j in range(self.ncols()) ])
 
@@ -283,7 +283,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise=True)
         if self.ncols() == 0 or self.nrows() == 0:
-            raise ValueError('Empty matrix does not have row degrees.')
+            raise ValueError('empty matrix does not have row degrees')
         if shifts is None:
             return [ max([ self[i,j].degree() for j in range(self.ncols()) ])
                     for i in range(self.nrows()) ]
@@ -350,7 +350,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         self._check_shift_dimension(shifts,row_wise=False)
         if self.ncols() == 0 or self.nrows() == 0:
-            raise ValueError('Empty matrix does not have column degrees.')
+            raise ValueError('empty matrix does not have column degrees')
         if shifts is None:
             return [ max([ self[i,j].degree() for i in range(self.nrows()) ])
                     for j in range(self.ncols()) ]
@@ -667,7 +667,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         self._check_shift_dimension(shifts,row_wise)
 
         if self.ncols() == 0 or self.nrows() == 0:
-            raise ValueError('Empty matrix does not have leading positions.')
+            raise ValueError('empty matrix does not have leading positions')
 
         if row_wise:
             row_degrees = self.row_degrees(shifts)

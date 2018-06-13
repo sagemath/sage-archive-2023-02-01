@@ -1827,10 +1827,12 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         return p_max
 
 
-    def contained_simplex(self, large=True, initial_point=None):
+    def contained_simplex(self, large=True, initial_point=None, point_order=None):
         """
         Return a simplex contained in the point configuration.
 
+
+  MODIFIED G.Rote / TODO: Update examples and tests
         INPUT:
 
         - ``large`` -- boolean. Whether to attempt to return a large
@@ -1840,6 +1842,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
           :class:`~sage.geometry.triangulation.base.Point` or ``None``
           (default). A specific point to start with when picking the
           simplex vertices.
+          
+        - ``point_order`` -- a list or tuple of (some or all)
+          :class:`~sage.geometry.triangulation.base.Point` s or ``None``
+          (default).
 
         OUTPUT:
 
@@ -1848,21 +1854,29 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         sucessively picking the farthest point. This will ensure that
         the simplex is not unnecessarily small, but will in general
         not return a maximal simplex.
+        If a ``point_order`` is specified, the simplex is greedily
+        constructed by considering the points in this order.
+        The ``large`` option and ``initial_point`` is ignored in this case.
+        The ``point_order`` may contain only a subset of the points;
+        in this case, the dimension of the simplex will be the dimension of
+        this subset.
 
         EXAMPLES::
 
             sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,1),(0,1)])
             sage: pc.contained_simplex()
-            (P(0, 1), P(2, 1), P(1, 0))
-            sage: pc.contained_simplex(large=False)
-            (P(0, 1), P(1, 1), P(1, 0))
-            sage: pc.contained_simplex(initial_point=pc.point(0))
             (P(0, 0), P(1, 1), P(1, 0))
+            sage: pc.contained_simplex(large=False)
+            (P(0, 0), P(1, 0), P(2, 1))
+            sage: pc.contained_simplex(initial_point=pc.point(2))
+            (P(2, 1), P(0, 0), P(1, 0))
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: pc.contained_simplex()
-            (P(-1, -1), P(1, 1), P(0, 1))
-
+            (P(2, 1), P(0, 0), P(1, 0))
+            sage: pc.contained_simplex(point_order = [pc[0],pc[3],pc[4]])
+            (P(0,0),P(1,1))
+            
         TESTS::
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0]])
@@ -1879,22 +1893,28 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             ()
         """
         self._assert_is_affine()
-        if self.n_points()==0:
+        if point_order is None:
+            points = list(self.points())
+        else:
+            points = list(point_order)
+            initial_point = None
+            large = False
+        if len(points)==0:
             return tuple()
-        points = list(self.points())
+                         
         if initial_point is None:
-            origin = points.pop()
+            origin = points.pop(0)
         else:
             origin = initial_point
             points.remove(origin)
         vertices = [origin]
         edges = []
-        while len(vertices) <= self.dim():
+        while points and len(vertices) <= self.dim():
             if large:
                 p = self.farthest_point(vertices, points)
                 points.remove(p)
             else:
-                p = points.pop()
+                p = points.pop(0)
             edge = p.reduced_affine_vector()-origin.reduced_affine_vector()
             if len(edges)>0 and (ker * edge).is_zero():
                 continue
@@ -1908,10 +1928,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         r"""
         Construct the placing (pushing) triangulation.
 
+  MODIFIED G.Rote / TODO: Update examples and tests
         INPUT:
 
         - ``point_order`` -- list of points or integers. The order in
-          which the points are to be placed.
+          which the points are to be placed. If not given, the points
+          will be placed in some arbitrary order that attempts to
+          produce a small number of simplices.
 
         OUTPUT:
 
@@ -1970,6 +1993,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # input verification
         self._assert_is_affine()
+        point_order_is_given = point_order is not None
+
         if point_order is None:
             point_order = list(self.points())
         elif isinstance(point_order[0], Point):
@@ -1977,10 +2002,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             assert all(p.point_configuration()==self for p in point_order)
         else:
             point_order = [ self.point(i) for i in point_order ]
-        assert all(p in self.points() for p in point_order)
+        assert set(point_order)<=set(self.points())
 
         # construct the initial simplex
-        simplices = [ frozenset(self.contained_simplex()) ]
+        if point_order_is_given:
+            simplices = [ frozenset(self.contained_simplex(large=False, point_order = point_order)) ]
+        else:
+            simplices = [ frozenset(self.contained_simplex(large=True)) ]
         for s in simplices[0]:
             try:
                 point_order.remove(s)
@@ -1989,6 +2017,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         facets = facets_of_simplex(simplices[0])
 
         # successively place the remaining points
+
+        # TODO: In concordance with the heuristic to choose a LARGE starting simplex,
+        # one could continue to try to pick points that are far away from the previous ones,
+        # unless point_order_is_given.
         for point in point_order:
             # identify visible facets
             visible_facets = []

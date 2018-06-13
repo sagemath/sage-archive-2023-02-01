@@ -4942,7 +4942,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - `P`, a dictionary -- keys are elements of this poset, values are posets
+        - ``P`` -- dictionary whose keys are elements of this poset, values are posets
 
         EXAMPLES::
 

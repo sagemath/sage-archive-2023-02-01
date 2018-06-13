@@ -798,6 +798,17 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: F.value() == p
             True
 
+        A test where the number field that expresses the result is a subfield
+        of the number field that expressed the polynomial::
+
+            sage: p = (x^2+QQbar(2)^(1/2)*y^2)*(x+QQbar(2)^(1/8)*y)
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (x + (-1.189207115002722?*I)*y) * (x + 1.189207115002722?*I*y)
+            * (x + 1.090507732665258?*y)
+            sage: F.value() == p
+            True
+
         """
         from sage.structure.factorization import Factorization
         from sage.interfaces.singular import singular

@@ -198,6 +198,13 @@ class DualSemistandardTableau(PathTableau_partitions):
     def multiply(self,other):
         """
         This is the same function as tableau.slide_multiply and tableau.bump_multiply.
+
+        EXAMPLE::
+
+            sage: t = DualSemistandardTableau([[2],[3,1],[4,1,1]])
+            sage: t.multiply(t)
+            [[], [1, 1, 1, 1], [2, 2, 2, 1, 1]]
+
         """
 
         left = list(self)
@@ -209,10 +216,10 @@ class DualSemistandardTableau(PathTableau_partitions):
         right = [a+[0]*(m-len(a)) for a in right]
 
         p = max(len(left),len(right))
-        left = left + left[-1]*(p-len(left))
-        right = right + right[-1]*(p-len(right))
+        left = left + [left[-1]]*(p-len(left))
+        right = right + [right[-1]]*(p-len(right))
 
-        result = [Partition([a+n for a in y]+x) for x,y in zip(left,right)]
+        result = [Partition([a+n for a in y]+list(x)) for x,y in zip(left,right)]
 
         return DualSemistandardTableau(result).rectify()
 
@@ -242,6 +249,7 @@ class DualSemistandardTableau(PathTableau_partitions):
         is the rectification defined here.
 
         EXAMPLE::
+
 
         """
 

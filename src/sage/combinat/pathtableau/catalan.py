@@ -24,23 +24,20 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#from six import add_metaclass
 
-#from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from six import add_metaclass
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.misc.abstract_method import abstract_method
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.categories.sets_cat import Sets
 
-from sage.combinat.pathtableau.pathtableaux import PathTableau
-#from sage.combinat.pathtableau.catalan import CatalanTableau
+from sage.combinat.pathtableau.pathtableaux import PathTableau, PathTableaux
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.tableau import Tableau, Tableaux
 from sage.rings.integer import Integer
-
-#from sage.categories.pathtableaux import PathTableaux
-#from sage.categories.sets_cat import Sets
-#from sage.combinat.catalan import CatalanTableau
-#from sage.combinat.catalan import CatalanTableaux
-
 
 ###############################################################################
 
@@ -122,7 +119,7 @@ EXAMPLE::
 
 """
 
-#@add_metaclass(InheritComparisonClasscallMetaclass)
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class CatalanTableau(PathTableau):
     """
     An instance is the sequence of nonnegative
@@ -153,7 +150,8 @@ class CatalanTableau(PathTableau):
 
     """
     
-    def __init__(self, ot):
+    @staticmethod
+    def __classcall_private__(cls, ot):
 
         w = None
 
@@ -187,10 +185,10 @@ class CatalanTableau(PathTableau):
                 raise ValueError("%s is not a sequence of integers." % str(ot) )
 
         if w == None:
-            raise ValueError( "Sorry; I don't know what to do with %s." % str(ot) )
+            raise NotImplementedError( "Sorry; I don't know what to do with %s." % str(ot) )
 
-        Parent.__init__(self,category=Sets())
-        
+        return CatalanTableaux()(w)
+    
     def check(self):
         """
         This overwrites the abstract method.
@@ -218,7 +216,7 @@ class CatalanTableau(PathTableau):
         if any(a < 0 for a in self):
            raise ValueError( "%s has a negative entry." % (str(self)) )
         for i in range(n-1):
-            if abs(self[i+1]-self[i]) > 1:
+            if abs(self[i+1]-self[i]) != 1:
                 raise ValueError( "%s is not a Dyck path." % (str(self)) )
 
     @staticmethod
@@ -296,8 +294,9 @@ class CatalanTableau(PathTableau):
         """
         Converts to a skew tableau.
         """
-        top = [ i for i, a in enumerate(self) if a == 1 ]
-        bot = [ i for i, a in enumerate(self) if a == 0 ]
+        w = self.to_word()
+        top = [ i for i, a in enumerate(w) if a == 1 ]
+        bot = [ i for i, a in enumerate(w) if a == 0 ]
         return SkewTableau([[None]*self[0]+top,bot])
 
     def draw(self):
@@ -306,6 +305,16 @@ class CatalanTableau(PathTableau):
         """
         return line([ (i,a) for i, a in enumerate(self)])
 
+#class PathTableaux(UniqueRepresentation,Parent):
+#    
+#    def __init__(self):
+#        Parent.__init__(self, category = Sets())
+#
+#    def _element_constructor_(self, *args, **keywords):
+#        return self.element_class(self, *args, **keywords)
+#
+#    Element = PathTableau
+
 class CatalanTableaux(PathTableaux):
-    
+        
     Element = CatalanTableau

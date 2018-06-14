@@ -1097,8 +1097,8 @@ class ComplexBallField(UniqueRepresentation, Field):
             [2.304377150950e-439 +/- 9.74e-452]
             sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=0)
             [2.304377150950e-439 +/- 7...e-452]
-            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, rel_tol=1e-4, abs_tol=0)
-            [2.304377151e-439 +/- 7.25e-449]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, rel_tol=1e-2, abs_tol=0)
+            [2.30438e-439 +/- 5.94e-445]
 
             sage: epsi = CBF(1e-10)
             sage: CBF.integral(lambda x, _: x*(1/x).sin(), epsi, 1)
@@ -1122,7 +1122,7 @@ class ComplexBallField(UniqueRepresentation, Field):
             sage: CBF.integral(lambda x, _: (1 + i*x).gamma(), -1, 1)
             [1.5723926694981 +/- 4...e-14] + [+/- 4...e-15]*I
 
-            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, rel_tol=1e-400)   # long time
+            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, rel_tol=1e-300)
             [0.459... +/- ...e-3...]
             sage: CBF.integral(lambda x, _: x.sin(), 0, 100, rel_tol=10)
             [0.138 +/- 5.53e-4]

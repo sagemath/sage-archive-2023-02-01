@@ -161,6 +161,8 @@ values and should be preferred::
 
     sage: RBF(NaN) < RBF(infinity)
     False
+    sage: RBF(0).add_error(infinity) <= RBF(infinity)
+    True
 
 TESTS::
 
@@ -647,17 +649,15 @@ class RealBallField(UniqueRepresentation, Field):
         EXAMPLES::
 
             sage: RBF.some_elements()
-            [1.000000000000000,
-            [0.3333333333333333 +/- 7.04e-17],
+            [0, 1.000000000000000, [0.3333333333333333 +/- 7.04e-17],
             [-4.733045976388941e+363922934236666733021124 +/- 3.46e+363922934236666733021108],
-            [+/- inf],
-            nan,
-            nan]
+            [+/- inf], [+/- inf], [+/- inf], nan]
         """
         import sage.symbolic.constants
-        return [self(1), self(1)/3,
+        inf = self(sage.rings.infinity.Infinity)
+        return [self(0), self(1), self(1)/3,
                 -self(2)**(Integer(2)**80),
-                self(sage.rings.infinity.Infinity), ~self(0),
+                inf, -inf, self.zero().add_error(inf),
                 self.element_class(self, sage.symbolic.constants.NotANumber())]
 
     def _sum_of_products(self, terms):
@@ -2245,7 +2245,7 @@ cdef class RealBall(RingElement):
             sage: inf = RBF(+infinity)
             sage: other_inf = RBF(+infinity, 42.r)
             sage: neg_inf = RBF(-infinity)
-            sage: extended_line = ~RBF(0)
+            sage: extended_line = RBF(0).add_error(infinity)
             sage: exact_nan = inf - inf
             sage: exact_nan.mid(), exact_nan.rad()
             (NaN, 0.00000000)

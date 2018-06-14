@@ -33,7 +33,7 @@ from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.combinat.partition import Partition
-from sage.modules.free_module_element import vector
+#from sage.modules.free_module_element import vector
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -344,8 +344,8 @@ class PathTableau_partitions(PathTableau):
     def _rule(x):
         y = map(list,x)
         m = max([ len(u) for u in y ])
-        z = map( lambda u: vector(u + [0]*(m-len(u)) ), y )
-        result = list(z[0]-z[1]+z[2])
+        z = map( lambda u: u + [0]*(m-len(u)), y )
+        result = [ abs(a-b+c) for a,b,c in zip(z[0],z[1],z[2]) ]
         result.sort(reverse=True)
         return Partition(result)
 

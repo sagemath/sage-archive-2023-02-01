@@ -25,7 +25,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.realizations import Category_realization_of_parent
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.combinat.set_partition_ordered import OrderedSetPartitions
+from sage.combinat.set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from sage.combinat.shuffle import ShuffleProduct_overlapping, ShuffleProduct
 
 class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
@@ -1488,9 +1488,10 @@ class WQSymBases(Category_realization_of_parent):
                 M[{2}, {1, 4}, {3, 5}]
             """
             try:
-                return self.monomial(self._indices(p))
+                indx = OrderedSetPartition(p)
             except TypeError:
-                return self.monomial(self._indices([p]))
+                indx = OrderedSetPartition([p])
+            return self.monomial(self._indices(indx))
 
         def is_field(self, proof=True):
             """

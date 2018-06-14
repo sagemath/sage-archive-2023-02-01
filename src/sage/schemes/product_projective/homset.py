@@ -59,7 +59,7 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
         return self.codomain()._point(self, v, **kwds)
 
 class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_product_projective_spaces_ring):
-    def points(self, B=0, prec=53):
+    def points(self, **kwds):
         r"""
         Return some or all rational points of a projective scheme.
 
@@ -80,10 +80,11 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
 
         INPUT:
 
-        - `B` -- integer (optional, default=0). The bound for the
-          coordinates.
+        - ``bound`` - a real number
 
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
@@ -109,7 +110,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             sage: u = QQ['u'].0
             sage: K = NumberField(u^2 + 1, 'v')
             sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], K)
-            sage: P(K).points(1)
+            sage: P(K).points(bound=1)
             [(0 : 1 , 0 : 1), (0 : 1 , v : 1), (0 : 1 , -1 : 1), (0 : 1 , -v : 1), (0 : 1 , 1 : 1),
             (0 : 1 , 1 : 0), (v : 1 , 0 : 1), (v : 1 , v : 1), (v : 1 , -1 : 1), (v : 1 , -v : 1),
             (v : 1 , 1 : 1), (v : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , v : 1), (-1 : 1 , -1 : 1),
@@ -135,6 +136,10 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             (0 : 2 : 1 , 1 : 0), (1 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 0), (0 : 1 : 0 , 1 : 0), (1 : 1 : 0 , 1 : 0),
             (2 : 1 : 0 , 1 : 0), (1 : 0 : 0 , 1 : 0)]
         """
+        B = kwds.pop('bound', 0)
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
+        
         X = self.codomain()
 
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
@@ -157,7 +162,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         if R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            for P in X.ambient_space().points_of_bounded_height(B, prec):
+            for P in X.ambient_space().points_of_bounded_height(bound=B, tolerance=tol, precision=prec):
                 try:
                     points.append(X(P))
                 except TypeError:

@@ -63,7 +63,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         sage: SchemeHomset_points_projective_field(Spec(QQ), ProjectiveSpace(QQ,2))
         Set of rational points of Projective Space of dimension 2 over Rational Field
     """
-    def points(self, B=0, prec=53):
+    def points(self, **kwds):
         """
         Return some or all rational points of a projective scheme.
 
@@ -83,10 +83,11 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
         INPUT:
 
-        - ``B`` - integer (optional, default=0). The bound for the
-          coordinates.
+        - ``bound`` - a real number
 
-        - ``prec`` - he precision to use to compute the elements of bounded height for number fields.
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
@@ -95,7 +96,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P(QQ).points(4)
+            sage: P(QQ).points(bound=4)
             [(-4 : 1), (-3 : 1), (-2 : 1), (-3/2 : 1), (-4/3 : 1), (-1 : 1),
             (-3/4 : 1), (-2/3 : 1), (-1/2 : 1), (-1/3 : 1), (-1/4 : 1), (0 : 1),
             (1/4 : 1), (1/3 : 1), (1/2 : 1), (2/3 : 1), (3/4 : 1), (1 : 0), (1 : 1),
@@ -106,7 +107,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: len(P(K).points(1.8))
+            sage: len(P(K).points(bound=1.8))
             381
 
         ::
@@ -124,6 +125,10 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             [(-1 : -1 : 1), (-1 : 0 : 1), (-1 : 1 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1),
             (1 : -1 : 1), (1 : 0 : 1), (1 : 1 : 1)]
         """
+        B = kwds.pop('bound', 0)
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
+
         X = self.codomain()
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(X) and X.base_ring() in Fields():
@@ -198,7 +203,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-            return enum_projective_number_field(self, bound=B, precision=prec)
+            return enum_projective_number_field(self, bound=B, tolerance=tol, precision=prec)
         elif is_FiniteField(R):
             from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())

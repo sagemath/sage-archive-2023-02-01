@@ -669,6 +669,7 @@ class MPolynomialIdeal_singular_repr(
         I.plot()
 
     @require_field
+    @cached_method
     @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def complete_primary_decomposition(self, algorithm="sy"):
@@ -761,13 +762,18 @@ class MPolynomialIdeal_singular_repr(
             sage: I.is_prime()
             False
 
+        Check that operation over ``QQbar`` is supported::
+
+            sage: R.<x,y,z> = PolynomialRing(QQbar)
+            sage: p = z^2 + 1; q = z^3 + 2
+            sage: I = (p*q, y-z^2)*R
+            sage: pd = I.complete_primary_decomposition()
+            sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), [Qi for (Qi,radQi) in pd]) == I
+            True
+            sage: [Qi.radical() == radQi for (Qi,radQi) in pd]
+            [True, True, True, True, True]
+
         """
-        try:
-            return self.__complete_primary_decomposition[algorithm]
-        except AttributeError:
-            self.__complete_primary_decomposition = {}
-        except KeyError:
-            pass
 
         # Avoid a bug in Singular (see #15745).
         if self.is_one():
@@ -784,9 +790,7 @@ class MPolynomialIdeal_singular_repr(
 
         R = self.ring()
         V = [(R.ideal(X[0]), R.ideal(X[1])) for X in P]
-        V = Sequence(V)
-        self.__complete_primary_decomposition[algorithm] = V
-        return self.__complete_primary_decomposition[algorithm]
+        return Sequence(V)
 
     # Seems useful for Tab-Completion
     primary_decomposition_complete = complete_primary_decomposition
@@ -1038,6 +1042,11 @@ class MPolynomialIdeal_singular_repr(
             sage: J = Ideal(x^2+y^2-2, y^2-1)
             sage: J.triangular_decomposition()
             [Ideal (y^2 - 1, x^2 - 1) of Multivariate Polynomial Ring in x, y over Rational Field]
+
+            sage: R.<x,y> = QQbar[]
+            sage: J = Ideal(x^2+y^2-2, y^2-1)
+            sage: J.triangular_decomposition()
+            [Ideal (y^2 - 1, x^2 - 1) of Multivariate Polynomial Ring in x, y over Algebraic Field]
         """
         P = self.ring()
 
@@ -1460,6 +1469,7 @@ class MPolynomialIdeal_singular_repr(
         return S
 
     @require_field
+    @cached_method
     @handle_AA_and_QQbar
     def genus(self):
         """
@@ -1503,13 +1513,9 @@ class MPolynomialIdeal_singular_repr(
             sage: TJ.genus()
             -1
         """
-        try:
-            return self.__genus
-        except AttributeError:
-            import sage.libs.singular.function_factory
-            genus = sage.libs.singular.function_factory.ff.normal__lib.genus
-            self.__genus = Integer(genus(self))
-            return self.__genus
+        import sage.libs.singular.function_factory
+        genus = sage.libs.singular.function_factory.ff.normal__lib.genus
+        return Integer(genus(self))
 
     @handle_AA_and_QQbar
     @libsingular_gb_standard_options
@@ -2062,6 +2068,14 @@ class MPolynomialIdeal_singular_repr(
             sage: eD = Ideal(x, z^2-1)
             sage: I.quotient(eD).gens()
             [2, x*z + x, x*y]
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: R.<x,y,z> = QQbar[]
+            sage: I = ideal(x,z)
+            sage: J = ideal(R(1))
+            sage: I.quotient(J)
+            Ideal (z, x) of Multivariate Polynomial Ring in x, y, z over Algebraic Field
         """
         from sage.misc.stopgap import stopgap
         R = self.ring()
@@ -2098,6 +2112,16 @@ class MPolynomialIdeal_singular_repr(
             sage: J = R.ideal(z)
             sage: I.saturation(J)
             (Ideal (y, x^5) of Multivariate Polynomial Ring in x, y, z over Rational Field, 4)
+
+        TESTS:
+
+        Check that this method works over QQbar (:trac:`25351`)::
+
+            sage: R.<x, y, z> = QQbar[]
+            sage: I = R.ideal(x^5*z^3, x*y*z, y*z^4)
+            sage: J = R.ideal(z)
+            sage: I.saturation(J)
+            (Ideal (y, x^5) of Multivariate Polynomial Ring in x, y, z over Algebraic Field, 4)
         """
         from sage.libs.singular.function_factory import ff
         sat = ff.elim__lib.sat
@@ -2106,7 +2130,6 @@ class MPolynomialIdeal_singular_repr(
         return (R.ideal(ideal), ZZ(expo))
 
     @require_field
-    @handle_AA_and_QQbar(factor_field=True)
     def variety(self, ring=None):
         r"""
         Return the variety of this ideal.
@@ -2339,6 +2362,20 @@ class MPolynomialIdeal_singular_repr(
             sage: I = R.ideal(c^2-2, b-c, a)
             sage: I.variety(QQbar)
             [...a: 0...]
+
+        An early version of :trac:`25351` broke this method by adding the
+        @handle_AA_and_QQbar decorator to it.  To check for this bug, verify
+        that this circle and this hyperbola have two real intersections and
+        two more complex ones::
+
+            sage: K.<x, y> = PolynomialRing(AA)
+            sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
+            sage: len(I.variety())
+            2
+            sage: K.<x, y> = PolynomialRing(QQbar)
+            sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
+            sage: len(I.variety())
+            4
 
         ALGORITHM:
 

@@ -4295,12 +4295,16 @@ class SimplicialComplex(Parent, GenericCellComplex):
         vertex_limit = 45
         facet_limit = 55
         vertices = self.vertices()
-        facets = sorted(self._facets, key=lambda f: (f.dimension(), f.tuple()))
+        try:
+            facets = sorted(self._facets, key=lambda f: (f.dimension(), f.tuple()))
+        except TypeError:
+            # Sorting failed.
+            facets = self._facets
 
         vertex_string = "with vertex set {}".format( tuple(sorted(vertices)) )
         if len(vertex_string) > vertex_limit:
             vertex_string = "with %s vertices" % len(vertices)
-        facet_string = 'facets {' + '{}'.format(facets)[1:-1] + '}'
+        facet_string = 'facets {' + repr(facets)[1:-1] + '}'
         if len(facet_string) > facet_limit:
             facet_string = "%s facets" % len(facets)
         return "Simplicial complex " + vertex_string + " and " + facet_string

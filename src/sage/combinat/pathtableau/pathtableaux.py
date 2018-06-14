@@ -1,4 +1,4 @@
-"""
+r"""
 This is an abstract base class for using local rules to construct rectification
 and the action of the cactus group. This is an effective version
 of the Henriques-Kamnitzer construction of the action of the cactus

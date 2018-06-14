@@ -1,5 +1,4 @@
-
-"""
+r"""
 This is an implementation of the Category PathTableaux.
 This is the simplest implementation of PathTableaux and is included to
 provide a convenient test case and for pedagogical purposes.

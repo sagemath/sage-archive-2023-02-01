@@ -1,6 +1,4 @@
-"""
-This is an impementation of the Category PathTableaux.
-
+r"""
 In this implementation we have sequences of partitions. These are in
 bijection with dual semistandard tableaux. This gives an effective
 version of operations on tableaux constructed using jeu-de-taquin.
@@ -37,6 +35,20 @@ from sage.combinat.tableau import SemistandardTableau
 from sage.combinat.partition import Partition
 
 """
+This implementation is on dual semistandard tableaux. This is the standard
+context for jeu-de-taquin operations. Here we show that the constructions 
+here agree with the jeu-de-taquin constructions. Even in this standard context
+our operations extend the standard definitions in the sense that the
+constructions here are naturally defined for skew semistandard tableaux.
+The only caveat is that the two constructions of promotion agree on rectangular
+tableaux but are, in general, different.
+
+-promotion
+-evacuation
+-rectify
+-multiply
+-Bender-Knuth
+
 EXAMPLES::
 
     sage: T = DualSemistandardTableau([[],[1],[2],[2,1]])
@@ -230,8 +242,8 @@ class DualSemistandardTableau(PathTableau_partitions):
 
         EXAMPLE::
 
-            sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
-            sage: s = DualSemistandardTableau(ST.an_element())
+            sage: t = SemistandardTableaux(8).random_element()
+            sage: s = DualSemistandardTableau(t)
             sage: s.check_bender_knuth(5)
             True
             sage: s.check_bender_knuth(4)
@@ -250,6 +262,10 @@ class DualSemistandardTableau(PathTableau_partitions):
 
         EXAMPLE::
 
+            sage: t = SkewTableau([[None,None,1,3,3],[None,1,2,4],[2,2]])
+            sage: s = DualSemistandardTableau(t)
+            sage: s.check_rectify()
+            True
 
         """
 
@@ -264,8 +280,8 @@ class DualSemistandardTableau(PathTableau_partitions):
 
         EXAMPLE::
 
-            sage: ST = SemistandardTableaux([5,3,3,2,1],[2,1,4,2,2,2,1])
-            sage: s = DualSemistandardTableau(ST.an_element())
+            sage: t = SemistandardTableaux(6).random_element()
+            sage: s = DualSemistandardTableau(t)
             sage: s.check_evacuation()
             True
 
@@ -273,6 +289,24 @@ class DualSemistandardTableau(PathTableau_partitions):
         lhs = self.evacuation().to_tableau()
         rhs = self.to_tableau().evacuation()
         return lhs == rhs
+
+    def check_promotion(self):
+        """
+        Check that jdt-promotion on the conjugate tableaux
+        is the promotion defined here.
+
+        EXAMPLE::
+
+            sage: t = SemistandardTableaux(shape=[4,4,4],eval=[1]*12).an_element()
+            sage: s = DualSemistandardTableau(t)
+            sage: s.check_promotion()
+            True
+
+        """
+        lhs = self.promotion().to_tableau()
+        rhs = self.to_tableau().promotion_inverse(11)
+        return lhs == rhs
+
 
     def plot(self):
         """

@@ -1106,25 +1106,27 @@ class Polytopes():
             sage: td.base_ring()
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
-        The faster implementation using floating point approximations does not
-        work unfortunately, see https://github.com/cddlib/cddlib/pull/7 for a
-        detailed discussion of this case::
-
-            sage: td = polytopes.truncated_dodecahedron(exact=False)
-            Traceback (most recent call last):
-            ...
-            ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
-            sage: td.f_vector() # not tested
-            (1, 60, 90, 32, 1)
-            sage: td.base_ring() # not tested
-            Real Double Field
-
         Its faces are 20 triangles and 12 regular decagons::
 
             sage: sum(1 for f in td.faces(2) if len(f.vertices()) == 3)
             20
             sage: sum(1 for f in td.faces(2) if len(f.vertices()) == 10)
             12
+
+        The faster implementation using floating point approximations does not
+        fully work unfortunately, see https://github.com/cddlib/cddlib/pull/7
+        for a detailed discussion of this case::
+
+            sage: td = polytopes.truncated_dodecahedron(exact=False)
+            doctest:warning
+            ...
+            UserWarning: This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.
+            sage: td.f_vector()
+            Traceback (most recent call last):
+            ...
+            KeyError: ...
+            sage: td.base_ring()
+            Real Double Field
         """
         if base_ring is None and exact:
             from sage.rings.number_field.number_field import QuadraticField
@@ -1328,25 +1330,21 @@ class Polytopes():
             sage: ti.base_ring()               # long time
             Number Field in sqrt5 with defining polynomial x^2 - 5
 
-        The faster implementation using floating point approximations does not
-        work unfortunately::
+        The implementation using floating point approximations is much faster::
 
             sage: ti = polytopes.truncated_icosidodecahedron(exact=False)
-            Traceback (most recent call last):
-            ...
-            ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
-            sage: ti.f_vector() # not tested
+            sage: ti.f_vector()
             (1, 120, 180, 62, 1)
-            sage: ti.base_ring() # not tested
+            sage: ti.base_ring()
             Real Double Field
 
         Its faces are 30 squares, 20 hexagons and 12 decagons::
 
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 4) # long time
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 4)
             30
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 6) # long time
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 6)
             20
-            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10) # long time
+            sage: sum(1 for f in ti.faces(2) if len(f.vertices()) == 10)
             12
         """
         if base_ring is None and exact:
@@ -1564,18 +1562,14 @@ class Polytopes():
             sage: gap                                # not tested - very long time
             A 4-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5)^4 defined as the convex hull of 100 vertices
 
-        Computation with approximated coordinates would be much faster but is
-        not supported currently::
+        Computation with approximated coordinates is much faster::
 
             sage: gap = polytopes.grand_antiprism(exact=False)
-            Traceback (most recent call last):
-            ...
-            ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
-            sage: gap # not tested
+            sage: gap
             A 4-dimensional polyhedron in RDF^4 defined as the convex hull of 100 vertices
-            sage: gap.f_vector() # not tested
+            sage: gap.f_vector()
             (1, 100, 500, 720, 320, 1)
-            sage: len(list(gap.bounded_edges())) # not tested
+            sage: len(list(gap.bounded_edges()))
             500
         """
         from itertools import product

@@ -82,7 +82,8 @@ class Polyhedron_cdd(Polyhedron_base):
                     # somewhat random numerical choices. (But I am not an
                     # expert in that field by any means.) See also
                     # https://github.com/cddlib/cddlib/pull/7.
-                    raise ValueError("polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data")
+                    from warnings import warn
+                    warn("This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.")
             Polyhedron_cdd._parse_block(t.splitlines(), 'V-representation', parse)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, verbose=False):
@@ -137,7 +138,8 @@ class Polyhedron_cdd(Polyhedron_base):
                     # optimized for numerical stability, and makes some
                     # somewhat random numerical choices. (But I am not an
                     # expert in that field by any means.)
-                    raise ValueError("polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data")
+                    from warnings import warn
+                    warn("This polyhedron data is numerically complicated; cdd could not convert between the inexact V and H representation without loss of data. The resulting object might show inconsistencies.")
             Polyhedron_cdd._parse_block(t.splitlines(), 'H-representation', parse)
 
     def _run_cdd(self, cdd_input_string, cmdline_arg, verbose=False):

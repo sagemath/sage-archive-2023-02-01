@@ -115,6 +115,10 @@ class Polyhedron_cdd(Polyhedron_base):
         s = self._run_cdd(s, '--repall', verbose=verbose)
         self._init_from_cdd_output(s)
         if not self.base_ring().is_exact():
+            if len(self._Vrepresentation) == 0:
+                # cdd (reasonably) refuses to handle empty polyhedra, so we
+                # skip this check
+                return
             # cdd's parser can not handle the full output of --repall, so we
             # need to extract the first block before we feed it back into cdd
             s = s.splitlines()

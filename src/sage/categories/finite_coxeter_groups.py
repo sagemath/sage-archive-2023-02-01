@@ -712,11 +712,15 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 If function is too slow, switching the base ring to
                 :class:`RDF` will almost certainly speed things up.
 
-            EXAMPLES::
+            EXAMPLES:
+
+            Unfortunately, an inexact base ring can not always be used::
 
                 sage: W = CoxeterGroup(['H',3], base_ring=RDF)
                 sage: W.permutahedron()
-                A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 120 vertices
+                Traceback (most recent call last):
+                ...
+                ValueError: polyhedron data is numerically complicated; cdd could not convert between inexact V and H representation without loss of data
 
                 sage: W = CoxeterGroup(['I',7])
                 sage: W.permutahedron()

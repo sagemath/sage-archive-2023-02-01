@@ -173,7 +173,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
             if not is_Gamma0(A.group()):
                 raise NotImplementedError('computation of rational cusps only implemented in Gamma0 case.')
             if not N.is_squarefree():
-                data = [n for n in range(2,N) if gcd(n,N) == 1]
+                data = [n for n in N.coprime_integers(N) if n != 1]
                 C = [c for c in C if is_rational_cusp_gamma0(c, N, data)]
 
         v = [Amb([infinity, alpha]).element() for alpha in C]
@@ -343,9 +343,11 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
             self.__lattice = lattice
             return lattice
 
+
 def is_rational_cusp_gamma0(c, N, data):
     """
     Return True if the rational number c is a rational cusp of level N.
+
     This uses remarks in Glenn Steven's Ph.D. thesis.
 
     INPUT:
@@ -376,7 +378,4 @@ def is_rational_cusp_gamma0(c, N, data):
     """
     num = c.numerator()
     den = c.denominator()
-    for d in data:
-        if not c.is_gamma0_equiv(Cusp(num,d*den), N):
-            return False
-    return True
+    return all(c.is_gamma0_equiv(Cusp(num, d * den), N) for d in data)

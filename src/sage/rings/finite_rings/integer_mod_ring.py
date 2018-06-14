@@ -602,8 +602,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         else:
             raise MemoryError("creating the list would exhaust memory")
         N = self.__order
-        H = [i for i in range(N) if gcd(i, N) == 1]
-        return H
+        return [i for i in range(N) if gcd(i, N) == 1]
 
     @cached_method
     def multiplicative_subgroups(self):

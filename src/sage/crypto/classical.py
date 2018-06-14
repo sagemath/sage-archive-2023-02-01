@@ -277,8 +277,8 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
             raise TypeError("A (= %s) is not supported as a cipher domain of this affine cryptosystem." % A)
         # List L of invertible linear coefficients modulo n, where n is the
         # alphabet size. Each e in L satisfies gcd(e, n) = 1.
-        n = A.ngens()
-        self._invertible_A = [i for i in range(n) if gcd(i, n) == 1]
+        n = Integer(A.ngens())
+        self._invertible_A = n.coprime_integers(n)
         # Initialize the affine cryptosystem with the plaintext, ciphertext,
         # and key spaces.
         SymmetricKeyCryptosystem.__init__(

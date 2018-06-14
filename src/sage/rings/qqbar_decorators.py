@@ -64,44 +64,36 @@ def handle_AA_and_QQbar(func, factor_field=False):
 
         elem_dict = dict(zip(orig_elems, new_elems))
 
-        def polynomial_map(p):
-            return p.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
-
-        def ideal_map(ideal):
-            return Ideal([polynomial_map(g) for g in ideal.gens()])
-
-        def generic_map(item):
+        def forward_map(item):
             if isinstance(item, Ideal_generic):
-                return ideal_map(item)
+                return Ideal([forward_map(g) for g in item.gens()])
             elif isinstance(item, MPolynomial):
-                return polynomial_map(item)
-            elif isinstance(item, (list, tuple)):
-                return map(generic_map, item)
+                return item.map_coefficients(elem_dict.__getitem__, new_base_ring=numfield)
+            elif isinstance(item, list):
+                return map(forward_map, item)
+            elif isinstance(item, tuple):
+                return tuple(map(forward_map, item))
             elif isinstance(item, set):
-                return set(map(generic_map, list(item)))
+                return set(map(forward_map, list(item)))
             else:
                 return item
 
-        def inverse_polynomial_map(p):
-            return p.map_coefficients(morphism)
-
-        def inverse_ideal_map(ideal):
-            return Ideal([inverse_polynomial_map(g) for g in ideal.gens()])
-
-        def inverse_generic_map(item):
+        def reverse_map(item):
             if isinstance(item, Ideal_generic):
-                return inverse_ideal_map(item)
+                return Ideal([reverse_map(g) for g in item.gens()])
             elif isinstance(item, MPolynomial):
-                return inverse_polynomial_map(item)
-            elif isinstance(item, (list, tuple)):
-                return map(inverse_generic_map, item)
+                return item.map_coefficients(morphism)
+            elif isinstance(item, list):
+                return map(reverse_map, item)
+            elif isinstance(item, tuple):
+                return tuple(map(reverse_map, item))
             elif isinstance(item, set):
-                return set(map(inverse_generic_map, list(item)))
+                return set(map(reverse_map, list(item)))
             else:
                 return item
 
-        args = map(generic_map, args)
+        args = map(forward_map, args)
 
-        return inverse_generic_map(func(*args, **kwds))
+        return reverse_map(func(*args, **kwds))
 
     return wrapper

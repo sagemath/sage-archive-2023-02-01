@@ -2501,7 +2501,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         try:
             return self.gens_quadratic(**kwds)
         except ValueError:
-            _ = self.simon_two_descent(**kwds)
+            self.simon_two_descent(**kwds)
             return self._known_points
 
     def period_lattice(self, embedding):
@@ -2713,9 +2713,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(j=js[0])
             sage: E.has_rational_cm()
             True
-            sage: len(E.isogenies_prime_degree())
+            sage: len(E.isogenies_prime_degree())  # long time
             3
-            sage: C = E.isogeny_class(); len(C)
+            sage: C = E.isogeny_class(); len(C)  # long time
             6
 
         The reason for the isogeny class having size six while the
@@ -2725,7 +2725,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         sorted first by CM discriminant (then lexicographically using
         a-invariants)::
 
-            sage: [F.cm_discriminant() for F in C]
+            sage: [F.cm_discriminant() for F in C]  # long time
             [-23, -23, -23, -92, -92, -92]
 
         `2` splits in the order with discriminant `-23`, into two
@@ -2734,10 +2734,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         third `2`-isogeny is to a curve with the smaller endomorphism
         ring::
 
-            sage: [phi.codomain().cm_discriminant() for phi in E.isogenies_prime_degree()]
+            sage: [phi.codomain().cm_discriminant() for phi in E.isogenies_prime_degree()]  # long time
             [-92, -23, -23]
 
-            sage: C.matrix()
+            sage: C.matrix()  # long time
             [1 2 2 4 2 4]
             [2 1 2 2 4 4]
             [2 2 1 4 4 2]
@@ -2768,8 +2768,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         blocks, by contrast, the prime entries `2` are unique
         determined::
 
-            sage: G = C.graph()
-            sage: G.adjacency_matrix()
+            sage: G = C.graph()  # long time
+            sage: G.adjacency_matrix()  # long time
             [0 1 1 0 1 0]
             [1 0 1 1 0 0]
             [1 1 0 0 0 1]
@@ -2779,13 +2779,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         To display the graph without any edge labels::
 
-            G.show() # long time
+            sage: G.show()  # not tested
 
         To display the graph with edge labels: by default, for curves
         with rational CM, the labels are the coefficients of the
         associated quadratic forms::
 
-            G.show(edge_labels=True) # long time
+            sage: G.show(edge_labels=True)  # not tested
 
         For an alternative view, first relabel the edges using only 2
         labels to distinguish between isogenies between curves with
@@ -2793,8 +2793,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         different endomorphism rings, then use a 3-dimensional plot
         which can be rotated::
 
-            sage: for i,j,l in G.edge_iterator():  G.set_edge_label(i,j,l.count(','))
-            sage: G.show3d(color_by_label=True)
+            sage: for i,j,l in G.edge_iterator():  # long time
+            ....:     G.set_edge_label(i, j, l.count(','))
+            sage: G.show3d(color_by_label=True)  # long time
 
         A class number `6` example.  First we set up the fields: ``pol``
         defines the same field as ``pol26`` but is simpler::
@@ -2943,7 +2944,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: js = hilbert_class_polynomial(-23).roots(L,multiplicities=False); len(js)
             3
             sage: E = EllipticCurve(j=js[0])
-            sage: len(E.isogenies_prime_degree())
+            sage: len(E.isogenies_prime_degree())  # long time
             3
 
         TESTS::
@@ -3182,12 +3183,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EE = EllipticCurve('14a2')
             sage: E1 = E.change_ring(F)
             sage: E2 = EE.change_ring(F)
-            sage: E1.isogeny_degree(E2)
+            sage: E1.isogeny_degree(E2)  # long time
             2
             sage: E2.isogeny_degree(E2)
             1
             sage: E5 = EllipticCurve('14a5').change_ring(F)
-            sage: E1.isogeny_degree(E5)
+            sage: E1.isogeny_degree(E5)  # long time
             6
 
             sage: E = EllipticCurve('11a1')
@@ -3612,7 +3613,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             ([(-1 : 1 : 1), (0 : -1 : 1)], 2, 0.152460177943144)
             sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
             ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
-            sage: EK.saturation([P+Q, 17*Q], lower_ht_bound=0.1)
+            sage: EK.saturation([P+Q, 17*Q], lower_ht_bound=0.1)  # long time
             ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943143)
 
             sage: R = EK(i-2,-i-3)

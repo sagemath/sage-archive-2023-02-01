@@ -1257,7 +1257,8 @@ class Sets(Category_singleton):
             We test a non transitive equality::
 
                 sage: R = Zp(3)
-                sage: Sets().ParentMethods._test_elements_eq_transitive.__func__(R,elements=[R(3,2),R(3,1),R(0)])
+                sage: test = raw_getattr(Sets().ParentMethods, "_test_elements_eq_transitive")
+                sage: test(R, elements=[R(3,2),R(3,1),R(0)])
                 Traceback (most recent call last):
                 ...
                 AssertionError: non transitive equality:
@@ -2162,7 +2163,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
-                wheels = map(iter, factors)
+                wheels = [iter(f) for f in factors]
                 digits = [next(it) for it in wheels]
                 while True:
                     yield self._cartesian_product_of_elements(digits)

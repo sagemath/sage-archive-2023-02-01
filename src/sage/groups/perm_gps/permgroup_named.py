@@ -600,9 +600,12 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A.category()
             Join of Category of coxeter group algebras over Rational Field
                 and Category of finite group algebras over Rational Field
+                and Category of finite dimensional cellular algebras with basis
+                     over Rational Field
             sage: A = S3.algebra(QQ, category=Semigroups())
             sage: A.category()
-            Category of finite dimensional semigroup algebras over Rational Field
+            Category of finite dimensional unital cellular semigroup algebras
+             over Rational Field
 
         In the following case, a usual group algebra is returned:
 

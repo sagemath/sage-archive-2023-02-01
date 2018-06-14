@@ -951,7 +951,7 @@ class MapleElement(ExtraTabCompletion, ExpectElement):
         """
         return int(maple.eval('StringTools:-Hash(convert(%s, string))'%self.name())[1:-1],16)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using maple.
 

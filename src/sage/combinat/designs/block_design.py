@@ -342,7 +342,7 @@ def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     K = FiniteField(n, 'a')
     n2 = n**2
     relabel = {x:i for i,x in enumerate(K)}
-    Kiter = relabel  # it is much faster to iterate throug a dict than through
+    Kiter = relabel  # it is much faster to iterate through a dict than through
                      # the finite field K
 
     # we decompose the (equivalence class) of points [x:y:z] of the projective

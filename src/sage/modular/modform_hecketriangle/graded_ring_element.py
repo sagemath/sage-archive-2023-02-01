@@ -1011,7 +1011,7 @@ class FormsRingElement(six.with_metaclass(
         """
 
         res = self.parent().rat_field()(self._rat.sqrt())
-        new_parent = self.parent().extend_type(ring=True)
+        #new_parent = self.parent().extend_type(ring=True)
         # The sqrt of a homogeneous element is homogeneous if it exists
         return self.parent()(res).reduce()
 

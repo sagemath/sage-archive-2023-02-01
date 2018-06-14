@@ -34,8 +34,8 @@ from __future__ import absolute_import
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
-from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
-                                    rich_to_bool)
+from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
+                                        rich_to_bool)
 from sage.structure.parent_base import ParentWithBase
 from .morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from .torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
@@ -45,9 +45,7 @@ from sage.rings.all import ZZ, QQ, QQbar, Integer
 from sage.arith.all import LCM, divisors, prime_range, next_prime
 from sage.rings.ring import is_Ring
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.infinity import infinity
-from sage.rings.fraction_field import FractionField
 from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
@@ -55,14 +53,12 @@ from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.modular.modform.constructor  import Newform
 from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
 from sage.modules.all           import vector
-from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
 from sage.misc.all              import prod
 from sage.arith.misc            import is_prime
 from sage.databases.cremona     import CremonaDatabase
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.sets.primes           import Primes
-from sage.functions.other       import real
 
 from copy import copy
 
@@ -699,8 +695,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         if not self.is_simple():
             raise ValueError("self is not simple")
-
-        ls = []
 
         t, N = self.decomposition()[0].degen_t()
         A = self.ambient_variety()
@@ -3513,7 +3507,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         X = amb.decomposition(simple=simple, bound=bound)
         IN = []
         OUT = []
-        i = 0
         V = 0
         last_dimension = 0
         for j in range(len(X)):
@@ -4666,7 +4659,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
         # 2. Compute the map alpha: X --> Hom(X[I],Z) over ZZ
         # todo -- this could be done more quickly with a clever matrix multiply
-        B = [XI(v) for v in XI_ZZ.basis()]
+        B = [XI(vv) for vv in XI_ZZ.basis()]
         mat = []
         for v in M.basis():
             w = Y(v)
@@ -4763,7 +4756,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         if not self.is_simple():
             raise ValueError("self must be simple")
         try:
-            g = self.component_group_order(p)
+            self.component_group_order(p)
         except NotImplementedError:
             raise NotImplementedError("Tamagawa number can't be determined using known algorithms, so consider using the tamagawa_number_bounds function instead")
         div, mul, mul_primes = self.tamagawa_number_bounds(p)
@@ -4820,7 +4813,6 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
             if is_Gamma0(M.group()):
                 g = self.component_group_order(p)
                 W = M.atkin_lehner_operator(p).matrix()
-                cp = None
                 if W == -1:
                     # Frob acts trivially
                     div = g

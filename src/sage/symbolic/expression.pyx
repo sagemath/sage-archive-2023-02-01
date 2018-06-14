@@ -380,7 +380,7 @@ cdef class Expression(CommutativeRingElement):
 
         Integers and Rationals are converted internally though, so you
         won't get back the same object::
-        
+
             sage: b = -17/3
             sage: a = SR(b)
             sage: a.pyobject()
@@ -1461,7 +1461,7 @@ cdef class Expression(CommutativeRingElement):
             sage: AA(-golden_ratio)
             -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            1 + 1*I
+            I + 1
             sage: QQbar(e^(pi*I/3))
             0.50000000000000000? + 0.866025403784439?*I
 
@@ -1747,7 +1747,7 @@ cdef class Expression(CommutativeRingElement):
 
         In particular, it does not return a bool, so the following check does
         not hold anymore::
-        
+
             sage: (not x) == (x != 0)
             False
 
@@ -2496,6 +2496,35 @@ cdef class Expression(CommutativeRingElement):
             False
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
+
+
+    def is_square(self):
+        """
+        Returns ``True`` if ``self`` is a perfect square.
+
+        EXAMPLES::
+
+            sage: f(n,m) = n*2 + m
+            sage: f(2,1).is_square()
+            False
+            sage: f(3,3).is_square()
+            True
+            sage: f(n,m).is_square()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for non numeric elements of Symbolic Ring
+            sage: SR(42).is_square()
+            False
+            sage: SR(4).is_square()
+            True
+        """
+        try:
+            obj = self.pyobject()
+        except TypeError as e:
+            raise NotImplementedError("is_square() not implemented for non numeric elements of Symbolic Ring")
+
+        return obj.is_square()
+
 
     def left_hand_side(self):
         """
@@ -3367,7 +3396,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f(x) = matrix()
             sage: f(x)*1
             []
-        
+
         Check that floating point numbers +/- 1.0 are treated
         differently from integers +/- 1 (:trac:`12257`)::
 
@@ -3593,7 +3622,7 @@ cdef class Expression(CommutativeRingElement):
             x < y
             sage: mixed_order(x, y)
             1
- 
+
             sage: mixed_order(SR(0.5), SR(0.7))
             -1
             sage: SR(0.5) < SR(0.7)
@@ -3902,11 +3931,11 @@ cdef class Expression(CommutativeRingElement):
             sage: I^(1/2)
             sqrt(I)
             sage: I^(2/3)
-            I^(2/3)
+            -1
             sage: 2^(1/2)
             sqrt(2)
             sage: (2*I)^(1/2)
-            sqrt(2*I)
+            I + 1
 
         Test if we can take powers of elements of `\QQ(i)` (:trac:`8659`)::
 
@@ -4206,6 +4235,14 @@ cdef class Expression(CommutativeRingElement):
             (x, y) |--> (n*x^(n - 1), n*y^(n - 1))
             sage: f.gradient([y,x])
             (x, y) |--> (n*y^(n - 1), n*x^(n - 1))
+
+        .. SEEALSO::
+
+            :meth:`~sage.manifolds.differentiable.scalarfield.DiffScalarField.gradient`
+            of scalar fields on Euclidean spaces (and more generally
+            pseudo-Riemannian manifolds), in particular for computing the
+            gradient in curvilinear coordinates.
+
         """
         from sage.modules.free_module_element import vector
         if variables is None:
@@ -7100,7 +7137,7 @@ cdef class Expression(CommutativeRingElement):
             True
 
         Check that :trac:`23793` is fixed::
- 
+
             sage: gcd(I + I*x, x^2 - 1)
             x + 1
 
@@ -7312,7 +7349,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ex = lcm(sin(x)^2 - 1, sin(x)^2 + sin(x)); ex
             (sin(x)^2 + sin(x))*(sin(x)^2 - 1)/(sin(x) + 1)
             sage: ex.simplify_full()
-            -cos(x)^2*sin(x)
+            sin(x)^3 - sin(x)
 
         TESTS:
 
@@ -10174,7 +10211,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f=tan(3*x)
             sage: f.simplify_trig()
-            (4*cos(x)^2 - 1)*sin(x)/(4*cos(x)^3 - 3*cos(x))
+            -(4*cos(x)^2 - 1)*sin(x)/(4*cos(x)*sin(x)^2 - cos(x))
             sage: f.simplify_trig(False)
             sin(3*x)/cos(3*x)
 
@@ -10929,7 +10966,7 @@ cdef class Expression(CommutativeRingElement):
     def distribute(self, recursive=True):
         """
         Distribute some indexed operators over similar operators in
-        order to allow further groupings or simplifications. 
+        order to allow further groupings or simplifications.
 
         Implemented cases (so far) :
 
@@ -12186,7 +12223,7 @@ cdef class Expression(CommutativeRingElement):
             sage: n = var('n')
             sage: sum(log(1-1/n^2),n,2,oo)
             -log(2)
-        
+
         Check that :trac:`21801` is fixed::
 
             sage: n = SR.var('n')
@@ -12679,8 +12716,8 @@ cdef get_dynamic_class_for_function(unsigned serial):
         <class '__main__.Expression_with_dynamic_methods'>
         sage: t.argp1()
         x + 1
-        sage: import sagenb.misc.support as s
-        sage: s.completions('t.argp', globals(), system='python')
+        sage: import sage.interfaces.tab_completion as s
+        sage: s.completions('t.argp', globals())
         ['t.argp1']
         sage: t.argp1.__doc__.strip()
         'Some documentation about a bogus function.'
@@ -12833,21 +12870,21 @@ cdef class hold_class:
 
         sage: with hold:
         ....:     tan(1/12*pi)
-        ....:     
+        ....:
         tan(1/12*pi)
-        sage: tan(1/12*pi)    
+        sage: tan(1/12*pi)
         -sqrt(3) + 2
         sage: with hold:
         ....:     2^5
-        ....:     
+        ....:
         32
         sage: with hold:
         ....:     SR(2)^5
-        ....:     
+        ....:
         2^5
         sage: with hold:
         ....:     t=tan(1/12*pi)
-        ....:     
+        ....:
         sage: t
         tan(1/12*pi)
         sage: t.unhold()

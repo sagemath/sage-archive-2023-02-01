@@ -124,18 +124,18 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 import sage.arith.all as arith
+from sage.rings.fast_arith import prime_range
 import sage.misc.all as misc
 import sage.rings.all as rings
 from sage.rings.all import RealField, GF
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from math import sqrt
 from sage.libs.pari.all import pari
+
 
 def _ex_set(p):
     """
@@ -851,7 +851,7 @@ class GaloisRepresentation(SageObject):
         # checks if the image is all of GL_2, while doing so, it may detect certain other classes already
         # see _is_surjective. It will have set __image_type
 
-        ans = self._is_surjective(p, A=1000)
+        self._is_surjective(p, A=1000)  # this sets __image_type
         try:
             return self.__image_type[p]
         except KeyError:

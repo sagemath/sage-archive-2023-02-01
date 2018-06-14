@@ -165,26 +165,21 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
-import random
-
-from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.structure.category_object import normalize_names
 
 from sage.rings.integer import Integer
 
-import sage.rings.polynomial.polynomial_element as polynomial_element
-import sage.rings.polynomial.multi_polynomial_element as multi_polynomial_element
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
+# the import below is just a redirection
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
 # We don't late import this because this means trouble with the Givaro library
 # On a Macbook Pro OSX 10.5.8, this manifests as a Bus Error on exiting Sage.
 # TODO: figure out why
 from .finite_field_givaro import FiniteField_givaro
-
-import sage.interfaces.gap
 
 from sage.structure.factory import UniqueFactory
 
@@ -465,6 +460,11 @@ class FiniteFieldFactory(UniqueFactory):
         sage: from sage.categories.pushout import pushout
         sage: pushout(K,L) is L
         True
+
+    Check that :trac:`25182` has been fixed::
+
+        sage: GF(next_prime(2^63)^6)
+        Finite Field in z6 of size 9223372036854775837^6
 
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,

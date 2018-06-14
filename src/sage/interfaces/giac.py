@@ -870,13 +870,12 @@ class GiacElement(ExpectElement):
         """
         return hash(giac.eval('string(%s);'%self.name()))
 
-
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare equality between self and other, using giac.
 
         These examples are optional, and require Giac to be installed. You
-        don't need to install any Sage packages for this.
+        do not need to install any Sage packages for this.
 
         EXAMPLES::
 
@@ -946,7 +945,6 @@ class GiacElement(ExpectElement):
             True
         """
         return self.parent()._tab_completion()
-
 
     def __len__(self):
         """

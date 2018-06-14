@@ -434,7 +434,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: C.has_rational_point(algorithm='magma') # optional - magma
             True
             sage: C.has_rational_point(algorithm='magma', point=True) # optional - magma
-            (True, (t : 1 : 1))
+            (True, (-t : 1 : 1))
 
             sage: D = Conic([t,1,t^2])
             sage: D.has_rational_point(algorithm='magma') # optional - magma
@@ -1020,10 +1020,10 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
 
             sage: P.<x> = QQ[]
             sage: L.<b> = NumberField(x^3-5)
-            sage: C = Conic(L, [3, 2, -5])
+            sage: C = Conic(L, [3, 2, -b])
             sage: p = C.rational_point(algorithm = 'rnfisnorm')
             sage: p                                         # output is random
-            (60*b^2 - 196*b + 161 : -120*b^2 - 6*b + 361 : 1)
+            (1/3*b^2 - 4/3*b + 4/3 : b^2 - 2 : 1)
             sage: C.defining_polynomial()(list(p))
             0
 
@@ -1044,10 +1044,10 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
 
             sage: q = C.rational_point(algorithm = 'magma', read_cache=False) # optional - magma
             sage: q                       # output is random, optional - magma
-            (-1 : -1 : 1)
+            (1/5*b^2 : 1/5*b^2 : 1)
             sage: C.defining_polynomial()(list(p))          # optional - magma
             0
-            sage: len(str(p)) / len(str(q)) > 2             # optional - magma
+            sage: len(str(p)) > 1.5*len(str(q))             # optional - magma
             True
 
             sage: D.rational_point(algorithm = 'magma', read_cache=False) # random, optional - magma

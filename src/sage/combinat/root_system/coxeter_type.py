@@ -372,7 +372,6 @@ class CoxeterType(SageObject):
 
         n = self.rank()
         mat = self.coxeter_matrix()._matrix
-        base_ring = mat.base_ring()
 
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
         UCF = UniversalCyclotomicField()

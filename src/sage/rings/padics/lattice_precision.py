@@ -30,6 +30,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
+from collections import defaultdict
 
 from sage.misc.misc import walltime
 
@@ -1391,7 +1392,8 @@ class DifferentialPrecisionGeneric(SageObject):
             for index in mark:
                 status[index] = '~'
             hist = [ self._format_history(-1, status, timings) ]
-            oldevent = ''; total_time = 0
+            oldevent = ''
+            total_time = 0
             for (event, index, tme) in self._history:
                 if event == 'partial reduce' or event == 'full reduce':
                     if separate_reduce:
@@ -1475,7 +1477,7 @@ class DifferentialPrecisionGeneric(SageObject):
             tme_by_event[event] += tme
         if action is None:
             return tme_by_event
-        if tme_by_event.has_key(action):
+        if action in tme_by_event:
             return tme_by_event[action]
         else:
             raise ValueError("invalid event")
@@ -1879,16 +1881,13 @@ class PrecisionLattice(UniqueRepresentation, DifferentialPrecisionGeneric):
         col = self._matrix[ref]
         n = len(self._elements)
 
-        rows_by_val = { }
+        rows_by_val = defaultdict(list)
         for i in range(len(col)):
             v = col[i].valuation()
-            if v >= prec: continue
-            if rows_by_val.has_key(v):
-                rows_by_val[v].append(i)
-            else:
-                rows_by_val[v] = [i]
-        vals = rows_by_val.keys()
-        vals.sort()
+            if v >= prec:
+                continue
+            rows_by_val[v].append(i)
+        vals = sorted(rows_by_val)
         vals.append(prec)
 
         for t in range(len(vals)-1):
@@ -2515,16 +2514,13 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
         col = self._matrix[ref]
         n = len(self._elements)
 
-        rows_by_val = { }
+        rows_by_val = defaultdict(list)
         for i in range(len(col)):
             v = col[i].valuation()
-            if v >= prec: continue
-            if rows_by_val.has_key(v):
-                rows_by_val[v].append(i)
-            else:
-                rows_by_val[v] = [i]
-        vals = rows_by_val.keys()
-        vals.sort()
+            if v >= prec:
+                continue
+            rows_by_val[v].append(i)
+        vals = sorted(rows_by_val)
         vals.append(prec)
 
         for t in range(len(vals)-1):

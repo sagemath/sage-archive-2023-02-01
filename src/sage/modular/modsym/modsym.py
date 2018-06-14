@@ -155,13 +155,13 @@ def ModularSymbols_clear_cache():
     EXAMPLES::
 
         sage: sage.modular.modsym.modsym.ModularSymbols_clear_cache()
-        sage: sage.modular.modsym.modsym._cache.keys()
+        sage: sorted(sage.modular.modsym.modsym._cache)
         []
         sage: M = ModularSymbols(6,2)
-        sage: sage.modular.modsym.modsym._cache.keys()
+        sage: sorted(sage.modular.modsym.modsym._cache)
         [(Congruence Subgroup Gamma0(6), 2, 0, Rational Field)]
         sage: sage.modular.modsym.modsym.ModularSymbols_clear_cache()
-        sage: sage.modular.modsym.modsym._cache.keys()
+        sage: sorted(sage.modular.modsym.modsym._cache)
         []
 
     TESTS:

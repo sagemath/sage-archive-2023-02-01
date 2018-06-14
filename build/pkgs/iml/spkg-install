@@ -7,11 +7,6 @@ else
     export CFLAGS="-O3 -g $CFLAGS"
 fi
 
-if [ "$SAGE64" = "yes" ]; then
-    echo "Building a 64-bit version of IML."
-    CFLAGS="-m64 $CFLAGS"
-fi
-
 sdh_configure --enable-shared \
               --with-default="$SAGE_LOCAL" \
               --with-cblas="$(pkg-config --libs cblas)" \

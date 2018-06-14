@@ -13,6 +13,7 @@ from sage.structure.richcmp cimport rich_to_bool, richcmp
 from cpython.object cimport Py_NE
 
 import sage.categories as categories
+from sage.categories.morphism import IdentityMorphism
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
 
@@ -120,9 +121,15 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
               From: Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring in a, b over Rational Field
               To:   Multivariate Polynomial Ring in a, b, x, y over Rational Field
 
+            sage: QQ['x,y'].flattening_morphism()
+            Identity endomorphism of Multivariate Polynomial Ring in x, y over Rational Field
         """
-        from .flatten import FlatteningMorphism
-        return FlatteningMorphism(self)
+        base = self.base_ring()
+        if is_MPolynomialRing(base) or polynomial_ring.is_PolynomialRing(base):
+            from .flatten import FlatteningMorphism
+            return FlatteningMorphism(self)
+        else:
+            return IdentityMorphism(self)
 
     def construction(self):
         """
@@ -982,7 +989,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 M = sum([list(IntegerVectors(_d,n)) for _d in xrange(degree+1)],[])
                 for mi in xrange(total - terms): # we throw away those we don't need
                     M.pop( ZZ.random_element(0,len(M)-1) )
-                M = map(tuple, M)
+                M = [tuple(m) for m in M]
             else:
                 M = [list(IntegerVectors(_d,n)) for _d in xrange(degree+1)]
                 Mbar = []
@@ -992,7 +999,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                     Mbar.append( M[d].pop(m) ) # remove and insert
                     if len(M[d]) == 0:
                         M.pop(d) # bookkeeping
-                M = map(tuple, Mbar)
+                M = [tuple(m) for m in Mbar]
 
         C = [k.random_element(*args,**kwargs) for _ in range(len(M))]
 

@@ -137,7 +137,7 @@ class QuotientRingElement(RingElement):
 
             sage: R.<x,y> = QQ[]; S.<a,b> = R.quo(x^2 + y^2); type(a)
             <class 'sage.rings.quotient_ring.QuotientRing_generic_with_category.element_class'>
-            sage: bool(a)     # indirect docteest
+            sage: bool(a)     # indirect doctest
             True
             sage: bool(S(0))
             False
@@ -210,7 +210,7 @@ class QuotientRingElement(RingElement):
         # That holds, in particular, if there are infinitely many
         # generators, as for Steenrod algebras.
         try:
-            names = P.variable_names()
+            P.variable_names()
         except ValueError:
             return str(self.__rep)
         with localvars(R, P.variable_names(), normalize=False):

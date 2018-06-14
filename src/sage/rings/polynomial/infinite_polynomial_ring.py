@@ -446,7 +446,7 @@ class InfiniteGenDict:
             sage: D._D # indirect doctest
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
         """
-        return "InfiniteGenDict defined by %s"%repr(self._D.keys())
+        return "InfiniteGenDict defined by %s" % sorted(self._D)
 
     def __getitem__(self, k):
         """

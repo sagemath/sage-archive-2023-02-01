@@ -948,7 +948,6 @@ class LazyFamily(AbstractFamily):
             sage: f == g
             True
         """
-        from sage.misc.fpickle import pickle_function
         if not isinstance(other, self.__class__):
             return False
         if not self.set == other.set:

@@ -6,6 +6,8 @@ Algebras
 
    sage/algebras/catalog
 
+   quantum_groups
+
 Free associative algebras and quotients
 ---------------------------------------
 
@@ -72,6 +74,7 @@ Various associative algebras
    :maxdepth: 2
 
    sage/algebras/associated_graded
+   sage/algebras/cellular_basis
    sage/algebras/commutative_dga
    sage/algebras/q_system
 

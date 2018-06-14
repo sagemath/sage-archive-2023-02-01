@@ -37,7 +37,6 @@ from six import iteritems, integer_types
 
 # System imports
 import sys
-import types
 import operator
 
 # Sage matrix imports
@@ -404,11 +403,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: M1(M2.an_element())
-        [1 0]
-        [0 0]
+        [ 0  1]
+        [-1  2]
         sage: M2(M1.an_element())
-        [1 0]
-        [0 0]
+        [ 0  1]
+        [-1  2]
 
         sage: M1.has_coerce_map_from(M1), M1.has_coerce_map_from(M2)
         (True, False)
@@ -769,7 +768,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=True, sparse = False):
+    def __call__(self, entries=None, coerce=True, copy=None):
         """
         EXAMPLES::
 
@@ -849,17 +848,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M(m)
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from
-            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
+            ValueError: inconsistent number of rows: should be 3 but got 2
             sage: M.matrix(m)
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from
-            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 3 by 5 dense matrices over Integer Ring!
+            ValueError: inconsistent number of rows: should be 3 but got 2
 
         Check that :trac:`15110` is fixed::
 
@@ -872,7 +865,8 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS(t)       # given as a scalar matrix
             [t]
         """
-        return self.matrix(entries, coerce, copy)
+        MC = self._matrix_class
+        return MC(self, entries, copy, coerce)
 
     def change_ring(self, R):
         """
@@ -1438,8 +1432,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if isinstance(x, integer_types + (integer.Integer,)):
             return self.list()[x]
-        return Rings.ParentMethods.__getitem__.__func__(self, x)
-
+        return super(MatrixSpace, self).__getitem__(x)
 
     def basis(self):
         """
@@ -1678,31 +1671,16 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         return self.dimension()
 
-    def matrix(self, x=0, coerce=True, copy=True):
+    def matrix(self, x=None, **kwds):
         r"""
         Create a matrix in ``self``.
 
         INPUT:
 
-        - ``x`` -- (default: 0) data to construct a new matrix from. Can be one
-          of the following:
+        - ``x`` -- data to construct a new matrix from. See :func:`matrix`
 
-          * 0, corresponding to the zero matrix;
-
-          * 1, corresponding to the identity_matrix;
-
-          * a matrix, whose dimensions must match ``self`` and whose base ring
-            must be convertible to the base ring of ``self``;
-
-          * a list of entries corresponding to all elements of the new matrix;
-
-          * a list of rows with each row given as an iterable;
-
-        - ``coerce`` -- (default: ``True``) whether to coerce ``x`` into self;
-
-        - ``copy`` -- (default: ``True``) whether to copy ``x`` during
-          construction (makes a difference only if ``x`` is a matrix in
-          ``self``).
+        - ``coerce`` -- (default: ``True``) if False, assume without
+          checking that the values in ``x`` lie in the base ring
 
         OUTPUT:
 
@@ -1737,10 +1715,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M(projection)
             Traceback (most recent call last):
             ...
-            ValueError: a matrix from
-            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
-            cannot be converted to a matrix in
-            Full MatrixSpace of 3 by 2 dense matrices over Integer Ring!
+            ValueError: inconsistent number of rows: should be 3 but got 2
 
         If you really want to make from a matrix another matrix of different
         dimensions, use either transpose method or explicit conversion to a
@@ -1774,21 +1749,14 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: MS.matrix([MS0([1,2,3,4]), MS0([5,6,7,8])])
             Traceback (most recent call last):
             ...
-            TypeError: cannot construct an element of
-            Full MatrixSpace of 4 by 2 dense matrices over Integer Ring
-            from [[1 2]
-            [3 4], [5 6]
-            [7 8]]!
+            TypeError: unable to coerce <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
 
         A mixed list of matrices and vectors is prohibited as well::
 
             sage: MS.matrix( [MS0([1,2,3,4])] + list(MS0([5,6,7,8])) )
             Traceback (most recent call last):
             ...
-            TypeError: cannot construct an element of
-            Full MatrixSpace of 4 by 2 dense matrices over Integer Ring
-            from [[1 2]
-            [3 4], (5, 6), (7, 8)]!
+            TypeError: unable to coerce <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
 
         Check that :trac:`13302` is fixed::
 
@@ -1817,76 +1785,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: md.parent() is MS
             True
         """
-        if x is None or isinstance(x, (int, integer.Integer)) and x == 0:
-            if self._copy_zero: # faster to copy than to create a new one.
-                return self.zero_matrix().__copy__()
-            else:
-                return self._matrix_class(self, None, False, False)
-        if isinstance(x, (int, integer.Integer)) and x == 1:
-            return self.identity_matrix().__copy__()
-        m, n, sparse = self.__nrows, self.__ncols, self.__is_sparse
-        if is_Matrix(x):
-            if x.parent() is self:
-                if x.is_immutable():
-                    return x
-                else:
-                    return x.__copy__()
-            else:
-                if x.nrows() == m and x.ncols() == n:
-                    if (x.base_ring() == self.base_ring()
-                        and x.is_sparse() and not sparse):
-                        # If x is sparse and large, calling x.dense_matrix()
-                        # is much faster than calling x.list(). See #20470.
-                        return x.dense_matrix()
-                    x = x.list()
-                else:
-                    raise ValueError("a matrix from %s cannot be converted to "
-                                     "a matrix in %s!" % (x.parent(), self))
-        if is_MatrixGroupElement(x) or isinstance(x, ArithmeticSubgroupElement):
-            return self(x.matrix(), copy=False)
-        if isinstance(x, (types.GeneratorType, range)):
-            x = list(x)
-        if not sparse and isinstance(x, dict):
-            x = dict_to_list(x, m, n)
-            coerce = True
-            copy = False
-        MC = self._matrix_class
-        if isinstance(x, (list, tuple)) and x:
-            if len(x) == m:     # Try unpacking elements
-                unpacked = True
-                new_x = []
-                for v in x:
-                    l = len(new_x)
-                    try:
-                        from sage.structure.element import is_Vector
-                        if isinstance(v, (list, tuple)) or is_Vector(v):
-                            # The isinstance check should prevent the "flattening"
-                            # of v if v is an iterable but not meant to be
-                            # iterated (e.g., an element of a combinatorial free
-                            # module).
-                            new_x.extend(v)
-                        else:
-                            raise TypeError
-                        if len(new_x) - l != n:
-                            raise TypeError
-                    except TypeError:
-                        unpacked = False
-                if unpacked:
-                    try:
-                        if sparse:
-                            return MC(self, list_to_dict(new_x, m, n),
-                                      copy=False, coerce=coerce)
-                        else:
-                            return MC(self, new_x, copy=False, coerce=coerce)
-                    except (TypeError, ValueError):
-                        pass
-            if len(x) != m * n:
-                raise TypeError("cannot construct an element of {} from {}!"
-                                .format(self, x))
-            if sparse:
-                x = list_to_dict(x, m, n)
-                copy = False
-        return MC(self, x, copy=copy, coerce=coerce)
+        return self(x, **kwds)
 
     def matrix_space(self, nrows=None, ncols=None, sparse=False):
         """
@@ -2035,6 +1934,68 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 *args, **kwds)
         return Z
 
+    def _an_element_(self):
+        """
+        Create a typical element of this matrix space.
+
+        This uses ``some_elements`` of the base ring.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(QQ, 3, 3).an_element()  # indirect doctest
+            [ 1/2 -1/2    2]
+            [  -2    0    1]
+            [  -1   42  2/3]
+
+        TESTS::
+
+            sage: MatrixSpace(ZZ, 0, 0).an_element()
+            []
+
+        Check that this works for large matrices and that it returns a
+        matrix which is not too trivial::
+
+            sage: M = MatrixSpace(GF(2), 100, 100).an_element()
+            sage: M.rank() >= 2
+            True
+
+        Check that this works for sparse matrices::
+
+            sage: M = MatrixSpace(ZZ, 1000, 1000, sparse=True).an_element()
+            sage: M.density()
+            99/1000000
+        """
+        from .args import MatrixArgs
+        dim = self.dimension()
+        if dim > 100 and self.is_sparse():
+            # Sparse case: add 100 elements
+            D = {}
+            nr = self.nrows()
+            nc = self.ncols()
+            from random import randrange
+            n = 0
+            while True:
+                for el in self.base().some_elements():
+                    if n == 100:
+                        ma = MatrixArgs(D, space=self)
+                        del D
+                        return ma.matrix()
+                    D[randrange(nr), randrange(nc)] = el
+                    n += 1
+                assert D
+        else:
+            # Dense case
+            # Keep appending to L until we have enough elements
+            L = []
+            while True:
+                for el in self.base().some_elements():
+                    if len(L) == dim:
+                        ma = MatrixArgs(L, space=self)
+                        del L  # for efficiency: this may avoid a copy of L
+                        return ma.matrix()
+                    L.append(el)
+                assert L
+
     def some_elements(self):
         r"""
         Return some elements of this matrix space.
@@ -2050,67 +2011,25 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M = MatrixSpace(ZZ, 2, 2)
             sage: tuple(M.some_elements())
             (
-            [1 0]  [1 1]  [ 0  1]  [-2  3]  [-4  5]  [-6  7]  [-8  9]  [-10  11]
-            [0 0], [1 1], [-1  2], [-3  4], [-5  6], [-7  8], [-9 10], [-11  12],
-            <BLANKLINE>
-            [-12  13]  [-14  15]  [-16  17]  [-18  19]  [-20  21]  [-22  23]
-            [-13  14], [-15  16], [-17  18], [-19  20], [-21  22], [-23  24],
-            <BLANKLINE>
-            [-24  25]  [-26  27]  [-28  29]  [-30  31]  [-32  33]  [-34  35]
-            [-25  26], [-27  28], [-29  30], [-31  32], [-33  34], [-35  36],
-            <BLANKLINE>
-            [-36  37]  [-38  39]  [-40  41]  [-42  43]  [-44  45]  [-46  47]
-            [-37  38], [-39  40], [-41  42], [-43  44], [-45  46], [-47  48],
-            <BLANKLINE>
-            [-48  49]
-            [-49  50]
+            [ 0  1]  [1 0]  [0 1]  [0 0]  [0 0]
+            [-1  2], [0 0], [0 0], [1 0], [0 1]
             )
-
             sage: M = MatrixSpace(QQ, 2, 3)
             sage: tuple(M.some_elements())
             (
-            [1 0 0]  [1/2 1/2 1/2]  [ 1/2 -1/2    2]  [  -1   42  2/3]
-            [0 0 0], [1/2 1/2 1/2], [  -2    0    1], [-2/3  3/2 -3/2],
-            <BLANKLINE>
-            [ 4/5 -4/5  5/4]  [ 7/6 -7/6  8/9]  [ 10/11 -10/11  11/10]
-            [-5/4  6/7 -6/7], [-8/9  9/8 -9/8], [-11/10  12/13 -12/13],
-            <BLANKLINE>
-            [ 13/12 -13/12  14/15]  [ 16/17 -16/17  17/16]
-            [-14/15  15/14 -15/14], [-17/16  18/19 -18/19],
-            <BLANKLINE>
-            [  19/18  -19/18  20/441]  [ 22/529 -22/529  529/22]
-            [-20/441  441/20 -441/20], [-529/22  24/625 -24/625],
-            <BLANKLINE>
-            [ 625/24 -625/24  26/729]  [ 28/841 -28/841  841/28]
-            [-26/729  729/26 -729/26], [-841/28  30/961 -30/961],
-            <BLANKLINE>
-            [  961/30  -961/30  32/1089]  [ 34/1225 -34/1225  1225/34]
-            [-32/1089  1089/32 -1089/32], [-1225/34  36/1369 -36/1369],
-            <BLANKLINE>
-            [ 1369/36 -1369/36  38/1521]  [ 40/68921 -40/68921  68921/40]
-            [-38/1521  1521/38 -1521/38], [-68921/40  42/79507 -42/79507],
-            <BLANKLINE>
-            [ 79507/42 -79507/42  44/91125]
-            [-44/91125  91125/44 -91125/44]
+            [ 1/2 -1/2    2]  [1 0 0]  [0 1 0]  [0 0 1]  [0 0 0]  [0 0 0]  [0 0 0]
+            [  -2    0    1], [0 0 0], [0 0 0], [0 0 0], [1 0 0], [0 1 0], [0 0 1]
             )
-
             sage: M = MatrixSpace(SR, 2, 2)
             sage: tuple(M.some_elements())
             (
-            [1 0]  [some_variable some_variable]
-            [0 0], [some_variable some_variable]
+            [some_variable some_variable]  [1 0]  [0 1]  [0 0]  [0 0]
+            [some_variable some_variable], [0 0], [0 0], [1 0], [0 1]
             )
         """
-        from itertools import islice
         yield self.an_element()
-        yield self.base().an_element() * sum(self.gens())
-        some_elements_base = iter(self.base().some_elements())
-        n = self.dimension()
-        while True:
-            L = list(islice(some_elements_base, n))
-            if len(L) != n:
-                return
-            yield self(L)
+        for g in self.gens():
+            yield g
 
     def _magma_init_(self, magma):
         r"""

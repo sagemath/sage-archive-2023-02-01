@@ -67,8 +67,10 @@ from sage.structure.sequence import Sequence
 from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
 
+
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
+
 
 class MPolynomial_element(MPolynomial):
     def __init__(self, parent, x):
@@ -151,9 +153,9 @@ class MPolynomial_element(MPolynomial):
             y += c*prod([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
-    def __cmp__(self, right):
+    def _richcmp_(self, right, op):
         """
-        Compares right to self with respect to the term order of
+        Compare ``self`` to ``right`` with respect to the term order of
         self.parent().
 
         EXAMPLES::
@@ -180,11 +182,8 @@ class MPolynomial_element(MPolynomial):
             sage: x^4*y^7*z^1 < x^4*y^2*z^3
             False
         """
-        try:
-            return self.__element.compare(right.__element,
-                                          self.parent().term_order().sortkey)
-        except AttributeError:
-            return self.__element.compare(right.__element)
+        return self.__element.rich_compare(right.__element, op,
+                                           self.parent().term_order().sortkey)
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -902,7 +901,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 return [tuple(e) for e in exp]
         except AttributeError:
-            self.__exponents = self.element().dict().keys()
+            self.__exponents = list(self.element().dict())
             try:
                 self.__exponents.sort(key=self.parent().term_order().sortkey,
                                       reverse=True)
@@ -915,12 +914,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
     def inverse_of_unit(self):
         d = self.element().dict()
-        k = d.keys()
+        k = list(d)
         if self.is_unit():
             if len(k) != 1:
                 raise NotImplementedError
             return ~d[k[0]]
-        raise ArithmeticError("is not a unit")        
+        raise ArithmeticError("is not a unit")
 
     def is_homogeneous(self):
         """
@@ -1650,17 +1649,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         INPUT:
 
-        - ``proof'' - insist on provably correct results (ignored, always ``True``)
-
-        ALGORITHM: Use univariate factorization code.
-
-        If a polynomial is univariate, the appropriate univariate
-        factorization code is called::
-
-            sage: R.<z> = PolynomialRing(CC,1)
-            sage: f = z^4 - 6*z + 3
-            sage: f.factor()
-            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+        - ``proof'' - insist on provably correct results (default: ``True``)
 
         TESTS:
 
@@ -1701,6 +1690,30 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: R.<x,y> = PolynomialRing(FractionField(K))
             sage: factor(x)
             x
+
+        In the example below, we set the special method
+        ``_factor_multivariate_polynomial()`` in the base ring which is called to
+        factor multivariate polynomials.  This facility can be used to easily
+        extend polynomial factorization to work over new rings you introduce::
+
+             sage: R.<x, y> = PolynomialRing(QQ['z'])
+             sage: (x*y).factor()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: ...
+             sage: R.base_ring()._factor_multivariate_polynomial = lambda f, **kwargs: f.change_ring(QQ).factor()
+             sage: (x*y).factor()
+             y * x
+             sage: del R.base_ring()._factor_multivariate_polynomial # clean up
+
+        Check that a "multivariate" polynomial in one variable is factored
+        correctly::
+
+            sage: R.<z> = PolynomialRing(CC,1)
+            sage: f = z^4 - 6*z + 3
+            sage: f.factor()
+            (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+
         """
         R = self.parent()
 
@@ -1716,6 +1729,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             else:
                 F = base_ring(self).factor()
                 return Factorization([(R(f),m) for f,m in F], unit=F.unit())
+
+        base_ring = self.base_ring()
+        if hasattr(base_ring, '_factor_multivariate_polynomial'):
+            return base_ring._factor_multivariate_polynomial(self, proof=proof)
 
         # try to use univariate factoring
         try:
@@ -2022,13 +2039,13 @@ def degree_lowest_rational_function(r,x):
     f = r.numerator()
     g = r.denominator()
     M = f.dict()
-    keys = list(M.keys())
+    keys = list(M)
     numtermsf = len(M)
     degreesf = [keys[j][ix] for j in range(numtermsf)]
     lowdegf = min(degreesf)
     cf = M[keys[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
     M = g.dict()
-    keys = list(M.keys())
+    keys = list(M)
     numtermsg = len(M)
     degreesg = [keys[j][ix] for j in range(numtermsg)]
     lowdegg = min(degreesg)

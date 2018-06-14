@@ -2487,7 +2487,7 @@ class ClusterSeed(SageObject):
 
         # Note - this does not guarantee that the sequence consists of
         # cluster variables, it only rules out some possibilities.
-        is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
+        is_cluster_vars = all(isinstance(y, str) for y in seqq) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.
         if input_type:

@@ -869,6 +869,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
                 return NF(e.numerator()) / NF(e.denominator())
 
             factor_NF = factor.map_coefficients(NF_elem_map, new_base_ring=NF)
+            factor_NF /= factor_NF.lc()
 
             # We now have a number field and a factor in that number field such
             # that the factor and all of its conjugates multiply together to
@@ -893,7 +894,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
                         multiplicity = i-1
                         break
                 if multiplicity > 0:
-                    factorization.append((factor_f / factor_f.lc(), multiplicity))
+                    factorization.append((factor_f, multiplicity))
 
         # What we'd now like to do is
         #     return Factorization(factorization, unit=QQ(L[1][1].sage()))

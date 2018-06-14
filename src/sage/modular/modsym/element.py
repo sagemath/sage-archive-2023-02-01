@@ -315,7 +315,6 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         try:
             return self.__modular_symbols
         except AttributeError:
-            A = self.parent()
             v = self.manin_symbol_rep()
             if v == 0:
                 return v

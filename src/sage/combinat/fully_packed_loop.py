@@ -861,8 +861,7 @@ class FullyPackedLoop(Element):
 
         link_options = {}
         loop_options = {}
-        extra_options = {}
-        for k,v in options.items():
+        for k, v in options.items():
             if k == 'link':
                 link = v
             elif k == 'loop':

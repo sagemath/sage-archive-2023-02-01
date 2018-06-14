@@ -217,18 +217,18 @@ Generators
 Use ``graphs(n)`` to iterate through all non-isomorphic graphs of given size::
 
     sage: for g in graphs(4):
-    ....:     print(g.spectrum())
+    ....:     print(g.degree_sequence())
     [0, 0, 0, 0]
-    [1, 0, 0, -1]
-    [1.4142135623..., 0, 0, -1.4142135623...]
-    [2, 0, -1, -1]
-    [1.7320508075..., 0, 0, -1.7320508075...]
-    [1, 1, -1, -1]
-    [1.6180339887..., 0.6180339887..., -0.6180339887..., -1.6180339887...]
-    [2.1700864866..., 0.3111078174..., -1, -1.4811943040...]
-    [2, 0, 0, -2]
-    [2.5615528128..., 0, -1, -1.5615528128...]
-    [3, -1, -1, -1]
+    [1, 1, 0, 0]
+    [2, 1, 1, 0]
+    [3, 1, 1, 1]
+    [1, 1, 1, 1]
+    [2, 2, 1, 1]
+    [2, 2, 2, 0]
+    [3, 2, 2, 1]
+    [2, 2, 2, 2]
+    [3, 3, 2, 2]
+    [3, 3, 3, 3]
 
 Similarly ``graphs()`` will iterate through all graphs. The complete
 graph of 4 vertices is of course the smallest graph with chromatic number
@@ -1439,60 +1439,6 @@ class Graph(GenericGraph):
         """
         return False
 
-    @doc_index("Connectivity, orientations, trees")
-    def bridges(self, labels=True):
-        r"""
-        Returns a list of the bridges (or cut edges).
-
-        A bridge is an edge whose deletion disconnects the graph.
-        A disconnected graph has no bridge.
-
-        INPUT:
-
-        - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
-          `(u, v)` of vertices
-
-        EXAMPLES::
-
-            sage: g = 2*graphs.PetersenGraph()
-            sage: g.add_edge(1,10)
-            sage: g.is_connected()
-            True
-            sage: g.bridges()
-            [(1, 10, None)]
-
-        TESTS:
-
-        Ticket :trac:`23817` is solved::
-
-            sage: G = Graph()
-            sage: G.add_edge(0, 1)
-            sage: G.bridges()
-            [(0, 1, None)]
-            sage: G.allow_loops(True)
-            sage: G.add_edge(0, 0)
-            sage: G.add_edge(1, 1)
-            sage: G.bridges()
-            [(0, 1, None)]
-        """
-        # Small graphs and disconnected graphs have no bridge
-        if self.order() < 2 or not self.is_connected():
-            return []
-
-        B,C = self.blocks_and_cut_vertices()
-
-        # A block of size 2 is a bridge, unless the vertices are connected with
-        # multiple edges.
-        ME = set(self.multiple_edges(labels=False))
-        my_bridges = []
-        for b in B:
-            if len(b) == 2 and not tuple(b) in ME:
-                if labels:
-                    my_bridges.append((b[0], b[1], self.edge_label(b[0], b[1])))
-                else:
-                    my_bridges.append(tuple(b))
-
-        return my_bridges
 
     @doc_index("Connectivity, orientations, trees")
     def spanning_trees(self):
@@ -4159,7 +4105,7 @@ class Graph(GenericGraph):
 
 
     @doc_index("Algorithmically hard stuff")
-    def chromatic_number(self, algorithm="DLX", verbose = 0):
+    def chromatic_number(self, algorithm="DLX", solver=None, verbose=0):
         r"""
         Return the minimal number of colors needed to color the vertices
         of the graph.
@@ -4185,6 +4131,13 @@ class Graph(GenericGraph):
             is affected by whether optional MILP solvers have been installed
             (see the :mod:`MILP module <sage.numerical.mip>`, or Sage's tutorial
             on Linear Programming).
+
+          - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+            solver to be used. If set to ``None``, the default one is used. For
+            more information on LP solvers and which default solver is used, see
+            the method
+            :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the
+            class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           for the MILP algorithm. Its default value is 0, which means *quiet*.
@@ -4255,7 +4208,7 @@ class Graph(GenericGraph):
         # package: choose any of GLPK or CBC.
         elif algorithm == "MILP":
             from sage.graphs.graph_coloring import vertex_coloring
-            return vertex_coloring(self, value_only=True, verbose = verbose)
+            return vertex_coloring(self, value_only=True, solver=solver, verbose=verbose)
         # another algorithm with bad performance; only good for small graphs
         elif algorithm == "CP":
             f = self.chromatic_polynomial()
@@ -5618,9 +5571,10 @@ class Graph(GenericGraph):
         ``self``, `I` the identity matrix, and `J` the all-1 matrix.
         It is closely related to :meth:`twograph`.
 
-        The matrix returned is over the integers. If a different ring is
-        desired, use either :meth:`sage.matrix.matrix0.Matrix.change_ring`
-        method or :class:`matrix <sage.matrix.constructor.MatrixFactory>` function.
+        The matrix returned is over the integers. If a different ring
+        is desired, use either the
+        :meth:`sage.matrix.matrix0.Matrix.change_ring` method or the
+        :func:`matrix` function.
 
         INPUT:
 
@@ -6747,6 +6701,178 @@ class Graph(GenericGraph):
             cover_g.sort()
             return cover_g
 
+    @doc_index("Connectivity, orientations, trees")
+    def ear_decomposition(self):
+        r"""
+        Return an Ear decomposition of the graph.
+
+        An ear of an undirected graph `G` is a path `P` where the two endpoints
+        of the path may coincide (i.e., form a cycle), but where otherwise no
+        repetition of edges or vertices is allowed, so every internal vertex
+        of P has degree two in `P`.
+
+        An ear decomposition of an undirected graph `G` is a partition of its
+        set of edges into a sequence of ears, such that the one or two endpoints
+        of each ear belong to earlier ears in the sequence and such that the
+        internal vertices of each ear do not belong to any earlier ear.
+
+        For more information, see the
+        :wikipedia:`Ear_decomposition`.
+
+        This method implements the linear time algorithm presented in
+        [Sch2013]_.
+
+        INPUT:
+
+        - ``self`` -- The undirected graph for which ear decomposition needs to
+                      be computed.
+
+        OUTPUT:
+
+        - A nested list representing the cycles and chains of the
+          ear decomposition of the graph.
+
+        EXAMPLES:
+
+        Ear decomposition of an outer planar graph of order 13::
+
+            sage: g = Graph('LlCG{O@?GBOMW?')
+            sage: g.ear_decomposition()
+            [[0, 3, 2, 1, 0],
+             [0, 7, 4, 3],
+             [0, 11, 9, 8, 7],
+             [1, 12, 2],
+             [3, 6, 5, 4],
+             [4, 6],
+             [7, 10, 8],
+             [7, 11],
+             [8, 11]]
+
+        Ear decomposition of a biconnected graph::
+
+            sage: g = graphs.CubeGraph(2)
+            sage: g.ear_decomposition()
+            [['00', '01', '11', '10', '00']]
+
+        Ear decomposition of a connected but not biconnected graph::
+
+            sage: G = Graph()
+            sage: G.add_cycle([0,1,2])
+            sage: G.add_edge(0,3)
+            sage: G.add_cycle([3,4,5,6])
+            sage: G.ear_decomposition()
+            [[0, 2, 1, 0], [3, 6, 5, 4, 3]]
+
+        The ear decomposition of a multigraph with loops is the same as the
+        ear decomposition of the underlying simple graph::
+
+            sage: g = graphs.BullGraph()
+            sage: g.allow_multiple_edges(True)
+            sage: g.add_edges(g.edges())
+            sage: g.allow_loops(True)
+            sage: u = g.random_vertex()
+            sage: g.add_edge(u, u)
+            sage: g
+            Bull graph: Looped multi-graph on 5 vertices
+            sage: h = g.to_simple()
+            sage: g.ear_decomposition() == h.ear_decomposition()
+            True
+
+        TESTS::
+
+            sage: g=Graph()
+            sage: g
+            Graph on 0 vertices
+            sage: g.ear_decomposition()
+            Traceback (most recent call last):
+            ...
+            ValueError: ear decomposition is defined for graphs of order at least 3
+
+        """
+
+        # List to store the order in which dfs visits vertices.
+        dfs_order = []
+
+        # Boolean dict to mark vertices as visited or unvisited during
+        # Dfs traversal in graph.
+        seen = set()
+
+        # Boolean dict to mark vertices as visited or unvisited in
+        # Dfs tree traversal.
+        traversed = set()
+
+        # Dict to store parent vertex of all the visited vertices.
+        parent = {}
+
+        # List to store visit_time of vertices in Dfs traversal.
+        value = {}
+
+        # List to store all the chains and cycles of the input graph G.
+        chains = []
+
+        # Ear decomposition of a graph of order < 3 is [].
+        if self.order() < 3:
+            raise ValueError("ear decomposition is defined for graphs of order at least 3")
+
+        vertices = self.vertices()
+
+        parent[vertices[0]] = None
+
+        # DFS() : Function that performs depth first search on input graph G and
+        #         stores DFS tree in parent array format.
+        def DFS(v):
+            """
+            Depth first search step from vertex v.
+            """
+
+            # make v are visited, update its time of visited and value
+            seen.add(v)
+            dfs_order.append(v)
+
+            # Traverse though all the neighbor vertices of v
+            for u in self.neighbor_iterator(v):
+                # if any neighbor is not visited, enter
+                if u not in seen:
+                    # Set the parent of u in DFS tree as v and
+                    # continue exploration
+                    parent[u] = v
+                    DFS(u)
+
+        # Traverse() : Function that use G-T (non-tree edges) to find cycles
+        #              and chains by traversing in DFS tree.
+        def traverse(start, pointer):
+            # Make the firt end of non-tree edge visited
+            traversed.add(start)
+            chain = [start]
+
+            # Traverse DFS Tree of G and print all the not visited vertices
+            # Appending all the vertices in chain
+            while True:
+                chain.append(pointer)
+                if pointer in traversed:
+                    break
+                traversed.add(pointer)
+                pointer = parent[pointer]
+            chains.append(chain)
+
+        # Perform ear decomposition on each connected component of input graph.
+        for v in vertices:
+            if v not in seen:
+              # Start the depth first search from first vertex
+                DFS(v)
+                value = {u:i for i,u in enumerate(dfs_order)}
+
+                # Traverse all the non Tree edges, according to
+                # depth first traversal
+                for u in dfs_order:
+                    for neighbor in self.neighbor_iterator(u):
+                        if value[u] < value[neighbor] and u != parent[neighbor]:
+                            traverse(u,neighbor)
+
+                dfs_order = []
+
+        return chains
+
     @doc_index("Clique-related methods")
     def cliques_vertex_clique_number(self, algorithm="cliquer", vertices=None,
                                      cliques=None):
@@ -7092,7 +7218,7 @@ class Graph(GenericGraph):
         if with_labels:
             return core
         else:
-            return core.values()
+            return list(six.itervalues(core))
 
     @doc_index("Leftovers")
     def modular_decomposition(self):
@@ -8187,7 +8313,8 @@ class Graph(GenericGraph):
     from sage.graphs.tutte_polynomial import tutte_polynomial
     from sage.graphs.lovasz_theta import lovasz_theta
     from sage.graphs.partial_cube import is_partial_cube
-    from sage.graphs.orientations import strong_orientations_iterator
+    from sage.graphs.orientations import strong_orientations_iterator, random_orientation
+    from sage.graphs.connectivity import bridges
 
 
 _additional_categories = {
@@ -8209,7 +8336,8 @@ _additional_categories = {
     "is_partial_cube"           : "Graph properties",
     "tutte_polynomial"          : "Algorithmically hard stuff",
     "lovasz_theta"              : "Leftovers",
-    "strong_orientations_iterator" : "Connectivity, orientations, trees"
+    "strong_orientations_iterator" : "Connectivity, orientations, trees",
+    "random_orientation"        : "Connectivity, orientations, trees"
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

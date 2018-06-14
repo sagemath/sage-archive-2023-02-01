@@ -3675,7 +3675,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=30)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(1.2519607 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(1.2519612 > 1e-06), increase precision
             sage: f.reduced_form()
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
@@ -5021,6 +5021,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
             sage: f.is_polynomial()
             False
+
+        TESTS:
+
+        See :trac:`25242`::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem([x^2+ y^2, x*y])
+            sage: F2 = F.conjugate(matrix(QQ,2,2, [1,2,3,5]))
+            sage: F2.is_polynomial()
+            False
         """
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
@@ -5054,7 +5064,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 if p.degree() == 1:
                     if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
                         return True
-                    G = R(G/p) # we already checked this root
+                    G = R(G/(p**e)) # we already checked this root
                 else:
                     u = p #need to extend to get these roots
             if G.degree() != 0:

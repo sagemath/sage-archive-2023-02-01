@@ -22,7 +22,6 @@ from sage.structure.element import Element, coerce_binop, is_Vector
 from sage.structure.richcmp import rich_to_bool, op_NE
 
 from sage.misc.all import cached_method, prod
-from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.misc.randstate import current_randstate
 
 from sage.rings.all import QQ, ZZ, AA
@@ -3071,6 +3070,69 @@ class Polyhedron_base(Element):
 
     _mul_ = product
 
+    def join(self, other):
+        """
+        Return the join of ``self`` and ``other``.
+
+        The join of two polyhedra is obtained by first placing the two objects in
+        two non-intersecting affine subspaces `V`, and `W` whose affine hull is
+        the whole ambient space, and finally by taking the convex hull of their
+        union. The dimension of the join is the sum of the dimensions of the
+        two polyhedron plus 1.
+
+        INPUT:
+
+        - ``other`` -- a polyhedron
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[0],[1]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[0],[1]], base_ring=QQ)
+            sage: P1.join(P2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: P1.join(P1)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: P2.join(P2)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+
+        An unbounded example::
+
+            sage: R1 = Polyhedron(rays=[[1]])
+            sage: R1.join(R1)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 2 vertices and 2 rays
+
+        TESTS::
+
+            sage: C = polytopes.hypercube(5)
+            sage: S = Polyhedron([[1]])
+            sage: C.join(S).is_combinatorially_isomorphic(C.pyramid())
+            True
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x)+[0]*dim_other+[0] for x in self.vertex_generator()] + \
+                       [[0]*dim_self+list(x)+[1] for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r+[0]*dim_other+[0]
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r+[1]
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l+[0]*dim_other+[0]
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l+[1]
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
     def dilation(self, scalar):
         """
         Return the dilated (uniformly stretched) polyhedron.
@@ -4064,12 +4126,20 @@ class Polyhedron_base(Element):
             sage: cube_dual = cube.polar()
             sage: octahedron == cube_dual
             True
+
+        TESTS::
+
+            Check that :trac:`25081` is fixed::
+
+            sage: C = polytopes.hypercube(4,backend='cdd')
+            sage: C.polar().backend()
+            'cdd'
         """
         assert self.is_compact(), "Not a polytope."
 
         verts = [list(self.center() - v.vector()) for v in self.vertex_generator()]
         base_ring = self.parent()._coerce_base_ring(self.center().parent())
-        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring)
+        return Polyhedron(ieqs=[[1] + list(v) for v in verts], base_ring=base_ring,backend=self.backend())
 
     def pyramid(self):
         """
@@ -4279,10 +4349,10 @@ class Polyhedron_base(Element):
 
         REFERENCES:
 
-             David Avis's lrs program.
+        - David Avis's lrs program.
         """
-        if not is_package_installed('lrslib'):
-            raise PackageNotFoundError('lrslib')
+        from sage.features.lrs import Lrs
+        Lrs().require()
 
         from sage.misc.temporary_file import tmp_filename
         from subprocess import Popen, PIPE
@@ -4363,15 +4433,12 @@ class Polyhedron_base(Element):
             sage: polytopes.cuboctahedron()._volume_latte(raw_output=True) #optional - latte_int
             '20/3'
         """
-        if is_package_installed('latte_int'):
-            from sage.interfaces.latte import integrate
-            if self.base_ring() == RDF:
-                raise ValueError("LattE integrale cannot be applied over inexact rings.")
-            else:
-                return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
-
+        from sage.interfaces.latte import integrate
+        if self.base_ring() == RDF:
+            raise ValueError("LattE integrale cannot be applied over inexact rings.")
         else:
-            raise PackageNotFoundError('latte_int')
+            return integrate(self.cdd_Hrepresentation(), algorithm=algorithm, cdd=True, verbose=verbose, **kwargs)
+
 
     @cached_method
     def volume(self, measure='ambient', engine='auto', **kwds):
@@ -4627,17 +4694,13 @@ class Polyhedron_base(Element):
             ...
             TypeError: LattE integrale cannot be applied over inexact rings.
         """
-        if is_package_installed('latte_int'):
-            from sage.interfaces.latte import integrate
-            if self.base_ring() == RDF:
-                raise TypeError("LattE integrale cannot be applied over inexact rings.")
-            elif not self.is_full_dimensional():
-                raise NotImplementedError("The polytope must be full-dimensional.")
-            else:
-                return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
-
+        if self.base_ring() == RDF:
+            raise TypeError("LattE integrale cannot be applied over inexact rings.")
+        elif not self.is_full_dimensional():
+            raise NotImplementedError("The polytope must be full-dimensional.")
         else:
-            raise PackageNotFoundError('latte_int')
+            from sage.interfaces.latte import integrate
+            return integrate(self.cdd_Hrepresentation(), polynomial, cdd=True)
 
     def contains(self, point):
         """

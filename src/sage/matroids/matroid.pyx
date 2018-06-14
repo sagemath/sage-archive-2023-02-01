@@ -6565,7 +6565,7 @@ cdef class Matroid(SageObject):
             sage: M.is_max_weight_independent_generic()
             False
 
-        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+        Here is an example from [GriRei18]_ (Example 7.4.12 in v5)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
             ....:                 [-1,  0,  1,  1],
@@ -6711,7 +6711,7 @@ cdef class Matroid(SageObject):
 
 
 
-        Here is an example from [GriRei2014]_ (Example 7.56 in v3)::
+        Here is an example from [GriRei18]_ (Example 7.4.12 in v5)::
 
             sage: A = Matrix(QQ, [[ 1,  1,  0,  0],
             ....:                 [-1,  0,  1,  1],
@@ -6749,7 +6749,7 @@ cdef class Matroid(SageObject):
 
         # Construct ``Y``: a list of all elements of ``X``
         # in order of weakly decreasing weight.
-        # and a dictionary that gives the weights of the elementns of X.
+        # and a dictionary that gives the weights of the elements of X.
         else:
             wt = []
             wt_dic = {}

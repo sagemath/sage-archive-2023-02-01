@@ -146,6 +146,7 @@ from six.moves import range
 from sage.structure.element import Element
 
 import sage.categories as categories
+from sage.categories.morphism import IdentityMorphism
 
 import sage.algebras.algebra
 import sage.rings.commutative_algebra as commutative_algebra
@@ -582,6 +583,29 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self([one,0,one]), # an irreducible element
             self([2*one,0,2*one]), # an element with non-trivial content
         ]
+
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x'].flattening_morphism()
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x over Rational Field
+
+            sage: QQ['x'].flattening_morphism()
+            Identity endomorphism of Univariate Polynomial Ring in x over Rational Field
+        """
+        from .multi_polynomial_ring import is_MPolynomialRing
+        base = self.base_ring()
+        if is_PolynomialRing(base) or is_MPolynomialRing(base):
+            from .flatten import FlatteningMorphism
+            return FlatteningMorphism(self)
+        else:
+            return IdentityMorphism(self)
 
     def construction(self):
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
@@ -1903,7 +1927,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         """
         to_base_ring = self.base_ring()
-        points = [map(to_base_ring, x) for x in points]
+        points = [tuple(to_base_ring(c) for c in p) for p in points]
         n = len(points)
         F = [[points[i][1]] for i in range(n)]
         for i in range(1, n):
@@ -2139,6 +2163,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             raise ValueError("algorithm must be one of 'divided_difference' or 'neville'")
 
+    @cached_method
     def fraction_field(self):
         """
         Returns the fraction field of self.
@@ -2149,18 +2174,14 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.fraction_field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
         """
-        try:
-            return self._fraction_field
-        except AttributeError:
-            R = self.base_ring()
-            p = R.characteristic()
-            if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
-                from sage.rings.fraction_field_FpT import FpT
-                self._fraction_field = FpT(self)
-            else:
-                from sage.rings.fraction_field import FractionField_1poly_field
-                self._fraction_field = FractionField_1poly_field(self)
-            return self._fraction_field
+        R = self.base_ring()
+        p = R.characteristic()
+        if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
+            from sage.rings.fraction_field_FpT import FpT
+            return FpT(self)
+        else:
+            from sage.rings.fraction_field import FractionField_1poly_field
+            return FractionField_1poly_field(self)
 
 
 class PolynomialRing_dense_finite_field(PolynomialRing_field):

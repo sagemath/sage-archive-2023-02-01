@@ -85,7 +85,6 @@ from sage.structure.parent import Parent
 from sage.structure.coerce import py_scalar_to_element
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields, Rings
-from sage.categories.morphism import Morphism
 from sage.categories.map import Section
 
 
@@ -295,7 +294,6 @@ class FractionField_generic(ring.Field):
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
         """
-        from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         from sage.rings.number_field.number_field_base import NumberField
         from sage.rings.polynomial.laurent_polynomial_ring import \
@@ -916,7 +914,7 @@ class FractionField_1poly_field(FractionField_generic):
             sage: K = R.fraction_field()
             sage: L = K.function_field()
             sage: f = K.coerce_map_from(L); f # indirect doctest
-            Isomorphism morphism:
+            Isomorphism:
               From: Rational function field in t over Finite Field of size 5
               To:   Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
             sage: f(~L.gen())

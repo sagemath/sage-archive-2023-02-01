@@ -7,6 +7,7 @@ Groups
    sage/groups/groups_catalog
    sage/groups/group
    sage/groups/group_homset
+   sage/groups/libgap_morphism
    sage/groups/libgap_wrapper
    sage/groups/libgap_group
    sage/groups/libgap_mixin

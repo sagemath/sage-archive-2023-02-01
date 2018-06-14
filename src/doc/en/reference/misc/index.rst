@@ -233,6 +233,14 @@ Distribution
 
    sage/misc/package
    sage/misc/dist
+   sage/features
+   sage/features/bliss
+   sage/features/csdp
+   sage/features/databases
+   sage/features/fes
+   sage/features/gap
+   sage/features/graph_generators
+   sage/features/lrs
 
 Credits
 ~~~~~~~

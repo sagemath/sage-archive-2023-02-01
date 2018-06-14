@@ -693,7 +693,7 @@ cdef class Cache_givaro(SageObject):
                         ret = coeff + variable + " + " + ret
                 else:
                     ret = str(coeff) + " + " + ret
-            quo = quo/b
+            quo = quo//b
         if ret == '':
             return "0"
         return ret[:-3]

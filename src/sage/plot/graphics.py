@@ -34,7 +34,6 @@ from six import integer_types
 import os
 from math import isnan
 import sage.misc.misc
-from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -2254,6 +2253,7 @@ class Graphics(WithEqualityById, SageObject):
         from matplotlib.ticker import FuncFormatter, FixedFormatter
         from sage.misc.latex import latex
         from sage.symbolic.ring import SR
+        from .misc import _multiple_of_constant
         #---------------------- Formatting x-ticks ----------------------#
         if x_formatter is None:
             if scale[0] == 'log':
@@ -2261,7 +2261,6 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 x_formatter = OldScalarFormatter()
         elif x_formatter in SR:
-            from .misc import _multiple_of_constant
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,x_const))
@@ -2287,7 +2286,6 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 y_formatter = OldScalarFormatter()
         elif y_formatter in SR:
-            from .misc import _multiple_of_constant
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,y_const))

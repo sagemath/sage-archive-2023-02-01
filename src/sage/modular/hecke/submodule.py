@@ -22,7 +22,7 @@ from __future__ import absolute_import
 import sage.arith.all as arith
 import sage.misc.misc as misc
 from sage.misc.cachefunc import cached_method
-from sage.structure.richcmp import richcmp_method, richcmp_not_equal, richcmp
+from sage.structure.richcmp import richcmp_method, richcmp_not_equal
 import sage.modules.all
 
 from . import module
@@ -912,7 +912,6 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             sage: S.submodule(S[0].free_module())
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 18 for Gamma_0(18) of weight 4 with sign 0 over Rational Field
         """
-        from . import ambient_module
         if not sage.modules.free_module.is_FreeModule(M):
             V = self.ambient_module().free_module()
             if isinstance(M, (list,tuple)):

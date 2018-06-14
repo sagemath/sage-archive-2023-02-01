@@ -59,11 +59,10 @@ REFERENCES:
 ##############################################################################
 from __future__ import print_function
 
-from sage.all import prod
-from sage.rings.all import RealField, RR
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
-def c4c6_nonsingular(c4,c6):
+
+def c4c6_nonsingular(c4, c6):
     r"""
     Check if c4, c6 are integral with valid associated discriminant.
 
@@ -221,7 +220,6 @@ def sqrt_mod_4(x,P):
         sage: ((1+a)^2 - (-1+2*a)).mod(P**e)
         0
     """
-    K = x.parent()
     e = P.ramification_index()
     P2 = P**e
     for r in P2.residues():

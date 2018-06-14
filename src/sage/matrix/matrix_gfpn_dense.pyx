@@ -31,6 +31,7 @@ from __future__ import print_function, absolute_import, division
 from cysignals.memory cimport check_realloc, check_malloc, sig_free
 from cpython.bytes cimport PyBytes_AsString, PyBytes_FromStringAndSize
 from cysignals.signals cimport sig_on, sig_off, sig_check
+cimport cython
 
 import os
 
@@ -40,6 +41,8 @@ import os
 #
 ####################
 
+from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string import FS_ENCODING
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
@@ -49,6 +52,7 @@ from sage.misc.randstate import current_randstate
 from sage.misc.randstate cimport randstate
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.structure.element cimport Element, ModuleElement, RingElement, Matrix
+from .args cimport MatrixArgs_init
 
 from libc.string cimport memset, memcpy
 
@@ -301,34 +305,22 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             MatFree(self.Data)
             self.Data = NULL
 
-    def __init__(self, parent, entries=None, bint copy=False, bint coerce=False, *, bint mutable=True):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=False, *, bint mutable=True):
+        r"""
         Matrix extension class using libmeataxe as backend.
 
         INPUT:
 
-        Instances of this class can be created by providing one of
-        the following input data, where ``q<255`` is a prime power,
-        ``m,n`` are non-negative integers, and `a_{11},...,a_{mn}`
-        can be coerced into ``GF(q)``. Note that a user should
-        create these instances via the matrix constructors; what
-        we explain here is for internal use only!
+        - ``parent`` -- a matrix space over ``GF(q)`` with `q < 255`
 
-        - A string ``f`` ==> load matrix from the file named ``f``
-        - A matrix space of `m\\times n` matrices over GF(q) and either
+        - ``entries`` -- see :func:`matrix`
 
-          - a list `[a_{11},a_{12},...,a_{1n},a_{21},...,a_{m1},...,a_{mn}]`,
-            which results in a matrix with the given marks
-          - ``None``, which is the fastest way to creata a zero matrix.
-          - an element of GF(q), which results in a diagonal matrix with the
-            given element on the diagonal.
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        If the optional parameter ``mutable`` is ``False`` (by default,
-        it is ``True``), the resulting matrix can not be changed, and
-        it can be used as key in a Python dictionary.
+        - ``coerce`` -- ignored
 
-        The arguments ``copy`` and ``coerce`` are ignored, they are only
-        here for a common interface with other matrix constructors.
+        - ``mutable`` -- if False, the resulting matrix can not be
+          changed, and it can be used as key in a Python dictionary
 
         EXAMPLES::
 
@@ -385,13 +377,18 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             Basis matrix:
             [1 0]
             [0 1]
-
         """
-        if isinstance(parent, basestring): # load from file
+        if isinstance(parent, (bytes, str)): # load from file
             if not parent:
                 raise ValueError("Can not construct meataxe matrix from empty filename")
-            FILE = os.path.realpath(parent)
-            self.Data = MatLoad(FILE)
+
+            filename = os.path.realpath(parent)
+
+            if type(filename) is not bytes:
+                filename = str_to_bytes(filename, FS_ENCODING,
+                                        'surrogateescape')
+
+            self.Data = MatLoad(filename)
             FfSetField(self.Data.Field)
             B = GF(self.Data.Field, 'z')
             parent = MatrixSpace(B, self.Data.Nor, self.Data.Noc)
@@ -404,63 +401,29 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self._cache = {}
             return
 
-        data = entries
-        cdef int fl = parent.base_ring().order()
-        cdef int nr = parent.nrows()
-        cdef int nc = parent.ncols()
+        ma = MatrixArgs_init(parent, entries)
+        Matrix_dense.__init__(self, ma.space)
+        cdef long fl = ma.base.order()
+        cdef long nr = ma.nrows
+        cdef long nc = ma.ncols
+
         self.Data = MatAlloc(fl, nr, nc)
-        Matrix_dense.__init__(self, parent)
-        self._is_immutable = not mutable
-        B = self._base_ring
-        self._converter = FieldConverter(B)
-        if data is None:
-            return
+        self._converter = FieldConverter(ma.base)
 
-        cdef int i,j
-        cdef FEL f
-        cdef PTR x
-        if not isinstance(data,list):
-            if not data:
-                return
-            if self._nrows != self._ncols:
-                raise ValueError("Cannot initialise non-square matrix from {}".format(data))
-            f = FfFromInt(self._converter.field_to_int(self._coerce_element(data)))
-            x = self.Data.Data
-            for j in range(self.Data.Noc):
-                FfInsert(x,j,f)
-                FfStepPtr(&x)
-                sig_check()
-            return
-
-        x = self.Data.Data
+        cdef PTR x = self.Data.Data
         assert self.Data.Noc == nc
         assert self.Data.Nor == nr
-        if nr==0 or nc==0:
-            return
-        if len(data) < nr:
-            raise ValueError("Expected a list of size at least the number of rows")
-        cdef list dt, dt_i
         FfSetField(fl)
         FfSetNoc(nc)
-        if isinstance(data[0],list):
-            # The matrix is given by a list of rows
-            dt = data
-            for i in range(nr):
-                idx = 0
-                dt_i = dt[i]
-                for j in range(nc):
-                    FfInsert(x, j, FfFromInt(self._converter.field_to_int(self._coerce_element(dt_i[j]))))
-                    sig_check()
-                FfStepPtr(&(x))
-        else:
-            # It is supposed to be a flat list of all entries, sorted by rows
-            dtnext = data.__iter__().next
-            for i in range(nr):
-                for j in range(nc):
-                    bla = self._converter.field_to_int(self._coerce_element(dtnext()))
-                    FfInsert(x, j, FfFromInt(bla))
-                    sig_check()
-                FfStepPtr(&(x))
+        it = ma.iter(False)
+        cdef long i,j
+        for i in range(nr):
+            for j in range(nc):
+                v = self._converter.field_to_int(self._coerce_element(next(it)))
+                FfInsert(x, j, FfFromInt(v))
+            FfStepPtr(&x)
+
+        self._is_immutable = not mutable
 
     cdef Matrix_gfpn_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""
@@ -507,7 +470,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         """
         cdef Matrix_gfpn_dense retval = self._new(self._nrows, self._ncols)
         retval._is_immutable = False  # a copy of a matrix is mutable!
-        retval._cache = dict(self._cache.iteritems()) if self._cache is not None else {}
+        retval._cache = dict(self._cache) if self._cache is not None else {}
         if self.Data:
             retval.Data = MatDup(self.Data)
         else:
@@ -1164,6 +1127,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             sage: -M == (-1)*M
             True
 
+        TESTS:
+
+        Make sure that :trac:`25076` remains fixed::
+
+            sage: M == M*int(4) == int(4)*M
+            True
+
         """
         if self.Data == NULL:
             return self.__copy__()
@@ -1249,15 +1219,23 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     cdef _mul_long(self, long n):
         """
         Multiply an MTX matrix with a field element represented by an integer.
+
+        TESTS::
+
+            sage: M = random_matrix(GF(9,'x'), 64,51)
+            sage: M == M*int(4) == int(4)*M
+            True
+            sage: M*int(-1)+M == 0
+            True
+
         """
         if self.Data == NULL:
             raise ValueError("The matrix must not be empty")
         cdef Matrix_gfpn_dense left
+        FfSetField(self.Data.Field)
         cdef FEL r
-        if n < 0:
-            r = mtx_taddinv[FfFromInt(-n)]
-        else:
-            r = FfFromInt(n)
+        with cython.cdivision(False):
+            r = FfFromInt(n%FfChar)
         left = self.__copy__()
         left._cache = {}
         MatMulScalar(left.Data, r)
@@ -1461,9 +1439,54 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache("left_kernel_matrix", OUT)
         return OUT
 
-    def _echelon_in_place_classical(self, reduced=True, **kwds):
+    cpdef _echelon_in_place(self, str algorithm):
         """
-        Change this matrix into echelon form, using classical Gaussian elimination.
+        Change this matrix into echelon form, using classical
+        Gaussian elimination, and return the pivots.
+
+        .. NOTE::
+
+            Use :meth:`_echelon_in_place_classical`, which can take the
+            keyword ``reduced``.
+
+
+        EXAMPLES::
+
+            sage: K.<x> = GF(25)
+            sage: M = MatrixSpace(K, 9, 3)()
+            sage: entries = [((0, 2), x), ((0, 4), 3*x + 2),
+            ....: ((0, 8), 2*x), ((1, 1), x + 3), ((1, 5), 3*x),
+            ....: ((1, 6), x + 4), ((2, 0), 2*x), ((2, 5), 4*x + 1)]
+            sage: for (i,j),v in entries: M[j,i] = v
+            sage: M
+            [      0       0     2*x]
+            [      0   x + 3       0]
+            [      x       0       0]
+            [      0       0       0]
+            [3*x + 2       0       0]
+            [      0     3*x 4*x + 1]
+            [      0   x + 4       0]
+            [      0       0       0]
+            [    2*x       0       0]
+            sage: M._echelon_in_place("classical")
+            (0, 1, 2)
+            sage: M
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+        """
+        return self._echelon_in_place_classical()
+
+    def _echelon_in_place_classical(self, bint reduced=True, **kwds):
+        """
+        Change this matrix into echelon form, using classical Gaussian elimination
+        and return its pivots.
 
         INPUT:
 
@@ -1511,6 +1534,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
 
             sage: N = copy(M)
             sage: N._echelon_in_place_classical(reduced=False)      # optional: meataxe
+            (2, 1, 3, 4, 5, 6, 7, 8)
             sage: N                                                 # optional: meataxe
             [      0       0       x       0 3*x + 2       0       0       0     2*x       0]
             [      0   x + 3       0       0       0     3*x   x + 4       0       0       0]
@@ -1563,7 +1587,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.cache('in_echelon_form',True)
             self.cache('rank', 0)
             self.cache('pivots', ())
-            return self
+            return ()
         sig_on()
         MatEchelonize(self.Data)
         sig_off()
@@ -1619,6 +1643,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             self.Data.Nor = self._nrows
         self.cache('pivots', tuple(self.Data.PivotTable[i] for i in range(r)))
         self.cache('in_echelon_form',True)
+        return self._cache['pivots']
 
 from sage.misc.superseded import deprecation
 
@@ -1660,7 +1685,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     but eight bytes (if ``sizeof(long)==8``) in memory, and the pickle
     string will be six bytes, since we have two rows::
 
-        sage: s = 'Uq\x82\xa7\x8bh'
+        sage: s = b'Uq\x82\xa7\x8bh'
         sage: len(s)
         6
         sage: from sage.matrix.matrix_gfpn_dense import mtx_unpickle, Matrix_gfpn_dense  # optional: meataxe
@@ -1683,7 +1708,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     in the following example, a string of length 16. Unpickling works, but
     results in a warning::
 
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00'
         sage: len(t)
         16
         sage: N == mtx_unpickle(MS, 2, 5, t, True)           # optional: meataxe
@@ -1696,7 +1721,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     Unpickling would even work in the case that the machine creating
     the deprecated pickle had ``sizeof(long)==9``::
 
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: len(t)
         18
         sage: N == mtx_unpickle(MS, 2, 5, t, True)           # optional: meataxe
@@ -1704,7 +1729,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
 
     The data may be empty, which results in the zero matrix::
 
-        sage: mtx_unpickle(MS, 2, 5, '', True)               # optional: meataxe
+        sage: mtx_unpickle(MS, 2, 5, b'', True)              # optional: meataxe
         [0 0 0 0 0]
         [0 0 0 0 0]
 
@@ -1712,12 +1737,12 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
     of bytes in the pickle does not comply with either the old or the new
     pickle format (we test several code paths here)::
 
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: mtx_unpickle(MS, 2, 5, t, True)                # optional: meataxe
         Traceback (most recent call last):
         ...
         ValueError: Expected a pickle with 3*2 bytes, got 17 instead
-        sage: t = 'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
+        sage: t = b'Uq\x82\x00\x00\x00\x00\x00\xa7\x8bh\x00\x00\x00\x00\x00\x00'
         sage: mtx_unpickle(MS, 2, 5, t[:4], True)                # optional: meataxe
         Traceback (most recent call last):
         ...
@@ -1733,7 +1758,7 @@ def mtx_unpickle(f, int nr, int nc, bytes Data, bint m):
         Traceback (most recent call last):
         ...
         ValueError: Inconsistent dimensions in this matrix pickle
-        sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, '', True) # optional: meataxe
+        sage: mtx_unpickle(MatrixSpace(GF(19),0,5), 0, 5, b'', True) # optional: meataxe
         []
 
     """

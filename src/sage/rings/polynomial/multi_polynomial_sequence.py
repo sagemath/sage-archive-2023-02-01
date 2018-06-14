@@ -129,7 +129,7 @@ easily::
     sage: A.rank()
     4056
     sage: A[4055]*v
-    (k001*k003)
+    (k002*k003)
 
 TESTS::
 
@@ -160,7 +160,6 @@ from sage.misc.cachefunc import cached_method
 
 from types import GeneratorType
 from sage.misc.converting_dict import KeyConvertingDict
-from sage.misc.package import is_package_installed
 
 from sage.structure.sequence import Sequence, Sequence_generic
 
@@ -1442,9 +1441,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                if not is_package_installed('fes'):
-                    from sage.misc.package import PackageNotFoundError
-                    raise PackageNotFoundError("fes")
+                from sage.features.fes import LibFES
+                LibFES().require()
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 

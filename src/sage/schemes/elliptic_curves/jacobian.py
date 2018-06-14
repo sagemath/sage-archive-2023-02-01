@@ -53,10 +53,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.rings.all import QQ
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
-
-
 
 
 def Jacobian(X, **kwds):

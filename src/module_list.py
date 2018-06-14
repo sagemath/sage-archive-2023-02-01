@@ -394,6 +394,9 @@ ext_modules = [
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),
 
+    Extension('sage.graphs.connectivity',
+          sources = ['sage/graphs/connectivity.pyx']),
+
     Extension('sage.graphs.trees',
               sources = ['sage/graphs/trees.pyx']),
 
@@ -436,6 +439,10 @@ ext_modules = [
     ## sage.interfaces
     ##
     ################################
+
+    OptionalExtension("sage.interfaces.primecount",
+              ["sage/interfaces/primecount.pyx"],
+              package = "primecount"),
 
     Extension('*', ['sage/interfaces/*.pyx']),
 
@@ -722,6 +729,9 @@ ext_modules = [
 
     Extension('sage.matrix.action',
               sources = ['sage/matrix/action.pyx']),
+
+    Extension('sage.matrix.args',
+              sources = ['sage/matrix/args.pyx']),
 
     Extension('sage.matrix.echelon_matrix',
               sources = ['sage/matrix/echelon_matrix.pyx']),

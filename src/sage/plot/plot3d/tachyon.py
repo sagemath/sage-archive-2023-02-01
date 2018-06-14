@@ -143,14 +143,10 @@ from sage.interfaces.tachyon import tachyon_rt
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
 
-from sage.misc.misc import SAGE_TMP
 from sage.misc.misc import get_verbose
-from sage.misc.viewer import png_viewer
 from sage.misc.temporary_file import tmp_filename
 
 #from sage.ext import fast_tachyon_routines
-
-import os
 
 from math import sqrt
 

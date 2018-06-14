@@ -53,6 +53,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import itervalues
 from six.moves import range
 
 from copy import copy
@@ -266,7 +267,7 @@ def first_coloring(G, n=0, hex_colors=False):
             if hex_colors:
                 return C
             else:
-                return C.values()
+                return list(itervalues(C))
 
 def number_of_n_colorings(G,n):
     r"""
@@ -346,7 +347,7 @@ from sage.numerical.mip import MIPSolverException
 def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None, verbose = 0):
     r"""
     Computes the chromatic number of the given graph or tests its
-    `k`-colorability. See http://en.wikipedia.org/wiki/Graph_coloring for
+    `k`-colorability. See :wikipedia:`Graph_coloring` for
     further details on graph coloring.
 
     INPUT:
@@ -1316,8 +1317,8 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
     Asking for the value of the linear arboricity only (:trac:`24991`)::
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
-        sage: [linear_arboricity(G, value_only=True) for G in graphs(4)]
-        [0, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2]
+        sage: sorted([linear_arboricity(G, value_only=True) for G in graphs(4)])
+        [0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2]
     """
     g._scream_if_not_simple()
     from sage.rings.integer import Integer
@@ -1518,8 +1519,8 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = N
     Ticket :trac:`24991` is fixed::
 
         sage: from sage.graphs.graph_coloring import acyclic_edge_coloring
-        sage: [acyclic_edge_coloring(G, value_only=True) for G in graphs(4)]
-        [2, 3, 4, 4, 5, 3, 4, 5, 4, 5, 5]
+        sage: sorted([acyclic_edge_coloring(G, value_only=True) for G in graphs(4)])
+        [2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
     """
     g._scream_if_not_simple(allow_multiple_edges=True)
 

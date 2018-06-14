@@ -261,6 +261,8 @@ class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
         sage: oeis(_)                  # optional -- internet
         0: A001006: Motzkin numbers: number of ways of drawing any number
         of nonintersecting chords joining n (labeled) points on a circle.
+        1: ...
+        2: ...
 
     or Dyck words (see also :class:`DyckWords`), through the bijection
     with paths from `(0,0)` to `(n,n)` with left and up steps that remain

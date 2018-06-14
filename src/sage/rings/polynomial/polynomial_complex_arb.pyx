@@ -2,7 +2,7 @@
 r"""
 Univariate polynomials over `\CC` with interval coefficients using Arb.
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+This is a binding to the `Arb library <http://arblib.org>`_; it
 may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -30,7 +30,6 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
 from sage.structure.element cimport Element
 
-from sage.rings.complex_arb import ComplexBallField
 from sage.structure.element import coerce_binop
 
 cdef inline long prec(Polynomial_complex_arb pol):
@@ -38,7 +37,7 @@ cdef inline long prec(Polynomial_complex_arb pol):
 
 cdef class Polynomial_complex_arb(Polynomial):
     r"""
-    Wrapper for `Arb <http://fredrikj.net/arb/>`_ polynomials of type
+    Wrapper for `Arb <http://arblib.org>`_ polynomials of type
     ``acb_poly_t``
 
     EXAMPLES::

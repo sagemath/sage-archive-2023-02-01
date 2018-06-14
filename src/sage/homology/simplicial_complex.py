@@ -2577,14 +2577,18 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._complex = {}
             self.__contractible = None
 
-    def remove_face(self, face):
+    def remove_face(self, face, check=False):
         """
-        Remove a face from this simplicial complex and return the
-        resulting simplicial complex.
+        Remove a face from this simplicial complex.
 
         :param face: a face of the simplicial complex
 
-        This *changes* the simplicial complex.
+        :param check: boolean; optional, default ``False``. If
+            ``True``, raise an error if ``face`` is not a
+            face of this simplicial complex
+
+        This does not return anything; instead, it *changes* the
+        simplicial complex.
 
         ALGORITHM:
 
@@ -2603,10 +2607,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[0,1,2],[2,3]])
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (2, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(2, 3), (0, 1, 2)}
             sage: S.remove_face([0,1,2])
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2), (1, 2), (2, 3)}
 
         TESTS:
 
@@ -2630,8 +2634,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         simplex = Simplex(face)
         facets = self.facets()
         if all([not simplex.is_face(F) for F in facets]):
-            # face is not in self: nothing to remove
-            return self
+            # face is not in self
+            if check:
+                raise ValueError('trying to remove a face which is not in the simplicial complex')
+            return
         link = self.link(simplex)
         join_facets = []
         for f in simplex.faces():
@@ -2683,6 +2689,54 @@ class SimplicialComplex(Parent, GenericCellComplex):
         self._complex = {}
         self.__contractible = None
         self.__enlarged = {}
+
+    def remove_faces(self, faces, check=False):
+        """
+        Remove a collection of faces from this simplicial complex.
+
+        :param faces: a list (or any iterable) of faces of the
+            simplicial complex
+
+        :param check: boolean; optional, default ``False``. If
+            ``True``, raise an error if any element of ``faces`` is not a
+            face of this simplicial complex
+
+        This does not return anything; instead, it *changes* the
+        simplicial complex.
+
+        ALGORITHM:
+
+        Run ``self.remove_face(f)`` repeatedly, for ``f`` in ``faces``.
+
+        EXAMPLES::
+
+            sage: S = range(1,5)
+            sage: Z = SimplicialComplex([S]); Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z.remove_faces([[1,2]])
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 3, 4), (2, 3, 4)}
+
+            sage: Z = SimplicialComplex([S]); Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z.remove_faces([[1,2], [2,3]])
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(2, 4), (1, 3, 4)}
+
+        TESTS:
+
+        Check the ``check`` argument::
+
+            sage: Z = SimplicialComplex([[1,2,3,4]])
+            sage: Z.remove_faces([[1,2], [3,4]])
+            sage: Z.remove_faces([[1,2]])
+            sage: Z.remove_faces([[1,2]], check=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: trying to remove a face which is not in the simplicial complex
+        """
+        for f in faces:
+            self.remove_face(f, check=check)
 
     def connected_sum(self, other, is_mutable=True):
         """

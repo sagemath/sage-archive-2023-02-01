@@ -252,6 +252,8 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
         (+infinity, +infinity)
         sage: RBF(RIF(-infinity)).endpoints()
         (-infinity, -infinity)
+        sage: RBF(RIF(-infinity, infinity)).endpoints()
+        (-infinity, +infinity)
         sage: RIF(RBF(infinity)).endpoints()
         (+infinity, +infinity)
         sage: RIF(RBF(-infinity)).endpoints()
@@ -266,10 +268,11 @@ cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     if _do_sig(precision): sig_on()
     mpfi_get_left(left, source)
     mpfi_get_right(right, source)
-    arb_set_interval_mpfr(target, left, right, precision)
-    # Work around weakness of arb_set_interval_mpfr(tgt, inf, inf)
-    if mpfr_equal_p(left, right):
-        mag_zero(arb_radref(target))
+    if mpfr_inf_p(left) and mpfr_inf_p(right) and mpfr_sgn(left) < 0 < mpfr_sgn(right):
+        # Work around a weakness of arb_set_interval_mpfr(tgt, -inf, inf)
+        arb_zero_pm_inf(target)
+    else:
+        arb_set_interval_mpfr(target, left, right, precision)
     if _do_sig(precision): sig_off()
 
     mpfr_clear(left)

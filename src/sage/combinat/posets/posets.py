@@ -7403,7 +7403,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite lattice containing 0 elements
         """
         from sage.combinat.posets.lattices import LatticePoset
-        from sage.misc.misc import attrcall
         if self.cardinality() == 0:
             return LatticePoset({})
         return LatticePoset((self.cuts(), lambda a, b: a.issuperset(b)))

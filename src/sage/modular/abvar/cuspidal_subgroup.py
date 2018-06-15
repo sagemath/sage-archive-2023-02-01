@@ -75,7 +75,7 @@ from sage.rings.all                 import infinity, QQ, ZZ
 from sage.matrix.all                import matrix
 from sage.modular.arithgroup.all    import is_Gamma0
 from sage.modular.cusps             import Cusp
-from sage.arith.all import gcd
+
 
 class CuspidalSubgroup_generic(FiniteSubgroup):
     def _compute_lattice(self, rational_only=False, rational_subgroup=False):
@@ -186,6 +186,7 @@ class CuspidalSubgroup_generic(FiniteSubgroup):
         X = X.matrix_from_columns(range(Cusp.dimension()))
         lattice = X.row_module(ZZ) + A.lattice()
         return lattice
+
 
 class CuspidalSubgroup(CuspidalSubgroup_generic):
     """

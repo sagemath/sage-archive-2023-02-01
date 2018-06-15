@@ -283,6 +283,30 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
 class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
 
+    def __hash__(self):
+       r"""
+       Computes the hash value of this affine point.
+
+       OUTPUT: Integer.
+
+       EXAMPLES::
+
+           sage: A.<x,y> = AffineSpace(QQ, 2)
+           sage: X = A.subscheme(x - y)
+           sage: hash(A([1, 1]))
+           1300952125                      # 32-bit
+           3713081631935493181             # 64-bit
+       
+       ::
+
+           sage: A.<x,y> = AffineSpace(QQ, 2)
+           sage: X = A.subscheme(x^2 - y^3)
+           sage: hash(A([1, 1])) is hash(A([8, 4]))
+           False
+
+       """
+       return hash(tuple(self)) 
+
     def weil_restriction(self):
         r"""
         Compute the Weil restriction of this point over some extension

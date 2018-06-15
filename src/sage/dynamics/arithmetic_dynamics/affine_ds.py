@@ -43,6 +43,7 @@ from sage.matrix.constructor import identity_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import typecall
 from sage.rings.all import Integer
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.fraction_field import FractionField
@@ -228,13 +229,11 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             ValueError: "domain" must be an affine scheme
 
         ::
-
             sage: P.<x,y> = AffineSpace(QQ,2)
-            sage: f=DynamicalSystem([CC.0*x^2+2*y^2,1*y^2], domain=P)
+            sage: f = DynamicalSystem([CC.0*x^2, y^2], domain=P)
             Traceback (most recent call last):
             ...
-            ValueError: coefficients not in base ring Rational Field
-
+            TypeError: 'coefficients of polynomial not in base ring Rational Field
         """
         if isinstance(morphism_or_polys, SchemeMorphism_polynomial):
             morphism = morphism_or_polys
@@ -298,8 +297,26 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
                 CR = CR.ring()
             domain = AffineSpace(CR)
         else:
-            if not all([bool(poly.base_ring() == domain.base_ring()) for poly in list(morphism_or_polys)]):
-                raise ValueError('coefficients not in base ring {}'.format(domain.base_ring()))
+            PR = PolynomialRing(domain.base_ring(), names = [x for x in domain.ambient_space().gens()])
+            for poly in list(morphism_or_polys):
+                P = poly.parent()
+                if is_FractionField(P):
+                    try:
+                        numer = PR(poly.numerator())
+                        denom = PR(poly.denominator())
+                        poly = numer/denom
+                    except TypeError:
+                        raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
+                elif is_QuotientRing(P):
+                    try:
+                        poly = PR(poly.lift())
+                    except TypeError:
+                        raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
+                else:
+                    try:
+                        poly = PR(poly)
+                    except TypeError:
+                        raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
 
         R = domain.base_ring()
         if R is SR:

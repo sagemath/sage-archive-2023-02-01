@@ -101,8 +101,6 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         r"""
         Computes the hash value of this affine point.
 
-        OUTPUT: Integer.
-
         EXAMPLES::
 
             sage: A.<x,y> = AffineSpace(QQ, 2)
@@ -113,8 +111,9 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
         ::
 
             sage: A.<x,y,z> = AffineSpace(CC, 3)
-            sage: hash(A([1, 2, i])) is hash(A([3, 6, 3*i]))
-            False
+            sage: pt = A([1, 2, -i])
+            sage: hash(pt) == hash(tuple(pt))
+            True
 
         """
         return hash(tuple(self))
@@ -287,13 +286,11 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
        r"""
        Computes the hash value of this affine point.
 
-       OUTPUT: Integer.
-
        EXAMPLES::
 
            sage: A.<x,y> = AffineSpace(QQ, 2)
            sage: X = A.subscheme(x - y)
-           sage: hash(A([1, 1]))
+           sage: hash(X([1, 1]))
            1300952125                      # 32-bit
            3713081631935493181             # 64-bit
        
@@ -301,8 +298,9 @@ class SchemeMorphism_point_affine_field(SchemeMorphism_point_affine):
 
            sage: A.<x,y> = AffineSpace(QQ, 2)
            sage: X = A.subscheme(x^2 - y^3)
-           sage: hash(A([1, 1])) is hash(A([8, 4]))
-           False
+           sage: pt = X([1, 1])
+           sage: hash(pt) == hash(tuple(pt))
+           True
 
        """
        return hash(tuple(self)) 

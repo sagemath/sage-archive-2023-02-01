@@ -500,7 +500,10 @@ ex power::eval(int level) const
                 if (((eexponent.is_integer()
                       and eexponent.is_positive())
                     or (ebasis.op(0).is_positive()
-                      and ebasis.op(1).is_real())))
+                      and ebasis.op(1).is_real()))
+                    or (ebasis.op(1).info(info_flags::odd)
+                        and ebasis.op(0).is_real()
+                        and (ebasis.op(1)*eexponent).is_integer()))
 		        return power(ebasis.op(0), ebasis.op(1) * eexponent);
         }
 

@@ -119,7 +119,7 @@ def HarriesGraph(embedding=1):
         sage: graphs.HarriesGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
 
     """
     from sage.graphs.generators.families import LCFGraph
@@ -180,7 +180,7 @@ def HarriesGraph(embedding=1):
     elif embedding == 2:
         return g
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def HarriesWongGraph(embedding=1):
     r"""
@@ -241,7 +241,7 @@ def HarriesWongGraph(embedding=1):
         sage: graphs.HarriesWongGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [9, 25, 31, -17, 17, 33, 9, -29, -15, -9, 9, 25, -25, 29, 17, -9,
@@ -298,7 +298,7 @@ def HarriesWongGraph(embedding=1):
     elif embedding == 2:
         return g
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def WellsGraph():
     r"""
@@ -308,7 +308,7 @@ def WellsGraph():
     see `this page <https://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
 
     The implementation follows the construction given on page 266 of
-    [BCN89]_. This requires to create intermediate graphs and run a small
+    [BCN1989]_. This requires to create intermediate graphs and run a small
     isomorphism test, while everything could be replaced by a pre-computed list
     of edges : I believe that it is better to keep "the recipe" in the code,
     however, as it is quite unlikely that this could become the most
@@ -332,11 +332,6 @@ def WellsGraph():
         sage: g.is_regular(k=5)
         True
 
-    REFERENCES:
-
-    .. [BCN89] \A. E. Brouwer, A. M. Cohen, A. Neumaier,
-      Distance-Regular Graphs,
-      Springer, 1989.
     """
     from .platonic_solids import DodecahedralGraph
     from .basic import CompleteBipartiteGraph
@@ -372,7 +367,7 @@ def WellsGraph():
                 continue
 
             if dodecahedron.distance(u,v) != 3:
-                raise ValueError("There is something wrong going on !")
+                raise ValueError("there is something wrong going on !")
 
     # The graph we will return, starting from the dodecahedron
     g = dodecahedron
@@ -810,7 +805,7 @@ def Balaban10Cage(embedding=1):
         sage: graphs.Balaban10Cage(embedding='foo')
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [-9, -25, -19, 29, 13, 35, -13, -29, 19, 25, 9, -29, 29, 17, 33,
@@ -826,7 +821,7 @@ def Balaban10Cage(embedding=1):
     if embedding == 2:
         return g
     elif embedding != 1:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
     L3 = [5, 24, 35, 46, 29, 40, 51, 34, 45, 56]
     _circle_embedding(g, L3, center=(0,0), radius = 4.3)
@@ -861,7 +856,7 @@ def Balaban11Cage(embedding = 1):
       setting ``embedding`` to be 1, 2, or 3.
 
       - The first embedding is the one appearing on page 9 of the Fifth Annual
-        Graph Drawing Contest report [FAGDC]_. It separates vertices based on
+        Graph Drawing Contest report [EMMN1998]_. It separates vertices based on
         their eccentricity (see :meth:`eccentricity()
         <sage.graphs.generic_graph.GenericGraph.eccentricity>`).
 
@@ -910,13 +905,7 @@ def Balaban11Cage(embedding = 1):
         sage: graphs.Balaban11Cage(embedding='xyzzy')
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1, 2, or 3.
-
-    REFERENCES:
-
-    .. [FAGDC] Fifth Annual Graph Drawing Contest
-       P. Eaded, J. Marks, P.Mutzel, S. North
-       http://www.merl.com/papers/docs/TR98-16.pdf
+        ValueError: the value of embedding must be 1, 2, or 3
     """
     if embedding == 1:
         pos_dict = {}
@@ -1042,7 +1031,7 @@ def Balaban11Cage(embedding = 1):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1, 2, or 3.")
+        raise ValueError("the value of embedding must be 1, 2, or 3")
 
 def BidiakisCube():
     r"""
@@ -1140,7 +1129,7 @@ def BiggsSmithGraph(embedding=1):
         sage: graphs.BiggsSmithGraph(embedding='xyzzy')
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
 
     """
     L = [16, 24, -38, 17, 34, 48, -19, 41, -35, 47, -20, 34, -36,
@@ -1186,7 +1175,7 @@ def BiggsSmithGraph(embedding=1):
     elif embedding == 2:
         pass
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
     return g
 
@@ -1842,6 +1831,8 @@ def ClebschGraph():
     r"""
     Return the Clebsch graph.
 
+    See :wikipedia:`Clebsch_graph`.
+
     EXAMPLES::
 
         sage: g = graphs.ClebschGraph()
@@ -1940,7 +1931,7 @@ def DesarguesGraph():
     """
     Return the Desargues graph.
 
-    PLOTTING: The layout chosen is the same as on the cover of [1].
+    PLOTTING: The layout chosen is the same as on the cover of [Har1994]_.
 
     EXAMPLES::
 
@@ -1949,11 +1940,6 @@ def DesarguesGraph():
         sage: D.is_isomorphic(L)
         True
         sage: D.show()  # long time
-
-    REFERENCE:
-
-    - [1] Harary, F. Graph Theory. Reading, MA: Addison-Wesley,
-      1994.
     """
     from sage.graphs.generators.families import GeneralizedPetersenGraph
     G = GeneralizedPetersenGraph(10,3)
@@ -2441,17 +2427,11 @@ def FlowerSnark():
     A flower snark has 20 vertices. It is part of the class of biconnected cubic
     graphs with edge chromatic number = 4, known as snarks. (i.e.: the Petersen
     graph). All snarks are not Hamiltonian, non-planar and have Petersen graph
-    graph minors.
+    graph minors. See :wikipedia:`Flower_snark`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the nodes are drawn 0-14 on the
     outer circle, and 15-19 in an inner pentagon.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Flower Snark - from Wolfram
-      MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/FlowerSnark.html [2007, February 17]
 
     EXAMPLES: Inspect a flower snark::
 
@@ -2618,18 +2598,12 @@ def FruchtGraph():
     Return a Frucht Graph.
 
     A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic identity
-    graph. It is planar and it is Hamiltonian.
+    graph. It is planar and it is Hamiltonian. See :wikipedia:`Frucht_graph`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the first seven nodes are on the
     outer circle, with the next four on an inner circle and the last in the
     center.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Frucht Graph - from Wolfram
-      MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/FruchtGraph.html [2007, February 17]
 
     EXAMPLES::
 
@@ -2759,7 +2733,7 @@ def GrayGraph(embedding=1):
         sage: graphs.GrayGraph(embedding = 3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1, 2, or 3.
+        ValueError: the value of embedding must be 1, 2, or 3
     """
 
     from sage.graphs.generators.families import LCFGraph
@@ -2772,7 +2746,7 @@ def GrayGraph(embedding=1):
         _circle_embedding(g, o[1], center=(0, 0), radius=.6, shift=-.5)
 
     elif embedding != 2:
-        raise ValueError("The value of embedding must be 1, 2, or 3.")
+        raise ValueError("the value of embedding must be 1, 2, or 3")
 
     return g
 
@@ -2783,12 +2757,6 @@ def GrotzschGraph():
     The Grötzsch graph is an example of a triangle-free graph with chromatic
     number equal to 4. For more information, see
     :wikipedia:`Gr%C3%B6tzsch_graph`.
-
-    REFERENCE:
-
-    - [1] Weisstein, Eric W. "Grotzsch Graph."
-      From MathWorld--A Wolfram Web Resource.
-      http://mathworld.wolfram.com/GroetzschGraph.html
 
     EXAMPLES:
 
@@ -2865,18 +2833,12 @@ def HeawoodGraph():
     The Heawood graph is a cage graph that has 14 nodes. It is a cubic symmetric
     graph. (See also the Möbius-Kantor graph). It is nonplanar and
     Hamiltonian. It has diameter = 3, radius = 3, girth = 6, chromatic number =
-    2. It is 4-transitive but not 5-transitive.
+    2. It is 4-transitive but not 5-transitive. See :wikipedia:`Heawood_graph`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the nodes are positioned in a
     circular layout with the first node appearing at the top, and then
     continuing counterclockwise.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Heawood Graph - from Wolfram
-      MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/HeawoodGraph.html [2007, February 17]
 
     EXAMPLES::
 
@@ -2979,12 +2941,16 @@ def HigmanSimsGraph(relabel=True):
     100 vertices.  For example, it can be split into two sets of 50 vertices
     each, so that each half induces a subgraph isomorphic to the
     Hoffman-Singleton graph (:meth:`~HoffmanSingletonGraph`).  This can be done
-    in 352 ways (see [BROUWER-HS-2009]_).
+    in 352 ways (see `Higman-Sims graph
+    <https://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_ by Andries
+    E. Brouwer, accessed 24 October 2009.)
 
     Its most famous property is that the automorphism group has an index 2
-    subgroup which is one of the 26 sporadic groups. [HIGMAN1968]_
+    subgroup which is one of the 26 sporadic groups. [HS1968]_
 
-    The construction used here follows [HAFNER2004]_.
+    The construction used here follows [Haf2004]_.
+
+    See also :wikipedia:`Higman–Sims_graph`.
 
     INPUT:
 
@@ -2992,7 +2958,7 @@ def HigmanSimsGraph(relabel=True):
       with consecutive integers.  If ``False`` the labels are strings that are
       three digits long. "xyz" means the vertex is in group x (zero through
       three), pentagon or pentagram y (zero through four), and is vertex z (zero
-      through four) of that pentagon or pentagram.  See [HAFNER2004]_ for more.
+      through four) of that pentagon or pentagram.  See [Haf2004]_ for more.
 
     OUTPUT:
 
@@ -3016,8 +2982,7 @@ def HigmanSimsGraph(relabel=True):
         True
 
     The automorphism group contains only one nontrivial proper normal subgroup,
-    which is of index 2 and is simple.  It is known as the Higman-Sims group.
-    ::
+    which is of index 2 and is simple.  It is known as the Higman-Sims group. ::
 
         sage: H = graphs.HigmanSimsGraph()
         sage: G = H.automorphism_group()
@@ -3028,19 +2993,6 @@ def HigmanSimsGraph(relabel=True):
         True
         sage: g//K.order()
         2
-
-    REFERENCES:
-
-        .. [BROUWER-HS-2009] `Higman-Sims graph
-           <https://www.win.tue.nl/~aeb/graphs/Higman-Sims.html>`_.
-           Andries E. Brouwer, accessed 24 October 2009.
-        .. [HIGMAN1968] A simple group of order 44,352,000,
-           Math.Z. 105 (1968) 110-113. D.G. Higman & C. Sims.
-        .. [HAFNER2004] `On the graphs of Hoffman-Singleton and
-           Higman-Sims
-           <http://www.combinatorics.org/Volume_11/PDF/v11i1r77.pdf>`_.
-           The Electronic Journal of Combinatorics 11 (2004), #R77,
-           Paul R. Hafner, accessed 24 October 2009.
 
     AUTHOR:
 
@@ -3145,14 +3097,11 @@ def HoffmanSingletonGraph():
     A Moore graph is a graph with diameter `d` and girth `2d + 1`. This implies
     that the graph is regular, and distance regular.
 
+    For more details, see [GR2001]_ and :wikipedia:`Hoffman–Singleton_graph`.
+
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. A novel algorithm written by Tom Boothby gives
     a random layout which is pleasing to the eye.
-
-    REFERENCES:
-
-    .. [GodsilRoyle] Godsil, C. and Royle, G. Algebraic Graph Theory.
-      Springer, 2001.
 
     EXAMPLES::
 
@@ -3312,15 +3261,11 @@ def KrackhardtKiteGraph():
     Return a Krackhardt kite graph with 10 nodes.
 
     The Krackhardt kite graph was originally developed by David Krackhardt for
-    the purpose of studying social networks. It is used to show the distinction
+    the purpose of studying social networks (see [Kre2002]_ and
+    :wikipedia:`Krackhardt_kite_graph`). It is used to show the distinction
     between: degree centrality, betweeness centrality, and closeness
     centrality. For more information read the plotting section below in
     conjunction with the example.
-
-    REFERENCES:
-
-    - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
-      http://www.orgnet.com/sna.html
 
     PLOTTING: Upon construction, the position dictionary is filled to override
     the spring-layout algorithm. By convention, the graph is drawn left to
@@ -3476,7 +3421,7 @@ def LjubljanaGraph(embedding=1):
         sage: graphs.LjubljanaGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
@@ -3524,7 +3469,7 @@ def LjubljanaGraph(embedding=1):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def LivingstoneGraph():
     r"""
@@ -3665,7 +3610,7 @@ def McGeeGraph(embedding=2):
         sage: graphs.McGeeGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
@@ -3693,7 +3638,7 @@ def McGeeGraph(embedding=2):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def McLaughlinGraph():
     r"""
@@ -3764,14 +3709,10 @@ def MoebiusKantorGraph():
     has diameter = 4, girth = 6, and chromatic number = 2. It is identical to
     the Generalized Petersen graph, P[8,3].
 
+    For more details, see `Möbius-Kantor Graph - from Wolfram MathWorld
+    <http://mathworld.wolfram.com/Moebius-KantorGraph.html>`_.
+
     PLOTTING: See the plotting section for the generalized Petersen graphs.
-
-    REFERENCES:
-
-    - [1] Weisstein, E. (1999). "Möbius-Kantor Graph - from
-      Wolfram MathWorld". [Online] Available:
-      http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007,
-      February 17]
 
     EXAMPLES::
 
@@ -3874,7 +3815,7 @@ def NauruGraph(embedding=2):
         sage: graphs.NauruGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
         sage: graphs.NauruGraph(embedding=1).is_isomorphic(g)
         True
     """
@@ -3890,7 +3831,7 @@ def NauruGraph(embedding=2):
         g.name("Nauru Graph")
         return g
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def PappusGraph():
     """
@@ -4040,7 +3981,7 @@ def SchlaefliGraph():
     Return the Schläfli graph.
 
     The Schläfli graph is the only strongly regular graphs of parameters
-    `(27,16,10,8)` (see [GodsilRoyle]_).
+    `(27,16,10,8)` (see [GR2001]_).
 
     For more information, see the :wikipedia:`Schläfli_graph`.
 
@@ -4486,7 +4427,7 @@ def TutteCoxeterGraph(embedding=2):
         sage: graphs.TutteCoxeterGraph(embedding=3)
         Traceback (most recent call last):
         ...
-        ValueError: The value of embedding must be 1 or 2.
+        ValueError: the value of embedding must be 1 or 2
     """
 
     from sage.graphs.generators.families import LCFGraph
@@ -4516,7 +4457,7 @@ def TutteCoxeterGraph(embedding=2):
         return g
 
     else:
-        raise ValueError("The value of embedding must be 1 or 2.")
+        raise ValueError("the value of embedding must be 1 or 2")
 
 def TutteGraph():
     r"""
@@ -4703,7 +4644,7 @@ def _EllipticLinesProjectivePlaneScheme(k):
     Pseudo-cyclic association scheme for action of `O(3,2^k)` on elliptic lines
 
     The group `O(3,2^k)` acts naturally on the `q(q-1)/2` lines of `PG(2,2^k)`
-    skew to the conic preserved by it, see Sect. 12.7.B of [BCN89]_ and
+    skew to the conic preserved by it, see Sect. 12.7.B of [BCN1989]_ and
     Sect. 6.D in [BvL84]_. Compute the orbitals of this action and return them.
 
     This is a helper for
@@ -4776,8 +4717,8 @@ def JankoKharaghaniGraph(v):
     Return a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
 
     This functions returns a strongly regular graph for the two sets of
-    parameters shown to be realizable in [JK02]_. The paper also uses a
-    construction from [GM87]_.
+    parameters shown to be realizable in [JK2002]_. The paper also uses a
+    construction from [GM1987]_.
 
     INPUT:
 
@@ -4792,19 +4733,6 @@ def JankoKharaghaniGraph(v):
         sage: g = graphs.JankoKharaghaniGraph(1800)  # not tested (30s)
         sage: g.is_strongly_regular(parameters=True) # not tested (30s)
         (1800, 1029, 588, 588)
-
-    REFERENCES:
-
-    .. [JK02] Janko, Kharaghani,
-       A block negacyclic Bush-type Hadamard matrix and two strongly regular graphs.
-       J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
-       :doi:`10.1006/jcta.2001.3231`
-
-    .. [GM87] Gibbons, Mathon,
-       Construction methods for Bhaskar Rao and related designs,
-       J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5--30.
-       http://journals.cambridge.org/article_S1446788700033929
-
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     from sage.matrix.constructor import matrix
@@ -4880,10 +4808,10 @@ def JankoKharaghaniGraph(v):
 
 def JankoKharaghaniTonchevGraph():
     r"""
-    Return a (324,153,72,72)-strongly regular graph from [JKT01]_.
+    Return a (324,153,72,72)-strongly regular graph from [JKT2001]_.
 
-    Build the graph using the description given in [JKT01]_, taking sets B1 and
-    B163 in the text as adjacencies of vertices 1 and 163, respectively, and
+    Build the graph using the description given in [JKT2001]_, taking sets B1
+    and B163 in the text as adjacencies of vertices 1 and 163, respectively, and
     taking the edge orbits of the group `G` provided.
 
     EXAMPLES::
@@ -4891,14 +4819,6 @@ def JankoKharaghaniTonchevGraph():
         sage: Gamma=graphs.JankoKharaghaniTonchevGraph()  # long time
         sage: Gamma.is_strongly_regular(parameters=True)  # long time
         (324, 153, 72, 72)
-
-    REFERENCES:
-
-    .. [JKT01] \Z.Janko, H.Kharaghani, V.D.Tonchev
-       The existence of a Bush-type Hadamard matrix of order 324
-       and two new infinite classes of symmetric designs.
-       Des. Codes Cryptogr. 24(2001), 225--232
-
     """
     from itertools import product
     from sage.misc.misc_c import prod
@@ -4952,7 +4872,7 @@ def IoninKharaghani765Graph():
     Return a `(765, 192, 48, 48)`-strongly regular graph.
 
     Existence of a strongly regular graph with these parameters was claimed in
-    [IK03]_.  Implementing the construction in the latter did not work,
+    [IK2003]_.  Implementing the construction in the latter did not work,
     however. This function implements the following instructions, shared by Yury
     Ionin and Hadi Kharaghani.
 
@@ -5045,16 +4965,8 @@ def IoninKharaghani765Graph():
 
     .. TODO::
 
-        An update to [IK03]_ meant to fix the problem encountered became available
+        An update to [IK2003]_ meant to fix the problem encountered became available
         2016/02/24, see http://www.cs.uleth.ca/~hadi/research/IoninKharaghani.pdf
-
-    REFERENCE:
-
-    .. [IK03] Yury Ionin, Hadi Kharaghani
-       New families of strongly regular graphs.
-       Journal of Combinatorial Designs,
-       Vol 11 (2003), no. 3, 208--217,
-       :doi:`10.1002/jcd.10038`
     """
     from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
     K = GF(3)
@@ -5126,9 +5038,9 @@ def IoninKharaghani765Graph():
 
 def U42Graph216():
     r"""
-    Return a (216,40,4,8)-strongly regular graph from [CRS16]_.
+    Return a (216,40,4,8)-strongly regular graph from [CRS2016]_.
 
-    Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
+    Build the graph, interpreting the `U_4(2)`-action considered in [CRS2016]_
     as the one on the hyperbolic lines of the corresponding unitary polar space,
     and then doing the unique merging of the orbitals leading to a graph with
     the parameters in question.
@@ -5138,12 +5050,6 @@ def U42Graph216():
         sage: G=graphs.U42Graph216()                 # optional - gap_packages (grape)
         sage: G.is_strongly_regular(parameters=True) # optional - gap_packages (grape)
         (216, 40, 4, 8)
-
-    REFERENCES:
-
-    .. [CRS16] \Dean Crnković, Sanja Rukavina, Andrea Švob,
-       Strongly regular graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`.
-       :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
     from sage.misc.package import is_package_installed, PackageNotFoundError
@@ -5178,10 +5084,10 @@ def U42Graph216():
 
 def U42Graph540():
     r"""
-    Return a (540,187,58,68)-strongly regular graph from [CRS16]_.
+    Return a (540,187,58,68)-strongly regular graph from [CRS2016]_.
 
-    Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_ as
-    the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.  to the
+    Build the graph, interpreting the `U_4(2)`-action considered in [CRS2016]_
+    as the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.  to the
     Hermitean form stabilised by `U_4(3)`, points of the 3-dimensional
     projective space over `GF(9)`. There are several possible mergings of
     orbitals, some leading to non-isomorphic graphs with the same parameters. We

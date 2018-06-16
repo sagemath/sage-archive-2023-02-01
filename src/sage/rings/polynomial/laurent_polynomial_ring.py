@@ -672,6 +672,16 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: h = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+        """
+        return hash(self._R)
+
     def _latex_(self):
         """
         EXAMPLES::

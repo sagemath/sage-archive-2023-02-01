@@ -998,8 +998,11 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
+    # Redirect stdin from /dev/null. This helps with running TeX which
+    # tends to ask interactive questions if something goes wrong. These
+    # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     shift
-    exec sage-python23 -m "sage_setup.docbuild" "$@"
+    exec sage-python23 -m sage_setup.docbuild "$@" </dev/null
 fi
 
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then

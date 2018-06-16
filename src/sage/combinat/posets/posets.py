@@ -3875,19 +3875,27 @@ class FinitePoset(UniqueRepresentation, Parent):
             return (True, None)
         return True
 
-    def is_isomorphic(self, other):
+    def is_isomorphic(self, other, **kwds):
         """
-        Returns True if both posets are isomorphic.
+        Return ``True`` if both posets are isomorphic.
 
         EXAMPLES::
 
             sage: P = Poset(([1,2,3],[[1,3],[2,3]]))
             sage: Q = Poset(([4,5,6],[[4,6],[5,6]]))
-            sage: P.is_isomorphic( Q )
+            sage: P.is_isomorphic(Q)
             True
+
+        TESTS:
+
+        Since :trac:`25576`, one can ask for the isomorphism::
+
+            sage: P.is_isomorphic(Q, certificate=True)
+            (True, {1: 4, 2: 5, 3: 6})
         """
-        if hasattr(other,'hasse_diagram'):
-            return self.hasse_diagram().is_isomorphic( other.hasse_diagram() )
+        if hasattr(other, 'hasse_diagram'):
+            return self.hasse_diagram().is_isomorphic(other.hasse_diagram(),
+                                                      **kwds)
         else:
             raise TypeError("'other' is not a finite poset")
 
@@ -7493,7 +7501,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             Finite lattice containing 0 elements
         """
         from sage.combinat.posets.lattices import LatticePoset
-        from sage.misc.misc import attrcall
         if self.cardinality() == 0:
             return LatticePoset({})
         return LatticePoset((self.cuts(), lambda a, b: a.issuperset(b)))
@@ -7705,7 +7712,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
 FinitePoset._dual_class = FinitePoset
 
-##### Posets #####
+# ------- Posets -------
 
 
 class FinitePosets_n(UniqueRepresentation, Parent):
@@ -7817,7 +7824,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
 # For backward compatibility of pickles of the former Posets()
 Posets_all = Posets
 
-##### Miscellaneous functions #####
+# ------- Miscellaneous functions -------
 
 
 def is_poset(dig):

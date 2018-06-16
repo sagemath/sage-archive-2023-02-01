@@ -2981,6 +2981,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             MILP solvers (e.g. Gurobi, CPLEX) are installed. See
             :class:`MixedIntegerLinearProgram` for more information.
 
+        .. NOTE::
+
+            Prior to version 8.3 this returned only realizer with
+            ``certificate=True``. Now it returns a pair having a realizer as
+            the second element.
+
         ALGORITHM:
 
         As explained [FT00]_, the dimension of a poset is equal to the (weak)
@@ -3002,6 +3008,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         We solve this problem through a :mod:`Mixed Integer Linear Program
         <sage.numerical.mip>`.
 
+        The problem is known to be NP-complete.
+
         EXAMPLES:
 
         We create a poset, compute a set of linear extensions and check
@@ -3010,8 +3018,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[1,4], [3], [4,5,3], [6], [], [6], []])
             sage: P.dimension()
             3
-            sage: L = P.dimension(certificate=True)
-            sage: L # random -- architecture-dependent
+            sage: dim, L = P.dimension(certificate=True)
+            sage: L  # random -- architecture-dependent
             [[0, 2, 4, 5, 1, 3, 6], [2, 5, 0, 1, 3, 4, 6], [0, 1, 2, 3, 5, 6, 4]]
             sage: Poset( (L[0], lambda x, y: all(l.index(x) < l.index(y) for l in L)) ) == P
             True
@@ -3036,10 +3044,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension()
             0
             sage: Poset().dimension(certificate=True)
-            []
+            (0, [])
         """
         if self.cardinality() == 0:
-            return [] if certificate else 0
+            return (0, []) if certificate else 0
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         P = Poset(self._hasse_diagram) # work on an int-labelled poset
@@ -3120,8 +3128,8 @@ class FinitePoset(UniqueRepresentation, Parent):
                                "bug to sage-devel@googlegroups.com")
 
         if certificate:
-            return [[self._list[i] for i in l]
-                    for l in linear_extensions]
+            return (k, [[self._list[i] for i in l]
+                    for l in linear_extensions])
         return k
 
     def jump_number(self, certificate=False):

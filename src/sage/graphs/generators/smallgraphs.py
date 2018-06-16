@@ -74,8 +74,7 @@ def HarriesGraph(embedding=1):
     Returns the Harries Graph.
 
     The Harries graph is a Hamiltonian 3-regular graph on 70
-    vertices. See the :wikipedia:`Wikipedia page on the Harries
-    graph <Harries_graph>`.
+    vertices. See the :wikipedia:`Harries_graph`.
 
     The default embedding here is to emphasize the graph's 4 orbits.
     This graph actually has a funny construction. The following
@@ -192,8 +191,7 @@ def HarriesWongGraph(embedding=1):
     r"""
     Returns the Harries-Wong Graph.
 
-    See the :wikipedia:`Wikipedia page on the Harries-Wong graph
-    <Harries-Wong_graph>`.
+    See the :wikipedia:`Harries-Wong_graph`.
 
     *About the default embedding:*
 
@@ -642,8 +640,8 @@ def HallJankoGraph(from_string=True):
     r"""
     Returns the Hall-Janko graph.
 
-    For more information on the Hall-Janko graph, see its
-    :wikipedia:`Wikipedia page <Hall-Janko_graph>`.
+    For more information on the Hall-Janko graph, see
+    :wikipedia:`Hall-Janko_graph`.
 
     The construction used to generate this graph in Sage is by
     a 100-point permutation representation of the Janko group `J_2`,
@@ -779,8 +777,7 @@ def Balaban10Cage(embedding=1):
     Returns the Balaban 10-cage.
 
     The Balaban 10-cage is a 3-regular graph with 70 vertices and
-    105 edges. See its :wikipedia:`Wikipedia page
-    <Balaban_10-cage>`.
+    105 edges. See :wikipedia:`Balaban_10-cage`.
 
     The default embedding gives a deeper understanding of the
     graph's automorphism group. It is divided into 4 layers (each
@@ -868,8 +865,7 @@ def Balaban11Cage(embedding = 1):
     r"""
     Returns the Balaban 11-cage.
 
-    For more information, see this :wikipedia:`Wikipedia article on
-    the Balaban 11-cage <Balaban_11-cage>`.
+    For more information, see :wikipedia:`Balaban_11-cage`.
 
     INPUT:
 
@@ -1066,8 +1062,7 @@ def BidiakisCube():
     r"""
     Returns the Bidiakis cube.
 
-    For more information, see this
-    `Wikipedia article on the Bidiakis cube <http://en.wikipedia.org/wiki/Bidiakis_cube>`_.
+    For more information, see :wikipedia:`Bidiakis_cube`.
 
     EXAMPLES:
 
@@ -1126,8 +1121,7 @@ def BiggsSmithGraph(embedding=1):
     r"""
     Returns the Biggs-Smith graph.
 
-    For more information, see this :wikipedia:`Wikipedia article on
-    the Biggs-Smith graph <Biggs-Smith_graph>`.
+    For more information, see :wikipedia:`Biggs-Smith_graph`.
 
     INPUT:
 
@@ -1306,8 +1300,7 @@ def BrinkmannGraph():
     r"""
     Returns the Brinkmann graph.
 
-    For more information, see the
-    `Wikipedia article on the Brinkmann graph <http://en.wikipedia.org/wiki/Brinkmann_graph>`_.
+    For more information, see :wikipedia:`Brinkmann_graph`.
 
     EXAMPLES:
 
@@ -1603,8 +1596,7 @@ def DoubleStarSnark():
     Returns the double star snark.
 
     The double star snark is a 3-regular graph on 30 vertices. See
-    the :wikipedia:`Wikipedia page on the double star snark
-    <Double-star_snark>`.
+    the :wikipedia:`Double-star_snark`.
 
     EXAMPLES::
 
@@ -1817,8 +1809,8 @@ def ChvatalGraph():
 
     Chvatal graph is one of the few known graphs to satisfy Grunbaum's
     conjecture that for every m, n, there is an m-regular,
-    m-chromatic graph of girth at least n. For more information, see this
-    `Wikipedia article on the Chvatal graph <http://en.wikipedia.org/wiki/Chv%C3%A1tal_graph>`_.
+    m-chromatic graph of girth at least n. For more information, see
+    :wikipedia:`Chv%C3%A1tal_graph`.
 
     EXAMPLES:
 
@@ -1900,8 +1892,7 @@ def CoxeterGraph():
     r"""
     Return the Coxeter graph.
 
-    See the :wikipedia:`Wikipedia page on the Coxeter graph
-    <Coxeter_graph>`.
+    See the :wikipedia:`Coxeter_graph`.
 
     EXAMPLES::
 
@@ -1989,8 +1980,7 @@ def DurerGraph():
     r"""
     Returns the Dürer graph.
 
-    For more information, see this
-    `Wikipedia article on the Dürer graph <http://en.wikipedia.org/wiki/D%C3%BCrer_graph>`_.
+    For more information, see :wikipedia:`D%C3%BCrer_graph`.
 
     EXAMPLES:
 
@@ -2052,8 +2042,8 @@ def DyckGraph():
     Returns the Dyck graph.
 
     For more information, see the `MathWorld article on the Dyck graph
-    <http://mathworld.wolfram.com/DyckGraph.html>`_ or the `Wikipedia
-    article on the Dyck graph <http://en.wikipedia.org/wiki/Dyck_graph>`_.
+    <http://mathworld.wolfram.com/DyckGraph.html>`_ or the
+    :wikipedia:`Dyck_graph`.
 
     EXAMPLES:
 
@@ -2206,8 +2196,7 @@ def EllinghamHorton54Graph():
     r"""
     Returns the Ellingham-Horton 54-graph.
 
-    For more information, see the :wikipedia:`Wikipedia page on the
-    Ellingham-Horton graphs <Ellingham-Horton_graph>`
+    For more information, see the :wikipedia:`Ellingham-Horton_graph`
 
     EXAMPLES:
 
@@ -2295,9 +2284,7 @@ def EllinghamHorton78Graph():
     r"""
     Returns the Ellingham-Horton 78-graph.
 
-    For more information, see the :wikipedia:`Wikipedia page on the
-    Ellingham-Horton graphs
-    <http://en.wikipedia.org/wiki/Ellingham%E2%80%93Horton_graph>`
+    For more information, see the :wikipedia:`Ellingham%E2%80%93Horton_graph`
 
     EXAMPLES:
 
@@ -2375,8 +2362,7 @@ def ErreraGraph():
     r"""
     Returns the Errera graph.
 
-    For more information, see this
-    `Wikipedia article on the Errera graph <http://en.wikipedia.org/wiki/Errera_graph>`_.
+    For more information, see :wikipedia:`Errera_graph`.
 
     EXAMPLES:
 
@@ -2516,8 +2502,7 @@ def FolkmanGraph():
     """
     Returns the Folkman graph.
 
-    See the :wikipedia:`Wikipedia page on the Folkman Graph
-    <Folkman_graph>`.
+    See the :wikipedia:`Folkman_graph`.
 
     EXAMPLES::
 
@@ -2553,8 +2538,7 @@ def FosterGraph():
     """
     Returns the Foster graph.
 
-    See the :wikipedia:`Wikipedia page on the Foster Graph
-    <Foster_graph>`.
+    See the :wikipedia:`Foster_graph`.
 
     EXAMPLES::
 
@@ -2582,8 +2566,7 @@ def FranklinGraph():
     r"""
     Returns the Franklin graph.
 
-    For more information, see this
-    `Wikipedia article on the Franklin graph <http://en.wikipedia.org/wiki/Franklin_graph>`_.
+    For more information, see :wikipedia:`Franklin_graph`.
 
     EXAMPLES:
 
@@ -2700,8 +2683,7 @@ def GoldnerHararyGraph():
     r"""
     Return the Goldner-Harary graph.
 
-    For more information, see this
-    `Wikipedia article on the Goldner-Harary graph <http://en.wikipedia.org/wiki/Goldner%E2%80%93Harary_graph>`_.
+    For more information, see :wikipedia:`Goldner%E2%80%93Harary_graph`.
 
     EXAMPLES:
 
@@ -2769,8 +2751,7 @@ def GrayGraph(embedding=1):
     r"""
     Returns the Gray graph.
 
-    See the :wikipedia:`Wikipedia page on the Gray Graph
-    <Gray_graph>`.
+    See the :wikipedia:`Gray_graph`.
 
     INPUT:
 
@@ -2818,8 +2799,8 @@ def GrotzschGraph():
     Returns the Grötzsch graph.
 
     The Grötzsch graph is an example of a triangle-free graph with
-    chromatic number equal to 4. For more information, see this
-    `Wikipedia article on Grötzsch graph <http://en.wikipedia.org/wiki/Gr%C3%B6tzsch_graph>`_.
+    chromatic number equal to 4. For more information, see
+    :wikipedia:`Gr%C3%B6tzsch_graph`.
 
     REFERENCE:
 
@@ -2944,8 +2925,7 @@ def HerschelGraph():
     r"""
     Returns the Herschel graph.
 
-    For more information, see this
-    `Wikipedia article on the Herschel graph <http://en.wikipedia.org/wiki/Herschel_graph>`_.
+    For more information, see :wikipedia:`Herschel_graph`.
 
     EXAMPLES:
 
@@ -3274,8 +3254,7 @@ def HoffmanGraph():
     r"""
     Returns the Hoffman Graph.
 
-    See the :wikipedia:`Wikipedia page on the Hoffman graph
-    <Hoffman_graph>`.
+    See the :wikipedia:`Hoffman_graph`.
 
     EXAMPLES::
 
@@ -3318,8 +3297,7 @@ def HoltGraph():
     r"""
     Returns the Holt graph (also called the Doyle graph).
 
-    See the :wikipedia:`Wikipedia page on the Holt graph
-    <Holt_graph>`.
+    See the :wikipedia:`Holt_graph`.
 
     EXAMPLES::
 
@@ -3500,8 +3478,7 @@ def LjubljanaGraph(embedding=1):
     The Ljubljana graph is a bipartite 3-regular graph on 112
     vertices and 168 edges. It is not vertex-transitive as it has
     two orbits which are also independent sets of size 56. See the
-    :wikipedia:`Wikipedia page on the Ljubljana Graph
-    <Ljubljana_graph>`.
+    :wikipedia:`Ljubljana_graph`.
 
     The default embedding is obtained from the Heawood graph.
 
@@ -3692,8 +3669,7 @@ def McGeeGraph(embedding=2):
     r"""
     Returns the McGee Graph.
 
-    See the :wikipedia:`Wikipedia page on the McGee Graph
-    <McGee_graph>`.
+    See the :wikipedia:`McGee_graph`.
 
     INPUT:
 
@@ -3902,8 +3878,7 @@ def NauruGraph(embedding=2):
     """
     Returns the Nauru Graph.
 
-    See the :wikipedia:`Wikipedia page on the Nauru Graph
-    <Nauru_graph>`.
+    See the :wikipedia:`Nauru_graph`.
 
     INPUT:
 
@@ -4063,8 +4038,7 @@ def RobertsonGraph():
     """
     Returns the Robertson graph.
 
-    See the :wikipedia:`Wikipedia page on the Robertson Graph
-    <Robertson_graph>`.
+    See the :wikipedia:`Robertson_graph`.
 
     EXAMPLES::
 
@@ -4100,8 +4074,7 @@ def SchlaefliGraph():
     The Schläfli graph is the only strongly regular graphs of parameters
     `(27,16,10,8)` (see [GodsilRoyle]_).
 
-    For more information, see the :wikipedia:`Wikipedia article on the
-    Schläfli graph <Schläfli_graph>`.
+    For more information, see the :wikipedia:`Schläfli_graph`.
 
     .. SEEALSO::
 
@@ -4145,7 +4118,7 @@ def ShrikhandeGraph():
 
     For more information, see the `MathWorld article on the Shrikhande graph
     <http://mathworld.wolfram.com/ShrikhandeGraph.html>`_ or the
-    :wikipedia:`Wikipedia article on the Shrikhande graph <Shrikhande_graph>`.
+    :wikipedia:`Shrikhande_graph`.
 
     .. SEEALSO::
 
@@ -4281,7 +4254,7 @@ def SimsGewirtzGraph():
 
     For more information on the Sylvester graph, see
     `<https://www.win.tue.nl/~aeb/graphs/Sims-Gewirtz.html>`_ or its
-    :wikipedia:`Wikipedia page <Gewirtz graph>`.
+    :wikipedia:`Gewirtz_graph`.
 
     .. SEEALSO::
 
@@ -4316,8 +4289,8 @@ def SousselierGraph():
     Returns the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
-    edges. For more information, see the corresponding `Wikipedia page (in
-    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
+    edges. For more information, see the corresponding
+    :wikipedia:`Graphe_de_Sousselier` (in french).
 
     EXAMPLES::
 
@@ -4493,8 +4466,7 @@ def Tutte12Cage():
     r"""
     Returns Tutte's 12-Cage.
 
-    See the :wikipedia:`Wikipedia page on the Tutte 12-Cage
-    <Tutte_12-cage>`.
+    See the :wikipedia:`Tutte_12-cage`.
 
     EXAMPLES::
 
@@ -4521,8 +4493,7 @@ def TutteCoxeterGraph(embedding=2):
     r"""
     Returns the Tutte-Coxeter graph.
 
-    See the :wikipedia:`Wikipedia page on the Tutte-Coxeter Graph
-    <Tutte-Coxeter_graph>`.
+    See the :wikipedia:`Tutte-Coxeter_graph`.
 
     INPUT:
 
@@ -4643,8 +4614,7 @@ def WagnerGraph():
     """
     Returns the Wagner Graph.
 
-    See the :wikipedia:`Wikipedia page on the Wagner Graph
-    <Wagner_graph>`.
+    See the :wikipedia:`Wagner_graph`.
 
     EXAMPLES::
 
@@ -4706,9 +4676,8 @@ def WienerArayaGraph():
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
-    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
-    `(french) Wikipedia page
-    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or
+    :wikipedia:`Graphe_de_Wiener-Araya` (in french).
 
     EXAMPLES::
 

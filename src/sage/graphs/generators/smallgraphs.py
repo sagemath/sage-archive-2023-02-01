@@ -71,7 +71,7 @@ def HarborthGraph():
 
 def HarriesGraph(embedding=1):
     r"""
-    Returns the Harries Graph.
+    Return the Harries Graph.
 
     The Harries graph is a Hamiltonian 3-regular graph on 70
     vertices. See the :wikipedia:`Harries_graph`.
@@ -184,7 +184,7 @@ def HarriesGraph(embedding=1):
 
 def HarriesWongGraph(embedding=1):
     r"""
-    Returns the Harries-Wong Graph.
+    Return the Harries-Wong Graph.
 
     See the :wikipedia:`Harries-Wong_graph`.
 
@@ -302,7 +302,7 @@ def HarriesWongGraph(embedding=1):
 
 def WellsGraph():
     r"""
-    Returns the Wells graph.
+    Return the Wells graph.
 
     For more information on the Wells graph (also called Armanios-Wells graph),
     see `this page <https://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
@@ -415,7 +415,7 @@ def WellsGraph():
 
 def Cell600(embedding=1):
     r"""
-    Returns the 600-Cell graph.
+    Return the 600-Cell graph.
 
     This is the adjacency graph of the 600-cell. It has 120 vertices and 720
     edges. For more information, see the :wikipedia:`600-cell`.
@@ -495,7 +495,7 @@ def Cell600(embedding=1):
 
 def Cell120():
     r"""
-    Returns the 120-Cell graph.
+    Return the 120-Cell graph.
 
     This is the adjacency graph of the 120-cell. It has 600 vertices and 1200
     edges. For more information, see the :wikipedia:`120-cell`.
@@ -631,7 +631,7 @@ def SuzukiGraph():
 
 def HallJankoGraph(from_string=True):
     r"""
-    Returns the Hall-Janko graph.
+    Return the Hall-Janko graph.
 
     For more information on the Hall-Janko graph, see
     :wikipedia:`Hall-Janko_graph`.
@@ -765,7 +765,7 @@ def HallJankoGraph(from_string=True):
 
 def Balaban10Cage(embedding=1):
     r"""
-    Returns the Balaban 10-cage.
+    Return the Balaban 10-cage.
 
     The Balaban 10-cage is a 3-regular graph with 70 vertices and 105 edges. See
     :wikipedia:`Balaban_10-cage`.
@@ -851,7 +851,7 @@ def Balaban10Cage(embedding=1):
 
 def Balaban11Cage(embedding = 1):
     r"""
-    Returns the Balaban 11-cage.
+    Return the Balaban 11-cage.
 
     For more information, see :wikipedia:`Balaban_11-cage`.
 
@@ -1046,7 +1046,7 @@ def Balaban11Cage(embedding = 1):
 
 def BidiakisCube():
     r"""
-    Returns the Bidiakis cube.
+    Return the Bidiakis cube.
 
     For more information, see :wikipedia:`Bidiakis_cube`.
 
@@ -1105,7 +1105,7 @@ def BidiakisCube():
 
 def BiggsSmithGraph(embedding=1):
     r"""
-    Returns the Biggs-Smith graph.
+    Return the Biggs-Smith graph.
 
     For more information, see :wikipedia:`Biggs-Smith_graph`.
 
@@ -1192,7 +1192,7 @@ def BiggsSmithGraph(embedding=1):
 
 def BlanusaFirstSnarkGraph():
     r"""
-    Returns the first Blanusa Snark Graph.
+    Return the first Blanusa Snark Graph.
 
     The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
     information on them, see the :wikipedia:`Blanusa_snarks`.
@@ -1227,7 +1227,7 @@ def BlanusaFirstSnarkGraph():
 
 def BlanusaSecondSnarkGraph():
     r"""
-    Returns the second Blanusa Snark Graph.
+    Return the second Blanusa Snark Graph.
 
     The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
     information on them, see the :wikipedia:`Blanusa_snarks`.
@@ -1284,7 +1284,7 @@ def BlanusaSecondSnarkGraph():
 
 def BrinkmannGraph():
     r"""
-    Returns the Brinkmann graph.
+    Return the Brinkmann graph.
 
     For more information, see :wikipedia:`Brinkmann_graph`.
 
@@ -1372,7 +1372,7 @@ def BrinkmannGraph():
 
 def BrouwerHaemersGraph():
     r"""
-    Returns the Brouwer-Haemers Graph.
+    Return the Brouwer-Haemers Graph.
 
     The Brouwer-Haemers is the only strongly regular graph of parameters
     `(81,20,1,6)`. It is build in Sage as the Affine Orthogonal graph
@@ -1578,7 +1578,7 @@ def GossetGraph():
 
 def DoubleStarSnark():
     r"""
-    Returns the double star snark.
+    Return the double star snark.
 
     The double star snark is a 3-regular graph on 30 vertices. See the
     :wikipedia:`Double-star_snark`.
@@ -1639,7 +1639,7 @@ def DoubleStarSnark():
 
 def MeredithGraph():
     r"""
-    Returns the Meredith Graph.
+    Return the Meredith Graph.
 
     The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
     more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
@@ -1692,7 +1692,7 @@ def MeredithGraph():
 
 def KittellGraph():
     r"""
-    Returns the Kittell Graph.
+    Return the Kittell Graph.
 
     For more information, see the `Wolfram page about the Kittel Graph
     <http://mathworld.wolfram.com/KittellGraph.html>`_.
@@ -1739,7 +1739,7 @@ def KittellGraph():
 
 def CameronGraph():
     r"""
-    Returns the Cameron graph.
+    Return the Cameron graph.
 
     The Cameron graph is strongly regular with parameters `v = 231, k = 30,
     \lambda = 9, \mu = 3`.
@@ -1790,7 +1790,7 @@ def CameronGraph():
 
 def ChvatalGraph():
     r"""
-    Returns the Chvatal graph.
+    Return the Chvatal graph.
 
     Chvatal graph is one of the few known graphs to satisfy Grunbaum's
     conjecture that for every m, n, there is an m-regular, m-chromatic graph of
@@ -1938,7 +1938,7 @@ def DejterGraph():
 
 def DesarguesGraph():
     """
-    Returns the Desargues graph.
+    Return the Desargues graph.
 
     PLOTTING: The layout chosen is the same as on the cover of [1].
 
@@ -1962,7 +1962,7 @@ def DesarguesGraph():
 
 def DurerGraph():
     r"""
-    Returns the Dürer graph.
+    Return the Dürer graph.
 
     For more information, see :wikipedia:`D%C3%BCrer_graph`.
 
@@ -2023,7 +2023,7 @@ def DurerGraph():
 
 def DyckGraph():
     """
-    Returns the Dyck graph.
+    Return the Dyck graph.
 
     For more information, see the `MathWorld article on the Dyck graph
     <http://mathworld.wolfram.com/DyckGraph.html>`_ or the
@@ -2115,7 +2115,7 @@ def DyckGraph():
 
 def HortonGraph():
     r"""
-    Returns the Horton Graph.
+    Return the Horton Graph.
 
     The Horton graph is a cubic 3-connected non-hamiltonian graph. For more
     information, see the :wikipedia:`Horton_graph`.
@@ -2177,7 +2177,7 @@ def HortonGraph():
 
 def EllinghamHorton54Graph():
     r"""
-    Returns the Ellingham-Horton 54-graph.
+    Return the Ellingham-Horton 54-graph.
 
     For more information, see the :wikipedia:`Ellingham-Horton_graph`.
 
@@ -2265,7 +2265,7 @@ def EllinghamHorton54Graph():
 
 def EllinghamHorton78Graph():
     r"""
-    Returns the Ellingham-Horton 78-graph.
+    Return the Ellingham-Horton 78-graph.
 
     For more information, see the :wikipedia:`Ellingham%E2%80%93Horton_graph`
 
@@ -2343,7 +2343,7 @@ def EllinghamHorton78Graph():
 
 def ErreraGraph():
     r"""
-    Returns the Errera graph.
+    Return the Errera graph.
 
     For more information, see :wikipedia:`Errera_graph`.
 
@@ -2436,7 +2436,7 @@ def F26AGraph():
 
 def FlowerSnark():
     """
-    Returns a Flower Snark.
+    Return a Flower Snark.
 
     A flower snark has 20 vertices. It is part of the class of biconnected cubic
     graphs with edge chromatic number = 4, known as snarks. (i.e.: the Petersen
@@ -2482,7 +2482,7 @@ def FlowerSnark():
 
 def FolkmanGraph():
     """
-    Returns the Folkman graph.
+    Return the Folkman graph.
 
     See the :wikipedia:`Folkman_graph`.
 
@@ -2518,7 +2518,7 @@ def FolkmanGraph():
 
 def FosterGraph():
     """
-    Returns the Foster graph.
+    Return the Foster graph.
 
     See the :wikipedia:`Foster_graph`.
 
@@ -2546,7 +2546,7 @@ def FosterGraph():
 
 def FranklinGraph():
     r"""
-    Returns the Franklin graph.
+    Return the Franklin graph.
 
     For more information, see :wikipedia:`Franklin_graph`.
 
@@ -2615,7 +2615,7 @@ def FranklinGraph():
 
 def FruchtGraph():
     """
-    Returns a Frucht Graph.
+    Return a Frucht Graph.
 
     A Frucht graph has 12 nodes and 18 edges. It is the smallest cubic identity
     graph. It is planar and it is Hamiltonian.
@@ -2731,7 +2731,7 @@ def GoldnerHararyGraph():
 
 def GrayGraph(embedding=1):
     r"""
-    Returns the Gray graph.
+    Return the Gray graph.
 
     See the :wikipedia:`Gray_graph`.
 
@@ -2778,7 +2778,7 @@ def GrayGraph(embedding=1):
 
 def GrotzschGraph():
     r"""
-    Returns the Grötzsch graph.
+    Return the Grötzsch graph.
 
     The Grötzsch graph is an example of a triangle-free graph with chromatic
     number equal to 4. For more information, see
@@ -2860,7 +2860,7 @@ def GrotzschGraph():
 
 def HeawoodGraph():
     """
-    Returns a Heawood graph.
+    Return a Heawood graph.
 
     The Heawood graph is a cage graph that has 14 nodes. It is a cubic symmetric
     graph. (See also the Möbius-Kantor graph). It is nonplanar and
@@ -2905,7 +2905,7 @@ def HeawoodGraph():
 
 def HerschelGraph():
     r"""
-    Returns the Herschel graph.
+    Return the Herschel graph.
 
     For more information, see :wikipedia:`Herschel_graph`.
 
@@ -2973,7 +2973,7 @@ def HerschelGraph():
 
 def HigmanSimsGraph(relabel=True):
     r"""
-    Returns the Higman-Sims graph.
+    Return the Higman-Sims graph.
 
     The Higman-Sims graph is a remarkable strongly regular graph of degree 22 on
     100 vertices.  For example, it can be split into two sets of 50 vertices
@@ -3134,7 +3134,7 @@ def HigmanSimsGraph(relabel=True):
 
 def HoffmanSingletonGraph():
     r"""
-    Returns the Hoffman-Singleton graph.
+    Return the Hoffman-Singleton graph.
 
     The Hoffman-Singleton graph is the Moore graph of degree 7, diameter 2 and
     girth 5. The Hoffman-Singleton theorem states that any Moore graph with
@@ -3224,7 +3224,7 @@ def HoffmanSingletonGraph():
 
 def HoffmanGraph():
     r"""
-    Returns the Hoffman Graph.
+    Return the Hoffman Graph.
 
     See the :wikipedia:`Hoffman_graph`.
 
@@ -3267,7 +3267,7 @@ def HoffmanGraph():
 
 def HoltGraph():
     r"""
-    Returns the Holt graph (also called the Doyle graph).
+    Return the Holt graph (also called the Doyle graph).
 
     See the :wikipedia:`Holt_graph`.
 
@@ -3309,7 +3309,7 @@ def HoltGraph():
 
 def KrackhardtKiteGraph():
     """
-    Returns a Krackhardt kite graph with 10 nodes.
+    Return a Krackhardt kite graph with 10 nodes.
 
     The Krackhardt kite graph was originally developed by David Krackhardt for
     the purpose of studying social networks. It is used to show the distinction
@@ -3444,7 +3444,7 @@ def LocalMcLaughlinGraph():
 
 def LjubljanaGraph(embedding=1):
     r"""
-    Returns the Ljubljana Graph.
+    Return the Ljubljana Graph.
 
     The Ljubljana graph is a bipartite 3-regular graph on 112 vertices and 168
     edges. It is not vertex-transitive as it has two orbits which are also
@@ -3528,7 +3528,7 @@ def LjubljanaGraph(embedding=1):
 
 def LivingstoneGraph():
     r"""
-    Returns the Livingstone Graph.
+    Return the Livingstone Graph.
 
     The Livingstone graph is a distance-transitive graph on 266 vertices whose
     automorphism group is the :class:`J1 group
@@ -3557,7 +3557,7 @@ def LivingstoneGraph():
 
 def M22Graph():
     r"""
-    Returns the M22 graph.
+    Return the M22 graph.
 
     The `M_{22}` graph is the unique strongly regular graph with parameters
     `v = 77, k = 16, \lambda = 0, \mu = 4`.
@@ -3591,7 +3591,7 @@ def M22Graph():
 
 def MarkstroemGraph():
     r"""
-    Returns the Markström Graph.
+    Return the Markström Graph.
 
     The Markström Graph is a cubic planar graph with no cycles of length 4 nor
     8, but containing cycles of length 16. For more information, see the
@@ -3637,7 +3637,7 @@ def MarkstroemGraph():
 
 def McGeeGraph(embedding=2):
     r"""
-    Returns the McGee Graph.
+    Return the McGee Graph.
 
     See the :wikipedia:`McGee_graph`.
 
@@ -3697,7 +3697,7 @@ def McGeeGraph(embedding=2):
 
 def McLaughlinGraph():
     r"""
-    Returns the McLaughlin Graph.
+    Return the McLaughlin Graph.
 
     The McLaughlin Graph is the unique strongly regular graph of parameters
     `(275, 112, 30, 56)`.
@@ -3757,7 +3757,7 @@ def McLaughlinGraph():
 
 def MoebiusKantorGraph():
     """
-    Returns a Möbius-Kantor Graph.
+    Return a Möbius-Kantor Graph.
 
     A Möbius-Kantor graph is a cubic symmetric graph. (See also the Heawood
     graph). It has 16 nodes and 24 edges. It is nonplanar and Hamiltonian. It
@@ -3789,7 +3789,7 @@ def MoebiusKantorGraph():
 
 def MoserSpindle():
     r"""
-    Returns the Moser spindle.
+    Return the Moser spindle.
 
     For more information, see this `MathWorld article on the Moser spindle
     <http://mathworld.wolfram.com/MoserSpindle.html>`_.
@@ -3846,7 +3846,7 @@ def MoserSpindle():
 
 def NauruGraph(embedding=2):
     """
-    Returns the Nauru Graph.
+    Return the Nauru Graph.
 
     See the :wikipedia:`Nauru_graph`.
 
@@ -3894,7 +3894,7 @@ def NauruGraph(embedding=2):
 
 def PappusGraph():
     """
-    Returns the Pappus graph, a graph on 18 vertices.
+    Return the Pappus graph, a graph on 18 vertices.
 
     The Pappus graph is cubic, symmetric, and distance-regular.
 
@@ -3922,7 +3922,7 @@ def PappusGraph():
 
 def PoussinGraph():
     r"""
-    Returns the Poussin Graph.
+    Return the Poussin Graph.
 
     For more information on the Poussin Graph, see its corresponding `Wolfram
     page <http://mathworld.wolfram.com/PoussinGraph.html>`_.
@@ -3951,7 +3951,7 @@ def PoussinGraph():
 
 def PetersenGraph():
     """
-    Returns the Petersen Graph.
+    Return the Petersen Graph.
 
     The Petersen Graph is a named graph that consists of 10 vertices and 15
     edges, usually drawn as a five-point star embedded in a pentagon.
@@ -4004,7 +4004,7 @@ def PerkelGraph():
 
 def RobertsonGraph():
     """
-    Returns the Robertson graph.
+    Return the Robertson graph.
 
     See the :wikipedia:`Robertson_graph`.
 
@@ -4037,7 +4037,7 @@ def RobertsonGraph():
 
 def SchlaefliGraph():
     r"""
-    Returns the Schläfli graph.
+    Return the Schläfli graph.
 
     The Schläfli graph is the only strongly regular graphs of parameters
     `(27,16,10,8)` (see [GodsilRoyle]_).
@@ -4082,7 +4082,7 @@ def SchlaefliGraph():
 
 def ShrikhandeGraph():
     """
-    Returns the Shrikhande graph.
+    Return the Shrikhande graph.
 
     For more information, see the `MathWorld article on the Shrikhande graph
     <http://mathworld.wolfram.com/ShrikhandeGraph.html>`_ or the
@@ -4175,7 +4175,7 @@ def ShrikhandeGraph():
 
 def SylvesterGraph():
     """
-    Returns the Sylvester Graph.
+    Return the Sylvester Graph.
 
     This graph is obtained from the Hoffman Singleton graph by considering the
     graph induced by the vertices at distance two from the vertices of an (any)
@@ -4212,7 +4212,7 @@ def SylvesterGraph():
 
 def SimsGewirtzGraph():
     """
-    Returns the Sims-Gewirtz Graph.
+    Return the Sims-Gewirtz Graph.
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
@@ -4253,7 +4253,7 @@ def SimsGewirtzGraph():
 
 def SousselierGraph():
     r"""
-    Returns the Sousselier Graph.
+    Return the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
     edges. For more information, see :wikipedia:`Graphe_de_Sousselier` (in
@@ -4293,7 +4293,7 @@ def SousselierGraph():
 
 def SzekeresSnarkGraph():
     r"""
-    Returns the Szekeres Snark Graph.
+    Return the Szekeres Snark Graph.
 
     The Szekeres graph is a snark with 50 vertices and 75 edges. For more
     information on this graph, see the :wikipedia:`Szekeres_snark`.
@@ -4334,7 +4334,7 @@ def SzekeresSnarkGraph():
 
 def ThomsenGraph():
     """
-    Returns the Thomsen Graph.
+    Return the Thomsen Graph.
 
     The Thomsen Graph is actually a complete bipartite graph with `(n1, n2) =
     (3, 3)`. It is also called the Utility graph.
@@ -4356,7 +4356,7 @@ def ThomsenGraph():
 
 def TietzeGraph():
     r"""
-    Returns the Tietze Graph.
+    Return the Tietze Graph.
 
     For more information on the Tietze Graph, see the
     :wikipedia:`Tietze's_graph`.
@@ -4431,7 +4431,7 @@ def TruncatedTetrahedralGraph():
 
 def Tutte12Cage():
     r"""
-    Returns Tutte's 12-Cage.
+    Return the Tutte's 12-Cage.
 
     See the :wikipedia:`Tutte_12-cage`.
 
@@ -4458,7 +4458,7 @@ def Tutte12Cage():
 
 def TutteCoxeterGraph(embedding=2):
     r"""
-    Returns the Tutte-Coxeter graph.
+    Return the Tutte-Coxeter graph.
 
     See the :wikipedia:`Tutte-Coxeter_graph`.
 
@@ -4520,7 +4520,7 @@ def TutteCoxeterGraph(embedding=2):
 
 def TutteGraph():
     r"""
-    Returns the Tutte Graph.
+    Return the Tutte Graph.
 
     The Tutte graph is a 3-regular, 3-connected, and planar non-hamiltonian
     graph. For more information on the Tutte Graph, see the
@@ -4579,7 +4579,7 @@ def TutteGraph():
 
 def WagnerGraph():
     """
-    Returns the Wagner Graph.
+    Return the Wagner Graph.
 
     See the :wikipedia:`Wagner_graph`.
 
@@ -4603,7 +4603,7 @@ def WagnerGraph():
 
 def WatkinsSnarkGraph():
     r"""
-    Returns the Watkins Snark Graph.
+    Return the Watkins Snark Graph.
 
     The Watkins Graph is a snark with 50 vertices and 75 edges. For more
     information, see the :wikipedia:`Watkins_snark`.
@@ -4639,7 +4639,7 @@ def WatkinsSnarkGraph():
 
 def WienerArayaGraph():
     r"""
-    Returns the Wiener-Araya Graph.
+    Return the Wiener-Araya Graph.
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
@@ -4773,7 +4773,7 @@ def MathonStronglyRegularGraph(t):
 
 def JankoKharaghaniGraph(v):
     r"""
-    Returns a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
+    Return a (936, 375, 150, 150)-srg or a (1800, 1029, 588, 588)-srg.
 
     This functions returns a strongly regular graph for the two sets of
     parameters shown to be realizable in [JK02]_. The paper also uses a
@@ -4880,7 +4880,7 @@ def JankoKharaghaniGraph(v):
 
 def JankoKharaghaniTonchevGraph():
     r"""
-    Returns a (324,153,72,72)-strongly regular graph from [JKT01]_.
+    Return a (324,153,72,72)-strongly regular graph from [JKT01]_.
 
     Build the graph using the description given in [JKT01]_, taking sets B1 and
     B163 in the text as adjacencies of vertices 1 and 163, respectively, and
@@ -5126,7 +5126,7 @@ def IoninKharaghani765Graph():
 
 def U42Graph216():
     r"""
-    Returns a (216,40,4,8)-strongly regular graph from [CRS16]_.
+    Return a (216,40,4,8)-strongly regular graph from [CRS16]_.
 
     Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_
     as the one on the hyperbolic lines of the corresponding unitary polar space,
@@ -5178,7 +5178,7 @@ def U42Graph216():
 
 def U42Graph540():
     r"""
-    Returns a (540,187,58,68)-strongly regular graph from [CRS16]_.
+    Return a (540,187,58,68)-strongly regular graph from [CRS16]_.
 
     Build the graph, interpreting the `U_4(2)`-action considered in [CRS16]_ as
     the action of `U_4(2)=Sp_4(3)<U_4(3)` on the nonsingular, w.r.t.  to the

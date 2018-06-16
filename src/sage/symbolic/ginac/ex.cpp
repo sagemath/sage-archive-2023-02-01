@@ -381,6 +381,14 @@ bool ex::is_minus_one() const
         return num.is_minus_one();
 }
 
+bool ex::is_negative_or_minus() const
+{
+        if (is_exactly_a<mul>(*this)
+           and ex_to<mul>(*this).get_overall_coeff().is_negative())
+                return true;
+        return is_negative();
+}
+
 void ex::set_domain(unsigned d)
 {
         if (is_exactly_a<symbol>(*this)) {

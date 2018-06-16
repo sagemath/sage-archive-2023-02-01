@@ -2985,7 +2985,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             Prior to version 8.3 this returned only realizer with
             ``certificate=True``. Now it returns a pair having a realizer as
-            the second element.
+            the second element. See :trac:`25588` for details.
 
         ALGORITHM:
 

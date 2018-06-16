@@ -229,8 +229,8 @@ def HarriesWongGraph(embedding=1):
         10
         sage: g.diameter()
         6
-        sage: orbits = g.automorphism_group(orbits=True)[-1]
-        sage: g.show(figsize=[15, 15], partition=orbits)   # long time
+        sage: orbits = g.automorphism_group(orbits=True)[-1] # long time
+        sage: g.show(figsize=[15, 15], partition=orbits)     # long time
 
     Alternative embedding::
 
@@ -1116,13 +1116,13 @@ def BiggsSmithGraph(embedding=1):
         9
         sage: g.diameter()
         7
-        sage: g.automorphism_group().cardinality()
+        sage: g.automorphism_group().cardinality() # long time
         2448
         sage: g.show(figsize=[10, 10])   # long time
 
     The other embedding::
 
-        sage: graphs.BiggsSmithGraph(embedding=2).show()
+        sage: graphs.BiggsSmithGraph(embedding=2).show() # long time
 
     TESTS::
 
@@ -4700,10 +4700,10 @@ def MathonStronglyRegularGraph(t):
 
     TESTS::
 
-        sage: G = graphs.MathonStronglyRegularGraph(1)        # long time
+        sage: G = graphs.MathonStronglyRegularGraph(1) # long time
         sage: G.is_strongly_regular(parameters=True)   # long time
         (784, 270, 98, 90)
-        sage: G = graphs.MathonStronglyRegularGraph(2)        # long time
+        sage: G = graphs.MathonStronglyRegularGraph(2) # long time
         sage: G.is_strongly_regular(parameters=True)   # long time
         (784, 297, 116, 110)
 

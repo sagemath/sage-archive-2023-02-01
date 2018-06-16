@@ -234,19 +234,24 @@ bool ex::is_linear(const symbol& x, ex& a, ex& b) const
 bool ex::is_quadratic(const symbol& x, ex& a, ex& b, ex& c) const
 {
         expand();
-        try {
-                if (degree(x) > 2)
+        expairvec coeffs;
+        coefficients(x, coeffs);
+        b = c = _ex0;
+        for (const auto& p : coeffs) {
+                const ex& d = p.second;
+                if (d.is_equal(_ex2)) {
+                        c = p.first;
+                        if (has_symbol(c,x))
+                                return false;
+                }
+                else if (d.is_equal(_ex1)) {
+                        b = p.first;
+                        if (has_symbol(b,x))
+                                return false;
+                }
+                else if (not d.is_equal(_ex0))
                         return false;
         }
-        catch (std::runtime_error) {
-                return false;
-        }
-        c = coeff(x, 2);
-        if (has_symbol(c,x))
-                return false;
-        b = coeff(x, 1);
-        if (has_symbol(b,x))
-                return false;
         a = ((*this) - c*power(x,2) - b*x).expand();
         if (has_symbol(a,x))
                 return false;

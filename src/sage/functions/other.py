@@ -1415,7 +1415,7 @@ class Function_factorial(GinacFunction):
 
         Check that :trac:`25421` is fixed::
 
-            sage: factorial(RBF(2)**64)
+            sage: factorial(RBF(2)**64)      # known bug (trac #24927)
             [+/- 2.30e+347382171305201370464]
         """
         if isinstance(x, Integer):

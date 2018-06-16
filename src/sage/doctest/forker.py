@@ -38,6 +38,7 @@ from __future__ import absolute_import
 import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import re
 import errno
 import doctest, traceback
 import tempfile

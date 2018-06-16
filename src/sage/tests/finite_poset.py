@@ -11,6 +11,8 @@ be ranked.
     Currently only finite lattices have test function. Add some to
     general posets too.
 """
+from functools import reduce
+
 implications = {
  'doubling_convex': ['doubling_any'],
  'doubling_interval': ['doubling_lower'],

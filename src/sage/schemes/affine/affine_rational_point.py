@@ -99,12 +99,13 @@ def enum_affine_rational_field(X, B):
         (0, 0), (1/3, 2/9), (1/2, 1/4), (2/3, 2/9), (1, 0),
         (4/3, -4/9), (3/2, -3/4), (5/3, -10/9), (2, -2), (3, -6)]
 
-
     AUTHORS:
 
     - David R. Kohel <kohel@maths.usyd.edu.au>: original version.
 
     - Charlie Turner (06-2010): small adjustments.
+
+    - Raman Raghukul 2018: updated.
     """
     from sage.schemes.affine.affine_space import is_AffineSpace
     if(is_Scheme(X)):
@@ -119,9 +120,9 @@ def enum_affine_rational_field(X, B):
     VR = X.value_ring()
     if VR is ZZ:
         R = [ 0 ] + [ s*k for k in range(1, B+1) for s in [1, -1] ]
+        iters = [ iter(R) for _ in range(n) ]
     else:  # rational field
-        R = list(QQ.range_by_height(B + 1))
-    iters = [ iter(R) for _ in range(n) ]
+        iters = [ QQ.range_by_height(B + 1) for _ in range(n) ]
     pts = []
     P = [0] * n
     try:
@@ -136,7 +137,10 @@ def enum_affine_rational_field(X, B):
         try:
             a = VR(next(iters[i]))
         except StopIteration:
-            iters[i] = iter(R) # reset
+            if VR is ZZ:
+                iters[i] = iter(R)
+            else:  # rational field
+                iters[i] = QQ.range_by_height(B + 1)
             P[i] = next(iters[i]) # reset P[i] to 0 and increment
             i += 1
             continue

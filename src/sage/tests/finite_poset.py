@@ -5,12 +5,10 @@ bugs by testing random finite posets and lattices.
 As an examples: if a lattice is distributive, then it must be also
 modular, and if a poset is ranked, then the dual poset must also
 be ranked.
-
-.. TODO::
-
-    Currently only finite lattices have test function. Add some to
-    general posets too.
 """
+from sage.misc.prandom import randint
+from sage.misc.misc import attrcall
+
 implications = {
  'doubling_convex': ['doubling_any'],
  'doubling_interval': ['doubling_lower'],
@@ -104,7 +102,6 @@ def test_attrcall(name, L):
         sage: N5.is_constructible_by_doublings('convex') == test_attrcall('is_doubling_convex', N5)
         True
     """
-    from sage.misc.misc import attrcall
     if name == 'is_doubling_any':
         return L.is_constructible_by_doublings('any')
     if name == 'is_doubling_lower':
@@ -420,3 +417,217 @@ def test_finite_lattice(L):
     a = L.random_element(); b = L.random_element()
     if not L.sublattice([e, a, b]).is_distributive():
         raise ValueError("error in neutral_elements")
+
+def _random_linear_extension(P):
+    """
+    Return a random linear extension of `P`.
+
+    INPUT:
+
+    - ``P`` -- a poset
+    """
+    H = P.hasse_diagram()
+    result = []
+    while H.order():
+        mins = H.sources()
+        new = mins[randint(0, len(mins)-1)]
+        H.delete_vertex(new)
+        result.append(new)
+    return result
+
+def _random_maximal_chain(P):
+    """
+    Return a random maximal chain of `P`.
+
+    INPUT:
+
+    - ``P`` -- a poset
+    """
+    mins = P.minimal_elements()
+    new = mins[randint(0, len(mins)-1)]
+    result = [new]
+    nexts = P.upper_covers(new)
+    while nexts:
+        new = nexts[randint(0, len(nexts)-1)]
+        result.append(new)
+        nexts = P.upper_covers(new)
+    return result
+
+def _random_maximal_antichain(P):
+    """
+    Return a random maximal antichain of `P`.
+
+    INPUT:
+
+    - ``P`` -- a poset
+    """
+    elms = P.list()
+    result = []
+    while elms:
+        new_i = randint(0, len(elms)-1)
+        new = elms[new_i]
+        if all(P.compare_elements(new, e) is None for e in result):
+            result.append(new)
+        elms = elms[:new_i]+elms[new_i+1:]
+    return result
+
+def test_finite_poset(P):
+    """
+    Test several functions on a given finite poset.
+
+    The function contains tests of different kinds, for example
+
+    - Numerical properties jump number, dimension etc. can't be a bigger
+      in a subposet with one element less.
+    - "Dual tests", for example the dual of meet-semilattice must be a join-semilattice.
+    - Random tries: for example if the dimension of a poset is `k`, then it can't be the
+      intersection of `k-1` random linear extensions.
+
+    EXAMPLES::
+
+        sage: from sage.tests.finite_poset import test_finite_poset
+        sage: P = posets.RandomPoset(10, 0.15)
+        sage: test_finite_poset(P) is None  # Long time
+        True
+    """
+    from sage.combinat.posets.posets import Poset
+    from sage.combinat.subset import Subsets
+    from sage.misc.prandom import shuffle
+
+    e = P.random_element()
+    P_one_less = P.subposet([x for x in P if x != e])
+
+    # Cardinality
+    if len(P) != P.cardinality():
+        raise ValueError("error 1 in cardinality")
+    if P.cardinality()-1 != P_one_less.cardinality():
+        raise ValueError("error 5 in cardinality")
+
+    # Height
+    h1 = P.height()
+    h2, chain = P.height(certificate=True)
+    if h1 != h2:
+        raise ValueError("error 1 in height")
+    if h1 != len(chain):
+        raise ValueError("error 2 in height")
+    if not P.is_chain_of_poset(chain):
+        raise ValueError("error 3 in height")
+    if len(_random_maximal_chain(P)) > h1:
+        raise ValueError("error 4 in height")
+    if h1-P_one_less.height() not in [0, 1]:
+        raise ValueError("error 5 in height")
+
+    # Width
+    w1 = P.width()
+    w2, antichain = P.width(certificate=True)
+    if w1 != w2:
+        raise ValueError("error 1 in width")
+    if w1 != len(antichain):
+        raise ValueError("error 2 in width")
+    if not P.is_antichain_of_poset(antichain):
+        raise ValueError("error 3 in width")
+    if len(_random_maximal_antichain(P)) > w1:
+        raise ValueError("error 4 in width")
+    if w1-P_one_less.width() not in [0, 1]:
+        raise ValueError("error 5 in width")
+
+    # Dimension
+    dim1 = P.dimension()
+    dim2, linexts = P.dimension(certificate=True)
+    if dim1 != dim2:
+        raise ValueError("error 1 in dimension")
+    if dim1 != len(linexts):
+        raise ValueError("error 2 in dimension")
+    P_ = Poset( (P.list(), lambda a, b: all(linext.index(a) < linext.index(b) for linext in linexts)) )
+    if P_ != Poset(P.hasse_diagram()):
+        raise ValueError("error 3 in dimension")
+    x = [_random_linear_extension(P) for _ in range(dim1-1)]
+    P_ = Poset( (P.list(), lambda a, b: all(linext.index(a) < linext.index(b) for linext in x)) )
+    if P_ == Poset(P.hasse_diagram()):
+        raise ValueError("error 4 in dimension")
+    if dim1-P_one_less.dimension() < 0:
+        raise ValueError("error 5 in dimension")
+
+    # Jump number
+    j1 = P.jump_number()
+    j2, linext = P.jump_number(certificate=True)
+    if j1 != j2:
+        raise ValueError("error 1 in jump number")
+    if P.linear_extension(linext).jump_count() != j1:
+        raise ValueError("error 2 in jump number")
+    if not P.is_linear_extension(linext):
+        raise ValueError("error 3 in jump number")
+    if P.linear_extension(_random_linear_extension(P)).jump_count() < j1:
+        raise ValueError("error 4 in jump number")
+    if j1-P_one_less.jump_number() not in [0, 1]:
+        raise ValueError("error 5 in jump number")
+
+    P_dual = P.dual()
+    selfdual_properties = ['chain', 'bounded', 'connected', 'graded', 'ranked', 'series_parallel', 'slender', 'lattice']
+    for prop in selfdual_properties:
+        f = attrcall('is_'+prop)
+        if f(P) != f(P_dual):
+            raise ValueError("error in self-dual property %s" % prop)
+    if P.is_graded():
+        if P.is_bounded():
+            if P.is_eulerian() != P_dual.is_eulerian():
+                raise ValueError("error in self-dual property eulerian")
+            if P.is_eulerian():
+                P_ = P.star_product(P)
+                if not P_.is_eulerian():
+                    raise("error in star product / eulerian")
+        chain1 = _random_maximal_chain(P)
+        if len(chain1) != h1:
+            raise ValueError("error in is_graded")
+        if not P.is_ranked():
+            raise ValueError("error in is_ranked / is_graded")
+
+    if P.is_meet_semilattice() != P_dual.is_join_semilattice():
+        raise ValueError("error in meet/join semilattice")
+
+    if set(P.minimal_elements()) != set(P_dual.maximal_elements()):
+        raise ValueError("error in min/max elements")
+    if P.top() != P_dual.bottom():
+        raise ValueError("error in top/bottom element")
+
+    parts = P.connected_components()
+    P_ = Poset()
+    for part in parts:
+        P_ = P_.disjoint_union(part)
+    if not P.is_isomorphic(P_):
+        raise ValueError("error in connected components / disjoint union")
+    parts = P.ordinal_summands()
+    P_ = Poset()
+    for part in parts:
+        P_ = P_.ordinal_sum(part)
+    if not P.is_isomorphic(P_):
+        raise ValueError("error in ordinal summands / ordinal sum")
+
+    P_ = P.with_bounds().without_bounds()
+    if not P.is_isomorphic(P_):
+        raise ValueError("error in with bounds / without bounds")
+
+    P_ = P.completion_by_cuts().irreducibles_poset()
+    if not P.has_isomorphic_subposet(P_):
+        raise ValueError("error in completion by cuts / irreducibles poset")
+
+    P_ = P.subposet(Subsets(P).random_element())
+    if not P_.is_induced_subposet(P):
+        raise ValueError("error in subposet / is induced subposet")
+
+    if not P.is_linear_extension(_random_linear_extension(P)):
+        raise ValueError("error in is linear extension")
+
+    x = list(P)
+    shuffle(x)
+    if not P.is_linear_extension(P.sorted(x)):
+        raise ValueError("error in sorted")
+
+    dil = P.dilworth_decomposition()
+    chain = dil[randint(0, len(dil)-1)]
+    if not P.is_chain_of_poset(chain):
+        raise ValueError("error in Dilworth decomposition")
+    lev = P.level_sets()
+    level = lev[randint(0, len(lev)-1)]
+    if not P.is_antichain_of_poset(level):
+        raise ValueError("error in level sets")

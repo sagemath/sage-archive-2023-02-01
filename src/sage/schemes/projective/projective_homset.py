@@ -72,7 +72,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         Return some or all rational points of a projective scheme.
 
         For dimension 0 subschemes points are determined through a groebner
-        basis calculation. For subschemes with dimension greater than 1
+        basis calculation. For schemes or subschemes with dimension greater than 1
         points are determined through enumeration up to the specified bound.
 
         INPUT:
@@ -161,13 +161,15 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(CDF, 2)
-            sage: E = P.subscheme([y^3 - x^3 - x*z^2, x*y*z])
+            sage: E = P.subscheme([y^2 + x^2 + z^2, x*y*z])
             sage: E(P.base_ring()).points()
             verbose 0 (70: projective_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
-            [(-0.5000000000000001 - 0.866025403784439*I : 1.0 : 0.0),
-            (-0.49999999999999967 + 0.8660254037844384*I : 1.0 : 0.0),
-            (0.0 : 0.0 : 1.0), (2.7755575615628914e-17 - 1.0*I : 0.0 : 1.0),
-            (2.7755575615628914e-17 + 1.0*I : 0.0 : 1.0), (1.0 : 1.0 : 0.0)]
+            [(-1.0000000000000004*I : 1.0 : 0.0),
+             (0.0 : 0.9999999999999997*I : 1.0),
+             (0.0 : 2.7755575615628914e-17 - 1.0*I : 1.0),
+             (0.9999999999999997*I : 1.0 : 0.0),
+             (2.7755575615628914e-17 - 1.0*I : 0.0 : 1.0),
+             (2.7755575615628914e-17 + 1.0*I : 0.0 : 1.0)]
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         X = self.codomain()
@@ -292,9 +294,10 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         """
         Return some or all numerical approximations of rational points of a projective scheme.
 
-        This is for dimension 1 subschemes only and the points are determined
+        This is for dimension 0 subschemes only and the points are determined
         through a groebner calculation over the base ring and then numerically
-        approximating the roots of the resulting polynomials.
+        approximating the roots of the resulting polynomials. If the base ring
+        is a number field, the embedding into ``F`` must be known.
 
         INPUT:
 
@@ -336,6 +339,13 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: X(K).numerical_points(F=CDF)
             [(-1.475773161594552 : 1.475773161594552 : 1.0),
              (1.475773161594551 : 1.4757731615945517 : 1.0)]
+
+        ::
+
+            sage: P.<x1, x2, x3> = ProjectiveSpace(QQ, 2)
+            sage: E = P.subscheme([3000*x1^50 + 9875643*x2^2*x3^48 + 12334545*x2^50, x1 + x2])
+            sage: len(E(P.base_ring()).numerical_points(F=CDF, zero_tolerance =1e-6))
+            49
 
         TESTS::
 

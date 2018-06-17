@@ -1680,7 +1680,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         such as the ComplexField the results returned could be very far from correct.
         If the polynomials defining the subscheme are defined over a number field, you
         will get better results calling rational points with `F` defined as the numberical
-        field and the base ring as the field of definition.
+        field and the base ring as the field of definition. If the base ring
+        is a number field, the embedding into ``F`` must be known.
 
         In the case of numerically aproximated points, the points are returned over as
         points of the ambient space.

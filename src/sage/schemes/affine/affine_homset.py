@@ -126,7 +126,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         Return some or all rational points of an affine scheme.
 
         For dimension 0 subschemes points are determined through a groebner
-        basis calculation. For subschemes with dimension greater than 1
+        basis calculation. For schemes or subschemes with dimension greater than 1
         points are determined through enumeration up to the specified bound.
 
         INPUT:
@@ -228,11 +228,11 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                 return []
             if dim_ideal == 0: # if X zero-dimensional
                 rat_points = []
-                PS = X.ambient_space()
-                N = PS.dimension_relative()
+                AS = X.ambient_space()
+                N = AS.dimension_relative()
                 BR = X.base_ring()
                 #need a lexicographic ordering for elimination
-                R = PolynomialRing(BR, N, PS.gens(), order='lex')
+                R = PolynomialRing(BR, N, AS.gens(), order='lex')
                 I = R.ideal(X.defining_polynomials())
                 I0 = R.ideal(0)
                 #Determine the points through elimination
@@ -280,11 +280,11 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                             points = new_points
                     #the dictionary entries now have values for all coordinates
                     #they are the rational solutions to the equations
-                    #make them into projective points
+                    #make them into affine points
                     for i in range(len(points)):
                         if numerical:
                             if len(points[i]) == N:
-                                S = PS([points[i][R.gen(j)] for j in range(N)])
+                                S = AS([points[i][R.gen(j)] for j in range(N)])
                                 if all([g(list(S)) < zero_tol for g in X.defining_polynomials()]):
                                     rat_points.append(S)
                         else:
@@ -318,7 +318,8 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
 
         This is for dimension 0 subschemes only and the points are determined
         through a groebner calculation over the base ring and then numerically
-        approximating the roots of the resulting polynomials.
+        approximating the roots of the resulting polynomials. If the base ring
+        is a number field, the embedding into ``F`` must be known.
 
         INPUT:
 
@@ -355,6 +356,13 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: X = A.subscheme([y^2 - x^2 - 3*x, x^2 - 10*y])
             sage: len(X(QQ).numerical_points(F=ComplexField(100)))
             4
+
+        ::
+
+            sage: A.<x1, x2> = AffineSpace(QQ, 2)
+            sage: E = A.subscheme([30*x1^100 + 1000*x2^2 + 2000*x1*x2 + 1, x1 + x2])
+            sage: len(E(A.base_ring()).numerical_points(F=CDF, zero_tolerance =1e-9))
+            100
 
         TESTS::
 
@@ -433,7 +441,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                             points = new_points
                     #the dictionary entries now have values for all coordinates
                     #they are the rational solutions to the equations
-                    #make them into projective points
+                    #make them into affine points
                     polys = [g.change_ring(F) for g in X.defining_polynomials()]
                     for i in range(len(points)):
                         if len(points[i]) == N:

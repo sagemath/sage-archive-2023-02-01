@@ -542,7 +542,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (1 - x/3).inverse_series_trunc(3)
             ([0.1111111111111111 +/- 5.99e-17])*x^2 + ([0.3333333333333333 +/- 7.04e-17])*x + 1.000000000000000
             sage: x.inverse_series_trunc(1)
-            [+/- inf]
+            nan
             sage: Pol(0).inverse_series_trunc(2)
             (nan + nan*I)*x + nan + nan*I
 
@@ -670,7 +670,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: pol._sqrt_series(2)
             ([+/- 7.51e-3] + [+/- 0.501]*I)*x + [+/- 5.01e-3] + [+/- 1.01]*I
             sage: x._sqrt_series(2)
-            ([+/- inf] + [+/- inf]*I)*x
+            (nan + nan*I)*x
         """
         cdef Polynomial_complex_arb res = self._new()
         if n < 0:

@@ -1992,10 +1992,10 @@ def isogenies_prime_degree_general(E, l):
     # the division polynomial of the same degree, where this degree is
     # a divisor of (l-1)/2, so we keep only such factors:
 
-    l2 = (l-1)//2
-    factors = [h for h,e in psi_l.factor()]
-    factors_by_degree = dict([(d,[f for f in factors if f.degree()==d])
-                              for d in l2.divisors()])
+    l2 = (l - 1) // 2
+    factors = [h for h, _ in psi_l.factor()]
+    factors_by_degree = {d: [f for f in factors if f.degree() == d]
+                         for d in l2.divisors()}
 
     ker = [] # will store all kernel polynomials found
 
@@ -2004,8 +2004,8 @@ def isogenies_prime_degree_general(E, l):
     # we add to the list and remove the factors used.
 
     from sage.misc.all import prod
-    for d in factors_by_degree.keys():
-        if d*len(factors_by_degree[d]) == l2:
+    for d in list(factors_by_degree.keys()):
+        if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
 
     # Exit now if all factors have been used already:

@@ -824,10 +824,21 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
                 return True
         raise TypeError("Coordinates %s do not define a point on %s"%(v,self))
 
-    def rational_points(self, F=None, bound=0):
+    def rational_points(self, **kwds):
         """
         Return the set of rational points on this algebraic scheme
         over the field `F`.
+
+        INPUT:
+
+        kwds:
+
+        - ``bound`` - integer (optional, default=0). The bound for the coordinates for
+          subschemes with dimension at least 1.
+
+        - ``F`` - field (optional, default=base ring). The field to compute
+          the rational points over.
+
 
         EXAMPLES::
 
@@ -837,7 +848,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U = T.complement(S)
             sage: U.rational_points()
             [(2, 4), (3, 2), (4, 2), (5, 4), (6, 1)]
-            sage: U.rational_points(GF(7^2, 'b'))
+            sage: U.rational_points(F=GF(7^2, 'b'))
             [(2, 4), (3, 2), (4, 2), (5, 4), (6, 1), (b, b + 4), (b + 1, 3*b + 5), (b + 2, 5*b + 1),
             (b + 3, 6), (b + 4, 2*b + 6), (b + 5, 4*b + 1), (b + 6, 6*b + 5), (2*b, 4*b + 2),
             (2*b + 1, b + 3), (2*b + 2, 5*b + 6), (2*b + 3, 2*b + 4), (2*b + 4, 6*b + 4),
@@ -849,6 +860,8 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             (5*b + 6, b + 3), (6*b, b + 4), (6*b + 1, 6*b + 5), (6*b + 2, 4*b + 1), (6*b + 3, 2*b + 6),
             (6*b + 4, 6), (6*b + 5, 5*b + 1), (6*b + 6, 3*b + 5)]
         """
+        F = kwds.get('F', None)
+        bound = kwds.get('bound', 0)
         if F is None:
             F = self.base_ring()
 
@@ -1659,9 +1672,53 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
-    def rational_points(self, bound=0, F=None):
+    def rational_points(self, **kwds):
         """
         Return the rational points on the algebraic subscheme.
+
+        For a dimension 0 subscheme, if the base ring is a numerical field
+        such as the ComplexField the results returned could be very far from correct.
+        If the polynomials defining the subscheme are defined over a number field, you
+        will get better results calling rational points with `F` defined as the numberical
+        field and the base ring as the field of definition.
+
+        In the case of numerically aproximated points, the points are returned over as
+        points of the ambient space.
+
+        INPUT:
+
+        kwds:
+
+        - ``bound`` - integer (optional, default=0). The bound for the coordinates for
+          subschemes with dimension at least 1.
+
+        - ``prec`` - integer (optional, default=53). The precision to use to
+          compute the elements of bounded height for number fields.
+
+        - ``F`` - field (optional, default=base ring). The field to compute
+          the rational points over.
+
+        - ``point_tolerance`` - positive real number (optional, default=10^(-10)).
+          For numerically inexact fields, two points are considered the same
+          if their coordinates are within tolerance.
+
+        - ``zero_tolerance`` - positive real number (optional, default=10^(-10)).
+          For numerically inexact fields, points are on the subscheme if they
+          satisfy the equations to within tolerance.
+
+        OUTPUT: list of points in subscheme or ambient space
+
+        .. WARNING::
+
+           In the current implementation, the output of the [Doyle-Krumm] algorithm
+           cannot be guaranteed to be correct due to the necessity of floating point
+           computations. In some cases, the default 53-bit precision is
+           considerably lower than would be required for the algorithm to
+           generate correct output. THis applied to enumeration of points
+           over number field for subschemes of dimension at least 1.
+
+           For numerically inexact fields such as ComplexField or RealField the
+           list of points returned is very likely to be incomplete at best.
 
         EXAMPLES:
 
@@ -1671,7 +1728,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: K.<v> = NumberField(u^2 + 3)
             sage: A.<x,y> = ProjectiveSpace(K,1)
             sage: X=A.subscheme(x^2 - y^2)
-            sage: X.rational_points(3)
+            sage: X.rational_points(bound=3)
             [(-1 : 1), (1 : 1)]
 
         One can enumerate points up to a given bound on a projective scheme
@@ -1700,6 +1757,23 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [(0 : 1 : 0), (0 : 1 : 1), (0 : 6 : 1), (2 : 0 : 1),
              (4 : 0 : 1), (6 : 1 : 1), (6 : 6 : 1)]
 
+        ::
+
+            sage: K.<v> = QuadraticField(-3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: X = P.subscheme([x^2 - v^2*x*z, y*x-v*z^2])
+            sage: X.rational_points(F=CC)
+            [(-3.00000000000000 : -0.577350269189626*I : 1.00000000000000),
+             (0.000000000000000 : 1.00000000000000 : 0.000000000000000)]
+
+        ::
+
+            sage: K.<v> = QuadraticField(3)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: X = A.subscheme([x^2 - v^2*y, y*x-v])
+            sage: X.rational_points(F=RR)
+            [(1.73205080756888, 1.00000000000000)]
+
         .. TODO::
 
             1. The above algorithms enumerate all projective points and
@@ -1710,15 +1784,21 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                resolve singularities and find two points (1 : 1 : 0) and
                (-1 : 1 : 0) at infinity.
         """
-        if F is None:
+        F = kwds.pop('F', None)
+        if F is None: #sometimes None is passed in
             F = self.base_ring()
-        X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
+            X = self.base_extend(F)(F)
             try:
-                return X.points(bound) # checks for proper bound done in points functions
+                return X.points(**kwds) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
+        elif (self.base_ring() in NumberFields() or self.base_ring() == ZZ)\
+          and hasattr(F, 'precision'):
+            #we are numerically approximating number field points
+            return self(self.base_ring()).numerical_points(F=F, **kwds)
         try:
+            X = self.base_extend(F)(F)
             return X.points()
         except TypeError:
             raise TypeError("Unable to enumerate points over %s."%F)

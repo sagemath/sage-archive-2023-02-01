@@ -74,7 +74,7 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range, zip
+from six.moves import range, zip, map, filter
 from six import add_metaclass, text_type
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -6126,7 +6126,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
             return x == []
 
         return (SemistandardTableaux.__contains__(self, x)
-            and sum(map(len,x)) == self.size
+            and sum(map(len, x)) == self.size
             and max(max(row) for row in x) <= self.max_entry)
 
     def random_element(self):
@@ -6340,7 +6340,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SST = SemistandardTableaux([2,1])
             sage: all(sst in SST for sst in SST)
             True
-            sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
+            sage: len([x for x in SemistandardTableaux(3) if x in SST])
             8
             sage: SST.cardinality()
             8
@@ -6508,7 +6508,7 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
             sage: SST = SemistandardTableaux([2,1], [2,1])
             sage: all(sst in SST for sst in SST)
             True
-            sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
+            sage: len([x for x in SemistandardTableaux(3) if x in SST])
             1
             sage: SST.cardinality()
             1
@@ -6940,7 +6940,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
             sage: all([st in ST3 for st in ST3])
             True
             sage: ST4 = RowStandardTableaux(4)
-            sage: filter(lambda x: x in ST3, ST4)
+            sage: [x for x in ST4 if x in ST3]
             []
 
         Check that :trac:`14145` is fixed::
@@ -6993,7 +6993,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
             sage: ST = RowStandardTableaux([2,1,1])
             sage: all([st in ST for st in ST])
             True
-            sage: len(filter(lambda x: x in ST, RowStandardTableaux(4)))
+            sage: len([x for x in RowStandardTableaux(4) if x in ST])
             12
             sage: ST.cardinality()
             12
@@ -7325,7 +7325,7 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: all(st in ST3 for st in ST3)
             True
             sage: ST4 = StandardTableaux(4)
-            sage: filter(lambda x: x in ST3, ST4)
+            sage: [x for x in ST4 if x in ST3]
             []
 
         Check that :trac:`14145` is fixed::
@@ -7489,7 +7489,7 @@ class StandardTableaux_shape(StandardTableaux):
             sage: ST = StandardTableaux([2,1,1])
             sage: all(st in ST for st in ST)
             True
-            sage: len(filter(lambda x: x in ST, StandardTableaux(4)))
+            sage: len([x for x in StandardTableaux(4) if x in ST])
             3
             sage: ST.cardinality()
             3

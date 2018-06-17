@@ -5136,9 +5136,9 @@ class FiniteWord_class(Word_class):
             [1, 3, 6, 4, 5, 2]
             sage: v = Word(p.inverse().action(w)); v
             word: 112223
-            sage: filter(lambda q: q.length() <= p.length() and \
-            ....:       q.inverse().action(w) == list(v), \
-            ....:       Permutations(w.length()) )
+            sage: [q for q in Permutations(w.length())
+            ....:      if q.length() <= p.length() and
+            ....:      q.inverse().action(w) == list(v)]
             [[1, 3, 6, 4, 5, 2]]
 
         ::

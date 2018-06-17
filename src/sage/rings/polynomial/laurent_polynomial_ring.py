@@ -416,7 +416,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
     def ngens(self):
         """
-        Returns the number of generators of self.
+        Return the number of generators of ``self``.
 
         EXAMPLES::
 
@@ -524,7 +524,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
     def construction(self):
         """
-        Returns the construction of self.
+        Return the construction of ``self``.
 
         EXAMPLES::
 
@@ -671,6 +671,16 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             True
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+        """
+        return hash(self._R) ^ 12059065606945654693
 
     def _latex_(self):
         """

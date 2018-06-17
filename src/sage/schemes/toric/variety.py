@@ -656,6 +656,18 @@ class ToricVariety_field(AmbientSpace):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: fan = FaceFan(lattice_polytope.cross_polytope(2))
+            sage: P1xP1 = ToricVariety(fan)
+            sage: h = hash(P1xP1)
+        """
+        return hash((self.fan(), self.variable_names(), self.base_ring()))
+
     def _an_element_(self):
         r"""
         Construct an element of ``self``.

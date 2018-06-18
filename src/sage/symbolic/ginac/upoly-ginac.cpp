@@ -176,14 +176,14 @@ std::pair<ex,ex> quo_rem(const ex &a, const ex &b, const ex &x, bool check_args)
                                     or (not p.second.is_zero()
                                         and not p.second.info(info_flags::posint)); } 
                                     ))
-                        throw std::runtime_error("nonposint exponent in quo()");
+                        throw std::logic_error("nonposint exponent in quo()");
                 if (std::any_of(vec2.begin(), vec2.end(),
                              [](const pair_t& p) {
                                 return not is_exactly_a<numeric>(p.second)
                                     or (not p.second.is_zero()
                                         and not p.second.info(info_flags::posint)); } 
                                     ))
-                        throw std::runtime_error("nonposint exponent in quo()");
+                        throw std::logic_error("nonposint exponent in quo()");
         }
         const auto& mit1 = std::max_element(vec1.begin(), vec1.end(),
                         [](const pair_t& p1, const pair_t& p2) {
@@ -488,6 +488,17 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
 	return false;
 }
 
+// Distribute a factor over all sum terms
+static ex dist(const ex& f, const ex& p)
+{
+        if (not is_exactly_a<add>(p))
+                return mul(f, p);
+        ex s = _ex0;
+        for (size_t i=0; i<p.nops(); ++i)
+                s += f*p.op(i);
+        return s;
+}
+
 /** Compute square-free partial fraction decomposition of rational function
  *  a(x).
  *
@@ -497,18 +508,46 @@ bool divide(const ex &a, const ex &b, ex &q, bool check_args)
  *  @return decomposed rational function */
 ex parfrac(const ex & a, const ex & x)
 {
+        if (is_exactly_a<add>(a)) {
+                ex s = _ex0;
+                for (size_t i=0; i<a.nops(); ++i)
+                        s += parfrac(a.op(i), x);
+                return s;
+        }
+        if (not is_exactly_a<mul>(a))
+                return a;
 	// Find numerator and denominator
 	ex nd = numer_denom(a);
 	ex numer = nd.op(0), denom = nd.op(1);
-
-	// Convert N(x)/D(x) -> Q(x) + R(x)/D(x), so degree(R) < degree(D)
-        const auto& qr = quo_rem(numer, denom, x, false);
-
+        // Expand sum powers
+        if (is_exactly_a<add>(numer))
+                return parfrac(dist(_ex1/denom, numer), x);
+        if (is_exactly_a<power>(numer)
+            and is_exactly_a<add>(numer.op(0))
+            and numer.op(1).info(info_flags::posint))
+                return parfrac(dist(_ex1/denom, numer.expand()), x);
+        if (is_exactly_a<mul>(numer))
+                for (size_t i=0; i<numer.nops(); ++i) {
+                        const ex& t = numer.op(i);
+                        if (is_exactly_a<power>(t)
+                            and is_exactly_a<add>(t.op(0))
+                            and t.op(1).info(info_flags::posint))
+                                return parfrac(dist(_ex1/denom, numer.expand()), x);
+                }
+        std::pair<ex,ex> qr;
+        try {
+        	// Convert N(x)/D(x) -> Q(x) + R(x)/D(x), so degree(R) < degree(D)
+                qr = quo_rem(numer, denom, x, true);
+        }
+        catch (std::logic_error) {
+                return a;
+        }
 	// Factorize denominator and compute cofactors
         ex facmul;
         bool r = factor(denom, facmul);
         if (not r)
-                return qr.first + qr.second/denom;
+                facmul = denom;
+//                return qr.first + qr.second/denom;
         ex oc = _ex1;
 	exvector factor, cofac;
         if (is_exactly_a<mul>(facmul)) {
@@ -520,11 +559,17 @@ ex parfrac(const ex & a, const ex & x)
                                 continue;
                         }
                         if (is_exactly_a<power>(e)) {
-                                size_t expo = ex_to<numeric>(e.op(1)).to_int();
+                                if (not has(e.op(0), x))
+                                        continue;
+                                const ex& ee = e.op(1);
+                                if (not is_exactly_a<numeric>(ee)
+                                    or not ee.is_integer())
+                                        return a;
+                                size_t expo = ex_to<numeric>(ee).to_int();
                                 for (size_t j=1; j<=expo; ++j) {
-                                        ex ee = power(e.op(0), numeric(j));
-                                        factor.push_back(ee);
-                                        cofac.push_back((facmul/ee).expand());
+                                        ex eee = power(e.op(0), numeric(j));
+                                        factor.push_back(eee);
+                                        cofac.push_back((facmul/eee).expand());
                                 }
                         }
                         else {
@@ -533,7 +578,8 @@ ex parfrac(const ex & a, const ex & x)
                         }
                 }
         }
-        else if (is_exactly_a<power>(facmul)) {
+        else if (is_exactly_a<power>(facmul)
+                 and is_exactly_a<numeric>(facmul.op(1))) {
                 size_t expo = ex_to<numeric>(facmul.op(1)).to_int();
                 for (size_t j=1; j<=expo; ++j) {
                         ex ee = power(facmul.op(0), numeric(j));

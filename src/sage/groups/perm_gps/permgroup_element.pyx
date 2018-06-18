@@ -77,6 +77,8 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 
+from sage.libs.gap.element cimport libGAP_Obj, libGAP_INT_INTOBJ, libGAP_ELM_LIST
+
 import operator
 
 from sage.rings.fast_arith cimport arith_llong
@@ -885,6 +887,23 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             j = v[i]
             new.perm[i] = j - 1
         for i from vn <= i < old.n:
+            new.perm[i] = i
+        return new
+
+    cpdef _generate_new_GAP(old, self):
+        cdef libGAP_Obj obj = self.value
+
+        cdef PermutationGroupElement tmp = <PermutationGroupElement> old
+
+        cdef PermutationGroupElement new = tmp._new_c()
+        cdef int i, j, vn = self.__len__()
+
+        assert(vn <= tmp.n)
+
+        for i from 0 <= i < vn:
+            j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
+            new.perm[i] = j-1
+        for i from vn <= i < tmp.n:
             new.perm[i] = i
         return new
 

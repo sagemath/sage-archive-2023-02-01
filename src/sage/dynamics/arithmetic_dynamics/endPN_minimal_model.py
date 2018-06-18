@@ -249,7 +249,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     #See Theorem 3.3.3 in [Molnar, M.Sc thesis]
     H = F-z*minG
     d1 = F.degree()
-    A = AffineSpace(R.base_ring(),1,H.parent().variable_name())
+    A = AffineSpace(BR,1,H.parent().variable_name())
     ubRes = DynamicalSystem_affine([H/minG], domain=A).homogenize(1).resultant()
     #Set the primes to check minimality at, if not already prescribed
     if D is None:

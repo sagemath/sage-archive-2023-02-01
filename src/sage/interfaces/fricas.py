@@ -1152,16 +1152,43 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
 
+        rootOf = dict() # (variable, polynomial)
+        rootOf_ev = dict() # variable -> (complex) algebraic number
+        def convert_rootOf(x, y):
+            if y in rootOf:
+                assert rootOf[y] == x
+            else:
+                rootOf[y] = x
+            return y
+        register_symbol(convert_rootOf, {'fricas':'rootOf'})
+
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
-                        ('::Symbol', ' ')]
+                        ('::Symbol', ' '),
+                        ('%', '_')] # this last one is a workaround - python does not allow % in variable names
         for old, new in replacements:
             s = s.replace(old, new)
-        try:
-            return symbolic_expression_from_string(s, symbol_table["fricas"])
-        except (SyntaxError, TypeError):
-            raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
+        try:
+            ex = symbolic_expression_from_string(s, symbol_table["fricas"])
+        except (SyntaxError, TypeError) as e:
+            raise NotImplementedError("%s: the translation of the FriCAS Expression %s to sage is not yet implemented." %(e,s))
+
+        from sage.rings.all import QQbar, PolynomialRing
+        i = 0
+        while rootOf:
+            (var, poly) = rootOf.items()[i]
+            lv = [v for v in poly.variables() if v not in rootOf_ev]
+            if len(lv) == 1:
+                assert lv[0] == var
+                R = PolynomialRing(QQbar, "x")
+                p = R(poly.subs(rootOf_ev).subs({var:R.gen()}))
+                rootOf_ev[var] = p.roots()[0][0].radical_expression()
+                del rootOf[var]
+                i = 0
+            else:
+                i += 1
+        return ex.subs(rootOf_ev)
 
     def _sage_(self):
         """

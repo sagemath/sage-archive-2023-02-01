@@ -907,7 +907,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         points.
 
         More precisely, given `n` pairs `(x_1, y_1), ..., (x_n, y_n) \in R^2`,
-        where `R` is ``self.base_ring()``, compute a skew polymial `p(x)` such
+        where `R` is ``self.base_ring()``, compute a skew polynomial `p(x)` such
         that `p(x_i) = y_i` for each `i`, under the condition that the `x_i` are
         linearly independent over the fixed field of ``self.twist_map()``.
 

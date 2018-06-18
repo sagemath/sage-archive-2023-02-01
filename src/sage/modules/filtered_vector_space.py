@@ -114,7 +114,7 @@ from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
 from sage.categories.fields import Fields
 from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
-from sage.matrix.constructor import vector, matrix
+from sage.matrix.constructor import matrix
 from sage.misc.all import uniq, cached_method
 
 

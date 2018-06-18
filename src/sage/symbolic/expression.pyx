@@ -1461,7 +1461,7 @@ cdef class Expression(CommutativeRingElement):
             sage: AA(-golden_ratio)
             -1.618033988749895?
             sage: QQbar((2*I)^(1/2))
-            1 + 1*I
+            I + 1
             sage: QQbar(e^(pi*I/3))
             0.50000000000000000? + 0.866025403784439?*I
 
@@ -2496,6 +2496,35 @@ cdef class Expression(CommutativeRingElement):
             False
         """
         return is_a_infinity(self._gobj) and self._gobj.info(info_negative)
+
+
+    def is_square(self):
+        """
+        Returns ``True`` if ``self`` is a perfect square.
+
+        EXAMPLES::
+
+            sage: f(n,m) = n*2 + m
+            sage: f(2,1).is_square()
+            False
+            sage: f(3,3).is_square()
+            True
+            sage: f(n,m).is_square()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for non numeric elements of Symbolic Ring
+            sage: SR(42).is_square()
+            False
+            sage: SR(4).is_square()
+            True
+        """
+        try:
+            obj = self.pyobject()
+        except TypeError as e:
+            raise NotImplementedError("is_square() not implemented for non numeric elements of Symbolic Ring")
+
+        return obj.is_square()
+
 
     def left_hand_side(self):
         """
@@ -3902,11 +3931,11 @@ cdef class Expression(CommutativeRingElement):
             sage: I^(1/2)
             sqrt(I)
             sage: I^(2/3)
-            I^(2/3)
+            -1
             sage: 2^(1/2)
             sqrt(2)
             sage: (2*I)^(1/2)
-            sqrt(2*I)
+            I + 1
 
         Test if we can take powers of elements of `\QQ(i)` (:trac:`8659`)::
 
@@ -7320,7 +7349,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ex = lcm(sin(x)^2 - 1, sin(x)^2 + sin(x)); ex
             (sin(x)^2 + sin(x))*(sin(x)^2 - 1)/(sin(x) + 1)
             sage: ex.simplify_full()
-            -cos(x)^2*sin(x)
+            sin(x)^3 - sin(x)
 
         TESTS:
 
@@ -10182,7 +10211,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f=tan(3*x)
             sage: f.simplify_trig()
-            (4*cos(x)^2 - 1)*sin(x)/(4*cos(x)^3 - 3*cos(x))
+            -(4*cos(x)^2 - 1)*sin(x)/(4*cos(x)*sin(x)^2 - cos(x))
             sage: f.simplify_trig(False)
             sin(3*x)/cos(3*x)
 

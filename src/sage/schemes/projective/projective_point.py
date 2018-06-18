@@ -56,7 +56,7 @@ from sage.schemes.generic.morphism import (SchemeMorphism,
                                            SchemeMorphism_point)
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import rich_to_bool, richcmp, op_EQ, op_NE
+from sage.structure.richcmp import richcmp, op_EQ, op_NE
 
 #*******************************************************************
 # Projective varieties

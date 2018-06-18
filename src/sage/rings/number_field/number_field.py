@@ -2261,7 +2261,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return not self.is_absolute()
 
-
     def quadratic_defect(self, a, p):
         r"""
         Return the valuation of the quadratic defect of `a` at `p`.
@@ -2334,21 +2333,21 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             return v + w
         return Infinity
 
-    @cached_method
     def absolute_field(self, names):
         """
-        Returns self as an absolute extension over QQ.
+        Return ``self`` as an absolute number field.
+
+        INPUT:
+
+        - ``names`` -- string; name of generator of the absolute field
 
         OUTPUT:
 
+        - ``K`` -- this number field (since it is already absolute)
 
-        -  ``K`` - this number field (since it is already
-           absolute)
-
-
-        Also, ``K.structure()`` returns from_K and to_K,
-        where from_K is an isomorphism from K to self and to_K is an
-        isomorphism from self to K.
+        Also, ``K.structure()`` returns ``from_K`` and ``to_K``, where
+        ``from_K`` is an isomorphism from `K` to ``self`` and ``to_K``
+        is an isomorphism from ``self`` to `K`.
 
         EXAMPLES::
 
@@ -3714,13 +3713,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k._is_valid_homomorphism_(k, [a+1])
             False
         """
+        if len(im_gens) != 1:
+            return False
+        # We need that elements of the base ring of the polynomial
+        # ring map canonically into codomain.
+        if not codomain.has_coerce_map_from(QQ):
+            return False
+        f = self.defining_polynomial()
         try:
-            if len(im_gens) != 1:
-                return False
-            # We need that elements of the base ring of the polynomial
-            # ring map canonically into codomain.
-            codomain._coerce_(QQ.one())
-            f = self.defining_polynomial()
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -10599,7 +10599,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         EXAMPLES::
 
             sage: v = CyclotomicField(6)._multiplicative_order_table()
-            sage: w = v.items(); w.sort(); w
+            sage: w = sorted(v.items()); w
             [(-1, 2), (1, 1), (-x, 3), (-x + 1, 6), (x - 1, 3), (x, 6)]
         """
         try:

@@ -1712,7 +1712,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     def group_id(self):
         """
         Return the ID code of this group, which is a list of two integers.
-        Requires "optional" database_gap-4.4.x package.
+        Requires "optional" database_gap package.
 
         EXAMPLES::
 
@@ -1728,8 +1728,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     def id(self):
         """
         (Same as ``self.group_id()``.) Return the ID code of this group, which
-        is a list of two integers. Requires "optional" database_gap-4.4.x
-        package.
+        is a list of two integers. Requires "optional" database_gap package.
 
         EXAMPLES::
 
@@ -1743,7 +1742,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         Return the index of this group in the GAP database of primitive groups.
 
-        Requires "optional" database_gap-4.4.x package.
+        Requires "optional" database_gap package.
 
         OUTPUT:
 
@@ -1771,8 +1770,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         if not self.is_primitive():
             raise ValueError('Group is not primitive')
 
-        from sage.features.gap import GapPackage
-        GapPackage("prim", spkg="database_gap").require()
+        from sage.features.gap import PrimitiveGroupsLibrary
+        PrimitiveGroupsLibrary().require()
 
         return Integer(self._gap_().PrimitiveIdentification())
 

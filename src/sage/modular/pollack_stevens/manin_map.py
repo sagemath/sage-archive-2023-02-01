@@ -47,13 +47,10 @@ from six import itervalues, iteritems
 from six.moves import range
 
 from sage.rings.continued_fraction import convergents
-from sage.misc.misc import verbose
 from .sigma0 import Sigma0
 from .fund_domain import t00, t10, t01, t11, M2Z
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
-from sage.parallel.decorate import parallel
-from operator import methodcaller
 
 
 def unimod_matrices_to_infty(r, s):

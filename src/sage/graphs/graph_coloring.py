@@ -53,6 +53,7 @@ Methods
 #*****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
+from six import itervalues
 from six.moves import range
 
 from copy import copy
@@ -266,7 +267,7 @@ def first_coloring(G, n=0, hex_colors=False):
             if hex_colors:
                 return C
             else:
-                return C.values()
+                return list(itervalues(C))
 
 def number_of_n_colorings(G,n):
     r"""
@@ -563,7 +564,7 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver = None
                 p.solve(objective_only=True, log=verbose)
                 return True
             else:
-                chi = p.solve(log=verbose)
+                p.solve(log=verbose)
         except MIPSolverException:
             return False
 
@@ -1407,9 +1408,10 @@ def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solv
                 add((u,v),i)
 
     if hex_colors:
-        return dict(zip(rainbow(len(classes)),classes))
+        return dict(zip(rainbow(len(classes)), classes))
     else:
         return answer
+
 
 def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0, solver = None, verbose = 0):
     r"""

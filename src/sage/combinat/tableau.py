@@ -15,6 +15,8 @@ AUTHORS:
 - Travis Scrimshaw (11-22-2012): Added tuple options, changed ``*katabolism*``
   to ``*catabolism*``. Cleaned up documentation.
 
+- Andrew Mathas (2016-08-11): Row standard tableaux added
+
 This file consists of the following major classes:
 
 Element classes:
@@ -22,12 +24,14 @@ Element classes:
 * :class:`Tableau`
 * :class:`SemistandardTableau`
 * :class:`StandardTableau`
+* :class:`RowStandardTableau`
 
 Factory classes:
 
 * :class:`Tableaux`
 * :class:`SemistandardTableaux`
 * :class:`StandardTableaux`
+* :class:`RowStandardTableaux`
 
 Parent classes:
 
@@ -43,6 +47,9 @@ Parent classes:
 * :class:`StandardTableaux_all` (facade class)
 * :class:`StandardTableaux_size`
 * :class:`StandardTableaux_shape`
+* :class:`RowStandardTableaux_all` (facade class)
+* :class:`RowStandardTableaux_size`
+* :class:`RowStandardTableaux_shape`
 
 For display options, see :meth:`Tableaux.options`.
 
@@ -77,6 +84,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
@@ -86,15 +94,17 @@ from sage.combinat.composition import Composition, Compositions
 from sage.combinat.integer_vector import IntegerVectors, integer_vectors_nk_fast_iter
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
-from . import permutation
+from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
+
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.posets.posets import Poset
 
-
+@richcmp_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class Tableau(ClonableList):
     """
@@ -123,7 +133,7 @@ class Tableau(ClonableList):
         [[1, 2, 3], [4, 5]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         1 2 3
         4 5
         sage: t.is_standard()
@@ -191,7 +201,7 @@ class Tableau(ClonableList):
 
         return Tableaux_all().element_class(Tableaux_all(), t)
 
-    def __init__(self, parent, t):
+    def __init__(self, parent, t, check=True):
         r"""
         Initialize a tableau.
 
@@ -227,31 +237,31 @@ class Tableau(ClonableList):
         """
         if isinstance(t, Tableau):
             # Since we are (supposed to be) immutable, we can share the underlying data
-            ClonableList.__init__(self, parent, t)
+            ClonableList.__init__(self, parent, t, check=False)
             return
 
         # Normalize t to be a list of tuples.
         t = [tuple(_) for _ in t]
 
-        ClonableList.__init__(self, parent, t)
+        ClonableList.__init__(self, parent, t, check=check)
         # This dispatches the input verification to the :meth:`check`
         # method.
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Check whether ``self`` is equal to ``other``.
+        Compare ``self`` to ``other``.
 
         .. TODO::
 
-            This overwrites the equality check of
+            This overwrites the comparison check of
             :class:`~sage.structure.list_clone.ClonableList`
             in order to circumvent the coercion framework.
             Eventually this should be solved more elegantly,
             for example along the lines of what was done for
             `k`-tableaux.
 
-            For now, two elements are equal if their underlying
-            defining lists compare equal.
+            For now, this compares two elements by their underlying
+            defining lists.
 
         INPUT:
 
@@ -268,36 +278,22 @@ class Tableau(ClonableList):
             False
             sage: t == Tableaux(2)([[1,2]])
             True
-        """
-        if isinstance(other, Tableau):
-            return list(self) == list(other)
-        else:
-            return list(self) == other
 
-    def __ne__(self, other):
-        r"""
-        Check whether ``self`` is unequal to ``other``.
+            sage: s = Tableau([[2,3],[1]])
+            sage: s != []
+            True
 
-        See the documentation of :meth:`__eq__`.
-
-        INPUT:
-
-        ``other`` -- the element that ``self`` is compared to
-
-        OUTPUT:
-
-        A Boolean.
-
-        TESTS::
-
-            sage: t = Tableau([[2,3],[1]])
-            sage: t != []
+            sage: t < s
+            True
+            sage: s < t
+            False
+            sage: s > t
             True
         """
         if isinstance(other, Tableau):
-            return list(self) != list(other)
+            return richcmp(list(self), list(other), op)
         else:
-            return list(self) != other
+            return richcmp(list(self), other, op)
 
     def __hash__(self):
         """
@@ -320,7 +316,7 @@ class Tableau(ClonableList):
             sage: t = Tableau([[1,1],[2]])
             sage: t.check()
 
-            sage: t = Tableau([[None, None, 1], [2, 4], [3, 4, 5]])
+            sage: t = Tableau([[None, None, 1], [2, 4], [3, 4, 5]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: A tableau must be a list of iterables of weakly decreasing length.
@@ -741,7 +737,7 @@ class Tableau(ClonableList):
         """
         if len(self) == 0:
             return "{\\emptyset}"
-        from .output import tex_from_array
+        from sage.combinat.output import tex_from_array
         return tex_from_array(self)
 
     def __truediv__(self, t):
@@ -761,10 +757,10 @@ class Tableau(ClonableList):
             ...
             ValueError: the shape of the tableau must contain the partition
         """
-        from sage.combinat.partition import Partition
+        from sage.combinat.partition import _Partitions
         #if t is a list, convert it to a partition first
         if isinstance(t, list):
-            t = Partition(t)
+            t = _Partitions(t)
 
         #Check to make sure that tableau shape contains t
         if not self.shape().contains(t):
@@ -910,7 +906,7 @@ class Tableau(ClonableList):
 
     def pp(self):
         """
-        Returns a pretty print string of the tableau.
+        Pretty print a string of the tableau.
 
         EXAMPLES::
 
@@ -3877,7 +3873,7 @@ class Tableau(ClonableList):
 
     def degree(self, e, multicharge=(0,)):
         """
-        Return the Brundan-Kleshchev-Wang [BKW11]_ degree of ``self``.
+        Return the Brundan-Kleshchev-Wang [BKW2011]_ degree of ``self``.
 
         The *degree* is an integer that is defined recursively by successively
         stripping off the number `k`, for `k = n, n-1, \ldots, 1` and at stage
@@ -3904,11 +3900,6 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
             1
 
-        REFERENCES:
-
-        .. [BKW11] \J. Brundan, A. Kleshchev, and W. Wang,
-           *Graded Specht modules*,
-           J. Reine Angew. Math., 655 (2011), 61-87.
         """
         n = self.size()
         if n == 0:
@@ -3926,7 +3917,7 @@ class Tableau(ClonableList):
 
     def codegree(self, e, multicharge=(0,)):
         """
-        Return the Brundan-Kleshchev-Wang [BKW11]_ codegree of the
+        Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of the
         standard tableau ``self``.
 
         The *coderee* of a tableau is an integer that is defined recursively by
@@ -3957,11 +3948,6 @@ class Tableau(ClonableList):
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
             0
 
-        REFERENCES:
-
-        - [BKW11]_ \J. Brundan, A. Kleshchev, and W. Wang,
-          *Graded Specht modules*,
-          J. Reine Angew. Math., 655 (2011), 61-87.
         """
         if not self:  # the trivial case
             return 0
@@ -4297,7 +4283,7 @@ class SemistandardTableau(Tableau):
         [[1, 2, 3], [2, 3]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         1 2 3
         2 3
         sage: t = Tableau([[1,2],[2]])
@@ -4324,20 +4310,21 @@ class SemistandardTableau(Tableau):
 
     TESTS::
 
-        sage: SemistandardTableau([[1,2,3],[1]])
-        Traceback (most recent call last):
-        ...
-        ValueError: [[1, 2, 3], [1]] is not a column strict tableau
-
-        sage: SemistandardTableau([[1,2,1]])
-        Traceback (most recent call last):
-        ...
-        ValueError: The rows of [[1, 2, 1]] are not weakly increasing
-
-        sage: SemistandardTableau([[0,1]])
-        Traceback (most recent call last):
-        ...
-        ValueError: entries must be positive integers
+        sage: t = Tableaux()([[1,1],[2]])
+        sage: s = SemistandardTableaux(3)([[1,1],[2]])
+        sage: s == t
+        True
+        sage: s.parent()
+        Semistandard tableaux of size 3 and maximum entry 3
+        sage: r = SemistandardTableaux(3)(t); r.parent()
+        Semistandard tableaux of size 3 and maximum entry 3
+        sage: isinstance(r, Tableau)
+        True
+        sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
+        sage: s2 == s
+        True
+        sage: s2.parent()
+        Semistandard tableaux of size 3 and maximum entry 3
     """
     @staticmethod
     def __classcall_private__(self, t):
@@ -4366,39 +4353,37 @@ class SemistandardTableau(Tableau):
         if t not in Tableaux():
             raise ValueError('%s is not a tableau' % t)
 
-        if not all(isinstance(c,(int,Integer)) and c>0 for row in t for c in row):
+        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
             raise ValueError("entries must be positive integers"%t)
 
-        if any(row[c]>row[c+1] for row in t for c in range(len(row)-1)):
+        if any(row[c] > row[c+1] for row in t for c in range(len(row)-1)):
             raise ValueError("The rows of %s are not weakly increasing"%t)
 
         # If we're still here ``t`` cannot be column strict
         raise ValueError('%s is not a column strict tableau' % t)
 
-
-    def __init__(self, parent, t):
-        r"""
-        Initialize a semistandard tableau.
+    def check(self):
+        """
+        Check that ``self`` is a valid semistandard tableau.
 
         TESTS::
 
-            sage: t = Tableaux()([[1,1],[2]])
-            sage: s = SemistandardTableaux(3)([[1,1],[2]])
-            sage: s==t
-            True
-            sage: s.parent()
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: r = SemistandardTableaux(3)(t); r.parent()
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: isinstance(r, Tableau)
-            True
-            sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
-            sage: s2 == s
-            True
-            sage: s2.parent()
-            Semistandard tableaux of size 3 and maximum entry 3
+            sage: SemistandardTableau([[1,2,3],[1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 2, 3], [1]] is not a column strict tableau
+
+            sage: SemistandardTableau([[1,2,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: The rows of [[1, 2, 1]] are not weakly increasing
+
+            sage: SemistandardTableau([[0,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: entries must be positive integers
         """
-        super(SemistandardTableau, self).__init__(parent, t)
+        super(SemistandardTableau, self).check()
 
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers which are weakly increasing
@@ -4406,17 +4391,131 @@ class SemistandardTableau(Tableau):
         from sage.sets.positive_integers import PositiveIntegers
         PI = PositiveIntegers()
 
-        for row in t:
+        for row in self:
             if any(c not in PI for c in row):
                 raise ValueError("the entries of a semistandard tableau must be non-negative integers")
             if any(row[c] > row[c+1] for c in range(len(row)-1)):
                 raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
-        if t:
-            for row, next in zip(t, t[1:]):
+        if self:
+            for row, next in zip(self, self[1:]):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
+
+class RowStandardTableau(Tableau):
+    """
+    A class to model a row standard tableau.
+
+    A row standard tableau is a tableau whose entries are
+    positive integers from 1 to `m` that increase along rows.
+
+    INPUT:
+
+    - ``t`` -- a Tableau, a list of iterables, or an empty list
+
+    EXAMPLES::
+
+        sage: t = RowStandardTableau([[3,4,5],[1,2]]); t
+        [[3, 4, 5], [1, 2]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.pp() # pretty printing
+        3  4  5
+        1  2
+        sage: t.is_standard()
+        False
+        sage: RowStandardTableau([]) # The empty tableau
+        []
+        sage: RowStandardTableau([[3,4,5],[1,2]]) in StandardTableaux()
+        False
+        sage: RowStandardTableau([[1,2,5],[3,4]]) in StandardTableaux()
+        True
+
+    When using code that will generate a lot of tableaux, it is more
+    efficient to construct a :class:`RowStandardTableau` from the
+    appropriate :class:`Parent` object::
+
+        sage: ST = RowStandardTableaux()
+        sage: ST([[3, 4, 5], [1, 2]])
+        [[3, 4, 5], [1, 2]]
+
+    .. SEEALSO::
+
+        - :class:`Tableau`
+        - :class:`StandardTableau`
+        - :class:`SemistandardTableau`
+        - :class:`Tableaux`
+        - :class:`StandardTableaux`
+        - :class:`RowStandardTableaux`
+        - :class:`SemistandardTableaux`
+
+    TESTS::
+
+        sage: t = Tableaux()([[1,2],[3]])
+        sage: s = RowStandardTableaux(3)([[1,2],[3]])
+        sage: s == t
+        True
+        sage: u = RowStandardTableaux(3)([[2, 3], [1]])
+        sage: s == u
+        False
+        sage: u.parent()
+        Row standard tableaux of size 3
+        sage: u = RowStandardTableaux(3)(u);
+        sage: u.parent()
+        Row standard tableaux of size 3
+        sage: isinstance(u, Tableau)
+        True
+    """
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        This ensures that a :class:`RowStandardTableau` is only
+        constructed as an ``element_class`` call of an appropriate parent.
+
+        TESTS::
+
+            sage: t = RowStandardTableau([[2,3],[1]])
+            sage: TestSuite(t).run()
+
+            sage: t.parent()
+            Row standard tableaux
+            sage: type(t)
+            <class 'sage.combinat.tableau.RowStandardTableaux_all_with_category.element_class'>
+        """
+        if isinstance(t, RowStandardTableau):
+            return t
+
+        RST = RowStandardTableaux_all()
+        return RST.element_class(RST, t)
+
+    def check(self):
+        r"""
+        Check that ``self`` is a valid row standard tableau.
+
+        TESTS::
+
+            sage: RowStandardTableau([[1,4,4],[2,3]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries in a row standard tableau must increase
+             along rows and contain the numbers 1,2,...,n
+
+            sage: RowStandardTableau([[1,3,2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries in a row standard tableau must increase
+             along rows and contain the numbers 1,2,...,n
+        """
+        super(RowStandardTableau, self).check()
+        # We have checked that t is tableau, so it remains to check that
+        #   the entries of t are positive integers that increase along rows.
+        flatx = sorted(sum((list(row) for row in self), []))
+        if (flatx != list(range(1, len(flatx)+1))
+            or any(row[i] >= row[i+1] for row in self for i in range(len(row)-1))):
+            raise ValueError("the entries in a row standard tableau must increase"
+                             " along rows and contain the numbers 1,2,...,n")
+
 
 class StandardTableau(SemistandardTableau):
     """
@@ -4425,10 +4524,6 @@ class StandardTableau(SemistandardTableau):
     INPUT:
 
     - ``t`` -- a Tableau, a list of iterables, or an empty list
-
-    OUTPUT:
-
-    - A StandardTableau object constructed from ``t``.
 
     A standard tableau is a semistandard tableau whose entries are exactly the
     positive integers from 1 to `n`, where `n` is the size of the tableau.
@@ -4439,15 +4534,17 @@ class StandardTableau(SemistandardTableau):
         [[1, 2, 3], [4, 5]]
         sage: t.shape()
         [3, 2]
-        sage: t.pp() # pretty print
+        sage: t.pp() # pretty printing
         1 2 3
         4 5
         sage: t.is_standard()
         True
         sage: StandardTableau([]) # The empty tableau
         []
+        sage: StandardTableau([[1,2,3],[4,5]]) in RowStandardTableaux()
+        True
 
-    When using code that will generate a lot of tableaux, it is slightly more
+    When using code that will generate a lot of tableaux, it is more
     efficient to construct a StandardTableau from the appropriate
     :class:`Parent` object::
 
@@ -4463,14 +4560,18 @@ class StandardTableau(SemistandardTableau):
         - :class:`SemistandardTableau`
         - :class:`StandardTableaux`
 
-        sage: StandardTableau([[1,2,3],[4,4]])
-        Traceback (most recent call last):
-        ...
-        ValueError: the entries in a standard tableau must be in bijection with 1,2,...,n
-        sage: StandardTableau([[1,3,2]])
-        Traceback (most recent call last):
-        ...
-        ValueError: the entries in each row of a semistandard tableau must be weakly increasing
+    TESTS::
+
+        sage: t = Tableaux()([[1,2],[3]])
+        sage: s = StandardTableaux(3)([[1,2],[3]])
+        sage: s == t
+        True
+        sage: s.parent()
+        Standard tableaux of size 3
+        sage: r = StandardTableaux(3)(t); r.parent()
+        Standard tableaux of size 3
+        sage: isinstance(r, Tableau)
+        True
     """
     @staticmethod
     def __classcall_private__(self, t):
@@ -4493,25 +4594,23 @@ class StandardTableau(SemistandardTableau):
 
         return StandardTableaux_all().element_class(StandardTableaux_all(), t)
 
-    def __init__(self, parent, t):
-        r"""
-        Initializes a standard tableau.
+    def check(self):
+        """
+        Check that ``self`` is a standard tableau.
 
         TESTS::
 
-            sage: t = Tableaux()([[1,2],[3]])
-            sage: s = StandardTableaux(3)([[1,2],[3]])
-            sage: s==t
-            True
-            sage: s.parent()
-            Standard tableaux of size 3
-            sage: r = StandardTableaux(3)(t); r.parent()
-            Standard tableaux of size 3
-            sage: isinstance(r, Tableau)
-            True
-        """
-        super(StandardTableau, self).__init__(parent, t)
+            sage: StandardTableau([[1,2,3],[4,4]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries in a standard tableau must be in bijection with 1,2,...,n
 
+            sage: StandardTableau([[1,3,2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries in each row of a semistandard tableau must be weakly increasing
+        """
+        super(StandardTableau, self).check()
         # t is semistandard so we only need to check
         # that its entries are in bijection with {1, 2, ..., n}
         flattened_list = [i for row in self for i in row]
@@ -4788,6 +4887,7 @@ class StandardTableau(SemistandardTableau):
         if n is None:
             n = self.size() - 1
         return StandardTableau(Tableau(self[:]).promotion(n))
+
 
 def from_chain(chain):
     """
@@ -5709,15 +5809,15 @@ class SemistandardTableaux(Tableaux):
 class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets):
     """
     All semistandard tableaux.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
     """
     def __init__(self, max_entry=None):
         r"""
         Initializes the class of all semistandard tableaux.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
@@ -5767,16 +5867,16 @@ class SemistandardTableaux_all(SemistandardTableaux, DisjointUnionEnumeratedSets
 class SemistandardTableaux_size_inf(SemistandardTableaux):
     """
     Semistandard tableaux of fixed size `n` with no maximum entry.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
     """
     def __init__(self, n):
         r"""
         Initializes the class of semistandard tableaux of size ``n`` with no
         maximum entry.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
@@ -5870,16 +5970,16 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
 class SemistandardTableaux_shape_inf(SemistandardTableaux):
     """
     Semistandard tableaux of fixed shape `p` and no maximum entry.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
     """
     def __init__(self, p):
         r"""
         Initializes the class of semistandard tableaux of shape ``p`` and no
         maximum entry.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
@@ -5889,7 +5989,7 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
             sage: TestSuite(SST).run()
         """
         super(SemistandardTableaux_shape_inf, self).__init__(
-              category = InfiniteEnumeratedSets())
+              category=InfiniteEnumeratedSets())
         self.shape = p
 
 
@@ -5960,15 +6060,15 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
 class SemistandardTableaux_size(SemistandardTableaux):
     """
     Semistandard tableaux of fixed size `n`.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux`
-        to ensure the options are properly parsed.
     """
     def __init__(self, n, max_entry=None):
         r"""
         Initializes the class of semistandard tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux`
+            to ensure the options are properly parsed.
 
         TESTS::
 
@@ -5986,8 +6086,8 @@ class SemistandardTableaux_size(SemistandardTableaux):
 
         if max_entry is None:
             max_entry = n
-        super(SemistandardTableaux_size, self).__init__(max_entry = max_entry,
-                  category = FiniteEnumeratedSets())
+        super(SemistandardTableaux_size, self).__init__(max_entry=max_entry,
+                  category=FiniteEnumeratedSets())
         self.size = n
 
     def _repr_(self):
@@ -6161,19 +6261,18 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
     INPUT:
 
-    - ``p`` -- A partition
-
-    - ``max_entry`` -- The max entry; defaults to the size of ``p``.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
+    - ``p`` -- a partition
+    - ``max_entry`` -- the max entry; defaults to the size of ``p``
     """
     def __init__(self, p, max_entry=None):
         r"""
         Initializes the class of semistandard tableaux of shape ``p``, with a
         given ``max_entry``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
@@ -6185,8 +6284,8 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         """
         if max_entry is None:
             max_entry = sum(p)
-        super(SemistandardTableaux_shape, self).__init__(max_entry = max_entry,
-              category = FiniteEnumeratedSets())
+        super(SemistandardTableaux_shape, self).__init__(max_entry=max_entry,
+              category=FiniteEnumeratedSets())
         self.shape = p
 
     def __iter__(self):
@@ -6270,32 +6369,26 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         """
         Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
 
-        Uses the algorithm from [Krat99]_ based on the Novelli-Pak-Stoyanovskii bijection
+        Uses the algorithm from [Kra1999]_ based on the Novelli-Pak-Stoyanovskii bijection
 
         EXAMPLES::
 
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
             sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
             [[1, 1], [2, 3], [3], [5]]
             sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
             [[1, 4], [5, 5], [6], [7]]
 
-
-        REFERENCES:
-
-        .. [Krat99] \C. Krattenthaler,
-           *Another Involution Principle-Free Bijective Proof of Stanley's Hook Content Formula*,
-           Journal of Combinatorial Theory, Series A vol 88 Issue 1 (1999), 66-92,
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
         """
         from sage.misc.prandom import randint
-        from sage.combinat.partition import Partition
+        from sage.combinat.partition import _Partitions
         with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
         t = [[self.max_entry+1]*i for i in with_sentinels]
         for i,l in enumerate(self.shape):
             for j in range(l):
                 content = j - i
                 t[i][j] = randint(1 - content, self.max_entry)
-        conj = Partition(self.shape).conjugate()
+        conj = self.shape.conjugate()
         for i in range(len(conj) - 1, -1, -1):
             for j in range(conj[i] - 1, -1, -1):
                 row = j
@@ -6380,16 +6473,16 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
     r"""
     Semistandard tableaux of fixed shape `p` and weight `\mu`.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
     """
     def __init__(self, p, mu):
         r"""
         Initializes the class of all semistandard tableaux of shape ``p`` and
         weight ``mu``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
@@ -6496,16 +6589,16 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
 class SemistandardTableaux_size_weight(SemistandardTableaux):
     r"""
     Semistandard tableaux of fixed size `n` and weight `\mu`.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
     """
     def __init__(self, n, mu):
         r"""
         Initializes the class of semistandard tableaux of size ``n`` and
         weight ``mu``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
@@ -6513,7 +6606,7 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: TestSuite(SST).run()
         """
         super(SemistandardTableaux_size_weight, self).__init__(max_entry=len(mu),
-              category = FiniteEnumeratedSets())
+              category=FiniteEnumeratedSets())
         self.size = n
         self.weight = mu
 
@@ -6574,6 +6667,415 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
         from sage.combinat.partition import Partition
         return x in SemistandardTableaux_shape_weight(Partition(
             [len(_) for _ in x]), self.weight)
+
+
+#########################
+# Row standard Tableaux #
+#########################
+
+class RowStandardTableaux(Tableaux):
+    r"""
+    A factory for the various classes of row standard tableaux.
+
+    INPUT:
+
+    - either a non-negative integer (possibly specified with the keyword
+      ``n``) or a partition
+
+    OUTPUT:
+
+    - with no argument, the class of all standard tableaux
+
+    - with a non-negative integer argument, ``n``, the class of all standard
+      tableaux of size ``n``
+
+    - with a partition argument, the class of all standard tableaux of that
+      shape
+
+    A row standard tableau is a tableaux that contains each of the
+    entries from `1` to `n` exactly once and is increasing along rows.
+
+    All classes of row standard tableaux are iterable.
+
+    EXAMPLES::
+
+        sage: ST = RowStandardTableaux(3); ST
+        Row standard tableaux of size 3
+        sage: ST.first()
+        [[1, 2, 3]]
+        sage: ST.last()
+        [[1], [2], [3]]
+        sage: ST.cardinality()
+        10
+        sage: ST.list()
+        [[[1, 2, 3]],
+         [[2, 3], [1]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[3], [2], [1]],
+         [[2], [3], [1]],
+         [[3], [1], [2]],
+         [[2], [1], [3]],
+         [[1], [3], [2]],
+         [[1], [2], [3]]]
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableaux`
+        - :class:`SemistandardTableau`
+        - :class:`RowStandardTableau`
+        - :class:`StandardSkewTableaux`
+
+    TESTS::
+
+        sage: RowStandardTableaux()([])
+        []
+        sage: ST = RowStandardTableaux([2,2]); ST
+        Row standard tableaux of shape [2, 2]
+        sage: ST.first()
+        [[3, 4], [1, 2]]
+        sage: ST.last()
+        [[1, 2], [3, 4]]
+        sage: ST.cardinality()
+        6
+        sage: ST.list()
+        [[[3, 4], [1, 2]],
+         [[2, 4], [1, 3]],
+         [[2, 3], [1, 4]],
+         [[1, 4], [2, 3]],
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]]]
+        sage: RowStandardTableau([[3,4,5],[1,2]]).residue_sequence(3).standard_tableaux()
+        Standard tableaux with 3-residue sequence (2,0,0,1,2) and multicharge (0)
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`RowStandardTableaux` for
+        more information.
+
+        TESTS::
+
+            sage: RowStandardTableaux()
+            Row standard tableaux
+            sage: RowStandardTableaux(3)
+            Row standard tableaux of size 3
+            sage: RowStandardTableaux([2,1])
+            Row standard tableaux of shape [2, 1]
+            sage: RowStandardTableaux(0)
+            Row standard tableaux of size 0
+
+            sage: RowStandardTableaux(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the argument must be a non-negative integer or a partition
+            sage: RowStandardTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the argument must be a non-negative integer or a partition
+        """
+        from sage.combinat.partition import _Partitions
+        from sage.combinat.skew_partition import SkewPartitions
+
+        if args:
+            n = args[0]
+        elif 'n' in kwargs:
+            n = kwargs[n]
+        else:
+            n = None
+
+        if n is None:
+            return RowStandardTableaux_all()
+
+        elif n in _Partitions:
+            return RowStandardTableaux_shape(_Partitions(n))
+
+        elif n in SkewPartitions():
+            #from sage.combinat.skew_tableau import RowStandardSkewTableaux
+            #return RowStandardSkewTableaux(n)
+            raise NotImplementedError("row standard skew tableaux not yet implemented")
+
+        if not isinstance(n, (int, Integer)) or n < 0:
+            raise ValueError("the argument must be a non-negative integer or a partition")
+
+        return RowStandardTableaux_size(n)
+
+    Element = RowStandardTableau
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: [[1,1],[2,3]] in RowStandardTableaux()
+            False
+            sage: [[1,2],[3,4]] in RowStandardTableaux()
+            True
+            sage: [[1,3],[2,4]] in RowStandardTableaux()
+            True
+            sage: [[1,3],[2,5]] in RowStandardTableaux()
+            False
+            sage: [] in RowStandardTableaux()
+            True
+
+        Check that integers are not contained in ``self``
+        (see :trac:`14145`)::
+
+            sage: 1 in RowStandardTableaux()
+            False
+        """
+        if isinstance(x, RowStandardTableau):
+            return True
+        elif Tableaux.__contains__(self, x):
+            flatx = sorted(sum((list(row) for row in x),[]))
+            return ( flatx == list(range(1,len(flatx)+1))
+                     and all(row[i] < row[i+1] for row in x for i in range(len(row)-1)) )
+        return False
+
+class RowStandardTableaux_all(RowStandardTableaux, DisjointUnionEnumeratedSets):
+    """
+    All row standard tableaux.
+    """
+    def __init__(self):
+        r"""
+        Initializes the class of all standard tableaux.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`RowStandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: ST = RowStandardTableaux()
+            sage: TestSuite(ST).run()
+        """
+        RowStandardTableaux.__init__(self)
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(NonNegativeIntegers(), RowStandardTableaux_size),
+                                             facade=True, keepkey=False)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(RowStandardTableaux())    # indirect doctest
+            'Row standard tableaux'
+        """
+        return "Row standard tableaux"
+
+
+class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets):
+    """
+    Row standard tableaux of fixed size `n`.
+
+    EXAMPLES::
+
+        sage: [ t for t in RowStandardTableaux(1) ]
+        [[[1]]]
+        sage: [ t for t in RowStandardTableaux(2) ]
+        [[[1, 2]], [[2], [1]], [[1], [2]]]
+        sage: RowStandardTableaux(3)[:]
+        [[[1, 2, 3]],
+         [[2, 3], [1]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[3], [2], [1]],
+         [[2], [3], [1]],
+         [[3], [1], [2]],
+         [[2], [1], [3]],
+         [[1], [3], [2]],
+         [[1], [2], [3]]]
+
+    TESTS::
+
+        sage: TestSuite( RowStandardTableaux(4) ).run()
+
+        sage: RowStandardTableaux(3).cardinality()
+        10
+        sage: ns = [1,2,3,4,5,6]
+        sage: sts = [RowStandardTableaux(n) for n in ns]
+        sage: all([st.cardinality() == len(st.list()) for st in sts])
+        True
+        sage: RowStandardTableaux(40).cardinality()  # long time
+        2063837185739279909309355007659204891024472174278
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of all row standard tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`RowStandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: TestSuite( RowStandardTableaux(0) ).run()
+            sage: TestSuite( RowStandardTableaux(3) ).run()
+        """
+        RowStandardTableaux.__init__(self)
+        from sage.combinat.partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(Partitions_n(n), RowStandardTableaux_shape),
+                                             facade=True, keepkey=False)
+        self._size = Integer(n)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: RowStandardTableaux(3)
+            Row standard tableaux of size 3
+        """
+        return "Row standard tableaux of size %s" % self._size
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: ST3 = RowStandardTableaux(3)
+            sage: all([st in ST3 for st in ST3])
+            True
+            sage: ST4 = RowStandardTableaux(4)
+            sage: filter(lambda x: x in ST3, ST4)
+            []
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in RowStandardTableaux(4)
+            False
+        """
+        return RowStandardTableaux.__contains__(self, x) and sum(map(len, x)) == self._size
+
+    def an_element(self):
+        r"""
+        Returns a particular element of the class.
+
+        EXAMPLES::
+
+            sage: RowStandardTableaux(4).an_element()
+            [[1, 2, 3, 4]]
+        """
+        if self._size == 0:
+            return self.element_class(self, [])
+        elif self._size == 1:
+            return self.element_class(self, [[1]])
+        else:
+            return self.element_class(self, [range(1,self._size+1)])
+
+class RowStandardTableaux_shape(RowStandardTableaux):
+    """
+    Row Standard tableaux of a fixed shape `p`.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of all row standard tableaux of a given shape.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`RowStandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: TestSuite( RowStandardTableaux([2,1,1]) ).run()
+        """
+        super(RowStandardTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
+        self.shape = p
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: ST = RowStandardTableaux([2,1,1])
+            sage: all([st in ST for st in ST])
+            True
+            sage: len(filter(lambda x: x in ST, RowStandardTableaux(4)))
+            12
+            sage: ST.cardinality()
+            12
+        """
+        return RowStandardTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: RowStandardTableaux([2,1,1])
+            Row standard tableaux of shape [2, 1, 1]
+        """
+        return "Row standard tableaux of shape {}".format(self.shape)
+
+    def __iter__(self):
+        r"""
+        An iterator for the row standard Young tableaux associated to the
+        shape `p` of ``self``.
+
+        EXAMPLES::
+
+            sage: [t for t in RowStandardTableaux([2,2])]
+            [[[3, 4], [1, 2]],
+             [[2, 4], [1, 3]],
+             [[2, 3], [1, 4]],
+             [[1, 4], [2, 3]],
+             [[1, 3], [2, 4]],
+             [[1, 2], [3, 4]]]
+            sage: [t for t in RowStandardTableaux([3,2])]
+            [[[3, 4, 5], [1, 2]],
+             [[2, 4, 5], [1, 3]],
+             [[2, 3, 5], [1, 4]],
+             [[2, 3, 4], [1, 5]],
+             [[1, 4, 5], [2, 3]],
+             [[1, 3, 5], [2, 4]],
+             [[1, 3, 4], [2, 5]],
+             [[1, 2, 5], [3, 4]],
+             [[1, 2, 4], [3, 5]],
+             [[1, 2, 3], [4, 5]]]
+            sage: st = RowStandardTableaux([2,1])
+            sage: st[0].parent() is st
+            True
+        """
+        partial_sums = [sum(self.shape[:i]) for i in range(len(self.shape)+1)]
+
+        # convert self.shape into a poset
+        relations = []
+        m = 1
+        for row in self.shape:
+            relations += [(m+i,m+i+1) for i in range(row-1)]
+            m += row
+
+        # now run through the linear extensions and return the corresponding tableau
+        for lin in Poset((range(1,self.shape.size()+1), relations)).linear_extensions():
+            linear_tab = list(permutation.Permutation(lin).inverse())
+            tab = [linear_tab[partial_sums[i]:partial_sums[i+1]]
+                   for i in range(len(self.shape))]
+            yield self.element_class(self, tab)
+
+    def cardinality(self):
+        r"""
+        Return the number of row standard tableaux of this shape.
+
+        This is just the index of the corresponding Young subgroup in
+        the full symmetric group.
+
+        EXAMPLES::
+
+            sage: RowStandardTableaux([3,2,1]).cardinality()
+            60
+            sage: RowStandardTableaux([2,2]).cardinality()
+            6
+            sage: RowStandardTableaux([5]).cardinality()
+            1
+            sage: RowStandardTableaux([6,5,5,3]).cardinality()
+            1955457504
+            sage: RowStandardTableaux([]).cardinality()
+            1
+        """
+        return Integer( factorial(sum(self.shape)) // prod(factorial(m) for m in self.shape) )
+
 
 ########################
 # Standard Tableaux    #
@@ -6665,13 +7167,13 @@ class StandardTableaux(SemistandardTableaux):
             sage: StandardTableaux(-1)
             Traceback (most recent call last):
             ...
-            ValueError: The argument must be a non-negative integer or a partition.
+            ValueError: the argument must be a non-negative integer or a partition
             sage: StandardTableaux([[1]])
             Traceback (most recent call last):
             ...
-            ValueError: The argument must be a non-negative integer or a partition.
+            ValueError: the argument must be a non-negative integer or a partition
         """
-        from sage.combinat.partition import _Partitions, Partition
+        from sage.combinat.partition import _Partitions
         from sage.combinat.skew_partition import SkewPartitions
 
         if args:
@@ -6685,14 +7187,14 @@ class StandardTableaux(SemistandardTableaux):
             return StandardTableaux_all()
 
         elif n in _Partitions:
-            return StandardTableaux_shape(Partition(n))
+            return StandardTableaux_shape(_Partitions(n))
 
         elif n in SkewPartitions():
             from sage.combinat.skew_tableau import StandardSkewTableaux
             return StandardSkewTableaux(n)
 
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError( "The argument must be a non-negative integer or a partition." )
+            raise ValueError("the argument must be a non-negative integer or a partition")
 
         return StandardTableaux_size(n)
 
@@ -6721,7 +7223,7 @@ class StandardTableaux(SemistandardTableaux):
         if isinstance(x, StandardTableau):
             return True
         elif Tableaux.__contains__(self, x):
-            flatx = sorted(sum((list(row) for row in x),[]))
+            flatx = sorted(sum((list(row) for row in x), []))
             return flatx == list(range(1,len(flatx)+1)) and (len(x)==0 or
                      (all(row[i]<row[i+1] for row in x for i in range(len(row)-1)) and
                        all(x[r][c]<x[r+1][c] for r in range(len(x)-1)
@@ -6742,9 +7244,9 @@ class StandardTableaux_all(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: ST = StandardTableaux()
             sage: TestSuite(ST).run()
         """
-        DisjointUnionEnumeratedSets.__init__( self,
-                Family(NonNegativeIntegers(), StandardTableaux_size),
-                facade=True, keepkey = False)
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(NonNegativeIntegers(), StandardTableaux_size),
+                                             facade=True, keepkey=False)
 
     def _repr_(self):
         """
@@ -6756,37 +7258,64 @@ class StandardTableaux_all(StandardTableaux, DisjointUnionEnumeratedSets):
         return "Standard tableaux"
 
 
-class StandardTableaux_size(StandardTableaux):
+class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
     """
     Standard tableaux of fixed size `n`.
 
-    .. WARNING::
+    EXAMPLES::
 
-        Input is not checked; please use :class:`StandardTableaux` to ensure
-        the options are properly parsed.
+        sage: [ t for t in StandardTableaux(1) ]
+        [[[1]]]
+        sage: [ t for t in StandardTableaux(2) ]
+        [[[1, 2]], [[1], [2]]]
+        sage: [ t for t in StandardTableaux(3) ]
+        [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+        sage: StandardTableaux(4)[:]
+        [[[1, 2, 3, 4]],
+         [[1, 3, 4], [2]],
+         [[1, 2, 4], [3]],
+         [[1, 2, 3], [4]],
+         [[1, 3], [2, 4]],
+         [[1, 2], [3, 4]],
+         [[1, 4], [2], [3]],
+         [[1, 3], [2], [4]],
+         [[1, 2], [3], [4]],
+         [[1], [2], [3], [4]]]
+
+    TESTS::
+
+        sage: TestSuite( StandardTableaux(4) ).run()
     """
     def __init__(self, n):
         r"""
         Initializes the class of all standard tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`StandardTableaux` to
+            ensure the options are properly parsed.
 
         TESTS::
 
             sage: TestSuite( StandardTableaux(0) ).run()
             sage: TestSuite( StandardTableaux(3) ).run()
         """
-        super(StandardTableaux_size, self).__init__(
-              category = FiniteEnumeratedSets())
+        StandardTableaux.__init__(self)
+        from sage.combinat.partition import Partitions_n
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(Partitions_n(n), StandardTableaux_shape),
+                                             category=FiniteEnumeratedSets(),
+                                             facade=True, keepkey=False)
         self.size = Integer(n)
-
 
     def _repr_(self):
         """
         TESTS::
 
-            sage: repr(StandardTableaux(3))    # indirect doctest
-            'Standard tableaux of size 3'
+            sage: StandardTableaux(3)
+            Standard tableaux of size 3
         """
-        return "Standard tableaux of size %s"%self.size
+        return "Standard tableaux of size %s" % self.size
 
     def __contains__(self, x):
         """
@@ -6805,36 +7334,6 @@ class StandardTableaux_size(StandardTableaux):
             False
         """
         return StandardTableaux.__contains__(self, x) and sum(map(len, x)) == self.size
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: [ t for t in StandardTableaux(1) ]
-            [[[1]]]
-            sage: [ t for t in StandardTableaux(2) ]
-            [[[1, 2]], [[1], [2]]]
-            sage: [ t for t in StandardTableaux(3) ]
-            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
-            sage: [ t for t in StandardTableaux(4) ]
-            [[[1, 2, 3, 4]],
-             [[1, 3, 4], [2]],
-             [[1, 2, 4], [3]],
-             [[1, 2, 3], [4]],
-             [[1, 3], [2, 4]],
-             [[1, 2], [3, 4]],
-             [[1, 4], [2], [3]],
-             [[1, 3], [2], [4]],
-             [[1, 2], [3], [4]],
-             [[1], [2], [3], [4]]]
-            sage: ST4 = StandardTableaux(4)
-            sage: ST4[0].parent() is ST4
-            True
-        """
-        from sage.combinat.partition import Partitions
-        for p in Partitions(self.size):
-            for st in StandardTableaux(p):
-                yield self.element_class(self, st)
 
     def cardinality(self):
         r"""
@@ -6856,12 +7355,6 @@ class StandardTableaux_size(StandardTableaux):
         fixed points multiplied by the number of perfect matchings on
         the remaining values.
 
-        REFERENCES:
-
-        .. [Ful1997] William Fulton,
-           *Young Tableaux*.
-           Cambridge University Press, 1997.
-
         EXAMPLES::
 
             sage: StandardTableaux(3).cardinality()
@@ -6870,7 +7363,7 @@ class StandardTableaux_size(StandardTableaux):
             sage: sts = [StandardTableaux(n) for n in ns]
             sage: all(st.cardinality() == len(st.list()) for st in sts)
             True
-            sage: StandardTableaux(50).cardinality()
+            sage: StandardTableaux(50).cardinality()  # long time
             27886995605342342839104615869259776
 
         TESTS::
@@ -6972,24 +7465,22 @@ class StandardTableaux_size(StandardTableaux):
 class StandardTableaux_shape(StandardTableaux):
     """
     Semistandard tableaux of a fixed shape `p`.
-
-    .. WARNING::
-
-        Input is not checked; please use :class:`SemistandardTableaux` to
-        ensure the options are properly parsed.
     """
     def __init__(self, p):
         r"""
         Initializes the class of all semistandard tableaux of a given shape.
 
+        .. WARNING::
+
+            Input is not checked; please use :class:`StandardTableaux` to
+            ensure the options are properly parsed.
+
         TESTS::
 
             sage: TestSuite( StandardTableaux([2,1,1]) ).run()
         """
-        from sage.combinat.partition import Partition
-        super(StandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
-        self.shape = Partition(p)
-
+        super(StandardTableaux_shape, self).__init__(category=FiniteEnumeratedSets())
+        self.shape = p
 
     def __contains__(self, x):
         """
@@ -7187,7 +7678,6 @@ class StandardTableaux_shape(StandardTableaux):
 
         return
 
-
     def list(self):
         r"""
         Return a list of the standard Young tableaux of the specified shape.
@@ -7355,7 +7845,6 @@ def symmetric_group_action_on_values(word, perm):
     return w
 
 
-
 class Tableau_class(Tableau):
     """
     This exists solely for unpickling ``Tableau_class`` objects.
@@ -7375,7 +7864,7 @@ class Tableau_class(Tableau):
         self.__init__(Tableaux(), state['_list'])
 
 # October 2012: fixing outdated pickles which use classed being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau_class)
 register_unpickle_override('sage.combinat.tableau', 'Tableaux_n',  Tableaux_size)
 register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_n',  StandardTableaux_size)

@@ -1509,8 +1509,8 @@ In the latter case, please inform the developers.""".format(self.order()))
                     orders.append(o)
         elif algorithm == 'pari':
             _, orders, gens = self.order().__pari__().znstar()
-            gens = map(self, gens)
-            orders = map(integer.Integer, orders)
+            gens = [self(g) for g in gens]
+            orders = [integer.Integer(o) for o in orders]
         else:
             raise ValueError('unknown algorithm %r for computing the unit group' % algorithm)
         return AbelianGroupWithValues(gens, orders, values_group=self)
@@ -1585,7 +1585,7 @@ Integers = IntegerModRing
 
 # Register unpickling methods for backward compatibility.
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.integer_mod_ring', 'IntegerModRing_generic', IntegerModRing_generic)
 
 def crt(v):

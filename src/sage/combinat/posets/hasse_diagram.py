@@ -212,7 +212,6 @@ class HasseDiagram(DiGraph):
             [[0, 1], [1, 0]]
         """
         N = self.order()
-        self_as_set = set(self)
 
         def supergreedy_rec(H, linext):
             k = len(linext)
@@ -1632,7 +1631,6 @@ class HasseDiagram(DiGraph):
             else:
                 return None
         result = [] # Never take the bottom element to list.
-        e = 0
         m = 0
         for i in range(n-1):
             for j in self.outgoing_edge_iterator(i):

@@ -1716,9 +1716,9 @@ class SemidihedralGroup(PermutationGroup_unique):
         EXAMPLES::
 
             sage: G = SemidihedralGroup(6); G
-            The semidiheral group of order 64
+            The semidihedral group of order 64
         """
-        return 'The semidiheral group of order %s'%(2**self.m)
+        return 'The semidihedral group of order %s' % (2**self.m)
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):

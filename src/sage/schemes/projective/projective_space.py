@@ -82,8 +82,7 @@ from __future__ import print_function
 from six.moves import range
 from six import integer_types
 
-from sage.arith.misc import binomial
-
+from sage.arith.all import gcd, binomial
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -96,14 +95,13 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 _Fields = Fields()
 
-from sage.categories.homset import Hom, End
+from sage.categories.homset import Hom
 from sage.categories.number_fields import NumberFields
 from sage.categories.map import Map
 
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.category_object import normalize_names
-from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
@@ -997,7 +995,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         elif AA.dimension_relative() != n:
                 raise ValueError("affine space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
-        phi = AA.projective_embedding(i, self)
+        AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
         return AA
 
@@ -1035,14 +1033,14 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         - ``m`` -- an integer.
 
-        OUTPUT: an endomorphism of this projective space.
+        OUTPUT: a dynamical system on this projective space.
 
         Examples::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])
             sage: P.Lattes_map(E, 2)
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
         """
@@ -1055,8 +1053,8 @@ class ProjectiveSpace_ring(AmbientSpace):
         x, y = R.gens()
         phi = F[0].parent().hom([x],R)
         F = [phi(F[0]).homogenize(y), phi(F[1]).homogenize(y)*y]
-        H = Hom(self,self)
-        return(H(F))
+        from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
+        return DynamicalSystem_projective(F, domain=self)
 
     def cartesian_product(self, other):
         r"""
@@ -1100,13 +1098,13 @@ class ProjectiveSpace_ring(AmbientSpace):
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
 
-        OUTPUT: :class:`SchemeMorphism_polynomial_projective_space`
+        OUTPUT: :class:`DynamicalSystem_projective`
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P.chebyshev_polynomial(5, 'first')
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x : y) to
             (16*x^5 - 20*x^3*y^2 + 5*x*y^4 : y^5)
 
@@ -1114,7 +1112,7 @@ class ProjectiveSpace_ring(AmbientSpace):
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P.chebyshev_polynomial(3, 'second')
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x : y) to
             (8*x^3 - 4*x*y^2 : y^3)
 
@@ -1417,8 +1415,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         n = self.dimension_relative()
         R = Ch.parent()
         if binomial(n+1,n-dim) != R.ngens():
-            raise ValueError("for given dimension, there should be %d variables in the Chow form" %binomial(n+1,n-dim))
-        vars = list(R.gens())
+            raise ValueError("for given dimension, there should be %d variables in the Chow form" % binomial(n+1,n-dim))
         #create the brackets associated to variables
         L1 = []
         for t in UnorderedTuples(list(range(n + 1)), dim+1):
@@ -1853,7 +1850,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
 
 
 #fix the pickles from moving projective_space.py
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',
                            ProjectiveSpace_field)

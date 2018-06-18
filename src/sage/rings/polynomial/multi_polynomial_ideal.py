@@ -2227,7 +2227,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = ideal([x^2+2*y-5,x+y+3])
             sage: v = I.variety(AA)[0]; v
             {x: 4.464101615137755?, y: -7.464101615137755?}
-            sage: v.keys()[0].parent()
+            sage: list(v)[0].parent()
             Multivariate Polynomial Ring in x, y over Algebraic Real Field
             sage: v[x]
             4.464101615137755?
@@ -4185,16 +4185,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
-
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
 
         if not self.is_principal():
-            raise TypeError("Ideal must be principal.")
-
+            raise TypeError("ideal must be principal")
 
         f = self.gens()[0]
 

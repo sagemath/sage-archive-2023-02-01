@@ -21,7 +21,6 @@ from sage.rings.rational_field import QQ
 from sage.symbolic.all import I, SR
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
-from sage.functions.piecewise import piecewise
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
 from functools import reduce
 GaussianField = I.pyobject().parent()
@@ -822,11 +821,11 @@ class SympyConverter(Converter):
         """
         import sympy
 
-        # retrive derivated function
+        # retrieve derivated function
         f = operator.function()
         f_sympy = self.composition(ex, f)
 
-        # retrive order
+        # retrieve order
         order = operator._parameter_set
         # arguments
         _args = ex.arguments()
@@ -1058,7 +1057,7 @@ def algebraic(ex, field):
         sage: AA(-golden_ratio)
         -1.618033988749895?
         sage: QQbar((2*I)^(1/2))
-        1 + 1*I
+        I + 1
         sage: QQbar(e^(pi*I/3))
         0.50000000000000000? + 0.866025403784439?*I
 
@@ -1801,8 +1800,9 @@ class RingConverter(Converter):
 
     def symbol(self, ex):
         """
-        All symbols appearing in the expression must appear in *subs_dict*
-        in order for the conversion to be successful.
+        All symbols appearing in the expression must either appear in *subs_dict*
+        or be convertable by the ring's element constructor in order for the
+        conversion to be successful.
 
         EXAMPLES::
 
@@ -1815,12 +1815,18 @@ class RingConverter(Converter):
             sage: R(x+pi)
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: unable to simplify to a real interval approximation
+
+            sage: R = RingConverter(QQ['x'])
+            sage: R(x^2+x)
+            x^2 + x
+            sage: R(x^2+x).parent()
+            Univariate Polynomial Ring in x over Rational Field
         """
         try:
             return self.ring(self.subs_dict[ex])
         except KeyError:
-            raise TypeError
+            return self.ring(ex)
 
     def pyobject(self, ex, obj):
         """

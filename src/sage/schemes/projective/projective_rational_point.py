@@ -55,11 +55,11 @@ AUTHORS:
 
 
 from sage.arith.all import gcd, srange
-from sage.rings.all import ZZ
 from sage.misc.all import cartesian_product_iterator
 from sage.schemes.generic.scheme import is_Scheme
 
-def enum_projective_rational_field(X,B):
+
+def enum_projective_rational_field(X, B):
     r"""
     Enumerates projective, rational points on scheme ``X`` of height up to
     bound ``B``.

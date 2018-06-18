@@ -1545,20 +1545,29 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.arith.all import lcm
         return lcm(v)
 
-    def iteritems(self):
+    def items(self):
         """
-        Return iterator over self.
+        Return an iterator over ``self``.
 
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi])
-            sage: v.iteritems()
+            sage: v.items()
             <generator object at ...>
+            sage: list(v.items())
+            [(0, 1), (1, 2/3), (2, pi)]
+
+        TESTS:
+
+        Using iteritems as an alias::
+
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
         cdef dict d = self.dict(copy=False)
         yield from d.iteritems()
+
+    iteritems = items
 
     def __abs__(self):
         """
@@ -3870,11 +3879,11 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: type(vec)
             <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
             sage: answers
-            [(0.5, 5.55111512312578e-15, 21, 0), (0.3333333333333..., 3.70074341541719e-15, 21, 0), (0.45969769413186..., 5.10366964392284e-15, 21, 0)]
+            [(0.5, 5.55111512312578...e-15, 21, 0), (0.3333333333333..., 3.70074341541719...e-15, 21, 0), (0.45969769413186..., 5.10366964392284...e-15, 21, 0)]
 
             sage: r=vector([t,0,1], sparse=True)
             sage: r.nintegral(t,0,1)
-            ((0.5, 0.0, 1.0), {0: (0.5, 5.55111512312578e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
+            ((0.5, 0.0, 1.0), {0: (0.5, 5.55111512312578...e-15, 21, 0), 2: (1.0, 1.11022302462515...e-14, 21, 0)})
 
         """
         # If Cython supported lambda functions, we would just do
@@ -4721,26 +4730,33 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: a < b
             True
         """
-        a = (<FreeModuleElement_generic_sparse>left)._entries.items()
-        a.sort()
-        b = (<FreeModuleElement_generic_sparse>right)._entries.items()
-        b.sort()
+        a = sorted((<FreeModuleElement_generic_sparse>left)._entries.iteritems())
+        b = sorted((<FreeModuleElement_generic_sparse>right)._entries.iteritems())
 
         return richcmp([(-x, y) for x, y in a], [(-x, y) for x, y in b], op)
 
-    def iteritems(self):
+    def items(self):
         """
-        Return iterator over the entries of self.
+        Return an iterator over the entries of ``self``.
 
         EXAMPLES::
 
             sage: v = vector([1,2/3,pi], sparse=True)
-            sage: v.iteritems()
+            sage: v.items()
             <dictionary-itemiterator object at ...>
+            sage: list(v.items())
+            [(0, 1), (1, 2/3), (2, pi)]
+
+        TESTS:
+
+        Using iteritems as an alias::
+
             sage: list(v.iteritems())
             [(0, 1), (1, 2/3), (2, pi)]
         """
         return self._entries.iteritems()
+
+    iteritems = items
 
     def __reduce__(self):
         """
@@ -4980,9 +4996,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: (v+w).nonzero_positions()
             [1]
         """
-        K = self._entries.keys()
-        K.sort()
-        return K
+        return sorted(self._entries)
 
     cpdef int hamming_weight(self):
         """

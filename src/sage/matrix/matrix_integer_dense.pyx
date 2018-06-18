@@ -199,17 +199,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
         1846857684291126914  # 64-bit
         1591707266           # 32-bit
     """
-    def __cinit__(self, parent, entries, coerce, copy):
+    def __cinit__(self):
         """
         Create and allocate memory for the matrix. Does not actually
         initialize any of the memory.
-
-        INPUT:
-
-
-        -  ``parent, entries, coerce, copy`` - as for
-           __init__.
-
 
         EXAMPLES::
 
@@ -225,11 +218,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             RuntimeError: FLINT exception
         """
-        self._parent = parent
-        self._base_ring = ZZ
-        self._nrows = parent.nrows()
-        self._ncols = parent.ncols()
-        self._pivots = None
         sig_str("FLINT exception")
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
@@ -466,8 +454,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         EXAMPLES::
 
             sage: a = matrix(ZZ,2,3,[1,193,15,-2,3,0])
-            sage: a._pickle()
-            ('1 61 f -2 3 0', 0)
+            sage: a._pickle() == (b'1 61 f -2 3 0', 0)
+            True
 
             sage: S = ModularSymbols(250,4,sign=1).cuspidal_submodule().new_subspace().decomposition() # long time
             sage: S == loads(dumps(S)) # long time
@@ -479,8 +467,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         EXAMPLES::
 
-            sage: matrix(ZZ,1,3,[1,193,15])._pickle()   # indirect doctest
-            ('1 61 f', 0)
+            sage: matrix(ZZ,1,3,[1,193,15])._pickle() == (b'1 61 f', 0)   # indirect doctest
+            True
 
         """
         return str_to_bytes(self._export_as_string(32), 'ascii')
@@ -1643,7 +1631,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_free(entry_list)
         return res
 
-    def _echelon_in_place_classical(self):
+    cpdef _echelon_in_place(self, str algorithm):
         cdef Matrix_integer_dense E
         E = self.echelon_form()
         sig_on()
@@ -2975,7 +2963,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                                    prune=prune, verbose=verbose)
 
             self.cache("rank",ZZ(r))
-            R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+            R = <Matrix_integer_dense>self.new_matrix(
+                    entries=[ZZ(z) for z in A.list()])
 
         elif algorithm == "fpLLL":
             from fpylll import BKZ, IntegerMatrix, load_strategies_json
@@ -3216,7 +3205,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 raise TypeError("eta must be >= 0.5")
 
         if algorithm.startswith('NTL:'):
-            A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),map(ntl_ZZ,self.list()))
+            A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),
+                    [ntl_ZZ(z) for z in self.list()])
 
             if algorithm == "NTL:LLL":
                 r, det2 = A.LLL(a,b, verbose=verb)
@@ -3251,7 +3241,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             r = ZZ(r)
 
-            R = <Matrix_integer_dense>self.new_matrix(entries=map(ZZ,A.list()))
+            R = <Matrix_integer_dense>self.new_matrix(
+                    entries=[ZZ(z) for z in A.list()])
             self.cache("rank",r)
 
         elif algorithm.startswith('fpLLL:'):

@@ -31,7 +31,7 @@ from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
 from sage.structure.element cimport Element, parent, coercion_model
-from sage.structure.sage_object import loads, dumps
+from sage.misc.persist import loads, dumps
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer, smallInteger

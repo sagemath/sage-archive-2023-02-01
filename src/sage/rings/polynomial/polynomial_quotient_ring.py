@@ -290,6 +290,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
          'lift',
          'powers',
          'quo_rem',
+         'radical',
+         'squarefree_part',
          'xgcd']
 
     As one can see, the elements are now inheriting additional
@@ -520,14 +522,14 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             return parent.__make_element_class__(PolynomialQuotientRing_coercion)(R, self, category=parent.homset_category())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        # We need that elements of the base ring of the polynomial
+        # ring map canonically into codomain.
+        if not codomain.has_coerce_map_from(self.base_ring()):
+            return False
+
+        # We also need that the polynomial modulus maps to 0.
+        f = self.modulus()
         try:
-            # We need that elements of the base ring of the polynomial
-            # ring map canonically into codomain.
-
-            codomain._coerce_(self.base_ring()(1))
-
-            # We also need that the polynomial modulus maps to 0.
-            f = self.modulus()
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -1386,14 +1388,16 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.unit_group()
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
-            sage: u,o = K.S_units([])[0]; u, o
-            (-1/2*a + 1/2, 6)
+            sage: u,o = K.S_units([])[0]; o
+            6
+            sage: 2*u - 1 in {a, -a}
+            True
             sage: u^6
             1
             sage: u^3
             -1
-            sage: u^2
-            -1/2*a - 1/2
+            sage: 2*u^2 + 1 in {a, -a}
+            True
 
         ::
 
@@ -1401,22 +1405,19 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: y = polygen(K)
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
-            sage: L.S_units([])
-            [(-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
-            sage: L.S_units([K.ideal(1/2*a - 3/2)])
-            [((-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a, +Infinity),
-             (-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
-            sage: L.S_units([K.ideal(2)])
-            [((1/2*a - 1/2)*b^2 + (a + 1)*b + 3, +Infinity),
-             ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a + 1/2, +Infinity),
-             ((1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2, +Infinity),
-             (-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
+            sage: [u for u, o in L.S_units([]) if o is Infinity]
+            [(-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
+            sage: [u for u, o in L.S_units([K.ideal(1/2*a - 3/2)]) if o is Infinity]
+            [(-1/6*a - 1/2)*b^2 + (1/3*a - 1)*b + 4/3*a,
+             (-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
+            sage: [u for u, o in L.S_units([K.ideal(2)]) if o is Infinity]
+            [(1/2*a - 1/2)*b^2 + (a + 1)*b + 3,
+             (1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a + 1/2,
+             (1/6*a + 1/2)*b^2 + (-1/3*a + 1)*b - 5/6*a - 1/2,
+             (-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
 
         Note that all the returned values live where we expect them to::
 
@@ -1473,14 +1474,15 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: K.unit_group()
             Unit group with structure C6 of Number Field in a with defining polynomial x^2 + 3
             sage: K.<a> = QQ['x'].quotient(x^2 + 3)
-            sage: u = K.units()[0][0]; u
-            -1/2*a + 1/2
+            sage: u = K.units()[0][0]
+            sage: 2*u - 1 in {a, -a}
+            True
             sage: u^6
             1
             sage: u^3
             -1
-            sage: u^2
-            -1/2*a - 1/2
+            sage: 2*u^2 + 1 in {a, -a}
+            True
             sage: K.<a> = QQ['x'].quotient(x^2 + 5)
             sage: K.units(())
             [(-1, 2)]
@@ -1491,17 +1493,16 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: y = polygen(K)
             sage: L.<b> = K['y'].quotient(y^3 + 5); L
             Univariate Quotient Polynomial Ring in b over Number Field in a with defining polynomial x^2 + 3 with modulus y^3 + 5
-            sage: L.units()
-            [(-1/2*a + 1/2, 6),
-             ((-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, +Infinity),
-             (2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2, +Infinity)]
+            sage: [u for u, o in L.units() if o is Infinity]
+            [(-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2,
+             2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
             sage: L.<b> = K.extension(y^3 + 5)
             sage: L.unit_group()
             Unit group with structure C6 x Z x Z of Number Field in b with defining polynomial x^3 + 5 over its base field
             sage: L.unit_group().gens()    # abstract generators
             (u0, u1, u2)
-            sage: L.unit_group().gens_values()
-            [1/2*a + 1/2, (-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, 2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
+            sage: L.unit_group().gens_values()[1:]
+            [(-1/3*a - 1)*b^2 - 4/3*a*b - 5/6*a + 7/2, 2/3*a*b^2 + (2/3*a - 2)*b - 5/6*a - 7/2]
 
         Note that all the returned values live where we expect them to::
 
@@ -1580,6 +1581,33 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 gens.append(poly_gen)
 
         return gens
+
+    def _factor_multivariate_polynomial(self, f, proof=True):
+        r"""
+        Return the factorization of ``f`` over this ring.
+
+        TESTS::
+
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(b^2 + b + a)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            (x) * t
+
+        """
+        from sage.structure.factorization import Factorization
+
+        if f.is_zero():
+            raise ValueError("factorization of 0 not defined")
+
+        from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring = self._isomorphic_ring()
+        g = f.map_coefficients(to_isomorphic_ring)
+        F = g.factor()
+        unit = f.parent(from_isomorphic_ring(F.unit().constant_coefficient()))
+        return Factorization([(factor.map_coefficients(from_isomorphic_ring), e) for factor,e in F], unit=unit)
 
     def _factor_univariate_polynomial(self, f):
         r"""

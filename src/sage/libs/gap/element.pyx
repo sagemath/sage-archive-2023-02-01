@@ -18,9 +18,11 @@ elements. For general information about libGAP, you should read the
 
 from __future__ import absolute_import, print_function
 
-from cpython.object cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from cysignals.signals cimport sig_on, sig_off
 
+from .gap_includes cimport *
+from .util cimport *
 from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject

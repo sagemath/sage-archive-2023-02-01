@@ -63,7 +63,6 @@ OPTIONAL_INSTALLED_PACKAGE_INSTS = \
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
-SDIST_PACKAGE_INSTS = $(foreach pkgname,$(SDIST_PACKAGES),$(inst_$(pkgname)))
 
 SCRIPTS = @SAGE_SCRIPTS@
 
@@ -145,7 +144,7 @@ pkg_deps = \
 # <pkgname>: $(INST)/<pkgname>-<pkgvers>
 #
 # <pkgname>-clean:
-#     rm -rf $(INST)/<pkgname>-<pkgvers>
+#     sage-spkg-uninstall <pkgname> '$(SAGE_LOCAL)'
 #
 # For example, for python2 this will expand to:
 #
@@ -155,7 +154,7 @@ pkg_deps = \
 # python2: $(INST)/python2-2.7.14
 #
 # python2-clean:
-#     rm -rf $(INST)/python2-2.7.14
+#     sage-spkg-uninstall python2 '$(SAGE_LOCAL)'
 #
 # Note: In these rules the $(INST)/<pkgname>-<pkgvers> target is used
 # explicitly, rather than expanding the $(inst_<pkgname>) variable, since
@@ -174,6 +173,7 @@ $$(INST)/$(1)-$(2): $(3)
 $(1): $$(INST)/$(1)-$(2)
 
 $(1)-clean:
+	sage-spkg-uninstall $(1) '$$(SAGE_LOCAL)'
 	rm -rf $$(INST)/$(1)-$(2)
 
 endef

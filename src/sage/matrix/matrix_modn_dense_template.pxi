@@ -122,6 +122,8 @@ import sage.matrix.matrix_space as matrix_space
 from .args cimport MatrixArgs_init
 
 
+from sage.cpython.string cimport char_to_str
+
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]
 
@@ -413,24 +415,7 @@ cpdef __matrix_from_rows_of_matrices(X):
 
 
 cdef class Matrix_modn_dense_template(Matrix_dense):
-    def __cinit__(self, parent, entries, copy, coerce):
-        """
-        Create a new matrix.
-
-        EXAMPLES::
-
-            sage: A = random_matrix(GF(3),1000,1000)
-            sage: type(A)
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: A = random_matrix(Integers(10),1000,1000)
-            sage: type(A)
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
-            sage: A = random_matrix(Integers(2^16),1000,1000)
-            sage: type(A)
-            <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
-        """
-        Matrix_dense.__init__(self, parent)
-
+    def __cinit__(self):
         cdef long p = self._base_ring.characteristic()
         self.p = p
         if p >= MAX_MODULUS:
@@ -602,7 +587,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             [116 104 101]
             [114 101  33]
             sage: m._pickle()
-            ((1, ..., 'Hi there!'), 10)
+            ((1, ..., ...'Hi there!'), 10)
 
         .. todo::
 
@@ -672,22 +657,22 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         Now test all the bit-packing options::
 
             sage: A = matrix(Integers(1000), 2, 2)
-            sage: A._unpickle((1, True, '\x01\x02\xFF\x00'), 10)
+            sage: A._unpickle((1, True, b'\x01\x02\xFF\x00'), 10)
             sage: A
             [  1   2]
             [255   0]
 
             sage: A = matrix(Integers(1000), 1, 2)
-            sage: A._unpickle((4, True, '\x02\x01\x00\x00\x01\x00\x00\x00'), 10)
+            sage: A._unpickle((4, True, b'\x02\x01\x00\x00\x01\x00\x00\x00'), 10)
             sage: A
             [258   1]
-            sage: A._unpickle((4, False, '\x00\x00\x02\x01\x00\x00\x01\x03'), 10)
+            sage: A._unpickle((4, False, b'\x00\x00\x02\x01\x00\x00\x01\x03'), 10)
             sage: A
             [513 259]
-            sage: A._unpickle((8, True, '\x03\x01\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00'), 10)
+            sage: A._unpickle((8, True, b'\x03\x01\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00'), 10)
             sage: A
             [259   5]
-            sage: A._unpickle((8, False, '\x00\x00\x00\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00\x00\x01\x04'), 10)
+            sage: A._unpickle((8, False, b'\x00\x00\x00\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00\x00\x01\x04'), 10)
             sage: A
             [520 260]
 
@@ -1035,25 +1020,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         ::
 
             sage: A = random_matrix(Integers(8),2,2); A
-            [7 2]
-            [6 1]
+            [0 5]
+            [6 4]
 
             sage: B = random_matrix(Integers(8),2,2); B
-            [4 0]
+            [4 4]
             [5 6]
 
             sage: A*B
-            [6 4]
-            [5 6]
+            [1 6]
+            [4 0]
 
             sage: 3*A
-            [5 6]
-            [2 3]
+            [0 7]
+            [2 4]
 
             sage: MS = parent(A)
             sage: MS(3) * A
-            [5 6]
-            [2 3]
+            [0 7]
+            [2 4]
 
         ::
 
@@ -1080,25 +1065,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         ::
 
             sage: A = random_matrix(GF(16007),2,2); A
-            [ 7856  5786]
-            [10134 14607]
+            [ 6194 13327]
+            [ 5985  5926]
 
             sage: B = random_matrix(GF(16007),2,2); B
-            [10839  6194]
-            [13327  5985]
+            [ 6901  1242]
+            [13032   859]
 
             sage: A*B
-            [14254  4853]
-            [ 8754 15217]
+            [ 7618 12476]
+            [14289  6330]
 
             sage: 3*A
-            [ 7561  1351]
-            [14395 11807]
+            [2575 7967]
+            [1948 1771]
 
             sage: MS = parent(A)
             sage: MS(3) * A
-            [ 7561  1351]
-            [14395 11807]
+            [2575 7967]
+            [1948 1771]
 
         ::
 
@@ -1127,25 +1112,25 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
         ::
 
             sage: A = random_matrix(Integers(1008),2,2); A
-            [354 413]
-            [307 499]
+            [ 41 973]
+            [851 876]
 
             sage: B = random_matrix(Integers(1008),2,2); B
-            [952  41]
-            [973 851]
+            [180 234]
+            [680 640]
 
             sage: A*B
-            [1001   73]
-            [ 623  772]
+            [716 298]
+            [924 750]
 
             sage: 3*A
-            [ 54 231]
-            [921 489]
+            [123 903]
+            [537 612]
 
             sage: MS = parent(A)
             sage: MS(3) * A
-            [ 54 231]
-            [921 489]
+            [123 903]
+            [537 612]
 
         ::
 
@@ -2930,7 +2915,7 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
                 t += snprintf(t, ndigits+2, "%ld ", <long>self._entries[i])
 
             sig_off()
-            data = str(s)[:-1]
+            data = char_to_str(s)[:-1]
             sig_free(s)
         return data
 

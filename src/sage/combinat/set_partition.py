@@ -110,7 +110,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A == D
             False
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return list(self) == list(y)
 
@@ -174,7 +174,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A < C
             True
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return [sorted(_) for _ in self] < [sorted(_) for _ in y]
 
@@ -202,7 +202,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A > B
             False
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return [sorted(_) for _ in self] > [sorted(_) for _ in y]
 
@@ -1662,7 +1662,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: S = SetPartitions(3)
             sage: it = S._iterator_part(Partition([1,1,1]))
-            sage: list(sorted(map(list, next(it))))
+            sage: sorted(map(list, next(it)))
             [[1], [2], [3]]
             sage: S21 = SetPartitions(3,Partition([2,1]))
             sage: len(list(S._iterator_part(Partition([2,1])))) == S21.cardinality()

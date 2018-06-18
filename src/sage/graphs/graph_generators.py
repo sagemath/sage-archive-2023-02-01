@@ -337,7 +337,8 @@ __doc__ += """
 __append_to_doc(
     ["WorldMap",
      "EuropeMap",
-     "AfricaMap"]
+     "AfricaMap",
+     "USAMap"]
     )
 
 __doc__ += """
@@ -419,6 +420,7 @@ Functions and methods
 # import from Sage library
 from . import graph
 import sage.graphs.strongly_regular_db
+
 
 class GraphGenerators():
     r"""
@@ -748,7 +750,6 @@ class GraphGenerators():
             property = lambda x: True
 
         from sage.graphs.all import Graph
-        from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
         if degree_sequence is not None:
@@ -2104,6 +2105,7 @@ class GraphGenerators():
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
     EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
     AfricaMap = staticmethod(sage.graphs.generators.world_map.AfricaMap)
+    USAMap = staticmethod(sage.graphs.generators.world_map.USAMap)
 
 ###########################################################################
 # Degree Sequence

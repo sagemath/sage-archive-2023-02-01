@@ -218,6 +218,7 @@ from __future__ import print_function, absolute_import
 
 from builtins import zip
 
+from six import iteritems
 from six.moves import range
 from collections import defaultdict
 from itertools import islice, cycle
@@ -228,6 +229,7 @@ from sage.combinat.words.word_options import word_options
 from sage.rings.all import Integer, Infinity, ZZ
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
+
 
 class FiniteWord_class(Word_class):
     def __str__(self):
@@ -801,7 +803,8 @@ class FiniteWord_class(Word_class):
 
     def is_empty(self):
         r"""
-        Return ``True`` if the length of ``self`` is zero, and ``False`` otherwise.
+        Return ``True`` if the length of ``self`` is zero,
+        and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -810,7 +813,7 @@ class FiniteWord_class(Word_class):
             sage: Word('a').is_empty()
             False
         """
-        return self.length()==0
+        return self.length() == 0
 
     def is_finite(self):
         r"""
@@ -827,8 +830,9 @@ class FiniteWord_class(Word_class):
 
     def to_integer_word(self):
         r"""
-        Return a word defined over the integers ``[0,1,...,self.length()-1]``
-        whose letters are in the same relative order in the parent.
+        Return a word over the alphabet ``[0,1,...,self.length()-1]``
+        whose letters are in the same relative order as the letters
+        of ``self`` in the parent.
 
         EXAMPLES::
 
@@ -869,6 +873,31 @@ class FiniteWord_class(Word_class):
         ordered_alphabet = sorted(self.letters(), key=cmp_key)
         index = dict((b,a) for (a,b) in enumerate(ordered_alphabet))
         return [index[a] for a in self]
+
+    def to_ordered_set_partition(self):
+        r"""
+        Return the ordered set partition correspond to ``self``.
+
+        If `w` is a finite word of length `n`, then the corresponding
+        ordered set partition is an ordered set partition
+        `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+        each block `P_i` is the set of positions at which the `i`-th
+        smallest letter occurring in `w` occurs in `w`.
+
+        EXAMPLES::
+
+            sage: w = Word('abbabaab')
+            sage: w.to_ordered_set_partition()
+            [{1, 4, 6, 7}, {2, 3, 5, 8}]
+            sage: Word([-10, 3, -10, 2]).to_ordered_set_partition()
+            [{1, 3}, {4}, {2}]
+            sage: Word([]).to_ordered_set_partition()
+            []
+            sage: Word('aaaaa').to_ordered_set_partition()
+            [{1, 2, 3, 4, 5}]
+        """
+        from sage.combinat.set_partition_ordered import OrderedSetPartition
+        return OrderedSetPartition(word_to_ordered_set_partition(self))
 
     # To fix : do not slice here ! (quite expensive in copy)
     def is_suffix(self, other):
@@ -3819,7 +3848,24 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` is ``self`` is a subword of ``other``, and ``False`` otherwise.
 
+        A finite word `u` is a *subword* of a finite word `v` if `u` is a
+        subsequence of `v`. See Chapter 6 on Subwords in [1].
+
+        Some references define subword as a consecutive subsequence. Use
+        :meth:`is_factor` if this is what you need.
+
+        INPUT:
+
+        ``other`` -- a finite word
+
         EXAMPLES::
+
+            sage: Word('bb').is_subword_of(Word('ababa'))
+            True
+            sage: Word('bbb').is_subword_of(Word('ababa'))
+            False
+
+        ::
 
             sage: Word().is_subword_of(Word('123'))
             True
@@ -3831,6 +3877,13 @@ class FiniteWord_class(Word_class):
         .. SEEALSO::
 
             :meth:`longest_common_subword`
+            :meth:`nb_subword_occurrences_in`
+            :meth:`is_factor`
+
+        REFERENCES:
+
+        - [1] M. Lothaire, Combinatorics on Words, Cambridge University
+          Press, (1997).
 
         """
         its = iter(self)
@@ -4425,6 +4478,9 @@ class FiniteWord_class(Word_class):
         r"""
         Return ``True`` if ``self`` is a factor of ``other``, and ``False`` otherwise.
 
+        A finite word `u\in A^*` is a *factor* of a finite word `v\in A^*`
+        if there exists `p,s\in A^*` such that `v=pus`.
+
         EXAMPLES::
 
             sage: u = Word('2113')
@@ -4673,7 +4729,6 @@ class FiniteWord_class(Word_class):
         -   [1] F. Durand, A characterization of substitutive sequences using
             return words, Discrete Math. 179 (1998) 89--101.
         """
-        idx = 0
         tab = {}
         ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
@@ -4847,7 +4902,7 @@ class FiniteWord_class(Word_class):
             sage: Word("abcaccab").evaluation_sparse()
             [('a', 3), ('c', 3), ('b', 2)]
         """
-        return self.evaluation_dict().items()
+        return list(iteritems(self.evaluation_dict()))
 
     def evaluation_partition(self):
         r"""
@@ -5069,8 +5124,8 @@ class FiniteWord_class(Word_class):
         r"""
         Return the standard permutation of the word
         ``self`` on the ordered alphabet. It is defined as
-        the permutation with exactly the same number of
-        inversions as w. Equivalently, it is the permutation
+        the permutation with exactly the same inversions as
+        ``self``. Equivalently, it is the permutation
         of minimal length whose inverse sorts ``self``.
 
         EXAMPLES::
@@ -6844,7 +6899,9 @@ class FiniteWord_class(Word_class):
             raise RuntimeError("Color map %s not known"%cmap)
 
         #Drawing the colored vector...
-        from sage.plot.plot import polygon,line,text
+        from sage.plot.line import line
+        from sage.plot.polygon import polygon
+        from sage.plot.text import text
 
         #The default width of the vector
         if width == 'default':
@@ -7200,3 +7257,44 @@ def evaluation_dict(w):
         d[a] += 1
     return dict(d)
 
+def word_to_ordered_set_partition(w):
+    r"""
+    Return the ordered set partition corresponding to a finite
+    word `w`.
+
+    If `w` is a finite word of length `n`, then the corresponding
+    ordered set partition is an ordered set partition
+    `(P_1, P_2, \ldots, P_k)` of `\{1, 2, \ldots, n\}`, where
+    each block `P_i` is the set of positions at which the `i`-th
+    smallest letter occurring in `w` occurs in `w`.
+    (Positions are `1`-based.)
+
+    This is the same functionality that
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.to_ordered_set_partition`
+    provides, but without the wrapping: The input `w` can be given as
+    a list or tuple, not necessarily as a word; and the output is
+    returned as a list of lists (which are the blocks of the ordered
+    set partition in increasing order), not as an ordered set partition.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.finite_word import word_to_ordered_set_partition
+        sage: word_to_ordered_set_partition([3, 6, 3, 1])
+        [[4], [1, 3], [2]]
+        sage: word_to_ordered_set_partition((1, 3, 3, 7))
+        [[1], [2, 3], [4]]
+        sage: word_to_ordered_set_partition("noob")
+        [[4], [1], [2, 3]]
+        sage: word_to_ordered_set_partition(Word("hell"))
+        [[2], [1], [3, 4]]
+        sage: word_to_ordered_set_partition([1])
+        [[1]]
+        sage: word_to_ordered_set_partition([])
+        []
+    """
+    vals = sorted(set(w))
+    dc = {val: i for (i, val) in enumerate(vals)}
+    P = [[] for _ in vals]
+    for i, val in enumerate(w):
+        P[dc[val]].append(i + 1)
+    return P

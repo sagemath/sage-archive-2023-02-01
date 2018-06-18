@@ -397,25 +397,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             domain = ProjectiveSpace(proj_CR)
         else:
             PR = PolynomialRing(domain.base_ring(), names = [x for x in domain.ambient_space().gens()])
-            for poly in list(morphism_or_polys):
-                P = poly.parent()
-                if is_FractionField(P):
-                    try:
-                        numer = PR(poly.numerator())
-                        denom = PR(poly.denominator())
-                        poly = numer/denom
-                    except TypeError:
-                        raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
-                elif is_QuotientRing(P):
-                    try:
-                        poly = PR(poly.lift())
-                    except TypeError:
-                        raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
+            try:
+                if any([is_FractionField(poly.parent()) for poly in polys]):
+                    polys = [PR(poly.numerator())/PR(poly.denominator()) for poly in polys]
                 else:
-                    try:
-                        poly = PR(poly)
-                    except TypeError:
-                        raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
+                    polys = [PR(poly) for poly in polys]
+            except TypeError:
+                raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
 
         R = domain.base_ring()
         if R is SR:

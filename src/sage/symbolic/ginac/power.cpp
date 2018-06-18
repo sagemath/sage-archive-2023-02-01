@@ -640,6 +640,16 @@ ex power::eval(int level) const
                 }
 	}
 
+        if (is_exactly_a<mul>(eexponent)
+            and ex_to<mul>(eexponent).get_overall_coeff().is_negative()) {
+	        ex p = (new power(ebasis, -eexponent))->setflag(status_flags::dynallocated);
+                if (ebasis.is_minus_one())
+                        return p;
+	        return (new power(p, _ex_1))->setflag(status_flags::dynallocated |
+	                                               status_flags::evaluated);
+        }
+
+
 	// Reduce x^(c/log(x)) to exp(c) if x is positive
 	if (ebasis.is_positive()) {
 		if (eexponent.is_equal(1/log(ebasis)))

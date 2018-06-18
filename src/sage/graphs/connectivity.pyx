@@ -1852,3 +1852,101 @@ def bridges(G, labels=True):
                 my_bridges.append(tuple(b))
 
     return my_bridges
+
+
+from sage.graphs.base.sparse_graph cimport SparseGraph
+    
+
+class Triconnectivity:
+    """
+    This module is not yet complete, it has work to be done.
+
+    This module implements the algorithm for finding the triconnected
+    components of a biconnected graph. 
+    Refer to [Gut2001]_ and [Hopcroft1973]_ for the algorithm.
+
+    EXAMPLES::
+
+        An example to show how the triconnected components can be accessed:
+
+        sage: from sage.graphs.connectivity import Triconnectivity
+        sage: g = Graph([['a','b',1],['a','c',1],['b','c',10]], weighted=True)
+        sage: tric = Triconnectivity(g)
+        sage: tric.components_list
+        []
+    """
+    class Component:
+        edge_list = []
+        component_type = 0  #bond = 0, polygon = 1, triconnected = 2
+        def __init__(self, edges, type_c=0):
+            self.edge_list = edges
+            component_type = type_c
+        def add_edge(self, e):
+            self.edge_list.append(e)
+    
+    graph_copy = None #type SparseGraph
+    vertex_to_int = {} # mapping of vertices to integers in c_graph
+    start_vertex = 0
+    components_list = [] #list of components
+    num_components = 0
+    edge_status = {} #status of each edge, unseen=0, tree=1, frond=2, removed=3
+    Estack = []
+    Tstack = []
+    number = [] # DFS number of vertex i
+    vertex_at = [] # vertex with DFS number of i$
+    lowpt1 = [] # lowpt1 number of vertex i
+    lowpt2 = [] # lowpt2 number of vertex i
+    nd = [] # number of descendants of vertex i
+    edge_phi = {} # (key, value) = (edge, corresponding phi value)
+    adj = [] # i^th value contains a list of incident edges of vertex i
+    in_adj = {} # this variable is used in the PathSearch() function
+    newnum = [] # new DFS number of vertex i
+    startsPath = {} # dict of (edge, True/False) to denote if a path starts at edge
+    highpt = [] # List of fronds entering vertex i in the order they are visited
+    old_to_new = [] # New DFS number of the vertex with i as old DFS number
+    degree = [] # Degree of vertex i
+    parent = [] # Parent vertex of vertex i in the palm tree
+    tree_arc = [] # Tree arc entering the vertex i
+    first_child = []
+    high = [] # One of the elements in highpt[i]
+    dfs_counter = 0
+    n = 0 # number of vertices
+    m = 0 # number of edges
+    
+
+    def __init__(self, G):
+        self.graph_copy = G.copy(implementation='c_graph')
+        self.vertex_to_int = self.graph_copy.relabel(inplace=True, return_map=True)
+        self.n = self.graph_copy.order()
+        self.m = self.graph_copy.num_edges()
+        self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
+        self.number = [0]*self.n
+        self.lowpt1 = [None]*self.n
+        self.lowpt2 = [None]*self.n
+        self.nd = [None]*self.n
+        self.parent = [None]*self.n
+        self.degree = [None]*self.n
+        self.tree_arc = [None]*self.n
+        self.vertex_at = [1]*self.n
+        self.dfs_counter = 0
+        # We call the function split_multi_egdes() next.
+        
+    def new_component(self, edges, type_c=0):
+        c = self.Component(edges, type_c)
+        self.components_list.append(c)
+        # Remove the edges from graph
+        for e in edges:
+            self.edge_status[e] = 3
+    
+    def add_edge_to_component(self, comp, e):
+        comp.add_edge(e)
+        self.edge_status[e] = 3
+        
+
+
+
+
+
+
+
+

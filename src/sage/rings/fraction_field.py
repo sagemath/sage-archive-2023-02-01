@@ -439,7 +439,7 @@ class FractionField_generic(ring.Field):
         return "Fraction Field of %s" % self._R
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::

@@ -1453,7 +1453,7 @@ class MPolynomialIdeal_singular_repr(
 
     @require_field
     def genus(self):
-        """
+        r"""
         Return the genus of the projective curve defined by this ideal,
         which must be 1 dimensional.
 
@@ -4241,7 +4241,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             raise TypeError("Ideal generator may not have either 2 or 3 variables.")
 
     def random_element(self, degree, compute_gb=False, *args, **kwds):
-        """
+        r"""
         Return a random element in this ideal as `r = \sum h_i·f_i`.
 
         INPUT:
@@ -4329,7 +4329,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     @require_field
     def weil_restriction(self):
-        """
+        r"""
         Compute the Weil restriction of this ideal over some extension
         field. If the field is a finite field, then this computes
         the Weil restriction to the prime subfield.

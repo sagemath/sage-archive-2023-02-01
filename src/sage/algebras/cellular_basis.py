@@ -262,7 +262,7 @@ class CellularBasis(CombinatorialFreeModule):
         return self._algebra.cell_poset()
 
     def cell_module_indices(self, la):
-        """
+        r"""
         Return the indices of the cell module of ``self``
         indexed by ``la`` .
 

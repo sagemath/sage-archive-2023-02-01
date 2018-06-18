@@ -1,4 +1,4 @@
-"""
+r"""
 Ring of Laurent Polynomials
 
 If `R` is a commutative ring, then the ring of Laurent polynomials in `n`
@@ -673,7 +673,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         return not (self == other)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))

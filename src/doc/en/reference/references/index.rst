@@ -1137,6 +1137,9 @@ REFERENCES:
              operations on finite simplicial complexes* in Homology,
              Homotopy and Applications 5 (2003), 83-93.
 
+.. [GCL1992] Geddes, Czapor, Labahn, *Algorithms for computer algebra*.
+             Springer (1992).  ISBN 0-7923-9259-0.
+
 .. [Ge2005] Loukas Georgiadis, *Linear-Time Algorithms for Dominators
             and Related Problems*, PhD thesis, Princetown University,
             TR-737-05, (2005).

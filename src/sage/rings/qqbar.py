@@ -687,9 +687,10 @@ class AlgebraicField_common(sage.rings.ring.Field):
             This is a helper method for
             :meth:`sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict.factor`.
 
-        REFERENCE::
+        REFERENCES:
 
-            Geddes, et. al, "Algorithms for Computer Algebra", Section 8.8
+        - [GCL1992]_ Section 8.8
+        - https://trac.sagemath.org/attachment/ticket/25390/qqbar.pdf
 
         TESTS::
 

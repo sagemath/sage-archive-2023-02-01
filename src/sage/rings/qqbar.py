@@ -816,6 +816,15 @@ class AlgebraicField_common(sage.rings.ring.Field):
             sage: F.value() == p
             True
 
+        A test where the polynomial variable names conflict with the
+        number field generator::
+
+            sage: S.<a,b> = QQbar[]
+            sage: p = a^2 + QQbar(sqrt(2))*b^2
+            sage: F = QQbar._factor_multivariate_polynomial(p)
+            sage: F
+            (a + (-1.189207115002722?*I)*b) * (a + 1.189207115002722?*I*b)
+
         """
         from sage.structure.factorization import Factorization
         from sage.interfaces.singular import singular
@@ -852,12 +861,14 @@ class AlgebraicField_common(sage.rings.ring.Field):
             # variables, bivariate_ring has the same number of generators as
             # the polynomial being factored, and trivariate_ring has one more.
 
-            numfield_gen = numfield_f.parent().base_ring().gens()
             polynomial_gens = numfield_f.parent().gens()
 
-            univariate_ring = PolynomialRing(QQ, numfield_gen)
+            # create a variable name different from all of the polynomial_gens
+            numfield_gen = 'x'.join([str(g) for g in polynomial_gens])
+
+            univariate_ring = PolynomialRing(QQ, (numfield_gen,) )
             bivariate_ring = PolynomialRing(QQ, polynomial_gens)
-            trivariate_ring = PolynomialRing(QQ, numfield_gen + polynomial_gens)
+            trivariate_ring = PolynomialRing(QQ, (numfield_gen,) + polynomial_gens)
 
             numfield_polynomial = trivariate_ring(univariate_ring(numfield.polynomial()))
 

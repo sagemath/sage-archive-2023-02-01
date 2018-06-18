@@ -1067,9 +1067,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`hermite_form` .
         """
         # shift for lower echelon
-        shift = [j*self.degree() + 1 for j in range(self.ncols())] \
+        shift = [j*(self.degree() + 1) for j in range(self.ncols())] \
                 if row_wise else \
-                [(self.nrows() - j)*self.degree() + 1 for j in range(self.nrows())]
+                [(self.nrows() - j)*(self.degree() + 1) for j in range(self.nrows())]
         # if upper echelon, reverse shift
         if not lower_echelon:
             shift.reverse()

@@ -533,7 +533,7 @@ class FractionWithFactoredDenominator(RingElement):
             2
         """
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
         R = self.denominator_ring
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
@@ -3294,7 +3294,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             q = R(denominator)
 
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
             if is_PolynomialRing(R) or is_MPolynomialRing(R):
                 if not R(q).is_unit():
                     # Factor denominator
@@ -3364,7 +3364,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         if is_FractionField(P):
             B = P.base()
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
             if is_PolynomialRing(B) or is_MPolynomialRing(B):
                 if self.base().has_coerce_map_from(B):
                     return True

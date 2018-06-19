@@ -112,8 +112,7 @@ graphs. Here is what they can do
 Methods
 -------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -123,7 +122,6 @@ import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
 
-from sage.misc.superseded import deprecation
 
 class DiGraph(GenericGraph):
     r"""

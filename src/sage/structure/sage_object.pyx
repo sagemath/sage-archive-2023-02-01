@@ -48,7 +48,8 @@ Test deprecations::
 
 from __future__ import absolute_import, print_function
 
-from sage.misc.persist import _base_dumps, _base_save
+from sage.misc.persist import (_base_dumps, _base_save,
+                               register_unpickle_override, make_None)
 
 from sage.misc.lazy_import import LazyImport
 richcmp = LazyImport('sage.structure.richcmp', 'richcmp', deprecation=23103)
@@ -65,18 +66,24 @@ op_GE = LazyImport('sage.structure.richcmp', 'op_GE', deprecation=23103)
 
 
 # NOTE: These imports are just for backwards-compatibility
-# TODO: Add a deprecation on them once we have a ticket #
-loads = LazyImport('sage.misc.persist', 'loads')
-dumps = LazyImport('sage.misc.persist', 'dumps')
-save = LazyImport('sage.misc.persist', 'save')
-load = LazyImport('sage.misc.persist', 'load')
-unpickle_all = LazyImport('sage.misc.persist', 'unpickle_all')
-make_None = LazyImport('sage.misc.persist', 'make_None')
-unpickle_global = LazyImport('sage.misc.persist', 'unpickle_global')
-unpickle_override = LazyImport('sage.misc.persist', 'unpickle_override')
-register_unpickle_override = LazyImport('sage.misc.persist',
-                                        'register_unpickle_override',
-                                        at_startup=True)
+loads = LazyImport('sage.misc.persist', 'loads', deprecation=25153)
+dumps = LazyImport('sage.misc.persist', 'dumps', deprecation=25153)
+save = LazyImport('sage.misc.persist', 'save', deprecation=25153)
+load = LazyImport('sage.misc.persist', 'load', deprecation=25153)
+unpickle_all = LazyImport('sage.misc.persist', 'unpickle_all',
+                          deprecation=25153)
+unpickle_global = LazyImport('sage.misc.persist', 'unpickle_global',
+                             deprecation=25153)
+unpickle_override = LazyImport('sage.misc.persist', 'unpickle_override',
+                               deprecation=25153)
+
+
+# Generators is no longer used (#21382)
+register_unpickle_override('sage.structure.generators', 'make_list_gens',
+                           make_None)
+
+
+__all__ = ['SageObject']
 
 
 cdef class SageObject:

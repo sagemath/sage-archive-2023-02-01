@@ -29,7 +29,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.rings.all import ZZ
 from sage.modules.free_module import FreeModule, FreeModule_generic
 from sage.matrix.constructor import Matrix
-from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.args import MatrixArgs
 from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.subset import SubsetsSorted
@@ -1971,16 +1971,12 @@ class ExteriorAlgebra(CliffordAlgebra):
                     m = len(my)
                     if m != n:
                         continue
-                    MS = MatrixSpace(R, n, n)
-                    MC = MS._matrix_class
                     matrix_list = [M[mx[i], my[j]]
                                    for i in range(n)
                                    for j in range(n)]
-                    matr = MC(MS, matrix_list, copy=False, coerce=False)
-                    # Using low-level matrix constructor here
-                    # because Matrix(...) does too much duck
-                    # typing (trac #17124).
-                    result += cx * cy * matr.determinant()
+                    MA = MatrixArgs(R, n, matrix_list)
+                    del matrix_list
+                    result += cx * cy * MA.matrix(False).determinant()
             return result
         from sage.categories.cartesian_product import cartesian_product
         return PoorManMap(lifted_form, domain=cartesian_product([self, self]),

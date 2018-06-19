@@ -82,8 +82,7 @@ from __future__ import print_function
 from six.moves import range
 from six import integer_types
 
-from sage.arith.misc import binomial
-
+from sage.arith.all import gcd, binomial
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -96,14 +95,13 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 _Fields = Fields()
 
-from sage.categories.homset import Hom, End
+from sage.categories.homset import Hom
 from sage.categories.number_fields import NumberFields
 from sage.categories.map import Map
 
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.category_object import normalize_names
-from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
@@ -997,7 +995,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         elif AA.dimension_relative() != n:
                 raise ValueError("affine space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
-        phi = AA.projective_embedding(i, self)
+        AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
         return AA
 
@@ -1417,8 +1415,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         n = self.dimension_relative()
         R = Ch.parent()
         if binomial(n+1,n-dim) != R.ngens():
-            raise ValueError("for given dimension, there should be %d variables in the Chow form" %binomial(n+1,n-dim))
-        vars = list(R.gens())
+            raise ValueError("for given dimension, there should be %d variables in the Chow form" % binomial(n+1,n-dim))
         #create the brackets associated to variables
         L1 = []
         for t in UnorderedTuples(list(range(n + 1)), dim+1):
@@ -1853,7 +1850,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
 
 
 #fix the pickles from moving projective_space.py
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',
                            ProjectiveSpace_field)

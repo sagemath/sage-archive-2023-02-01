@@ -4609,7 +4609,7 @@ class GenericGraph(GenericGraph_pyx):
         #        raise ValueError('modified graph %s is not planar.  Try specifying an external face'%self)
 
         # Triangulate the graph
-        extra_edges = _triangulate( G, G._embedding)
+        _triangulate(G, G._embedding)
 
         # Optional error-checking
         if test:
@@ -7413,7 +7413,7 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(p.sum( weight(l)*E(u,v) for u,v,l in g.edge_iterator()) )
 
         try:
-            obj = p.solve(log=verbose)
+            p.solve(log=verbose)
             f = p.get_values(f)
             tsp.add_vertices(g.vertices())
             tsp.set_pos(g.get_pos())
@@ -7949,7 +7949,6 @@ class GenericGraph(GenericGraph_pyx):
         if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (algorithm == 'igraph'):
-            import igraph
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -7964,7 +7963,6 @@ class GenericGraph(GenericGraph_pyx):
                 return maxflow.value
             else:
                 from sage.graphs.digraph import DiGraph
-                igraph_flow = iter(maxflow.flow)
                 flow_digraph = DiGraph()
                 if self.is_directed():
                     for e in g_igraph.es():
@@ -8612,7 +8610,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MIPSolverException
 
         try:
-            obj=p.solve(log = verbose)
+            p.solve(log=verbose)
         except MIPSolverException:
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("The multiflow problem has no solution")
@@ -12506,11 +12504,10 @@ class GenericGraph(GenericGraph_pyx):
 
             # We build the list of integers defining the circulant graph, and
             # add it to the list.
-            parameters = []
             cycle = cycles[0]
             u = cycle[0]
-            integers = [i for i,v in enumerate(cycle) if self.has_edge(u,v)]
-            certif_list.append((self.order(),integers))
+            integers = [i for i, v in enumerate(cycle) if self.has_edge(u, v)]
+            certif_list.append((self.order(), integers))
 
         if not certificate:
             return False
@@ -17874,7 +17871,7 @@ class GenericGraph(GenericGraph_pyx):
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
-            sage: for key, value in list(sorted(layout_options.items())):
+            sage: for key, value in sorted(layout_options.items()):
             ....:     print("option {} : {}".format(key, value))
             option by_component : Whether to do the spring layout by connected component -- a boolean.
             option dim : The dimension of the layout -- 2 or 3.
@@ -18187,9 +18184,6 @@ class GenericGraph(GenericGraph_pyx):
             use_embedding = True
         except ValueError:
             use_embedding = False
-
-        n = self.order()
-        vertices = self.vertices()
 
         if tree_root is None:
             root = self.center()[0]
@@ -18605,7 +18599,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: from sage.graphs.graph_plot import graphplot_options
-            sage: list(sorted(graphplot_options.items()))
+            sage: sorted(graphplot_options.items())
             [...]
 
             sage: from math import sin, cos, pi
@@ -21034,7 +21028,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`16210`::
 
-            sage: g=graphs.CycleGraph(10)
+            sage: g = graphs.CycleGraph(10)
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
             sage: g.is_hamiltonian()
@@ -21042,9 +21036,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            tsp = self.traveling_salesman_problem(use_edge_labels = False)
+            self.traveling_salesman_problem(use_edge_labels=False)
             return True
-
         except EmptySetError:
             return False
 

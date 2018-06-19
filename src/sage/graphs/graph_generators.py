@@ -421,6 +421,7 @@ Functions and methods
 from . import graph
 import sage.graphs.strongly_regular_db
 
+
 class GraphGenerators():
     r"""
     A class consisting of constructors for several common graphs, as well as
@@ -749,7 +750,6 @@ class GraphGenerators():
             property = lambda x: True
 
         from sage.graphs.all import Graph
-        from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
         if degree_sequence is not None:

@@ -63,7 +63,6 @@ Functions and methods
 from __future__ import print_function, division
 from six.moves import range
 
-from   math import sin, cos, pi
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
 

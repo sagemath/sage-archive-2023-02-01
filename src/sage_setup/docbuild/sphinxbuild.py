@@ -315,7 +315,7 @@ def runsphinx():
         # fork() somewhere before this call.)
         # We don't use subprocess here, as we don't want to re-initialize Sage
         # for every docbuild as this takes a while.
-        sphinx.cmdline.main(sys.argv)
+        sphinx.cmdline.main(sys.argv[1:])
         sys.stderr.raise_errors()
         sys.stdout.raise_errors()
     finally:

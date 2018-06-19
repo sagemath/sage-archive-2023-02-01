@@ -208,9 +208,8 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             [  1   0   1]
             [t^2   1   0]
         """
-        from sage.matrix.constructor import matrix
-        [a,b,c,d,e,f] = self.coefficients()
-        return matrix([[ 2*a ,   b ,   c ],
+        a, b, c, d, e, f = self.coefficients()
+        return Matrix([[ 2*a ,   b ,   c ],
                        [   b , 2*d ,   e ],
                        [   c ,   e , 2*f ]])
 
@@ -1140,15 +1139,14 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: v * C.symmetric_matrix() * v
             x^2 + 2*x*y + y^2 + 3*x*z + z^2
         """
-        [a,b,c,d,e,f] = self.coefficients()
+        a, b, c, d, e, f = self.coefficients()
         if self.base_ring().characteristic() == 2:
             if b == 0 and c == 0 and e == 0:
-                return matrix([[a,0,0],[0,d,0],[0,0,f]])
+                return Matrix([[a,0,0],[0,d,0],[0,0,f]])
             raise ValueError("The conic self (= %s) has no symmetric matrix " \
                               "because the base field has characteristic 2" % \
                               self)
-        from sage.matrix.constructor import matrix
-        return matrix([[  a , b/2, c/2 ],
+        return Matrix([[  a , b/2, c/2 ],
                        [ b/2,  d , e/2 ],
                        [ c/2, e/2,  f  ]])
 

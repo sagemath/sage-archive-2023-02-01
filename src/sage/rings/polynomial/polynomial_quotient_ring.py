@@ -522,14 +522,14 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             return parent.__make_element_class__(PolynomialQuotientRing_coercion)(R, self, category=parent.homset_category())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        # We need that elements of the base ring of the polynomial
+        # ring map canonically into codomain.
+        if not codomain.has_coerce_map_from(self.base_ring()):
+            return False
+
+        # We also need that the polynomial modulus maps to 0.
+        f = self.modulus()
         try:
-            # We need that elements of the base ring of the polynomial
-            # ring map canonically into codomain.
-
-            codomain._coerce_(self.base_ring()(1))
-
-            # We also need that the polynomial modulus maps to 0.
-            f = self.modulus()
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False

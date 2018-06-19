@@ -2027,7 +2027,7 @@ class ToricVariety_field(AmbientSpace):
 
         H = self.cohomology_ring()
         # Make an empty list for each d-piece
-        basis = [[] for d in range(self.dimension() + 1)]
+        basis = [[] for _ in range(self.dimension() + 1)]
         # Distribute basis elements into d-pieces
         for x in H.defining_ideal().normal_basis():
             basis[x.total_degree()].append(x)

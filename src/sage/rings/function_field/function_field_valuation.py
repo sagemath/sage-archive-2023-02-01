@@ -135,7 +135,7 @@ developed for number fields in [Mac1936I]_ and [Mac1936II]_.
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -144,6 +144,7 @@ developed for number fields in [Mac1936I]_ and [Mac1936II]_.
 #*****************************************************************************
 from sage.structure.factory import UniqueFactory
 from sage.rings.all import QQ
+from sage.misc.cachefunc import cached_method
 
 from sage.rings.valuation.valuation import DiscreteValuation, DiscretePseudoValuation, InfiniteDiscretePseudoValuation, NegativeInfiniteDiscretePseudoValuation
 from sage.rings.valuation.trivial_valuation import TrivialValuation
@@ -570,7 +571,7 @@ class DiscreteFunctionFieldValuation_base(DiscreteValuation):
                     from functools import reduce
                     A = [base_valuation.extensions(L) for base_valuation in self.extensions(L.base())]
                     return reduce(add, A, [])
-                elif L.constant_field() is not K.constant_field() and K.constant_field().is_subring(L):
+                elif L.constant_base_field() is not K.constant_base_field() and K.constant_base_field().is_subring(L):
                     # subclasses should override this method and handle this case, so we never get here
                     raise NotImplementedError("Can not compute the extensions of %r from %r to %r since the base ring changes."%(self, self.domain(), L))
         raise NotImplementedError("extension of %r from %r to %r not implemented"%(self, K, L))
@@ -589,6 +590,33 @@ class RationalFunctionFieldValuation_base(FunctionFieldValuation_base):
         True
 
     """
+    @cached_method
+    def element_with_valuation(self, s):
+        r"""
+        Return an element with valuation ``s``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3+6)
+            sage: v = K.valuation(2)
+            sage: R.<x> = K[]
+            sage: w = GaussValuation(R, v).augmentation(x, 1/123)
+            sage: K.<x> = FunctionField(K)
+            sage: w = w.extension(K)
+            sage: w.element_with_valuation(122/123)
+            2/x
+            sage: w.element_with_valuation(1)
+            2
+
+        """
+        constant_valuation = self.restriction(self.domain().constant_base_field())
+        if constant_valuation.is_trivial():
+            return super(RationalFunctionFieldValuation_base, self).element_with_valuation(s)
+
+        a, b = self.value_group()._element_with_valuation(constant_valuation.value_group(), s)
+        ret = self.uniformizer()**a * constant_valuation.element_with_valuation(constant_valuation.value_group().gen()*b)
+
+        return self.simplify(ret, error=s)
 
 
 class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
@@ -619,7 +647,7 @@ class ClassicalFunctionFieldValuation_base(DiscreteFunctionFieldValuation_base):
         """
         tester = self._tester(**options)
 
-        tester.assertTrue(self.domain().constant_field().is_subring(self.residue_field()))
+        tester.assertTrue(self.domain().constant_base_field().is_subring(self.residue_field()))
 
     def _ge_(self, other):
         r"""
@@ -772,7 +800,7 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         from sage.rings.valuation.augmented_valuation import AugmentedValuation_base
         from sage.rings.valuation.gauss_valuation import GaussValuation
         if isinstance(self._base_valuation, AugmentedValuation_base):
-            if self._base_valuation._base_valuation == GaussValuation(self.domain()._ring, TrivialValuation(self.domain().constant_field())):
+            if self._base_valuation._base_valuation == GaussValuation(self.domain()._ring, TrivialValuation(self.domain().constant_base_field())):
                 if self._base_valuation._mu == 1:
                     return "(%r)-adic valuation"%(self._base_valuation.phi())
         vK = self._base_valuation.restriction(self._base_valuation.domain().base_ring())
@@ -802,8 +830,8 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
         if L in FunctionFields() \
             and K.is_subring(L) \
             and L.base() is L \
-            and L.constant_field() is not K.constant_field() \
-            and K.constant_field().is_subring(L.constant_field()):
+            and L.constant_base_field() is not K.constant_base_field() \
+            and K.constant_base_field().is_subring(L.constant_base_field()):
             # The above condition checks whether L is an extension of K that
             # comes from an extension of the field of constants
             # Condition "L.base() is L" is important so we do not call this
@@ -853,6 +881,21 @@ class InducedFunctionFieldValuation_base(FunctionFieldValuation_base):
             
         """
         return self._base_valuation.residue_ring().fraction_field()
+
+    def restriction(self, ring):
+        r"""
+        Return the restriction of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: K.valuation(x).restriction(QQ)
+            Trivial valuation on Rational Field
+
+        """
+        if ring.is_subring(self._base_valuation.domain()):
+            return self._base_valuation.restriction(ring)
+        return super(InducedFunctionFieldValuation_base, self).restriction(ring)
 
 
 class FiniteRationalFunctionFieldValuation(InducedFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base, RationalFunctionFieldValuation_base):
@@ -1122,10 +1165,54 @@ class FunctionFieldMappedValuation_base(FunctionFieldValuation_base, MappedValua
         return self._base_valuation.is_discrete_valuation()
 
 
-class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, RationalFunctionFieldValuation_base):
+class FunctionFieldMappedValuationRelative_base(FunctionFieldMappedValuation_base):
+    r"""
+    A valuation on a function field which relies on a ``base_valuation`` on an
+    isomorphic function field and which is such that the map from and to the
+    other function field is the identity on the constant field.
+
+    EXAMPLES::
+    
+        sage: K.<x> = FunctionField(GF(2))
+        sage: v = K.valuation(1/x); v
+        Valuation at the infinite place
+
+    """
+    def __init__(self, parent, base_valuation, to_base_valuation_domain, from_base_valuation_domain):
+        r"""
+        TESTS::
+    
+            sage: K.<x> = FunctionField(GF(2))
+            sage: v = K.valuation(1/x)
+            sage: from sage.rings.function_field.function_field_valuation import FunctionFieldMappedValuationRelative_base
+            sage: isinstance(v, FunctionFieldMappedValuationRelative_base)
+            True
+    
+        """
+        FunctionFieldMappedValuation_base.__init__(self, parent, base_valuation, to_base_valuation_domain, from_base_valuation_domain)
+        if self.domain().constant_base_field() is not base_valuation.domain().constant_base_field():
+            raise ValueError("constant fields must be identical but they differ for %r and %r"%(self.domain(), base_valuation.domain()))
+
+    def restriction(self, ring):
+        r"""
+        Return the restriction of this valuation to ``ring``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(2))
+            sage: K.valuation(1/x).restriction(GF(2))
+            Trivial valuation on Finite Field of size 2
+
+        """
+        if ring.is_subring(self.domain().constant_base_field()):
+            return self._base_valuation.restriction(ring)
+        return super(FunctionFieldMappedValuation_base, self).restriction(ring)
+
+
+class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuationRelative_base, RationalFunctionFieldValuation_base):
     r"""
     Valuation on a rational function field that is implemented after a map to
-    an isomorphic (rational) function field.
+    an isomorphic rational function field.
 
     EXAMPLES::
 
@@ -1151,11 +1238,11 @@ class RationalFunctionFieldMappedValuation(FunctionFieldMappedValuation_base, Ra
             True
 
         """
-        FunctionFieldMappedValuation_base.__init__(self, parent, base_valuation, to_base_valuation_doain, from_base_valuation_domain)
+        FunctionFieldMappedValuationRelative_base.__init__(self, parent, base_valuation, to_base_valuation_doain, from_base_valuation_domain)
         RationalFunctionFieldValuation_base.__init__(self, parent)
 
 
-class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
+class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuationRelative_base, RationalFunctionFieldValuation_base, ClassicalFunctionFieldValuation_base):
     r"""
     Valuation of the infinite place of a function field.
 
@@ -1177,7 +1264,7 @@ class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, 
 
         """
         x = parent.domain().gen()
-        FunctionFieldMappedValuation_base.__init__(self, parent, FunctionFieldValuation(parent.domain(), x), parent.domain().hom([1/x]), parent.domain().hom([1/x]))
+        FunctionFieldMappedValuationRelative_base.__init__(self, parent, FunctionFieldValuation(parent.domain(), x), parent.domain().hom([1/x]), parent.domain().hom([1/x]))
         RationalFunctionFieldValuation_base.__init__(self, parent)
         ClassicalFunctionFieldValuation_base.__init__(self, parent)
 
@@ -1195,7 +1282,7 @@ class InfiniteRationalFunctionFieldValuation(FunctionFieldMappedValuation_base, 
         return "Valuation at the infinite place"
 
 
-class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuation_base):
+class FunctionFieldExtensionMappedValuation(FunctionFieldMappedValuationRelative_base):
     r"""
     A valuation on a finite extensions of function fields `L=K[y]/(G)` where `K` is
     another function field which redirects to another ``base_valuation`` on an

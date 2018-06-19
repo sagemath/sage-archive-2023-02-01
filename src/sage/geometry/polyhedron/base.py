@@ -5734,7 +5734,9 @@ class Polyhedron_base(Element):
 
         - [BSS2009]_
 
-        EXAMPLES::
+        EXAMPLES:
+
+        A cross-polytope example::
 
             sage: P = polytopes.cross_polytope(3)
             sage: P.restricted_automorphism_group() == PermutationGroup([[(3,4)], [(2,3),(4,5)],[(2,5)],[(1,2),(5,6)],[(1,6)]])
@@ -5742,8 +5744,18 @@ class Polyhedron_base(Element):
             sage: P.restricted_automorphism_group(output="permutation") == PermutationGroup([[(2,3)],[(1,2),(3,4)],[(1,4)],[(0,1),(4,5)],[(0,5)]])
             True
             sage: mgens = [[[1,0,0,0],[0,1,0,0],[0,0,-1,0],[0,0,0,1]], [[1,0,0,0],[0,0,1,0],[0,1,0,0],[0,0,0,1]], [[0,1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,1]]]
-            sage: P.restricted_automorphism_group(output="matrix") == MatrixGroup(map(lambda t: matrix(QQ,t), mgens))
+
+        We test groups for equality in a fool-proof way; they can have different generators, etc::
+
+            sage: poly_g = P.restricted_automorphism_group(output="matrix")
+            sage: matrix_g = MatrixGroup(map(lambda t: matrix(QQ,t), mgens))
+            sage: all(map(lambda t: t.matrix() in poly_g, matrix_g.gens()))
             True
+            sage: all(map(lambda t: t.matrix() in matrix_g, poly_g.gens()))
+            True
+
+        24-cell example::
+
             sage: P24 = polytopes.twenty_four_cell()
             sage: AutP24 = P24.restricted_automorphism_group()
             sage: PermutationGroup([

@@ -3168,6 +3168,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         The problem is proven to be NP-complete.
 
+        .. SEEALSO:: :meth:`is_jump_critical`
+
         TESTS::
 
             sage: E = Poset()

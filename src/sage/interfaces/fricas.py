@@ -199,7 +199,7 @@ from __future__ import print_function
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_TMP_INTERFACE
-from sage.env import DOT_SAGE
+from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
 import re
 
@@ -1147,12 +1147,12 @@ class FriCASElement(ExpectElement):
         Check that :trac:`25602` is fixed::
 
             sage: r = fricas.integrate(72000/(1+x^5),x).sage()                  # optional - fricas
-            sage: n(r.subs(x=5)-r.subs(x=3))                                    # optional - fricas
+            sage: n(r.subs(x=5)-r.subs(x=3))                                    # optional - fricas tol 0.1
             193.020947266210
 
-            sage: var("a")                                                      # optional - fricas
-            sage: r = fricas.integrate(72000*a^8/(a^5+x^5),x).sage()            # optional - fricas
-            sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas
+            sage: var("a"); r = fricas.integrate(72000*a^8/(a^5+x^5),x).sage()  # optional - fricas
+            a
+            sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
             193.020947266268 - 8.73114913702011e-11*I
 
         """
@@ -1162,6 +1162,11 @@ class FriCASElement(ExpectElement):
         from sage.functions.log import dilog
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+
+        def explicitely_not_implemented(*args):
+            raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %args)
+        register_symbol(explicitely_not_implemented, {'fricas':'rootOfADE'})
+        register_symbol(explicitely_not_implemented, {'fricas':'rootOfRec'})
 
         rootOf = dict() # (variable, polynomial)
         rootOf_ev = dict() # variable -> (complex) algebraic number
@@ -1182,8 +1187,8 @@ class FriCASElement(ExpectElement):
 
         try:
             ex = symbolic_expression_from_string(s, symbol_table["fricas"])
-        except (SyntaxError, TypeError) as e:
-            raise NotImplementedError("%s: the translation of the FriCAS Expression %s to sage is not yet implemented." %(e,s))
+        except (SyntaxError, TypeError):
+            raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
         from sage.rings.all import QQbar, PolynomialRing
         from sage.symbolic.ring import SR

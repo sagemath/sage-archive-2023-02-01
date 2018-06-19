@@ -1098,30 +1098,30 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         R = P.coordinate_ring()
         N = P.dimension()+1
         d = self.dimension()
-        #create the ring for the generic linear hyperplanes
+        # create the ring for the generic linear hyperplanes
         # u0x0 + u1x1 + ...
         SS = PolynomialRing(R.base_ring(), 'u', N*(d+1), order='lex')
         vars = SS.variable_names() + R.variable_names()
         S = PolynomialRing(R.base_ring(), vars, order='lex')
         n = S.ngens()
         newcoords = [S.gen(n-N+t) for t in range(N)]
-        #map the generators of the subscheme into the ring with the hyperplane variables
+        # map the generators of the subscheme into the ring with the hyperplane variables
         phi = R.hom(newcoords,S)
         phi(self.defining_polynomials()[0])
-        #create the dim(X)+1 linear hyperplanes
+        # create the dim(X)+1 linear hyperplanes
         l = []
         for i in range(d+1):
             t = 0
             for j in range(N):
                 t += S.gen(N*i + j)*newcoords[j]
             l.append(t)
-        #intersect the hyperplanes with X
+        # intersect the hyperplanes with X
         J = phi(I) + S.ideal(l)
-        #saturate the ideal with respect to the irrelevant ideal
-        J2 = J.saturation(S.ideal([phi(t) for t in R.gens()]))[0]
-        #eliminate the original variables to be left with the hyperplane coefficients 'u'
+        # saturate the ideal with respect to the irrelevant ideal
+        J2 = J.saturation(S.ideal([phi(u) for u in R.gens()]))[0]
+        # eliminate the original variables to be left with the hyperplane coefficients 'u'
         E = J2.elimination_ideal(newcoords)
-        #create the plucker coordinates
+        # create the plucker coordinates
         D = binomial(N,N-d-1) #number of plucker coordinates
         tvars = [str('t') + str(i) for i in range(D)] #plucker coordinates
         T = PolynomialRing(R.base_ring(), tvars+list(S.variable_names()), order='lex')
@@ -1132,39 +1132,39 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         for c in M.minors(d+1):
             L.append(T.gen(i)-c)
             i += 1
-        #create the ideal that we can use for eliminating to get a polynomial
-        #in the plucker coordinates (brackets)
+        # create the ideal that we can use for eliminating to get a polynomial
+        # in the plucker coordinates (brackets)
         br = T.ideal(L)
-        #create a mapping into a polynomial ring over the plucker coordinates
-        #and the hyperplane coefficients
-        psi = S.hom(coeffs + [0 for i in range(N)],T)
-        E2 = T.ideal([psi(u) for u in E.gens()] +br)
-        #eliminate the hyperplane coefficients
+        # create a mapping into a polynomial ring over the plucker coordinates
+        # and the hyperplane coefficients
+        psi = S.hom(coeffs + [0 for _ in range(N)], T)
+        E2 = T.ideal([psi(u) for u in E.gens()] + br)
+        # eliminate the hyperplane coefficients
         CH = E2.elimination_ideal(coeffs)
-        #CH should be a principal ideal, but because of the relations among
-        #the plucker coordinates, the elimination will probably have several generators
+        # CH should be a principal ideal, but because of the relations among
+        # the plucker coordinates, the elimination will probably have several generators
 
-        #get the relations among the plucker coordinates
+        # get the relations among the plucker coordinates
         rel = br.elimination_ideal(coeffs)
-        #reduce CH with respect to the relations
+        # reduce CH with respect to the relations
         reduced = []
         for f in CH.gens():
             reduced.append(f.reduce(rel))
-        #find the principal generator
+        # find the principal generator
 
-        #polynomial ring in just the plucker coordinates
+        # polynomial ring in just the plucker coordinates
         T2 = PolynomialRing(R.base_ring(), tvars)
         alp = T.hom(tvars + (N*(d+1) +N)*[0], T2)
-        #get the degrees of the reduced generators of CH
+        # get the degrees of the reduced generators of CH
         degs = [u.degree() for u in reduced]
         mind = max(degs)
-        #need the smallest degree form that did not reduce to 0
+        # need the smallest degree form that did not reduce to 0
         for d in degs:
             if d < mind and d >0:
                 mind = d
         ind = degs.index(mind)
         CF = reduced[ind] #this should be the Chow form of X
-        #check that it is correct (i.e., it is a principal generator for CH + the relations)
+        # check that it is correct (i.e., it is a principal generator for CH + the relations)
         rel2 = rel + [CF]
         assert all([f in rel2 for f in CH.gens()]), "did not find a principal generator"
         return(alp(CF))
@@ -1315,13 +1315,13 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         if not self.base_ring() in Fields():
             raise TypeError("subscheme must be defined over a field")
 
-        # Check whether P is a point on this subscheme
+        # check whether P is a point on this subscheme
         try:
             P = self(P)
         except TypeError:
             raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
 
-        # Find an affine chart of the ambient space of self that contains P
+        # find an affine chart of the ambient space of self that contains P
         i = 0
         while(P[i] == 0):
             i = i + 1

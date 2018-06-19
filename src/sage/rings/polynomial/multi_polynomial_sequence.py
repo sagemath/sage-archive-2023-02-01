@@ -1561,6 +1561,6 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)

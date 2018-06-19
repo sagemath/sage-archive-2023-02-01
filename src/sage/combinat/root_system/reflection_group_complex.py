@@ -1405,7 +1405,10 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.braid_relations()                                   # optional - gap3
             [[[2, 1, 2], [1, 2, 1]], [[3, 1], [1, 3]], [[3, 2, 3], [2, 3, 2]]]
         """
-        return self._gap_group.BraidRelations().sage()
+        if self.is_real():
+            return super(ComplexReflectionGroup,self).braid_relations()
+        else:
+            return self._gap_group.BraidRelations().sage()
 
     @cached_method
     def fundamental_invariants(self):

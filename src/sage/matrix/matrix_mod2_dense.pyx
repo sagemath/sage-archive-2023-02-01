@@ -151,27 +151,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """
     Dense matrix over GF(2).
     """
-    def __cinit__(self, parent, entries, copy, coerce, alloc=True):
+    def __cinit__(self):
         """
-        Dense matrix over GF(2) constructor.
-
-        INPUT:
-
-        - ``parent`` - MatrixSpace.
-        - ``entries`` - may be list or 0 or 1
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced to ints % 2
-
-        EXAMPLES::
-
-            sage: type(random_matrix(GF(2),2,2))
-            <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
-
-            sage: Matrix(GF(2),3,3,1) # indirect doctest
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-
         TESTS:
 
         See :trac:`10858`::
@@ -200,16 +181,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ...
             OverflowError: ...
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
-
         # m4ri assumes that nrows and ncols are of type rci_t:
         # check for overflow
         cdef rci_t rci_nrows = self._nrows
         cdef rci_t rci_ncols = self._ncols
         if <Py_ssize_t>(rci_nrows) != self._nrows:
-            raise OverflowError(f"matrices with {self._nrows} rows over {parent.base()} are not supported")
+            raise OverflowError(f"matrices with {self._nrows} rows over {self._base_ring} are not supported")
         if <Py_ssize_t>(rci_ncols) != self._ncols:
-            raise OverflowError(f"matrices with {self._ncols} columns over {parent.base()} are not supported")
+            raise OverflowError(f"matrices with {self._ncols} columns over {self._base_ring} are not supported")
 
         sig_str("matrix allocation failed")
         self._entries = mzd_init(self._nrows, self._ncols)

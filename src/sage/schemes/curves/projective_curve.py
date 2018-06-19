@@ -2036,6 +2036,6 @@ def Hasse_bounds(q, genus=1):
     return (q+1-rq,q+1+rq)
 
 # Fix pickles from changing class names and plane_curves folder name
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.plane_curves.projective_curve',
                            'ProjectiveCurve_generic', ProjectivePlaneCurve)

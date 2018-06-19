@@ -114,22 +114,13 @@ cdef class M4RIE_finite_field:
     """
     cdef gf2e *ff
 
-    def __cinit__(self):
+    def __dealloc__(self):
         """
         EXAMPLES::
 
             sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
             sage: K = M4RIE_finite_field(); K
             <sage.matrix.matrix_gf2e_dense.M4RIE_finite_field object at 0x...>
-        """
-        pass
-
-    def __dealloc__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.matrix.matrix_gf2e_dense import M4RIE_finite_field
-            sage: K = M4RIE_finite_field()
             sage: del K
         """
         if self.ff:
@@ -141,17 +132,12 @@ cdef m4ri_word poly_to_word(f):
 cdef object word_to_poly(w, F):
     return F.fetch_int(w)
 
-cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
-    def __cinit__(self, parent, entries, copy, coerce, alloc=True):
-        """
-        Create new matrix over `GF(2^e)` for 2<=e<=10.
 
+cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
+    def __cinit__(self, *args, bint alloc=True, **kwds):
+        """
         INPUT:
 
-        - ``parent`` - a :class:`MatrixSpace`.
-        - ``entries`` - may be list or a finite field element.
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced
         - ``alloc`` - if ``True`` the matrix is allocated first (default: ``True``)
 
         EXAMPLES::
@@ -178,14 +164,13 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             [    a^2 + 1 a^2 + a + 1     a^2 + 1         a^2]
             [    a^2 + a     a^2 + 1 a^2 + a + 1       a + 1]
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
-
         cdef M4RIE_finite_field FF
 
-        R = parent.base_ring()
-
+        R = self._base_ring
         f = R.polynomial()
-        cdef m4ri_word poly = sum(int(c)*2**i for i,c in enumerate(f))
+
+        cdef long i
+        cdef m4ri_word poly = sum(((<m4ri_word>c) << i) for (i, c) in enumerate(f))
 
         if alloc and self._nrows and self._ncols:
             if poly in _m4rie_finite_field_cache:

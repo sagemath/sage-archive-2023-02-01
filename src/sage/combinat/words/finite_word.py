@@ -230,6 +230,7 @@ from sage.rings.all import Integer, Infinity, ZZ
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
 
+
 class FiniteWord_class(Word_class):
     def __str__(self):
         r"""
@@ -4728,7 +4729,6 @@ class FiniteWord_class(Word_class):
         -   [1] F. Durand, A characterization of substitutive sequences using
             return words, Discrete Math. 179 (1998) 89--101.
         """
-        idx = 0
         tab = {}
         ret = [tab.setdefault(w, len(tab)) + 1 for w in self._return_words_list(fact)]
         from sage.combinat.words.word import Word
@@ -6899,7 +6899,9 @@ class FiniteWord_class(Word_class):
             raise RuntimeError("Color map %s not known"%cmap)
 
         #Drawing the colored vector...
-        from sage.plot.plot import polygon,line,text
+        from sage.plot.line import line
+        from sage.plot.polygon import polygon
+        from sage.plot.text import text
 
         #The default width of the vector
         if width == 'default':
@@ -7290,12 +7292,9 @@ def word_to_ordered_set_partition(w):
         sage: word_to_ordered_set_partition([])
         []
     """
-    n = len(w)
     vals = sorted(set(w))
     dc = {val: i for (i, val) in enumerate(vals)}
     P = [[] for _ in vals]
     for i, val in enumerate(w):
-        P[dc[val]].append(i+1)
+        P[dc[val]].append(i + 1)
     return P
-
-

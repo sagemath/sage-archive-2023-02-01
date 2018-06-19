@@ -38,11 +38,11 @@ from __future__ import print_function
 import itertools
 from copy import copy
 
-from sage.misc.all import powerset, prod
+from sage.misc.all import prod
 from sage.misc.cachefunc import cached_method
 from sage.arith.all import gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.parallel.decorate import parallel
+from sage.parallel.decorate import Parallel
 
 
 class InfinitePointEnumerator(object):
@@ -918,7 +918,6 @@ class FiniteFieldSubschemePointEnumerator(NaiveSubschemePointEnumerator):
             return
         # Parallelize the outermost loop of the Cartesian product
         work = [([[r]] + log_range[1:],) for r in log_range[0]]
-        from sage.parallel.decorate import Parallel
         parallel = Parallel()
         def partial_solution(work_range):
             return list(self.solutions_serial(inhomogeneous_equations, work_range))

@@ -551,6 +551,10 @@ REFERENCES:
              representation of the Riemann map and Ahlfors map via the
              Kerzman-Stein equation". Involve 3-4 (2010), 405-420.
 
+.. [BUVO2007] Johannes Buchmann, Ullrich Vollmer: Binary Quadratic Forms,
+              An Algorithmic Approach, Algorithms and Computation in Mathematics,
+              Volume 20, Springer (2007)
+
 .. [BW1996] Anders Bjorner and Michelle L. Wachs. *Shellable nonpure
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
@@ -825,6 +829,10 @@ REFERENCES:
 .. [deG2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
              North-Holland Mathematical Library. (2000).
              Elsevier Science B.V.
+
+.. [deG2005] Willem A. de Graaf.
+             *Constructing homomorphisms between Verma modules*.
+             Journal of Lie Theory. **15** (2005) pp. 415-428.
 
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,

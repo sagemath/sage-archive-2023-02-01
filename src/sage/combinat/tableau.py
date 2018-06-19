@@ -7864,7 +7864,7 @@ class Tableau_class(Tableau):
         self.__init__(Tableaux(), state['_list'])
 
 # October 2012: fixing outdated pickles which use classed being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau_class)
 register_unpickle_override('sage.combinat.tableau', 'Tableaux_n',  Tableaux_size)
 register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_n',  StandardTableaux_size)

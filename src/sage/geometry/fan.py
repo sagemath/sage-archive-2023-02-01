@@ -772,7 +772,7 @@ def NormalFan(polytope, lattice=None):
 
 
 def Fan2d(rays, lattice=None):
-    """
+    r"""
     Construct the maximal 2-d fan with given ``rays``.
 
     In two dimensions we can uniquely construct a fan from just rays,
@@ -1322,10 +1322,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             Finite poset containing 5 elements with distinguished linear extension
 
         These 5 elements are: 1 origin, 2 rays, 1 generating cone, 1 fan.
-        
+
         A subcase of this common case is treatment of fans consisting of the
         origin only, which used to be handled incorrectly :trac:`18613`::
-        
+
             sage: fan = Fan([Cone([], ToricLattice(0))])
             sage: list(fan.cone_lattice())
             [0-d cone of Rational polyhedral fan in 0-d lattice N,
@@ -3307,6 +3307,18 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         self._oriented_boundary = boundaries
         return boundaries[cone]
+
+    def toric_variety(self):
+        """
+        Return the associated toric variety.
+
+        EXAMPLES::
+
+            sage: Fan([Cone([(1,0)]), Cone([(0,1)])]).toric_variety()
+            2-d toric variety covered by 2 affine patches
+        """
+        from sage.schemes.toric.variety import ToricVariety
+        return ToricVariety(self)
 
     def complex(self, base_ring=ZZ, extended=False):
         r"""

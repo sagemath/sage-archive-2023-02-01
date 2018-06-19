@@ -3223,6 +3223,60 @@ class FinitePoset(UniqueRepresentation, Parent):
             return (nonlocals[0], nonlocals[1])
         return nonlocals[0]
 
+    def is_jump_critical(self, certificate=False):
+        """
+        Return ``True`` if the poset is jump-critical, and ``False`` otherwise.
+
+        A poset `P` is *jump-critical* if every proper subposet has smaller
+        jump number.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)`` so that removing element `e` from the poset does not
+          decrease the jump number. If ``certificate=False`` return
+          ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: P = Poset({1: [3, 6], 2: [3, 4, 5], 4: [6, 7], 5: [7]})
+            sage: P.is_jump_critical()
+            True
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_jump_critical()
+            False
+            sage: P.is_jump_critical(certificate=True)
+            (False, 3)
+
+        TESTS::
+
+            sage: Poset().is_jump_critical()
+            True
+            sage: Poset().is_jump_critical(certificate=True)
+            (True, None)
+        """
+        # Quick check first
+        for e in self:
+            up = self.upper_covers(e)
+            if len(up) == 1:
+                if len(self.upper_covers(up[0])) == 1:
+                    if certificate:
+                        return (False, up[0])
+                    return False
+        # And now just dumb algorithm
+        jumps = self.jump_number()
+        for e in self:
+            P = self.subposet([x for x in self if x != e])
+            if P.jump_number() == jumps:
+                return (False, e) if certificate else False
+        return (True, None) if certificate else True
+
     def rank_function(self):
         r"""
         Return the (normalized) rank function of the poset,

@@ -909,17 +909,15 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef GapElement_List lst = <GapElement_List> lst_in
         cdef libGAP_Obj obj = lst.value
 
-        cdef PermutationGroupElement tmp = <PermutationGroupElement> self
-
-        cdef PermutationGroupElement new = tmp._new_c()
+        cdef PermutationGroupElement new = self._new_c()
         cdef Py_ssize_t i, j, vn = lst.__len__()
 
-        assert(vn <= tmp.n)
+        assert(vn <= self.n)
 
         for i in range(vn):
             j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
             new.perm[i] = j-1
-        for i from vn <= i < tmp.n:
+        for i from vn <= i < self.n:
             new.perm[i] = i
         return new
 

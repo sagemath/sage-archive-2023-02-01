@@ -1600,7 +1600,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             one = self.one()
             # the following also works but is much slower:
             #gap2sage = lambda elt: one._generate_new(libgap.ListPerm(elt).sage())
-            gap2sage = lambda elt: libgap.ListPerm(elt)._generate_perm(one)
+            #gap2sage = lambda elt: libgap.ListPerm(elt)._generate_perm(one)
+            gap2sage = lambda elt: one._generate_new_GAP(libgap.ListPerm(elt))
             return [ [ gap2sage(elt) for elt in coset] for coset in cosets ]
 
         if implementation == "sage":

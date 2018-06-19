@@ -1,3 +1,4 @@
+# distutils: libraries = gap
 from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
 from sage.structure.list_clone cimport ClonableIntArray
 

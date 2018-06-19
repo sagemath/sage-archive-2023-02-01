@@ -29,8 +29,6 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
 from sage.rings.all import ZZ, QQ, RDF
 
-from sage.groups.perm_gps.permgroup_element cimport PermutationGroupElement
-
 decode_type_number = {
     libGAP_T_INT: 'T_INT (integer)',
     libGAP_T_INTPOS: 'T_INTPOS (positive integer)',
@@ -2658,22 +2656,6 @@ cdef class GapElement_List(GapElement):
         """
         return [ x.sage(**kwds) for x in self ]
 
-    cpdef _generate_perm(self, old):
-        cdef libGAP_Obj obj = self.value
-
-        cdef PermutationGroupElement tmp = <PermutationGroupElement> old
-
-        cdef PermutationGroupElement new = tmp._new_c()
-        cdef int i, j, vn = self.__len__()
-
-        assert(vn <= tmp.n)
-
-        for i from 0 <= i < vn:
-            j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
-            new.perm[i] = j-1
-        for i from vn <= i < tmp.n:
-            new.perm[i] = i
-        return new
 
     def matrix(self, ring=None):
         """

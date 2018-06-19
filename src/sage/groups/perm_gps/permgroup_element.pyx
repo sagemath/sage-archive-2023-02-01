@@ -870,7 +870,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             prod.perm[i] = right.perm[left.perm[i]]
         return prod
 
-    cpdef _generate_new(old, list v):
+    cpdef _generate_new(self, list v):
         """
         EXAMPLES::
 
@@ -881,24 +881,38 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: one._generate_new([4,3,2,1])
             (1,4)(2,3)
         """
-        cdef PermutationGroupElement new = old._new_c()
+        cdef PermutationGroupElement new = self._new_c()
         cdef int i, j, vn = len(v)
-        assert(vn <= old.n)
+        assert(vn <= self.n)
         for i from 0 <= i < vn:
             j = v[i]
             new.perm[i] = j - 1
-        for i from vn <= i < old.n:
+        for i from vn <= i < self.n:
             new.perm[i] = i
         return new
 
-    cpdef _generate_new_GAP(old, self_tmp):
-        cdef GapElement_List self = <GapElement_List> self_tmp
-        cdef libGAP_Obj obj = self.value
+    cpdef _generate_new_GAP(self, lst_in):
+        """
+        EXAMPLES::
 
-        cdef PermutationGroupElement tmp = <PermutationGroupElement> old
+            sage: from sage.libs.gap.libgap import libgap
+
+            sage: P = PermutationGroup([(1,2),(1,2,3,4)])
+            sage: one = P.one()
+            sage: perm = libgap.eval('[]')
+            sage: one._generate_new_GAP(perm)
+            ()
+            sage: perm = libgap.eval('[4,3,2,1]')
+            sage: one._generate_new_GAP(perm)
+            (1,4)(2,3)
+        """
+        cdef GapElement_List lst = <GapElement_List> lst_in
+        cdef libGAP_Obj obj = lst.value
+
+        cdef PermutationGroupElement tmp = <PermutationGroupElement> self
 
         cdef PermutationGroupElement new = tmp._new_c()
-        cdef int i, j, vn = self.__len__()
+        cdef int i, j, vn = lst.__len__()
 
         assert(vn <= tmp.n)
 

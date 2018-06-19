@@ -367,6 +367,8 @@ def sieve(X, bound):
     modulo_points = [] # list to store point modulo primes
     len_modulo_points = [] # stores number of points with respect to each prime
     primes = [] # list of good primes
+    X.normalize_defining_polynomials()
+
     P = X.ambient_space()
     N = P.dimension()
     dim_scheme = X.dimension()

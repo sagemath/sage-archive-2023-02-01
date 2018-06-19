@@ -149,6 +149,8 @@ from sage.structure.all import Sequence
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.calculus.functions import jacobian
 
+from sage.arith.all import gcd
+
 import sage.schemes.affine
 from . import ambient_space
 from . import scheme
@@ -1088,6 +1090,48 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             (x^2 - y*z, x^3 + z^3)
         """
         return self.__polys
+
+    def normalize_defining_polynomials(self):
+        r"""
+        Function to normalize the coefficients of defining polynomials
+        of given subscheme.
+        It takes LCM of denominators and then removes common factor among
+        coefficients, if any.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(2, QQ)
+            sage: S = A.subscheme([2*x^2 + 4*x*y, 1/8*x + 1/3*y])
+            sage: S.normalize_defining_polynomials()
+            sage: S.defining_polynomials()
+            (x^2 + 2*x*y, 3*x + 8*y)
+
+        """
+        BR = self.base_ring()
+        if BR in NumberFields() or BR == ZZ:
+            normalized_polys = []
+            initial_polys = list(self.__polys)
+
+            for P in initial_polys:
+                mult = 1 # stores value which need to be mutliplied to make all coefficient integers
+                coeff = P.dict()
+                for i in coeff:
+                    d = coeff[i].denominator()
+                    mult = (mult*d) / gcd(mult, d)
+                P = mult*P
+                div = 0 # stores the common factor from all coefficients
+                coeff = P.dict()
+                for i in coeff:
+                    n = coeff[i].numerator()
+                    div = gcd(div, n)
+                P = (1/div) * P
+                normalized_polys.append(P)
+
+            self.__polys = tuple(normalized_polys)
+
+        else:
+            raise NotImplementedError("currently normalization is implemented only for integer and number fields")
+
 
     def defining_ideal(self):
         """

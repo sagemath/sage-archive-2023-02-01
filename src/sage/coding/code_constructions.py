@@ -40,27 +40,21 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.matrix.special import random_matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
 from .linear_code import LinearCode
-from sage.modules.free_module import span
-from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.arith.all import GCD, LCM, divisors, quadratic_residues, gcd
+from sage.arith.all import quadratic_residues, gcd
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
-from sage.sets.set import Set
 from sage.rings.finite_rings.integer_mod import Mod
 
-from sage.misc.superseded import deprecation, deprecated_function_alias
 
 ############### utility functions ################
 
@@ -175,8 +169,8 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
 
     # now that we know that (S1,S2) is a partition, we look for an invertible
     # element b that maps S1 to S2 by multiplication
-    for b in range(2,n):
-        if GCD(b,n) == 1 and all(b*x in S2 for x in S1):
+    for b in Integer(n).coprime_integers(n):
+        if b != 1 and all(b * x in S2 for x in S1):
             if return_automorphism:
                 return True, b
             else:
@@ -185,6 +179,7 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         return False, None
     else:
         return False
+
 
 def _lift2smallest_field(a):
     """
@@ -294,6 +289,7 @@ def permutation_action(g,v):
     if v_type_list:
         return gv
     return V(gv)
+
 
 def walsh_matrix(m0):
     """

@@ -888,6 +888,7 @@ def q_stirling_number2(n, k, q=None):
         ....:     for k in range(7))
         True
 
+
     TESTS::
 
         sage: q_stirling_number2(-1,2)

@@ -111,7 +111,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A == D
             False
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return list(self) == list(y)
 
@@ -175,7 +175,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A < C
             True
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return [sorted(_) for _ in self] < [sorted(_) for _ in y]
 
@@ -203,7 +203,7 @@ class AbstractSetPartition(ClonableArray):
             sage: A > B
             False
         """
-        if not isinstance(y, SetPartition):
+        if not isinstance(y, AbstractSetPartition):
             return False
         return [sorted(_) for _ in self] > [sorted(_) for _ in y]
 
@@ -883,15 +883,9 @@ class SetPartition(AbstractSetPartition):
           set partitions to restricted growth functions.  These are
           currently:
 
-          - ``blocks``: the word is obtained by sorting the blocks by
-            their minimal element and setting the letters at the
-            positions of the elements in the `i`-th block to `i`.
+          - ``blocks``: :meth:`to_restricted_growth_word_blocks`.
 
-          - ``intertwining``: the `i`-th letter of the word is the
-            numbers of crossings of the arc (or half-arc) in the
-            extended arc diagram ending at `i`, with arcs (or
-            half-arcs) beginning at a smaller element and ending at a
-            larger element.
+          - ``intertwining``: :meth:`to_restricted_growth_word_intertwining`.
 
         OUTPUT:
 
@@ -934,20 +928,77 @@ class SetPartition(AbstractSetPartition):
 
         """
         if bijection == "blocks":
-            # we can assume that the blocks are sorted by minimal element
-            return [next(i for i, B in enumerate(self) if j in B) for j in range(1, self.size()+1)]
+            return self.to_restricted_growth_word_blocks()
         elif bijection == "intertwining":
-            A = sorted(self.arcs())
-            O = [min(B) for B in self] # openers
-            C = [max(B) for B in self] # closers
-            I = [0]*self.size()
-            for i in O:
-                I[i-1] = sum(1 for k,l in A if k < i < l) + sum(1 for k in C if k < i)
-            for (i,j) in A:
-                I[j-1] = sum(1 for k,l in A if i < k < j < l) + sum(1 for k in C if i < k < j)
-            return I
+            return self.to_restricted_growth_word_intertwining()
         else:
             raise ValueError("The given bijection is not valid.")
+
+    def to_restricted_growth_word_blocks(self):
+        r"""
+        Convert a set partition of `\{1,...,n\}` to a word of length `n`
+        with letters in the non-negative integers such that each
+        letter is at most 1 larger than all the letters before.
+
+        The word is obtained by sorting the blocks by their minimal
+        element and setting the letters at the positions of the
+        elements in the `i`-th block to `i`.
+
+        OUTPUT:
+
+        - a restricted growth word.
+
+        .. SEEALSO::
+
+            :meth:`to_restricted_growth_word`
+            :meth:`SetPartitions.from_restricted_growth_word`
+
+        EXAMPLES::
+
+            sage: P = SetPartition([[1,4],[2,8],[3,5,6,9],[7]])
+            sage: P.to_restricted_growth_word_blocks()
+            [0, 1, 2, 0, 2, 2, 3, 1, 2]
+
+        """
+        # we can assume that the blocks are sorted by minimal element
+        return [next(i for i, B in enumerate(self) if j in B) for j in range(1, self.size()+1)]
+
+    def to_restricted_growth_word_intertwining(self):
+        r"""
+        Convert a set partition of `\{1,...,n\}` to a word of length `n`
+        with letters in the non-negative integers such that each
+        letter is at most 1 larger than all the letters before.
+
+        The `i`-th letter of the word is the numbers of crossings of
+        the arc (or half-arc) in the extended arc diagram ending at
+        `i`, with arcs (or half-arcs) beginning at a smaller element
+        and ending at a larger element.
+
+        OUTPUT:
+
+        - a restricted growth word.
+
+        .. SEEALSO::
+
+            :meth:`to_restricted_growth_word`
+            :meth:`SetPartitions.from_restricted_growth_word`
+
+        EXAMPLES::
+
+            sage: P = SetPartition([[1,4],[2,8],[3,5,6,9],[7]])
+            sage: P.to_restricted_growth_word_intertwining()
+            [0, 1, 2, 2, 1, 0, 3, 3, 2]
+
+        """
+        A = sorted(self.arcs())
+        O = [min(B) for B in self] # openers
+        C = [max(B) for B in self] # closers
+        I = [0]*self.size()
+        for i in O:
+            I[i-1] = sum(1 for k,l in A if k < i < l) + sum(1 for k in C if k < i)
+        for (i,j) in A:
+            I[j-1] = sum(1 for k,l in A if i < k < j < l) + sum(1 for k in C if i < k < j)
+        return I
 
     def openers(self):
         """
@@ -1072,7 +1123,7 @@ class SetPartition(AbstractSetPartition):
         n = self.size()
         if n == 0:
             return []
-        w = self.to_restricted_growth_word(bijection="blocks")
+        w = self.to_restricted_growth_word_blocks()
         # the set of openers - leftmost occurrences of a letter in w
         EC = sorted([w.index(i) for i in range(max(w)+1)])
         rooks = [] # pairs (row i, column j)
@@ -1154,7 +1205,7 @@ class SetPartition(AbstractSetPartition):
         n = self.size()
         if n == 0:
             return []
-        w = self.to_restricted_growth_word(bijection="blocks")
+        w = self.to_restricted_growth_word_blocks()
         w_rev = w[::-1]
         # the set of closers - rightmost occurrences of a letter in w
         R = sorted([n-w_rev.index(i)-1 for i in range(max(w)+1)])
@@ -2022,19 +2073,15 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         INPUT:
 
+        - ``w`` -- a restricted growth word.
+
         - ``bijection`` (default: ``blocks``) -- defines the map from
           restricted growth functions to set partitions.  These are
           currently:
 
-          - ``blocks``: the word is obtained by sorting the blocks by
-            their minimal element and setting the letters at the
-            positions of the elements in the `i`-th block to `i`.
+          - ``blocks``: .
 
-          - ``intertwining``: the `i`-th letter of the word is the
-            numbers of crossings of the arc (or half-arc) in the
-            extended arc diagram ending at `i`, with arcs (or
-            half-arcs) beginning at a smaller element and ending at a
-            larger element.
+          - ``intertwining``: :meth:`from_restricted_growth_word_intertwining`.
 
         OUTPUT:
 
@@ -2057,33 +2104,95 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         """
         if bijection == "blocks":
-            R = []
-            for i, B in enumerate(w, 1):
-                if len(R) <= B:
-                    R.append([i])
-                else:
-                    R[B].append(i)
-            return self.element_class(self, R)
+            return self.from_restricted_growth_word_blocks(w)
         elif bijection == "intertwining":
-            if len(w) == 0:
-                return self.element_class(self, [])
-            R = [[1]]
-            C = [1] # closers, always reverse sorted
-            m = 0 # max
-            for i in range(1,len(w)):
-                if w[i] == 1 + m: # i+1 is an opener
-                    m += 1
-                    R.append([i+1])
-                else:
-                    # add i+1 to the block, such that there are I[i] closers thereafter
-                    l = C[w[i]]
-                    B = next(B for B in R if l in B)
-                    B.append(i+1)
-                    C.remove(l)
-                C = [i+1] + C
-            return self.element_class(self, R)
+            return self.from_restricted_growth_word_intertwining(w)
         else:
             raise ValueError("The given bijection is not valid.")
+
+    def from_restricted_growth_word_blocks(self, w):
+        r"""
+        Convert a word of length `n` with letters in the non-negative
+        integers such that each letter is at most 1 larger than all
+        the letters before to a set partition of `\{1,...,n\}`.
+
+        ``w[i]` is the index of the block containing ``i+1`` when
+        sorting the blocks by their minimal element.
+
+        INPUT:
+
+        - ``w`` -- a restricted growth word.
+
+        OUTPUT:
+
+        A set partition.
+
+        .. SEEALSO::
+
+            :meth:`from_restricted_growth_word`
+            :meth:`SetPartition.to_restricted_growth_word`
+
+        EXAMPLES::
+
+            sage: SetPartitions().from_restricted_growth_word_blocks([0, 0, 1, 0, 2, 2, 0, 3, 1, 2, 2, 4, 2])
+            {{1, 2, 4, 7}, {3, 9}, {5, 6, 10, 11, 13}, {8}, {12}}
+
+        """
+        R = []
+        for i, B in enumerate(w, 1):
+            if len(R) <= B:
+                R.append([i])
+            else:
+                R[B].append(i)
+        return self.element_class(self, R)
+
+    def from_restricted_growth_word_intertwining(self, w):
+        r"""
+        Convert a word of length `n` with letters in the non-negative
+        integers such that each letter is at most 1 larger than all
+        the letters before to a set partition of `\{1,...,n\}`.
+
+        The `i`-th letter of the word is the numbers of crossings of
+        the arc (or half-arc) in the extended arc diagram ending at
+        `i`, with arcs (or half-arcs) beginning at a smaller element
+        and ending at a larger element.
+
+        INPUT:
+
+        - ``w`` -- a restricted growth word.
+
+        OUTPUT:
+
+        A set partition.
+
+        .. SEEALSO::
+
+            :meth:`from_restricted_growth_word`
+            :meth:`SetPartition.to_restricted_growth_word`
+
+        EXAMPLES::
+
+            sage: SetPartitions().from_restricted_growth_word_intertwining([0, 0, 1, 0, 2, 2, 0, 3, 1, 2, 2, 4, 2])
+            {{1, 2, 6, 7, 9}, {3, 4}, {5, 10, 13}, {8, 11}, {12}}
+
+        """
+        if len(w) == 0:
+            return self.element_class(self, [])
+        R = [[1]]
+        C = [1] # closers, always reverse sorted
+        m = 0 # max
+        for i in range(1,len(w)):
+            if w[i] == 1 + m: # i+1 is an opener
+                m += 1
+                R.append([i+1])
+            else:
+                # add i+1 to the block, such that there are I[i] closers thereafter
+                l = C[w[i]]
+                B = next(B for B in R if l in B)
+                B.append(i+1)
+                C.remove(l)
+            C = [i+1] + C
+        return self.element_class(self, R)
 
     def from_rook_placement(self, rooks, bijection="arcs", n=None):
         r"""
@@ -2236,23 +2345,16 @@ class SetPartitions(UniqueRepresentation, Parent):
         if n == 0:
             return self.element_class(self, [])
         # the columns of the board, beginning with column n-1
-        C = [[i for i in range(n+1-j, n+1)] for j in range(1,n)]
+        C = [set(range(n+1-j, n+1)) for j in range(1,n)]
         # delete cells north and east of each rook
         for (j,i) in rooks:
             # north
-            for k in range(j+1, i+1):
-                try:
-                    C[n-j-1].remove(k)
-                except ValueError:
-                    pass
+            C[n-j-1].difference_update(range(j+1, i+1))
             # east
             for l in range(n+1-j, n+1):
-                try:
-                    C[l-2].remove(i)
-                except ValueError:
-                    pass
+                C[l-2].discard(i)
         w = [0] + [len(c) for c in C]
-        return self.from_restricted_growth_word(w, bijection="blocks")
+        return self.from_restricted_growth_word_blocks(w)
 
     def from_rook_placement_rho(self, rooks, n):
         r"""
@@ -2300,20 +2402,14 @@ class SetPartitions(UniqueRepresentation, Parent):
         cols = [j for j, _ in rooks]
         R = [j for j in range(1,n+1) if j not in cols]
         # the columns of the board, beginning with column n-1
-        C = [[i for i in range(n+1-j, n+1)] if n-j not in R else [] for j in range(1,n)]
+        C = [set(range(n+1-j, n+1)) if n-j not in R else set() for j in range(1,n)]
         for (j,i) in rooks: # column j from right, row i from top
             # south
-            for k in range(i, n+1):
-                try:
-                    C[n-j-1].remove(k)
-                except ValueError:
-                    pass
+            C[n-j-1].difference_update(range(i, n+1))
             # east
             for l in range(n+1-j, n+1):
-                try:
-                    C[l-2].remove(i)
-                except ValueError:
-                    pass
+                C[l-2].discard(i)
+
         C_flat = [i for c in C for i in c]
         # the number of closers which are larger than i and whose
         # block is before the block of i
@@ -2367,13 +2463,14 @@ class SetPartitions(UniqueRepresentation, Parent):
         # Yip draws the diagram as an upper triangular matrix, thus
         # we refer to the cell in row i and column j with (i, j)
         P = []
+        rooks_by_column = {j: i for (i, j) in rooks}
         for c in range(1, n+1):
             # determine the weight of column c
             try:
-                r = next(i for i,j in rooks if c == j)
+                r = rooks_by_column[c]
                 n_rooks = 1
                 ne = r-1 + sum(1 for i,j in rooks if i > r and j < c)
-            except StopIteration:
+            except KeyError:
                 n_rooks = 0
                 ne = sum(1 for i,j in rooks if j < c)
 

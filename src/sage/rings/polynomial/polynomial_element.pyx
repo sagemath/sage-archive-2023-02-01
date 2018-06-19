@@ -10066,8 +10066,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = Zmod(6)[]
             sage: p = 4*x + 3
             sage: q = 5*x**2 + x + 2
-            sage: p.divides(q), p.divides(p*q)
-            (False, True)
+            sage: p.divides(q)
+            False
+            sage: p.divides(p*q)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: divisibility test is only implemented for integral domains
         """
         if p.is_zero(): return True          # everything divides 0
         if self.is_zero(): return False      # 0 only divides 0
@@ -10079,8 +10083,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() > p.degree():
             return False
 
-        if not p.leading_coefficient().divides(q.leading_coefficient()):
+        if not self.leading_coefficient().divides(p.leading_coefficient()):
             return False
+
+        if not self.base_ring().is_integral_domain():
+            raise NotImplementedError("divisibility test is only implemented for integral domains")
 
         try:
             return (p % self).is_zero()      # if quo_rem is defined

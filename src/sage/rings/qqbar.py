@@ -873,8 +873,7 @@ class AlgebraicField_common(sage.rings.ring.Field):
                                   for k,v in numfield_f.dict().iteritems())
 
             norm_flat = polynomial_flat.resultant(numfield_polynomial_flat, nf_gen)
-            norm_f = sum(norm_ring({tuple(k)[1:]:v})
-                         for k,v in norm_flat.dict().iteritems())
+            norm_f = norm_flat((0,)+norm_ring.gens())
         else:
             norm_f = numfield_f
 

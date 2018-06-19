@@ -882,9 +882,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             (1,4)(2,3)
         """
         cdef PermutationGroupElement new = self._new_c()
-        cdef int i, j, vn = len(v)
+        cdef Py_ssize_t i, j, vn = len(v)
         assert(vn <= self.n)
-        for i from 0 <= i < vn:
+        for i in range(vn):
             j = v[i]
             new.perm[i] = j - 1
         for i from vn <= i < self.n:
@@ -912,11 +912,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         cdef PermutationGroupElement tmp = <PermutationGroupElement> self
 
         cdef PermutationGroupElement new = tmp._new_c()
-        cdef int i, j, vn = lst.__len__()
+        cdef Py_ssize_t i, j, vn = lst.__len__()
 
         assert(vn <= tmp.n)
 
-        for i from 0 <= i < vn:
+        for i in range(vn):
             j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
             new.perm[i] = j-1
         for i from vn <= i < tmp.n:

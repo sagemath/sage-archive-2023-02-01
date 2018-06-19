@@ -17,19 +17,17 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import repr_lincomb
-from sage.structure.element import RingElement, parent
+from sage.structure.element import parent
 from sage.categories.lie_algebras import LieAlgebras
 
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import UntwistedAffineLieAlgebraElement
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.root_system.cartan_matrix import CartanMatrix
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.categories.cartesian_product import cartesian_product
 from sage.rings.integer_ring import ZZ
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
+
 
 class AffineLieAlgebra(FinitelyGeneratedLieAlgebra):
     r"""

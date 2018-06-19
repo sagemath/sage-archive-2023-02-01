@@ -2411,7 +2411,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
     @cached_method
     def vertex_graph(self):
-        """
+        r"""
         Return the graph of 1- and 2-cones.
 
         OUTPUT:
@@ -3308,7 +3308,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         self._oriented_boundary = boundaries
         return boundaries[cone]
 
-    def toric_variety(self):
+    def toric_variety(self, *args, **kwds):
         """
         Return the associated toric variety.
 
@@ -3318,7 +3318,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             2-d toric variety covered by 2 affine patches
         """
         from sage.schemes.toric.variety import ToricVariety
-        return ToricVariety(self)
+        return ToricVariety(self, *args, **kwds)
 
     def complex(self, base_ring=ZZ, extended=False):
         r"""

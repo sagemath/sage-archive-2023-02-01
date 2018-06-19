@@ -1122,7 +1122,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                 div = 0 # stores the common factor from all coefficients
                 coeff = P.dict()
                 for i in coeff:
-                    n = coeff[i].numerator()
+                    n = coeff[i]
                     div = gcd(div, n)
                 P = (1/div) * P
                 normalized_polys.append(P)

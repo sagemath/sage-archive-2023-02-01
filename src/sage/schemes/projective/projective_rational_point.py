@@ -58,12 +58,13 @@ AUTHORS:
 
 from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
 from sage.rings.all import ZZ, RR
+from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.misc.all import cartesian_product_iterator, prod
+from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
-from sage.misc.mrange import xmrange
-from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.matrix.constructor import matrix
 
 
@@ -305,7 +306,7 @@ def sieve(X, bound):
     Returns the list of all projective, rational points on scheme ``X`` of
     height up to ``bound``.
 
-    This algorithm algorithm works correctly only if dimension of given
+    This algorithm works correctly only if dimension of given
     scheme is positive.
 
     INPUT:
@@ -363,11 +364,22 @@ def sieve(X, bound):
         sage: len(Y.rational_points(8)) # long time (5 s)
         2
 
+    Algorithm works even if coefficients are fraction::
+        
+        sage: from sage.schemes.projective.projective_rational_point import sieve
+        sage: P.<x,y,z> = ProjectiveSpace(2,QQ)
+        sage: X = P.subscheme(3*x - 3/2*y)
+        sage: sieve(X, 3)
+        [(-1 : -2 : 1), (-1/2 : -1 : 1), (-1/3 : -2/3 : 1), (0 : 0 : 1),
+         (1/3 : 2/3 : 1), (1/2 : 1 : 0), (1/2 : 1 : 1), (1 : 2 : 1)]
+
     """
     modulo_points = [] # list to store point modulo primes
     len_modulo_points = [] # stores number of points with respect to each prime
     primes = [] # list of good primes
-    X.normalize_defining_polynomials()
+    
+    if isinstance(X, AlgebraicScheme_subscheme): # needs to be done only if defining polynomials exist
+        X.normalize_defining_polynomials()
 
     P = X.ambient_space()
     N = P.dimension()

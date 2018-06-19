@@ -38,6 +38,9 @@ AUTHORS:
 
 - John Cremona and Charlie Turner <charlotteturner@gmail.com> (06-2010):
   improvements to clarity and documentation.
+
+- Raghukul Raman <raghukul.raman01@gmail.com> (2018): Added sieve algorithm.
+
 """
 
 #*****************************************************************************
@@ -293,7 +296,7 @@ def sieve(X, bound):
     Returns the list of all affine, rational points on scheme ``X`` of
     height up to ``bound``.
 
-    This algorithm algorithm works correctly only if dimension of given
+    This algorithm works correctly only if dimension of given
     scheme is positive.
 
     INPUT:
@@ -316,15 +319,28 @@ def sieve(X, bound):
         [(-2, 2, -2), (-1, -2, 1), (-1, 1, -1), (-1/2, -1, 1/2),
          (-1/2, 1/2, -1/2), (0, 0, 0), (1/2, -1/2, 1/2),
          (1/2, 1, -1/2), (1, -1, 1), (1, 2, -1), (2, -2, 2)]
+    
+    TESTS:
+
+    Illustrates efficiency of algorithm::
+
+        sage: A.<x,y> = AffineSpace(2, QQ)
+        sage: C = Curve(x^2+y^2-x)
+        sage: len(C.rational_points(20))
+        20
+        sage: from sage.schemes.affine.affine_rational_point import sieve
+        sage: len(sieve(C, 20))
+        20
 
     """
+    # finds a projective embedding to use projective version of sieve
     pi = X.projective_embedding(0)
     P = pi.codomain()
     AA = P.affine_patch(0)
     
     proj_L = projective_sieve(P, bound)
     LL = set()
-    for point in proj_L:
+    for point in proj_L: # make them back into affine points
         pt = []
         denom = point[0]
         if denom == 0:

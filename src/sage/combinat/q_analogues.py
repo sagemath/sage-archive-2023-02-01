@@ -888,13 +888,6 @@ def q_stirling_number2(n, k, q=None):
         ....:     for k in range(7))
         True
 
-        sage: from sage.combinat.q_analogues import q_int
-        sage: q = ZZ['q'].gen(); h = SymmetricFunctions(ZZ).h()
-        sage: n = 6;
-        sage: s = lambda k: {"x%s"%i: q_int(i+1) for i in range(k)}
-        sage: all(q_stirling_number2(n,k) == q^binomial(k,2)*h[n-k].expand(k, s(k).keys()).subs(**s(k)) for k in range(1,n))
-        True
-
     TESTS::
 
         sage: q_stirling_number2(-1,2)

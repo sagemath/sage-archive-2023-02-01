@@ -2382,7 +2382,6 @@ class Triconnectivity:
     graph_copy = None #type SparseGraph
     vertex_to_int = {} # mapping of vertices to integers in c_graph
     start_vertex = 0
-    components_list = [] #list of components
     num_components = 0
     edge_status = {} #status of each edge, unseen=0, tree=1, frond=2, removed=3
     Estack = []
@@ -2413,7 +2412,7 @@ class Triconnectivity:
         self.graph_copy = G.copy(implementation='c_graph')
         self.vertex_to_int = self.graph_copy.relabel(inplace=True, return_map=True)
         self.n = self.graph_copy.order()
-        self.m = self.graph_copy.num_edges()
+        self.m = self.graph_copy.size()
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
         self.number = [0]*self.n
         self.lowpt1 = [None]*self.n
@@ -2424,7 +2423,8 @@ class Triconnectivity:
         self.tree_arc = [None]*self.n
         self.vertex_at = [1]*self.n
         self.dfs_counter = 0
-        # We call the function split_multi_egdes() next.
+        self.components_list = [] #list of components
+        self.split_multi_egdes()
         
     def new_component(self, edges, type_c=0):
         c = self.Component(edges, type_c)
@@ -2432,16 +2432,61 @@ class Triconnectivity:
         # Remove the edges from graph
         for e in edges:
             self.edge_status[e] = 3
+        self.num_components += 1
     
     def add_edge_to_component(self, comp, e):
         comp.add_edge(e)
         self.edge_status[e] = 3
         
+    def split_multi_egdes(self):
+        """
+        This function will remove all the multiple edges present in
+        graph_copy and append the multiple edges in component list.
 
+        If there are `k` multiple edges between `u` and `v` then `k+1`
+        edges will be added to a component.
 
+        It won't return anything but update the components_list and
+        graph_copy, which will become simple graph.
 
+        Example::
 
+            An example to list the components build after removal of multiple edges
 
+            sage: G = Graph()
+            sage: G.add_cycle(vertices=[0,1,2,3,4])
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: G.add_edges([[0,1],[3, 4]])
+            sage: from sage.graphs.connectivity import Triconnectivity
+            sage: t = Triconnectivity(G)
+            sage: for l in t.components_list:
+            ....:     print l.edge_list
+            [(0, 1), (0, 1), (0, 1), (0, 1)]
+            [(0, 4), (0, 4), (0, 4)]
+            [(1, 2), (1, 2), (1, 2)]
+            [(2, 3), (2, 3), (2, 3)]
+            [(3, 4), (3, 4)]
+            sage: t.num_components
+            5
+        """
 
+        comp = []
+        if self.graph_copy.has_multiple_edges():
+            sorted_edges = sorted(self.graph_copy.multiple_edges(labels=False))
+            for i in range(len(sorted_edges) - 1):
 
-
+                # It will add k - 1 multiple edges to comp
+                if sorted_edges[i] == sorted_edges[i + 1]:
+                    self.graph_copy.delete_edge(sorted_edges[i])
+                    comp.append(sorted_edges[i])
+                else:
+                    if len(comp):
+                        comp.append(sorted_edges[i-1])
+                        comp.append(sorted_edges[i-1])
+                        self.new_component(comp)
+                    comp = []
+            if len(comp):
+                comp.append(sorted_edges[i-1])
+                comp.append(sorted_edges[i-1])
+                self.new_component(comp)

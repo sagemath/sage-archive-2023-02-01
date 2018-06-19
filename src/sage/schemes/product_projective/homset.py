@@ -68,7 +68,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         ring is a field or not.
 
         For number fields, this uses the
-        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
         computing algebraic numbers up to a given height [Doyle-Krumm]_.
 
         The algorithm requires floating point arithmetic, so the user is

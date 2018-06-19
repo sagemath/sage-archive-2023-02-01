@@ -1123,7 +1123,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
         Bound check is strict for the rational field. Requires the base field of this space to be a number field.
         Uses the
-        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
         computing algebraic numbers up to a given height [Doyle-Krumm]_.
 
         The algorithm requires floating point arithmetic, so the user is

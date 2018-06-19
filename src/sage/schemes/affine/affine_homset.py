@@ -123,11 +123,11 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         Return some or all rational points of an affine scheme.
 
         Over a finite field, all points are returned. Over an infinite field, all points satisfying the bound
-        are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the base
-        ring is a field or not.
+        are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the field
+        is infinite or not.
 
         For number fields, this uses the
-        Doyle-Krumm algorithm 4 (algorihtm 5 for imaginary quadratic) for
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
         computing algebraic numbers up to a given height [Doyle-Krumm]_.
 
         The algorithm requires floating point arithmetic, so the user is

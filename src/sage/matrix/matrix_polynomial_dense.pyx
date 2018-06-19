@@ -1062,7 +1062,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                                     include_zero_vectors=False)
             False
 
-        .. SEEALSO:
+        .. SEEALSO::
         
             :meth:`hermite_form` .
         """

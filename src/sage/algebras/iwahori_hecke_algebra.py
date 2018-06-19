@@ -25,16 +25,15 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWithBasis, CoxeterGroups
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.polynomial.polydict import ETuple
 from sage.arith.all import is_square
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
+
 
 def normalized_laurent_polynomial(R, p):
     r"""

@@ -19,22 +19,18 @@ AUTHORS:
 #*****************************************************************************
 
 import itertools
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
 from sage.categories.algebras import Algebras
-from sage.categories.realizations import Realizations, Category_realization_of_parent
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
-from sage.sets.positive_integers import PositiveIntegers
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid, IndexedMonoid
-from sage.matrix.constructor import matrix
+from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.root_system.cartan_matrix import CartanMatrix
+
 
 class QSystem(CombinatorialFreeModule):
     r"""

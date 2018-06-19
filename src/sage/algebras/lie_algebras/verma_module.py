@@ -23,7 +23,6 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.categories.modules import Modules
 from sage.categories.morphism import Morphism
 from sage.categories.homset import Hom, Homset
@@ -33,7 +32,7 @@ from sage.modules.free_module_element import vector
 from sage.sets.family import Family
 from sage.structure.richcmp import richcmp
 from sage.rings.all import ZZ, QQ
-from copy import copy
+
 
 class VermaModule(CombinatorialFreeModule):
     r"""
@@ -607,7 +606,7 @@ class VermaModule(CombinatorialFreeModule):
         if not (isinstance(Y, VermaModule) and self._g is Y._g):
             raise TypeError("{} must be a Verma module of {}".format(Y, self._g))
         if category is not None and not category.is_subcategory(self.category()):
-            raise TypeError("{} is not a subcategory of {}".format(category, Cat))
+            raise TypeError("{} is not a subcategory of {}".format(category, self.category()))
         return VermaModuleHomset(self, Y)
 
     class Element(CombinatorialFreeModule.Element):

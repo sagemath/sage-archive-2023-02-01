@@ -8176,7 +8176,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:                final_states=['A'])
             sage: F.transitions()[0].word_out is F.transitions()[1].word_out
             False
-            sage: G = Transducer([('C','C',0,1)],)
+            sage: G = Transducer([('C','C',0,1)],
             ....:                initial_states=['C'],
             ....:                final_states=['C'])
             sage: H = G.composition(F)

@@ -19437,7 +19437,8 @@ class GenericGraph(GenericGraph_pyx):
         graph should be laid out so that edges starting from ``1`` are
         going backward (e.g. going up instead of down)::
 
-            sage: def edge_options((u,v,label)):
+            sage: def edge_options(data):
+            ....:     u, v, label = data
             ....:     return { "backward": u == 1 }
             sage: print(G.graphviz_string(edge_options = edge_options))  # random
             digraph {
@@ -19466,7 +19467,8 @@ class GenericGraph(GenericGraph_pyx):
 
         We now test all options::
 
-            sage: def edge_options((u,v,label)):
+            sage: def edge_options(data):
+            ....:     u, v, label = data
             ....:     options = { "color": { f: "red", g: "blue" }[label] }
             ....:     if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
             ....:     if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"

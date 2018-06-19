@@ -1144,6 +1144,17 @@ class FriCASElement(ExpectElement):
             sage: dilog(1.0)
             1.64493406684823
 
+        Check that :trac:`25602` is fixed::
+
+            sage: r = fricas.integrate(72000/(1+x^5),x).sage()                  # optional - fricas
+            sage: n(r.subs(x=5)-r.subs(x=3))                                    # optional - fricas
+            193.020947266210
+
+            sage: var("a")                                                      # optional - fricas
+            sage: r = fricas.integrate(72000*a^8/(a^5+x^5),x).sage()            # optional - fricas
+            sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas
+            193.020947266268 - 8.73114913702011e-11*I
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol
@@ -1175,15 +1186,28 @@ class FriCASElement(ExpectElement):
             raise NotImplementedError("%s: the translation of the FriCAS Expression %s to sage is not yet implemented." %(e,s))
 
         from sage.rings.all import QQbar, PolynomialRing
+        from sage.symbolic.ring import SR
         i = 0
         while rootOf:
             (var, poly) = rootOf.items()[i]
-            lv = [v for v in poly.variables() if v not in rootOf_ev]
-            if len(lv) == 1:
-                assert lv[0] == var
-                R = PolynomialRing(QQbar, "x")
-                p = R(poly.subs(rootOf_ev).subs({var:R.gen()}))
-                rootOf_ev[var] = p.roots()[0][0].radical_expression()
+            pvars = poly.variables()
+            rvars = [v for v in pvars if v not in rootOf_ev] # remaining variables
+            uvars = [v for v in rvars if v in rootOf] # variables to evaluate
+            if len(uvars) == 1:
+                assert uvars[0] == var
+                # substitute known roots
+                poly = poly.subs(rootOf_ev)
+                evars = [v for v in rvars if v not in rootOf] # extraneous variables
+                assert set(evars) == set(poly.variables()).difference([var])
+                if evars:
+                    # we just need any root per FriCAS specification
+                    rootOf_ev[var] = poly.roots(var, multiplicities=False)[0]
+                else:
+                    R = PolynomialRing(QQbar, "x")
+                    # PolynomialRing does not accept variable names with leading underscores
+                    poly = R(poly.subs({var:R.gen()}))
+                    # we just need any root per FriCAS specification
+                    rootOf_ev[var] = poly.roots(multiplicities=False)[0].radical_expression()
                 del rootOf[var]
                 i = 0
             else:

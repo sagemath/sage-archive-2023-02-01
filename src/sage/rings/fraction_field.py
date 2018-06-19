@@ -811,6 +811,10 @@ class FractionField_generic(ring.Field):
 
     def _gcd_univariate_polynomial(self, f, g):
         r"""
+        Helper method used to compute polynomial gcds over this field.
+
+        See :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`.
+
         TESTS::
 
             sage: A.<x,y> = ZZ[]

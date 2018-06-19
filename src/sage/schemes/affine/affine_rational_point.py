@@ -51,7 +51,7 @@ AUTHORS:
 #*****************************************************************************
 from six.moves import range
 
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQ
 from sage.misc.all import cartesian_product_iterator
 from sage.schemes.generic.scheme import is_Scheme
 
@@ -95,14 +95,17 @@ def enum_affine_rational_field(X, B):
         sage: A.<x,y> = AffineSpace(2, QQ)
         sage: C = Curve(x^2+y-x)
         sage: enum_affine_rational_field(C, 10)
-        [(-2, -6), (-1, -2), (0, 0), (1, 0), (2, -2), (3, -6)]
-
+        [(-2, -6), (-1, -2), (-2/3, -10/9), (-1/2, -3/4), (-1/3, -4/9),
+        (0, 0), (1/3, 2/9), (1/2, 1/4), (2/3, 2/9), (1, 0),
+        (4/3, -4/9), (3/2, -3/4), (5/3, -10/9), (2, -2), (3, -6)]
 
     AUTHORS:
 
     - David R. Kohel <kohel@maths.usyd.edu.au>: original version.
 
     - Charlie Turner (06-2010): small adjustments.
+
+    - Raman Raghukul 2018: updated.
     """
     from sage.schemes.affine.affine_space import is_AffineSpace
     if(is_Scheme(X)):
@@ -114,40 +117,39 @@ def enum_affine_rational_field(X, B):
             raise TypeError("codomain must be affine space over the rational field")
 
     n = X.codomain().ambient_space().ngens()
-    if X.value_ring() is ZZ:
-        Q = [1]
+    VR = X.value_ring()
+    if VR is ZZ:
+        R = [ 0 ] + [ s*k for k in range(1, B+1) for s in [1, -1] ]
+        iters = [ iter(R) for _ in range(n) ]
     else:  # rational field
-        Q = list(range(1, B + 1))
-    R = [ 0 ] + [ s*k for k in range(1, B+1) for s in [1, -1] ]
+        iters = [ QQ.range_by_height(B + 1) for _ in range(n) ]
     pts = []
     P = [0] * n
-    m = ZZ.zero()
     try:
         pts.append(X(P))
     except TypeError:
         pass
-    iters = [ iter(R) for _ in range(n) ]
+
     for it in iters:
         next(it)
     i = 0
     while i < n:
         try:
-            a = ZZ(next(iters[i]))
+            a = VR(next(iters[i]))
         except StopIteration:
-            iters[i] = iter(R) # reset
+            if VR is ZZ:
+                iters[i] = iter(R)
+            else:  # rational field
+                iters[i] = QQ.range_by_height(B + 1)
             P[i] = next(iters[i]) # reset P[i] to 0 and increment
             i += 1
             continue
-        m = m.gcd(a)
         P[i] = a
-        for b in Q:
-            if m.gcd(b) == 1:
-                try:
-                    pts.append(X([ num/b for num in P ]))
-                except TypeError:
-                    pass
+        try:
+            pts.append(X(P))
+        except TypeError:
+            pass
         i = 0
-        m = ZZ(0)
     pts.sort()
     return pts
 

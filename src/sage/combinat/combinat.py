@@ -1332,25 +1332,6 @@ class CombinatorialClass(Parent):
         """
         Parent.__init__(self, category = EnumeratedSets().or_subcategory(category))
 
-
-    def __len__(self):
-        """
-        __len__ has been removed ! to get the number of element in a
-        combinatorial class, use .cardinality instead.
-
-
-        TESTS::
-
-            sage: class C(CombinatorialClass):
-            ....:     def __iter__(self):
-            ....:         return iter([1,2,3])
-            sage: len(C())
-            Traceback (most recent call last):
-            ...
-            AttributeError: __len__ has been removed; use .cardinality() instead
-        """
-        raise AttributeError("__len__ has been removed; use .cardinality() instead")
-
     def is_finite(self):
         """
         Returns whether self is finite or not.

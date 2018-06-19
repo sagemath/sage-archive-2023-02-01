@@ -849,35 +849,32 @@ class AlgebraicField_common(sage.rings.ring.Field):
             # this can be accomplished more efficiently using the resultant
             # of the polynomial with the number field's minimial polynomial.
             #
-            # We use several auxiliary polynomial rings:
+            # We use two auxiliary polynomial rings:
             #
-            #   univariate_ring - for the number field's minimial polynomial
-            #   bivariate_ring - for the polynomial's norm over QQ
-            #                    (instead of over the number field)
-            #   trivariate_ring - for the polynomial and number field variables
-            #                     all in a single flat polynomial ring
+            #   norm_ring - for the polynomial's norm (same var names,
+            #               but over QQ instead of over the number field)
+            #   flat_ring - all the polynomial and number field variables
+            #               in a single flat polynomial ring, with the
+            #               variables renamed to ensure they don't conflict
             #
-            # If we're factoring a bivariate polynomial, they actually are
-            # uni-, bi-, and tri-variate rings.  For polynomials with more
-            # variables, bivariate_ring has the same number of generators as
-            # the polynomial being factored, and trivariate_ring has one more.
+            # norm_ring has the same number of generators as the polynomial
+            # being factored, and flat_ring has one more.
 
             polynomial_gens = numfield_f.parent().gens()
 
-            # create a variable name different from all of the polynomial_gens
-            numfield_gen = 'x'.join([str(g) for g in polynomial_gens])
+            norm_ring = PolynomialRing(QQ, polynomial_gens)
+            flat_ring = PolynomialRing(QQ, len(polynomial_gens) + 1, 'x')
+            nf_gen = flat_ring.gen(0)
 
-            univariate_ring = PolynomialRing(QQ, (numfield_gen,) )
-            bivariate_ring = PolynomialRing(QQ, polynomial_gens)
-            trivariate_ring = PolynomialRing(QQ, (numfield_gen,) + polynomial_gens)
+            numfield_polynomial_flat = numfield.polynomial()(nf_gen)
 
-            numfield_polynomial = trivariate_ring(univariate_ring(numfield.polynomial()))
+            polynomial_flat = sum(flat_ring({(0,)+tuple(k):1})
+                                  * v.polynomial()(nf_gen)
+                                  for k,v in numfield_f.dict().iteritems())
 
-            polynomial_f = numfield_f.map_coefficients(lambda c: univariate_ring(c.polynomial()),
-                                                       new_base_ring = univariate_ring)
-            polynomial_f = polynomial_f.parent().flattening_morphism()(polynomial_f)
-
-            norm_f = bivariate_ring(polynomial_f.resultant(numfield_polynomial, trivariate_ring.gen(0)))
+            norm_flat = polynomial_flat.resultant(numfield_polynomial_flat, nf_gen)
+            norm_f = sum(norm_ring({tuple(k)[1:]:v})
+                         for k,v in norm_flat.dict().iteritems())
         else:
             norm_f = numfield_f
 

@@ -1226,12 +1226,12 @@ def plot(funcs, *args, **kwds):
 
     ::
 
-        sage: plot(sin, legend_label='$\sin$')
+        sage: plot(sin, legend_label=r'$\sin$')
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        g = plot(sin,legend_label='$\sin$')
+        g = plot(sin,legend_label=r'$\sin$')
         sphinx_plot(g)
 
     It is possible to use a different color for the text of each label::
@@ -1252,12 +1252,12 @@ def plot(funcs, *args, **kwds):
     background. This behavior can be recovered by setting the legend
     options on your plot object::
 
-        sage: p = plot(sin(x), legend_label='$\sin(x)$')
+        sage: p = plot(sin(x), legend_label=r'$\sin(x)$')
         sage: p.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
 
     .. PLOT::
 
-        g = plot(sin(x), legend_label='$\sin(x)$')
+        g = plot(sin(x), legend_label=r'$\sin(x)$')
         g.set_legend_options(back_color=(0.9,0.9,0.9), shadow=False)
         sphinx_plot(g)
 
@@ -1631,12 +1631,12 @@ def plot(funcs, *args, **kwds):
     Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
     as long as they are valid::
 
-        sage: plot(sin(x^2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
+        sage: plot(sin(x^2), (x, -3, 3), title=r'Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
         Graphics object consisting of 1 graphics primitive
 
     .. PLOT::
 
-        g = plot(sin(x**2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
+        g = plot(sin(x**2), (x, -3, 3), title=r'Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
         sphinx_plot(g)
 
     ::
@@ -3858,7 +3858,8 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
     if isinstance(initial_points, list):
         data = sorted(data + initial_points)
 
-    exceptions = 0; msg=''
+    exceptions = 0
+    msg = ''
     exception_indices = []
     for i in range(len(data)):
         xi = data[i]

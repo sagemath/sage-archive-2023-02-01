@@ -66,7 +66,7 @@ from sage.misc.superseded import deprecation, deprecated_function_alias
 
 
 def _is_a_splitting(S1, S2, n, return_automorphism=False):
-    """
+    r"""
     Check wether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
 
     A splitting of `R = \ZZ/n\ZZ` is a pair of subsets of `R` which is a
@@ -223,7 +223,7 @@ def _lift2smallest_field(a):
 
 
 def permutation_action(g,v):
-    """
+    r"""
     Returns permutation of rows g\*v. Works on lists, matrices,
     sequences and vectors (by permuting coordinates). The code requires
     switching from i to i+1 (and back again) since the SymmetricGroup

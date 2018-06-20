@@ -1496,7 +1496,7 @@ class Link(object):
         return flatten(self._braid_word_components())
 
     def _homology_generators(self):
-        """
+        r"""
         The set of generators for the first homology group of the connected
         Seifert surface of the given link.
 

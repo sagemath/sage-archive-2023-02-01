@@ -1,4 +1,4 @@
-"""
+r"""
 Families
 
 A Family is an associative container which models a family
@@ -433,7 +433,7 @@ class AbstractFamily(Parent):
         return []
 
     def zip(self, f, other, name=None):
-        """
+        r"""
         Given two families with same index set `I` (and same hidden
         keys if relevant), returns the family
         `( f(self[i], other[i]) )_{i \in I}`
@@ -453,7 +453,7 @@ class AbstractFamily(Parent):
         return Family(self.keys(), lambda i: f(self[i],other[i]), hidden_keys=self.hidden_keys(), name=name)
 
     def map(self, f, name=None):
-        """
+        r"""
         Returns the family `( f(\mathtt{self}[i]) )_{i \in I}`, where
         `I` is the index set of self.
 

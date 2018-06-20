@@ -1793,7 +1793,7 @@ class GenericGraph(GenericGraph_pyx):
     am = adjacency_matrix # shorter call makes life easier
 
     def incidence_matrix(self, oriented=None, sparse=True):
-        """
+        r"""
         Return the incidence matrix of the (di)graph.
 
         Each row is a vertex, and each column is an edge. The vertices as

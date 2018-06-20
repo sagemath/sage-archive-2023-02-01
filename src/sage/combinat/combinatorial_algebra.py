@@ -275,7 +275,7 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         r"""
         Return left\*right where left and right are elements of ``self``.
 
-        ``product()`` uses either ``_multiply`` or ``_multiply basis`` to carry out
+        ``product()`` uses either ``_multiply`` or ``_multiply_basis`` to carry out
         the actual multiplication.
 
         EXAMPLES::

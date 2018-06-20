@@ -960,8 +960,12 @@ class SetPartition(AbstractSetPartition):
             [0, 1, 2, 0, 2, 2, 3, 1, 2]
 
         """
-        # we can assume that the blocks are sorted by minimal element
-        return [next(i for i, B in enumerate(self) if j in B) for j in range(1, self.size()+1)]
+        w = [0] * self.size()
+        # we can assume that the blocks are sorted by minimal element        
+        for i, B in enumerate(self):
+            for j in B:
+                w[j-1] = i       
+        return w
 
     def to_restricted_growth_word_intertwining(self):
         r"""

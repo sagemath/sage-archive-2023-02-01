@@ -5651,11 +5651,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         A real number representing the Faltings height of this elliptic curve.
 
-        EXAMPLES:: 
+        EXAMPLES::
 
             sage: E = EllipticCurve('32a')
             sage: E.faltings_height()
-            -0.617385745351564 
+            -0.617385745351564
         """
         vol = self.period_lattice().complex_area()
         return -0.5*log(vol)

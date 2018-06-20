@@ -1144,6 +1144,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         resu = self.vector_field_module() \
             .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
         if self._dim_foliation != 0:
+            if self._adapted_charts is None:
+                self.adapted_chart()
             inverse_subs = {v: k for k, v in self._subs[0].items()}
             self.ambient_extrinsic_curvature()
             r = list(self._ambient.irange())
@@ -1157,7 +1159,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n = self.normal()
 
             for chart in self.atlas():
-                gamma_n = matrix(self._dim+1, self._dim+1)
+                gamma_n = matrix(SR, self._dim+1, self._dim+1)
                 for i in range(self._dim+1):
                     for j in range(self._dim+1):
                         gamma_n[i, j] = sum(

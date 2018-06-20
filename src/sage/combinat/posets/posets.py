@@ -74,6 +74,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
     :meth:`~FinitePoset.is_greedy` | Return ``True`` if all greedy linear extensions have equal number of jumps.
+    :meth:`~FinitePoset.is_jump_critical` | Return ``True`` if removal of any element reduces the jump number.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
@@ -3175,6 +3176,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         The problem is proven to be NP-complete.
 
+        .. SEEALSO:: :meth:`is_jump_critical`
+
         TESTS::
 
             sage: E = Poset()
@@ -3230,6 +3233,62 @@ class FinitePoset(UniqueRepresentation, Parent):
         if certificate:
             return (nonlocals[0], nonlocals[1])
         return nonlocals[0]
+
+    def is_jump_critical(self, certificate=False):
+        """
+        Return ``True`` if the poset is jump-critical, and ``False`` otherwise.
+
+        A poset `P` is *jump-critical* if every proper subposet has smaller
+        jump number.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)`` so that removing element `e` from the poset does not
+          decrease the jump number. If ``certificate=False`` return
+          ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: P = Poset({1: [3, 6], 2: [3, 4, 5], 4: [6, 7], 5: [7]})
+            sage: P.is_jump_critical()
+            True
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_jump_critical()
+            False
+            sage: P.is_jump_critical(certificate=True)
+            (False, 3)
+
+        .. SEEALSO:: :meth:`jump_number`
+
+        TESTS::
+
+            sage: Poset().is_jump_critical()
+            True
+            sage: Poset().is_jump_critical(certificate=True)
+            (True, None)
+        """
+        # Quick check first
+        for e in self:
+            up = self.upper_covers(e)
+            if len(up) == 1:
+                if len(self.upper_covers(up[0])) == 1:
+                    if certificate:
+                        return (False, up[0])
+                    return False
+        # And now just dumb algorithm
+        jumps = self.jump_number()
+        for e in self:
+            P = self.subposet([x for x in self if x != e])
+            if P.jump_number() == jumps:
+                return (False, e) if certificate else False
+        return (True, None) if certificate else True
 
     def rank_function(self):
         r"""

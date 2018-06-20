@@ -689,7 +689,7 @@ def stirling_number1(n, k):
 
     This wraps GAP's ``Stirling1``.
 
-    See wikipedia:`Stirling_numbers_of_the_first_kind`
+    See :wikipedia:`Stirling_numbers_of_the_first_kind`.
 
     EXAMPLES::
 

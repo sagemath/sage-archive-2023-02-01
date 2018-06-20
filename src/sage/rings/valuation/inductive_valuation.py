@@ -823,7 +823,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                                       for j,val in enumerate(w_valuations)]
                     base = self
                     if phi.degree() == base.phi().degree():
-                        # very frequently, the degree of the key polynomials
+                        # very frequently, the degrees of the key polynomials
                         # stagnate for a bit while the valuation of the key
                         # polynomial is slowly increased.
                         # In this case, we can drop previous key polynomials
@@ -832,6 +832,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                         assert new_mu > self(phi)
                         if not base.is_gauss_valuation():
                             base = base._base_valuation
+                    # phi has already been simplified internally by the
+                    # equivalence_decomposition method but we can now possibly
+                    # simplify it further as we know exactly up to which
+                    # precision it needs to be defined.
+                    phi = base.simplify(phi, new_mu, force=True)
                     w = base.augmentation(phi, new_mu, check=False)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
@@ -1191,7 +1196,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
             sage: F = v2.equivalence_decomposition(G); F
-            (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
+            (x^4 + 2*alpha + 1)^3 * (x^4 + 1/2*alpha^4 + alpha + 1)^3 * (x^4 + 1/2*alpha^4 + 3*alpha + 1)^3
             sage: v2.is_equivalent(F.prod(), G)
             True
 
@@ -1240,7 +1245,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             for g,e in F:
                 v_g = self(g)
                 unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e, effective_degree=0)
-            unit = self.simplify(unit, effective_degree=0)
+            unit = self.simplify(unit, effective_degree=0, force=True)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):

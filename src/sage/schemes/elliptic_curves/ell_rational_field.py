@@ -5641,6 +5641,25 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             h_gs = max(1, log_g2)
         return max(R(1),h_j, h_gs)
 
+    def faltings_height(self):
+        r"""
+        Return the Faltings height of this elliptic curve.
+
+        This method uses the same normalization as Magma.
+
+        OUTPUT:
+
+        A real number representing the Faltings height of this elliptic curve.
+
+        EXAMPLES:: 
+
+            sage: E = EllipticCurve('32a')
+            sage: E.faltings_height()
+            -0.617385745351564 
+        """
+        vol = self.period_lattice().complex_area()
+        return -0.5*log(vol)
+
     def antilogarithm(self, z, max_denominator=None):
         r"""
         Return the rational point (if any) associated to this complex

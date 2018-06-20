@@ -599,7 +599,8 @@ class FriCAS(ExtraTabCompletion, Expect):
 
         A problem with leading space::
 
-            sage: fricas.get_string("unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)")
+            sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
+            sage: fricas.get_string(s)                                                       # optional - fricas
             '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
         """
         # strip removes leading and trailing whitespace, after that

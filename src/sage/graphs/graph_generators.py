@@ -616,12 +616,13 @@ class GraphGenerators():
         sage: property = lambda G: G.is_vertex_transitive()
         sage: len(list(graphs(4, property)))
         1
-        sage: len(filter(property, graphs(4)))
+        sage: sum(1 for g in graphs(4) if property(g))
         4
+
         sage: property = lambda G: G.is_bipartite()
         sage: len(list(graphs(4, property)))
         7
-        sage: len(filter(property, graphs(4)))
+        sage: sum(1 for g in graphs(4) if property(g))
         7
 
     Generate graphs on the fly: (see :oeis:`A000088`)

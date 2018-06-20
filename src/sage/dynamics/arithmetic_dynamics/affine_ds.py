@@ -43,7 +43,6 @@ from sage.matrix.constructor import identity_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.classcall_metaclass import typecall
 from sage.rings.all import Integer
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.fraction_field import FractionField
@@ -233,7 +232,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: f = DynamicalSystem([CC.0*x^2, y^2], domain=P)
             Traceback (most recent call last):
             ...
-            TypeError: coefficients of polynomial not in base ring Rational Field
+            TypeError: coefficients of polynomial not in Rational Field
         """
         if isinstance(morphism_or_polys, SchemeMorphism_polynomial):
             morphism = morphism_or_polys
@@ -297,14 +296,14 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
                 CR = CR.ring()
             domain = AffineSpace(CR)
         else:
-            PR = PolynomialRing(domain.base_ring(), names = [x for x in domain.ambient_space().gens()])
+            PR = domain.ambient_space().coordinate_ring()
             try:
                 if fraction_field:
                     polys = [PR(poly.numerator())/PR(poly.denominator()) for poly in polys]
                 else:
                     polys = [PR(poly) for poly in polys]
             except TypeError:
-                raise TypeError('coefficients of polynomial not in base ring {}'.format(domain.base_ring()))
+                raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
 
         R = domain.base_ring()
         if R is SR:

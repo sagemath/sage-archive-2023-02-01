@@ -3312,6 +3312,18 @@ class RationalPolyhedralFan(IntegralRayCollection,
         """
         Return the associated toric variety.
 
+        INPUT:
+
+        same arguments as :func:`~sage.schemes.toric.variety.ToricVariety`
+
+        OUTPUT:
+
+        a toric variety
+
+        This is equivalent to the command ``ToricVariety(self)`` and
+        is provided only as a convenient alternative method to go from the
+        fan to the associated toric variety.
+
         EXAMPLES::
 
             sage: Fan([Cone([(1,0)]), Cone([(0,1)])]).toric_variety()

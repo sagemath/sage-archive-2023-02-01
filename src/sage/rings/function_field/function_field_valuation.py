@@ -69,6 +69,13 @@ Run test suite for valuations that do not correspond to a classical place::
     sage: w = K.valuation(v)
     sage: TestSuite(w).run() # long time
 
+Run test suite for a non-classical valuation that does not correspond to an
+affinoid contained in the unit disk::
+
+    sage: w = K.valuation((w, K.hom(K.gen()/2), K.hom(2*K.gen()))); w
+    2-adic valuation (in Rational function field in x over Rational Field after x |--> 1/2*x)
+    sage: TestSuite(w).run() # long time
+
 Run test suite for some other classical places over large ground fields::
 
     sage: K.<t> = FunctionField(GF(3))
@@ -135,7 +142,7 @@ developed for number fields in [Mac1936I]_ and [Mac1936II]_.
 
 """
 #*****************************************************************************
-#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
+#       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -361,8 +368,6 @@ class FunctionFieldValuationFactory(UniqueFactory):
             raise ValueError("from_valuation_domain must map from %r to %r but %r maps from %r to %r"%(valuation.domain(), domain, from_valuation_domain, from_valuation_domain.domain(), from_valuation_domain.codomain()))
 
         if domain is domain.base():
-            # over rational function fields, we only support the map x |--> 1/x
-            # with another rational function field for classical valuations
             if valuation.domain() is not valuation.domain().base() or valuation.domain().constant_base_field() != domain.constant_base_field():
                 raise NotImplementedError("maps must be isomorphisms with a rational function field over the same base field, not with %r"%(valuation.domain(),))
             if domain != valuation.domain():

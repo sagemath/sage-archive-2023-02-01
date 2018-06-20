@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Animated plots
 
@@ -561,7 +562,7 @@ class Animation(WithEqualityById, SageObject):
             sage: td = tmp_dir()
             sage: a.gif()              # not tested
             sage: a.gif(savefile=td + 'my_animation.gif', delay=35, iterations=3)  # optional -- ImageMagick
-            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'my_animation.gif', 'rb') as f: print('\x21\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.gif(savefile=td + 'my_animation.gif', show_path=True) # optional -- ImageMagick
             Animation saved to .../my_animation.gif.
@@ -1056,19 +1057,19 @@ please install it and try again."""
         GIF image (see :trac:`18176`)::
 
             sage: a.save(td + 'wave.gif')   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             True
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', delay=35)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x14\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xf9\x04\x08\x23\x00' in f.read())  # optional -- ImageMagick
             True
             sage: a.save(td + 'wave.gif', iterations=3)   # optional -- ImageMagick
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00' in f.read())  # optional -- ImageMagick
             False
-            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00') in f.read()  # optional -- ImageMagick
+            sage: with open(td + 'wave.gif', 'rb') as f: print('!\xff\x0bNETSCAPE2.0\x03\x01\x03\x00\x00' in f.read())  # optional -- ImageMagick
             True
         """
         if filename is None:

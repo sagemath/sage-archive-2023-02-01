@@ -361,13 +361,10 @@ class FunctionFieldValuationFactory(UniqueFactory):
             raise ValueError("from_valuation_domain must map from %r to %r but %r maps from %r to %r"%(valuation.domain(), domain, from_valuation_domain, from_valuation_domain.domain(), from_valuation_domain.codomain()))
 
         if domain is domain.base():
-            # over rational function fields, we only support the map x |--> 1/x with another rational function field
+            # over rational function fields, we only support the map x |--> 1/x
+            # with another rational function field for classical valuations
             if valuation.domain() is not valuation.domain().base() or valuation.domain().constant_base_field() != domain.constant_base_field():
                 raise NotImplementedError("maps must be isomorphisms with a rational function field over the same base field, not with %r"%(valuation.domain(),))
-            if to_valuation_domain != domain.hom([~valuation.domain().gen()]):
-                raise NotImplementedError("to_valuation_domain must be the map %r not %r"%(domain.hom([~valuation.domain().gen()]), to_valuation_domain))
-            if from_valuation_domain != valuation.domain().hom([~domain.gen()]):
-                raise NotImplementedError("from_valuation_domain must be the map %r not %r"%(valuation.domain().hom([domain.gen()]), from_valuation_domain))
             if domain != valuation.domain():
                 # make it harder to create different representations of the same valuation
                 # (nothing bad happens if we did, but >= and <= are only implemented when this is the case.)
@@ -407,10 +404,12 @@ class FunctionFieldValuationFactory(UniqueFactory):
 
         if isinstance(valuation, tuple) and len(valuation) == 3:
             valuation, to_valuation_domain, from_valuation_domain = valuation
-            if domain is domain.base() and valuation.domain() is valuation.domain().base() and to_valuation_domain == domain.hom([~valuation.domain().gen()]) and from_valuation_domain == valuation.domain().hom([~domain.gen()]):
-                # valuation on the rational function field after x |--> 1/x
+            if domain is domain.base() and valuation.domain() is valuation.domain().base():
                 if valuation == valuation.domain().valuation(valuation.domain().gen()):
-                    # the classical valuation at the place 1/x
+                    if to_valuation_domain != domain.hom([~valuation.domain().gen()]) or from_valuation_domain != valuation.domain().hom([~domain.gen()]):
+                        raise ValueError("the only allowed automorphism for classical valuations is the automorphism x |--> 1/x")
+                    # valuation on the rational function field after x |--> 1/x,
+                    # i.e., the classical valuation at infinity
                     return parent.__make_element_class__(InfiniteRationalFunctionFieldValuation)(parent)
 
                 from sage.structure.dynamic_class import dynamic_class

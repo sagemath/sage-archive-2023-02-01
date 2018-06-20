@@ -263,6 +263,8 @@ public:
         bool is_one() const;
         bool is_minus_one() const;
         bool is_negative_or_minus() const;
+        bool is_num_integer() const;
+        bool is_num_fraction() const;
 	
 	// noncommutativity
 	unsigned return_type() const { return bp->return_type(); }

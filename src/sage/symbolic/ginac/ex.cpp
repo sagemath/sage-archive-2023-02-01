@@ -389,6 +389,23 @@ bool ex::is_negative_or_minus() const
         return is_negative();
 }
 
+bool ex::is_num_integer() const
+{
+        if (!is_exactly_a<numeric>(*this))
+                return false;
+        const numeric& num = ex_to<numeric>(*this);
+        return num.is_integer();
+}
+
+bool ex::is_num_fraction() const
+{
+        if (!is_exactly_a<numeric>(*this))
+                return false;
+        const numeric& num = ex_to<numeric>(*this);
+        return num.is_mpq();
+}
+
+
 void ex::set_domain(unsigned d)
 {
         if (is_exactly_a<symbol>(*this)) {

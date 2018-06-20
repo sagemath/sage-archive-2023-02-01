@@ -330,7 +330,8 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma(-1,5)._fricas_()                                        # optional - fricas
             Gamma(- 1,5)
 
-            sage: var("t");                                                     # optional - fricas
+            sage: var('t')                                                      # optional - fricas
+            t
             sage: integrate(-exp(-x)*x^(t-1), x, algorithm="fricas")            # optional - fricas
             gamma(t, x)
 
@@ -980,4 +981,3 @@ class Function_beta(GinacFunction):
                                                 giac='Beta'))
 
 beta = Function_beta()
-

@@ -770,7 +770,7 @@ class OrderedSetPartition(ClonableArray):
         # We can fatten each of the ordered set partitions setcomps
         # arbitrarily, and then concatenate the results.
         fattenings = [list(subcomp.fatter()) for subcomp in subcomps]
-        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(g) for g in fattening], []))
+        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(gg) for gg in fattening], []))
             for fattening in cartesian_product(fattenings)])
 
     @combinatorial_map(name='to packed word')

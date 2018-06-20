@@ -74,7 +74,7 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range, zip, map, filter
+from six.moves import range, zip, map
 from six import add_metaclass, text_type
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -6381,7 +6381,6 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
         """
         from sage.misc.prandom import randint
-        from sage.combinat.partition import _Partitions
         with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
         t = [[self.max_entry+1]*i for i in with_sentinels]
         for i,l in enumerate(self.shape):

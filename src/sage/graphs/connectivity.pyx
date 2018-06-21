@@ -1986,7 +1986,7 @@ class Triconnectivity:
 
                 # It will add k - 1 multiple edges to comp
                 if sorted_edges[i] == sorted_edges[i + 1]:
-                    self.graph_copy.delete_edge(sorted_edges[i])
+                    self.edge_status[sorted_edges[i]] = 3 # edge removed
                     comp.append(sorted_edges[i])
                 else:
                     if len(comp):

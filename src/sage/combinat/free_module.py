@@ -995,7 +995,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         return self._from_dict(D, remove_zeros=False)
 
     def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-        """
+        r"""
         Return the linear combination `\lambda_1 v_1 + \cdots +
         \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
         \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
@@ -1342,7 +1342,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             self._print_options['tensor_symbol'] = options.get('tensor_symbol', tensor.symbol)
 
         def _repr_(self):
-            """
+            r"""
             This is customizable by setting
             ``self.print_options('tensor_symbol'=...)``.
 
@@ -1431,7 +1431,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         _unicode_art_term = _unicode_art_
 
         def _latex_(self):
-            """
+            r"""
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3])
@@ -1469,7 +1469,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return symb.join(module._repr_term(t) for (module, t) in zip(self._sets, term))
 
         def _latex_term(self, term):
-            """
+            r"""
             TESTS::
 
                 sage: F = CombinatorialFreeModule(ZZ, [1,2,3], prefix='x')

@@ -2053,7 +2053,7 @@ class Tableau(ClonableList):
         return Partition(res)
 
     def to_chain(self, max_entry=None):
-        """
+        r"""
         Return the chain of partitions corresponding to the (semi)standard
         tableau ``self``.
 
@@ -2586,7 +2586,7 @@ class Tableau(ClonableList):
         return Tableau(new_st)
 
     def promotion_inverse(self, n):
-        """
+        r"""
         Return the image of ``self`` under the inverse promotion operator.
 
         .. WARNING::
@@ -3256,7 +3256,7 @@ class Tableau(ClonableList):
             return Tableau([])
 
     def promotion_operator(self, i):
-        """
+        r"""
         Return a list of semistandard tableaux obtained by the `i`-th
         Lapointe-Lascoux-Morse promotion operator from the
         semistandard tableau ``self``.
@@ -3498,7 +3498,7 @@ class Tableau(ClonableList):
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
     def is_key_tableau(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a key tableau or ``False`` otherwise.
 
         A tableau is a *key tableau* if the set of entries in the `j`-th
@@ -3872,7 +3872,7 @@ class Tableau(ClonableList):
         return ResidueSequence(e, multicharge, res, check=False)
 
     def degree(self, e, multicharge=(0,)):
-        """
+        r"""
         Return the Brundan-Kleshchev-Wang [BKW2011]_ degree of ``self``.
 
         The *degree* is an integer that is defined recursively by successively
@@ -3899,7 +3899,6 @@ class Tableau(ClonableList):
             0
             sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
             1
-
         """
         n = self.size()
         if n == 0:
@@ -3916,7 +3915,7 @@ class Tableau(ClonableList):
         return deg
 
     def codegree(self, e, multicharge=(0,)):
-        """
+        r"""
         Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of the
         standard tableau ``self``.
 
@@ -3947,7 +3946,6 @@ class Tableau(ClonableList):
             1
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
             0
-
         """
         if not self:  # the trivial case
             return 0

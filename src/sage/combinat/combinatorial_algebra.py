@@ -268,9 +268,10 @@ class CombinatorialAlgebra(CombinatorialFreeModule):
         return self._coerce_try(x, [self.base_ring()])
 
     def product(self, left, right):
-        """
-        Returns left\*right where left and right are elements of self.
-        product() uses either _multiply or _multiply basis to carry out
+        r"""
+        Return left\*right where left and right are elements of ``self``.
+
+        ``product()`` uses either ``_multiply`` or ``_multiply_basis`` to carry out
         the actual multiplication.
 
         EXAMPLES::

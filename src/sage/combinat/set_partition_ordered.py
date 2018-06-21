@@ -49,9 +49,10 @@ import sage.combinat.permutation as permutation
 from functools import reduce
 from sage.categories.cartesian_product import cartesian_product
 
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
-    """
+    r"""
     An ordered partition of a set.
 
     An ordered set partition `p` of a set `s` is a list of pairwise
@@ -349,7 +350,7 @@ class OrderedSetPartition(ClonableArray):
         return OrderedSetPartitions()(sum((list(i) for i in osps), []))
 
     def reversed(self):
-        """
+        r"""
         Return the reversal of the ordered set partition ``self``.
 
         The *reversal* of an ordered set partition
@@ -371,7 +372,7 @@ class OrderedSetPartition(ClonableArray):
         return par(list(reversed(list(self))))
 
     def complement(self):
-        """
+        r"""
         Return the complement of the ordered set partition ``self``.
 
         This assumes that ``self`` is an ordered set partition of
@@ -666,7 +667,7 @@ class OrderedSetPartition(ClonableArray):
 
 
     def is_strongly_finer(self, co2):
-        """
+        r"""
         Return ``True`` if the ordered set partition ``self`` is strongly
         finer than the ordered set partition ``co2``; otherwise, return
         ``False``.

@@ -3575,10 +3575,11 @@ class FiniteWord_class(Word_class):
         The *critical exponent* of a word is the supremum of the order of
         all its (finite) factors. See [1].
 
-        .. note::
+        .. NOTE::
 
             The implementation here uses the suffix tree to enumerate all the
-            factors. It should be improved.
+            factors. It should be improved (especially when the critical
+            exponent is larger than 2).
 
         EXAMPLES::
 
@@ -3606,15 +3607,15 @@ class FiniteWord_class(Word_class):
             sage: Word('').critical_exponent()
             Traceback (most recent call last):
             ...
-            ValueError: The empty word has no critical exponent.
+            ValueError: no critical exponent for empty word
 
         REFERENCES:
 
         .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
            Ser. A 13:90--99, 1972.
         """
-        if self.length() == 0:
-            raise ValueError, 'The empty word has no critical exponent.'
+        if not self:
+            raise ValueError("no critical exponent for empty word")
         else:
             st = self.suffix_tree()
             pft = [0] * self.length()  # the prefix function table
@@ -3639,7 +3640,7 @@ class FiniteWord_class(Word_class):
                 for ((i,j),u) in iteritems(st._transition_function[v]):
                     if j is None:
                         j = self.length()
-                    queue.append((u,i,j, l+j-i+1))
+                    queue.append((u, i, j, l+j-i+1))
             return best_exp
      
     def is_overlap(self):

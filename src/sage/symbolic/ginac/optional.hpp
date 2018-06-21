@@ -1,24 +1,17 @@
 //
-// Copyright (c) 2014-2017 Martin Moene
+// Copyright (c) 2014-2018 Martin Moene
 //
 // https://github.com/martinmoene/optional-lite
 //
-// This code is licensed under the MIT License (MIT).
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// Distributed under the Boost Software License, Version 1.0. 
+// (See accompanying file LICENSE.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
 
 #ifndef NONSTD_OPTIONAL_LITE_HPP
 #define NONSTD_OPTIONAL_LITE_HPP
 
-#define  optional_lite_VERSION "2.3.2"
+#define  optional_lite_VERSION "3.0.0"
 
 // Compiler detection (C++20 is speculative):
 // Note: MSVC supports C++14 since it supports C++17.
@@ -537,6 +530,18 @@ private:
         ::new( value_ptr() ) value_type( std::move( v ) );
     }
 
+    template< class... Args >
+    void emplace( Args&&... args )
+    {
+        ::new( value_ptr() ) value_type( std::forward<Args>(args)... );
+    }
+
+    template< class U, class... Args >
+    void emplace( std::initializer_list<U> il, Args&&... args )
+    {
+        ::new( value_ptr() ) value_type( il, std::forward<Args>(args)... );
+    }
+
 #endif
 
     void destruct_value()
@@ -760,14 +765,17 @@ public:
     void emplace( Args&&... args )
     {
         *this = nullopt;
-        initialize( T( std::forward<Args>(args)...) );
+        contained.emplace( std::forward<Args>(args)...  );
+        has_value_ = true;
     }
+
 
     template< class U, class... Args >
     void emplace( std::initializer_list<U> il, Args&&... args )
     {
         *this = nullopt;
-        initialize( T( il, std::forward<Args>(args)...) );
+        contained.emplace( il, std::forward<Args>(args)...  );
+        has_value_ = true;
     }
 
 #endif // optional_CPP11_OR_GREATER
@@ -933,6 +941,7 @@ private:
         contained.construct_value( std::move( value ) );
         has_value_ = true;
     }
+
 #endif
 
 private:

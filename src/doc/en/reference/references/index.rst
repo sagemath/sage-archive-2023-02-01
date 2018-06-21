@@ -1258,7 +1258,7 @@ REFERENCES:
 .. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
 
 .. [Gut2001] Carsten Gutwenger and Petra Mutzel. *A Linear Time Implementation
-             of SPQR-Trees*, International Symposium on Graph Drawing, 
+             of SPQR-Trees*, International Symposium on Graph Drawing,
              (2001) 77-90
 
 .. [GW1999] Frederick M. Goodman and Hans Wenzl. *Crystal bases of quantum

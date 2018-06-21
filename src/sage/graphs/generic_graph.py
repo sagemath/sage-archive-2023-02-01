@@ -317,6 +317,98 @@ can be applied on both. Here is what it can do:
 Methods
 -------
 """
+
+# ****************************************************************************
+#
+#       Copyright (C) 2010      Alexandre Blondin Masse <alexandre.blondin.masse at gmail.com>
+#                               Ben Edwards <bedwards@cs.unm.edu>
+#                               Carl Witty <cwitty@newtonlabs.com>
+#                               Gregory McWhirter <gmcwhirt@uci.edu>
+#                               Johan Sebastian Rosenkilde Nielsen <j.s.r.nielsen@mat.dtu.dk>
+#                               Minh Van Nguyen <nguyenminh2@gmail.com>
+#                               Mitesh Patel <qed777@gmail.com>
+#                               Sebastian Pancratz <sage@pancratz.org>
+#                               Tom Boothby <boothby@u.washington.edu>
+#                     2010-2011 Robert L. Miller <rlm@rlmiller.org>
+#                               Fidel Barrera-Cruz <fidel.barrera@gmail.com>
+#                               Leif Leonhardy <not.really@online.de>
+#                               Rob Beezer <beezer@ups.edu>
+#                     2010-2012 Dmitrii Pasechnik <dimpase@gmail.com>
+#                               Jason Grout <jason-sage@creativetrax.com>
+#                     2010-2013 Burcin Erocal <burcin@erocal.org>
+#                     2010-2014 Mike Hansen <mhansen@gmail.com>
+#                     2010-2015 Nicolas M. Thiery <nthiery@users.sf.net>
+#                     2010-2016 Nathann Cohen <nathann.cohen@gmail.com>
+#                     2010-2017 J. H. Palmieri <palmieri@math.washington.edu>
+#                     2010-2018 Christian Stump <christian.stump@univie.ac.at>
+#                               Vincent Delecroix <20100.delecroix at gmail.com>
+#                     2011      Anne Schilling <anne@math.ucdavis.edu>
+#                               Diego de Estrada <destrada@dc.uba.ar>
+#                               Eviatar Bach <eviatarbach@gmail.com>
+#                               Geoffrey Ehrman <gehrman@gmail.com>
+#                               Ivan Andrus <darthandrus@gmail.com>
+#                               Michael Orlitzky <michael@orlitzky.com>
+#                     2011-2012 Lukas Lansky <lansky@kam.mff.cuni.cz>
+#                     2011-2013 Robert Miller <rlm@rlmiller.org>
+#                     2011-2015 André Apitzsch <andre.apitzsch@st.ovgu.de>
+#                               Andrey Novoseltsev <novoselt@gmail.com>
+#                     2011-2018 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2012      Dan Drake <drake@kaist.edu>
+#                               Javier López Peña <vengoroso@gmail.com>
+#                               Karl-Dieter Crisman <kcrisman@gmail.com>
+#                               Keshav Kini <keshav.kini@gmail.com>
+#                               Lauren Keough <s-lkeough1@math.unl.edu>
+#                               Nathan Carter <ncarter@bentley.edu>
+#                               Punarbasu Purkayastha <ppurka@gmail.com>
+#                               Stefano Leucci <leucci.stefano@gmail.com>
+#                     2012-2013 Frederic Chapoton <chapoton at math.univ-lyon1.fr>
+#                     2012-2015 Jernej Azarija <jernej.azarija@gmail.com>
+#                                Volker Braun <vbraun.name@gmail.com>
+#                     2012-2018 Julian Rueth <julian.rueth@gmail.com>
+#                     2013      Alexandre Prusch Züge <alexandrezuge@gmail.com>
+#                               Austin Roberts <austinis@math.washington.edu>
+#                               Birk Eisermann <eisermbi@fastmail.fm>
+#                               Uros Slana <urossla@gmail.com>
+#                     2013-2014 R. Andrew Ohana <andrew.ohana@gmail.com>
+#                               Simon King <simon.king@uni-jena.de>
+#                     2013-2018 Darij Grinberg <darijgrinberg@gmail.com>
+#                               Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2014      Emmanuel Charpentier <emm.charpentier@free.fr>
+#                               Erick Matsen <matsen@fhcrc.org>
+#                               Erik Massop <e.massop@hccnet.nl>
+#                               Florian Oosterhof <f.m.oosterhof@student.tue.nl>
+#                               Jean-Pierre Flori <jean-pierre.flori@ssi.gouv.fr>
+#                               Ralf Stephan <ralf@ark.in-berlin.de>
+#                               Robert Lipshitz <lipshitz@math.columbia.edu>
+#                               Thierry Monteil <sage@lma.metelu.net>
+#                     2014-2015 Wilfried Luebbe <wluebbe@gmail.com>
+#                     2014-2017 Travis Scrimshaw <tscrim at ucdavis.edu>
+#                     2014-2018 David Coudert <david.coudert@inria.fr>
+#                               Jori Mäntysalo <jori.mantysalo@uta.fi>
+#                     2015      David Einstein <deinst@gmail.com>
+#                               François Bissey <francois.bissey@canterbury.ac.nz>
+#                               Michele Borassi <michele.borassi@imtlucca.it>
+#                               Sergios Lenis <sergioslenis@gmail.com>
+#                     2015-2016 Janoš Vidali <janos.vidali@fmf.uni-lj.si>
+#                     2015-2018 Dima Pasechnik <dimpase@gmail.com>
+#                     2016      Jeremias Epperlein <jeremias.epperlein@gmail.com>
+#                               Marco Cognetta <cognetta.marco@gmail.com>
+#                               Peleg Michaeli <freepeleg@gmail.com>
+#                     2016-2018 Sébastien Labbé <slabqc@gmail.com>
+#                     2017      Emile Nadeau <nadeau.emile@gmail.com>
+#                               John Cremona <john.cremona@gmail.com>
+#                               Lokesh Jain <lokeshj1703@gmail.com>
+#                               Zachary Gershkoff <zgershkoff@gmail.com>
+#                     2017-2018 Moritz Firsching <moritz@math.fu-berlin.de>
+#                     2018      Erik M. Bray <erik.bray@lri.fr>
+#                               Meghana M Reddy <mreddymeghana@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
 from six import itervalues, iteritems, integer_types
@@ -376,18 +468,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         for k,v in iteritems(state):
             self.__dict__[k] = v
-        from sage.graphs.base.graph_backends import NetworkXGraphBackend
-        if isinstance(self._backend, NetworkXGraphBackend):
-            from sage.misc.superseded import deprecation
-            deprecation(1000,"You unpickled an object which relies on an old "
-                        "data structure. Save it again to update it, for it "
-                        "may break in the future.")
-            g = self._backend._nxg
-            if g.is_directed():
-                from sage.graphs.digraph import DiGraph as constructor
-            else:
-                from sage.graphs.graph   import Graph   as constructor
-            self._backend = constructor(g)._backend
 
     def __add__(self, other):
         """
@@ -13130,18 +13210,18 @@ class GenericGraph(GenericGraph_pyx):
              6: 1/3, 7: 1/3, 8: 0, 9: 1/3, 10: 1/3, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0,
             3: 0.3333333333333333, 4: 0.3333333333333333,
             5: 0.3333333333333333, 6: 0.3333333333333333,
-            7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-            10: 0.3333333333333333, 11: 0.0}
+            7: 0.3333333333333333, 8: 0, 9: 0.3333333333333333,
+            10: 0.3333333333333333, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2])
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],
             ....:   weight=True)
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0}
 
             sage: (graphs.GridGraph([5,5])).clustering_coeff(nodes=[(0,0),(0,1),(2,2)])
             {(0, 0): 0.0, (0, 1): 0.0, (2, 2): 0.0}
@@ -14592,20 +14672,14 @@ class GenericGraph(GenericGraph_pyx):
                 G = self.networkx_graph(copy=False)
             G.add_nodes_from(self.vertices())
 
-            if vert is None:
-                closeness = networkx.closeness_centrality(G,vert,
-                                                          distance = 'weight'
-                                                          if by_weight
-                                                          else None)
-                return {v:c for v,c in iteritems(closeness) if c != 0}
-            closeness = {}
             degree = self.out_degree if self.is_directed else self.degree
+            if vert is None:
+                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance = 'weight' if by_weight else None)
+                return {v:c for v,c in iteritems(closeness) if degree(v) != 0}
+            closeness = {}
             for x in v_iter:
                 if degree(x) != 0:
-                    closeness[x] = networkx.closeness_centrality(G, x,
-                                                             distance = 'weight'
-                                                             if by_weight
-                                                             else None)
+                    closeness[x] = networkx.closeness_centrality(G, x, reverse=True, distance='weight' if by_weight else None)
             if onlyone:
                 return closeness.get(vert, None)
             else:

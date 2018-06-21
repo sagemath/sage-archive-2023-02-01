@@ -2350,14 +2350,14 @@ def spqr_tree_to_graph(T):
     return G
 
 from sage.graphs.base.sparse_graph cimport SparseGraph
-    
+
 
 class Triconnectivity:
     """
     This module is not yet complete, it has work to be done.
 
     This module implements the algorithm for finding the triconnected
-    components of a biconnected graph. 
+    components of a biconnected graph.
     Refer to [Gut2001]_ and [Hopcroft1973]_ for the algorithm.
 
     EXAMPLES::
@@ -2378,7 +2378,7 @@ class Triconnectivity:
             component_type = type_c
         def add_edge(self, e):
             self.edge_list.append(e)
-    
+
     graph_copy = None #type SparseGraph
     vertex_to_int = {} # mapping of vertices to integers in c_graph
     start_vertex = 0
@@ -2386,7 +2386,7 @@ class Triconnectivity:
     edge_status = {} #status of each edge, unseen=0, tree=1, frond=2, removed=3
     Estack = []
     Tstack = []
-    number = [] # DFS number of vertex i
+    dfs_number = [] # DFS number of vertex i
     vertex_at = [] # vertex with DFS number of i$
     lowpt1 = [] # lowpt1 number of vertex i
     lowpt2 = [] # lowpt2 number of vertex i
@@ -2406,7 +2406,7 @@ class Triconnectivity:
     dfs_counter = 0
     n = 0 # number of vertices
     m = 0 # number of edges
-    
+
 
     def __init__(self, G):
         self.graph_copy = G.copy(implementation='c_graph')
@@ -2414,7 +2414,7 @@ class Triconnectivity:
         self.n = self.graph_copy.order()
         self.m = self.graph_copy.size()
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
-        self.number = [0]*self.n
+        self.dfs_number = [0]*self.n
         self.lowpt1 = [None]*self.n
         self.lowpt2 = [None]*self.n
         self.nd = [None]*self.n
@@ -2425,7 +2425,10 @@ class Triconnectivity:
         self.dfs_counter = 0
         self.components_list = [] #list of components
         self.split_multi_egdes()
-        
+        self.dfs_counter = 0 # Initialisation for dfs1()
+        self.start_vertex = 0 # Initialisation for dfs1()
+        self.dfs1(self.start_vertex)
+
     def new_component(self, edges, type_c=0):
         c = self.Component(edges, type_c)
         self.components_list.append(c)
@@ -2433,11 +2436,11 @@ class Triconnectivity:
         for e in edges:
             self.edge_status[e] = 3
         self.num_components += 1
-    
+
     def add_edge_to_component(self, comp, e):
         comp.add_edge(e)
         self.edge_status[e] = 3
-        
+
     def split_multi_egdes(self):
         """
         This function will remove all the multiple edges present in
@@ -2461,12 +2464,12 @@ class Triconnectivity:
             sage: from sage.graphs.connectivity import Triconnectivity
             sage: t = Triconnectivity(G)
             sage: for l in t.components_list:
-            ....:     print l.edge_list
+            ....:     print(l.edge_list)
             [(0, 1), (0, 1), (0, 1), (0, 1)]
             [(0, 4), (0, 4), (0, 4)]
             [(1, 2), (1, 2), (1, 2)]
             [(2, 3), (2, 3), (2, 3)]
-            [(3, 4), (3, 4)]
+            [(3, 4), (3, 4), (3, 4), (3, 4)]
             sage: t.num_components
             5
         """
@@ -2490,3 +2493,93 @@ class Triconnectivity:
                 comp.append(sorted_edges[i-1])
                 comp.append(sorted_edges[i-1])
                 self.new_component(comp)
+
+    def dfs1(self, v, u=None):
+        """
+        This function builds the palm tree of the graph.
+        Also populates the lists lowpt1, lowpt2, nd, parent, and dfs_number.
+        It updates the dict edge_status to reflect palm tree arcs and fronds.
+
+        Input::
+
+        - ``v`` -- The start vertex for DFS.
+
+        - ``u`` -- The parent vertex of ``v`` in the palm tree.
+
+        Example::
+
+            An example to list the components build after removal of multiple edges
+
+            sage: from sage.graphs.connectivity import Triconnectivity
+            sage: G = Graph()
+            sage: G.add_edges([(1,2),(1,13),(1,12),(1,8),(1,4),(2,13),(2,3),(3,13)])
+            sage: G.add_edges([(3,4),(4,5),(4,7),(5,6),(5,7),(5,8),(6,7),(8,9),(8,12)])
+            sage: G.add_edges([(8,11),(9,10),(9,12),(9,11),(10,11),(10,12)])
+            sage: tric = Triconnectivity(G)
+            sage: tric.edge_status
+             {(0, 1, None): 1,
+             (0, 3, None): 2,
+             (0, 7, None): 2,
+             (0, 11, None): 2,
+             (0, 12, None): 2,
+             (1, 2, None): 1,
+             (1, 12, None): 2,
+             (2, 3, None): 1,
+             (2, 12, None): 1,
+             (3, 4, None): 1,
+             (3, 6, None): 2,
+             (4, 5, None): 1,
+             (4, 6, None): 2,
+             (4, 7, None): 1,
+             (5, 6, None): 1,
+             (7, 8, None): 1,
+             (7, 10, None): 2,
+             (7, 11, None): 2,
+             (8, 9, None): 1,
+             (8, 10, None): 2,
+             (8, 11, None): 2,
+             (9, 10, None): 1,
+             (9, 11, None): 1}
+            sage: tric.lowpt1
+            [1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 8, 1, 1]
+            sage: tric.lowpt2
+            [1, 2, 2, 4, 4, 5, 5, 8, 8, 8, 9, 8, 2]
+            sage: tric.parent
+            [None, 0, 1, 2, 3, 4, 5, 4, 7, 8, 9, 9, 2]
+        """
+
+        self.dfs_counter += 1
+        self.dfs_number[v] = self.dfs_counter
+        self.parent[v] = u
+        self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
+        self.nd[v] = 1
+        for e in self.graph_copy.edges_incident([v]):
+            if self.edge_status[e] != 0 :
+                    continue
+
+            w = e[0] if e[0] != v else e[1] # Other vertex of edge e
+            if (self.dfs_number[w] == 0):
+                self.edge_status[e] = 1 # tree edge
+                self.tree_arc[w] = e
+                self.dfs1(w, v)
+
+                if (self.lowpt1[w] < self.lowpt1[v]):
+                    self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
+                    self.lowpt1[v] = self.lowpt1[w]
+
+                elif (self.lowpt1[w] == self.lowpt1[v]):
+                    self.lowpt2[v] = min(self.lowpt2[v], self.lowpt2[w])
+
+                else:
+                    self.lowpt2[v] = min(self.lowpt2[v], self.lowpt1[w])
+
+                self.nd[v] += self.nd[w]
+
+            else:
+                self.edge_status[e] = 2 #frond
+                if (self.dfs_number[w] < self.lowpt1[v]):
+                    self.lowpt2[v] = self.lowpt1[v]
+                    self.lowpt1[v] = self.dfs_number[w]
+                elif (self.dfs_number[w] > self.lowpt1[v]):
+                    self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
+

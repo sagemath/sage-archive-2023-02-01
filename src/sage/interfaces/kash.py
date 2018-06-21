@@ -764,11 +764,11 @@ class KashElement(ExpectElement):
 
         string = self._sage_repr()
 
-        for key in locals:
-           string = string.replace(str(key), str(locals[key]))
+        for key,val in locals.items():
+           string = string.replace(str(key), str(val))
 
         try:
-            return sage_eval(string, locals={str(locals[x]):locals[x] for x in locals})
+            return sage_eval(string, locals={str(v):v for v in locals.values()})
         except Exception:
             raise NotImplementedError("Unable to parse output: %s" % string)
 

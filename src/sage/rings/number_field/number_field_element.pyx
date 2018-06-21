@@ -2067,7 +2067,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def is_padic_square(self, P, check=True):
         r"""
-        Return if `self` is a square in the completion at the prime `P`.
+        Return if ``self`` is a square in the completion at the prime `P`.
 
         INPUT:
 

@@ -1727,6 +1727,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         -  ``p`` - a prime number, or ``infinity``
+
         - ``check`` -- (default: ``True``); check if `p` is prime
 
         EXAMPLES::

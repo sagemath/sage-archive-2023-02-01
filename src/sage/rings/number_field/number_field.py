@@ -2268,8 +2268,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         INPUT:
 
         - ``a`` -- an element of ``self``
+
         - ``p`` -- a prime ideal
-        - ``check`` -- (default: ``True``); check if `P` is prime
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         ALGORITHM:
 

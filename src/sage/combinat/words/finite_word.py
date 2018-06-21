@@ -220,13 +220,14 @@ from builtins import zip
 
 from six import iteritems
 from six.moves import range
+from six import iteritems
 from collections import defaultdict
 from itertools import islice, cycle
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
 from sage.combinat.words.word_options import word_options
-from sage.rings.all import Integer, Infinity, ZZ
+from sage.rings.all import Integer, Infinity, ZZ, QQ
 from sage.sets.set import Set
 from sage.misc.superseded import deprecated_function_alias
 
@@ -3574,10 +3575,11 @@ class FiniteWord_class(Word_class):
         The *critical exponent* of a word is the supremum of the order of
         all its (finite) factors. See [1].
 
-        .. note::
+        .. NOTE::
 
             The implementation here uses the suffix tree to enumerate all the
-            factors. It should be improved.
+            factors. It should be improved (especially when the critical
+            exponent is larger than 2).
 
         EXAMPLES::
 
@@ -3594,13 +3596,53 @@ class FiniteWord_class(Word_class):
             sage: words.ThueMorseWord()[:20].critical_exponent()
             2
 
+        For the Fibonacci word, the critical exponent is known to be
+        `(5+\sqrt(5))/2`. With a prefix of length 500, we obtain a lower bound::
+
+            sage: words.FibonacciWord()[:500].critical_exponent()
+            320/89
+
+        It is an error to compute the critical exponent of the empty word::
+
+            sage: Word('').critical_exponent()
+            Traceback (most recent call last):
+            ...
+            ValueError: no critical exponent for empty word
+
         REFERENCES:
 
         .. [Dejean] \F. Dejean. Sur un théorème de Thue. J. Combinatorial Theory
            Ser. A 13:90--99, 1972.
         """
-        return max(map(FiniteWord_class.order, self.factor_iterator()))
-
+        if not self:
+            raise ValueError("no critical exponent for empty word")
+        else:
+            st = self.suffix_tree()
+            pft = [0] * self.length()  # the prefix function table
+            queue = [(0, 0, -1, 0)]    # suffix tree vertices to visit for Depth First Search
+            best_exp = 1               # best exponent so far
+            while queue:
+                (v,i,j,l) = queue.pop()
+                for k in range(i,j+1):
+                    if l-j+k-1 != 0:
+                        m = pft[l-j+k-2]
+                        while m > 0 and self[j-l+m] != self[k-1]:
+                            m = pft[m-1]
+                        if self[j-l+m] == self[k-1]:
+                            m += 1
+                    else:
+                        m = 0
+                    current_pos = k-j+l-1  
+                    pft[current_pos] = m
+                    current_exp = QQ((current_pos+1, current_pos+1-m))
+                    if current_exp > best_exp:
+                        best_exp = current_exp
+                for ((i,j),u) in iteritems(st._transition_function[v]):
+                    if j is None:
+                        j = self.length()
+                    queue.append((u, i, j, l+j-i+1))
+            return best_exp
+     
     def is_overlap(self):
         r"""
         Return ``True`` if ``self`` is an overlap, and ``False`` otherwise.

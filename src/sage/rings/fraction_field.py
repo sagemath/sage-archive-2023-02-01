@@ -781,7 +781,6 @@ class FractionField_generic(ring.Field):
                                    self._R._random_nonzero_element(*args, **kwds),
                                    coerce=False, reduce=True)
 
-
     def some_elements(self):
         r"""
         Return some elements in this field.
@@ -810,6 +809,43 @@ class FractionField_generic(ring.Field):
                     ret.append(self(a)/self(b))
         return ret
 
+    def _gcd_univariate_polynomial(self, f, g):
+        r"""
+        Helper method used to compute polynomial gcds over this field.
+
+        See :meth:`sage.rings.polynomial.polynomial_element.Polynomial.gcd`.
+
+        TESTS::
+
+            sage: A.<x,y> = ZZ[]
+            sage: C.<z> = Frac(A)[]
+            sage: c = (2*y^2 - 11*x - 2*y + 1)/(-x^2 + x*y - 2*y^2)
+            sage: p = (c*z^2 + x^10*z + 1)^6
+            sage: q = (z^2 + c*x^10*z + 1)^6
+            sage: g = p.gcd(q)
+            sage: g
+            1
+            sage: g.parent() is p.parent()
+            True
+            sage: (p*(z-x)).gcd(q*(z-x))
+            z - x
+            sage: C.zero().gcd(2*z)
+            z
+            sage: (x*z).gcd(0)
+            z
+            sage: C.zero().gcd(0)
+            0
+        """
+        if g.is_zero():
+            if f.is_zero():
+                return f
+            else:
+                return f.monic()
+        Pol = f.parent()
+        Num = Pol.change_ring(self.base())
+        f1 = Num(f.numerator())
+        g1 = Num(g.numerator())
+        return Pol(f1.gcd(g1)).monic()
 
 class FractionField_1poly_field(FractionField_generic):
     """

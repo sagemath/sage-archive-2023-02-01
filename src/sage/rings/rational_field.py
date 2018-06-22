@@ -1189,14 +1189,15 @@ class RationalField(Singleton, number_field_base.NumberField):
             yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
 
-    def quadratic_defect(self, a, p):
+    def quadratic_defect(self, a, p, check=True):
         r"""
         Return the valuation of the quadratic defect of `a` at `p`.
 
         INPUT:
 
-        - ``a`` an element of ``self``
-        - ``p`` a prime ideal or a prime number
+        - ``a`` -- an element of ``self``
+        - ``p`` -- a prime ideal or a prime number
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         REFERENCE:
 
@@ -1219,25 +1220,24 @@ class RationalField(Singleton, number_field_base.NumberField):
             raise TypeError(str(a) + " must be an element of " + str(self))
         if p.parent() == ZZ.ideal_monoid():
             p = p.gen()
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError(str(p) + " must be prime")
         if a.is_zero():
             return Infinity
-        v = self(a).valuation(p)
+        v, u = self(a).val_unit(p)
         if v % 2 == 1:
             return v
-        a = a / (p**v)
         if p != 2:
-            if legendre_symbol(a, p) == 1:
+            if legendre_symbol(u, p) == 1:
                 return Infinity
             else:
                 return v
         if p == 2:
-            if a % 8 == 1:
+            if u % 8 == 1:
                 return Infinity
-            if a % 8 == 5:
+            if u % 8 == 5:
                 return v + 2
-            if a % 8 in [3, 7]:
+            if u % 8 in [3, 7]:
                 return v + 1
 
     #################################

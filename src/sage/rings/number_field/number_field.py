@@ -2261,14 +2261,17 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return not self.is_absolute()
 
-    def quadratic_defect(self, a, p):
+    def quadratic_defect(self, a, p, check=True):
         r"""
         Return the valuation of the quadratic defect of `a` at `p`.
 
         INPUT:
 
-        - ``a`` an element of ``self``
-        - ``p`` a prime ideal
+        - ``a`` -- an element of ``self``
+
+        - ``p`` -- a prime ideal
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         ALGORITHM:
 
@@ -2295,7 +2298,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if not self == QQ and not p.parent() == self.ideal_monoid():
             raise TypeError(str(p) + " is not a prime ideal in "
              + str(self.ideal_monoid()))
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError(str(p) + " must be prime")
         if a.is_zero():
             return Infinity

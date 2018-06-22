@@ -1285,8 +1285,9 @@ class AffineCryptosystem(SymmetricKeyCryptosystem):
         b = Integer(randint(0, n - 1))
         return (a, b)
 
+
 class HillCryptosystem(SymmetricKeyCryptosystem):
-    """
+    r"""
     Create a Hill cryptosystem defined by the `m` x `m` matrix space
     over `\ZZ / N \ZZ`, where `N` is the alphabet size of
     the string monoid ``S``.
@@ -1330,7 +1331,7 @@ class HillCryptosystem(SymmetricKeyCryptosystem):
     """
 
     def __init__(self, S, m):
-        """
+        r"""
         See ``HillCryptosystem`` for full documentation.
 
         Create a Hill cryptosystem defined by the `m` x `m` matrix space

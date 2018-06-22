@@ -220,7 +220,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
 
     def __call__(self, x, check=True):
-        """
+        r"""
         Compute the forward image of the point or subscheme ``x`` by this map.
 
         For subschemes, the forward image is computed through elimination.

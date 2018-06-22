@@ -157,16 +157,17 @@ old pickles to work).
 from __future__ import absolute_import, print_function
 
 import io
-import sys
-import re
-import types
-import six
-from six import iteritems
-from six.moves import cPickle
 import pickletools
-from pickletools import genops
+import re
+import sys
+import types
+
 import zlib as comp
 import bz2 as comp_other
+
+from pickletools import genops
+
+from six import iteritems
 
 import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
@@ -2437,17 +2438,7 @@ def unpickle_newobj(klass, args):
     def pers_load(id):
         return pers[int(id)]
 
-    if six.PY2:
-        unp = cPickle.Unpickler(io.BytesIO(pickle))
-        unp.persistent_load = pers_load
-    else:
-        class PersistentSageUnpickler(SageUnpickler):
-            def persistent_load(self, id):
-                return pers_load(id)
-
-        unp = PersistentSageUnpickler(io.BytesIO(pickle))
-
-    return unp.load()
+    return SageUnpickler.loads(pickle, persistent_load=pers_load)
 
 
 def unpickle_build(obj, state):
@@ -2651,19 +2642,8 @@ def test_pickle(p, verbose_eval=False, pedantic=False, args=()):
     if verbose_eval:
         print("loading pickle with cPickle:")
 
-    if six.PY2:
-        unp = cPickle.Unpickler(io.BytesIO(p))
-        unp.persistent_load = pers_load
-        unp.find_global = unpickle_global
-    else:
-        class PersistentSageUnpickler(SageUnpickler):
-            def persistent_load(self, p):
-                return pers_load(p)
-
-        unp = PersistentSageUnpickler(io.BytesIO(p))
-
     try:
-        cpickle_res = unp.load()
+        cpickle_res = SageUnpickler.loads(p, persistent_load=pers_load)
         cpickle_ok = True
     except Exception:
         cpickle_ok = False

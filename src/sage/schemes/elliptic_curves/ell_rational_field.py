@@ -5657,7 +5657,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.faltings_height()
             -0.617385745351564
         """
-        vol = self.period_lattice().complex_area()
+        vol = self.minimal_model().period_lattice().complex_area()
         return -0.5*log(vol)
 
     def antilogarithm(self, z, max_denominator=None):

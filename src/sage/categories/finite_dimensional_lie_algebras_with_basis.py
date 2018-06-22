@@ -501,9 +501,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: sl2 = lie_algebras.sl(QQ, 2)
                 sage: sl2.derivations_basis()
                 (
-                [ 1  0  0]  [   0    0    1]  [   0    0    0]
-                [ 0 -1  0]  [   0    0    0]  [   0    0    1]
-                [ 0  0  0], [   0 -1/2    0], [-1/2    0    0]
+                [ 1  0  0]  [   0    1    0]  [ 0  0  0]
+                [ 0  0  0]  [   0    0 -1/2]  [ 1  0  0]
+                [ 0  0 -1], [   0    0    0], [ 0 -2  0]
                 )
             """
             R = self.base_ring()

@@ -771,7 +771,7 @@ class OrderedSetPartition(ClonableArray):
         # We can fatten each of the ordered set partitions setcomps
         # arbitrarily, and then concatenate the results.
         fattenings = [list(subcomp.fatter()) for subcomp in subcomps]
-        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(g) for g in fattening], []))
+        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(gg) for gg in fattening], []))
             for fattening in cartesian_product(fattenings)])
 
     @combinatorial_map(name='to packed word')
@@ -1065,7 +1065,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             True
             sage: OS.cardinality()
             14
-            sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
+            sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             14
         """
         return OrderedSetPartitions.__contains__(self, x) and len(x) == self.n
@@ -1139,7 +1139,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4], [2,1,1])
             Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 1, 1]
         """
-        return "Ordered set partitions of %s into parts of size %s"%(Set(self._set), self.c)
+        return "Ordered set partitions of %s into parts of size %s" % (Set(self._set), self.c)
 
     def __contains__(self, x):
         """
@@ -1150,10 +1150,10 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             True
             sage: OS.cardinality()
             12
-            sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
+            sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and [len(_) for _ in x] == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(z) for z in x] == self.c
 
     def cardinality(self):
         r"""

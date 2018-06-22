@@ -6,7 +6,7 @@ REFERENCES:
 .. [LLT1997] Alain Lascoux, Bernard Leclerc, Jean-Yves Thibon,
    Ribbon tableaux, Hall-Littlewood functions, quantum affine algebras, and unipotent varieties,
    J. Math. Phys. 38 (1997), no. 2, 1041-1068,
-   :arxiv:`q-alg/9512-31v1` [math.q.alg]
+   :arxiv:`q-alg/9512031v1` [math.q.alg]
 
 .. [LT2000] Bernard Leclerc and Jean-Yves Thibon,
    Littlewood-Richardson coefficients and Kazhdan-Lusztig polynomials,
@@ -741,6 +741,6 @@ class LLT_cospin(LLT_generic):
         pass
 
 # Backward compatibility for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.sf.llt', 'LLTElement_spin',  LLT_spin.Element)
 register_unpickle_override('sage.combinat.sf.llt', 'LLTElement_cospin',  LLT_cospin.Element)

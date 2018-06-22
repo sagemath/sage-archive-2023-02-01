@@ -85,16 +85,8 @@ echelon_verbose_level = 1
 
 
 cdef class Matrix_cyclo_dense(Matrix_dense):
-    def __cinit__(self, parent, entries, coerce, copy):
+    def __cinit__(self):
         """
-        Create a new dense cyclotomic matrix.
-
-        INPUT:
-            parent -- a matrix space over a cyclotomic field
-            entries -- a list of entries or scalar
-            coerce -- bool; if true entries are coerced to base ring
-            copy -- bool; ignored due to underlying data structure
-
         EXAMPLES::
 
             sage: from sage.matrix.matrix_cyclo_dense import Matrix_cyclo_dense
@@ -103,14 +95,13 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             <type 'sage.matrix.matrix_cyclo_dense.Matrix_cyclo_dense'>
 
         Note that the entries of A haven't even been set yet above; that doesn't
-        happen until init is called::
+        happen until ``__init__`` is called::
 
             sage: A[0,0]
             Traceback (most recent call last):
             ...
             ValueError: matrix entries not yet initialized
         """
-        Matrix.__init__(self, parent)
         self._degree = self._base_ring.degree()
         self._n = int(self._base_ring._n())
 

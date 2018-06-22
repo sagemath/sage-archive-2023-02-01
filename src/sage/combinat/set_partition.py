@@ -1662,7 +1662,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: S = SetPartitions(3)
             sage: it = S._iterator_part(Partition([1,1,1]))
-            sage: list(sorted(map(list, next(it))))
+            sage: sorted(map(list, next(it)))
             [[1], [2], [3]]
             sage: S21 = SetPartitions(3,Partition([2,1]))
             sage: len(list(S._iterator_part(Partition([2,1])))) == S21.cardinality()

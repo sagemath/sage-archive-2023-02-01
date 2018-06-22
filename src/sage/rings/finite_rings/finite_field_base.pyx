@@ -33,7 +33,7 @@ from __future__ import absolute_import
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 from sage.rings.integer cimport Integer
@@ -1236,7 +1236,6 @@ cdef class FiniteField(Field):
             False
         """
         from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.finite_field_base import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         if R is int or R is long or R is ZZ:
             return True
@@ -1778,6 +1777,7 @@ def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     doctest), but kept around for backward compatibility.
     """
     return _type(order, variable_name, modulus, **kwargs)
+
 
 def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     r"""

@@ -85,7 +85,6 @@ from sage.structure.parent import Parent
 from sage.structure.coerce import py_scalar_to_element
 from sage.structure.coerce_maps import CallableConvertMap, DefaultConvertMap_unique
 from sage.categories.basic import QuotientFields, Rings
-from sage.categories.morphism import Morphism
 from sage.categories.map import Section
 
 
@@ -295,7 +294,6 @@ class FractionField_generic(ring.Field):
             sage: 1/(R.gen(0) + R.gen(1))
             1/(x + y)
         """
-        from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
         from sage.rings.number_field.number_field_base import NumberField
         from sage.rings.polynomial.laurent_polynomial_ring import \

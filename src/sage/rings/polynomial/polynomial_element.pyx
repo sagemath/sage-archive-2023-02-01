@@ -2760,6 +2760,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g//f
             x^2 - 2
         """
+        if (<Polynomial> right).is_one():
+            # quite typical when removing gcds...
+            return self
         Q, _ = self.quo_rem(right)
         return Q
 
@@ -4699,6 +4702,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: Pol.one().gcd(1)
             1
         """
+        cdef Polynomial _other = <Polynomial> other
+        if _other.is_one():
+            return other
+        elif self.is_one():
+            return self
         flatten = self._parent.flattening_morphism()
         tgt = flatten.codomain()
         if tgt.ngens() > 1 and tgt._has_singular:
@@ -5535,10 +5543,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^4+2*x^2+1
             sage: f.exponents()
             [0, 2, 4]
+
+        TESTS::
+
+            sage: a = RIF['x'](1/3)
+            sage: (a - a).exponents()
+            [0]
         """
-        zero = self._parent.base_ring().zero()
-        l = self.list()
-        return [i for i in range(len(l)) if l[i] != zero]
+        cdef Py_ssize_t i
+        return [i for i, c in enumerate(self.list(copy=False)) if c]
 
     cpdef list list(self, bint copy=True):
         """
@@ -6399,9 +6412,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: r2 = p2.roots(multiplicities=False)
             sage: p = p1.composed_op(p2, operator.add)
             sage: p
-            1.000000000000000?*x^6 - 4.242640687119285?*x^4 -
-            3.464101615137755?*x^3 + 6.000000000000000?*x^2 -
-            14.69693845669907?*x + 0.1715728752538099?
+            x^6 - 4.242640687119285?*x^4 - 3.464101615137755?*x^3 + 6*x^2 - 14.69693845669907?*x + 0.1715728752538099?
             sage: all(p(x+y).is_zero() for x in r1 for y in r2)
             True
 

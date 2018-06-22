@@ -551,6 +551,10 @@ REFERENCES:
              representation of the Riemann map and Ahlfors map via the
              Kerzman-Stein equation". Involve 3-4 (2010), 405-420.
 
+.. [BUVO2007] Johannes Buchmann, Ullrich Vollmer: Binary Quadratic Forms,
+              An Algorithmic Approach, Algorithms and Computation in Mathematics,
+              Volume 20, Springer (2007)
+
 .. [BW1996] Anders Bjorner and Michelle L. Wachs. *Shellable nonpure
             complexes and posets. I*. Trans. of
             Amer. Math. Soc. **348** No. 4. (1996)
@@ -825,6 +829,10 @@ REFERENCES:
 .. [deG2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
              North-Holland Mathematical Library. (2000).
              Elsevier Science B.V.
+
+.. [deG2005] Willem A. de Graaf.
+             *Constructing homomorphisms between Verma modules*.
+             Journal of Lie Theory. **15** (2005) pp. 415-428.
 
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,
@@ -1110,6 +1118,10 @@ REFERENCES:
 .. [Ga02] Shuhong Gao, A new algorithm for decoding Reed-Solomon
           Codes, January 31, 2002
 
+.. [Gallai] T. Gallai, Elementare Relationen bezueglich der
+            Glieder und trennenden Punkte von Graphen, Magyar
+            Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
+
 .. [Gambit] Richard D. McKelvey, Andrew M. McLennan, and
             Theodore L. Turocy, *Gambit: Software Tools for Game
             Theory, Version 13.1.2.*. http://www.gambit-project.org
@@ -1280,6 +1292,9 @@ REFERENCES:
 .. [Hai1989] M.D. Haiman, *On mixed insertion, symmetry, and shifted
              Young tableaux*. Journal of Combinatorial Theory, Series
              A Volume 50, Number 2 (1989), pp. 196-225.
+
+.. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
+            a graph. Publ. Math. Debrecen 13 1966 103-107.
 
 .. [Hat2002] Allen Hatcher, "Algebraic Topology", Cambridge University
              Press (2002).
@@ -2613,6 +2628,9 @@ REFERENCES:
 .. [Tar1976] Robert E. Tarjan, *Edge-disjoint spanning trees and
              depth-first search*, Acta Informatica 6 (2), 1976,
              171-185, :doi:`10.1007/BF00268499`.
+
+.. [Tarjan72] R.E. Tarjan. Depth-First Search and Linear Graph
+              Algorithms. SIAM J. Comput. 1(2): 146-160 (1972).
 
 .. [Tate1975] John Tate, *Algorithm for determining the type of a
               singular fiber in an elliptic pencil.

@@ -64,6 +64,8 @@ EXAMPLES::
 """
 from six import iteritems
 
+from functools import reduce
+
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
 # Below we define a function Simplex to construct a simplex as a

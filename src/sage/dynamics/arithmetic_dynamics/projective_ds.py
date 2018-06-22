@@ -80,7 +80,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all import Qp
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.qqbar import QQbar
@@ -3232,7 +3232,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
             sage: f.multiplier_spectra(2, formal=False, embedding=K.embeddings(QQbar)[0], type='cycle')
             [0,
-             5.931851652578137? + 0.?e-47*I,
+             5.931851652578137? + 0.?e-49*I,
              0.0681483474218635? - 1.930649271699173?*I,
              0.0681483474218635? + 1.930649271699173?*I]
 
@@ -5353,7 +5353,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
     def cyclegraph(self):
         r"""
-        Return the digraph of all orbits of this dyanmical system.
+        Return the digraph of all orbits of this dynamical system.
 
         Over a finite field this is a finite graph. For subscheme domains, only points
         on the subscheme whose image are also on the subscheme are in the digraph.

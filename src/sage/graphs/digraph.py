@@ -112,8 +112,7 @@ graphs. Here is what they can do
 Methods
 -------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -123,7 +122,6 @@ import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
 
-from sage.misc.superseded import deprecation
 
 class DiGraph(GenericGraph):
     r"""
@@ -3125,167 +3123,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-    def strongly_connected_component_containing_vertex(self, v):
-        """
-        Returns the strongly connected component containing a given vertex
-
-        INPUT:
-
-        - ``v`` -- a vertex
-
-        EXAMPLES:
-
-        In the symmetric digraph of a graph, the strongly connected components are the connected
-        components::
-
-            sage: g = graphs.PetersenGraph()
-            sage: d = DiGraph(g)
-            sage: d.strongly_connected_component_containing_vertex(0)
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        """
-
-        if self.order()==1:
-            return [v]
-
-        try:
-            return self._backend.strongly_connected_component_containing_vertex(v)
-
-        except AttributeError:
-            raise AttributeError("This function is only defined for C graphs.")
-
-    def strongly_connected_components_subgraphs(self):
-        r"""
-        Returns the strongly connected components as a list of subgraphs.
-
-        EXAMPLES:
-
-        In the symmetric digraph of a graph, the strongly connected components are the connected
-        components::
-
-            sage: g = graphs.PetersenGraph()
-            sage: d = DiGraph(g)
-            sage: d.strongly_connected_components_subgraphs()
-            [Subgraph of (Petersen graph): Digraph on 10 vertices]
-
-        """
-        return [self.subgraph(_) for _ in self.strongly_connected_components()]
-
-    def strongly_connected_components_digraph(self, keep_labels = False):
-        r"""
-        Returns the digraph of the strongly connected components
-
-        INPUT:
-
-         - ``keep_labels`` -- boolean (default: False)
-
-        The digraph of the strongly connected components of a graph `G` has
-        a vertex per strongly connected component included in `G`. There
-        is an edge from a component `C_1` to a component `C_2` if there is
-        an edge from one to the other in `G`.
-
-        EXAMPLES:
-
-        Such a digraph is always acyclic ::
-
-            sage: g = digraphs.RandomDirectedGNP(15,.1)
-            sage: scc_digraph = g.strongly_connected_components_digraph()
-            sage: scc_digraph.is_directed_acyclic()
-            True
-
-        The vertices of the digraph of strongly connected components are
-        exactly the strongly connected components::
-
-            sage: g = digraphs.ButterflyGraph(2)
-            sage: scc_digraph = g.strongly_connected_components_digraph()
-            sage: g.is_directed_acyclic()
-            True
-            sage: all([ Set(scc) in scc_digraph.vertices() for scc in g.strongly_connected_components()])
-            True
-
-        The following digraph has three strongly connected components,
-        and the digraph of those is a chain::
-
-            sage: g = DiGraph({0:{1:"01", 2: "02", 3: "03"}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
-            sage: scc_digraph = g.strongly_connected_components_digraph()
-            sage: scc_digraph.vertices()
-            [{0}, {3}, {1, 2}]
-            sage: scc_digraph.edges()
-            [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
-
-        By default, the labels are discarded, and the result has no
-        loops nor multiple edges. If ``keep_labels`` is ``True``, then
-        the labels are kept, and the result is a multi digraph,
-        possibly with multiple edges and loops. However, edges in the
-        result with same source, target, and label are not duplicated
-        (see the edges from 0 to the strongly connected component
-        `\{1,2\}` below)::
-
-            sage: g = DiGraph({0:{1:"0-12", 2: "0-12", 3: "0-3"}, 1: {2: "1-2", 3: "1-3"}, 2:{1: "2-1", 3: "2-3"}})
-            sage: scc_digraph = g.strongly_connected_components_digraph(keep_labels = True)
-            sage: scc_digraph.vertices()
-            [{0}, {3}, {1, 2}]
-            sage: scc_digraph.edges()
-            [({0}, {1, 2}, '0-12'),
-             ({0}, {3}, '0-3'),
-             ({1, 2}, {1, 2}, '1-2'),
-             ({1, 2}, {1, 2}, '2-1'),
-             ({1, 2}, {3}, '1-3'),
-             ({1, 2}, {3}, '2-3')]
-        """
-
-        from sage.sets.set import Set
-
-        scc = self.strongly_connected_components()
-        scc_set = [Set(_) for _ in scc]
-
-        d = {}
-        for i,c in enumerate(scc):
-            for v in c:
-                d[v] = i
-
-        if keep_labels:
-            g = DiGraph(multiedges=True, loops=True)
-            g.add_vertices(range(len(scc)))
-
-            g.add_edges( set((d[u], d[v], label) for (u,v,label) in self.edges() ) )
-            g.relabel(scc_set, inplace=True)
-
-        else:
-            g = DiGraph(multiedges=False, loops=False)
-            g.add_vertices(range(len(scc)))
-
-            g.add_edges(((d[u], d[v]) for u, v in self.edges(labels=False)), loops=False)
-            g.relabel(scc_set, inplace=True)
-
-        return g
-
-    def is_strongly_connected(self):
-        r"""
-        Returns whether the current ``DiGraph`` is strongly connected.
-
-        EXAMPLES:
-
-        The circuit is obviously strongly connected ::
-
-            sage: g = digraphs.Circuit(5)
-            sage: g.is_strongly_connected()
-            True
-
-        But a transitive triangle is not::
-
-            sage: g = DiGraph({ 0 : [1,2], 1 : [2]})
-            sage: g.is_strongly_connected()
-            False
-        """
-        if self.order()==1:
-            return True
-
-        try:
-            return self._backend.is_strongly_connected()
-
-        except AttributeError:
-            return len(self.strongly_connected_components()) == 1
-
 
     def immediate_dominators(self, r, reverse=False):
         r"""
@@ -3441,111 +3278,6 @@ class DiGraph(GenericGraph):
 
         return idom
 
-    def strong_articulation_points(self):
-        r"""
-        Return the strong articulation points of this digraph.
-
-        A vertex is a strong articulation point if its deletion increases the
-        number of strongly connected components. This method implements the
-        algorithm described in [ILS2012]_. The time complexity is dominated by
-        the time complexity of the immediate dominators finding algorithm.
-
-        OUTPUT: The list of strong articulation points.
-
-        EXAMPLES:
-
-        Two cliques sharing a vertex::
-
-            sage: D = digraphs.Complete(4)
-            sage: D.add_clique([3, 4, 5, 6])
-            sage: D.strong_articulation_points()
-            [3]
-
-        Two cliques connected by some arcs::
-
-            sage: D = digraphs.Complete(4) * 2
-            sage: D.add_edges([(0, 4), (7, 3)])
-            sage: sorted( D.strong_articulation_points() )
-            [0, 3, 4, 7]
-            sage: D.add_edge(1, 5)
-            sage: sorted( D.strong_articulation_points() )
-            [3, 7]
-            sage: D.add_edge(6, 2)
-            sage: D.strong_articulation_points()
-            []
-
-        .. SEEALSO::
-
-            - :meth:`~DiGraph.strongly_connected_components`
-            - :meth:`~sage.graphs.base.boost_graph.dominator_tree`
-
-        TESTS:
-
-        All strong articulation points are found::
-
-            sage: def sap_naive(G):
-            ....:     nscc = len(G.strongly_connected_components())
-            ....:     S = []
-            ....:     for u in G:
-            ....:         H = copy(G)
-            ....:         H.delete_vertex(u)
-            ....:         if len(H.strongly_connected_components()) > nscc:
-            ....:             S.append(u)
-            ....:     return S
-            sage: D = digraphs.RandomDirectedGNP(20, 0.1)
-            sage: X = sap_naive(D)
-            sage: SAP = D.strong_articulation_points()
-            sage: set(X) == set(SAP)
-            True
-
-        Trivial cases::
-
-            sage: DiGraph().strong_articulation_points()
-            []
-            sage: DiGraph(1).strong_articulation_points()
-            []
-            sage: DiGraph(2).strong_articulation_points()
-            []
-        """
-        # The method is applied on each strongly connected component
-        if self.is_strongly_connected():
-            # Make a mutable copy of self
-            L = [ DiGraph( [(u, v) for u, v in self.edge_iterator(labels=0) if u != v],
-                               data_structure='sparse', immutable=False) ]
-        else:
-            # Get the list of strongly connected components of self as mutable
-            # subgraphs
-            L = [ self.subgraph(scc, immutable=False) for scc in self.strongly_connected_components() ]
-
-        SAP = []
-        for g in L:
-            n = g.order()
-            if n <= 1:
-                continue
-            if n == 2:
-                SAP.extend( g.vertices() )
-                continue
-
-            # 1. Choose arbitrarily a vertex r, and test whether r is a strong
-            # articulation point.
-            r = next(g.vertex_iterator())
-            E = g.incoming_edges(r) + g.outgoing_edges(r)
-            g.delete_vertex(r)
-            if not g.is_strongly_connected():
-                SAP.append(r)
-            g.add_edges(E)
-
-            # 2. Compute the set of non-trivial immediate dominators in g
-            Dr = set( g.dominator_tree(r, return_dict=True).values() )
-
-            # 3. Compute the set of non-trivial immediate dominators in the
-            # reverse digraph
-            DRr = set( g.dominator_tree(r, return_dict=True, reverse=True).values() )
-
-            # 4. Store D(r) + DR(r) - r
-            SAP.extend( Dr.union(DRr).difference([r, None]) )
-
-        return SAP
 
     def is_aperiodic(self):
         r"""
@@ -3877,3 +3609,8 @@ class DiGraph(GenericGraph):
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components
+    from sage.graphs.connectivity import is_strongly_connected
+    from sage.graphs.connectivity import strongly_connected_components_digraph
+    from sage.graphs.connectivity import strongly_connected_components_subgraphs
+    from sage.graphs.connectivity import strongly_connected_component_containing_vertex
+    from sage.graphs.connectivity import strong_articulation_points

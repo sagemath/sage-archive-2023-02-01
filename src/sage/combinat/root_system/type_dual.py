@@ -311,6 +311,18 @@ class CartanType(cartan_type.CartanType_decorator, cartan_type.CartanType_crysta
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: B41 = CartanType(['B', 4, 1])
+            sage: B41dual = CartanType(['B', 4, 1]).dual()
+            sage: h = hash(B41dual)
+        """
+        return hash(self._type)
+
     def dual(self):
         """
         EXAMPLES::

@@ -199,17 +199,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
         1846857684291126914  # 64-bit
         1591707266           # 32-bit
     """
-    def __cinit__(self, parent, entries, coerce, copy):
+    def __cinit__(self):
         """
         Create and allocate memory for the matrix. Does not actually
         initialize any of the memory.
-
-        INPUT:
-
-
-        -  ``parent, entries, coerce, copy`` - as for
-           __init__.
-
 
         EXAMPLES::
 
@@ -225,11 +218,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             RuntimeError: FLINT exception
         """
-        self._parent = parent
-        self._base_ring = ZZ
-        self._nrows = parent.nrows()
-        self._ncols = parent.ncols()
-        self._pivots = None
         sig_str("FLINT exception")
         fmpz_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()
@@ -1643,7 +1631,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         sig_free(entry_list)
         return res
 
-    def _echelon_in_place_classical(self):
+    cpdef _echelon_in_place(self, str algorithm):
         cdef Matrix_integer_dense E
         E = self.echelon_form()
         sig_on()

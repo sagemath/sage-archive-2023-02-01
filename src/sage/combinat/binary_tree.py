@@ -59,7 +59,6 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)

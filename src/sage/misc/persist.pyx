@@ -742,10 +742,6 @@ def make_None(*args, **kwds):
     return None
 
 
-# Generators is no longer used (#21382)
-register_unpickle_override('sage.structure.generators', 'make_list_gens', make_None)
-
-
 def load_sage_object(cls, dic):   # not used
     X = cls.__new__(cls)
     try:

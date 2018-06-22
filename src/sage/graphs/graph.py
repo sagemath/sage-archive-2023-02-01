@@ -429,8 +429,8 @@ import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
 from sage.graphs.independent_sets import IndependentSets
-from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.rest_index_of_methods import doc_index, gen_thematic_rest_table_index
+
 
 class Graph(GenericGraph):
     r"""
@@ -1120,10 +1120,10 @@ class Graph(GenericGraph):
             data = 0
 
         # Input is a list of edges
-        if format is None and isinstance(data,list):
+        if format is None and isinstance(data, list):
             format = "list_of_edges"
-            if weighted is None: weighted = False
-            num_verts=0
+            if weighted is None:
+                weighted = False
 
         if format is None:
             raise ValueError("This input cannot be turned into a graph")
@@ -1439,60 +1439,6 @@ class Graph(GenericGraph):
         """
         return False
 
-    @doc_index("Connectivity, orientations, trees")
-    def bridges(self, labels=True):
-        r"""
-        Returns a list of the bridges (or cut edges).
-
-        A bridge is an edge whose deletion disconnects the graph.
-        A disconnected graph has no bridge.
-
-        INPUT:
-
-        - ``labels`` -- (default: ``True``) if ``False``, each bridge is a tuple
-          `(u, v)` of vertices
-
-        EXAMPLES::
-
-            sage: g = 2*graphs.PetersenGraph()
-            sage: g.add_edge(1,10)
-            sage: g.is_connected()
-            True
-            sage: g.bridges()
-            [(1, 10, None)]
-
-        TESTS:
-
-        Ticket :trac:`23817` is solved::
-
-            sage: G = Graph()
-            sage: G.add_edge(0, 1)
-            sage: G.bridges()
-            [(0, 1, None)]
-            sage: G.allow_loops(True)
-            sage: G.add_edge(0, 0)
-            sage: G.add_edge(1, 1)
-            sage: G.bridges()
-            [(0, 1, None)]
-        """
-        # Small graphs and disconnected graphs have no bridge
-        if self.order() < 2 or not self.is_connected():
-            return []
-
-        B,C = self.blocks_and_cut_vertices()
-
-        # A block of size 2 is a bridge, unless the vertices are connected with
-        # multiple edges.
-        ME = set(self.multiple_edges(labels=False))
-        my_bridges = []
-        for b in B:
-            if len(b) == 2 and not tuple(b) in ME:
-                if labels:
-                    my_bridges.append((b[0], b[1], self.edge_label(b[0], b[1])))
-                else:
-                    my_bridges.append(tuple(b))
-
-        return my_bridges
 
     @doc_index("Connectivity, orientations, trees")
     def spanning_trees(self):
@@ -1711,7 +1657,6 @@ class Graph(GenericGraph):
 
             # This code is a depth-first search that looks for a cycle in the
             # graph. We *know* it exists as there are too many edges around.
-            n = self.order()
             seen = {}
             u = next(self.vertex_iterator())
             seen[u] = u
@@ -2909,17 +2854,22 @@ class Graph(GenericGraph):
         g = self
 
         # Check Input
-        if algorithm is None:
+        if algorithm is None or algorithm == 'tdlib':
             try:
                 import sage.graphs.graph_decompositions.tdlib as tdlib
-                algorithm = "tdlib"
+                tdlib_found = True
             except ImportError:
-                algorithm = "sage"
-        elif (algorithm != "sage"   and
-              algorithm != "tdlib"):
+                tdlib_found = False
+
+        elif algorithm != "sage":
             raise ValueError("'algorithm' must be equal to 'tdlib', 'sage', or None")
 
-        if k is not None and k<0:
+        if algorithm is None and tdlib_found:
+            algorithm = 'tdlib'
+        else:
+            algorithm = 'sage'
+
+        if k is not None and k < 0:
             raise ValueError("k(={}) must be a nonnegative integer".format(k))
 
         # Stupid cases
@@ -2937,9 +2887,7 @@ class Graph(GenericGraph):
 
         # TDLIB
         if algorithm == 'tdlib':
-            try:
-                import sage.graphs.graph_decompositions.tdlib as tdlib
-            except ImportError:
+            if not tdlib_found:
                 from sage.misc.package import PackageNotFoundError
                 raise PackageNotFoundError("tdlib")
 
@@ -3584,8 +3532,6 @@ class Graph(GenericGraph):
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=self.allows_multiple_edges())
-
-        id = {}
         i = 0
 
         # The algorithm works through a depth-first search. Any edge
@@ -3595,7 +3541,7 @@ class Graph(GenericGraph):
 
         v = next(self.vertex_iterator())
         seen = {}
-        i=1
+        i = 1
 
         # Time at which the vertices have been discovered
         seen[v] = i
@@ -4509,7 +4455,6 @@ class Graph(GenericGraph):
            (2015) :arxiv:`1511.00773v1`.
         """
         from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
-        from sage.combinat.composition import Compositions
         from sage.combinat.set_partition_ordered import OrderedSetPartitions
         if t is None:
             t = ZZ['t'].gen()
@@ -4518,6 +4463,7 @@ class Graph(GenericGraph):
         M = QuasiSymmetricFunctions(R).M()
         ret = M.zero()
         V = self.vertices()
+
         def asc(sigma):
             stat = 0
             for i, s in enumerate(sigma):
@@ -4525,6 +4471,7 @@ class Graph(GenericGraph):
                     stat += sum(1 for p in sigma[i+1:] for v in p
                                 if v > u and self.has_edge(u, v))
             return stat
+
         for sigma in OrderedSetPartitions(V):
             if any(not self.is_independent_set(s) for s in sigma):
                 continue
@@ -5044,9 +4991,10 @@ class Graph(GenericGraph):
 
         p.add_constraint( p.sum(d[v] for v in g), max = 1)
 
-        p.set_objective( p.sum( one[reorder(u,v)] for u,v in g.edge_iterator(labels=False)) )
+        p.set_objective(p.sum(one[reorder(u, v)]
+                              for u, v in g.edge_iterator(labels=False)))
 
-        obj = p.solve(log = verbose)
+        p.solve(log=verbose)
 
         # Paying attention to numerical error :
         # The zero values could be something like 0.000000000001
@@ -6709,7 +6657,7 @@ class Graph(GenericGraph):
             if value_only:
                 size_cover_g = g.order() - len(independent)
             else:
-                cover_g = [u for u in g if not u in independent]
+                cover_g = [uu for uu in g if not uu in independent]
 
         elif algorithm == "MILP":
 
@@ -8368,6 +8316,7 @@ class Graph(GenericGraph):
     from sage.graphs.lovasz_theta import lovasz_theta
     from sage.graphs.partial_cube import is_partial_cube
     from sage.graphs.orientations import strong_orientations_iterator, random_orientation
+    from sage.graphs.connectivity import bridges
 
 
 _additional_categories = {

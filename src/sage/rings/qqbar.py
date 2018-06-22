@@ -361,19 +361,8 @@ algorithms in :trac:`10255`::
     x1 = R1.gen()
     R2 = AA['x']
     x2 = R2.gen()
-    cp1 = AA.common_polynomial(x2^2 - 2)
-    v1 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    v2 = QQbar.polynomial_root(AA.common_polynomial(x1^2 - 3), CIF(RIF(RR(1.7320508075688772), RR(1.7320508075688774)), RIF(RR(0))))
-    v3 = -v1 - v2
-    v4 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    cp2 = AA.common_polynomial(x1^2 + (-v4 + v2)*x1 - v4*v2)
-    v5 = QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v6 = v3 - v5
-    v7 = -1 - v2 - QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v8 = v1*v2
-    v9 = v8 - v3*v5
-    si = v8*v5
-    AA.polynomial_root(AA.common_polynomial(x1^4 + (v6 + v7)*x1^3 + (v9 + v6*v7)*x1^2 + (-si + v9*v7)*x1 - si*v7), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    v = AA.polynomial_root(AA.common_polynomial(x2^4 - 4*x2^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    AA.polynomial_root(AA.common_polynomial(x1^4 + QQbar(v^3 - 3*v - 1)*x1^3 + QQbar(-v^3 + 3*v - 3)*x1^2 + QQbar(-3*v^3 + 9*v + 3)*x1 + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 
@@ -1821,7 +1810,6 @@ def isolating_interval(intv_fn, pol):
 
     for prec in prec_seq():
         intv = intv_fn(prec)
-        ifld = intv.parent()
 
         # We need to verify that pol has exactly one root in the
         # interval intv. We know (because it is a precondition of
@@ -1835,6 +1823,7 @@ def isolating_interval(intv_fn, pol):
 
         if not dpol(intv).contains_zero():
             return intv
+
 
 def find_zero_result(fn, l):
     """
@@ -2561,7 +2550,6 @@ class AlgebraicGenerator(SageObject):
         elif other._cyclotomic:
             self, other = other, self
 
-        sp = self._field.polynomial()
         op = other._field.polynomial()
         op = QQx(op)
         # pari_nf = self._field.pari_nf()
@@ -2600,8 +2588,6 @@ class AlgebraicGenerator(SageObject):
         new_nf = NumberField(red_pol, name='a', check=False)
 
         self_pol_sage = QQx(self_pol.lift())
-
-        new_nf_a = new_nf.gen()
 
         def intv_fn(prec):
             return conjugate_expand(red_elt(self._root._interval_fast(prec) * k + other._root._interval_fast(prec)))
@@ -3109,7 +3095,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         """
         sk = type(self._descr)
         ok = type(other._descr)
-        return type(self)(_binop_algo[sk,ok](self, other, operator.truediv))
+        return type(self)(_binop_algo[sk, ok](self, other, operator.truediv))
 
     def __invert__(self):
         """
@@ -3118,7 +3104,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: ~AA(sqrt(~2))
             1.414213562373095?
         """
-        sd = self._descr
         return type(self)(self._descr.invert(self))
 
     def _add_(self, other):
@@ -3949,7 +3934,6 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
 
         # Adapted from NumberFieldElement._symbolic_()
         poly = self.minpoly()
-        var = SR(poly.variable_name())
         if is_ComplexIntervalFieldElement(self._value):
             interval_field = self._value.parent()
         else:
@@ -6520,8 +6504,6 @@ class ANRoot(ANDescr):
 
             return ANExtensionElement(new_gen, red_back(field.gen())/den)
         else:
-            fld = gen.field()
-
             fpf = self._poly.factors()
 
             def find_fn(factor, prec):
@@ -6576,8 +6558,6 @@ class ANRoot(ANDescr):
             new_nf = NumberField(red_pol, name='a', check=False)
 
             self_pol_sage = QQx(self_pol.lift())
-
-            new_nf_a = new_nf.gen()
 
             def intv_fn(prec):
                 return conjugate_expand(red_elt(gen._interval_fast(prec) * k + self._interval_fast(prec) * den))
@@ -7640,7 +7620,6 @@ def an_binop_element(a, b, op):
         bdg2 = bdg.super_poly(p)
         av = ad._value.polynomial()(adg2)
         bv = bd._value.polynomial()(bdg2)
-        v = op(av, bv)
         return ANExtensionElement(p, op(av, bv))
 
     adg2 = adg.super_poly(bdg)

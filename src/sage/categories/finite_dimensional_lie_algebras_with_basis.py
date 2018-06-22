@@ -27,7 +27,6 @@ from sage.categories.subobjects import SubobjectsCategory
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.sets.family import Family
 from sage.matrix.constructor import matrix
-from sage.modules.free_module_element import vector
 
 class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -422,7 +421,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                              for x in X]
                             for i in range(d) for k in range(d)])
             C = c_mat.right_kernel().basis_matrix()
-            return [self.from_vector(v) for v in C]
+            return [self.from_vector(c) for c in C]
 
         def centralizer(self, S):
             """
@@ -1180,7 +1179,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Z
             """
             K = self._basis_ordering
-            B = self.basis()
             mats = []
             R = self.base_ring()
             S = dict(self.structure_coefficients())

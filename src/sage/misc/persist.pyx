@@ -589,10 +589,10 @@ IF PY_MAJOR_VERSION == 2:
                 self._pickler.persistent_id = persistent_id
 
         def dump(self, obj):
-            return self._pickler.dump(obj)
+            self._pickler.dump(obj)
 
         def clear_memo(self):
-            return self._pickler.clear_memo()
+            self._pickler.clear_memo()
 
 
     # On Python 2 we always pickle with protocol version 2 (the highest
@@ -851,7 +851,7 @@ class SageUnpickler(_BaseUnpickler):
       for more details.
 
     - ``kwargs`` -- additional keyword arguments passed to the
-      `pickle.Unpickler constructor.
+      `pickle.Unpickler` constructor.
 
     .. _pickling and unpickling external objects: https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-external-objects
 

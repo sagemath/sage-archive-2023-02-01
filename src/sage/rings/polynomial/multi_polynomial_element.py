@@ -99,7 +99,7 @@ class MPolynomial_element(MPolynomial):
     ####################
 
     def __call__(self, *x, **kwds):
-        """
+        r"""
         Evaluate this multi-variate polynomial at `x`, where
         `x` is either the tuple of values to substitute in, or one
         can use functional notation `f(a_0,a_1,a_2, \ldots)` to

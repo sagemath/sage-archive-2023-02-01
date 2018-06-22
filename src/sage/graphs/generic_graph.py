@@ -12671,7 +12671,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_gallai_tree(self):
         r"""
-        Returns whether the current graph is a Gallai tree.
+        Return whether the current graph is a Gallai tree.
 
         A graph is a Gallai tree if and only if it is
         connected and its `2`-connected components are all
@@ -12709,6 +12709,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([(-1,c[0]) for c in g.connected_components()])
             sage: g.is_gallai_tree()
             True
+
+        TESTS:
+
+        Check that :trac:`25613` is fixed::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.add_edge(0,5)
+            sage: g.is_gallai_tree()
+            True
         """
         self._scream_if_not_simple()
         if not self.is_connected():
@@ -12716,8 +12725,8 @@ class GenericGraph(GenericGraph_pyx):
 
         for c in self.blocks_and_cut_vertices()[0]:
             gg = self.subgraph(c)
-            #                    is it an odd cycle ?              a complete graph ?
-            if not ( (len(c)%2 == 1 and gg.size() == len(c)+1) or gg.is_clique() ):
+            #       is it an odd cycle ?              a complete graph ?
+            if not ((len(c) % 2 and gg.size() == len(c)) or gg.is_clique()):
                 return False
 
         return True

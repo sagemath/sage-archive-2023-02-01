@@ -22,7 +22,6 @@ from sage.rings.integer_ring import ZZ
 from sage.categories.magmatic_algebras import MagmaticAlgebras
 from sage.matrix.constructor import Matrix, matrix
 from sage.structure.element import is_Matrix
-from sage.modules.free_module_element import vector
 from sage.rings.ring import Algebra
 from sage.structure.category_object import normalize_names
 from sage.structure.unique_representation import UniqueRepresentation

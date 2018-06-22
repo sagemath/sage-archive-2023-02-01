@@ -1153,7 +1153,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 tester = self._tester(**options)
                 cell_basis = self.cellular_basis()
                 B = cell_basis.basis()
-                K = B.keys()
                 P = self.cell_poset()
                 for mu in P:
                     C = self.cell_module_indices(mu)

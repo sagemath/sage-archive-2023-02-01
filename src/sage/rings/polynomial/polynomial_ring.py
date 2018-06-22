@@ -166,13 +166,15 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.real_mpfr import is_RealField
-from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
 
 from .polynomial_element import PolynomialBaseringInjection
 from .polynomial_real_mpfr_dense import PolynomialRealDense
 from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
+from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+
 
 _CommutativeRings = categories.commutative_rings.CommutativeRings()
 
@@ -1712,7 +1714,8 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         return roots
 
 
-class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDomain):
+class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_singular_repr,
+                                     ring.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None, category=None):
         """
@@ -1741,6 +1744,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
                     element_class = Polynomial_integer_dense_flint
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
+        self._has_singular = can_convert_to_singular(self)
 
     @staticmethod
     def _implementation_names_impl(implementation, base_ring, sparse):
@@ -1780,7 +1784,6 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
 
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
-                           PolynomialRing_singular_repr,
                            ring.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None, category=None):
         """
@@ -1806,7 +1809,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: x^(10^20) # this should be fast
             x^100000000000000000000
         """
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         import sage.rings.complex_arb
 
         if not element_class:
@@ -1831,8 +1833,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                 element_class = polynomial_element_generic.Polynomial_generic_dense_field
 
         PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class, category=category)
-
-        self._has_singular = can_convert_to_singular(self)
 
     def _ideal_class_(self, n=0):
         """
@@ -2980,7 +2980,6 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name=name,
                 element_class=element_class, category=category)
 
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)
 
     @staticmethod

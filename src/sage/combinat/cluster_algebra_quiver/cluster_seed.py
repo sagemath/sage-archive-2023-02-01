@@ -2487,7 +2487,7 @@ class ClusterSeed(SageObject):
 
         # Note - this does not guarantee that the sequence consists of
         # cluster variables, it only rules out some possibilities.
-        is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
+        is_cluster_vars = all(isinstance(y, str) for y in seqq) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.
         if input_type:
@@ -3329,7 +3329,7 @@ class ClusterSeed(SageObject):
                             only_sink_source=False):
         r"""
         Return an iterator for the mutation class of ``self`` with
-        respect to certain constrains.
+        respect to certain constraints.
 
         INPUT:
 
@@ -4476,15 +4476,16 @@ class ClusterSeed(SageObject):
         c=self._compute_compatible_vectors(v)
         return self._produce_upper_cluster_algebra_element(v,c)
 
-    def LLM_gen_set(self,size_limit=-1):
+    def LLM_gen_set(self, size_limit=-1):
         r"""
         Produce a list of upper cluster algebra elements corresponding to all
-        vectors in `\{0,1\}^n`. 
+        vectors in `\{0,1\}^n`.
 
         INPUT:
 
-        - `B` -- a skew-symmetric matrigitx.
-        - `size_limit` -- a limit on how many vectors you want the function to return. 
+        - `B` -- a skew-symmetric matrix.
+        - ``size_limit`` -- a limit on how many vectors you want
+          the function to return.
 
         OUTPUT:
 

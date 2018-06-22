@@ -1931,7 +1931,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         r"""
         Construct the placing (pushing) triangulation.
 
-  MODIFIED G.Rote / TODO: Update examples and tests
         INPUT:
 
         - ``point_order`` -- list of points or integers. The order in
@@ -1947,8 +1946,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc = PointConfiguration([(0,0),(1,0),(2,1),(1,2),(0,1)])
             sage: pc.placing_triangulation()
-            (<0,1,2>, <0,2,4>, <2,3,4>)
-
+            (<0,1,2>, <0,2,3>, <0,3,4>)
+            sage: pc.placing_triangulation(point_order=(3,2,1,4,0))
+            (<0,1,4>, <1,2,3>, <1,3,4>)
             sage: U=matrix([
             ....:    [ 0, 0, 0, 0, 0, 2, 4,-1, 1, 1, 0, 0, 1, 0],
             ....:    [ 0, 0, 0, 1, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0],
@@ -1958,14 +1958,22 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             ....: ])
             sage: p = PointConfiguration(U.columns())
             sage: triangulation = p.placing_triangulation();  triangulation
-            (<0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,2,3,4,7,13>, <0,2,3,4,12,13>,
-             <0,2,3,6,7,13>, <0,2,3,6,12,13>, <0,2,4,6,7,13>, <0,2,4,6,12,13>,
-             <0,3,4,6,7,12>, <0,3,4,7,12,13>, <0,3,6,7,12,13>, <0,4,6,7,12,13>,
-             <1,3,4,5,6,12>, <1,3,4,6,11,12>, <1,3,4,7,11,13>, <1,3,4,11,12,13>,
-             <1,3,6,7,11,13>, <1,3,6,11,12,13>, <1,4,6,7,11,13>, <1,4,6,11,12,13>,
-             <3,4,6,7,11,12>, <3,4,7,11,12,13>, <3,6,7,11,12,13>, <4,6,7,11,12,13>)
+            (<0,1,2,3,4,7>, <0,1,2,3,4,12>, <0,1,2,3,6,7>,
+            <0,1,2,3,6,12>, <0,1,2,4,6,7>, <0,1,2,4,6,12>,
+            <0,1,3,4,7,12>, <0,1,3,6,7,12>, <0,1,4,6,7,12>,
+            <0,2,3,4,6,7>, <0,2,3,4,6,12>, <0,3,4,6,7,12>,
+            <1,3,4,5,6,12>, <1,3,4,6,7,12>)
             sage: sum(p.volume(t) for t in triangulation)
             42
+            sage: p0 = PointConfiguration([(0,0),(+1,0),(-1,0),(0,+1),(0,-1)])
+            sage: p0.pushing_triangulation(point_order=[1,2,0,3,4])
+            (<1,2,3>, <1,2,4>)
+            sage: p0.pushing_triangulation(point_order=[0,1,2,3,4])
+            (<0,1,3>, <0,1,4>, <0,2,3>, <0,2,4>)
+            sage: # the same triangulation with renumbered points 0->4, 1->0, etc.:
+            sage: p1 = PointConfiguration([(+1,0),(-1,0),(0,+1),(0,-1),(0,0)])
+            sage: p1.pushing_triangulation(point_order=[4,0,1,2,3])
+            (<0,2,4>, <0,3,4>, <1,2,4>, <1,3,4>)
         """
         facet_normals = dict()
         def facets_of_simplex(simplex):
@@ -1996,8 +2004,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # input verification
         self._assert_is_affine()
+        
         point_order_is_given = point_order is not None
-
         if point_order is None:
             point_order = list(self.points())
         elif isinstance(point_order[0], Point):

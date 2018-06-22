@@ -13,9 +13,9 @@ EXAMPLES::
     sage: E = EllipticCurve('433a')
     sage: P = E.heegner_point(-8,3)
     sage: z = P.point_exact(201); z
-    (-4/3 : 1/27*a - 4/27 : 1)
+    (-4/3 : 1/9*a - 4/9 : 1)
     sage: parent(z)
-    Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 44*x + 1159
+    Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 20*x + 175
     sage: parent(z[0]).discriminant()
     -3
     sage: E.quadratic_twist(-3).rank()
@@ -6245,44 +6245,56 @@ def satisfies_weak_heegner_hypothesis(N, D):
             return False
     return True
 
+
 def make_monic(f):
     r"""
-    ``make_monic`` returns a monic integral polynomial `g` and an
-    integer `d` such that if `\alpha` is a root of `g` then a root of
-    `f` is `\alpha/d`.
+    Return a monic integral polynomial `g` and an integer `d` such
+    that if `\alpha` is a root of `g` then a root of `f` is `\alpha/d`.
 
     INPUT:
 
-        - f -- polynomial over the rational numbers
+    - f -- polynomial over the rational numbers
+
+    OUTPUT:
+
+    a monic integral polynomial and an integer
 
     EXAMPLES::
 
+        sage: from sage.schemes.elliptic_curves.heegner import make_monic
         sage: R.<x> = QQ[]
-        sage: sage.schemes.elliptic_curves.heegner.make_monic(3*x^3 + 14*x^2 - 7*x + 5)
+        sage: make_monic(3*x^3 + 14*x^2 - 7*x + 5)
         (x^3 + 14*x^2 - 21*x + 45, 3)
 
-    In this example we verify that make_monic does what we claim it does::
+    In this example we verify that ``make_monic`` does what we claim it does::
 
         sage: K.<a> = NumberField(x^3 + 17*x - 3)
         sage: f = (a/7+2/3).minpoly(); f
         x^3 - 2*x^2 + 247/147*x - 4967/9261
-        sage: g, d = sage.schemes.elliptic_curves.heegner.make_monic(f)
-        sage: g
-        x^3 - 18522*x^2 + 144110421*x - 426000323007
-        sage: d
-        9261
+        sage: g, d = make_monic(f); (g, d)
+        (x^3 - 42*x^2 + 741*x - 4967, 21)
         sage: K.<b> = NumberField(g)
         sage: (b/d).minpoly()
         x^3 - 2*x^2 + 247/147*x - 4967/9261
+
+    TESTS::
+
+        sage: f = x**5 + x**3/4 + 5
+        sage: make_monic(f)
+        (x^5 + x^3 + 160, 2)
     """
-    # make f monic
     n = f.degree()
+    x = f.parent().gen()
     f = f / f.leading_coefficient()
-    # find lcm of denominators
-    d = lcm([b.denominator() for b in f.list() if b])
-    x = f.variables()[0]
-    g = (d**n) * f(x/d)
-    return g, d
+    d = 1
+    for k in range(1, n + 1):
+        den = f[n - k].denominator()
+        while den != 1:
+            rad = den.radical()
+            d *= rad
+            f = rad**n * f(x / rad)
+            den = f[n - k].denominator()
+    return f, d
 
 
 #####################################################################

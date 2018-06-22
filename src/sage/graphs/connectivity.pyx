@@ -1889,7 +1889,7 @@ class Triconnectivity:
     int_to_vertex = {} # mapping of integers to original vertices
     start_vertex = 0
     num_components = 0
-    edge_status = {} #status of each edge, unseen=0, tree=1, frond=2, removed=3
+    edge_status = {} # status of each edge, unseen=0, tree=1, frond=2, removed=3
     Estack = []
     Tstack = []
     dfs_number = [] # DFS number of vertex i
@@ -1912,27 +1912,31 @@ class Triconnectivity:
     dfs_counter = 0
     n = 0 # number of vertices
     m = 0 # number of edges
-    check = True # If the graph needs to be tested for biconnectivity
     is_biconnected = True # Boolean to store if the graph is biconnected or not
     cut_vertex = None # If graph is not biconnected
+
+    # T/F to denote if the source and target of the palm tree edge are
+    # opposite to that of the graph
+    edge_reverse = {}
 
 
     def __init__(self, G, check=True):
         self.graph_copy = G.copy(implementation='c_graph')
-        self.check = check
         self.vertex_to_int = self.graph_copy.relabel(inplace=True, return_map=True)
         self.int_to_vertex = dict([(v,k) for k,v in self.vertex_to_int.items()])
         self.n = self.graph_copy.order()
         self.m = self.graph_copy.size()
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
-        self.dfs_number = [0]*self.n
-        self.lowpt1 = [None]*self.n
-        self.lowpt2 = [None]*self.n
-        self.nd = [None]*self.n
-        self.parent = [None]*self.n
-        self.degree = [None]*self.n
-        self.tree_arc = [None]*self.n
-        self.vertex_at = [1]*self.n
+        self.edge_reverse = dict((e,False) for e in self.graph_copy.edges())
+        self.dfs_number = [0 for i in xrange(self.n)]
+        self.lowpt1 = [None for i in xrange(self.n)]
+        self.lowpt2 = [None for i in xrange(self.n)]
+        self.adj = [[] for i in xrange(self.n)]
+        self.nd = [None for i in xrange(self.n)]
+        self.parent = [None for i in xrange(self.n)]
+        self.degree = [None for i in xrange(self.n)]
+        self.tree_arc = [None for i in xrange(self.n)]
+        self.vertex_at = [1 for i in xrange(self.n)]
         self.dfs_counter = 0
         self.components_list = [] #list of components
         self.split_multi_egdes()
@@ -1951,7 +1955,20 @@ class Triconnectivity:
                 self.cut_vertex = self.int_to_vertex[self.cut_vertex]
                 self.is_biconnected = False
                 return
-        
+
+        # Reversing the edges to reflect the palm tree arcs and fronds
+        # Is there a better way to do it?
+        for e in self.graph_copy.edges():
+            up = (self.dfs_number[e[1]] - self.dfs_number[e[0]]) > 0
+            if ((up and self.edge_status[e]==2) or (not up and self.edge_status[e]==1)):
+                # Reverse the edge
+                # self.graph_copy.delete_edge(e)
+                # self.graph_copy.add_edge(e[1],e[0])
+                # self.edge_status[(e[1],e[0],e[2])] = self.edge_status.pop(e)
+                self.edge_reverse[e] = True
+
+        self.build_acceptable_adj_struct()
+
 
     def new_component(self, edges, type_c=0):
         c = self.Component(edges, type_c)
@@ -2139,4 +2156,51 @@ class Triconnectivity:
                     self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
         return s1
-        
+
+
+    def build_acceptable_adj_struct(self):
+        """
+        Builds the adjacency lists for each vertex with certain properties
+        of the ordering, using the ``lowpt1`` and ``lowpt2`` values.
+
+        The list ``adj`` and the dictionary ``in_adj`` are populated.
+        """
+        max = 3*self.n + 2
+        bucket = [[] for i in range(max+1)]
+
+        for e in self.graph_copy.edges():
+            edge_type = self.edge_status[e]
+            if (edge_type == 3):
+                continue
+
+            # compute phi value
+            # the if condition for edge_reverse can be avoided if we find
+            # a different way to implement reversed edges
+            if (self.edge_reverse[e] == True):
+                if (edge_type==1): # tree arc
+                    if (self.lowpt2[e[0]] < self.dfs_number[e[1]]):
+                        phi = 3*self.lowpt1[e[0]]
+                    elif (self.lowpt2[e[0]] >= self.dfs_number[e[1]]):
+                        phi = 3*self.lowpt1[e[0]] + 2
+                else: # tree frond
+                    phi = 3*self.dfs_number[e[0]]+1
+            else:
+                if (edge_type==1): # tree arc
+                    if (self.lowpt2[e[1]] < self.dfs_number[e[0]]):
+                        phi = 3*self.lowpt1[e[1]]
+                    elif (self.lowpt2[e[1]] >= self.dfs_number[e[0]]):
+                        phi = 3*self.lowpt1[e[1]] + 2
+                else: # tree frond
+                    phi = 3*self.dfs_number[e[1]]+1
+
+            bucket[phi].append(e)
+
+        for i in xrange(1,max+1):
+            for e in bucket[i]:
+                if (self.edge_reverse[e] == True):
+                    self.adj[e[1]].append(e)
+                    self.in_adj[e] = self.adj[e[1]]
+                else:
+                    self.adj[e[0]].append(e)
+                    self.in_adj[e] = self.adj[e[0]]
+

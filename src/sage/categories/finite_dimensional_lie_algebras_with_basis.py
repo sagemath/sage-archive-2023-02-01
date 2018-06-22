@@ -505,7 +505,20 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [ 0  0  0]  [   0    0 -1/2]  [ 1  0  0]
                 [ 0  0 -1], [   0    0    0], [ 0 -2  0]
                 )
+
+            We verify these are derivations::
+
+                sage: D = [sl2.module_morphism(matrix=M, codomain=sl2)
+                ....:      for M in sl2.derivations_basis()]
+                sage: all(d(a.bracket(b)) == d(a).bracket(b) + a.bracket(d(b))
+                ....:     for a in sl2.basis() for b in sl2.basis() for d in D)
+                True
+
+            REFERENCES:
+
+            :wikipedia:`Derivation_(differential_algebra)`
             """
+            from sage.matrix.constructor import matrix
             R = self.base_ring()
             B = self.basis()
             keys = list(B.keys())
@@ -516,7 +529,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             data = {}
             N = len(keys)
             for ii,i in enumerate(keys):
-                #for ij,j in enumerate(keys):
                 for ij,j in enumerate(keys[ii+1:]):
                     ijp = ij + ii + 1
                     for il,l in enumerate(keys):
@@ -528,7 +540,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                                  - scoeffs.get((l, k, j), zero))
                             data[row,ijp+N*ik] = (data.get((row,ijp+N*ik), zero)
                                                   - scoeffs.get((l, i, k), zero))
-            from sage.matrix.constructor import matrix
             mat = matrix(R, data, sparse=True)
             return tuple([matrix(R, N, N, list(b)) for b in mat.right_kernel().basis()])
 

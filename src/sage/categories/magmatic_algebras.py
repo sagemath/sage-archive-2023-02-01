@@ -275,6 +275,10 @@ class MagmaticAlgebras(Category_over_base_ring):
                         sage: all(D(a*b) == D(a) * b + a * D(b)
                         ....:     for a in A.basis() for b in A.basis())
                         True
+
+                    REFERENCES:
+
+                    :wikipedia:`Derivation_(differential_algebra)`
                     """
                     R = self.base_ring()
                     B = self.basis()

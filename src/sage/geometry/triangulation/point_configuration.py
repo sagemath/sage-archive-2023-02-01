@@ -1831,8 +1831,6 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         """
         Return a simplex contained in the point configuration.
 
-
-  MODIFIED G.Rote / TODO: Update examples and tests
         INPUT:
 
         - ``large`` -- boolean. Whether to attempt to return a large
@@ -1874,6 +1872,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0],[1,1],[-1,-1]])
             sage: pc.contained_simplex()
             (P(2, 1), P(0, 0), P(1, 0))
+            sage: pc.contained_simplex(point_order = [pc[1],pc[3],pc[4],pc[2],pc[0]])
+            (P(0,1),P(1,1),P(-1,-1)) 
+            sage: # lower-dimensional example:
             sage: pc.contained_simplex(point_order = [pc[0],pc[3],pc[4]])
             (P(0,0),P(1,1))
             
@@ -1881,10 +1882,10 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0]])
             sage: pc.contained_simplex()
-            (P(1, 0), P(0, 1), P(0, 0))
+            (P(0, 0), P(0, 1), P(1, 0))
             sage: pc = PointConfiguration([[0,0],[0,1]])
             sage: pc.contained_simplex()
-            (P(0, 1), P(0, 0))
+            (P(0, 0), P(0, 1))
             sage: pc = PointConfiguration([[0,0]])
             sage: pc.contained_simplex()
             (P(0, 0),)
@@ -1899,6 +1900,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             points = list(point_order)
             initial_point = None
             large = False
+            # If point_order is specified, the points of the
+            # PointConfiguration are actually ignored.
         if len(points)==0:
             return tuple()
                          

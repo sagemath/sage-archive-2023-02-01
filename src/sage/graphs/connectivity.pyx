@@ -2381,6 +2381,7 @@ class Triconnectivity:
 
     graph_copy = None #type SparseGraph
     vertex_to_int = {} # mapping of vertices to integers in c_graph
+    int_to_vertex = {} # mapping of integers to original vertices
     start_vertex = 0
     num_components = 0
     edge_status = {} #status of each edge, unseen=0, tree=1, frond=2, removed=3
@@ -2395,7 +2396,7 @@ class Triconnectivity:
     adj = [] # i^th value contains a list of incident edges of vertex i
     in_adj = {} # this variable is used in the PathSearch() function
     newnum = [] # new DFS number of vertex i
-    startsPath = {} # dict of (edge, True/False) to denote if a path starts at edge
+    startsPath = {} # dict of (edge, T/F) to denote if a path starts at edge
     highpt = [] # List of fronds entering vertex i in the order they are visited
     old_to_new = [] # New DFS number of the vertex with i as old DFS number
     degree = [] # Degree of vertex i
@@ -2406,11 +2407,16 @@ class Triconnectivity:
     dfs_counter = 0
     n = 0 # number of vertices
     m = 0 # number of edges
+    check = True # If the graph needs to be tested for biconnectivity
+    is_biconnected = True # Boolean to store if the graph is biconnected or not
+    cut_vertex = None # If graph is not biconnected
 
 
-    def __init__(self, G):
+    def __init__(self, G, check=True):
         self.graph_copy = G.copy(implementation='c_graph')
+        self.check = check
         self.vertex_to_int = self.graph_copy.relabel(inplace=True, return_map=True)
+        self.int_to_vertex = dict([(v,k) for k,v in self.vertex_to_int.items()])
         self.n = self.graph_copy.order()
         self.m = self.graph_copy.size()
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
@@ -2427,7 +2433,20 @@ class Triconnectivity:
         self.split_multi_egdes()
         self.dfs_counter = 0 # Initialisation for dfs1()
         self.start_vertex = 0 # Initialisation for dfs1()
-        self.dfs1(self.start_vertex)
+        self.cut_vertex = self.dfs1(self.start_vertex, check=check)
+
+        if (check == True):
+            # graph is disconnected
+            if (self.dfs_number < self.n):
+                self.is_biconnected = False
+                return
+
+            # graph has a cut vertex
+            if (self.cut_vertex != None):
+                self.cut_vertex = self.int_to_vertex[self.cut_vertex]
+                self.is_biconnected = False
+                return
+        
 
     def new_component(self, edges, type_c=0):
         c = self.Component(edges, type_c)
@@ -2494,7 +2513,8 @@ class Triconnectivity:
                 comp.append(sorted_edges[i-1])
                 self.new_component(comp)
 
-    def dfs1(self, v, u=None):
+
+    def dfs1(self, v, u=None, check=True):
         """
         This function builds the palm tree of the graph.
         Also populates the lists lowpt1, lowpt2, nd, parent, and dfs_number.
@@ -2506,16 +2526,26 @@ class Triconnectivity:
 
         - ``u`` -- The parent vertex of ``v`` in the palm tree.
 
+        - ``check`` -- if True, the graph is tested for biconnectivity. If the
+            graph has a cut vertex, the cut vertex is returned. If set to False,
+            the graph is assumed to be biconnected, function returns None.
+
+        Output::
+
+        - If ``check`` is set to True, and a cut vertex is found, the cut vertex
+          is returned. If no cut vertex is found, return value if None.
+          If ``check`` is set to False, ``None`` is returned.
+
         Example::
 
-            An example to list the components build after removal of multiple edges
+            An example to build the palm tree:
 
             sage: from sage.graphs.connectivity import Triconnectivity
             sage: G = Graph()
             sage: G.add_edges([(1,2),(1,13),(1,12),(1,8),(1,4),(2,13),(2,3),(3,13)])
             sage: G.add_edges([(3,4),(4,5),(4,7),(5,6),(5,7),(5,8),(6,7),(8,9),(8,12)])
             sage: G.add_edges([(8,11),(9,10),(9,12),(9,11),(10,11),(10,12)])
-            sage: tric = Triconnectivity(G)
+            sage: tric = Triconnectivity(G, check=False)
             sage: tric.edge_status
              {(0, 1, None): 1,
              (0, 3, None): 2,
@@ -2546,11 +2576,24 @@ class Triconnectivity:
             [1, 2, 2, 4, 4, 5, 5, 8, 8, 8, 9, 8, 2]
             sage: tric.parent
             [None, 0, 1, 2, 3, 4, 5, 4, 7, 8, 9, 9, 2]
+
+            An example of a disconnected graph:
+
+            sage: G = Graph()
+            sage: G.add_edges([(1,2),(1,3),(2,3),(3,4),(3,5),(4,5)])
+            sage: tric = Triconnectivity(G, check=True)
+            sage: tric.is_biconnected
+            False
+            sage: tric.cut_vertex
+            3
         """
 
+        first_son = None # For testing biconnectivity
+        s1 = None # Storing the cut vertex, if there is one
         self.dfs_counter += 1
         self.dfs_number[v] = self.dfs_counter
         self.parent[v] = u
+        self.degree[v] = self.graph_copy.degree(v)
         self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
         self.nd[v] = 1
         for e in self.graph_copy.edges_incident([v]):
@@ -2560,12 +2603,19 @@ class Triconnectivity:
             w = e[0] if e[0] != v else e[1] # Other vertex of edge e
             if (self.dfs_number[w] == 0):
                 self.edge_status[e] = 1 # tree edge
+                if (first_son == None):
+                    first_son = w
                 self.tree_arc[w] = e
-                self.dfs1(w, v)
+                s1 = self.dfs1(w, v, check)
+
+                if (check == True):
+                    # check for cut vertex
+                    if ((self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son or u != None)):
+                        s1 = v
 
                 if (self.lowpt1[w] < self.lowpt1[v]):
-                    self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
-                    self.lowpt1[v] = self.lowpt1[w]
+                        self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
+                        self.lowpt1[v] = self.lowpt1[w]
 
                 elif (self.lowpt1[w] == self.lowpt1[v]):
                     self.lowpt2[v] = min(self.lowpt2[v], self.lowpt2[w])
@@ -2583,3 +2633,5 @@ class Triconnectivity:
                 elif (self.dfs_number[w] > self.lowpt1[v]):
                     self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
+        return s1
+        

@@ -103,7 +103,7 @@ cdef CC = ComplexField()
 from .real_mpfr import RealField
 cdef RR = RealField()
 
-from .real_double cimport RealDoubleElement, double_repr, double_str
+from .real_double cimport RealDoubleElement, double_repr
 from .real_double import RDF
 from sage.rings.integer_ring import ZZ
 
@@ -1001,54 +1001,6 @@ cdef class ComplexDoubleElement(FieldElement):
             '0.50000000000000000 + 1.0000000000000000*%i'
         """
         return CC(self)._maxima_init_(I)
-
-    def __str__(self):
-        """
-        Return the informal string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: print(CDF(0, 2/3))
-            0.6666666666666666*I
-            sage: a = CDF(2,-3)
-            sage: print(a)  # indirect doctest
-            2.0 - 3.0*I
-            sage: print(a^2)
-            -5.0 - 12.0*I
-            sage: print(1/CDF(0,0))
-            NaN + NaN*I
-            sage: print(CDF(oo,1))
-            +infinity + 1.0*I
-            sage: print(CDF(1,oo))
-            1.0 + +infinity*I
-            sage: print(CDF(1,-oo))
-            1.0 - +infinity*I
-            sage: print(CC(CDF(1,-oo)))
-            1.00000000000000 - +infinity*I
-            sage: print(CDF(oo,oo))
-            +infinity + +infinity*I
-            sage: print(CC(CDF(oo,oo)))
-            +infinity + +infinity*I
-            sage: print(CDF(0))
-            0.0
-        """
-        cdef double x = self._complex.dat[0]
-        cdef double y = self._complex.dat[1]
-        if x == 0:
-            if y == 0:
-                return "0.0"
-            s = ''
-        else:
-            s = double_str(x)
-            if y == 0:
-                return s
-            elif y < 0:
-                s += " - "
-                y = -y
-            else:
-                s += " + "
-
-        return s + double_str(y) + "*I"
 
     def _repr_(self):
         """

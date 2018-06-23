@@ -108,13 +108,6 @@ intrinsic Sage(X::FldFin) -> MonStgElt, BoolElt
   end if;
 end intrinsic;
 
-/* Finite quotients of ZZ */
-
-intrinsic Sage(X::RngIntRes) -> MonStgElt, BoolElt
-{}
-  return Sprintf("Zmod(%o)", Characteristic(X)), false;
-end intrinsic;
-
 intrinsic Sage(X::FldFinElt) -> MonStgElt, BoolElt
 {}
     P := Parent(X);
@@ -123,6 +116,13 @@ intrinsic Sage(X::FldFinElt) -> MonStgElt, BoolElt
     else
         return Sprintf("%o(%o)", Sage(Parent(X)), Sage(Polynomial(Eltseq(X)))), false;
     end if;
+end intrinsic;
+
+/* Finite quotients of ZZ */
+
+intrinsic Sage(X::RngIntRes) -> MonStgElt, BoolElt
+{}
+  return Sprintf("Zmod(%o)", Characteristic(X)), false;
 end intrinsic;
 
 /* Approximate fields */

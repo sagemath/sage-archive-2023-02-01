@@ -44,7 +44,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         Category of finite dimensional algebras with basis over Rational Field
         sage: C.super_categories()
         [Category of algebras with basis over Rational Field,
-         Category of finite dimensional modules with basis over Rational Field]
+         Category of finite dimensional magmatic algebras with basis over Rational Field]
         sage: C.example()
         An example of a finite dimensional algebra with basis:
         the path algebra of the Kronecker quiver
@@ -1153,7 +1153,6 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 tester = self._tester(**options)
                 cell_basis = self.cellular_basis()
                 B = cell_basis.basis()
-                K = B.keys()
                 P = self.cell_poset()
                 for mu in P:
                     C = self.cell_module_indices(mu)

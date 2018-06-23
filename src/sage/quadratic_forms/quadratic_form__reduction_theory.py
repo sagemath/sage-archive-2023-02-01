@@ -207,6 +207,20 @@ def minkowski_reduction(self):
         [0 0 1 0]
         [0 0 0 1]
         )
+
+    ::
+
+        sage: Q=QuadraticForm(ZZ,5,[2,2,0,0,0,2,2,0,0,2,2,0,2,2,2])
+        sage: Q.Gram_matrix()
+        [2 1 0 0 0]
+        [1 2 1 0 0]
+        [0 1 2 1 0]
+        [0 0 1 2 1]
+        [0 0 0 1 2]
+        sage: Q.minkowski_reduction()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: This algorithm is only for dimensions less than 5
     """
     from sage.quadratic_forms.quadratic_form import QuadraticForm
     from sage.quadratic_forms.quadratic_form import matrix

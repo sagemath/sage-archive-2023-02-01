@@ -499,11 +499,9 @@ static ex dist(const ex& f, const ex& p)
         return s;
 }
 
-/** Compute square-free partial fraction decomposition of rational function
- *  a(x).
+/** Compute partial fraction decomposition of expression
  *
- *  @param a rational function over Z[x], treated as univariate polynomial
- *           in x
+ *  @param a expression
  *  @param x variable to factor in
  *  @return decomposed rational function */
 ex parfrac(const ex & a, const ex & x)
@@ -526,6 +524,7 @@ ex parfrac(const ex & a, const ex & x)
             and is_exactly_a<add>(numer.op(0))
             and numer.op(1).info(info_flags::posint))
                 return parfrac(dist(_ex1/denom, numer.expand()), x);
+
         if (is_exactly_a<mul>(numer))
                 for (size_t i=0; i<numer.nops(); ++i) {
                         const ex& t = numer.op(i);
@@ -563,7 +562,8 @@ ex parfrac(const ex & a, const ex & x)
                                         continue;
                                 const ex& ee = e.op(1);
                                 if (not is_exactly_a<numeric>(ee)
-                                    or not ee.is_integer())
+                                    or not ee.is_integer()
+                                    or e.op(0).is_equal(x))
                                         return a;
                                 size_t expo = ex_to<numeric>(ee).to_int();
                                 for (size_t j=1; j<=expo; ++j) {
@@ -580,6 +580,8 @@ ex parfrac(const ex & a, const ex & x)
         }
         else if (is_exactly_a<power>(facmul)
                  and is_exactly_a<numeric>(facmul.op(1))) {
+                if (facmul.op(0).is_equal(x))
+                        return a;
                 size_t expo = ex_to<numeric>(facmul.op(1)).to_int();
                 for (size_t j=1; j<=expo; ++j) {
                         ex ee = power(facmul.op(0), numeric(j));

@@ -645,6 +645,64 @@ ex add::power(const numeric& expo) const
                         | status_flags::evaluated);
 }
 
+// This is an alternative version of add::power that is necessary to
+// canonicalize powers of sums (always draws out the positive content).
+// It would be difficult to introduce this as general behaviour in Sage.
+ex Power(const ex& base_, const ex& expo_)
+{
+        if (not is_exactly_a<add>(base_)
+            or not is_exactly_a<numeric>(expo_))
+                return power(base_, expo_);
+        using POW = class power;
+        const add& base = ex_to<add>(base_);
+        const numeric& expo = ex_to<numeric>(expo_);
+        numeric icont = base.integer_content();
+        const numeric lcoeff = ex_to<numeric>(base.lead_coeff()).div(icont);
+        if (icont.is_one()
+            or icont.is_minus_one()
+            or not lcoeff.is_integer())
+                return (new POW(base, expo))->
+                        setflag(status_flags::dynallocated
+                                | status_flags::evaluated);
+
+        ex c;
+        if (expo.is_integer()) {
+                c = icont.pow_intexp(expo.to_long());
+        }
+        else {
+                bool ppower_equals_one;
+                numeric newbasis, ppower;
+                rational_power_parts(icont,
+                                     expo,
+                                     ppower,
+                                     newbasis,
+                                     ppower_equals_one);
+                if (ppower_equals_one) {
+                        c = POW(icont.abs(), expo).hold();
+                }
+                else
+                        if (icont.is_negative())
+                                c = ppower * POW(-newbasis, expo).hold();
+                        else
+                                c = ppower * POW(newbasis, expo).hold();
+        }
+
+        auto addp = new add(base);
+        addp->setflag(status_flags::dynallocated);
+        addp->clearflag(status_flags::hash_calculated);
+        addp->overall_coeff /= icont.abs();
+        addp->seq_sorted.resize(0);
+        for (auto &elem : addp->seq)
+                elem.coeff = ex_to<numeric>(elem.coeff).div_dyn(icont.abs());
+        if (likely(not c.is_one()))
+                return (new mul(POW(*addp, expo), c))->
+                        setflag(status_flags::dynallocated
+                                | status_flags::evaluated);
+        return (new POW(*addp, expo))->
+                setflag(status_flags::dynallocated
+                        | status_flags::evaluated);
+}
+
 ex add::expand(unsigned options) const
 {
 	std::unique_ptr<epvector> vp = expandchildren(options);

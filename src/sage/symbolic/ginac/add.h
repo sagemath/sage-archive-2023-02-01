@@ -35,6 +35,7 @@ class add : public expairseq
         friend class ex;
 	friend class mul;
 	friend class power;
+        friend ex Power(const ex& base_, const ex& expo_);
 	
 	// other constructors
 public:
@@ -95,6 +96,8 @@ protected:
 public:
         ex combine_fractions() const;
 };
+
+ex Power(const ex& base_, const ex& expo_);
 
 } // namespace GiNaC
 

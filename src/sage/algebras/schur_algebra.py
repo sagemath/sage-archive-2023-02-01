@@ -148,7 +148,7 @@ def schur_representative_indices(n, r):
 
 
 def schur_representative_from_index(i0, i1):
-    """
+    r"""
     Simultaneously reorder a pair of tuples to obtain the equivalent
     element of the distinguished basis of the Schur algebra.
 

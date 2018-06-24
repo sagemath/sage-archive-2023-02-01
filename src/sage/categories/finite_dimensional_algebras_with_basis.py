@@ -1189,7 +1189,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
             @abstract_method
             def cell_module_indices(self, mu):
-                """
+                r"""
                 Return the indices of the cell module of ``self``
                 indexed by ``mu`` .
 
@@ -1376,7 +1376,7 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     return ret
 
                 def cell_module_indices(self, mu):
-                    """
+                    r"""
                     Return the indices of the cell module of ``self``
                     indexed by ``mu`` .
 

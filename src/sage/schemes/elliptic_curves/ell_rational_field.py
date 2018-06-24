@@ -3126,7 +3126,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__tamagawa_number[p]
 
     def tamagawa_exponent(self, p):
-        """
+        r"""
         The Tamagawa index of the elliptic curve at `p`.
 
         This is the index of the component group
@@ -3363,7 +3363,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__lseries
 
     def lseries_gross_zagier(self, A):
-        """
+        r"""
         Return the Gross-Zagier L-series attached to ``self``
         and an ideal class `A`.
 
@@ -4230,7 +4230,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return Integer(e.ellrootno(p))
 
     def has_cm(self):
-        """
+        r"""
         Return whether or not this curve has a CM `j`-invariant.
 
         OUTPUT:
@@ -4295,7 +4295,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError("%s does not have CM"%self)
 
     def has_rational_cm(self, field=None):
-        """
+        r"""
         Return whether or not this curve has CM defined over `\QQ`
         or the given field.
 

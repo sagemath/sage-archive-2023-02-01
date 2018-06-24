@@ -77,7 +77,7 @@ class TernaryQF(SageObject):
     possible_automorphisms = None
 
     def __init__(self,v):
-        """
+        r"""
         Creates the ternary quadratic form `a*x^2 + b*y^2 + c*z^2 + r*y*z + s*x*z + t*x*y.` from the
         tuple v=[a,b,c,r,s,t] over `\ZZ`.
 
@@ -92,8 +92,6 @@ class TernaryQF(SageObject):
             Ternary quadratic form with integer coefficients:
             [1 2 3]
             [4 5 6]
-
-
         """
 
         if len(v) != 6:

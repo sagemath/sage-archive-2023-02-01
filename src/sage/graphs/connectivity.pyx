@@ -2121,10 +2121,10 @@ def spqr_tree(G):
     cycles = []
     SG = G.copy()
 
-    # Split_multiple_edge Algorithm, it will make SG as simple graph.  If G is a
-    # multigraph, simplify while recording virtual edges that will be needed to
-    # 2-sum with cocycles during reconstruction. After this step, next step will
-    # be finding S and R, blocks,
+    # Split_multiple_edge Algorithm. If the input graph has multiple edges, we
+    # make SG a simple graph while recording virtual edges that will be needed
+    # to 2-sum with cocycles during reconstruction. After this step, next steps
+    # will be finding S and R blocks.
     if SG.has_multiple_edges():
         mults = sorted(SG.multiple_edges(labels=False))
         for i in range(len(mults) - 1):
@@ -2167,8 +2167,8 @@ def spqr_tree(G):
             if not fe in cuts:
                 cuts.append(fe)
 
-    # Cycles may or may not(if G is a cycle with order > 3) triangulated; We
-    # must undo this for S-blocks Virtual edges to be used in cycle assembly
+    # Cycles may or may not (if G is a cycle with order > 3) be triangulated; We
+    # must undo this for S-blocks. virtual edges to be used in cycle assembly
     # from triangles will be multiple edges; check to be sure they are not
     # already in a P-block, for then we cannot 2-sum cycles at this edge for a
     # S-block Reconstruct S-blocks from smaller polygons, where cocycles permit.

@@ -2189,6 +2189,35 @@ class SetPartitions_setn(SetPartitions_set):
         """
         return "Set partitions of %s with %s parts"%(Set(self._set), self._k)
 
+    @property
+    def n(self):
+        """
+        ``self.n`` is deprecated; use :meth:`number_of_blocks` instead.
+
+        TESTS::
+
+            sage: SetPartitions(5, 3).n
+            doctest:...: DeprecationWarning: The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.
+            See https://trac.sagemath.org/25462 for details.
+            3
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25462, 'The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.')
+        return self.number_of_blocks()
+
+    def number_of_blocks(self):
+        """
+        Return the number of blocks of the set partitions in this class.
+
+        EXAMPLES::
+
+            sage: SetPartitions(5, 3).number_of_blocks()
+            3
+
+        """
+        return self._k
+
     def cardinality(self):
         """
         The Stirling number of the second kind is the number of partitions

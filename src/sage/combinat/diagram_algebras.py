@@ -91,7 +91,7 @@ def partition_diagrams(k):
     elif k + ZZ(1)/ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
         S = SetPartitions(list(range(1, k+1)) + list(range(-k+1,0)))
-        S = map(lambda p: [b.union([-k]) if k in b else b for b in p], S)
+        S = itertools.imap(lambda p: [b.union([-k]) if k in b else b for b in p], S)
     else:
         raise ValueError("argument %s must be a half-integer"%k)
     return S

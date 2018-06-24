@@ -1922,8 +1922,8 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
         [4, 4, 4]
         sage: C.order(), C.size()
         (2, 4)
-        sage: f.vertices()
-        [0, 1]
+        sage: f.vertices(), f.edges()
+        ([0, 1], [])
 
     If cut vertices doesn't have edge between them::
 
@@ -2004,7 +2004,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
         else:
             virtual_cut_graph = K.complement()
     else:
-        virtual_cut_graph = Graph()
+        virtual_cut_graph = Graph([cut_vertices, []])
 
     # We now build the graphs in each side of the cut, including the vertices
     # from the vertex cut
@@ -2020,7 +2020,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
     # than the number of cut sides is needed. For pairs of vertices of the cut
     # that are not connected by an edge in G, a bond with one edge per cut side
     # is needed.
-    cocycles = Graph(multiedges=True)
+    cocycles = Graph([cut_vertices, []], multiedges=True)
     if K.size():
         cocycles.add_edges(K.edges() * (len(cut_sides) + 1))
     if virtual_edges and virtual_cut_graph:

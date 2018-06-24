@@ -2409,6 +2409,7 @@ class Triconnectivity:
     m = 0 # number of edges
     is_biconnected = True # Boolean to store if the graph is biconnected or not
     cut_vertex = None # If graph is not biconnected
+    graph_copy_adjacency = []
 
     # T/F to denote if the source and target of the palm tree edge are
     # opposite to that of the graph
@@ -2434,6 +2435,14 @@ class Triconnectivity:
         self.vertex_at = [1 for i in xrange(self.n)]
         self.dfs_counter = 0
         self.components_list = [] #list of components
+        self.graph_copy_adjacency = [[] for i in xrange(self.n)]
+
+        # Build adjacency list
+        for e in self.graph_copy.edges():
+            self.graph_copy_adjacency[e[0]].append(e)
+            self.graph_copy_adjacency[e[1]].append(e)
+
+        # Triconnectivity algorithm
         self.split_multi_egdes()
         self.dfs_counter = 0 # Initialisation for dfs1()
         self.start_vertex = 0 # Initialisation for dfs1()
@@ -2613,7 +2622,7 @@ class Triconnectivity:
         self.degree[v] = self.graph_copy.degree(v)
         self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
         self.nd[v] = 1
-        for e in self.graph_copy.edges_incident([v]):
+        for e in self.graph_copy_adjacency[v]:
             if self.edge_status[e] != 0 :
                     continue
 

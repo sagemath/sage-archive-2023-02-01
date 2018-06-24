@@ -43,8 +43,9 @@ from sage.categories.sets_cat import Sets
 from sage.categories.morphism import SetMorphism
 from sage.combinat.free_module import CombinatorialFreeModule
 
+
 def GroupAlgebra(G, R=IntegerRing()):
-    """
+    r"""
     Return the group algebra of `G` over `R`.
 
     INPUT:

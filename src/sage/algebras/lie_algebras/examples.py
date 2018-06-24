@@ -96,8 +96,9 @@ def cross_product(R, names=['X', 'Y', 'Z']):
     L.rename("Lie algebra of RR^3 under cross product over {}".format(R))
     return L
 
+
 def three_dimensional_by_rank(R, n, a=None, names=['X', 'Y', 'Z']):
-    """
+    r"""
     Return a 3-dimensional Lie algebra of rank ``n``, where `0 \leq n \leq 3`.
 
     Here, the *rank* of a Lie algebra `L` is defined as the dimension

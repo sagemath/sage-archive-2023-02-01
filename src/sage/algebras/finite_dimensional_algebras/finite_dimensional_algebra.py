@@ -32,7 +32,7 @@ from functools import reduce
 
 
 class FiniteDimensionalAlgebra(UniqueRepresentation, Algebra):
-    """
+    r"""
     Create a finite-dimensional `k`-algebra from a multiplication table.
 
     INPUT:

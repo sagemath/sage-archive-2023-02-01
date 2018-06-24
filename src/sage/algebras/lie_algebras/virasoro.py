@@ -686,8 +686,9 @@ class ChargelessRepresentation(CombinatorialFreeModule):
 
         _rmul_ = _lmul_ = _acted_upon_
 
+
 class VermaModule(CombinatorialFreeModule):
-    """
+    r"""
     A Verma module of the Virasoro algebra.
 
     The Virasoro algebra admits a triangular decomposition

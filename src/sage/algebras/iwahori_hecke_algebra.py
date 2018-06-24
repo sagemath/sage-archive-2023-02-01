@@ -1,4 +1,4 @@
-"""
+r"""
 Iwahori-Hecke Algebras
 
 AUTHORS:
@@ -911,7 +911,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         class ElementMethods:
             def bar(self):
-                """
+                r"""
                 Return the bar involution of ``self``.
 
                 The bar involution `\overline{\phantom{x}}` is an antilinear

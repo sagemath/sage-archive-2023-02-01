@@ -50,6 +50,7 @@ Here is what the module can do:
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
     :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
+    :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
 
 Methods
 -------
@@ -2031,21 +2032,39 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
 def spqr_tree(G):
     r"""
-    Decomposes a graph into cycles, cocycles, and 3-connected blocks summed over
-    cocycles.
+    Return a SPQR-tree representing the triconnected components of the graph.
 
-    Splits a two-connected graph at each two-vertex separation, giving a unique
-    decomposition into 3-connected blocks, cycles, and cocycles. The cocycles
-    are dipole graphs with one edge per real edge between the included vertices
-    and one additional (virtual) edge per connected component resulting from
-    deletion of the vertices in the cut.
+    An SPQR-tree is a tree data structure used to represent the triconnected
+    components of a biconnected (multi)graph and the 2-vertex cuts separating
+    them. A node of a SPQR-tree, and the graph associated with it, can be one of
+    the following four types::
 
-    OUTPUT: `(R,S,P,SPR,tricomp,SPQR-tree)` where `R` is a list of rigid
-    (three-connected) graphs, `S` a list of series graphs(cycles), `P` a list of
-    parallel classes(cocycle graphs), `SPR` the so-called three-block into which
-    a two-connected graph uniquely decomposes, tricomp a list of all
-    triconnected components which is generated from `R` and `S` blocks and
-    `SQPR-tree` a tree whose vertices are labeled with the vertices of
+    - ``S`` -- the associated graph is a cycle with at least three
+      vertices. ``S`` stands for ``series``.
+
+    - ``P`` -- the associated graph is a dipole graph, a multigraph with two
+      vertices and three or more edges. ``P`` stands for ``parallel``.
+
+    - ``Q`` -- the associated graph has a single real edge. This trivial case is
+      necessary to handle the graph that has only one edge.
+
+    - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
+      or dipole. ``R`` stands for ``rigid``.
+
+    This method decomposes a biconnected graph into cycles, cocycles, and
+    3-connected blocks summed over cocycles, and arranges them as a SPQR-tree.
+    More precisely, it splits the graph at each of its 2-vertex cuts, giving a
+    unique decomposition into 3-connected blocks, cycles and cocycles. The
+    cocycles are dipole graphs with one edge per real edge between the included
+    vertices and one additional (virtual) edge per connected component resulting
+    from deletion of the vertices in the cut. See :wikipedia:`SPQR_tree`.
+
+    OUTPUT: ``(R, S, P, SPR, tricomp, SPQR-tree)`` where ``R`` is a list of
+    rigid (3-connected) graphs, ``S`` a list of series graphs (cycles), ``P`` a
+    list of parallel classes (cocycle graphs), ``SPR`` the so-called three-block
+    into which a biconnected graph uniquely decomposes, ``tricomp`` a list of
+    all triconnected components which is generated from ``R`` and ``S`` blocks
+    and ``SQPR-tree`` a tree whose vertices are labeled with the vertices of
     three-blocks in the decomposition and the block's type.
 
     EXAMPLES::

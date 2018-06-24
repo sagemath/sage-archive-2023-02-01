@@ -724,7 +724,7 @@ def chang_graphs():
                loops=False, multiedges=False)
     g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
                loops=False, multiedges=False)
-    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+    g3 = Graph(r"[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
                loops=False, multiedges=False)
     return [g1,g2,g3]
 
@@ -1454,9 +1454,10 @@ def HyperStarGraph(n,k):
 
     return g
 
+
 def LCFGraph(n, shift_list, repeats):
-    """
-    Returns the cubic graph specified in LCF notation.
+    r"""
+    Return the cubic graph specified in LCF notation.
 
     LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
     describing cubic Hamiltonian graphs. The way a graph is constructed

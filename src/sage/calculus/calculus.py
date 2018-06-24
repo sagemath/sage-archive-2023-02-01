@@ -1954,20 +1954,21 @@ import six
 
 maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
-maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+maxima_qp = re.compile(r"\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
-maxima_var = re.compile("[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
+maxima_var = re.compile(r"[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
 
-sci_not = re.compile("(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
+sci_not = re.compile(r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
-polylog_ex = re.compile('li\[([^\[\]]*)\]\(')
+polylog_ex = re.compile(r'li\[([^\[\]]*)\]\(')
 
-maxima_polygamma = re.compile("psi\[([^\[\]]*)\]\(")  # matches psi[n]( where n is a number
+maxima_polygamma = re.compile(r"psi\[([^\[\]]*)\]\(")  # matches psi[n]( where n is a number
 
-maxima_hyper = re.compile("\%f\[\d+,\d+\]")  # matches %f[m,n]
+maxima_hyper = re.compile(r"\%f\[\d+,\d+\]")  # matches %f[m,n]
+
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
-    """
+    r"""
     Given a string representation of a Maxima expression, parse it and
     return the corresponding Sage symbolic expression.
 
@@ -2107,7 +2108,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     while True:
         olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
-        s = maxima_polygamma.sub('psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+        s = maxima_polygamma.sub(r'psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
         if s == olds: break
 
     if equals_sub:

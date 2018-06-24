@@ -49,6 +49,7 @@ Here is what the module can do:
     :delim: |
 
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
+    :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
 
 Methods
 -------
@@ -1887,7 +1888,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
     - ``G`` -- a Graph.
 
     - ``cut_vertices`` -- (default: ``None``) a set of vertices representing a
-      vertex cut of ``G``. If not vertex cut is given, the method will compute
+      vertex cut of ``G``. If no vertex cut is given, the method will compute
       one via a call to :meth:`~sage.graphs.connectivity.vertex_connectivity`.
 
     - ``virtual_edges`` -- boolean (default: ``True``); whether to add virtual

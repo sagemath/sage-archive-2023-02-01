@@ -47,14 +47,20 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.matrix.special import random_matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
+from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
 from .linear_code import LinearCode
+from sage.modules.free_module import span
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.arith.all import GCD, quadratic_residues, gcd
+from sage.arith.all import GCD, LCM, divisors, quadratic_residues, gcd
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
+from sage.sets.set import Set
 from sage.rings.finite_rings.integer_mod import Mod
+
+from sage.misc.superseded import deprecation, deprecated_function_alias
 
 ############### utility functions ################
 

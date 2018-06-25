@@ -673,7 +673,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         # case no foliation:
         max_frame = self._ambient.default_frame().along(self._immersion)
-        self._normal = self.vector_field("n", r"n", self._immersion)
+        self._normal = self.multivector_field(self._ambient._dim - self._dim,
+                                              "n", r"n", self._immersion)
 
         # an auxiliary functions:
         def calc_normal(chart):
@@ -699,8 +700,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             n_comp = (n_form.contract(*args) / factorial(
                 self._dim)).contract(
                 self.ambient_metric().inverse().along(self._immersion))
-            n_comp = n_comp / n_comp.norm(
-                self.ambient_metric().along(self._immersion))
+            if self._ambient._dim - self._dim ==1:
+                n_comp = n_comp / n_comp.norm(
+                    self.ambient_metric().along(self._immersion))
 
             norm_rst = self._normal.restrict(chart.domain())
             norm_rst.add_comp(max_frame.restrict(chart.domain()))[:] = n_comp[:]
@@ -790,6 +792,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [-2*x/(x^2 + 4)    4/(x^2 + 4)]
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise NotImplementedError("'ambient_first_fundamental_form' is"+
+                                      " implemented only for hypersurfaces.")
         if self._ambient_first_fundamental_form is None:
             g = self.ambient_metric()
             if self._dim_foliation == 0:  # case no foliation
@@ -941,6 +946,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [ 2*x/(x^2 + 4)   -4/(x^2 + 4)]
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'ambient_second_fundamental_form' is defined"+
+                                      " only for hypersurfaces.")
         if self._ambient_second_fundamental_form is None:
             if self._dim_foliation == 0:
                 self._ambient_second_fundamental_form = \
@@ -1026,6 +1034,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             K = -4/(x^4 + 8*x^2 + 16) dx*dx
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'second_fundamental_form' is defined"+
+                                      " only for hypersurfaces.")
         if self._second_fundamental_form is None:
             resu = self.vector_field_module() \
                 .tensor((0, 2), name='K', latex_name='K', sym=[(0, 1)], antisym=[])
@@ -1118,6 +1129,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             0
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise NotImplementedError("'projector' is"+
+                                      " implemented only for hypersurfaces.")
         g = self.ambient_metric().inverse()
         if self._dim_foliation == 0:
             g = g.along(self._immersion)
@@ -1173,6 +1187,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         Note that the result of ``project`` is not cached.
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise NotImplementedError("'project' is"+
+                                      " implemented only for hypersurfaces.")
         resu = tensor.copy()
         resu.set_name(tensor._name + "_" + self._name,
                       r"{" + tensor._latex_() + r"}_{" + self._latex_() + r"}")
@@ -1255,6 +1272,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             (th_M, ph_M, r_M) |--> 1
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise NotImplementedError("'mixed_projection' is"+
+                                      " implemented only for hypersurfaces.")
         if isinstance(indices, (Integer, int)):
             indices = range(indices)
 
@@ -1324,6 +1344,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             on V: y |--> -1
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'gauss_curvature' is defined"+
+                                      " only for hypersurfaces.")
         a = self.shape_operator()
         self._gauss_curvature = self.scalar_field(
             {chart: a[chart.frame(), :, chart].determinant()
@@ -1377,6 +1400,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             e_0 = d/dx
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'principal directions' is defined"+
+                                      " only for hypersurfaces.")
         a = self.shape_operator()
         pr_d = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
@@ -1440,6 +1466,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             on U: x |--> -1
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'principal_curvatures' is defined"+
+                                      " only for hypersurfaces.")
         a = self.shape_operator()
         res = matrix(
             [[a[chart.frame(), :, chart][i, j].expr() for i in self.irange()]
@@ -1493,6 +1522,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             on V: y |--> -1
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'mean_curvature' is defined"+
+                                      " only for hypersurfaces.")
         self._shape_operator = self.scalar_field({chart: self._sgn * sum(
             self.principal_curvatures(chart)).expr(chart) / self._dim
                                                   for chart in
@@ -1543,6 +1575,9 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [-1]
 
         """
+        if self._ambient._dim-self._dim != 1:
+            raise ValueError("'shape_operator' is defined"+
+                                      " only for hypersurfaces.")
         self._shape_operator = self.second_fundamental_form().contract(
                                                self.induced_metric().inverse())
         return self._shape_operator

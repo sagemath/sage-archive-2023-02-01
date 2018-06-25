@@ -1737,7 +1737,7 @@ end_scene""" % (render_params.antialiasing,
             sage: x,y,z = var('x,y,z')
             sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
             sage: astl = a.stl_ascii_string()
-            sage: astl.splitlines()[:7]
+            sage: astl.splitlines()[:7]  # abs tol 1e-10
             ['solid surface',
             'facet normal 0.9733285267845754 -0.16222142113076257 -0.16222142113076257',
             '    outer loop',

@@ -38,6 +38,7 @@ from __future__ import absolute_import
 import __future__
 
 import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import re
 import errno
 import doctest, traceback
 import tempfile
@@ -111,19 +112,34 @@ def init_sage():
         sage: {'a':23, 'b':34, 'au':56, 'bbf':234, 'aaa':234}
         {'a': 23, 'aaa': 234, 'au': 56, 'b': 34, 'bbf': 234}
     """
-    # We need to ensure that the Matplotlib font cache is built to
-    # avoid spurious warnings (see Trac #20222).
-    import matplotlib.font_manager
-
-    # Make sure that the agg backend is selected during doctesting.
-    # This needs to be done before any other matplotlib calls.
-    matplotlib.use('agg')
+    try:
+        # We need to ensure that the Matplotlib font cache is built to
+        # avoid spurious warnings (see Trac #20222).
+        import matplotlib.font_manager
+    except ImportError:
+        # Do not require matplotlib for running doctests (Trac #25106).
+        pass
+    else:
+        # Make sure that the agg backend is selected during doctesting.
+        # This needs to be done before any other matplotlib calls.
+        matplotlib.use('agg')
 
     # Do this once before forking off child processes running the tests.
     # This is more efficient because we only need to wait once for the
     # Sage imports.
     import sage.doctest
     sage.doctest.DOCTEST_MODE=True
+
+    # Set the Python PRNG class to the Python 2 implementation for consistency
+    # of 'random' test results that use it; see
+    # https://trac.sagemath.org/ticket/24508
+    # We use the baked in copy of the random module for both Python 2 and 3
+    # since, although the upstream copy is unlikely to change, this further
+    # ensures consistency of test results
+    import sage.misc.randstate
+    from sage.cpython._py2_random import Random
+    sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
+
     import sage.all_cmdline
     sage.interfaces.quit.invalidate_all()
 
@@ -146,9 +162,15 @@ def init_sage():
     # os OS X: http://trac.sagemath.org/14289
     import readline
 
-    # Disable SymPy terminal width detection
-    from sympy.printing.pretty.stringpict import stringPict
-    stringPict.terminal_width = lambda self:0
+    try:
+        import sympy
+    except ImportError:
+        # Do not require sympy for running doctests (Trac #25106).
+        pass
+    else:
+        # Disable SymPy terminal width detection
+        from sympy.printing.pretty.stringpict import stringPict
+        stringPict.terminal_width = lambda self:0
 
 
 def showwarning_with_traceback(message, category, filename, lineno, file=None, line=None):
@@ -2226,6 +2248,22 @@ class DocTestTask(object):
         sage: sorted(results.keys())
         ['cputime', 'err', 'failures', 'optionals', 'walltime']
     """
+
+    if six.PY2:
+        extra_globals = {}
+    else:
+        extra_globals = {'long': int}
+    """
+    Extra objects to place in the global namespace in which tests are run.
+    Normally this should be empty but there are special cases where it may
+    be useful.
+
+    In particular, on Python 3 add ``long`` as an alias for ``int`` so that
+    tests that use the ``long`` built-in (of which there are many) still pass.
+    We do this so that the test suite can run on Python 3 while Python 2 is
+    still the default.
+    """
+
     def __init__(self, source):
         """
         Initialization.
@@ -2344,6 +2382,10 @@ class DocTestTask(object):
         # Remove '__package__' item from the globals since it is not
         # always in the globals in an actual Sage session.
         dict_all.pop('__package__', None)
+
+        # Add any other special globals for testing purposes only
+        dict_all.update(self.extra_globals)
+
         sage_namespace = RecordingDict(dict_all)
         sage_namespace['__name__'] = '__main__'
         doctests, extras = self.source.create_doctests(sage_namespace)

@@ -111,16 +111,16 @@ from sage.categories.modules import Modules
 from sage.misc.misc import attrcall
 # The identity function would deserve a more canonical location
 from sage.misc.c3_controlled import identity
-from sage.misc.superseded import deprecated_function_alias, deprecation
+from sage.misc.superseded import deprecated_function_alias
 from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
 from sage.categories.homset import Hom
 from sage.categories.modules_with_basis import ModulesWithBasis
 from sage.categories.morphism import SetMorphism, Morphism
 from sage.categories.sets_cat import Sets
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
-from sage.structure.element import parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.structure.element import is_Matrix
+
 
 class ModuleMorphism(Morphism):
     """

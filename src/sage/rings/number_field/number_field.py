@@ -31,6 +31,7 @@ AUTHORS:
 
 - John Jones (2017-07): improve check for is_galois(), add is_abelian(), building on work in patch by Chris Wuthrich
 
+- Anna Haensch (2018-03): added :meth:``quadratic_defect``
 
 .. note::
 
@@ -114,6 +115,9 @@ import sage.rings.real_lazy
 
 from sage.rings.finite_rings.integer_mod import mod
 
+
+from sage.arith.misc import is_square, quadratic_residues
+
 from sage.misc.fast_methods import WithEqualityById
 from sage.misc.functional import is_odd, lift
 
@@ -144,6 +148,7 @@ from . import number_field_morphisms
 from itertools import count
 from builtins import zip
 from sage.misc.superseded import deprecated_function_alias
+
 
 _NumberFields = NumberFields()
 
@@ -2256,21 +2261,96 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         return not self.is_absolute()
 
-    @cached_method
+    def quadratic_defect(self, a, p, check=True):
+        r"""
+        Return the valuation of the quadratic defect of `a` at `p`.
+
+        INPUT:
+
+        - ``a`` -- an element of ``self``
+
+        - ``p`` -- a prime ideal
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
+
+        ALGORITHM:
+
+        This is an implementation of Algorithm 3.1.3 from [Kir2016]_
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: p = K.primes_above(2)[0]
+            sage: K.quadratic_defect(5, p)
+            4
+            sage: K.quadratic_defect(0, p)
+            +Infinity
+            sage: K.quadratic_defect(a, p)
+            1
+            sage: K.<a> = CyclotomicField(5)
+            sage: p = K.primes_above(2)[0]
+            sage: K.quadratic_defect(5, p)
+            +Infinity
+        """
+        from sage.rings.all import PolynomialRing
+        if not a in self:
+            raise TypeError(str(a) + " must be an element of " + str(self))
+        if not self == QQ and not p.parent() == self.ideal_monoid():
+            raise TypeError(str(p) + " is not a prime ideal in "
+             + str(self.ideal_monoid()))
+        if check and not p.is_prime():
+            raise ValueError(str(p) + " must be prime")
+        if a.is_zero():
+            return Infinity
+        v = self(a).valuation(p)
+        if v % 2 == 1:
+            return v
+        # compute uniformizer pi
+        for g in p.gens():
+            if g.valuation(p) == 1:
+                pi = g
+                break
+        a = self(a) / pi**v
+        F = p.residue_field()
+        q = F.reduction_map()
+        # The non-dyadic case
+        if self(2).valuation(p) == 0:
+            if q(a).is_square():
+                return Infinity
+            return v
+        # The dyadic case
+        s = self(F.lift((1/F(a)).sqrt()))
+        a = self(s**2) * a
+        u = self(4).valuation(p)
+        w = (a - 1).valuation(p)
+        R = PolynomialRing(F, 'x')
+        x = R.gen()
+        f = R(x**2 + x)
+        while w < u and w % 2 == 0:
+            s = self(q((a - 1) / pi**w)**(1/2))
+            a = a / (1 + s*(pi**(w/2)))**2
+            w = (a - 1).valuation(p)
+        if w < u and w % 2 ==1:
+            return v + w
+        if w == u and (f + F((a-1) / 4)).is_irreducible():
+            return v + w
+        return Infinity
+
     def absolute_field(self, names):
         """
-        Returns self as an absolute extension over QQ.
+        Return ``self`` as an absolute number field.
+
+        INPUT:
+
+        - ``names`` -- string; name of generator of the absolute field
 
         OUTPUT:
 
+        - ``K`` -- this number field (since it is already absolute)
 
-        -  ``K`` - this number field (since it is already
-           absolute)
-
-
-        Also, ``K.structure()`` returns from_K and to_K,
-        where from_K is an isomorphism from K to self and to_K is an
-        isomorphism from self to K.
+        Also, ``K.structure()`` returns ``from_K`` and ``to_K``, where
+        ``from_K`` is an isomorphism from `K` to ``self`` and ``to_K``
+        is an isomorphism from ``self`` to `K`.
 
         EXAMPLES::
 
@@ -3636,13 +3716,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: k._is_valid_homomorphism_(k, [a+1])
             False
         """
+        if len(im_gens) != 1:
+            return False
+        # We need that elements of the base ring of the polynomial
+        # ring map canonically into codomain.
+        if not codomain.has_coerce_map_from(QQ):
+            return False
+        f = self.defining_polynomial()
         try:
-            if len(im_gens) != 1:
-                return False
-            # We need that elements of the base ring of the polynomial
-            # ring map canonically into codomain.
-            codomain._coerce_(QQ.one())
-            f = self.defining_polynomial()
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -6845,7 +6926,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
           (pseudo-)valuation or a fractional ideal
 
         EXAMPLES:
-    
+
         The valuation can be specified with an integer ``prime`` that is
         completely ramified in ``R``::
 
@@ -6931,7 +7012,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> =  QQ.extension(t^2 - 2); K
             Number Field in a with defining polynomial t^2 - 2
             sage: K.some_elements()
-            [1, a, 2*a, 3*a - 4, 1/2, 1/3*a, 1/6*a, 0, 1/2*a, 2, ..., 12, -12*a + 18] 
+            [1, a, 2*a, 3*a - 4, 1/2, 1/3*a, 1/6*a, 0, 1/2*a, 2, ..., 12, -12*a + 18]
 
             sage: T.<u> = K[]
             sage: M.<b> = K.extension(t^3 - 5); M
@@ -6940,7 +7021,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [1, b, 1/2*a*b, ..., 2/5*b^2 + 2/5, 1/6*b^2 + 5/6*b + 13/6, 2]
 
         TESTS:
-            
+
         This also works in trivial extensions::
 
             sage: R.<t> = QQ[]
@@ -7436,10 +7517,10 @@ class NumberField_absolute(NumberField_generic):
 
         g, alpha = f.polredbest(flag=1)
         beta = alpha.modreverse()
-        
+
         b = self(QQ['x'](lift(beta)))
         h = QQ['x'](g)
-        
+
         embedding = None
         if self.coerce_embedding() is not None:
             embedding = self.coerce_embedding()(b)
@@ -7454,7 +7535,7 @@ class NumberField_absolute(NumberField_generic):
 
         if both_maps:
             a = K(alpha)
-            to_K = self.hom([a]) 
+            to_K = self.hom([a])
 
             return K, from_K, to_K
 
@@ -9201,46 +9282,38 @@ class NumberField_absolute(NumberField_generic):
                 d *= p
         return d
 
-    def elements_of_bounded_height(self,bound,precision=53,LLL=False):
+    def elements_of_bounded_height(self, **kwds):
         r"""
         Return an iterator over the elements of ``self`` with relative
         multiplicative height at most ``bound``.
 
-        The algorithm requires floating point arithmetic, so the user is
-        allowed to specify the precision for such calculations.
+        This algorithm computes 2 lists: L containing elements x in `K` such that
+        H_k(x) <= B, and a list L' containing elements x in `K` that, due to
+        floating point issues,
+        may be slightly larger then the bound. This can be controlled
+        by lowering the tolerance.
 
-        It might be helpful to work with an LLL-reduced system of fundamental
-        units, so the user has the option to perform an LLL reduction for the
-        fundamental units by setting ``LLL`` to True.
+        In current implementation both lists (L,L') are merged and returned in
+        form of iterator.
 
-        Certain computations may be faster assuming GRH, which may be done
-        globally by using the number_field(True/False) switch.
+        ALGORITHM:
 
-        For details: See [Doyle-Krumm]_.
+        This is an implementation of the revised algorithm (Algorithm 4) in
+        [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
 
         INPUT:
 
+        kwds:
+
         - ``bound`` - a real number
+
+        - ``tolerance`` - (default: 0.01) a rational number in (0,1]
+
         - ``precision`` - (default: 53) a positive integer
-        - ``LLL`` - (default: False) a boolean value
 
         OUTPUT:
 
         - an iterator of number field elements
-
-        .. WARNING::
-
-           In the current implementation, the output of the algorithm cannot be
-           guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
-        .. TODO::
-
-           Should implement a version of the algorithm that guarantees correct
-           output. See Algorithm 4 in [Doyle-Krumm]_ for details of an
-           implementation that takes precision issues into account.
 
         EXAMPLES:
 
@@ -9248,27 +9321,27 @@ class NumberField_absolute(NumberField_generic):
         than 1::
 
             sage: K.<g> = NumberField(x^5 - x + 19)
-            sage: list(K.elements_of_bounded_height(0.9))
+            sage: list(K.elements_of_bounded_height(bound=0.9))
             []
 
         The only elements in a number field of height 1 are 0 and the roots of
         unity::
 
             sage: K.<a> = NumberField(x^2 + x + 1)
-            sage: list(K.elements_of_bounded_height(1))
+            sage: list(K.elements_of_bounded_height(bound=1))
             [0, a + 1, a, -1, -a - 1, -a, 1]
 
         ::
 
             sage: K.<a> = CyclotomicField(20)
-            sage: len(list(K.elements_of_bounded_height(1)))
+            sage: len(list(K.elements_of_bounded_height(bound=1)))
             21
 
         The elements in the output iterator all have relative multiplicative
         height at most the input bound::
 
             sage: K.<a> = NumberField(x^6 + 2)
-            sage: L = K.elements_of_bounded_height(5)
+            sage: L = K.elements_of_bounded_height(bound=5)
             sage: for t in L:
             ....:     exp(6*t.global_height())
             ....:
@@ -9287,42 +9360,42 @@ class NumberField_absolute(NumberField_generic):
         ::
 
             sage: K.<a> = NumberField(x^2 - 71)
-            sage: L = K.elements_of_bounded_height(20)
+            sage: L = K.elements_of_bounded_height(bound=20)
             sage: all(exp(2*t.global_height()) <= 20 for t in L) # long time (5 s)
             True
 
         ::
 
             sage: K.<a> = NumberField(x^2 + 17)
-            sage: L = K.elements_of_bounded_height(120)
+            sage: L = K.elements_of_bounded_height(bound=120)
             sage: len(list(L))
             9047
 
         ::
 
             sage: K.<a> = NumberField(x^4 - 5)
-            sage: L = K.elements_of_bounded_height(50)
+            sage: L = K.elements_of_bounded_height(bound=50)
             sage: len(list(L)) # long time (2 s)
             2163
 
         ::
 
             sage: K.<a> = CyclotomicField(13)
-            sage: L = K.elements_of_bounded_height(2)
+            sage: L = K.elements_of_bounded_height(bound=2)
             sage: len(list(L)) # long time (3 s)
             27
 
         ::
 
             sage: K.<a> = NumberField(x^6 + 2)
-            sage: L = K.elements_of_bounded_height(60, precision=100)
+            sage: L = K.elements_of_bounded_height(bound=60, precision=100)
             sage: len(list(L)) # long time (5 s)
             1899
 
         ::
 
             sage: K.<a> = NumberField(x^4 - x^3 - 3*x^2 + x + 1)
-            sage: L = K.elements_of_bounded_height(10, LLL=true)
+            sage: L = K.elements_of_bounded_height(bound=10, tolerance=0.1)
             sage: len(list(L))
             99
 
@@ -9331,14 +9404,19 @@ class NumberField_absolute(NumberField_generic):
         - John Doyle (2013)
 
         - David Krumm (2013)
+
+        - Raman Raghukul (2018)
         """
         from sage.rings.number_field.bdd_height import bdd_height, bdd_height_iq
         r1, r2 = self.signature()
         r = r1 + r2 - 1
+        B = kwds.pop('bound')
         if self.degree() == 2 and r == 0:
-            return bdd_height_iq(self, bound)
+            return bdd_height_iq(self, B)
         else:
-            return bdd_height(self, bound, precision, LLL)
+            tol = kwds.pop('tolerance', 1e-2)
+            prec = kwds.pop('precision', 53)
+            return bdd_height(self, B, tolerance=tol, precision=prec)
 
 class NumberField_cyclotomic(NumberField_absolute):
     """
@@ -9503,9 +9581,43 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: F.structures
             [None]
         """
-        F,R = NumberField_generic.construction(self)
+        F, R = NumberField_generic.construction(self)
         F.cyclotomic = self.__n
-        return F,R
+        return F, R
+
+    def _pushout_(self, other):
+        r"""
+        TESTS:
+
+        Pushout is implemented for cyclotomic fields::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: L.<b> = CyclotomicField(4)
+            sage: cm = sage.structure.element.get_coercion_model()
+            sage: cm.explain(K,L,operator.add)
+            Coercion on left operand via
+                Generic morphism:
+                  From: Cyclotomic Field of order 3 and degree 2
+                  To:   Cyclotomic Field of order 12 and degree 4
+                  Defn: a -> zeta12^2 - 1
+            Coercion on right operand via
+                Generic morphism:
+                  From: Cyclotomic Field of order 4 and degree 2
+                  To:   Cyclotomic Field of order 12 and degree 4
+                  Defn: b -> zeta12^3
+            Arithmetic performed after coercions.
+            Result lives in Cyclotomic Field of order 12 and degree 4
+            Cyclotomic Field of order 12 and degree 4
+
+        As a consequence, operations work nicely::
+
+            sage: a + b
+            zeta12^3 + zeta12^2 - 1
+            sage: a * b
+            -zeta12
+        """
+        if isinstance(other, NumberField_cyclotomic):
+            return CyclotomicField((self.__n).lcm(other.__n))
 
     def _magma_init_(self, magma):
         """
@@ -10487,7 +10599,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         EXAMPLES::
 
             sage: v = CyclotomicField(6)._multiplicative_order_table()
-            sage: w = v.items(); w.sort(); w
+            sage: w = sorted(v.items()); w
             [(-1, 2), (1, 1), (-x, 3), (-x + 1, 6), (x - 1, 3), (x, 6)]
         """
         try:
@@ -11266,3 +11378,5 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
+
+

@@ -50,6 +50,9 @@ from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutati
 
 from sage.misc.decorators import rename_keyword
 
+from sage.combinat.cluster_algebra_quiver.interact import cluster_interact
+
+
 class ClusterQuiver(SageObject):
     """
     The *quiver* associated to an *exchange matrix*.
@@ -544,8 +547,12 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5])
-            sage: pl = Q.plot()
-            sage: pl = Q.plot(circular=True)
+            sage: Q.plot()
+            Graphics object consisting of 15 graphics primitives
+            sage: Q.plot(circular=True)
+            Graphics object consisting of 15 graphics primitives
+            sage: Q.plot(circular=True, mark=1)
+            Graphics object consisting of 15 graphics primitives
         """
         from sage.plot.colors import rainbow
         from sage.graphs.graph_generators import GraphGenerators
@@ -600,9 +607,11 @@ class ClusterQuiver(SageObject):
         if mark is not None:
 
             if mark in nlist:
-                partition = (nlist.remove(mark), mlist, [mark])
+                nlist.remove(mark)
+                partition = (nlist, mlist, [mark])
             elif mark in mlist:
-                partition = (nlist, mlist.remove(mark), [mark])
+                mlist.remove(mark)
+                partition = (nlist, mlist, [mark])
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:
@@ -671,64 +680,26 @@ class ClusterQuiver(SageObject):
             plot.show( figsize=[fig_size*n+1,fig_size*n+1] )
 
     def interact(self, fig_size=1, circular=True):
-        """
-        Only in notebook mode. Starts an interactive window for cluster seed mutations.
+        r"""
+        Start an interactive window for cluster quiver mutations.
+
+        Only in *Jupyter notebook mode*.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``fig_size`` -- (default: 1) factor by which the size of the
+          plot is multiplied.
+
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
 
         TESTS::
 
-            sage: Q = ClusterQuiver(['A',4])
-            sage: Q.interact() # long time
-            'The interactive mode only runs in the Sage notebook.'
+            sage: S = ClusterQuiver(['A',4])
+            sage: S.interact()
+            VBox(children=...
         """
-        from sage.plot.plot import EMBEDDED_MODE
-        from sagenb.notebook.interact import interact, selector
-        from sage.misc.all import html,latex
-
-        if not EMBEDDED_MODE:
-            return "The interactive mode only runs in the Sage notebook."
-        else:
-            seq = []
-            sft = [True]
-            sss = [True]
-            ssm = [True]
-            ssl = [True]
-            @interact
-            def player(k=selector(values=list(range(self._n)),nrows = 1,label='Mutate at: '), show_seq=("Mutation sequence:", True), show_matrix=("B-Matrix:", True), show_lastmutation=("Show last mutation:", True) ):
-                ft,ss,sm,sl = sft.pop(), sss.pop(), ssm.pop(), ssl.pop()
-                if ft:
-                    self.show(fig_size=fig_size, circular=circular)
-                elif show_seq is not ss or show_matrix is not sm or show_lastmutation is not sl:
-                    if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular, mark=seq[len(seq)-1])
-                    else:
-                        self.show(fig_size=fig_size, circular=circular )
-                else:
-                    self.mutate(k)
-                    seq.append(k)
-                    if not show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular)
-                    else:
-                        self.show(fig_size=fig_size, circular=circular,mark=k)
-                sft.append(False)
-                sss.append(show_seq)
-                ssm.append(show_matrix)
-                ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$" )
-                if show_matrix:
-                    html( "B-Matrix:" )
-                    m = self._M
-                    #m = matrix(range(1,self._n+1),sparse=True).stack(m)
-                    m = latex(m)
-                    m = m.split('(')[1].split('\\right')[0]
-                    html( "$ $" )
-                    html( "$\\begin{align*} " + m + "\\end{align*}$" )
-                    #html( "$" + m + "$" )
-                    html( "$ $" )
+        return cluster_interact(self, fig_size, circular, kind="quiver")
 
     def save_image(self,filename,circular=False):
         """
@@ -1632,9 +1603,11 @@ class ClusterQuiver(SageObject):
         else:
             raise ValueError('not a total order on the vertices of the quiver or a list of edges to be oriented')
 
-    def mutation_class_iter( self, depth=infinity, show_depth=False, return_paths=False, data_type="quiver", up_to_equivalence=True, sink_source=False ):
+    def mutation_class_iter(self, depth=infinity, show_depth=False,
+                            return_paths=False, data_type="quiver",
+                            up_to_equivalence=True, sink_source=False):
         """
-        Returns an iterator for the mutation class of self together with certain constrains.
+        Return an iterator for the mutation class of ``self`` together with certain constraints.
 
         INPUT:
 
@@ -1773,7 +1746,7 @@ class ClusterQuiver(SageObject):
     def mutation_class(self, depth=infinity, show_depth=False, return_paths=False,
                        data_type="quiver", up_to_equivalence=True, sink_source=False):
         """
-        Return the mutation class of ``self`` together with certain constrains.
+        Return the mutation class of ``self`` together with certain constraints.
 
         INPUT:
 

@@ -2021,7 +2021,7 @@ class FlippedPermutationLI(FlippedPermutation, PermutationLI):
         for i,f in enumerate(self._flips[1]):
             if f == -1:
                 res.append(l[1][i])
-        return list(set(res))
+        return sorted(set(res))
 
 
 @add_metaclass(NestedClassMetaclass)

@@ -134,19 +134,19 @@ def column_matrix(*args, **kwds):
         generally, when creating a matrix, input vectors and lists are
         treated as rows.  This function is a convenience that turns
         around this convention when creating a matrix.  If you are not
-        familiar with the usual :class:`matrix <MatrixFactory>`
+        familiar with the usual :func:`matrix`
         constructor, you might want to consider it first.
 
     INPUT:
 
-    Inputs are almost exactly the same as for the :class:`matrix
-    <MatrixFactory>` constructor, which are documented there.  But see
+    Inputs are almost exactly the same as for the :func:`matrix`
+    constructor, which are documented there.  But see
     examples below for how dimensions are handled.
 
     OUTPUT:
 
-    Output is exactly the transpose of what the :class:`matrix
-    <MatrixFactory>` constructor would return.  In other words, the
+    Output is exactly the transpose of what the :func:`matrix`
+    constructor would return.  In other words, the
     ``matrix`` constructor builds a matrix and then this function
     exchanges rows for columns, and columns for rows.
 
@@ -155,7 +155,7 @@ def column_matrix(*args, **kwds):
     The most compelling use of this function is when you have a
     collection of lists or vectors that you would like to become the
     columns of a matrix. In almost any other situation, the
-    :class:`matrix <MatrixFactory>` constructor can probably do the
+    :func:`matrix`` constructor can probably do the
     job just as easily, or easier. ::
 
         sage: col_1 = [1,2,3]
@@ -1477,14 +1477,13 @@ def circulant(v, sparse=None):
         sage: matrix.circulant([0,1,-1], sparse=True).is_sparse()
         True
     """
-    from exceptions import AttributeError
     if sparse is None:
         try:
             sparse = v.is_sparse()
         except AttributeError:
             sparse = False
     n = len(v)
-    return matrix(n, n, lambda i, j: v[(j-i)%n], sparse=sparse)
+    return matrix(n, n, lambda i, j: v[(j - i) % n], sparse=sparse)
 
 
 def _determine_block_matrix_grid(sub_matrices):
@@ -3354,7 +3353,7 @@ def vector_on_axis_rotation_matrix(v, i, ring=None):
         [ 0.00 -0.93  0.22  0.30]
         [ 0.00  0.00 -0.80  0.60]
         sage: vector_on_axis_rotation_matrix(v, 0, ring=RealField(10)) * v
-        (5.5, 0.00098, 0.00098, 0.00)
+        (5.5, 0.0020, 0.00098, 0.00)
 
     AUTHORS:
 

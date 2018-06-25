@@ -600,9 +600,12 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A.category()
             Join of Category of coxeter group algebras over Rational Field
                 and Category of finite group algebras over Rational Field
+                and Category of finite dimensional cellular algebras with basis
+                     over Rational Field
             sage: A = S3.algebra(QQ, category=Semigroups())
             sage: A.category()
-            Category of finite dimensional semigroup algebras over Rational Field
+            Category of finite dimensional unital cellular semigroup algebras
+             over Rational Field
 
         In the following case, a usual group algebra is returned:
 
@@ -1713,9 +1716,9 @@ class SemidihedralGroup(PermutationGroup_unique):
         EXAMPLES::
 
             sage: G = SemidihedralGroup(6); G
-            The semidiheral group of order 64
+            The semidihedral group of order 64
         """
-        return 'The semidiheral group of order %s'%(2**self.m)
+        return 'The semidihedral group of order %s' % (2**self.m)
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):

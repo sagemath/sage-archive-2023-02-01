@@ -22,8 +22,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .linear_code import (AbstractLinearCode,
-                         LinearCodeParityCheckEncoder)
+from .linear_code import AbstractLinearCode
 from sage.matrix.matrix_space import MatrixSpace
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.misc.cachefunc import cached_method
@@ -67,13 +66,6 @@ class HammingCode(AbstractLinearCode):
             ...
             ValueError: order has to be a Sage Integer or a Python int
         """
-        if isinstance(base_field, (Integer, int)) and isinstance(order, Field):
-            from sage.misc.superseded import deprecation
-            deprecation(19930, "codes.HammingCode(r, F) is now deprecated. Please use codes.HammingCode(F, r) instead.")
-            tmp = copy(order)
-            order = copy(base_field)
-            base_field = copy(tmp)
-
         if not base_field.is_finite():
             raise ValueError("base_field has to be a finite field")
         if not isinstance(order, (Integer, int)):
@@ -152,7 +144,7 @@ class HammingCode(AbstractLinearCode):
         m = n - self.dimension()
         MS = MatrixSpace(F,n,m)
         X = ProjectiveSpace(m-1,F)
-        PFn = [list(p) for p in X.point_set(F).points(F)]
+        PFn = [list(p) for p in X.point_set(F).points()]
 
         H = MS(PFn).transpose()
         H = H[::-1, :]
@@ -174,5 +166,3 @@ class HammingCode(AbstractLinearCode):
 
 
 ####################### registration ###############################
-
-HammingCode._registered_encoders["ParityCheck"] = LinearCodeParityCheckEncoder

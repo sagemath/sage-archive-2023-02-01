@@ -20,6 +20,8 @@
 """
 import six
 from six.moves import cPickle
+from six import text_type
+
 import os
 import sys
 import shutil
@@ -105,6 +107,7 @@ def merge_environment(app, env):
             len(env.domaindata['py']['modules'])))
     write_citations(app, env.domaindata["std"]["citations"])
 
+
 def get_env(app, curdoc):
     """
     Get the environment of a sub-doc from the pickle
@@ -116,11 +119,12 @@ def get_env(app, curdoc):
         f = open(filename, 'rb')
     except IOError:
         app.info("")
-        app.warn("Unable to fetch %s "%filename)
+        app.warn("Unable to fetch %s " % filename)
         return None
     docenv = cPickle.load(f)
     f.close()
     return docenv
+
 
 def merge_js_index(app):
     """
@@ -140,7 +144,7 @@ def merge_js_index(app):
                 newmapping = set(map(fixpath, locs))
                 if ref in mapping:
                     newmapping = mapping[ref] | newmapping
-                mapping[unicode(ref)] = newmapping
+                mapping[text_type(ref)] = newmapping
             # merge the titles
             titles = app.builder.indexer._titles
             for (res, title) in six.iteritems(index._titles):
@@ -158,6 +162,7 @@ def merge_js_index(app):
     app.info('... done (%s js index entries)'%(len(mapping)))
     app.info(bold('Writing js search indexes...'), nonl=1)
     return [] # no extra page to setup
+
 
 def get_js_index(app, curdoc):
     """
@@ -177,7 +182,7 @@ def get_js_index(app, curdoc):
         f = open(indexfile, 'rb')
     except IOError:
         app.info("")
-        app.warn("Unable to fetch %s "%indexfile)
+        app.warn("Unable to fetch %s " % indexfile)
         return None
     indexer.load(f, sphinx.search.js_index)
     f.close()
@@ -233,7 +238,8 @@ def write_citations(app, citations):
     outdir = citation_dir(app)
     with atomic_write(os.path.join(outdir, CITE_FILENAME)) as f:
         cPickle.dump(citations, f)
-    app.info("Saved pickle file: %s"%CITE_FILENAME)
+    app.info("Saved pickle file: %s" % CITE_FILENAME)
+
 
 def fetch_citation(app, env):
     """

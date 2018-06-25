@@ -8,10 +8,10 @@ from .parametric_surface import ParametricSurface
 from .shapes2 import line3d
 from sage.arith.srange import xsrange, srange
 from sage.structure.element import is_Vector
+from sage.misc.decorators import rename_keyword
 
-from sage.ext.fast_eval import fast_float, fast_float_constant
 
-
+@rename_keyword(alpha='opacity')
 def parametric_plot3d(f, urange, vrange=None, plot_points="automatic",
                       boundary_style=None, **kwds):
     r"""

@@ -815,6 +815,7 @@ cdef class CategoryObject(SageObject):
             running ._test_category() . . . pass
             running ._test_characteristic() . . . pass
             running ._test_distributivity() . . . pass
+            running ._test_divides() . . . pass
             running ._test_elements() . . .
               Running the test suite of self.an_element()
               running ._test_category() . . . pass
@@ -887,6 +888,7 @@ cdef class CategoryObject(SageObject):
             _test_category
             _test_characteristic
             _test_distributivity
+            _test_divides
             _test_elements
             _test_elements_eq_reflexive
             _test_elements_eq_symmetric

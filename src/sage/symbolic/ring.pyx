@@ -50,7 +50,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
             True
-            sage: TestSuite(SR).run()
+            sage: TestSuite(SR).run(skip=['_test_divides'])
 
         """
         if base_ring is None:
@@ -336,7 +336,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return x
             else:
                 return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        elif hasattr(x, '_symbolic_'):
+        if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
             try:
@@ -360,7 +360,7 @@ cdef class SymbolicRing(CommutativeRing):
                 from sage.symbolic.constants import NaN
                 return NaN
             exp = x
-        elif isinstance(x, (Integer, long)):
+        elif isinstance(x, long):
             exp = x
         elif isinstance(x, int):
             exp = GEx(<long>x)

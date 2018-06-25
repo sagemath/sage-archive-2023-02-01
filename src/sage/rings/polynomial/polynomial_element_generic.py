@@ -181,9 +181,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.exponents()
             [0, 1997, 10000]
         """
-        keys = self.__coeffs.keys()
-        keys.sort()
-        return keys
+        return sorted(self.__coeffs)
 
     def valuation(self):
         """
@@ -1425,7 +1423,7 @@ class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_g
 # XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #
 # until at least until 4.5.0 unpickle correctly as polynomials implemented #
 # via FLINT.                                                               #
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
 
 register_unpickle_override( \

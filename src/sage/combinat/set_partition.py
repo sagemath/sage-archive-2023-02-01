@@ -2208,7 +2208,7 @@ class SetPartitions_setn(SetPartitions_set):
 
     def number_of_blocks(self):
         """
-        Return the number of blocks of the set partitions in this class.
+        Return the number of blocks of the set partitions in ``self``.
 
         EXAMPLES::
 

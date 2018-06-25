@@ -60,9 +60,9 @@ all-sage: \
 
 # Download all packages which should be inside an sdist tarball (the -B
 # option to make forces all targets to be built unconditionally)
-download-for-sdist: base
+download-for-sdist:
 	env SAGE_INSTALL_FETCH_ONLY=yes $(MAKE) -B SAGERUNTIME= \
-		$(SDIST_PACKAGE_INSTS)
+		$(SDIST_PACKAGES)
 
 # TOOLCHAIN consists of dependencies determined by configure.
 # These are built after the "base" target but before anything else.

@@ -47,25 +47,19 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
 cdef class Matrix_integer_sparse(Matrix_sparse):
-    def __cinit__(self, parent, entries, copy, coerce):
-        self._initialized = False
-        # set the parent, nrows, ncols, etc.
-        Matrix_sparse.__init__(self, parent)
-
-        self._matrix = <mpz_vector*>check_calloc(parent.nrows(), sizeof(mpz_vector))
-
-        # initialize the rows
-        for i from 0 <= i < parent.nrows():
+    def __cinit__(self):
+        self._matrix = <mpz_vector*>check_calloc(self._nrows, sizeof(mpz_vector))
+        # Initialize the rows
+        cdef Py_ssize_t i
+        for i in range(self._nrows):
             mpz_vector_init(&self._matrix[i], self._ncols, 0)
-        # record that rows have been initialized
-        self._initialized = True
 
     def __dealloc__(self):
         cdef Py_ssize_t i
-        if self._initialized:
-            for i from 0 <= i < self._nrows:
+        if self._matrix is not NULL:
+            for i in range(self._nrows):
                 mpz_vector_clear(&self._matrix[i])
-        sig_free(self._matrix)
+            sig_free(self._matrix)
 
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""

@@ -29,8 +29,9 @@ from sage.rings.all import ZZ, QQ
 from .subset import Subsets
 from sage.functions.all import ceil
 
+
 def _int_or_half_int(k):
-    """
+    r"""
     Check if ``k`` is an integer or half integer.
 
     OUTPUT:
@@ -661,8 +662,9 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
         return True
 
     def cardinality(self):
-        """
-        Returns the number of set partitions in B_k where k is an integer.
+        r"""
+        Return the number of set partitions in `B_k` where `k` is an integer.
+
         This is given by (2k)!! = (2k-1)\*(2k-3)\*...\*5\*3\*1.
 
         EXAMPLES::
@@ -679,7 +681,7 @@ class SetPartitionsBk_k(SetPartitionsAk_k):
             945
         """
         c = 1
-        for i in range(1, 2*self.k,2):
+        for i in range(1, 2*self.k, 2):
             c *= i
         return c
 

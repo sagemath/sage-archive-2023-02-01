@@ -717,7 +717,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             6
 
         For performance reasons, only the constant coefficient is considered.
-        (In common appplications, the constant coefficient shows the most
+        (In common applications, the constant coefficient shows the most
         critical coefficient growth)::
 
             sage: v._relative_size(1024*x + 1)

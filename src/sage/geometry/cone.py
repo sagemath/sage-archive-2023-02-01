@@ -449,7 +449,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
 
 def _Cone_from_PPL(cone, lattice, original_rays=None):
-    """
+    r"""
     Construct a cone from a :class:`~sage.libs.ppl.Polyhedron`.
 
     This is a private function and not intended to be exposed to the

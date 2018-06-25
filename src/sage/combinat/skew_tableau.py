@@ -50,7 +50,7 @@ from sage.combinat.words.words import Words
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SkewTableau(ClonableList):
-    """
+    r"""
     A skew tableau.
 
     Note that Sage by default uses the English convention for partitions and
@@ -77,7 +77,6 @@ class SkewTableau(ClonableList):
 
         sage: SkewTableau(chain=[[2], [2, 1], [3, 1], [4, 3, 2, 1]])
         [[None, None, 2, 3], [1, 3, 3], [3, 3], [3]]
-
     """
     @staticmethod
     def __classcall_private__(cls, st=None, expr=None, chain=None):
@@ -503,7 +502,7 @@ class SkewTableau(ClonableList):
         return Permutation(word)
 
     def weight(self):
-        """
+        r"""
         Return the weight (aka evaluation) of the tableau ``self``.
         Trailing zeroes are omitted when returning the weight.
 
@@ -736,7 +735,7 @@ class SkewTableau(ClonableList):
         return SkewPartition([self.restriction_outer_shape(n), self.inner_shape()])
 
     def to_chain(self, max_entry=None):
-        """
+        r"""
         Return the chain of partitions corresponding to the (semi)standard
         skew tableau ``self``.
 
@@ -2535,7 +2534,7 @@ class SkewTableau_class(SkewTableau):
         self.__init__(SkewTableaux(), state['_list'])
 
 # October 2012: fixing outdated pickles which use the classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_tableau', 'StandardSkewTableaux_n',  StandardSkewTableaux_size)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_n',  SemistandardSkewTableaux_size)
 register_unpickle_override('sage.combinat.skew_tableau', 'SemistandardSkewTableaux_nmu',  SemistandardSkewTableaux_size_weight)

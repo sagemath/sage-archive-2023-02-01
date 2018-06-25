@@ -44,7 +44,7 @@ import six
 from sage.misc.cachefunc import cached_method
 from sage.misc.mrange import xmrange
 from sage.misc.all import prod
-from sage.rings.all import (PolynomialRing, ZZ, QQ, Integer, CommutativeRing)
+from sage.rings.all import (PolynomialRing, QQ, Integer, CommutativeRing)
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polydict import ETuple
@@ -1116,36 +1116,39 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         """
         return SchemeHomset_points_product_projective_spaces_field(*args, **kwds)
 
-    def points_of_bounded_height(self,bound, prec=53):
+    def points_of_bounded_height(self, **kwds):
         r"""
         Returns an iterator of the points in this product of projective spaces with the absolute heights of the
         components of at most the given bound.
 
         Bound check is strict for the rational field. Requires the base field of this space to be a number field.
-        Uses the Doyle-Krumm algorithm for computing algebraic numbers up to a given height [Doyle-Krumm]_.
+        Uses the
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
+
 
         INPUT:
 
         - ``bound`` - a real number
 
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
         - an iterator of points in this space
 
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
         EXAMPLES::
 
             sage: PP = ProductProjectiveSpaces(QQ, [1, 2])
-            sage: list(PP.points_of_bounded_height(2))
+            sage: list(PP.points_of_bounded_height(bound=2))
             [(0 : 1 , 0 : 0 : 1), (0 : 1 , 1 : 0 : 1), (0 : 1 , -1 : 0 : 1), (0 : 1 , 0 : 1 : 1),
             (0 : 1 , 1 : 1 : 1), (0 : 1 , -1 : 1 : 1), (0 : 1 , 0 : -1 : 1), (0 : 1 , 1 : -1 : 1),
             (0 : 1 , -1 : -1 : 1), (0 : 1 , 0 : 1 : 0), (0 : 1 , 1 : 1 : 0), (0 : 1 , -1 : 1 : 0),
@@ -1164,7 +1167,7 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
 
             sage: u = QQ['u'].0
             sage: P = ProductProjectiveSpaces([1, 1], NumberField(u^2 - 2, 'v'))
-            sage: list(P.points_of_bounded_height(1.5))
+            sage: list(P.points_of_bounded_height(bound=1.5))
             [(0 : 1 , 0 : 1), (0 : 1 , -1 : 1), (0 : 1 , 1 : 1), (0 : 1 , -1/2*v : 1), (0 : 1 , -v : 1),
             (0 : 1 , 1/2*v : 1), (0 : 1 , v : 1), (0 : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , -1 : 1),
             (-1 : 1 , 1 : 1), (-1 : 1 , -1/2*v : 1), (-1 : 1 , -v : 1), (-1 : 1 , 1/2*v : 1), (-1 : 1 , v : 1),
@@ -1180,8 +1183,11 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
             (1 : 0 , -1 : 1), (1 : 0 , 1 : 1), (1 : 0 , -1/2*v : 1), (1 : 0 , -v : 1), (1 : 0 , 1/2*v : 1),
             (1 : 0 , v : 1), (1 : 0 , 1 : 0)]
         """
+        B = kwds.pop('bound')
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
         m = self.num_components()
-        comp_points = [list(self._components[i].points_of_bounded_height(bound, prec)) for i in range(m)]
+        comp_points = [list(self._components[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)) for i in range(m)]
         indices = xmrange([len(comp_points[i]) for i in range(m)])
         return iter([self([comp_points[t][I[t]] for t in range(m)]) for I in indices])
 

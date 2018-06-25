@@ -488,7 +488,9 @@ if [ -d "$DOT_SAGE" ] ; then
         fi
     fi
 fi
+
 export MAXIMA_PREFIX="$SAGE_LOCAL"
+export MAXIMA_USERDIR="$DOT_SAGE/maxima"
 
 PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 

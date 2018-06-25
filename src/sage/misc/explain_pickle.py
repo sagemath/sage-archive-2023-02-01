@@ -76,7 +76,7 @@ produces the corresponding class.  So GLOBAL of ``sage.rings.integer``,
 ``Integer`` is approximately equivalent to ``sage.rings.integer.Integer``.
 
 However, this class lookup process can be customized (using
-sage.structure.sage_object.register_unpickle_override).  For instance,
+sage.misc.persist.register_unpickle_override).  For instance,
 if some future version of Sage renamed ``sage/rings/integer.pyx`` to
 ``sage/rings/knuth_was_here.pyx``, old pickles would no longer work unless
 register_unpickle_override was used; in that case, GLOBAL of
@@ -170,7 +170,8 @@ import bz2 as comp_other
 import sage.all
 from sage.misc.sage_input import SageInputBuilder, SageInputExpression
 from sage.misc.sage_eval import sage_eval
-from sage.structure.sage_object import unpickle_override, unpickle_global, dumps, register_unpickle_override
+from sage.misc.persist import (unpickle_override, unpickle_global, dumps,
+                               register_unpickle_override)
 
 
 try:

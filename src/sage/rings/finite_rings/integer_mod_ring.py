@@ -593,6 +593,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             [1, 5, 7, 11]
             sage: type(L[0])
             <... 'int'>
+            sage: Zmod(1).list_of_elements_of_multiplicative_group()
+            [0]
         """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
@@ -600,8 +602,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif self.__order <= 2147483647:   # todo: don't hard code
             gcd = a.arith_llong().gcd_longlong
         else:
-            raise MemoryError("creating the list would exhaust memory")
+            raise NotImplementedError("list_of_elements_of_multiplicative_group() is not implemented for large moduli")
         N = self.__order
+        # Don't use N.coprime_integers() here because we want Python ints
         return [i for i in range(N) if gcd(i, N) == 1]
 
     @cached_method

@@ -170,7 +170,7 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
     # now that we know that (S1,S2) is a partition, we look for an invertible
     # element b that maps S1 to S2 by multiplication
     for b in Integer(n).coprime_integers(n):
-        if b != 1 and all(b * x in S2 for x in S1):
+        if b >= 2 and all(b * x in S2 for x in S1):
             if return_automorphism:
                 return True, b
             else:

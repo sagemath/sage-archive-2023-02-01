@@ -1,7 +1,7 @@
 r"""
 Solve S-unit equation x + y = 1
 
-Inspired by work of Tzanakis--de Weger, Baker--W{\"{u}}stholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation x + y = 1.
+Inspired by work of Tzanakis--de Weger, Baker--Wustholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation $x + y = 1$.
 
 REFERENCES:
 
@@ -13,7 +13,7 @@ REFERENCES:
 
 AUTHORS:
 
-- Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2017-01-10): original version
+- Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2018-04-25): original version
 
 EXAMPLES::
 
@@ -491,7 +491,7 @@ def K0_func(SUK, A, prec=106):
     INPUT:
 
     - ``SUK`` -- a group of `S`-units
-    - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
+    - ``A`` -- the set of the products of the coefficients of the `S`-unit equation with each root of unity of ``K``
     - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
@@ -539,7 +539,7 @@ def K1_func(SUK, v, A, prec=106):
 
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
-    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the S-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
+    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the $S$-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
     - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
@@ -1619,7 +1619,7 @@ def bounded_integer_lifts(r, m, bound):
 
     OUTPUT:
 
-    A list of integers ``x`` satisfying both ``x = r % m`` and ``abs(x) <= bound``.
+    A list of integers ``x`` satisfying both ``x == r % m`` and ``abs(x) <= bound``.
 
     EXAMPLES::
 
@@ -1665,7 +1665,7 @@ def bounded_vector_lifts( exponent_vector, m, bound ):
     A list of all exponent vectors with integer entries which satisfy the following criteria:
 
     1. the 0th entry matches the 0th entry of ``exponent_vector``
-    2. for each ``j > 0``, the ``j``th entry is congruent to the ``j``th entry of ``exponent_vector`` modulo ``m``
+    2. for each ``j > 0``, the ``j`` th entry is congruent to the ``j`` th entry of ``exponent_vector`` modulo ``m``
     3. all entries, except possibly the first, are bounded in absolute value by ``bound``.
 
     EXAMPLES::

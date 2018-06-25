@@ -592,7 +592,7 @@ class PerfectMatchings(SetPartitions_set):
                         yield [(a, b)]+p
 
         for p in iter_aux(list(self._set)):
-            yield self.element_class(self, p)
+            yield self.element_class(self, p, check=False)
 
     def __contains__(self, x):
         """

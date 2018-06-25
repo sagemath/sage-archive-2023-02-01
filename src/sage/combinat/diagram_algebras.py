@@ -34,6 +34,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import bell_number, catalan_number
 from sage.structure.global_options import GlobalOptions
 from sage.combinat.set_partition import SetPartitions, AbstractSetPartition
+from sage.combinat.perfect_matching import PerfectMatchings
 from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra_n
 from sage.combinat.permutation import Permutations
 from sage.graphs.graph import Graph
@@ -113,19 +114,21 @@ def brauer_diagrams(k):
 
         sage: import sage.combinat.diagram_algebras as da
         sage: [SetPartition(p) for p in da.brauer_diagrams(2)]
-        [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
+        [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, 1}, {-1, 2}}]
         sage: [SetPartition(p) for p in da.brauer_diagrams(5/2)]
-        [{{-3, 3}, {-2, 1}, {-1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
+        [{{-3, 3}, {-2, -1}, {1, 2}},
+         {{-3, 3}, {-2, 2}, {-1, 1}},
+         {{-3, 3}, {-2, 1}, {-1, 2}}]
     """
     if k in ZZ:
-        S = SetPartitions(list(range(1,k+1)) + list(range(-k,0)), [2]*k)
-        for i in S._iterator_part(S.parts):
-            yield list(i)
+        S = PerfectMatchings(list(range(1,k+1)) + list(range(-k,0)))
+        for p in S:
+            yield list(p)
     elif k + ZZ(1) / ZZ(2) in ZZ: # Else k in 1/2 ZZ
         k = ZZ(k + ZZ(1) / ZZ(2))
-        S = SetPartitions(list(range(1, k)) + list(range(-k+1,0)), [2]*(k-1))
-        for i in S._iterator_part(S.parts):
-            yield list(i) + [[k, -k]]
+        S = PerfectMatchings(list(range(1, k)) + list(range(-k+1,0)))
+        for p in S:
+            yield list(p) + [[k, -k]]
 
 def temperley_lieb_diagrams(k):
     r"""
@@ -142,9 +145,9 @@ def temperley_lieb_diagrams(k):
 
         sage: import sage.combinat.diagram_algebras as da
         sage: [SetPartition(p) for p in da.temperley_lieb_diagrams(2)]
-        [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
+        [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}]
         sage: [SetPartition(p) for p in da.temperley_lieb_diagrams(5/2)]
-        [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
+        [{{-3, 3}, {-2, -1}, {1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
     """
     for i in brauer_diagrams(k):
         if is_planar(i):
@@ -661,7 +664,7 @@ class TemperleyLiebDiagram(AbstractPartitionDiagram):
         sage: TemperleyLiebDiagrams(2)
         Temperley Lieb diagrams of order 2
         sage: TemperleyLiebDiagrams(2).list()
-        [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
+        [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}]
     """
     @staticmethod
     def __classcall_private__(cls, diag):
@@ -1153,16 +1156,16 @@ class AbstractPartitionDiagrams(Parent, UniqueRepresentation):
              {{-2, 2}, {-1}, {1}}]
 
             sage: list(da.BrauerDiagrams(5/2))
-            [{{-3, 3}, {-2, 1}, {-1, 2}},
+            [{{-3, 3}, {-2, -1}, {1, 2}},
              {{-3, 3}, {-2, 2}, {-1, 1}},
-             {{-3, 3}, {-2, -1}, {1, 2}}]
+             {{-3, 3}, {-2, 1}, {-1, 2}}]
             sage: list(da.BrauerDiagrams(2))
-            [{{-2, 1}, {-1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
+            [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}, {{-2, 1}, {-1, 2}}]
 
             sage: list(da.TemperleyLiebDiagrams(5/2))
-            [{{-3, 3}, {-2, 2}, {-1, 1}}, {{-3, 3}, {-2, -1}, {1, 2}}]
+            [{{-3, 3}, {-2, -1}, {1, 2}}, {{-3, 3}, {-2, 2}, {-1, 1}}]
             sage: list(da.TemperleyLiebDiagrams(2))
-            [{{-2, 2}, {-1, 1}}, {{-2, -1}, {1, 2}}]
+            [{{-2, -1}, {1, 2}}, {{-2, 2}, {-1, 1}}]
 
             sage: list(da.PlanarDiagrams(3/2))
             [{{-2, -1, 1, 2}},
@@ -1318,21 +1321,21 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
         sage: bd = da.BrauerDiagrams(3)
         sage: bd.options.display="compact"
         sage: bd.list()
-        [[/;321],
-         [/;312],
-         [23/12;1],
-         [/;231],
-         [/;132],
-         [13/12;1],
-         [/;213],
-         [/;123],
+        [[12/13;1],
          [12/12;1],
-         [23/23;1],
-         [13/23;1],
          [12/23;1],
-         [23/13;1],
          [13/13;1],
-         [12/13;1]]
+         [13/12;1],
+         [13/23;1],
+         [23/13;1],
+         [/;231],
+         [/;213],
+         [23/12;1],
+         [/;321],
+         [/;312],
+         [23/23;1],
+         [/;123],
+         [/;132]]
         sage: bd.options._reset()
     """
     Element = BrauerDiagram
@@ -2324,11 +2327,9 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             P{{-3, 1}, {-2, 3}, {-1, 2}} + 2*P{{-3, 2}, {-2, 3}, {-1, 1}}
              + 3*P{{-3, 3}, {-2, 1}, {-1, 2}} + P{{-3, 3}, {-2, 2}, {-1, 1}}
             sage: B.an_element()
-            3*B{{-3, 1}, {-2, -1}, {2, 3}} + 2*B{{-3, 1}, {-2, 2}, {-1, 3}}
-             + 2*B{{-3, 1}, {-2, 3}, {-1, 2}}
+            3*B{{-3, -2}, {-1, 3}, {1, 2}} + 2*B{{-3, -1}, {-2, 3}, {1, 2}} + 2*B{{-3, 3}, {-2, -1}, {1, 2}}
             sage: A(B.an_element())
-            3*P{{-3, 1}, {-2, -1}, {2, 3}} + 2*P{{-3, 1}, {-2, 2}, {-1, 3}}
-             + 2*P{{-3, 1}, {-2, 3}, {-1, 2}}
+            3*P{{-3, -2}, {-1, 3}, {1, 2}} + 2*P{{-3, -1}, {-2, 3}, {1, 2}} + 2*P{{-3, 3}, {-2, -1}, {1, 2}}
             sage: O.an_element()
             3*O{{-3}, {-2, -1, 1, 2, 3}} + 2*O{{-3, -2, -1, 1, 2, 3}} + 2*O{{-3, -1, 1, 2, 3}, {-2}}
             sage: A(O.an_element())
@@ -3040,11 +3041,10 @@ class SubPartitionAlgebra(DiagramBasis):
 
                 sage: R.<x> = QQ[]
                 sage: B = BrauerAlgebra(2, x, R)
-                sage: bb = B.an_element(); bb
-                3*B{{-2, -1}, {1, 2}} + 2*B{{-2, 1}, {-1, 2}} + 2*B{{-2, 2}, {-1, 1}}
+                sage: bb = B([[-2, -1], [1, 2]]); bb
+                B{{-2, -1}, {1, 2}}
                 sage: bb.to_orbit_basis()
-                3*O{{-2, -1}, {1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1}, {-1, 2}}
-                 + 2*O{{-2, 2}, {-1, 1}}
+                O{{-2, -1}, {1, 2}} + O{{-2, -1, 1, 2}}
             """
             P = self.parent().lift.codomain()
             OP = P.orbit_basis()
@@ -3092,14 +3092,13 @@ class BrauerAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         Brauer diagrams of order 2
         sage: B.basis().keys()([[-2, 1], [2, -1]])
         {{-2, 1}, {-1, 2}}
-        sage: b = B.basis().list()
-        sage: b
-        [B{{-2, 1}, {-1, 2}}, B{{-2, 2}, {-1, 1}}, B{{-2, -1}, {1, 2}}]
-        sage: b[2]
+        sage: b = B.basis().list(); b
+        [B{{-2, -1}, {1, 2}}, B{{-2, 2}, {-1, 1}}, B{{-2, 1}, {-1, 2}}]
+        sage: b[0]
         B{{-2, -1}, {1, 2}}
-        sage: b[2]^2
+        sage: b[0]^2
         x*B{{-2, -1}, {1, 2}}
-        sage: b[2]^5
+        sage: b[0]^5
         x^4*B{{-2, -1}, {1, 2}}
 
     Note, also that since the symmetric group algebra is contained in
@@ -3291,14 +3290,13 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         Temperley Lieb diagrams of order 2
         sage: T.basis().keys()([[-1, 1], [2, -2]])
         {{-2, 2}, {-1, 1}}
-        sage: b = T.basis().list()
-        sage: b
-        [T{{-2, 2}, {-1, 1}}, T{{-2, -1}, {1, 2}}]
-        sage: b[1]
+        sage: b = T.basis().list(); b
+        [T{{-2, -1}, {1, 2}}, T{{-2, 2}, {-1, 1}}]
+        sage: b[0]
         T{{-2, -1}, {1, 2}}
-        sage: b[1]^2 == x*b[1]
+        sage: b[0]^2 == x*b[0]
         True
-        sage: b[1]^5 == x^4*b[1]
+        sage: b[0]^5 == x^4*b[0]
         True
     """
     @staticmethod

@@ -156,7 +156,6 @@ old pickles to work).
 
 from __future__ import absolute_import, print_function
 
-import io
 import pickletools
 import re
 import sys

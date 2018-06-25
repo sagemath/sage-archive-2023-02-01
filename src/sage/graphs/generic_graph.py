@@ -14672,7 +14672,7 @@ class GenericGraph(GenericGraph_pyx):
                 G = self.networkx_graph(copy=False)
             G.add_nodes_from(self.vertices())
 
-            degree = self.out_degree if self.is_directed else self.degree
+            degree = self.out_degree if self.is_directed() else self.degree
             if vert is None:
                 closeness = networkx.closeness_centrality(G, vert, reverse=True, distance = 'weight' if by_weight else None)
                 return {v:c for v,c in iteritems(closeness) if degree(v) != 0}

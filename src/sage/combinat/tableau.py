@@ -1067,6 +1067,7 @@ class Tableau(ClonableList):
             [((0, 1), (0, 2)), ((1, 0), (1, 1)), ((1, 1), (0, 0)), ((2, 1), (1, 0))]
         """
         inversions = []
+        previous_row = None
         for i, row in enumerate(self):
             for j, entry in enumerate(row):
                 #c is in position (i,j)
@@ -6394,7 +6395,6 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
         """
         from sage.misc.prandom import randint
-        from sage.combinat.partition import _Partitions
         with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
         t = [[self.max_entry+1]*i for i in with_sentinels]
         for i,l in enumerate(self.shape):

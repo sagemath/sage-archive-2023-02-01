@@ -1916,9 +1916,8 @@ class Triconnectivity:
     cut_vertex = None # If graph is not biconnected
     graph_copy_adjacency = []
 
-    # T/F to denote if the source and target of the palm tree edge are
-    # opposite to that of the graph
-    edge_reverse = {}
+    # Edges of the graph which are in the reverse direction in palm tree
+    reverse_edges = set()
 
 
     def __init__(self, G, check=True):
@@ -1928,19 +1927,19 @@ class Triconnectivity:
         self.n = self.graph_copy.order()
         self.m = self.graph_copy.size()
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
-        self.edge_reverse = dict((e,False) for e in self.graph_copy.edges())
-        self.dfs_number = [0 for i in xrange(self.n)]
-        self.lowpt1 = [None for i in xrange(self.n)]
-        self.lowpt2 = [None for i in xrange(self.n)]
-        self.adj = [[] for i in xrange(self.n)]
-        self.nd = [None for i in xrange(self.n)]
-        self.parent = [None for i in xrange(self.n)]
-        self.degree = [None for i in xrange(self.n)]
-        self.tree_arc = [None for i in xrange(self.n)]
-        self.vertex_at = [1 for i in xrange(self.n)]
+        self.reverse_edges = set()
+        self.dfs_number = [0 for i in range(self.n)]
+        self.lowpt1 = [None for i in range(self.n)]
+        self.lowpt2 = [None for i in range(self.n)]
+        self.adj = [[] for i in range(self.n)]
+        self.nd = [None for i in range(self.n)]
+        self.parent = [None for i in range(self.n)]
+        self.degree = [None for i in range(self.n)]
+        self.tree_arc = [None for i in range(self.n)]
+        self.vertex_at = [1 for i in range(self.n)]
         self.dfs_counter = 0
         self.components_list = [] #list of components
-        self.graph_copy_adjacency = [[] for i in xrange(self.n)]
+        self.graph_copy_adjacency = [[] for i in range(self.n)]
 
         # Build adjacency list
         for e in self.graph_copy.edges():
@@ -1953,14 +1952,14 @@ class Triconnectivity:
         self.start_vertex = 0 # Initialisation for dfs1()
         self.cut_vertex = self.dfs1(self.start_vertex, check=check)
 
-        if (check == True):
+        if check:
             # graph is disconnected
-            if (self.dfs_number < self.n):
+            if self.dfs_number < self.n:
                 self.is_biconnected = False
                 return
 
             # graph has a cut vertex
-            if (self.cut_vertex != None):
+            if self.cut_vertex != None:
                 self.cut_vertex = self.int_to_vertex[self.cut_vertex]
                 self.is_biconnected = False
                 return
@@ -1969,12 +1968,9 @@ class Triconnectivity:
         # Is there a better way to do it?
         for e in self.graph_copy.edges():
             up = (self.dfs_number[e[1]] - self.dfs_number[e[0]]) > 0
-            if ((up and self.edge_status[e]==2) or (not up and self.edge_status[e]==1)):
-                # Reverse the edge
-                # self.graph_copy.delete_edge(e)
-                # self.graph_copy.add_edge(e[1],e[0])
-                # self.edge_status[(e[1],e[0],e[2])] = self.edge_status.pop(e)
-                self.edge_reverse[e] = True
+            if (up and self.edge_status[e]==2) or (not up and self.edge_status[e]==1):
+                # Add edge to the set reverse_edges
+                self.reverse_edges.add(e)
 
         self.build_acceptable_adj_struct()
 
@@ -2034,12 +2030,12 @@ class Triconnectivity:
                     self.edge_status[sorted_edges[i]] = 3 # edge removed
                     comp.append(sorted_edges[i])
                 else:
-                    if len(comp):
+                    if comp:
                         comp.append(sorted_edges[i-1])
                         comp.append(sorted_edges[i-1])
                         self.new_component(comp)
                     comp = []
-            if len(comp):
+            if comp:
                 comp.append(sorted_edges[i-1])
                 comp.append(sorted_edges[i-1])
                 self.new_component(comp)
@@ -2128,27 +2124,27 @@ class Triconnectivity:
         self.lowpt1[v] = self.lowpt2[v] = self.dfs_number[v]
         self.nd[v] = 1
         for e in self.graph_copy_adjacency[v]:
-            if self.edge_status[e] != 0 :
-                    continue
+            if self.edge_status[e]:
+                continue
 
             w = e[0] if e[0] != v else e[1] # Other vertex of edge e
-            if (self.dfs_number[w] == 0):
+            if self.dfs_number[w] == 0:
                 self.edge_status[e] = 1 # tree edge
-                if (first_son == None):
+                if first_son is None:
                     first_son = w
                 self.tree_arc[w] = e
                 s1 = self.dfs1(w, v, check)
 
-                if (check == True):
+                if check:
                     # check for cut vertex
-                    if ((self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son or u != None)):
+                    if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son or u != None):
                         s1 = v
 
-                if (self.lowpt1[w] < self.lowpt1[v]):
+                if self.lowpt1[w] < self.lowpt1[v]:
                         self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
                         self.lowpt1[v] = self.lowpt1[w]
 
-                elif (self.lowpt1[w] == self.lowpt1[v]):
+                elif self.lowpt1[w] == self.lowpt1[v]:
                     self.lowpt2[v] = min(self.lowpt2[v], self.lowpt2[w])
 
                 else:
@@ -2158,10 +2154,10 @@ class Triconnectivity:
 
             else:
                 self.edge_status[e] = 2 #frond
-                if (self.dfs_number[w] < self.lowpt1[v]):
+                if self.dfs_number[w] < self.lowpt1[v]:
                     self.lowpt2[v] = self.lowpt1[v]
                     self.lowpt1[v] = self.dfs_number[w]
-                elif (self.dfs_number[w] > self.lowpt1[v]):
+                elif self.dfs_number[w] > self.lowpt1[v]:
                     self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
         return s1
@@ -2179,34 +2175,32 @@ class Triconnectivity:
 
         for e in self.graph_copy.edges():
             edge_type = self.edge_status[e]
-            if (edge_type == 3):
+            if edge_type == 3:
                 continue
 
             # compute phi value
-            # the if condition for edge_reverse can be avoided if we find
-            # a different way to implement reversed edges
-            if (self.edge_reverse[e] == True):
-                if (edge_type==1): # tree arc
-                    if (self.lowpt2[e[0]] < self.dfs_number[e[1]]):
+            if e in self.reverse_edges:
+                if edge_type==1: # tree arc
+                    if self.lowpt2[e[0]] < self.dfs_number[e[1]]:
                         phi = 3*self.lowpt1[e[0]]
-                    elif (self.lowpt2[e[0]] >= self.dfs_number[e[1]]):
+                    elif self.lowpt2[e[0]] >= self.dfs_number[e[1]]:
                         phi = 3*self.lowpt1[e[0]] + 2
                 else: # tree frond
                     phi = 3*self.dfs_number[e[0]]+1
             else:
-                if (edge_type==1): # tree arc
-                    if (self.lowpt2[e[1]] < self.dfs_number[e[0]]):
+                if edge_type==1: # tree arc
+                    if self.lowpt2[e[1]] < self.dfs_number[e[0]]:
                         phi = 3*self.lowpt1[e[1]]
-                    elif (self.lowpt2[e[1]] >= self.dfs_number[e[0]]):
+                    elif self.lowpt2[e[1]] >= self.dfs_number[e[0]]:
                         phi = 3*self.lowpt1[e[1]] + 2
                 else: # tree frond
                     phi = 3*self.dfs_number[e[1]]+1
 
             bucket[phi].append(e)
 
-        for i in xrange(1,max+1):
+        for i in range(1,max+1):
             for e in bucket[i]:
-                if (self.edge_reverse[e] == True):
+                if e in self.reverse_edges:
                     self.adj[e[1]].append(e)
                     self.in_adj[e] = self.adj[e[1]]
                 else:

@@ -3752,17 +3752,17 @@ class Polyhedron_base(Element):
 
         For a full-dimensional polytope, the basic algorithm is
         described in
-        :func:`~sage.geometry.hasse_diagram.Hasse_diagram_from_incidences`.
+        :func:`~sage.geometry.hasse_diagram.lattice_from_incidences`.
         There are three generalizations of [KP2002]_ necessary to deal
         with more general polytopes, corresponding to the extra
         H/V-representation objects:
 
         * Lines are removed before calling
-          :func:`Hasse_diagram_from_incidences`, and then added back
+          :func:`lattice_from_incidences`, and then added back
           to each face V-representation except for the "empty face".
 
         * Equations are removed before calling
-          :func:`Hasse_diagram_from_incidences`, and then added back
+          :func:`lattice_from_incidences`, and then added back
           to each face H-representation.
 
         * Rays: Consider the half line as an example. The
@@ -3771,7 +3771,7 @@ class Polyhedron_base(Element):
           infinity has no inequality associated to it, so there is
           only one H-representation object alltogether. The face
           lattice does not contain the "face at infinity". This means
-          that in :func:`Hasse_diagram_from_incidences`, one needs to
+          that in :func:`lattice_from_incidences`, one needs to
           drop faces with V-representations that have no matching
           H-representation. In addition, one needs to ensure that
           every non-empty face contains at least one vertex.
@@ -3780,7 +3780,7 @@ class Polyhedron_base(Element):
 
             sage: square = polytopes.hypercube(2)
             sage: square.face_lattice()
-            Finite poset containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements with distinguished linear extension
             sage: list(_)
             [<>, <0>, <1>, <2>, <3>, <0,1>, <0,2>, <2,3>, <1,3>, <0,1,2,3>]
             sage: poset_element = _[6]
@@ -3881,9 +3881,8 @@ class Polyhedron_base(Element):
             Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
             return self._make_polyhedron_face(Vindices, Hindices)
 
-        from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
-        return Hasse_diagram_from_incidences\
-            (atoms_incidences, coatoms_incidences,
+        from sage.geometry.hasse_diagram import lattice_from_incidences
+        return lattice_from_incidences(atoms_incidences, coatoms_incidences,
              face_constructor=face_constructor, required_atoms=atoms_vertices)
 
     def faces(self, face_dimension):

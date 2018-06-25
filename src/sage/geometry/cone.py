@@ -200,7 +200,7 @@ from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
@@ -1513,7 +1513,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: C = Cone([(1,0)])
             sage: C.face_lattice()
-            Finite poset containing 2 elements with distinguished linear extension
+            Finite lattice containing 2 elements with distinguished linear extension
             sage: C._test_pickling()
             sage: C2 = loads(dumps(C)); C2
             1-d cone in 2-d lattice N
@@ -2235,7 +2235,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: L = quadrant.face_lattice()
             sage: L
-            Finite poset containing 4 elements with distinguished linear extension
+            Finite lattice containing 4 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -2300,7 +2300,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
             ....:                   (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
-            Finite poset containing 16 elements with distinguished linear extension
+            Finite lattice containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
             4-d cone in 4-d lattice N
             sage: cone = supercone.facets()[0]
@@ -2362,7 +2362,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     # and there is only a conversion (no coercion)
                     # between them as of Trac ticket #10513.
                     try:
-                        _ = S(ray)
+                        S(ray)
                         subspace_rays.append(i)
                     except (TypeError, ValueError):
                         facets = [j for j, normal in enumerate(normals)
@@ -2387,7 +2387,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     else:
                         return self
 
-                self._face_lattice = Hasse_diagram_from_incidences(
+                self._face_lattice = lattice_from_incidences(
                                     atom_to_facets, facet_to_atoms, ConeFace,
                                     key = id(self))
             else:
@@ -4199,7 +4199,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.
                 try:
-                    _ = linear_subspace(x)
+                    linear_subspace(x)
                     return False
                 except (TypeError, ValueError):
                     return True

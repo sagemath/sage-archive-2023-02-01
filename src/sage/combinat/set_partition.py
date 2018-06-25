@@ -296,7 +296,7 @@ class AbstractSetPartition(ClonableArray):
 
             sage: def mul2(s, t):
             ....:     temp = [ss.intersection(ts) for ss in s for ts in t]
-            ....:     temp = filter(lambda x: x != Set([]), temp)
+            ....:     temp = filter(bool, temp)
             ....:     return s.__class__(s.parent(), temp)
 
         Let us check that this gives the same as ``__mul__`` on set
@@ -308,7 +308,7 @@ class AbstractSetPartition(ClonableArray):
         """
         new_composition = []
         for B in self:
-           for C in other:
+            for C in other:
                 BintC = B.intersection(C)
                 if BintC:
                     new_composition.append(BintC)
@@ -339,10 +339,16 @@ class AbstractSetPartition(ClonableArray):
             sage: sp1.sup(sp2) == s
             True
         """
-        res = Set(list(self))
+        res = list(self)
         for p in t:
-            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
-            res = res.difference(inters).union(_set_union(inters))
+            # find blocks in res which intersect p
+            inters = [(i, q) for i, q in enumerate(res)
+                      if any(a in q for a in p)]
+            # remove these blocks from res
+            for i, _ in reversed(inters):
+                del res[i]
+            # add the union
+            res.append([e for _, q in inters for e in q])
         return self.parent()(res)
 
     def standard_form(self):
@@ -415,9 +421,9 @@ class AbstractSetPartition(ClonableArray):
             [{{1, 2, 3, 4}}, {{1, 3}, {2, 4}}]
             sage: SetPartition([[1],[2,4],[3]]).coarsenings()
             [{{1, 2, 3, 4}},
-             {{1}, {2, 3, 4}},
-             {{1, 3}, {2, 4}},
              {{1, 2, 4}, {3}},
+             {{1, 3}, {2, 4}},
+             {{1}, {2, 3, 4}},
              {{1}, {2, 4}, {3}}]
             sage: SetPartition([]).coarsenings()
             [{}]
@@ -429,9 +435,9 @@ class AbstractSetPartition(ClonableArray):
             # the elements of this part of s into a single part.
             ret = []
             for part in s:
-                cur = Set([])
+                cur = []
                 for i in part:
-                    cur = cur.union(self[i-1]) # -1 for indexing
+                    cur.extend(self[i-1]) # -1 for indexing
                 ret.append(cur)
             return ret
         return [self.parent()(union(s)) for s in SP]
@@ -446,10 +452,10 @@ class AbstractSetPartition(ClonableArray):
             sage: pd = PartitionDiagram([[1,-3,-5],[2,4],[3,-1,-2],[5],[-4]])
             sage: pd.max_block_size()
             3
-            sage: [d.max_block_size() for d in PartitionDiagrams(2)]
-            [4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
-            sage: [sp.max_block_size() for sp in SetPartitions(3)]
-            [3, 2, 2, 2, 1]
+            sage: sorted(d.max_block_size() for d in PartitionDiagrams(2))
+            [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4]
+            sage: sorted(sp.max_block_size() for sp in SetPartitions(3))
+            [1, 2, 2, 2, 3]
         """
         return max(len(block) for block in self)
 
@@ -490,11 +496,7 @@ class SetPartition(AbstractSetPartition):
     Here is the list of them::
 
         sage: SetPartitions(3).list()
-        [{{1, 2, 3}},
-         {{1}, {2, 3}},
-         {{1, 3}, {2}},
-         {{1, 2}, {3}},
-         {{1}, {2}, {3}}]
+        [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
 
     There are 6 set partitions of `\{1,2,3,4\}` whose underlying partition is
     `[2, 1, 1]`::
@@ -544,7 +546,9 @@ class SetPartition(AbstractSetPartition):
             {}
         """
         self._latex_options = {}
-        ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min), check=check)
+        sets = map(frozenset, s)
+        blocks = sorted(sets, key=min)
+        ClonableArray.__init__(self, parent, blocks, check=check)
 
     def check(self):
         """
@@ -567,7 +571,7 @@ class SetPartition(AbstractSetPartition):
             sage: s = S([1, 2, 3])
             Traceback (most recent call last):
             ...
-            TypeError: Element has no defined underlying set
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
         if self not in self.parent():
             raise ValueError("%s is not an element of %s"%(self, self.parent()))
@@ -1610,7 +1614,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         # Check that all parts are disjoint
-        base_set = Set([e for p in x for e in p])
+        base_set = set([e for p in x for e in p])
         if len(base_set) != sum(map(len, x)):
             return False
 
@@ -1722,7 +1726,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             return False
 
         for p in s:
-            x = p[0]
+            x = next(iter(p))
             for t_ in t:
                 if x in t_:
                     break
@@ -1817,8 +1821,16 @@ class SetPartitions_all(SetPartitions):
 
             sage: it = SetPartitions().__iter__()
             sage: [next(it) for x in range(10)]
-            [{}, {{1}}, {{1, 2}}, {{1}, {2}}, {{1, 2, 3}}, {{1}, {2, 3}},
-             {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}, {{1, 2, 3, 4}}]
+            [{},
+             {{1}},
+             {{1, 2}},
+             {{1}, {2}},
+             {{1, 2, 3}},
+             {{1, 2}, {3}},
+             {{1, 3}, {2}},
+             {{1}, {2, 3}},
+             {{1}, {2}, {3}},
+             {{1, 2, 3, 4}}]
         """
         n = 0
         while True:
@@ -1956,11 +1968,49 @@ class SetPartitions_set(SetPartitions):
         EXAMPLES::
 
             sage: SetPartitions(3).list()
-            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+            [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
         """
-        for p in Partitions(len(self._set)):
-            for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+        base_set = list(self.base_set())
+        def from_word(w):
+            sp = []
+            for i, b in zip(base_set, w):
+                if len(sp) <= b:
+                    sp.append([i])
+                else:
+                    sp[b].append(i)
+            return self.element_class(self, sp, check=False)
+
+        # Knuth, TAOCP 4A 7.2.1.5, Algorithm H
+        N = len(base_set)
+        # H1: initialize
+        a = [0]*N
+        if N <= 1:
+            yield from_word(a)
+            return
+        b = [1]*N
+        while True:
+            # H2: visit
+            yield from_word(a)
+            if a[-1] == b[-1]:
+                # H4: find j
+                j = N-2
+                while a[j] == b[j]:
+                    j -= 1
+                # H5: increase a_j
+                if j == 0:
+                    break
+                a[j] += 1
+                # H6: zero out a_{j+1},...,a_{n-1}
+                b[-1] = b[j] + (1 if a[j] == b[j] else 0)
+                j += 1
+                while j < N-1:
+                    a[j] = 0
+                    b[j] = b[-1]
+                    j += 1
+                a[-1] = 0
+            else:
+                # H3: increase a_{n-1}
+                a[-1] += 1
 
     def base_set(self):
         """
@@ -1986,8 +2036,8 @@ class SetPartitions_set(SetPartitions):
 
 class SetPartitions_setparts(SetPartitions_set):
     r"""
-    Class of all set partitions with fixed partition sizes corresponding to
-    an integer partition `\lambda`.
+    Set partitions with fixed partition sizes corresponding to an
+    integer partition `\lambda`.
     """
     @staticmethod
     def __classcall_private__(cls, s, parts):
@@ -2102,8 +2152,11 @@ class SetPartitions_setparts(SetPartitions_set):
         return sorted(map(len, x)) == list(reversed(self.parts))
 
 class SetPartitions_setn(SetPartitions_set):
+    """
+    Set partitions with a given number of blocks.
+    """
     @staticmethod
-    def __classcall_private__(cls, s, n):
+    def __classcall_private__(cls, s, k):
         """
         Normalize ``s`` to ensure a unique representation.
 
@@ -2115,16 +2168,16 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S1 is S2, S1 is S3
             (True, True)
         """
-        return super(SetPartitions_setn, cls).__classcall__(cls, frozenset(s), n)
+        return super(SetPartitions_setn, cls).__classcall__(cls, frozenset(s), k)
 
-    def __init__(self, s, n):
+    def __init__(self, s, k):
         """
         TESTS::
 
             sage: S = SetPartitions(5, 3)
             sage: TestSuite(S).run()
         """
-        self.n = n
+        self._k = k
         SetPartitions_set.__init__(self, s)
 
     def _repr_(self):
@@ -2134,7 +2187,36 @@ class SetPartitions_setn(SetPartitions_set):
             sage: SetPartitions(5, 3)
             Set partitions of {1, 2, 3, 4, 5} with 3 parts
         """
-        return "Set partitions of %s with %s parts"%(Set(self._set), self.n)
+        return "Set partitions of %s with %s parts"%(Set(self._set), self._k)
+
+    @property
+    def n(self):
+        """
+        ``self.n`` is deprecated; use :meth:`number_of_blocks` instead.
+
+        TESTS::
+
+            sage: SetPartitions(5, 3).n
+            doctest:...: DeprecationWarning: The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.
+            See https://trac.sagemath.org/25462 for details.
+            3
+
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(25462, 'The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.')
+        return self.number_of_blocks()
+
+    def number_of_blocks(self):
+        """
+        Return the number of blocks of the set partitions in ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions(5, 3).number_of_blocks()
+            3
+
+        """
+        return self._k
 
     def cardinality(self):
         """
@@ -2148,7 +2230,7 @@ class SetPartitions_setn(SetPartitions_set):
             sage: stirling_number2(5,3)
             25
         """
-        return stirling_number2(len(self._set), self.n)
+        return stirling_number2(len(self._set), self._k)
 
     def __iter__(self):
         """
@@ -2156,12 +2238,43 @@ class SetPartitions_setn(SetPartitions_set):
 
         EXAMPLES::
 
-            sage: SetPartitions(3).list()
-            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+            sage: SetPartitions(4, 2).list()
+            [{{1, 3, 4}, {2}},
+             {{1, 4}, {2, 3}},
+             {{1, 2, 4}, {3}},
+             {{1, 3}, {2, 4}},
+             {{1}, {2, 3, 4}},
+             {{1, 2}, {3, 4}},
+             {{1, 2, 3}, {4}}]
         """
-        for p in Partitions(len(self._set), length=self.n):
-            for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+        base_set = list(self.base_set())
+        def from_word(w):
+            sp = []
+            for i, b in zip(base_set, w):
+                if len(sp) <= b:
+                    sp.append([i])
+                else:
+                    sp[b].append(i)
+            return self.element_class(self, sp, check=False)
+
+        # Ruskey, Combinatorial Generation, Algorithm 4.23
+        n = len(base_set)
+        a = list(range(n))
+        def gen(n, k):
+            if n == k:
+                yield from_word(a)
+            else:
+                for i in range(k):
+                    a[n-1] = i
+                    for P in gen(n-1, k):
+                        yield P
+                    a[n-1] = n-1
+                if k > 1:
+                    a[n-1] = k-1
+                    for P in gen(n-1, k-1):
+                        yield P
+                    a[n-1] = n-1
+        return gen(n, self._k)
 
     def __contains__(self, x):
         """
@@ -2179,7 +2292,7 @@ class SetPartitions_setn(SetPartitions_set):
         """
         if not SetPartitions_set.__contains__(self, x):
             return False
-        return len(x) == self.n
+        return len(x) == self._k
 
     def random_element(self):
         r"""
@@ -2207,7 +2320,7 @@ class SetPartitions_setn(SetPartitions_set):
 
         base_set = list(self.base_set())
         N = len(base_set)
-        k = self.n
+        k = self._k
         p = re(N, k)
         return SetPartition([[base_set[e] for e in b] for b in p])
 
@@ -2335,4 +2448,3 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
-

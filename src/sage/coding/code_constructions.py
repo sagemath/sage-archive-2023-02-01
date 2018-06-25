@@ -104,11 +104,11 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         sage: for P in SetPartitions(6,[3,3]):
         ....:     res,aut= _is_a_splitting(P[0],P[1],7,return_automorphism=True)
         ....:     if res:
-        ....:         print((aut, P[0], P[1]))
-        (6, {1, 2, 3}, {4, 5, 6})
-        (3, {1, 2, 4}, {3, 5, 6})
-        (6, {1, 3, 5}, {2, 4, 6})
-        (6, {1, 4, 5}, {2, 3, 6})
+        ....:         print((aut, P))
+        (6, {{1, 2, 3}, {4, 5, 6}})
+        (3, {{1, 2, 4}, {3, 5, 6}})
+        (6, {{1, 3, 5}, {2, 4, 6}})
+        (6, {{1, 4, 5}, {2, 3, 6}})
 
     We illustrate now how to find idempotents in quotient rings::
 

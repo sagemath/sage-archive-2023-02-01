@@ -161,7 +161,10 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
 
     def f(wrapper, assigned=assigned, updated=updated):
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
+        # For backwards-compatibility with old versions of sage_wraps
         wrapper.f = wrapped
+        # For forwards-compatibility with functools.wraps on Python 3
+        wrapper.__wrapped__ = wrapped
         wrapper._sage_src_ = lambda: sage_getsource(wrapped)
         wrapper._sage_src_lines_ = lambda: sage_getsourcelines(wrapped)
         #Getting the signature right in documentation by Sphinx (Trac 9976)

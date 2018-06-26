@@ -91,14 +91,14 @@ def enum_affine_rational_field(X, B):
         sage: S = A.subscheme([x^2-y*z+3, w^3+z+y^2])
         sage: enum_affine_rational_field(S(QQ), 2)
         []
-        sage: enum_affine_rational_field(S(QQ), 3)
+        sage: enum_affine_rational_field(S(QQ), 3) # long time (10 s)
         [(-2, 0, -3, -1)]
 
     ::
 
         sage: A.<x,y> = AffineSpace(2, QQ)
         sage: C = Curve(x^2+y-x)
-        sage: enum_affine_rational_field(C, 10)
+        sage: enum_affine_rational_field(C, 10) # long time (3 s)
         [(-2, -6), (-1, -2), (-2/3, -10/9), (-1/2, -3/4), (-1/3, -4/9),
         (0, 0), (1/3, 2/9), (1/2, 1/4), (2/3, 2/9), (1, 0),
         (4/3, -4/9), (3/2, -3/4), (5/3, -10/9), (2, -2), (3, -6)]
@@ -347,11 +347,11 @@ def sieve(X, bound):
 
         sage: A.<x,y> = AffineSpace(2, QQ)
         sage: C = Curve(x^2+y^2-x)
-        sage: len(C.rational_points(20))
-        20
+        sage: len(C.rational_points(12)) # long time (6 s)
+        12
         sage: from sage.schemes.affine.affine_rational_point import sieve
-        sage: len(sieve(C, 20))
-        20
+        sage: len(sieve(C, 12))
+        12
 
     """
     # finds a projective embedding to use projective version of sieve

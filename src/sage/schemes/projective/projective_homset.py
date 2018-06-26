@@ -79,10 +79,10 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
         kwds:
 
-        - ``bound`` - integer (optional, default=0). The bound for the coordinates for
+        - ``bound`` - real number (optional, default=0). The bound for the coordinates for
           subschemes with dimension at least 1.
 
-        - ``prec`` - integer (optional, default=53). The precision to use to
+        - ``precision`` - integer (optional, default=53). The precision to use to
           compute the elements of bounded height for number fields.
 
         - ``point_tolerance`` - positive real number (optional, default=10^(-10)).
@@ -93,23 +93,18 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
           For numerically inexact fields, points are on the subscheme if they
           satisfy the equations to within tolerance.
 
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+          for enumeration over number fields.
+
         OUTPUT:
 
-        A list of points. Over a finite field, all points are
-        returned. Over an infinite field, all points satisfying the
-        bound are returned.
+        - a list of rational points of a projective scheme
 
         .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
-
-           For numerically inexact fields such as ComplexField or RealField the
-           list of points returned is very likely to be incomplete. It may also
-           contain repeated points due to tolerance.
+        
+            For numerically inexact fields such as ComplexField or RealField the
+            list of points returned is very likely to be incomplete. It may also
+            contain repeated points due to tolerances.
 
         EXAMPLES::
 
@@ -273,7 +268,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                 return rat_points
         R = self.value_ring()
         B = kwds.pop('bound', 0)
-        prec = kwds.pop('prec', 53)
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
@@ -283,7 +279,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-            return enum_projective_number_field(self,B, prec=prec)
+            return enum_projective_number_field(self, bound=B, tolerance=tol, precision=prec)
         elif is_FiniteField(R):
             from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())
@@ -659,7 +655,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
         return self
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)

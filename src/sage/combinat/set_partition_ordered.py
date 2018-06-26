@@ -49,9 +49,10 @@ import sage.combinat.permutation as permutation
 from functools import reduce
 from sage.categories.cartesian_product import cartesian_product
 
+
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class OrderedSetPartition(ClonableArray):
-    """
+    r"""
     An ordered partition of a set.
 
     An ordered set partition `p` of a set `s` is a list of pairwise
@@ -348,6 +349,65 @@ class OrderedSetPartition(ClonableArray):
         """
         return OrderedSetPartitions()(sum((list(i) for i in osps), []))
 
+    def reversed(self):
+        r"""
+        Return the reversal of the ordered set partition ``self``.
+
+        The *reversal* of an ordered set partition
+        `(P_1, P_2, \ldots, P_k)` is defined to be the ordered
+        set partition `(P_k, P_{k-1}, \ldots, P_1)`.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1, 3], [2]]).reversed()
+            [{2}, {1, 3}]
+            sage: OrderedSetPartition([[1, 5], [2, 4]]).reversed()
+            [{2, 4}, {1, 5}]
+            sage: OrderedSetPartition([[-1], [-2], [3, 4], [0]]).reversed()
+            [{0}, {3, 4}, {-2}, {-1}]
+            sage: OrderedSetPartition([]).reversed()
+            []
+        """
+        par = parent(self)
+        return par(list(reversed(list(self))))
+
+    def complement(self):
+        r"""
+        Return the complement of the ordered set partition ``self``.
+
+        This assumes that ``self`` is an ordered set partition of
+        an interval of `\ZZ`.
+
+        Let `(P_1, P_2, \ldots, P_k)` be an ordered set partition
+        of some interval `I` of `\ZZ`. Let `\omega` be the unique
+        strictly decreasing bijection `I \to I`. Then, the
+        *complement* of `(P_1, P_2, \ldots, P_k)` is defined to be
+        the ordered set partition
+        `(\omega(P_1), \omega(P_2), \ldots, \omega(P_k))`.
+
+        EXAMPLES::
+
+            sage: OrderedSetPartition([[1, 2], [3]]).complement()
+            [{2, 3}, {1}]
+            sage: OrderedSetPartition([[1, 3], [2]]).complement()
+            [{1, 3}, {2}]
+            sage: OrderedSetPartition([[2, 3]]).complement()
+            [{2, 3}]
+            sage: OrderedSetPartition([[1, 5], [2, 3], [4]]).complement()
+            [{1, 5}, {3, 4}, {2}]
+            sage: OrderedSetPartition([[-1], [-2], [1, 2], [0]]).complement()
+            [{1}, {2}, {-2, -1}, {0}]
+            sage: OrderedSetPartition([]).complement()
+            []
+        """
+        if len(self) <= 1:
+            return self
+        base_set = self.base_set()
+        m = min(base_set)
+        M = max(base_set)
+        mM = m + M
+        return OrderedSetPartitions()([[mM - i for i in part] for part in self])
+
     def finer(self):
         """
         Return the set of ordered set partitions which are finer
@@ -607,7 +667,7 @@ class OrderedSetPartition(ClonableArray):
 
 
     def is_strongly_finer(self, co2):
-        """
+        r"""
         Return ``True`` if the ordered set partition ``self`` is strongly
         finer than the ordered set partition ``co2``; otherwise, return
         ``False``.
@@ -711,7 +771,7 @@ class OrderedSetPartition(ClonableArray):
         # We can fatten each of the ordered set partitions setcomps
         # arbitrarily, and then concatenate the results.
         fattenings = [list(subcomp.fatter()) for subcomp in subcomps]
-        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(g) for g in fattening], []))
+        return FiniteEnumeratedSet([OrderedSetPartition(sum([list(gg) for gg in fattening], []))
             for fattening in cartesian_product(fattenings)])
 
     @combinatorial_map(name='to packed word')
@@ -1005,7 +1065,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
             True
             sage: OS.cardinality()
             14
-            sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
+            sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             14
         """
         return OrderedSetPartitions.__contains__(self, x) and len(x) == self.n
@@ -1079,7 +1139,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             sage: OrderedSetPartitions([1,2,3,4], [2,1,1])
             Ordered set partitions of {1, 2, 3, 4} into parts of size [2, 1, 1]
         """
-        return "Ordered set partitions of %s into parts of size %s"%(Set(self._set), self.c)
+        return "Ordered set partitions of %s into parts of size %s" % (Set(self._set), self.c)
 
     def __contains__(self, x):
         """
@@ -1090,10 +1150,10 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             True
             sage: OS.cardinality()
             12
-            sage: len(filter(lambda x: x in OS, OrderedSetPartitions([1,2,3,4])))
+            sage: len([x for x in OrderedSetPartitions([1,2,3,4]) if x in OS])
             12
         """
-        return OrderedSetPartitions.__contains__(self, x) and [len(_) for _ in x] == self.c
+        return OrderedSetPartitions.__contains__(self, x) and [len(z) for z in x] == self.c
 
     def cardinality(self):
         r"""
@@ -1329,6 +1389,6 @@ class SplitNK(OrderedSetPartitions_scomp):
         k = state['_k']
         OrderedSetPartitions_scomp.__init__(self, range(state['_n']), (k,n-k))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.split_nk", "SplitNK_nk", SplitNK)
 

@@ -1410,11 +1410,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                 raise ValueError('This element is not homogeneous')
 
             basis = self.parent().basis(self.degree(total))
-            F = self.parent().base()
             lift = self.lift()
-            monos = self.monomials()
-            c = [lift.monomial_coefficient(x.lift()) for x in basis]
-            return c
+            return [lift.monomial_coefficient(x.lift()) for x in basis]
 
 
 class GCAlgebra_multigraded(GCAlgebra):
@@ -2646,7 +2643,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     if degrees:
         try:
             for d in degrees:
-                _ = list(d)
+                list(d)
             # If the previous line doesn't raise an error, looks multi-graded.
             multi = True
         except TypeError:

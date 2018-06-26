@@ -421,6 +421,7 @@ Functions and methods
 from . import graph
 import sage.graphs.strongly_regular_db
 
+
 class GraphGenerators():
     r"""
     A class consisting of constructors for several common graphs, as well as
@@ -615,12 +616,13 @@ class GraphGenerators():
         sage: property = lambda G: G.is_vertex_transitive()
         sage: len(list(graphs(4, property)))
         1
-        sage: len(filter(property, graphs(4)))
+        sage: sum(1 for g in graphs(4) if property(g))
         4
+
         sage: property = lambda G: G.is_bipartite()
         sage: len(list(graphs(4, property)))
         7
-        sage: len(filter(property, graphs(4)))
+        sage: sum(1 for g in graphs(4) if property(g))
         7
 
     Generate graphs on the fly: (see :oeis:`A000088`)
@@ -749,7 +751,6 @@ class GraphGenerators():
             property = lambda x: True
 
         from sage.graphs.all import Graph
-        from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
         if degree_sequence is not None:

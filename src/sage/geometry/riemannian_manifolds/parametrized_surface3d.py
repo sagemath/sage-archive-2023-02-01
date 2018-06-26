@@ -654,11 +654,10 @@ class ParametrizedSurface3D(SageObject):
         """
         coefficients = {}
         for index in product((1, 2), repeat=2):
-            sorted_index = list(sorted(index))
+            sorted_index = sorted(index)
             coefficients[index] = \
                 self._compute_first_fundamental_form_coefficient(index)
         return coefficients
-
 
     def first_fundamental_form(self, vector1, vector2):
         r"""

@@ -27,7 +27,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modular.arithgroup.congroup_sl2z', 'SL2Z')
 from sage.structure.element import parent
 
-from .arithgroup_element import ArithmeticSubgroupElement
+from .arithgroup_element import ArithmeticSubgroupElement, M2Z as Mat2Z
 
 def is_ArithmeticSubgroup(x):
     r"""
@@ -220,6 +220,18 @@ class ArithmeticSubgroup(Group):
 
         """
         return hash((self.level(), self.index()))
+
+    def matrix_space(self):
+        """
+        Return the parent space of the matrices, which is always
+        ``MatrixSpace(ZZ, 2)``.
+
+        EXAMPLES::
+
+            sage: Gamma(3).matrix_space()
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        """
+        return Mat2Z
 
     def is_parent_of(self, x):
         r"""

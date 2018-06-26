@@ -13,15 +13,18 @@ from sage.env import (
     SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
     SAGE_VERSION
 )
-from jupyter_core.paths import ENV_JUPYTER_PATH
-JUPYTER_PATH = ENV_JUPYTER_PATH[0]
 
 
 class SageKernelSpec(object):
 
-    def __init__(self):
+    def __init__(self, prefix=None):
         """
         Utility to manage SageMath kernels and extensions
+
+        INPUT:
+
+        - ``prefix`` -- (optional, default: ``sys.prefix``)
+          directory for the installation prefix
 
         EXAMPLES::
 
@@ -29,10 +32,15 @@ class SageKernelSpec(object):
             sage: spec = SageKernelSpec()
             sage: spec._display_name    # random output
             'SageMath 6.9'
+            sage: spec.kernel_dir == SageKernelSpec(sys.prefix).kernel_dir
+            True
         """
         self._display_name = 'SageMath {0}'.format(SAGE_VERSION)
-        self.nbextensions_dir = os.path.join(JUPYTER_PATH, "nbextensions")
-        self.kernel_dir = os.path.join(JUPYTER_PATH, "kernels", self.identifier())
+        if prefix is None:
+            from sys import prefix
+        jupyter_dir = os.path.join(prefix, "share", "jupyter")
+        self.nbextensions_dir = os.path.join(jupyter_dir, "nbextensions")
+        self.kernel_dir = os.path.join(jupyter_dir, "kernels", self.identifier())
         self._mkdirs()
 
     def _mkdirs(self):
@@ -236,7 +244,7 @@ class SageKernelSpec(object):
         )
 
     @classmethod
-    def update(cls):
+    def update(cls, *args, **kwds):
         """
         Configure the Jupyter notebook for the SageMath kernel
 
@@ -250,7 +258,7 @@ class SageKernelSpec(object):
             sage: spec = SageKernelSpec()
             sage: spec.update()  # not tested
         """
-        instance = cls()
+        instance = cls(*args, **kwds)
         instance.use_local_mathjax()
         instance.use_local_jsmol()
         instance.use_local_threejs()

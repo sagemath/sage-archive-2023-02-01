@@ -546,8 +546,9 @@ def singleton_upper_bound(n,q,d):
     _check_n_q_d(n, q, d, field_based=False)
     return q**(n - d + 1)
 
-def gv_info_rate(n,delta,q):
-    """
+
+def gv_info_rate(n, delta, q):
+    r"""
     The Gilbert-Varshamov lower bound for information rate.
 
     The Gilbert-Varshamov lower bound for information rate of a `q`-ary code of
@@ -561,6 +562,7 @@ def gv_info_rate(n,delta,q):
     q = ZZ(q)
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
+
 
 def entropy(x, q=2):
     """
@@ -699,8 +701,9 @@ def singleton_bound_asymp(delta,q):
     """
     return (1-delta)
 
-def plotkin_bound_asymp(delta,q):
-    """
+
+def plotkin_bound_asymp(delta, q):
+    r"""
     The asymptotic Plotkin bound for the information rate.
 
     This only makes sense when `0 < \delta < 1-1/q`.
@@ -713,8 +716,9 @@ def plotkin_bound_asymp(delta,q):
     r = 1-1/q
     return (1-delta/r)
 
-def elias_bound_asymp(delta,q):
-    """
+
+def elias_bound_asymp(delta, q):
+    r"""
     The asymptotic Elias bound for the information rate.
 
     This only makes sense when `0 < \delta < 1-1/q`.
@@ -727,8 +731,9 @@ def elias_bound_asymp(delta,q):
     r = 1-1/q
     return RDF((1-entropy(r-sqrt(r*(r-delta)), q)))
 
-def mrrw1_bound_asymp(delta,q):
-    """
+
+def mrrw1_bound_asymp(delta, q):
+    r"""
     The first asymptotic McEliese-Rumsey-Rodemich-Welsh bound.
 
     This only makes sense when `0 < \delta < 1-1/q`.

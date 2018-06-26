@@ -2956,17 +2956,17 @@ cdef class Matroid(SageObject):
             sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
             sage: SimplicialComplex(M.no_broken_circuits_sets())
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
-             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+             and facets {(1, 2, 4), (1, 2, 5), (1, 3, 4), (1, 3, 5)}
             sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
-             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+             and facets {(1, 3, 5), (1, 4, 5), (2, 3, 5), (2, 4, 5)}
 
         ::
 
             sage: M = Matroid(circuits=[[1,2,3], [1,4,5], [2,3,4,5]])
             sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
-             and facets {(2, 3, 5), (1, 3, 5), (2, 4, 5), (3, 4, 5)}
+             and facets {(1, 3, 5), (2, 3, 5), (2, 4, 5), (3, 4, 5)}
         """
         ret = []
         BC = self.broken_circuits(ordering)
@@ -7729,10 +7729,10 @@ cdef class Matroid(SageObject):
             sage: M = Matroid(circuits=[[1,2,3], [3,4,5], [1,2,4,5]])
             sage: M.broken_circuit_complex()
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
-             and facets {(1, 3, 4), (1, 3, 5), (1, 2, 5), (1, 2, 4)}
+             and facets {(1, 2, 4), (1, 2, 5), (1, 3, 4), (1, 3, 5)}
             sage: M.broken_circuit_complex([5,4,3,2,1])
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
-             and facets {(1, 4, 5), (2, 3, 5), (1, 3, 5), (2, 4, 5)}
+             and facets {(1, 3, 5), (1, 4, 5), (2, 3, 5), (2, 4, 5)}
         """
         from sage.homology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))

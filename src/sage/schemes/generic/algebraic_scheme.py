@@ -1707,16 +1707,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
           For numerically inexact fields, points are on the subscheme if they
           satisfy the equations to within tolerance.
 
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
         OUTPUT: list of points in subscheme or ambient space
 
         .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output. THis applied to enumeration of points
-           over number field for subschemes of dimension at least 1.
 
            For numerically inexact fields such as ComplexField or RealField the
            list of points returned is very likely to be incomplete at best.

@@ -24,25 +24,16 @@ AUTHORS:
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import repr_lincomb
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import RingElement
 from sage.structure.indexed_generators import IndexedGenerators
-from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
+from sage.categories.triangular_kac_moody_algebras import TriangularKacMoodyAlgebras
 
-from sage.algebras.algebra import Algebra
-from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra, LieAlgebraFromAssociative
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
 from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
-from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
 
 
@@ -985,13 +976,13 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: TestSuite(L).run()  # long time
         """
         self._cartan_type = cartan_type
-        RL = cartan_type.root_system().root_lattice()
-        alpha = RL.simple_roots()
-        p_roots = list(RL.positive_roots_by_height())
+        self._Q = cartan_type.root_system().root_lattice()
+        alpha = self._Q.simple_roots()
+        p_roots = list(self._Q.positive_roots_by_height())
         n_roots = [-x for x in p_roots]
         self._p_roots_index = {al: i for i,al in enumerate(p_roots)}
-        alphacheck = RL.simple_coroots()
-        roots = frozenset(RL.roots())
+        alphacheck = self._Q.simple_coroots()
+        roots = frozenset(self._Q.roots())
         num_sroots = len(alpha)
         one = R.one()
 
@@ -1092,7 +1083,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         names = ['e{}'.format(i) for i in range(1, num_sroots+1)]
         names += ['f{}'.format(i) for i in range(1, num_sroots+1)]
         names += ['h{}'.format(i) for i in range(1, num_sroots+1)]
-        category = LieAlgebras(R).FiniteDimensional().WithBasis()
+        category = TriangularKacMoodyAlgebras(R).FiniteDimensional()
         index_set = p_roots + list(alphacheck) + n_roots
         names = tuple(names)
         from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -1133,7 +1124,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
 
         # Setup the conversion between the Sage roots and GAP roots.
         #   The GAP roots are given in terms of the weight lattice.
-        p_roots = list(ct.root_system().root_lattice().positive_roots_by_height())
+        p_roots = list(self._Q.positive_roots_by_height())
         WL = ct.root_system().weight_lattice()
         La = WL.fundamental_weights()
         convert = {WL(root): root for root in p_roots}
@@ -1175,7 +1166,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L._repr_generator(K[4])
             'h2'
         """
-        if m in self._cartan_type.root_system().root_lattice().simple_coroots():
+        if m in self._Q.simple_coroots():
             return "h{}".format(m.support()[0])
         return IndexedGenerators._repr_generator(self, m)
 
@@ -1192,7 +1183,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L._latex_generator(K[4])
             'h_{2}'
         """
-        if m in self._cartan_type.root_system().root_lattice().simple_coroots():
+        if m in self._Q.simple_coroots():
             return "h_{{{}}}".format(m.support()[0])
         return IndexedGenerators._latex_generator(self, m)
 
@@ -1230,34 +1221,78 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             return (len(self._p_roots_index)
                     + self._cartan_type.rank()
                     + self._p_roots_index[-x])
-        RL = self._cartan_type.root_system().root_lattice()
-        alphacheck = list(RL.simple_coroots())
-        return len(self._p_roots_index) + alphacheck.index(x)
+        alphacheck = list(self._Q.simple_coroots())
+        try:
+            return len(self._p_roots_index) + alphacheck.index(x)
+        except ValueError:
+            raise KeyError(x)
 
-    def cartan_type(self):
+    def degree_on_basis(self, m):
         """
-        Return the Cartan type of ``self``.
+        Return the degree of the basis element indexed by ``m``.
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
-            sage: L.cartan_type()
-            ['A', 2]
+            sage: L = LieAlgebra(QQ, cartan_type=['G', 2])
+            sage: [L.degree_on_basis(m) for m in L.basis().keys()]
+            [alpha[2], alpha[1], alpha[1] + alpha[2],
+             2*alpha[1] + alpha[2], 3*alpha[1] + alpha[2],
+             3*alpha[1] + 2*alpha[2],
+             0, 0,
+             -alpha[2], -alpha[1], -alpha[1] - alpha[2],
+             -2*alpha[1] - alpha[2], -3*alpha[1] - alpha[2],
+             -3*alpha[1] - 2*alpha[2]]
         """
-        return self._cartan_type
+        if m.parent() is self._Q:
+            return m
+        return self._Q.zero()
 
-    def weyl_group(self):
+    def _negative_half_index_set(self):
         """
-        Return the Weyl group of ``self``.
+        Return the index set of the basis for the negative half of ``self``.
 
         EXAMPLES::
 
-            sage: L = LieAlgebra(QQ, cartan_type=['A', 2])
-            sage: L.weyl_group()
-            Weyl Group of type ['A', 2] (as a matrix group acting on the ambient space)
+            sage: L = lie_algebras.sp(QQ, 4)
+            sage: L._negative_half_index_set()
+            [-alpha[2], -alpha[1] - alpha[2],
+             -2*alpha[1] - alpha[2], -alpha[1]]
         """
-        from sage.combinat.root_system.weyl_group import WeylGroup
-        return WeylGroup(self._cartan_type)
+        return [-x for x in self._p_roots_index]
+
+    def _weight_action(self, m, wt):
+        """
+        Return the action of the basis element indexed by ``m`` on ``wt``.
+
+        INPUT:
+
+        - ``m`` -- an index of a basis element of the Cartan subalgebra
+        - ``wt`` -- a weight
+
+        EXAMPLES::
+
+            sage: L = lie_algebras.sp(QQ, 6)
+            sage: La = L.cartan_type().root_system().ambient_space().fundamental_weights()
+            sage: mu = La[1] - 3/5*La[2]
+            sage: ac = L.cartan_type().root_system().coroot_lattice().simple_roots()
+            sage: L._weight_action(ac[1], mu)
+            1
+            sage: L._weight_action(ac[2], mu)
+            -3/5
+            sage: L._weight_action(ac[3], mu)
+            0
+        """
+        ac = self._cartan_type.root_system().root_lattice().simple_coroots()
+        aci = dict(ac.inverse_family())
+        if m not in aci:
+            raise ValueError("not an element in the Cartan subalgebra")
+        R = self.base_ring()
+        # This is a little ugly way to make sure we have the correct
+        #   coroots. However, it does work as :meth:`scalar` is not smart
+        #   enough in the ambient space to correctly convert things to do
+        #   the scalar product.
+        alc = wt.parent().simple_coroots()
+        return R(wt.scalar( alc[aci[m]] ))
 
     def affine(self, kac_moody=False):
         """
@@ -1286,9 +1321,9 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L.indices_to_positive_roots_map()
             {1: alpha[1], 2: alpha[2], 3: alpha[1] + alpha[2]}
         """
-        RL = self._cartan_type.root_system().root_lattice()
-        return {i+1: r for i,r in enumerate(RL.positive_roots())}
+        return {i+1: r for i,r in enumerate(self._Q.positive_roots())}
 
+    @cached_method
     def lie_algebra_generators(self, str_keys=False):
         r"""
         Return the Chevalley Lie algebra generators of ``self``.
@@ -1307,9 +1342,8 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             Finite family {'f1': E[-alpha[1]], 'h1': h1, 'e1': E[alpha[1]]}
         """
         index_set = self._cartan_type.index_set()
-        RL = self._cartan_type.root_system().root_lattice()
-        alpha = RL.simple_roots()
-        alphacheck = RL.simple_coroots()
+        alpha = self._Q.simple_roots()
+        alphacheck = self._Q.simple_coroots()
         B = self.basis()
         ret = {}
 
@@ -1329,6 +1363,39 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
         return Family(ret)
 
     @cached_method
+    def _part_generators(self, positive=False):
+        r"""
+        Return the Lie algebra generators for the positive or
+        negative half of ``self``.
+
+        INPUT:
+
+        - ``positive`` -- boolean (default: ``False``); if ``True``
+          then return positive part generators, otherwise the return
+          the negative part generators
+
+        OUTPUT:
+
+        A :func:`~sage.sets.family.Family` whose keys are the
+        index set of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, cartan_type=['G', 2])
+            sage: list(L._part_generators(True))
+            [E[alpha[1]],
+             E[alpha[2]]]
+        """
+        I = self._cartan_type.index_set()
+        al = self._Q.simple_roots()
+        G = self.lie_algebra_generators()
+        if positive:
+            d = {i: G[al[i]] for i in I}
+        else:
+            d = {i: G[-al[i]] for i in I}
+        return Family(I, d.__getitem__)
+
+    @cached_method
     def gens(self):
         """
         Return the generators of ``self`` in the order of `e_i`, `f_i`,
@@ -1341,9 +1408,8 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             (E[alpha[1]], E[alpha[2]], E[-alpha[1]], E[-alpha[2]], h1, h2)
         """
         index_set = self._cartan_type.index_set()
-        RL = self._cartan_type.root_system().root_lattice()
-        alpha = RL.simple_roots()
-        alphacheck = RL.simple_coroots()
+        alpha = self._Q.simple_roots()
+        alphacheck = self._Q.simple_coroots()
         B = self.basis()
 
         ret = []
@@ -1372,8 +1438,7 @@ class LieAlgebraChevalleyBasis(LieAlgebraWithStructureCoefficients):
             sage: L.highest_root_basis_elt(False)
             E[-alpha[1] - alpha[2]]
         """
-        RL = self._cartan_type.root_system().root_lattice()
-        theta = RL.highest_root()
+        theta = self._Q.highest_root()
         B = self.basis()
         if pos:
             return B[theta]

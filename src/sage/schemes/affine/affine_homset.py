@@ -129,11 +129,26 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         basis calculation. For schemes or subschemes with dimension greater than 1
         points are determined through enumeration up to the specified bound.
 
+        Over a finite field, all points are returned. Over an infinite field, all points satisfying the bound
+        are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the field
+        is infinite or not.
+
+        For number fields, this uses the
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
+
+
         INPUT:
 
         kwds:
 
-        - ``B`` -- integer (optional, default: 0). The bound for the
+        - ``bound`` - real number (optional, default: 0). The bound for the
           height of the coordinates. Only used for subschemes with
           dimension at least 1.
 
@@ -141,22 +156,17 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
           For numerically inexact fields, points are on the subscheme if they
           satisfy the equations to within tolerance.
 
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+          for enumeration over number fields.
+
+        - ``precision`` - the precision to use for computing the elements of
+          bounded height of number fields.
 
         OUTPUT:
 
-        - If the base ring is a finite field: all points of the scheme,
-          given by coordinate tuples.
-
-        - If the base ring is a number field or `\ZZ`: the subset of points whose
-          coordinates have height ``B`` or less.
+        - a list of rational points of a affine scheme
 
         .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
 
            For numerically inexact fields such as ComplexField or RealField the
            list of points returned is very likely to be incomplete. It may also
@@ -184,8 +194,8 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
             sage: A.<x,y> = AffineSpace(K, 2)
-            sage: len(A(K).points(bound=9))
-            361
+            sage: len(A(K).points(bound=2))
+            1849
 
         ::
 
@@ -212,6 +222,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             [(0.0, 0.0)]
         """
         from sage.schemes.affine.affine_space import is_AffineSpace
+
         X = self.codomain()
         if not is_AffineSpace(X) and X.base_ring() in Fields():
             if hasattr(X.base_ring(), 'precision'):
@@ -296,6 +307,8 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
                 return rat_points
         R = self.value_ring()
         B = kwds.pop('bound', 0)
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
         if is_RationalField(R) or R == ZZ:
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
@@ -305,7 +318,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.affine.affine_rational_point import enum_affine_number_field
-            return enum_affine_number_field(self,B)
+            return enum_affine_number_field(self, bound=B, tolerance=tol, precision=prec)
         elif is_FiniteField(R):
             from sage.schemes.affine.affine_rational_point import enum_affine_finite_field
             return enum_affine_finite_field(self)

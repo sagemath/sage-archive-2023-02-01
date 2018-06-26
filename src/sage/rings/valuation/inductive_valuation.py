@@ -691,7 +691,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         - ``coefficients`` -- the coefficients of ``G`` in the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic expansion if known (default: ``None``)
 
-        - ``valauations`` -- the valuations of ``coefficients`` if known
+        - ``valuations`` -- the valuations of ``coefficients`` if known
           (default: ``None``)
 
         - ``check`` -- whether to check that ``G`` is a squarefree monic

@@ -2198,11 +2198,14 @@ class Polyhedron_base(Element):
             sage: p.center()
             (1, 0, 0)
         """
-        vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
-        for v in self.vertex_generator():
-            vertex_sum += v.vector()
-        vertex_sum.set_immutable()
-        return vertex_sum / self.n_vertices()
+        if self.dim() == 0:
+            return self.vertices()[0].vector()
+        else:
+            vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
+            for v in self.vertex_generator():
+                vertex_sum += v.vector()
+            vertex_sum.set_immutable()
+            return vertex_sum / self.n_vertices()
 
     @cached_method
     def representative_point(self):
@@ -4332,6 +4335,106 @@ class Polyhedron_base(Element):
         return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
                           base_ring=self.base_ring())
 
+    def one_point_suspension(self, vertex):
+        """
+        Return the one-point suspension of ``self`` by splitting the vertex
+        ``vertex``.
+
+        The resulting polyhedron has one more vertex and its dimension
+        increases by one.
+
+        INPUT:
+
+        - ``vertex`` -- a Vertex of ``self``.
+
+        EXAMPLES::
+
+            sage: cube = polytopes.cube()
+            sage: v = cube.vertices()[0]
+            sage: ops_cube = cube.one_point_suspension(v)
+            sage: ops_cube.f_vector()
+            (1, 9, 24, 24, 9, 1)
+
+            sage: pentagon  = polytopes.regular_polygon(5)
+            sage: v = pentagon.vertices()[0]
+            sage: ops_pentagon = pentagon.one_point_suspension(v)
+            sage: ops_pentagon.f_vector()
+            (1, 6, 12, 8, 1)
+
+        It works with a polyhedral face as well::
+
+            sage: vv = cube.faces(0)[0]
+            sage: ops_cube2 = cube.one_point_suspension(vv)
+            sage: ops_cube == ops_cube2
+            True
+
+        .. SEEALSO::
+
+            :meth:`face_split`
+
+        TESTS::
+
+            sage: e = cube.faces(1)[0]
+            sage: cube.one_point_suspension(e)
+            Traceback (most recent call last):
+            ...
+            TypeError: The vertex <0,1> should be a Vertex or PolyhedronFace of dimension 0
+        """
+        from sage.geometry.polyhedron.representation import Vertex
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if isinstance(vertex,Vertex):
+            return self.face_split(vertex)
+        elif isinstance(vertex,PolyhedronFace) and vertex.dim() == 0:
+            return self.face_split(vertex)
+        else:
+            raise TypeError("The vertex {} should be a Vertex or PolyhedronFace of dimension 0".format(vertex))
+
+    def face_split(self, face):
+        """
+        Return the face splitting of the face ``face``.
+
+        Splitting a face correspond to the bipyramid (see :meth:`bipyramid`)
+        of ``self`` where the two new vertices are placed above and below 
+        the center of ``face`` instead of the center of the whole polyhedron.
+        The two new vertices are placed in the new dimension at height `-1` and
+        `1`.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace or a Vertex.
+
+        EXAMPLES::
+
+            sage: pentagon  = polytopes.regular_polygon(5)
+            sage: f = pentagon.faces(1)[0]
+            sage: fsplit_pentagon = pentagon.face_split(f)
+            sage: fsplit_pentagon.f_vector()
+            (1, 7, 14, 9, 1)
+
+        .. SEEALSO::
+
+            :meth:`one_point_suspension`
+        """
+        from sage.geometry.polyhedron.representation import Vertex
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if isinstance(face,Vertex):
+            new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                           [list(face) + [x] for x in [-1,1]]  # Splitting the vertex
+        elif isinstance(face,PolyhedronFace):
+            new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                           [list(face.as_polyhedron().center()) + [x] for x in [-1,1]]  # Splitting the face
+        else:
+            raise TypeError("The face {} should be a Vertex or PolyhedronFace".format(face)) 
+
+        new_rays = []
+        new_rays.extend( [ r + [0] for r in self.ray_generator() ] )
+
+        new_lines = []
+        new_lines.extend( [ l + [0] for l in self.line_generator() ] )
+
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines)
+
     def projection(self):
         """
         Return a projection object.
@@ -5481,7 +5584,7 @@ class Polyhedron_base(Element):
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \
-                box_points<threshold:
+                box_points < threshold:
             from sage.geometry.integral_points import rectangular_box_points
             return rectangular_box_points(list(box_min), list(box_max), self)
 

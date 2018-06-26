@@ -5,18 +5,18 @@ Families of graphs
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
-###########################################################################
+# ****************************************************************************
+#       Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#                          Emily A. Kirkman
+#                     2009 Michael C. Yurko <myurko@gmail.com>
+#                     2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
 #
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
-#                              and Emily A. Kirkman
-#           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
-#
-#           Copyright (C) 2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
-#            (Rowan Schrecker supported by UK EPSRC grant EP/K040251/2)
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-###########################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, division
 import six
 from six.moves import range
@@ -197,22 +197,13 @@ def BalancedTree(r, h):
     gracefully::
 
         sage: graphs.BalancedTree(1, 10)
-        Balanced tree: Graph on 2 vertices
-
-        sage: graphs.BalancedTree(-1, 10)
-        Balanced tree: Graph on 1 vertex
+        Balanced tree: Graph on 11 vertices
 
     Similarly, we usually want the tree must have height `h \geq 1`
     but the algorithm also degenerates gracefully here::
 
         sage: graphs.BalancedTree(3, 0)
         Balanced tree: Graph on 1 vertex
-
-        sage: graphs.BalancedTree(5, -2)
-        Balanced tree: Graph on 0 vertices
-
-        sage: graphs.BalancedTree(-2,-2)
-        Balanced tree: Graph on 0 vertices
     """
     import networkx
     return Graph(networkx.balanced_tree(r, h), name="Balanced tree")

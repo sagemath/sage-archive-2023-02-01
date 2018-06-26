@@ -187,22 +187,22 @@ class infix_operator(object):
 
     An infix dot product operator::
 
-        sage: def dot(a,b):
+        sage: @infix_operator('multiply')
+        ....: def dot(a, b):
         ....:     '''Dot product.'''
         ....:     return a.dot_product(b)
-        sage: dot=infix_operator('multiply')(dot)
-        sage: u=vector([1,2,3])
-        sage: v=vector([5,4,3])
+        sage: u = vector([1, 2, 3])
+        sage: v = vector([5, 4, 3])
         sage: u *dot* v
         22
 
     An infix element-wise addition operator::
 
-        sage: def eadd(a,b):
-        ....:   return a.parent([i+j for i,j in zip(a,b)])
-        sage: eadd=infix_operator('add')(eadd)
-        sage: u=vector([1,2,3])
-        sage: v=vector([5,4,3])
+        sage: @infix_operator('add')
+        ....: def eadd(a, b):
+        ....:   return a.parent([i + j for i, j in zip(a, b)])
+        sage: u = vector([1, 2, 3])
+        sage: v = vector([5, 4, 3])
         sage: u +eadd+ v
         (6, 6, 6)
         sage: 2*u +eadd+ v
@@ -210,81 +210,30 @@ class infix_operator(object):
 
     A hack to simulate a postfix operator::
 
-        sage: def thendo(a,b): return b(a)
-        sage: thendo=infix_operator('or')(thendo)
+        sage: @infix_operator('or')
+        ....: def thendo(a, b):
+        ....:     return b(a)
         sage: x |thendo| cos |thendo| (lambda x: x^2)
         cos(x)^2
     """
 
+    operators = {
+        'add': {'left': '__add__', 'right': '__radd__'},
+        'multiply': {'left': '__mul__', 'right': '__rmul__'},
+        'or': {'left': '__or__', 'right': '__ror__'},
+    }
+
     def __init__(self, precedence):
         """
-        A decorator for functions which allows for a hack that makes
-        the function behave like an infix operator.
+        INPUT:
 
-        This decorator exists as a convenience for interactive use.
-
-        EXAMPLES::
-
-            sage: def dot(a,b): return a.dot_product(b)
-            sage: dot=infix_operator('multiply')(dot)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u *dot* v
-            22
-
-            sage: from sage.misc.decorators import infix_operator
-            sage: def eadd(a,b):
-            ....:   return a.parent([i+j for i,j in zip(a,b)])
-            sage: eadd=infix_operator('add')(eadd)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u +eadd+ v
-            (6, 6, 6)
-            sage: 2*u +eadd+ v
-            (7, 8, 9)
-
-            sage: from sage.misc.decorators import infix_operator
-            sage: def thendo(a,b): return b(a)
-            sage: thendo=infix_operator('or')(thendo)
-            sage: x |thendo| cos |thendo| (lambda x: x^2)
-            cos(x)^2
+        - ``precedence`` -- one of ``'add'``, ``'multiply'``, or ``'or'``
+          indicating the new operator's precedence in the order of operations.
         """
         self.precedence = precedence
 
-    operators = {'add': {'left': '__add__', 'right': '__radd__'},
-                 'multiply': {'left': '__mul__', 'right': '__rmul__'},
-                 'or': {'left': '__or__', 'right': '__ror__'},
-                 }
-
     def __call__(self, func):
-        """
-        Returns a function which acts as an inline operator.
-
-        EXAMPLES::
-
-            sage: from sage.misc.decorators import infix_operator
-            sage: def dot(a,b): return a.dot_product(b)
-            sage: dot=infix_operator('multiply')(dot)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u *dot* v
-            22
-
-            sage: def eadd(a,b):
-            ....:   return a.parent([i+j for i,j in zip(a,b)])
-            sage: eadd=infix_operator('add')(eadd)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u +eadd+ v
-            (6, 6, 6)
-            sage: 2*u +eadd+ v
-            (7, 8, 9)
-
-            sage: def thendo(a,b): return b(a)
-            sage: thendo=infix_operator('or')(thendo)
-            sage: x |thendo| cos |thendo| (lambda x: x^2)
-            cos(x)^2
-        """
+        """Returns a function which acts as an inline operator."""
 
         left_meth = self.operators[self.precedence]['left']
         right_meth = self.operators[self.precedence]['right']
@@ -313,51 +262,18 @@ class _infix_wrapper(object):
 
     def __init__(self, left=None, right=None):
         """
-        Initialize the actual infix object, with possibly a
-        specified left and/or right operand.
-
-        EXAMPLES::
-
-            sage: def dot(a,b): return a.dot_product(b)
-            sage: dot=infix_operator('multiply')(dot)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u *dot* v
-            22
+        Initialize the actual infix object, with possibly a specified left
+        and/or right operand.
         """
-
         self.left = left
         self.right = right
 
     def __call__(self, *args, **kwds):
-        """
-        Call the passed function.
-
-        EXAMPLES::
-
-            sage: def dot(a,b): return a.dot_product(b)
-            sage: dot=infix_operator('multiply')(dot)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: dot(u,v)
-            22
-        """
+        """Call the passed function."""
         return self.function(*args, **kwds)
 
     def _left(self, right):
-        """
-        The function for the operation on the left (e.g., __add__).
-
-        EXAMPLES::
-
-            sage: def dot(a,b): return a.dot_product(b)
-            sage: dot=infix_operator('multiply')(dot)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u *dot* v
-            22
-        """
-
+        """The function for the operation on the left (e.g., __add__)."""
         if self.left is None:
             if self.right is None:
                 new = copy(self)
@@ -370,18 +286,7 @@ class _infix_wrapper(object):
             return self.function(self.left, right)
 
     def _right(self, left):
-        """
-        The function for the operation on the right (e.g., __radd__).
-
-        EXAMPLES::
-
-            sage: def dot(a,b): return a.dot_product(b)
-            sage: dot=infix_operator('multiply')(dot)
-            sage: u=vector([1,2,3])
-            sage: v=vector([5,4,3])
-            sage: u *dot* v
-            22
-        """
+        """The function for the operation on the right (e.g., __radd__)."""
         if self.right is None:
             if self.left is None:
                 new = copy(self)

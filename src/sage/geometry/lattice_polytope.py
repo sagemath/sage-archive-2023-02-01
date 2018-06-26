@@ -138,6 +138,7 @@ import subprocess
 import warnings
 from six import StringIO
 from functools import reduce
+from io import IOBase
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):
@@ -295,7 +296,7 @@ def LatticePolytope(data, compute_vertices=True, n=0, lattice=None):
         skip_palp_matrix(f, n)
         data = read_palp_point_collection(data)
         f.close()
-    if isinstance(data, (file, StringIO)):
+    if isinstance(data, (IOBase, StringIO)):
         data = read_palp_point_collection(data)
     if not is_PointCollection(data) and not isinstance(data, (list, tuple)):
         try:

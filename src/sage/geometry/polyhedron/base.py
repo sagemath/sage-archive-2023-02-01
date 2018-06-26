@@ -3133,6 +3133,116 @@ class Polyhedron_base(Element):
                           rays=new_rays, lines=new_lines,
                           base_ring=new_ring)
 
+    def subdirect_sum(self, other):
+        """
+        Return the subdirect sum of ``self`` and ``other``. 
+
+        The subdirect sum of two polyhedron is a projection of the join of the
+        two polytopes. It is obtained by placing the two objects in orthogonal subspaces
+        intersecting at the origin.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron_base`.
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[1],[2]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[3],[4]], base_ring=QQ)
+            sage: sds = P1.subdirect_sum(P2);sds
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4
+            vertices
+            sage: sds.vertices()
+            (A vertex at (0, 3),
+             A vertex at (0, 4),
+             A vertex at (1, 0),
+             A vertex at (2, 0))
+
+        .. SEEALSO::
+
+            :meth:`join`
+            :meth:`direct_sum`
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x)+[0]*dim_other for x in self.vertex_generator()] + \
+                       [[0]*dim_self+list(x) for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r+[0]*dim_other
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l+[0]*dim_other
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
+    def direct_sum(self, other):
+        """
+        Return the direct sum of ``self`` and ``other``.
+
+        The direct sum of two polyhedron is the subdirect sum of the two, when
+        they have the origin in their interior. To avoid checking if the origin
+        is contained in both, we place the affine subspace containing ``other``
+        at the center of ``self``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron_base`.
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[1],[2]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[3],[4]], base_ring=QQ)
+            sage: ds = P1.direct_sum(P2);ds
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            sage: ds.vertices()
+            (A vertex at (1, 0),
+             A vertex at (2, 0),
+             A vertex at (3/2, -1/2),
+             A vertex at (3/2, 1/2))
+
+        .. SEEALSO::
+
+            :meth:`join`
+            :meth:`subdirect_sum`
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x) + [0]*dim_other for x in self.vertex_generator()] + \
+                       [list(self.center()) + list(x.vector() - other.center()) for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r + [0]*dim_other
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self + r
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l + [0]*dim_other
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self + l
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
     def dilation(self, scalar):
         """
         Return the dilated (uniformly stretched) polyhedron.

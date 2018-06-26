@@ -160,14 +160,6 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
     #end workaround
 
     def f(wrapper, assigned=assigned, updated=updated):
-        # Workedaround for using with new-style classes whose dicts can't be
-        # updated directly
-        if isinstance(wrapper, type):
-            if '__dict__' in updated:
-                updated = tuple(attr for attr in updated if attr != '__dict__')
-                for key in wrapped.__dict__:
-                    assigned.add(key)
-
         update_wrapper(wrapper, wrapped, assigned=assigned, updated=updated)
         wrapper.f = wrapped
         wrapper._sage_src_ = lambda: sage_getsource(wrapped)
@@ -192,7 +184,9 @@ class infix_operator(object):
 
     An infix dot product operator::
 
-        sage: def dot(a,b): return a.dot_product(b)
+        sage: def dot(a,b):
+        ....:     '''Dot product.'''
+        ....:     return a.dot_product(b)
         sage: dot=infix_operator('multiply')(dot)
         sage: u=vector([1,2,3])
         sage: v=vector([5,4,3])
@@ -288,97 +282,113 @@ class infix_operator(object):
             sage: x |thendo| cos |thendo| (lambda x: x^2)
             cos(x)^2
         """
-        def left_func(self, right):
-            """
-            The function for the operation on the left (e.g., __add__).
 
-            EXAMPLES::
+        left_meth = self.operators[self.precedence]['left']
+        right_meth = self.operators[self.precedence]['right']
+        wrapper_name = func.__name__
+        wrapper_members = {
+            'function': staticmethod(func),
+            left_meth: _infix_wrapper._left,
+            right_meth: _infix_wrapper._right,
+            '_sage_src_': lambda: sage_getsource(func)
+        }
+        for attr in WRAPPER_ASSIGNMENTS:
+            try:
+                wrapper_members[attr] = getattr(func, attr)
+            except AttributeError:
+                pass
 
-                sage: def dot(a,b): return a.dot_product(b)
-                sage: dot=infix_operator('multiply')(dot)
-                sage: u=vector([1,2,3])
-                sage: v=vector([5,4,3])
-                sage: u *dot* v
-                22
-            """
+        wrapper = type(wrapper_name, (_infix_wrapper,), wrapper_members)
 
-            if self.left is None:
-                if self.right is None:
-                    new = copy(self)
-                    new.right = right
-                    return new
-                else:
-                    raise SyntaxError("Infix operator already has its "
-                                      "right argument")
-            else:
-                return self.function(self.left, right)
+        wrapper_inst = wrapper()
+        wrapper_inst.__dict__.update(getattr(func, '__dict__', {}))
+        return wrapper_inst
 
-        def right_func(self, left):
-            """
-            The function for the operation on the right (e.g., __radd__).
 
-            EXAMPLES::
+class _infix_wrapper(object):
+    function = None
 
-                sage: def dot(a,b): return a.dot_product(b)
-                sage: dot=infix_operator('multiply')(dot)
-                sage: u=vector([1,2,3])
-                sage: v=vector([5,4,3])
-                sage: u *dot* v
-                22
-            """
+    def __init__(self, left=None, right=None):
+        """
+        Initialize the actual infix object, with possibly a
+        specified left and/or right operand.
+
+        EXAMPLES::
+
+            sage: def dot(a,b): return a.dot_product(b)
+            sage: dot=infix_operator('multiply')(dot)
+            sage: u=vector([1,2,3])
+            sage: v=vector([5,4,3])
+            sage: u *dot* v
+            22
+        """
+
+        self.left = left
+        self.right = right
+
+    def __call__(self, *args, **kwds):
+        """
+        Call the passed function.
+
+        EXAMPLES::
+
+            sage: def dot(a,b): return a.dot_product(b)
+            sage: dot=infix_operator('multiply')(dot)
+            sage: u=vector([1,2,3])
+            sage: v=vector([5,4,3])
+            sage: dot(u,v)
+            22
+        """
+        return self.function(*args, **kwds)
+
+    def _left(self, right):
+        """
+        The function for the operation on the left (e.g., __add__).
+
+        EXAMPLES::
+
+            sage: def dot(a,b): return a.dot_product(b)
+            sage: dot=infix_operator('multiply')(dot)
+            sage: u=vector([1,2,3])
+            sage: v=vector([5,4,3])
+            sage: u *dot* v
+            22
+        """
+
+        if self.left is None:
             if self.right is None:
-                if self.left is None:
-                    new = copy(self)
-                    new.left = left
-                    return new
-                else:
-                    raise SyntaxError("Infix operator already has its "
-                                      "left argument")
+                new = copy(self)
+                new.right = right
+                return new
             else:
-                return self.function(left, self.right)
+                raise SyntaxError("Infix operator already has its "
+                                  "right argument")
+        else:
+            return self.function(self.left, right)
 
-        @sage_wraps(func)
-        class wrapper(object):
-            def __init__(self, left=None, right=None):
-                """
-                Initialize the actual infix object, with possibly a
-                specified left and/or right operand.
+    def _right(self, left):
+        """
+        The function for the operation on the right (e.g., __radd__).
 
-                EXAMPLES::
+        EXAMPLES::
 
-                    sage: def dot(a,b): return a.dot_product(b)
-                    sage: dot=infix_operator('multiply')(dot)
-                    sage: u=vector([1,2,3])
-                    sage: v=vector([5,4,3])
-                    sage: u *dot* v
-                    22
-                """
-
-                self.function = func
-                self.left = left
-                self.right = right
-
-            def __call__(self, *args, **kwds):
-                """
-                Call the passed function.
-
-                EXAMPLES::
-
-                    sage: def dot(a,b): return a.dot_product(b)
-                    sage: dot=infix_operator('multiply')(dot)
-                    sage: u=vector([1,2,3])
-                    sage: v=vector([5,4,3])
-                    sage: dot(u,v)
-                    22
-                """
-                return self.function(*args, **kwds)
-
-        setattr(wrapper, self.operators[self.precedence]['left'], left_func)
-        setattr(wrapper, self.operators[self.precedence]['right'], right_func)
-
-        wrapper._sage_src_ = lambda: sage_getsource(func)
-
-        return wrapper()
+            sage: def dot(a,b): return a.dot_product(b)
+            sage: dot=infix_operator('multiply')(dot)
+            sage: u=vector([1,2,3])
+            sage: v=vector([5,4,3])
+            sage: u *dot* v
+            22
+        """
+        if self.right is None:
+            if self.left is None:
+                new = copy(self)
+                new.left = left
+                return new
+            else:
+                raise SyntaxError("Infix operator already has its "
+                                  "left argument")
+        else:
+            return self.function(left, self.right)
 
 
 def decorator_defaults(func):

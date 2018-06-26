@@ -1471,7 +1471,7 @@ class OEISSequence(SageObject):
             sage: type(HTML)
             <class 'sage.misc.html.HtmlFragment'>
         """
-        url_absolute = lambda s: re.sub('\"\/', '\"' + oeis_url, s)
+        url_absolute = lambda s: re.sub(r'\"\/', '\"' + oeis_url, s)
         if browse is None:
             if format == 'guess':
                 if embedded():

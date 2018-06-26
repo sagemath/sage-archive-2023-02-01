@@ -76,6 +76,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import six
 
 from sage.misc.bindable_class import BindableClass
 from sage.categories.graded_hopf_algebras import GradedHopfAlgebras
@@ -88,7 +89,6 @@ from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Composition, Compositions
-from sage.combinat.composition_tableau import CompositionTableaux
 from sage.combinat.partition import Partitions, _Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -98,10 +98,6 @@ from sage.combinat.ncsf_qsym.combinatorics import (number_of_fCT, number_of_SSRC
 from sage.combinat.ncsf_qsym.ncsf import NonCommutativeSymmetricFunctions
 from sage.combinat.words.word import Word
 from sage.misc.cachefunc import cached_method
-from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Hom
-
-import six
 
 
 class QuasiSymmetricFunctions(UniqueRepresentation, Parent):

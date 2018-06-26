@@ -525,6 +525,16 @@ class OverconvergentModularFormsSpace(Module):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Return the hash of self.
+
+        EXAMPLES::
+
+            sage: h = hash(OverconvergentModularForms(3, 12, 1/2))
+        """
+        return hash(self._params())
+
     def _params(self):
         r"""
         Return the parameters that define this module uniquely: prime, weight,

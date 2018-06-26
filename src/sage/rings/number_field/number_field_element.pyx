@@ -2065,6 +2065,25 @@ cdef class NumberFieldElement(FieldElement):
         else:
             return t
 
+    def is_padic_square(self, P, check=True):
+        r"""
+        Return if ``self`` is a square in the completion at the prime `P`.
+
+        INPUT:
+
+        - ``P`` -- a prime ideal
+        - ``check`` -- (default: ``True``); check if `P` is prime
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: p = K.primes_above(2)[0]
+            sage: K(5).is_padic_square(p)
+            False
+        """
+        infinity = sage.rings.infinity.infinity
+        return self.parent().quadratic_defect(self, P, check=check) == infinity
+
     def sqrt(self, all=False):
         """
         Returns the square root of this number in the given number field.

@@ -456,7 +456,7 @@ class AbstractSetPartition(ClonableArray):
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class SetPartition(AbstractSetPartition):
-    """
+    r"""
     A partition of a set.
 
     A set partition `p` of a set `S` is a partition of `S` into subsets
@@ -1128,7 +1128,7 @@ class SetPartition(AbstractSetPartition):
         return False
 
     def is_atomic(self):
-        """
+        r"""
         Return if ``self`` is an atomic set partition.
 
         A (standard) set partition `A` can be split if there exist `j < i`
@@ -1163,7 +1163,7 @@ class SetPartition(AbstractSetPartition):
         return True
 
     def standardization(self):
-        """
+        r"""
         Return the standardization of ``self``.
 
         Given a set partition `A = \{A_1, \ldots, A_n\}` of an ordered

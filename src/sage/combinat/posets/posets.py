@@ -74,6 +74,7 @@ List of Poset methods
     :meth:`~FinitePoset.is_rank_symmetric` | Return ``True`` if the poset is rank symmetric.
     :meth:`~FinitePoset.is_series_parallel` | Return ``True`` if the poset can be built by ordinal sums and disjoint unions.
     :meth:`~FinitePoset.is_greedy` | Return ``True`` if all greedy linear extensions have equal number of jumps.
+    :meth:`~FinitePoset.is_jump_critical` | Return ``True`` if removal of any element reduces the jump number.
     :meth:`~FinitePoset.is_eulerian` | Return ``True`` if the poset is Eulerian.
     :meth:`~FinitePoset.is_incomparable_chain_free` | Return ``True`` if the poset is (m+n)-free.
     :meth:`~FinitePoset.is_slender` | Return ``True`` if the poset is slender.
@@ -172,6 +173,7 @@ List of Poset methods
     :meth:`~FinitePoset.kazhdan_lusztig_polynomial` | Return the Kazhdan-Lusztig polynomial of the poset.
     :meth:`~FinitePoset.coxeter_polynomial` | Return the characteristic polynomial of the Coxeter transformation.
     :meth:`~FinitePoset.degree_polynomial` | Return the generating polynomial of degrees of vertices in the Hasse diagram.
+    :meth:`~FinitePoset.p_partition_enumerator` | Return a `P`-partition enumerator of the poset.
 
 **Polytopes**
 
@@ -209,6 +211,20 @@ List of Poset methods
     :meth:`~FinitePoset.linear_extensions` | Return the enumerated set of all the linear extensions of the poset.
     :meth:`~FinitePoset.promotion` | Return the (extended) promotion on the linear extension of the poset.
     :meth:`~FinitePoset.evacuation` | Return evacuation on the linear extension associated to the poset.
+    :meth:`~FinitePoset.with_linear_extension` | Return a copy of ``self`` with a different default linear extension.
+
+**Matrices**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
+    :meth:`~FinitePoset.moebius_function` | Return the value of Möbius function of given elements in the poset.
+    :meth:`~FinitePoset.moebius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+    :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
+    :meth:`~FinitePoset.coxeter_smith_form` | Return the Smith form of the Coxeter transformation.
 
 **Miscellanous**
 
@@ -221,9 +237,6 @@ List of Poset methods
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.has_isomorphic_subposet` | Return ``True`` if the poset contains a subposet isomorphic to another poset.
-    :meth:`~FinitePoset.moebius_function` | Return the value of Möbius function of given elements in the poset.
-    :meth:`~FinitePoset.moebius_function_matrix` | Return a matrix whose ``(i,j)`` entry is the value of the Möbius function evaluated at ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
-    :meth:`~FinitePoset.coxeter_transformation` | Return the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules.
     :meth:`~FinitePoset.list` | List the elements of the poset.
     :meth:`~FinitePoset.cuts` | Return the cuts of the given poset.
     :meth:`~FinitePoset.dilworth_decomposition` | Return a partition of the points into the minimal number of chains.
@@ -232,15 +245,12 @@ List of Poset methods
     :meth:`~FinitePoset.is_EL_labelling` | Return whether ``f`` is an EL labelling of the poset.
     :meth:`~FinitePoset.isomorphic_subposets_iterator` | Return an iterator over the subposets isomorphic to another poset.
     :meth:`~FinitePoset.isomorphic_subposets` | Return all subposets isomorphic to another poset.
-    :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise.
     :meth:`~FinitePoset.level_sets` | Return elements grouped by maximal number of cover relations from a minimal element.
     :meth:`~FinitePoset.order_complex` | Return the order complex associated to this poset.
-    :meth:`~FinitePoset.p_partition_enumerator` | Return a `P`-partition enumerator of the poset.
     :meth:`~FinitePoset.random_order_ideal` | Return a random order ideal of ``self`` with uniform probability.
     :meth:`~FinitePoset.rank` | Return the rank of an element, or the rank of the poset.
     :meth:`~FinitePoset.rank_function` | Return a rank function of the poset, if it exists.
     :meth:`~FinitePoset.unwrap` | Unwraps an element of this poset.
-    :meth:`~FinitePoset.with_linear_extension` | Return a copy of ``self`` with a different default linear extension.
 
 Classes and functions
 ---------------------
@@ -957,7 +967,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                                                      key=key)
 
     def __init__(self, hasse_diagram, elements, category, facade, key):
-        """
+        r"""
         EXAMPLES::
 
             sage: P = Poset(DiGraph({'a':['b'],'b':['c'],'c':['d']}), facade = False)
@@ -1469,7 +1479,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self._vertex_to_element(x) for x in o]
 
     def linear_extension(self, linear_extension=None, check=True):
-        """
+        r"""
         Return a linear extension of this poset.
 
         A linear extension of a finite poset `P` of size `n` is a total
@@ -2049,7 +2059,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     intervals = deprecated_function_alias(19360, relations)
 
     def intervals_poset(self):
-        """
+        r"""
         Return the natural partial order on the set of intervals of the poset.
 
         OUTPUT:
@@ -2163,7 +2173,7 @@ class FinitePoset(UniqueRepresentation, Parent):
     intervals_iterator = deprecated_function_alias(19360, relations_iterator)
 
     def relations_number(self):
-        """
+        r"""
         Return the number of relations in the poset.
 
         A relation is a pair of elements `x` and `y` such that `x\leq y`
@@ -2982,6 +2992,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             MILP solvers (e.g. Gurobi, CPLEX) are installed. See
             :class:`MixedIntegerLinearProgram` for more information.
 
+        .. NOTE::
+
+            Prior to version 8.3 this returned only realizer with
+            ``certificate=True``. Now it returns a pair having a realizer as
+            the second element. See :trac:`25588` for details.
+
         ALGORITHM:
 
         As explained [FT00]_, the dimension of a poset is equal to the (weak)
@@ -3003,6 +3019,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         We solve this problem through a :mod:`Mixed Integer Linear Program
         <sage.numerical.mip>`.
 
+        The problem is known to be NP-complete.
+
         EXAMPLES:
 
         We create a poset, compute a set of linear extensions and check
@@ -3011,8 +3029,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[1,4], [3], [4,5,3], [6], [], [6], []])
             sage: P.dimension()
             3
-            sage: L = P.dimension(certificate=True)
-            sage: L # random -- architecture-dependent
+            sage: dim, L = P.dimension(certificate=True)
+            sage: L  # random -- architecture-dependent
             [[0, 2, 4, 5, 1, 3, 6], [2, 5, 0, 1, 3, 4, 6], [0, 1, 2, 3, 5, 6, 4]]
             sage: Poset( (L[0], lambda x, y: all(l.index(x) < l.index(y) for l in L)) ) == P
             True
@@ -3037,10 +3055,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset().dimension()
             0
             sage: Poset().dimension(certificate=True)
-            []
+            (0, [])
         """
         if self.cardinality() == 0:
-            return [] if certificate else 0
+            return (0, []) if certificate else 0
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         P = Poset(self._hasse_diagram) # work on an int-labelled poset
@@ -3121,12 +3139,12 @@ class FinitePoset(UniqueRepresentation, Parent):
                                "bug to sage-devel@googlegroups.com")
 
         if certificate:
-            return [[self._list[i] for i in l]
-                    for l in linear_extensions]
+            return (k, [[self._list[i] for i in l]
+                    for l in linear_extensions])
         return k
 
     def jump_number(self, certificate=False):
-        """
+        r"""
         Return the jump number of the poset.
 
         A *jump* in a linear extension `[e_1, \ldots, e_n]` of a poset `P`
@@ -3166,6 +3184,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         Hence it suffices to test only those. We do that by backtracking.
 
         The problem is proven to be NP-complete.
+
+        .. SEEALSO:: :meth:`is_jump_critical`
 
         TESTS::
 
@@ -3222,6 +3242,62 @@ class FinitePoset(UniqueRepresentation, Parent):
         if certificate:
             return (nonlocals[0], nonlocals[1])
         return nonlocals[0]
+
+    def is_jump_critical(self, certificate=False):
+        """
+        Return ``True`` if the poset is jump-critical, and ``False`` otherwise.
+
+        A poset `P` is *jump-critical* if every proper subposet has smaller
+        jump number.
+
+        INPUT:
+
+        - ``certificate`` -- (default: ``False``) whether to return
+          a certificate
+
+        OUTPUT:
+
+        - If ``certificate=True`` return either ``(True, None)`` or
+          ``(False, e)`` so that removing element `e` from the poset does not
+          decrease the jump number. If ``certificate=False`` return
+          ``True`` or ``False``.
+
+        EXAMPLES::
+
+            sage: P = Poset({1: [3, 6], 2: [3, 4, 5], 4: [6, 7], 5: [7]})
+            sage: P.is_jump_critical()
+            True
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_jump_critical()
+            False
+            sage: P.is_jump_critical(certificate=True)
+            (False, 3)
+
+        .. SEEALSO:: :meth:`jump_number`
+
+        TESTS::
+
+            sage: Poset().is_jump_critical()
+            True
+            sage: Poset().is_jump_critical(certificate=True)
+            (True, None)
+        """
+        # Quick check first
+        for e in self:
+            up = self.upper_covers(e)
+            if len(up) == 1:
+                if len(self.upper_covers(up[0])) == 1:
+                    if certificate:
+                        return (False, up[0])
+                    return False
+        # And now just dumb algorithm
+        jumps = self.jump_number()
+        for e in self:
+            P = self.subposet([x for x in self if x != e])
+            if P.jump_number() == jumps:
+                return (False, e) if certificate else False
+        return (True, None) if certificate else True
 
     def rank_function(self):
         r"""
@@ -4384,7 +4460,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return parts
 
     def product(self, other):
-        """
+        r"""
         Return the Cartesian product of the poset with ``other``.
 
         The Cartesian (or 'direct') product of `P` and
@@ -4503,6 +4579,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: Poset().factor()
             [Finite poset containing 0 elements]
+
+            sage: factor(posets.BooleanLattice(2))
+            [Finite poset containing 2 elements,
+            Finite poset containing 2 elements]
 
         REFERENCES:
 
@@ -4635,7 +4715,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                                                          labels=labels))
 
     def ordinal_product(self, other, labels='pairs'):
-        """
+        r"""
         Return the ordinal product of ``self`` and ``other``.
 
         The ordinal product of two posets `P` and `Q` is a partial
@@ -4829,17 +4909,17 @@ class FinitePoset(UniqueRepresentation, Parent):
         return Poset(G)
 
     def star_product(self, other, labels='pairs'):
-        """
+        r"""
         Return a poset isomorphic to the star product of the
         poset with ``other``.
 
         Both this poset and ``other`` are expected to be bounded
         and have at least two elements.
 
-        Let `P` be a poset with top element `\\top_P` and `Q` be a poset
-        with bottom element `\\bot_Q`. The star product of
-        `P` and `Q` is the ordinal sum of `P \setminus \\top_P` and
-        `Q \setminus \\bot_Q`.
+        Let `P` be a poset with top element `\top_P` and `Q` be a poset
+        with bottom element `\bot_Q`. The star product of
+        `P` and `Q` is the ordinal sum of `P \setminus \top_P` and
+        `Q \setminus \bot_Q`.
 
         Mathematically, it is only defined when `P` and `Q` have no
         common elements; here we force that by giving them different
@@ -4928,7 +5008,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return Poset(G)
 
     def lexicographic_sum(self, P):
-        """
+        r"""
         Return the lexicographic sum using this poset as index.
 
         In the lexicographic sum of posets `P_t` by index poset `T`
@@ -5023,7 +5103,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return Poset(d, facade=self._is_facade)
 
     def dual(self):
-        """
+        r"""
         Return the dual poset of the given poset.
 
         In the dual of a poset `P` we have `x \le y` iff `y \le x` in `P`.
@@ -5413,7 +5493,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                            facade=self._is_facade)
 
     def canonical_label(self, algorithm=None):
-        """
+        r"""
         Return the unique poset on the labels `\{0, \ldots, n-1\}` (where `n`
         is the number of elements in the poset) that is isomorphic to this
         poset and invariant in the isomorphism class.
@@ -5740,7 +5820,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
 
     def order_filter(self, elements):
-        """
+        r"""
         Return the order filter generated by the elements of an
         iterable ``elements``.
 
@@ -5772,7 +5852,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self._vertex_to_element(_) for _ in of]
 
     def order_ideal(self, elements):
-        """
+        r"""
         Return the order ideal generated by the elements of an
         iterable ``elements``.
 
@@ -5804,7 +5884,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return [self._vertex_to_element(_) for _ in oi]
 
     def interval(self, x, y):
-        """
+        r"""
         Return a list of the elements `z` such that `x \le z \le y`.
 
         INPUT:
@@ -5833,7 +5913,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                 self._element_to_vertex(x),self._element_to_vertex(y))]
 
     def closed_interval(self, x, y):
-        """
+        r"""
         Return the list of elements `z` such that `x \le z \le y` in the poset.
 
         EXAMPLES::
@@ -6012,7 +6092,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return G
 
     def maximal_antichains(self):
-        """
+        r"""
         Return the maximal antichains of the poset.
 
         An antichain `a` of poset `P` is *maximal* if there is
@@ -6077,7 +6157,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return answer
 
     def order_complex(self, on_ints=False):
-        """
+        r"""
         Return the order complex associated to this poset.
 
         The order complex is the simplicial complex with vertices equal
@@ -6633,7 +6713,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return one + sum(chain_polys)
 
     def order_polynomial(self):
-        """
+        r"""
         Return the order polynomial of the poset.
 
         The order polynomial `\Omega_P(q)` of a poset `P` is defined
@@ -6849,7 +6929,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         return self.linear_extension().evacuation().to_poset()
 
     def is_rank_symmetric(self):
-        """
+        r"""
         Return ``True`` if the poset is rank symmetric, and ``False``
         otherwise.
 

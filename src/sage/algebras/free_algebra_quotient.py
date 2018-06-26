@@ -272,6 +272,9 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
 
     def monomial_basis(self):
         """
+        The free monoid of generators of the algebra as elements of a free
+        monoid.
+
         EXAMPLES::
 
             sage: sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)[0].monomial_basis()
@@ -311,18 +314,6 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             Free monoid on 3 generators (i0, i1, i2)
         """
         return self.__free_algebra.monoid()
-
-    def monomial_basis(self):
-        """
-        The free monoid of generators of the algebra as elements of a free
-        monoid.
-
-       EXAMPLES::
-
-            sage: sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)[0].monomial_basis()
-            (1, i0, i1, i2)
-        """
-        return self.__monomial_basis
 
     def free_algebra(self):
         """

@@ -190,7 +190,7 @@ class FormalSum(ModuleElement):
         return sage.misc.misc.repr_lincomb([t, c] for c, t in self)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(FormalSum([(1,2), (5, 8/9), (-3, 7)]))

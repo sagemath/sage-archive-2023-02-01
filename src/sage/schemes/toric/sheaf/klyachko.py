@@ -862,7 +862,7 @@ class KlyachkoBundle_class(SageObject):
     __mul__ = tensor_product
 
     def exterior_power(self, n):
-        """
+        r"""
         Return the `n`-th exterior power.
 
         INPUT:

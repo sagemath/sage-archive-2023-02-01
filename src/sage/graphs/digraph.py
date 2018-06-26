@@ -817,7 +817,7 @@ class DiGraph(GenericGraph):
 
     ### Formats
     def dig6_string(self):
-        """
+        r"""
         Return the dig6 representation of the digraph as an ASCII string.
 
         This is only valid for single (no multiple edges) digraphs

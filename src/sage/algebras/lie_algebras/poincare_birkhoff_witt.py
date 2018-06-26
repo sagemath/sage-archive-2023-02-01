@@ -17,12 +17,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.categories.algebras import Algebras
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.sets.family import Family
-from sage.rings.all import ZZ
+
 
 class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
     r"""

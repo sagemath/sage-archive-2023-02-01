@@ -173,7 +173,7 @@ def _guess_variables(polynomial, *args):
 
 def transvectant(f, g, h=1):
     r"""
-    Returns the h-th transvectant of f and g.
+    Return the h-th transvectant of f and g.
 
     INPUT:
 
@@ -194,7 +194,7 @@ def transvectant(f, g, h=1):
                   \right)^h \left(f(x,z) \cdot g(x',z')\right)
                   \right)_{(x',z')=(x,z)}
 
-        EXAMPLES::
+    EXAMPLES::
 
         sage: from sage.rings.invariant_theory import AlgebraicForm, transvectant
         sage: R.<x,y> = QQ[]
@@ -271,7 +271,6 @@ class FormsBase(SageObject):
         The Jacobian determinant with respect to the variables.
 
         EXAMPLES::
-
 
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariant_theory import FormsBase
@@ -1460,7 +1459,7 @@ class BinaryQuintic(AlgebraicForm):
     REFERENCES:
 
     For a description of all invariants and covariants of a binary
-    quintic, see section 73 of _[Cle1872].
+    quintic, see section 73 of [Cle1872]_.
 
     TESTS::
 
@@ -1490,6 +1489,7 @@ class BinaryQuintic(AlgebraicForm):
         The Python constructor.
 
         TESTS::
+        
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariant_theory import BinaryQuintic
             sage: BinaryQuintic(2, 5, x^5+2*x^3*y^2+3*x*y^4)
@@ -1511,6 +1511,7 @@ class BinaryQuintic(AlgebraicForm):
         :meth:`coeffs`.
 
         EXAMPLES::
+        
             sage: R.<x,y> = QQ[]
             sage: quintic = invariant_theory.binary_quintic(x^5+y^5)
             sage: quintic.monomials()
@@ -1540,6 +1541,7 @@ class BinaryQuintic(AlgebraicForm):
         this function returns `a = (a_0, a_1, a_2, a_3, a_4, a_5)`
 
         EXAMPLES::
+        
             sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
             sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
             sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
@@ -1569,6 +1571,7 @@ class BinaryQuintic(AlgebraicForm):
         this function returns `a = (a_0, a_1, a_2, a_3, a_4, a_5)`
 
         EXAMPLES::
+        
             sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
             sage: p = a0*x1^5 + 5*a1*x1^4*x0 + 10*a2*x1^3*x0^2 + 10*a3*x1^2*x0^3 + 5*a4*x1*x0^4 + a5*x0^5
             sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
@@ -1588,7 +1591,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def H_covariant(self, asform=False):
         """
-        Returns the covariant 'H' of a binary quintic.
+        Return the covariant 'H' of a binary quintic.
 
         OUTPUT:
 
@@ -1617,7 +1620,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def i_covariant(self, asform=False):
         """
-        Returns the covariant 'i' of a binary quintic.
+        Return the covariant 'i' of a binary quintic.
 
         OUTPUT:
 
@@ -1643,7 +1646,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def T_covariant(self, asform=False):
         """
-        Returns the covariant 'T' of a binary quintic.
+        Return the covariant 'T' of a binary quintic.
 
         OUTPUT:
 
@@ -1674,7 +1677,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def j_covariant(self, asform=False):
         """
-        Returns the covariant 'j' of a binary quintic.
+        Return the covariant 'j' of a binary quintic.
 
         OUTPUT:
 
@@ -1709,11 +1712,11 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def tau_covariant(self, asform=False):
         r"""
-        Returns the covariant '\tau' of a binary quintic.
+        Return the covariant `\tau` of a binary quintic.
 
         OUTPUT:
 
-        The \tau-covariant of the binary quintic as polynomial or as binary form.
+        The `\tau`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1740,11 +1743,11 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def theta_covariant(self, asform=False):
         r"""
-        Returns the covariant '\theta' of a binary quintic.
+        Return the covariant `\theta` of a binary quintic.
 
         OUTPUT:
 
-        The \theta-covariant of the binary quintic as polynomial or as binary form.
+        The `\theta`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1772,11 +1775,11 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def alpha_covariant(self, asform=False):
         r"""
-        Returns the covariant '\alpha' of a binary quintic.
+        Return the covariant `\alpha` of a binary quintic.
 
         OUTPUT:
 
-        The \alpha-covariant of the binary quintic as polynomial or as binary form.
+        The `\alpha`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1806,11 +1809,11 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def beta_covariant(self, asform=False):
         r"""
-        Returns the covariant '\beta' of a binary quintic.
+        Return the covariant `\beta` of a binary quintic.
 
         OUTPUT:
 
-        The \beta-covariant of the binary quintic as polynomial or as binary form.
+        The `\beta`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1838,11 +1841,11 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def gamma_covariant(self, asform=False):
         r"""
-        Returns the covariant '\gamma' of a binary quintic.
+        Return the covariant `\gamma` of a binary quintic.
 
         OUTPUT:
 
-        The \gamma-covariant of the binary quintic as polynomial or as binary form.
+        The `\gamma`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1870,11 +1873,11 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def delta_covariant(self, asform=False):
         r"""
-        Returns the covariant '\delta' of a binary quintic.
+        Return the covariant `\delta` of a binary quintic.
 
         OUTPUT:
 
-        The \delta-covariant of the binary quintic as polynomial or as binary form.
+        The `\delta`-covariant of the binary quintic as polynomial or as binary form.
 
         EXAMPLES::
 
@@ -1902,7 +1905,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def A_invariant(self):
         """
-        Returns the invariant A of a binary quintic.
+        Return the invariant A of a binary quintic.
 
         OUTPUT:
 
@@ -1927,7 +1930,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def B_invariant(self):
         """
-        Returns the invariant B of a binary quintic.
+        Return the invariant B of a binary quintic.
 
         OUTPUT:
 
@@ -1956,7 +1959,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def C_invariant(self):
         """
-        Returns the invariant C of a binary quintic.
+        Return the invariant C of a binary quintic.
 
         OUTPUT:
 
@@ -1984,7 +1987,7 @@ class BinaryQuintic(AlgebraicForm):
     @cached_method
     def R_invariant(self):
         """
-        Returns the invariant R of a binary quintic.
+        Return the invariant R of a binary quintic.
 
         OUTPUT:
 
@@ -2099,7 +2102,6 @@ class TernaryQuadratic(QuadraticForm):
         :meth:`coeffs`.
 
         EXAMPLES::
-
 
             sage: R.<x,y,z> = QQ[]
             sage: quadratic = invariant_theory.ternary_quadratic(x^2+y*z)
@@ -2529,7 +2531,6 @@ class TernaryCubic(AlgebraicForm):
         Return the `\Theta` covariant.
 
         EXAMPLES::
-
 
             sage: R.<x,y,z> = QQ[]
             sage: cubic = invariant_theory.ternary_cubic(x^3+y^3+z^3)

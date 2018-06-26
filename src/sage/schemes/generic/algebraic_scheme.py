@@ -138,10 +138,11 @@ from sage.combinat.tuple import UnorderedTuples
 from sage.categories.number_fields import NumberFields
 from sage.categories.morphism import Morphism
 
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQbar
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.number_field.order import is_NumberFieldOrder
 
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
@@ -149,7 +150,7 @@ from sage.structure.all import Sequence
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.calculus.functions import jacobian
 
-from sage.arith.all import gcd
+from sage.arith.all import gcd, lcm
 
 import sage.schemes.affine
 from . import ambient_space
@@ -1095,6 +1096,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         r"""
         Function to normalize the coefficients of defining polynomials
         of given subscheme.
+
+        Normalization as in removing denominator from all the coefficients,
+        and then removing any common factor between the coefficients.
         It takes LCM of denominators and then removes common factor among
         coefficients, if any.
 
@@ -1108,30 +1112,24 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         """
         BR = self.base_ring()
-        if BR in NumberFields() or BR == ZZ:
+        if BR == ZZ or BR == QQbar or BR in NumberFields() or is_NumberFieldOrder(BR):
             normalized_polys = []
             initial_polys = list(self.__polys)
 
             for P in initial_polys:
-                mult = 1 # stores value which need to be mutliplied to make all coefficient integers
-                coeff = P.dict()
-                for i in coeff:
-                    d = coeff[i].denominator()
-                    mult = (mult*d) / gcd(mult, d)
+                # stores value which need to be mutliplied to make all coefficient integers
+                mult = lcm([c.denominator() for c in P.coefficients()])
                 P = mult*P
-                div = 0 # stores the common factor from all coefficients
-                coeff = P.dict()
-                for i in coeff:
-                    n = coeff[i]
-                    div = gcd(div, n)
+                # stores the common factor from all coefficients
+                div = gcd([_ for _ in P.coefficients()])
                 P = (1/div) * P
                 normalized_polys.append(P)
 
             self.__polys = tuple(normalized_polys)
 
         else:
-            raise NotImplementedError("currently normalization is implemented only for integer and number fields")
-
+                raise NotImplementedError("currently normalization is implemented "
+                    "only for ZZ, QQbar, number fields and number field orders")
 
     def defining_ideal(self):
         """
@@ -1746,13 +1744,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         .. TODO::
 
-            1. The above algorithms enumerate all projective points and
-               test whether they lie on the scheme; Implement a more naive
-               sieve at least for covers of the projective line.
-
-            2. Implement Stoll's model in weighted projective space to
-               resolve singularities and find two points (1 : 1 : 0) and
-               (-1 : 1 : 0) at infinity.
+            Implement Stoll's model in weighted projective space to
+            resolve singularities and find two points (1 : 1 : 0) and
+            (-1 : 1 : 0) at infinity.
         """
         if F is None:
             F = self.base_ring()

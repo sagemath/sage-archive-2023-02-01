@@ -54,8 +54,9 @@ AUTHORS:
 #*****************************************************************************
 from six.moves import range
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import ZZ, QQ, RR
 from sage.misc.all import cartesian_product_iterator
+from sage.arith.all import lcm
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.projective.projective_rational_point import sieve as projective_sieve
 
@@ -317,9 +318,6 @@ def sieve(X, bound):
     Returns the list of all affine, rational points on scheme ``X`` of
     height up to ``bound``.
 
-    This algorithm works correctly only if dimension of given
-    scheme is positive.
-
     INPUT:
 
     - ``X`` - a scheme with ambient space defined over affine space
@@ -329,7 +327,7 @@ def sieve(X, bound):
     OUTPUT:
 
      - a list containing the affine rational points of ``X`` of height
-    up to ``B``, sorted
+    up to ``bound``, sorted
 
     EXAMPLES::
         
@@ -340,35 +338,34 @@ def sieve(X, bound):
         [(-2, 2, -2), (-1, -2, 1), (-1, 1, -1), (-1/2, -1, 1/2),
          (-1/2, 1/2, -1/2), (0, 0, 0), (1/2, -1/2, 1/2),
          (1/2, 1, -1/2), (1, -1, 1), (1, 2, -1), (2, -2, 2)]
-    
-    TESTS:
-
-    Illustrates efficiency of algorithm::
-
-        sage: A.<x,y> = AffineSpace(2, QQ)
-        sage: C = Curve(x^2+y^2-x)
-        sage: len(C.rational_points(12)) # long time (6 s)
-        12
-        sage: from sage.schemes.affine.affine_rational_point import sieve
-        sage: len(sieve(C, 12))
-        12
 
     """
     # finds a projective embedding to use projective version of sieve
     pi = X.projective_embedding(0)
     P = pi.codomain()
     AA = P.affine_patch(0)
-    
-    proj_L = projective_sieve(P, bound)
-    LL = set()
+
+    # bound for affine scheme would be larger than projective
+    B = RR(bound).ceil() 
+    N = min(X.ambient_space().dimension(), B)
+    affine_bound = lcm([B - i for i in range(N)])
+
+    proj_L = projective_sieve(P, affine_bound)
+    L = set()
     for point in proj_L: # make them back into affine points
-        pt = []
-        denom = point[0]
-        if denom == 0:
-            continue
+        if point[0] != 0:
+            L.add(X(point.dehomogenize(0)))
 
-        for i in range(1,len(point)):
-            pt.append(point[i] / denom)
-        LL.add(AA(pt))
+    rat_point = []
+    for pt in L: # bound check
+        bound_satisfied = True
+        for coordinate in pt:
+            if coordinate.numerator().abs() > bound \
+                or coordinate.denominator().abs() > bound:
+                bound_satisfied = False
+                break
+        if bound_satisfied:
+            rat_point.append(pt)
 
-    return sorted(list(LL))
+    return sorted(rat_point)
+

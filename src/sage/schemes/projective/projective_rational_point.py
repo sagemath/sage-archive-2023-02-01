@@ -313,8 +313,10 @@ def sieve(X, bound):
     Returns the list of all projective, rational points on scheme ``X`` of
     height up to ``bound``.
 
-    This algorithm works correctly only if dimension of given
-    scheme is positive.
+    Height of a projective point X = (x_1, x_2,..., x_n) is given by
+    H_X = max(y_1, y_2,..., y_n), where H_X is height of point X and y_i's
+    are the normalized coordinates such that all y_i are integers and
+    gcd(y_1, y_2,..., y_n) = 1.
 
     INPUT:
 
@@ -325,50 +327,38 @@ def sieve(X, bound):
     OUTPUT:
 
      - a list containing the projective rational points of ``X`` of height
-    up to ``B``, sorted
+    up to ``bound``, sorted
 
     EXAMPLES::
-        
-        sage: from sage.schemes.projective.projective_rational_point import sieve
-        sage: u = QQ['u'].0
-        sage: K = NumberField(u^3 - 5, 'v')
-        sage: P.<x,y,z> = ProjectiveSpace(K, 2)
-        sage: X = P.subscheme([x - y])
-        sage: sieve(X, 5)
-        [(-5/3 : -5/3 : 1), (-1/2 : -1/2 : 1), (-3 : -3 : 1),
-         (-4/5 : -4/5 : 1), (-2/5 : -2/5 : 1), (-4/3 : -4/3 : 1),
-         (5 : 5 : 1), (-4 : -4 : 1), (4 : 4 : 1), (-3/5 : -3/5 : 1),
-         (1 : 1 : 1), (2/3 : 2/3 : 1), (3/4 : 3/4 : 1), (-2/3 : -2/3 : 1),
-         (1/5 : 1/5 : 1), (-3/4 : -3/4 : 1), (-1/5 : -1/5 : 1),
-         (-5 : -5 : 1), (-2 : -2 : 1), (-1 : -1 : 1),
-         (5/4 : 5/4 : 1), (4/3 : 4/3 : 1), (0 : 0 : 1), (-5/2 : -5/2 : 1),
-         (1/4 : 1/4 : 1), (1/3 : 1/3 : 1), (-5/4 : -5/4 : 1),
-         (1/2 : 1/2 : 1), (5/2 : 5/2 : 1), (5/3 : 5/3 : 1),
-         (3/2 : 3/2 : 1), (1 : 1 : 0), (2 : 2 : 1), (-1/3 : -1/3 : 1),
-         (3 : 3 : 1), (-3/2 : -3/2 : 1), (-1/4 : -1/4 : 1),
-         (2/5 : 2/5 : 1), (4/5 : 4/5 : 1), (3/5 : 3/5 : 1)]
-    
-    ::
-
-        sage: from sage.schemes.projective.projective_rational_point import sieve
-        sage: E = EllipticCurve('37a')
-        sage: sieve(E, 25) # long time (5 s)
-        [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1),
-         (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1),
-         (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1),
-         (2 : -3 : 1), (2 : 2 : 1), (6 : -15 : 1),
-         (6 : 14 : 1)]
-
-    TESTS:
-
-    This example illustrate speed of algorithm::
 
         sage: from sage.schemes.projective.projective_rational_point import sieve
         sage: P.<x,y,z,q>=ProjectiveSpace(QQ,3)
         sage: Y=P.subscheme([x^2-3^2*y^2+z*q,x+z+4*q])
-        sage: len(sieve(Y, 8))
+        sage: sorted(sieve(Y, 12))
+        [(-4 : -4/3 : 0 : 1), (-4 : 4/3 : 0 : 1),
+         (-1 : -1/3 : 1 : 0), (-1 : 1/3 : 1 : 0)]
+
+    ::
+
+        sage: from sage.schemes.projective.projective_rational_point import sieve
+        sage: E = EllipticCurve('37a')
+        sage: sorted(sieve(E, 14))
+        [(-1 : -1 : 1), (-1 : 0 : 1), (0 : -1 : 1),
+         (0 : 0 : 1), (0 : 1 : 0), (1/4 : -5/8 : 1),
+         (1/4 : -3/8 : 1), (1 : -1 : 1), (1 : 0 : 1),
+         (2 : -3 : 1), (2 : 2 : 1), (6 : 14 : 1)]
+
+    TESTS:
+
+    This example illustrate efficiency of algorithm::
+
+        sage: from sage.schemes.projective.projective_rational_point import sieve
+        sage: P.<x,y,z,q>=ProjectiveSpace(QQ,3)
+        sage: Y=P.subscheme([x^2-3^2*y^2+z*q,x+z+4*q])
+        sage: len(sieve(Y, 6))
         2
-        sage: len(Y.rational_points(8)) # long time (5 s)
+        sage: from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
+        sage: len(enum_projective_rational_field(Y, 6)) # long time (5 s)
         2
 
     Algorithm works even if coefficients are fraction::
@@ -381,9 +371,12 @@ def sieve(X, bound):
          (1/3 : 2/3 : 1), (1/2 : 1 : 0), (1/2 : 1 : 1), (1 : 2 : 1)]
 
     """
+    if bound < 1: # no projective rational point with height less than 1
+        return []
+
     modulo_points = [] # list to store point modulo primes
     len_modulo_points = [] # stores number of points with respect to each prime
-    primes = [] # list of good primes
+    primes_list = [] # list of good primes
     
     if isinstance(X, AlgebraicScheme_subscheme): # needs to be done only if defining polynomials exist
         X.normalize_defining_polynomials()
@@ -477,7 +470,7 @@ def sieve(X, bound):
         computed parallely.
         """
         normalized_input = []
-        for p in primes:
+        for p in primes_list:
             normalized_input.append(((X, p, ), {}))
         p_iter = p_iter_fork(ncpus())
 
@@ -498,10 +491,10 @@ def sieve(X, bound):
         for tupl in xmrange(len_modulo_points):
             point = []
             for k in range(N + 1):
-                # lift all dimensions of given point using chinese remainder theorem
+                # lift all coordinates of given point using chinese remainder theorem
                 L = [modulo_points[j][tupl[j]][k].lift() for j in range(len_primes - 1)]
                 L.append(point_p_max[k].lift())
-                point.append( crt(L, primes) )
+                point.append( crt(L, primes_list) )
 
             for i in range(N+1):
                 m[i] = point[i]
@@ -515,6 +508,7 @@ def sieve(X, bound):
             for coordinate in point:
                 if coordinate.abs() > bound:
                     bound_satisfied = False
+                    break
             if not bound_satisfied:
                 continue
 
@@ -530,8 +524,7 @@ def sieve(X, bound):
         Returns list of all rational points lifted parallely.
         """
         normalized_input = []
-        points = modulo_points[-1]
-        modulo_points.pop() # remove the list of points corresponding to largest prime
+        points = modulo_points.pop() # remove the list of points corresponding to largest prime
         len_modulo_points.pop()
 
         for point in points:
@@ -550,12 +543,12 @@ def sieve(X, bound):
 
     # start of main algorithm
 
-    primes = good_primes(B.ceil())
+    primes_list = good_primes(B.ceil())
 
-    modulo_points = points_modulo_primes(X,primes)
+    modulo_points = points_modulo_primes(X, primes_list)
     len_modulo_points = [len(_) for _ in modulo_points]
-    len_primes = len(primes)
-    prod_primes = prod(primes)
+    len_primes = len(primes_list)
+    prod_primes = prod(primes_list)
 
     # stores final result
     rat_points = set()
@@ -568,3 +561,4 @@ def sieve(X, bound):
     rat_points = lift_all_points()
 
     return sorted(rat_points)
+

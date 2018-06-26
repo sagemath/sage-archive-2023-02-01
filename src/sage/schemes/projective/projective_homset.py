@@ -197,8 +197,8 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-            return enum_projective_rational_field(self,B)
+            from sage.schemes.projective.projective_rational_point import sieve
+            return sieve(X, B)
         elif R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)

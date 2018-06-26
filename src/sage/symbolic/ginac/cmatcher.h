@@ -51,6 +51,7 @@ struct CMatcher {
                 ++level;
                 run();    // guarantees to set ret, and if true, map
                 --level;
+                ret_val.reset();
                 return ret_map;
         }
         bool get_alt(size_t);

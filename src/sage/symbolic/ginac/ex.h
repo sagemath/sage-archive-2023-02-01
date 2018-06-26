@@ -187,6 +187,7 @@ public:
 	bool match(const ex & pattern, exmap& map) const
             { return bp->match(pattern, map); }
 	bool match(const ex & pattern, exvector& vec) const;
+        std::vector<exmap> all_matches(const ex & pattern) const;
 
 	// substitutions
 	ex subs(const exmap & m, unsigned options = 0) const;

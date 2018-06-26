@@ -81,6 +81,29 @@ inline bool is_func(const ex& e)
             or is_a<expairseq>(e);
 }
 
+std::vector<exmap> ex::all_matches(const ex & pattern) const
+{
+        exmap map;
+        std::vector<exmap> vec;
+        if (not is_func(*this)) {
+                bool ret = bp->match(pattern, map);
+                if (ret)
+                        vec.push_back(map);
+                return vec;
+        }
+        CMatcher::level=0;
+        CMatcher cm(*this, pattern, map);
+        do {
+                opt_exmap m = cm.get();
+                if (m)
+                        vec.push_back(m.value());
+                else
+                        break;
+        }
+        while (1);
+        return vec;
+}
+
 inline bool CMatcher::get_alt(size_t i)
 {
         CMatcher& cm = cms[i].value();

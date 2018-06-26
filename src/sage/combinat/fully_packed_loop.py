@@ -1048,9 +1048,8 @@ class FullyPackedLoop(Element):
         else:
             return orbit
 
-
     def link_pattern(self):
-        """
+        r"""
         Return a link pattern corresponding to a fully packed loop.
 
         Here we define a link pattern `LP` to be a partition of the list

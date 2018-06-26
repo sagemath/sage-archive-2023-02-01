@@ -259,7 +259,7 @@ class NaiveFinitePointEnumerator(object):
 
     @cached_method
     def rescalings(self):
-        """
+        r"""
         Return the rescalings of homogeneous coordinates.
 
         OUTPUT:

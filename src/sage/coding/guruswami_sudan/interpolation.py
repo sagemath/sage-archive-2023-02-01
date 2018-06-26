@@ -386,7 +386,7 @@ def gs_interpolation_lee_osullivan(points, tau, parameters, wy):
     F = points[0][0].parent()
     M = lee_osullivan_module(points, (s,l), wy)
     shifts = [i * wy for i in range(0,l+1)]
-    Mnew = M.row_reduced_form(shifts=shifts)
+    Mnew = M.reduced_form(shifts=shifts)
     # Construct Q as the element of the row with the lowest weighted degree
     Qlist = min(Mnew.rows(), key=lambda r: _degree_of_vector(r, shifts))
     PFxy = F['x,y']

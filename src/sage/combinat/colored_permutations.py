@@ -753,7 +753,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         return self._n
 
     def degrees(self):
-        """
+        r"""
         Return the degrees of ``self``.
 
         The degrees of a complex reflection group are the degrees of
@@ -897,7 +897,7 @@ class ColoredPermutations(Parent, UniqueRepresentation):
         return prod(q + d - 1 for d in self.degrees())
 
     def is_well_generated(self):
-        """
+        r"""
         Return if ``self`` is a well-generated complex reflection group.
 
         A complex reflection group `G` is well-generated if it is

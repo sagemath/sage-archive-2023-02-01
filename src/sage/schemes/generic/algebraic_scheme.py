@@ -1759,7 +1759,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
             try:
-                return X.points(bound) # checks for proper bound done in points functions
+                return X.points(bound=bound) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
         try:

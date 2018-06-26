@@ -1264,7 +1264,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         return clgp_gens
 
     def class_group(self, proof=True):
-        """
+        r"""
         If self is a quotient ring of a polynomial ring over a number
         field `K`, by a polynomial of nonzero discriminant, return a
         list of generators of the class group.

@@ -59,7 +59,7 @@ class SchemeHomset_points_product_projective_spaces_ring(SchemeHomset_points):
         return self.codomain()._point(self, v, **kwds)
 
 class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_product_projective_spaces_ring):
-    def points(self, B=0, prec=53):
+    def points(self, **kwds):
         r"""
         Return some or all rational points of a projective scheme.
 
@@ -67,23 +67,28 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the base
         ring is a field or not.
 
+        For number fields, this uses the
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
+
+
         INPUT:
 
-        - `B` -- integer (optional, default=0). The bound for the
-          coordinates.
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
+        - ``bound`` - a real number
+
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
-        - a list of rational points of a projective scheme.
-
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
+        - a list of rational points of a projective scheme
 
         EXAMPLES::
 
@@ -105,7 +110,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             sage: u = QQ['u'].0
             sage: K = NumberField(u^2 + 1, 'v')
             sage: P.<x,y,z,w> = ProductProjectiveSpaces([1, 1], K)
-            sage: P(K).points(1)
+            sage: P(K).points(bound=1)
             [(0 : 1 , 0 : 1), (0 : 1 , v : 1), (0 : 1 , -1 : 1), (0 : 1 , -v : 1), (0 : 1 , 1 : 1),
             (0 : 1 , 1 : 0), (v : 1 , 0 : 1), (v : 1 , v : 1), (v : 1 , -1 : 1), (v : 1 , -v : 1),
             (v : 1 , 1 : 1), (v : 1 , 1 : 0), (-1 : 1 , 0 : 1), (-1 : 1 , v : 1), (-1 : 1 , -1 : 1),
@@ -131,6 +136,10 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
             (0 : 2 : 1 , 1 : 0), (1 : 2 : 1 , 1 : 0), (2 : 2 : 1 , 1 : 0), (0 : 1 : 0 , 1 : 0), (1 : 1 : 0 , 1 : 0),
             (2 : 1 : 0 , 1 : 0), (1 : 0 : 0 , 1 : 0)]
         """
+        B = kwds.pop('bound', 0)
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
+        
         X = self.codomain()
 
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
@@ -153,7 +162,7 @@ class SchemeHomset_points_product_projective_spaces_field(SchemeHomset_points_pr
         if R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            for P in X.ambient_space().points_of_bounded_height(B, prec):
+            for P in X.ambient_space().points_of_bounded_height(bound=B, tolerance=tol, precision=prec):
                 try:
                     points.append(X(P))
                 except TypeError:

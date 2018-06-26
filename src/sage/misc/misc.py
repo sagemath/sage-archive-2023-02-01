@@ -116,6 +116,105 @@ if hasattr(os, 'chmod'):
             print("Setting permissions of DOT_SAGE directory so only you "
                   "can read and write it.")
 
+def try_read(obj, splitlines=False):
+    """
+    Determine if a given object is a readable file-like object and if so
+    read and return its contents.
+
+    That is, the object has a callable method named ``read()`` which takes
+    no arguments (except ``self``) then the method is executed and the
+    contents are returned.
+
+    Alternatively, if the ``splitlines=True`` is given, first ``splitlines()``
+    is tried, then if that fails ``read().splitlines()``.
+
+    If either method fails, ``None`` is returned.
+
+    INPUT:
+
+    - ``obj`` -- typically a `file` or `io.BaseIO` object, but any other
+      object with a ``read()`` method is accepted.
+
+    - ``splitlines`` -- `bool`, optional; if True, return a list of lines
+      instead of a string.
+
+    EXAMPLES::
+
+        sage: import io
+        sage: filename = tmp_filename()
+        sage: from sage.misc.misc import try_read
+        sage: with open(filename, 'w') as fobj:
+        ....:     _ = fobj.write('a\nb\nc')
+        sage: with open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+        sage: with open(filename) as fobj:
+        ....:     try_read(fobj, splitlines=True)
+        ['a\n', 'b\n', 'c']
+
+    The following example is identical to the above example on Python 3,
+    but different on Python 2 where ``open != io.open``::
+
+        sage: with io.open(filename) as fobj:
+        ....:     print(try_read(fobj))
+        a
+        b
+        c
+
+    I/O buffers::
+
+        sage: buf = io.StringIO('a\nb\nc')
+        sage: print(try_read(buf))
+        a
+        b
+        c
+        sage: _ = buf.seek(0); try_read(buf, splitlines=True)
+        ['a\n', 'b\n', 'c']
+        sage: buf = io.BytesIO(b'a\nb\nc')
+        sage: try_read(buf) == b'a\nb\nc'
+        True
+        sage: _ = buf.seek(0)
+        sage: try_read(buf, splitlines=True) == [b'a\n', b'b\n', b'c']
+        True
+
+    Custom readable::
+
+        sage: class MyFile(object):
+        ....:     def read(self): return 'Hello world!'
+        sage: try_read(MyFile())
+        'Hello world!'
+        sage: try_read(MyFile(), splitlines=True)
+        ['Hello world!']
+
+    Not readable::
+
+        sage: try_read(1) is None
+        True
+    """
+
+    if splitlines:
+        try:
+            return obj.readlines()
+        except (AttributeError, TypeError):
+            pass
+
+    try:
+        data = obj.read()
+    except (AttributeError, TypeError):
+        return
+
+    if splitlines:
+        try:
+            data = data.splitlines()
+        except (AttributeError, TypeError):
+            # Not a string??
+            data = [data]
+
+    return data
+
+
 
 #################################################
 # Next we create the Sage temporary directory.

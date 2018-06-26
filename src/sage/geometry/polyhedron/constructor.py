@@ -291,7 +291,7 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from sage.rings.all import QQ, ZZ, RDF, RR
+from sage.rings.all import ZZ, RDF, RR
 
 from .misc import _make_listlist, _common_length_of
 
@@ -474,7 +474,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: f = Fraction(int(6), int(8))
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
-
+x
     Check that input with too many bits of precision returns an error (see
     :trac:`22552`)::
 

@@ -6474,7 +6474,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             log_ab = R(abs_bound.log())
             alpha = [(log_ab/R(log(p,e))).floor() for p in S]
             if all([alpha_i <= 1 for alpha_i in alpha]): # so alpha_i must be 0 to satisfy that denominator is a square
-                return set([x for x  in range(-abs_bound,abs_bound) if E.is_x_coord(x)])
+                int_abs_bound = abs_bound.floor()
+                return set([x for x  in range(-int_abs_bound, int_abs_bound) if E.is_x_coord(x)])
             else:
                 xs = []
                 alpha_max_even = [y-y%2 for y in alpha]

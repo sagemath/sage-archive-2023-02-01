@@ -85,7 +85,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.qqbar import QQbar
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import (RealField, is_RealField)
@@ -151,7 +150,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         1-dimensional projective space over the base ring of
         ``morphism_or_polys`` with coordinate names given by ``names``.
 
-    OUTPUT: :class:`DynamicalSystem_projectve`.
+    OUTPUT: :class:`DynamicalSystem_projective`.
 
     EXAMPLES::
 
@@ -343,7 +342,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             TypeError: coefficients of polynomial not in Rational Field
-
         """
         from sage.dynamics.arithmetic_dynamics.product_projective_ds import DynamicalSystem_product_projective
 
@@ -391,20 +389,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             proj_CR = PolynomialRing(aff_CR.base_ring(), names=names)
             X,Y = proj_CR.gens()
             polys = [proj_CR(Y**d * poly(X/Y)) for poly in polys]
+
         if domain is None:
             f = polys[0]
             proj_CR = f.parent()
             domain = ProjectiveSpace(proj_CR)
-        else:
-            PR = domain.ambient_space().coordinate_ring()
-            try:
-                if any([is_FractionField(poly.parent()) for poly in polys]):
-                    polys = [PR(poly.numerator())/PR(poly.denominator()) for poly in polys]
-                else:
-                    polys = [PR(poly) for poly in polys]
-            except TypeError:
-                raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
-
+        PR = domain.ambient_space().coordinate_ring()
+        try:
+            polys = [PR(poly) for poly in polys]
+        except TypeError:
+            raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")

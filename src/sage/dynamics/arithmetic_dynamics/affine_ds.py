@@ -47,9 +47,9 @@ from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field import is_FractionField
+from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
-from sage.rings.quotient_ring import is_QuotientRing
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space_field
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space_finite_field
@@ -286,7 +286,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
                         break
                 if poly_ring:
                     polys = [P(poly) for poly in polys]
-
         if domain is None:
             f = polys[0]
             CR = f.parent()
@@ -295,16 +294,13 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             if fraction_field:
                 CR = CR.ring()
             domain = AffineSpace(CR)
-        else:
-            PR = domain.ambient_space().coordinate_ring()
-            try:
-                if fraction_field:
-                    polys = [PR(poly.numerator())/PR(poly.denominator()) for poly in polys]
-                else:
-                    polys = [PR(poly) for poly in polys]
-            except TypeError:
-                raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
-
+        PR = domain.ambient_space().coordinate_ring()
+        try:
+            if fraction_field:
+                PR = PR.fraction_field()
+            polys = [PR(poly) for poly in polys]
+        except TypeError:
+            raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")

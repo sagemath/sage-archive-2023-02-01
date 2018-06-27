@@ -2137,30 +2137,36 @@ def spqr_tree(G):
 
     # If G simplifies to a cycle.  Otherwise, seed the list of blocks to be
     # 2-split with G
-    P_block_new = []
     if SG.is_cycle():
         cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
 
-        # Join all the multiple edges of cocycle and make a component.
+        # Join all the multiple edges of cocycle and make a component and
+        # Construct the spqr_tree
+        Treeverts_new = ('S',tuple(SG.vertices()), Graph(SG, immutable=True))
+        Tree_new = Graph()
         P_SG = Graph()
         P_SG.allow_multiple_edges(True)
+
+        # All cuts will be present in cocycles
         for i in range(len(cocycles) - 1):
             if cocycles[i]==cocycles[i+1]:
                 P_SG.add_edge(cocycles[i])
             else:
                 P_SG.add_edge(cocycles[i])
-                P_block_new.append(P_SG.copy())
+                Tree_new.add_edge(('P',tuple(cocycles[i]), Graph(P_SG, immutable=True)),Treeverts_new)
+                # Reset P_SG
                 P_SG = Graph()
                 P_SG.allow_multiple_edges(True)
-        # if last edge and second last edge are same.
+
         if P_SG:
+            # last edge and second last edge are same.
             P_SG.add_edge(cocycles[-1])
-            P_block_new.append(P_SG.copy())
         else:
-            # if last edge and second last edge are different.
-            P_block_new.append(Graph())
-            P_block_new[-1].allow_multiple_edges(True)
-            P_block_new[-1].add_edge(cocycles[-1])
+            # last edge and second last edge are different.
+            P_SG.append(Graph())
+            P_SG.allow_multiple_edges(True)
+            P_SG.add_edge(cocycles[-1])
+        Tree_new.add_edge(('P',tuple(cocycles[-1]), Graph(P_SG, immutable=True)),Treeverts_new)
 
     else:
         SG.allow_multiple_edges(False)
@@ -2196,6 +2202,8 @@ def spqr_tree(G):
     # already in a P-block, for then we cannot 2-sum cycles at this edge for a
     # S-block Reconstruct S-blocks from smaller polygons, where cocycles permit.
 
+    # It's a vertification step, to check whether all the cycles are formed
+    # using cocycle edges
     cycles_graph = Graph(cycles, multiedges=True)
     for e in cycles_graph.edges(labels=False):
         if cycles_graph.subgraph(edges=[e]).has_multiple_edges():
@@ -2244,6 +2252,7 @@ def spqr_tree(G):
     SPR = R_blocks + polygons
     Treeverts = []
     Tree = Graph()
+    # Append all the tree vertices with labels to Treeverts list
     for T in SPR:
         if len(T) == 2:
             # It's a virtual edge component.
@@ -2252,9 +2261,7 @@ def spqr_tree(G):
             block_type = 'S'
         else:
             block_type = 'R'
-        Treeverts.append((block_type,tuple(T.vertices())))
-    if len(Treeverts) == 1:
-        Tree.add_vertex(Treeverts[0])
+        Treeverts.append((block_type,tuple(T.vertices()), Graph(T, immutable=True)))
 
     P_blocks = []
     cocycles_graph = Graph(cocycles, multiedges=True)
@@ -2266,7 +2273,7 @@ def spqr_tree(G):
             P_blocks.append(cocycles_graph.subgraph(vertices=[u, v]))
             for i in range(len(SPR)):
                 if SPR[i].has_edge(u, v):
-                    Tree.add_edge(('P',(u, v)),Treeverts[i])
+                    Tree.add_edge(('P',(u, v), Graph(P_blocks[-1], immutable=True)),Treeverts[i])
         else:
             for i in range(len(SPR)):
                 if SPR[i].has_edge(u, v):
@@ -2279,5 +2286,4 @@ def spqr_tree(G):
         if component.order()==3 and component.size()==3:
             thcomps.append(component)
     thcomps += R_blocks
-    #print(process.get_memory_info()[0])
-    return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree, P_block_new
+    return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree, Tree_new

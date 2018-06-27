@@ -1835,7 +1835,7 @@ class CoxeterGroups(Category_singleton):
 
         @cached_in_parent_method
         def bruhat_lower_covers(self):
-            """
+            r"""
             Returns all elements that ``self`` covers in (strong) Bruhat order.
 
             If ``w = self`` has a descent at `i`, then the elements that
@@ -2452,7 +2452,7 @@ class CoxeterGroups(Category_singleton):
             return dsp.apply_simple_projection(des, side = 'left')
 
         def deodhar_lift_up(self, w, index_set):
-            """
+            r"""
             Letting ``v = self``, given a Bruhat relation ``v W'`` $\le$ ``w W'`` among cosets
             with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
             returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` $\le$ ``x``.

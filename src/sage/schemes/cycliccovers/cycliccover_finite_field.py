@@ -151,7 +151,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
 
             # Want to take a lift of f from Fq to Zq
             if self._n == 1: # When n = 1, can lift from Fp[x] to Z[x] and then to Zp[x]
-                self._flift = self._Zqx( [elt.lift() for elt in  self._f.list()] ) 
+                self._flift = self._Zqx( [elt.lift() for elt in  self._f.list()] )
                 self._frobf = self._Zqx( self._flift.list() )
             else: # When n > 1, need to be more careful with the lift
                 self._flift = self._Zqx( [elt.polynomial().change_ring(ZZ)(self._Zq.gen()) for elt in self._f.list()])
@@ -755,7 +755,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             f = x**self._delta - lc
             L = f.splitting_field("a")
             roots = [r for r,_ in f.change_ring(L).roots()]
-            roots_dict = dict([(r, i) for i,r in  enumerate(roots)])
+            roots_dict = dict([(r, i) for i,r in enumerate(roots)])
             rootsfrob = [L.frobenius_endomorphism()(r) for r in roots]
             m = zero_matrix(len(roots))
             for i, r in enumerate(roots):
@@ -798,7 +798,7 @@ class CyclicCover_finite_field(cycliccover_generic.CyclicCover_generic):
             ....: HyperellipticCurve(f).frobenius_polynomial()
             True
 
-        Super Elliptic curves::
+        Superelliptic curves::
 
             sage: p = 11
             sage: x = PolynomialRing(GF(p),"x").gen()

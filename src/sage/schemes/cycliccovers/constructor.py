@@ -18,7 +18,7 @@ from .cycliccover_finite_field import CyclicCover_finite_field
 
 def CyclicCover(r, f, names=None, check_smooth=True):
     r"""
-    Returns the cyclic cover of the projective line given by `y^r = f', for
+    Returns the cyclic cover of the projective line given by `y^r = f`, for
     a univariate polynomial `f`.
 
     INPUT:
@@ -67,7 +67,7 @@ def CyclicCover(r, f, names=None, check_smooth=True):
         sage: CyclicCover(15, x^9 + x + 1)
         Cyclic Cover of P^1 over Rational Field defined by y^15 = x^9 + x + 1
 
-        sage: k.<a> = GF(9); R.<x> = k[]
+        sage: k.<a> = GF(9)i R.<x> = k[]
         sage: CyclicCover(5, x^9 + x + 1)
         Cyclic Cover of P^1 over Finite Field in a of size 3^2 defined by y^5 = x^9 + x + 1
         sage: CyclicCover(15, x^9 + x + 1)
@@ -111,26 +111,26 @@ def CyclicCover(r, f, names=None, check_smooth=True):
     if check_smooth:
         if P(r) == 0:
             raise ValueError("As the characteristic divides the order of the cover, "\
-                    "this model is not smooth.");
+                    "this model is not smooth.")
 
         try:
             from .check_squarefree import check_squarefree
-            smooth = check_squarefree(f);
+            smooth = check_squarefree(f)
         except NotImplementedError as err:
             raise NotImplementedError(str(err) +  "Use " \
-                      "check_smooth=False to skip this check.");
+                      "check_smooth=False to skip this check.")
         if not smooth:
             raise ValueError("Not a smooth Cyclic Cover of P^1: " \
                               "singularity in the provided affine patch.")
     R = P.base_ring()
     if names is None:
         names = ["x","y"]
-    A2 = AffineSpace(2, R, names = names);
+    A2 = AffineSpace(2, R, names = names)
 
     if is_FiniteField(R):
         return CyclicCover_finite_field(A2, r, f, names=names)
     else:
-        return CyclicCover_generic(A2, r, f, names)
+        return CyclicCover_generic(A2, r, f, names=names)
 
 
 

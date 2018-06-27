@@ -733,7 +733,15 @@ ELSE:
             :func:`sage.misc.persist.unpickle_global`
             """
 
-            return unpickle_global(module, name)
+            # First try using Sage's unpickle_global to go through the unpickle
+            # override system
+            try:
+                return unpickle_global(module, name)
+            except ImportError:
+                # Failing that, go through the base class's find_class to give
+                # it a try (this is necessary in particular to support
+                # fix_imports)
+                return super(_BaseUnpickler, self).find_class(module, name)
 
 
 class SagePickler(_BasePickler):

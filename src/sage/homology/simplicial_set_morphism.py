@@ -498,7 +498,7 @@ class SimplicialSetMorphism(Morphism):
         d = {sigma:data[sigma] for sigma in data if sigma.is_nondegenerate()}
         # For each simplex in d.keys(), add its faces, and the faces
         # of its faces, etc., to d.
-        for simplex in list(d.keys()):
+        for simplex in list(d):
             faces = domain.faces(simplex)
             add = []
             if faces:

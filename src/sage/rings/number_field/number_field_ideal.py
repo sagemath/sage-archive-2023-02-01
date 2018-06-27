@@ -687,7 +687,7 @@ class NumberFieldIdeal(Ideal_generic):
         not always) if self is principal then this function returns
         the unit ideal.
 
-        ALGORITHM: Calls pari's idealred function.
+        ALGORITHM: Calls :pari:`idealred` function.
 
         EXAMPLES::
 
@@ -2119,7 +2119,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
           `I`, i.e. a list of elements in the ring of integers `R` representing
           the elements of `(R/I)^*`.
 
-        ALGORITHM: Use pari's ``idealstar`` to find the group structure and
+        ALGORITHM: Use :pari:`idealstar` to find the group structure and
         generators of the multiplicative group modulo the ideal.
 
         EXAMPLES::

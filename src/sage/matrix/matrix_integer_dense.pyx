@@ -2507,7 +2507,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         - ``algorithm`` - determines which algorithm to use, options are:
 
           - 'flint' - use the algorithm from the FLINT library
-          - 'pari' - use the ``matkerint()`` function from the PARI library
+          - 'pari' - use the :pari:`matkerint` function from the PARI library
           - 'padic' - use the p-adic algorithm from the IML library
           - 'default' - use a heuristic to decide which of the three above
             routines is fastest.  This is the default value.

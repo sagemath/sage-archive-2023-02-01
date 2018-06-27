@@ -1298,7 +1298,7 @@ class Graph(GenericGraph):
 
     @doc_index("Basic methods")
     def graph6_string(self):
-        """
+        r"""
         Return the graph6 representation of the graph as an ASCII string.
 
         This is only valid for simple (no loops, no multiple edges) graphs
@@ -1548,7 +1548,7 @@ class Graph(GenericGraph):
     ### Properties
     @doc_index("Graph properties")
     def is_tree(self, certificate=False, output='vertex'):
-        """
+        r"""
         Tests if the graph is a tree
 
         The empty graph is defined to be not a tree.
@@ -3214,7 +3214,7 @@ class Graph(GenericGraph):
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):
-        """
+        r"""
         Returns true if self is an edge transitive graph.
 
         A graph is edge-transitive if its automorphism group acts transitively
@@ -3261,7 +3261,7 @@ class Graph(GenericGraph):
 
     @doc_index("Graph properties")
     def is_arc_transitive(self):
-        """
+        r"""
         Returns true if self is an arc-transitive graph
 
         A graph is arc-transitive if its automorphism group acts transitively on
@@ -7068,7 +7068,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def cores(self, k = None, with_labels=False):
-        """
+        r"""
         Return the core number for each vertex in an ordered list.
 
         (for homomorphisms cores, see the :meth:`Graph.has_homomorphism_to`
@@ -7867,7 +7867,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def kirchhoff_symanzik_polynomial(self, name='t'):
-        """
+        r"""
         Return the Kirchhoff-Symanzik polynomial of a graph.
 
         This is a polynomial in variables `t_e` (each of them representing an
@@ -7875,7 +7875,7 @@ class Graph(GenericGraph):
 
         .. MATH::
 
-            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
+            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \not\in E(T)} t_e
 
         This is also called the first Symanzik polynomial or the Kirchhoff
         polynomial.
@@ -7894,7 +7894,7 @@ class Graph(GenericGraph):
             3.1 of [Marcolli2009]_.
 
             As an intermediate step, one computes a cycle basis `\mathcal C` of
-            `G` and a rectangular `|\mathcal C| \\times |E(G)|` matrix with
+            `G` and a rectangular `|\mathcal C| \times |E(G)|` matrix with
             entries in `\{-1,0,1\}`, which describes which edge belong to which
             cycle of `\mathcal C` and their respective orientations.
 

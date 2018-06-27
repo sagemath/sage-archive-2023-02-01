@@ -1892,7 +1892,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if all(a[1] % 2 == 0 for a in f) and u.is_square():
             g = u.sqrt()
             for a in f:
-                g *= a[0] ** (a[1] / 2)
+                g *= a[0] ** (a[1] // 2)
             return (True, g) if root else True
         else:
             return (False, None) if root else False

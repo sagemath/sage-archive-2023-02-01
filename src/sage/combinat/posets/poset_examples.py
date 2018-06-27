@@ -1432,6 +1432,63 @@ class Posets(object):
         H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
         return LatticePoset(H.reverse())
 
+    @staticmethod
+    def Young_fibonacci(n):
+        """
+        Return the Young-Fibonacci lattice up to rank `n`.
+
+        Elements of the (infinite) lattice contains strings of '1' and '2'.
+        Covers for an element are 1) strings with another '1' added somewhere
+        not after the first occurence of an existing '1' and 2) strings where
+        the first '1' is changed to '2'. Here we cut the lattice to the given
+        finite height.
+
+        See :wikipedia:`Young-Fibonacci lattice`.
+
+        EXAMPLES:
+
+            sage: Y6 = posets.Young_fibonacci(6); Y6
+            Finite meet-semilattice containing 20 elements
+            sage: sorted(Y6.upper_covers('211'))
+            ['1211', '2111', '221']
+
+        TESTS::
+
+            sage: posets.Young_fibonacci(0)
+            Finite meet-semilattice containing 0 elements
+            sage: posets.Young_fibonacci(1)
+            Finite meet-semilattice containing 1 elements
+        """
+        from sage.combinat.posets.lattices import FiniteMeetSemilattice
+        from sage.categories.finite_posets import FinitePosets
+
+        if n == 1:
+            return MeetSemilattice({'': []})
+        covers = []
+        current_level = ['']
+        for i in range(1, n):
+            new_level = set()
+            for low in current_level:
+                ind = low.find('1')
+                if ind != -1:  # = found a '1' -> change first '1' to '2'
+                    up = low[:ind]+'2'+low[ind+1:]
+                    new_level.add(up)
+                    covers.append((low, up))
+                else:  # no '1' in low
+                    ind = len(low)
+
+                # add '1' to every position not after first existing '1'
+                for j in range(ind+1):
+                    up = '2'*j + '1' + low[j:len(low)]
+                    new_level.add(up)
+                    covers.append((low, up))
+
+            current_level = new_level
+
+        D = DiGraph([[], covers], format='vertices_and_edges')
+        return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
+
 ## RANDOM LATTICES
 
 # Following are helper functions for random lattice generation.

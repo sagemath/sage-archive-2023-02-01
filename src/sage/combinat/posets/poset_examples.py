@@ -55,7 +55,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
     :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
     :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
-    :meth:`~posets.Young_fibonacci` | Return Young-Fibonacci lattice up to height `n`.
+    :meth:`~posets.YoungFibonacci` | Return Young-Fibonacci lattice up to rank `n`.
 
 Constructions
 -------------
@@ -1434,7 +1434,7 @@ class Posets(object):
         return LatticePoset(H.reverse())
 
     @staticmethod
-    def Young_fibonacci(n):
+    def YoungFibonacci(n):
         """
         Return the Young-Fibonacci lattice up to rank `n`.
 
@@ -1442,32 +1442,32 @@ class Posets(object):
         Covers for an element are 1) strings with another '1' added somewhere
         not after the first occurence of an existing '1' and 2) strings where
         the first '1' is changed to '2'. Here we cut the lattice to the given
-        finite height.
+        finite rank.
 
         See :wikipedia:`Young-Fibonacci lattice`.
 
         EXAMPLES:
 
-            sage: Y6 = posets.Young_fibonacci(6); Y6
+            sage: Y5 = posets.YoungFibonacci(5); Y5
             Finite meet-semilattice containing 20 elements
-            sage: sorted(Y6.upper_covers('211'))
+            sage: sorted(Y5.upper_covers('211'))
             ['1211', '2111', '221']
 
         TESTS::
 
-            sage: posets.Young_fibonacci(0)
-            Finite meet-semilattice containing 0 elements
-            sage: posets.Young_fibonacci(1)
+            sage: posets.YoungFibonacci(0)
             Finite meet-semilattice containing 1 elements
+            sage: posets.YoungFibonacci(1)
+            Finite meet-semilattice containing 2 elements
         """
         from sage.combinat.posets.lattices import FiniteMeetSemilattice
         from sage.categories.finite_posets import FinitePosets
 
-        if n == 1:
+        if n == 0:
             return MeetSemilattice({'': []})
         covers = []
         current_level = ['']
-        for i in range(1, n):
+        for i in range(1, n+1):
             new_level = set()
             for low in current_level:
                 ind = low.find('1')

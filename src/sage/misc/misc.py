@@ -117,7 +117,7 @@ if hasattr(os, 'chmod'):
                   "can read and write it.")
 
 def try_read(obj, splitlines=False):
-    """
+    r"""
     Determine if a given object is a readable file-like object and if so
     read and return its contents.
 

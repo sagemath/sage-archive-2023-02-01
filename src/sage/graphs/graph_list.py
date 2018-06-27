@@ -22,7 +22,7 @@ from sage.misc.misc import try_read
 
 
 def from_whatever(data):
-    """
+    r"""
     Returns a list of Sage Graphs, given a list of whatever kind of
     data.
 

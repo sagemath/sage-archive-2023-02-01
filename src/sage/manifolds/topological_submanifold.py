@@ -270,7 +270,7 @@ class TopologicalSubmanifold(TopologicalManifold):
 
         if var is not None:
             try:
-                _ = iter(var)
+                iter(var)
                 for v in var:
                     if not isinstance(v, Expression):
                         raise TypeError()

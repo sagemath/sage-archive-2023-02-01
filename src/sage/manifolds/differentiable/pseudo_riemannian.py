@@ -269,11 +269,9 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.rings.infinity import infinity
-from sage.rings.integer import Integer
 from sage.manifolds.structure import (PseudoRiemannianStructure,
                                       RiemannianStructure, LorentzianStructure)
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
-from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
 
 ###############################################################################
 

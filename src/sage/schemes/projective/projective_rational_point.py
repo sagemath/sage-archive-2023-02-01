@@ -318,6 +318,10 @@ def sieve(X, bound):
     are the normalized coordinates such that all y_i are integers and
     gcd(y_1, y_2,..., y_n) = 1.
 
+    ALGORITHM:
+
+    This is an implementation of the algorithm in [Hutz2015]_.
+
     INPUT:
 
     - ``X`` - a scheme with ambient space defined over projective space

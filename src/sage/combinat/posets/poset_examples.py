@@ -55,6 +55,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
     :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
     :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
+    :meth:`~posets.Young_fibonacci` | Return Young-Fibonacci lattice up to height `n`.
 
 Constructions
 -------------

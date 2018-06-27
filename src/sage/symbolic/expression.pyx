@@ -6826,7 +6826,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = pi^3*x - y^2*e - I; f
             pi^3*x - y^2*e - I
             sage: f.polynomial(CDF)
-            (-2.71828182846)*y^2 + 31.0062766803*x - 1.0*I
+            (-2.718281828459045)*y^2 + 31.006276680299827*x - 1.0*I
             sage: f.polynomial(CC)
             (-2.71828182845905)*y^2 + 31.0062766802998*x - 1.00000000000000*I
             sage: f.polynomial(ComplexField(70))
@@ -6940,7 +6940,7 @@ cdef class Expression(CommutativeRingElement):
             pi*y^3 + x^3*e + sqrt(2) + I
             sage: R = CDF['x,y']
             sage: R(f)
-            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
+            2.718281828459045*x^3 + 3.141592653589793*y^3 + 1.414213562373095 + 1.0*I
 
         We coerce to a higher-precision polynomial ring::
 

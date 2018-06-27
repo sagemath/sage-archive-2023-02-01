@@ -3054,10 +3054,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         And a nice big example::
 
             sage: K.<x> = QQ[]
-            sage: p = K.random_element(4); p
-            1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+            sage: p = K.random_element(4); p    
+            -x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
-            [-1.830225346898784?, 1.842584249981426?, 0.004346864248152390? - 1.540200655088741?*I, 0.004346864248152390? + 1.540200655088741?*I]
+            [-12.04130993615785?, -0.3354271218231214?, 0.1883685289904843? - 0.2971714472289662?*I, 0.1883685289904843? + 0.2971714472289662?*I]
             sage: sage_input(rts, verify=True)  # long time (2s on sage.math, 2013)
             # Verified
             R.<x> = AA[]

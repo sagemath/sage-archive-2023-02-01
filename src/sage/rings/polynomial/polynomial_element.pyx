@@ -903,9 +903,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: etb = ExpressionTreeBuilder(vars=['t'])
             sage: R.<t> = QQ[]
             sage: v = R.random_element(6); v
-            -t^6 - 12*t^5 + 1/2*t^4 - 1/95*t^3 - 1/2*t^2 - 4
+            -1/4*t^6 + 1/2*t^5 - t^4 - 12*t^3 + 1/2*t^2 - 1/95*t - 1/2
             sage: v._fast_callable_(etb)
-            add(mul(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2), v_0), v_0), -4)
+            add(mul(add(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1/4), 1/2), v_0), -1), v_0), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2)
 
         TESTS::
 
@@ -5091,8 +5091,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         If self and right are polynomials of positive degree, the determinant
         of the Sylvester matrix is the resultant of the polynomials.::
 
-            sage: h1 = R.random_element()
-            sage: h2 = R.random_element()
+            sage: h1 = R._random_nonzero_element()
+            sage: h2 = R._random_nonzero_element()
             sage: M1 = h1.sylvester_matrix(h2)
             sage: M1.determinant() == h1.resultant(h2)
             True
@@ -9578,7 +9578,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: u = x^5-2; u.has_cyclotomic_factor()
             False
             sage: u = pol(cyclotomic_polynomial(7)) * pol.random_element() #random
-            sage: u.has_cyclotomic_factor()
+            sage: u.has_cyclotomic_factor() # random
             True
         """
         if not QQ.has_coerce_map_from(self.base_ring()):

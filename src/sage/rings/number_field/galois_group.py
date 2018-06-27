@@ -410,7 +410,7 @@ class GaloisGroup_v2(PermutationGroup_generic):
     # unless the field is Galois.
 
     def decomposition_group(self, P):
-        """
+        r"""
         Decomposition group of a prime ideal P, i.e. the subgroup of elements
         that map P to itself. This is the same as the Galois group of the
         extension of local fields obtained by completing at P.

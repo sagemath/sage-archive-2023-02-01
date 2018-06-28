@@ -5391,7 +5391,7 @@ class GenericGraph(GenericGraph_pyx):
         st.delete_vertices([v for v in g if st.degree(v) == 0])
         return st
 
-    def edge_disjoint_spanning_trees(self,k, root=None, solver = None, verbose = 0):
+    def edge_disjoint_spanning_trees(self, k, root=None, solver=None, verbose=0):
         r"""
         Returns the desired number of edge-disjoint spanning
         trees/arborescences.
@@ -5486,7 +5486,7 @@ class GenericGraph(GenericGraph_pyx):
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
 
-        p = MixedIntegerLinearProgram(solver = solver)
+        p = MixedIntegerLinearProgram(solver=solver)
         p.set_objective(None)
 
         # The colors we can use
@@ -5571,7 +5571,7 @@ class GenericGraph(GenericGraph_pyx):
             for v in self:
                 p.add_constraint(p.sum(r_edges[j,(u,v)] for u in self.neighbors(v)), max=1-epsilon)
         try:
-            p.solve(log = verbose)
+            p.solve(log=verbose)
 
         except MIPSolverException:
             from sage.categories.sets_cat import EmptySetError

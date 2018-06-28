@@ -278,7 +278,7 @@ class SBox(SageObject):
         return  x + [self._F(0)]*(n-len(x))
 
     def __call__(self, X):
-        """
+        r"""
         Apply substitution to ``X``.
 
         If ``X`` is a list, it is interpreted as a sequence of bits
@@ -704,8 +704,8 @@ class SBox(SageObject):
 
         solutions = []
         for i in range(1<<m):
-            solution = self.to_bits(i,m) + self( self.to_bits(i,m) )
-            solutions.append( dict(zip(gens, solution)) )
+            solution = self.to_bits(i, m) + self(self.to_bits(i, m))
+            solutions.append(dict(zip(gens, solution)))
 
         return solutions
 
@@ -803,15 +803,15 @@ class SBox(SageObject):
         else:
             P = X[0].parent()
 
-        gens = X+Y
+        gens = X + Y
 
         bits = []
         for i in range(1<<m):
-            bits.append( self.to_bits(i,m) + self(self.to_bits(i,m)) )
+            bits.append(self.to_bits(i, m) + self(self.to_bits(i, m)))
 
-        ncols = (1<<m)+1
+        ncols = (1<<m) + 1
 
-        A = Matrix(P, nterms(m+n, degree), ncols)
+        A = Matrix(P, nterms(m + n, degree), ncols)
 
         exponents = []
         for d in range(degree+1):

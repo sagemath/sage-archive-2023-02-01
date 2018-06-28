@@ -1267,8 +1267,8 @@ class Composition(CombinatorialElement):
             [[]]
         """
         if overlap:
-            from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-            return ShuffleProduct_overlapping(self, other)
+            from sage.combinat.shuffle import ShuffleProduct_overlapping
+            return ShuffleProduct_overlapping(self, other, Compositions())
         else:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             return ShuffleProduct_w1w2(self, other)
@@ -2018,6 +2018,6 @@ def composition_iterator_fast(n):
         else:
             cur.append(Integer(0))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
 

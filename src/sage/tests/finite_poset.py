@@ -11,6 +11,8 @@ be ranked.
     Currently only finite lattices have test function. Add some to
     general posets too.
 """
+from functools import reduce
+
 implications = {
  'doubling_convex': ['doubling_any'],
  'doubling_interval': ['doubling_lower'],
@@ -22,13 +24,15 @@ implications = {
  'geometric': ['upper_semimodular', 'relatively_complemented'],
  'isoform': ['uniform'],
  'join_distributive': ['meet_semidistributive', 'upper_semimodular'],
- 'join_semidistributive': ['join_pseudocomplemented'],
+ 'join_semidistributive': ['join_pseudocomplemented', 'interval_dismantlable'],
  'lower_semimodular': ['graded'],
  'meet_distributive': ['join_semidistributive', 'lower_semimodular'],
- 'meet_semidistributive': ['pseudocomplemented'],
+ 'meet_semidistributive': ['pseudocomplemented', 'interval_dismantlable'],
  'modular': ['upper_semimodular', 'lower_semimodular', 'supersolvable'],
  'orthocomplemented': ['self_dual', 'complemented'],
  'planar': ['dismantlable'],
+ 'dismantlable': ['sublattice_dismantlable'],
+ 'interval_dismantlable': ['sublattice_dismantlable'],
  'relatively_complemented': ['sectionally_complemented', 'cosectionally_complemented', 'isoform'],
  'sectionally_complemented': ['complemented', 'atomic', 'regular'],
  'semidistributive': ['join_semidistributive', 'meet_semidistributive'],
@@ -53,7 +57,8 @@ dual_properties = [
 selfdual_properties = ['distributive', 'modular', 'semidistributive', 'complemented',
  'relatively_complemented', 'orthocomplemented', 'uniq_orthocomplemented', 'supersolvable', 'planar',
  'dismantlable', 'vertically_decomposable', 'simple', 'isoform', 'uniform', 'regular',
-  'subdirectly_reducible', 'doubling_any', 'doubling_convex', 'doubling_interval']
+ 'subdirectly_reducible', 'doubling_any', 'doubling_convex', 'doubling_interval',
+ 'interval_dismantlable', 'interval_dismantlable']
 
 dual_elements = [
  ['atoms', 'coatoms'],

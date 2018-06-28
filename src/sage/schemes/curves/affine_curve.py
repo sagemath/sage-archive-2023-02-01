@@ -1,5 +1,5 @@
 """
-Affine curves.
+Affine curves
 
 EXAMPLES:
 
@@ -24,6 +24,7 @@ AUTHORS:
 - David Kohel (2006-01)
 
 - Grayson Jorgenson (2016-8)
+
 """
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -457,7 +458,7 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             Scheme morphism:
             From: Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s2 - 1,
             2*x^3 + (-a)*s1^2
-            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1, 
+            To:   Affine Curve over Number Field in a with defining polynomial x^2 - 2 defined by s0 - 1,
             2*z^3 + (-a)*s1^2
             Defn: Defined on coordinates by sending (x, s1, s2) to
                   (x*s2, 1/s2, s1/s2)

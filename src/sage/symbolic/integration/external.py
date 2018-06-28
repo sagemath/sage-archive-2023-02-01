@@ -160,33 +160,36 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         1/4*sqrt(2)*(log(3*sqrt(2) - 4) - log(sqrt(2)))
         sage: fricas_integrator(1/(x^2+6), x, -oo, oo)                          # optional - fricas
         1/6*sqrt(6)*pi
+
+    TESTS:
+
+    Check that :trac:`25220` is fixed::
+
+        sage: integral(sqrt(1-cos(x)), x, 0, 2*pi, algorithm="fricas")          # optional - fricas
+        4*sqrt(2)
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
+
+    from sage.interfaces.fricas import fricas
+    ex = fricas(expression)
+
     if a is None:
-        result = expression._fricas_().integrate(v)
+        result = ex.integrate(v)
     else:
-        import sage.rings.infinity
-        if a == sage.rings.infinity.PlusInfinity():
-            a = "%plusInfinity"
-        elif a == sage.rings.infinity.MinusInfinity():
-            a = "%minusInfinity"
-        if b == sage.rings.infinity.PlusInfinity():
-            b = "%plusInfinity"
-        elif b == sage.rings.infinity.MinusInfinity():
-            b = "%minusInfinity"
+        seg = fricas.equation(v, fricas.segment(a, b))
 
         if noPole:
-            result = expression._fricas_().integrate("{}={}..{}".format(v, a, b), '"noPole"')
+            result = ex.integrate(seg, '"noPole"')
         else:
-            result = expression._fricas_().integrate("{}={}..{}".format(v, a, b))
+            result = ex.integrate(seg)
 
-    locals = {str(v): v for v in expression.variables()}
     if str(result) == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
 
     return result.sage()
+
 
 def giac_integrator(expression, v, a=None, b=None):
     """

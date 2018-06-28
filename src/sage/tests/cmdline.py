@@ -58,6 +58,8 @@ from subprocess import *
 import os
 import select
 
+import six
+
 
 def test_executable(args, input="", timeout=100.0, **kwds):
     r"""
@@ -612,7 +614,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Check some things requiring an internet connection::
 
         sage: (out, err, ret) = test_executable(["sage", "--standard"])  # optional - internet
-        sage: out.find("atlas") >= 0  # optional - internet
+        sage: out.find("cython") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -628,7 +630,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--experimental"])  # optional - internet
-        sage: out.find("macaulay2") >= 0  # optional - internet
+        sage: out.find("valgrind") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -847,14 +849,24 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         del pexpect_env["TERM"]
     except KeyError:
         pass
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env, **kwds)
+
+    encoding = kwds.pop('encoding', 'utf-8')
+    errors = kwds.pop('errors', None)
+
+    if six.PY3:
+        kwds['encoding'] = encoding
+        kwds['errors'] = errors
+
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
+              **kwds)
     if input:
         p.stdin.write(input)
+
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""
-    err = ""
+    out = []
+    err = []
 
     while True:
         # Try reading from fdout and fderr
@@ -872,14 +884,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             p.terminate()
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
-            s = os.read(fdout, 1024)
-            if s == "":
+            s = p.stdout.read(1024)
+            if not s:
                 fdout = None   # EOF
-            out += s
+                p.stdout.close()
+            out.append(s)
         if fderr in rlist:
-            s = os.read(fderr, 1024)
-            if s == "":
+            s = p.stderr.read(1024)
+            if not s:
                 fderr = None   # EOF
-            err += s
+                p.stderr.close()
+            err.append(s)
 
-    return (out, err, p.wait())
+    return (''.join(out), ''.join(err), p.wait())

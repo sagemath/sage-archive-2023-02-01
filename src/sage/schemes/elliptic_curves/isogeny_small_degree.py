@@ -1,31 +1,23 @@
 r"""
-Isogenies of small prime degree.
+Isogenies of small prime degree
 
-Functions for the computation of isogenies of small primes
-degree. First: `l` = 2, 3, 5, 7, or 13, where the modular curve
-`X_0(l)` has genus 0.  Second: `l` = 11, 17, 19, 23, 29, 31, 41, 47,
-59, or 71, where `X_0^+(l)` has genus 0 and `X_0(l)` is elliptic or
-hyperelliptic.  Also: `l` = 11, 17, 19, 37, 43, 67 or 163 over `\QQ`
-(the sporadic cases with only finitely many `j`-invariants each).  All
-the above only require factorization of a polynomial of degree `l+1`.
-Finally, a generic function which works for arbitrary odd primes `l`
-(including the characteristic), but requires factorization of the
-`l`-division polynomial, of degree `(l^2-1)/2`.
-
+Functions for the computation of isogenies of small primes degree. First: `l` =
+2, 3, 5, 7, or 13, where the modular curve `X_0(l)` has genus 0.  Second: `l` =
+11, 17, 19, 23, 29, 31, 41, 47, 59, or 71, where `X_0^+(l)` has genus 0 and
+`X_0(l)` is elliptic or hyperelliptic.  Also: `l` = 11, 17, 19, 37, 43, 67 or
+163 over `\QQ` (the sporadic cases with only finitely many `j`-invariants
+each).  All the above only require factorization of a polynomial of degree
+`l+1`.  Finally, a generic function which works for arbitrary odd primes `l`
+(including the characteristic), but requires factorization of the `l`-division
+polynomial, of degree `(l^2-1)/2`.
 
 AUTHORS:
 
-- John Cremona and Jenny Cooley: 2009-07..11: the genus 0 cases the sporadic cases over `\QQ`.
+- John Cremona and Jenny Cooley: 2009-07..11: the genus 0 cases the sporadic
+  cases over `\QQ`.
 
-- Kimi Tsukazaki and John Cremona: 2013-07: The 10 (hyper)-elliptic
-  cases and the generic algorithm.  See [KT2013]_.
-
-REFERENCES:
-
-.. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic curves. preprint, 2005.
-.. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
-   PhD thesis, University of Warwick, 2013.
-
+- Kimi Tsukazaki and John Cremona: 2013-07: The 10 (hyper)-elliptic cases and
+  the generic algorithm.  See [KT2013]_.
 
 """
 
@@ -328,7 +320,8 @@ def isogenies_prime_degree_genus_0(E, l=None):
         return isogs
 
     if l is None:
-        return sum([isogenies_prime_degree_genus_0(E, l) for l in [2,3,5,7,13]],[])
+        return sum([isogenies_prime_degree_genus_0(E, ell)
+                    for ell in [2, 3, 5, 7, 13]],[])
 
 
 # The following code computes data to be used in
@@ -387,7 +380,7 @@ def _sporadic_Q_data(j):
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import sporadic_j, _sporadic_Q_data
-        sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j.keys()) if j != -262537412640768000]
+        sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j) if j != -262537412640768000]
         [([-269675595, -1704553285050],
           [-31653754873248632711650187487655160190139073510876609346911928661154296875/37,
            -1469048260972089939455942042937882262144594798448952781325533511718750,
@@ -1493,7 +1486,6 @@ def Psi2(l):
     data = _hyperelliptic_isogeny_data(l)
 
     R = PolynomialRing(QQ, 'u')
-    u = R.gen()
     L = PolynomialRing(R, 'v')
     v = L.gen()
     K = R.extension(v*v - R(data['hyper_poly']), 'v')
@@ -1615,10 +1607,11 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
 
     """
     if l is None:
-        return sum([isogenies_prime_degree_genus_plus_0(E, l) for l in hyperelliptic_primes],[])
+        return sum([isogenies_prime_degree_genus_plus_0(E, ell)
+                    for ell in hyperelliptic_primes],[])
 
     if not l in hyperelliptic_primes:
-        raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
+        raise ValueError("%s must be one of %s." % (l, hyperelliptic_primes))
 
     F = E.base_ring()
     j = E.j_invariant()
@@ -1999,10 +1992,10 @@ def isogenies_prime_degree_general(E, l):
     # the division polynomial of the same degree, where this degree is
     # a divisor of (l-1)/2, so we keep only such factors:
 
-    l2 = (l-1)//2
-    factors = [h for h,e in psi_l.factor()]
-    factors_by_degree = dict([(d,[f for f in factors if f.degree()==d])
-                              for d in l2.divisors()])
+    l2 = (l - 1) // 2
+    factors = [h for h, _ in psi_l.factor()]
+    factors_by_degree = {d: [f for f in factors if f.degree() == d]
+                         for d in l2.divisors()}
 
     ker = [] # will store all kernel polynomials found
 
@@ -2011,8 +2004,8 @@ def isogenies_prime_degree_general(E, l):
     # we add to the list and remove the factors used.
 
     from sage.misc.all import prod
-    for d in factors_by_degree.keys():
-        if d*len(factors_by_degree[d]) == l2:
+    for d in list(factors_by_degree):
+        if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
 
     # Exit now if all factors have been used already:

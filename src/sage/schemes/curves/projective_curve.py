@@ -1,5 +1,5 @@
 """
-Projective curves.
+Projective curves
 
 EXAMPLES:
 
@@ -26,6 +26,7 @@ AUTHORS:
 - Moritz Minzlaff (2010-11)
 
 - Grayson Jorgenson (2016-8)
+
 """
 
 #*****************************************************************************
@@ -240,7 +241,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             ...
             TypeError: (=Projective Space of dimension 2 over Finite Field of size
             7) must have dimension (=3)
-            
+
 
         ::
 
@@ -2035,6 +2036,6 @@ def Hasse_bounds(q, genus=1):
     return (q+1-rq,q+1+rq)
 
 # Fix pickles from changing class names and plane_curves folder name
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.plane_curves.projective_curve',
                            'ProjectiveCurve_generic', ProjectivePlaneCurve)

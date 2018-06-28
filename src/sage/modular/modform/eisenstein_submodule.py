@@ -662,7 +662,6 @@ def cyclotomic_restriction_tower(L,K):
         raise ValueError("K must be contained in L")
     f = L.defining_polynomial()
     R = K['x']
-    x = R.gen()
     g = R(f)
     h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:

@@ -888,13 +888,24 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagram(BinaryWord, [4, 1, 2, 3])
             sage: G.P_chain()
             [word: , word: 1, word: 11, word: 111, word: 1011]
+
+        Check that :trac:`25631` is fixed::
+
+            sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinaryWord(filling = {}).P_chain()
+            [word: ]
+
         """
         if not self.is_rectangular():
             raise ValueError("the P symbol is only defined for rectangular shapes")
-        if self.rule.has_multiple_edges:
-            return self._out_labels[(2*self._lambda[0]):][::-1]
+        if self._lambda:
+            if self.rule.has_multiple_edges:
+                r = 2*self._lambda[0]
+            else:
+                r = self._lambda[0]
         else:
-            return self._out_labels[self._lambda[0]:][::-1]
+            r = 0
+        return self._out_labels[r:][::-1]
 
     def Q_chain(self):
         r"""
@@ -907,13 +918,24 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagram(BinaryWord, [[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
             sage: G.Q_chain()
             [word: , word: 1, word: 10, word: 101, word: 1011]
+
+        Check that :trac:`25631` is fixed::
+
+            sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinaryWord(filling = {}).Q_chain()
+            [word: ]
+
         """
         if not self.is_rectangular():
             raise ValueError("the Q symbol is only defined for rectangular shapes")
-        if self.rule.has_multiple_edges:
-            return self._out_labels[:(2*self._lambda[0]+1)]
+        if self._lambda:
+            if self.rule.has_multiple_edges:
+                r = 2*self._lambda[0]+1
+            else:
+                r = self._lambda[0]+1
         else:
-            return self._out_labels[:self._lambda[0]+1]
+            r = 1
+        return self._out_labels[:r]
 
     def is_rectangular(self):
         r"""

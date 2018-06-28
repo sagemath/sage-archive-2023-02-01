@@ -29,7 +29,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.finite_rings.finite_field_base import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -660,7 +660,7 @@ def unpickle_PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False):
     args = [arg for arg in (arg1, arg2) if arg is not None]
     return PolynomialRing(base_ring, *args, sparse=sparse)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.polynomial.polynomial_ring_constructor', 'PolynomialRing', unpickle_PolynomialRing)
 
 

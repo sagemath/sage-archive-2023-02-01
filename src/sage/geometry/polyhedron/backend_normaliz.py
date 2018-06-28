@@ -81,7 +81,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         sage: P.n_inequalities()                                           # optional - pynormaliz
         1
         sage: P.equations()                                                # optional - pynormaliz
-        (An equation (1, 0) x - 1 == 0,)
+        (An equation (-1, 0) x + 1 == 0,)
 
     The empty polyhedron::
 
@@ -344,11 +344,10 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         import PyNormaliz
         self._Hrepresentation = []
-        base_ring = self.base_ring()
         cone = self._normaliz_cone
         parent = self.parent()
         for g in PyNormaliz.NmzResult(cone, "SupportHyperplanes"):
-            if all(x==0 for x in g[:-1]):
+            if all(x == 0 for x in g[:-1]):
                 # Ignore vertical inequality
                 pass
             else:
@@ -419,7 +418,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: PI.Vrepresentation()                                     # optional - pynormaliz
             (A vertex at (1, 0),
              A ray in the direction (1, 0),
-             A line in the direction (1, -1))
+             A line in the direction (-1, 1))
 
         Empty polyhedron::
 
@@ -564,6 +563,72 @@ class Polyhedron_normaliz(Polyhedron_base):
             (None, None)
             sage: P.integral_points()                                      # optional - pynormaliz
             ()
+
+        Check the polytopes from :trac:`22984`::
+
+            sage: base = [[0, 2, 0, -1, 0, 0, 0, 0, 0],
+            ....:         [0, 0, 2, 0, -1, 0, 0, 0, 0],
+            ....:         [1, -1, 0, 2, -1, 0, 0, 0, 0],
+            ....:         [0, 0, -1, -1, 2, -1, 0, 0, 0],
+            ....:         [0, 0, 0, 0, -1, 2, -1, 0, 0],
+            ....:         [0, 0, 0, 0, 0, -1, 2, -1, 0],
+            ....:         [1, 0, 0, 0, 0, 0, -1, 2, -1],
+            ....:         [0, 0, 0, 0, 0, 0, 0, -1, 2],
+            ....:         [0, -1, 0, 0, 0, 0, 0, 0, 0],
+            ....:         [0, 0, -1, 0, 0, 0, 0, 0, 0],
+            ....:         [0, 0, 0, -1, 0, 0, 0, 0, 0],
+            ....:         [0, 0, 0, 0, -1, 0, 0, 0, 0],
+            ....:         [0, 0, 0, 0, 0, -1, 0, 0, 0],
+            ....:         [0, 0, 0, 0, 0, 0, -1, 0, 0],
+            ....:         [0, 0, 0, 0, 0, 0, 0, -1, 0],
+            ....:         [0, 0, 0, 0, 0, 0, 0, 0, -1],
+            ....:         [-1, -1, -1, -1, -1, -1, -1, -1, -1]]
+
+            sage: ieqs = base + [
+            ....:         [2, 1, 0, 0, 0, 0, 0, 0, 0],
+            ....:         [4, 0, 1, 0, 0, 0, 0, 0, 0],
+            ....:         [4, 0, 0, 1, 0, 0, 0, 0, 0],
+            ....:         [7, 0, 0, 0, 1, 0, 0, 0, 0],
+            ....:         [6, 0, 0, 0, 0, 1, 0, 0, 0],
+            ....:         [4, 0, 0, 0, 0, 0, 1, 0, 0],
+            ....:         [2, 0, 0, 0, 0, 0, 0, 1, 0],
+            ....:         [1, 0, 0, 0, 0, 0, 0, 0, 1]]
+            sage: P = Polyhedron(ieqs=ieqs, backend='normaliz')            # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
+            ((-2, -2, -4, -5, -4, -3, -2, -1),
+             (-2, -2, -4, -5, -4, -3, -2, 0),
+             (-1, -2, -3, -4, -3, -2, -2, -1),
+             (-1, -2, -3, -4, -3, -2, -1, 0),
+             (-1, -1, -2, -2, -2, -2, -2, -1),
+             (-1, -1, -2, -2, -1, -1, -1, 0),
+             (-1, -1, -2, -2, -1, 0, 0, 0),
+             (-1, 0, -2, -2, -2, -2, -2, -1),
+             (0, -1, -1, -2, -2, -2, -2, -1),
+             (0, 0, -1, -1, -1, -1, -1, 0))
+
+            sage: ieqs = base + [
+            ....:         [3, 1, 0, 0, 0, 0, 0, 0, 0],
+            ....:         [4, 0, 1, 0, 0, 0, 0, 0, 0],
+            ....:         [6, 0, 0, 1, 0, 0, 0, 0, 0],
+            ....:         [8, 0, 0, 0, 1, 0, 0, 0, 0],
+            ....:         [6, 0, 0, 0, 0, 1, 0, 0, 0],
+            ....:         [4, 0, 0, 0, 0, 0, 1, 0, 0],
+            ....:         [2, 0, 0, 0, 0, 0, 0, 1, 0],
+            ....:         [1, 0, 0, 0, 0, 0, 0, 0, 1]]
+            sage: P = Polyhedron(ieqs=ieqs, backend='normaliz')            # optional - pynormaliz
+            sage: P.integral_points()                                      # optional - pynormaliz
+            ((-3, -4, -6, -8, -6, -4, -2, -1),
+             (-3, -4, -6, -8, -6, -4, -2, 0),
+             (-2, -2, -4, -5, -4, -3, -2, -1),
+             (-2, -2, -4, -5, -4, -3, -2, 0),
+             (-1, -2, -3, -4, -3, -2, -2, -1),
+             (-1, -2, -3, -4, -3, -2, -1, 0),
+             (-1, -1, -2, -2, -2, -2, -2, -1),
+             (-1, -1, -2, -2, -1, -1, -1, 0),
+             (-1, -1, -2, -2, -1, 0, 0, 0),
+             (-1, 0, -2, -2, -2, -2, -2, -1),
+             (0, -1, -1, -2, -2, -2, -2, -1),
+             (0, 0, -1, -1, -1, -1, -1, 0))
         """
         import PyNormaliz
         if not self.is_compact():

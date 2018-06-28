@@ -26,7 +26,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import (Integer, RationalField, ZZ)
+from sage.rings.all import RationalField
 import sage.groups.additive_abelian.additive_abelian_wrapper as groups
 from sage.structure.richcmp import richcmp_method, richcmp
 
@@ -163,12 +163,10 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
 
         if self.__K is RationalField():
             G = self.__E.pari_curve().elltors()
-            order = G[0].sage()
             structure = G[1].sage()
             gens = G[2].sage()
 
             self.__torsion_gens = [ self.__E(P) for P in gens ]
-            from sage.groups.additive_abelian.additive_abelian_group import cover_and_relations_from_invariants
             groups.AdditiveAbelianGroupWrapper.__init__(self, self.__E(0).parent(), self.__torsion_gens, structure)
             return
 
@@ -191,7 +189,6 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
                 T2 += ptor[1][0]
                 k2 *= p**(ptor[1][1])
 
-        order = k1*k2
         if k1 == 1:
             structure = []
             gens = []
@@ -199,13 +196,13 @@ class EllipticCurveTorsionSubgroup(groups.AdditiveAbelianGroupWrapper):
             structure = [k1]
             gens = [T1]
         else:
-            structure = [k1,k2]
-            gens = [T1,T2]
+            structure = [k1, k2]
+            gens = [T1, T2]
 
         #self.__torsion_gens = gens
         self._structure = structure
-        groups.AdditiveAbelianGroupWrapper.__init__(self, T1.parent(), [T1, T2], structure)
-
+        groups.AdditiveAbelianGroupWrapper.__init__(self, T1.parent(),
+                                                    [T1, T2], structure)
 
     def _repr_(self):
         """

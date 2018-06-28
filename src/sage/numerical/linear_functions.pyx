@@ -52,7 +52,7 @@ inequalities as less or equal::
     The implementation of chained inequalities uses a Python hack to
     make it work, so it is not completely robust. In particular, while
     constants are allowed, no two constants can appear next to
-    eachother. The following does not work for example::
+    each other. The following does not work for example::
 
         sage: x[0] <= 3 <= 4
         True
@@ -483,47 +483,27 @@ cdef class LinearFunctionOrConstraint(ModuleElement):
             sage: p = MixedIntegerLinearProgram()
             sage: LF = p.linear_functions_parent()
             sage: f = LF({2 : 5, 3 : 2})
-            sage: f.__hash__()   # random output
+            sage: hash(f)  # indirect doctest; random
             103987752
-            sage: d = {}
-            sage: d[f] = 3
-        """
-        # see __cmp__() if you want to change the hash function
-        return hash_by_id(<void*>self)
 
-    def __cmp__(left, right):
-        """
-        Implement comparison of two linear functions or constraints.
+        Since we hash by ``id()``, linear functions and constraints are
+        only considered equal for sets and dicts if they are the same
+        object::
 
-        EXAMPLES::
-
-            sage: p = MixedIntegerLinearProgram()
-            sage: LF = p.linear_functions_parent()
-            sage: f = LF({2 : 5, 3 : 2})
-            sage: cmp(f, f)
-            0
-            sage: abs(cmp(f, f+0))     # since we are comparing by id()
-            1
-            sage: abs(cmp(f, f+1))
-            1
-            sage: len(set([f, f]))
-            1
-            sage: len(set([f, f+0]))
-            2
+            sage: f = LF.0
+            sage: set([f, f])
+            {x_0}
+            sage: set([f, f+0])
+            {x_0, x_0}
             sage: len(set([f, f+1]))
             2
-            sage: abs(cmp(f <= 0, f <= 0))
-            1
+            sage: d = {}
+            sage: d[f] = 123
+            sage: d[f+0] = 456
+            sage: list(d)
+            [x_0, x_0]
         """
-        # Note: if you want to implement smarter comparison, you also
-        # need to change __hash__(). The comparison function must
-        # satisfy cmp(x,y)==0 => hash(x)==hash(y)
-        if left is right:
-            return 0
-        if <size_t><void*>left < <size_t><void*>right:
-            return -1
-        else:
-            return 1
+        return hash_by_id(<void*>self)
 
 
 #*****************************************************************************

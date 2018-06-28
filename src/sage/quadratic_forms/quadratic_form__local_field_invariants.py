@@ -837,7 +837,6 @@ def compute_definiteness(self):
 
     ## Some useful variables
     n = self.dim()
-    M = self.matrix()
 
     ## Deal with the zero-diml form
     if n == 0:
@@ -859,7 +858,6 @@ def compute_definiteness(self):
     else:
         self.__definiteness_string = "indefinite"
         return
-
 
 
 def compute_definiteness_string_by_determinants(self):

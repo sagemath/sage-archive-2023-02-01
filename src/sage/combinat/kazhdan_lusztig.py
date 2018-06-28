@@ -22,7 +22,6 @@ AUTHORS:
 from __future__ import absolute_import, print_function, division
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.functions.other import floor
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
 from sage.structure.sage_object import SageObject
@@ -30,7 +29,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 
 class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
-    """
+    r"""
     A Kazhdan-Lusztig polynomial.
 
     INPUT:

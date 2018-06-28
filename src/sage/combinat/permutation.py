@@ -62,6 +62,9 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.longest_increasing_subsequences` | Returns the list of the longest increasing subsequences of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.cycle_type` | Returns the cycle type of ``self`` as a partition of ``len(self)``.
     :meth:`~sage.combinat.permutation.Permutation.foata_bijection` | Returns the image of the permutation ``self`` under the Foata bijection `\phi`.
+    :meth:`~sage.combinat.permutation.Permutation.foata_bijection_inverse` | Returns the image of the permutation ``self`` under the inverse of the Foata bijection `\phi`.
+    :meth:`~sage.combinat.permutation.Permutation.fundamental_transformation` | Returns the image of the permutation ``self`` under the Renyi-Foata-Schuetzenberger fundamental transformation.
+    :meth:`~sage.combinat.permutation.Permutation.fundamental_transformation_inverse` | Returns the image of the permutation ``self`` under the inverse of the Renyi-Foata-Schuetzenberger fundamental transformation.
     :meth:`~sage.combinat.permutation.Permutation.destandardize` |  Return destandardization of ``self`` with respect to ``weight`` and ``ordered_alphabet``.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_code` | Returns the Lehmer code of the permutation ``self``.
     :meth:`~sage.combinat.permutation.Permutation.to_lehmer_cocode` | Returns the Lehmer cocode of ``self``.
@@ -868,7 +871,7 @@ class Permutation(CombinatorialElement):
             w = w[i:]
         return tableau.Tableau(t)
 
-    def to_cycles(self, singletons=True):
+    def to_cycles(self, singletons=True, use_min=True):
         """
         Return the permutation ``self`` as a list of disjoint cycles.
 
@@ -879,15 +882,32 @@ class Permutation(CombinatorialElement):
         If ``singletons=False`` is given, the list does not contain the
         singleton cycles.
 
+        If ``use_min=False`` is given, the cycles are returned in the
+        order of increasing *largest* (not smallest) elements, and
+        each cycle starts with its largest element.
+
         EXAMPLES::
 
             sage: Permutation([2,1,3,4]).to_cycles()
             [(1, 2), (3,), (4,)]
             sage: Permutation([2,1,3,4]).to_cycles(singletons=False)
             [(1, 2)]
+            sage: Permutation([2,1,3,4]).to_cycles(use_min=True)
+            [(1, 2), (3,), (4,)]
+            sage: Permutation([2,1,3,4]).to_cycles(use_min=False)
+            [(4,), (3,), (2, 1)]
+            sage: Permutation([2,1,3,4]).to_cycles(singletons=False, use_min=False)
+            [(2, 1)]
 
             sage: Permutation([4,1,5,2,6,3]).to_cycles()
             [(1, 4, 2), (3, 5, 6)]
+            sage: Permutation([4,1,5,2,6,3]).to_cycles(use_min=False)
+            [(6, 3, 5), (4, 2, 1)]
+
+            sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles()
+            [(1, 6), (2, 4), (3, 5)]
+            sage: Permutation([6, 4, 5, 2, 3, 1]).to_cycles(use_min=False)
+            [(6, 1), (5, 3), (4, 2)]
 
         The algorithm is of complexity `O(n)` where `n` is the size of the
         given permutation.
@@ -933,8 +953,13 @@ class Permutation(CombinatorialElement):
 
         l = self[:]
 
+        if use_min:
+            groundset = range(len(l))
+        else:
+            groundset = reversed(range(len(l)))
+
         # Go through until we've considered every number between 1 and len(l)
-        for i in range(len(l)):
+        for i in groundset:
             if not l[i]:
                 continue
             cycleFirst = i + 1
@@ -1291,7 +1316,7 @@ class Permutation(CombinatorialElement):
     _left_to_right_multiply_on_left = left_action_product
 
     def right_action_product(self, rp):
-        """
+        r"""
         Return the permutation obtained by composing ``self`` with
         ``rp`` in such an order that ``self`` is applied first and
         ``rp`` is applied afterwards.
@@ -2173,8 +2198,11 @@ class Permutation(CombinatorialElement):
 
         .. MATH::
 
-            \sigma = (a_{1,1}, \ldots, a_{1,k_1}) (a_{2,1}, \ldots, a_{2,k_2})
-            \cdots (a_{m,1}, \ldots, a_{m,k_m}),
+            \sigma
+            = (a_{1,1}, \ldots, a_{1,k_1})
+              (a_{2,1}, \ldots, a_{2,k_2})
+              \cdots
+              (a_{m,1}, \ldots, a_{m,k_m}),
 
         where `a_{1,1} < a_{2,1} < \cdots < a_{m,1}` and `a_{j,1} < a_{j,i}`
         for all `1 \leq j \leq m` and `2 \leq i \leq k_j` where we include
@@ -2183,10 +2211,16 @@ class Permutation(CombinatorialElement):
 
         .. MATH::
 
-            \phi(\sigma) = [a_{1,1}, \ldots, a_{1,k_1}, a_{2,1} \ldots,
+            \phi(\sigma) = [a_{1,1}, \ldots, a_{1,k_1}, a_{2,1}, \ldots,
             a_{2,k_2}, \ldots, a_{m,1}, \ldots, a_{m,k_m}],
 
         considered as a permutation in 1-line notation.
+
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation`, which is a similar map that
+            is defined by instead taking `a_{j,1} > a_{j,i}` and is
+            bijective.
 
         EXAMPLES::
 
@@ -2224,6 +2258,10 @@ class Permutation(CombinatorialElement):
         .. [CC13] Mahir Bilen Can and Yonah Cherniavsky.
            *Omitting parentheses from the cyclic notation*. (2013).
            :arxiv:`1308.0936v2`.
+
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation`.
         """
         ret = []
         for t in self.to_cycles():
@@ -2236,7 +2274,8 @@ class Permutation(CombinatorialElement):
         Return the image of the permutation ``self`` under the Foata
         bijection `\phi`.
 
-        The bijection shows that `\mathrm{maj}` and `\mathrm{inv}` are
+        The bijection shows that `\mathrm{maj}` (the major index)
+        and `\mathrm{inv}` (the number of inversions) are
         equidistributed: if `\phi(P) = Q`, then `\mathrm{maj}(P) =
         \mathrm{inv}(Q)`.
 
@@ -2266,7 +2305,12 @@ class Permutation(CombinatorialElement):
 
         So `\phi([1,4,2,5,3]) = [4,5,1,2,3]`.
 
-        See section 2 of [FoSc78]_.
+        See section 2 of [FoSc78]_, and the proof of Proposition 1.4.6
+        in [EnumComb1]_.
+
+        .. SEEALSO::
+
+            :meth:`foata_bijection_inverse` for the inverse map.
 
         REFERENCES:
 
@@ -2302,20 +2346,20 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1]).foata_bijection()
             [1]
         """
-        L = list(self)
         M = []
-        for e in L:
-            M.append(e)
+        for e in self:
             k = len(M)
             if k <= 1:
+                M.append(e)
                 continue
 
-            a = M[-2]
-            M_prime = [0]*k
+            a = M[-1]
+            M_prime = [0]*(k + 1)
+            # Locate the positions of the vertical lines.
             if a > e:
-                index_list = [-1] + [i for i in range(k - 1) if M[i] > e]
+                index_list = [-1] + [i for i, val in enumerate(M) if val > e]
             else:
-                index_list = [-1] + [i for i in range(k - 1) if M[i] < e]
+                index_list = [-1] + [i for i, val in enumerate(M) if val < e]
 
             for j in range(1, len(index_list)):
                 start = index_list[j-1] + 1
@@ -2323,9 +2367,203 @@ class Permutation(CombinatorialElement):
                 M_prime[start] = M[end]
                 for x in range(start + 1, end + 1):
                     M_prime[x] = M[x-1]
-            M_prime[k-1] = e
+            M_prime[k] = e
             M = M_prime
         return Permutations()(M)
+
+    @combinatorial_map(name='foata_bijection_inverse')
+    def foata_bijection_inverse(self):
+        r"""
+        Return the image of the permutation ``self`` under the inverse
+        of the Foata bijection `\phi`.
+
+        See :meth:`foata_bijection` for the definition of the Foata
+        bijection.
+
+        EXAMPLES::
+
+            sage: Permutation([4, 1, 2, 3]).foata_bijection()
+            [1, 2, 4, 3]
+
+        TESTS::
+
+            sage: all( P.foata_bijection().foata_bijection_inverse() == P
+            ....:      for P in Permutations(5) )
+            True
+
+        Border cases::
+
+            sage: Permutation([]).foata_bijection_inverse()
+            []
+            sage: Permutation([1]).foata_bijection_inverse()
+            [1]
+        """
+        L = list(self)
+        Mrev = [] # The resulting permutation, in reverse.
+        while L:
+            e = L.pop()
+            Mrev.append(e)
+            k = len(L)
+            if k <= 1:
+                continue
+            L_prime = [0]*(k)
+            a = L[0]
+            # Locate the positions of the vertical lines.
+            if a > e:
+                index_list = [i for i, val in enumerate(L) if val > e]
+            else:
+                index_list = [i for i, val in enumerate(L) if val < e]
+            index_list.append(k)
+
+            for j in range(1, len(index_list)):
+                start = index_list[j-1]
+                end = index_list[j] - 1
+                L_prime[end] = L[start]
+                for x in range(start, end):
+                    L_prime[x] = L[x+1]
+            L = L_prime
+        return Permutations()(reversed(Mrev))
+
+    @combinatorial_map(name='fundamental_transformation')
+    def fundamental_transformation(self):
+        r"""
+        Return the image of the permutation ``self`` under the
+        Renyi-Foata-Schuetzenberger fundamental transformation.
+
+        The fundamental transformation is a bijection from the
+        set of all permutations of `\{1, 2, \ldots, n\}` to
+        itself, which transforms any such permutation `w`
+        as follows:
+        Write `w` in cycle form, with each cycle starting with
+        its highest element, and the cycles being sorted in
+        increasing order of their highest elements.
+        Drop the parentheses in the resulting expression, thus
+        reading it as a one-line notation of a new permutation
+        `u`.
+        Then, `u` is the image of `w` under the fundamental
+        transformation.
+
+        See [EnumComb1]_, Proposition 1.3.1.
+
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation_inverse`
+            for the inverse map.
+
+            :meth:`forget_cycles` for a similar (but non-bijective)
+            map where each cycle is starting from its lowest element.
+
+        EXAMPLES::
+
+            sage: Permutation([5, 1, 3, 4, 2]).fundamental_transformation()
+            [3, 4, 5, 2, 1]
+            sage: Permutations(5)([1, 5, 3, 4, 2]).fundamental_transformation()
+            [1, 3, 4, 5, 2]
+            sage: Permutation([8, 4, 7, 2, 9, 6, 5, 1, 3]).fundamental_transformation()
+            [4, 2, 6, 8, 1, 9, 3, 7, 5]
+
+        Comparison with :meth:`forget_cycles`::
+
+            sage: P = Permutation([(1,3,4),(2,5)])
+            sage: P
+            [3, 5, 4, 1, 2]
+            sage: P.forget_cycles()
+            [1, 3, 4, 2, 5]
+            sage: P.fundamental_transformation()
+            [4, 1, 3, 5, 2]
+
+        TESTS:
+
+        Border cases::
+
+            sage: Permutation([]).fundamental_transformation()
+            []
+            sage: Permutation([1]).fundamental_transformation()
+            [1]
+        """
+        cycles = self.to_cycles(use_min=False)
+        return Permutations()([a for c in reversed(cycles) for a in c])
+
+    @combinatorial_map(name='fundamental_transformation_inverse')
+    def fundamental_transformation_inverse(self):
+        r"""
+        Return the image of the permutation ``self`` under the
+        inverse of the Renyi-Foata-Schuetzenberger fundamental
+        transformation.
+
+        The inverse of the fundamental transformation is a
+        bijection from the set of all permutations of 
+        `\{1, 2, \ldots, n\}` to itself, which transforms any
+        such permutation `w` as follows:
+        Let `I = \{ i_1 < i_2 < \cdots < i_k \}` be the set of
+        all left-to-right maxima of `w` (that is, of all indices
+        `j` such that `w(j)` is bigger than each of
+        `w(1), w(2), \ldots, w(j-1)`).
+        The image of `w` under the inverse of the fundamental
+        transformation is the permutation `u` that sends
+        `w(i-1)` to `w(i)` for all `i \notin I` (notice that
+        this makes sense, since `1 \in I` whenever `n > 0`),
+        while sending each `w(i_p - 1)` (with `p \geq 2`)
+        to `w(i_{p-1})`. Here, we set `i_{k+1} = n+1`.
+
+        See [EnumComb1]_, Proposition 1.3.1.
+
+        .. SEEALSO::
+
+            :meth:`fundamental_transformation`
+            for the inverse map.
+
+        EXAMPLES::
+
+            sage: Permutation([3, 4, 5, 2, 1]).fundamental_transformation_inverse()
+            [5, 1, 3, 4, 2]
+            sage: Permutation([4, 2, 6, 8, 1, 9, 3, 7, 5]).fundamental_transformation_inverse()
+            [8, 4, 7, 2, 9, 6, 5, 1, 3]
+
+        TESTS::
+
+            sage: all( P.fundamental_transformation_inverse() \
+            ....:       .fundamental_transformation() == P
+            ....:      for P in Permutations(4))
+            True
+
+            sage: all( P.fundamental_transformation() \
+            ....:       .fundamental_transformation_inverse() == P
+            ....:      for P in Permutations(3))
+            True
+
+        Border cases::
+
+            sage: Permutation([]).fundamental_transformation_inverse()
+            []
+            sage: Permutation([1]).fundamental_transformation_inverse()
+            [1]
+        """
+        n = len(self)
+        # We shall iterate through ``self`` from left to right.
+        # At each step,
+        # ``entry`` will be the entry we are currently seeing;
+        # ``previous_entry`` will be the previous entry;
+        # ``record_value`` will be the largest entry
+        #                  encountered so far;
+        # ``previous_record`` will be the largest entry
+        #                     encountered before ``record_value``.
+        record_value = 0
+        previous_record = None
+        previous_entry = None
+        res = [0] * (n+1) # We'll use res[1], res[2], ..., res[n] only.
+        for entry in self:
+            if entry > record_value:
+                record_value = entry
+                if previous_record is not None:
+                    res[previous_entry] = previous_record
+                previous_record = entry
+            else:
+                res[previous_entry] = entry
+            previous_entry = entry
+        if n > 0:
+            res[previous_entry] = previous_record
+        return Permutations()(res[1:])
 
     def destandardize(self, weight, ordered_alphabet = None):
         r"""
@@ -4163,7 +4401,7 @@ class Permutation(CombinatorialElement):
         return d
 
     def action(self, a):
-        """
+        r"""
         Return the action of the permutation ``self`` on a list ``a``.
 
         The action of a permutation `p \in S_n` on an `n`-element list
@@ -4381,7 +4619,7 @@ class Permutation(CombinatorialElement):
         return binary_search_tree_shape(list(self), left_to_right)
 
     def sylvester_class(self, left_to_right=False):
-        """
+        r"""
         Iterate over the equivalence class of the permutation ``self``
         under sylvester congruence.
 
@@ -5199,9 +5437,10 @@ class Permutations(UniqueRepresentation, Parent):
                             checker=lambda char: isinstance(char,str))
         mult = dict(default="l2r",
                   description="The multiplication of permutations",
-                  values=dict(l2r="left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
-                              r2l="right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
+                  values=dict(l2r=r"left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
+                              r2l=r"right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
                   case_sensitive=False)
+
 
 class Permutations_nk(Permutations):
     r"""
@@ -5940,8 +6179,9 @@ class StandardPermutations_all(Permutations):
                 yield self.element_class(self, p)
             n += 1
 
+
 class StandardPermutations_n_abstract(Permutations):
-    """
+    r"""
     Abstract base class for subsets of permutations of the
     set `\{1, 2, \ldots, n\}`.
 
@@ -6277,7 +6517,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         return self.element_class(self, l)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes
         in ``self``.
 
@@ -6382,16 +6622,17 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
             sage: A.category()
             Join of Category of coxeter group algebras over Rational Field
                 and Category of finite group algebras over Rational Field
+                and Category of finite dimensional cellular algebras with basis over Rational Field
             sage: A = P.algebra(QQ, category=Monoids())
             sage: A.category()
-            Category of finite dimensional monoid algebras over Rational Field
+            Category of finite dimensional cellular monoid algebras over Rational Field
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         return SymmetricGroupAlgebra(base_ring, self, category=category)
 
     @cached_method
     def index_set(self):
-        """
+        r"""
         Return the index set for the descents of the symmetric group ``self``.
 
         This is `\{ 1, 2, \ldots, n-1 \}`, where ``self`` is `S_n`.
@@ -7039,7 +7280,7 @@ def bounded_affine_permutation(A):
 
 
 class StandardPermutations_descents(StandardPermutations_n_abstract):
-    """
+    r"""
     Permutations of `\{1, \ldots, n\}` with a fixed set of descents.
     """
     @staticmethod
@@ -7057,7 +7298,7 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
         return super(StandardPermutations_descents, cls).__classcall__(cls, tuple(d), n)
 
     def __init__(self, d, n):
-        """
+        r"""
         The class of all permutations of `\{1, 2, ..., n\}`
         with set of descent positions `d` (where the descent positions
         are being counted from `0`, so that `i` lies in this set if
@@ -8498,7 +8739,7 @@ class PermutationsNK(Permutations_setk):
         self.__class__ = Permutations_setk
         self.__init__(tuple(range(state['_n'])), state['_k'])
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.permutation", "Permutation_class", Permutation)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)

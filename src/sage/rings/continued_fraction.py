@@ -2099,7 +2099,7 @@ def check_and_reduce_pair(x1, x2=None):
         sage: check_and_reduce_pair([1,2],[])
         ((1, 2), (+Infinity,))
     """
-    y1 = map(Integer,x1)
+    y1 = [Integer(x) for x in x1]
 
     if x2 is None or not x2 or x2[0] is Infinity:
         y2 = [Infinity]
@@ -2110,7 +2110,7 @@ def check_and_reduce_pair(x1, x2=None):
             y1[-1] += 1
 
     else:
-        y2 = map(Integer,x2)
+        y2 = [Integer(x) for x in x2]
         if any(b <= ZZ_0 for b in y2):
             raise ValueError("the elements of the period can not be negative")
 
@@ -2507,7 +2507,7 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
-    from .real_mpfi import RealIntervalField, RealIntervalFieldElement
+    from .real_mpfi import RealIntervalField
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
@@ -2519,7 +2519,7 @@ def continued_fraction(x, value=None):
             pass
 
     if is_real is False:
-        raise ValueError("the number %s does not seem to be a real number"%x)
+        raise ValueError("the number %s does not seem to be a real number" % x)
 
     if x.parent().is_exact():
         return ContinuedFraction_real(x)

@@ -157,14 +157,9 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
 
             sage: P.<x,y,z> = ProjectiveSpace(CDF, 2)
             sage: E = P.subscheme([y^2 + x^2 + z^2, x*y*z])
-            sage: E(P.base_ring()).points()
+            sage: len(E(P.base_ring()).points())
             verbose 0 (70: projective_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
-            [(-1.0000000000000004*I : 1.0 : 0.0),
-             (0.0 : 0.9999999999999997*I : 1.0),
-             (0.0 : 2.7755575615628914e-17 - 1.0*I : 1.0),
-             (0.9999999999999997*I : 1.0 : 0.0),
-             (2.7755575615628914e-17 - 1.0*I : 0.0 : 1.0),
-             (2.7755575615628914e-17 + 1.0*I : 0.0 : 1.0)]
+            6
         """
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         X = self.codomain()
@@ -332,15 +327,14 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: K.<v> = NumberField(a^5 - 7, embedding=CC((7)**(1/5)))
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
             sage: X = P.subscheme([x^2 - v^2*z^2, y-v*z])
-            sage: X(K).numerical_points(F=CDF)
-            [(-1.475773161594552 : 1.475773161594552 : 1.0),
-             (1.475773161594551 : 1.4757731615945517 : 1.0)]
+            sage: len(X(K).numerical_points(F=CDF))
+            2
 
         ::
 
             sage: P.<x1, x2, x3> = ProjectiveSpace(QQ, 2)
             sage: E = P.subscheme([3000*x1^50 + 9875643*x2^2*x3^48 + 12334545*x2^50, x1 + x2])
-            sage: len(E(P.base_ring()).numerical_points(F=CDF, zero_tolerance =1e-6))
+            sage: len(E(P.base_ring()).numerical_points(F=CDF, zero_tolerance=1e-6))
             49
 
         TESTS::

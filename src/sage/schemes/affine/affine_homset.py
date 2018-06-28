@@ -374,7 +374,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
 
             sage: A.<x1, x2> = AffineSpace(QQ, 2)
             sage: E = A.subscheme([30*x1^100 + 1000*x2^2 + 2000*x1*x2 + 1, x1 + x2])
-            sage: len(E(A.base_ring()).numerical_points(F=CDF, zero_tolerance =1e-9))
+            sage: len(E(A.base_ring()).numerical_points(F=CDF, zero_tolerance=1e-9))
             100
 
         TESTS::

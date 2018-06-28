@@ -199,13 +199,17 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         '__main__'
 
         sage: Foo.__bases__
-        (<... 'object'>,)
-        sage: FooBar.__bases__
-        (<... 'object'>, <class __main__.Bar at ...>)
+        (<type 'object'>,)
+        sage: FooBar.__bases__  # py2
+        (<type 'object'>, <class __main__.Bar at ...>)
+        sage: FooBar.__bases__  # py3
+        (<class '__main__.Bar'>,)
         sage: Foo.mro()
-        [<class '__main__.Foo'>, <... 'object'>]
-        sage: FooBar.mro()
-        [<class '__main__.FooBar'>, <... 'object'>, <class __main__.Bar at ...>]
+        [<class '__main__.Foo'>, <type 'object'>]
+        sage: FooBar.mro()  # py2
+        [<class '__main__.FooBar'>, <type 'object'>, <class __main__.Bar at ...>]
+        sage: FooBar.mro()  # py3
+        [<class '__main__.FooBar'>, <class '__main__.Bar'>, <class 'object'>]
 
     If all the base classes are extension types, the dynamic class is
     also considered to be an extension type (see :trac:`23435`)::
@@ -221,8 +225,10 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     unpickling, the class will be reconstructed by recalling
     dynamic_class with the same arguments::
 
-        sage: type(FooBar).__reduce__(FooBar)
+        sage: type(FooBar).__reduce__(FooBar)  # py2
         (<function dynamic_class at ...>, ('FooBar', (<class __main__.Bar at ...>,), <class '__main__.Foo'>, None, None))
+        sage: type(FooBar).__reduce__(FooBar)  # py3
+        (<function dynamic_class at ...>, ('FooBar', (<class '__main__.Bar'>,), <class '__main__.Foo'>, None, None))
 
     Technically, this is achieved by using a metaclass, since the
     Python pickling protocol for classes is to pickle by name::
@@ -235,7 +241,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
 
         sage: BarFoo = dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (3,)))
         sage: type(BarFoo).__reduce__(BarFoo)
-        (<... 'str'>, (3,))
+        (<type 'str'>, (3,))
         sage: loads(dumps(BarFoo))
         '3'
 
@@ -277,7 +283,7 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
     first class::
 
         sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction")._reduction
-        (<... 'str'>, (3,))
+        (<type 'str'>, (3,))
 
     .. WARNING::
 
@@ -296,8 +302,10 @@ def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
         sage: x.__dict__      # Breaks without the __dict__ deletion in dynamic_class_internal
         {'_x': 3}
 
-        sage: type(FooBar).__reduce__(FooBar)
+        sage: type(FooBar).__reduce__(FooBar)  # py2
         (<function dynamic_class at ...>, ('FooBar', (<class __main__.Bar at ...>,), <class '__main__.Foo'>, None, None))
+        sage: type(FooBar).__reduce__(FooBar)  # py3
+        (<function dynamic_class at ...>, ('FooBar', (<class '__main__.Bar'>,), <class '__main__.Foo'>, None, None))
         sage: from six.moves import cPickle
         sage: cPickle.loads(cPickle.dumps(FooBar)) == FooBar
         True
@@ -486,9 +494,12 @@ class DynamicMetaclass(type):
             sage: class Foo: pass
             sage: class DocClass: pass
             sage: C = sage.structure.dynamic_class.dynamic_class_internal("bla", (object,), Foo, doccls = DocClass)
-            sage: type(C).__reduce__(C)
+            sage: type(C).__reduce__(C)  # py2
             (<function dynamic_class at ...>,
-             ('bla', (<... 'object'>,), <class __main__.Foo at ...>, None, <class __main__.DocClass at ...>))
+             ('bla', (<type 'object'>,), <class __main__.Foo at ...>, None, <class __main__.DocClass at ...>))
+            sage: type(C).__reduce__(C)  # py3
+            (<function dynamic_class at ...>,
+             ('bla', (<type 'object'>,), <class '__main__.Foo'>, None, <class '__main__.DocClass'>))
             sage: C = sage.structure.dynamic_class.dynamic_class_internal("bla", (object,), Foo, doccls = DocClass, reduction = "blah")
             sage: type(C).__reduce__(C)
             'blah'

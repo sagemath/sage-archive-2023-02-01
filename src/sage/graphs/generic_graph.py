@@ -12769,24 +12769,37 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: i.is_clique(directed_clique=True)
             False
+
+        TESTS:
+
+        Check that :trac:`25696` is fixed:
+
+            sage: G = Graph([(0, 1), (0, 1), (0, 1), (0, 3), (1, 2), (2, 3)], multiedges=True)
+            sage: G.is_clique()
+            False
         """
         if directed_clique and self._directed:
-            subgraph=self.subgraph(vertices, immutable = False)
-            subgraph.allow_loops(False)
-            subgraph.allow_multiple_edges(False)
-            n=subgraph.order()
-            return subgraph.size()==n*(n-1)
-        else:
-            if vertices is None:
-                subgraph = self
+            if vertices is not None or self.has_loops() or self.has_multiple_edges():
+                subgraph = self.subgraph(vertices, immutable=False)
+                subgraph.allow_loops(False)
+                subgraph.allow_multiple_edges(False)
             else:
-                subgraph=self.subgraph(vertices)
+                subgraph = self
+            n = subgraph.order()
+            return subgraph.size() == n*(n-1)
+        else:
+            if vertices is not None or self.has_loops() or self.has_multiple_edges():
+                subgraph = self.subgraph(vertices, immutable=False)
+                subgraph.allow_loops(False)
+                subgraph.allow_multiple_edges(False)
+            else:
+                subgraph = self
 
             if self._directed:
                 subgraph = subgraph.to_simple()
 
-            n=subgraph.order()
-            return subgraph.size()==n*(n-1)/2
+            n = subgraph.order()
+            return subgraph.size() == n*(n-1)/2
 
     def is_cycle(self, directed_cycle=True):
         r"""

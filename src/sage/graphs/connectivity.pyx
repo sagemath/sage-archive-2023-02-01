@@ -2137,13 +2137,13 @@ def spqr_tree(G):
 
     # If G simplifies to a cycle.  Otherwise, seed the list of blocks to be
     # 2-split with G
+    Tree_new = Graph()
     if SG.is_cycle():
         cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
 
         # Join all the multiple edges of cocycle and make a component and
         # Construct the spqr_tree
         Treeverts_new = ('S',tuple(SG.vertices()), Graph(SG, immutable=True))
-        Tree_new = Graph()
         P_SG = Graph()
         P_SG.allow_multiple_edges(True)
 

@@ -56,13 +56,14 @@ from sage.rings.padics.factory import Qp
 from sage.modules.free_module_element import zero_vector
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
+from sage.misc.functional import round
 from sage.arith.all import gcd, factor, lcm, CRT
 from sage.arith.all import factorial
 from copy import copy
 
 from sage.rings.number_field.number_field import is_real_place
 
-def column_Log(SUK, iota, U, prec=None):
+def column_Log(SUK, iota, U, prec=106):
     r"""
     Return the log vector of ``iota``; i.e., the logs of all the valuations
 
@@ -71,7 +72,7 @@ def column_Log(SUK, iota, U, prec=None):
     - ``SUK`` -- a group of `S`-units
     - ``iota`` -- an element of ``K``
     - ``U`` -- a list of places (finite or infinite) of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -88,24 +89,22 @@ def column_Log(SUK, iota, U, prec=None):
         sage: column_Log(SUK, xi^2, U) # abs tol 1e-29
         [1.464816384890812968648768625966, -2.197224577336219382790490473845]
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ p. 823
     """
-    if prec is None:
-        prec = 106
     R = RealField(prec)
 
     return [ R(SUK.number_field().abs_val(v,iota,prec)).log() for v in U]
 
-def c3_func(SUK, prec=None):
+def c3_func(SUK, prec=106):
     r"""
     Return the constant `c_3` from Smart's 1995 TCDF paper, [Sma1995]_
 
     INPUT:
 
     - ``SUK`` -- a group of `S`-units
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -124,14 +123,12 @@ def c3_func(SUK, prec=None):
 
         The numerator should be as close to 1 as possible, especially as the rank of the `S`-units grows large
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ p. 823
 
     """
 
-    if prec is None:
-        prec = 106
     R = RealField(prec)
 
     all_places = list(SUK.primes()) + SUK.number_field().places(prec)
@@ -150,7 +147,7 @@ def c3_func(SUK, prec=None):
             c1 = max(poss_c1,c1)
     return R(R(0.9999999)/(R(c1)*SUK.rank()))
 
-def c4_func(SUK,v, A, prec=None):
+def c4_func(SUK,v, A, prec=106):
     r"""
     Return the constant `c_4` from Smart's TCDF paper, [Sma1995]_
 
@@ -159,7 +156,7 @@ def c4_func(SUK,v, A, prec=None):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -184,15 +181,13 @@ def c4_func(SUK,v, A, prec=None):
         sage: c4_func(SUK,v_fin,A)
         1.000000000000000000000000000000
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ p. 824
     """
-    if prec is None:
-        prec = 106
     R = RealField(prec)
 
-    return max( [SUK.number_field().abs_val(v, alpha, prec) for alpha in A])
+    return max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A)
 
 def beta_k(betas_and_ns):
     r"""
@@ -217,7 +212,7 @@ def beta_k(betas_and_ns):
         sage: beta_k(betas)
         [xi, 1]
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ pp. 824-825
     """
@@ -253,7 +248,7 @@ def mus(SUK,v):
         sage: mus(SUK,v_fin)
         [xi^2 - 2]
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ pp. 824-825
 
@@ -268,9 +263,9 @@ def mus(SUK,v):
         temp.remove(1)
         return temp
 
-def possible_mu0s(SUK,v):
+def possible_mu0s(SUK, v):
     r"""
-    Return a list `[\mu_0]` of all possible `\mu_0`s defined on pp. 824-825 of TCDF, [Sma1995]_
+    Return a list `[\mu_0]` of all possible `\mu_0` values defined on pp. 824-825 of TCDF, [Sma1995]_
 
     INPUT:
 
@@ -297,7 +292,7 @@ def possible_mu0s(SUK,v):
         We have set `n_0 = 0` here since the coefficients are roots of unity
         `\alpha_0` is not defined in the paper, we set it to be 1
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ pp. 824-825, but we modify the definition of ``sigma`` (``sigma_tilde``) to make it easier to code
 
@@ -320,7 +315,7 @@ def possible_mu0s(SUK,v):
                     mu0s.append(alpha0*temp_prod)
     return mu0s
 
-def c8_c9_func(SUK, v, A, prec=None):
+def c8_c9_func(SUK, v, A, prec=106):
     r"""
     Return the constants `c_8` and `c_9` from Smart's TCDF paper, [Sma1995]_
 
@@ -329,7 +324,7 @@ def c8_c9_func(SUK, v, A, prec=None):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- a finite place of ``K`` (a fractional ideal)
     - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -352,8 +347,6 @@ def c8_c9_func(SUK, v, A, prec=None):
     - [Sma1998]_ p. 226, Theorem A.2 for the local constants
 
     """
-    if prec is None:
-        prec = 106
     R = RealField(prec)
     num_mus = len(mus(SUK,v))+1
     p = v.smallest_integer()
@@ -372,22 +365,16 @@ def c8_c9_func(SUK, v, A, prec=None):
         D = 2*d
     l_c3 = (num_mus+1)**(2*num_mus+4)*p**(D * f_p/d)*(f_p*R(p).log())**(-num_mus-1)*D**(num_mus+2)
 
-    def modified_height(SUK,v,D,b, prec=None):
+    def modified_height(SUK,v,D,b):
         #[Sma1998]_ p. 226
-        if prec is None:
-            prec = 106
-        R = RealField(prec)
-        d = SUK.number_field().degree()
-        f_p = v.residue_class_degree()
-        p = v.smallest_integer()
         max_log_b = max([phi(b).log().abs() for phi in SUK.number_field().places(prec)])
         return R(max([b.global_height(),max_log_b/(2*R.pi()*D),f_p*R(p).log()/d]))
 
-    mus_prod = prod([modified_height(SUK,v,D,b,prec) for b in mus(SUK,v)])
-    local_c3 = R(max([mus_prod*modified_height(SUK,v,D,mu0,prec) for mu0 in possible_mu0s(SUK,v)]))
+    mus_prod = prod([modified_height(SUK,v,D,b) for b in mus(SUK,v)])
+    local_c3 = R(max([mus_prod*modified_height(SUK,v,D,mu0) for mu0 in possible_mu0s(SUK,v)]))
 
     l_c3 *= local_c3
-    H = max([modified_height(SUK,v,D,alpha, prec) for alpha in mus(SUK,v)+possible_mu0s(SUK,v)])
+    H = max([modified_height(SUK,v,D,alpha) for alpha in mus(SUK,v)+possible_mu0s(SUK,v)])
     if p == 2:
         local_c4 = R(3*2**10*(num_mus+1)**2*D**2*H).log()
     else:
@@ -395,7 +382,7 @@ def c8_c9_func(SUK, v, A, prec=None):
     local_c5 = 2*R(D).log()
     return R(local_c2*l_c3*local_c4), R(local_c2*l_c3*local_c4*local_c5)
 
-def c11_func(SUK, v, A, prec=None):
+def c11_func(SUK, v, A, prec=106):
     r"""
     Return the constant `c_{11}` from Smart's TCDF paper, [Sma1995]_
 
@@ -404,7 +391,7 @@ def c11_func(SUK, v, A, prec=None):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -425,19 +412,17 @@ def c11_func(SUK, v, A, prec=None):
         sage: c11_func(SUK,phi_complex,A) # abs tol 1e-29
         6.511696687145792306911230847323
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ p. 825
     """
-    if prec is None:
-        prec = 106
     R = RealField(prec)
     if is_real_place(v):
         return R(R(4*c4_func(SUK, v, A, prec)).log()/(c3_func(SUK, prec)))
     else:
         return R(2*(R(4*(c4_func(SUK,v, A, prec)).sqrt()).log())/(c3_func(SUK, prec)))
 
-def c13_func(SUK, v, prec=None):
+def c13_func(SUK, v, prec=106):
     r"""
     Return the constant `c_{13}` from Smart's TCDF paper, [Sma1995]_
 
@@ -445,7 +430,7 @@ def c13_func(SUK, v, prec=None):
 
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -476,12 +461,10 @@ def c13_func(SUK, v, prec=None):
         TypeError: Place must be infinite
 
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ p. 825
     """
-    if prec is None:
-        prec = 106
     try:
         _ = v.codomain()
     except AttributeError:
@@ -492,15 +475,15 @@ def c13_func(SUK, v, prec=None):
     else:
         return c3_func(SUK,prec)/2
 
-def K0_func(SUK, A, prec=None):
+def K0_func(SUK, A, prec=106):
     r"""
     Return the constant `K_0` from Smart's TCDF paper, [Sma1995]_
 
     INPUT:
 
     - ``SUK`` -- a group of `S`-units
-    - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``A`` -- the set of the products of the coefficients of the `S`-unit equation with each root of unity of ``K``
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -516,12 +499,10 @@ def K0_func(SUK, A, prec=None):
         sage: K0_func(SUK,A) # abs tol 1e-29
         9.475576673109275443280257946929e17
 
-    REFERENCE:
+    REFERENCES:
 
     - [Sma1995]_ p. 824
     """
-    if prec is None:
-        prec = 106
     R = RealField(prec)
 
     def c5_func(SUK, v, R):
@@ -541,7 +522,7 @@ def K0_func(SUK, A, prec=None):
 
     return R(max([c10_func(SUK,v, A, R) for v in SUK.primes()] + [c7_func(SUK,v,A,R) for v in SUK.primes()]))
 
-def K1_func(SUK, v, A, prec=None):
+def K1_func(SUK, v, A, prec=106):
     r"""
     Return the constant `K_1` from Smart's TCDF paper, [Sma1995]_
 
@@ -549,8 +530,8 @@ def K1_func(SUK, v, A, prec=None):
 
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
-    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the S-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
-    - ``prec`` -- (default: None) the precision of the real field
+    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the $S$-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
+    - ``prec`` -- (default: 106) the precision of the real field
 
     OUTPUT:
 
@@ -576,8 +557,6 @@ def K1_func(SUK, v, A, prec=None):
     - [Sma1995]_ p. 825
 
     """
-    if prec is None:
-        prec = 106
     R = RealField(prec)
 
     #[Sma1995]_ p. 825
@@ -597,15 +576,12 @@ def K1_func(SUK, v, A, prec=None):
     t = SUK.rank()
     Baker_C = R( 18 * factorial(t+2) * (t+1)**(t+2) * (32*d)**(t + 3) * R( 2*(t+1) * d).log() )
 
-    def hprime(SUK, alpha, v, prec=None):
+    def hprime(SUK, alpha, v):
         #[Sma1998]_ p. 225
-        if prec is None:
-            prec = 106
-        R = RealField(prec)
         return R(max(alpha.global_height(), 1/SUK.number_field().degree(), (v(alpha)).log().abs()/SUK.number_field().degree()))
 
     #[Sma1995]_ p. 825 and [Sma1998]_ p. 225, Theorem A.1
-    c14 = Baker_C * prod([hprime(SUK, alpha, v, prec) for alpha in SUK.gens_values()])
+    c14 = Baker_C * prod([hprime(SUK, alpha, v) for alpha in SUK.gens_values()])
 
     #[Sma1995]_ p. 825
     c15 = R(2*((c12).log()+c14*R((SUK.rank()+1)*c14/c13_func(SUK, v, prec)).log())/c13_func(SUK, v, prec))

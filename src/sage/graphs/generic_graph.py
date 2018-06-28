@@ -20987,35 +20987,52 @@ class GenericGraph(GenericGraph_pyx):
 
         return (len(partition) == len(new_partition))
 
-    def is_hamiltonian(self):
+    def is_hamiltonian(self, solver=None, constraint_generation=None,
+                       verbose=0, verbose_constraints=False):
         r"""
         Tests whether the current graph is Hamiltonian.
 
-        A graph (resp. digraph) is said to be Hamiltonian
-        if it contains as a subgraph a cycle (resp. a circuit)
-        going through all the vertices.
+        A graph (resp. digraph) is said to be Hamiltonian if it contains as a
+        subgraph a cycle (resp. a circuit) going through all the vertices.
 
-        Testing for Hamiltonicity being NP-Complete, this
-        algorithm could run for some time depending on
-        the instance.
+        Testing for Hamiltonicity being NP-Complete, this algorithm could run
+        for some time depending on the instance.
 
         ALGORITHM:
 
         See ``Graph.traveling_salesman_problem``.
 
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program.  When
+          ``constraint_generation = None``, constraint generation is used
+          whenever the graph has a density larger than 70%.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``verbose_constraints`` -- whether to display which constraints are
+          being generated.
+
         OUTPUT:
 
-        Returns ``True`` if a Hamiltonian cycle/circuit exists, and
-        ``False`` otherwise.
+        Returns ``True`` if a Hamiltonian cycle/circuit exists, and ``False``
+        otherwise.
 
         NOTE:
 
         This function, as ``hamiltonian_cycle`` and
-        ``traveling_salesman_problem``, computes a Hamiltonian
-        cycle if it exists: the user should *NOT* test for
-        Hamiltonicity using ``is_hamiltonian`` before calling
-        ``hamiltonian_cycle`` or ``traveling_salesman_problem``
-        as it would result in computing it twice.
+        ``traveling_salesman_problem``, computes a Hamiltonian cycle if it
+        exists: the user should *NOT* test for Hamiltonicity using
+        ``is_hamiltonian`` before calling ``hamiltonian_cycle`` or
+        ``traveling_salesman_problem`` as it would result in computing it twice.
 
         EXAMPLES:
 
@@ -21047,7 +21064,9 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            self.traveling_salesman_problem(use_edge_labels=False)
+            self.traveling_salesman_problem(use_edge_labels=False, solver=solver,
+                                            constraint_generation=constraint_generation,
+                                            verbose=verbose, verbose_constraints=verbose_constraints)
             return True
         except EmptySetError:
             return False

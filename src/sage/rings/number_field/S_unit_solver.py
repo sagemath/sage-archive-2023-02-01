@@ -69,8 +69,13 @@ from sage.misc.functional import round
 from sage.arith.all import gcd, factor, lcm, CRT
 from sage.arith.all import factorial
 from copy import copy
-
+from sage.functions.log import log
+from sage.functions.other import sqrt
+from sage.matrix.constructor import Matrix, matrix, identity_matrix, vector, block_matrix
 from sage.rings.number_field.number_field import is_real_place
+from itertools import combinations_with_replacement
+from sage.rings.number_field.number_field import refine_embedding
+import itertools
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -148,7 +153,6 @@ def c3_func(SUK, prec=106):
         columns_of_C = []
         for unit in SUK.fundamental_units():
             columns_of_C.append( column_Log(SUK, unit, U, prec) )
-        from sage.matrix.constructor import Matrix
         C = Matrix(SUK.rank(), SUK.rank(), columns_of_C)
         # Is it invertible?
         if abs(C.determinant()) > 10**(-10):
@@ -311,7 +315,6 @@ def possible_mu0s(SUK, v):
     ns = [beta[1] for beta in beta_and_ns if beta[0] != betak]
     betas = [beta[0] for beta in beta_and_ns if beta[0] != betak]
     mu0s = []
-    from itertools import combinations_with_replacement
     for rs in combinations_with_replacement(range(nk.abs()),len(betas)):
         # n_0 = valuation_v of one of the coefficients of the equation = 0 for x + y = 1 p. 824
         n_rs = zip(ns,rs)
@@ -696,8 +699,6 @@ def reduction_step_real_case(place,B0,G,c7):
     prec = place.codomain().precision()
     R = RealField(prec)
     n = len(G)
-    from sage.functions.log import log
-    from sage.functions.other import sqrt
 
     def e_s_real(a,place):
         if place(a) < 0:
@@ -718,7 +719,6 @@ def reduction_step_real_case(place,B0,G,c7):
     S = (n-1) * (B0)**2
     T = (1 + n * B0)/2
     finish = False
-    from sage.matrix.constructor import identity_matrix, vector
     while  not finish:
         A = copy(identity_matrix(ZZ,n))
         v = vector([round(g*C) for g in Glog])
@@ -787,7 +787,6 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
     prec = place.codomain().precision()
     R = RealField(prec)
     n = len(G)
-    from sage.functions.log import log
     Glog_imag = [R((log(place(g))).imag_part()) for g in G]
     Glog_real = [R((log(place(g))).real_part()) for g in G]
     Glog_imag = Glog_imag + [2 * R.pi()]
@@ -797,7 +796,6 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
     #the case when the real part is 0 for all log(a_i)
 
-    from sage.rings.number_field.number_field import refine_embedding
     pl = refine_embedding(place)
     if len([g for g in G if (pl(g).abs()-1).abs() > 2**(-place.codomain().precision())]) == 0:
 
@@ -812,7 +810,6 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
         T = ((n+1) * B0 + 1)/2
         finish = False
-        from sage.matrix.constructor import identity_matrix, vector
         while not finish:
             A = copy(identity_matrix(ZZ,n+1))
             v = vector([round(g * C) for g in Glog_imag])
@@ -856,7 +853,6 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         #the case when the real part is not 0 for all log(a_i)
         C = 1
         S = (n-1) * B0**2
-        from sage.functions.other import sqrt
         T = ((n+1)*B0+1)/sqrt(2)
         finish = False
 
@@ -871,7 +867,6 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         Glog_imag[k] = Glog_imag[n-1]
         Glog_imag[n-1] = a
 
-        from sage.matrix.constructor import identity_matrix, vector, matrix
         while not finish:
 
             A = copy(identity_matrix(ZZ,n+1))
@@ -901,7 +896,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
                     #we take into account the second case of the theorem VI.2 of the reference page 85
 
-                    M = matrix(ZZ,2,[A[n-1,n-1],A[n-1,n],A[n,n-1],A[n,n]])
+                    M = Matrix(ZZ,2,[A[n-1,n-1],A[n-1,n],A[n,n-1],A[n,n]])
                     b = vector(ZZ,2,[-y[n-1],-y[n]])
                     if M.determinant() == 1 or M.determinant() == -1:
                         x = M.inverse() * b
@@ -936,7 +931,6 @@ def cx_LLL_bound(SUK,A, prec=106):
     R = RealField(prec)
     cx_LLL = 0
     #initialize a bound, a bad guess, as we iterate over the places of the number field, we will replace its value with the largest complex LLL bound we've found across the places
-    from sage.rings.number_field.number_field import refine_embedding
     for v in SUK.number_field().places(prec = prec):
         prec_v = prec
         #c11_LLL = c11_func(SUK,v,A)
@@ -1102,7 +1096,6 @@ def log_p_series_part(a,prime,prec):
     order = min([d for d in divisor if (a**d - 1).valuation(prime) > 0])
     gamma= a**order
     t = 0
-    from sage.functions.log import log
     while (gamma-1).valuation(prime) <= e:
         t += 1
         gamma = gamma**p
@@ -1329,7 +1322,6 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
     p = prime.smallest_integer()
     f = prime.residue_class_degree()
     e = prime.absolute_ramification_index()
-    from sage.functions.log import log
     c5 = c3/(f * e * log(p))
     theta = K.gen()
 
@@ -1379,7 +1371,6 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
 
     m = e * f
     u = 1
-    from sage.matrix.constructor import identity_matrix, zero_matrix, vector, block_matrix
     while True:
         if u > (precision * log(2))/log(p):
             return 0,True
@@ -1796,7 +1787,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
         P[rf_vector_start].append( [exponent_vector, rf_vector_end] )
 
     if verbose_flag:
-        print "Populated P. Currently it has ", len(P), "keys."
+        print("Populated P. Currently it has ", len(P), "keys.")
 
     # Step 2: We build a new dictionary, P_new, from P.
     #
@@ -1816,7 +1807,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
 
     for j in xrange( d-1 ):
         if verbose_flag:
-            print "Constructing ", j, " th place of the residue field vectors, out of ", d-1, " total."
+            print("Constructing ", j, " th place of the residue field vectors, out of ", d-1, " total.")
         P_new = {}
         garbage = {}
 
@@ -1836,7 +1827,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
                 P_new[ new_rf_vector_start ].append( [exponent_vector, new_rf_vector_end] )
 
         if verbose_flag:
-            print "P_new is populated with ", len(P_new), " keys."
+            print("P_new is populated with ", len(P_new), " keys.")
 
         # we now loop over the keys of P_new, looking for incompatible entries.
 
@@ -1856,7 +1847,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
             trash = P_new.pop(rf_vector_start, 0)
 
         if verbose_flag:
-            print "After removing incompatible entries, P_new is down to ", len(P_new), " keys."
+            print("After removing incompatible entries, P_new is down to ", len(P_new), " keys.")
 
         # Time to move on to the next dictionary.
         P = P_new.copy()
@@ -1868,8 +1859,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
         P[residue_field_vector] = [ a[0] for a in P[residue_field_vector] ]
 
     if verbose_flag:
-        print "Returning dictionary P with ", len(P), " keys."
-
+        print("Returning dictionary P with ", len(P), " keys.")
     return P.copy()
 
 def construct_comp_exp_vec( rfv_to_ev_dict, q ):
@@ -2073,13 +2063,12 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
     q0 = split_primes_list[0]
 
     if verbose_flag:
-        print "Using the following primes: ", split_primes_list
+        print("Using the following primes: ", split_primes_list)
         sys.stdout.flush()
-    import itertools
     for q in split_primes_list:
         rho_images = rho_images_dict[q]
         if verbose_flag:
-            print "q = ", q
+            print("q = ", q)
             sys.stdout.flush()
         def epsilon_q(a, i):
             # a is an exponent vector
@@ -2093,7 +2082,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             return eps_value
 
         if verbose_flag:
-            print "The evaluation function epsilon has been defined using rho_images = ", rho_images
+            print("The evaluation function epsilon has been defined using rho_images = ", rho_images)
             sys.stdout.flush()
         # Now, we run through the vectors in the iterator, but only keep the ones
         # which are compatible with the previously constructed dictionaries. That is,
@@ -2117,7 +2106,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             ev_to_rfv_dict = { ev : [epsilon_q(ev, i) for i in xrange(nK) ] for ev in ev_iterator }
 
             if verbose_flag:
-                print "The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys."
+                print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
                 sys.stdout.flush()
         else:
             ev_to_rfv_dict = {}
@@ -2136,7 +2125,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                     ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in xrange(nK) ]
 
         if verbose_flag:
-            print "The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys."
+            print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
             sys.stdout.flush()
         # At this point, we now have a dictionary ev_to_rfv_dict, which attaches
         # to each exponent vector a 'residue field vector,' which is a tuple of the
@@ -2145,8 +2134,8 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         clean_rfv_dict( ev_to_rfv_dict )
 
         if verbose_flag:
-            print "clean_rfv_dict executed."
-            print "The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys."
+            print("clean_rfv_dict executed.")
+            print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
             sys.stdout.flush()
         # We essentially construct an inverse dictionary: one whose keys are residue field vectors,
         # and whose values are the exponent vectors that yield each key
@@ -2154,18 +2143,18 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         rfv_to_ev[q] = construct_rfv_to_ev( ev_to_rfv_dict, q, nK, verbose_flag )
 
         if verbose_flag:
-            print "construct_rfv_to_ev executed."
-            print "The rfv_to_ev dictionary currently has ", len(rfv_to_ev[q]), "rfv keys."
+            print("construct_rfv_to_ev executed.")
+            print("The rfv_to_ev dictionary currently has ", len(rfv_to_ev[q]), "rfv keys.")
             sys.stdout.flush()
 
         comp_exp_vec[q] = construct_comp_exp_vec( rfv_to_ev[q], q )
 
         if verbose_flag:
-            print "construct_comp_exp_vec executed."
+            print("construct_comp_exp_vec executed.")
 
         if verbose_flag:
-            print "Size of comp_exp_vec[q]: ", len(comp_exp_vec[q])
-            sys.stdout.flush()
+            print("Size of comp_exp_vec[q]: ", len(comp_exp_vec[q])
+            sys.stdout.flush())
 
         # Now that we have a new dictionary, we compare all the dictionaries pairwise,
         # looking for opportunities to remove 'impossible' solutions.
@@ -2173,16 +2162,16 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         for p in [qi for qi in comp_exp_vec.keys() if qi != q]:
 
             if verbose_flag:
-                print "Comparing dictionaries for p = ", p, "and q = ", q, "."
+                print("Comparing dictionaries for p = ", p, "and q = ", q, ".")
                 sys.stdout.flush()
 
             old_size_p = len(comp_exp_vec[p])
 
             if verbose_flag:
-                print "Size of comp_exp_vec[p] is: ", old_size_p, "."
+                print("Size of comp_exp_vec[p] is: ", old_size_p, ".")
                 cv_size = ( (q-1)/gcd(p-1, q-1) )**( rho_length - 1 )
-                print "Length of compatible_vectors: ", cv_size, "."
-                print "Product: ", old_size_p * cv_size
+                print("Length of compatible_vectors: ", cv_size, ".")
+                print("Product: ", old_size_p * cv_size)
                 sys.stdout.flush()
 
             for exp_vec in comp_exp_vec[p].copy():
@@ -2190,7 +2179,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                     trash = comp_exp_vec[p].pop(exp_vec)
 
             if verbose_flag:
-                print "Shrunk dictionary p from ", old_size_p, " to ", len(comp_exp_vec[p])
+                print("Shrunk dictionary p from ", old_size_p, " to ", len(comp_exp_vec[p]))
                 sys.stdout.flush()
 
             # Now, repeat, but swap p and q.
@@ -2198,10 +2187,10 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             old_size_q = len(comp_exp_vec[q])
 
             if verbose_flag:
-                print "Size of comp_exp_vec[q] is: ", old_size_q, "."
+                print("Size of comp_exp_vec[q] is: ", old_size_q, ".")
                 cv_size = ( (p-1)/gcd(p-1, q-1) )**( rho_length - 1 )
-                print "Length of compatible_vectors: ", cv_size, "."
-                print "Product: ", old_size_q * cv_size
+                print("Length of compatible_vectors: ", cv_size, ".")
+                print("Product: ", old_size_q * cv_size)
                 sys.stdout.flush()
 
             for exp_vec in comp_exp_vec[q].copy():
@@ -2209,7 +2198,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                     trash = comp_exp_vec[q].pop(exp_vec)
 
             if verbose_flag:
-                print "Shrunk dictionary q from ", old_size_q, " to ", len(comp_exp_vec[q])
+                print("Shrunk dictionary q from ", old_size_q, " to ", len(comp_exp_vec[q]))
                 sys.stdout.flush()
 
     return comp_exp_vec
@@ -2687,7 +2676,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
             split_primes_list = split_primes_large_lcm(SUK, initial_bound)
         except ValueError:
             initial_bound += bump
-            print ("Couldn't find enough split primes. Bumping to ", initial_bound)
+            print("Couldn't find enough split primes. Bumping to ", initial_bound)
 
     if not K.is_absolute():
         raise ValueError("K must be an absolute extension.")

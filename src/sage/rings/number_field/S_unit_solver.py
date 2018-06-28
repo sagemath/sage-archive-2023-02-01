@@ -41,11 +41,11 @@ from sage.rings.all import Infinity
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RealField
+from sage.rings.number_field.number_field import is_real_place
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import factorial
 from sage.matrix.constructor import Matrix
-from sage.rings.number_field.number_field import is_real_place
 from itertools import combinations_with_replacement
 
 def column_Log(SUK, iota, U, prec=106):

@@ -896,5 +896,5 @@ def make_dlxwrapper(s):
         sage: print(x.__str__())
         Dancing links solver for 3 columns and 1 rows
     """
-    from sage.structure.sage_object import loads
+    from sage.misc.persist import loads
     return dancing_linksWrapper(loads(s))

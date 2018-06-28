@@ -4045,8 +4045,9 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
 
 def hilbert_conductor(a, b):
-    """
+    r"""
     This is the product of all (finite) primes where the Hilbert symbol is -1.
+
     What is the same, this is the (reduced) discriminant of the quaternion
     algebra `(a,b)` over `\QQ`.
 
@@ -4080,8 +4081,9 @@ def hilbert_conductor(a, b):
             d *= p
     return d
 
+
 def hilbert_conductor_inverse(d):
-    """
+    r"""
     Finds a pair of integers `(a,b)` such that ``hilbert_conductor(a,b) == d``.
 
     The quaternion algebra `(a,b)` over `\QQ` will then have (reduced)

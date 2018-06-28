@@ -132,6 +132,61 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             """
             return tuple(self.basis().keys())
 
+        @lazy_attribute
+        def _basis_key_inverse(self):
+            """
+            A dictionary for keys to their appropriate index given by
+            ``self._basis_ordering``.
+
+            EXAMPLES::
+
+                sage: G = SymmetricGroup(3)
+                sage: S = GroupAlgebra(G, QQ)
+                sage: L = LieAlgebra(associative=S)
+                sage: [L._basis_key_inverse[k] for k in L._basis_ordering]
+                [0, 1, 2, 3, 4, 5]
+            """
+            return {k: i for i,k in enumerate(self._basis_ordering)}
+
+        def _basis_key(self, x):
+            """
+            Return a key for sorting for the index ``x``.
+
+            TESTS::
+
+                sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
+                sage: PBW = L.pbw_basis()
+                sage: PBW._basis_key('E') < PBW._basis_key('H')
+                True
+
+            ::
+
+                sage: L = lie_algebras.sl(QQ, 2)
+                sage: def neg_key(x):
+                ....:     return -L.basis().keys().index(x)
+                sage: PBW = L.pbw_basis(basis_key=neg_key)
+                sage: prod(PBW.gens())  # indirect doctest
+                PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+                 - 4*PBW[-alpha[1]]*PBW[alpha[1]] + PBW[alphacheck[1]]^2
+                 - 2*PBW[alphacheck[1]]
+
+            Check that :trac:`23266` is fixed::
+
+                sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+                sage: sl2.indices()
+                {'e1', 'f1', 'h1'}
+                sage: type(sl2.basis().keys())
+                <type 'list'>
+                sage: Usl2 = sl2.pbw_basis()
+                sage: Usl2._basis_key(2)
+                2
+                sage: Usl2._basis_key(3)
+                Traceback (most recent call last):
+                ...
+                KeyError: 3
+            """
+            return self._basis_key_inverse[x]
+
         def _dense_free_module(self, R=None):
             """
             Return a dense free module associated to ``self`` over ``R``.
@@ -280,15 +335,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = GroupAlgebra(G, QQ)
                 sage: L = LieAlgebra(associative=S)
                 sage: L.structure_coefficients()
-                Finite family {((1,3,2), (1,3)): (2,3) - (1,2),
+                Finite family {((1,2), (1,3,2)): (2,3) - (1,3),
+                               ((1,3,2), (1,3)): (2,3) - (1,2),
                                ((1,2), (1,2,3)): -(2,3) + (1,3),
                                ((1,2,3), (1,3)): -(2,3) + (1,2),
-                               ((2,3), (1,3,2)): -(1,2) + (1,3),
                                ((2,3), (1,3)): -(1,2,3) + (1,3,2),
-                               ((2,3), (1,2)): (1,2,3) - (1,3,2),
-                               ((2,3), (1,2,3)): (1,2) - (1,3),
-                               ((1,2), (1,3,2)): (2,3) - (1,3),
-                               ((1,2), (1,3)): (1,2,3) - (1,3,2)}
+                               ((1,2), (2,3)): -(1,2,3) + (1,3,2),
+                               ((1,3,2), (2,3)): (1,2) - (1,3),
+                               ((1,2), (1,3)): (1,2,3) - (1,3,2),
+                               ((1,2,3), (2,3)): -(1,2) + (1,3)}
             """
             d = {}
             B = self.basis()

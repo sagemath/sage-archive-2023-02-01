@@ -907,7 +907,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
-            return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
+            return r"\left(%s, %s\right)" % (M1._latex_(), M2._latex_())
         return latex(str(self))
 
     def _two_matrix_game(self, matrices):

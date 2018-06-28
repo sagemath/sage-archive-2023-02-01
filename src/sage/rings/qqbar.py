@@ -361,19 +361,8 @@ algorithms in :trac:`10255`::
     x1 = R1.gen()
     R2 = AA['x']
     x2 = R2.gen()
-    cp1 = AA.common_polynomial(x2^2 - 2)
-    v1 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    v2 = QQbar.polynomial_root(AA.common_polynomial(x1^2 - 3), CIF(RIF(RR(1.7320508075688772), RR(1.7320508075688774)), RIF(RR(0))))
-    v3 = -v1 - v2
-    v4 = QQbar.polynomial_root(cp1, RIF(RR(1.4142135623730949), RR(1.4142135623730951)))
-    cp2 = AA.common_polynomial(x1^2 + (-v4 + v2)*x1 - v4*v2)
-    v5 = QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v6 = v3 - v5
-    v7 = -1 - v2 - QQbar.polynomial_root(cp2, RIF(-RR(1.7320508075688774), -RR(1.7320508075688772)))
-    v8 = v1*v2
-    v9 = v8 - v3*v5
-    si = v8*v5
-    AA.polynomial_root(AA.common_polynomial(x1^4 + (v6 + v7)*x1^3 + (v9 + v6*v7)*x1^2 + (-si + v9*v7)*x1 - si*v7), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
+    v = AA.polynomial_root(AA.common_polynomial(x2^4 - 4*x2^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    AA.polynomial_root(AA.common_polynomial(x1^4 + QQbar(v^3 - 3*v - 1)*x1^3 + QQbar(-v^3 + 3*v - 3)*x1^2 + QQbar(-3*v^3 + 9*v + 3)*x1 + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
 

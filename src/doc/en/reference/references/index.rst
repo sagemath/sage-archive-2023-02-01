@@ -288,6 +288,10 @@ REFERENCES:
               and Applications - FQ9, volume 518 of Contemporary Mathematics,
               pages 33–42. AMS, 2010.
 
+.. [Bec1992] Bernhard Beckermann. "A reliable method for computing M-Padé
+             approximants on arbitrary staircases". J. Comput. Appl. Math.,
+             40(1):19-42, 1992. https://doi.org/10.1016/0377-0427(92)90039-Z.
+
 .. [BeCoMe] Frits Beukers, Henri Cohen, Anton Mellit,
    *Finite hypergeometric functions*,
    :arxiv:`1505.02900`
@@ -421,6 +425,14 @@ REFERENCES:
             (:arxiv:`0710.5614`) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BLV1999] Bernhard Beckermann, George Labahn, and Gilles Villard. "Shifted
+             normal forms of polynomial matrices". In ISSAC'99, pages 189-196.
+             ACM, 1999. https://doi.org/10.1145/309831.309929 .
+
+.. [BLV2006] Bernhard Beckermann, George Labahn, and Gilles Villard. "Normal
+             forms for general polynomial matrices". J. Symbolic Comput.,
+             41(6):708-737, 2006. https://doi.org/10.1016/j.jsc.2006.02.001 .
+
 .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
             generators for inseparable algebraic extensions. Bulletin of the
             American Mathematical Society 46, no. 2 (1940): 182-186.
@@ -550,6 +562,10 @@ REFERENCES:
 .. [BSV2010] \M. Bolt, S. Snoeyink, E. Van Andel. "Visual
              representation of the Riemann map and Ahlfors map via the
              Kerzman-Stein equation". Involve 3-4 (2010), 405-420.
+
+.. [BUVO2007] Johannes Buchmann, Ullrich Vollmer: Binary Quadratic Forms,
+              An Algorithmic Approach, Algorithms and Computation in Mathematics,
+              Volume 20, Springer (2007)
 
 .. [BW1996] Anders Bjorner and Michelle L. Wachs. *Shellable nonpure
             complexes and posets. I*. Trans. of
@@ -828,6 +844,10 @@ REFERENCES:
 .. [deG2000] Willem A. de Graaf. *Lie Algebras: Theory and Algorithms*.
              North-Holland Mathematical Library. (2000).
              Elsevier Science B.V.
+
+.. [deG2005] Willem A. de Graaf.
+             *Constructing homomorphisms between Verma modules*.
+             Journal of Lie Theory. **15** (2005) pp. 415-428.
 
 .. [Deo1987a] \V. Deodhar, A splitting criterion for the Bruhat
               orderings on Coxeter groups. Comm. Algebra,
@@ -1491,6 +1511,8 @@ REFERENCES:
 .. [Ka1993] Masaki Kashiwara, The crystal base and Littelmann's
             refined Demazure character formula, Duke Math. J. 71
             (1993), no. 3, 839--858.
+
+.. [Kai1980] Thomas Kailath. "Linear Systems", Prentice-Hall, 1980.
 
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
@@ -2203,6 +2225,10 @@ REFERENCES:
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.
 
+.. [Pop1972] \V. M. Popov. "Invariant description of linear, time-invariant
+             controllable systems". SIAM Journal on Control, 10(2):252-264,
+             1972. https://doi.org/10.1137/0310020 .
+
 .. [Pos2005] \A. Postnikov, Affine approach to quantum Schubert
              calculus, Duke Math. J. 128 (2005) 473-509
 
@@ -2701,6 +2727,11 @@ REFERENCES:
             Lattice: The Diamond-Cutting Algorithm*. IEEE Transactions
             on Information Theory, 1996.
 
+.. [VBB1992] Marc Van Barel and Adhemar Bultheel. "A general module theoretic
+             framework for vector M-Padé and matrix rational interpolation."
+             Numer. Algorithms, 3:451-462, 1992.
+             https://doi.org/10.1007/BF02141952
+
 .. [Vee1978] William Veech, "Interval exchange
              transformations", J. Analyse Math. 33 (1978), 222-272
 
@@ -2785,6 +2816,10 @@ REFERENCES:
 .. [Wil2013] Harold Williams. *Q-systems, factorization dynamics, and the
              twist automorphism*. Int. Math. Res. Not. (2015) no. 22,
              12042--12069. :doi:`10.1093/imrn/rnv057`.
+
+.. [Wol1974] W. A. Wolovich. "Linear Multivariable Systems", Applied
+             Mathematical Sciences (volume 11). Springer-Verlag New-York, 1974.
+             doi.org/10.1007/978-1-4612-6392-0 .
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.

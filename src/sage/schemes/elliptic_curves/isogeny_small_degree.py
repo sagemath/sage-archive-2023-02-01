@@ -380,7 +380,7 @@ def _sporadic_Q_data(j):
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import sporadic_j, _sporadic_Q_data
-        sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j.keys()) if j != -262537412640768000]
+        sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j) if j != -262537412640768000]
         [([-269675595, -1704553285050],
           [-31653754873248632711650187487655160190139073510876609346911928661154296875/37,
            -1469048260972089939455942042937882262144594798448952781325533511718750,
@@ -1992,10 +1992,10 @@ def isogenies_prime_degree_general(E, l):
     # the division polynomial of the same degree, where this degree is
     # a divisor of (l-1)/2, so we keep only such factors:
 
-    l2 = (l-1)//2
-    factors = [h for h,e in psi_l.factor()]
-    factors_by_degree = dict([(d,[f for f in factors if f.degree()==d])
-                              for d in l2.divisors()])
+    l2 = (l - 1) // 2
+    factors = [h for h, _ in psi_l.factor()]
+    factors_by_degree = {d: [f for f in factors if f.degree() == d]
+                         for d in l2.divisors()}
 
     ker = [] # will store all kernel polynomials found
 
@@ -2004,8 +2004,8 @@ def isogenies_prime_degree_general(E, l):
     # we add to the list and remove the factors used.
 
     from sage.misc.all import prod
-    for d in factors_by_degree.keys():
-        if d*len(factors_by_degree[d]) == l2:
+    for d in list(factors_by_degree):
+        if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
 
     # Exit now if all factors have been used already:

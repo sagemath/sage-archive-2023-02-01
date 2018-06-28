@@ -1416,7 +1416,7 @@ class Function_factorial(GinacFunction):
         Check that :trac:`25421` is fixed::
 
             sage: factorial(RBF(2)**64)
-            [+/- 2.30e+347382171305201370464]
+            [+/- 2.30e+347382171326740403407]
         """
         if isinstance(x, Integer):
             try:

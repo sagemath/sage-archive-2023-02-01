@@ -869,8 +869,6 @@ class GraphClasses(UniqueRepresentation):
         root = tree.getroot()
         DB = _XML_to_dict(root)
 
-        giveme = lambda x,y : str(x.getAttribute(y))
-
         classes = {c['id']:c for c in DB['GraphClasses']["GraphClass"]}
         for c in itervalues(classes):
             c["problem"] = { pb.pop("name"):pb for pb in c["problem"]}
@@ -909,8 +907,6 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes.update_db() # Not tested -- requires internet
         """
-        from sage.misc.misc import SAGE_TMP, SAGE_DB
-
         self._download_db()
 
         print("Database downloaded")
@@ -942,8 +938,7 @@ class GraphClasses(UniqueRepresentation):
         """
 
         import os.path
-        from sage.all import save, load
-        from sage.misc.misc import SAGE_TMP, SAGE_DB
+        from sage.misc.misc import SAGE_DB
 
         try:
             open(os.path.join(SAGE_DB,_XML_FILE))
@@ -957,7 +952,7 @@ class GraphClasses(UniqueRepresentation):
             else:
                 directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
-        except IOError as e:
+        except IOError:
             directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         self._parse_db(directory)

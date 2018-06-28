@@ -239,7 +239,7 @@ class FreeGroupElement(ElementLibGAP):
         return hash(self.Tietze())
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation
 
         OUTPUT:
@@ -272,10 +272,10 @@ class FreeGroupElement(ElementLibGAP):
         """
         import re
         s = self._repr_()
-        s = re.sub('([a-z]|[A-Z])([0-9]+)', '\g<1>_{\g<2>}', s)
-        s = re.sub('(\^)(-)([0-9]+)', '\g<1>{\g<2>\g<3>}', s)
-        s = re.sub('(\^)([0-9]+)', '\g<1>{\g<2>}', s)
-        s = s.replace('*', '\cdot ')
+        s = re.sub('([a-z]|[A-Z])([0-9]+)', r'\g<1>_{\g<2>}', s)
+        s = re.sub(r'(\^)(-)([0-9]+)', r'\g<1>{\g<2>\g<3>}', s)
+        s = re.sub(r'(\^)([0-9]+)', r'\g<1>{\g<2>}', s)
+        s = s.replace('*', r'\cdot ')
         return s
 
     def __reduce__(self):

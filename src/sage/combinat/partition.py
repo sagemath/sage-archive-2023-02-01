@@ -2404,7 +2404,7 @@ class Partition(CombinatorialElement):
         return PermutationGroup( gens )
 
     def young_subgroup_generators(self):
-        """
+        r"""
         Return an indexing set for the generators of the corresponding Young
         subgroup. Here the generators correspond to the simple adjacent
         transpositions `s_i = (i \; i+1)`.
@@ -3282,7 +3282,7 @@ class Partition(CombinatorialElement):
         return c - r + multicharge[0]
 
     def residue(self, r, c, l):
-        """
+        r"""
         Return the ``l``-residue of the cell at row ``r`` and column ``c``.
 
         The `\ell`-residue of a cell is `c - r` modulo `\ell`.
@@ -8499,7 +8499,7 @@ _Partitions = Partitions()
 cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 # October 2012: fixing outdated pickles which use classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.combinat.partition_tuple import PartitionTuples_level_size
 register_unpickle_override('sage.combinat.partition', 'PartitionTuples_nk', PartitionTuples_level_size)
 register_unpickle_override('sage.combinat.partition', 'Partition_class', Partition)

@@ -417,19 +417,19 @@ magma_name_mapping = {
 
 inv_magma_name_mapping = dict(zip(magma_name_mapping.values(),magma_name_mapping.keys()))
 
-lex_description = """
+lex_description = r"""
 Lexicographic (lex) term order.
 
 `x^a < x^b` if and only if there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i < b_i`.
 """
 
-invlex_description = """
+invlex_description = r"""
 Inverse lexicographic (invlex) term order.
 
 `x^a < x^b` if and only if there exists `1 \le i \le n` such that `a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i < b_i`.
 """
 
-degrevlex_description = """
+degrevlex_description = r"""
 Degree reverse lexicographic (degrevlex) term order.
 
 Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
@@ -437,7 +437,7 @@ Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
 there exists `1 \le i \le n` such that `a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i > b_i`.
 """
 
-deglex_description = """
+deglex_description = r"""
 Degree lexicographic (deglex) term order.
 
 Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
@@ -445,13 +445,13 @@ Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
 there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i < b_i`.
 """
 
-neglex_description = """
+neglex_description = r"""
 Negative lexicographic (neglex) term order.
 
 `x^a < x^b` if and only if there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i > b_i`.
 """
 
-negdegrevlex_description = """
+negdegrevlex_description = r"""
 Negative degree reverse lexicographic (negdegrevlex) term order.
 
 Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
@@ -459,7 +459,7 @@ Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
 there exists `1 \le i \le n` such that `a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i > b_i`.
 """
 
-negdeglex_description = """
+negdeglex_description = r"""
 Negative degree lexicographic (negdeglex) term order.
 
 Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
@@ -467,7 +467,7 @@ Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
 there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i < b_i`.
 """
 
-degneglex_description = """
+degneglex_description = r"""
 Degree negative lexicographic (degneglex) term order.
 
 Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
@@ -475,7 +475,7 @@ Let `\deg(x^a) = a_1 + a_2 + \dots + a_n`, then
 there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i > b_i`.
 """
 
-wdegrevlex_description = """
+wdegrevlex_description = r"""
 Weighted degree reverse lexicographic (wdegrevlex) term order.
 
 Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
@@ -491,7 +491,7 @@ Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
 there exists `1 \le i \le n` such that `a_1 = b_1, \dots, a_{i-1} = b_{i-1}, a_i < b_i`.
 """
 
-negwdegrevlex_description = """
+negwdegrevlex_description = r"""
 Negative weighted degree reverse lexicographic (negwdegrevlex) term order.
 
 Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
@@ -499,7 +499,7 @@ Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
 there exists `1 \le i \le n` such that `a_n = b_n, \dots, a_{i+1} = b_{i+1}, a_i > b_i`.
 """
 
-negwdeglex_description = """
+negwdeglex_description = r"""
 Negative weighted degree lexicographic (negwdeglex) term order.
 
 Let `\deg_w(x^a) = a_1w_1 + a_2w_2 + \dots + a_nw_n` with weights `w`, then
@@ -513,7 +513,7 @@ Matrix term order defined by a matrix A.
 `x^a < x^b` if and only if `x^{Aa} < x^{Ab}` where `<` is the lexicographic term order.
 """
 
-block_description = """
+block_description = r"""
 Block term order defined by term orders `<_1, <_2, \dots, <_n`.
 
 `x^a < x^b` if and only if `a = b` with respect to the first `n-1` term orders and `a <_n b`

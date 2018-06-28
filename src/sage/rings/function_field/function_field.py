@@ -172,7 +172,7 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``base_field`` -- function fied; the base of this function field
+        - ``base_field`` -- field; the base of this function field
 
         - ``names`` -- string that gives the name of the generator
 
@@ -1676,8 +1676,8 @@ class FunctionField_polymod(FunctionField):
         """
         # Unfortunately Singular can not compute the genus with the
         # polynomial_ring()._singular_ object because genus method only accepts
-        # a ring of transdental degree 2 over a prime field not a ring of
-        # transdental degree 1 over a rational function field of one variable
+        # a ring of transcendental degree 2 over a prime field not a ring of
+        # transcendental degree 1 over a rational function field of one variable
 
         if (is_RationalFunctionField(self._base_field) and
             self._base_field.constant_field().is_prime_field()):
@@ -2754,8 +2754,8 @@ class RationalFunctionField(FunctionField):
         INPUT:
 
         - ``im_gens`` -- exactly one element of some ring.  It must be
-          invertible and trascendental over the image of ``base_morphism``; this
-          is not checked.
+          invertible and transcendental over the image of
+          ``base_morphism``; this is not checked.
 
         - ``base_morphism`` -- a homomorphism from the base field into the
           other ring.  If ``None``, try to use a coercion map.

@@ -687,7 +687,9 @@ def stirling_number1(n, k):
 
     This is the number of permutations of `n` points with `k` cycles.
 
-    This wraps GAP's Stirling1.
+    This wraps GAP's ``Stirling1``.
+
+    See :wikipedia:`Stirling_numbers_of_the_first_kind`.
 
     EXAMPLES::
 
@@ -702,13 +704,14 @@ def stirling_number1(n, k):
 
     Indeed, `S_1(n,k) = S_1(n-1,k-1) + (n-1)S_1(n-1,k)`.
     """
-    n = ZZ(n);  k = ZZ(k)
+    n = ZZ(n)
+    k = ZZ(k)
     from sage.libs.gap.libgap import libgap
     return libgap.Stirling1(n, k).sage()
 
 
 def stirling_number2(n, k, algorithm=None):
-    """
+    r"""
     Return the `n`-th Stirling number `S_2(n,k)` of the second
     kind (the number of ways to partition a set of `n` elements into `k`
     pairwise disjoint nonempty subsets). (The `n`-th Bell number is the
@@ -1331,25 +1334,6 @@ class CombinatorialClass(Parent):
             Category of finite enumerated sets
         """
         Parent.__init__(self, category = EnumeratedSets().or_subcategory(category))
-
-
-    def __len__(self):
-        """
-        __len__ has been removed ! to get the number of element in a
-        combinatorial class, use .cardinality instead.
-
-
-        TESTS::
-
-            sage: class C(CombinatorialClass):
-            ....:     def __iter__(self):
-            ....:         return iter([1,2,3])
-            sage: len(C())
-            Traceback (most recent call last):
-            ...
-            AttributeError: __len__ has been removed; use .cardinality() instead
-        """
-        raise AttributeError("__len__ has been removed; use .cardinality() instead")
 
     def is_finite(self):
         """

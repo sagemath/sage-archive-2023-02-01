@@ -401,7 +401,7 @@ cdef void late_import():
            SymmetricFunctions, \
            sqrt, \
            builtinlist, \
-           MPolynomialRing_generic, is_MPolynomial,\
+           MPolynomialRing_base, is_MPolynomial,\
            SchubertPolynomialRing, SchubertPolynomial_class,\
            two, fifteen, thirty, zero, sage_maxint
 
@@ -452,7 +452,7 @@ cdef void late_import():
     builtinlist = builtins.list
 
     import sage.rings.polynomial.multi_polynomial_ring
-    MPolynomialRing_generic = sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_generic
+    MPolynomialRing_base = sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_base
     import sage.rings.polynomial.multi_polynomial_element
     is_MPolynomial = sage.rings.polynomial.multi_polynomial_element.is_MPolynomial
 
@@ -837,7 +837,7 @@ cdef object _op_polynom(object d, OP res):
 
     poly_ring = d.parent()
 
-    if not isinstance(poly_ring, MPolynomialRing_generic):
+    if not isinstance(poly_ring, MPolynomialRing_base):
         raise TypeError("you must pass a multivariate polynomial")
     base_ring = poly_ring.base_ring()
 

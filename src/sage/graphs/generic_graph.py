@@ -8740,39 +8740,38 @@ class GenericGraph(GenericGraph_pyx):
 
     def disjoint_routed_paths(self,pairs, solver=None, verbose=0):
         r"""
-        Returns a set of disjoint routed paths.
+        Return a set of disjoint routed paths.
 
-        Given a set of pairs `(s_i,t_i)`, a set
-        of disjoint routed paths is a set of
-        `s_i-t_i` paths which can intersect at their endpoints
-        and are vertex-disjoint otherwise.
+        Given a set of pairs `(s_i,t_i)`, a set of disjoint routed paths is a
+        set of `s_i-t_i` paths which can intersect at their endpoints and are
+        vertex-disjoint otherwise.
 
         INPUT:
 
         - ``pairs`` -- list of pairs of vertices
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` (integer) -- sets the level of verbosity. Set to `0`
           by default (quiet).
 
         EXAMPLES:
 
-        Given a grid, finding two vertex-disjoint
-        paths, the first one from the top-left corner
-        to the bottom-left corner, and the second from
-        the top-right corner to the bottom-right corner
-        is easy ::
+        Given a grid, finding two vertex-disjoint paths, the first one from the
+        top-left corner to the bottom-left corner, and the second from the
+        top-right corner to the bottom-right corner is easy ::
 
             sage: g = graphs.GridGraph([5,5])
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (0,4)), ((4,4), (4,0))])
 
-        Though there is obviously no solution to the problem
-        in which each corner is sending information to the opposite
-        one::
+        Though there is obviously no solution to the problem in which each
+        corner is sending information to the opposite one::
 
             sage: g = graphs.GridGraph([5,5])
             sage: p1,p2 = g.disjoint_routed_paths( [((0,0), (4,4)), ((0,4), (4,0))])
@@ -8782,7 +8781,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            return self.multicommodity_flow(pairs, vertex_bound = True, solver=solver, verbose=verbose)
+            return self.multicommodity_flow(pairs, vertex_bound=True, solver=solver, verbose=verbose)
         except EmptySetError:
             raise EmptySetError("The disjoint routed paths do not exist.")
 

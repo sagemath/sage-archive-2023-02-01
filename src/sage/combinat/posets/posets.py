@@ -297,6 +297,23 @@ from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.superseded import deprecated_function_alias
 from sage.combinat.subset import Subsets
 
+class ElementWithLabel:
+    """
+    Auxiliary class for showing Posets with non-ijective relabeling. 
+    """
+    def __init__(self, element, label):
+        self.element = element
+        self.label = label
+        
+    def _latex_(self):
+        return latex(self.label)
+    
+    def __str__(self):
+        return str(self.label)
+
+    def __repr__(self):
+        return str(self.label)
+
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""
@@ -1843,7 +1860,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                     heights[rank_function(i)].append(i)
         # if relabeling is needed
         if label_elements and element_labels is not None:
-            relabeling = dict((self(element), label)
+            relabeling = dict((self(element), ElementWithLabel(self(element), label))
                                for (element, label) in element_labels.items())
             graph = graph.relabel(relabeling, inplace = False)
             if heights is not None:

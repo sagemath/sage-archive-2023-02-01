@@ -7035,13 +7035,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: for i in range(20):
             ....:     g = Graph()
             ....:     g.allow_multiple_edges(False)
-            ....:     for u,v in graphs.RandomGNP(n,.2).edges(labels = False):
+            ....:     for u,v in graphs.RandomGNP(n,.2).edges(labels=False):
             ....:          g.add_edge(u,v,round(random(),5))
-            ....:     for u,v in graphs.CycleGraph(n).edges(labels = False):
+            ....:     for u,v in graphs.CycleGraph(n).edges(labels=False):
             ....:          if not g.has_edge(u,v):
             ....:              g.add_edge(u,v,round(random(),5))
-            ....:     v1 = g.traveling_salesman_problem(constraint_generation = False, use_edge_labels = True)
-            ....:     v2 = g.traveling_salesman_problem(use_edge_labels = True)
+            ....:     v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
+            ....:     v2 = g.traveling_salesman_problem(use_edge_labels=True)
             ....:     c1 = sum(map(itemgetter(2), v1.edges()))
             ....:     c2 = sum(map(itemgetter(2), v2.edges()))
             ....:     if c1 != c2:
@@ -7056,13 +7056,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: for i in range(20):
             ....:     g = DiGraph()
             ....:     g.allow_multiple_edges(False)
-            ....:     for u,v in digraphs.RandomDirectedGNP(n,.2).edges(labels = False):
+            ....:     for u,v in digraphs.RandomDirectedGNP(n,.2).edges(labels=False):
             ....:          g.add_edge(u,v,round(random(),5))
-            ....:     for u,v in digraphs.Circuit(n).edges(labels = False):
+            ....:     for u,v in digraphs.Circuit(n).edges(labels=False):
             ....:          if not g.has_edge(u,v):
             ....:              g.add_edge(u,v,round(random(),5))
-            ....:     v2 = g.traveling_salesman_problem(use_edge_labels = True)
-            ....:     v1 = g.traveling_salesman_problem(constraint_generation = False, use_edge_labels = True)
+            ....:     v2 = g.traveling_salesman_problem(use_edge_labels=True)
+            ....:     v1 = g.traveling_salesman_problem(constraint_generation=False, use_edge_labels=True)
             ....:     c1 = sum(map(itemgetter(2), v1.edges()))
             ....:     c2 = sum(map(itemgetter(2), v2.edges()))
             ....:     if c1 != c2:
@@ -7421,27 +7421,47 @@ class GenericGraph(GenericGraph_pyx):
             raise EmptySetError("The given graph is not Hamiltonian")
 
 
-    def hamiltonian_cycle(self, algorithm='tsp' ):
+    def hamiltonian_cycle(self, algorithm='tsp', solver=None, constraint_generation=None,
+                          verbose=0, verbose_constraints=False):
         r"""
-        Returns a Hamiltonian cycle/circuit of the current graph/digraph
+        Return a Hamiltonian cycle/circuit of the current graph/digraph.
 
-        A graph (resp. digraph) is said to be Hamiltonian
-        if it contains as a subgraph a cycle (resp. a circuit)
-        going through all the vertices.
+        A graph (resp. digraph) is said to be Hamiltonian if it contains as a
+        subgraph a cycle (resp. a circuit) going through all the vertices.
 
-        Computing a Hamiltonian cycle/circuit being NP-Complete,
-        this algorithm could run for some time depending on
-        the instance.
+        Computing a Hamiltonian cycle/circuit being NP-Complete, this algorithm
+        could run for some time depending on the instance.
 
         ALGORITHM:
 
-        See ``Graph.traveling_salesman_problem`` for 'tsp' algorithm and
-        ``find_hamiltonian`` from ``sage.graphs.generic_graph_pyx``
-        for 'backtrack' algorithm.
+        See :meth:`~Graph.traveling_salesman_problem` for 'tsp' algorithm and
+        :meth:`~sage.graphs.generic_graph_pyx.find_hamiltonian` from
+        :mod:`sage.graphs.generic_graph_pyx` for 'backtrack' algorithm.
 
         INPUT:
 
-            - ``algorithm`` - one of 'tsp' or 'backtrack'.
+        - ``algorithm`` -- one of 'tsp' or 'backtrack'.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program.
+
+          When ``constraint_generation = None``, constraint generation is used
+          whenever the graph has a density larger than 70%.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``verbose_constraints`` -- whether to display which constraints are
+          being generated.
+
 
         OUTPUT:
 
@@ -7449,21 +7469,21 @@ class GenericGraph(GenericGraph_pyx):
         exists; otherwise, raises a ``EmptySetError`` exception. If using the
         'backtrack' algorithm, returns a pair (B,P). If B is True then P is a
         Hamiltonian cycle and if B is False, P is a longest path found by the
-        algorithm. Observe that if B is False, the graph may still be Hamiltonian.
-        The 'backtrack' algorithm is only implemented for undirected
-        graphs.
+        algorithm. Observe that if B is False, the graph may still be
+        Hamiltonian.  The 'backtrack' algorithm is only implemented for
+        undirected graphs.
 
         .. WARNING::
 
-            The 'backtrack' algorithm may loop endlessly on graphs
-            with vertices of degree 1.
+            The 'backtrack' algorithm may loop endlessly on graphs with vertices
+            of degree 1.
 
         NOTE:
 
-        This function, as ``is_hamiltonian``, computes a Hamiltonian
-        cycle if it exists: the user should *NOT* test for
-        Hamiltonicity using ``is_hamiltonian`` before calling this
-        function, as it would result in computing it twice.
+        This function, as ``is_hamiltonian``, computes a Hamiltonian cycle if it
+        exists: the user should *NOT* test for Hamiltonicity using
+        ``is_hamiltonian`` before calling this function, as it would result in
+        computing it twice.
 
         The backtrack algorithm is only implemented for undirected graphs.
 
@@ -7509,7 +7529,9 @@ class GenericGraph(GenericGraph_pyx):
             from sage.numerical.mip import MIPSolverException
 
             try:
-                return self.traveling_salesman_problem(use_edge_labels = False)
+                return self.traveling_salesman_problem(use_edge_labels=False, solver=solver,
+                                                       constraint_generation=constraint_generation,
+                                                       verbose=verbose, verbose_constraints=verbose_constraints)
             except MIPSolverException:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError("The given graph is not Hamiltonian")

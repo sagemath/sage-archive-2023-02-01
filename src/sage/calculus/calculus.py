@@ -231,7 +231,7 @@ Another example::
     sage: f(x=3)
     arcsinh(1)
     sage: f.derivative(x)
-    1/3/sqrt(1/9*x^2 + 1)
+    1/sqrt(x^2 + 9)
 
 We compute the length of the parabola from 0 to 2::
 
@@ -1509,8 +1509,8 @@ def laplace(ex, t, s, algorithm='maxima'):
     Testing SymPy::
 
         sage: laplace(t^n, t, s, algorithm='sympy')
-        (s^(-n)*gamma(n + 1)/s, 0, -re(n) < 1)
-        
+        (gamma(n + 1)/(s*s^n), 0, -re(n) < 1)
+
     Testing Maxima::
 
         sage: laplace(t^n, t, s, algorithm='maxima')

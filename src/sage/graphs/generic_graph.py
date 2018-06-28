@@ -7561,13 +7561,13 @@ class GenericGraph(GenericGraph_pyx):
           - When set to ``False``, the ``Set`` of vertices of a minimal feedback
             vertex set is returned.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used,
-          see the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -7775,11 +7775,10 @@ class GenericGraph(GenericGraph_pyx):
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, algorithm = None, solver=None, verbose=0):
         r"""
-        Returns a maximum flow in the graph from ``x`` to ``y``
-        represented by an optimal valuation of the edges. For more
-        information, see the
-        `Wikipedia article on maximum flow
-        <http://en.wikipedia.org/wiki/Max_flow>`_.
+        Return a maximum flow in the graph from ``x`` to ``y``.
+
+        The returned flow is represented by an optimal valuation of the
+        edges. For more information, see the :wikipedia:`Max_flow`.
 
         As an optimization problem, is can be expressed this way :
 
@@ -7797,73 +7796,73 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``value_only`` -- boolean (default: ``True``)
 
-          - When set to ``True``, only the value of a maximal
-            flow is returned.
+          - When set to ``True``, only the value of a maximal flow is returned.
 
-          - When set to ``False``, is returned a pair whose first element
-            is the value of the maximum flow, and whose second value is
-            a flow graph (a copy of the current graph, such that each edge
-            has the flow using it as a label, the edges without flow being
-            omitted).
+          - When set to ``False``, is returned a pair whose first element is the
+            value of the maximum flow, and whose second value is a flow graph (a
+            copy of the current graph, such that each edge has the flow using it
+            as a label, the edges without flow being omitted).
 
         - ``integer`` -- boolean (default: ``True``)
 
           - When set to ``True``, computes an optimal solution under the
-            constraint that the flow going through an edge has to be an
-            integer.
+            constraint that the flow going through an edge has to be an integer.
 
         - ``use_edge_labels`` -- boolean (default: ``True``)
 
-          - When set to ``True``, computes a maximum flow
-            where each edge has a capacity defined by its label. (If
-            an edge has no label, `1` is assumed.)
+          - When set to ``True``, computes a maximum flow where each edge has a
+            capacity defined by its label. (If an edge has no label, `1` is
+            assumed.)
 
           - When set to ``False``, each edge has capacity `1`.
 
         - ``vertex_bound`` -- boolean (default: ``False``)
 
-          - When set to ``True``, sets the maximum flow leaving
-            a vertex different from `x` to `1` (useful for vertex
-            connectivity parameters).
+          - When set to ``True``, sets the maximum flow leaving a vertex
+            different from `x` to `1` (useful for vertex connectivity
+            parameters).
 
-        - ``algorithm`` -- There are currently three different
-          implementations of this method:
+        - ``algorithm`` -- There are currently three different implementations
+          of this method:
 
               * If ``algorithm = "FF"``, a Python implementation of the
                 Ford-Fulkerson algorithm is used (only available when
                 ``vertex_bound = False``)
 
-              * If ``algorithm = "LP"``, the flow problem is solved using
-                Linear Programming.
+              * If ``algorithm = "LP"``, the flow problem is solved using Linear
+                Programming.
 
               * If ``algorithm = "igraph"``, the igraph implementation of the
-                Goldberg-Tarjan algorithm is used (only available when
-                igraph is installed and ``vertex_bound = False``)
+                Goldberg-Tarjan algorithm is used (only available when igraph is
+                installed and ``vertex_bound = False``)
 
               * If ``algorithm = None`` (default), we use ``LP`` if
-                ``vertex_bound = True``, otherwise, we use ``igraph`` if
-                it is available, ``FF`` if it is not available.
+                ``vertex_bound = True``, otherwise, we use ``igraph`` if it is
+                available, ``FF`` if it is not available.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.  function of
-          ``MixedIntegerLinearProgram``. See the documentation of
-          ``MixedIntegerLinearProgram.solve`` for more information.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
           Only useful when LP is used to solve the flow problem.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0 by
+          default (quiet).
 
           Only useful when LP is used to solve the flow problem.
 
         .. NOTE::
 
-           Even though the three different implementations are meant to
-           return the same Flow values, they can not be expected to
-           return the same Flow graphs.
+           Even though the three different implementations are meant to return
+           the same Flow values, they can not be expected to return the same
+           Flow graphs.
 
-           Besides, the use of Linear Programming may possibly mean a
-           (slight) numerical noise.
+           Besides, the use of Linear Programming may possibly mean a (slight)
+           numerical noise.
 
         EXAMPLES:
 
@@ -8006,13 +8005,13 @@ class GenericGraph(GenericGraph_pyx):
 
 
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
-        p=MixedIntegerLinearProgram(maximization=True, solver = solver)
-        flow=p.new_variable(nonnegative=True)
+        g = self
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+        flow = p.new_variable(nonnegative=True)
 
         if g.is_directed():
             # This function return the balance of flow at X
-            flow_sum=lambda X: p.sum([flow[(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
+            flow_sum = lambda X: p.sum([flow[(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
 
             # The flow leaving x
             flow_leaving = lambda X : p.sum([flow[(uu,vv)] for (uu,vv) in g.outgoing_edges([X],labels=None)])
@@ -8022,7 +8021,7 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             # This function return the balance of flow at X
-            flow_sum=lambda X:p.sum([flow[(X,v)]-flow[(v,X)] for v in g[X]])
+            flow_sum = lambda X:p.sum([flow[(X,v)]-flow[(v,X)] for v in g[X]])
 
             # The flow leaving x
             flow_leaving = lambda X : p.sum([flow[(X,vv)] for vv in g[X]])
@@ -8053,14 +8052,14 @@ class GenericGraph(GenericGraph_pyx):
 
 
         if value_only:
-            return p.solve(objective_only=True, log = verbose)
+            return p.solve(objective_only=True, log=verbose)
 
-        obj=p.solve(log = verbose)
+        obj = p.solve(log=verbose)
 
         if integer or use_edge_labels is False:
             obj = Integer(round(obj))
 
-        flow=p.get_values(flow)
+        flow = p.get_values(flow)
         # Builds a clean flow Draph
         flow_graph = g._build_flow_graph(flow, integer=integer)
 

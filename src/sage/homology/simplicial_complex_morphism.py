@@ -21,7 +21,7 @@ EXAMPLES::
     sage: H = Hom(S,S.product(S, is_mutable=False))
     sage: H.diagonal_morphism()
     Simplicial complex morphism:
-      From: Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and facets {(3, 4), (1, 5), (0, 2)}
+      From: Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and facets {(0, 2), (1, 5), (3, 4)}
       To: Simplicial complex with 36 vertices and 18 facets
       Defn: [0, 1, 2, 3, 4, 5] --> ['L0R0', 'L1R1', 'L2R2', 'L3R3', 'L4R4', 'L5R5']
 
@@ -31,7 +31,7 @@ EXAMPLES::
     sage: H = Hom(S,T)
     sage: x = H(f)
     sage: x.image()
-    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 3), (0, 2)}
+    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2), (1, 3)}
     sage: x.is_surjective()
     True
     sage: x.is_injective()
@@ -43,7 +43,7 @@ EXAMPLES::
     sage: H = Hom(S,S)
     sage: i = H.identity()
     sage: i.image()
-    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)}
     sage: i.is_surjective()
     True
     sage: i.is_injective()
@@ -152,9 +152,9 @@ class SimplicialComplexMorphism(Morphism):
             sage: x == y
             False
             sage: x.image()
-            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and facets {(3, 4), (5,), (2,), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and facets {(2,), (5,), (0, 1), (3, 4)}
             sage: y.image()
-            Simplicial complex with vertex set (0, 1, 3, 4) and facets {(3, 4), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 3, 4) and facets {(0, 1), (3, 4)}
             sage: x.image() == y.image()
             False
         """
@@ -572,7 +572,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: z = x.fiber_product(y)
             sage: z
             Simplicial complex morphism:
-              From: Simplicial complex with 4 vertices and facets {('L2R0',), ('L1R1',), ('L0R0', 'L1R2')}
+              From: Simplicial complex with 4 vertices and facets {('L1R1',), ('L2R0',), ('L0R0', 'L1R2')}
               To:   Simplicial complex with vertex set (0, 1, 2) and facets {(2,), (0, 1)}
               Defn: L1R2 |--> 1
                     L1R1 |--> 1

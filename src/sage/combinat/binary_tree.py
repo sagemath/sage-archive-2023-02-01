@@ -59,7 +59,6 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -171,7 +170,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return BinaryTrees_all()
 
     def __init__(self, parent, children=None, check=True):
-        """
+        r"""
         TESTS::
 
             sage: BinaryTree([None, None]).parent()
@@ -1892,7 +1891,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return tree
 
     def canopee(self):
-        """
+        r"""
         Return the canopee of ``self``.
 
         The *canopee* of a non-empty binary tree `T` with `n` internal nodes is
@@ -1962,7 +1961,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return res[1:-1]
 
     def in_order_traversal_iter(self):
-        """
+        r"""
         The depth-first infix-order traversal iterator for the binary
         tree ``self``.
 
@@ -2475,7 +2474,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                 [B([self[0], d]) for d in self[1].tamari_succ()])
 
     def single_edge_cut_shapes(self):
-        """
+        r"""
         Return the list of possible single-edge cut shapes for the binary tree.
 
         This is used in :meth:`sage.combinat.interval_posets.TamariIntervalPoset.is_new`.
@@ -4807,7 +4806,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         return tuple(resu)
 
     def binary_search_insert(self, letter):
-        """
+        r"""
         Return the result of inserting a letter ``letter`` into the
         right strict binary search tree ``self``.
 
@@ -4907,7 +4906,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
                 return LT([self[0], fils], label=self.label(), check=False)
 
     def semistandard_insert(self, letter):
-        """
+        r"""
         Return the result of inserting a letter ``letter`` into the
         semistandard tree ``self`` using the bumping algorithm.
 

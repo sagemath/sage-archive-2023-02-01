@@ -205,7 +205,7 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix, MatrixSpace
+from sage.matrix.all import column_matrix, matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, RR, ZZ
@@ -449,7 +449,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
 
 def _Cone_from_PPL(cone, lattice, original_rays=None):
-    """
+    r"""
     Construct a cone from a :class:`~sage.libs.ppl.Polyhedron`.
 
     This is a private function and not intended to be exposed to the
@@ -1242,7 +1242,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 
     A pair `(d,k)` of integers classifying the cone up to `GL(2, \ZZ)`
     equivalence. See Proposition 10.1.1 of [CLS]_ for the
-    definition. We return the unique `(d,k)` with minmial `k`, see
+    definition. We return the unique `(d,k)` with minimal `k`, see
     Proposition 10.1.3 of [CLS]_.
 
     EXAMPLES::
@@ -3727,14 +3727,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             Sublattice <N(1, -1, 1), N(0, 1, 0)>
             sage: c12.orthogonal_sublattice()
             Sublattice <M(1, 0, -1)>
+            
+        TESTS:
+        
+        We check that :trac:`24541` is fixed::
+        
+            sage: c = Cone([(1,0)], lattice=ZZ^2)
+            sage: c.orthogonal_sublattice()
+            Free module of degree 2 and rank 1 over Integer Ring
+            User basis matrix:
+            [0 1]
+            sage: c.dual()
+            2-d cone in 2-d lattice
         """
         if "_orthogonal_sublattice" not in self.__dict__:
             try:
                 self._orthogonal_sublattice = self.sublattice_quotient().dual()
             except AttributeError:
-                # Non-toric quotient? Just make ZZ^n then.
-                self._orthogonal_sublattice = ZZ**(self.lattice().dimension() -
-                                                  self.sublattice().dimension())
+                N = self.lattice()
+                basis = self.rays().basis()
+                Nsigma = column_matrix(ZZ, [N.coordinates(v) for v in basis])
+                D, U, V = Nsigma.smith_form()  # D = U * Nsigma * V
+                M = self.dual_lattice()
+                self._orthogonal_sublattice = M.submodule_with_basis(
+                    U.rows()[len(basis):])
         if args or kwds:
             return self._orthogonal_sublattice(*args, **kwds)
         else:

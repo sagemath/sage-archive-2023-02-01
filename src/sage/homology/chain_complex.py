@@ -265,7 +265,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
             base_ring = coercion_model.common_parent(*bases)
 
     # make sure values in data_dict are appropriate matrices
-    for n in data_dict.keys():
+    for n in list(data_dict):
         if not n in grading_group:
             raise ValueError('one of the dictionary keys is not an element of the grading group')
         mat = data_dict[n]
@@ -281,7 +281,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
         data_dict[n] = mat
 
     # include any "obvious" zero matrices that are not 0x0
-    for n in data_dict.keys():  # note: data_dict will be mutated in this loop
+    for n in list(data_dict):  # note: data_dict will be mutated in this loop
         mat1 = data_dict[n]
         if (mat1.nrows(), mat1.ncols()) == (0, 0):
             del data_dict[n]
@@ -302,7 +302,7 @@ def ChainComplex(data=None, base_ring=None, grading_group=None,
 
     # check that this is a complex: going twice is zero
     if check:
-        for n in data_dict.keys():
+        for n in data_dict:
             mat0 = data_dict[n]
             try:
                 mat1 = data_dict[n+degree]
@@ -875,7 +875,7 @@ class ChainComplex_class(Parent):
         """
         if start is None:
             result = []
-            degrees = set(self._diff.keys())
+            degrees = set(self._diff)
             while len(degrees) > 0:
                 ordered = self.ordered_degrees(degrees.pop())
                 degrees.difference_update(ordered)
@@ -2224,6 +2224,6 @@ class ChainComplex_class(Parent):
 
         return ret
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)
 

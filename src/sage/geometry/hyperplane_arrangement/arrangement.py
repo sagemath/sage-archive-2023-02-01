@@ -1981,7 +1981,6 @@ class HyperplaneArrangementElement(Element):
         # Some hackery to generate a matrix quickly and without
         # unnecessary sanitization/ducktyping:
         MS = MatrixSpace(field, N, N)
-        MC = MS._matrix_class
         table = []
         for j, sj in enumerate(Fs):
             matrix_j = []
@@ -1991,8 +1990,8 @@ class HyperplaneArrangementElement(Element):
                       for l, sil in enumerate(si)]
                 k = Fdict[tuple(sk)]
                 row_i[k] = one
-                matrix_j.extend(row_i)
-            table.append(MC(MS, matrix_j, copy=False, coerce=False))
+                matrix_j += row_i
+            table.append(MS(matrix_j, coerce=False))
         from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FDA
         return FDA(field, table, names=names, assume_associative=True)
 

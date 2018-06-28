@@ -618,9 +618,9 @@ from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
 from sage.matrix.constructor import vector
-from sage.misc.package import is_package_installed, PackageNotFoundError
 from sage.misc.temporary_file import tmp_filename
 from sage.numerical.mip import MixedIntegerLinearProgram
+from sage.misc.package import PackageNotFoundError
 
 try:
     from gambit import Game
@@ -907,7 +907,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if len(self.players) == 2:
             M1, M2 = self.payoff_matrices()
-            return "\left(%s, %s\\right)" % (M1._latex_(), M2._latex_())
+            return r"\left(%s, %s\right)" % (M1._latex_(), M2._latex_())
         return latex(str(self))
 
     def _two_matrix_game(self, matrices):
@@ -1633,18 +1633,17 @@ class NormalFormGame(SageObject, MutableMapping):
         if not self._is_complete():
             raise ValueError("utilities have not been populated")
 
+        from sage.features.lrs import Lrs
         if not algorithm:
             if self.is_constant_sum():
                 algorithm = "lp"
-            elif is_package_installed('lrslib'):
+            elif Lrs().is_present():
                 algorithm = "lrs"
             else:
                 algorithm = "enumeration"
 
         if algorithm == "lrs":
-            if not is_package_installed('lrslib'):
-                raise PackageNotFoundError("lrslib")
-
+            Lrs().require()
             return self._solve_lrs(maximization)
 
         if algorithm == "LCP":

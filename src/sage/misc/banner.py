@@ -13,7 +13,8 @@ SageMath version and banner info
 #*****************************************************************************
 from __future__ import print_function
 
-from sage.env import SAGE_VERSION, SAGE_DATE, SAGE_SRC, SAGE_BANNER
+from sage.env import (SAGE_VERSION, SAGE_DATE, SAGE_VERSION_BANNER,
+                      SAGE_SRC, SAGE_BANNER)
 
 def version():
     """
@@ -28,7 +29,7 @@ def version():
        sage: version()
        'SageMath version ..., Release Date: ...'
     """
-    return 'SageMath version %s, Release Date: %s' % (SAGE_VERSION, SAGE_DATE)
+    return SAGE_VERSION_BANNER
 
 
 def banner_text(full=True):
@@ -91,6 +92,7 @@ def banner():
 
     EXAMPLES::
 
+        sage: import sage.misc.banner; sage.misc.banner.SAGE_BANNER = ''
         sage: banner()
         ┌────────────────────────────────────────────────────────────────────┐
         │ SageMath version ..., Release Date: ...                            │
@@ -164,7 +166,7 @@ def version_dict():
     dict['tiny'] = 0
     dict['prerelease'] = False
     try:
-        dummy = int(v[-1])
+        int(v[-1])
     except ValueError:  # when last entry is not an integer
         dict['prerelease'] = True
     if (len(v) == 3 and not dict['prerelease']) or len(v) > 3:
@@ -175,6 +177,7 @@ def version_dict():
     except (ValueError, IndexError):
         pass
     return dict
+
 
 def require_version(major, minor=0, tiny=0, prerelease=False,
                     print_message=False):

@@ -36,7 +36,7 @@ from six.moves import zip
 from six import integer_types
 
 from sage.arith.all import (hilbert_conductor_inverse, hilbert_conductor,
-        factor, gcd, lcm, kronecker_symbol, valuation)
+        factor, gcd, kronecker_symbol, valuation)
 from sage.rings.all import RR, Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational import Rational
@@ -67,7 +67,6 @@ from sage.modular.modsym.p1list import P1List
 
 from sage.misc.cachefunc import cached_method
 
-from sage.categories.rings import Rings
 from sage.categories.fields import Fields
 from sage.categories.algebras import Algebras
 _Fields = Fields()
@@ -1743,8 +1742,7 @@ class QuaternionOrder(Algebra):
         Q = self.quaternion_algebra()
         # 2*R + ZZ
         twoR = self.free_module().scale(2)
-        A = twoR.ambient_module()
-        Z = twoR.span( [Q(1).coefficient_tuple()], ZZ)
+        Z = twoR.span([Q(1).coefficient_tuple()], ZZ)
         S = twoR + Z
         # Now we intersect with the trace 0 submodule
         v = [b.reduced_trace() for b in Q.basis()]
@@ -1760,6 +1758,7 @@ class QuaternionOrder(Algebra):
         else:
             return Q
 
+
 class QuaternionFractionalIdeal(Ideal_fractional):
     def __hash__(self):
         r"""
@@ -1772,6 +1771,7 @@ class QuaternionFractionalIdeal(Ideal_fractional):
             0
         """
         return 0
+
 
 class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
     """
@@ -2299,6 +2299,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         self.__theta_series = theta
         return theta
 
+    @cached_method
     def gram_matrix(self):
         r"""
         Return the Gram matrix of this fractional ideal.
@@ -2315,17 +2316,12 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             [ 2112 13440 13056 15360]
             [ 1920 16320 15360 19200]
         """
-        try: return self.__gram_matrix
-        except AttributeError: pass
-        M = []
         A = self.__basis
         B = [z.conjugate() for z in self.__basis]
         two = QQ(2)
         m = [two*(a*b).reduced_trace() for b in B for a in A]
-        M44 = MatrixSpace(QQ, 4)
-        G = M44(m,coerce=False)
-        self.__gram_matrix = G
-        return G
+        M44 = MatrixSpace(QQ, 4, 4)
+        return M44(m, coerce=False)
 
     def norm(self):
         """
@@ -2687,7 +2683,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             H = G._hnf_pari(0, include_zero_rows=False)
             gens = tuple(quaternion_algebra_cython.rational_quaternions_from_integral_matrix_and_denom(Q, H, d))
             if scale != 1:
-                gens = tuple([scale*g for g in gens])
+                gens = tuple([scale * gg for gg in gens])
             J = R.right_ideal(gens, check=False)
             ans.append(J)
         return ans

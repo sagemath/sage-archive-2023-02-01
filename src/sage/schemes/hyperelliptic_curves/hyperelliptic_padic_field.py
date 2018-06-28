@@ -1,5 +1,5 @@
 """
-Hyperelliptic curves over a padic field.
+Hyperelliptic curves over a `p`-adic field
 """
 
 #*****************************************************************************

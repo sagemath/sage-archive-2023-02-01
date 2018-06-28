@@ -1525,6 +1525,6 @@ def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
     return IntegerVectorsConstraints(n, k, **constraints)
 
 # October 2012: fixing outdated pickles which use classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nconstraints', IntegerVectorsConstraints)
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nkconstraints', IntegerVectorsConstraints)

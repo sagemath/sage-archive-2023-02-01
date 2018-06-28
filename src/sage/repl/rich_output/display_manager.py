@@ -471,7 +471,7 @@ class DisplayManager(SageObject):
         return output
 
     def _preferred_text_formatter(self, obj, plain_text=None, **kwds):
-        """
+        r"""
         Return the preferred textual representation
 
         INPUT:

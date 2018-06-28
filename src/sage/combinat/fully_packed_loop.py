@@ -861,8 +861,7 @@ class FullyPackedLoop(Element):
 
         link_options = {}
         loop_options = {}
-        extra_options = {}
-        for k,v in options.items():
+        for k, v in options.items():
             if k == 'link':
                 link = v
             elif k == 'loop':
@@ -1049,9 +1048,8 @@ class FullyPackedLoop(Element):
         else:
             return orbit
 
-
     def link_pattern(self):
-        """
+        r"""
         Return a link pattern corresponding to a fully packed loop.
 
         Here we define a link pattern `LP` to be a partition of the list

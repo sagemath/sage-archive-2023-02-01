@@ -419,6 +419,7 @@ import binascii
 import os
 import time
 import weakref
+import random as _random
 import sys
 
 use_urandom = False
@@ -458,6 +459,9 @@ cpdef randstate current_randstate():
 
 # Keep track of the stack of randstates involved in "with seed(s):".
 randstate_stack = []
+
+# Default class to use for randstate.python_random
+DEFAULT_PYTHON_RANDOM = _random.Random
 
 # The following components of Sage use random numbers that I have not
 # figured out how to seed: fpLLL, mwrank, mpfi
@@ -559,7 +563,7 @@ cdef class randstate:
         """
         return self._seed
 
-    def python_random(self):
+    def python_random(self, cls=None):
         r"""
         Return a :class:`random.Random` object.  The first time it is
         called on a given :class:`randstate`, a new :class:`random.Random`
@@ -568,6 +572,13 @@ cdef class randstate:
 
         It is expected that ``python_random`` will only be
         called on the current :class:`randstate`.
+
+        INPUT:
+
+        - ``cls`` -- (optional) a class with the same interface as
+          :class:`random.Random` (e.g. a subclass thereof) to use as the
+          Python RNG interface.  Otherwise the standard :class:`random.Random`
+          is used.
 
         EXAMPLES::
 
@@ -578,12 +589,15 @@ cdef class randstate:
             sage: rnd.randrange(1000)
             544
         """
-        if self._python_random is not None:
+
+        if cls is None:
+            cls = DEFAULT_PYTHON_RANDOM
+
+        if type(self._python_random) is cls:
             return self._python_random
 
-        import random
         from sage.rings.integer_ring import ZZ
-        rand = random.Random()
+        rand = cls()
         rand.seed(long(ZZ.random_element(long(1)<<128)))
         self._python_random = rand
         return rand
@@ -899,6 +913,7 @@ cdef class randstate:
         global _current_randstate
         _current_randstate = randstate_stack.pop()
         return False
+
 
 cpdef set_random_seed(seed=None):
     r"""

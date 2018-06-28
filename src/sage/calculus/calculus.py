@@ -762,7 +762,7 @@ def nintegral(ex, x, a, b,
     Now numerically integrating, we see why the answer is wrong::
 
         sage: f.nintegrate(x,0,1)
-        (-480.0000000000001, 5.32907051820075e-12, 21, 0)
+        (-480.0000000000001, 5.32907051820075...e-12, 21, 0)
 
     It is just because every floating point evaluation of return -480.0
     in floating point.
@@ -1514,15 +1514,21 @@ def laplace(ex, t, s, algorithm='maxima'):
     Testing Maxima::
 
         sage: laplace(t^n, t, s, algorithm='maxima')
-        s^(-n - 1)*gamma(n + 1)    
-            
-    Testing expression that is not parsed from SymPy to Sage::
+        s^(-n - 1)*gamma(n + 1)
+
+    Check that :trac:`24212` is fixed::
 
         sage: laplace(cos(t^2), t, s, algorithm='sympy')
+        (-1/2*sqrt(pi)*(sqrt(2)*cos(1/4*s^2)*fresnel_sin(1/2*sqrt(2)*s/sqrt(pi)) -
+        sqrt(2)*fresnel_cos(1/2*sqrt(2)*s/sqrt(pi))*sin(1/4*s^2) - cos(1/4*pi + 1/4*s^2)),
+        0, True)
+
+    Testing result from SymPy that Sage doesn't know how to handle::
+
+        sage: laplace(cos(-1/t), t, s, algorithm='sympy')
         Traceback (most recent call last):
         ...
-        AttributeError: Unable to convert SymPy result (=sqrt(pi)*(sqrt(2)*sin(s**2/4)*fresnelc(sqrt(2)*s/(2*sqrt(pi))) - 
-        sqrt(2)*cos(s**2/4)*fresnels(sqrt(2)*s/(2*sqrt(pi))) + cos(s**2/4 + pi/4))/2) into Sage
+        AttributeError: Unable to convert SymPy result (=meijerg(((), ()), ((-1/2, 0, 1/2), (0,)), s**2/16)/4) into Sage
     """
     if not isinstance(ex, (Expression, Function)):
         ex = SR(ex)

@@ -772,7 +772,7 @@ def NormalFan(polytope, lattice=None):
 
 
 def Fan2d(rays, lattice=None):
-    """
+    r"""
     Construct the maximal 2-d fan with given ``rays``.
 
     In two dimensions we can uniquely construct a fan from just rays,
@@ -1322,10 +1322,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
             Finite poset containing 5 elements with distinguished linear extension
 
         These 5 elements are: 1 origin, 2 rays, 1 generating cone, 1 fan.
-        
+
         A subcase of this common case is treatment of fans consisting of the
         origin only, which used to be handled incorrectly :trac:`18613`::
-        
+
             sage: fan = Fan([Cone([], ToricLattice(0))])
             sage: list(fan.cone_lattice())
             [0-d cone of Rational polyhedral fan in 0-d lattice N,
@@ -2411,7 +2411,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
     @cached_method
     def vertex_graph(self):
-        """
+        r"""
         Return the graph of 1- and 2-cones.
 
         OUTPUT:
@@ -3199,7 +3199,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         The boundary cones of ``cone`` as a formal linear combination
         of cones with coefficients `\pm 1`. Each summand is a facet of
         ``cone`` and the coefficient indicates whether their (chosen)
-        orientation argrees or disagrees with the "outward normal
+        orientation agrees or disagrees with the "outward normal
         first" boundary orientation. Note that the orientation of any
         individual cone is arbitrary. This method once and for all
         picks orientations for all cones and then computes the
@@ -3307,6 +3307,30 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         self._oriented_boundary = boundaries
         return boundaries[cone]
+
+    def toric_variety(self, *args, **kwds):
+        """
+        Return the associated toric variety.
+
+        INPUT:
+
+        same arguments as :func:`~sage.schemes.toric.variety.ToricVariety`
+
+        OUTPUT:
+
+        a toric variety
+
+        This is equivalent to the command ``ToricVariety(self)`` and
+        is provided only as a convenient alternative method to go from the
+        fan to the associated toric variety.
+
+        EXAMPLES::
+
+            sage: Fan([Cone([(1,0)]), Cone([(0,1)])]).toric_variety()
+            2-d toric variety covered by 2 affine patches
+        """
+        from sage.schemes.toric.variety import ToricVariety
+        return ToricVariety(self, *args, **kwds)
 
     def complex(self, base_ring=ZZ, extended=False):
         r"""

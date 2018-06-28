@@ -656,18 +656,19 @@ You can run doctests from within Sage, which can be useful since you
 don't have to wait for Sage to start.  Use the ``run_doctests``
 function in the global namespace, passing it either a string or a module::
 
-    sage: run_doctests(sage.coding.sd_codes)
-    Doctesting /Users/roed/sage/sage-5.3/src/sage/coding/sd_codes.py
-    Running doctests with ID 2012-07-07-04-32-36-81f3853b.
+    sage: run_doctests(sage.combinat.affine_permutation)
+    Running doctests with ID 2018-02-07-13-23-13-89fe17b1.
+    Git branch: develop
+    Using --optional=sage
     Doctesting 1 file.
-    sage -t /Users/roed/sage/sage-5.3/src/sage/coding/sd_codes.py
-        [18 tests, 0.3 s]
-    ------------------------------------------------------------------------
+    sage -t /opt/sage/sage_stable/src/sage/combinat/affine_permutation.py
+        [338 tests, 4.32 s]
+    ----------------------------------------------------------------------
     All tests passed!
-    ------------------------------------------------------------------------
-    Total time for all tests: 0.4 seconds
-        cpu time: 0.2 seconds
-        cumulative wall time: 0.3 seconds
+    ----------------------------------------------------------------------
+    Total time for all tests: 4.4 seconds
+        cpu time: 3.6 seconds
+        cumulative wall time: 4.3 seconds
 
 .. _section-options:
 

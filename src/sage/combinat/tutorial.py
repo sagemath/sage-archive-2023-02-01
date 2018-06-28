@@ -224,7 +224,7 @@ author, which contains more than 190000 sequences of integers::
     sage: oeis([1,1,2,5,14])                            # optional -- internet
     0: A000108: Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
     1: A120588: G.f. satisfies: 3*A(x) = 2 + x + A(x)^2, with a(0) = 1.
-    2: A080937: Number of Catalan paths (nonnegative, starting and ending at 0, step +/-1) of 2*n steps with all values <= 5.
+    2: ...
 
 The result suggests that the trees are counted by one of the most famous
 sequences, the Catalan numbers. Looking through the references supplied
@@ -1268,7 +1268,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 The itertools methods ``imap`` and ``ifilter`` have been renamed to
 ``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
 
-    sage: from builtins import map, filter
+    sage: from six.moves import map, filter
 
 but they should rather be avoided, using list comprehension instead.
 
@@ -1730,7 +1730,7 @@ The Fibonacci sequence is easily recognized here, hence the name::
     sage: oeis(L)                                       # optional -- internet
     0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
     1: A212804: Expansion of (1-x)/(1-x-x^2).
-    2: A132636: Fib(n) mod n^3.
+    2: A132636: a(n) = Fibonacci(n) mod n^3.
 
 This is an immediate consequence of the recurrence relation. One can
 also generate immediately all the Fibonacci words of a given length,

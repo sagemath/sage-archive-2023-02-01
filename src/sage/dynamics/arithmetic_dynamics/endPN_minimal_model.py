@@ -183,7 +183,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
 
     INPUT:
 
-    - ``vp`` -- dyanmical system on the projective line
+    - ``vp`` -- dynamical system on the projective line
 
     - ``D`` -- a list of primes, in case one only wants to check minimality
                at those specific primes

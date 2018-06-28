@@ -310,6 +310,21 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self._matrix
 
+    def _matrix_(self, base=None):
+        """
+        Method used by the :func:`matrix` constructor.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 3], base_ring=ZZ)
+            sage: g = W.gen(0)
+            sage: matrix(RDF, g)
+            [-1.0  1.0  0.0]
+            [ 0.0  1.0  0.0]
+            [ 0.0  0.0  1.0]
+        """
+        return self.matrix()
+
     cpdef _mul_(self, other):
         """
         Return the product of ``self`` and`` other``, which must
@@ -589,6 +604,22 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         m = MS([x.sage(ring=ring) for x in entries])
         m.set_immutable()
         return m
+
+    def _matrix_(self, base=None):
+        """
+        Method used by the :func:`matrix` constructor.
+
+        EXAMPLES::
+
+            sage: F = GF(3); MS = MatrixSpace(F,2,2)
+            sage: G = MatrixGroup([MS([1,1,0,1])])
+            sage: g = G.gen(0)
+            sage: M = matrix(GF(9), g); M; parent(M)
+            [1 1]
+            [0 1]
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field in z2 of size 3^2
+        """
+        return self.matrix()
 
     cpdef list list(self):
         """

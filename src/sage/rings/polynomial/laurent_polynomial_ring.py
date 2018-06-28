@@ -1,4 +1,4 @@
-"""
+r"""
 Ring of Laurent Polynomials
 
 If `R` is a commutative ring, then the ring of Laurent polynomials in `n`
@@ -228,7 +228,7 @@ def LaurentPolynomialRing(base_ring, *args, **kwds):
            w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
     """
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 
     R = PolynomialRing(base_ring, *args, **kwds)
     if R in _cache:
@@ -416,7 +416,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
     def ngens(self):
         """
-        Returns the number of generators of self.
+        Return the number of generators of ``self``.
 
         EXAMPLES::
 
@@ -524,7 +524,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
     def construction(self):
         """
-        Returns the construction of self.
+        Return the construction of ``self``.
 
         EXAMPLES::
 
@@ -672,8 +672,18 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         """
         return not (self == other)
 
-    def _latex_(self):
+    def __hash__(self):
         """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+        """
+        return hash(self._R) ^ 12059065606945654693
+
+    def _latex_(self):
+        r"""
         EXAMPLES::
 
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))

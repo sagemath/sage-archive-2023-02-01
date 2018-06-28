@@ -169,7 +169,8 @@ def _inverse_mod_generic(elt, I):
         raise ValueError("inverse is not defined modulo the zero ideal")
     n = R.absolute_degree()
     B = R.basis()
-    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
+    m = matrix(ZZ, [R.coordinates(x)
+                    for x in I.integral_basis() + [elt*s for s in B]])
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
         raise ZeroDivisionError("%s is not invertible modulo %s" % (elt, I))
@@ -2064,6 +2065,25 @@ cdef class NumberFieldElement(FieldElement):
         else:
             return t
 
+    def is_padic_square(self, P, check=True):
+        r"""
+        Return if ``self`` is a square in the completion at the prime `P`.
+
+        INPUT:
+
+        - ``P`` -- a prime ideal
+        - ``check`` -- (default: ``True``); check if `P` is prime
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: p = K.primes_above(2)[0]
+            sage: K(5).is_padic_square(p)
+            False
+        """
+        infinity = sage.rings.infinity.infinity
+        return self.parent().quadratic_defect(self, P, check=check) == infinity
+
     def sqrt(self, all=False):
         """
         Returns the square root of this number in the given number field.
@@ -2179,8 +2199,12 @@ cdef class NumberFieldElement(FieldElement):
             sage: (1+sqrt2)^-1
             sqrt2 - 1
 
-        If the exponent is not integral, perform this operation in
-        the symbolic ring::
+        If the exponent is not integral, attempt this operation in the NumberField:
+
+            sage: K(2)^(1/2)
+            sqrt2
+
+        If this fails, perform this operation in the symbolic ring::
 
             sage: sqrt2^(1/5)
             2^(1/10)
@@ -2213,29 +2237,38 @@ cdef class NumberFieldElement(FieldElement):
         if (isinstance(base, NumberFieldElement) and
             (isinstance(exp, Integer) or type(exp) is int or exp in ZZ)):
             return generic_power(base, exp)
-        else:
-            cbase, cexp = canonical_coercion(base, exp)
-            if not isinstance(cbase, NumberFieldElement):
-                return cbase ** cexp
-            # Return a symbolic expression.
-            # We use the hold=True keyword argument to prevent the
-            # symbolics library from trying to simplify this expression
-            # again. This would lead to infinite loops otherwise.
-            from sage.symbolic.ring import SR
+
+        if (isinstance(base, NumberFieldElement) and exp in QQ):
+            qqexp = QQ(exp)
+            n = qqexp.numerator()
+            d = qqexp.denominator()
             try:
-                res = QQ(base)**QQ(exp)
-            except TypeError:
+                return base.nth_root(d)**n
+            except ValueError:
                 pass
-            else:
-                if res.parent() is not SR:
-                    return parent(cbase)(res)
-                return res
-            sbase = SR(base)
-            if sbase.operator() is operator.pow:
-                nbase, pexp = sbase.operands()
-                return nbase.power(pexp * exp, hold=True)
-            else:
-                return sbase.power(exp, hold=True)
+
+        cbase, cexp = canonical_coercion(base, exp)
+        if not isinstance(cbase, NumberFieldElement):
+            return cbase ** cexp
+        # Return a symbolic expression.
+        # We use the hold=True keyword argument to prevent the
+        # symbolics library from trying to simplify this expression
+        # again. This would lead to infinite loops otherwise.
+        from sage.symbolic.ring import SR
+        try:
+            res = QQ(base)**QQ(exp)
+        except TypeError:
+            pass
+        else:
+            if res.parent() is not SR:
+                return parent(cbase)(res)
+            return res
+        sbase = SR(base)
+        if sbase.operator() is operator.pow:
+            nbase, pexp = sbase.operands()
+            return nbase.power(pexp * exp, hold=True)
+        else:
+            return sbase.power(exp, hold=True)
 
     cdef void _reduce_c_(self):
         """

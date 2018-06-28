@@ -8851,7 +8851,7 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def vertex_disjoint_paths(self, s, t, solver=solver, verbose=verbose):
+    def vertex_disjoint_paths(self, s, t, solver=None, verbose=0):
         r"""
         Return a list of vertex-disjoint paths between two vertices.
 
@@ -8917,15 +8917,11 @@ class GenericGraph(GenericGraph_pyx):
 
     def dominating_set(self, independent=False, total=False, value_only=False, solver=None, verbose=0):
         r"""
-        Returns a minimum dominating set of the graph
-        represented by the list of its vertices. For more information, see the
-        `Wikipedia article on dominating sets
-        <http://en.wikipedia.org/wiki/Dominating_set>`_.
+        Return a minimum dominating set of the graph.
 
-        A minimum dominating set `S` of a graph `G` is
-        a set of its vertices of minimal cardinality such
-        that any vertex of `G` is in `S` or has one of its neighbors
-        in `S`.
+        A minimum dominating set `S` of a graph `G` is a set of its vertices of
+        minimal cardinality such that any vertex of `G` is in `S` or has one of
+        its neighbors in `S`. See :wikipedia:`Dominating_set`.
 
         As an optimization problem, it can be expressed as:
 
@@ -21031,7 +21027,7 @@ class GenericGraph(GenericGraph_pyx):
     def is_hamiltonian(self, solver=None, constraint_generation=None,
                        verbose=0, verbose_constraints=False):
         r"""
-        Tests whether the current graph is Hamiltonian.
+        Test whether the current graph is Hamiltonian.
 
         A graph (resp. digraph) is said to be Hamiltonian if it contains as a
         subgraph a cycle (resp. a circuit) going through all the vertices.
@@ -21041,7 +21037,7 @@ class GenericGraph(GenericGraph_pyx):
 
         ALGORITHM:
 
-        See ``Graph.traveling_salesman_problem``.
+        See :meth:`~Graph.traveling_salesman_problem`.
 
         INPUT:
 

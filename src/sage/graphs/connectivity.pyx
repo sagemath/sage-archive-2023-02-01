@@ -2105,6 +2105,7 @@ def spqr_tree(G):
     ValueError: generation of SPQR trees is only implemented for 2-connected graphs
     """
     from sage.graphs.graph import Graph
+    from collections import Counter
     cut_size, cut_vertices = G.vertex_connectivity(value_only=False)
 
     if cut_size < 2:
@@ -2120,60 +2121,37 @@ def spqr_tree(G):
     cuts = []
     cycles = []
     SG = G.copy()
+    counter_multiedges = []
 
     # Split_multiple_edge Algorithm. If the input graph has multiple edges, we
     # make SG a simple graph while recording virtual edges that will be needed
     # to 2-sum with cocycles during reconstruction. After this step, next steps
     # will be finding S and R blocks.
     if SG.has_multiple_edges():
-        mults = sorted(SG.multiple_edges(labels=False))
-        for i in range(len(mults) - 1):
-            if mults[i] == mults[i + 1]:
-                cocycles.append(frozenset(mults[i]))
-                SG.delete_edge(mults[i])
-            else:
-                cuts.append(frozenset(mults[i]))
-        cuts.append(frozenset(mults[-1]))
+        counter_multiedges = Counter([frozenset(e) for e in SG.multiple_edges(labels=False)])
+        for e,num in counter_multiedges.items():
+            cuts.append(e)
+            for i in range(num-1):
+                cocycles.append(e)
+                SG.delete_edge(e)
 
-    # If G simplifies to a cycle.  Otherwise, seed the list of blocks to be
-    # 2-split with G
-    Tree_new = Graph()
+    # If SG simplifies to a cycle, we return the corresponding SPQR tree
     if SG.is_cycle():
-        cycles.extend([frozenset(e) for e in SG.edge_iterator(labels=False)])
-
-        # Join all the multiple edges of cocycle and make a component and
-        # Construct the spqr_tree
-        Treeverts_new = ('S',tuple(SG.vertices()), Graph(SG, immutable=True))
-        P_SG = Graph()
-        P_SG.allow_multiple_edges(True)
-
-        # All cuts will be present in cocycles
-        for i in range(len(cocycles) - 1):
-            if cocycles[i]==cocycles[i+1]:
-                P_SG.add_edge(cocycles[i])
-            else:
-                P_SG.add_edge(cocycles[i])
-                Tree_new.add_edge(('P',tuple(cocycles[i]), Graph(P_SG, immutable=True)),Treeverts_new)
-                # Reset P_SG
-                P_SG = Graph()
-                P_SG.allow_multiple_edges(True)
-
-        if P_SG:
-            # last edge and second last edge are same.
-            P_SG.add_edge(cocycles[-1])
-        else:
-            # last edge and second last edge are different.
-            P_SG.append(Graph())
-            P_SG.allow_multiple_edges(True)
-            P_SG.add_edge(cocycles[-1])
-        Tree_new.add_edge(('P',tuple(cocycles[-1]), Graph(P_SG, immutable=True)),Treeverts_new)
-
-    else:
-        SG.allow_multiple_edges(False)
-        two_blocks.append((SG, cut_vertices))
+        T = Graph(name='SPQR-tree of {}'.format(G.name()))
+        S_node = ('S', Graph(SG, immutable=True))
+        T.add_vertex(S_node)
+        for e,num in counter_multiedges.items():
+            P_node = ('P', Graph([e] * (num + 1), multiedges=True, immutable=True))
+            T.add_edge(S_node, P_node)
+        return T
 
 
-    # Each minor of G in two_blocks has a 2-vertex cut; we split at this cut and
+    # Seed the list of blocks to be 2-split with G
+    SG.allow_multiple_edges(False)
+    two_blocks.append((SG, cut_vertices))
+
+
+    # Each graph in two_blocks has a 2-vertex cut; we split at this cut and
     # check each side for S or R or a 2-vertex cut
     while two_blocks:
         B,B_cut = two_blocks.pop()
@@ -2190,38 +2168,33 @@ def spqr_tree(G):
                 else:
                     R_blocks.append(K)
         # add a P block if cleave says we need it; mark virtual edge
-        cocycles.extend([frozenset(e) for e in C.edge_iterator(labels=False)])
+        cocycles.extend(frozenset(e) for e in C.edge_iterator(labels=False))
         for e in f.edge_iterator(labels=False):
             fe = frozenset(e)
             if not fe in cuts:
                 cuts.append(fe)
 
     # Cycles may or may not (if G is a cycle with order > 3) be triangulated; We
-    # must undo this for S-blocks. virtual edges to be used in cycle assembly
-    # from triangles will be multiple edges; check to be sure they are not
-    # already in a P-block, for then we cannot 2-sum cycles at this edge for a
-    # S-block Reconstruct S-blocks from smaller polygons, where cocycles permit.
-
-    # It's a vertification step, to check whether all the cycles are formed
+    # must undo this for S-blocks. Virtual edges to be used in cycle assembly
+    # from triangles will be multiple edges; We check that they are not already
+    # in a P-block, otherwise, we cannot 2-sum cycles at that virtual edge.
+    # Reconstruct S-blocks from smaller polygons, where cocycles permit.
+    # It's a verification step, to check whether all the cycles are formed
     # using cocycle edges
     cycles_graph = Graph(cycles, multiedges=True)
-    for e in cycles_graph.edges(labels=False):
-        if cycles_graph.subgraph(edges=[e]).has_multiple_edges():
-            f = frozenset(e)
-            if not f in cocycles:
-                cuts.remove(f)
-                while cycles_graph.has_edge(e):
-                    cycles_graph.delete_edge(e)
+    count = Counter([frozenset(e) for e in cycles_graph.multiple_edges(labels=False)])
+    for e,num in count.items():
+        if not e in cocycles:
+            cuts.remove(e)
+            for _ in range(num):
+                cycles_graph.delete_edge(e)
 
     # Things which are getting deleted from cycles_graph store it in tmp.
     tmp = []
     polygons = []
-    for component in cycles_graph.connected_components_subgraphs():
-        for block in component.blocks_and_cut_vertices()[0]:
-            tmp.append(cycles_graph.subgraph(vertices=block))
+    for block in cycles_graph.blocks_and_cut_vertices()[0]:
+        tmp.append(cycles_graph.subgraph(vertices=block))
 
-    # After above step, there is no use of cycles_graph.
-    del cycles_graph
 
     # tmp will be seeded with the union of cycles; each multiple edge
     # corresponds to a sequence of 2-sums of polygons; when cycles have no more
@@ -2229,18 +2202,16 @@ def spqr_tree(G):
 
     while tmp:
         block = tmp.pop()
-        #print('b'," Bi-Connected:",block.is_biconnected()," Is-Cycle:",block.is_cycle()," Multi-Edge:",block.has_multiple_edges())
         if block.is_cycle():
             polygons.append(block)
         elif block.has_multiple_edges():
-            f = block.multiple_edges()[0]
-            SS = block.subgraph(vertices=[v for v in block.vertices() if v not in [f[0],f[1]]])
+            f = block.multiple_edges(labels=False)[0]
+            SS = block.subgraph(vertices=[v for v in block.vertices() if v not in f])
             for SK in SS.connected_components():
                 SKS = block.subgraph(vertices=SK+[f[0],f[1]])
                 while SKS.has_edge(f):
                     SKS.delete_edge(f)
                 SKS.add_edge(f)
-                #print("SKS",SKS.is_biconnected())
                 tmp.append(SKS)
         else:
             R_blocks.append(block)
@@ -2251,10 +2222,10 @@ def spqr_tree(G):
 
     SPR = R_blocks + polygons
     Treeverts = []
-    Tree = Graph()
+    Tree = Graph(name='SPQR-tree of {}'.format(G.name()))
     # Append all the tree vertices with labels to Treeverts list
     for T in SPR:
-        if len(T) == 2:
+        if T.order() == 2:
             # It's a virtual edge component.
             block_type = 'P'
         elif T.is_cycle():
@@ -2283,7 +2254,7 @@ def spqr_tree(G):
 
     thcomps = []
     for component in polygons:
-        if component.order()==3 and component.size()==3:
+        if component.order() == 3 and component.size() == 3:
             thcomps.append(component)
     thcomps += R_blocks
-    return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree, Tree_new
+    return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree

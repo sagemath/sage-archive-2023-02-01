@@ -274,6 +274,7 @@ from six import iteritems
 
 import copy
 from sage.misc.cachefunc import cached_method
+from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.functions.other import floor
@@ -300,20 +301,91 @@ from sage.combinat.subset import Subsets
 class ElementWithLabel:
     """
     Auxiliary class for showing Posets with non-ijective relabeling. 
+    For hashing and equality testing the resulting object behaves like a tuple `(element, label)`.
+    For any presentation purposes it appears just as `label` would.
     """
     def __init__(self, element, label):
+        """
+        Construct an object from `element` that presents itself as `label`.
+
+        TESTS::
+
+            sage: e = sage.combinat.posets.posets.ElementWithLabel(1, 'a')
+            sage: e
+            'a'
+            sage: e.element
+            1
+        """
         self.element = element
         self.label = label
         
     def _latex_(self):
+        """
+        Returns the latex representation of `self` which is just the latex representation of the label.
+
+        TESTS::
+
+            sage: var('a_1')
+            a_1
+            sage: e = sage.combinat.posets.posets.ElementWithLabel(1, a_1)
+            sage: latex(e)
+            a_{1}
+        """
         return latex(self.label)
-    
-    def __str__(self):
-        return str(self.label)
 
     def __repr__(self):
-        return str(self.label)
+        """
+        Returns the representation of `self` which is just the representation of the label.
 
+        TESTS::
+
+            sage: var('a_1')
+            a_1
+            sage: e = sage.combinat.posets.posets.ElementWithLabel(1, a_1)
+            sage: repr(e)
+            'a_1'
+        """
+        return repr(self.label)
+
+    def __hash__(self):
+        """
+        Returns the hash of labeled element which is constructed from hashes of both constituents.
+
+        TESTS::
+
+            sage: a = sage.combinat.posets.posets.ElementWithLabel(1, 'a')
+            sage: b = sage.combinat.posets.posets.ElementWithLabel(1, 'b')
+            sage: d = {}
+            sage: d[a] = 'element 1'
+            sage: d[b] = 'element 2'
+            sage: d
+            {'a': 'element 1', 'b': 'element 2'}
+        """
+        return hash((hash(self.element), hash(self.label)))
+
+    def __eq__(self, other):
+        """
+        Two labeled elements are equal if and only if both of their constituents are equal.
+
+        TESTS::
+            sage: from sage.combinat.posets.posets import ElementWithLabel
+            sage: a = ElementWithLabel(1, 'a')
+            sage: b = ElementWithLabel(1, 'b')
+            sage: x = ElementWithLabel(1, 'a')
+            sage: a == b
+            False
+            sage: a == x
+            True
+        """
+        return self.element == other.element and self.label == other.label
+
+    def __ne__(self, other):
+        """
+        Two labeled elements are not equal if and only if first or second constituents are not equal.
+
+        TESTS::
+        """
+        return not(self == other)
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category=None, facade=None, key=None):
     r"""

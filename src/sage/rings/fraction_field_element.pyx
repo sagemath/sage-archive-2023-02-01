@@ -17,40 +17,30 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import operator
+from __future__ import absolute_import
 
-from sage.structure.element cimport (FieldElement, ModuleElement, RingElement,
-                                     Element)
-from sage.structure.element import parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.element cimport FieldElement, parent
+from sage.structure.richcmp cimport richcmp
 
-import integer_ring
-from integer_ring import ZZ
-from rational_field import QQ
+from . import integer_ring
+from .integer_ring import ZZ
+from .rational_field import QQ
 
 import sage.misc.latex as latex
 
 
 def is_FractionFieldElement(x):
     """
-    Returns whether or not ``x`` is a :class`FractionFieldElement`.
+    Return whether or not ``x`` is a :class:`FractionFieldElement`.
 
     EXAMPLES::
 
@@ -964,14 +954,26 @@ cdef class FractionFieldElement(FieldElement):
 
     def _evaluate_polynomial(self, pol):
         """
-        Evaluate a univariate polynomial on this fraction.
+        Return the value of the univariate polynomial ``pol`` evaluated at this
+        fraction.
 
         EXAMPLES::
 
             sage: R.<x> = QQ[]
             sage: pol = x^3 + 1
-            sage: pol(1/x)
+            sage: pol(1/x) # indirect doctest
             (x^3 + 1)/x^3
+
+        This method only works for fractions with numerator one::
+
+            sage: fraction = 1/x
+            sage: fraction._evaluate_polynomial(pol)
+            (x^3 + 1)/x^3
+            sage: fraction = 2/x
+            sage: fraction._evaluate_polynomial(pol)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         TESTS::
 
@@ -985,13 +987,44 @@ cdef class FractionFieldElement(FieldElement):
             NotImplementedError
             sage: pol(rat)
             (2*y^3 + 3*y^2*z + 3*y*z^2 + z^3)/y^3
+
+        Check that :trac:`25440` has been resolved::
+
+            sage: R.<x> = GF(2)[]
+            sage: S.<y> = R.fraction_field()[]
+            sage: (y+1)(R.one())
+            0
+
+        Check that inexact elements are treated correctly::
+
+            sage: K=Qp(2,5)
+            sage: R.<x> = K[]
+            sage: L = R.fraction_field()
+            sage: S.<y> = L[]
+            sage: y(K(1,1)/x)
+            ((1 + O(2)))/((1 + O(2^5))*x)
+
         """
-        inverse = ~self
-        if inverse.denominator().is_one():
-            num = inverse.numerator()
-            return pol.reverse()(num)/num**pol.degree()
-        else:
-            raise NotImplementedError
+        if self.numerator().is_one():
+            denominator = self.denominator()
+            if denominator.is_one():
+                # If the numerator and the denominator are one, then the
+                # following code would make us run into an infinite loop, see
+                # #25440.
+                # We could just sum up the coefficients of pol, but this is
+                # nothing special about fraction field elements, so the general
+                # polynomial code should take care of this (and also of correct
+                # handling of an inexact 1 in this case.)
+                raise NotImplementedError
+
+            if not self.parent().is_exact():
+                # Account for precision information that inexact elements might
+                # carry in their numerator.
+                denominator *= self.parent()(~self.numerator())
+
+            return pol.reverse()(denominator)/denominator**pol.degree()
+
+        raise NotImplementedError
 
 
 class FractionFieldElement_1poly_field(FractionFieldElement):

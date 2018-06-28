@@ -38,6 +38,7 @@ from sage.matrix.constructor import matrix
 from sage.arith.srange import srange
 from sage.combinat.partition import Partitions_all_bounded
 from sage.misc.misc_c import prod
+from sage.cpython.getattr import raw_getattr
 
 
 class KBoundedSubspace(UniqueRepresentation, Parent):
@@ -401,16 +402,16 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 TypeError: do not know how to make [4, 1] an element of 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis
             """
             if isinstance(c, Partition):
-                if len(rest) != 0:
+                if rest:
                     raise ValueError("Can only accept a partition")
             else:
-                if len(rest) > 0 or isinstance(c,(int,Integer)):
-                    c = Partition([c]+list(rest))
+                if rest or isinstance(c, (int, Integer)):
+                    c = Partition([c] + list(rest))
                 else:
                     c = Partition(list(c))
 
             if c not in self._indices:
-                raise TypeError("do not know how to make %s an element of %s"%(c,self))
+                raise TypeError("do not know how to make %s an element of %s" % (c, self))
             return self.monomial(c)
 
         def _repr_term(self, c):
@@ -949,7 +950,7 @@ class kSchur(CombinatorialFreeModule):
         sage: ks2([1])^2
         Traceback (most recent call last):
         ...
-        TypeError: unsupported operand type(s) for ** or pow(): 'kSchur_with_category.element_class' and 'int'
+        TypeError: unsupported operand parent(s) for ^: '2-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 2-Schur basis' and 'Integer Ring'
 
     .. TODO::
 
@@ -1014,11 +1015,10 @@ class kSchur(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
-    _convert_map_from_ = KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+    __getitem__ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "__getitem__")
+    _repr_term = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_repr_term")
+    _convert_map_from_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_convert_map_from_")
+    _element_constructor_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_element_constructor_")
 
     def _repr_(self):
         """
@@ -1271,12 +1271,10 @@ class kSplit(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
-    _convert_map_from_ =\
-            KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+    __getitem__ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "__getitem__")
+    _repr_term = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_repr_term")
+    _convert_map_from_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_convert_map_from_")
+    _element_constructor_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_element_constructor_")
 
     def _repr_(self):
         r"""
@@ -1387,12 +1385,10 @@ class kHomogeneous(CombinatorialFreeModule):
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
-    _convert_map_from_ =\
-            KBoundedSubspaceBases.ParentMethods._convert_map_from_.__func__
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+    __getitem__ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "__getitem__")
+    _repr_term = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_repr_term")
+    _convert_map_from_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_convert_map_from_")
+    _element_constructor_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_element_constructor_")
 
     def _repr_(self):
         """
@@ -1462,14 +1458,12 @@ class K_kSchur(CombinatorialFreeModule):
         #retract = SetMorphism(Hom(h, self, SetsWithPartialMaps()), lift.preimage)
         self.register_conversion(retract)
 
-
     # The following are meant to be inherited with the category framework, but
     # this fails because they are methods of Parent. The trick below overcomes
     # this problem.
-    __getitem__ = KBoundedSubspaceBases.ParentMethods.__getitem__.__func__
-    _repr_term = KBoundedSubspaceBases.ParentMethods._repr_term.__func__
-    _element_constructor_ = KBoundedSubspaceBases.ParentMethods._element_constructor_.__func__
-    _element_constructor = _element_constructor_
+    __getitem__ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "__getitem__")
+    _repr_term = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_repr_term")
+    _element_constructor_ = raw_getattr(KBoundedSubspaceBases.ParentMethods, "_element_constructor_")
 
     def _repr_(self):
         r"""

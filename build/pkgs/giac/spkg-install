@@ -1,23 +1,22 @@
-#!/usr/bin/env bash
-
 ###########################################
 ## Giac
 ###########################################
 
-
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
-fi
 
 #############################################################
 #    Environment Variables
 #############################################################
 # If CFLAGS and CXXFLAGS are unset, giac looks to set -g -O2,
 #   but if they are not empty, the -g -O2 is not added
+CFLAGS="-g -O2 $CFLAGS"
 CXXFLAGS="-g -O2 $CXXFLAGS"
 CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+
+if [ `uname -m` = "ppc64" ]; then
+    CPPFLAGS="-Dx86_64 $CPPFLAGS"
+fi
+
+export CFLAGS CXXFLAGS CPPFLAGS
 
 cd src
 
@@ -38,7 +37,6 @@ echo "Configuring giac..."
 
 #    --disable-ao     (avoid libao deps)
 #    --disable-lapack (avoid lapack and blas deps because they could be from the base system)
-
 #   On OS X (10.12) the built in intl is broken
 DISABLENLS=""
 if [ "$UNAME" = "Darwin" ]; then
@@ -46,22 +44,13 @@ if [ "$UNAME" = "Darwin" ]; then
     DISABLENLS="--disable-nls"
 fi
 
-./configure --prefix="$SAGE_LOCAL" --disable-gui --disable-ao --disable-lapack "$DISABLENLS"
-
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+sdh_configure --disable-gui --disable-ao --disable-lapack "$DISABLENLS"
 
 #############################################################
 #   Build
 #############################################################
 
-echo "Building  giac..."
-$MAKE
-
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+sdh_make
 
 #############################################################
 #   Clean old install
@@ -84,11 +73,5 @@ rm -rf ${SAGE_LOCAL}/include/giac
 #############################################################
 #   Install
 #############################################################
-echo "Installing giac..."
-$MAKE install
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing Giac."
-    exit 1
-fi
 
-
+sdh_make_install

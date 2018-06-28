@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Comparability and permutation graphs
 
@@ -209,9 +210,10 @@ Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import print_function
 
-include "cysignals/memory.pxi"
+from cysignals.memory cimport sig_free
 
 from copy import copy
 
@@ -246,7 +248,7 @@ def greedy_is_comparability(g, no_certificate = False, equivalence_class = False
     - If the graph is *not* a comparability graph, this method returns ``False``
       or ``(False, odd_cycle)`` according to the value of ``no_certificate``.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The Petersen Graph is not transitively orientable::
 
@@ -344,7 +346,7 @@ def greedy_is_comparability_with_certificate(g, certificate = False):
       `G`, and a *no* certificates is an odd cycle of sequentially forcing
       edges.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -412,7 +414,7 @@ def is_comparability_MILP(g, certificate = False):
     - ``certificate`` (boolean) -- whether to return a certificate for
       yes instances. This method can not return negative certificates.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The 5-cycle or the Petersen Graph are not transitively orientable::
 
@@ -457,8 +459,8 @@ def is_comparability_MILP(g, certificate = False):
                     p.add_constraint(o[u,v] + o[vv,u] - o[vv,v] <= 1)
                     p.add_constraint(o[u,vv] + o[v,u] - o[v,vv] <= 1)
 
-                # If there is no edge there there are only two
-                # orientation possible (see the module's documentation
+                # If there is no edge, there are only two
+                # orientations possible (see the module's documentation
                 # about edges which imply each other)
                 else:
                     p.add_constraint(o[u,v] + o[vv,u] <= 1)
@@ -498,7 +500,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
 
     INPUT:
 
-    - ``algorithm`` -- chose the implementation used to do the test.
+    - ``algorithm`` -- choose the implementation used to do the test.
 
       - ``"greedy"`` -- a greedy algorithm (see the documentation of the
         :mod:`comparability module <sage.graphs.comparability>`).
@@ -517,7 +519,7 @@ def is_comparability(g, algorithm = "greedy", certificate = False, check = True)
       yes-certificates are indeed transitive. As it is very quick
       compared to the rest of the operation, it is enabled by default.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.comparability import is_comparability
         sage: g = graphs.PetersenGraph()
@@ -574,7 +576,7 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
 
     INPUT:
 
-    - ``algorithm`` -- chose the implementation used for the subcalls to
+    - ``algorithm`` -- choose the implementation used for the subcalls to
       :meth:`is_comparability`.
 
       - ``"greedy"`` -- a greedy algorithm (see the documentation of the
@@ -601,7 +603,7 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
         through a call to :meth:`Permutation.show
         <sage.combinat.permutation.Permutation.show>`.
 
-    EXAMPLE:
+    EXAMPLES:
 
     A permutation realizing the bull graph::
 
@@ -711,7 +713,7 @@ def is_transitive(g, certificate = False):
         or yield a pair of vertices `uv` such that there exists a `uv`-path in
         `G` but `uv\not\in G`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: digraphs.Circuit(4).is_transitive()
         False

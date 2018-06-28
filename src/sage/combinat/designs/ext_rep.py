@@ -473,7 +473,7 @@ def dump_to_tmpfile(s):
     """
     Utility function to dump a string to a temporary file.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs import ext_rep
         sage: file_loc = ext_rep.dump_to_tmpfile("boo")
@@ -561,8 +561,7 @@ def open_extrep_url(url):
 
     root, ext = os.path.splitext(url)
     if ext == '.gz':
-        # f = gzip.GzipFile(f_url)
-        raise NotImplemented
+        raise NotImplementedError
     elif ext == '.bz2':
         return bz2.decompress(f.read())
     else:

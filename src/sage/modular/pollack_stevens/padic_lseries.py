@@ -22,13 +22,10 @@ from __future__ import absolute_import
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import ZZ, QQ
 from sage.rings.power_series_ring import PowerSeriesRing
-from sage.rings.big_oh import O
-from sage.arith.all import binomial, gcd, kronecker
+from sage.arith.all import binomial, kronecker
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.structure.sage_object import SageObject
-from .sigma0 import Sigma0
-from .fund_domain import M2Z
 
 
 class pAdicLseries(SageObject):
@@ -89,7 +86,7 @@ class pAdicLseries(SageObject):
         r"""
         Initialize the class
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.padic_lseries import pAdicLseries
             sage: E = EllipticCurve('11a3')
@@ -173,7 +170,7 @@ class pAdicLseries(SageObject):
         r"""
         Compare ``self`` and ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: L = E.padic_lseries(11,implementation="pollackstevens",precision=6) # long time
@@ -192,7 +189,7 @@ class pAdicLseries(SageObject):
         r"""
         Compare ``self`` and ``other``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('11a')
             sage: L = E.padic_lseries(11,implementation="pollackstevens",precision=6) # long time
@@ -294,7 +291,6 @@ class pAdicLseries(SageObject):
         M = self.symbol().precision_relative()
         K = pAdicField(p, M)
         R = PowerSeriesRing(K, names='T')
-        T = R.gens()[0]
         return R([self[i] for i in range(prec)]).add_bigoh(prec)
 
     def interpolation_factor(self, ap, chip=1, psi=None):

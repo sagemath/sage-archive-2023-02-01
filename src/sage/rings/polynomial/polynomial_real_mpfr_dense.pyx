@@ -23,8 +23,8 @@ Check that operations with numpy elements work well (see :trac:`18076` and
 """
 from __future__ import absolute_import
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_allocarray, check_reallocarray, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 
@@ -35,7 +35,8 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.rational cimport Rational
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
-from sage.structure.element import parent, canonical_coercion, bin_op, coerce_binop
+from sage.structure.element cimport parent
+from sage.structure.element import coerce_binop
 from sage.libs.mpfr cimport *
 
 from sage.libs.all import pari_gen
@@ -443,7 +444,7 @@ cdef class PolynomialRealDense(Polynomial):
         f._normalize()
         return f
 
-    cpdef _lmul_(self, RingElement c):
+    cpdef _lmul_(self, Element c):
         """
         EXAMPLES::
 

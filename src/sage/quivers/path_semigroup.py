@@ -18,10 +18,9 @@ Path Semigroups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six import integer_types, string_types
 
-import six
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.parent import Parent
@@ -173,7 +172,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         # Check validity of input: vertices have to be labelled 1,2,3,... and
         # edge labels must be unique
         for v in Q:
-            if not isinstance(v, (int,long,Integer)):
+            if not isinstance(v, integer_types + (Integer,)):
                 raise ValueError("vertices of the digraph must be labelled by integers")
 
         ## Determine the category which this (partial) semigroup belongs to
@@ -340,7 +339,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
         elif data == 1:
             start = end = next(self._quiver.vertex_iterator())
             path = []
-        elif isinstance(data, six.string_types): # one edge
+        elif isinstance(data, string_types): # one edge
             i = L.get(data, None)
             if i is None:
                 raise ValueError("data={!r} is not the label of an edge".format(data))
@@ -348,7 +347,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             path = [i]
         elif not isinstance(data, (tuple,list)):
             raise TypeError("data={} is not valid. A path must be initialized from either a tuple or a list".format(data))
-        elif isinstance(data[0], six.string_types):  # a list of labels
+        elif isinstance(data[0], string_types):  # a list of labels
             start = L.get(data[0])
             if start is None:
                 raise ValueError("data[0]={!r} is not the label of an edge".format(data[0]))
@@ -408,8 +407,8 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: P.arrows()
             (a, b, c, d)
         """
-        Q = self._quiver
-        return tuple(self.element_class(self, e[0],e[1], [i]) for i,e in enumerate(self._sorted_edges))
+        return tuple(self.element_class(self, e[0], e[1], [i])
+                     for i, e in enumerate(self._sorted_edges))
 
     @cached_method
     def idempotents(self):
@@ -634,7 +633,7 @@ class PathSemigroup(UniqueRepresentation, Parent):
             sage: list(P.iter_paths_by_length_and_startpoint(5,2))
             [d*c*a*d*c, d*c*b*d*c]
 
-        TEST::
+        TESTS::
 
              sage: Q = DiGraph({1:{1:['a','b', 'c', 'd']}})
              sage: P = Q.path_semigroup()

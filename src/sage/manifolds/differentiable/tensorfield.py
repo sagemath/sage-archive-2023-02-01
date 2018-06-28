@@ -18,10 +18,15 @@ fields:
 * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for differential
   forms (fully antisymmetric covariant tensor fields)
 
+* :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+  for multivector fields (fully antisymmetric contravariant tensor fields)
+
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
+- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian;
+  method :meth:`TensorField.along`
 
 REFERENCES:
 
@@ -41,8 +46,8 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-
 from __future__ import print_function
+from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.structure.element import ModuleElement
@@ -105,7 +110,7 @@ class TensorField(ModuleElement):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` associated with the map `\Phi: U \rightarrow M` (cf.
       :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`)
     - ``tensor_type`` -- pair `(k,l)` with `k` being the contravariant rank
@@ -185,7 +190,7 @@ class TensorField(ModuleElement):
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
 
     At this stage, `t` is fully defined, having components in frames eU and eV
-    and the union of the domains of eU and eV being whole manifold::
+    and the union of the domains of eU and eV being the whole manifold::
 
         sage: t.display(eV)  # long time
         t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*du
@@ -265,6 +270,99 @@ class TensorField(ModuleElement):
         sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
         True
 
+    .. RUBRIC:: Same examples with SymPy as the symbolic engine
+
+    From now on, we ask that all symbolic calculus on manifold `M` are
+    performed by SymPy::
+
+        sage: M.set_calculus_method('sympy')
+
+    We define the tensor `t` as above::
+
+        sage: t = M.tensor_field(0,2, name='t')
+        sage: t[eU,:] = [[1,0], [-2,3]]
+        sage: t.display(eU)
+        t = dx*dx - 2 dy*dx + 3 dy*dy
+        sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
+        sage: t.display(eV)  # long time
+        t = (u**4 - 4*u**3*v + 10*u**2*v**2 + 4*u*v**3 + v**4)/(u**8 +
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du +
+         4*u*v*(-u**2 - 2*u*v + v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
+         + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
+         + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+         4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
+         4*u*v**3 + 3*v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
+         4*u**2*v**6 + v**8) dv*dv
+
+    The default coordinate representations of tensor components are now
+    SymPy objects::
+
+        sage: t[eV,1,1,c_uv].expr() # long time
+        (3*u**4 + 4*u**3*v - 2*u**2*v**2 - 4*u*v**3 + 3*v**4)/(u**8 +
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8)
+        sage: type(t[eV,1,1,c_uv].expr()) # long time
+        <class 'sympy.core.mul.Mul'>
+
+    Let us consider two vector fields, `a` and `b`, on `S^2`::
+
+        sage: a = M.vector_field(name='a')
+        sage: a[eU,:] = [-y,x]
+        sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
+        sage: a.display(eV)
+        a = -v d/du + u d/dv
+        sage: b = M.vector_field(name='b')
+        sage: b[eU,:] = [y,-1]
+        sage: b.add_comp_by_continuation(eV, W, chart=c_uv)
+        sage: b.display(eV)
+        b = v*(2*u**3 - u**2 + 2*u*v**2 + v**2)/(u**2 + v**2) d/du
+            + (-u**4 - 2*u*v**2 + v**4)/(u**2 + v**2) d/dv
+
+    As a tensor field of type `(0,2)`, `t` acts on the pair `(a,b)`,
+    resulting in a scalar field::
+
+        sage: f = t(a,b)
+        sage: f.display()  # long time
+        t(a,b): S^2 --> R
+        on U: (x, y) |--> -2*x*y - 3*x - y**2
+        on V: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+
+    The vectors can be defined only on subsets of `S^2`, the domain of the
+    result is then the common subset::
+
+        sage: s = t(a.restrict(U), b)
+        sage: s.display()  # long time
+        t(a,b): U --> R
+           (x, y) |--> -2*x*y - 3*x - y**2
+        on W: (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        sage: s = t(a.restrict(U), b.restrict(W))  # long time
+        sage: s.display()  # long time
+        t(a,b): W --> R
+           (x, y) |--> -2*x*y - 3*x - y**2
+           (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+
+    The tensor itself can be defined only on some open subset of `S^2`,
+    yielding a result whose domain is this subset::
+
+        sage: s = t.restrict(V)(a,b)  # long time
+        sage: s.display()  # long time
+        t(a,b): V --> R
+           (u, v) |--> -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
+        on W: (x, y) |--> -2*x*y - 3*x - y**2
+
+    Tests regarding the multiplication by a scalar field::
+
+        sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2),
+        ....:                     c_uv: (u^2 + v^2)/(u^2 + v^2 + 1)}, name='f')
+        sage: s = f*t # long time
+        sage: s[[0,0]] == f*t[[0,0]]  # long time
+        True
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)  # long time
+        True
+        sage: s = f*t.restrict(U)
+        sage: s.restrict(U) == f.restrict(U) * t.restrict(U)
+        True
+
+
     """
     def __init__(self, vector_field_module, tensor_type, name=None,
                  latex_name=None, sym=None, antisym=None, parent=None):
@@ -324,6 +422,16 @@ class TensorField(ModuleElement):
             self._latex_name = latex_name
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
+
+        self._extensions_graph = {self._domain: self}
+                    # dict. of known extensions of self on bigger domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as incomming edges on a graph.
+        self._restrictions_graph = {self._domain: self}
+                    # dict. of known restrictions of self on smaller domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as outgoing edges on a graph.
+
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
@@ -853,19 +961,57 @@ class TensorField(ModuleElement):
                                  "the {}".format(self))
             # First one tries to get the restriction from a tighter domain:
             for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and dom is not self._domain:
                     self._restrictions[subdomain] = rst.restrict(subdomain)
-                    break
+                    self._restrictions_graph[subdomain] = rst.restrict(subdomain)
+                    return self._restrictions[subdomain]
+
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for dom, ext in self._extensions_graph.items():
+                if subdomain in ext._restrictions:
+                    res = ext._restrictions_graph[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
             # If this fails, the restriction is created from scratch:
-            else:
-                smodule = subdomain.vector_field_module(dest_map=dest_map)
-                self._restrictions[subdomain] = smodule.tensor(
-                                                  self._tensor_type,
-                                                  name=self._name,
-                                                  latex_name=self._latex_name,
-                                                  sym=self._sym,
-                                                  antisym=self._antisym,
-                                                  specific_type=type(self))
+            smodule = subdomain.vector_field_module(dest_map=dest_map)
+            res = smodule.tensor(self._tensor_type, name=self._name,
+                                 latex_name=self._latex_name, sym=self._sym,
+                                 antisym=self._antisym,
+                                 specific_type=type(self))
+            res._extensions_graph.update(self._extensions_graph)
+            for dom, ext in self._extensions_graph.items():
+                ext._restrictions[subdomain] = res
+                ext._restrictions_graph[subdomain] = res
+
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    if rst is not res:
+                        res._restrictions.update(rst._restrictions)
+                    res._restrictions_graph.update(rst._restrictions_graph)
+                    rst._extensions_graph.update(res._extensions_graph)
+
+            self._restrictions[subdomain] = res
+            self._restrictions_graph[subdomain] = res
+            res._extensions_graph.update(self._extensions_graph)
+
         return self._restrictions[subdomain]
 
     def set_comp(self, basis=None):
@@ -936,7 +1082,7 @@ class TensorField(ModuleElement):
         for assignment.
 
         The components with respect to other frames having the same domain
-        as the provided vector frame are kept. To delete them them, use the
+        as the provided vector frame are kept. To delete them, use the
         method :meth:`set_comp` instead.
 
         INPUT:
@@ -1778,12 +1924,10 @@ class TensorField(ModuleElement):
             True
 
         """
-        if other == 0:
-            return +self
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] + other._restrictions[dom]
-        some_rst = resu_rst.values()[0]
+        some_rst = next(itervalues(resu_rst))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,
@@ -1843,12 +1987,10 @@ class TensorField(ModuleElement):
             True
 
         """
-        if other == 0:
-            return +self
         resu_rst = {}
         for dom in self._common_subdomains(other):
             resu_rst[dom] = self._restrictions[dom] - other._restrictions[dom]
-        some_rst = resu_rst.values()[0]
+        some_rst = next(itervalues(resu_rst))
         resu_sym = some_rst._sym
         resu_antisym = some_rst._antisym
         resu = self._vmodule.tensor(self._tensor_type, sym=resu_sym,
@@ -2006,6 +2148,23 @@ class TensorField(ModuleElement):
             sage: s.restrict(V) == 2*a.restrict(V)
             True
             sage: s == 2*a
+            True
+
+       Test with SymPy as calculus engine::
+
+            sage: M.set_calculus_method('sympy')
+            sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
+            sage: s = a.__mul__(f); s
+            Tensor field of type (1,1) on the 2-dimensional differentiable
+             manifold M
+            sage: s.display(e_xy)
+            x**2*y d/dx*dx + x*y d/dx*dy + x*y**2 d/dy*dx
+            sage: s.display(e_uv)
+            (u**3/8 + u**2/8 - u*v**2/8 - v**2/8) d/du*du + (u**3/8 -
+            u**2/8 - u*v**2/8 + v**2/8) d/du*dv + (u**2*v/8 + u**2/8 -
+            v**3/8 - v**2/8) d/dv*du + (u**2*v/8 - u**2/8 - v**3/8 +
+            v**2/8) d/dv*dv
+            sage: s == f*a
             True
 
         """
@@ -2240,13 +2399,13 @@ class TensorField(ModuleElement):
                 self_rr = self_r._restrictions[dom]
                 args_rr = [args_r[i]._restrictions[dom] for i in range(p)]
                 resu_rr = self_rr(*args_rr)
-                if resu_rr == 0:
+                if resu_rr.is_trivial_zero():
                     for chart in resu_rr._domain._atlas:
-                        resu._express[chart] = chart._zero_function
+                        resu._express[chart] = chart.zero_function()
                 else:
                     for chart, expr in resu_rr._express.items():
                         resu._express[chart] = expr
-            if resu == 0:
+            if resu.is_trivial_zero():
                 return dom_resu._zero_scalar_field
             # Name of the output:
             res_name = None
@@ -2981,13 +3140,14 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (T^\sharp)^{a_1\ldots a_{k+1}}_{\qquad\ \ b_1 \ldots b_{l-1}}
-            = g^{a_{k+1} i} \,
-            T^{a_1\ldots a_k}_{\qquad\   b_1 \ldots b_{p-k} \, i \, b_{p-k+1}\ldots b_{l-1}},
+            (T^\sharp)^{a_1\ldots a_{k+1}}_{\phantom{a_1\ldots a_{k+1}}\,
+            b_1 \ldots b_{l-1}} = g^{a_{k+1} i} \,
+            T^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1 \ldots b_{p-k}
+            \, i \, b_{p-k+1}\ldots b_{l-1}},
 
         `g^{ab}` being the components of the inverse metric.
 
-        The reverse operation is :meth:`TensorField.down`
+        The reverse operation is :meth:`TensorField.down`.
 
         INPUT:
 
@@ -3129,13 +3289,14 @@ class TensorField(ModuleElement):
 
         .. MATH::
 
-            (T^\flat)^{a_1\ldots a_{k-1}}_{\qquad\ \  b_1 \ldots b_{l+1}}
-            = g_{b_1 i} \,
-            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\qquad\qquad\quad\; b_2 \ldots b_{l+1}},
+            (T^\flat)^{a_1\ldots a_{k-1}}_{\phantom{a_1\ldots a_{k-1}}
+            \, b_1 \ldots b_{l+1}} = g_{b_1 i} \,
+            T^{a_1\ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}_{\phantom{a_1
+            \ldots a_{p} \, i \, a_{p+1}\ldots a_{k-1}}\, b_2 \ldots b_{l+1}},
 
         `g_{ab}` being the components of the metric tensor.
 
-        The reverse operation is :meth:`TensorField.up`
+        The reverse operation is :meth:`TensorField.up`.
 
         INPUT:
 
@@ -3262,3 +3423,455 @@ class TensorField(ModuleElement):
             print("pos = {}".format(pos))
             raise ValueError("position out of range")
         return metric.contract(1, self, pos)
+
+    def divergence(self, metric=None):
+        r"""
+        Return the divergence of ``self`` (with respect to a given
+        metric).
+
+        The divergence is taken on the *last* index: if
+        ``self`` is a tensor field `t` of type `(k,0)` with `k\geq 1`, the
+        divergence of `t` with respect to the metric `g` is the tensor field
+        of type `(k-1,0)` defined by
+
+        .. MATH::
+
+            (\mathrm{div}\, t)^{a_1\ldots a_{k-1}} =
+            \nabla_i t^{a_1\ldots a_{k-1} i} =
+            (\nabla t)^{a_1\ldots a_{k-1} i}_{\phantom{a_1\ldots a_{k-1} i}\, i}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`).
+
+        This definition is extended to tensor fields of type `(k,l)` with
+        `k\geq 0` and `l\geq 1`, by raising the last index with the metric `g`:
+        `\mathrm{div}\, t` is then the tensor field of type `(k,l-1)` defined by
+
+        .. MATH::
+
+            (\mathrm{div}\, t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\, b_1
+            \ldots b_{l-1}} = \nabla_i (g^{ij} t^{a_1\ldots a_k}_{\phantom{a_1
+            \ldots a_k}\, b_1\ldots b_{l-1} j})
+            = (\nabla t^\sharp)^{a_1\ldots a_k i}_{\phantom{a_1\ldots a_k i}\,
+            b_1\ldots b_{l-1} i}
+
+        where `t^\sharp` is the tensor field deduced from `t` by raising the
+        last index with the metric `g` (see :meth:`up`).
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the divergence; if none is provided,
+          the domain of ``self`` is supposed to be endowed with a default
+          metric (i.e. is supposed to be pseudo-Riemannian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the divergence.
+
+        OUTPUT:
+
+        - instance of either
+          :class:`~sage.manifolds.differentiable.scalarfield.DiffScalarField`
+          if `(k,l)=(1,0)` (``self`` is a vector field) or `(k,l)=(0,1)`
+          (``self`` is a 1-form) or of :class:`TensorField` if `k+l\geq 2`
+          representing the divergence of ``self`` with respect to ``metric``
+
+        EXAMPLES:
+
+        Divergence of a vector field in the Euclidean plane::
+
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(x, y, name='v')
+            sage: s = v.divergence(); s
+            Scalar field div(v) on the Euclidean plane E^2
+            sage: s.display()
+            div(v): E^2 --> R
+               (x, y) |--> 2
+
+        A shortcut alias of ``divergence`` is ``div``::
+
+            sage: v.div() == s
+            True
+
+        The function :func:`~sage.manifolds.operators.div` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`divergence`::
+
+            sage: from sage.manifolds.operators import div
+            sage: div(v) == s
+            True
+
+        The divergence can be taken with respect to a metric tensor that is
+        not the default one::
+
+            sage: h = M.lorentzian_metric('h')
+            sage: h[1,1], h[2,2] = -1, 1/(1+x^2+y^2)
+            sage: s = v.div(h); s
+            Scalar field div_h(v) on the Euclidean plane E^2
+            sage: s.display()
+            div_h(v): E^2 --> R
+               (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
+
+        The standard formula
+
+        .. MATH::
+
+            \mathrm{div}_h \, v = \frac{1}{\sqrt{|\det h|}}
+            \frac{\partial}{\partial x^i} \left( \sqrt{|\det h|} \, v^i \right)
+
+        is checked as follows::
+
+            sage: sqrth = h.sqrt_abs_det().expr(); sqrth
+            1/sqrt(x^2 + y^2 + 1)
+            sage: s == 1/sqrth * sum( (sqrth*v[i]).diff(i) for i in M.irange())
+            True
+
+        A divergence-free vector::
+
+            sage: w = M.vector_field(-y, x, name='w')
+            sage: w.div().display()
+            div(w): E^2 --> R
+               (x, y) |--> 0
+            sage: w.div(h).display()
+            div_h(w): E^2 --> R
+               (x, y) |--> 0
+
+        Divergence of a type-``(2,0)`` tensor field::
+
+            sage: t = v*w; t
+            Tensor field v*w of type (2,0) on the Euclidean plane E^2
+            sage: s = t.div(); s
+            Vector field div(v*w) on the Euclidean plane E^2
+            sage: s.display()
+            div(v*w) = -y e_x + x e_y
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        n_cov = self._tensor_type[1] # number of covariant indices = l
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nabla = metric.connection()
+        if n_cov == 0:
+            resu =  nabla(self).trace(n_con-1, n_con)
+        else:
+            tup = self.up(metric, self._tensor_rank-1)
+            resu = nabla(tup).trace(n_con, self._tensor_rank)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "div({})".format(self._name)
+                resu._latex_name = r"\mathrm{div}\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "div_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\mathrm{div}_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    div = divergence
+
+    def laplacian(self, metric=None):
+        r"""
+        Return the Laplacian of ``self`` with respect to a given
+        metric (Laplace-Beltrami operator).
+
+        If ``self`` is a tensor field `t` of type `(k,l)`, the Laplacian of `t`
+        with respect to the metric `g` is the tensor field of type `(k,l)`
+        defined by
+
+        .. MATH::
+
+            (\Delta t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            = \nabla_i \nabla^i
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
+        and `\nabla^i := g^{ij} \nabla_j`. The operator
+        `\Delta = \nabla_i \nabla^i` is called the *Laplace-Beltrami operator*
+        of metric `g`.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the pseudo-Riemannian metric `g`
+          involved in the definition of the Laplacian; if none is provided, the
+          domain of ``self`` is supposed to be endowed with a default metric
+          (i.e. is supposed to be pseudo-Riemannian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the Laplacian
+
+        OUTPUT:
+
+        - instance of :class:`TensorField` representing the Laplacian of
+          ``self``
+
+        EXAMPLES:
+
+        Laplacian of a vector field in the Euclidean plane::
+
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(x^3 + y^2, x*y, name='v')
+            sage: Dv = v.laplacian(); Dv
+            Vector field Delta(v) on the Euclidean plane E^2
+            sage: Dv.display()
+            Delta(v) = (6*x + 2) e_x
+
+        The function :func:`~sage.manifolds.operators.laplacian` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`laplacian`::
+
+            sage: from sage.manifolds.operators import laplacian
+            sage: laplacian(v) == Dv
+            True
+
+        In the present case (Euclidean metric and Cartesian coordinates), the
+        components of the Laplacian are the Laplacians of the components::
+
+            sage: all([Dv[[i]] == laplacian(v[[i]]) for i in M.irange()])
+            True
+
+        The Laplacian can be taken with respect to a metric tensor that is
+        not the default one::
+
+            sage: h = M.lorentzian_metric('h')
+            sage: h[1,1], h[2,2] = -1, 1+x^2
+            sage: Dv = v.laplacian(h); Dv
+            Vector field Delta_h(v) on the Euclidean plane E^2
+            sage: Dv.display()
+            Delta_h(v) = -(8*x^5 - 2*x^4 - x^2*y^2 + 15*x^3 - 4*x^2 + 6*x
+             - 2)/(x^4 + 2*x^2 + 1) e_x - 3*x^3*y/(x^4 + 2*x^2 + 1) e_y
+
+        """
+        n_con = self._tensor_type[0] # number of contravariant indices = k
+        trank = self._tensor_rank    # k + l
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nabla = metric.connection()
+        tmp = nabla(nabla(self).up(metric, pos=trank))
+        resu = tmp.trace(n_con, trank+1)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "Delta({})".format(self._name)
+                resu._latex_name = r"\Delta\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "Delta_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\Delta_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def dalembertian(self, metric=None):
+        r"""
+        Return the d'Alembertian of ``self`` with respect to a given
+        Lorentzian metric.
+
+        The *d'Alembertian* of a tensor field `t` with respect to a Lorentzian
+        metric `g` is nothing but the Laplace-Beltrami operator of `g` applied
+        to `t` (see :meth:`laplacian`); if ``self`` a tensor field `t` of type
+        `(k,l)`, the d'Alembertian of `t` with respect to `g` is then the
+        tensor field of type `(k,l)` defined by
+
+        .. MATH::
+
+            (\Box t)^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+            = \nabla_i \nabla^i
+            t^{a_1\ldots a_k}_{\phantom{a_1\ldots a_k}\,{b_1\ldots b_k}}
+
+        where `\nabla` is the Levi-Civita connection of `g` (cf.
+        :class:`~sage.manifolds.differentiable.levi_civita_connection.LeviCivitaConnection`)
+        and `\nabla^i := g^{ij} \nabla_j`.
+
+        .. NOTE::
+
+            If the metric `g` is not Lorentzian, the name *d'Alembertian* is
+            not appropriate and one should use :meth:`laplacian` instead.
+
+        INPUT:
+
+        - ``metric`` -- (default: ``None``) the Lorentzian metric `g`
+          involved in the definition of the d'Alembertian; if none is provided,
+          the domain of ``self`` is supposed to be endowed with a default
+          Lorentzian metric (i.e. is supposed to be Lorentzian manifold, see
+          :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`)
+          and the latter is used to define the d'Alembertian
+
+        OUTPUT:
+
+        - instance of :class:`TensorField` representing the d'Alembertian of
+          ``self``
+
+        EXAMPLES:
+
+        d'Alembertian of a vector field in Minkowski spacetime, representing
+        the electric field of a simple plane electromagnetic wave::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: X.<t,x,y,z> = M.chart()
+            sage: g = M.metric()
+            sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
+            sage: e = M.vector_field(name='e')
+            sage: e[1] = cos(t-z)
+            sage: e.display()  # plane wave propagating in the z direction
+            e = cos(t - z) d/dx
+            sage: De = e.dalembertian(); De
+            Vector field Box(e) on the 4-dimensional Lorentzian manifold M
+
+        The function :func:`~sage.manifolds.operators.dalembertian` from the
+        :mod:`~sage.manifolds.operators` module can be used instead of the
+        method :meth:`dalembertian`::
+
+            sage: from sage.manifolds.operators import dalembertian
+            sage: dalembertian(e) == De
+            True
+
+        We check that the electric field obeys the wave equation::
+
+            sage: De.display()
+            Box(e) = 0
+
+        """
+        default_metric = metric is None
+        if default_metric:
+            metric = self._domain.metric()
+        nm2 = self._domain.dim() - 2
+        if metric.signature() not in [nm2, -nm2]:
+            raise TypeError("the {} is not a Lorentzian ".format(metric) +
+                            "metric; use laplacian() instead")
+        resu = self.laplacian(metric=metric)
+        if self._name is not None:
+            if default_metric:
+                resu._name = "Box({})".format(self._name)
+                resu._latex_name = r"\Box\left(" + self._latex_name + \
+                                   r"\right)"
+            else:
+                resu._name = "Box_{}({})".format(metric._name, self._name)
+                resu._latex_name = r"\Box_{" + metric._latex_name + \
+                                   r"}\left(" + self._latex_name + r"\right)"
+            # The name is propagated to possible restrictions of self:
+            for restrict in resu._restrictions.values():
+                restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def along(self, mapping):
+        r"""
+        Return the tensor field deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
+
+        More precisely, if ``self`` is a tensor field `t` on `M` and if
+        `\Phi: U \rightarrow M` is a differentiable map from some
+        differentiable manifold `U` to `M`, the returned object is
+        a tensor field `\tilde t` along `U` with values on `M` such that
+
+        .. MATH::
+
+           \forall p \in U,\  \tilde t(p) = t(\Phi(p)).
+
+        INPUT:
+
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow M`
+
+        OUTPUT:
+
+        - tensor field `\tilde t` along `U` defined above.
+
+        EXAMPLES:
+
+        Let us consider the 2-dimensional sphere `S^2`::
+
+            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                 restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+
+        and the following map from the open interval `(0,5\pi/2)` to `S^2`,
+        the image of it being the great circle `x=0`, `u=0`, which goes through
+        the North and South poles::
+
+            sage: I.<t> = OpenInterval(0, 5*pi/2)
+            sage: J = I.open_interval(0, 3*pi/2)
+            sage: K = I.open_interval(pi, 5*pi/2)
+            sage: c_J = J.canonical_chart(); c_K = K.canonical_chart()
+            sage: Phi = I.diff_map(M, {(c_J, c_xy):
+            ....:                      (0, sgn(pi-t)*sqrt((1+cos(t))/(1-cos(t)))),
+            ....:                      (c_K, c_uv):
+            ....:                      (0,  sgn(t-2*pi)*sqrt((1-cos(t))/(1+cos(t))))},
+            ....:                  name='Phi')
+
+        Let us consider a vector field on `S^2`::
+
+            sage: eU = c_xy.frame(); eV = c_uv.frame()
+            sage: w = M.vector_field(name='w')
+            sage: w[eU,0] = 1
+            sage: w.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: w.display(eU)
+            w = d/dx
+            sage: w.display(eV)
+            w = (-u^2 + v^2) d/du - 2*u*v d/dv
+
+        We have then::
+
+            sage: wa = w.along(Phi); wa
+            Vector field w along the Real interval (0, 5/2*pi) with values on
+             the 2-dimensional differentiable manifold S^2
+            sage: wa.display(eU.along(Phi))
+            w = d/dx
+            sage: wa.display(eV.along(Phi))
+            w = -(cos(t) - 1)*sgn(-2*pi + t)^2/(cos(t) + 1) d/du
+
+        Some tests::
+
+            sage: p = K.an_element()
+            sage: wa.at(p) == w.at(Phi(p))
+            True
+            sage: wa.at(J(4*pi/3)) == wa.at(K(4*pi/3))
+            True
+            sage: wa.at(I(4*pi/3)) == wa.at(K(4*pi/3))
+            True
+            sage: wa.at(K(7*pi/4)) == eU[0].at(Phi(I(7*pi/4))) # since eU[0]=d/dx
+            True
+
+        """
+        dom = self._domain
+        if self._ambient_domain is not dom:
+            raise ValueError("{} is not a tensor field ".format(self) +
+                             "with values in the {}".format(dom))
+        if mapping.codomain().is_subset(dom):
+            rmapping = mapping
+        else:
+            rmapping = None
+            for doms, rest in mapping._restrictions.items():
+                if doms[1].is_subset(dom):
+                    rmapping = rest
+                    break
+            else:
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 "included in the domain of {}".format(self))
+        resu_ambient_domain = rmapping.codomain()
+        if resu_ambient_domain.is_manifestly_parallelizable():
+            return self.restrict(resu_ambient_domain).along(rmapping)
+        dom_resu = rmapping.domain()
+        vmodule = dom_resu.vector_field_module(dest_map=rmapping)
+        resu = vmodule.tensor(self._tensor_type, name=self._name,
+                              latex_name=self._latex_name, sym=self._sym,
+                              antisym=self._antisym)
+        for rdom in resu_ambient_domain._parallelizable_parts:
+            if rdom in resu_ambient_domain._top_subsets:
+                for chart1, chart2 in rmapping._coord_expression:
+                    if chart2.domain() is rdom:
+                        dom1 = chart1.domain()
+                        rrmap = rmapping.restrict(dom1, subcodomain=rdom)
+                        resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
+        return resu

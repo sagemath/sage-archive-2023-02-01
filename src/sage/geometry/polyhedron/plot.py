@@ -77,7 +77,7 @@ def render_3d(projection, *args, **kwds):
         sage: p1 = Polyhedron(vertices=[[1,1,1]], rays=[[1,1,1]])
         sage: p2 = Polyhedron(vertices=[[2,0,0], [0,2,0], [0,0,2]])
         sage: p3 = Polyhedron(vertices=[[1,0,0], [0,1,0], [0,0,1]], rays=[[-1,-1,-1]])
-        sage: p1.projection().plot() + p2.projection().plot() + p3.projection().plot()
+        sage: p1.projection().plot() + p2.projection().plot() + p3.projection().plot()  # long time ~2sec
         Graphics3d Object
 
     It correctly handles various degenerate cases::
@@ -88,7 +88,7 @@ def render_3d(projection, *args, **kwds):
         Graphics3d Object
         sage: Polyhedron(vertices=[[1,1,1]], lines=[[0,1,0],[0,0,1]]).plot()                  # R^2 in R^3
         Graphics3d Object
-        sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()                      # quadrant wedge in R^2
+        sage: Polyhedron(rays=[[0,1,0],[0,0,1]], lines=[[1,0,0]]).plot()                      # long time quadrant wedge in R^2
         Graphics3d Object
         sage: Polyhedron(rays=[[0,1,0]], lines=[[1,0,0]]).plot()                              # upper half plane in R^3
         Graphics3d Object
@@ -134,9 +134,9 @@ def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projecti
         sage: poly = polytopes.twenty_four_cell()
         sage: poly
         A 4-dimensional polyhedron in QQ^4 defined as the convex hull of 24 vertices
-        sage: poly.plot()
+        sage: poly.plot()  # long time
         Graphics3d Object
-        sage: poly.plot(projection_direction=[2,5,11,17])
+        sage: poly.plot(projection_direction=[2,5,11,17])  # long time ~2sec
         Graphics3d Object
         sage: type( poly.plot() )
         <class 'sage.plot.plot3d.base.Graphics3dGroup'>
@@ -716,7 +716,7 @@ class Projection(SageObject):
         Deprecated method to show the projection as a graphics
         object.  Use ``Projection.plot()`` instead.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P8 = polytopes.hypercube(4)
             sage: P8.schlegel_projection([2,5,11,17]).show()
@@ -1243,18 +1243,28 @@ class Projection(SageObject):
             Graphics3d Object
             sage: Polyhedron(vertices=[[1,1,1]]).plot()                        # point in R^3
             Graphics3d Object
+
+        The origin is not included, if it is not in the polyhedron (:trac:`23555`)::
+
+            sage: Q = Polyhedron([[100],[101]])
+            sage: P = Q*Q*Q; P
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: p = P.plot()
+            sage: p.bounding_box()
+            ((100.0, 100.0, 100.0), (101.0, 101.0, 101.0))
         """
-        from sage.plot.plot3d.base import Graphics3d
-        plt = Graphics3d()
+        pplt = None
+        lplt = None
+        pgplt = None
         if isinstance(point_opts, dict):
             point_opts.setdefault('width', 3)
-            plt += self.render_vertices_3d(**point_opts)
+            pplt = self.render_vertices_3d(**point_opts)
         if isinstance(line_opts, dict):
             line_opts.setdefault('width', 3)
-            plt += self.render_wireframe_3d(**line_opts)
+            lplt = self.render_wireframe_3d(**line_opts)
         if isinstance(polygon_opts, dict):
-            plt += self.render_solid_3d(**polygon_opts)
-        return plt
+            pgplt = self.render_solid_3d(**polygon_opts)
+        return sum(_ for _ in [pplt, lplt, pgplt] if _ != None)
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=2,
              edge_color='blue!95!black', facet_color='blue!95!black',
@@ -1315,7 +1325,7 @@ class Projection(SageObject):
                 [x={(-0.939161cm, 0.244762cm)},
                 y={(0.097442cm, -0.482887cm)},
                 z={(0.329367cm, 0.840780cm)},
-            sage: open('polytope-tikz1.tex', 'w').write(Image1)    # not tested
+            sage: _ = open('polytope-tikz1.tex', 'w').write(Image1)    # not tested
 
             sage: P2 = Polyhedron(vertices=[[1, 1],[1, 2],[2, 1]])
             sage: Image2 = P2.projection().tikz(scale=3, edge_color='blue!95!black', facet_color='orange!95!black', opacity=0.4, vertex_color='yellow', axis=True)
@@ -1326,7 +1336,7 @@ class Projection(SageObject):
                 [scale=3.000000,
                 back/.style={loosely dotted, thin},
                 edge/.style={color=blue!95!black, thick},
-            sage: open('polytope-tikz2.tex', 'w').write(Image2)    # not tested
+            sage: _ = open('polytope-tikz2.tex', 'w').write(Image2)    # not tested
 
             sage: P3 = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
             sage: P3
@@ -1337,7 +1347,7 @@ class Projection(SageObject):
                 [x={(0.658184cm, -0.242192cm)},
                 y={(-0.096240cm, 0.912008cm)},
                 z={(-0.746680cm, -0.331036cm)},
-            sage: open('polytope-tikz3.tex', 'w').write(Image3)    # not tested
+            sage: _ = open('polytope-tikz3.tex', 'w').write(Image3)    # not tested
 
             sage: P=Polyhedron(vertices=[[1,1,0,0],[1,2,0,0],[2,1,0,0],[0,0,1,0],[0,0,0,1]])
             sage: P
@@ -1408,7 +1418,7 @@ class Projection(SageObject):
                 [scale=3.000000,
                 back/.style={loosely dotted, thin},
                 edge/.style={color=black, thick},
-            sage: open('polytope-tikz2.tex', 'w').write(Image)    # not tested
+            sage: _ = open('polytope-tikz2.tex', 'w').write(Image)    # not tested
 
 
         Scientific notation is not used in the output (:trac:`16519`)::
@@ -1515,7 +1525,7 @@ class Projection(SageObject):
 
         - LatexExpr -- containing the TikZ picture.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P = Polyhedron(vertices=[[-1, -1, 2],[-1, 2, -1],[2, -1, -1]])
             sage: P
@@ -1526,7 +1536,7 @@ class Projection(SageObject):
                 [x={(0.644647cm, -0.476559cm)},
                 y={(0.192276cm, 0.857859cm)},
                 z={(-0.739905cm, -0.192276cm)},
-            sage: open('polytope-tikz3.tex', 'w').write(Image)    # not tested
+            sage: _ open('polytope-tikz3.tex', 'w').write(Image)    # not tested
 
             sage: p = Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
             sage: proj = p.projection()
@@ -1654,7 +1664,7 @@ class Projection(SageObject):
                 [x={(-0.046385cm, 0.837431cm)},
                 y={(-0.243536cm, 0.519228cm)},
                 z={(0.968782cm, 0.170622cm)},
-            sage: open('polytope-tikz1.tex', 'w').write(Image)    # not tested
+            sage: _ = open('polytope-tikz1.tex', 'w').write(Image)    # not tested
 
             sage: Associahedron = Polyhedron(vertices=[[1,0,1],[1,0,0],[1,1,0],[0,0,-1],[0,1,0],[-1,0,0],[0,1,1],[0,0,1],[0,-1,0]]).polar()
             sage: ImageAsso = Associahedron.projection().tikz([-15,-755,-655], 116, scale=1)

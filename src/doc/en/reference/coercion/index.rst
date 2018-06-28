@@ -91,7 +91,7 @@ to be able to reason with them, so their type is used instead::
     <... 'int'>
 
 In fact, under the hood, a special kind of parent "The set of all
-Python objects of type T" is used in these cases.
+Python objects of class T" is used in these cases.
 
 Note that parents are **not** always as tight as possible.
 
@@ -222,11 +222,11 @@ be obtained and queried.
 
     sage: cm.explain(ZZ['x','y'], QQ['x'])
     Coercion on left operand via
-       Conversion map:
+       Coercion map:
          From: Multivariate Polynomial Ring in x, y over Integer Ring
          To:   Multivariate Polynomial Ring in x, y over Rational Field
     Coercion on right operand via
-       Conversion map:
+       Coercion map:
          From: Univariate Polynomial Ring in x over Rational Field
          To:   Multivariate Polynomial Ring in x, y over Rational Field
     Arithmetic performed after coercions.
@@ -257,7 +257,7 @@ discovered between steps 1 and 2 above.
     Result lives in Univariate Polynomial Ring in x over Integer Ring
     Univariate Polynomial Ring in x over Integer Ring
 
-    sage: cm.explain(ZZ['x'], ZZ, operator.div)
+    sage: cm.explain(ZZ['x'], ZZ, operator.truediv)
     Action discovered.
        Right inverse action by Rational Field on Univariate Polynomial Ring in x over Integer Ring
        with precomposition on right by Natural morphism:
@@ -277,19 +277,19 @@ copy should be used instead (unless one knows what one is doing)::
     sage: QQ._internal_coerce_map_from(int)
     (map internal to coercion system -- copy before use)
     Native morphism:
-      From: Set of Python objects of type 'int'
+      From: Set of Python objects of class 'int'
       To:   Rational Field
     sage: copy(QQ._internal_coerce_map_from(int))
     Native morphism:
-     From: Set of Python objects of type 'int'
-     To:   Rational Field
+      From: Set of Python objects of class 'int'
+      To:   Rational Field
 
 Note that the user-visible method (without underscore) automates this copy::
 
     sage: copy(QQ.coerce_map_from(int))
     Native morphism:
-     From: Set of Python objects of type 'int'
-     To:   Rational Field
+      From: Set of Python objects of class 'int'
+      To:   Rational Field
 
 ::
 
@@ -608,13 +608,13 @@ These are accessed via the :meth:`construction` method, which returns a
     sage: CC.construction()
     (AlgebraicClosureFunctor, Real Field with 53 bits of precision)
     sage: RR.construction()
-    (Completion[+Infinity], Rational Field)
+    (Completion[+Infinity, prec=53], Rational Field)
     sage: QQ.construction()
     (FractionField, Integer Ring)
     sage: ZZ.construction()  # None
 
     sage: Qp(5).construction()
-    (Completion[5], Rational Field)
+    (Completion[5, prec=20], Rational Field)
     sage: QQ.completion(5, 100, {})
     5-adic Field with capped relative precision 100
     sage: c, R = RR.construction()
@@ -626,13 +626,13 @@ These are accessed via the :meth:`construction` method, which returns a
 
     sage: sage.categories.pushout.construction_tower(Frac(CDF['x']))
     [(None,
-     Fraction Field of Univariate Polynomial Ring in x over Complex Double Field),
-    (FractionField, Univariate Polynomial Ring in x over Complex Double Field),
-    (Poly[x], Complex Double Field),
-    (AlgebraicClosureFunctor, Real Double Field),
-    (Completion[+Infinity], Rational Field),
-    (FractionField, Integer Ring)]
-
+      Fraction Field of Univariate Polynomial Ring in x over Complex Double Field),
+     (FractionField, Univariate Polynomial Ring in x over Complex Double Field),
+     (Poly[x], Complex Double Field),
+     (AlgebraicClosureFunctor, Real Double Field),
+     (Completion[+Infinity, prec=53], Rational Field),
+     (FractionField, Integer Ring)]
+    
 Given Parents R and S, such that there is no coercion either from R to
 S or from S to R, one can find a common Z with coercions
 `R \rightarrow Z` and `S \rightarrow Z` by considering the sequence of

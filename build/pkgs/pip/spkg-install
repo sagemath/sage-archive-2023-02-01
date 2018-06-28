@@ -1,8 +1,13 @@
-#!/usr/bin/env bash
-
 cd src
 
 # pip can install itself!
-# need to use --upgrade or else pip, which is importing itself, will think
-# itself is already installed
-python -m pip install --verbose --no-index --upgrade --isolated .
+#
+# need to use --upgrade or --ignore-installed; Otherwise pip, which is
+# importing itself, will think itself is already installed
+#
+# Install pip3 first so pip2 overwrites local/bin/pip
+for vers in 3 2; do
+    python${vers} -m pip install --verbose --no-index --ignore-installed \
+            --isolated --root="$SAGE_DESTDIR" . || \
+        sdh_die "Error building / installing pip${vers}"
+done

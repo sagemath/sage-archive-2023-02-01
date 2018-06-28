@@ -350,7 +350,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         assert connected in [True, False], 'Unknown value: connected='+str(connected)
         self._connected = connected
-        if connected!=True and not PointConfiguration._have_TOPCOM():
+        if not connected and not PointConfiguration._have_TOPCOM():
             raise ValueError('You must install TOPCOM to find non-connected triangulations.')
 
         assert fine in [True, False], 'Unknown value: fine='+str(fine)
@@ -561,9 +561,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         else:
             s += ' not necessarily fine,'
 
-        if self._regular==True:
+        if self._regular:
             s += ' regular'
-        elif self._regular==False:
+        elif self._regular is False: # may be False or None, with different meanings
             s += ' irregular'
         else:
             s += ' not necessarily regular'
@@ -661,7 +661,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 yield line.strip()
             except GeneratorExit:
                 proc.close(force=True)
-                raise StopIteration
+                return
 
         if verbose:
             print("#######################")
@@ -727,9 +727,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         command += 'triangs'
 
-        if self._regular==True:
+        if self._regular:
             command += ' --regular'
-        if self._regular==False:
+        if self._regular is False:
             command += ' --nonregular'
 
         for t in self._TOPCOM_communicate(command, verbose):
@@ -762,7 +762,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             [(0, 1, 2), (0, 1, 4), (0, 2, 4), (1, 2, 3)]
             sage: p.set_engine('internal')               # optional - topcom
         """
-        assert self._regular!=False, \
+        assert self._regular is not False, \
             'When asked for a single triangulation TOPCOM ' + \
             'always returns a regular triangulation.'
 
@@ -1010,7 +1010,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             for triangulation in self._TOPCOM_triangulations(verbose):
                 yield triangulation
         else:
-            if (self._connected!=True):
+            if not self._connected:
                 raise ValueError('Need TOPCOM to find disconnected triangulations.')
             if (self._regular is not None):
                 raise ValueError('Need TOPCOM to test for regularity.')
@@ -1081,14 +1081,14 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             [(0, 1, 2), (0, 1, 4), (0, 2, 4), (1, 2, 3)]
             sage: p.set_engine('internal')         # optional - topcom
         """
-        if self._use_TOPCOM and self._regular!=False:
+        if self._use_TOPCOM and self._regular is not False:
             try:
                 return self._TOPCOM_triangulate(verbose)
             except StopIteration:
                 # either topcom did not return a triangulation or we filtered it out
                 pass
 
-        if self._connected and not self._fine and self._regular!=False and self._star is None:
+        if self._connected and not self._fine and self._regular is not False and self._star is None:
             return self.placing_triangulation()
 
         try:
@@ -1157,7 +1157,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             sage: DihedralGroup(4).is_isomorphic(_)
             True
 
-        The square with an off-center point in the middle. Note thath
+        The square with an off-center point in the middle. Note that
         the middle point breaks the restricted automorphism group
         `D_4` of the convex hull::
 
@@ -1525,7 +1525,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         A tuple of all circuits with `C_-` = ``negative``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = PointConfiguration([(1,0,0),(0,1,0),(0,0,1),(-2,0,-1),(-2,-1,0),(-3,-1,-1),(1,1,1),(-1,0,0),(0,0,0)])
             sage: p.positive_circuits(8)
@@ -1846,7 +1846,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         A tuple of points that span a simplex of dimension
         :meth:`dim`. If ``large==True``, the simplex is constructed by
         sucessively picking the farthest point. This will ensure that
-        the simplex is not unneccessarily small, but will in general
+        the simplex is not unnecessarily small, but will in general
         not return a maximal simplex.
 
         EXAMPLES::

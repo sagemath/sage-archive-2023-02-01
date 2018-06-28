@@ -27,7 +27,9 @@ from sage.libs.linbox.fflas cimport ModDouble_fgemm as Mod_fgemm, ModDouble_fgem
     ModDoubleRank as ModRank, ModDouble_echelon as Mod_echelon, \
     ModDouble_applyp as Mod_applyp, \
     ModDouble_MinPoly as Mod_MinPoly, \
-    ModDouble_CharPoly as Mod_CharPoly
+    ModDouble_CharPoly as Mod_CharPoly, \
+    ModDoublePolynomialRing as ModDensePolyRing,\
+    ModDoubleDensePolynomial as ModDensePoly
 
 # Limit for LinBox Modular<double>
 MAX_MODULUS = 2**23
@@ -68,7 +70,7 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
         r"""
         Set the (i,j) entry of self to the int value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(3016963), 4, 4); A
             [ 220081 2824836  765701 2282256]
@@ -108,7 +110,7 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
 
         Assumes that `x` is in the base ring.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(3016963), 4, 4); A
             [ 220081 2824836  765701 2282256]
@@ -154,7 +156,7 @@ cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
         :class:`sage.rings.finite_rings.integer_mod.IntegerMod_int64`
         object, depending on the modulus.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(3016963), 4, 4); A
             [ 220081 2824836  765701 2282256]

@@ -102,10 +102,10 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         * :func:`v_4_1_BIBD`
         * :func:`v_5_1_BIBD`
 
-    TODO:
+    .. TODO::
 
-        * Implement other constructions from the Handbook of Combinatorial
-          Designs.
+        Implement other constructions from the Handbook of Combinatorial
+        Designs.
 
     EXAMPLES::
 
@@ -115,7 +115,7 @@ def balanced_incomplete_block_design(v, k, existence=False, use_LJCR=False):
         sage: B                                                              # optional - internet
         Incidence structure with 66 points and 143 blocks
         sage: B.blocks()                                                     # optional - internet
-        [[0, 1, 2, 3, 4, 65], [0, 5, 24, 25, 39, 57], [0, 6, 27, 38, 44, 55], ...
+        [[0, 1, 2, 3, 4, 65], [0, 5, 22, 32, 38, 58], [0, 6, 21, 30, 43, 48], ...
         sage: designs.balanced_incomplete_block_design(66, 6, use_LJCR=True)  # optional - internet
         Incidence structure with 66 points and 143 blocks
         sage: designs.balanced_incomplete_block_design(216, 6)
@@ -289,7 +289,7 @@ def steiner_triple_system(n):
 
     - ``n`` return a Steiner Triple System of `\{0,...,n-1\}`
 
-    EXAMPLE:
+    EXAMPLES:
 
     A Steiner Triple System on `9` elements ::
 
@@ -738,7 +738,7 @@ def _relabel_bibd(B,n,p=None):
 
     - ``p`` (optional) -- the point that will be labeled with n-1.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: designs.balanced_incomplete_block_design(40,4).blocks() # indirect doctest
         [[0, 1, 2, 12], [0, 3, 6, 9], [0, 4, 8, 10],
@@ -912,7 +912,7 @@ def _get_t_u(v):
 
     - ``v`` (integer)
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.combinat.designs.bibd import _get_t_u
         sage: _get_t_u(20)
@@ -938,7 +938,7 @@ def v_5_1_BIBD(v, check=True):
     r"""
     Return a `(v,5,1)`-BIBD.
 
-    This method follows the constuction from [ClaytonSmith]_.
+    This method follows the construction from [ClaytonSmith]_.
 
     INPUT:
 
@@ -1170,7 +1170,7 @@ def BIBD_from_arc_in_desarguesian_projective_plane(n,k,existence=False):
     .. [Denniston69] \R. H. F. Denniston,
        Some maximal arcs in finite projective planes.
        Journal of Combinatorial Theory 6, no. 3 (1969): 317-319.
-       http://dx.doi.org/10.1016/S0021-9800(69)80095-5
+       :doi:`10.1016/S0021-9800(69)80095-5`
 
     """
     q = (n-1)//(k-1)-1
@@ -1255,7 +1255,7 @@ class PairwiseBalancedDesign(GroupDivisibleDesign):
         r"""
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: designs.balanced_incomplete_block_design(13,3) # indirect doctest
             (13,3,1)-Balanced Incomplete Block Design
@@ -1322,7 +1322,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         r"""
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: b=designs.balanced_incomplete_block_design(9,3); b
             (9,3,1)-Balanced Incomplete Block Design
@@ -1340,7 +1340,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         r"""
         A string to describe self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: b=designs.balanced_incomplete_block_design(9,3); b
             (9,3,1)-Balanced Incomplete Block Design

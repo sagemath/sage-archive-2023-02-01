@@ -66,7 +66,7 @@ class AutomorphismField(TensorField):
 
     INPUT:
 
-    - ``vector_field_module`` -- module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
@@ -106,7 +106,7 @@ class AutomorphismField(TensorField):
         sage: W = U.intersection(V)
         sage: a.add_comp_by_continuation(eV, W, c_uv)
 
-    At this stage, the automorphims field `a` is fully defined::
+    At this stage, the automorphism field `a` is fully defined::
 
         sage: a.display(eU)
         a = d/dx*dx + x d/dx*dy + 2 d/dy*dy
@@ -263,7 +263,7 @@ class AutomorphismField(TensorField):
         Create an instance of the same class as ``self`` on the same
         vector field module.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(5, 'M')
             sage: a = M.automorphism_field(name='a')
@@ -785,7 +785,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
     INPUT:
 
-    - ``vector_field_module`` -- free module `\mathcal{X}(U,\Phi)` of vector
+    - ``vector_field_module`` -- free module `\mathfrak{X}(U,\Phi)` of vector
       fields along `U` with values on `M` via the map `\Phi`
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
@@ -878,6 +878,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         self._vmodule = vector_field_module
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
         # Initialization of derived quantities:
         TensorFieldParal._init_derived(self)
 
@@ -917,7 +919,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         - ``del_restrictions`` -- (default: ``True``) determines whether the
           restrictions of ``self`` to subdomains are deleted.
 
-        TEST::
+        TESTS::
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
@@ -1029,8 +1031,6 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import Components
         from sage.manifolds.differentiable.vectorframe import CoordFrame
-        from sage.manifolds.utilities import (simplify_chain_real,
-                                              simplify_chain_generic)
         if self._is_identity:
             return self
         if self._inverse is None:
@@ -1046,18 +1046,15 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             si = fmodule._sindex ; nsi = fmodule._rank + si
             self._inverse = fmodule.automorphism(name=inv_name,
                                                  latex_name=inv_latex_name)
-            if self._domain.base_field() == RR:
-                simplify_chain = simplify_chain_real
-            else:
-                simplify_chain = simplify_chain_generic
             for frame in self._components:
                 if isinstance(frame, CoordFrame):
                     chart = frame._chart
                 else:
                     chart = self._domain._def_chart #!# to be improved
                 try:
+                    # TODO: do the computation without the 'SR' enforcement
                     mat_self = matrix(
-                              [[self.comp(frame)[i, j, chart]._express
+                              [[self.comp(frame)[i, j, chart].expr(method='SR')
                               for j in range(si, nsi)] for i in range(si, nsi)])
                 except (KeyError, ValueError):
                     continue
@@ -1066,7 +1063,8 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
                                   output_formatter=fmodule._output_formatter)
                 for i in range(si, nsi):
                     for j in range(si, nsi):
-                        cinv[i, j] = {chart: simplify_chain(mat_inv[i-si,j-si])}
+                        val = chart.simplify(mat_inv[i-si,j-si], method='SR')
+                        cinv[i, j] = {chart: val}
                 self._inverse._components[frame] = cinv
         return self._inverse
 
@@ -1238,4 +1236,3 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             for ind, val in comp._comp.items():
                 comp_resu._comp[ind] = val(point)
         return resu
-

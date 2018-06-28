@@ -161,7 +161,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS._repr_term(frozenset([0]))
             'OS{0}'
         """
-        return "OS{{{}}}".format(str(list(m))[1:-1])
+        return "OS{{{}}}".format(', '.join(str(t) for t in sorted(m)))
 
     def _repr_(self):
         """
@@ -252,7 +252,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         subset `S = \{ s_1 < s_2 < \cdots < s_k \}` of the ground set::
 
             sage: G = Graph([[1,2],[1,2],[2,3],[3,4],[4,2]], multiedges=True)
-            sage: M = Matroid(G)
+            sage: M = Matroid(G).regular_matroid()
             sage: E = M.groundset_list()
             sage: OS = M.orlik_solomon_algebra(ZZ)
             sage: G = OS.algebra_generators()
@@ -284,7 +284,7 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
             return R(coeff) * self.subset_image(ns)
 
-        # r is the accumalator
+        # r is the accumulator
         # we reverse a in the product, so add a sign
         # note that l>=2 here
         if len(a) % 4 < 2:
@@ -343,18 +343,18 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
             sage: OS.subset_image(frozenset([(1,2),(3,4),(1,4),(2,3)]))
             0
             sage: OS.subset_image(frozenset([(2,3),(1,2),(3,4)]))
-            OS{(1, 2), (3, 4), (2, 3)}
+            OS{(1, 2), (2, 3), (3, 4)}
             sage: OS.subset_image(frozenset([(1,4),(3,4),(2,3),(3,6),(5,6)]))
-            -OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 6)}
-             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 6)}
-             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
+            -OS{(1, 2), (1, 4), (2, 3), (3, 6), (5, 6)}
+             + OS{(1, 2), (1, 4), (3, 4), (3, 6), (5, 6)}
+             - OS{(1, 2), (2, 3), (3, 4), (3, 6), (5, 6)}
             sage: OS.subset_image(frozenset([(1,4),(3,4),(2,3),(3,6),(3,5)]))
-            OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 5)}
-             - OS{(1, 2), (5, 6), (2, 3), (1, 4), (3, 6)}
-             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 5)}
-             + OS{(1, 2), (5, 6), (3, 4), (1, 4), (3, 6)}
-             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 5)}
-             - OS{(1, 2), (5, 6), (3, 4), (2, 3), (3, 6)}
+            OS{(1, 2), (1, 4), (2, 3), (3, 5), (5, 6)}
+             - OS{(1, 2), (1, 4), (2, 3), (3, 6), (5, 6)}
+             + OS{(1, 2), (1, 4), (3, 4), (3, 5), (5, 6)}
+             + OS{(1, 2), (1, 4), (3, 4), (3, 6), (5, 6)}
+             - OS{(1, 2), (2, 3), (3, 4), (3, 5), (5, 6)}
+             - OS{(1, 2), (2, 3), (3, 4), (3, 6), (5, 6)}
 
         TESTS::
 

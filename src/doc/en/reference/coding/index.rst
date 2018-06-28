@@ -49,6 +49,7 @@ allowing specialised implementations of e.g. decoding or computation of properti
    sage/coding/parity_check_code
    sage/coding/reed_muller_code
    sage/coding/cyclic_code
+   sage/coding/bch
 
 In contrast, for some code families Sage can only construct their generator
 matrix and has no other a priori knowledge on them:
@@ -106,16 +107,9 @@ Other modules
    sage/coding/guruswami_sudan/gs_decoder
    sage/coding/guruswami_sudan/interpolation
    sage/coding/guruswami_sudan/utils
+   sage/coding/information_set_decoder
    sage/coding/code_bounds
    sage/coding/delsarte_bounds
-
-Deprecated modules
-----------------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   sage/coding/sd_codes
 
 
 .. include:: ../footer.txt

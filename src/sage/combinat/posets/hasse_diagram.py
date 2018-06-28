@@ -122,6 +122,119 @@ class HasseDiagram(DiGraph):
         """
         return self.topological_sort_generator()
 
+    def greedy_linear_extensions_iterator(self):
+        """
+        Return an iterator over greedy linear extensions of the Hasse diagram.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *greedy* if for
+        every `i` either `e_{i+1}` covers `e_i` or all upper covers
+        of `e_i` have at least one lower cover that is not in
+        `[e_1, e_2, \ldots, e_i]`.
+
+        Informally said a linear extension is greedy if it "always
+        goes up when possible" and so has no unnecessary jumps.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: N5 = HasseDiagram({0: [1, 2], 2: [3], 1: [4], 3: [4]})
+            sage: for l in N5.greedy_linear_extensions_iterator():
+            ....:     print(l)
+            [0, 1, 2, 3, 4]
+            [0, 2, 3, 1, 4]
+
+        TESTS:
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: list(HasseDiagram({}).greedy_linear_extensions_iterator())
+            [[]]
+            sage: H = HasseDiagram({0: []})
+            sage: list(H.greedy_linear_extensions_iterator())
+            [[0]]
+        """
+        N = self.order()
+
+        def greedy_rec(H, linext):
+            if len(linext) == N:
+                yield linext
+
+            S = []
+            if linext:
+                S = [x for x in H.neighbors_out(linext[-1]) if all(low in linext for low in H.neighbors_in(x))]
+            if not S:
+                S_ = set(self).difference(set(linext))
+                S = [x for x in S_ if
+                not any(low in S_ for low in self.neighbors_in(x))]
+
+            for e in S:
+                # Python3-todo: use yield from
+                for tmp in greedy_rec(H, linext+[e]):
+                    yield tmp
+
+        return greedy_rec(self, [])
+
+    def supergreedy_linear_extensions_iterator(self):
+        """
+        Return an iterator over supergreedy linear extensions of the Hasse diagram.
+
+        A linear extension `[e_1, e_2, \ldots, e_n]` is *supergreedy* if,
+        for every `i` and `j` where `i > j`, `e_i` covers `e_j` if for
+        every `i > k > j` at least one lower cover of `e_k` is not in
+        `[e_1, e_2, \ldots, e_k]`.
+
+        Informally said a linear extension is supergreedy if it "always
+        goes as high possible, and withdraw so less as possible".
+        These are also called depth-first linear extensions.
+
+        EXAMPLES:
+
+        We show the difference between "only greedy" and supergreedy
+        extensions::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 2: [3, 4]})
+            sage: G_ext = list(H.greedy_linear_extensions_iterator())
+            sage: SG_ext = list(H.supergreedy_linear_extensions_iterator())
+            sage: [0, 2, 3, 1, 4] in G_ext
+            True
+            sage: [0, 2, 3, 1, 4] in SG_ext
+            False
+
+            sage: len(SG_ext)
+            4
+
+        TESTS::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: list(HasseDiagram({}).supergreedy_linear_extensions_iterator())
+            [[]]
+            sage: list(HasseDiagram({0: [], 1: []}).supergreedy_linear_extensions_iterator())
+            [[0, 1], [1, 0]]
+        """
+        N = self.order()
+
+        def supergreedy_rec(H, linext):
+            k = len(linext)
+
+            if k == N:
+                yield linext
+
+            else:
+                S = []
+                while not S:
+                    if not k:  # Start from new minimal element
+                        S = [x for x in self.sources() if x not in linext]
+                    else:
+                        S = [x for x in self.neighbors_out(linext[k-1]) if x not in linext and all(low in linext for low in self.neighbors_in(x))]
+                        k -= 1
+
+                for e in S:
+                # Python3-todo: use yield from
+                    for tmp in supergreedy_rec(H, linext+[e]):
+                        yield tmp
+
+        return supergreedy_rec(self, [])
+
     def is_linear_extension(self, lin_ext=None):
         r"""
         Test if an ordering is a linear extension.
@@ -443,7 +556,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: P = Posets.IntegerPartitions(4)
+            sage: P = posets.IntegerPartitions(4)
             sage: H = P._hasse_diagram; H
             Hasse diagram of a poset containing 5 elements
             sage: H.dual()
@@ -451,7 +564,7 @@ class HasseDiagram(DiGraph):
 
         TESTS::
 
-            sage: H = Posets.IntegerPartitions(4)._hasse_diagram
+            sage: H = posets.IntegerPartitions(4)._hasse_diagram
             sage: H.is_isomorphic( H.dual().dual() )
             True
             sage: H.is_isomorphic( H.dual() )
@@ -460,6 +573,58 @@ class HasseDiagram(DiGraph):
         H = self.reverse()
         H.relabel(perm=list(range(H.num_verts()-1, -1, -1)), inplace=True)
         return HasseDiagram(H)
+
+    def _precompute_intervals(self):
+        """
+        Precompute all intervals of the poset.
+
+        This will significantly speed up computing congruences. On the
+        other hand it will cost much more memory. Currently this is
+        "hidden" feature. See example below of using.
+
+        EXAMPLES::
+
+            sage: B4 = posets.BooleanLattice(4)
+            sage: B4.is_isoform()  # Slow
+            True
+            sage: B4._hasse_diagram._precompute_intervals()
+            sage: B4 = posets.BooleanLattice(4)
+            sage: B4.is_isoform()  # Faster now
+            True
+        """
+        n = self.order()
+
+        v_up = [frozenset(self.depth_first_search(v)) for v in range(n)]
+        v_down = [frozenset(self.depth_first_search(v, neighbors=self.neighbors_in))
+                  for v in range(n)]
+        self._intervals = [[sorted(up.intersection(down)) for down in v_down]
+                           for up in v_up]
+
+        self.interval = self._alternate_interval
+
+    def _alternate_interval(self, x, y):
+        """
+        Return the list of the elements greater than or equal to ``x``
+        and less than or equal to ``y``.
+
+        The list is sorted by numerical value, which is one linear
+        extension for the elements of the interval, but not necessary
+        the same as returned by ``interval()``.
+
+        This will be taken to use when ``_precompute_intervals()``
+        is called.
+
+        EXAMPLES::
+
+            sage: P = posets.BooleanLattice(3)
+            sage: P.interval(1, 7)
+            [1, 3, 5, 7]
+            sage: P._hasse_diagram._precompute_intervals()
+            sage: P.interval(1, 7)  # Uses this function
+            [1, 3, 5, 7]
+
+        """
+        return self._intervals[x][y]
 
     def interval(self, x, y):
         """
@@ -741,7 +906,7 @@ class HasseDiagram(DiGraph):
         This tests that ``size()`` for a Hasse diagram returns the
         number of edges in the digraph. ::
 
-            sage: L = Posets.BooleanLattice(5)
+            sage: L = posets.BooleanLattice(5)
             sage: H = L.hasse_diagram()
             sage: H.size()
             80
@@ -860,7 +1025,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: M = Posets.PentagonPoset()._hasse_diagram.coxeter_transformation(); M
+            sage: M = posets.PentagonPoset()._hasse_diagram.coxeter_transformation(); M
             [ 0  0  0  0 -1]
             [ 0  0  0  1 -1]
             [ 0  1  0  0 -1]
@@ -869,7 +1034,7 @@ class HasseDiagram(DiGraph):
 
         TESTS::
 
-            sage: M = Posets.PentagonPoset()._hasse_diagram.coxeter_transformation()
+            sage: M = posets.PentagonPoset()._hasse_diagram.coxeter_transformation()
             sage: M**8 == 1
             True
         """
@@ -884,7 +1049,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Posets.BooleanLattice(4)._hasse_diagram
+            sage: H = posets.BooleanLattice(4)._hasse_diagram
             sage: H.order_filter([3,8])
             [3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
         """
@@ -896,7 +1061,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Posets.BooleanLattice(4)._hasse_diagram
+            sage: H = posets.BooleanLattice(4)._hasse_diagram
             sage: H.principal_order_filter(2)
             [2, 3, 6, 7, 10, 11, 14, 15]
         """
@@ -911,7 +1076,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Posets.BooleanLattice(4)._hasse_diagram
+            sage: H = posets.BooleanLattice(4)._hasse_diagram
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
@@ -924,7 +1089,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Posets.BooleanLattice(4)._hasse_diagram
+            sage: H = posets.BooleanLattice(4)._hasse_diagram
             sage: H.principal_order_ideal(6)
             [0, 2, 4, 6]
         """
@@ -1406,22 +1571,18 @@ class HasseDiagram(DiGraph):
 
     def is_distributive_lattice(self): # still a dumb algorithm...
         r"""
-        Returns ``True`` if ``self`` is the Hasse diagram of a
-        distributive lattice, and ``False`` otherwise.
+        Deprecated.
 
         EXAMPLES::
 
             sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
             sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
             sage: H.is_distributive_lattice()
-            False
-            sage: H = HasseDiagram({0:[1,2],1:[3],2:[3]})
-            sage: H.is_distributive_lattice()
-            True
-            sage: H = HasseDiagram({0:[1,2,3],1:[4],2:[4],3:[4]})
-            sage: H.is_distributive_lattice()
+            doctest:...: DeprecationWarning: This function will be removed in future versions. Convert ...
             False
         """
+        from sage.misc.superseded import deprecation
+        deprecation(23111, "This function will be removed in future versions. Convert to lattice and use is_distributive().")
         try:
             jn = self.join_matrix()
             mt = self.meet_matrix()
@@ -1454,7 +1615,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Posets.BooleanLattice(4)._hasse_diagram
+            sage: H = posets.BooleanLattice(4)._hasse_diagram
             sage: H.vertical_decomposition() is None
             True
             sage: P = Poset( ([1,2,3,6,12,18,36], attrcall("divides")) )
@@ -1470,7 +1631,6 @@ class HasseDiagram(DiGraph):
             else:
                 return None
         result = [] # Never take the bottom element to list.
-        e = 0
         m = 0
         for i in range(n-1):
             for j in self.outgoing_edge_iterator(i):
@@ -1603,10 +1763,10 @@ class HasseDiagram(DiGraph):
 
         Trivial cases: odd number of elements, not self-dual, not complemented::
 
-            sage: H = Posets.DiamondPoset(5)._hasse_diagram
+            sage: H = posets.DiamondPoset(5)._hasse_diagram
             sage: list(H.orthocomplementations_iterator())
             []
-            sage: H = Posets.ChainPoset(4)._hasse_diagram
+            sage: H = posets.ChainPoset(4)._hasse_diagram
             sage: list(H.orthocomplementations_iterator())
             []
             sage: H = HasseDiagram( ([[0, 1], [0, 2], [0, 3], [1, 4], [1, 8], [4, 6], [4, 7], [6, 9], [7, 9], [2, 5], [3, 5], [5, 8], [8, 9]]) )
@@ -1626,7 +1786,7 @@ class HasseDiagram(DiGraph):
         Unique orthocomplementations; second is not uniquely complemented,
         but has only one orthocomplementation.
 
-            sage: H = Posets.BooleanLattice(4)._hasse_diagram  # Uniquely complemented
+            sage: H = posets.BooleanLattice(4)._hasse_diagram  # Uniquely complemented
             sage: len(list(H.orthocomplementations_iterator()))
             1
             sage: H = HasseDiagram({0:[1, 2], 1:[3], 2:[4], 3:[5], 4:[5]})
@@ -1656,16 +1816,16 @@ class HasseDiagram(DiGraph):
         # Special cases first
         if n == 0:
             yield []
-            raise(StopIteration)
+            return
         if n == 1:
             yield [0]
-            raise(StopIteration)
+            return
         if n % 2 == 1:
-            raise(StopIteration)
+            return
 
         dual_isomorphism = self.is_isomorphic(self.reverse(), certificate=True)[1]
         if dual_isomorphism is None:  # i.e. if the lattice is not self-dual.
-            raise(StopIteration)
+            return
 
         # We compute possible orthocomplements, i.e. elements
         # with "dual position" and complement to each other.
@@ -1714,7 +1874,7 @@ class HasseDiagram(DiGraph):
         # A little optimization
         for e in range(n):
             if len(comps[e]) == 0:  # Not any possible orthocomplement
-                raise(StopIteration)
+                return
             if len(comps[e]) == 1:  # Do not re-fit this every time
                 e_ = comps[e][0]
                 # Every element might have one possible orthocomplement,
@@ -1722,7 +1882,7 @@ class HasseDiagram(DiGraph):
                 for lc in self.lower_covers_iterator(e):
                     if start[lc] is not None:
                         if not self.has_edge(e_, start[lc]):
-                            raise(StopIteration)
+                            return
                 if start[e_] is None:
                     start[e] = e_
                     start[e_] = e
@@ -1819,6 +1979,9 @@ class HasseDiagram(DiGraph):
             sage: list(H.antichains_iterator())
             [[]]
         """
+        # NOTE: Ordering of antichains as a prefix tree is crucial for
+        # congruences_iterator() to work. Change it, if you change this.
+
         # Complexity note:
         # antichains_queues never grows longer than self.cardinality().
         # Indeed, if a appears before b in antichains_queues, then
@@ -2031,7 +2194,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: L = Posets.PentagonPoset()
+            sage: L = posets.PentagonPoset()
             sage: ms = L._hasse_diagram.maximal_sublattices()
             sage: sorted(ms, key=sorted)
             [{0, 1, 2, 4}, {0, 1, 3, 4}, {0, 2, 3, 4}]
@@ -2135,7 +2298,7 @@ class HasseDiagram(DiGraph):
 
         EXAMPLES::
 
-            sage: H = Posets.PentagonPoset()._hasse_diagram
+            sage: H = posets.PentagonPoset()._hasse_diagram
             sage: H.frattini_sublattice()
             [0, 4]
         """
@@ -2592,7 +2755,7 @@ class HasseDiagram(DiGraph):
             t = cong.number_of_subsets()
 
             # Following is needed for cases like
-            # Posets.BooleanLattice(3).congruence([(0,1), (0,2), (0,4)])
+            # posets.BooleanLattice(3).congruence([(0,1), (0,2), (0,4)])
             for c in list(cong):
                 r = c[0]
                 for v in fill_to_interval(c):
@@ -2802,6 +2965,66 @@ class HasseDiagram(DiGraph):
                 c = self.congruence([achain[-1]], start=c)
                 yield c
                 congs[achain] = c
+
+    def is_congruence_normal(self):
+        """
+        Return ``True`` if the lattice can be constructed from the one-element
+        lattice with Day doubling constructions of convex subsets.
+
+        Subsets to double does not need to be lower nor upper pseudo-intervals.
+        On the other hand they must be convex, i.e. doubling a non-convex but
+        municipal subset will give a lattice that returns ``False`` from
+        this function.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram('IX?Q@?AG?OG?W?O@??')
+            sage: H.is_congruence_normal()
+            True
+
+        The 5-element diamond is the smallest non-example::
+
+            sage: H = HasseDiagram({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
+            sage: H.is_congruence_normal()
+            False
+
+        This is done by doubling a non-convex subset::
+
+            sage: H = HasseDiagram('OQC?a?@CO?G_C@?GA?O??_??@?BO?A_?G??C??_?@???')
+            sage: H.is_congruence_normal()
+            False
+
+        TESTS::
+
+            sage: HasseDiagram().is_congruence_normal()
+            True
+            sage: HasseDiagram({0: []}).is_congruence_normal()
+            True
+
+        ALGORITHM:
+
+        See http://www.math.hawaii.edu/~jb/inflation.pdf
+        """
+        from sage.combinat.set_partition import SetPartition
+
+        n = self.order()
+        congs_ji = {}
+
+        for ji in range(n):
+            if self.in_degree(ji) == 1:
+                cong = SetPartition(self.congruence([[ji, next(self.neighbor_in_iterator(ji))]]))
+                if cong not in congs_ji:
+                    congs_ji[cong] = []
+                congs_ji[cong].append(ji)
+
+        for mi in range(n):
+            if self.out_degree(mi) == 1:
+                cong = SetPartition(self.congruence([[mi, next(self.neighbor_out_iterator(mi))]]))
+                if any(self.is_lequal(ji, mi) for ji in congs_ji[cong]):
+                    return False
+
+        return True
 
 from sage.misc.rest_index_of_methods import gen_rest_table_index
 __doc__ = __doc__.format(INDEX_OF_FUNCTIONS=gen_rest_table_index(HasseDiagram))

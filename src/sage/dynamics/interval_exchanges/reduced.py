@@ -1,6 +1,12 @@
 r"""
 Reduced permutations
 
+.. WARNING::
+
+    This module is deprecated. You are advised to install and use the
+    surface_dynamics package instead available at
+    https://pypi.python.org/pypi/surface_dynamics/
+
 A reduced (generalized) permutation is better suited to study strata of Abelian
 (or quadratic) holomorphic forms on Riemann surfaces. The Rauzy diagram is an
 invariant of such a component. Corentin Boissy proved the identification of
@@ -51,10 +57,10 @@ TESTS::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-from six.moves import range
+from __future__ import print_function, absolute_import, division
+from six.moves import range, zip
 
+from sage.structure.richcmp import richcmp_method, rich_to_bool
 from sage.structure.sage_object import SageObject
 
 from copy import copy
@@ -124,16 +130,42 @@ class ReducedPermutation(SageObject) :
         TESTS::
 
             sage: p = iet.Permutation('a b','b a',reduced=True)
+            doctest:warning
+            ...
+            DeprecationWarning: Permutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: len(p)
             2
             sage: p = iet.GeneralizedPermutation('a a b','b c c',reduced=True)
+            doctest:warning
+            ...
+            DeprecationWarning: GeneralizedPermutation is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
             sage: len(p)
             3
             sage: p = iet.GeneralizedPermutation('a a','b b c c',reduced=True)
             sage: len(p)
             3
         """
-        return (len(self._twin[0]) + len(self._twin[1])) / 2
+        return (len(self._twin[0]) + len(self._twin[1])) // 2
 
     def length_top(self):
         r"""
@@ -407,6 +439,19 @@ def ReducedPermutationsIET_iterator(
 
         sage: for p in iet.Permutations_iterator(3,reduced=True,alphabet="abc"):
         ....:     print(p)  #indirect doctest
+        doctest:warning
+        ...
+        DeprecationWarning: iet_Permutations_iterator is deprecated and will be removed from Sage.
+        You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+        If you do not have write access to the Sage installation you can
+        alternatively do
+            sage -pip install surface_dynamics --user
+        The package surface_dynamics subsumes all flat surface related
+        computation that are currently available in Sage. See more
+        information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+        See http://trac.sagemath.org/20695 for details.
         a b c
         b c a
         a b c
@@ -424,17 +469,19 @@ def ReducedPermutationsIET_iterator(
 
         nintervals = Integer(nintervals)
 
-        if not(nintervals > 0):
+        if nintervals <= 0:
             raise ValueError('number of intervals must be positive')
 
-        a0 = range(1,nintervals+1)
-        f = lambda x: ReducedPermutationIET([a0,list(x)],
-            alphabet=alphabet)
+        a0 = range(1, nintervals + 1)
+        f = lambda x: ReducedPermutationIET([a0, list(x)],
+                                            alphabet=alphabet)
         return map(f, Permutations(nintervals))
     else:
         return filter(lambda x: x.is_irreducible(),
-        ReducedPermutationsIET_iterator(nintervals,False,alphabet))
+        ReducedPermutationsIET_iterator(nintervals, False, alphabet))
 
+
+@richcmp_method
 class ReducedPermutationIET(ReducedPermutation, PermutationIET):
     """
     Reduced permutation from iet
@@ -553,7 +600,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             self._hash = hash(tuple(self._twin[0]))
         return self._hash
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Defines a natural lexicographic order.
 
@@ -588,12 +635,12 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             True
         """
         if type(self) is not type(other):
-            raise ValueError("Permutations must be of the same type")
+            return NotImplemented
 
         if len(self) > len(other):
-            return 1
+            return rich_to_bool(op, 1)
         elif len(self) < len(other):
-            return -1
+            return rich_to_bool(op, -1)
 
         n = len(self)
         j = 0
@@ -601,10 +648,12 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             j += 1
 
         if j != n:
-            if self._twin[1][j] > other._twin[1][j]: return 1
-            else: return -1
+            if self._twin[1][j] > other._twin[1][j]:
+                return rich_to_bool(op, 1)
+            else:
+                return rich_to_bool(op, -1)
 
-        return 0
+        return rich_to_bool(op, 0)
 
     def _reversed(self):
         r"""
@@ -712,7 +761,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         r"""
         Returns the relabelization obtained from this move.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c d','d c b a')
             sage: q = p.reduced()
@@ -905,7 +954,7 @@ class ReducedPermutationLI(ReducedPermutation, PermutationLI):
         sage: decomposition
         (['a'], ['c', 'a'], [], ['c'])
 
-    Rauzy movavability and Rauzy move::
+    Rauzy movability and Rauzy move::
 
         sage: p = iet.GeneralizedPermutation('a b b', 'c c a', reduced = True)
         sage: p.has_rauzy_move(0)
@@ -1238,7 +1287,7 @@ class FlippedReducedPermutation(ReducedPermutation):
         r"""
         Performs a Rauzy move on the right.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a',reduced=True,flips='c')
             sage: p.right_rauzy_move('top')
@@ -1335,6 +1384,8 @@ class FlippedReducedPermutation(ReducedPermutation):
         super(FlippedReducedPermutation, self)._inversed()
         self._flips.reverse()
 
+
+@richcmp_method
 class FlippedReducedPermutationIET(
     FlippedReducedPermutation,
     FlippedPermutationIET,
@@ -1357,7 +1408,7 @@ class FlippedReducedPermutationIET(
         sage: p == loads(dumps(p))
         True
     """
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         r"""
         Defines a natural lexicographic order.
 
@@ -1413,12 +1464,12 @@ class FlippedReducedPermutationIET(
             True
         """
         if type(self) is not type(other):
-            return -1
+            return NotImplemented
 
         if len(self) > len(other):
-            return 1
+            return rich_to_bool(op, 1)
         elif len(self) < len(other):
-            return -1
+            return rich_to_bool(op, -1)
 
         n = len(self)
         j = 0
@@ -1428,11 +1479,14 @@ class FlippedReducedPermutationIET(
             j += 1
 
         if j != n:
-            if self._twin[1][j] > other._twin[1][j]: return 1
-            elif self._twin[1][j] < other._twin[1][j]: return -1
-            else: return self._flips[1][j]
+            if self._twin[1][j] > other._twin[1][j]:
+                return rich_to_bool(op, 1)
+            elif self._twin[1][j] < other._twin[1][j]:
+                return rich_to_bool(op, -1)
+            else:
+                return rich_to_bool(op, self._flips[1][j])
 
-        return 0
+        return rich_to_bool(op, 0)
 
     def list(self, flips=False):
         r"""
@@ -1463,14 +1517,14 @@ class FlippedReducedPermutationIET(
             True
         """
         if flips:
-            a0 = zip([self.alphabet().unrank(_) for _ in range(0,len(self))], self._flips[0])
-            a1 = zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1])
+            a0 = list(zip([self.alphabet().unrank(_) for _ in range(len(self))], self._flips[0]))
+            a1 = list(zip([self.alphabet().unrank(_) for _ in self._twin[1]], self._flips[1]))
 
         else:
-            a0 = [self.alphabet().unrank(_) for _ in range(0,len(self))]
+            a0 = [self.alphabet().unrank(_) for _ in range(len(self))]
             a1 = [self.alphabet().unrank(_) for _ in self._twin[1]]
 
-        return [a0,a1]
+        return [a0, a1]
 
     def _get_loser_to(self, winner) :
         r"""
@@ -1773,6 +1827,19 @@ class FlippedReducedRauzyDiagram(FlippedRauzyDiagram, ReducedRauzyDiagram):
         TESTS::
 
             sage: r = iet.RauzyDiagram('a b c','c b a',flips='b',reduced=True)   #indirect doctest
+            doctest:warning
+            ...
+            DeprecationWarning: RauzyDiagram is deprecated and will be removed from Sage.
+            You are advised to install the surface_dynamics package via:
+            sage -pip install surface_dynamics
+            If you do not have write access to the Sage installation you can
+            alternatively do
+            sage -pip install surface_dynamics --user
+            The package surface_dynamics subsumes all flat surface related
+            computation that are currently available in Sage. See more
+            information at
+            http://www.labri.fr/perso/vdelecro/surface-dynamics/latest/
+            See http://trac.sagemath.org/20695 for details.
         """
         self._element._twin = [list(data[0][0]), list(data[0][1])]
         self._element._flips = [list(data[1][0]), list(data[1][1])]

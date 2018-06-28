@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 if [ -z "$SAGE_LOCAL" ]; then
     echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
@@ -51,17 +49,6 @@ mpfr_configure()
         # Add debug symbols by default, enable optimization, but do not (yet)
         # add processor-specific flags (these are eventually added later):
         default_cflags="$default_cflags -g -O3"
-    fi
-
-    if [ "$SAGE64" = yes ]; then
-        if [ -z "$CFLAG64" ]; then
-            CFLAG64=-m64
-        fi
-        echo "Building a 64-bit version of MPFR (using '$CFLAG64')."
-        required_cflags="$required_cflags $CFLAG64"
-        CPPFLAGS="$CPPFLAGS $CFLAG64"
-        LDFLAGS="$LDFLAGS $CFLAG64"
-        # As MPFR doesn't have C++ files, we don't have to modify CXXFLAGS.
     fi
 
     # Enabling thread-safe (which meanwhile is or at least may be the default)

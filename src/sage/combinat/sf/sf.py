@@ -179,24 +179,24 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The classical bases
 
-    In addition to the power sum basis, the other classical bases of the
-    symmetric function algebra are the elementary, complete homogeneous,
-    monomial, and Schur bases.  These can be defined as follows::
+    In addition to the power sum basis, other classical bases of the
+    symmetric function algebra include the elementary, complete
+    homogeneous, monomial, and Schur bases::
 
         sage: e = Sym.elementary()
         sage: h = Sym.homogeneous()
         sage: m = Sym.monomial()
         sage: s = Sym.schur()
 
-    These can be defined all at once with the single command
-    ::
+    These and others can be defined all at once with the single command::
 
         sage: Sym.inject_shorthands()
-        doctest:...: RuntimeWarning: redefining global value `h`
-        doctest:...: RuntimeWarning: redefining global value `s`
-        doctest:...: RuntimeWarning: redefining global value `e`
-        doctest:...: RuntimeWarning: redefining global value `m`
-        doctest:...: RuntimeWarning: redefining global value `p`
+        Defining e as shorthand for Symmetric Functions over Rational Field in the elementary basis
+        Defining f as shorthand for Symmetric Functions over Rational Field in the forgotten basis
+        Defining h as shorthand for Symmetric Functions over Rational Field in the homogeneous basis
+        Defining m as shorthand for Symmetric Functions over Rational Field in the monomial basis
+        Defining p as shorthand for Symmetric Functions over Rational Field in the powersum basis
+        Defining s as shorthand for Symmetric Functions over Rational Field in the Schur basis
 
     We can then do conversions from one basis to another::
 
@@ -550,6 +550,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     * Jack bases
     * Macdonald bases
     * `k`-Schur functions
+    * Hecke character basis
 
     We briefly demonstrate how to access these bases. For more information, see
     the documentation of the individual bases.
@@ -577,6 +578,16 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: P = Mcd.P(); J = Mcd.J(); Q = Mcd.Q()
         sage: J(P[2,1])
         (1/(-q*t^4+2*q*t^3-q*t^2+t^2-2*t+1))*McdJ[2, 1]
+
+    We can also construct the `\bar{q}` basis that can be used
+    to determine character tables for Hecke algebras (with quadratic
+    relation `T_i^2 = (1-q) T_i + q`::
+
+        sage: Sym = SymmetricFunctions(ZZ['q'].fraction_field())
+        sage: qbar = Sym.hecke_character()
+        sage: s = Sym.s()
+        sage: s(qbar[2,1])
+        -s[1, 1, 1] + (q-1)*s[2, 1] + q*s[3]
 
     .. rubric:: `k`-Schur functions
 
@@ -1171,6 +1182,24 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return orthogonal.SymmetricFunctionAlgebra_orthogonal(self)
     o = orthogonal
 
+    def hecke_character(self, q='q'):
+        """
+        The basis of symmetric functions that determines the character
+        tables for Hecke algebras.
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(ZZ['q'].fraction_field()).hecke_character()
+            Symmetric Functions over
+             Fraction Field of Univariate Polynomial Ring in q over Integer Ring
+             in the Hecke character with q=q basis
+            sage: SymmetricFunctions(QQ).hecke_character(1/2)
+            Symmetric Functions over Rational Field in the Hecke character with q=1/2 basis
+        """
+        from sage.combinat.sf.hecke import HeckeCharacter
+        return HeckeCharacter(self, q)
+    qbar = hecke_character
+
     def macdonald(self, q='q', t='t'):
         r"""
         Returns the entry point for the various Macdonald bases.
@@ -1370,50 +1399,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         else:
             morphism.codomain().register_coercion(morphism)
 
-    _shorthands = set(['e', 'h', 'm', 'p', 's'])
-
-    def inject_shorthands(self, shorthands = _shorthands):
-        """
-        Imports standard shorthands into the global namespace
-
-        INPUT:
-
-        - ``shorthands`` -- a list (or iterable) of strings (default: ['e', 'h', 'm', 'p', 's'])
-
-        EXAMPLES::
-
-            sage: S = SymmetricFunctions(ZZ)
-            sage: S.inject_shorthands()
-            sage: s[1] + e[2] * p[1,1] + 2*h[3] + m[2,1]
-            s[1] - 2*s[1, 1, 1] + s[1, 1, 1, 1] + s[2, 1] + 2*s[2, 1, 1] + s[2, 2] + 2*s[3] + s[3, 1]
-            sage: e
-            Symmetric Functions over Integer Ring in the elementary basis
-            sage: p
-            Symmetric Functions over Integer Ring in the powersum basis
-            sage: s
-            Symmetric Functions over Integer Ring in the Schur basis
-
-            sage: e == S.e(), h == S.h(), m == S.m(), p == S.p(), s == S.s()
-            (True, True, True, True, True)
-
-        One can also just import a subset of the shorthands::
-
-            sage: S = SymmetricFunctions(QQ)
-            sage: S.inject_shorthands(['p', 's'])
-            sage: p
-            Symmetric Functions over Rational Field in the powersum basis
-            sage: s
-            Symmetric Functions over Rational Field in the Schur basis
-
-        Note that ``e`` is left unchanged::
-
-            sage: e
-            Symmetric Functions over Integer Ring in the elementary basis
-        """
-        from sage.misc.misc import inject_variable
-        for shorthand in shorthands:
-            assert shorthand in self._shorthands
-            inject_variable(shorthand, getattr(self, shorthand)())
+    _shorthands = ['e', 'f', 'h', 'm', 'p', 's']
+    _shorthands_all = sorted(_shorthands + ['ht', 'o', 'sp', 'st', 'w'])
 
     def __init_extra__(self):
         """

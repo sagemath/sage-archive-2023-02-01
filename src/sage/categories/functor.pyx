@@ -32,8 +32,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-import category
+from . import category
+
 
 def _Functor_unpickle(Cl, D, domain, codomain):
     """
@@ -208,9 +210,10 @@ cdef class Functor(SageObject):
             True
             sage: F.codomain()
             Category of rings
-
         """
-        return _Functor_unpickle, (self.__class__, self.__dict__.items(), self.__domain, self.__codomain)
+        return (_Functor_unpickle,
+                (self.__class__, list(self.__dict__.items()),
+                 self.__domain, self.__codomain))
 
     def _apply_functor(self, x):
         """
@@ -280,7 +283,7 @@ cdef class Functor(SageObject):
         By default, the argument will not be changed, but a ``TypeError``
         will be raised if the argument does not belong to the domain.
 
-        TEST::
+        TESTS::
 
             sage: from sage.categories.functor import Functor
             sage: F = Functor(Fields(),Fields())
@@ -387,7 +390,7 @@ cdef class Functor(SageObject):
         """
         The domain of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.domain()
@@ -400,7 +403,7 @@ cdef class Functor(SageObject):
         """
         The codomain of self
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: F = ForgetfulFunctor(FiniteFields(),Fields())
             sage: F.codomain()
@@ -481,10 +484,10 @@ class ForgetfulFunctor_generic(Functor):
             The forgetful functor from Category of finite enumerated fields to Category of fields
 
         """
-        return "The forgetful functor from %s to %s"%(
-            self.domain(), self.codomain())
+        return "The forgetful functor from %s to %s" % (self.domain(),
+                                                        self.codomain())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         NOTE:
 
@@ -494,7 +497,7 @@ class ForgetfulFunctor_generic(Functor):
         but happens to be a forgetful functor, both arguments will
         still be considered as being *different*.
 
-        TEST::
+        TESTS::
 
             sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
 
@@ -510,15 +513,27 @@ class ForgetfulFunctor_generic(Functor):
             sage: F2 = QQ.construction()[0]
             sage: F1 == F2 #indirect doctest
             False
-
         """
         from sage.categories.pushout import IdentityConstructionFunctor
-        if not isinstance(other, (self.__class__,IdentityConstructionFunctor)):
-            return -1
-        if self.domain() == other.domain() and \
-           self.codomain() == other.codomain():
-            return 0
-        return -1
+        if not isinstance(other, (self.__class__, IdentityConstructionFunctor)):
+            return False
+        return (self.domain() == other.domain() and
+                self.codomain() == other.codomain())
+
+    def __ne__(self, other):
+        """
+        Return whether ``self`` is not equal to ``other``.
+
+        EXAMPLES:
+
+            sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
+            sage: F1 != F1
+            False
+            sage: F1 != QQ
+            True
+        """
+        return not self ==  other
+
 
 class IdentityFunctor_generic(ForgetfulFunctor_generic):
     """

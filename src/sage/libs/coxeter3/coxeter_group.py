@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Coxeter Groups implemented with Coxeter3
 """
@@ -14,6 +15,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
+from sage.structure.richcmp import richcmp
 from sage.categories.all import CoxeterGroups
 from sage.structure.parent import Parent
 
@@ -105,7 +107,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
-        #return range(1, self.rank()+1)
 
     def bruhat_interval(self, u, v):
         """
@@ -401,7 +402,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v, constant_term_one=False).shift(z.length())
                      for z in WOI if (u*z).bruhat_le(v))
 
-
     class Element(ElementWrapper):
         wrapped_class = CoxGroupElement
 
@@ -444,7 +444,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             W = self.parent()
             return [W(w) for w in self.value.coatoms()]
 
-        def __cmp__(self, other):
+        def _richcmp_(self, other, op):
             """
             Return lexicographic comparison of ``self`` and ``other``.
 
@@ -453,14 +453,20 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 sage: W = CoxeterGroup(['B', 3], implementation='coxeter3')   # optional - coxeter3
                 sage: w = W([1,2,3])                                          # optional - coxeter3
                 sage: v = W([3,1,2])                                          # optional - coxeter3
-                sage: w.__cmp__(v)                                            # optional - coxeter3
-                -1
-                sage: v.__cmp__(w)                                            # optional - coxeter3
-                1
+                sage: v < w                                            # optional - coxeter3
+                False
+                sage: w < v                                            # optional - coxeter3
+                True
+
+            Some tests for equality::
+
+                sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')    # optional - coxeter3
+                sage: W([1,2,1]) == W([2,1,2])                                 # optional - coxeter3
+                True
+                sage: W([1,2,1]) == W([2,1])                                   # optional - coxeter3
+                False
             """
-            if type(self) is not type(other):
-                return cmp(type(self), type(other))
-            return cmp(list(self), list(other))
+            return richcmp(list(self), list(other), op)
 
         def reduced_word(self):
             """
@@ -518,26 +524,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             """
             return self.__class__(self.parent(), self.value * y.value)
 
-        def __eq__(self, y):
-            """
-            Return whether this Coxeter group element is equal to ``y``.
-
-            This is computed by computing the normal form of both elements.
-
-            EXAMPLES::
-
-                sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')    # optional - coxeter3
-                sage: W([1,2,1]) == W([2,1,2])                                 # optional - coxeter3
-                True
-                sage: W([1,2,1]) == W([2,1])                                   # optional - coxeter3
-                False
-
-            """
-            if not isinstance(y, self.parent().element_class):
-                return False
-
-            return list(self) == list(y)
-
         def __len__(self):
             """
             EXAMPLES::
@@ -568,7 +554,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def poincare_polynomial(self):
             """
-            Return the Poincare polynomial associated with this element.
+            Return the Poincaré polynomial associated with this element.
 
             EXAMPLES::
 
@@ -582,7 +568,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 t^5 + 4*t^4 + 6*t^3 + 5*t^2 + 3*t + 1
 
                 sage: rw = sage.combinat.permutation.from_reduced_word           # optional - coxeter3
-                sage: p = map(attrcall('poincare_polynomial'), W)                # optional - coxeter3
+                sage: p = [w.poincare_polynomial() for w in W]                   # optional - coxeter3
                 sage: [rw(w.reduced_word()) for i,w in enumerate(W) if p[i] != p[i].reverse()] # optional - coxeter3
                 [[3, 4, 1, 2], [4, 2, 3, 1]]
             """
@@ -618,7 +604,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         def action(self, v):
             """
-            Return the action of of this Coxeter group element on the root space.
+            Return the action of this Coxeter group element on the root space.
 
             INPUT:
 

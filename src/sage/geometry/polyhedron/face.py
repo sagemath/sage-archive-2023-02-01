@@ -55,6 +55,7 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
@@ -62,6 +63,7 @@ from sage.matrix.constructor import matrix
 
 
 #########################################################################
+@richcmp_method
 class PolyhedronFace(SageObject):
     r"""
     A face of a polyhedron.
@@ -245,7 +247,7 @@ class PolyhedronFace(SageObject):
         """
         return tuple(self.line_generator())
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare ``self`` and ``other``.
 
@@ -263,18 +265,20 @@ class PolyhedronFace(SageObject):
 
             sage: square = polytopes.hypercube(2)
             sage: f = square.faces(1)
-            sage: matrix(4,4, lambda i,j: cmp(f[i], f[j]))
-            [ 0 -1 -1 -1]
-            [ 1  0 -1 -1]
-            [ 1  1  0 -1]
-            [ 1  1  1  0]
+            sage: matrix(4,4, lambda i,j: ZZ(f[i] <= f[j]))
+            [1 1 1 1]
+            [0 1 1 1]
+            [0 0 1 1]
+            [0 0 0 1]
+            sage: matrix(4,4, lambda i,j: ZZ(f[i] == f[j])) == 1
+            True
         """
         if not isinstance(other, PolyhedronFace):
-            return -1
+            return NotImplemented
         if self._polyhedron is not other._polyhedron:
-            return -1
-        return cmp(self._ambient_Vrepresentation_indices,
-                   other._ambient_Vrepresentation_indices)
+            return NotImplemented
+        return richcmp(self._ambient_Vrepresentation_indices,
+                       other._ambient_Vrepresentation_indices, op)
 
     def ambient_Hrepresentation(self, index=None):
         r"""

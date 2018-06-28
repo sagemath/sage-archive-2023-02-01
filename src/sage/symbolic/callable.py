@@ -33,7 +33,7 @@ When you do arithmetic with::
 
 TESTS:
 
-The arguments in the definition must be symbolic variables #10747::
+The arguments in the definition must be symbolic variables (:trac:`10747`)::
 
     sage: f(1)=2
     Traceback (most recent call last):
@@ -61,7 +61,6 @@ The arguments in the definition must be symbolic variables #10747::
     SyntaxError: can't assign to function call
 """
 
-from sage.structure.parent_base import ParentWithBase
 from sage.symbolic.ring import SymbolicRing, SR
 from sage.categories.pushout import ConstructionFunctor
 
@@ -283,7 +282,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
 
         TESTS::
 
-            sage: TestSuite(f.parent()).run()
+            sage: TestSuite(f.parent()).run(skip=['_test_divides'])
         """
         self._arguments = arguments
         SymbolicRing.__init__(self, SR)

@@ -162,8 +162,12 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
     ::
 
         sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
-        sage: G.edges(labels=False)
-        [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19), (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6), (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19), (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17), (16, 18)]
+        sage: sorted(G.edges(labels=False))
+        [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19),
+        (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6),
+        (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19),
+        (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17),
+        (16, 18)]
         sage: G.show()  # long time
 
     REFERENCE:
@@ -175,6 +179,7 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
         seed = current_randstate().long_seed()
     import networkx
     return Graph(networkx.configuration_model([int(i) for i in deg_sequence], seed=seed), loops=True, multiedges=True, sparse=True)
+
 
 def DegreeSequenceTree(deg_sequence):
     """
@@ -190,7 +195,7 @@ def DegreeSequenceTree(deg_sequence):
        entry corresponding to the expected degree of a different vertex.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.DegreeSequenceTree([3,1,3,3,1,1,1,2,1])
         sage: G.show()  # long time
@@ -215,7 +220,7 @@ def DegreeSequenceExpected(deg_sequence, seed=None):
     -  ``seed`` - for the random number generator.
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.DegreeSequenceExpected([1,2,3,2,3])
         sage: G.edges(labels=False)

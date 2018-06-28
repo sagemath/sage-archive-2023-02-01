@@ -15,12 +15,9 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function
 
-import itertools
-
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecated_function_alias
-from sage.misc.misc_c import prod
 
 from sage.categories.sets_cat import Sets
 
@@ -28,8 +25,6 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapperCheckWrappedClass
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.infinity import Infinity
 
 class CartesianProduct(UniqueRepresentation, Parent):
     """
@@ -235,7 +230,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             This is meant as a fast low-level method. In particular,
             no coercion is attempted. When coercion or sanity checks
             are desirable, please use instead ``self(elements)`` or
-            ``self._element_constructor(elements)``.
+            ``self._element_constructor_(elements)``.
 
         EXAMPLES::
 

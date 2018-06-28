@@ -36,13 +36,14 @@ def numerical_approx_generic(x, prec):
     P = parent(x)
 
     cdef Parent RR = RealField(prec)
-    map = RR.coerce_map_from(P)
-    if map is not None:
-        return map(x)
+    cmap = RR.coerce_map_from(P)
+    if cmap is not None:
+        return cmap(x)
+
     cdef Parent CC = ComplexField(prec)
-    map = CC.coerce_map_from(P)
-    if map is not None:
-        return map(x)
+    cmap = CC.coerce_map_from(P)
+    if cmap is not None:
+        return cmap(x)
 
     # Coercion didn't work: there are 3 possibilities:
     # (1) There is a coercion possible to a lower precision

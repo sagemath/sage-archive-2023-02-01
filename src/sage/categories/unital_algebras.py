@@ -98,7 +98,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
             if base_ring is self:
                 # There are rings that are their own base rings. No need to register that.
                 return
-            if self.is_coercion_cached(base_ring):
+            if self._is_coercion_cached(base_ring):
                 # We will not use any generic stuff, since a (presumably) better conversion
                 # has already been registered.
                 return
@@ -249,7 +249,7 @@ class UnitalAlgebras(CategoryWithAxiom_over_base_ring):
 
             def from_base_ring_from_one_basis(self, r):
                 """
-                Implement the canonical embeding from the ground ring.
+                Implement the canonical embedding from the ground ring.
 
                 INPUT:
 

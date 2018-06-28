@@ -71,17 +71,18 @@ from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroup, is_FreeGroup
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.matrix.constructor import identity_matrix, matrix
-from sage.combinat.permutation import Permutation
+from sage.combinat.permutation import Permutations
 from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
+from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
 from sage.misc.package import PackageNotFoundError
-from sage.structure.sage_object import richcmp, rich_to_bool
+from sage.structure.richcmp import richcmp, rich_to_bool
+from sage.misc.superseded import deprecated_function_alias
 
-
-class Braid(FinitelyPresentedGroupElement):
+class Braid(FiniteTypeArtinGroupElement):
     """
-    Class that models elements of the braid group.
+    An element of a braid group.
 
     It is a particular case of element of a finitely presented group.
 
@@ -131,29 +132,6 @@ class Braid(FinitelyPresentedGroupElement):
         """
         return hash(tuple(i.Tietze() for i in self.left_normal_form()))
 
-    def _latex_(self):
-        """
-        Return a LaTeX representation
-
-        OUTPUT:
-
-        String. A valid LaTeX math command sequence.
-
-        TESTS::
-
-            sage: B = BraidGroup(4)
-            sage: b = B([1, 2, 3, -1, 2, -3])
-            sage: b._latex_()
-            '\\sigma_{1}\\sigma_{2}\\sigma_{3}\\sigma_{1}^{-1}\\sigma_{2}\\sigma_{3}^{-1}'
-        """
-        latexrepr = ''
-        for i in self.Tietze():
-            if i > 0:
-                latexrepr = latexrepr+"\sigma_{%s}" % i
-            if i < 0:
-                latexrepr = latexrepr+"\sigma_{%s}^{-1}" % (-i)
-        return latexrepr
-
     def strands(self):
         """
         Return the number of strands in the braid.
@@ -166,26 +144,6 @@ class Braid(FinitelyPresentedGroupElement):
             4
         """
         return self.parent().strands()
-
-    def exponent_sum(self):
-        """
-        Return the exponent sum of the braid.
-
-        OUTPUT:
-
-        Integer.
-
-        EXAMPLES::
-
-            sage: B = BraidGroup(5)
-            sage: b = B([1, 4, -3, 2])
-            sage: b.exponent_sum()
-            2
-            sage: b = B([])
-            sage: b.exponent_sum()
-            0
-        """
-        return sum(s.sign() for s in self.Tietze())
 
     def components_in_closure(self):
         """
@@ -385,11 +343,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.permutation().cycle_string()
             '(1,4,2)'
         """
-        per = Permutation((()))
-        for i in self.Tietze():
-            j = abs(i)
-            per = per*Permutation(((j, j+1)))
-        return per
+        return self.coxeter_group_element()
 
     def plot(self, color='rainbow', orientation='bottom-top', gap=0.05, aspect_ratio=1, axes=False, **kwds):
         """
@@ -950,37 +904,7 @@ class Braid(FinitelyPresentedGroupElement):
             # We force the result to be in the symbolic ring because of the expand
             return self._jones_polynomial(SR(variab)**(ZZ(1)/ZZ(4))).expand()
 
-    @cached_method
-    def left_normal_form(self):
-        """
-        Return the left normal form of the braid.
-
-        OUTPUT:
-
-        A tuple of braid generators in the left normal form. The first
-        element is a power of $\Delta$, and the rest are permutation
-        braids.
-
-        EXAMPLES::
-
-            sage: B = BraidGroup(4)
-            sage: b = B([1, 2, 3, -1, 2, -3])
-            sage: b.left_normal_form()
-            (s0^-1*s1^-1*s2^-1*s0^-1*s1^-1*s0^-1, s0*s1*s2*s1*s0, s0*s2*s1)
-            sage: c = B([1])
-            sage: c.left_normal_form()
-            (1, s0)
-        """
-        lnfp = self._left_normal_form_perm_()
-        a = lnfp[0]
-        l = lnfp[1:]
-        n = self.strands()
-        delta = Permutation([n - i for i in range(n)])
-        P = self.parent()
-        return tuple([P._permutation_braid(delta) ** a] +
-                     [P._permutation_braid(i) for i in l])
-
-    def _left_normal_form_perm_(self):
+    def _left_normal_form_coxeter(self):
         """
         Return the left normal form of the braid, in permutation form.
 
@@ -992,46 +916,52 @@ class Braid(FinitelyPresentedGroupElement):
         EXAMPLES::
 
             sage: B = BraidGroup(12)
-            sage: B([2, 2, 2, 3, 1, 2, 3, 2, 1, -2])._left_normal_form_perm_()
+            sage: B([2, 2, 2, 3, 1, 2, 3, 2, 1, -2])._left_normal_form_coxeter()
             (-1,
              [12, 11, 10, 9, 8, 7, 6, 5, 2, 4, 3, 1],
              [4, 1, 3, 2, 5, 6, 7, 8, 9, 10, 11, 12],
              [2, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12],
              [3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12],
              [2, 3, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12])
-            sage: C=BraidGroup(6)
-            sage: C([2, 3, -4, 2, 3, -5, 1, -2, 3, 4, 1, -2])._left_normal_form_perm_()
+            sage: C = BraidGroup(6)
+            sage: C([2, 3, -4, 2, 3, -5, 1, -2, 3, 4, 1, -2])._left_normal_form_coxeter()
             (-2, [3, 5, 4, 2, 6, 1], [1, 6, 3, 5, 2, 4], [5, 6, 2, 4, 1, 3],
              [3, 2, 4, 1, 5, 6], [1, 5, 2, 3, 4, 6])
+
+        .. TODO::
+
+            Remove this method and use the default one from
+            :meth:`sage.groups.artin.FiniteTypeArtinGroupElement.left_normal_form`.
         """
         n = self.parent().strands()
         delta = 0
-        Delta = Permutation([n-i for i in range(n)])
+        Delta = self.parent()._coxeter_group.long_element()
+        sr = self.parent()._coxeter_group.simple_reflections()
         l = self.Tietze()
-        if l==():
+        if l == ():
             return (0,)
         form = []
         for i in l:
-            if i>0:
-                form.append(Permutation((i, i+1)))
+            if i > 0:
+                form.append(sr[i])
             else:
-                delta = delta+1
-                form = [Delta*a*Delta for a in form]
-                form.append(Delta*Permutation((-i, -i+1)))
+                delta += 1
+                form = [Delta * a * Delta for a in form]
+                form.append(Delta * sr[-i])
         i = j = 0
-        while j<len(form):
-            while i<len(form)-j-1:
+        while j < len(form):
+            while i < len(form) - j - 1:
                 e = form[i].idescents(from_zero=False)
                 s = form[i + 1].descents(from_zero=False)
                 S = set(s).difference(set(e))
                 while S:
                     a = list(S)[0]
-                    form[i] = form[i] * Permutation((a, a+1))
-                    form[i + 1] = Permutation((a, a+1))*form[i+1]
+                    form[i] = form[i] * sr[a]
+                    form[i + 1] = sr[a] * form[i+1]
                     e = form[i].idescents(from_zero=False)
                     s = form[i + 1].descents(from_zero=False)
                     S = set(s).difference(set(e))
-                if form[i+1].length()==0:
+                if form[i+1].length() == 0:
                     form.pop(i+1)
                     i = 0
                 else:
@@ -1039,10 +969,10 @@ class Braid(FinitelyPresentedGroupElement):
             j += 1
             i = 0
         form = [a for a in form if a.length()]
-        while form!=[] and form[0]==Delta:
+        while form and form[0] == Delta:
             form.pop(0)
-            delta = delta-1
-        return tuple([-delta]+form)
+            delta -= 1
+        return tuple([-delta] + form)
 
     def right_normal_form(self):
         """
@@ -1066,7 +996,7 @@ class Braid(FinitelyPresentedGroupElement):
             raise PackageNotFoundError("libbraiding")
         l = rightnormalform(self)
         B = self.parent()
-        return tuple([B(b) for b in l[:-1]] + [B.Delta() ** l[-1][0]])
+        return tuple([B(b) for b in l[:-1]] + [B.delta() ** l[-1][0]])
 
     def centralizer(self):
         """
@@ -1448,7 +1378,7 @@ class Braid(FinitelyPresentedGroupElement):
         return [[B._element_from_libbraiding(i) for i in s] for s in slc]
 
 
-class BraidGroup_class(FinitelyPresentedGroup):
+class BraidGroup_class(FiniteTypeArtinGroup):
     """
     The braid group on `n` strands.
 
@@ -1471,8 +1401,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         INPUT:
 
-        - ``names`` -- a tuple of strings. The names of the
-          generators.
+        - ``names`` -- a tuple of strings; the names of the
+          generators
 
         TESTS::
 
@@ -1524,7 +1454,8 @@ class BraidGroup_class(FinitelyPresentedGroup):
             for j in range(i+2, n+1):
                 rels.append(free_group([i, j, -i, -j]))
         FinitelyPresentedGroup.__init__(self, free_group, tuple(rels))
-        self._nstrands_ = n+1
+        self._nstrands = n+1
+        self._coxeter_group = Permutations(self._nstrands)
 
         # For caching TL_representation()
         self._TL_representation_dict = {}
@@ -1556,7 +1487,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B1 # indirect doctest
             Braid group on 5 strands
         """
-        return "Braid group on %s strands" % self._nstrands_
+        return "Braid group on %s strands" % self._nstrands
 
     def cardinality(self):
         """
@@ -1609,7 +1540,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B.strands()
             4
         """
-        return self._nstrands_
+        return self._nstrands
 
     def _element_constructor_(self, x):
         """
@@ -1643,7 +1574,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES::
 
-            sage: B=BraidGroup(3)
+            sage: B = BraidGroup(3)
             sage: B.some_elements()
             [s0, s0*s1, (s0*s1)^3]
         """
@@ -1652,13 +1583,23 @@ class BraidGroup_class(FinitelyPresentedGroup):
         elements_list.append(elements_list[-1] ** self.strands())
         return elements_list
 
-    def _permutation_braid_Tietze(self, p):
+    def _standard_lift_Tietze(self, p):
         """
-        Helper for :meth:`_permutation_braid`.
+        Helper for :meth:`_standard_lift_Tietze`.
 
         INPUT:
 
-        - ``p`` -- a permutation.
+        - ``p`` -- a permutation
+
+        The standard lift of a permutation is the only braid with
+        the following properties:
+
+        - The braid induces the given permutation.
+
+        - The braid is positive (that is, it can be written without
+          using the inverses of the generators).
+
+        - Every two strands cross each other at most once.
 
         OUTPUT:
 
@@ -1667,55 +1608,25 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
         EXAMPLES::
 
-            sage: B=BraidGroup(5)
-            sage: P=Permutation([5, 3, 1, 2, 4])
-            sage: B._permutation_braid_Tietze(P)
+            sage: B = BraidGroup(5)
+            sage: P = Permutation([5, 3, 1, 2, 4])
+            sage: B._standard_lift_Tietze(P)
             (1, 2, 1, 3, 2, 4)
         """
         if not p.length():
             return ()
         pl = p
         l = []
-        while pl.length() > 0:
+        while pl.length():
             i = 1
-            while i<max(pl):
-                if pl(i)>pl(i+1):
+            while i < max(pl):
+                if pl(i) > pl(i+1):
                     l.append(i)
-                    pl = Permutation([(i, i+1)])*pl
+                    pl = self._coxeter_group.simple_reflection(i) * pl
                     i = 1
                 else:
-                    i = i+1
+                    i += 1
         return tuple(l)
-
-    @cached_method
-    def _permutation_braid(self, p):
-        """
-        Return the braid that corresponds to the given permutation.
-
-        It is the only braid with the following properties:
-
-        - The braid induces the given permutation.
-
-        - The braid is positive (that is, it can be writen without using the inverses of the generators).
-
-        - Every two strands cross each other at most once.
-
-        INPUT:
-
-        - ``p`` -- a permutation.
-
-        OUTPUT:
-
-        The braid that corresponds to the permutation.
-
-        EXAMPLES::
-
-            sage: B = BraidGroup(5)
-            sage: P = Permutation([5, 3, 1, 2, 4])
-            sage: B._permutation_braid(P)
-            s0*s1*s0*s2*s1*s3
-        """
-        return self(self._permutation_braid_Tietze(p))
 
     @cached_method
     def _LKB_matrix_(self, braid, variab):
@@ -1817,7 +1728,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
 
     def dimension_of_TL_space(self, drain_size):
         """
-        Return the dimension of a particular Templerley--Lieb representation
+        Return the dimension of a particular Temperley--Lieb representation
         summand of ``self``.
 
         Following the notation of :meth:`TL_basis_with_drain`, the summand
@@ -1845,7 +1756,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B = BraidGroup(6)
             sage: dimensions = [B.dimension_of_TL_space(d)**2 for d in [0, 2, 4, 6]]
             sage: total_dim = sum(dimensions)
-            sage: total_dim == len(list(da.temperley_lieb_diagrams(6)))
+            sage: total_dim == len(list(da.temperley_lieb_diagrams(6)))  # long time
             True
         """
         n = self.strands()
@@ -1900,7 +1811,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
              [3, 2, 1, 2, 1, 0],
              [3, 2, 1, 0, 1, 0]]
 
-        The number of basis elements hopefully correponds to the general
+        The number of basis elements hopefully corresponds to the general
         formula for the dimension of the representation spaces::
 
             sage: B = BraidGroup(10)
@@ -2214,19 +2125,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             return self.mapping_class_action(S)
         return None
 
-    def Delta(self):
-        r"""
-        Return the `\Delta` element of the braid group.
-
-        EXAMPLES::
-
-            sage: B = BraidGroup(5)
-            sage: B.Delta()
-            s0*s1*s0*s2*s1*s0*s3*s2*s1*s0
-        """
-        n = self.strands()
-        delta = Permutation([n-i for i in range(n)])
-        return self._permutation_braid(delta)
+    Delta = deprecated_function_alias(24664, FiniteTypeArtinGroup.delta)
 
     def _element_from_libbraiding(self, nf):
         """
@@ -2246,9 +2145,9 @@ class BraidGroup_class(FinitelyPresentedGroup):
             1
         """
         if len(nf) == 1:
-            return self.Delta() ** nf[0][0]
+            return self.delta() ** nf[0][0]
         from sage.misc.misc_c import prod
-        return self.Delta() ** nf[0][0] * prod(self(i) for i in nf[1:])
+        return self.delta() ** nf[0][0] * prod(self(i) for i in nf[1:])
 
 
 def BraidGroup(n=None, names='s'):
@@ -2356,7 +2255,7 @@ class MappingClassGroupAction(Action):
     You should left multiplication of the free group element by the
     braid to compute the action. Alternatively, use the
     :meth:`~sage.groups.braid.BraidGroup_class.mapping_class_action`
-    method of the braid group to constuct this action.
+    method of the braid group to construct this action.
 
     EXAMPLES::
 
@@ -2439,3 +2338,4 @@ class MappingClassGroupAction(Action):
                     s += [i]
             t = s
         return self.codomain()(t)
+

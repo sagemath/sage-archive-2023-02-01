@@ -40,21 +40,20 @@ from __future__ import print_function
 from __future__ import absolute_import
 import operator
 from sage.structure.element import ModuleElement
-from sage.structure.sage_object import op_EQ, op_NE
+from sage.structure.richcmp import op_EQ, op_NE
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
 from sage.rings.padics.factory import Qp
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.arith.all import next_prime, binomial, gcd, kronecker
+from sage.arith.all import next_prime, gcd, kronecker
 from sage.misc.misc import verbose
 from sage.rings.padics.precision_error import PrecisionError
 
 from sage.categories.action import Action
 from .manin_map import ManinMap
 from .sigma0 import Sigma0
-from sage.misc.misc import walltime
 from .fund_domain import M2Z
 
 minusproj = [1, 0, 0, -1]
@@ -92,7 +91,7 @@ def _iterate_Up(Phi, p, M, ap, q, aq, check):
     if ap.valuation(p) > 0:
         raise ValueError("Lifting non-ordinary eigensymbols not implemented (issue #20)")
 
-    ## Act by Hecke to ensure values are in D and not D^dag after sovling difference equation
+    ## Act by Hecke to ensure values are in D and not D^dag after solving difference equation
     verbose("Applying Hecke", level = 2)
 
     apinv = ~ap
@@ -200,6 +199,7 @@ class PSModularSymbolElement(ModuleElement):
         forms!
 
         EXAMPLES::
+
             sage: E = EllipticCurve('11a')
             sage: phi = E.pollack_stevens_modular_symbol()
             sage: phi.weight()
@@ -214,17 +214,17 @@ class PSModularSymbolElement(ModuleElement):
 
         EXAMPLES::
 
-             sage: E = EllipticCurve('11a')
-             sage: phi = E.pollack_stevens_modular_symbol()
-             sage: phi.values()
-             [-1/5, 1, 0]
-             sage: phi.dict().keys()
-             [
-             [1 0]  [ 0 -1]  [-1 -1]
-             [0 1], [ 1  3], [ 3  2]
-             ]
-             sage: phi.values() == phi.dict().values()
-             True
+            sage: E = EllipticCurve('11a')
+            sage: phi = E.pollack_stevens_modular_symbol()
+            sage: phi.values()
+            [-1/5, 1, 0]
+            sage: sorted(phi.dict())
+            [
+            [-1 -1]  [ 0 -1]  [1 0]
+            [ 3  2], [ 1  3], [0 1]
+            ]
+            sage: sorted(phi.values()) == sorted(phi.dict().values())
+            True
         """
         return [self._map[g] for g in self.parent().source().gens()]
 
@@ -429,7 +429,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        - self - self | [1,0,0,-1]
+        - self -- self | [1,0,0,-1]
 
         EXAMPLES::
 
@@ -457,7 +457,7 @@ class PSModularSymbolElement(ModuleElement):
 
         OUTPUT:
 
-        - The image of this element under the hecke operator
+        - The image of this element under the Hecke operator
           `T_{\ell}`
 
         ALGORITHMS:
@@ -600,7 +600,7 @@ class PSModularSymbolElement(ModuleElement):
             False
         """
         try:
-            aq = self.Tq_eigenvalue(q, p, M)
+            self.Tq_eigenvalue(q, p, M)
             return True
         except ValueError:
             return False
@@ -720,9 +720,7 @@ class PSModularSymbolElement(ModuleElement):
             sage: a = f[3]
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2))
-            False
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
+            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2)) !=  phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
             True
             sage: phi.is_ordinary(3)
             Traceback (most recent call last):
@@ -952,7 +950,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
 
     def p_stabilize(self, p=None, M=20, alpha=None, ap=None, new_base_ring=None, ordinary=True, check=True):
         r"""
-        Return the `p`-stablization of self to level `N p` on which `U_p` acts by `\alpha`.
+        Return the `p`-stabilization of self to level `N p` on which `U_p` acts by `\alpha`.
 
         Note that since `\alpha` is `p`-adic, the resulting symbol
         is just an approximation to the true `p`-stabilization
@@ -1570,7 +1568,7 @@ class PSModularSymbolElement_dist(PSModularSymbolElement):
         """
         Return the `p`-adic L-series of this modular symbol.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EllipticCurve('37a')
             sage: phi = E.pollack_stevens_modular_symbol()

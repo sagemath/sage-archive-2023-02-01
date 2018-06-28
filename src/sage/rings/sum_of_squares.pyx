@@ -16,13 +16,11 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 from libc.math cimport sqrt
-
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 cimport sage.rings.integer as integer
 from . import integer
@@ -94,12 +92,14 @@ cdef int two_squares_c(uint_fast32_t n, uint_fast32_t res[2]):
 
     return 0
 
+
 cdef int three_squares_c(uint_fast32_t n, uint_fast32_t res[3]):
     r"""
-    Return ``1`` if ``n`` is a sum of three squares and ``0`` otherwise.
+    Return `1` if `n` is a sum of three squares and `0` otherwise.
 
-    If ``1`` is returned, the the value of ``res[0]``, ``res[1]`` and ``res[2]``
-    are set to a solution of `a^2 + b^2 + c^2 = n` such that `a \leq b \leq c`.
+    If `1` is returned, then the values of ``res[0]``, ``res[1]`` and
+    ``res[2]`` are set to a solution of `a^2 + b^2 + c^2 = n` such
+    that `a \leq b \leq c`.
     """
     cdef uint_fast32_t fac,i
 
@@ -195,7 +195,7 @@ def is_sum_of_two_squares_pyx(uint32_t n):
     EXAMPLES::
 
         sage: from sage.rings.sum_of_squares import is_sum_of_two_squares_pyx
-        sage: filter(is_sum_of_two_squares_pyx, range(30))
+        sage: [x for x in range(30) if is_sum_of_two_squares_pyx(x)]
         [0, 1, 2, 4, 5, 8, 9, 10, 13, 16, 17, 18, 20, 25, 26, 29]
 
         sage: is_sum_of_two_squares_pyx(2**32)

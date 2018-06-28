@@ -1,10 +1,6 @@
 """
 Symbolic matrices
 
-Matrices with symbolic entries.  The underlying representation is a
-pointer to a Maxima object.
-
-
 EXAMPLES::
 
     sage: matrix(SR, 2, 2, range(4))
@@ -83,9 +79,9 @@ Test pickling::
 Comparison::
 
     sage: m = matrix(SR, 2, [sqrt(2), 3, pi, e])
-    sage: cmp(m,m)
-    0
-    sage: cmp(m,3) != 0
+    sage: m == m
+    True
+    sage: m != 3
     True
     sage: m = matrix(SR,2,[1..4]); n = m^2
     sage: (exp(m+n) - exp(m)*exp(n)).simplify_rational() == 0       # indirect test
@@ -146,6 +142,16 @@ Conversion to Maxima::
     sage: m._maxima_()
     matrix([sqrt(2),3],[%pi,%e])
 
+TESTS:
+
+Check that :trac:`12778` is fixed::
+
+    sage: M = Matrix([[1, 0.9, 1/5, x^2], [2, 1.9, 2/5, x^3], [3, 2.9, 3/5, x^4]]); M
+    [                1 0.900000000000000               1/5               x^2]
+    [                2  1.90000000000000               2/5               x^3]
+    [                3  2.90000000000000               3/5               x^4]
+    sage: parent(M)
+    Full MatrixSpace of 3 by 4 dense matrices over Symbolic Ring
 """
 from __future__ import absolute_import
 
@@ -253,12 +259,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             [(-1, [(1, 0, -1, 1, 0, -1), (0, 1, -1, 0, 1, -1)], 2), (1, [(1, 0, -1, -1, 0, 1), (0, 1, 1, 0, -1, -1)], 2), (-2, [(1, -1, 1, -1, 1, -1)], 1), (2, [(1, 1, 1, 1, 1, 1)], 1)]
         """
         from sage.modules.free_module_element import vector
-        from sage.all import ZZ
+        from sage.rings.integer_ring import ZZ
 
-        [evals,mults],evecs=self.transpose()._maxima_(maxima).eigenvectors()._sage_()
-        result=[]
-        for e,evec,m in zip(evals,evecs,mults):
-            result.append((e,[vector(v) for v in evec], ZZ(m)))
+        [evals, mults], evecs = self.transpose()._maxima_(maxima).eigenvectors()._sage_()
+        result = []
+        for e, evec, m in zip(evals, evecs, mults):
+            result.append((e, [vector(v) for v in evec], ZZ(m)))
 
         return result
 
@@ -385,6 +391,14 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
     def charpoly(self, var='x', algorithm=None):
         """
         Compute the characteristic polynomial of self, using maxima.
+
+        .. NOTE::
+
+            The characteristic polynomial is defined as `\det(xI-A)`.
+
+        INPUT:
+
+        - ``var`` - (default: 'x') name of variable of charpoly
 
         EXAMPLES::
 

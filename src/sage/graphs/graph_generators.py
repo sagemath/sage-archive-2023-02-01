@@ -15,7 +15,7 @@ To get a path with 4 vertices, and the house graph::
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
 """
-from __future__ import print_function, absolute_import
+from __future__ import print_function, absolute_import, division
 from six.moves import range
 
 # This method appends a list of methods to the doc as a 3xN table.
@@ -55,7 +55,8 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["BullGraph",
+    ["AztecDiamondGraph",
+     "BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -64,6 +65,7 @@ __append_to_doc(
      "CompleteGraph",
      "CompleteMultipartiteGraph",
      "DiamondGraph",
+     "DipoleGraph",
      "EmptyGraph",
      "Grid2dGraph",
      "GridGraph",
@@ -73,6 +75,7 @@ __append_to_doc(
      "LollipopGraph",
      "PathGraph",
      "StarGraph",
+     "TadpoleGraph",
      "ToroidalGrid2dGraph",
      "Toroidal6RegularGrid2dGraph"]
     )
@@ -166,6 +169,8 @@ __append_to_doc(
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
+     "U42Graph216",
+     "U42Graph540",
      "WagnerGraph",
      "WatkinsSnarkGraph",
      "WellsGraph",
@@ -237,7 +242,8 @@ __append_to_doc(
      "trees",
      "triangulations",
      "TuranGraph",
-     "WheelGraph"])
+     "WheelGraph",
+     "WindmillGraph"])
 
 
 __doc__ += """
@@ -258,6 +264,7 @@ __append_to_doc(
      "TaylorTwographDescendantSRG",
      "TaylorTwographSRG",
      "T2starGeneralizedQuadrangleGraph",
+     "Nowhere0WordsTwoWeightCodeGraph",
      "HaemersGraph",
      "CossidentePenttilaGraph",
      "UnitaryDualPolarGraph",
@@ -297,6 +304,7 @@ __append_to_doc(
     ["RandomBarabasiAlbert",
      "RandomBicubicPlanar",
      "RandomBipartite",
+     "RandomBlockGraph",
      "RandomBoundedToleranceGraph",
      "RandomGNM",
      "RandomGNP",
@@ -327,7 +335,10 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["WorldMap"]
+    ["WorldMap",
+     "EuropeMap",
+     "AfricaMap",
+     "USAMap"]
     )
 
 __doc__ += """
@@ -410,6 +421,7 @@ Functions and methods
 from . import graph
 import sage.graphs.strongly_regular_db
 
+
 class GraphGenerators():
     r"""
     A class consisting of constructors for several common graphs, as well as
@@ -442,7 +454,8 @@ class GraphGenerators():
 
     INPUT:
 
-    - ``vertices`` -- natural number.
+    - ``vertices`` -- a natural number or ``None`` to infinitely generate
+      bigger and bigger graphs.
 
     - ``property`` -- (default: ``lambda x: True``) any property to be
       tested on graphs before generation, but note that in general the
@@ -460,7 +473,7 @@ class GraphGenerators():
     - ``augment`` -- (default: ``'edges'``) possible values:
 
       - ``'edges'`` -- augments a fixed number of vertices by
-        adding one edge. In this case, all graphs on exactly ``n=vertices`` are
+        adding one edge. In this case, all graphs on *exactly* ``n=vertices`` are
         generated. If for any graph G satisfying the property, every
         subgraph, obtained from G by deleting one edge but not the vertices
         incident to that edge, satisfies the property, then this will
@@ -469,7 +482,7 @@ class GraphGenerators():
         be some missing.
 
       - ``'vertices'`` -- augments by adding a vertex and
-        edges incident to that vertex. In this case, all graphs up to
+        edges incident to that vertex. In this case, all graphs *up to*
         ``n=vertices`` are generated. If for any graph G satisfying the
         property, every subgraph, obtained from G by deleting one vertex
         and only edges incident to that vertex, satisfies the property,
@@ -499,7 +512,7 @@ class GraphGenerators():
       is working on. The second alternative is faster, but modifying
       any of the graph instances returned by the method may break
       the function's behaviour, as it is using these graphs to
-      compute the next ones : only use ``copy_graph = False`` when
+      compute the next ones: only use ``copy = False`` when
       you stick to *reading* the graphs returned.
 
     EXAMPLES:
@@ -678,7 +691,7 @@ class GraphGenerators():
 #   Graph Iterators
 ###########################################################################
 
-    def __call__(self, vertices=None, property=lambda x: True, augment='edges',
+    def __call__(self, vertices=None, property=None, augment='edges',
         size=None, degree_sequence=None, loops=False, implementation='c_graph',
         sparse=True, copy = True):
         """
@@ -725,8 +738,18 @@ class GraphGenerators():
           Journal of Algorithms Volume 26, Issue 2, February 1998,
           pages 306-324.
         """
+        # Use nauty for the basic case, as it is much faster.
+        if (vertices and property is None and size is None and
+            degree_sequence is None and not loops and augment == 'edges' and
+            implementation == 'c_graph' and sparse and copy):
+            for g in graphs.nauty_geng(vertices):
+                yield g
+            return
+
+        if property is None:
+            property = lambda x: True
+
         from sage.graphs.all import Graph
-        from sage.misc.superseded import deprecation
         from copy import copy as copyfun
 
         if degree_sequence is not None:
@@ -848,7 +871,7 @@ class GraphGenerators():
             sage: next(gen)
             Traceback (most recent call last):
             ...
-            StopIteration: Exhausted list of graphs from nauty geng
+            StopIteration
 
         A list of all graphs on 7 vertices.  This agrees with
         :oeis:`A000088`.  ::
@@ -885,7 +908,8 @@ class GraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
             G = graph.Graph(s[:-1], format='graph6')
             yield G
 
@@ -920,7 +944,7 @@ class GraphGenerators():
         OUTPUT:
 
            A list of lists of graphs.  Each sublist will be a list of
-           cospectral graphs (lists of cadinality 1 being omitted).
+           cospectral graphs (lists of cardinality 1 being omitted).
 
 
         .. SEEALSO::
@@ -985,9 +1009,9 @@ class GraphGenerators():
         """
         from sage.graphs.all import graphs as graph_gen
         if graphs is None:
-            graph_list=graph_gen(vertices)
+            graph_list=graph_gen(vertices, property=lambda _: True)
         elif callable(graphs):
-            graph_list=iter(g for g in graph_gen(vertices) if graphs(g))
+            graph_list=iter(g for g in graph_gen(vertices, property=lambda _: True) if graphs(g))
         else:
             graph_list=iter(graphs)
 
@@ -1043,9 +1067,9 @@ class GraphGenerators():
 
             sage: from six import StringIO
             sage: code_input = StringIO('>>planar_code<<')
-            sage: code_input.write('>>planar_code<<')
+            sage: _ = code_input.write('>>planar_code<<')
             sage: for c in [4,2,3,4,0,1,4,3,0,1,2,4,0,1,3,2,0]:
-            ....:     code_input.write('{:c}'.format(c))
+            ....:     _ = code_input.write('{:c}'.format(c))
             sage: code_input.seek(0)
             sage: gen = graphs._read_planar_code(code_input)
             sage: l = list(gen)
@@ -1107,7 +1131,7 @@ class GraphGenerators():
             for i, di in enumerate(g):
                 Ni = di.count(i + 1)
                 if Ni > 1:
-                    edges_g[i + 1] += [i + 1] * (Ni / 2)
+                    edges_g[i + 1] += [i + 1] * (Ni // 2)
                     has_loops = True
             G = graph.Graph(edges_g, loops=has_loops)
 
@@ -1198,22 +1222,21 @@ class GraphGenerators():
         .. [buckygen] \G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
           Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("buckygen"):
-            raise TypeError("the optional buckygen package is not installed")
-
         # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("number of vertices should be non-negative")
 
         # buckygen can only output fullerenes on up to 254 vertices
         if order > 254:
-            raise ValueError("Number of vertices should be at most 254.")
+            raise ValueError("number of vertices should be at most 254")
 
         # fullerenes only exist for an even number of vertices, larger than 20
         # and different from 22
         if order % 2 == 1 or order < 20 or order == 22:
             return
+
+        from sage.features.graph_generators import Buckygen
+        Buckygen().require()
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
@@ -1283,17 +1306,12 @@ class GraphGenerators():
         .. [benzene] \G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
           Journal of Algorithms, 45:155-166, 2002.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("benzene"):
-            raise TypeError("the optional benzene package is not installed")
-
-        # number of hexagons should be positive
         if hexagon_count < 0:
-            raise ValueError("Number of hexagons should be positive.")
+            raise ValueError("number of hexagons should be non-negative")
 
         # benzene is only built for fusenes with up to 30 hexagons
         if hexagon_count > 30:
-            raise ValueError("Number of hexagons should be at most 30.")
+            raise ValueError("number of hexagons should be at most 30")
 
         # there are no fusenes with 0 hexagons
         if hexagon_count == 0:
@@ -1306,6 +1324,9 @@ class GraphGenerators():
             G.set_embedding(g)
             yield(G)
             return
+
+        from sage.features.graph_generators import Benzene
+        Benzene().require()
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
 
@@ -1436,22 +1457,16 @@ class GraphGenerators():
         .. [plantri] \G. Brinkmann and B.D. McKay, Fast generation of planar graphs,
            MATCH-Communications in Mathematical and in Computer Chemistry, 58(2):323-357, 2007.
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
-
-        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("number of vertices should be non-negative")
 
         # plantri can only output general planar graphs on up to 64 vertices
         if order > 64:
-            raise ValueError("Number of vertices should be at most 64.")
+            raise ValueError("number of vertices should be at most 64")
 
         if exact_connectivity and minimum_connectivity is None:
             raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
 
-        # minimum connectivity should be None or a number between 1 and 3
         if minimum_connectivity is  not None and not (1 <= minimum_connectivity <= 3):
             raise ValueError("Minimum connectivity should be a number between 1 and 3.")
 
@@ -1498,6 +1513,9 @@ class GraphGenerators():
                 G.set_embedding({0: []})
                 yield(G)
             return
+
+        from sage.features.graph_generators import Plantri
+        Plantri().require()
 
         cmd = 'plantri -p{}m{}c{}{}{} {}'
         command = cmd.format('b' if only_bipartite else '',
@@ -1635,26 +1653,19 @@ class GraphGenerators():
             sage: [g.size() for g in graphs.triangulations(6, minimum_connectivity=3)] # optional plantri
             [12, 12]
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
-
-        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("number of vertices should be non-negative")
 
         # plantri can only output planar triangulations on up to 64 vertices
         if order > 64:
-            raise ValueError("Number of vertices should be at most 64.")
+            raise ValueError("number of vertices should be at most 64")
 
         if exact_connectivity and minimum_connectivity is None:
             raise ValueError("Minimum connectivity must be specified to use the exact_connectivity option.")
 
-        # minimum connectivity should be None or a number between 3 and 5
         if minimum_connectivity is  not None and not (3 <= minimum_connectivity <= 5):
             raise ValueError("Minimum connectivity should be None or a number between 3 and 5.")
 
-        # minimum degree should be None or a number between 3 and 5
         if minimum_degree is  not None and not (3 <= minimum_degree <= 5):
             raise ValueError("Minimum degree should be None or a number between 3 and 5.")
 
@@ -1685,6 +1696,9 @@ class GraphGenerators():
 
         if only_eulerian and order < 6:
             return
+
+        from sage.features.graph_generators import Plantri
+        Plantri().require()
 
         cmd = 'plantri -{}m{}c{}{}{} {}'
         command = cmd.format('b' if only_eulerian else '',
@@ -1789,23 +1803,16 @@ class GraphGenerators():
             sage: [len(g) for g in graphs.quadrangulations(12, no_nonfacial_quadrangles=True, dual=True)]  # optional plantri
             [10, 10]
         """
-        from sage.misc.package import is_package_installed
-        if not is_package_installed("plantri"):
-            raise TypeError("the optional plantri package is not installed")
-
-        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive.")
+            raise ValueError("number of vertices should be non-negative")
 
         # plantri can only output planar quadrangulations on up to 64 vertices
         if order > 64:
-            raise ValueError("Number of vertices should be at most 64.")
+            raise ValueError("number of vertices should be at most 64")
 
-        # minimum connectivity should be None, 2 or 3
         if minimum_connectivity not in {None, 2, 3}:
             raise ValueError("Minimum connectivity should be None, 2 or 3.")
 
-        # minimum degree should be None, 2 or 3
         if minimum_degree not in {None, 2, 3}:
             raise ValueError("Minimum degree should be None, 2 or 3.")
 
@@ -1834,6 +1841,8 @@ class GraphGenerators():
             # for plantri -q the option -c4 means 3-connected with no non-facial quadrangles
             minimum_connectivity = 4
 
+        from sage.features.graph_generators import Plantri
+        Plantri().require()
 
         cmd = 'plantri -qm{}c{}{} {}'
         command = cmd.format(minimum_degree,
@@ -1868,7 +1877,6 @@ class GraphGenerators():
     HouseGraph               = staticmethod(sage.graphs.generators.basic.HouseGraph)
     HouseXGraph              = staticmethod(sage.graphs.generators.basic.HouseXGraph)
     LadderGraph              = staticmethod(sage.graphs.generators.basic.LadderGraph)
-    LollipopGraph            = staticmethod(sage.graphs.generators.basic.LollipopGraph)
     PathGraph                = staticmethod(sage.graphs.generators.basic.PathGraph)
     StarGraph                = staticmethod(sage.graphs.generators.basic.StarGraph)
     Toroidal6RegularGrid2dGraph = staticmethod(sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph)
@@ -1960,6 +1968,8 @@ class GraphGenerators():
     TruncatedTetrahedralGraph= staticmethod(sage.graphs.generators.smallgraphs.TruncatedTetrahedralGraph)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
+    U42Graph216              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph216)
+    U42Graph540              = staticmethod(sage.graphs.generators.smallgraphs.U42Graph540)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
     WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
@@ -1979,12 +1989,14 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    AztecDiamondGraph      = staticmethod(sage.graphs.generators.families.AztecDiamondGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
+    DipoleGraph            = staticmethod(sage.graphs.generators.families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
@@ -1999,6 +2011,7 @@ class GraphGenerators():
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    LollipopGraph          = staticmethod(sage.graphs.generators.families.LollipopGraph)
     MathonPseudocyclicMergingGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicMergingGraph)
     MathonPseudocyclicStronglyRegularGraph = staticmethod(sage.graphs.generators.families.MathonPseudocyclicStronglyRegularGraph)
     MuzychukS6Graph        = staticmethod(sage.graphs.generators.families.MuzychukS6Graph)
@@ -2015,9 +2028,11 @@ class GraphGenerators():
     SquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SquaredSkewHadamardMatrixGraph)
     SwitchedSquaredSkewHadamardMatrixGraph = staticmethod(sage.graphs.generators.families.SwitchedSquaredSkewHadamardMatrixGraph)
     strongly_regular_graph = staticmethod(sage.graphs.strongly_regular_db.strongly_regular_graph)
+    TadpoleGraph           = staticmethod(sage.graphs.generators.families.TadpoleGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
     TuranGraph             = staticmethod(sage.graphs.generators.families.TuranGraph)
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
+    WindmillGraph          = staticmethod(sage.graphs.generators.families.WindmillGraph)
 
 ###########################################################################
 # Graphs from classical geometries over `F_q`
@@ -2029,12 +2044,12 @@ class GraphGenerators():
     NonisotropicUnitaryPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.NonisotropicUnitaryPolarGraph)
     OrthogonalPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.OrthogonalPolarGraph)
     SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
-    SymplecticGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticGraph)
     SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
              staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
+    Nowhere0WordsTwoWeightCodeGraph = staticmethod(sage.graphs.generators.classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
     HaemersGraph      = staticmethod(sage.graphs.generators.classical_geometries.HaemersGraph)
     CossidentePenttilaGraph = staticmethod(sage.graphs.generators.classical_geometries.CossidentePenttilaGraph)
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
@@ -2068,6 +2083,7 @@ class GraphGenerators():
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
     RandomBicubicPlanar      = staticmethod(sage.graphs.generators.random.RandomBicubicPlanar)
+    RandomBlockGraph         = staticmethod(sage.graphs.generators.random.RandomBlockGraph)
     RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
@@ -2083,10 +2099,13 @@ class GraphGenerators():
     RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
 ###########################################################################
-# World Map
+# Maps
 ###########################################################################
     import sage.graphs.generators.world_map
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
+    EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
+    AfricaMap = staticmethod(sage.graphs.generators.world_map.AfricaMap)
+    USAMap = staticmethod(sage.graphs.generators.world_map.USAMap)
 
 ###########################################################################
 # Degree Sequence
@@ -2212,7 +2231,7 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
             edges = []
             if dig:
                 index = 0
-                while index < possibilities/2:
+                while 2 * index < possibilities:
                     if (1 << index)&i:
                         edges.append((index,n))
                     index += 1
@@ -2262,7 +2281,7 @@ def check_aut(aut_gens, cut_vert, n):
     an element of the auto- morphism group that sends cut_vert to n,
     and check_aut generates these for the canaug_traverse function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2466,7 +2485,7 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
     j}, and check_aut generates these for the canaug_traverse
     function.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Note that the last two entries indicate that none of the
     automorphism group has yet been searched - we are starting at the
@@ -2494,7 +2513,6 @@ def check_aut_edge(aut_gens, cut_edge, i, j, n, dig=False):
                     yield new_perm
                 if not dig and new_perm[cut_edge[0]] == j and new_perm[cut_edge[1]] == i:
                     yield new_perm
-
 
 # Easy access to the graph generators from the command line:
 graphs = GraphGenerators()

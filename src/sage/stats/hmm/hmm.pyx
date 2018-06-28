@@ -21,21 +21,23 @@ AUTHOR:
    - William Stein, 2010-03
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2010 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL) v2+.
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
+
 from __future__ import print_function
 
-include "cysignals/signals.pxi"
-
-cdef extern from "math.h":
-    double log(double)
+from libc.math cimport log
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.finance.time_series cimport TimeSeries
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.matrix.all import matrix
 from sage.misc.randstate cimport current_randstate, randstate
 from cpython.object cimport PyObject_RichCompare
@@ -61,7 +63,7 @@ cdef class HiddenMarkovModel:
             sage: pi = m.initial_probabilities(); pi
             [0.2000, 0.8000]
             sage: type(pi)
-            <type 'sage.finance.time_series.TimeSeries'>
+            <... 'sage.finance.time_series.TimeSeries'>
 
         The returned time series is a copy, so changing it does not
         change the model.
@@ -412,7 +414,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
 
 
     def __repr__(self):
-        """
+        r"""
         Return string representation of this discrete hidden Markov model.
 
         EXAMPLES::

@@ -1,4 +1,4 @@
-## -*- encoding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 """
 Parsing docstrings
 
@@ -22,19 +22,24 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from sage.misc.six import u
+import six
+from six import text_type
 
-import re, sys
+import re
+import sys
 import doctest
 import collections
 from sage.repl.preparse import preparse, strip_string_literals
+from Cython.Build.Dependencies import strip_string_literals as cython_strip_string_literals
 from functools import reduce
+
 
 from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -55,13 +60,149 @@ RIFtol = RealIntervalField(64)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
 #
-#ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
-#
-# Unfortunately, we cannot use this, since the \x9b might be part of
-# a UTF-8 character. Once we have a unicode-aware doctest framework, we
-# should use the correct pattern including \x9b. For now, we use this
-# form without \x9b:
-ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
+ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
+
+
+def remove_unicode_u(string):
+    """
+    Given a string, try to remove all unicode u prefixes inside.
+
+    This will help to keep the same doctest results in Python2 and Python3.
+    The input string is typically the documentation of a method or function.
+    This string may contain some letters u that are unicode python2 prefixes.
+    The aim is to remove all of these u and only them.
+
+    INPUT:
+
+    - ``string`` -- either ``unicode`` or ``bytes`` (if ``bytes``, it
+      will be converted to ``unicode`` assuming UTF-8)
+
+    OUTPUT: ``unicode`` string
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import remove_unicode_u as remu
+        sage: remu("u'you'")
+        u"'you'"
+        sage: remu('u')
+        u'u'
+        sage: remu("[u'am', 'stram', u'gram']")
+        u"['am', 'stram', 'gram']"
+        sage: remu('[u"am", "stram", u"gram"]')
+        u'["am", "stram", "gram"]'
+
+    This deals correctly with nested quotes::
+
+        sage: str = '''[u"Singular's stuff", u'good']'''
+        sage: print(remu(str))
+        ["Singular's stuff", 'good']
+
+    TESTS:
+
+    This supports python2 str type as input::
+
+        sage: euro = "'€'"
+        sage: print(remu(euro))
+        '€'
+    """
+    stripped, replacements = cython_strip_string_literals(u(string),
+                                                          "__remove_unicode_u")
+    string = stripped.replace('u"', '"').replace("u'", "'")
+    for magic, literal in replacements.items():
+        string = string.replace(magic, literal)
+    return string
+
+
+_type_repr_re = re.compile(r"<type '(?P<name>[^']+)'>")
+
+def normalize_type_repr(s):
+    r"""
+    Convert the repr of type objects (e.g. ``int``, ``float``) from their
+    Python 2 representation to their Python 3 representation.
+
+    In Python 2, the repr of built-in types like ``int`` is like
+    ``<type 'int'>``, whereas user-defined pure Python classes are displayed
+    as ``<class 'classname'>``.  On Python 3 this was normalized so that
+    built-in types are represented the same as user-defined classes (e.g.
+    ``<class 'int'>``.
+
+    This simply normalizes all class/type reprs to the Python 3 convention for
+    the sake of output checking.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.parsing import normalize_type_repr
+        sage: s = "<type 'int'>"
+        sage: normalize_type_repr(s)
+        "<class 'int'>"
+        sage: normalize_type_repr(repr(float))
+        "<class 'float'>"
+
+    This can work on multi-line output as well::
+
+        sage: s = "The desired output was <class 'int'>\n"
+        sage: s += "The received output was <type 'int'>"
+        sage: print(normalize_type_repr(s))
+        The desired output was <class 'int'>
+        The received output was <class 'int'>
+
+    And should work when types are embedded in other nested expressions::
+
+        sage: normalize_type_repr(repr([Integer, float]))
+        "[<class 'sage.rings.integer.Integer'>, <class 'float'>]"
+    """
+
+    def subst(m):
+        return "<class '{0}'>".format(m.group('name'))
+
+    return _type_repr_re.sub(subst, s)
+
+
+_long_repr_re = re.compile(r'([+-]?[0-9]+)[lL]')
+def normalize_long_repr(s):
+    """
+    Simple conversion from Python 2 representation of ``long`` ints (that
+    is, integers with the ``L``) suffix, to the Python 3 representation
+    (same number, without the suffix, since Python 3 doesn't have a
+    distinct ``long`` type).
+
+    Note: This just uses a simple regular expression that can't distinguish
+    representations of long objects from strings containing a long repr.
+
+    EXAMPLES::
+        sage: from sage.doctest.parsing import normalize_long_repr
+        sage: normalize_long_repr('10L')
+        '10'
+        sage: normalize_long_repr('[10L, -10L, +10L, "ALL"]')
+        '[10, -10, +10, "ALL"]'
+    """
+
+    return _long_repr_re.sub(lambda m: m.group(1), s)
+
+
+# Collection of fixups applied in the SageOutputChecker.  Each element in this
+# this list a pair of functions applied to the actual test output ('g' for
+# "got") and the expected test output ('w' for "wanted").  The first function
+# should be a simple fast test on the expected and/or actual output to
+# determine if a fixup should be applied.  The second function is the actual
+# fixup, which is applied if the test function passes.  In most fixups only one
+# of the expected or recevied outputs are normalized, depending on the
+# application.
+# For example, on Python 3 we strip all u prefixes from unicode strings in the
+# expected output, because we never expect to see those on Python 3.
+if six.PY2:
+    _repr_fixups = []
+else:
+    _repr_fixups = [
+        (lambda g, w: 'u"' in w or "u'" in w,
+         lambda g, w: (g, remove_unicode_u(w))),
+
+        (lambda g, w: '<class' in g and '<type' in w,
+         lambda g, w: (g, normalize_type_repr(w))),
+
+        (lambda g, w: 'L' in w or 'l' in w,
+         lambda g, w: (g, normalize_long_repr(w)))
+    ]
 
 
 def parse_optional_tags(string):
@@ -73,6 +214,8 @@ def parse_optional_tags(string):
     - 'not implemented'
     - 'not tested'
     - 'known bug'
+    - 'py2'
+    - 'py3'
     - 'optional: PKG_NAME' -- the set will just contain 'PKG_NAME'
 
     EXAMPLES::
@@ -218,9 +361,9 @@ def get_source(example):
 
 def reduce_hex(fingerprints):
     """
-    Returns a symmetric function of the arguments as hex strings.
+    Return a symmetric function of the arguments as hex strings.
 
-    The arguments should be 32 character strings consiting of hex
+    The arguments should be 32 character strings consisting of hex
     digits: 0-9 and a-f.
 
     EXAMPLES::
@@ -238,7 +381,7 @@ def reduce_hex(fingerprints):
     return "%032x" % res
 
 
-class MarkedOutput(str):
+class MarkedOutput(text_type):
     """
     A subclass of string with context for whether another string
     matches it.
@@ -250,9 +393,12 @@ class MarkedOutput(str):
         sage: s.rel_tol
         0
         sage: s.update(rel_tol = .05)
-        'abc'
+        u'abc'
         sage: s.rel_tol
         0.0500000000000000
+
+        sage: MarkedOutput(u"56 µs")
+        u'56 \xb5s'
     """
     random = False
     rel_tol = 0
@@ -265,7 +411,7 @@ class MarkedOutput(str):
             sage: from sage.doctest.parsing import MarkedOutput
             sage: s = MarkedOutput("0.0007401")
             sage: s.update(abs_tol = .0000001)
-            '0.0007401'
+            u'0.0007401'
             sage: s.rel_tol
             0
             sage: s.abs_tol
@@ -283,7 +429,7 @@ class MarkedOutput(str):
             sage: from sage.doctest.parsing import MarkedOutput
             sage: s = MarkedOutput("0.0007401")
             sage: s.update(abs_tol = .0000001)
-            '0.0007401'
+            u'0.0007401'
             sage: t = loads(dumps(s)) # indirect doctest
             sage: t == s
             True
@@ -292,6 +438,7 @@ class MarkedOutput(str):
         """
         return make_marked_output, (str(self), self.__dict__)
 
+
 def make_marked_output(s, D):
     """
     Auxilliary function for pickling.
@@ -299,9 +446,9 @@ def make_marked_output(s, D):
     EXAMPLES::
 
         sage: from sage.doctest.parsing import make_marked_output
-        sage: s = make_marked_output("0.0007401",{'abs_tol':.0000001})
+        sage: s = make_marked_output("0.0007401", {'abs_tol':.0000001})
         sage: s
-        '0.0007401'
+        u'0.0007401'
         sage: s.abs_tol
         1.00000000000000e-7
     """
@@ -309,7 +456,8 @@ def make_marked_output(s, D):
     ans.__dict__.update(D)
     return ans
 
-class OriginalSource:
+
+class OriginalSource(object):
     r"""
     Context swapping out the pre-parsed source with the original for
     better reporting.
@@ -325,13 +473,13 @@ class OriginalSource:
         sage: doctests, extras = FDS.create_doctests(globals())
         sage: ex = doctests[0].examples[0]
         sage: ex.sage_source
-        'doctest_var = 42; doctest_var^2\n'
+        u'doctest_var = 42; doctest_var^2\n'
         sage: ex.source
-        'doctest_var = Integer(42); doctest_var**Integer(2)\n'
+        u'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         sage: from sage.doctest.parsing import OriginalSource
         sage: with OriginalSource(ex):
         ....:     ex.source
-        'doctest_var = 42; doctest_var^2\n'
+        u'doctest_var = 42; doctest_var^2\n'
     """
     def __init__(self, example):
         """
@@ -353,7 +501,7 @@ class OriginalSource:
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
             sage: OriginalSource(ex)
-            <sage.doctest.parsing.OriginalSource instance at ...>
+            <sage.doctest.parsing.OriginalSource object at ...>
         """
         self.example = example
 
@@ -373,7 +521,7 @@ class OriginalSource:
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
             ...
-            'doctest_var = 42; doctest_var^2\n'
+            u'doctest_var = 42; doctest_var^2\n'
         """
         if hasattr(self.example, 'sage_source'):
             self.old_source, self.example.source = self.example.source, self.example.sage_source
@@ -394,12 +542,13 @@ class OriginalSource:
             sage: with OriginalSource(ex): # indirect doctest
             ....:     ex.source
             ...
-            'doctest_var = 42; doctest_var^2\n'
+            u'doctest_var = 42; doctest_var^2\n'
             sage: ex.source # indirect doctest
-            'doctest_var = Integer(42); doctest_var**Integer(2)\n'
+            u'doctest_var = Integer(42); doctest_var**Integer(2)\n'
         """
         if hasattr(self.example, 'sage_source'):
             self.example.source = self.old_source
+
 
 class SageDocTestParser(doctest.DocTestParser):
     """
@@ -441,7 +590,7 @@ class SageDocTestParser(doctest.DocTestParser):
             else:
                 self.optional_only = True
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         Comparison.
 
@@ -453,9 +602,23 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: DTP == DTP2
             False
         """
-        c = cmp(type(self), type(other))
-        if c: return c
-        return cmp(self.__dict__, other.__dict__)
+        if not isinstance(other, SageDocTestParser):
+            return False
+        return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        """
+        Test for unequality.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.parsing import SageDocTestParser
+            sage: DTP = SageDocTestParser(True, ('sage','magma','guava'))
+            sage: DTP2 = SageDocTestParser(False, ('sage','magma','guava'))
+            sage: DTP != DTP2
+            True
+        """
+        return not (self == other)
 
     def parse(self, string, *args):
         r"""
@@ -464,7 +627,7 @@ class SageDocTestParser(doctest.DocTestParser):
         INPUT:
 
         - ``string`` -- the string to parse.
-        - ``name`` -- optional string giving the name indentifying string,
+        - ``name`` -- optional string giving the name identifying string,
           to be used in error messages.
 
         OUTPUT:
@@ -503,7 +666,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: ex.sage_source
             'gamma(1.6) # tol 2.0e-11\n'
             sage: ex.want
-            '0.893515349287690\n'
+            u'0.893515349287690\n'
             sage: type(ex.want)
             <class 'sage.doctest.parsing.MarkedOutput'>
             sage: ex.want.tol
@@ -559,16 +722,19 @@ class SageDocTestParser(doctest.DocTestParser):
                 if optional_tags:
                     for tag in optional_tags:
                         self.optionals[tag] += 1
-                    if ('not implemented' in optional_tags) or ('not tested' in optional_tags):
+                    if (('not implemented' in optional_tags) or
+                            ('not tested' in optional_tags)):
                         continue
+
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
                         else:
                             continue
-                    if not self.optional_tags is True:
+
+                    if self.optional_tags is not True:
                         extra = optional_tags - self.optional_tags # set difference
-                        if len(extra) > 0:
+                        if extra:
                             if not('external' in self.optional_tags
                                    and available_software.issuperset(extra)):
                                 continue
@@ -601,7 +767,7 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: ex.sage_source
         'gamma(1.6) # tol 2.0e-11\n'
         sage: ex.want
-        '0.893515349287690\n'
+        u'0.893515349287690\n'
         sage: type(ex.want)
         <class 'sage.doctest.parsing.MarkedOutput'>
         sage: ex.want.tol
@@ -633,15 +799,15 @@ class SageOutputChecker(doctest.OutputChecker):
             ....:     'red\x1b[31m',
             ....:     'oscmd\x1ba'])
             sage: OC.human_readable_escape_sequences(teststr)
-            'bold<CSI-1m>-red<CSI-31m>-oscmd<ESC-a>'
+            u'bold<CSI-1m>-red<CSI-31m>-oscmd<ESC-a>'
         """
         def human_readable(match):
             ansi_escape = match.group(1)
             assert len(ansi_escape) >= 2
             if len(ansi_escape) == 2:
-                return '<ESC-'+ansi_escape[1]+'>'
+                return u'<ESC-'+ansi_escape[1]+u'>'
             else:
-                return '<CSI-'+ansi_escape.lstrip('\x1b[\x9b')+'>'
+                return u'<CSI-'+ansi_escape.lstrip(u'\x1b[\x9b')+u'>'
         return ansi_escape_sequence.subn(human_readable, string)[0]
 
     def add_tolerance(self, wantval, want):
@@ -797,6 +963,23 @@ class SageOutputChecker(doctest.OutputChecker):
 
             sage: print("[ - 1, 2]")  # abs tol 1e-10
             [-1,2]
+
+        Tolerance on Python 3 for string results with unicode prefix::
+
+            sage: a = u'Cyrano'; a
+            u'Cyrano'
+            sage: b = [u'Fermat', u'Euler']; b
+            [u'Fermat',  u'Euler']
+            sage: c = u'you'; c
+            u'you'
+
+        Also allowance for the difference in reprs of ``type`` instances (i.e.
+        classes) between Python 2 and Python 3::
+
+            sage: int
+            <type 'int'>
+            sage: float
+            <type 'float'>
         """
         got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
@@ -820,8 +1003,24 @@ class SageOutputChecker(doctest.OutputChecker):
                 # The doctest is successful if the "want" and "got"
                 # intervals have a non-empty intersection
                 return all(a.overlaps(b) for a, b in zip(want_intervals, got_values))
+
         ok = doctest.OutputChecker.check_output(self, want, got, optionflags)
-        return ok
+
+        if ok:
+            return ok
+
+        did_fixup = False
+        for quick_check, fixup in _repr_fixups:
+            do_fixup = quick_check(got, want)
+            if do_fixup:
+                got, want = fixup(got, want)
+                did_fixup = True
+
+        if not did_fixup:
+            # Return the same result as before
+            return ok
+
+        return doctest.OutputChecker.check_output(self, want, got, optionflags)
 
     def output_difference(self, example, got, optionflags):
         r"""

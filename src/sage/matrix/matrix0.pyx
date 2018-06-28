@@ -22,21 +22,24 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cpython cimport *
+from cysignals.signals cimport sig_check
 
 import sage.modules.free_module
 import sage.misc.latex
 import sage.rings.integer
 
-from   sage.misc.misc import verbose, get_verbose
-from   sage.structure.sequence import Sequence
+from sage.arith.power cimport generic_power
+from sage.misc.misc import verbose, get_verbose
+from sage.structure.sequence import Sequence
+from sage.structure.parent cimport Parent
 
 cimport sage.structure.element
-from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
-from   sage.structure.mutability cimport Mutability
-from   sage.misc.misc_c cimport normalize_index
+from sage.structure.element cimport ModuleElement, Element, RingElement, Vector
+from sage.structure.mutability cimport Mutability
+from sage.misc.misc_c cimport normalize_index
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
@@ -44,7 +47,7 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 import sage.modules.free_module
 
-import matrix_misc
+from .matrix_misc import row_iterator
 
 
 cdef class Matrix(sage.structure.element.Matrix):
@@ -91,17 +94,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         [1]
         [2]
     """
-    def __init__(self, parent):
+    def __cinit__(self, parent, *args, **kwds):
         """
         The initialization routine of the ``Matrix`` base class ensures
         that it sets the attributes ``self._parent``, ``self._base_ring``,
-        ``self._nrows``, ``self._ncols``. It sets the latter ones by
-        accessing the relevant information on ``parent``, which is often
-        slower than what a more specific subclass can do.
-
-        Subclasses of ``Matrix`` can safely skip calling
-        ``Matrix.__init__`` provided they take care of initializing these
-        attributes themselves.
+        ``self._nrows``, ``self._ncols``.
 
         The private attributes ``self._is_immutable`` and ``self._cache``
         are implicitly initialized to valid values upon memory allocation.
@@ -113,10 +110,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: type(A)
             <type 'sage.matrix.matrix0.Matrix'>
         """
-        self._parent = parent
-        self._base_ring = parent.base_ring()
-        self._nrows = parent.nrows()
-        self._ncols = parent.ncols()
+        P = <Parent?>parent
+        self._parent = P
+        self._base_ring = P._base
+        self._nrows = P.nrows()
+        self._ncols = P.ncols()
+        self.hash = -1
 
     def list(self):
         """
@@ -209,12 +208,18 @@ cdef class Matrix(sage.structure.element.Matrix):
                 x.append(self.get_unsafe(i, j))
         return x
 
-    def dict(self):
-        """
-        Dictionary of the elements of self with keys pairs (i,j) and values
-        the nonzero entries of self.
+    def dict(self, copy=True):
+        r"""
+        Dictionary of the elements of ``self`` with keys pairs ``(i,j)``
+        and values the nonzero entries of ``self``.
 
-        It is safe to change the returned dictionary.
+        INPUT:
+
+        - ``copy`` -- (default: ``True``) make a copy of the ``dict``
+          corresponding to ``self``
+
+        If ``copy=True``, then is safe to change the returned dictionary.
+        Otherwise, this can cause undesired behavior by mutating the ``dict``.
 
         EXAMPLES::
 
@@ -233,7 +238,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             [      x       y       0]
             [      0       0 2*x + y]
         """
-        return dict(self._dict())
+        if copy:
+            return dict(self._dict())
+        return self._dict()
+
+    monomial_coefficients = dict
 
     def _dict(self):
         """
@@ -302,17 +311,17 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         EXAMPLES::
 
-            sage: m=Matrix(QQ,2,range(0,4))
+            sage: m = Matrix(QQ, 2, range(4))
             sage: m._clear_cache()
-
         """
         self.clear_cache()
 
-    cdef clear_cache(self):
+    cdef void clear_cache(self):
         """
         Clear the properties cache.
         """
         self._cache = None
+        self.hash = -1
 
     cdef fetch(self, key):
         """
@@ -508,6 +517,31 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError("this must be defined in the derived type.")
 
+    def add_to_entry(self, Py_ssize_t i, Py_ssize_t j, elt):
+        r"""
+        Add ``elt`` to the entry at position ``(i, j)``.
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ['x,y'], 2, 2)
+            sage: m.add_to_entry(0, 1, 2)
+            sage: m
+            [0 2]
+            [0 0]
+        """
+        elt = self.base_ring()(elt)
+        if i < 0:
+            i += self._nrows
+        if i < 0 or i >= self._nrows:
+            raise IndexError("row index out of range")
+        if j < 0:
+            j += self._ncols
+        if j < 0 or j >= self._ncols:
+            raise IndexError("column index out of range")
+
+        self.set_unsafe(i, j, elt + self.get_unsafe(i, j))
+
+
 ##     def _get_very_unsafe(self, i, j):
 ##         r"""
 ##         Entry access, but potentially fast since it might be without
@@ -529,16 +563,15 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def __iter__(self):
         """
-        Return an iterator for the rows of self
+        Return an iterator for the rows of self.
 
         EXAMPLES::
 
-            sage: m=matrix(2,[1,2,3,4])
+            sage: m = matrix(2,[1,2,3,4])
             sage: next(m.__iter__())
             (1, 2)
         """
-
-        return matrix_misc.row_iterator(self)
+        return row_iterator(self)
 
     def __getitem__(self, key):
         """
@@ -639,20 +672,20 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[range(2),:]
+            sage: M[list(range(2)),:]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
-            sage: M[range(2),4]
+            sage: M[list(range(2)),4]
             [9]
             [2]
-            sage: M[range(3),range(5)]
+            sage: M[list(range(3)),list(range(5))]
             [ 1 -2 -1 -1  9]
             [ 1  8  6  2  2]
             [ 1  1 -1  1  4]
 
         ::
 
-            sage: M[3,range(5)]
+            sage: M[3,list(range(5))]
             [-1  2 -2 -1  4]
             sage: M[3,:]
             [-1  2 -2 -1  4]
@@ -701,14 +734,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         ::
 
             sage: A= matrix(3,4,[1, 0, -3, -1, 3, 0, -2, 1, -3, -5, -1, -5])
-            sage: A[range(2,-1,-1),:]
+            sage: A[list(range(2,-1,-1)),:]
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
         ::
 
-            sage: A[range(2,-1,-1),range(3,-1,-1)]
+            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]
             [-5 -1 -5 -3]
             [ 1 -2  0  3]
             [-1 -3  0  1]
@@ -729,7 +762,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             []
             sage: M[2:3, 3:3]
             []
-            sage: M[range(2,2), :3]
+            sage: M[list(range(2,2)), :3]
             []
             sage: M[(1,2), 3]
             [ 7]
@@ -830,6 +863,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             IndexError: row indices must be integers
 
+        Check that submatrices with a specified implementation have the
+        same implementation::
+
+            sage: M = MatrixSpace(GF(2), 3, 3, implementation='generic')
+            sage: m = M(range(9))
+            sage: type(m)
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: parent(m)
+            Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
+            sage: type(m[:2,:2])
+            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            sage: parent(m[:2,:2])
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
         """
         cdef list row_list
         cdef list col_list
@@ -1157,26 +1203,26 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         More examples::
 
-            sage: M[range(2),:]=[[1..5], [6..10]]; M
+            sage: M[list(range(2)),:]=[[1..5], [6..10]]; M
             [ 1  2  3  4  5]
             [ 6  7  8  9 10]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[range(2),4]=0; M
+            sage: M[list(range(2)),4]=0; M
             [ 1  2  3  4  0]
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
 
-            sage: M[range(3),range(5)]=M[range(1,4), :]; M
+            sage: M[list(range(3)),list(range(5))]=M[list(range(1,4)), :]; M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
             [30  2 -2 -1  4]
 
 
-            sage: M[3,range(5)]=vector([-2,3,4,-5,4]); M
+            sage: M[3,list(range(5))]=vector([-2,3,4,-5,4]); M
             [ 6  7  8  9  0]
             [30 -1  2 -2  4]
             [30  2 -2 -1  4]
@@ -1204,12 +1250,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 3  0 -2  1]
             [-3 -5 -1 -5]
 
-            sage: A[range(2,-1,-1),:]=A; A
+            sage: A[list(range(2,-1,-1)),:]=A; A
             [-3 -5 -1 -5]
             [ 3  0 -2  1]
             [ 1  0 -3 -1]
 
-            sage: A[range(2,-1,-1),range(3,-1,-1)]=A; A
+            sage: A[list(range(2,-1,-1)),list(range(3,-1,-1))]=A; A
             [-1 -3  0  1]
             [ 1 -2  0  3]
             [-5 -1 -5 -3]
@@ -1232,7 +1278,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
-            sage: M[range(2,2), :3]=20; M
+            sage: M[list(range(2,2)), :3]=20; M
             [ 0  1  2  3]
             [ 4  5  6  7]
             [ 8  9 10 11]
@@ -1598,7 +1644,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         tester = self._tester(**options)
         # Test to make sure the returned matrix is a copy
-        tester.assert_(self.change_ring(self.base_ring()) is not self)
+        tester.assertTrue(self.change_ring(self.base_ring()) is not self)
 
     def _matrix_(self, R=None):
         """
@@ -1646,8 +1692,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A = random_matrix(ZZ, 100)
             sage: A.__repr__()
             '100 x 100 dense matrix over Integer Ring'
-            sage: print(A)
-            100 x 100 dense matrix over Integer Ring
 
         When a big matrix returned, include a hint on how to get the entries.
         This is a feature of the sage command-line::
@@ -1669,6 +1713,41 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             s = 'dense'
         return "{} x {} {} matrix over {}".format(self._nrows, self._ncols, s, self.base_ring())
+
+    def __str__(self):
+        r"""
+        Return a string representation of this matrix. Unlike
+        ``__repr__`` (used by interactive sessions), this always prints
+        the matrix entries.
+
+        EXAMPLES::
+
+            sage: A = zero_matrix(ZZ, 20)
+            sage: A
+            20 x 20 dense matrix over Integer Ring (use the '.str()' method to see the entries)
+            sage: print(A)
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+            [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+        """
+        return self.str()
 
     def str(self, rep_mapping=None, zero=None, plus_one=None, minus_one=None,
             *, unicode=False, shape=None):
@@ -2149,7 +2228,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [  5  25]
             [125 625]
         """
-        from constructor import matrix
+        from .constructor import matrix
         return matrix(self.nrows(), self.ncols(), [e(*args, **kwargs) for e in self.list()])
 
     ###################################################
@@ -2321,7 +2400,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - ``permutation`` -- a ``PermutationGroupElement``.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2373,7 +2452,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create some matrix::
+        EXAMPLES: We create some matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2506,7 +2585,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - ``permutation`` -- a ``PermutationGroupElement``
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2556,7 +2635,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2615,7 +2694,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -2661,7 +2740,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         - A matrix.
 
-        EXAMPLE: We create a matrix::
+        EXAMPLES: We create a matrix::
 
             sage: M = matrix(ZZ,[[1,0,0,0,0],[0,2,0,0,0],[0,0,3,0,0],[0,0,0,4,0],[0,0,0,0,5]])
             sage: M
@@ -3283,6 +3362,67 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
             l += 1
 
+    def reverse_rows_and_columns(self):
+        r"""
+        Reverse the row order and column order of this matrix.
+
+        This method transforms a matrix `m_{i,j}` with `0 \leq i < nrows` and
+        `0 \leq j < ncols` into `m_{nrows - i - 1, ncols - j - 1}`.
+
+        EXAMPLES::
+
+            sage: m = matrix(ZZ, 2, 2, range(4))
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [3 2]
+            [1 0]
+
+            sage: m = matrix(ZZ, 2, 3, range(6), sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [5 4 3]
+            [2 1 0]
+            sage: m = matrix(ZZ, 3, 2, range(6), sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [5 4]
+            [3 2]
+            [1 0]
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [0 1]
+            [2 3]
+            [4 5]
+
+            sage: m = matrix(QQ, 3, 2, [1/i for i in range(1,7)])
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [1/6 1/5]
+            [1/4 1/3]
+            [1/2   1]
+
+            sage: R.<x,y> = ZZ['x,y']
+            sage: m = matrix(R, 3, 3, lambda i,j: x**i*y**j, sparse=True)
+            sage: m.reverse_rows_and_columns()
+            sage: m
+            [x^2*y^2   x^2*y     x^2]
+            [  x*y^2     x*y       x]
+            [    y^2       y       1]
+
+        If the matrix is immutable, the method raises an error::
+
+            sage: m = matrix(ZZ, 2, [1, 3, -2, 4])
+            sage: m.set_immutable()
+            sage: m.reverse_rows_and_columns()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy
+            instead (i.e., use copy(M) to change a copy of M).
+        """
+        self.check_mutability()
+        self.clear_cache()
+        self._reverse_unsafe()
+
     ###################################################
     # Methods needed for quiver and cluster mutations
     # - mutate
@@ -3342,7 +3482,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         cdef Py_ssize_t i,j,_
         cdef list pairs, k0_pairs, k1_pairs
@@ -3448,10 +3589,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         cdef dict d = {}
-        cdef list queue = list(xrange( self._ncols))
+        cdef list queue = list(xrange(self._ncols))
         cdef int l, sign, i, j
 
         if skew:
@@ -3479,7 +3621,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 else:
                     L.extend( L_prime )
         if return_diag:
-            return [ d[i] for i in xrange(self._nrows) ]
+            return [d[i] for i in xrange(self._nrows)]
         else:
             return True
 
@@ -3557,9 +3699,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if len(v) > self._nrows:
             raise ValueError("length of v must be at most the number of rows of self")
-        if self._nrows == 0:
+        if not self._nrows:
             return self.parent().row_space().zero_vector()
-        from constructor import matrix
+        from .constructor import matrix
         v = matrix(list(v)+[0]*(self._nrows-len(v)))
         return (v * self)[0]
 
@@ -3634,9 +3776,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if len(v) > self._ncols:
             raise ValueError("length of v must be at most the number of columns of self")
-        if self._ncols == 0:
+        if not self._ncols:
             return self.parent().column_space().zero_vector()
-        from constructor import matrix
+        from .constructor import matrix
         v = matrix(self._ncols, 1, list(v)+[0]*(self._ncols-len(v)))
         return (self * v).column(0)
 
@@ -3902,7 +4044,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -3953,7 +4096,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4194,9 +4338,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.cache('rank', r)
         return r
 
-    cdef _set_pivots(self, X):
-        self.cache('pivots', X)
-
     def nonpivots(self):
         """
         Return the list of i such that the i-th column of self is NOT a
@@ -4277,7 +4418,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(CC, [[1,0],[0,1]], sparse=True)
             sage: M._nonzero_positions_by_row()
@@ -4745,8 +4886,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         return self.change_ring(self._base_ring.quotient_ring(p))
 
-
-    cpdef _rmul_(self, RingElement left):
+    cpdef _rmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -4783,7 +4923,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 ans.set_unsafe(r, c, x * self.get_unsafe(r, c))
         return ans
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES:
 
@@ -5112,6 +5252,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             [                              1  422550200076076467165567735125]
             [1267650600228229401496703205375  422550200076076467165567735126]
 
+        Matrices over p-adics. See :trac:`17272` ::
+        
+            sage: R = ZpCA(5,5,print_mode='val-unit')
+            sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
+            sage: A
+            [5^3 * 2 + O(5^5)    2369 + O(5^5)    1147 + O(5^5)]
+            [    106 + O(5^5)     927 + O(5^5)     362 + O(5^5)]
+            [ 5 * 18 + O(5^5)     398 + O(5^5)    2483 + O(5^5)]
+            sage: ~A
+            [5 * 212 + O(5^5)    3031 + O(5^5)    2201 + O(5^5)]
+            [   1348 + O(5^5) 5 * 306 + O(5^5)    2648 + O(5^5)]
+            [   1987 + O(5^5) 5 * 263 + O(5^5)     154 + O(5^5)]
+            
         This matrix isn't invertible::
 
             sage: m = matrix(Zmod(9),2,[2,1,3,3])
@@ -5145,11 +5298,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
-        if self.nrows()==0:
+        if self.nrows() == 0:
             return self
 
         A = self.augment(self.parent().identity_matrix())
-        B = A.echelon_form()
+        A.echelonize()
 
         # Now we want to make sure that B is of the form [I|X], in
         # which case X is the inverse of self. We can simply look at
@@ -5171,13 +5324,27 @@ cdef class Matrix(sage.structure.element.Matrix):
         # behavior.
 
         if self.base_ring().is_exact():
-            if B[self._nrows-1, self._ncols-1] != 1:
+            if A[self._nrows-1, self._ncols-1] != 1:
                 raise ZeroDivisionError("input matrix must be nonsingular")
         else:
-            if not B[self._nrows-1, self._ncols-1]:
+            if not A[self._nrows-1, self._ncols-1]:
                 raise ZeroDivisionError("input matrix must be nonsingular")
 
-        return B.matrix_from_columns(range(self._ncols, 2*self._ncols))
+        if self.is_sparse():
+            return self.build_inverse_from_augmented_sparse(A)
+
+        return A.matrix_from_columns(list(xrange(self._ncols, 2 * self._ncols)))
+
+    cdef build_inverse_from_augmented_sparse(self, A):
+        # We can directly use the dict entries of A
+        cdef Py_ssize_t i, nrows
+        cdef dict data = <dict> A._dict()
+        nrows = self._nrows
+        # We can modify data because A is local to this function
+        for i in range(nrows):
+            del data[i,i]
+        data = {(r,c-nrows): data[r,c] for (r,c) in data}
+        return self._parent(data)
 
     def __pos__(self):
         """
@@ -5225,32 +5392,160 @@ cdef class Matrix(sage.structure.element.Matrix):
             [1]
             sage: 0^0
             1
+        
+        Non-integer (symbolic) exponents are also supported::
+        
+            sage: k = var('k')
+            sage: A = matrix([[2, -1], [1,  0]])
+            sage: A^(2*k+1)
+            [ 2*k + 2 -2*k - 1]
+            [ 2*k + 1     -2*k]
         """
+        from sage.symbolic.expression import Expression
+
         if not self.is_square():
             raise ArithmeticError("self must be a square matrix")
         if ignored is not None:
             raise RuntimeError("__pow__ third argument not used")
-        return sage.structure.element.generic_power_c(self, n, None)
+        if isinstance(n, Expression):
+            from sage.matrix.matrix2 import _matrix_power_symbolic
+            return _matrix_power_symbolic(self, n)
+        return generic_power(self, n)
 
     ###################################################
     # Comparison
     ###################################################
     def __hash__(self):
         """
-        Return the hash of this (immutable) matrix
+        Return the hash of this matrix.
+
+        Equal matrices should have equal hashes, even if one is sparse
+        and the other is dense. We also ensure that zero matrices hash
+        to zero and that scalar matrices have the same hash as the
+        scalar.
 
         EXAMPLES::
 
-            sage: m=matrix(QQ,2,[1,2,3,4])
+            sage: m = matrix(2, range(24), sparse=True)
             sage: m.set_immutable()
-            sage: m.__hash__()
-            8
+            sage: hash(m)
+            3327233128576517516  # 64-bit
+            -373881460           # 32-bit
 
+        ::
+
+            sage: d = m.dense_matrix()
+            sage: d.set_immutable()
+            sage: hash(m) == hash(d)
+            True
+
+        ::
+
+            sage: R.<x> = ZZ[]
+            sage: M = matrix(R, 10, 20); M.set_immutable()
+            sage: hash(M)
+            0
+            sage: M = matrix(R, 10, 10, x); M.set_immutable()
+            sage: hash(M) == hash(x)
+            True
         """
-        return self._hash()
+        if not self._is_immutable:
+            raise TypeError("mutable matrices are unhashable")
+        if self.hash != -1:
+            return self.hash
+        cdef long h = self._hash_()
+        self.hash = h
+        return h
 
-    cdef long _hash(self) except -1:
-        raise NotImplementedError
+    cdef long _hash_(self) except -1:
+        """
+        Implementation of hash function.
+
+        AUTHOR: Jeroen Demeyer
+        """
+        cdef long C[5]
+        self.get_hash_constants(C)
+
+        # The hash is of the form
+        #
+        #     sum_{i,j} F(i,j) * hash(M[i,j])
+        #
+        # The fact that it is a sum means that it can be computed in
+        # any order, which is useful for sparse matrices or other
+        # matrix implementations.
+        #
+        # Entries which have zero hash do not contribute to the matrix
+        # hash. This is again useful for sparse matrices, where we can
+        # safely skip the zero entries (assuming that the hash of the
+        # zero element is zero, which should be the case)
+        #
+        # To get a predictable hash for scalar matrices, some tricks
+        # are needed. First of all, we compute F(i,j) as k xor l, where
+        # l is zero for diagonal entries and where k (which depends only
+        # on the row) is called the row multiplier.
+        #
+        # So the hash of a scalar matrix is the sum of all row
+        # multipliers times the hash of the scalar. Therefore, the hash
+        # of a scalar matrix equals the hash of the scalar if the sum of
+        # all row multipliers is 1. We choose the constants (see
+        # get_hash_constants()) such that this in indeed the case.
+        # Actually, this is not the complete story: we additionallly
+        # multiply all row constants with some random value C[2] and
+        # then at the end we multiply with C[2]^-1 = C[4].
+        # This gives better mixing.
+        #
+        # The value for l in the loop below is not so important: it
+        # must be zero if i == j and sufficiently complicated to avoid
+        # hash collisions.
+        cdef long h = 0, k, l
+        cdef Py_ssize_t i, j
+        for i in range(self._nrows):
+            k = C[0] if i == 0 else C[1] + C[2] * i
+            for j in range(self._ncols):
+                sig_check()
+                l = C[3] * (i - j) * (i ^ j)
+                h += (k ^ l) * hash(self.get_unsafe(i, j))
+        h *= C[4]
+
+        if h == -1:
+            return -2
+        return h
+
+    cdef void get_hash_constants(self, long C[5]):
+        """
+        Get constants for the hash algorithm.
+        """
+        cdef long m = self._nrows
+        cdef long n = self._ncols
+
+        # XKCD-221 compliant random numbers
+        C[1] = 0x6951766c055d2c0a
+        C[2] = 0x1155b61baeb88b61  # must be odd
+        C[3] = 0x0d58d3c0539376c1  # should be odd
+
+        # Multiplicative inverse of C[2] mod 2^64
+        C[4] = 0x7c7067f7da6758a1
+
+        # Change some of these constants such that matrices with the
+        # same entries but a different size have different hashes.
+        # C[2] must be the same for all square matrices though.
+        C[1] *= n + C[1] * m
+        C[2] += (n - m) * ((C[3] * m) ^ n)
+
+        # The k in the hashing loop is called the row multiplier. For
+        # the i-th row with i > 0, this is (C[1] + C[2]*i). We choose
+        # C[0] (the row multiplier for the 0-th row) such that the sum
+        # of all row multipliers is C[2].
+        #
+        # This way, the row multiplier is never a small number in
+        # absolute value and the row multipliers depend on the size of
+        # the matrix.
+
+        # mm = m * (m - 1)/2 computed correctly mod 2^wordsize.
+        cdef long mm = (m // 2) * ((m - 1) | 1)
+
+        # C[0] = (1 - m * (m - 1)/2) * C[2] - (m - 1) * C[1]
+        C[0] = (1 - mm) * C[2] - (m - 1) * C[1]
 
     cpdef int _cmp_(left, right) except -2:
         """
@@ -5301,9 +5596,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     cdef int _strassen_default_echelon_cutoff(self) except -2:
         return -1
-
-
-
 
 #######################
 # Unpickling

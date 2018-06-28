@@ -47,7 +47,6 @@ from sage.env import SAGE_ROOT, SAGE_PKGS
 
 import json
 import os
-import re
 import subprocess
 try:
     # Python 3.3+
@@ -58,7 +57,6 @@ except ImportError:
     from urllib2 import urlopen, URLError
 
 DEFAULT_PYPI = 'https://pypi.python.org/pypi'
-PIP_VERSION = re.compile("^([^\s]+) \(([^\s]+)\)$", re.MULTILINE)
 
 def pkgname_split(name):
     r"""
@@ -140,13 +138,13 @@ def pip_installed_packages():
         sage: 'scipy' in d
         True
         sage: d['scipy']
-        '...'
+        u'...'
         sage: d['beautifulsoup']   # optional - beautifulsoup
-        '...'
+        u'...'
     """
-    proc = subprocess.Popen(["pip", "list", "--no-index"], stdout=subprocess.PIPE)
-    stdout = str(proc.communicate()[0])
-    return dict((name.lower(), version) for name,version in PIP_VERSION.findall(stdout))
+    proc = subprocess.Popen(["pip", "list", "--no-index", "--format", "json"], stdout=subprocess.PIPE)
+    stdout = proc.communicate()[0].decode()
+    return {package['name'].lower():package['version'] for package in json.loads(stdout)}
 
 def list_packages(*pkg_types, **opts):
     r"""
@@ -279,13 +277,16 @@ def installed_packages(exclude_pip=True):
 
     .. SEEALSO::
 
-        :func:`list_packages`
+        :func:`sage.misc.package.list_packages`
     """
     from sage.env import SAGE_SPKG_INST
-    installed = dict(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
+    installed = {}
     if not exclude_pip:
         installed.update(pip_installed_packages())
+    # Sage packages should override pip packages (Trac #23997)
+    installed.update(pkgname_split(pkgname) for pkgname in os.listdir(SAGE_SPKG_INST))
     return installed
+
 
 def is_package_installed(package, exclude_pip=True):
     """
@@ -317,13 +318,20 @@ def is_package_installed(package, exclude_pip=True):
         sage: from sage.misc.package import list_packages
         sage: for pkg in list_packages('pip', local=True):
         ....:     assert not is_package_installed(pkg)
+
+    .. NOTE::
+
+        Do not use this function to check whether you can use a feature from an
+        external library. This only checks whether something was installed with
+        ``sage -i`` but it may have been installed by other means (for example
+        if this copy of Sage has been installed as part of a distribution.)
+        Use the framework provided by :mod:`sage.features` to check
+        whether a library is installed and functional.
     """
     return any(p.split('-')[0] == package for p in installed_packages(exclude_pip))
 
 def package_versions(package_type, local=False):
     r"""
-    DEPRECATED: use :func:`list_packages`
-
     Return version information for each Sage package.
 
     INPUT:
@@ -342,20 +350,20 @@ def package_versions(package_type, local=False):
     that directory.  If ``local`` is ``False``, then Sage's servers are
     queried for package information.
 
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
+
     EXAMPLES::
 
         sage: std = package_versions('standard', local=True)
         sage: 'gap' in std
         True
-        sage: std['zn_poly']
+        sage: std['zn_poly'] # random
         ('0.9.p11', '0.9.p11')
     """
     return {pkg['name']: (pkg['installed_version'], pkg['remote_version']) for pkg in list_packages(package_type, local=local).values()}
 
 def standard_packages():
     """
-    DEPRECATED: use :func:`list_packages`
-
     Return two lists. The first contains the installed and the second
     contains the not-installed standard packages that are available
     from the Sage repository.
@@ -369,7 +377,9 @@ def standard_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
+
+    EXAMPLES::
 
         sage: from sage.misc.package import standard_packages
         sage: installed, not_installed = standard_packages()
@@ -382,8 +392,6 @@ def standard_packages():
 
 def optional_packages():
     """
-    DEPRECATED: use :func:`list_packages`
-
     Return two lists. The first contains the installed and the second
     contains the not-installed optional packages that are available
     from the Sage repository.
@@ -397,7 +405,9 @@ def optional_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
+
+    EXAMPLES::
 
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()
@@ -419,8 +429,6 @@ def optional_packages():
 
 def experimental_packages():
     """
-    DEPRECATED: use :func:`list_packages`
-
     Return two lists. The first contains the installed and the second
     contains the not-installed experimental packages that are available
     from the Sage repository.
@@ -434,7 +442,9 @@ def experimental_packages():
     Run ``sage -i package_name`` from a shell to install a given
     package or ``sage -f package_name`` to re-install it.
 
-    EXAMPLE::
+    .. SEEALSO:: :func:`sage.misc.package.list_packages`
+
+    EXAMPLES::
 
         sage: from sage.misc.package import experimental_packages
         sage: installed, not_installed = experimental_packages()

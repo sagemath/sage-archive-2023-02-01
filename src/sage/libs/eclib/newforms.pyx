@@ -11,8 +11,7 @@ Modular symbols using eclib newforms
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
-include "cysignals/signals.pxi"
+from cysignals.signals cimport sig_on, sig_off
 
 from ..eclib cimport *
 from sage.libs.gmp.mpq cimport mpq_numref
@@ -122,7 +121,10 @@ cdef class ECModularSymbol:
         sage: all((M3(r,-1)==M1(r,-1)) for r in QQ.range_by_height(10))
         True
 
+    TESTS::
 
+        sage: ECModularSymbol.__new__(ECModularSymbol)
+        Modular symbol with sign 0 over Rational Field attached to None
     """
     def __init__(self, E, sign=1):
         """
@@ -178,9 +180,9 @@ cdef class ECModularSymbol:
             TypeError: the elliptic curve must have coefficients in the rational numbers
         """
         cdef ZZ_c a1, a2, a3, a4, a6, N
-        cdef Curve *C
-        cdef Curvedata *CD
-        cdef CurveRed *CR
+        cdef Curve C
+        cdef Curvedata CD
+        cdef CurveRed CR
         cdef int n
 
         if E.base_field() is not QQ:
@@ -197,10 +199,10 @@ cdef class ECModularSymbol:
         mpz_to_ZZ(&a6, mpq_numref((<Rational>(E.a6())).value))
 
         sig_on()
-        C = new Curve(a1,a2,a3,a4,a6)
-        CD = new Curvedata(C[0],0)
-        CR = new CurveRed(CD[0])
-        N = getconductor(CR[0])
+        C = Curve(a1,a2,a3,a4,a6)
+        CD = Curvedata(C,0)
+        CR = CurveRed(CD)
+        N = getconductor(CR)
         n = I2int(N)
         self.n = n
         if not (sign == 0 or sign == 1):
@@ -209,8 +211,11 @@ cdef class ECModularSymbol:
         self.sign = sign
 
         self.nfs = new newforms(n, 0)
-        self.nfs.createfromcurve(sign, CR[0])
+        self.nfs.createfromcurve(sign,CR)
         sig_off()
+
+    def __dealloc__(self):
+        del self.nfs
 
     def __repr__(self):
         """
@@ -339,7 +344,7 @@ cdef class ECModularSymbol:
             n = n % d
         sig_on()
         _r = rational(n,d)
-        if sign==None or not sign in [-1,0,1]:
+        if sign is None or not sign in [-1,0,1]:
            sign = self.sign
         if sign==+1:
             _sp = self.nfs.plus_modular_symbol(_r, 0, int(base_at_infinity))

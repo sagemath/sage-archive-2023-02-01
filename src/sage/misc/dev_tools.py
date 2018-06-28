@@ -14,7 +14,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 from __future__ import absolute_import
-from six import iteritems
+from six import iteritems, string_types
 
 
 def runsnake(command):
@@ -204,8 +204,7 @@ def find_objects_from_name(name, module_name=None):
     r"""
     Return the list of objects from ``module_name`` whose name is ``name``.
 
-    If ``name`` is in the global namespace, the result is a list of length 1
-    that contains only this object. Otherwise, the function runs through all
+    If ``module_name`` is ``None``, the function runs through all
     loaded modules and returns the list of objects whose name matches ``name``.
 
     If ``module_name`` is not ``None``, then search only in submodules of
@@ -243,11 +242,6 @@ def find_objects_from_name(name, module_name=None):
         It might be a good idea to move this function into
         :mod:`sage.misc.sageinspect`.
     """
-    # 1. check global namespace
-    if name in globals():
-        return [globals()[name]]
-
-    # 2. look for all modules that contain the name
     import sys
 
     obj = []
@@ -431,21 +425,22 @@ def import_statements(*objects, **kwds):
         from sage.modular.arithgroup.farey_symbol import Farey as FareySymbol
 
         sage: import_statements('power')
-        from sage.structure.element import generic_power as power
+        from sage.arith.power import generic_power as power
 
     In order to be able to detect functions that belong to a non-loaded module,
     you might call the helper :func:`load_submodules` as in the following::
 
-        sage: import_statements('EnumeratedSetFromIterator')
+        sage: import_statements('HeckeMonoid')
         Traceback (most recent call last):
         ...
-        LookupError: no object named 'EnumeratedSetFromIterator'
+        LookupError: no object named 'HeckeMonoid'
         sage: from sage.misc.dev_tools import load_submodules
-        sage: load_submodules(sage.sets)
-        load sage.sets.real_set... succeeded
-        load sage.sets.set_from_iterator... succeeded
-        sage: import_statements('EnumeratedSetFromIterator')
-        from sage.sets.set_from_iterator import EnumeratedSetFromIterator
+        sage: load_submodules(sage.monoids)
+        load sage.monoids.automatic_semigroup... succeeded
+        load sage.monoids.hecke_monoid... succeeded
+        load sage.monoids.indexed_free_monoid... succeeded
+        sage: import_statements('HeckeMonoid')
+        from sage.monoids.hecke_monoid import HeckeMonoid
 
     We test different objects which have no appropriate answer::
 
@@ -493,6 +488,12 @@ def import_statements(*objects, **kwds):
         sage: import_statements('graph_decompositions')
         import sage.graphs.graph_decompositions
 
+    Check that a name from the global namespace is properly found (see
+    :trac:`23779`)::
+
+        sage: import_statements('log')
+        from sage.functions.log import log
+
     .. NOTE::
 
         The programmers try to made this function as smart as possible.
@@ -513,17 +514,25 @@ def import_statements(*objects, **kwds):
     answer_as_str = kwds.pop("answer_as_str", False)
 
     if kwds:
-        raise TypeError("Unexpected '%s' argument" % kwds.keys()[0])
+        raise TypeError("Unexpected '%s' argument" % next(iter(kwds.keys())))
 
     for obj in objects:
         name = None    # the name of the object
 
         # 1. if obj is a string, we look for an object that has that name
-        if isinstance(obj, str):
+        if isinstance(obj, string_types):
+            from sage.all import sage_globals
+            G = sage_globals()
             name = obj
-            obj = find_objects_from_name(name, 'sage')
-            if len(obj) == 0:
-                obj = find_objects_from_name(name)
+            if name in G:
+                # 1.a. object in the sage namespace
+                obj = [G[name]]
+            else:
+                # 1.b. object inside a submodule of sage
+                obj = find_objects_from_name(name, 'sage')
+                if not obj:
+                    # 1.c. object from something already imported
+                    obj = find_objects_from_name(name)
 
             # remove lazy imported objects from list obj
             i = 0
@@ -547,7 +556,7 @@ def import_statements(*objects, **kwds):
                 for o in obj:
                     modules.update(find_object_modules(o))
                 print("# **Warning**: distinct objects with name '{}' in:".format(name))
-                for module_name in modules:
+                for module_name in sorted(modules):
                     print("#   - {}".format(module_name))
 
             # choose a random object among the potentially enormous list of
@@ -585,7 +594,7 @@ def import_statements(*objects, **kwds):
             raise ValueError("no import statement found for '{}'.".format(obj))
 
         if len(modules) == 1:  # the module is well defined
-            module_name, obj_names = modules.items()[0]
+            (module_name, obj_names), = modules.items()
             if name is None:
                 if verbose and len(obj_names) > 1:
                     print("# ** Warning **: several names for that object: {}".format(', '.join(sorted(obj_names))))
@@ -638,7 +647,7 @@ def import_statements(*objects, **kwds):
                                if '.all_' not in module_name and not module_name.endswith('.all')]
             if not(not_all_modules):
                 print("# ** Warning **: the object {} is only defined in .all modules".format(obj))
-                module_name = modules.keys()[0]
+                module_name = next(iter(modules.keys()))
             else:
                 if len(not_all_modules) > 1:
                     print("# ** Warning **: several modules for the object {}: {}".format(obj, ', '.join(modules.keys())))

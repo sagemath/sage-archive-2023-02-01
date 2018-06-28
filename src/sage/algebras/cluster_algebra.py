@@ -50,9 +50,9 @@ of initial cluster variables and/or permuting both cluster variables
 and coefficients.
 
 :class:`ClusterAlgebraElement` is a thin wrapper around
-:class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_generic`
+:class:`sage.rings.polynomial.laurent_polynomial.LaurentPolynomial`
 providing all the functions specific to cluster variables.
-Elemets of a cluster algebra with principal coefficients have special methods
+Elements of a cluster algebra with principal coefficients have special methods
 and these are grouped in the subclass :class:`PrincipalClusterAlgebraElement`.
 
 One more remark about this implementation. Instances of
@@ -331,11 +331,11 @@ mutating at the initial seed::
      over Integer Ring
     sage: A.b_matrix() == A1.b_matrix()
     False
-    sage: map(lambda (X, Y): X.has_coerce_map_from(Y), [(A, A1), (A1, A)])
+    sage: [X.has_coerce_map_from(Y) for X, Y in [(A, A1), (A1, A)]]
     [False, False]
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Dylan Rupel and Salvatore Stella
 #
 # This program is free software: you can redistribute it and/or modify
@@ -343,12 +343,12 @@ mutating at the initial seed::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+# ****************************************************************************
 from __future__ import absolute_import
+from six.moves import range, map
+
 from copy import copy
-from functools import wraps
-from future_builtins import map
+
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.rings import Rings
@@ -374,7 +374,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from six.moves import range as range
+
 
 ##############################################################################
 # Elements of a cluster algebra
@@ -420,8 +420,8 @@ class ClusterAlgebraElement(ElementWrapper):
         .. WARNING::
 
             The result of a division is not guaranteed to be inside
-            meth:`parent` therefore this method does not return an
-            instance of class:`ClusterAlgebraElement`.
+            :meth:`parent` therefore this method does not return an
+            instance of :class:`ClusterAlgebraElement`.
 
         EXAMPLES::
 
@@ -470,6 +470,7 @@ class ClusterAlgebraElement(ElementWrapper):
         numer, denom = self.lift()._fraction_pair()
         return repr(numer / denom)
 
+
 class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
     """
     An element in a cluster algebra with principle coefficients.
@@ -491,7 +492,8 @@ class PrincipalClusterAlgebraElement(ClusterAlgebraElement):
         components = self.homogeneous_components()
         if len(components) != 1:
             raise ValueError("this element is not homogeneous")
-        return components.keys()[0]
+        k, = components.keys()
+        return k
 
     def F_polynomial(self):
         r"""
@@ -664,9 +666,9 @@ class ClusterAlgebraSeed(SageObject):
             sage: S == A.current_seed()
             True
         """
-        return (isinstance(other, ClusterAlgebraSeed)
-                and self.parent() == other.parent()
-                and frozenset(self.g_vectors()) == frozenset(other.g_vectors()))
+        return (isinstance(other, ClusterAlgebraSeed) and
+                self.parent() == other.parent() and
+                frozenset(self.g_vectors()) == frozenset(other.g_vectors()))
 
     def __contains__(self, element):
         r"""
@@ -1142,6 +1144,7 @@ class ClusterAlgebraSeed(SageObject):
 # Cluster algebras
 ##############################################################################
 
+
 class ClusterAlgebra(Parent, UniqueRepresentation):
     r"""
     A Cluster Algebra.
@@ -1209,13 +1212,13 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-        sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
-        A Cluster Algebra with cluster variables x0, x1 and no coefficients
-         over Integer Ring
+            sage: A = ClusterAlgebra(['A', 2]); A   # indirect doctest
+            A Cluster Algebra with cluster variables x0, x1 and no coefficients
+            over Integer Ring
         """
         Q = ClusterQuiver(data)
         for key in kwargs:
-            if isinstance(kwargs[key],list):
+            if isinstance(kwargs[key], list):
                 kwargs[key] = tuple(kwargs[key])
         return super(ClusterAlgebra, self).__classcall__(self, Q, **kwargs)
 
@@ -1261,7 +1264,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         # the result to polynomials but then we get "rational" coefficients
         self._U = PolynomialRing(QQ, ['u%s' % i for i in range(self._n)])
 
-        # Setup infrastruture to store computed data
+        # Setup infrastructure to store computed data
         self.clear_computed_data()
 
         # Determine the names of the initial cluster variables
@@ -1395,25 +1398,32 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: g = A1.coerce_map_from(A3)
             sage: A3.find_g_vector((1, -2, 2))
             [1, 2, 1, 0]
-            sage: map(lambda x: x-1, map(G.gen(0), map(lambda x: x+1, [1, 2, 1, 0])))
+            sage: [G.gen(0)(x + 1) - 1 for x in [1, 2, 1, 0]]
             [2, 3, 2, 1]
             sage: S = A1.initial_seed(); S.mutate([2, 3, 2, 1])
             sage: S.cluster_variable(1) == g(A3.cluster_variable((1, -2, 2)))
             True
+
+         Check that :trac:`23654` is fixed::
+
+            sage: A = ClusterAlgebra(['A',2])
+            sage: AA = ClusterAlgebra(['A',3])
+            sage: A.has_coerce_map_from(AA)
+            False
         """
         if isinstance(other, ClusterAlgebra):
             gen_s = self.gens()
             gen_o = other.gens()
             if len(gen_s) == len(gen_o):
                 f = self.ambient().coerce_map_from(other.ambient())
-            if f is not None:
-                perm = Permutation([gen_s.index(self(f(v))) + 1 for v in gen_o])
-                n = self.rank()
-                M = self._B0[n:, :]
-                m = M.nrows()
-                B = block_matrix([[self.b_matrix(), -M.transpose()], [M, matrix(m)]])
-                B.permute_rows_and_columns(perm, perm)
-                return B[:, :other.rank()] == other._B0
+                if f is not None:
+                    perm = Permutation([gen_s.index(self(f(v))) + 1 for v in gen_o])
+                    n = self.rank()
+                    M = self._B0[n:, :]
+                    m = M.nrows()
+                    B = block_matrix([[self.b_matrix(), -M.transpose()], [M, matrix(m)]])
+                    B.permute_rows_and_columns(perm, perm)
+                    return B[:, :other.rank()] == other._B0
 
         # everything that is in the base can be coerced to self
         return self.base().has_coerce_map_from(other)
@@ -1502,6 +1512,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         and reset both the current seed and the exploring iterator.
 
         EXAMPLES::
+
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.g_vectors_so_far()
@@ -2027,7 +2038,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         mutating_F = kwargs.get('mutating_F', True)
 
         # which directions are we allowed to mutate into
-        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rank()))))
+        allowed_dirs = sorted(kwargs.get('allowed_directions',
+                                         range(self.rank())))
 
         # setup seeds storage
         cl = frozenset(seed.g_vectors())

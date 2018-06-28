@@ -179,7 +179,7 @@ Conversion
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <sage.matrix.constructor.MatrixFactory>`
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :func:`matrix`
     :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
     :meth:`~FiniteStateMachine.plot` | Plot
 
@@ -752,7 +752,7 @@ Finally, we check that this indeed computes the Gray code of the first
 Using the hook-functions
 ------------------------
 
-Let's use the :ref:`previous example "divison by
+Let's use the :ref:`previous example "division by
 3" <finite_state_machine_division_by_3_example>` to demonstrate the optional
 state and transition parameters ``hook``.
 
@@ -965,14 +965,14 @@ def full_group_by(l, key=lambda x: x):
     - that the keys are sortable (in contrast to the
       approach via ``sorted`` and ``itertools.groupby``) and
     - that the keys are hashable (in contrast to the
-      implementation proposed in `<http://stackoverflow.com/a/15250161>`_).
+      implementation proposed in `<https://stackoverflow.com/a/15250161>`_).
 
     However, it is required
 
     - that distinct keys have distinct ``str``-representations.
 
     The implementation is inspired by
-    `<http://stackoverflow.com/a/15250161>`_, but non-hashable keys are
+    `<https://stackoverflow.com/a/15250161>`_, but non-hashable keys are
     allowed.
 
     EXAMPLES::
@@ -1024,7 +1024,7 @@ def equal(iterator):
 
     ``True`` or ``False``.
 
-    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+    This implements `<https://stackoverflow.com/a/3844832/1052778>`_.
 
     EXAMPLES::
 
@@ -1439,7 +1439,7 @@ class FSMState(sage.structure.sage_object.SageObject):
 
         True or False.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMState
             sage: FSMState(0) < FSMState(1)
@@ -2280,7 +2280,7 @@ class FSMTransition(sage.structure.sage_object.SageObject):
 
         True or False.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import FSMTransition
             sage: FSMTransition(0,1,0,0) < FSMTransition(1,0,0,0)
@@ -2706,7 +2706,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
       process.
 
     - ``store_states_dict`` -- If ``True``, then additionally the states
-      are stored in an interal dictionary for speed up.
+      are stored in an internal dictionary for speed up.
 
     - ``on_duplicate_transition`` -- A function which is called when a
       transition is inserted into ``self`` which already existed (same
@@ -2860,7 +2860,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         ``LookupError`` or return an empty list.
 
         When constructing a finite state machine in this way, some
-        inital states and an input alphabet have to be specified.
+        initial states and an input alphabet have to be specified.
 
         ::
 
@@ -3125,7 +3125,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         """
         See :class:`FiniteStateMachine` for more information.
 
-        TEST::
+        TESTS::
 
             sage: FiniteStateMachine()
             Empty finite state machine
@@ -3406,7 +3406,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         Nothing.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = Automaton([(0, 0, 0)],
             ....:               initial_states=[0],
@@ -3513,7 +3513,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         the given states and (deep copies) of all transitions of ``self``
         between these states.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: FSM = FiniteStateMachine([(0, 1, 0), (0, 2, 0),
             ....:                           (1, 2, 0), (2, 0, 0)])
@@ -4316,7 +4316,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         right-most position. Therefore, the labels have to be
         reversed.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: T = Transducer([(0, 0, 0, [1, 2, 3])])
             sage: T.format_transition_label_reversed([1, 2, 3])
@@ -4328,7 +4328,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             \path[->] (v0) edge[loop above] node {$0\mid 3 2 1$} ();
             \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -4409,7 +4409,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 \path[->] (v0) edge node[rotate=360.00, anchor=south] {$t$} (v1);
                 \end{tikzpicture}
 
-        TEST:
+        TESTS:
 
         Check that :trac:`16357` is fixed::
 
@@ -6871,7 +6871,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             sage: F.transitions()
             [Transition from 0 to 1: 0|-]
 
-        TEST::
+        TESTS::
 
             sage: F = FiniteStateMachine(initial_states=['A'])
             sage: def f(state, input):
@@ -8795,7 +8795,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         leaving ``C``.
 
         The final components are the only parts of a transducer which
-        influence the main terms of the asympotic behaviour of the sum
+        influence the main terms of the asymptotic behaviour of the sum
         of output labels of a transducer, see [HKP2015]_ and [HKW2015]_.
 
         EXAMPLES::
@@ -9396,7 +9396,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         A finite state machine with merged transitions. If no mergers occur,
         return ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
             sage: T = Transducer([[1, 2, 1/4, 1], [1, -2, 1/4, 1], [1, -2, 1/2, 1],
@@ -9468,7 +9468,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
         Simplified version of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.combinat.finite_state_machine import duplicate_transition_add_input
             sage: T = Transducer([[1, 2, 1/4, 0], [1, -2, 1/4, 0], [1, -2, 1/2, 0],
@@ -10046,8 +10046,8 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             x^2 - x - 1
             sage: R.<phi> = NumberField(x^2-x-1, embedding=1.6)
             sage: N = NAFp.number_of_words(base_ring=R); N
-            1/10*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) + 5)
-            - 1/10*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(5) - 5)
+            1/2*(1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) + 1)
+            - 1/2*(-1/2*sqrt(5) + 1/2)^n*(3*sqrt(1/5) - 1)
             sage: all(len(list(NAFp.language(s)))
             ....:     - len(list(NAFp.language(s-1))) == N.subs(n=s)
             ....:     for s in srange(1, 6))
@@ -10554,7 +10554,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
         (x, y, z) = R.gens()
         try:
             M = get_matrix(self, x, y)
-        except TypeError:
+        except (TypeError, ValueError):
             sage.misc.misc.verbose(
                 "Non-integer output weights lead to "
                 "significant performance degradation.", level=0)
@@ -11034,7 +11034,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
           ``max_length`` will be considered. If ``None``, then this
           iterates over all possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 
@@ -12309,7 +12309,7 @@ class Automaton(FiniteStateMachine):
           considered. If ``None``, then this iterates over all
           possible words without length restrictions.
 
-        - ``kwargs`` -- will be passed on to to the :class:`process
+        - ``kwargs`` -- will be passed on to the :class:`process
           iterator <FSMProcessIterator>`. See :meth:`process` for a
           description.
 
@@ -14406,7 +14406,7 @@ class FSMProcessIterator(sage.structure.sage_object.SageObject,
 
             A string.
 
-            TEST::
+            TESTS::
 
                 sage: from sage.combinat.finite_state_machine import FSMProcessIterator
                 sage: T = Transducer([(0, 0, 0, 0)],

@@ -133,7 +133,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
                 N = PS.dimension_relative()
                 BR = X.base_ring()
                 #need a lexicographic ordering for elimination
-                R = PolynomialRing(BR, N + 1, PS.gens(), order='lex')
+                R = PolynomialRing(BR, N + 1, PS.variable_names(), order='lex')
                 I = R.ideal(X.defining_polynomials())
                 I0 = R.ideal(0)
                 #Determine the points through elimination
@@ -302,6 +302,20 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
         False
         sage: P in X.extended_codomain()
         True
+
+    Check for :trac:`11982`::
+
+        sage: P2.<x,y,z> = ProjectiveSpace(QQ,2)
+        sage: d = 7
+        sage: C = Curve(x^3 + y^3 - d*z^3)
+        sage: E = EllipticCurve([0,-432*d^2])
+        sage: transformation = [(36*d*z-y)/(72*d),(36*d*z+y)/(72*d),x/(12*d)]
+        sage: phi = E.hom(transformation, C); phi
+        Scheme morphism:
+          From: Elliptic Curve defined by y^2 = x^3 - 21168 over Rational Field
+          To:   Projective Plane Curve over Rational Field defined by x^3 + y^3 - 7*z^3
+          Defn: Defined on coordinates by sending (x : y : z) to
+                (-1/504*y + 1/2*z : 1/504*y + 1/2*z : 1/84*x)
     """
 
     def _element_constructor_(self, *v, **kwds):
@@ -384,7 +398,7 @@ class SchemeHomset_points_abelian_variety_field(SchemeHomset_points_projective_f
         return self
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.homset',
                            'SchemeHomsetModule_abelian_variety_coordinates_field',
                            SchemeHomset_points_abelian_variety_field)

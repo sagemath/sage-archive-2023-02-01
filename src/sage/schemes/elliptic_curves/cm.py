@@ -37,6 +37,7 @@ from six import iteritems
 from sage.interfaces.all import magma
 from sage.rings.all import (Integer,
                             QQ,
+                            ZZ,
                             IntegerRing,
                             is_fundamental_discriminant,
                             PolynomialRing)
@@ -125,7 +126,7 @@ def hilbert_class_polynomial(D, algorithm=None):
         raise ValueError("%s is not a valid algorithm"%algorithm)
 
     from sage.quadratic_forms.binary_qf import BinaryQF_reduced_representatives
-    from sage.rings.all import RR, ZZ, ComplexField
+    from sage.rings.all import RR, ComplexField
     from sage.functions.all import elliptic_j
 
     # get all primitive reduced quadratic forms, (necessary to exclude
@@ -135,10 +136,10 @@ def hilbert_class_polynomial(D, algorithm=None):
 
     # compute needed precision
     #
-    # NB: [http://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
+    # NB: [https://arxiv.org/abs/0802.0979v1], quoting Enge (2006), is
     # incorrect.  Enge writes (2009-04-20 email to John Cremona) "The
     # source is my paper on class polynomials
-    # [http://hal.inria.fr/inria-00001040] It was pointed out to me by
+    # [https://hal.inria.fr/inria-00001040] It was pointed out to me by
     # the referee after ANTS that the constant given there was
     # wrong. The final version contains a corrected constant on p.7
     # which is consistent with your example. It says:
@@ -186,7 +187,7 @@ def cm_j_invariants(K, proof=None):
 
     (list) -- A list of CM `j`-invariants in the field `K`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: cm_j_invariants(QQ)
         [-262537412640768000, -147197952000, -884736000, -12288000, -884736, -32768, -3375, 0, 1728, 8000, 54000, 287496, 16581375]
@@ -210,7 +211,8 @@ def cm_j_invariants(K, proof=None):
         sage: len(cm_j_invariants(K))
         23
     """
-    return list(sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]))
+    return sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)])
+
 
 @cached_function
 def cm_j_invariants_and_orders(K, proof=None):
@@ -228,7 +230,7 @@ def cm_j_invariants_and_orders(K, proof=None):
     `j`-invariant in `K` with quadratic fundamental discriminant `D`
     and conductor `f`.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: cm_j_invariants_and_orders(QQ)
         [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000)]
@@ -251,6 +253,22 @@ def cm_j_invariants_and_orders(K, proof=None):
         sage: cm_j_invariants_and_orders(K)
         [(-3, 3, -12288000), (-3, 2, 54000), (-3, 1, 0), (-4, 2, 287496), (-4, 1, 1728), (-7, 2, 16581375), (-7, 1, -3375), (-8, 1, 8000), (-11, 1, -32768), (-19, 1, -884736), (-43, 1, -884736000), (-67, 1, -147197952000), (-163, 1, -262537412640768000), (-3, 6, 31710790944000*a^2 + 39953093016000*a + 50337742902000)]
     """
+    if K == QQ:
+        return [(ZZ(d),ZZ(f),ZZ(j)) for d,f,j in [
+            (-3, 3, -12288000),
+            (-3, 2, 54000),
+            (-3, 1, 0),
+            (-4, 2, 287496),
+            (-4, 1, 1728),
+            (-7, 2, 16581375),
+            (-7, 1, -3375),
+            (-8, 1, 8000),
+            (-11, 1, -32768),
+            (-19, 1, -884736),
+            (-43, 1, -884736000),
+            (-67, 1, -147197952000),
+            (-163, 1, -262537412640768000)]]
+
     # Get the list of CM orders that could possibly have Hilbert class
     # polynomial F(x) with a root in K.  If F(x) has a root alpha in K,
     # then F is the minimal polynomial of alpha in K, so the degree of
@@ -284,7 +302,7 @@ def cm_orders(h, proof=None):
         sage: v = cm_orders(1); v
         [(-3, 3), (-3, 2), (-3, 1), (-4, 2), (-4, 1), (-7, 2), (-7, 1), (-8, 1), (-11, 1), (-19, 1), (-43, 1), (-67, 1), (-163, 1)]
         sage: type(v[0][0]), type(v[0][1])
-        (<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>)
+        (<... 'sage.rings.integer.Integer'>, <... 'sage.rings.integer.Integer'>)
         sage: v = cm_orders(2); v
          [(-3, 7), (-3, 5), (-3, 4), (-4, 5), (-4, 4), (-4, 3), (-7, 4), (-8, 3), (-8, 2), (-11, 3), (-15, 2), (-15, 1), (-20, 1), (-24, 1), (-35, 1), (-40, 1), (-51, 1), (-52, 1), (-88, 1), (-91, 1), (-115, 1), (-123, 1), (-148, 1), (-187, 1), (-232, 1), (-235, 1), (-267, 1), (-403, 1), (-427, 1)]
         sage: len(v)
@@ -300,7 +318,6 @@ def cm_orders(h, proof=None):
         84
     """
     h = Integer(h)
-    T = None
     if h <= 0:
         # trivial case
         return []
@@ -434,8 +451,6 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
     """
     # imports that are needed only for this function
     from sage.structure.proof.proof import get_flag
-    import math
-    from sage.misc.functional import round
 
     # deal with input defaults and type checking
     proof = get_flag(proof, 'number_field')
@@ -503,7 +518,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
             # So we consider f=1,2,..., until the first f with lb(f)*h_D > c*h_max.
             # (Note that lb(f) is <= 0 for f=1,2, so nothing special is needed there.)
             #
-            # TODO: Maybe we could do better using a bound for for phi_D(f).
+            # TODO: Maybe we could do better using a bound for phi_D(f).
             #
             f = Integer(1)
             chmax=hmax
@@ -537,15 +552,16 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
         # discriminants; we might as well, since Watkins provides this
         # data.
         for h in T:
-            if len([D for D,f in T[h] if f==1]) != fund_count[h]:
+            if len([DD for DD, ff in T[h] if ff == 1]) != fund_count[h]:
                 raise RuntimeError("number of discriminants inconsistent with Watkins's table")
 
     return T
 
+
 @cached_function
-def is_cm_j_invariant(j):
+def is_cm_j_invariant(j, method='new'):
     """
-    Returns whether or not this is a CM `j`-invariant.
+    Return whether or not this is a CM `j`-invariant.
 
     INPUT:
 
@@ -555,7 +571,7 @@ def is_cm_j_invariant(j):
 
     A pair (bool, (d,f)) which is either (False, None) if `j` is not a
     CM j-invariant or (True, (d,f)) if `j` is the `j`-invariant of the
-    immaginary quadratic order of discriminant `D=df^2` where `d` is
+    imaginary quadratic order of discriminant `D=df^2` where `d` is
     the associated fundamental discriminant and `f` the index.
 
     .. note::
@@ -567,7 +583,6 @@ def is_cm_j_invariant(j):
        version, using the fact that `d` must be supported on the
        primes dividing the discriminant of the minimal polynomial of
        `j`.
-
 
     EXAMPLES::
 
@@ -591,16 +606,124 @@ def is_cm_j_invariant(j):
         True
 
     """
-    from sage.rings.all import NumberFieldElement
+    # First we check that j is an algebraic number:
+
+    from sage.rings.all import NumberFieldElement, NumberField
     if not isinstance(j, NumberFieldElement) and not j in QQ:
         raise NotImplementedError("is_cm_j_invariant() is only implemented for number field elements")
+
+    # for j in ZZ we have a lookup-table:
+
+    if j in ZZ:
+        j = ZZ(j)
+        table = dict([(jj,(d,f)) for d,f,jj in cm_j_invariants_and_orders(QQ)])
+        if j in table:
+            return True, table[j]
+        return False, None
+
+    # Otherwise if j is in Q then it is not integral so is not CM:
+
+    if j in QQ:
+        return False, None
+
+    # Now j has degree at least 2.  If it is not integral so is not CM:
+
     if not j.is_integral():
         return False, None
+
+    # Next we find its minimal polynomial and degree h, and if h is
+    # less than the degree of j.parent() we recreate j as an element
+    # of Q(j):
+
     jpol = PolynomialRing(QQ,'x')([-j,1]) if j in QQ else j.absolute_minpoly()
     h = jpol.degree()
-    if h>100:
-        raise NotImplementedError("CM data only available for class numbers up to 100")
-    for d,f in cm_orders(h):
-        if jpol == hilbert_class_polynomial(d*f**2):
-            return True, (d,f)
+
+    # This will be used as a fall-back if we cannot determine the
+    # result using local data.  For this to be necessary there would
+    # have to be very few primes of degree 1 and norm under 1000,
+    # since we only need to find one prime of degree 1, good
+    # reduction for which a_P is nonzero.
+    if method=='old':
+        if h>100:
+            raise NotImplementedError("CM data only available for class numbers up to 100")
+        for d,f in cm_orders(h):
+            if jpol == hilbert_class_polynomial(d*f**2):
+                return True, (d,f)
+        return False, None
+
+    # replace j by a clone whose parent is Q(j), if necessary:
+
+    K = j.parent()
+    if h < K.absolute_degree():
+        K = NumberField(jpol, 'j')
+        j = K.gen()
+
+    # Construct an elliptic curve with j-invariant j, with
+    # integral model:
+
+    from sage.schemes.elliptic_curves.all import EllipticCurve
+    E = EllipticCurve(j=j).integral_model()
+    D = E.discriminant()
+    prime_bound = 1000 # test primes of degree 1 up to this norm
+    max_primes =    20 # test at most this many primes
+    num_prime = 0
+    cmd = 0
+    cmf = 0
+
+    # Test primes of good reduction.  If E has CM then for half the
+    # primes P we will have a_P=0, and for all other prime P the CM
+    # field is Q(sqrt(a_P^2-4N(P))).  Hence if these fields are
+    # different for two primes then E does not have CM.  If they are
+    # all equal for the primes tested, then we have a candidate CM
+    # field.  Moreover the discriminant of the endomorphism ring
+    # divides all the values a_P^2-4N(P), since that is the
+    # discriminant of the order containing the Frobenius at P.  So we
+    # end up with a finite number (usually one) of candidate
+    # discriminants to test.  Each is tested by checking that its class
+    # number is h, and if so then that j is a root of its Hilbert
+    # class polynomial.  In practice non CM curves will be eliminated
+    # by the local test at a small number of primes (probably just 2).
+
+    for P in K.primes_of_degree_one_iter(prime_bound):
+        if num_prime > max_primes:
+            if cmd: # we have a candidate CM field already
+                break
+            else:   # we need to try more primes
+                max_primes *=2
+        if D.valuation(P)>0: # skip bad primes
+            continue
+        aP = E.reduction(P).trace_of_frobenius()
+        if aP == 0: # skip supersingular primes
+            continue
+        num_prime += 1
+        DP = aP**2 - 4*P.norm()
+        dP = DP.squarefree_part()
+        fP = ZZ(DP//dP).isqrt()
+        if cmd==0:      # first one, so store d and f
+            cmd = dP
+            cmf = fP
+        elif cmd != dP: # inconsistent with previous
+            return False, None
+        else:           # consistent d, so update f
+            cmf = cmf.gcd(fP)
+
+    if cmd==0: # no conclusion, we found no degree 1 primes, revert to old method
+        return is_cm_j_invariant(j, method='old')
+
+    # it looks like cm by disc cmd * f**2 where f divides cmf
+
+    if cmd%4!=1:
+        cmd = cmd*4
+        cmf = cmf//2
+
+    # Now we must check if h(cmd*f**2)==h for f|cmf; if so we check
+    # whether j is a root of the associated Hilbert class polynomial.
+    for f in cmf.divisors(): # only positive divisors
+        d = cmd*f**2
+        if h != d.class_number():
+            continue
+        pol = hilbert_class_polynomial(d)
+        if pol(j)==0:
+            return True, (cmd,f)
     return False, None
+

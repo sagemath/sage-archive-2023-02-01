@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Base class for modular abelian varieties
 
@@ -33,6 +34,8 @@ from __future__ import absolute_import
 
 from sage.categories.all        import ModularAbelianVarieties
 from sage.structure.sequence    import Sequence, Sequence_generic
+from sage.structure.richcmp import (richcmp_method, richcmp_not_equal,
+                                        rich_to_bool)
 from sage.structure.parent_base import ParentWithBase
 from .morphism                   import HeckeOperator, Morphism, DegeneracyMap
 from .torsion_subgroup           import RationalTorsionSubgroup, QQbarTorsionSubgroup
@@ -42,9 +45,7 @@ from sage.rings.all import ZZ, QQ, QQbar, Integer
 from sage.arith.all import LCM, divisors, prime_range, next_prime
 from sage.rings.ring import is_Ring
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.infinity import infinity
-from sage.rings.fraction_field import FractionField
 from sage.modules.free_module   import is_FreeModule
 from sage.modular.arithgroup.all import is_CongruenceSubgroup, is_Gamma0, is_Gamma1, is_GammaH
 from sage.modular.modsym.all    import ModularSymbols
@@ -52,14 +53,12 @@ from sage.modular.modsym.space  import ModularSymbolsSpace
 from sage.modular.modform.constructor  import Newform
 from sage.matrix.all            import matrix, block_diagonal_matrix, identity_matrix
 from sage.modules.all           import vector
-from sage.groups.all            import AbelianGroup
 from sage.databases.cremona     import cremona_letter_code
 from sage.misc.all              import prod
 from sage.arith.misc            import is_prime
 from sage.databases.cremona     import CremonaDatabase
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 from sage.sets.primes           import Primes
-from sage.functions.other       import real
 
 from copy import copy
 
@@ -94,6 +93,7 @@ def is_ModularAbelianVariety(x):
     return isinstance(x, ModularAbelianVariety_abstract)
 
 
+@richcmp_method
 class ModularAbelianVariety_abstract(ParentWithBase):
     def __init__(self, groups, base_field, is_simple=None, newform_level=None,
                  isogeny_number=None, number=None, check=True):
@@ -347,7 +347,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         nLambda = self.ambient_variety().lattice().scale(n)
         return n*v in self.lattice() + nLambda
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
         Compare two modular abelian varieties.
 
@@ -359,42 +359,53 @@ class ModularAbelianVariety_abstract(ParentWithBase):
 
         EXAMPLES::
 
-            sage: cmp(J0(37)[0], J0(37)[1])
-            -1
-            sage: cmp(J0(33)[0], J0(33)[1])
-            -1
-            sage: J0(37) != ZZ
+            sage: J0(37)[0] < J0(37)[1]
             True
+            sage: J0(37)[0] == J0(37)[1]
+            False
+            sage: J0(33)[0] < J0(33)[1]
+            True
+            sage: J0(33)[0] >= J0(33)[1]
+            False
         """
-        if not isinstance(other, ModularAbelianVariety_abstract):
-            return cmp(type(self), type(other))
         if self is other:
-            return 0
-        c = cmp(self.groups(), other.groups())
-        if c: return c
+            return rich_to_bool(op, 0)
+        if not isinstance(other, ModularAbelianVariety_abstract):
+            return NotImplemented
+
+        lx = self.groups()
+        rx = other.groups()
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
 
         try:
-            c = cmp(self.__newform_level, other.__newform_level)
-            if c: return c
-        except AttributeError:
-            pass
-        try:
-            c = cmp(self.__isogeny_number, other.__isogeny_number)
-            if c: return c
+            lx = self.__newform_level
+            rx = other.__newform_level
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
 
         try:
-            c = cmp(self.__degen_t, other.__degen_t)
-            if c: return c
+            lx = self.__isogeny_number
+            rx = other.__isogeny_number
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
+        except AttributeError:
+            pass
+
+        try:
+            lx = self.__degen_t
+            rx = other.__degen_t
+            if lx != rx:
+                return richcmp_not_equal(lx, rx, op)
         except AttributeError:
             pass
 
         # NOTE!! having the same newform level, isogeny class number,
         # and degen_t does not imply two abelian varieties are equal.
         # See the docstring for self.label.
-
-        return cmp(self.lattice(), other.lattice())
+        return self.lattice()._echelon_matrix_richcmp(other.lattice(), op)
 
     def __radd__(self,other):
         """
@@ -685,8 +696,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         if not self.is_simple():
             raise ValueError("self is not simple")
 
-        ls = []
-
         t, N = self.decomposition()[0].degen_t()
         A = self.ambient_variety()
         for i in range(len(self.groups())):
@@ -966,17 +975,20 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def __add__(self, other):
         r"""
         Return the sum of the *images* of self and other inside the
-        ambient Jacobian product. self and other must be abelian
+        ambient Jacobian product.
+
+        Here self and other must be abelian
         subvarieties of the ambient Jacobian product.
 
-        ..warning::
+        .. WARNING::
 
-          The sum of course only makes sense in some ambient variety,
-          and by definition this function takes the sum of the images
-          of both self and other in the ambient product Jacobian.
+            The sum of course only makes sense in some ambient variety,
+            and by definition this function takes the sum of the images
+            of both self and other in the ambient product Jacobian.
 
-        EXAMPLES: We compute the sum of two abelian varieties of
-        `J_0(33)`::
+        EXAMPLES:
+
+        We compute the sum of two abelian varieties of `J_0(33)`::
 
             sage: J = J0(33)
             sage: J[0] + J[1]
@@ -2211,6 +2223,35 @@ class ModularAbelianVariety_abstract(ParentWithBase):
             T = T.block_sum(M[i].hecke_matrix(n))
         self.__ambient_hecke_matrix_on_modular_symbols[n] = T
         return T
+
+    def rational_torsion_order(self, proof=True):
+        """
+        Return the order of the rational torsion subgroup of this modular
+        abelian variety.
+
+        This function is really an alias for
+        :meth:`~sage.modular.abvar.torsion_subgroup.RationalTorsionSubgroup.order`
+        See the docstring there for a more in-depth reference and more
+        interesting examples.
+
+        INPUT:
+
+        - ``proof`` -- a boolean (default: True)
+
+        OUTPUT:
+
+        The order of the rational torsion subgroup of this modular abelian
+        variety.
+
+
+        EXAMPLES::
+
+            sage: J0(11).rational_torsion_subgroup().order()
+            5
+            sage: J0(11).rational_torsion_order()
+            5
+        """
+        return self.rational_torsion_subgroup().order(proof=proof)
 
     def number_of_rational_points(self):
         """
@@ -3466,7 +3507,6 @@ class ModularAbelianVariety_abstract(ParentWithBase):
         X = amb.decomposition(simple=simple, bound=bound)
         IN = []
         OUT = []
-        i = 0
         V = 0
         last_dimension = 0
         for j in range(len(X)):
@@ -3780,7 +3820,7 @@ class ModularAbelianVariety_abstract(ParentWithBase):
     def _complement_shares_no_factors_with_same_label(self):
         """
         Return True if no simple factor of self has the same newform_label
-        as any factor in a Poincare complement of self in the ambient
+        as any factor in a Poincaré complement of self in the ambient
         product Jacobian.
 
         EXAMPLES: `J_0(37)` is made up of two non-isogenous
@@ -4302,7 +4342,7 @@ class ModularAbelianVariety_modsym_abstract(ModularAbelianVariety_abstract):
     def is_ambient(self):
         """
         Return True if this abelian variety attached to a modular symbols
-        space space is attached to the cuspidal subspace of the ambient
+        space is attached to the cuspidal subspace of the ambient
         modular symbols space.
 
         OUTPUT: bool
@@ -4619,7 +4659,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
         # 2. Compute the map alpha: X --> Hom(X[I],Z) over ZZ
         # todo -- this could be done more quickly with a clever matrix multiply
-        B = [XI(v) for v in XI_ZZ.basis()]
+        B = [XI(vv) for vv in XI_ZZ.basis()]
         mat = []
         for v in M.basis():
             w = Y(v)
@@ -4716,7 +4756,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
         if not self.is_simple():
             raise ValueError("self must be simple")
         try:
-            g = self.component_group_order(p)
+            self.component_group_order(p)
         except NotImplementedError:
             raise NotImplementedError("Tamagawa number can't be determined using known algorithms, so consider using the tamagawa_number_bounds function instead")
         div, mul, mul_primes = self.tamagawa_number_bounds(p)
@@ -4773,7 +4813,6 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
             if is_Gamma0(M.group()):
                 g = self.component_group_order(p)
                 W = M.atkin_lehner_operator(p).matrix()
-                cp = None
                 if W == -1:
                     # Frob acts trivially
                     div = g
@@ -4791,13 +4830,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
                 else:
                     raise NotImplementedError("Atkin-Lehner at p must act as a scalar")
         else:
-            mul_primes = list(sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)])))
+            mul_primes = sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)]))
         div = Integer(div)
         mul = Integer(mul)
         mul_primes = tuple(mul_primes)
         self.__tamagawa_number_bounds[p] = (div, mul, mul_primes)
         return (div, mul, mul_primes)
-
 
     def brandt_module(self, p):
         """

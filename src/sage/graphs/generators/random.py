@@ -18,9 +18,7 @@ from six.moves import range
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 from sage.misc.prandom import randint
-from sage.misc.decorators import rename_keyword
 
-@rename_keyword(deprecation=19559 , method='algorithm')
 def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
     r"""
     Returns a random graph on `n` nodes. Each edge is inserted independently
@@ -32,7 +30,7 @@ def RandomGNP(n, p, seed=None, fast=True, algorithm='Sage'):
 
     - ``p`` -- probability of an edge
 
-    - ``seed`` -- integer seed for random number generator (default=None).
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     - ``fast`` -- boolean set to True (default) to use the algorithm with
       time complexity in `O(n+m)` proposed in [BatBra2005]_. It is designed
@@ -142,7 +140,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
 
     - ``m`` - number of edges to attach from each new node
 
-    - ``seed`` - for random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES:
 
@@ -193,7 +191,7 @@ def RandomBipartite(n1, n2, p):
         - ``p``   : Probability for an edge to exist
 
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: g=graphs.RandomBipartite(5,2,0.5)
         sage: g.vertices()
@@ -244,6 +242,164 @@ def RandomBipartite(n1, n2, p):
 
     return g
 
+def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
+    r"""
+    Return a Random Block Graph.
+
+    A block graph is a connected graph in which every biconnected component
+    (block) is a clique.
+
+    .. SEEALSO::
+
+        - :wikipedia:`Block_graph` for more details on these graphs
+        - :meth:`~sage.graphs.graph.Graph.is_block_graph` -- test if a graph is a block graph
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+        - :meth:`~sage.graphs.generic_graph.GenericGraph.blocks_and_cuts_tree`
+        - :meth:`~sage.combinat.designs.incidence_structures.IncidenceStructure` 
+
+    INPUT:
+
+    - ``m`` -- integer; number of blocks (at least one).
+
+    - ``k`` -- integer; minimum number of vertices of a block (at least two).
+
+    - ``kmax`` -- integer (default: ``None``) By default, each block has `k`
+      vertices. When the parameter `kmax` is specified (with `kmax \geq k`), the
+      number of vertices of each block is randomly chosen between `k` and
+      `kmax`.
+
+    - ``incidence_structure`` -- boolean (default: ``False``) when set to
+      ``True``, the incidence structure of the graphs is returned instead of the
+      graph itself, that is the list of the lists of vertices in each
+      block. This is useful for the creation of some hypergraphs.
+
+    OUTPUT:
+
+    A Graph when ``incidence_structure==False`` (default), and otherwise an
+    incidence structure.
+
+    EXAMPLES:
+
+    A block graph with a single block is a clique::
+
+        sage: B = graphs.RandomBlockGraph(1, 4)
+        sage: B.is_clique()
+        True
+
+    A block graph with blocks of order 2 is a tree::
+
+        sage: B = graphs.RandomBlockGraph(10, 2)
+        sage: B.is_tree()
+        True
+
+    Every biconnected component of a block graph is a clique::
+
+        sage: B = graphs.RandomBlockGraph(5, 3, kmax=6)
+        sage: blocks,cuts = B.blocks_and_cut_vertices()
+        sage: all(B.is_clique(block) for block in blocks)
+        True
+
+    A block graph with blocks of order `k` has `m*(k-1)+1` vertices::
+
+        sage: m, k = 6, 4
+        sage: B = graphs.RandomBlockGraph(m, k)
+        sage: B.order() == m*(k-1)+1
+        True
+
+    Test recognition methods::
+
+        sage: B = graphs.RandomBlockGraph(6, 2, kmax=6)
+        sage: B.is_block_graph()
+        True
+        sage: B in graph_classes.Block
+        True
+
+    Asking for the incidence structure::
+
+        sage: m, k = 6, 4
+        sage: IS = graphs.RandomBlockGraph(m, k, incidence_structure=True)
+        sage: from sage.combinat.designs.incidence_structures import IncidenceStructure
+        sage: IncidenceStructure(IS)
+        Incidence structure with 19 points and 6 blocks
+        sage: m*(k-1)+1
+        19
+
+    TESTS:
+
+    A block graph has at least one block, so `m\geq 1`::
+
+        sage: B = graphs.RandomBlockGraph(0, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the number `m` of blocks must be >= 1
+
+    A block has at least 2 vertices, so `k\geq 2`::
+
+        sage: B = graphs.RandomBlockGraph(1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: the minimum number `k` of vertices in a block must be >= 2
+
+    The maximum size of a block is at least its minimum size, so `k\leq kmax`::
+
+        sage: B = graphs.RandomBlockGraph(1, 3, kmax=2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the maximum number `kmax` of vertices in a block must be >= `k`
+    """
+    import itertools
+    from sage.misc.prandom import choice
+    from sage.sets.disjoint_set import DisjointSet
+
+    if m < 1:
+        raise ValueError("the number `m` of blocks must be >= 1")
+    if k < 2:
+        raise ValueError("the minimum number `k` of vertices in a block must be >= 2")
+    if kmax is None:
+        kmax = k
+    elif kmax < k:
+        raise ValueError("the maximum number `kmax` of vertices in a block must be >= `k`")
+
+    if m == 1:
+        # A block graph with a single block is a clique
+        IS = [ list(range(randint(k, kmax))) ]
+        
+    elif kmax == 2:
+        # A block graph with blocks of order 2 is a tree
+        IS = [ list(e) for e in RandomTree(m+1).edges(labels=False) ]
+
+    else:
+        # We start with a random tree of order m
+        T = RandomTree(m)
+
+        # We create a block of order in range [k,kmax] per vertex of the tree
+        B = {u:[(u,i) for i in range(randint(k, kmax))] for u in T}
+
+        # For each edge of the tree, we choose 1 vertex in each of the
+        # corresponding blocks and we merge them. We use a disjoint set data
+        # structure to keep a unique identifier per merged vertices
+        DS = DisjointSet([i for u in B for i in B[u]])
+        for u,v in T.edges(labels=0):
+            DS.union(choice(B[u]), choice(B[v]))
+
+        # We relabel vertices in the range [0, m*(k-1)] and build the incidence
+        # structure
+        new_label = {root:i for i,root in enumerate(DS.root_to_elements_dict())}
+        IS = [ [new_label[DS.find(v)] for v in B[u]] for u in B ]
+
+    if incidence_structure:
+        return IS
+    
+    # We finally build the block graph
+    if k == kmax:
+        BG = Graph(name = "Random Block Graph with {} blocks of order {}".format(m, k))
+    else:
+        BG = Graph(name = "Random Block Graph with {} blocks of order {} to {}".format(m, k, kmax))
+    for block in IS:
+        BG.add_clique( block )
+    return BG
+
+
 def RandomBoundedToleranceGraph(n):
     r"""
     Returns a random bounded tolerance graph.
@@ -266,7 +422,7 @@ def RandomBoundedToleranceGraph(n):
 
     - ``n`` -- number of vertices of the random graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Every (bounded) tolerance graph is perfect. Hence, the
     chromatic number is equal to the clique number ::
@@ -291,13 +447,14 @@ def RandomGNM(n, m, dense=False, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices.
+    - ``n`` - number of vertices.
 
-    -  ``m`` - number of edges.
+    - ``m`` - number of edges.
 
-    -  ``dense`` - whether to use NetworkX's
-       dense_gnm_random_graph or gnm_random_graph
+    - ``dense`` - whether to use NetworkX's
+      dense_gnm_random_graph or gnm_random_graph
 
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     EXAMPLES: We show the edge list of a random graph on 5 nodes with
     10 edges.
@@ -352,18 +509,17 @@ def RandomNewmanWattsStrogatz(n, k, p, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices.
+    - ``n`` - number of vertices.
 
-    -  ``k`` - each vertex is connected to its k nearest
-       neighbors
+    - ``k`` - each vertex is connected to its k nearest
+      neighbors
 
-    -  ``p`` - the probability of adding a new edge for
-       each edge
+    - ``p`` - the probability of adding a new edge for
+      each edge
 
-    -  ``seed`` - for the random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
-
-    EXAMPLE: We show the edge list of a random graph on 7 nodes with 2
+    EXAMPLES: We show the edge list of a random graph on 7 nodes with 2
     "nearest neighbors" and probability `p = 0.2`::
 
         sage: graphs.RandomNewmanWattsStrogatz(7, 2, 0.2).edges(labels=False)
@@ -393,16 +549,15 @@ def RandomHolmeKim(n, m, p, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices.
+    - ``n`` - number of vertices.
 
-    -  ``m`` - number of random edges to add for each new
-       node.
+    - ``m`` - number of random edges to add for each new
+      node.
 
-    -  ``p`` - probability of adding a triangle after
-       adding a random edge.
+    - ``p`` - probability of adding a triangle after
+      adding a random edge.
 
-    -  ``seed`` - for the random number generator.
-
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
     From the NetworkX documentation: The average clustering has a hard
     time getting above a certain cutoff that depends on m. This cutoff
@@ -417,7 +572,7 @@ def RandomHolmeKim(n, m, p, seed=None):
     nodes may not be all linked to a new node on the first iteration
     like the BA model.
 
-    EXAMPLE: We show the edge list of a random graph on 8 nodes with 2
+    EXAMPLES: We show the edge list of a random graph on 8 nodes with 2
     random edges per node and a probability `p = 0.5` of
     forming triangles.
 
@@ -469,7 +624,7 @@ def RandomIntervalGraph(n):
     - ``n`` (integer) -- the number of vertices in the random
       graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     As for any interval graph, the chromatic number is equal to
     the clique number ::
@@ -503,18 +658,17 @@ def RandomLobster(n, p, q, seed=None):
 
     INPUT:
 
-    -  ``n`` - expected number of vertices in the backbone
+    - ``n`` - expected number of vertices in the backbone
 
-    -  ``p`` - probability of adding an edge to the
-       backbone
+    - ``p`` - probability of adding an edge to the
+      backbone
 
-    -  ``q`` - probability of adding an edge (claw) to the
-       arms
+    - ``q`` - probability of adding an edge (claw) to the
+      arms
 
-    -  ``seed`` - for the random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
-
-    EXAMPLE: We show the edge list of a random graph with 3 backbone
+    EXAMPLES: We show the edge list of a random graph with 3 backbone
     nodes and probabilities `p = 0.7` and `q = 0.3`::
 
         sage: graphs.RandomLobster(3, 0.7, 0.3).edges(labels=False)
@@ -549,7 +703,7 @@ def RandomTree(n):
 
     -  ``n`` - number of vertices in the tree
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomTree(10)
         sage: G.is_tree()
@@ -609,17 +763,16 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices
+    - ``n`` - number of vertices
 
-    -  ``gamma`` - exponent of power law
+    - ``gamma`` - exponent of power law
 
-    -  ``tries`` - number of attempts to adjust sequence to
-       make a tree
+    - ``tries`` - number of attempts to adjust sequence to
+      make a tree
 
-    -  ``seed`` - for the random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
-
-    EXAMPLE: We show the edge list of a random graph with 10 nodes and
+    EXAMPLES: We show the edge list of a random graph with 10 nodes and
     a power law exponent of 2.
 
     ::
@@ -650,14 +803,14 @@ def RandomRegular(d, n, seed=None):
 
     INPUT:
 
-    -  ``n`` - number of vertices
+    - ``n`` - number of vertices
 
-    -  ``d`` - degree
+    - ``d`` - degree
 
-    -  ``seed`` - for the random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
 
-    EXAMPLE: We show the edge list of a random graph with 8 nodes each
+    EXAMPLES: We show the edge list of a random graph with 8 nodes each
     of degree 3.
 
     ::
@@ -697,20 +850,19 @@ def RandomShell(constructor, seed=None):
 
     INPUT:
 
-    -  ``constructor`` - a list of 3-tuples (n,m,d), each
-       representing a shell
+    - ``constructor`` - a list of 3-tuples (n,m,d), each
+      representing a shell
 
-    -  ``n`` - the number of vertices in the shell
+    - ``n`` - the number of vertices in the shell
 
-    -  ``m`` - the number of edges in the shell
+    - ``m`` - the number of edges in the shell
 
-    -  ``d`` - the ratio of inter (next) shell edges to
-       intra shell edges
+    - ``d`` - the ratio of inter (next) shell edges to
+      intra shell edges
 
-    -  ``seed`` - for the random number generator
+    - ``seed`` -- integer seed for random number generator (default ``None``).
 
-
-    EXAMPLE::
+    EXAMPLES::
 
         sage: G = graphs.RandomShell([(10,20,0.8),(20,40,0.8)])
         sage: G.edges(labels=False)
@@ -742,7 +894,7 @@ def RandomToleranceGraph(n):
 
     - ``n`` -- number of vertices of the random graph.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Every tolerance graph is perfect. Hence, the chromatic number is equal to
     the clique number ::
@@ -751,7 +903,7 @@ def RandomToleranceGraph(n):
         sage: g.clique_number() == g.chromatic_number()
         True
 
-    TEST::
+    TESTS::
 
         sage: g = graphs.RandomToleranceGraph(-2)
         Traceback (most recent call last):

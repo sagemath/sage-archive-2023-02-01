@@ -105,7 +105,7 @@ class DoubleCosetReduction(SageObject):
 
     Here usual denotes that we have rescaled gamma to have unit
     determinant, and so that the result is honestly an element
-    of the arithmetic quarternion group under consideration. In
+    of the arithmetic quaternion group under consideration. In
     practice we store integral multiples and keep track of the
     powers of `p`.
 
@@ -280,7 +280,7 @@ class DoubleCosetReduction(SageObject):
         Image under gamma.
 
         Elements of the arithmetic group can be regarded as elements
-        of the global quarterion order, and hence may be represented
+        of the global quaternion order, and hence may be represented
         exactly. This function computes the image of such an element
         under the local splitting and returns the corresponding `p`-adic
         approximation.
@@ -553,11 +553,15 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         if v != 0:
             M = p ** (-v) * M
 
+        det = M.determinant()
+        if not det:
+            raise NotImplementedError("matrix must be invertible")
+
         m00 = M[0, 0].valuation(p)
         m01 = M[0, 1].valuation(p)
 
         if m00 <= m01:
-            tmp = M.determinant().valuation(p) - m00
+            tmp = det.valuation(p) - m00
             bigpower = p ** (1 + tmp)
             r = M[0, 0]
             if r != 0:
@@ -566,7 +570,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
             r = (M[1, 0] * s) % bigpower
             newM = self._Mat_22([p ** m00, 0, r, bigpower / p])
         else:
-            tmp = M.determinant().valuation(p) - m01
+            tmp = det.valuation(p) - m01
             bigpower = p ** tmp
             r = M[0, 1]
             if r != 0:
@@ -986,7 +990,7 @@ class BruhatTitsTree(SageObject, UniqueRepresentation):
         L = []
         for ii in range(val):
             L.append(0)
-        L.extend(z.list())
+        L.extend(z.expansion())
         for n in range(len(L)):
             if L[n] != 0:
                 if len(L[n]) > 1:
@@ -1480,7 +1484,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                     self._magma = magma
                 else:
                     self._magma = magma_session
-                magmap = self._magma(p)
+                self._magma(p)
                 # print("Warning: this input needs magma to work...")
             except RuntimeError:
                 raise NotImplementedError('Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.')
@@ -1987,8 +1991,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                                       'this function to work... Sorry!')
         GH = lambda N,ker: Gamma0(N) if character is None else GammaH_constructor(N,ker)
 
-        divs = lev.divisors()
-
         def mumu(N):
             p = 1
             for _,r in ZZ(N).factor():
@@ -2443,13 +2445,13 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
         INPUT:
 
-        - ``exact`` boolean (Default: False). If True, return an
+        - ``exact`` boolean (Default: ``False``). If ``True``, return an
           embedding into a matrix algebra with coefficients in a
           number field. Otherwise, embed into matrices over `p`-adic
           numbers.
 
-        - ``prec`` Integer (Default: None). If specified, return the
-          matrix with precision ``prec``. Otherwise, return the the
+        - ``prec`` Integer (Default: ``None``). If specified, return the
+          matrix with precision ``prec``. Otherwise, return the
           cached matrix (with the current working precision).
 
         OUTPUT:
@@ -2875,9 +2877,9 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             ]
         """
         OM = self.get_eichler_order_quadmatrix()
-        v = pari('qfminim(%s,2,0, flag = 2)' % (OM._pari_()))
+        v = pari('qfminim(%s,2,0, flag = 2)' % (OM.__pari__()))
         n_units = Integer(v[0].sage() / 2)
-        v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM._pari_()), n_units))
+        v = pari('qfminim(%s,2,%s, flag = 2)' % ((OM.__pari__()), n_units))
         O_units = []
         for jj in range(n_units):
             vec = Matrix(ZZ, 4, 1, [v[2][ii, jj].sage() for ii in range(4)])
@@ -3256,7 +3258,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         n_units = len(self.get_units_of_order())
         ## Using PARI to get the shortest vector in the lattice (via LLL)
         ## We used to pass qfminim flag = 2
-        mat = pari('qfminim(%s,,%s,flag = 2)' % (A._pari_(), 2 * n_units))[2].sage().transpose()
+        mat = pari('qfminim(%s,,%s,flag = 2)' % (A.__pari__(), 2 * n_units))[2].sage().transpose()
         n_vecs = mat.nrows()
         stabs = []
         for jj in range(n_vecs):
@@ -3322,7 +3324,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         if not self._use_magma or len(self._extra_level) == 0:
             return E * vec, True
         m = ZZ(twom / 2)
-        mat = pari('qfminim(%s,,%s,flag = %s)' % (A._pari_(), 1000, flag))[2].sage().transpose()
+        mat = pari('qfminim(%s,,%s,flag = %s)' % (A.__pari__(), 1000, flag))[2].sage().transpose()
         n_vecs = mat.nrows()
         p = self._p
         pinv = Zmod(self._character.modulus())(p) ** -1
@@ -3390,7 +3392,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                 return None
         E, A = self._find_lattice(v1, v2, as_edges, twom)
         ## Using PARI to get the shortest vector in the lattice (via LLL)
-        vec = pari('qfminim(%s,,1,flag = 2)' % (A._pari_()))[2].sage()
+        vec = pari('qfminim(%s,,1,flag = 2)' % (A.__pari__()))[2].sage()
 
         vect = vec.transpose()
         nrd = Integer((vect * A * vec)[0, 0] / 2)
@@ -3697,7 +3699,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     def harmonic_cocycle_from_elliptic_curve(self, E, prec=None):
         r"""
-        Return a harmonic cocycle with the same hecke eigenvalues as ``E``.
+        Return a harmonic cocycle with the same Hecke eigenvalues as ``E``.
 
         Given an elliptic curve `E` having a conductor `N` of the form `pN^-N^+`,
         return the harmonic cocycle over ``self`` which is attached to ``E`` via
@@ -3773,7 +3775,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
         OUTPUT: A space of harmonic cocycles
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: X = BruhatTitsQuotient(31,7)
             sage: H = X.harmonic_cocycles(2,prec=10)

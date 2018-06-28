@@ -11,10 +11,11 @@ Datatypes for finite words
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
-            
+from cpython.object cimport Py_EQ, Py_NE
 from itertools import islice
+
 
 cdef class WordDatatype(object):
     r"""
@@ -43,7 +44,7 @@ cdef class WordDatatype(object):
 
             sage: w = Word([0,1,1,0,0,1])
             sage: w.__reduce__()
-            (Finite words over Set of Python objects of type 'object', ([0, 1, 1, 0, 0, 1],))
+            (Finite words over Set of Python objects of class 'object', ([0, 1, 1, 0, 0, 1],))
         """
         return self._parent, (list(self),)
 
@@ -173,24 +174,15 @@ cdef class WordDatatype_list(WordDatatype):
 
         http://docs.cython.org/docs/special_methods.html
         """
-        if op == 2: # ==
-            if isinstance(other, WordDatatype_list):
+        if isinstance(other, WordDatatype_list):
+            if op == Py_EQ:
                 return self._data == other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return FiniteWord_class.__eq__(self,other)
-        elif op == 3: # !=
-            if isinstance(other, WordDatatype_list):
+            elif op == Py_NE:
                 return self._data != other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return not FiniteWord_class.__eq__(self,other)
-        else:
-            return NotImplemented
+
+        # Otherwise, force FiniteWord_class.__richcmp__ to do it
+        from sage.combinat.words.word import FiniteWord_class
+        return FiniteWord_class.__richcmp__(self, other, op)
 
     def __len__(self):
         r"""
@@ -332,7 +324,7 @@ cdef class WordDatatype_str(WordDatatype):
         if isinstance(data, str):
             self._data = data
         else:
-            self._data = "".join(map(str,data))
+            self._data = "".join(str(u) for u in data)
         self._hash = None
 
     def __iter__(self):
@@ -384,24 +376,15 @@ cdef class WordDatatype_str(WordDatatype):
 
         http://docs.cython.org/docs/special_methods.html
         """
-        if op == 2: # ==
-            if isinstance(other, WordDatatype_str):
+        if isinstance(other, WordDatatype_str):
+            if op == Py_EQ:
                 return self._data == other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return FiniteWord_class.__eq__(self,other)
-        elif op == 3: # !=
-            if isinstance(other, WordDatatype_str):
+            elif op == Py_NE:
                 return self._data != other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return not FiniteWord_class.__eq__(self,other)
-        else:
-            return NotImplemented
+
+        # Otherwise, force FiniteWord_class.__richcmp__ to do it
+        from sage.combinat.words.word import FiniteWord_class
+        return FiniteWord_class.__richcmp__(self, other, op)
 
     def __contains__(self, a):
         r"""
@@ -573,7 +556,7 @@ cdef class WordDatatype_str(WordDatatype):
 
         TESTS::
 
-            sage: alphabet = map(chr, range(97,123))
+            sage: alphabet = [chr(i) for i in range(97, 123)]
             sage: w = Word(alphabet)
             sage: w[4]
             'e'
@@ -583,7 +566,6 @@ cdef class WordDatatype_str(WordDatatype):
             word: dfhj
             sage: all(chr(i+97) == w[i] for i in range(w.length()))
             True
-
         """
         if isinstance(key, slice):
             return self._parent(self._data[key])
@@ -712,9 +694,9 @@ cdef class WordDatatype_str(WordDatatype):
             raise ValueError("the separator must be a string.")
 
         if maxsplit is None:
-            return map(self._parent, self._data.split(sep))
+            return [self._parent(z) for z in self._data.split(sep)]
         else:
-            return map(self._parent, self._data.split(sep,maxsplit))
+            return [self._parent(z) for z in self._data.split(sep, maxsplit)]
 
     def partition(self, sep):
         r"""
@@ -757,9 +739,9 @@ cdef class WordDatatype_str(WordDatatype):
             ValueError: the separator must be a string.
         """
         if isinstance(sep, str):
-            return map(self._parent, self._data.partition(sep))
+            return [self._parent(z) for z in self._data.partition(sep)]
         elif isinstance(sep, WordDatatype_str):
-            return map(self._parent, self._data.partition(sep._data))
+            return [self._parent(z) for z in self._data.partition(sep._data)]
         raise ValueError("the separator must be a string.")
 
     def is_suffix(self, other):
@@ -998,24 +980,15 @@ cdef class WordDatatype_tuple(WordDatatype):
 
         http://docs.cython.org/docs/special_methods.html
         """
-        if op == 2: # ==
-            if isinstance(other, WordDatatype_tuple):
+        if isinstance(other, WordDatatype_tuple):
+            if op == Py_EQ:
                 return self._data == other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return FiniteWord_class.__eq__(self,other)
-        elif op == 3: # !=
-            if isinstance(other, WordDatatype_tuple):
+            elif op == Py_NE:
                 return self._data != other._data
-            else:
-                # Otherwise, force FiniteWord_class.__eq__ to do it
-                # (if we don't force it, then __cmp__ is called before)
-                from sage.combinat.words.word import FiniteWord_class
-                return not FiniteWord_class.__eq__(self,other)
-        else:
-            return NotImplemented
+
+        # Otherwise, force FiniteWord_class.__richcmp__ to do it
+        from sage.combinat.words.word import FiniteWord_class
+        return FiniteWord_class.__richcmp__(self, other, op)
 
     def __len__(self):
         r"""

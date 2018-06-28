@@ -10,7 +10,8 @@ AUTHORS:
   lines, and tableaux of skew partition, composition, and
   skew/composition/partition/tableaux tuple shape.
 """
-from __future__ import print_function
+
+from __future__ import absolute_import, print_function
 
 from six.moves import range
 
@@ -35,7 +36,7 @@ def tex_from_array(array, with_lines=True):
     ``[None]`` rather than ``[]``.
 
     The array is drawn using either the English or French convention
-    following :meth:`Tableaux.options``.
+    following :meth:`Tableaux.options`.
 
     .. SEEALSO:: :meth:`tex_from_array_tuple`
 

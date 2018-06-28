@@ -47,13 +47,10 @@ from six import itervalues, iteritems
 from six.moves import range
 
 from sage.rings.continued_fraction import convergents
-from sage.misc.misc import verbose
 from .sigma0 import Sigma0
 from .fund_domain import t00, t10, t01, t11, M2Z
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
-from sage.parallel.decorate import parallel
-from operator import methodcaller
 
 
 def unimod_matrices_to_infty(r, s):
@@ -250,7 +247,7 @@ class ManinMap(object):
         r"""
         Extend the codomain of self to new_codomain. There must be a valid conversion operation from the old to the new codomain. This is most often used for extension of scalars from `\QQ` to `\QQ_p`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.pollack_stevens.manin_map import ManinMap, M2Z
             sage: from sage.modular.pollack_stevens.fund_domain import ManinRelations
@@ -822,7 +819,7 @@ class ManinMap(object):
 
     def p_stabilize(self, p, alpha, V):
         r"""
-        Return the `p`-stablization of self to level `N*p` on which
+        Return the `p`-stabilization of self to level `N*p` on which
         `U_p` acts by `\alpha`.
 
         INPUT:

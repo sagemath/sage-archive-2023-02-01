@@ -32,6 +32,7 @@ test.spyx
 --optional
 --preparse
 --python
+--python3
 -q
 --R
 --root
@@ -56,6 +57,8 @@ AUTHORS:
 from subprocess import *
 import os
 import select
+
+import six
 
 
 def test_executable(args, input="", timeout=100.0, **kwds):
@@ -234,7 +237,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'python_test_file.py'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("print(3^33)\n")
+        sage: _ = F.write("print(3^33)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -257,7 +260,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.sage'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("k.<a> = GF(5^3); print(a^124)\n")
+        sage: _ = F.write("k.<a> = GF(5^3); print(a^124)\n")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -279,7 +282,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: dir = tmp_dir(); name = 'sage_test_file.spyx'
         sage: fullname = os.path.join(dir, name)
         sage: F = open(fullname, 'w')
-        sage: F.write("from sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
+        sage: _ = F.write("from cysignals.signals cimport *\nfrom sage.rings.integer cimport Integer\ncdef long i, s = 0\nsig_on()\nfor i in range(1000): s += i\nsig_off()\nprint(Integer(s))")
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", fullname])
         sage: print(out)
@@ -303,7 +306,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script + '.py'
         sage: F = open(script, 'w')
-        sage: F.write(s)
+        sage: _ = F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--preparse", script])
         sage: ret
@@ -338,7 +341,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
 
         sage: s = s.replace('4', '5') # (2+2 != 5)
         sage: F = open(script, 'w')
-        sage: F.write(s)
+        sage: _ = F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
@@ -352,7 +355,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "::\n\n    sage: assert True == False\n    sage: 2 + 2\n    5"
         sage: script = tmp_filename(ext='.rst')
         sage: F = open(script, 'w')
-        sage: F.write(s)
+        sage: _ = F.write(s)
         sage: F.close()
         sage: (out, err, ret) = test_executable([
         ....:     "sage", "-t", "--debug", "-p", "2", "--warn-long", "0", script], "help")
@@ -386,7 +389,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         **********************************************************************
         Previously executed commands:
             s...: assert True == False
-        In [1]:
+        sage:
         <BLANKLINE>
         Returning to doctests...
         **********************************************************************
@@ -422,7 +425,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: test='r\"\"\"Add a doc-test for the fixdoctest command line option and, in particular, check that\n:trac:`10589` is fixed.\n\nEXAMPLES::\n\n    sage: 1+1              # incorrect output\n    3\n    sage: m=matrix(ZZ,3)   # output when none is expected\n    [0 0 0]\n    [0 0 0]\n    [1 0 0]\n    sage: (2/3)*m          # no output when it is expected\n    sage: mu=PartitionTuple([[4,4],[3,3,2,1],[1,1]])   # output when none is expected\n    [4, 4, 3, 3, 2, 1, 1]\n    sage: mu.pp()          # uneven indentation\n    ****\n    ****\n    sage: PartitionTuples.options(convention="French")\n    sage: mu.pp()         # fix doctest with uneven indentation\n    sage: PartitionTuples.options._reset()\n\"\"\"\n'
         sage: test_file = os.path.join(tmp_dir(), 'test_file.py')
         sage: F = open(test_file, 'w')
-        sage: F.write(test)
+        sage: _ = F.write(test)
         sage: F.close()
         sage: (out, err, ret) = test_executable(["sage", "--fixdoctests", test_file])
         sage: with open(test_file, 'r') as f:
@@ -482,6 +485,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--python"], "print(3^33)\n")
+        sage: out
+        '34\n'
+        sage: err
+        ''
+        sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--python3"], "print(3^33)\n")
         sage: out
         '34\n'
         sage: err
@@ -561,12 +572,6 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: ret
         0
 
-    Check that ``sage-location`` did its job in making Python scripts
-    relative.  We test it on the ``ipython`` script::
-
-        sage: open(os.path.join(SAGE_LOCAL, "bin", "ipython")).readline()
-        '#!/usr/bin/env python\n'
-
     Test GP using the ``-f`` option which prevents the reading of a ``.gprc``
     configuration file::
 
@@ -609,7 +614,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
     Check some things requiring an internet connection::
 
         sage: (out, err, ret) = test_executable(["sage", "--standard"])  # optional - internet
-        sage: out.find("atlas") >= 0  # optional - internet
+        sage: out.find("cython") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -625,7 +630,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--experimental"])  # optional - internet
-        sage: out.find("macaulay2") >= 0  # optional - internet
+        sage: out.find("valgrind") >= 0  # optional - internet
         True
         sage: err  # optional - internet
         ''
@@ -646,13 +651,13 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
         sage: with open(input, 'w') as F:
-        ....:     F.write(s)
+        ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input]
         sage: (out, err, ret) = test_executable(L) # optional - rst2ipynb
         sage: print(out)                           # optional - rst2ipynb
         {
-         "nbformat_minor": 0,
-         "nbformat": 4,
+         "nbformat_minor": ...,
+         "nbformat": ...,
          "cells": [
           {
            "source": [
@@ -726,14 +731,14 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.ipynb')
         sage: with open(input, 'w') as F:
-        ....:     F.write(s)
+        ....:     _ = F.write(s)
         sage: L = ["sage", "--rst2ipynb", input, output]
         sage: test_executable(L)              # optional - rst2ipynb
         ('', '', 0)
         sage: print(open(output, 'r').read()) # optional - rst2ipynb
         {
-         "nbformat_minor": 0,
-         "nbformat": 4,
+         "nbformat_minor": ...,
+         "nbformat": ...,
          "cells": [
           {
            "source": [
@@ -754,7 +759,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: s = "::\n\n    sage: 2^10\n    1024\n    sage: 2 + 2\n    4"
         sage: input = tmp_filename(ext='.rst')
         sage: with open(input, 'w') as F:
-        ....:     F.write(s)
+        ....:     _ = F.write(s)
         sage: (out, err, ret) = test_executable(["sage", "--rst2txt", input])
         sage: print(out)
         {{{id=0|
@@ -779,7 +784,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.txt')
         sage: with open(input, 'w') as F:
-        ....:     F.write(s)
+        ....:     _ = F.write(s)
         sage: test_executable(["sage", "--rst2txt", input, output])
         ('', '', 0)
         sage: print(open(output, 'r').read())
@@ -801,7 +806,7 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: input = tmp_filename(ext='.rst')
         sage: output = tmp_filename(ext='.sws')
         sage: with open(input, 'w') as F:
-        ....:     F.write(s)
+        ....:     _ = F.write(s)
         sage: test_executable(["sage", "--rst2sws", input, output])
         ('', '', 0)
         sage: import tarfile
@@ -844,14 +849,24 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         del pexpect_env["TERM"]
     except KeyError:
         pass
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env, **kwds)
+
+    encoding = kwds.pop('encoding', 'utf-8')
+    errors = kwds.pop('errors', None)
+
+    if six.PY3:
+        kwds['encoding'] = encoding
+        kwds['errors'] = errors
+
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env,
+              **kwds)
     if input:
         p.stdin.write(input)
+
     p.stdin.close()
     fdout = p.stdout.fileno()
     fderr = p.stderr.fileno()
-    out = ""
-    err = ""
+    out = []
+    err = []
 
     while True:
         # Try reading from fdout and fderr
@@ -869,14 +884,16 @@ def test_executable(args, input="", timeout=100.0, **kwds):
             p.terminate()
             raise RuntimeError("timeout in test_executable()")
         if fdout in rlist:
-            s = os.read(fdout, 1024)
-            if s == "":
+            s = p.stdout.read(1024)
+            if not s:
                 fdout = None   # EOF
-            out += s
+                p.stdout.close()
+            out.append(s)
         if fderr in rlist:
-            s = os.read(fderr, 1024)
-            if s == "":
+            s = p.stderr.read(1024)
+            if not s:
                 fderr = None   # EOF
-            err += s
+                p.stderr.close()
+            err.append(s)
 
-    return (out, err, p.wait())
+    return (''.join(out), ''.join(err), p.wait())

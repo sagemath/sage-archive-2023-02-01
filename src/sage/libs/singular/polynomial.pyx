@@ -5,19 +5,27 @@ AUTHOR:
 
 - Martin Albrecht (2009-07): refactoring
 """
+
 #*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "cysignals/signals.pxi"
+from __future__ import absolute_import
+
+from cysignals.signals cimport sig_on, sig_off
 
 cdef extern from *: # hack to get at cython macro
     int unlikely(int)
 
 import re
 plusminus_pattern = re.compile("([^\(^])([\+\-])")
+
+from sage.cpython.string cimport bytes_to_str, str_to_bytes
 
 from sage.libs.singular.decl cimport number, ideal
 from sage.libs.singular.decl cimport currRing, rChangeCurrRing
@@ -55,7 +63,7 @@ cdef int singular_polynomial_add(poly **ret, poly *p, poly *q, ring *r):
     - ``q`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x + y # indirect doctest
@@ -81,7 +89,7 @@ cdef int singular_polynomial_sub(poly **ret, poly *p, poly *q, ring *r):
     - ``q`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x - y # indirect doctest
@@ -107,7 +115,7 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
     - ``n`` - a Sage coefficient
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: 2*x # indirect doctest
@@ -117,7 +125,7 @@ cdef int singular_polynomial_rmul(poly **ret, poly *p, RingElement n, ring *r):
         0
     """
     if(r != currRing): rChangeCurrRing(r)
-    cdef number *_n = sa2si(n,r)
+    cdef number *_n = sa2si(n, r)
     ret[0] = pp_Mult_nn(p, _n, r)
     n_Delete(&_n, r)
     return 0
@@ -137,7 +145,7 @@ cdef int singular_polynomial_call(poly **ret, poly *p, ring *r, list args, poly 
     - ``(*get_element)`` - a function to turn a Sage element into a
       Singular element.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x(0,0,0) # indirect doctest
@@ -286,7 +294,7 @@ cdef int singular_polynomial_mul(poly** ret, poly *p, poly *q, ring *r) except -
     - ``q`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x*y # indirect doctest
@@ -316,7 +324,7 @@ cdef int singular_polynomial_div_coeff(poly** ret, poly *p, poly *q, ring *r) ex
     - ``q`` - a constant Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: x/2 # indirect doctest
@@ -350,7 +358,7 @@ cdef int singular_polynomial_pow(poly **ret, poly *p, unsigned long exp, ring *r
     - ``exp`` - integer
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: f = 3*x*y + 5/2*z
@@ -390,7 +398,7 @@ cdef int singular_polynomial_neg(poly **ret, poly *p, ring *r):
     - ``p`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: f = 3*x*y + 5/2*z
@@ -412,7 +420,7 @@ cdef object singular_polynomial_str(poly *p, ring *r):
     - ``p`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = ZZ[]
         sage: str(x) # indirect doctest
@@ -422,8 +430,8 @@ cdef object singular_polynomial_str(poly *p, ring *r):
     """
     if(r!=currRing): rChangeCurrRing(r)
 
-    s = p_String(p, r, r)
-    s = re.sub(plusminus_pattern, "\\1 \\2 ", s)
+    s = bytes_to_str(p_String(p, r, r))
+    s = plusminus_pattern.sub("\\1 \\2 ", s)
     return s
 
 
@@ -436,7 +444,7 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
     - ``p`` - a Singular polynomial
     - ``r`` - a Singular ring
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: P.<x,y,z> = QQ[]
         sage: latex(x) # indirect doctest
@@ -454,14 +462,14 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
         \left(z + 1\right) v w - z w^{2} + z v + \left(-z - 1\right) w + z + 1
     """
     poly = ""
-    cdef unsigned long e,j
-    cdef int n = r.N
+    cdef unsigned long e
+    cdef int n = r.N, j
     cdef int atomic_repr = base._repr_option('element_is_atomic')
     while p:
 
         # First determine the multinomial:
         multi = ""
-        for j in range(1,n+1):
+        for j in range(1, n+1):
             e = p_GetExp(p, j, r)
             if e > 0:
                 multi += " "+latex_gens[j-1]
@@ -501,7 +509,6 @@ cdef object singular_polynomial_latex(poly *p, ring *r, object base, object late
 cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, object varnames):
     cdef char **_names
     cdef char **_orig_names
-    cdef char *_name
     cdef int i
 
     if len(varnames) != r.N:
@@ -509,7 +516,7 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
 
     _names = <char**>omAlloc0(sizeof(char*)*r.N)
     for i from 0 <= i < r.N:
-        _name = varnames[i]
+        _name = str_to_bytes(varnames[i])
         _names[i] = omStrDup(_name)
 
     _orig_names = r.names
@@ -523,7 +530,6 @@ cdef object singular_polynomial_str_with_changed_varnames(poly *p, ring *r, obje
     return s
 
 cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
-    cdef int  i
     cdef long _deg, deg
 
     deg = -1
@@ -540,6 +546,7 @@ cdef long singular_polynomial_deg(poly *p, poly *x, ring *r):
             p = pNext(p)
         return deg
 
+    cdef int i = 0
     for i in range(1,r.N+1):
         if p_GetExp(x, i, r):
             break

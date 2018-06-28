@@ -9,6 +9,12 @@ AUTHORS:
 
 - Travis Scrimshaw (2013-02-28): Removed ``CombinatorialClass`` and added
   entry point through :class:`SetPartition`.
+
+- Martin Rubey (2017-10-10): Cleanup, add crossings and nestings, add
+  random generation.
+
+This module defines a class for immutable partitioning of a set. For
+mutable version see :func:`DisjointSet`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -24,9 +30,11 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import print_function, absolute_import, division
 from six.moves import range
+from six import add_metaclass
 
-from sage.sets.set import Set, is_Set
+from sage.sets.set import Set, Set_generic
 
 import itertools
 
@@ -38,7 +46,6 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
-
 from sage.combinat.misc import IterableFunctionCall
 from sage.combinat.combinatorial_map import combinatorial_map
 import sage.combinat.subset as subset
@@ -46,10 +53,409 @@ from sage.combinat.partition import Partition, Partitions
 from sage.combinat.set_partition_ordered import OrderedSetPartitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
-from functools import reduce
+from sage.functions.other import factorial
+from sage.misc.prandom import random, randint
+from sage.probability.probability_distribution import GeneralDiscreteDistribution
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
+class AbstractSetPartition(ClonableArray):
+    r"""
+    Methods of set partitions which are independent of the base set
+    """
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(4)
+            sage: S([[1,3],[2,4]])
+            {{1, 3}, {2, 4}}
+        """
+        return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        The parent is not included as part of the hash.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: hash(A) == hash(B)
+            True
+        """
+        return sum(hash(x) for x in self)
+
+    def __eq__(self, y):
+        """
+        Check equality of ``self`` and ``y``.
+
+        The parent is not included as part of the equality check.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: A == B
+            True
+            sage: C = P([[2, 3], [1], [4]])
+            sage: A == C
+            True
+            sage: D = P([[1], [2, 4], [3]])
+            sage: A == D
+            False
+        """
+        if not isinstance(y, AbstractSetPartition):
+            return False
+        return list(self) == list(y)
+
+    def __ne__(self, y):
+        """
+        Check lack of equality of ``self`` and ``y``.
+
+        The parent is not included as part of the equality check.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: A != B
+            False
+            sage: C = P([[2, 3], [1], [4]])
+            sage: A != C
+            False
+            sage: D = P([[1], [2, 4], [3]])
+            sage: A != D
+            True
+        """
+        return not (self == y)
+
+    def __lt__(self, y):
+        """
+        Check that ``self`` is less than ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: A < B
+            True
+            sage: C = P([[1,2,4], [3]])
+            sage: B < C
+            True
+            sage: B < B
+            False
+            sage: D = P([[1,4], [2], [3]])
+            sage: E = P([[1,4], [2,3]])
+            sage: D < E
+            True
+            sage: F = P([[1,2,4], [3]])
+            sage: E < C
+            False
+            sage: A < E
+            True
+            sage: A < C
+            True
+        """
+        if not isinstance(y, AbstractSetPartition):
+            return False
+        return [sorted(_) for _ in self] < [sorted(_) for _ in y]
+
+    def __gt__(self, y):
+        """
+        Check that ``self`` is greater than ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: B > A
+            True
+            sage: A > B
+            False
+        """
+        if not isinstance(y, AbstractSetPartition):
+            return False
+        return [sorted(_) for _ in self] > [sorted(_) for _ in y]
+
+    def __le__(self, y):
+        """
+        Check that ``self`` is less than or equals ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: A <= B
+            True
+            sage: A <= A
+            True
+        """
+        return self == y or self < y
+
+    def __ge__(self, y):
+        """
+        Check that ``self`` is greater than or equals ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: B >= A
+            True
+            sage: B >= B
+            True
+        """
+        return self == y or self > y
+
+    def __mul__(self, other):
+        r"""
+        The product of the set partitions ``self`` and ``other``.
+
+        The product of two set partitions `B` and `C` is defined as the
+        set partition whose parts are the nonempty intersections between
+        each part of `B` and each part of `C`. This product is also
+        the infimum of `B` and `C` in the classical set partition
+        lattice (that is, the coarsest set partition which is finer than
+        each of `B` and `C`). Consequently, ``inf`` acts as an alias for
+        this method.
+
+        .. SEEALSO::
+
+            :meth:`sup`
+
+        EXAMPLES::
+
+            sage: x = SetPartition([ [1,2], [3,5,4] ])
+            sage: y = SetPartition(( (3,1,2), (5,4) ))
+            sage: x * y
+            {{1, 2}, {3}, {4, 5}}
+
+            sage: S = SetPartitions(4)
+            sage: sp1 = S([[2,3,4], [1]])
+            sage: sp2 = S([[1,3], [2,4]])
+            sage: s = S([[2,4], [3], [1]])
+            sage: sp1.inf(sp2) == s
+            True
+
+        TESTS:
+
+        Here is a different implementation of the ``__mul__`` method
+        (one that was formerly used for the ``inf`` method, before it
+        was realized that the methods do the same thing)::
+
+            sage: def mul2(s, t):
+            ....:     temp = [ss.intersection(ts) for ss in s for ts in t]
+            ....:     temp = filter(lambda x: x != Set([]), temp)
+            ....:     return s.__class__(s.parent(), temp)
+
+        Let us check that this gives the same as ``__mul__`` on set
+        partitions of `\{1, 2, 3, 4\}`::
+
+            sage: all( all( mul2(s, t) == s * t for s in SetPartitions(4) )
+            ....:      for t in SetPartitions(4) )
+            True
+        """
+        new_composition = []
+        for B in self:
+           for C in other:
+                BintC = B.intersection(C)
+                if BintC:
+                    new_composition.append(BintC)
+        return SetPartition(new_composition)
+
+    inf = __mul__
+
+    def sup(self, t):
+        """
+        Return the supremum of ``self`` and ``t`` in the classical set
+        partition lattice.
+
+        The supremum of two set partitions `B` and `C` is obtained as the
+        transitive closure of the relation which relates `i` to `j` if
+        and only if `i` and `j` are in the same part in at least
+        one of the set partitions `B` and `C`.
+
+        .. SEEALSO::
+
+            :meth:`__mul__`
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(4)
+            sage: sp1 = S([[2,3,4], [1]])
+            sage: sp2 = S([[1,3], [2,4]])
+            sage: s = S([[1,2,3,4]])
+            sage: sp1.sup(sp2) == s
+            True
+        """
+        res = Set(list(self))
+        for p in t:
+            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
+            res = res.difference(inters).union(_set_union(inters))
+        return self.parent()(res)
+
+    def standard_form(self):
+        r"""
+        Return ``self`` as a list of lists.
+
+        When the ground set is totally ordered, the elements of each
+        block are listed in increasing order.
+
+        This is not related to standard set partitions (which simply
+        means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some
+        integer `n`) or standardization (:meth:`standardization`).
+
+        EXAMPLES::
+
+            sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
+            [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
+
+        TESTS::
+
+            sage: SetPartition([(1, 9, 8), (2, 3, 4, 5, 6, 7)]).standard_form()
+            [[1, 8, 9], [2, 3, 4, 5, 6, 7]]
+        """
+        return [sorted(_) for _ in self]
+
+    def base_set(self):
+        """
+        Return the base set of ``self``, which is the union of all parts
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1], [2,3], [4]]).base_set()
+            {1, 2, 3, 4}
+            sage: SetPartition([[1,2,3,4]]).base_set()
+            {1, 2, 3, 4}
+            sage: SetPartition([]).base_set()
+            {}
+        """
+        return Set([e for p in self for e in p])
+
+    def base_set_cardinality(self):
+        """
+        Return the cardinality of the base set of ``self``, which is the sum
+        of the sizes of the parts of ``self``.
+
+        This is also known as the *size* (sometimes the *weight*) of
+        a set partition.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1], [2,3], [4]]).base_set_cardinality()
+            4
+            sage: SetPartition([[1,2,3,4]]).base_set_cardinality()
+            4
+        """
+        return sum(len(x) for x in self)
+
+    def coarsenings(self):
+        """
+        Return a list of coarsenings of ``self``.
+
+        .. SEEALSO::
+
+            :meth:`refinements`
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,3],[2,4]]).coarsenings()
+            [{{1, 2, 3, 4}}, {{1, 3}, {2, 4}}]
+            sage: SetPartition([[1],[2,4],[3]]).coarsenings()
+            [{{1, 2, 3, 4}},
+             {{1}, {2, 3, 4}},
+             {{1, 3}, {2, 4}},
+             {{1, 2, 4}, {3}},
+             {{1}, {2, 4}, {3}}]
+            sage: SetPartition([]).coarsenings()
+            [{}]
+        """
+        SP = SetPartitions(len(self))
+        def union(s):
+            # Return the partition obtained by combining, for every
+            # part of s, those parts of self which are indexed by
+            # the elements of this part of s into a single part.
+            ret = []
+            for part in s:
+                cur = Set([])
+                for i in part:
+                    cur = cur.union(self[i-1]) # -1 for indexing
+                ret.append(cur)
+            return ret
+        return [self.parent()(union(s)) for s in SP]
+
+    def max_block_size(self):
+        r"""
+        The maximum block size of the diagram.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram_algebras import PartitionDiagram, PartitionDiagrams
+            sage: pd = PartitionDiagram([[1,-3,-5],[2,4],[3,-1,-2],[5],[-4]])
+            sage: pd.max_block_size()
+            3
+            sage: [d.max_block_size() for d in PartitionDiagrams(2)]
+            [4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
+            sage: [sp.max_block_size() for sp in SetPartitions(3)]
+            [3, 2, 2, 2, 1]
+        """
+        return max(len(block) for block in self)
 
 
-class SetPartition(ClonableArray):
+@add_metaclass(InheritComparisonClasscallMetaclass)
+class SetPartition(AbstractSetPartition):
     """
     A partition of a set.
 
@@ -110,8 +516,6 @@ class SetPartition(ClonableArray):
         sage: s.parent()
         Set partitions
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, parts, check=True):
         """
@@ -125,9 +529,9 @@ class SetPartition(ClonableArray):
             Set partitions
         """
         P = SetPartitions()
-        return P.element_class(P, parts)
+        return P.element_class(P, parts, check=check)
 
-    def __init__(self, parent, s):
+    def __init__(self, parent, s, check=True):
         """
         Initialize ``self``.
 
@@ -139,275 +543,123 @@ class SetPartition(ClonableArray):
             sage: SetPartition([])
             {}
         """
-        ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min))
+        self._latex_options = {}
+        ClonableArray.__init__(self, parent, sorted(map(Set, s), key=min), check=check)
 
     def check(self):
         """
-        Check that we are a valid ordered set partition.
+        Check that we are a valid set partition.
 
         EXAMPLES::
 
-            sage: OS = OrderedSetPartitions(4)
-            sage: s = OS([[1, 3], [2, 4]])
+            sage: S = SetPartitions(4)
+            sage: s = S([[1, 3], [2, 4]])
             sage: s.check()
+
+        TESTS::
+
+            sage: s = S([[1, 2, 3]], check=False)
+            sage: s.check()
+            Traceback (most recent call last):
+            ...
+            ValueError: {{1, 2, 3}} is not an element of Set partitions of {1, 2, 3, 4}
+
+            sage: s = S([1, 2, 3])
+            Traceback (most recent call last):
+            ...
+            TypeError: Element has no defined underlying set
         """
-        assert self in self.parent()
+        if self not in self.parent():
+            raise ValueError("%s is not an element of %s"%(self, self.parent()))
 
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        The parent is not included as part of the hash.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = SetPartition([[1], [2,3], [4]])
-            sage: B = P([[1], [2,3], [4]])
-            sage: hash(A) == hash(B)
-            True
-        """
-        return sum(hash(x) for x in self)
-
-    def __eq__(self, y):
-        """
-        Check equality of ``self`` and ``y``.
-
-        The parent is not included as part of the equality check.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = SetPartition([[1], [2,3], [4]])
-            sage: B = P([[1], [2,3], [4]])
-            sage: A == B
-            True
-            sage: C = P([[2, 3], [1], [4]])
-            sage: A == C
-            True
-            sage: D = P([[1], [2, 4], [3]])
-            sage: A == D
-            False
-        """
-        if not isinstance(y, SetPartition):
-            return False
-        return list(self) == list(y)
-
-    def __lt__(self, y):
-        """
-        Check that ``self`` is less than ``y``.
-
-        The ordering used is lexicographic, where:
-
-        - a set partition is considered as the list of its parts
-          sorted by increasing smallest element;
-
-        - each part is regarded as a list of its elements, sorted
-          in increasing order;
-
-        - the parts themselves are compared lexicographically.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = P([[1], [2,3], [4]])
-            sage: B = SetPartition([[1,2,3], [4]])
-            sage: A < B
-            True
-            sage: C = P([[1,2,4], [3]])
-            sage: B < C
-            True
-            sage: B < B
-            False
-            sage: D = P([[1,4], [2], [3]])
-            sage: E = P([[1,4], [2,3]])
-            sage: D < E
-            True
-            sage: F = P([[1,2,4], [3]])
-            sage: E < C
-            False
-            sage: A < E
-            True
-            sage: A < C
-            True
-        """
-        if not isinstance(y, SetPartition):
-            return False
-        return [sorted(_) for _ in self] < [sorted(_) for _ in y]
-
-    def __gt__(self, y):
-        """
-        Check that ``self`` is greater than ``y``.
-
-        The ordering used is lexicographic, where:
-
-        - a set partition is considered as the list of its parts
-          sorted by increasing smallest element;
-
-        - each part is regarded as a list of its elements, sorted
-          in increasing order;
-
-        - the parts themselves are compared lexicographically.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = P([[1], [2,3], [4]])
-            sage: B = SetPartition([[1,2,3], [4]])
-            sage: B > A
-            True
-            sage: A > B
-            False
-        """
-        if not isinstance(y, SetPartition):
-            return False
-        return [sorted(_) for _ in self] > [sorted(_) for _ in y]
-
-    def __le__(self, y):
-        """
-        Check that ``self`` is less than or equals ``y``.
-
-        The ordering used is lexicographic, where:
-
-        - a set partition is considered as the list of its parts
-          sorted by increasing smallest element;
-
-        - each part is regarded as a list of its elements, sorted
-          in increasing order;
-
-        - the parts themselves are compared lexicographically.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = P([[1], [2,3], [4]])
-            sage: B = SetPartition([[1,2,3], [4]])
-            sage: A <= B
-            True
-            sage: A <= A
-            True
-        """
-        return self == y or self < y
-
-    def __ge__(self, y):
-        """
-        Check that ``self`` is greater than or equals ``y``.
-
-        The ordering used is lexicographic, where:
-
-        - a set partition is considered as the list of its parts
-          sorted by increasing smallest element;
-
-        - each part is regarded as a list of its elements, sorted
-          in increasing order;
-
-        - the parts themselves are compared lexicographically.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = P([[1], [2,3], [4]])
-            sage: B = SetPartition([[1,2,3], [4]])
-            sage: B >= A
-            True
-            sage: B >= B
-            True
-        """
-        return self == y or self > y
-
-    def _cmp_(self, y):
-        """
-        Return the result of ``cmp``.
-
-        EXAMPLES::
-
-            sage: P = SetPartitions(4)
-            sage: A = P([[1], [2,3], [4]])
-            sage: B = SetPartition([[1,2,3], [4]])
-            sage: A < B
-            True
-            sage: cmp(A, B)
-            -1
-            sage: cmp(B, A)
-            1
-        """
-        if self < y:
-            return -1
-        if self > y:
-            return 1
-        return 0
-
-    __cmp__ = _cmp_
-
-    def __mul__(self, other):
+    def set_latex_options(self, **kwargs):
         r"""
-        The product of the set partitions ``self`` and ``other``.
+        Set the latex options for use in the ``_latex_`` function
 
-        The product of two set partitions `B` and `C` is defined as the
-        set partition whose parts are the nonempty intersections between
-        each part of `B` and each part of `C`. This product is also
-        the infimum of `B` and `C` in the classical set partition
-        lattice (that is, the coarsest set partition which is finer than
-        each of `B` and `C`). Consequently, ``inf`` acts as an alias for
-        this method.
+        - ``tikz_scale`` -- (default: 1) scale for use with tikz package
 
-        .. SEEALSO::
+        - ``plot`` -- (default: ``None``) ``None`` returns the set notation,
+          ``linear`` returns a linear plot, ``cyclic`` returns a cyclic
+          plot
 
-            :meth:`sup`
+        - ``color`` -- (default: ``'black'``) the arc colors
 
-        EXAMPLES::
+        - ``fill`` -- (default: ``False``) if ``True`` then fills ``color``,
+          else you can pass in a color to alter the fill color -
+          *only works with cyclic plot*
 
-            sage: x = SetPartition([ [1,2], [3,5,4] ])
-            sage: y = SetPartition(( (3,1,2), (5,4) ))
-            sage: x * y
-            {{1, 2}, {3}, {4, 5}}
+        - ``show_labels`` -- (default: ``True``) if ``True`` shows labels -
+          *only works with plots*
 
-            sage: S = SetPartitions(4)
-            sage: sp1 = S([[2,3,4], [1]])
-            sage: sp2 = S([[1,3], [2,4]])
-            sage: s = S([[2,4], [3], [1]])
-            sage: sp1.inf(sp2) == s
-            True
+        - ``radius`` -- (default: ``"1cm"``) radius of circle for cyclic
+          plot - *only works with cyclic plot*
 
-        TESTS:
-
-        Here is a different implementation of the ``__mul__`` method
-        (one that was formerly used for the ``inf`` method, before it
-        was realized that the methods do the same thing)::
-
-            sage: def mul2(s, t):
-            ....:     temp = [ss.intersection(ts) for ss in s for ts in t]
-            ....:     temp = filter(lambda x: x != Set([]), temp)
-            ....:     return s.__class__(s.parent(), temp)
-
-        Let us check that this gives the same as ``__mul__`` on set
-        partitions of `\{1, 2, 3, 4\}`::
-
-            sage: all( all( mul2(s, t) == s * t for s in SetPartitions(4) )
-            ....:      for t in SetPartitions(4) )
-            True
-        """
-        new_composition = []
-        for B in self:
-           for C in other:
-                BintC = B.intersection(C)
-                if BintC:
-                    new_composition.append(BintC)
-        return SetPartition(new_composition)
-
-    inf = __mul__
-
-    def _repr_(self):
-        """
-        Return a string representation of ``self``.
+        - ``angle`` -- (default: 0) angle for linear plot
 
         EXAMPLES::
 
-            sage: S = SetPartitions(4)
-            sage: S([[1,3],[2,4]])
-            {{1, 3}, {2, 4}}
+            sage: SP = SetPartition([[1,6], [3,5,4]])
+            sage: SP.set_latex_options(tikz_scale=2,plot='linear',fill=True,color='blue',angle=45)
+            sage: SP.set_latex_options(plot='cyclic')
+            sage: SP.latex_options()
+            {'angle': 45,
+             'color': 'blue',
+             'fill': True,
+             'plot': 'cyclic',
+             'radius': '1cm',
+             'show_labels': True,
+             'tikz_scale': 2}
+
         """
-        return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
+        valid_args = ['tikz_scale', 'plot', 'color', 'fill', 'show_labels',
+                      'radius', 'angle']
+
+        for key in kwargs:
+            if key not in valid_args:
+                raise ValueError("unknown keyword argument: %s"%key)
+            if key == 'plot':
+                if not (kwargs['plot'] == 'cyclic'
+                        or kwargs['plot'] == 'linear'
+                        or kwargs['plot'] is None):
+                    raise ValueError("plot must be None, 'cyclic', or 'linear'")
+
+        for opt in kwargs:
+            self._latex_options[opt] = kwargs[opt]
+
+    def latex_options(self):
+        r"""
+        Return the latex options for use in the ``_latex_`` function as a
+        dictionary. The default values are set using the global options.
+
+        Options can be found in :meth:`set_latex_options`
+
+        EXAMPLES::
+
+            sage: SP = SetPartition([[1,6], [3,5,4]]); SP.latex_options()
+            {'angle': 0,
+             'color': 'black',
+             'fill': False,
+             'plot': None,
+             'radius': '1cm',
+             'show_labels': True,
+             'tikz_scale': 1}
+        """
+        opts = self._latex_options.copy()
+        if "tikz_scale" not in opts:
+            opts["tikz_scale"] = 1
+        if "plot" not in opts:
+            opts["plot"] = None
+        if "color" not in opts:
+            opts['color'] = 'black'
+        if "fill" not in opts:
+            opts["fill"] = False
+        if "show_labels" not in opts:
+            opts['show_labels'] = True
+        if "radius" not in opts:
+            opts['radius'] = "1cm"
+        if "angle" not in opts:
+            opts['angle'] = 0
+        return opts
 
     def _latex_(self):
         r"""
@@ -418,39 +670,123 @@ class SetPartition(ClonableArray):
             sage: x = SetPartition([[1,2], [3,5,4]])
             sage: latex(x)
             \{\{1, 2\}, \{3, 4, 5\}\}
+
+            sage: x.set_latex_options(plot='linear', angle=25, color='red')
+            sage: latex(x)
+            \begin{tikzpicture}[scale=1]
+            \node[below=.05cm] at (0,0) {$1$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (0) at (0,0) {};
+            \node[below=.05cm] at (1,0) {$2$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (1) at (1,0) {};
+            \node[below=.05cm] at (2,0) {$3$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (2) at (2,0) {};
+            \node[below=.05cm] at (3,0) {$4$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (3) at (3,0) {};
+            \node[below=.05cm] at (4,0) {$5$};
+            \node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] (4) at (4,0) {};
+            \draw[color=red] (1) to [out=115,in=65] (0);
+            \draw[color=red] (3) to [out=115,in=65] (2);
+            \draw[color=red] (4) to [out=115,in=65] (3);
+            \end{tikzpicture}
+
+            sage: p = SetPartition([['a','c'],['b',1],[20]])
+            sage: p.set_latex_options(plot='cyclic', color='blue', fill=True, tikz_scale=2)
+            sage: latex(p)
+            \begin{tikzpicture}[scale=2]
+            \draw (0,0) circle [radius=1cm];
+            \node[label=90:1] (0) at (90:1cm) {};
+            \node[label=18:20] (1) at (18:1cm) {};
+            \node[label=-54:a] (2) at (-54:1cm) {};
+            \node[label=-126:b] (3) at (-126:1cm) {};
+            \node[label=-198:c] (4) at (-198:1cm) {};
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (2.center) -- (4.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (0.center) -- (3.center) -- cycle;
+            \draw[-,thick,color=blue,fill=blue,fill opacity=0.1] (1.center) -- cycle;
+            \fill[color=black] (0) circle (1.5pt);
+            \fill[color=black] (1) circle (1.5pt);
+            \fill[color=black] (2) circle (1.5pt);
+            \fill[color=black] (3) circle (1.5pt);
+            \fill[color=black] (4) circle (1.5pt);
+            \end{tikzpicture}
         """
-        return repr(self).replace("{",r"\{").replace("}",r"\}")
+        latex_options = self.latex_options()
+        if latex_options["plot"] is None:
+            return repr(self).replace("{",r"\{").replace("}",r"\}")
+
+        from sage.misc.latex import latex
+        latex.add_package_to_preamble_if_available("tikz")
+        res = "\\begin{{tikzpicture}}[scale={}]\n".format(latex_options['tikz_scale'])
+
+        cardinality = self.base_set_cardinality()
+        from sage.rings.integer_ring import ZZ
+        if all(x in ZZ for x in self.base_set()):
+            sort_key = ZZ
+        else:
+            sort_key = str
+        base_set = sorted(self.base_set(), key=sort_key)
+        color = latex_options['color']
+
+        # If we want cyclic plots
+        if latex_options['plot'] == 'cyclic':
+            degrees = 360 // cardinality
+            radius = latex_options['radius']
+
+            res += "\\draw (0,0) circle [radius={}];\n".format(radius)
+
+            # Add nodes
+            for k,i in enumerate(base_set):
+                location = (cardinality - k) * degrees - 270
+                if latex_options['show_labels']:
+                    res += "\\node[label={}:{}]".format(location, i)
+                else:
+                    res += "\\node"
+                res += " ({}) at ({}:{}) {{}};\n".format(k, location, radius)
+
+            # Setup partitions
+            for partition in sorted(self, key=str):
+                res += "\\draw[-,thick,color="+color
+                if latex_options['fill'] is not False:
+                    if isinstance(latex_options['fill'], str):
+                        res += ",fill=" + latex_options['fill']
+                    else:
+                        res += ",fill={},fill opacity=0.1".format(color)
+                res += "] "
+                res += " -- ".join("({}.center)".format(base_set.index(j))
+                                   for j in sorted(partition, key=sort_key))
+                res += " -- cycle;\n"
+
+            # Draw the circles on top
+            for k in range(len(base_set)):
+                res += "\\fill[color=black] ({}) circle (1.5pt);\n".format(k)
+
+        # If we want line plots
+        elif latex_options['plot'] == 'linear':
+            angle = latex_options['angle']
+            # setup line
+            for k,i in enumerate(base_set):
+                if latex_options['show_labels']:
+                    res += "\\node[below=.05cm] at ({},0) {{${}$}};\n".format(k, i)
+                res += "\\node[draw,circle, inner sep=0pt, minimum width=4pt, fill=black] "
+                res += "({k}) at ({k},0) {{}};\n".format(k=k)
+
+            # setup arcs
+            for partition in sorted(self, key=str):
+                p = sorted(partition, key=sort_key)
+                if len(p) <= 1:
+                    continue
+                for k in range(1, len(p)):
+                    res += "\\draw[color={}] ({})".format(color, base_set.index(p[k]))
+                    res += " to [out={},in={}] ".format(90+angle, 90-angle)
+                    res += "({});\n".format(base_set.index(p[k-1]))
+        else:
+            raise ValueError("plot must be None, 'cyclic', or 'linear'")
+
+        res += "\\end{tikzpicture}"
+        return res
 
     cardinality = ClonableArray.__len__
 
-    def sup(self, t):
-        """
-        Return the supremum of ``self`` and ``t`` in the classical set
-        partition lattice.
-
-        The supremum of two set partitions `B` and `C` is obtained as the
-        transitive closure of the relation which relates `i` to `j` if
-        and only if `i` and `j` are in the same part in at least
-        one of the set partitions `B` and `C`.
-
-        .. SEEALSO::
-
-            :meth:`__mul__`
-
-        EXAMPLES::
-
-            sage: S = SetPartitions(4)
-            sage: sp1 = S([[2,3,4], [1]])
-            sage: sp2 = S([[1,3], [2,4]])
-            sage: s = S([[1,2,3,4]])
-            sage: sp1.sup(sp2) == s
-            True
-        """
-        res = Set(list(self))
-        for p in t:
-            inters = Set([x for x in list(res) if x.intersection(p) != Set([])])
-            res = res.difference(inters).union(_set_union(inters))
-        return SetPartition(res)
+    size = AbstractSetPartition.base_set_cardinality
 
     def pipe(self, other):
         r"""
@@ -534,36 +870,13 @@ class SetPartition(ClonableArray):
         """
         return Permutation(tuple( map(tuple, self.standard_form()) ))
 
-    def standard_form(self):
-        r"""
-        Return ``self`` as a list of lists.
-
-        When the ground set is totally ordered, the elements of each
-        block are listed in increasing order.
-
-        This is not related to standard set partitions (which simply
-        means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some
-        integer `n`) or standardization (:meth:`standardization`).
-
-        EXAMPLES::
-
-            sage: [x.standard_form() for x in SetPartitions(4, [2,2])]
-            [[[1, 2], [3, 4]], [[1, 3], [2, 4]], [[1, 4], [2, 3]]]
-
-        TESTS::
-
-            sage: SetPartition([(1, 9, 8), (2, 3, 4, 5, 6, 7)]).standard_form()
-            [[1, 8, 9], [2, 3, 4, 5, 6, 7]]
-        """
-        return [sorted(_) for _ in self]
-
     def apply_permutation(self, p):
         r"""
         Apply ``p`` to the underlying set of ``self``.
 
         INPUT:
 
-        - ``p`` -- A permutation
+        - ``p`` -- a permutation
 
         EXAMPLES::
 
@@ -574,42 +887,245 @@ class SetPartition(ClonableArray):
             sage: q = Permutation([3,2,1,5,4])
             sage: x.apply_permutation(q)
             {{1, 4, 5}, {2, 3}}
+
+            sage: m = PerfectMatching([(1,4),(2,6),(3,5)])
+            sage: m.apply_permutation(Permutation([4,1,5,6,3,2]))
+            [(1, 2), (3, 5), (4, 6)]
         """
         return self.__class__(self.parent(), [Set(map(p, B)) for B in self])
+
+    def crossings_iterator(self):
+        r"""
+        Return the crossing arcs of a set partition on a totally ordered set.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns an iterator over the pairs of crossing
+        lines (as a line correspond to a pair, the iterator
+        produces pairs of pairs).
+
+        EXAMPLES::
+
+            sage: p = SetPartition([[1,4],[2,5,7],[3,6]])
+            sage: next(p.crossings_iterator())
+            ((1, 4), (2, 5))
+
+        TESTS::
+
+            sage: p = SetPartition([]);  p.crossings()
+            []
+        """
+        # each arc is sorted, but the set of arcs might not be
+        arcs = sorted(self.arcs(), key=min)
+        while arcs:
+            i1,j1 = arcs.pop(0)
+            for i2,j2 in arcs:
+                # we know that i1 < i2 and i1 < j1 and i2 < j2
+                if i2 < j1 < j2:
+                    yield ((i1,j1), (i2,j2))
+
+    def crossings(self):
+        r"""
+        Return the crossing arcs of a set partition on a totally ordered set.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns a list of the pairs of crossing lines
+        (as a line correspond to a pair, it returns a list of
+        pairs of pairs).
+
+        EXAMPLES::
+
+            sage: p = SetPartition([[1,4],[2,5,7],[3,6]])
+            sage: p.crossings()
+            [((1, 4), (2, 5)), ((1, 4), (3, 6)), ((2, 5), (3, 6)), ((3, 6), (5, 7))]
+
+        TESTS::
+
+            sage: p = SetPartition([]);  p.crossings()
+            []
+        """
+        return list(self.crossings_iterator())
+
+    def number_of_crossings(self):
+        r"""
+        Return the number of crossings.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns the number the pairs of crossing lines.
+
+        EXAMPLES::
+
+            sage: p = SetPartition([[1,4],[2,5,7],[3,6]])
+            sage: p.number_of_crossings()
+            4
+
+            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            sage: n.number_of_crossings()
+            1
+        """
+        return Integer( len(list(self.crossings_iterator())) )
 
     def is_noncrossing(self):
         r"""
         Check if ``self`` is noncrossing.
 
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane.  This
+        function returns ``True`` if the picture obtained this
+        way has no crossings.
+
         EXAMPLES::
 
-            sage: x = SetPartition([[1,2],[3,4]])
-            sage: x.is_noncrossing()
-            True
-            sage: x = SetPartition([[1,3],[2,4]])
-            sage: x.is_noncrossing()
+            sage: p = SetPartition([[1,4],[2,5,7],[3,6]])
+            sage: p.is_noncrossing()
             False
 
-        AUTHOR: Florent Hivert
+            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            sage: n.is_noncrossing()
+            False
+            sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_noncrossing()
+            True
         """
-        l = list(self)
-        mins = [min(_) for _ in l]
-        maxs = [max(_) for _ in l]
+        it = self.crossings_iterator()
+        try:
+            next(it)
+        except StopIteration:
+            return True
+        return False
 
-        for i in range(1, len(l)):
-            for j in range(i):
-                poss = [mins[i], maxs[i], mins[j], maxs[j]]
-                possort = sorted(poss)
-                cont = [possort.index(mins[i]), possort.index(maxs[i])]
-                if cont == [0,2] or cont == [1,3]:
-                    return False
-                if (cont == [0,3] and
-                    any(mins[j] < x < maxs[j] for x in l[i])):
-                    return False
-                if (cont == [1,2] and
-                    any(mins[i] < x < maxs[i] for x in l[j])):
-                    return False
-        return True
+    def nestings_iterator(self):
+        r"""
+        Iterate over the nestings of ``self``.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns an iterator over the pairs of nesting
+        lines (as a line correspond to a pair, the iterator
+        produces pairs of pairs).
+
+        EXAMPLES::
+
+            sage: n = PerfectMatching([(1, 6), (2, 7), (3, 5), (4, 8)])
+            sage: it = n.nestings_iterator();
+            sage: next(it)
+            ((1, 6), (3, 5))
+            sage: next(it)
+            ((2, 7), (3, 5))
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+        """
+        # each arc is sorted, but the set of arcs might not be
+        arcs = sorted(self.arcs(), key=min)
+        while arcs:
+            i1,j1 = arcs.pop(0)
+            for i2,j2 in arcs:
+                # we know that i1 < i2 and i1 < j1 and i2 < j2
+                if i2 < j2 < j1:
+                    yield ((i1,j1), (i2,j2))
+
+    def nestings(self):
+        r"""
+        Return the nestings of ``self``.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns the list of the pairs of nesting lines
+        (as a line correspond to a pair, it returns a list of
+        pairs of pairs).
+
+        EXAMPLES::
+
+            sage: m = PerfectMatching([(1, 6), (2, 7), (3, 5), (4, 8)])
+            sage: m.nestings()
+            [((1, 6), (3, 5)), ((2, 7), (3, 5))]
+
+            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            sage: n.nestings()
+            [((2, 8), (4, 7)), ((2, 8), (5, 6)), ((4, 7), (5, 6))]
+
+        TESTS::
+
+            sage: m = PerfectMatching([]); m.nestings()
+            []
+        """
+        return list(self.nestings_iterator())
+
+    def number_of_nestings(self):
+        r"""
+        Return the number of nestings of ``self``.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns the number the pairs of nesting lines.
+
+        EXAMPLES::
+
+            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            sage: n.number_of_nestings()
+            3
+        """
+        c = Integer(0)
+        one = Integer(1)
+        for _ in self.nestings_iterator():
+            c += one
+        return c
+
+    def is_nonnesting(self):
+        r"""
+        Return if ``self`` is nonnesting or not.
+
+        OUTPUT:
+
+        We place the elements of the ground set in order on a
+        line and draw the set partition by linking consecutive
+        elements of each block in the upper half-plane. This
+        function returns ``True`` if the picture obtained this
+        way has no nestings.
+
+        EXAMPLES::
+
+            sage: n = PerfectMatching([3,8,1,7,6,5,4,2]); n
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
+            sage: n.is_nonnesting()
+            False
+            sage: PerfectMatching([(1, 3), (2, 5), (4, 6)]).is_nonnesting()
+            True
+        """
+        it = self.nestings_iterator()
+        try:
+            next(it)
+        except StopIteration:
+            return True
+        return False
 
     def is_atomic(self):
         """
@@ -646,41 +1162,6 @@ class SetPartition(ClonableArray):
             maximum_so_far = max(maximum_so_far, max(S))
         return True
 
-    def base_set(self):
-        """
-        Return the base set of ``self``, which is the union of all parts
-        of ``self``.
-
-        EXAMPLES::
-
-            sage: SetPartition([[1], [2,3], [4]]).base_set()
-            {1, 2, 3, 4}
-            sage: SetPartition([[1,2,3,4]]).base_set()
-            {1, 2, 3, 4}
-            sage: SetPartition([]).base_set()
-            {}
-        """
-        return reduce(lambda x,y: x.union(y), self, Set([]))
-
-    def base_set_cardinality(self):
-        """
-        Return the cardinality of the base set of ``self``, which is the sum
-        of the sizes of the parts of ``self``.
-
-        This is also known as the *size* (sometimes the *weight*) of
-        a set partition.
-
-        EXAMPLES::
-
-            sage: SetPartition([[1], [2,3], [4]]).base_set_cardinality()
-            4
-            sage: SetPartition([[1,2,3,4]]).base_set_cardinality()
-            4
-        """
-        return sum(len(x) for x in self)
-
-    size = base_set_cardinality
-
     def standardization(self):
         """
         Return the standardization of ``self``.
@@ -701,25 +1182,11 @@ class SetPartition(ClonableArray):
             {{1, 3}, {2}}
             sage: SetPartition([]).standardization()
             {}
+            sage: SetPartition([('c','b'),('d','f'),('e','a')]).standardization()
+            {{1, 5}, {2, 3}, {4, 6}}
         """
-        if len(self) == 0:
-            return self
-        temp = [list(_) for _ in self]
-        mins = [min(p) for p in temp]
-        over_max = max([max(p) for p in temp]) + 1
-        ret = [[] for i in range(len(temp))]
-        cur = 1
-        while min(mins) != over_max:
-            m = min(mins)
-            i = mins.index(m)
-            ret[i].append(cur)
-            cur += 1
-            temp[i].pop(temp[i].index(m))
-            if len(temp[i]) != 0:
-                mins[i] = min(temp[i])
-            else:
-                mins[i] = over_max
-        return SetPartition(ret)
+        r = {e: i for i,e in enumerate(sorted(self.base_set()), 1)}
+        return SetPartitions(len(r))([[r[e] for e in b] for b in self])
 
     def restriction(self, I):
         """
@@ -863,41 +1330,6 @@ class SetPartition(ClonableArray):
         L = [SetPartitions(part) for part in self]
         return [SetPartition(sum(map(list, x), [])) for x in itertools.product(*L)]
 
-    def coarsenings(self):
-        """
-        Return a list of coarsenings of ``self``.
-
-        .. SEEALSO::
-
-            :meth:`refinements`
-
-        EXAMPLES::
-
-            sage: SetPartition([[1,3],[2,4]]).coarsenings()
-            [{{1, 2, 3, 4}}, {{1, 3}, {2, 4}}]
-            sage: SetPartition([[1],[2,4],[3]]).coarsenings()
-            [{{1, 2, 3, 4}},
-             {{1}, {2, 3, 4}},
-             {{1, 3}, {2, 4}},
-             {{1, 2, 4}, {3}},
-             {{1}, {2, 4}, {3}}]
-            sage: SetPartition([]).coarsenings()
-            [{}]
-        """
-        SP = SetPartitions(len(self))
-        def union(s):
-            # Return the partition obtained by combining, for every
-            # part of s, those parts of self which are indexed by
-            # the elements of this part of s into a single part.
-            ret = []
-            for part in s:
-                cur = Set([])
-                for i in part:
-                    cur = cur.union(self[i-1]) # -1 for indexing
-                ret.append(cur)
-            return ret
-        return [SetPartition(union(s)) for s in SP]
-
     def strict_coarsenings(self):
         r"""
         Return all strict coarsenings of ``self``.
@@ -944,9 +1376,8 @@ class SetPartition(ClonableArray):
         r"""
         Return ``self`` as a list of arcs.
 
-        Consider a set partition `X = \{X_1, X_2, \ldots, X_n\}`,
-        then the arcs are the pairs `i - j` such that `i,j \in X_k`
-        for some `k`.
+        Assuming that the blocks are sorted, the arcs are the pairs
+        of consecutive elements in the blocks.
 
         EXAMPLES::
 
@@ -963,6 +1394,120 @@ class SetPartition(ClonableArray):
             for i in range(len(p)-1):
                 arcs.append((p[i], p[i+1]))
         return arcs
+
+    def plot(self, angle=None, color='black', base_set_dict=None):
+        r"""
+        Return a plot of ``self``.
+
+        INPUT:
+
+        - ``angle`` -- (default: `\pi/4`) the angle at which the arcs take off
+          (if angle is negative, the arcs are drawn below the horizontal line)
+
+        - ``color`` -- (default: ``'black'``) color of the arcs
+
+        - ``base_set_dict`` -- (optional) dictionary with keys elements
+          of :meth:`base_set()` and values as integer or float
+
+        EXAMPLES::
+
+            sage: p = SetPartition([[1,10,11],[2,3,7],[4,5,6],[8,9]])
+            sage: p.plot()
+            Graphics object consisting of 29 graphics primitives
+
+        .. PLOT::
+
+            p = SetPartition([[1,10,11],[2,3,7],[4,5,6],[8,9]])
+            sphinx_plot(p.plot())
+
+        ::
+
+            sage: p = SetPartition([[1,3,4],[2,5]])
+            sage: print(p.plot().description())
+            Point set defined by 1 point(s):    [(0.0, 0.0)]
+            Point set defined by 1 point(s):    [(1.0, 0.0)]
+            Point set defined by 1 point(s):    [(2.0, 0.0)]
+            Point set defined by 1 point(s):    [(3.0, 0.0)]
+            Point set defined by 1 point(s):    [(4.0, 0.0)]
+            Text '1' at the point (0.0,-0.1)
+            Text '2' at the point (1.0,-0.1)
+            Text '3' at the point (2.0,-0.1)
+            Text '4' at the point (3.0,-0.1)
+            Text '5' at the point (4.0,-0.1)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.5,-0.5) radii (0.707106781187,0.707106781187)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.5,-1.5) radii (2.12132034356,2.12132034356)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            sage: p = SetPartition([['a','c'],['b','d'],['e']])
+            sage: print(p.plot().description())
+            Point set defined by 1 point(s):  [(0.0, 0.0)]
+            Point set defined by 1 point(s):    [(1.0, 0.0)]
+            Point set defined by 1 point(s):    [(2.0, 0.0)]
+            Point set defined by 1 point(s):    [(3.0, 0.0)]
+            Point set defined by 1 point(s):    [(4.0, 0.0)]
+            Text 'a' at the point (0.0,-0.1)
+            Text 'b' at the point (1.0,-0.1)
+            Text 'c' at the point (2.0,-0.1)
+            Text 'd' at the point (3.0,-0.1)
+            Text 'e' at the point (4.0,-0.1)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (2.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            sage: p = SetPartition([['a','c'],['b','d'],['e']])
+            sage: print(p.plot(base_set_dict={'a':0,'b':1,'c':2,'d':-2.3,'e':5.4}).description())
+            Point set defined by 1 point(s):    [(-2.3, 0.0)]
+            Point set defined by 1 point(s):    [(0.0, 0.0)]
+            Point set defined by 1 point(s):    [(1.0, 0.0)]
+            Point set defined by 1 point(s):    [(2.0, 0.0)]
+            Point set defined by 1 point(s):    [(5.4, 0.0)]
+            Text 'a' at the point (0.0,-0.1)
+            Text 'b' at the point (1.0,-0.1)
+            Text 'c' at the point (2.0,-0.1)
+            Text 'd' at the point (-2.3,-0.1)
+            Text 'e' at the point (5.4,-0.1)
+            Arc with center (-0.65,-1.65) radii (2.33345237792,2.33345237792)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+            Arc with center (1.0,-1.0) radii (1.41421356237,1.41421356237)
+             angle 0.0 inside the sector (0.785398163397,2.35619449019)
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.point import point
+        from sage.plot.text import text
+        from sage.plot.arc import arc
+        from sage.symbolic.constants import pi
+        from sage.functions.trig import tan, sin
+        from sage.functions.generalized import sgn
+
+        diag = Graphics()
+        sorted_vertices_list = list(self.base_set())
+        sorted_vertices_list.sort()
+
+        if angle is None:
+            angle = pi / 4
+
+        if base_set_dict is not None:
+            vertices_dict = base_set_dict
+        else:
+            vertices_dict = {val: pos for pos,val in enumerate(sorted_vertices_list)}
+
+        for elt in vertices_dict:
+            pos = vertices_dict[elt]
+            diag += point((pos,0), size=30, color=color)
+            diag += text(elt, (pos, -sgn(angle)*0.1), color=color)
+            # TODO: change 0.1 to something proportional to the height of the picture
+
+        for (k,j) in self.arcs():
+            pos_k,pos_j = float(vertices_dict[k]),float(vertices_dict[j])
+            center = ((pos_k+pos_j) / 2, -abs(pos_j-pos_k) / (2*tan(angle)))
+            r1 = abs((pos_j-pos_k) / (2*sin(angle)))
+            sector = (sgn(angle) * (pi/2 - angle), sgn(angle) * (pi/2 + angle))
+            diag += arc(center=center, r1=r1, sector=sector, color=color)
+
+        diag.axes(False)
+        return diag
 
 class SetPartitions(UniqueRepresentation, Parent):
     r"""
@@ -1061,28 +1606,28 @@ class SetPartitions(UniqueRepresentation, Parent):
             True
         """
         # x must be a set
-        if not (isinstance(x, (SetPartition, set, frozenset)) or is_Set(x)):
+        if not isinstance(x, (SetPartition, set, frozenset, Set_generic)):
             return False
 
         # Check that all parts are disjoint
-        base_set = reduce( lambda x,y: x.union(y), map(Set, x), Set([]) )
+        base_set = Set([e for p in x for e in p])
         if len(base_set) != sum(map(len, x)):
             return False
 
         # Check to make sure each element of x is a set
         for s in x:
-            if not (isinstance(s, (set, frozenset)) or is_Set(s)):
+            if not isinstance(s, (set, frozenset, Set_generic)):
                 return False
 
         return True
 
-    def _element_constructor_(self, s):
+    def _element_constructor_(self, s, check=True):
         """
         Construct an element of ``self`` from ``s``.
 
         INPUT:
 
-        - ``s`` -- A set of sets
+        - ``s`` -- a set of sets
 
         EXAMPLES::
 
@@ -1097,12 +1642,10 @@ class SetPartitions(UniqueRepresentation, Parent):
             {}
         """
         if isinstance(s, SetPartition):
-            if s.parent() is self:
-                return s
             if isinstance(s.parent(), SetPartitions):
-                return self.element_class(self, list(s))
+                return self.element_class(self, s, check=check)
             raise ValueError("cannot convert %s into an element of %s"%(s, self))
-        return self.element_class(self, s)
+        return self.element_class(self, s, check=check)
 
     Element = SetPartition
 
@@ -1119,7 +1662,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
             sage: S = SetPartitions(3)
             sage: it = S._iterator_part(Partition([1,1,1]))
-            sage: list(sorted(map(list, next(it))))
+            sage: sorted(map(list, next(it)))
             [[1], [2], [3]]
             sage: S21 = SetPartitions(3,Partition([2,1]))
             sage: len(list(S._iterator_part(Partition([2,1])))) == S21.cardinality()
@@ -1350,10 +1893,41 @@ class SetPartitions_set(SetPartitions):
             return False
 
         # Make sure that the union of all the sets is the original set
-        if reduce(lambda u, s: u.union(Set(s)), x, Set([])) != Set(self._set):
+        if Set([e for p in x for e in p]) != Set(self._set):
             return False
 
         return True
+
+    def random_element(self):
+        r"""
+        Return a random set partition.
+
+        This is a very naive implementation of Knuths outline in F3B,
+        7.2.1.5.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(10)
+            sage: S.random_element()
+            {{1, 4, 9}, {2, 5, 7}, {3}, {6}, {8, 10}}
+        """
+        base_set = list(self.base_set())
+        N = len(base_set)
+        from sage.symbolic.constants import e
+        c = float(e)*bell_number(N)
+        # it would be much better to generate M in the way Knuth
+        # recommends, the following is a waste
+        G = GeneralDiscreteDistribution([float(m)**N/(c*factorial(m)) for m in range(4*N)])
+        M = G.get_random_element()-1
+        l = [randint(0, M) for i in range(N)]
+        p = dict()
+        for i, b in enumerate(l):
+            if b in p:
+                p[b].append(base_set[i])
+            else:
+                p[b] = [base_set[i]]
+
+        return SetPartition(p.values())
 
     def cardinality(self):
         """
@@ -1607,6 +2181,36 @@ class SetPartitions_setn(SetPartitions_set):
             return False
         return len(x) == self.n
 
+    def random_element(self):
+        r"""
+        Return a random set partition of ``self``.
+
+        See https://mathoverflow.net/questions/141999.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(10, 4)
+            sage: S.random_element()
+            {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
+        """
+        def re(N, k):
+            if N == 0:
+                return [[]]
+            elif N == 1:
+                return [[0]]
+            elif float(stirling_number2(N-1, k-1))/float(stirling_number2(N, k)) > random():
+                return [[N-1]] + re(N-1, k-1)
+            else:
+                p = re(N-1, k)
+                p[randint(0, len(p)-1)].append(N-1)
+                return p
+
+        base_set = list(self.base_set())
+        N = len(base_set)
+        k = self.n
+        p = re(N, k)
+        return SetPartition([[base_set[e] for e in b] for b in p])
+
 def _listbloc(n, nbrepets, listint=None):
     r"""
     Decompose a set of `n \times n` ``brepets`` integers (the list
@@ -1627,7 +2231,7 @@ def _listbloc(n, nbrepets, listint=None):
         True
     """
     if isinstance(listint, (int, Integer)) or listint is None:
-        listint = Set(list(range(1,n+1)))
+        listint = Set(range(1,n+1))
 
     if nbrepets == 1:
         yield Set([listint])
@@ -1697,7 +2301,6 @@ def cyclic_permutations_of_set_partition(set_part):
     """
     return list(cyclic_permutations_of_set_partition_iterator(set_part))
 
-
 def cyclic_permutations_of_set_partition_iterator(set_part):
     """
     Iterates over all combinations of cyclic permutations of each cell
@@ -1732,3 +2335,4 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
             for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
+

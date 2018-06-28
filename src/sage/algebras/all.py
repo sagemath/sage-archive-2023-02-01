@@ -29,6 +29,8 @@ from .free_algebra import FreeAlgebra
 from .free_algebra_quotient import FreeAlgebraQuotient
 
 from .steenrod.all import *
+from .lie_algebras.all import *
+from .quantum_groups.all import *
 
 from .finite_dimensional_algebras.all import FiniteDimensionalAlgebra
 
@@ -57,3 +59,5 @@ lazy_import('sage.algebras.tensor_algebra', 'TensorAlgebra')
 lazy_import('sage.algebras.q_system', 'QSystem')
 
 lazy_import('sage.algebras.cluster_algebra', 'ClusterAlgebra')
+
+lazy_import('sage.algebras.yangian', 'Yangian')

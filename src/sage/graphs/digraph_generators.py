@@ -27,6 +27,7 @@ build by typing ``digraphs.`` in Sage and then hitting tab.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.Kautz`               | Returns the Kautz digraph of degree `d` and diameter `D`.
+    :meth:`~DiGraphGenerators.Paley`               | Return a Paley digraph on `q` vertices.
     :meth:`~DiGraphGenerators.Path`                | Returns a directed path on `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Returns a random labelled digraph on `n` nodes and `m` arcs.
@@ -59,10 +60,9 @@ Functions and methods
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-from __future__ import print_function
+from __future__ import print_function, division
 from six.moves import range
 
-from   math import sin, cos, pi
 from sage.misc.randstate import current_randstate
 from sage.graphs.digraph import DiGraph
 
@@ -112,34 +112,35 @@ class DiGraphGenerators():
     INPUT:
 
 
-    -  ``vertices`` - natural number
+    - ``vertices`` - natural number or ``None`` to infinitely generate
+      bigger and bigger digraphs.
 
-    -  ``property`` - any property to be tested on digraphs
-       before generation.
+    - ``property`` - any property to be tested on digraphs
+      before generation.
 
-    -  ``augment`` - choices:
+    - ``augment`` - choices:
 
-    -  ``'vertices'`` - augments by adding a vertex, and
-       edges incident to that vertex. In this case, all digraphs on up to
-       n=vertices are generated. If for any digraph G satisfying the
-       property, every subgraph, obtained from G by deleting one vertex
-       and only edges incident to that vertex, satisfies the property,
-       then this will generate all digraphs with that property. If this
-       does not hold, then all the digraphs generated will satisfy the
-       property, but there will be some missing.
+      - ``'vertices'`` - augments by adding a vertex, and
+        edges incident to that vertex. In this case, all digraphs on *up to*
+        n=vertices are generated. If for any digraph G satisfying the
+        property, every subgraph, obtained from G by deleting one vertex
+        and only edges incident to that vertex, satisfies the property,
+        then this will generate all digraphs with that property. If this
+        does not hold, then all the digraphs generated will satisfy the
+        property, but there will be some missing.
 
-    -  ``'edges'`` - augments a fixed number of vertices by
-       adding one edge In this case, all digraphs on exactly n=vertices
-       are generated. If for any graph G satisfying the property, every
-       subgraph, obtained from G by deleting one edge but not the vertices
-       incident to that edge, satisfies the property, then this will
-       generate all digraphs with that property. If this does not hold,
-       then all the digraphs generated will satisfy the property, but
-       there will be some missing.
+      - ``'edges'`` - augments a fixed number of vertices by
+        adding one edge In this case, all digraphs on *exactly* n=vertices
+        are generated. If for any graph G satisfying the property, every
+        subgraph, obtained from G by deleting one edge but not the vertices
+        incident to that edge, satisfies the property, then this will
+        generate all digraphs with that property. If this does not hold,
+        then all the digraphs generated will satisfy the property, but
+        there will be some missing.
 
-    -  ``implementation`` - which underlying implementation to use (see DiGraph?)
+    - ``implementation`` - which underlying implementation to use (see DiGraph?)
 
-    -  ``sparse`` - ignored if implementation is not ``c_graph``
+    - ``sparse`` - ignored if implementation is not ``c_graph``
 
     EXAMPLES: Print digraphs on 2 or less vertices.
 
@@ -334,6 +335,59 @@ class DiGraphGenerators():
         g.set_pos({i:(i,0) for i in range(n)})
         return g
 
+    def Paley(self, q):
+        r"""
+        Return a Paley digraph on `q` vertices.
+
+        Parameter `q` must be the power of a prime number and congruent to 3 mod
+        4.
+
+        .. SEEALSO::
+
+            - :wikipedia:`Paley_graph`
+            - :meth:`~sage.graphs.graph_generators.GraphGenerators.PaleyGraph`
+
+        EXAMPLES:
+
+        A Paley digraph has `n * (n-1) / 2` edges, its underlying graph is a
+        clique, and so it is a tournament::
+
+            sage: g = digraphs.Paley(7); g
+            Paley digraph with parameter 7: Digraph on 7 vertices
+            sage: g.size() == g.order() * (g.order() - 1) / 2
+            True
+            sage: g.to_undirected().is_clique()
+            True
+
+        A Paley digraph is always self-complementary::
+
+            sage: g.complement().is_isomorphic(g)
+            True
+
+        TESTS:
+
+        Wrong parameter::
+
+            sage: digraphs.Paley(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter q must be a prime power
+            sage: digraphs.Paley(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: parameter q must be congruent to 3 mod 4
+        """
+        from sage.rings.finite_rings.integer_mod import mod
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
+        from sage.arith.all import is_prime_power
+        if not is_prime_power(q):
+            raise ValueError("parameter q must be a prime power")
+        if not mod(q, 4) == 3:
+            raise ValueError("parameter q must be congruent to 3 mod 4")
+        g = DiGraph([FiniteField(q,'a'), lambda i,j: (i!=j) and (j-i).is_square()],
+                    loops=False, name="Paley digraph with parameter {}".format(q))
+        return g
+
     def TransitiveTournament(self, n):
         r"""
         Returns a transitive tournament on `n` vertices.
@@ -355,6 +409,13 @@ class DiGraphGenerators():
             10
             sage: g.automorphism_group().cardinality()
             1
+
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_transitive`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
 
         TESTS::
 
@@ -384,17 +445,9 @@ class DiGraphGenerators():
         `i` to `j` with probability `1/2`, otherwise it has an edge
         from `j` to `i`.
 
-        See :wikipedia:`Tournament_(graph_theory)`
-
         INPUT:
 
         - ``n`` (integer) -- number of vertices.
-
-        .. SEEALSO::
-
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
-
-            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
 
         EXAMPLES::
 
@@ -402,10 +455,20 @@ class DiGraphGenerators():
             Random Tournament: Digraph on 10 vertices
             sage: T.size() == binomial(10, 2)
             True
+            sage: T.is_tournament()
+            True
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):
             ...
             ValueError: The number of vertices cannot be strictly negative!
+
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph.DiGraph.is_tournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.Complete`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomSemiComplete`
         """
         from sage.misc.prandom import random
         g = DiGraph(n)
@@ -496,7 +559,8 @@ class DiGraphGenerators():
             try:
                 s = next(gen)
             except StopIteration:
-                raise StopIteration("Exhausted list of graphs from nauty geng")
+                # Exhausted list of graphs from nauty geng
+                return
 
             G = DiGraph(n)
             i = 0
@@ -568,7 +632,7 @@ class DiGraphGenerators():
 
         The circuit is an oriented ``CycleGraph``
 
-        EXAMPLE:
+        EXAMPLES:
 
         A circuit is the smallest strongly connected digraph::
 
@@ -601,7 +665,7 @@ class DiGraphGenerators():
         - ``integers`` -- the list of integers such that there is an edge from
           `i` to `j` if and only if ``(j-i)%n in integers``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: digraphs.Circulant(13,[3,5,7])
             Circulant graph ([3, 5, 7]): Digraph on 13 vertices
@@ -771,7 +835,7 @@ class DiGraphGenerators():
               checks whether a (di)graph is circulant, and/or returns all
               possible sets of parameters.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: GB = digraphs.GeneralizedDeBruijn(8, 2)
             sage: GB.is_isomorphic(digraphs.DeBruijn(2, 3), certificate = True)
@@ -1056,7 +1120,7 @@ class DiGraphGenerators():
         -  ``seed`` - for the random number generator
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGN(25)
             sage: D.edges(labels=False)
@@ -1092,7 +1156,7 @@ class DiGraphGenerators():
         -  ``seed`` - for the random number generator
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNC(25)
             sage: D.edges(labels=False)
@@ -1136,7 +1200,7 @@ class DiGraphGenerators():
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: set_random_seed(0)
             sage: D = digraphs.RandomDirectedGNP(10, .2)
@@ -1170,7 +1234,7 @@ class DiGraphGenerators():
         PLOTTING: When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNM(10, 5)
             sage: D.num_verts()
@@ -1225,14 +1289,14 @@ class DiGraphGenerators():
         if loops:
             if m > n*n:
                 good_input = False
-            elif m > n*n/2:
+            elif 2*m > n*n:
                 is_dense = True
                 m = n*n - m
 
         else:
             if m > n*(n-1):
                 good_input = False
-            elif m > n*(n-1)/2:
+            elif m > (n * (n - 1)) // 2:
                 is_dense = True
                 m = n*(n-1) - m
 
@@ -1303,7 +1367,7 @@ class DiGraphGenerators():
         -  ``seed`` - for the random number generator.
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = digraphs.RandomDirectedGNR(25, .2)
             sage: D.edges(labels=False)
@@ -1381,44 +1445,53 @@ class DiGraphGenerators():
 #   DiGraph Iterators
 ################################################################################
 
-    def __call__(self, vertices, property=lambda x: True, augment='edges', size=None, implementation='c_graph', sparse=True):
+    def __call__(self, vertices=None, property=lambda x: True, augment='edges',
+                 size=None, implementation='c_graph', sparse=True, copy=True):
         """
         Accesses the generator of isomorphism class representatives.
         Iterates over distinct, exhaustive representatives.
 
         INPUT:
 
+        - ``vertices`` - natural number or ``None`` to generate all digraphs
 
-        -  ``vertices`` - natural number
+        - ``property`` - any property to be tested on digraphs
+          before generation.
 
-        -  ``property`` - any property to be tested on digraphs
-           before generation.
+        - ``augment`` - choices:
 
-        -  ``augment`` - choices:
+          - ``'vertices'`` - augments by adding a vertex, and
+            edges incident to that vertex. In this case, all digraphs on up to
+            n=vertices are generated. If for any digraph G satisfying the
+            property, every subgraph, obtained from G by deleting one vertex
+            and only edges incident to that vertex, satisfies the property,
+            then this will generate all digraphs with that property. If this
+            does not hold, then all the digraphs generated will satisfy the
+            property, but there will be some missing.
 
-        -  ``'vertices'`` - augments by adding a vertex, and
-           edges incident to that vertex. In this case, all digraphs on up to
-           n=vertices are generated. If for any digraph G satisfying the
-           property, every subgraph, obtained from G by deleting one vertex
-           and only edges incident to that vertex, satisfies the property,
-           then this will generate all digraphs with that property. If this
-           does not hold, then all the digraphs generated will satisfy the
-           property, but there will be some missing.
-
-        -  ``'edges'`` - augments a fixed number of vertices by
-           adding one edge In this case, all digraphs on exactly n=vertices
-           are generated. If for any graph G satisfying the property, every
-           subgraph, obtained from G by deleting one edge but not the vertices
-           incident to that edge, satisfies the property, then this will
-           generate all digraphs with that property. If this does not hold,
-           then all the digraphs generated will satisfy the property, but
-           there will be some missing.
+          - ``'edges'`` - augments a fixed number of vertices by
+             adding one edge In this case, all digraphs on exactly n=vertices
+            are generated. If for any graph G satisfying the property, every
+            subgraph, obtained from G by deleting one edge but not the vertices
+            incident to that edge, satisfies the property, then this will
+            generate all digraphs with that property. If this does not hold,
+            then all the digraphs generated will satisfy the property, but
+            there will be some missing.
 
         -  ``implementation`` - which underlying implementation to use (see DiGraph?)
 
         -  ``sparse`` - ignored if implementation is not ``c_graph``
 
-        EXAMPLES: Print digraphs on 2 or less vertices.
+        - ``copy`` (boolean) -- If set to ``True`` (default)
+          this method makes copies of the digraphs before returning
+          them. If set to ``False`` the method returns the digraph it
+          is working on. The second alternative is faster, but modifying
+          any of the digraph instances returned by the method may break
+          the function's behaviour, as it is using these digraphs to
+          compute the next ones: only use ``copy = False`` when
+          you stick to *reading* the digraphs returned.
+
+      EXAMPLES: Print digraphs on 2 or less vertices.
 
         ::
 
@@ -1454,17 +1527,30 @@ class DiGraphGenerators():
           Journal of Algorithms Volume 26, Issue 2, February 1998,
           pages 306-324.
         """
+        from copy import copy as copyfun
         if size is not None:
             extra_property = lambda x: x.size() == size
         else:
             extra_property = lambda x: True
         if augment == 'vertices':
+            if vertices is None:
+                raise NotImplementedError
+
             from sage.graphs.graph_generators import canaug_traverse_vert
             g = DiGraph(implementation=implementation, sparse=sparse)
             for gg in canaug_traverse_vert(g, [], vertices, property, dig=True, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
-                    yield gg
+                    yield copyfun(gg) if copy else gg
+
         elif augment == 'edges':
+
+            if vertices is None:
+                vertices = 0
+                while True:
+                    for g in self(vertices, implementation=implementation, sparse=sparse, copy=copy):
+                        yield g
+                    vertices += 1
+
             from sage.graphs.graph_generators import canaug_traverse_edge
             g = DiGraph(vertices, implementation=implementation, sparse=sparse)
             gens = []
@@ -1475,7 +1561,7 @@ class DiGraphGenerators():
                 gens.append(gen)
             for gg in canaug_traverse_edge(g, gens, property, dig=True, implementation=implementation, sparse=sparse):
                 if extra_property(gg):
-                    yield gg
+                    yield copyfun(gg) if copy else gg
         else:
             raise NotImplementedError()
 

@@ -12,11 +12,13 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import division, print_function, absolute_import
 
-from __future__ import division, print_function
+from cysignals.signals cimport sig_on, sig_off
 
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from sage.cpython.string cimport char_to_str
+from sage.ext.cplusplus cimport ccreadstr
+
 include "decl.pxi"
 include 'misc.pxi'
 
@@ -28,6 +30,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
+from sage.arith.power cimport generic_power_pos
 
 ZZ = IntegerRing()
 
@@ -130,8 +133,7 @@ cdef class ntl_ZZX(object):
                     cc = x
                 ZZX_SetCoeff(self.x, i, cc.x)
         else:
-            v = str(v)
-            ZZX_from_str(&self.x, v)
+            ccreadstr(self.x, str(v))
 
     def __reduce__(self):
         """
@@ -152,7 +154,7 @@ cdef class ntl_ZZX(object):
         """
         cdef char * val
         val = ZZX_repr(&self.x)
-        result = str(val)
+        result = char_to_str(val)
         cpp_delete_array(val)
         return result
 
@@ -415,16 +417,26 @@ cdef class ntl_ZZX(object):
         """
         Return the n-th nonnegative power of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: g = ntl.ZZX([-1,0,1])
-            sage: g**10
+            sage: g ^ 10
             [1 0 -10 0 45 0 -120 0 210 0 -252 0 210 0 -120 0 45 0 -10 0 1]
+            sage: g ^ 0
+            [1]
+            sage: g ^ 1
+            [-1 0 1]
+            sage: g ^ (-1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError
         """
+        if n == 0:
+            from copy import copy
+            return copy(one_ZZX)
         if n < 0:
-            raise NotImplementedError
-        import sage.groups.generic as generic
-        from copy import copy
-        return generic.power(self, n, copy(one_ZZX))
+            raise ArithmeticError
+        return generic_power_pos(self, <unsigned long>n)
 
     def __richcmp__(ntl_ZZX self, other, int op):
         """
@@ -952,7 +964,9 @@ cdef class ntl_ZZX(object):
         sig_on()
         cdef char* t
         t = ZZX_trace_list(&self.x)
-        return eval(string_delete(t).replace(' ', ','))
+        r = eval(char_to_str(t).replace(' ', ','))
+        string_delete(t)
+        return r
 
     def resultant(self, ntl_ZZX other, proof=None):
         """
@@ -984,7 +998,7 @@ cdef class ntl_ZZX(object):
         the global default is proof=True) then it may use a randomized
         strategy that errors with probability no more than $2^{-80}$.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: f = ntl.ZZX([1,2,0,3])
             sage: mod = ntl.ZZX([-5,2,0,0,1])
             sage: f.norm_mod(mod)

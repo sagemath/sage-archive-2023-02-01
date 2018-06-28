@@ -14,25 +14,28 @@ TESTS::
     []
 """
 
-##############################################################################
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-##############################################################################
+#*****************************************************************************
+
 from __future__ import absolute_import
+
+from cysignals.memory cimport check_calloc, sig_free
 
 from sage.data_structures.binary_search cimport *
 from sage.modules.vector_integer_sparse cimport *
 from sage.modules.vector_modn_sparse cimport *
 
-from cpython.sequence cimport *
-
-include "cysignals/memory.pxi"
-
 from sage.libs.gmp.mpz cimport *
 from sage.rings.integer cimport Integer
 from .matrix cimport Matrix
+from .args cimport SparseEntry, MatrixArgs_init
 
 from .matrix_modn_sparse cimport Matrix_modn_sparse
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
@@ -44,106 +47,42 @@ from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
 
 cdef class Matrix_integer_sparse(Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    #   * __cinit__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * __hash__       -- always simple
-    ########################################################################
-    def __cinit__(self, parent, entries, copy, coerce):
-        self._initialized = False
-        # set the parent, nrows, ncols, etc.
-        Matrix_sparse.__init__(self, parent)
-
-        self._matrix = <mpz_vector*> sig_malloc(parent.nrows()*sizeof(mpz_vector))
-        if self._matrix == NULL:
-            raise MemoryError("error allocating sparse matrix")
-
-        # initialize the rows
-        for i from 0 <= i < parent.nrows():
+    def __cinit__(self):
+        self._matrix = <mpz_vector*>check_calloc(self._nrows, sizeof(mpz_vector))
+        # Initialize the rows
+        cdef Py_ssize_t i
+        for i in range(self._nrows):
             mpz_vector_init(&self._matrix[i], self._ncols, 0)
-        # record that rows have been initialized
-        self._initialized = True
 
     def __dealloc__(self):
         cdef Py_ssize_t i
-        if self._initialized:
-            for i from 0 <= i < self._nrows:
+        if self._matrix is not NULL:
+            for i in range(self._nrows):
                 mpz_vector_clear(&self._matrix[i])
-        sig_free(self._matrix)
+            sig_free(self._matrix)
 
-    def __init__(self, parent, entries, copy, coerce):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        r"""
         Create a sparse matrix over the integers.
 
         INPUT:
 
-        - ``parent`` -- a matrix space
+        - ``parent`` -- a matrix space over ``ZZ``
 
-        - ``entries`` -- can be one of the following:
+        - ``entries`` -- see :func:`matrix`
 
-          * a Python dictionary whose items have the
-            form ``(i, j): x``, where ``0 <= i < nrows``,
-            ``0 <= j < ncols``, and ``x`` is coercible to
-            an integer.  The ``i,j`` entry of ``self`` is
-            set to ``x``.  The ``x``'s can be ``0``.
-          * Alternatively, entries can be a list of *all*
-            the entries of the sparse matrix, read
-            row-by-row from top to bottom (so they would
-            be mostly 0).
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``copy`` -- ignored
-
-        - ``coerce`` -- ignored
+        - ``coerce`` -- if False, assume without checking that the
+          entries are of type :class:`Integer`.
         """
-        cdef Py_ssize_t i, j, k
+        ma = MatrixArgs_init(parent, entries)
         cdef Integer z
-        cdef PyObject** X
-
-        # fill in entries in the dict case
-        if entries is None: return
-        if isinstance(entries, dict):
-            R = self.base_ring()
-            for ij, x in entries.iteritems():
-                z = R(x)
-                if z != 0:
-                    i, j = ij  # nothing better to do since this is user input, which may be bogus.
-                    if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
-                        raise IndexError("invalid entries list")
-                    mpz_vector_set_entry(&self._matrix[i], j, z.value)
-
-        elif isinstance(entries, list):
-
-            # Dense input format -- fill in entries
-            if len(entries) != self._nrows * self._ncols:
-                raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
-            seq = PySequence_Fast(entries,"expected a list")
-            X = PySequence_Fast_ITEMS(seq)
-            k = 0
-            R = self.base_ring()
-            # Get fast access to the entries list.
-            for i from 0 <= i < self._nrows:
-                for  j from 0 <= j < self._ncols:
-                    z = R(<object>X[k])
-                    if z != 0:
-                        mpz_vector_set_entry(&self._matrix[i], j, z.value)
-                    k = k + 1
-
-        else:
-
-            # fill in entries in the scalar case
-            z = Integer(entries)
-            if z == 0:
-                return
-            if self._nrows != self._ncols:
-                raise TypeError("matrix must be square to initialize with a scalar.")
-            for i from 0 <= i < self._nrows:
-                mpz_vector_set_entry(&self._matrix[i], i, z.value)
-
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            z = <Integer>se.entry
+            if z:
+                mpz_vector_set_entry(&self._matrix[se.i], se.j, z.value)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
         mpz_vector_set_entry(&self._matrix[i], j, (<Integer> x).value)
@@ -153,9 +92,6 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
         x = Integer()
         mpz_vector_get_entry(x.value, &self._matrix[i], j)
         return x
-
-    def __hash__(self):
-        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality
@@ -184,7 +120,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
 
-    cpdef _lmul_(self, RingElement right):
+    cpdef _lmul_(self, Element right):
         """
         EXAMPLES::
 
@@ -272,7 +208,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -304,7 +240,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = Matrix(ZZ, [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
@@ -381,7 +317,7 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             [  7   2   2   3]
             [  4   3   4 5/7]
 
-        TEST:
+        TESTS:
 
         Check that :trac:`9345` is fixed::
 
@@ -537,23 +473,34 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
             sage: M.elementary_divisors()
             [1, 1, 6]
 
-        ..SEEALSO:: :meth:`smith_form`
+        .. SEEALSO::
+
+            :meth:`smith_form`
         """
         return self.dense_matrix().elementary_divisors(algorithm=algorithm)
 
-    def smith_form(self):
+    def smith_form(self, transformation=True, integral=None):
         r"""
-        Returns matrices S, U, and V such that S = U\*self\*V, and S is in
-        Smith normal form. Thus S is diagonal with diagonal entries the
-        ordered elementary divisors of S.
+        Return the smith normal form of this matrix, that is the diagonal
+        matrix `S` with diagonal entries the ordered elementary divisors of
+        this matrix.
+
+        INPUT:
+
+        - ``transformation`` -- a boolean (default: ``True``); whether to
+          return the transformation matrices `U` and `V` such that `S = U\cdot
+          self\cdot V`.
+
+        - ``integral`` -- a subring of the base ring or ``True`` (default:
+          ``None``); ignored for matrices with integer entries.
 
         This version is for sparse matrices and simply makes the matrix
         dense and calls the version for dense integer matrices.
 
-        .. warning::
+        .. NOTE::
 
-           The elementary_divisors function, which returns the
-           diagonal entries of S, is VASTLY faster than this function.
+           The :meth:`elementary_divisors` function, which returns the diagonal
+           entries of S, is VASTLY faster than this function.
 
         The elementary divisors are the invariants of the finite abelian
         group that is the cokernel of this matrix. They are ordered in
@@ -607,4 +554,4 @@ cdef class Matrix_integer_sparse(Matrix_sparse):
 
            :meth:`elementary_divisors`
         """
-        return self.dense_matrix().smith_form()
+        return self.dense_matrix().smith_form(transformation=transformation)

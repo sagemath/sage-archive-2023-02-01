@@ -215,7 +215,8 @@ class HyperbolicIsometry(Morphism):
         """
         if self.domain().is_isometry_group_projective():
             # Special care must be taken for projective groups
-            m = matrix(self._matrix.nrows(), map(abs, self._matrix.list()))
+            m = matrix(self._matrix.nrows(),
+                       [abs(x) for x in  self._matrix.list()])
             m.set_immutable()
         else:
             m = self._matrix
@@ -358,16 +359,16 @@ class HyperbolicIsometry(Morphism):
         EXAMPLES::
 
             sage: HyperbolicPlane().UHP().get_isometry(identity_matrix(2)).model()
-            Hyperbolic plane in the Upper Half Plane Model model
+            Hyperbolic plane in the Upper Half Plane Model
 
             sage: HyperbolicPlane().PD().get_isometry(identity_matrix(2)).model()
-            Hyperbolic plane in the Poincare Disk Model model
+            Hyperbolic plane in the Poincare Disk Model
 
             sage: HyperbolicPlane().KM().get_isometry(identity_matrix(3)).model()
-            Hyperbolic plane in the Klein Disk Model model
+            Hyperbolic plane in the Klein Disk Model
 
             sage: HyperbolicPlane().HM().get_isometry(identity_matrix(3)).model()
-            Hyperbolic plane in the Hyperboloid Model model
+            Hyperbolic plane in the Hyperboloid Model
         """
         return self.domain()
 

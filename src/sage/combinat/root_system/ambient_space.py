@@ -10,7 +10,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
+from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 from sage.rings.all import ZZ, QQ
 from sage.categories.homset import End
@@ -60,8 +60,20 @@ class AmbientSpace(CombinatorialFreeModule):
         sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
         ....:          TestSuite(e).run()
+
+        sage: e1 = RootSystem(['A',3]).ambient_lattice()
+        sage: e2 = RootSystem(['B',3]).ambient_lattice()
+        sage: e1 == e1
+        True
+        sage: e1 == e2
+        False
+
+        sage: e1 = RootSystem(['A',3]).ambient_space(QQ)
+        sage: e2 = RootSystem(['A',3]).ambient_space(RR)
+        sage: e1 == e2
+        False
     """
-    def __init__(self, root_system, base_ring):
+    def __init__(self, root_system, base_ring, index_set=None):
         """
         EXAMPLES::
 
@@ -75,9 +87,10 @@ class AmbientSpace(CombinatorialFreeModule):
             (1, -1, 0, 0)
         """
         self.root_system = root_system
+        if index_set is None:
+            index_set = tuple(range(0, self.dimension()))
         CombinatorialFreeModule.__init__(self, base_ring,
-                                         range(0,self.dimension()),
-                                         element_class = AmbientSpaceElement,
+                                         index_set,
                                          prefix='e',
                                          category = WeightLatticeRealizations(base_ring))
         coroot_lattice = self.root_system.coroot_lattice()
@@ -109,12 +122,12 @@ class AmbientSpace(CombinatorialFreeModule):
         D = T.symmetrizer()
         alpha = self.simple_roots()
         for C in T.dynkin_diagram().connected_components():
-            tester.assertEquals(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
+            tester.assertEqual(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
 
     # FIXME: attribute or method?
     def dimension(self):
         """
-        Returns the dimension of this ambient space.
+        Return the dimension of this ambient space.
 
         EXAMPLES::
 
@@ -131,7 +144,7 @@ class AmbientSpace(CombinatorialFreeModule):
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
         """
-        Returns the smallest ground ring over which the ambient space can be realized.
+        Return the smallest ground ring over which the ambient space can be realized.
 
         This class method will get called with the Cartan type as
         input. This default implementation returns `\QQ`; subclasses
@@ -276,23 +289,6 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         return self.fundamental_weights()[i]
 
-    def __cmp__(self, other):
-        """
-        EXAMPLES::
-
-            sage: e1 = RootSystem(['A',3]).ambient_lattice()
-            sage: e2 = RootSystem(['B',3]).ambient_lattice()
-            sage: e1 == e1
-            True
-            sage: e1 == e2
-            False
-        """
-        if self.__class__ != other.__class__:
-            return cmp(self.__class__, other.__class__)
-        if self.root_system != other.root_system:
-            return cmp(self.root_system, other.root_system)
-        return 0
-
     def from_vector_notation(self, weight, style="lattice"):
         """
         INPUT:
@@ -360,7 +356,7 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         return End(self).identity()
 
-class AmbientSpaceElement(CombinatorialFreeModuleElement):
+class AmbientSpaceElement(CombinatorialFreeModule.Element):
     # For backward compatibility
     def _repr_(self):
         """
@@ -512,3 +508,6 @@ class AmbientSpaceElement(CombinatorialFreeModuleElement):
 
         """
         return self
+
+AmbientSpace.Element = AmbientSpaceElement
+

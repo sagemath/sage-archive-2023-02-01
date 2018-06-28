@@ -24,7 +24,7 @@ provide a method
 
 * ``myscheme._homset(*args, **kwds)`` returning a
   Hom-set, which must be an element of a derived class of
-  `class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
+  :class:`~sage.schemes.generic.homset.SchemeHomset_generic`. If your
   new Hom-set class does not use ``myscheme._morphism`` then you
   do not have to provide it.
 
@@ -62,10 +62,6 @@ AUTHORS:
   that have been introduced in :trac:`14711`.
 """
 
-# Historical note: in trac #11599, V.B. renamed
-# * _point_morphism_class -> _morphism
-# * _homset_class -> _point_homset
-
 #*****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
@@ -82,7 +78,9 @@ from __future__ import absolute_import, print_function
 
 import operator
 from sage.structure.element import (AdditiveGroupElement, RingElement,
-        Element, generic_power, parent, get_coercion_model)
+        Element, parent, coercion_model)
+from sage.arith.power import generic_power
+from sage.structure.richcmp import richcmp
 from sage.structure.sequence import Sequence
 from sage.categories.homset import Homset, Hom, End
 from sage.categories.number_fields import NumberFields
@@ -90,7 +88,6 @@ from sage.categories.fields import Fields
 from sage.rings.all import Integer, CIF
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field_element import FractionFieldElement
-from sage.rings.morphism import is_RingHomomorphism
 from .point import is_SchemeTopologicalPoint
 from sage.rings.infinity import infinity
 from . import scheme
@@ -102,10 +99,7 @@ from sage.rings.rational_field import QQ
 from sage.categories.map import FormalCompositeMap, Map
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.morphism import SetMorphism
-from sage.categories.morphism import Morphism
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
-
-coercion_model = get_coercion_model()
 
 
 def is_SchemeMorphism(f):
@@ -135,7 +129,6 @@ def is_SchemeMorphism(f):
     from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
-
 class SchemeMorphism(Element):
     """
     Base class for scheme morphisms
@@ -146,13 +139,9 @@ class SchemeMorphism(Element):
 
     .. TODO::
 
-        Currently, :class:`SchemeMorphism` copies code from
-        :class:`~sage.categories.map.Map` rather than inheriting from it. This
-        is to work around a bug in Cython: We want to create a common
-        sub-class of :class:`~sage.structure.element.ModuleElement` and
-        :class:`SchemeMorphism`, but Cython would currently confuse cpdef
-        attributes of the two base classes. Proper inheritance should be used
-        as soon as this bug is fixed. See :trac:`14711`.
+        For historical reasons, :class:`SchemeMorphism` copies code from
+        :class:`~sage.categories.map.Map` rather than inheriting from it.
+        Proper inheritance should be used instead. See :trac:`14711`.
 
     EXAMPLES::
 
@@ -681,7 +670,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
     """
     def __init__(self, parent, codomain=None):
         """
-        The Python constuctor.
+        The Python constructor.
 
         See :class:`SchemeMorphism_structure_map` for details.
 
@@ -754,7 +743,7 @@ class SchemeMorphism_spec(SchemeMorphism):
     """
     def __init__(self, parent, phi, check=True):
         """
-        The Python constuctor.
+        The Python constructor.
 
         See :class:`SchemeMorphism_structure_map` for details.
 
@@ -765,13 +754,14 @@ class SchemeMorphism_spec(SchemeMorphism):
             Affine Scheme morphism:
               From: Spectrum of Rational Field
               To:   Spectrum of Integer Ring
-              Defn: Ring Coercion morphism:
+              Defn: Natural morphism:
                       From: Integer Ring
                       To:   Rational Field
         """
         SchemeMorphism.__init__(self, parent)
         if check:
-            if not is_RingHomomorphism(phi):
+            from sage.categories.all import Rings
+            if not (isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())):
                 raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():
                 raise TypeError("phi (=%s) must have domain %s"
@@ -883,13 +873,14 @@ class SchemeMorphism_spec(SchemeMorphism):
 # of the class
 ############################################################################
 class SchemeMorphism_polynomial(SchemeMorphism):
-    """
+    r"""
     A morphism of schemes determined by polynomials that define what
     the morphism does on points in the ambient space.
 
     INPUT:
 
-    - ``parent`` -- Hom-set whose domain and codomain are affine schemes.
+    - ``parent`` -- Hom-set whose domain and codomain are affine or
+      projective schemes.
 
     - ``polys`` -- a list/tuple/iterable of polynomials defining the
       scheme morphism.
@@ -925,6 +916,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         ...
         TypeError: polys (=[e^x, e^y]) must be elements of
         Multivariate Polynomial Ring in x, y over Rational Field
+
     """
     def __init__(self, parent, polys, check=True):
         """
@@ -956,7 +948,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                 except (TypeError, AttributeError):
                     raise TypeError("polys (=%s) must be elements of %s"%(polys, source_ring))
             polys = Sequence(polys)
-        self._polys = polys
+        self._polys = tuple(polys)
         SchemeMorphism.__init__(self, parent)
 
     def defining_polynomials(self):
@@ -974,7 +966,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: A.<x,y> = AffineSpace(R)
             sage: H = A.Hom(A)
             sage: H([x^3+y, 1-x-y]).defining_polynomials()
-            [x^3 + y, -x - y + 1]
+            (x^3 + y, -x - y + 1)
         """
         return self._polys
 
@@ -1194,7 +1186,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
     def __copy__(self):
         r"""
-        Returns a copy of ``self``.
+        Return a copy of ``self``.
 
         OUTPUT:
 
@@ -1202,22 +1194,22 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3/5*x^2,6*y^2])
-            sage: g =copy(f)
-            sage: f==g
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: H = Hom(P, P)
+            sage: f = H([3/5*x^2, 6*y^2])
+            sage: g = copy(f)
+            sage: f == g
             True
             sage: f is g
             False
 
         ::
 
-            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
-            sage: X=P.subscheme(x^2-y^2);
-            sage: Q=X(23,23,46)
-            sage: P=X(1,1,1)
-            sage: P!=Q
+            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: X = P.subscheme(x^2 - y^2);
+            sage: Q = X(23, 23, 46)
+            sage: P = X(1, 1, 1)
+            sage: P != Q
             True
         """
         return self.parent()(self._polys)
@@ -1435,24 +1427,33 @@ class SchemeMorphism_polynomial(SchemeMorphism):
               Defn: Defined on coordinates by sending (x, y) to
                     (x/y, y)
         """
-        K = self.codomain().base_ring()
         T = self.domain().change_ring(R)
         if self.is_endomorphism():
             H = End(T)
         else:
             S = self.codomain().change_ring(R)
-            H = Hom(T,S)
+            H = Hom(T, S)
 
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
             if R.domain() == self.base_ring():
-                R = self.domain().ambient_space().coordinate_ring().hom(R, T.ambient_space().coordinate_ring())
-        G = []
-        for f in self:
-            if isinstance(f, FractionFieldElement):
-                G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
-            else:
-                G.append(f.change_ring(R))
-        return(H(G, check))
+                from sage.structure.coerce_maps import CallableConvertMap
+                S = self.domain().ambient_space().coordinate_ring()
+                T = T.ambient_space().coordinate_ring()
+                phi = CallableConvertMap(S, T, lambda self, g:T(g.map_coefficients(R)))
+                G = []
+                for f in self:
+                    if isinstance(f, FractionFieldElement):
+                        G.append(phi(f.numerator())/phi(f.denominator()))
+                    else:
+                        G.append(phi(f))
+        else:
+            G = []
+            for f in self:
+                if isinstance(f, FractionFieldElement):
+                    G.append(f.numerator().change_ring(R) / f.denominator().change_ring(R))
+                else:
+                    G.append(f.change_ring(R))
+        return H(G, check)
 
     def specialization(self, D=None, phi=None, homset=None):
         r"""
@@ -1520,8 +1521,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
             sage: R.<c> = QQ[]
             sage: P.<x,y> = ProjectiveSpace(R,1)
-            sage: H = End(P)
-            sage: f = H([x^2 + c*y^2, y^2])
+            sage: f = DynamicalSystem_projective([x^2 + c*y^2, y^2], domain=P)
             sage: F = f.dynatomic_polynomial(3)
             sage: g = F.specialization({c:1}); g
             x^6 + x^5*y + 4*x^4*y^2 + 3*x^3*y^3 + 7*x^2*y^4 + 4*x*y^5 + 5*y^6
@@ -1762,7 +1762,7 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         return len(self._coords)
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare two scheme morphisms.
 
@@ -1773,15 +1773,15 @@ class SchemeMorphism_point(SchemeMorphism):
 
         OUTPUT:
 
-        ``+1``, ``0``, or ``-1``.
+        boolean
 
         EXAMPLES::
 
             sage: A = AffineSpace(2, QQ)
             sage: a = A(1,2)
             sage: b = A(3,4)
-            sage: a.__cmp__(b)
-            -1
+            sage: a < b
+            True
             sage: a != b
             True
         """
@@ -1789,10 +1789,8 @@ class SchemeMorphism_point(SchemeMorphism):
             try:
                 other = self._codomain.ambient_space()(other)
             except TypeError:
-                return -1
-        return cmp(self._coords, other._coords)
-
-    __cmp__ = _cmp_
+                return NotImplemented
+        return richcmp(self._coords, other._coords, op)
 
     def scheme(self):
         """
@@ -1902,11 +1900,12 @@ class SchemeMorphism_point(SchemeMorphism):
 
         EXAMPLES::
 
-            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
-            sage: Q=P(152,113)
-            sage: copy(Q) is Q
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: Q = P(152, 113)
+            sage: Q2 = copy(Q)
+            sage: Q2 is Q
             False
-            sage: copy(Q) == Q
+            sage: Q2 == Q
             True
         """
         return(self._codomain.point(self._coords, check=False))
@@ -1991,3 +1990,4 @@ class SchemeMorphism_point(SchemeMorphism):
                 ambient = ambient.change_ring(phi.codomain().base_ring())
         psi = ambient.ambient_space().coordinate_ring().hom([0 for i in range(ambient.ambient_space().ngens())], ambient.base_ring())
         return ambient([psi(phi(t)) for t in self])
+

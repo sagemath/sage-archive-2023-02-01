@@ -344,7 +344,7 @@ def integer_points_in_polytope(matrix, interval_radius):
 
 def bdd_height(K, height_bound, precision=53, LLL=False):
     r"""
-    Computes all elements in the number number field `K` which have relative
+    Computes all elements in the number field `K` which have relative
     multiplicative height at most ``height_bound``.
 
     The algorithm requires arithmetic with floating point numbers;

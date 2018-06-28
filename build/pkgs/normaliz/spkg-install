@@ -1,5 +1,3 @@
-#!/usr/bin/env sh
-
 die () {
     echo "$@" 1>&2
     exit 1
@@ -10,10 +8,9 @@ die () {
 cd src
 
 # Disable features that require packages SCIP and CoCoA, for which we don't have packages (yet).
-./configure --disable-scip --disable-nmzintegrate --prefix=$SAGE_LOCAL || die "Error configuring normaliz"
+# FLINT is a standard package.  We pass --enable-flint to configure so that an error will be signalled
+# if FLINT cannot be found, rather than building normaliz without it.
+./configure --disable-scip --disable-nmzintegrate --enable-flint --prefix=$SAGE_LOCAL || die "Error configuring normaliz"
 $MAKE || die "Error building normaliz"
 $MAKE install || die "Error installing normaliz"
-
-cd Singular || die "Normaliz distribution has no Singular subdirectory"
-cp -pf normaliz.lib "$SAGE_LOCAL/share/singular/" || die "Error installing normaliz.lib for Singular."
 

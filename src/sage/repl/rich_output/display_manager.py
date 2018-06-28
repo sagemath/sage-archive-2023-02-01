@@ -107,7 +107,7 @@ class restricted_output(object):
 
         In the context, the output is restricted to the output
         container types listed in ``output_classes``. Additionally,
-        display preferences are changed not not show graphics.
+        display preferences are changed not to show graphics.
 
         INPUT:
 
@@ -362,7 +362,7 @@ class DisplayManager(SageObject):
         Boolean.
         """
         return self._backend.is_in_terminal()
-    
+
     def check_backend_class(self, backend_class):
         """
         Check that the current backend is an instance of
@@ -562,7 +562,7 @@ class DisplayManager(SageObject):
         OUTPUT:
 
         Whatever ``_rich_repr_`` returned. If it raises an exception,
-        then a :class:`DisplayFormatterWarning`` is displayed and
+        then a :class:`DisplayFormatterWarning` is displayed and
         ``None`` is returned.
 
         EXAMPLES::
@@ -574,7 +574,7 @@ class DisplayManager(SageObject):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: dm._call_rich_repr(Foo(), {})
-            doctest:...: RichReprWarning: Exception in _rich_repr_ while displaying object: reason
+            doctest:...: ...RichReprWarning: Exception in _rich_repr_ while displaying object: reason
         """
         if rich_repr_kwds:
             # do not ignore errors from invalid options
@@ -690,7 +690,7 @@ class DisplayManager(SageObject):
             sage: out = dm.graphics_from_save(plt.save, dict(), '.png', dm.types.OutputImagePng)
             sage: out
             OutputImagePng container
-            sage: out.png.get().startswith('\x89PNG')
+            sage: out.png.get().startswith(b'\x89PNG')
             True
             sage: out.png.filename()   # random
             '/home/user/.sage/temp/localhost.localdomain/23903/tmp_pu5woK.png'
@@ -712,6 +712,48 @@ class DisplayManager(SageObject):
         from sage.repl.rich_output.buffer import OutputBuffer
         buf = OutputBuffer.from_file(filename)
         return output_container(buf)
+
+    def threejs_scripts(self, online):
+        """
+        Return Three.js script tags for the current backend.
+
+        INPUT:
+
+        - ``online`` -- Boolean determining script usage context
+
+        OUTPUT:
+
+        String containing script tags
+
+        .. NOTE::
+
+            This base method handles ``online=True`` case only, serving CDN
+            script tags. Location of scripts for offline usage is
+            backend-specific.
+
+        EXAMPLES::
+
+            sage: from sage.repl.rich_output import get_display_manager
+            sage: get_display_manager().threejs_scripts(online=True)
+            '...<script src="https://cdn.rawgit.com/mrdoob/three.js/...'
+            sage: get_display_manager().threejs_scripts(online=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: current backend does not support
+            offline threejs graphics
+        """
+        if online:
+            from sage.misc.package import installed_packages
+            version = installed_packages()['threejs']
+            return """
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/build/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/{0}/examples/js/controls/OrbitControls.js"></script>
+            """.format(version)
+        try:
+            return self._backend.threejs_offline_scripts()
+        except AttributeError:
+            raise ValueError(
+                'current backend does not support offline threejs graphics')
 
     def supported_output(self):
         """

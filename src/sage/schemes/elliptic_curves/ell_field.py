@@ -3,10 +3,7 @@ Elliptic curves over a general field
 
 This module defines the class ``EllipticCurve_field``, based on
 ``EllipticCurve_generic``, for elliptic curves over general fields.
-
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -14,6 +11,7 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from . import ell_generic
 import sage.rings.all as rings
@@ -39,6 +37,23 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
     # More complicated twists exist in theory for char=2,3 and
     # j=0=1728, but I have never worked them out or seen them used!
     #
+
+    def genus(self):
+        """
+        Return 1 for elliptic curves.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(3), [0, -1, 0, -346, 2652])
+            sage: E.genus()
+            1
+
+            sage: R = FractionField(QQ['z'])
+            sage: E = EllipticCurve(R, [0, -1, 0, -346, 2652])
+            sage: E.genus()
+            1
+        """
+        return rings.ZZ.one()
 
     r"""
     Twists: rewritten by John Cremona as follows:
@@ -708,7 +723,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
                 if f.codomain() != L:
                     raise ValueError("embedding has wrong codomain")
             except AttributeError:
-                raise ValueError("invalid embedding: %s" % s)
+                raise ValueError("invalid embedding: %s" % f)
             try:
                 jK = f.preimage(j)
             except Exception:
@@ -755,7 +770,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def isogeny(self, kernel, codomain=None, degree=None, model=None, check=True):
         r"""
-        Returns an elliptic curve isogeny from self.
+        Return an elliptic curve isogeny from self.
 
         The isogeny can be determined in two ways, either by a
         polynomial or a set of torsion points.  The methods used are:
@@ -863,12 +878,12 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
         try:
             return EllipticCurveIsogeny(self, kernel, codomain, degree, model, check=check)
         except AttributeError as e:
-            raise RuntimeError("Unable to contruct isogeny: %s" % e)
+            raise RuntimeError("Unable to construct isogeny: %s" % e)
 
 
     def isogeny_codomain(self, kernel, degree=None):
         r"""
-        Returns the codomain of the isogeny from self with given
+        Return the codomain of the isogeny from self with given
         kernel.
 
         INPUT:
@@ -1022,16 +1037,16 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
         L = list(set(l))
         try:
-            L = [rings.ZZ(l) for l in L]
+            L = [rings.ZZ(ell) for ell in L]
         except TypeError:
             raise ValueError("%s is not a list of primes."%l)
 
         L.sort()
-        return sum([isogenies_prime_degree(self,l) for l in L],[])
+        return sum([isogenies_prime_degree(self,ell) for ell in L],[])
 
     def is_isogenous(self, other, field=None):
         """
-        Returns whether or not self is isogenous to other.
+        Return whether or not self is isogenous to other.
 
         INPUT:
 
@@ -1122,7 +1137,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
 
     def hasse_invariant(self):
         r"""
-        Returns the Hasse invariant of this elliptic curve.
+        Return the Hasse invariant of this elliptic curve.
 
         OUTPUT:
 

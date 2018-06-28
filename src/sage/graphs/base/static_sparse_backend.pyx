@@ -36,6 +36,8 @@ Classes and methods
 """
 from __future__ import print_function
 
+from cysignals.memory cimport check_calloc, sig_free
+
 from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    init_reverse,
                                                    out_degree,
@@ -44,9 +46,8 @@ from sage.graphs.base.static_sparse_graph cimport (init_short_digraph,
                                                    edge_label)
 from .c_graph cimport CGraphBackend
 from sage.data_structures.bitset cimport FrozenBitset
-from libc.stdint cimport uint32_t
+from libc.stdint cimport uint64_t, uint32_t, INT32_MAX, UINT32_MAX
 include 'sage/data_structures/bitset.pxi'
-include "cysignals/memory.pxi"
 
 cdef class StaticSparseCGraph(CGraph):
     """
@@ -63,7 +64,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``G`` -- a :class:`Graph` object.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -112,7 +113,7 @@ cdef class StaticSparseCGraph(CGraph):
         r"""
         Freeing the memory
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -131,7 +132,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``n`` -- an integer
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -152,7 +153,7 @@ cdef class StaticSparseCGraph(CGraph):
         r"""
         Adds a vertex to the graph. No way.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -168,7 +169,7 @@ cdef class StaticSparseCGraph(CGraph):
         r"""
         Removes a vertex from the graph. No way.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -184,7 +185,7 @@ cdef class StaticSparseCGraph(CGraph):
         r"""
         Returns the list of vertices
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -208,7 +209,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``u,v`` -- integers
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -244,7 +245,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``u`` -- a vertex
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -269,7 +270,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``u`` -- a vertex
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -297,7 +298,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``u`` -- a vertex
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -321,7 +322,7 @@ cdef class StaticSparseCGraph(CGraph):
 
         - ``u`` -- a vertex
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseCGraph
             sage: g = StaticSparseCGraph(graphs.PetersenGraph())
@@ -347,7 +348,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         A graph :mod:`backend <sage.graphs.base.graph_backends>` for static
         sparse graphs.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: D = sage.graphs.base.sparse_graph.SparseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)
@@ -453,7 +454,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex (or not?)
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -468,7 +469,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         r"""
         Relabel the graphs' vertices. No way.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -488,7 +489,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``u,v`` -- two vertices
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -554,7 +555,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``l`` -- a label
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -601,7 +602,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``labels`` -- whether to return labels too
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -649,7 +650,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``labels`` -- whether to return labels too
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -687,7 +688,7 @@ cdef class StaticSparseBackend(CGraphBackend):
           very efficient. If ``vertices`` is equal to ``None``, all the vertices
           are returned.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -705,7 +706,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         r"""
         Returns the number of vertices
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -724,7 +725,7 @@ cdef class StaticSparseBackend(CGraphBackend):
           where this method can be used to define this boolean. This method
           raises an exception if ``value`` is not equal to ``None``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -749,7 +750,7 @@ cdef class StaticSparseBackend(CGraphBackend):
           where this method can be used to define this boolean. This method
           raises an exception if ``value`` is not equal to ``None``.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -773,7 +774,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         - ``directed`` (boolean) -- whether to consider the graph as directed or
           not.
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -827,7 +828,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``labels`` -- whether to return edge labels too
 
-        TEST::
+        TESTS::
 
             sage: from sage.graphs.base.static_sparse_backend import StaticSparseBackend
             sage: g = StaticSparseBackend(graphs.PetersenGraph())
@@ -881,7 +882,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         - ``directed`` -- boolean; whether to take into account the
           orientation of this graph in counting the degree of ``v``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.degree(0)
@@ -923,7 +924,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.in_degree(0)
@@ -949,7 +950,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.out_degree(0)
@@ -972,7 +973,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors(0)
@@ -997,7 +998,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors_out(0)
@@ -1022,7 +1023,7 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         - ``v`` -- a vertex
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors_in(0)
@@ -1047,7 +1048,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         r"""
         Addition of vertices is not available on an immutable graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.add_vertex(1)
@@ -1065,7 +1066,7 @@ cdef class StaticSparseBackend(CGraphBackend):
         r"""
         Removal of vertices is not available on an immutable graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.delete_vertex(1)
@@ -1091,15 +1092,15 @@ def _run_it_on_static_instead(f):
     such a method will never work on an immutable graph. But it can help find
     new bugs, from time to time.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.graphs.base.static_sparse_backend import _run_it_on_static_instead
         sage: @_run_it_on_static_instead
         ....: def new_graph_method(g):
-        ....:    print("My backend is of type {}".format(g._backend))
+        ....:    print("My backend is of type {}".format(type(g._backend)))
         sage: Graph.new_graph_method = new_graph_method
         sage: g = Graph(5)
-        sage: print("My backend is of type {}".format(g._backend))
+        sage: print("My backend is of type {}".format(type(g._backend)))
         My backend is of type <type 'sage.graphs.base.sparse_graph.SparseGraphBackend'>
         sage: g.new_graph_method()
         My backend is of type <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
@@ -1112,3 +1113,94 @@ def _run_it_on_static_instead(f):
             return f(*kwd,**kwds)
 
     return same_function_on_static_version
+
+
+cdef uint32_t simple_BFS(short_digraph g,
+                         uint32_t source,
+                         uint32_t *distances,
+                         uint32_t *predecessors,
+                         uint32_t *waiting_list,
+                         bitset_t seen):
+    """
+    Perform a breadth first search (BFS) using the same method as in
+    sage.graphs.distances_all_pairs.all_pairs_shortest_path_BFS
+
+    Furthermore, the method returns the eccentricity of the source which is
+    either the last computed distance when all vertices are seen, or a very
+    large number (UINT32_MAX) when the graph is not connected.
+
+    INPUT:
+
+    - ``g`` -- a short_digraph.
+
+    - ``source`` -- Starting node of the BFS.
+
+    - ``distances`` -- array of size ``n`` to store BFS distances from
+      ``source``. This method assumes that this array has already been
+      allocated. However, there is no need to initialize it.
+
+    - ``predecessors`` -- array of size ``n`` to store the first predecessor of
+      each vertex during the BFS search from ``source``. The predecessor of the
+      ``source`` is itself. This method assumes that this array has already
+      been allocated. However, it is possible to pass a ``NULL`` pointer in
+      which case the predecessors are not recorded. 
+
+    - ``waiting_list`` -- array of size ``n`` to store the order in which the
+      vertices are visited during the BFS search from ``source``. This method
+      assumes that this array has already been allocated. However, there is no
+      need to initialize it.
+
+    - ``seen`` -- bitset of size ``n`` that must be initialized before calling
+      this method (i.e., bitset_init(seen, n)). However, there is no need to
+      clear it.
+
+    """
+    cdef uint32_t v, u
+    cdef uint32_t waiting_beginning = 0
+    cdef uint32_t waiting_end = 0
+    cdef uint32_t * p_tmp
+    cdef uint32_t * end
+    cdef uint32_t n = g.n
+    cdef uint32_t ** p_vertices = g.neighbors
+
+
+    # the source is seen
+    bitset_clear(seen)
+    bitset_add(seen, source)
+    distances[source] = 0
+    if predecessors!=NULL:
+        predecessors[source] = source
+
+    # and added to the queue
+    waiting_list[0] = source
+    waiting_beginning = 0
+    waiting_end = 0
+
+    # For as long as there are vertices left to explore
+    while waiting_beginning <= waiting_end:
+
+        # We pick the first one
+        v = waiting_list[waiting_beginning]
+        p_tmp = p_vertices[v]
+        end = p_vertices[v+1]
+
+        # and we iterate over all the outneighbors u of v
+        while p_tmp < end:
+            u = p_tmp[0]
+
+            # If we notice one of these neighbors is not seen yet, we set its
+            # parameters and add it to the queue to be explored later.
+            if not bitset_in(seen, u):
+                distances[u] = distances[v]+1
+                bitset_add(seen, u)
+                waiting_end += 1
+                waiting_list[waiting_end] = u
+                if predecessors!=NULL:
+                    predecessors[u] = v
+
+            p_tmp += 1
+
+        waiting_beginning += 1
+
+    # We return the eccentricity of the source
+    return distances[waiting_list[waiting_end]] if waiting_end==n-1 else UINT32_MAX

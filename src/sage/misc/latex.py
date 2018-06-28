@@ -20,7 +20,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six import iteritems
+from six import iteritems, integer_types
+
+from sage.cpython.string  import str_to_bytes
 
 EMBEDDED_MODE = False
 
@@ -54,12 +56,10 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-import sys
 import shutil, re
 import os.path
 import random
 import subprocess
-import types
 
 from sage.misc.temporary_file import tmp_dir
 from . import sage_eval
@@ -403,13 +403,14 @@ latex_table = {type(None): None_function,
                bool: bool_function,
                dict: dict_function,
                float: float_function,
-               int: str,
                list: list_function,
-               long: str,
                str: str_function,
                tuple: tuple_function,
                type(NotImplemented): builtin_constant_function,
                type(Ellipsis): builtin_constant_function}
+
+for t in integer_types:
+    latex_table[t] = str
 
 
 class LatexExpr(str):
@@ -629,7 +630,6 @@ def latex_extra_preamble():
         \newcommand{\RDF}{\Bold{R}}
         \newcommand{\RIF}{\Bold{I} \Bold{R}}
         \newcommand{\RLF}{\Bold{R}}
-        \newcommand{\CFF}{\Bold{CFF}}
         \newcommand{\Bold}[1]{\mathbf{#1}}
         <BLANKLINE>
     """
@@ -690,7 +690,7 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
         sage: from sage.misc.latex import _run_latex_, _latex_file_
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
         sage: O = open(file, 'w')
-        sage: O.write(_latex_file_([ZZ['x'], RR])); O.close()
+        sage: _ = O.write(_latex_file_([ZZ['x'], RR])); O.close()
         sage: _run_latex_(file) # random - depends on whether latex is installed
         'dvi'
     """
@@ -1009,7 +1009,7 @@ class Latex(LatexCall):
         EXAMPLES::
 
             sage: s = 2
-            sage: sage.misc.latex.Latex()._latex_preparse('\sage{s}', locals())
+            sage: sage.misc.latex.Latex()._latex_preparse(r'\sage{s}', locals())
             '2'
         """
         i0 = -1
@@ -1034,7 +1034,7 @@ class Latex(LatexCall):
     def eval(self, x, globals, strip=False, filename=None, debug=None,
              density=None, pdflatex=None, engine=None, locals={}):
         r"""
-        Compiles the formatted tex given by ``x`` as a png and writes the
+        Compile the formatted tex given by ``x`` as a png and writes the
         output file to the directory given by ``filename``.
 
         INPUT:
@@ -1065,7 +1065,7 @@ class Latex(LatexCall):
 
            When using latex (the default), you must have 'dvipng' (or
            'dvips' and 'convert') installed on your operating system,
-           or this command won't work.  When using pdflatex or xelatex, you
+           or this command will not work.  When using pdflatex or xelatex, you
            must have 'convert' installed.
 
         OUTPUT:
@@ -1075,11 +1075,8 @@ class Latex(LatexCall):
 
         EXAMPLES::
 
-            # This would generate a file named "test.png"
-            sage: latex.eval("\\ZZ[x]", locals(), filename="test") # not tested
-            ''
-            # This would generate a file named "/path/to/test.png"
-            sage: latex.eval("\\ZZ[x]", locals(), filename="/path/to/test") # not tested
+            sage: fn = tmp_filename()
+            sage: latex.eval("$\\ZZ[x]$", locals(), filename=fn) # not tested
             ''
             sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
             An error occurred...
@@ -1090,7 +1087,7 @@ class Latex(LatexCall):
         if density is None:
             density = self.__density
         if filename is None:
-            filename = 'sage%s'%random.randint(1,100) # to defeat browser caches
+            filename = 'sage%s' % random.randint(1, 100) # to defeat browser caches
         else:
             filename = os.path.splitext(filename)[0]  # get rid of extension
         base = tmp_dir()
@@ -1110,8 +1107,7 @@ class Latex(LatexCall):
             O.write(MACROS)
             O.write('\\begin{document}\n')
 
-        from sagenb.misc.misc import encoded_str
-        O.write(encoded_str(x))
+        O.write(str_to_bytes(x, encoding='utf-8'))
         if self.__slide:
             O.write('\n\n\\end{document}')
         else:
@@ -1904,7 +1900,7 @@ class MathJax:
             sage: from sage.misc.latex import MathJax
             sage: MathJax()(3)
             <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
-            sage: str(MathJax().eval(ZZ[x], mode='display')) == str(MathJax()(ZZ[x]))
+            sage: str(MathJax().eval(ZZ['x'], mode='display')) == str(MathJax()(ZZ['x']))
             True
         """
         return self.eval(x, combine_all=combine_all)
@@ -2150,7 +2146,7 @@ def view(objects, title='Sage', debug=False, sep='', tiny=False,
         sage: g = sage.misc.latex.latex_examples.graph()
         sage: latex.add_to_preamble(r"\usepackage{tkz-graph}")
         sage: file = os.path.join(SAGE_TMP, "temp.tex")
-        sage: O = open(file, 'w'); O.write(_latex_file_(g)); O.close()
+        sage: O = open(file, 'w'); _ = O.write(_latex_file_(g)); O.close()
         sage: _run_latex_(file, engine="pdflatex") # optional - latex
         'pdf'
 
@@ -2338,11 +2334,11 @@ def coeff_repr(c):
         return c._latex_coeff_repr()
     except AttributeError:
         pass
-    if isinstance(c, (int, long, float)):
+    if isinstance(c, integer_types + (float,)):
         return str(c)
     s = latex(c)
     if s.find("+") != -1 or s.find("-") != -1:
-        return "(%s)"%s
+        return "(%s)" % s
     return s
 
 def repr_lincomb(symbols, coeffs):

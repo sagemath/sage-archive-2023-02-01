@@ -23,7 +23,8 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.element import generic_power
+from sage.arith.power import generic_power
+
 
 class Monoids(CategoryWithAxiom):
     r"""
@@ -60,6 +61,12 @@ class Monoids(CategoryWithAxiom):
         sage: C = Monoids()
         sage: TestSuite(C).run()
 
+    ::
+
+        sage: S = Monoids().example()
+        sage: x = S("aa")
+        sage: x^0, x^1, x^2, x^3, x^4, x^5
+        ('', 'aa', 'aaaa', 'aaaaaa', 'aaaaaaaa', 'aaaaaaaaaa')
     """
 
     _base_category_class_and_axiom = (Semigroups, "Unital")
@@ -191,11 +198,11 @@ class Monoids(CategoryWithAxiom):
                 sage: S._test_prod(elements = (S('a'), S('b')))
             """
             tester = self._tester(**options)
-            tester.assert_(self.prod([]) == self.one())
+            tester.assertTrue(self.prod([]) == self.one())
             for x in tester.some_elements():
-                tester.assert_(self.prod([x]) == x)
-                tester.assert_(self.prod([x, x]) == x**2)
-                tester.assert_(self.prod([x, x, x]) == x**3)
+                tester.assertTrue(self.prod([x]) == x)
+                tester.assertTrue(self.prod([x, x]) == x**2)
+                tester.assertTrue(self.prod([x, x, x]) == x**3)
 
 
         def submonoid(self, generators, category=None):
@@ -258,7 +265,7 @@ class Monoids(CategoryWithAxiom):
             """
             return self == self.parent().one()
 
-        def __pow__(self, n):
+        def _pow_int(self, n):
             r"""
             Return ``self`` to the `n^{th}` power.
 
@@ -269,14 +276,10 @@ class Monoids(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: S = Monoids().example()
-                sage: x = S("aa")
-                sage: x^0, x^1, x^2, x^3, x^4, x^5
-                ('', 'aa', 'aaaa', 'aaaaaa', 'aaaaaaaa', 'aaaaaaaaaa')
-
+                sage: S("a") ^ 5
+                'aaaaa'
             """
-            if not n: # FIXME: why do we need to do that?
-                return self.parent().one()
-            return generic_power(self, n, self.parent().one())
+            return generic_power(self, n)
 
         def _pow_naive(self, n):
             r"""
@@ -496,6 +499,16 @@ class Monoids(CategoryWithAxiom):
                     sage: Z12.algebra(QQ).algebra_generators()
                     Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3],  4: B[4],   5: B[5],
                                    6: B[6], 7: B[7], 8: B[8], 9: B[9], 10: B[10], 11: B[11]}
+
+
+                    sage: GroupAlgebras(QQ).example(AlternatingGroup(10)).algebra_generators()
+                    Finite family {0: (8,9,10), 1: (1,2,3,4,5,6,7,8,9)}
+
+                    sage: A = DihedralGroup(3).algebra(QQ); A
+                    Algebra of Dihedral group of order 6 as a permutation group
+                     over Rational Field
+                    sage: A.algebra_generators()
+                    Finite family {0: (1,2,3), 1: (1,3)}
                 """
                 monoid = self.basis().keys()
                 try:
@@ -518,7 +531,7 @@ class Monoids(CategoryWithAxiom):
                     sage: SG4(Permutation([1,3,2,4])).is_central()
                     False
                     sage: A=GroupAlgebras(QQ).example(); A
-                    Group algebra of Dihedral group of order 8 as a permutation group over Rational Field
+                    Algebra of Dihedral group of order 8 as a permutation group over Rational Field
                     sage: sum(i for i in A.basis()).is_central()
                     True
                 """

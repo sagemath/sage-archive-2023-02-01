@@ -13,8 +13,6 @@ from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_RDF import Polyhedron_RDF
 
-
-
 #########################################################################
 class Polyhedron_cdd(Polyhedron_base):
     """
@@ -156,7 +154,9 @@ class Polyhedron_cdd(Polyhedron_base):
             ....:    [0.62, -1.38, 0.38],[0.144, -1.04, 0.04],
             ....:    [0.1309090909, -1.0290909091, 0.04]]
             sage: Polyhedron(point_list)
-            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 14 vertices
+            Traceback (most recent call last):
+            ...
+            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
             sage: Polyhedron(point_list, base_ring=QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
@@ -214,11 +214,11 @@ class Polyhedron_cdd(Polyhedron_base):
             return [int(i)-1 for i in l[2:]]  # make indices pythonic
 
         # nested function
-        def cdd_convert(string, field=self.field()):
+        def cdd_convert(string, base_ring=self.base_ring()):
             """
             Converts the cdd output string to a numerical value.
             """
-            return [field(x) for x in string.split()]
+            return [base_ring(x) for x in string.split()]
 
         # nested function
         def find_in_cddout(expected_string):
@@ -288,7 +288,9 @@ class Polyhedron_cdd(Polyhedron_base):
             else:
                 n_cdd=n;
             self._V_adjacency_matrix = matrix(ZZ, n, n, 0)
-            expect_in_cddout('begin')
+            if not find_in_cddout('begin'):
+                raise ValueError('Error while parsing cdd output: could not '
+                                 'find "begin" after "Vertex graph"')
             l = cddout.pop(0).split()
             assert int(l[0]) == n_cdd, "Not enough V-adjacencies in cdd output?"
             for i in range(n_cdd):
@@ -311,7 +313,9 @@ class Polyhedron_cdd(Polyhedron_base):
         if find_in_cddout('Facet graph'):
             n = len(self._Hrepresentation);
             self._H_adjacency_matrix = matrix(ZZ, n, n, 0)
-            expect_in_cddout('begin')
+            if not find_in_cddout('begin'):
+                raise ValueError('Error while parsing cdd output: could not '
+                                 'find "begin" after "Facet graph"')
             l = cddout.pop(0).split()
             assert int(l[0]) == n, "Not enough H-adjacencies in cdd output?"
             for i in range(n):
@@ -359,7 +363,7 @@ class Polyhedron_QQ_cdd(Polyhedron_cdd, Polyhedron_QQ):
 
             sage: p = Polyhedron(backend='cdd', base_ring=QQ)
             sage: type(p)
-            <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_QQ_cdd_with_category.element_class'>
+            <class 'sage.geometry.polyhedron.parent.Polyhedra_QQ_cdd_with_category.element_class'>
             sage: TestSuite(p).run()
         """
         Polyhedron_cdd.__init__(self, parent, Vrep, Hrep, **kwds)
@@ -401,7 +405,7 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
             sage: p = Polyhedron(backend='cdd', base_ring=RDF)
             sage: type(p)
-            <class 'sage.geometry.polyhedron.backend_cdd.Polyhedra_RDF_cdd_with_category.element_class'>
+            <class 'sage.geometry.polyhedron.parent.Polyhedra_RDF_cdd_with_category.element_class'>
             sage: TestSuite(p).run()
         """
         Polyhedron_cdd.__init__(self, parent, Vrep, Hrep, **kwds)

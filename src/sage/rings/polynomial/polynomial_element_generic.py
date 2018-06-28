@@ -39,9 +39,10 @@ from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.pari.all import pari_gen
+from sage.structure.richcmp import richcmp, richcmp_item, rich_to_bool, rich_to_bool_sgn
 from sage.structure.element import coerce_binop
 
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, Infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.structure.factorization import Factorization
@@ -61,7 +62,7 @@ class Polynomial_generic_sparse(Polynomial):
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
+        <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_integral_domain_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
 
@@ -140,7 +141,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return dict(self.__coeffs)
 
-    def coefficients(self,sparse=True):
+    def coefficients(self, sparse=True):
         """
         Return the coefficients of the monomials appearing in ``self``.
 
@@ -151,12 +152,22 @@ class Polynomial_generic_sparse(Polynomial):
             7*w^10000 + w^1997 + 5
             sage: f.coefficients()
             [5, 1, 7]
+
+        TESTS:
+
+        Check that all coefficients are in the base ring::
+
+            sage: S.<x> = PolynomialRing(QQ, sparse=True)
+            sage: f = x^4
+            sage: all(c.parent() is QQ for c in f.coefficients(False))
+            True
         """
         if sparse:
-          return [c[1] for c in sorted(six.iteritems(self.__coeffs))]
+            return [self.__coeffs[e] for e in self.exponents()]
         else:
-          return [self.__coeffs[i] if i in self.__coeffs else 0
-                  for i in range(self.degree() + 1)]
+            zero = self.parent().base_ring().zero()
+            return [self.__coeffs[i] if i in self.__coeffs else zero
+                    for i in range(self.degree() + 1)]
 
     def exponents(self):
         """
@@ -170,9 +181,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.exponents()
             [0, 1997, 10000]
         """
-        keys = self.__coeffs.keys()
-        keys.sort()
-        return keys
+        return sorted(self.__coeffs)
 
     def valuation(self):
         """
@@ -189,10 +198,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R(0).valuation()
             +Infinity
         """
-        c = self.__coeffs.keys()
-        if len(c) == 0:
+        if not self.__coeffs:
             return infinity
-        return ZZ(min(self.__coeffs.keys()))
+        return ZZ(min(self.__coeffs))
 
     def _derivative(self, var=None):
         """
@@ -291,11 +299,10 @@ class Polynomial_generic_sparse(Polynomial):
         # calling the coercion model bin_op is much more accurate than using the
         # true division (which is bypassed by polynomials). But it does not work
         # in all cases!!
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
+        from sage.structure.element import coercion_model as cm
         import operator
         try:
-            Q = cm.bin_op(R.one(), ZZ.one(), operator.div).parent()
+            Q = cm.bin_op(R.one(), ZZ.one(), operator.truediv).parent()
         except TypeError:
             F = (R.base_ring().one()/ZZ.one()).parent()
             Q = R.change_ring(F)
@@ -500,12 +507,6 @@ class Polynomial_generic_sparse(Polynomial):
             v[n] = x
         return v
 
-    #def _pari_(self, variable=None):
-    #    if variable is None:
-    #        return self.__pari
-    #    else:
-    #        return self.__pari.subst('x',variable)
-
     def degree(self, gen=None):
         """
         Return the degree of this sparse polynomial.
@@ -517,10 +518,9 @@ class Polynomial_generic_sparse(Polynomial):
             sage: f.degree()
             50000
         """
-        v = self.__coeffs.keys()
-        if len(v) == 0:
+        if not self.__coeffs:
             return -1
-        return max(v)
+        return max(self.__coeffs)
 
     def _add_(self, right):
         r"""
@@ -668,7 +668,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: for _ in range(100):
             ....:     pd = Rd.random_element()
             ....:     qd = Rd.random_element()
-            ....:     assert cmp(pd,qd) == cmp(Rs(pd), Rs(qd))
+            ....:     assert bool(pd < qd) == bool(Rs(pd) < Rs(qd))
         """
         d1 = self.degree()
         d2 = other.degree()
@@ -685,8 +685,9 @@ class Polynomial_generic_sparse(Polynomial):
         for i in sorted(degs, reverse=True):
             x = self[i]
             y = other[i]
-            if x != y:
-                return richcmp_not_equal(x, y, op)
+            res = richcmp_item(x, y, op)
+            if res is not NotImplemented:
+                return res
         return rich_to_bool(op, 0)
 
     def shift(self, n):
@@ -701,7 +702,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = x^100000 + 2*x + 4
             sage: type(p)
-            <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_integral_domain_with_category.element_class'>
+            <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_integral_domain_with_category.element_class'>
             sage: p.shift(0)
              x^100000 + 2*x + 4
             sage: p.shift(-1)
@@ -1038,7 +1039,7 @@ class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_gene
         sage: R.<x> = PolynomialRing(Frac(RR['t']), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial.polynomial_element_generic.PolynomialRing_field_with_category.element_class'>
+        <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_field_with_category.element_class'>
         sage: loads(f.dumps()) == f
         True
     """
@@ -1117,6 +1118,16 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             ...
             PrecisionError: The coefficient of t^4 has not enough precision
 
+        TESTS:
+
+        Check that :trac:`22936` is fixed::
+
+            sage: S.<x> = PowerSeriesRing(GF(5))
+            sage: R.<y> = S[]
+            sage: p = x^2+y+x*y^2
+            sage: p.newton_polygon()
+            Finite Newton polygon with 3 vertices: (0, 2), (1, 0), (2, 1)
+
         AUTHOR:
 
         - Xavier Caruso (2013-03-20)
@@ -1127,14 +1138,15 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         polygon_prec = NewtonPolygon([ (x, self[x].precision_absolute()) for x in range(d+1) ])
         vertices = polygon.vertices(copy=False)
         vertices_prec = polygon_prec.vertices(copy=False)
-        if vertices[0][0] > vertices_prec[0][0]:
-            raise PrecisionError("first term with non-infinite valuation must have determined valuation")
-        elif vertices[-1][0] < vertices_prec[-1][0]:
-            raise PrecisionError("last term with non-infinite valuation must have determined valuation")
-        else:
-            for (x, y) in vertices:
-                if polygon_prec(x) <= y:
-                    raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
+        if len(vertices_prec) > 0:
+            if vertices[0][0] > vertices_prec[0][0]:
+                raise PrecisionError("first term with non-infinite valuation must have determined valuation")
+            elif vertices[-1][0] < vertices_prec[-1][0]:
+                raise PrecisionError("last term with non-infinite valuation must have determined valuation")
+            else:
+                for (x, y) in vertices:
+                    if polygon_prec(x) <= y:
+                         raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
         return polygon
 
     def hensel_lift(self, a):
@@ -1211,17 +1223,32 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             ...
             KeyboardInterrupt:
 
+        TESTS::
+
+            sage: S.<x> = PowerSeriesRing(GF(5))
+            sage: R.<y> = S[]
+            sage: p = x^2+y+x*y^2
+            sage: p._factor_of_degree(1)
+            (1 + O(x^20))*y + x^2 + x^5 + 2*x^8 + 4*x^14 + 2*x^17 + 2*x^20 + O(x^22)
+
         AUTHOR:
 
         - Xavier Caruso (2013-03-20)
 
-        TODO:
+        .. TODO::
 
-        Precision is not optimal, and can be improved.
+            Precision is not optimal, and can be improved.
         """
         coeffs = self.list()
-        a = self.truncate(deg + 1)
-        b = v = self.parent()(1)
+        a = coeffs[:deg+1]
+        # The leading coefficient need to be known at finite precision
+        # in order to ensure that the while loop below terminates
+        if a[deg].precision_absolute() is Infinity:
+            a[deg] = a[deg].add_bigoh(self.base_ring().default_prec())
+
+        parent = self.parent()
+        a = parent(a)
+        b = v = parent(1)
         x = self % a
         while(not x.is_zero()):
             a += (v * x) % a
@@ -1332,6 +1359,14 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             [0, 0, 0]
             [1]
 
+        TESTS::
+
+            sage: S.<x> = PowerSeriesRing(GF(5))
+            sage: R.<y> = S[]
+            sage: p = x^2+y+x*y^2
+            sage: p.slope_factorization()
+            (x) * ((x + O(x^22))*y + 1 + 4*x^3 + 4*x^6 + 3*x^9 + x^15 + 3*x^18 + O(x^21)) * ((x^-1 + O(x^20))*y + x + x^4 + 2*x^7 + 4*x^13 + 2*x^16 + 2*x^19 + O(x^22))
+
         AUTHOR:
 
         - Xavier Caruso (2013-03-20)
@@ -1388,8 +1423,7 @@ class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_g
 # XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #
 # until at least until 4.5.0 unpickle correctly as polynomials implemented #
 # via FLINT.                                                               #
-from sage.structure.sage_object import (register_unpickle_override,
-        richcmp, richcmp_not_equal, rich_to_bool, rich_to_bool_sgn)
+from sage.misc.persist import register_unpickle_override
 from sage.rings.polynomial.polynomial_rational_flint import Polynomial_rational_flint
 
 register_unpickle_override( \

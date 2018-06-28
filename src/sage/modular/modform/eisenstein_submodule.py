@@ -103,7 +103,7 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
 
             sage: E = EisensteinForms(eps, 1); E
-            Eisenstein subspace of dimension 1 of Modular Forms space of dimension 1, character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
+            Eisenstein subspace of dimension 1 of Modular Forms space of character [zeta12] and weight 1 over Cyclotomic Field of order 12 and degree 4
             sage: E.modular_symbols()
             Traceback (most recent call last):
             ...
@@ -166,7 +166,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         r"""
         Return the new submodule of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: e = EisensteinForms(Gamma0(225), 2).new_submodule(); e
             Modular Forms subspace of dimension 3 of Modular Forms space of dimension 42 for Congruence Subgroup Gamma0(225) of weight 2 over Rational Field
@@ -312,7 +312,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         r"""
         Return a list of the Eisenstein series in this space that are new.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EisensteinForms(25, 4)
             sage: E.new_eisenstein_series()
@@ -476,7 +476,7 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
             a_{i,j}(T_n* T_m)`. But we can't find the constant terms
             by this method, so an extra step is required.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: EisensteinForms(Gamma1(6), 3).hecke_matrix(3) # indirect doctest
             [ 1  0 72  0]
@@ -493,7 +493,7 @@ class EisensteinSubmodule_gH_Q(EisensteinSubmodule_params):
         Calculate the matrix of the diamond bracket operator <d> on this space,
         using modular symbols.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: E = EisensteinForms(Gamma1(7), 3)
             sage: E._compute_diamond_matrix(3)
@@ -662,7 +662,6 @@ def cyclotomic_restriction_tower(L,K):
         raise ValueError("K must be contained in L")
     f = L.defining_polynomial()
     R = K['x']
-    x = R.gen()
     g = R(f)
     h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:

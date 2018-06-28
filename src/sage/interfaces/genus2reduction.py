@@ -1,5 +1,5 @@
 r"""
-Conductor and Reduction Types for Genus 2 Curves
+Conductor and reduction types for genus 2 curves
 
 AUTHORS:
 
@@ -11,16 +11,14 @@ AUTHORS:
 - Jeroen Demeyer (2014-09-17): replace genus2reduction program by PARI
   library call (:trac:`15808`)
 
-ACKNOWLEDGMENT: (From Liu's website:) Many thanks to Henri Cohen
-who started writing this program. After this program is available,
-many people pointed out to me (mathematical as well as programming)
-bugs : B. Poonen, E. Schaefer, C. Stahlke, M. Stoll, F. Villegas.
-So thanks to all of them. Thanks also go to Ph. Depouilly who help
-me to compile the program.
+ACKNOWLEDGMENT: (From Liu's website:) Many thanks to Henri Cohen who started
+writing this program. After this program is available, many people pointed out
+to me (mathematical as well as programming) bugs : B. Poonen, E. Schaefer, C.
+Stahlke, M. Stoll, F. Villegas.  So thanks to all of them. Thanks also go to
+Ph. Depouilly who help me to compile the program.
 
-Also Liu has given me explicit permission to include
-genus2reduction with Sage and for people to modify the C source
-code however they want.
+Also Liu has given me explicit permission to include genus2reduction with Sage
+and for people to modify the C source code however they want.
 """
 
 #*****************************************************************************
@@ -101,7 +99,7 @@ class ReductionData(SageObject):
        the reduction (Namikawa, Ueno:"The complete classification of
        fibers in pencils of curves of genus two", Manuscripta Math., vol.
        9, (1973), pages 143-186.) The reduction symbol is followed by the
-       corresponding page number (or just an indiction) in the above
+       corresponding page number (or just an indication) in the above
        article. The lower index is printed by , for instance, [I2-II-5]
        means [I_2-II-5]. Note that if `K` and `K'` are
        Kodaira symbols for singular fibers of elliptic curves, [K-K'-m]
@@ -290,7 +288,7 @@ class Genus2reduction(SageObject):
         sage: factor(genus2reduction(x^3 + x + 1, x^5 + 2*x^4 + 2*x^3 + x^2 - x - 1).conductor)
         5^6
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: genus2reduction(0, x^6 + 3*x^3 + 63)
         Reduction data about this proper smooth genus 2 curve:

@@ -10,12 +10,9 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_ring cimport IntegerRing_class
 
 from sage.libs.ntl.ntl_ZZ_pEContext cimport ntl_ZZ_pEContext_class
-from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_PyString
 from sage.libs.ntl.ZZ_pE cimport ZZ_pE_to_ZZ_pX
-from sage.libs.ntl.ZZ_pX cimport ZZ_pX_to_PyString
 from sage.libs.ntl.ZZ_pX cimport ZZ_pX_deg, ZZ_pX_coeff
 from sage.libs.ntl.ntl_ZZ_pX cimport ntl_ZZ_pX
-from sage.libs.ntl.ZZ_p cimport ZZ_p_to_PyString
 from sage.libs.ntl.ZZ_p cimport ZZ_p_rep
 from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 
@@ -62,7 +59,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
     """
     Univariate Polynomials over GF(p^n) via NTL's ZZ_pEX.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: K.<a>=GF(next_prime(2**60)**3)
         sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -73,7 +70,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Create a new univariate polynomials over GF(p^n).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -175,7 +172,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Returs the list of coefficients.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = GF(5^3)
             sage: P = PolynomialRing(K, 'x')
@@ -194,7 +191,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         return [K(ZZ_pE_c_to_list(ZZ_pEX_coeff(self.x, i)))
                 for i in range(celement_len(&self.x, (<Polynomial_template>self)._cparent))]
 
-    cpdef _lmul_(self, RingElement left):
+    cpdef _lmul_(self, Element left):
         """
         EXAMPLES::
 
@@ -219,7 +216,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
         """
         Evaluate polynomial at `a`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<u>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -231,25 +228,15 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
         TESTS:
 
-        The following was fixed at :trac:`10475`::
+        The work around provided in :trac:`10475` is superseeded by :trac:`24072`::
 
             sage: F.<x> = GF(4)
             sage: P.<y> = F[]
             sage: p = y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
-            sage: SR(p)      #indirect doctest
-            y^4 + x*y^3 + y^2 + (x + 1)*y + x + 1
-            sage: p(2)
-            x + 1
-            sage: p(y=2)
-            x + 1
-            sage: p(3,y=2)
+            sage: SR(p)
             Traceback (most recent call last):
             ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() takes exactly 1 argument
-            sage: p(x=2)
-            Traceback (most recent call last):
-            ...
-            TypeError: <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>__call__() accepts no named argument except 'y'
+            TypeError: positive characteristic not allowed in symbolic computations
 
         Check that polynomial evaluation works when using logarithmic
         representation of finite field elements (:trac:`16383`)::
@@ -401,7 +388,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def shift(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -422,7 +409,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def __lshift__(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
@@ -436,7 +423,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     def __rshift__(self, int n):
         """
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')

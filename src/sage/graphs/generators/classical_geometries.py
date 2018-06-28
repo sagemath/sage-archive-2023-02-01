@@ -3,7 +3,7 @@ r"""
 Families of graphs derived from classical geometries over finite fields
 
 These include graphs of polar spaces, affine polar graphs, graphs
-related to Hermitean unitals, graphs on nonistropic points, etc
+related to Hermitean unitals, graphs on nonisotropic points, etc
 
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
@@ -18,12 +18,10 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from __future__ import absolute_import, division
 from six.moves import range
 
-from copy import copy
-from math import sin, cos, pi
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from sage.arith.all import is_prime_power
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -34,7 +32,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     made adjacent if `f(u,v)=0`.
 
     See the page `on symplectic graphs on Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
 
     INPUT:
 
@@ -49,9 +47,7 @@ def SymplecticPolarGraph(d, q, algorithm=None):
 
     Computation of the spectrum of `Sp(6,2)`::
 
-        sage: g = graphs.SymplecticGraph(6,2)
-        doctest:...: DeprecationWarning: SymplecticGraph is deprecated. Please use sage.graphs.generators.classical_geometries.SymplecticPolarGraph instead.
-        See http://trac.sagemath.org/19136 for details.
+        sage: g = graphs.SymplecticPolarGraph(6,2)
         sage: g.is_strongly_regular(parameters=True)
         (63, 30, 13, 15)
         sage: set(g.spectrum()) == {-5, 3, 30}
@@ -112,8 +108,6 @@ def SymplecticPolarGraph(d, q, algorithm=None):
     G.relabel()
     return G
 
-from sage.misc.superseded import deprecated_function_alias
-SymplecticGraph = deprecated_function_alias(19136, SymplecticPolarGraph)
 
 def AffineOrthogonalPolarGraph(d,q,sign="+"):
     r"""
@@ -128,7 +122,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
 
     For more information on Affine Polar graphs, see `Affine Polar
     Graphs page of Andries Brouwer's website
-    <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
+    <https://www.win.tue.nl/~aeb/graphs/VO.html>`_.
 
     INPUT:
 
@@ -157,7 +151,7 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
         True
 
     Some examples from `Brouwer's table or strongly regular graphs
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
 
         sage: g = graphs.AffineOrthogonalPolarGraph(6,2,"-"); g
         Affine Polar Graph VO^-(6,2): Graph on 64 vertices
@@ -188,7 +182,6 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
             raise ValueError("d must be odd when sign==None")
         s = 0
 
-    from sage.interfaces.gap import gap
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -212,8 +205,8 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     r"""
     A helper function to build ``OrthogonalPolarGraph`` and ``NO2,3,5`` graphs.
 
-    See see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    See the `page of
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -291,7 +284,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
-    from itertools import combinations
 
     if m % 2 == 0:
         if sign != "+" and sign != "-":
@@ -333,8 +325,8 @@ def OrthogonalPolarGraph(m, q, sign="+"):
     r"""
     Returns the Orthogonal Polar Graph `O^{\epsilon}(m,q)`.
 
-    For more information on Orthogonal Polar graphs, see see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    For more information on Orthogonal Polar graphs, see the `page of
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -405,7 +397,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
       Note that for `q=2` one will get a complete graph.
 
     For more information, see Sect. 9.9 of [BH12]_ and [BvL84]_. Note that the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_
     uses different notation.
 
     INPUT:
@@ -524,14 +516,13 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         deg = (q**n-e)*(q**(n-1)+e)   # k
         S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
             libgap.Elements(libgap.Subspaces(W,1)))
-        V = filter(lambda x: len(x)==nvert, libgap.Orbits(g,S,libgap.OnLines))
-        assert len(V)==1
-        V = V[0]
+        (V,) = [x for x in libgap.Orbits(g, S, libgap.OnLines)
+                if len(x) == nvert]
         gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
         h = libgap.Stabilizer(gp,1)
-        Vh = filter(lambda x: len(x)==deg, libgap.Orbits(h,libgap.Orbit(gp,1)))
-        assert len(Vh)==1
-        Vh = Vh[0][0]
+        (Vh,) = [x for x in libgap.Orbits(h, libgap.Orbit(gp, 1))
+                 if len(x) == deg]
+        Vh = Vh[0]
         L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
         G = Graph()
         G.add_edges(L)
@@ -596,7 +587,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
     Returns the Unitary Polar Graph `U(m,q)`.
 
     For more information on Unitary Polar graphs, see the `page of
-    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
+    Andries Brouwer's website <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_.
 
     INPUT:
 
@@ -641,7 +632,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         def P(x, y):
             return sum(x[j] * y[m - 1 - j] ** q for j in range(m)) == 0
 
-        V = filter(lambda x: P(x,x), PG)
+        V = [x for x in PG if P(x,x)]
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
                      P(x,y)], loops=False)
     else:
@@ -692,7 +683,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     .. [Hu75] \X. L. Hubaut.
       Strongly regular graphs.
       Disc. Math. 13(1975), pp 357--381.
-      http://dx.doi.org/10.1016/0012-365X(75)90057-6
+      :doi:`10.1016/0012-365X(75)90057-6`
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0:
@@ -881,7 +872,6 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     if k==0 or p==2:
        raise ValueError('q must be an odd prime power')
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
     from six.moves.builtins import sum
     Fq = FiniteField(q**2, 'a')
@@ -890,7 +880,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     def S(x, y):
         return sum(x[j] * y[2 - j] ** q for j in range(3))
 
-    V = filter(lambda x: S(x,x)==0, PG) # the points of the unital
+    V = [x for x in PG if S(x,x) == 0] # the points of the unital
     v0 = V[0]
     V.remove(v0)
     if mod(q,4)==1:
@@ -899,11 +889,12 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         G = Graph([V,lambda y,z:     (S(v0,y)*S(y,z)*S(z,v0)).is_square()], loops=False)
     G.name("Taylor two-graph descendant SRG")
     if clique_partition:
-        lines = map(lambda x: filter(lambda t: t[0]+x*t[1]==0, V),
-                     filter(lambda z: z != 0, Fq))
+        lines = [[t for t in V if t[0] + z * t[1] == 0]
+                 for z in Fq if z]
         return (G, lines, v0)
     else:
         return G
+
 
 def TaylorTwographSRG(q):
     r"""
@@ -1070,7 +1061,6 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     """
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
-    from sage.modules.free_module_element import free_module_element as vector
 
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p!=2:
@@ -1191,7 +1181,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         raise ValueError('q must be a power of 2')
 
     if hyperoval_matching is None:
-        hyperoval_matching = [(2 * k + 1, 2 * k) for k in range(1 + q // 2)]
+        hyperoval_matching = [(2 * K + 1, 2 * K) for K in range(1 + q // 2)]
     if field is None:
         F = GF(q, 'a')
     else:
@@ -1282,18 +1272,16 @@ def CossidentePenttilaGraph(q):
 
     .. [CP05] \A.Cossidente and T.Penttila
        Hemisystems on the Hermitian surface
-       Journal of London Math. Soc. 72(2005), 731-741
+       Journal of London Math. Soc. 72(2005), 731--741
     """
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p==2:
         raise ValueError('q(={}) must be an odd prime power'.format(q))
 
+    from sage.features.gap import GapPackage
+    GapPackage("grape", spkg="gap_packages").require()
+
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
-
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
-
     adj_list=libgap.function_factory("""function(q)
         local z, e, so, G, nu, G1, G0, B, T, s, O1, O2, x;
         LoadPackage("grape");
@@ -1324,4 +1312,129 @@ def CossidentePenttilaGraph(q):
                for i,ni in enumerate(adj) for j in ni),
                format='list_of_edges', multiedges=False)
     G.name('CossidentePenttila('+str(q)+')')
+    return G
+
+def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperoval=True):
+    r"""
+    Return the subgraph of nowhere 0 words from two-weight code of projective plane hyperoval.
+
+    Let `q=2^k` and `\Pi=PG(2,q)`.  Fix a
+    `hyperoval <http://en.wikipedia.org/wiki/Oval_(projective_plane)#Even_q>`__
+    `O \subset \Pi`. Let `V=F_q^3` and `C` the two-weight 3-dimensional linear code
+    over `F_q` with words `c(v)` obtained from `v\in V` by computing
+
+    .. MATH::
+
+        c(v)=(\langle v,o_1 \rangle,...,\langle v,o_{q+2} \rangle), o_j \in O.
+
+    `C` contains `q(q-1)^2/2` words without 0 entries. The subgraph of the strongly
+    regular graph of `C` induced on the latter words is also strongly regular,
+    assuming `q>4`. This is a construction due to A.E.Brouwer [AB16]_, and leads
+    to graphs with parameters also given by a construction in [HHL09]_. According
+    to [AB16]_, these two constructions are likely to produce isomorphic graphs.
+
+    INPUT:
+
+    - ``q`` -- a power of two
+
+    - ``hyperoval`` -- a hyperoval (i.e. a complete 2-arc; a set of points in the plane
+      meeting every line in 0 or 2 points) in `PG(2,q)` over the field ``field``.
+      Each point of ``hyperoval`` must be a length 3
+      vector over ``field`` with 1st non-0 coordinate equal to 1. By default, ``hyperoval`` and
+      ``field`` are not specified, and constructed on the fly. In particular, ``hyperoval``
+      we build is the classical one, i.e. a conic with the point of intersection of its
+      tangent lines.
+
+    - ``field`` -- an instance of a finite field of order `q`, must be provided
+      if ``hyperoval`` is provided.
+
+    - ``check_hyperoval`` -- (default: ``True``) if ``True``,
+      check ``hyperoval`` for correctness.
+
+    .. SEEALSO::
+
+        - :func:`~sage.graphs.strongly_regular_db.is_nowhere0_twoweight`
+
+
+    EXAMPLES:
+
+    using the built-in construction::
+
+        sage: g=graphs.Nowhere0WordsTwoWeightCodeGraph(8); g
+        Nowhere0WordsTwoWeightCodeGraph(8): Graph on 196 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (196, 60, 14, 20)
+        sage: g=graphs.Nowhere0WordsTwoWeightCodeGraph(16) # not tested (long time)
+        sage: g.is_strongly_regular(parameters=True)       # not tested (long time)
+        (1800, 728, 268, 312)
+
+    supplying your own hyperoval::
+
+        sage: F=GF(8)
+        sage: O=[vector(F,(0,0,1)),vector(F,(0,1,0))]+[vector(F, (1,x^2,x)) for x in F]
+        sage: g=graphs.Nowhere0WordsTwoWeightCodeGraph(8,hyperoval=O,field=F); g
+        Nowhere0WordsTwoWeightCodeGraph(8): Graph on 196 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (196, 60, 14, 20)
+
+    TESTS::
+
+        sage: F=GF(8) # repeating a point...
+        sage: O=[vector(F,(1,0,0)),vector(F,(0,1,0))]+[vector(F, (1,x^2,x)) for x in F]
+        sage: graphs.Nowhere0WordsTwoWeightCodeGraph(8,hyperoval=O,field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval size
+        sage: O=[vector(F,(1,1,0)),vector(F,(0,1,0))]+[vector(F, (1,x^2,x)) for x in F]
+        sage: graphs.Nowhere0WordsTwoWeightCodeGraph(8,hyperoval=O,field=F)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: incorrect hyperoval
+
+    REFERENCES:
+
+    .. [HHL09] \T. Huang, L. Huang, M.I. Lin
+       On a class of strongly regular designs and quasi-semisymmetric designs.
+       In: Recent Developments in Algebra and Related Areas, ALM vol. 8, pp. 129--153.
+       International Press, Somerville (2009)
+
+    .. [AB16] \A.E. Brouwer
+       Personal communication, 2016
+
+    """
+    from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
+    from sage.matrix.constructor import matrix
+
+    p, k = is_prime_power(q,get_data=True)
+    if k==0 or p!=2:
+       raise ValueError('q must be a power of 2')
+    if k<3:
+       raise ValueError('q must be a at least 8')
+    if field is None:
+        F = FiniteField(q, 'a')
+    else:
+        F = field
+
+    Theta = PG(2, 1, F, point_coordinates=1)
+    Pi = Theta.ground_set()
+    if hyperoval is None:
+        hyperoval = filter(lambda x: x[0]+x[1]*x[2]==0 or (x[0]==1 and x[1]==0 and x[2]==0), Pi)
+        O = set(hyperoval)
+    else:
+        map(lambda x: x.set_immutable(), hyperoval)
+        O = set(hyperoval)
+        if check_hyperoval:
+            if len(O) != q+2:
+                raise RuntimeError("incorrect hyperoval size")
+            for L in Theta.blocks():
+                if set(L).issubset(Pi):
+                    if not len(O.intersection(L)) in [0,2]:
+                        raise RuntimeError("incorrect hyperoval")
+    M = matrix(hyperoval)
+    C = filter(lambda x: not F.zero() in x, map(lambda x: M*x, F**3))
+    for x in C:
+        x.set_immutable()
+    G = Graph([C, lambda x,y: not F.zero() in x+y])
+    G.name('Nowhere0WordsTwoWeightCodeGraph('+str(q)+')')
+    G.relabel()
     return G

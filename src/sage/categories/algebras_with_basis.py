@@ -96,7 +96,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         sage: A.__class__
         <class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category'>
         sage: A.element_class
-        <class 'sage.combinat.free_module.FreeAlgebra_with_category.element_class'>
+        <class 'sage.categories.examples.algebras_with_basis.FreeAlgebra_with_category.element_class'>
 
     Please see the source code of `A` (with ``A??``) for how to
     implement other algebras with basis.
@@ -124,7 +124,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
         return Example(self.base_ring(), alphabet)
 
     Filtered = LazyImport('sage.categories.filtered_algebras_with_basis', 'FilteredAlgebrasWithBasis')
-    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_algebras_with_basis', 'FiniteDimensionalAlgebrasWithBasis')
+    FiniteDimensional = LazyImport('sage.categories.finite_dimensional_algebras_with_basis', 'FiniteDimensionalAlgebrasWithBasis', at_startup=True)
     Graded = LazyImport('sage.categories.graded_algebras_with_basis', 'GradedAlgebrasWithBasis')
     Super = LazyImport('sage.categories.super_algebras_with_basis', 'SuperAlgebrasWithBasis')
 
@@ -199,7 +199,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
         #def _test_product(self, **options):
         #    tester = self._tester(**options)
-        #    tester.assert_(self.product is not None)
+        #    tester.assertTrue(self.product is not None)
         #    could check that self.product is in Hom( self x self, self)
 
         def hochschild_complex(self, M):
@@ -393,7 +393,7 @@ class AlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: B.one()
                     B[word: ] # B[word: ] # B[word: ]
                 """
-                # FIXME: this method should be conditionaly defined,
+                # FIXME: this method should be conditionally defined,
                 # so that B.one_basis returns NotImplemented if not
                 # all modules provide one_basis
                 if all(hasattr(module, "one_basis") for module in self._sets):

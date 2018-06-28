@@ -1,3 +1,4 @@
+# cython: binding=True
 r"""
 Vertex separation
 
@@ -255,7 +256,7 @@ REFERENCES
   computing Pathwidth*, David Coudert, Dorian Mazauric, and Nicolas Nisse. In
   Symposium on Experimental Algorithms (SEA), volume 8504 of LNCS, Copenhagen,
   Denmark, pages 46-58, June 2014,
-  http://hal.inria.fr/hal-00943549/document
+  https://hal.inria.fr/hal-00943549/document
 
 Authors
 -------
@@ -270,22 +271,28 @@ Authors
 Methods
 -------
 """
-from __future__ import print_function
 
-include "cysignals/memory.pxi"
-include "cysignals/signals.pxi"
-include 'sage/ext/cdefs.pxi'
+#*****************************************************************************
+#       Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from __future__ import absolute_import, print_function
+
+from libc.string cimport memset
+from cysignals.memory cimport check_malloc, sig_malloc, sig_free
+from cysignals.signals cimport sig_check, sig_on, sig_off
+
 from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_out_neighborhood_cardinality, popcount32
 from libc.stdint cimport uint8_t, int8_t
 include "sage/data_structures/binary_matrix.pxi"
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
 
-#*****************************************************************************
-#          Copyright (C) 2011 Nathann Cohen <nathann.cohen@gmail.com>
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
 
 ###############
 # Lower Bound #
@@ -309,7 +316,7 @@ def lower_bound(G):
         This method runs in exponential time but has no memory constraint.
 
 
-    EXAMPLE:
+    EXAMPLES:
 
     On a circuit::
 
@@ -318,7 +325,7 @@ def lower_bound(G):
         sage: lower_bound(g)
         1
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -350,7 +357,7 @@ def lower_bound(G):
     cdef int n = FD.n
 
     # minimums[i] is means to store the value of c'_{i+1}
-    minimums = <uint8_t *> sig_malloc(sizeof(uint8_t)* n)
+    minimums = <uint8_t *>check_malloc(n)
     cdef unsigned int i
 
     # They are initialized to n
@@ -442,7 +449,7 @@ def linear_ordering_to_path_decomposition(G, L):
         ...
         ValueError: the first parameter must be a Graph
         sage: g = graphs.CycleGraph(6)
-        sage: linear_ordering_to_path_decomposition(g, range(7))
+        sage: linear_ordering_to_path_decomposition(g, list(range(7)))
         Traceback (most recent call last):
         ...
         ValueError: the input linear vertex ordering L is not valid for G
@@ -536,7 +543,7 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
         * :meth:`~sage.graphs.graph_decompositions.vertex_separation.vertex_separation`
           -- computes the vertex separation of a (di)graph
 
-    EXAMPLE:
+    EXAMPLES:
 
     The pathwidth of a cycle is equal to 2::
 
@@ -650,7 +657,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
 
         * :meth:`Graph.treewidth` -- computes the treewidth of a graph
 
-    EXAMPLE:
+    EXAMPLES:
 
     The pathwidth of a cycle is equal to 2::
 
@@ -663,7 +670,7 @@ def path_decomposition(G, algorithm = "BAB", cut_off=None, upper_bound=None, ver
         sage: pw, L = path_decomposition(g, algorithm = "MILP"); pw
         2
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph::
 
@@ -903,7 +910,7 @@ def vertex_separation_exp(G, verbose = False):
         graphs on less than 32 vertices. This can be changed to 54 if necessary,
         but 32 vertices already require 4GB of memory.
 
-    EXAMPLE:
+    EXAMPLES:
 
     The vertex separation of a circuit is equal to 1::
 
@@ -912,7 +919,7 @@ def vertex_separation_exp(G, verbose = False):
         sage: vertex_separation_exp(g)
         (1, [0, 1, 2, 3, 4, 5])
 
-    TEST:
+    TESTS:
 
     Given anything else than a Graph or a DiGraph::
 
@@ -951,14 +958,8 @@ def vertex_separation_exp(G, verbose = False):
         print("Memory allocation")
         g.print_adjacency_matrix()
 
-    sig_on()
-
     cdef unsigned int mem = 1 << g.n
-    cdef uint8_t * neighborhoods = <uint8_t *> sig_malloc(mem)
-
-    if neighborhoods == NULL:
-        sig_off()
-        raise MemoryError("Error allocating memory. I just tried to allocate "+str(mem>>10)+"MB, could that be too much ?")
+    cdef uint8_t * neighborhoods = <uint8_t *>check_malloc(mem)
 
     memset(neighborhoods, <uint8_t> -1, mem)
 
@@ -967,6 +968,7 @@ def vertex_separation_exp(G, verbose = False):
         if verbose:
             print("Looking for a strategy of cost", str(k))
 
+        sig_check()
         if exists(g, neighborhoods, 0, k) <= k:
             break
 
@@ -977,7 +979,6 @@ def vertex_separation_exp(G, verbose = False):
     cdef list order = find_order(g, neighborhoods, k)
 
     sig_free(neighborhoods)
-    sig_off()
 
     return k, list( g.int_to_vertices[i] for i in order )
 
@@ -1093,7 +1094,7 @@ def is_valid_ordering(G, L):
     otherwise.
 
 
-    EXAMPLE:
+    EXAMPLES:
 
     Path decomposition of a cycle::
 
@@ -1105,7 +1106,7 @@ def is_valid_ordering(G, L):
         sage: vertex_separation.is_valid_ordering(G, [1,2])
         False
 
-    TEST:
+    TESTS:
 
     Giving anything else than a Graph or a DiGraph::
 
@@ -1279,7 +1280,7 @@ def vertex_separation_MILP(G, integrality = False, solver = None, verbosity = 0)
     A pair ``(cost, ordering)`` representing the optimal ordering of the
     vertices and its cost.
 
-    EXAMPLE:
+    EXAMPLES:
 
     Vertex separation of a De Bruijn digraph::
 
@@ -1607,7 +1608,7 @@ def vertex_separation_BAB(G,
         sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
-        raise MemoryError("Unable to allocate data strutures.")
+        raise MemoryError("Unable to allocate data structures.")
 
     cdef list best_seq = list(range(n))
     for i in xrange(n):

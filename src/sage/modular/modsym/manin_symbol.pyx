@@ -26,8 +26,8 @@ from sage.modular.cusps import Cusp
 from sage.rings.all import Infinity, ZZ
 from sage.rings.integer cimport Integer
 from sage.structure.element cimport Element
-from sage.structure.sage_object import register_unpickle_override
-from sage.structure.sage_object cimport richcmp_not_equal, richcmp
+from sage.misc.persist import register_unpickle_override
+from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 
 def is_ManinSymbol(x):
@@ -258,7 +258,7 @@ cdef class ManinSymbol(Element):
         if self.weight() > 2:
             raise NotImplementedError("ModSym * Matrix only implemented "
                                       "in weight 2")
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(matrix):
             if (not matrix.nrows() == 2) or (not matrix.ncols() == 2):
                 raise ValueError("matrix(=%s) must be 2x2" % matrix)
@@ -275,7 +275,7 @@ cdef class ManinSymbol(Element):
         Not implemented for raw ManinSymbol objects, only for members
         of ManinSymbolLists.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.modular.modsym.manin_symbol import ManinSymbol
             sage: from sage.modular.modsym.manin_symbol_list import ManinSymbolList_gamma0

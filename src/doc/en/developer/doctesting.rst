@@ -246,7 +246,7 @@ that shown above to achieve this::
         [320 tests, 9.1 s]
     sage -t src/sage/crypto/mq/mpolynomialsystemgenerator.py
         [42 tests, 0.1 s]
-    sage -t src/sage/crypto/mq/sbox.py
+    sage -t src/sage/crypto/sbox.py
         [124 tests, 0.8 s]
     sage -t src/sage/crypto/mq/sr.py
         [435 tests, 5.5 s]
@@ -307,7 +307,7 @@ argument ``--long``::
         [320 tests, 7.5 s]
     sage -t --long src/sage/crypto/mq/mpolynomialsystemgenerator.py
         [42 tests, 0.1 s]
-    sage -t --long src/sage/crypto/mq/sbox.py
+    sage -t --long src/sage/crypto/sbox.py
         [124 tests, 0.7 s]
     sage -t --long src/sage/crypto/mq/sr.py
         [437 tests, 82.4 s]
@@ -370,7 +370,7 @@ Now we doctest the same directory in parallel using 4 threads::
         [429 tests, 1.1 s]
     sage -t src/sage/crypto/mq/sr.py
         [432 tests, 5.7 s]
-    sage -t src/sage/crypto/mq/sbox.py
+    sage -t src/sage/crypto/sbox.py
         [123 tests, 0.8 s]
     sage -t src/sage/crypto/block_cipher/sdes.py
         [289 tests, 0.6 s]
@@ -426,7 +426,7 @@ Now we doctest the same directory in parallel using 4 threads::
         [252 tests, 3.7 s]
     sage -t --long src/sage/crypto/block_cipher/miniaes.py
         [429 tests, 1.0 s]
-    sage -t --long src/sage/crypto/mq/sbox.py
+    sage -t --long src/sage/crypto/sbox.py
         [123 tests, 0.8 s]
     sage -t --long src/sage/crypto/block_cipher/sdes.py
         [289 tests, 0.6 s]
@@ -546,6 +546,14 @@ The differences are:
 * ``make ptestlong`` --- Similar to the command ``make ptest``, but
   using the optional argument ``--long`` for doctesting.
 
+The underlying command for running these tests is ``sage -t --all``. For
+example, ``make ptestlong`` executes the command
+``sage -t -p --all --long --logfile=logs/ptestlong.log``. So if you want
+to add extra flags when you run these tests, for example ``--verbose``,
+you can execute
+``sage -t -p --all --long --verbose --logfile=path/to/logfile``.
+Some of the extra testing options are discussed here; run
+``sage -t -h`` for a complete list.
 
 Beyond the Sage Library
 =======================
@@ -648,18 +656,19 @@ You can run doctests from within Sage, which can be useful since you
 don't have to wait for Sage to start.  Use the ``run_doctests``
 function in the global namespace, passing it either a string or a module::
 
-    sage: run_doctests(sage.coding.sd_codes)
-    Doctesting /Users/roed/sage/sage-5.3/src/sage/coding/sd_codes.py
-    Running doctests with ID 2012-07-07-04-32-36-81f3853b.
+    sage: run_doctests(sage.combinat.affine_permutation)
+    Running doctests with ID 2018-02-07-13-23-13-89fe17b1.
+    Git branch: develop
+    Using --optional=sage
     Doctesting 1 file.
-    sage -t /Users/roed/sage/sage-5.3/src/sage/coding/sd_codes.py
-        [18 tests, 0.3 s]
-    ------------------------------------------------------------------------
+    sage -t /opt/sage/sage_stable/src/sage/combinat/affine_permutation.py
+        [338 tests, 4.32 s]
+    ----------------------------------------------------------------------
     All tests passed!
-    ------------------------------------------------------------------------
-    Total time for all tests: 0.4 seconds
-        cpu time: 0.2 seconds
-        cumulative wall time: 0.3 seconds
+    ----------------------------------------------------------------------
+    Total time for all tests: 4.4 seconds
+        cpu time: 3.6 seconds
+        cumulative wall time: 4.3 seconds
 
 .. _section-options:
 

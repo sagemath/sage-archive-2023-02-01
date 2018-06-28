@@ -141,7 +141,7 @@ class LinearTensorConstraint(Element):
       constraint is an equality.  If ``False``, it is a ``<=``
       inequality.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: mip.<b> = MixedIntegerLinearProgram()
         sage: (b[2]+2*b[3]) * vector([1,2]) <= b[8] * vector([2,3]) - 5
@@ -156,7 +156,7 @@ class LinearTensorConstraint(Element):
 
         See :class:`LinearTensorConstraint`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip.<b> = MixedIntegerLinearProgram()
             sage: b[2] * vector([1,2]) + 2*b[3] <= 0
@@ -272,7 +272,7 @@ class LinearTensorConstraint(Element):
 
         String.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: mip.<b> = MixedIntegerLinearProgram()
             sage: b[3] * vector([1,2]) <= (b[8] + 9) * vector([2,3])

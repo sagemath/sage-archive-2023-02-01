@@ -26,10 +26,6 @@ NEW METHODS
 
 **SandpileDivisor**:  help, is_linearly_equivalent, is_q_reduced, is_weierstrass_pt, polytope, polytope_integer_pts, q_reduced, rank, simulate_threshold, stabilize, weierstrass_div, weierstrass_gap_seq, weierstrass_pts, weierstrass_rank_seq.
 
-DEPRECATED
-
-SandpileDivisor.linear_system, SandpileDivisor.r_of_D, sandlib method, complete_sandpile, grid_sandpile, triangle_sandpile, aztec_sandpile, random_digraph, random_tree, glue_graphs, admissible_partitions, firing_vector, min_cycles.
-
 MINOR CHANGES
 
 * The ``sink`` argument to ``Sandpile.__init__`` now defaults to the first vertex.
@@ -280,14 +276,14 @@ Working with sandpile divisors::
     {0: 4, 1: 0, 2: 0, 3: 1}
     sage: D.rank()
     2
-    sage: D.effective_div()
+    sage: sorted(D.effective_div(), key=str)
     [{0: 0, 1: 0, 2: 0, 3: 5},
-     {0: 0, 1: 4, 2: 0, 3: 1},
      {0: 0, 1: 0, 2: 4, 3: 1},
+     {0: 0, 1: 4, 2: 0, 3: 1},
      {0: 1, 1: 1, 2: 1, 3: 2},
      {0: 4, 1: 0, 2: 0, 3: 1}]
-    sage: D.effective_div(False)
-    [[0, 0, 0, 5], [0, 4, 0, 1], [0, 0, 4, 1], [1, 1, 1, 2], [4, 0, 0, 1]]
+    sage: sorted(D.effective_div(False))
+    [[0, 0, 0, 5], [0, 0, 4, 1], [0, 4, 0, 1], [1, 1, 1, 2], [4, 0, 0, 1]]
     sage: D.rank()
     2
     sage: D.rank(True)
@@ -317,7 +313,8 @@ Working with sandpile divisors::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
+from __future__ import print_function, division
+from six.moves import zip, range
 
 from collections import Counter
 from copy import deepcopy
@@ -332,14 +329,13 @@ from sage.env import SAGE_LOCAL
 from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.graphs.all import DiGraph, Graph, graphs, digraphs
+from sage.graphs.all import DiGraph, Graph
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, forall, tmp_filename, random, randint, exists, denominator
+from sage.misc.all import prod, det, tmp_filename, random, randint, exists, denominator
 from sage.arith.srange import xsrange
-from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
 from sage.arith.all import falling_factorial, lcm
@@ -376,7 +372,8 @@ class Sandpile(DiGraph):
     @staticmethod
     def help(verbose=True):
         r"""
-        List of Sandpile-specific methods (not inherited from Graph).  If ``verbose``, include short descriptions.
+        List of Sandpile-specific methods (not inherited from :class:`Graph`).
+        If ``verbose``, include short descriptions.
 
         INPUT:
 
@@ -406,7 +403,7 @@ class Sandpile(DiGraph):
             group_gens               -- A minimal list of generators for the sandpile group.
             group_order              -- The size of the sandpile group.
             h_vector                 -- The number of superstable configurations in each degree.
-            help                     -- List of Sandpile-specific methods (not inherited from Graph).
+            help                     -- List of Sandpile-specific methods (not inherited from "Graph").
             hilbert_function         -- The Hilbert function of the homogeneous toppling ideal.
             ideal                    -- The saturated homogeneous toppling ideal.
             identity                 -- The identity configuration.
@@ -440,7 +437,7 @@ class Sandpile(DiGraph):
             stationary_density       -- The stationary density of the sandpile.
             superstables             -- The superstable configurations.
             symmetric_recurrents     -- The symmetric recurrent configurations.
-            tutte_polynomial         -- The Tutte polynomial.
+            tutte_polynomial         -- The Tutte polynomial of the underlying graph.
             unsaturated_ideal        -- The unsaturated, homogeneous toppling ideal.
             version                  -- The version number of Sage Sandpiles.
             zero_config              -- The all-zero configuration.
@@ -588,24 +585,25 @@ class Sandpile(DiGraph):
         else:
             self._name = 'sandpile graph'
         # preprocess a graph, if necessary
-        if isinstance(g, dict) and isinstance(g.values()[0], dict):
+        if isinstance(g, dict) and isinstance(next(iter(g.values())), dict):
             pass # this is the default format
-        elif isinstance(g, dict) and isinstance(g.values()[0], list):
-            processed_g = {i:dict(Counter(g[i])) for i in g}
+        elif isinstance(g, dict) and isinstance(next(iter(g.values())), list):
+            processed_g = {i: dict(Counter(g[i])) for i in g}
             g = processed_g
         elif isinstance(g, Graph) or isinstance(g, DiGraph):
             if not g.weighted():
                 h = g.to_dictionary(multiple_edges=True)
-                g = {i:dict(Counter(h[i])) for i in h}
+                g = {i: dict(Counter(h[i])) for i in h}
             else:
-                vi = {v:g.vertices().index(v) for v in g.vertices()}
+                vi = {v: g.vertices().index(v) for v in g.vertices()}
                 ad = g.weighted_adjacency_matrix()
-                g = {v:{w:ad[vi[v],vi[w]] for w in g.neighbors(v)} for v in g.vertices()}
+                g = {v: {w: ad[vi[v], vi[w]] for w in g.neighbors(v)}
+                     for v in g.vertices()}
         else:
             raise SyntaxError(g)
 
         # create digraph and initialize some variables
-        DiGraph.__init__(self,g,weighted=True)
+        DiGraph.__init__(self, g, weighted=True)
         self._dict = deepcopy(g)
         if sink is None:
             sink = self.vertices()[0]
@@ -615,13 +613,13 @@ class Sandpile(DiGraph):
         del self._nonsink_vertices[self._sink_ind]
         # compute Laplacians:
         self._laplacian = self.laplacian_matrix(indegree=False)
-        temp = range(self.num_verts())
+        temp = list(range(self.num_verts()))
         del temp[self._sink_ind]
         self._reduced_laplacian = self._laplacian[temp,temp]
 
     def __copy__(self):
         """
-        Make a copy of this sandpile
+        Make a copy of this sandpile.
 
         OUTPUT:
 
@@ -1440,7 +1438,6 @@ class Sandpile(DiGraph):
         if verbose:
             return deepcopy(self._superstables)
         else:
-            verts = self.nonsink_vertices()
             return [s.values() for s in self._superstables]
 
     def _set_group_gens(self):
@@ -1630,7 +1627,8 @@ class Sandpile(DiGraph):
 
     def tutte_polynomial(self):
         r"""
-        The Tutte polynomial.  Only defined for undirected sandpile graphs.
+        The Tutte polynomial of the underlying graph.
+        Only defined for undirected sandpile graphs.
 
         OUTPUT:
 
@@ -1747,7 +1745,7 @@ class Sandpile(DiGraph):
 
             The "nonspecial divisors" are those divisors of degree `g-1` with
             empty linear system.  The term is only defined for undirected graphs.
-            Here, `g = |E| - |V| + 1` is the genus of the graph (not counted loops
+            Here, `g = |E| - |V| + 1` is the genus of the graph (not counting loops
             as part of `|E|`).  If ``verbose`` is ``False``, the divisors are converted
             to lists of integers.
 
@@ -1940,16 +1938,17 @@ class Sandpile(DiGraph):
             [0 4 0 0]
             [0 0 4 0]
             [0 0 0 0]
-            sage: U*s.laplacian()*V == D  # Laplacian symmetric => tranpose not necessary
+            sage: U*s.laplacian()*V == D  # Laplacian symmetric => transpose not necessary
             True
         """
         return deepcopy(self._smith_form)
 
     def reorder_vertices(self):
         r"""
-        A copy of the sandpile with vertex names permuted.  After reordering,
-        vertex `u` comes before vertex `v` in the list of vertices if `u` is
-        closer to the sink.
+        A copy of the sandpile with vertex names permuted.
+
+        After reordering, vertex `u` comes before vertex `v` in the
+        list of vertices if `u` is closer to the sink.
 
         OUTPUT:
 
@@ -2243,7 +2242,7 @@ class Sandpile(DiGraph):
             else:
                 raise SyntaxError(state)
         if distrib is None:  # default = uniform distribution
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         if isinstance(st,SandpileConfig):
             while True:
@@ -2279,9 +2278,9 @@ class Sandpile(DiGraph):
             sage: '_stationary_density' in s.__dict__
             True
         """
-        if self.name()=='Complete sandpile graph':
+        if self.name() == 'Complete sandpile graph':
             n = Integer(self.num_verts())
-            self._stationary_density =  (n + 1/n + sum([falling_factorial(n,i)/n**i for i in range(1,n+1)]) - 3)/2
+            self._stationary_density =  (n + QQ.one() / n + sum(falling_factorial(n,i)/n**i for i in range(1,n+1)) - 3)/2
         elif self.is_undirected() and '_h_vector' not in self.__dict__:
             t = Graph(self).tutte_polynomial().subs(x=1)
             myR = PolynomialRing(QQ,'y')
@@ -2408,7 +2407,7 @@ class Sandpile(DiGraph):
             sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
             sage: p = S.betti_complexes()
             sage: p[0]
-            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}]
+            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
             sage: S.resolution()
             'R^1 <-- R^5 <-- R^5 <-- R^1'
             sage: S.betti()
@@ -2674,7 +2673,7 @@ class Sandpile(DiGraph):
         r"""
         The Betti table for the homogeneous toppling ideal.  If
         ``verbose`` is ``True``, it prints the standard Betti table, otherwise,
-        it returns a less formated table.
+        it returns a less formatted table.
 
         INPUT:
 
@@ -3129,7 +3128,9 @@ class SandpileConfig(dict):
             sage: c + d
             {1: 4, 2: 4}
         """
-        return SandpileConfig(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
+        return SandpileConfig(self.sandpile(),
+                              [i + j for i, j in zip(self.values(),
+                                                     other.values())])
 
     def __sub__(self, other):
         r"""
@@ -3302,7 +3303,7 @@ class SandpileConfig(dict):
             sage: e <= c
             False
         """
-        return forall(self._vertices, lambda v: self[v]<=other[v])[0]
+        return all(self[v] <= other[v] for v in self._vertices)
 
     def __lt__(self, other):
         r"""
@@ -3361,7 +3362,7 @@ class SandpileConfig(dict):
             sage: c >= e
             False
         """
-        return forall(self._vertices, lambda v: self[v]>=other[v])[0]
+        return all(self[v] >= other[v] for v in self._vertices)
 
     def __gt__(self, other):
         r"""
@@ -3793,10 +3794,9 @@ class SandpileConfig(dict):
             1 and that its length is equal to the number of sink vertices or the number of nonsink vertices.
         """
         c = deepcopy(self)
-        ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
         if distrib is None:  # default = uniform distribution on nonsink vertices
-            distrib = [1/(n-1)]*(n-1)
+            distrib = [QQ.one() / (n - 1)] * (n - 1)
         if len(distrib)==n-1: # prob. dist. on nonsink vertices
             X = GeneralDiscreteDistribution(distrib)
             V = self._sandpile.nonsink_vertices()
@@ -4157,9 +4157,9 @@ class SandpileConfig(dict):
             sage: c.show(directed=False)
             sage: c.show(sink=False,colors=False,heights=True)
         """
-        if directed==True:
+        if directed:
             T = DiGraph(self.sandpile())
-        elif directed==False:
+        elif directed is False:
             T = Graph(self.sandpile())
         elif self.sandpile().is_directed():
             T = DiGraph(self.sandpile())
@@ -4234,11 +4234,9 @@ class SandpileDivisor(dict):
             is_q_reduced           -- Is the divisor q-reduced?
             is_symmetric           -- Is the divisor symmetric?
             is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
-            linear_system          -- The complete linear system (deprecated: use "polytope_integer_pts").
-            polytope               -- The polytope determinining the complete linear system.
+            polytope               -- The polytope determining the complete linear system.
             polytope_integer_pts   -- The integer points inside divisor's polytope.
             q_reduced              -- The linearly equivalent q-reduced divisor.
-            r_of_D                 -- The rank of the divisor (deprecated: use "rank", instead).
             rank                   -- The rank of the divisor.
             sandpile               -- The divisor's underlying sandpile.
             show                   -- Show the divisor.
@@ -4500,7 +4498,9 @@ class SandpileDivisor(dict):
             sage: D + E
             {0: 4, 1: 4, 2: 4}
         """
-        return SandpileDivisor(self.sandpile(),[i+j for i,j in zip(self.values(),other.values())])
+        return SandpileDivisor(self.sandpile(),
+                               [i + j for i, j in zip(self.values(),
+                                                      other.values())])
 
     def __mul__(self, other):
         r"""
@@ -4676,7 +4676,7 @@ class SandpileDivisor(dict):
             sage: F <= D
             False
         """
-        return forall(self._vertices, lambda v: self[v]<=other[v])[0]
+        return all(self[v] <= other[v] for v in self._vertices)
 
     def __lt__(self, other):
         r"""
@@ -4703,7 +4703,7 @@ class SandpileDivisor(dict):
             sage: E < D
             False
         """
-        return self<=other and self!=other
+        return self <= other and self != other
 
     def __ge__(self, other):
         r"""
@@ -4735,7 +4735,7 @@ class SandpileDivisor(dict):
             sage: D >= F
             False
         """
-        return forall(self._vertices, lambda v: self[v]>=other[v])[0]
+        return all(self[v] >= other[v] for v in self._vertices)
 
     def __gt__(self, other):
         r"""
@@ -4762,7 +4762,7 @@ class SandpileDivisor(dict):
             sage: D > E
             False
         """
-        return self>=other and self!=other
+        return self >= other and self != other
 
     def sandpile(self):
         r"""
@@ -5119,7 +5119,7 @@ class SandpileDivisor(dict):
         V = S.vertices()
         n = S.num_verts()
         if distrib is None:  # default = uniform distribution
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         while not E.is_alive():
             E = E.stabilize()
@@ -5141,7 +5141,7 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S, [0,1,1])
             sage: D._set_linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
 
-        .. WARNING:
+        .. WARNING::
 
             This method requires 4ti2.
         """
@@ -5224,43 +5224,6 @@ class SandpileDivisor(dict):
         self._linear_system = {'num_homog':num_homog, 'homog':homog,
                 'num_inhomog':num_inhomog, 'inhomog':inhomog}
 
-    def linear_system(self):
-        r"""
-        The complete linear system (deprecated: use ``polytope_integer_pts``).
-
-        OUTPUT:
-
-        dict - ``{num_homog: int, homog:list, num_inhomog:int, inhomog:list}``
-
-        EXAMPLES::
-
-            sage: S = Sandpile({0: {},
-            ....:  1: {0: 1, 3: 1, 4: 1},
-            ....:  2: {0: 1, 3: 1, 5: 1},
-            ....:  3: {2: 1, 5: 1},
-            ....:  4: {1: 1, 3: 1},
-            ....:  5: {2: 1, 3: 1}}
-            ....: )
-            sage: D = SandpileDivisor(S, [0,0,0,0,0,2])
-            sage: D.linear_system() # known bug (won't fix due to deprecation optional - 4ti2)
-            {'homog': [[1, 0, 0, 0, 0, 0], [-1, 0, 0, 0, 0, 0]],
-             'inhomog': [[0, 0, 0, 0, 0, -1], [0, 0, -1, -1, 0, -2], [0, 0, 0, 0, 0, 0]],
-             'num_homog': 2,
-             'num_inhomog': 3}
-
-        .. NOTE::
-
-            If `L` is the Laplacian, an arbitrary `v` such that `v\cdot L\geq -D`
-            has the form `v = w + t` where `w` is in ``inhomg`` and `t` is in the
-            integer span of ``homog`` in the output of ``linear_system(D)``.
-
-        .. WARNING::
-
-            This method requires 4ti2.
-        """
-        deprecation(18618,'D.linear_system() will be removed soon.  See D.rank() and D.polytope().')
-        return self._linear_system
-
     def _set_polytope(self):
         r"""
         Compute the polyhedron determining the linear system for D.
@@ -5280,7 +5243,7 @@ class SandpileDivisor(dict):
 
     def polytope(self):
         r"""
-        The polytope determinining the complete linear system.
+        The polytope determining the complete linear system.
 
         OUTPUT:
 
@@ -5340,13 +5303,13 @@ class SandpileDivisor(dict):
 
             sage: s = sandpiles.Complete(4)
             sage: D = SandpileDivisor(s,[4,2,0,0])
-            sage: D.polytope_integer_pts()
-            ((-2, -1, -1),
+            sage: sorted(D.polytope_integer_pts())
+            [(-2, -1, -1),
              (-1, -2, -1),
              (-1, -1, -2),
              (-1, -1, -1),
              (0, -1, -1),
-             (0, 0, 0))
+             (0, 0, 0)]
             sage: D = SandpileDivisor(s,[-1,0,0,0])
             sage: D.polytope_integer_pts()
             ()
@@ -5367,9 +5330,9 @@ class SandpileDivisor(dict):
         """
         S = self.sandpile()
         myL = S.laplacian().transpose().delete_columns([S._sink_ind])
-        P = self.polytope()
-        dv = vector(ZZ,self.values())
-        self._effective_div = [SandpileDivisor(S,list(dv - myL*i)) for i in self._polytope_integer_pts]
+        dv = vector(ZZ, self.values())
+        self._effective_div = [SandpileDivisor(S,list(dv - myL*i))
+                               for i in self._polytope_integer_pts]
 
     def effective_div(self, verbose=True, with_firing_vectors=False):
         r"""
@@ -5393,36 +5356,36 @@ class SandpileDivisor(dict):
 
             sage: s = sandpiles.Complete(4)
             sage: D = SandpileDivisor(s,[4,2,0,0])
-            sage: D.effective_div()
-            [{0: 0, 1: 6, 2: 0, 3: 0},
+            sage: sorted(D.effective_div(), key=str)
+            [{0: 0, 1: 2, 2: 0, 3: 4},
              {0: 0, 1: 2, 2: 4, 3: 0},
-             {0: 0, 1: 2, 2: 0, 3: 4},
+             {0: 0, 1: 6, 2: 0, 3: 0},
              {0: 1, 1: 3, 2: 1, 3: 1},
              {0: 2, 1: 0, 2: 2, 3: 2},
              {0: 4, 1: 2, 2: 0, 3: 0}]
-            sage: D.effective_div(False)
-            [[0, 6, 0, 0],
+            sage: sorted(D.effective_div(False))
+            [[0, 2, 0, 4],
              [0, 2, 4, 0],
-             [0, 2, 0, 4],
+             [0, 6, 0, 0],
              [1, 3, 1, 1],
              [2, 0, 2, 2],
              [4, 2, 0, 0]]
-            sage: D.effective_div(with_firing_vectors=True)
-            [({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
+            sage: sorted(D.effective_div(with_firing_vectors=True), key=str)
+            [({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
              ({0: 0, 1: 2, 2: 4, 3: 0}, (0, -1, -2, -1)),
-             ({0: 0, 1: 2, 2: 0, 3: 4}, (0, -1, -1, -2)),
+             ({0: 0, 1: 6, 2: 0, 3: 0}, (0, -2, -1, -1)),
              ({0: 1, 1: 3, 2: 1, 3: 1}, (0, -1, -1, -1)),
              ({0: 2, 1: 0, 2: 2, 3: 2}, (0, 0, -1, -1)),
              ({0: 4, 1: 2, 2: 0, 3: 0}, (0, 0, 0, 0))]
-            sage: a = _[0]
+            sage: a = _[2]
             sage: a[0].values()
             [0, 6, 0, 0]
             sage: vector(D.values()) - s.laplacian()*a[1]
             (0, 6, 0, 0)
-            sage: D.effective_div(False, True)
-            [([0, 6, 0, 0], (0, -2, -1, -1)),
+            sage: sorted(D.effective_div(False, True))
+            [([0, 2, 0, 4], (0, -1, -1, -2)),
              ([0, 2, 4, 0], (0, -1, -2, -1)),
-             ([0, 2, 0, 4], (0, -1, -1, -2)),
+             ([0, 6, 0, 0], (0, -2, -1, -1)),
              ([1, 3, 1, 1], (0, -1, -1, -1)),
              ([2, 0, 2, 2], (0, 0, -1, -1)),
              ([4, 2, 0, 0], (0, 0, 0, 0))]
@@ -5435,11 +5398,11 @@ class SandpileDivisor(dict):
         if with_firing_vectors:
             fv = [vector(list(i)[:S._sink_ind] + [0] + list(i)[S._sink_ind:]) for i in self._polytope_integer_pts]
         if verbose and with_firing_vectors:
-            return zip(eff,fv)
+            return list(zip(eff, fv))
         elif verbose:   # verbose without firing vectors
             return eff
         elif with_firing_vectors: # not verbose but with firing vectors
-            return zip([i.values() for i in eff],fv)
+            return list(zip([i.values() for i in eff], fv))
         else: # not verbose, no firing vectors
             return [i.values() for i in eff]
 
@@ -5626,49 +5589,6 @@ class SandpileDivisor(dict):
                                 return
                 level = new_level
 
-    def r_of_D(self, verbose=False):
-        r"""
-        The rank of the divisor (deprecated: use ``rank``, instead).  Returns
-        `r(D)` and, if ``verbose`` is ``True``, an effective divisor `F` such
-        that `|D - F|` is empty.
-
-        INPUT:
-
-        ``verbose`` -- (default: ``False``) boolean
-
-        OUTPUT:
-
-        integer ``r(D)`` or tuple (integer ``r(D)``, divisor ``F``)
-
-        EXAMPLES::
-
-            sage: S = Sandpile({0: {},
-            ....:  1: {0: 1, 3: 1, 4: 1},
-            ....:  2: {0: 1, 3: 1, 5: 1},
-            ....:  3: {2: 1, 5: 1},
-            ....:  4: {1: 1, 3: 1},
-            ....:  5: {2: 1, 3: 1}}
-            ....: )
-            sage: D = SandpileDivisor(S, [0,0,0,0,0,4]) # optional - 4ti2
-            sage: E = D.r_of_D(True) # optional - 4ti2
-            doctest:... DeprecationWarning: D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.
-            See http://trac.sagemath.org/18618 for details.
-            sage: E # optional - 4ti2
-            (1, {0: 0, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0})
-            sage: F = E[1] # optional - 4ti2
-            sage: (D - F).values() # optional - 4ti2
-            [0, -1, 0, -1, 0, 4]
-            sage: (D - F).effective_div() # optional - 4ti2
-            []
-            sage: SandpileDivisor(S, [0,0,0,0,0,-4]).r_of_D(True) # optional - 4ti2
-            (-1, {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: -4})
-        """
-        deprecation(18618,'D.r_of_D() will be removed soon.  Please use ``D.rank()`` instead.')
-        if verbose:
-            return self._r_of_D
-        else:
-            return self._r_of_D[0]
-
     def weierstrass_rank_seq(self, v='sink'):
         r"""
         The Weierstrass rank sequence at the given vertex.  Computes the rank of
@@ -5782,7 +5702,8 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         return self.weierstrass_gap_seq(v)[1] > 0
@@ -5824,12 +5745,13 @@ class SandpileDivisor(dict):
 
         .. NOTE::
 
-            The vertex `v` is a (generalized) Weierstrass point for divisor `D` if the sequence of ranks `r(D - nv)`
+            The vertex `v` is a (generalized) Weierstrass point for divisor
+            `D` if the sequence of ranks `r(D - nv)`
             for `n = 0, 1, 2, \dots`` is not `r(D), r(D)-1, \dots, 0, -1, -1, \dots`
         """
         if with_rank_seq:
             rks = [self.weierstrass_rank_seq(v) for v in self._weierstrass_pts]
-            return zip(self._weierstrass_pts, rks)
+            return list(zip(self._weierstrass_pts, rks))
         return self._weierstrass_pts
 
     def weierstrass_div(self, verbose=True):
@@ -6003,7 +5925,7 @@ class SandpileDivisor(dict):
         V = S.vertices()
         if distrib is None:  # default = uniform distribution
             n = S.num_verts()
-            distrib = [1/n]*n
+            distrib = [QQ.one() / n] * n
         X = GeneralDiscreteDistribution(distrib)
         i = X.get_random_element()
         D[V[i]] += 1
@@ -6162,20 +6084,19 @@ class SandpileDivisor(dict):
             sage: D = SandpileDivisor(S,[1,-2,0,2])
             sage: D.show(graph_border=True,vertex_size=700,directed=False)
         """
-        if directed==True:
+        if directed:
             T = DiGraph(self.sandpile())
-        elif directed==False:
+        elif directed is False:
             T = Graph(self.sandpile())
         elif self.sandpile().is_directed():
             T = DiGraph(self.sandpile())
         else:
             T = Graph(self.sandpile())
 
-        max_height = max(self.sandpile().out_degree_sequence())
         if heights:
             a = {}
             for i in T.vertices():
-                a[i] = str(i)+":"+str(T[i])
+                a[i] = str(i) + ":" + str(T[i])
             T.relabel(a)
         T.show(**kwds)
 
@@ -6198,10 +6119,8 @@ def sandlib(selector=None):
 
     EXAMPLES::
 
+            sage: from sage.sandpiles.sandpile import sandlib
             sage: sandlib()
-            doctest:...: DeprecationWarning: sandlib() will soon be removed.  Use sandpile() instead.
-            See http://trac.sagemath.org/18618 for details.
-            <BLANKLINE>
               Sandpiles in the sandlib:
                  kite : generic undirected graphs with 5 vertices
                  generic : generic digraph with 6 vertices
@@ -6297,10 +6216,8 @@ def triangle_sandpile(n):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import triangle_sandpile
         sage: T = triangle_sandpile(5)
-        doctest:...: DeprecationWarning:
-        Importing triangle_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         sage: T.group_order()
         135418115000
     """
@@ -6344,10 +6261,8 @@ def aztec_sandpile(n):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import aztec_sandpile
         sage: aztec_sandpile(2)
-        doctest:...: DeprecationWarning:
-        Importing aztec_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         {'sink': {(-3/2, -1/2): 2,
           (-3/2, 1/2): 2,
           (-1/2, -3/2): 2,
@@ -6409,60 +6324,6 @@ def aztec_sandpile(n):
                 aztec_sandpile[vert]['sink'] = out_degree
                 aztec_sandpile['sink'][vert] = out_degree
     return aztec_sandpile
-
-def random_digraph(num_verts, p=0.5, directed=True, weight_max=1):
-    """
-    A random weighted digraph with a directed spanning tree rooted at `0`.  If
-    ``directed = False``, the only difference is that if `(i,j,w)` is an edge with
-    tail `i`, head `j`, and weight `w`, then `(j,i,w)` appears also.  The result
-    is returned as a Sage digraph.
-
-    INPUT:
-
-     - ``num_verts`` -- number of vertices
-
-     - ``p`` -- (default: 0.5) probability edges occur
-
-     - ``directed`` -- (default: ``True``) if directed
-
-     - ``weight_max`` -- (default: 1) integer maximum for random weights
-
-    OUTPUT:
-
-    random graph
-
-    EXAMPLES::
-
-        sage: g = random_digraph(6,0.2,True,3)
-        doctest:...: DeprecationWarning: random_digraph will be removed soon.  Use any of the Random* methods
-        from graphs() and from digraphs() instead.
-        See http://trac.sagemath.org/18618 for details.
-        sage: S = Sandpile(g,0)
-        sage: S.show(edge_labels = True)
-
-    TESTS:
-
-    Check that we can construct a random digraph with the
-    default arguments (:trac:`12181`)::
-
-        sage: random_digraph(5)
-        Digraph on 5 vertices
-    """
-    deprecation(18618,'random_digraph will be removed soon.  Use any of the Random* methods from graphs() and from digraphs() instead.')
-    a = digraphs.RandomDirectedGN(num_verts)
-    b = graphs.RandomGNP(num_verts,p)
-    a.add_edges(b.edges())
-    if directed:
-        c = graphs.RandomGNP(num_verts,p)
-        # reverse the edges of c and add them in
-        a.add_edges([(j,i,None) for i,j,k in c.edges()])
-    else:
-        a.add_edges([(j,i,None) for i,j,k in a.edges()])
-        a.add_edges([(j,i,None) for i,j,k in b.edges()])
-    # now handle the weights
-    for i,j,k in a.edge_iterator():
-        a.set_edge_label(i,j,ZZ.random_element(weight_max)+1)
-    return a
 
 def random_DAG(num_verts, p=0.5, weight_max=1):
     r"""
@@ -6542,16 +6403,12 @@ def glue_graphs(g, h, glue_g, glue_h):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import glue_graphs
         sage: x = {0: {}, 1: {0: 1}, 2: {0: 1, 1: 1}, 3: {0: 1, 1: 1, 2: 1}}
         sage: y = {0: {}, 1: {0: 2}, 2: {1: 2}, 3: {0: 1, 2: 1}}
         sage: glue_x = {1: 1, 3: 2}
         sage: glue_y = {0: 1, 1: 2, 3: 1}
-        sage: z = glue_graphs(x,y,glue_x,glue_y)
-        doctest:...: DeprecationWarning:
-        Importing glue_graphs from here is deprecated. If you need to use it,
-        please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
-        sage: z
+        sage: z = glue_graphs(x,y,glue_x,glue_y); z
         {0: {},
          'x0': {0: 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
          'x1': {'x0': 1},
@@ -6704,11 +6561,10 @@ def admissible_partitions(S, k):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import admissible_partitions
+        sage: from sage.sandpiles.sandpile import partition_sandpile
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
-        doctest:...: DeprecationWarning:
-        Importing admissible_partitions from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         sage: P
         [[{{0}, {1, 2, 3}},
           {{0, 2, 3}, {1}},
@@ -6723,9 +6579,6 @@ def admissible_partitions(S, k):
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:
         ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
-        doctest:...: DeprecationWarning:
-        Importing partition_sandpile from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         6
         8
         3
@@ -6744,9 +6597,10 @@ def admissible_partitions(S, k):
         G = Graph(S)
     result = []
     for p in SetPartitions(v, k):
-        if forall(p, lambda x : G.subgraph(list(x)).is_connected())[0]:
+        if all(G.subgraph(list(x)).is_connected() for x in p):
             result.append(p)
     return result
+
 
 def partition_sandpile(S, p):
     r"""
@@ -6766,6 +6620,7 @@ def partition_sandpile(S, p):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import admissible_partitions, partition_sandpile
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: for p in P:
@@ -6794,50 +6649,6 @@ def partition_sandpile(S, p):
         if S.sink() in i:
             return Sandpile(g,i)
 
-def firing_vector(S, D, E):
-    r"""
-    If `D` and `E` are linearly equivalent divisors, find the firing vector
-    taking `D` to `E`.
-
-    INPUT:
-
-    - ``S`` -- Sandpile
-
-    - ``D``, ``E`` -- tuples (representing linearly equivalent divisors)
-
-    OUTPUT:
-
-    tuple (representing a firing vector from ``D`` to ``E``)
-
-    EXAMPLES::
-
-      sage: S = sandpiles.Complete(4)
-      sage: D = SandpileDivisor(S, {0: 0, 1: 0, 2: 8, 3: 0})
-      sage: E = SandpileDivisor(S, {0: 2, 1: 2, 2: 2, 3: 2})
-      sage: v = firing_vector(S, D, E)
-      doctest:...: DeprecationWarning: firing_vector() will soon be removed.  Use SandpileDivisor.is_linearly_equivalent() instead.
-      See http://trac.sagemath.org/18618 for details.
-      doctest:...: DeprecationWarning: May 25, 2015: Replaced by SandpileDivisor.is_linearly_equivalent.
-      See http://trac.sagemath.org/18618 for details.
-      sage: v
-      (0, 0, 2, 0)
-
-    The divisors must be linearly equivalent::
-
-      sage: vector(D.values()) - S.laplacian()*vector(v) == vector(E.values())
-      True
-      sage: firing_vector(S, D, S.zero_div())
-      Error. Are the divisors linearly equivalent?
-  """
-    deprecation(18618,'May 25, 2015: Replaced by SandpileDivisor.is_linearly_equivalent.')
-    try:
-        v = vector(D.values())
-        w = vector(E.values())
-        return tuple(S.laplacian().solve_left(v-w))
-    except ValueError:
-        print("Error. Are the divisors linearly equivalent?")
-        return
-
 def min_cycles(G, v):
     r"""
     Minimal length cycles in the digraph `G` starting at vertex `v`.
@@ -6854,11 +6665,9 @@ def min_cycles(G, v):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import min_cycles, sandlib
         sage: T = sandlib('gor')
         sage: [min_cycles(T, i) for i in T.vertices()]
-        doctest:...: DeprecationWarning:
-        Importing min_cycles from here is deprecated. If you need to use it, please import it directly from sage.sandpiles.sandpile
-        See http://trac.sagemath.org/18618 for details.
         [[], [[1, 3]], [[2, 3, 1], [2, 3]], [[3, 1], [3, 2]]]
     """
     pr = G.neighbors_in(v)

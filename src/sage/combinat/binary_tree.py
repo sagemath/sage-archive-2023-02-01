@@ -27,7 +27,7 @@ REFERENCES:
    *The algebra of binary search trees*,
    :arxiv:`math/0401089v2`.
 
-.. [CP12] Gregory Chatel, Viviane Pons.
+.. [CP12] Grégory Châtel, Viviane Pons.
    *Counting smaller trees in the Tamari order*,
    :arxiv:`1212.0751v1`.
 """
@@ -41,6 +41,7 @@ REFERENCES:
 #*****************************************************************************
 # python3
 from __future__ import division, absolute_import
+from six import add_metaclass
 
 from sage.structure.list_clone import ClonableArray
 from sage.combinat.abstract_tree import (AbstractClonableTree,
@@ -48,18 +49,19 @@ from sage.combinat.abstract_tree import (AbstractClonableTree,
 from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
+from sage.misc.lazy_attribute import lazy_class_attribute
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.family import Family
 from sage.misc.cachefunc import cached_method
-from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
 
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
     Binary trees.
@@ -119,8 +121,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         sage: t1 == t1c
         False
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, *args, **opts):
         """
@@ -183,21 +183,41 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ValueError: this is not a binary tree
             sage: all(BinaryTree(repr(bt)) == bt for i in range(6) for bt in BinaryTrees(i))
             True
+
+        `\QQ` (or any number field) has a ``list()`` method that
+        returns itself as a `\QQ`-vector represented as a list.
+        Before :trac:`23961`, this would cause an infinite recursion
+        because `\QQ` elements give a list of length 1. For more
+        details, see :trac:`23961`. We test that constructing
+        binary trees from elements from `\QQ` terminates with
+        an appropriate error::
+
+            sage: BinaryTree(1/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: this is not a binary tree
         """
-        if (isinstance(children, str)):  # if the input is the repr of a binary tree
+        if isinstance(children, str):  # if the input is the repr of a binary tree
             children = children.replace(".", "None")
             from ast import literal_eval
             children = literal_eval(children)
+
         if children is None:
             children = []
-        elif (children == [] or children == () or
-              isinstance(children, (Integer, int))):
-            children = [None, None]
-        if (children.__class__ is self.__class__ and
-                children.parent() == parent):
+        elif isinstance(children, (list, tuple)) and not children:
+            E = self.__class__(parent, None, check=check)
+            children = [E, E]
+        elif (children.__class__ is self.__class__ and
+              children.parent() == parent):
             children = list(children)
         else:
-            children = [self.__class__(parent, x) for x in children]
+            children = list(children)
+            if children and len(children) != 2:
+                raise ValueError('this is not a binary tree')
+            children = [x if (x.__class__ is self.__class__ and
+                              x.parent() == parent)
+                        else self.__class__(parent, x, check=check)
+                        for x in children]
         ClonableArray.__init__(self, parent, children, check=check)
 
     def check(self):
@@ -402,14 +422,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             node = node_to_str(self)
             rr_tree = self[1]._ascii_art_()
             if rr_tree._root > 2:
-                f_line = " " ** Integer(rr_tree._root - 3) + node
-                s_line = " " ** Integer(len(node) + rr_tree._root - 3) + "\\"
+                f_line = " " * (rr_tree._root - 3) + node
+                s_line = " " * (len(node) + rr_tree._root - 3) + "\\"
                 t_repr = AsciiArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = " " + "\\"
-                t_line = " " ** Integer(len(node) + 1)
+                t_line = " " * (len(node) + 1)
                 t_repr = AsciiArt([f_line, s_line]) * (AsciiArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
@@ -417,8 +437,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._ascii_art_()
-            f_line = " " ** Integer(lr_tree._root + 1) + node
-            s_line = " " ** Integer(lr_tree._root) + "/"
+            f_line = " " * (lr_tree._root + 1) + node
+            s_line = " " * lr_tree._root + "/"
             t_repr = AsciiArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
@@ -429,10 +449,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
         nb_R = nb_L + (nb_ % 2)
-        f_line = " " ** Integer(lr_tree._root + 1) + "_" ** Integer(nb_L) + node
-        f_line += "_" ** Integer(nb_R)
-        s_line = " " ** Integer(lr_tree._root) + "/" + " " ** Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
-        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " ** Integer(len(node) + 2)]) + rr_tree)
+        f_line = " " * (lr_tree._root + 1) + "_" * nb_L + node
+        f_line += "_" * nb_R
+        s_line = " " * lr_tree._root + "/" + " " * (len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + "\\"
+        t_repr = AsciiArt([f_line, s_line]) * (lr_tree + AsciiArt([" " * (len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
@@ -606,14 +626,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             node = node_to_str(self)
             rr_tree = self[1]._unicode_art_()
             if rr_tree._root > 2:
-                f_line = u" " * Integer(rr_tree._root - 3) + node
-                s_line = u" " * Integer(len(node) + rr_tree._root - 3) + u"╲"
+                f_line = u" " * (rr_tree._root - 3) + node
+                s_line = u" " * (len(node) + rr_tree._root - 3) + u"╲"
                 t_repr = UnicodeArt([f_line, s_line]) * rr_tree
                 t_repr._root = rr_tree._root - 2
             else:
                 f_line = node
                 s_line = u" ╲"
-                t_line = u" " * Integer(len(node) + 1)
+                t_line = u" " * (len(node) + 1)
                 t_repr = UnicodeArt([f_line, s_line]) * (UnicodeArt([t_line]) + rr_tree)
                 t_repr._root = rr_tree._root
             t_repr._baseline = t_repr._h - 1
@@ -622,8 +642,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if self[1].is_empty():
             node = node_to_str(self)
             lr_tree = self[0]._unicode_art_()
-            f_line = u" " * Integer(lr_tree._root + 1) + node
-            s_line = u" " * Integer(lr_tree._root) + u"╱"
+            f_line = u" " * (lr_tree._root + 1) + node
+            s_line = u" " * lr_tree._root + u"╱"
             t_repr = UnicodeArt([f_line, s_line]) * lr_tree
             t_repr._root = lr_tree._root + 2
             t_repr._baseline = t_repr._h - 1
@@ -635,13 +655,42 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
         nb_L = nb_ // 2
         nb_R = nb_L + (nb_ % 2)
-        f_line = u" " * Integer(lr_tree._root + 1) + u"_" * Integer(nb_L) + node
-        f_line += u"_" * Integer(nb_R)
-        s_line = u" " * Integer(lr_tree._root) + u"╱" + u" " * Integer(len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
-        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * Integer(len(node) + 2)]) + rr_tree)
+        f_line = u" " * (lr_tree._root + 1) + u"_" * nb_L + node
+        f_line += u"_" * nb_R
+        s_line = u" " * lr_tree._root + u"╱" + u" " * (len(node) + rr_tree._root - 1 + (lr_tree._l - lr_tree._root)) + u"╲"
+        t_repr = UnicodeArt([f_line, s_line]) * (lr_tree + UnicodeArt([u" " * (len(node) + 2)]) + rr_tree)
         t_repr._root = lr_tree._root + nb_L + 2
         t_repr._baseline = t_repr._h - 1
         return t_repr
+
+    def _sort_key(self):
+        """
+        Return a tuple of nonnegative integers encoding the binary
+        tree ``self``.
+
+        The first entry of the tuple is the number of children of the
+        root. Then the rest of the tuple is the concatenation of the
+        tuples associated to these children (we view the children of
+        a tree as trees themselves) from left to right.
+
+        This tuple characterizes the tree uniquely, and can be used to
+        sort the binary trees.
+
+        EXAMPLES::
+
+            sage: x = BinaryTree([])
+            sage: y = (x.under(x)).over(x)
+            sage: y._sort_key()
+            (2, 2, 0, 0, 2, 0, 0)
+            sage: z = (x.over(x)).under(x)
+            sage: z._sort_key()
+            (2, 2, 0, 2, 0, 0, 0)
+        """
+        l = len(self)
+        if l == 0:
+            return (0,)
+        resu = [l] + [u for t in self for u in t._sort_key()]
+        return tuple(resu)
 
     def is_empty(self):
         """
@@ -1047,7 +1096,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         AUTHORS:
 
-        Viviane Pons and Darij Grinberg, 18 June 2014.
+        Viviane Pons and Darij Grinberg, 18 June 2014;
+        Frédéric Chapoton, 9 January 2018.
 
         EXAMPLES::
 
@@ -1201,11 +1251,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b.tamari_meet(b)
             [., .]
         """
-        # We use Reading's result that the projection from the symmetric
-        # group is a lattice homomorphism.
-        a = self.to_132_avoiding_permutation()
-        b = other.to_132_avoiding_permutation()
-        return a.permutohedron_meet(b).binary_search_tree_shape(left_to_right=False)
+        x = self.tamari_sorting_tuple()[0]
+        y = other.tamari_sorting_tuple()[0]
+        meet = tuple(min(a, b) for a, b in zip(x, y))
+        return from_tamari_sorting_tuple(meet)
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
@@ -1379,6 +1428,49 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             right.extend(left)
             right.append(label)
             return right
+
+    def tamari_sorting_tuple(self):
+        r"""
+        Return the Tamari sorting tuple of ``self`` and the
+        size of ``self``.
+
+        This is a pair `(w, n)`, where `n` is the number of
+        nodes of ``self``, and `w` is an `n`-tuple whose
+        `i`-th entry is the number of all nodes among the
+        descendants of the right child of the `i`-th node
+        of ``self``. Here, the nodes of ``self`` are numbered
+        from left to right.
+
+        OUTPUT:
+
+        a pair `(w, n)`, where `w` is a tuple of integers,
+        and `n` the size
+
+        Two binary trees of the same size are comparable in
+        the Tamari order if and only if the associated tuples
+        `w` are componentwise comparable.
+        (This is essentially the Theorem in [HuangTamari1972]_.)
+        This is used in :meth:`tamari_lequal`.
+
+        EXAMPLES::
+
+            sage: [t.tamari_sorting_tuple() for t in BinaryTrees(3)]
+            [((2, 1, 0), 3),
+             ((2, 0, 0), 3),
+             ((0, 1, 0), 3),
+             ((1, 0, 0), 3),
+             ((0, 0, 0), 3)]
+
+        REFERENCES:
+
+        - [HuangTamari1972]_
+        """
+        if not self:
+            return tuple(), 0
+        t1, t2 = self
+        u1, n1 = t1.tamari_sorting_tuple()
+        u2, n2 = t2.tamari_sorting_tuple()
+        return (u1 + (n2,) + u2, n1 + 1 + n2)
 
     @combinatorial_map(name="To 312 avoiding permutation")
     def to_312_avoiding_permutation(self):
@@ -2135,9 +2227,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ....:         if not S.tamari_lequal(T):
             ....:             print("FAILURE")
         """
-        self_perm = self.to_312_avoiding_permutation()
-        t2_perm = t2.to_312_avoiding_permutation()
-        return self_perm.permutohedron_lequal(t2_perm)
+        self_word, n1 = self.tamari_sorting_tuple()
+        t2_word, n2 = t2.tamari_sorting_tuple()
+        if n1 != n2:
+            return False
+        return all(x <= y for x, y in zip(self_word, t2_word))
 
     def tamari_greater(self):
         r"""
@@ -2254,15 +2348,17 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: b.tamari_pred()
             [[[., .], [., [., .]]], [., [[., .], [., .]]], [., [., [[., .], .]]]]
         """
-        res = []
-        if self.is_empty():
+        if not self:
             return []
-        if not self[1].is_empty():
-            res.append(self.left_rotate())
+        s0, s1 = self
+        if s1:
+            res = [self.left_rotate()]
+        else:
+            res = []
         B = self.parent()._element_constructor_
         return (res +
-                [B([g, self[1]]) for g in self[0].tamari_pred()] +
-                [B([self[0], d]) for d in self[1].tamari_pred()])
+                [B([g, s1], check=False) for g in s0.tamari_pred()] +
+                [B([s0, d], check=False) for d in s1.tamari_pred()])
 
     def tamari_smaller(self):
         r"""
@@ -2452,6 +2548,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         OUTPUT:
 
         A list of binary trees.
+
+        .. SEEALSO::
+
+            :meth:`over_decomposition`, :meth:`under_decomposition`
 
         EXAMPLES::
 
@@ -3193,10 +3293,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [      \        ]
             [       4       ]
         """
-        B = self.parent()._element_constructor_
         if bt.is_empty():
             return self
-        lab = None
+        B = self.parent()._element_constructor_
         if hasattr(bt, "label"):
             lab = bt.label()
             return B([self.under(bt[0]), bt[1]], lab)
@@ -3204,6 +3303,177 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return B([self.under(bt[0]), bt[1]])
 
     _backslash_ = under
+
+    def under_decomposition(self):
+        r"""
+        Return the unique maximal decomposition as an under product.
+
+        This means that the tree is cut along all edges of its leftmost path.
+
+        Beware that the factors are ordered starting from the root.
+
+        .. SEEALSO::
+
+            :meth:`comb`, :meth:`over_decomposition`
+
+        EXAMPLES::
+
+            sage: g = BinaryTree([])
+            sage: r = g.over(g); r
+            [., [., .]]
+            sage: l = g.under(g); l
+            [[., .], .]
+            sage: l.under_decomposition()
+            [[., .], [., .]]
+            sage: r.under_decomposition() == [r]
+            True
+
+            sage: x = r.under(g).under(r).under(g)
+            sage: ascii_art(x)
+                  o
+                 /
+                o
+               / \
+              o   o
+             /
+            o
+             \
+              o
+            sage: x.under_decomposition() == [g,r,g,r]
+            True
+        """
+        if self.is_empty():
+            return []
+        B = self.parent()._element_constructor_
+        resu = []
+        bt = self
+        while not bt.is_empty():
+            if hasattr(bt, "label"):
+                lab = bt.label()
+                resu.append(B([None, bt[1]], lab))
+            else:
+                resu.append(B([None, bt[1]]))
+            bt = bt[0]
+        return resu
+
+    def over_decomposition(self):
+        """
+        Return the unique maximal decomposition as an over product.
+
+        This means that the tree is cut along all edges of its rightmost path.
+
+        Beware that the factors are ordered starting from the root.
+
+        .. SEEALSO::
+
+            :meth:`comb`, :meth:`under_decomposition`
+
+        EXAMPLES::
+
+            sage: g = BinaryTree([])
+            sage: r = g.over(g); r
+            [., [., .]]
+            sage: l = g.under(g); l
+            [[., .], .]
+            sage: r.over_decomposition()
+            [[., .], [., .]]
+            sage: l.over_decomposition() == [l]
+            True
+
+            sage: x = g.over(l).over(l).over(g).over(g)
+            sage: ascii_art(x)
+             o
+              \
+              _o_
+             /   \
+            o     o
+                 / \
+                o   o
+                     \
+                      o
+            sage: x.over_decomposition() == [g,l,l,g,g]
+            True
+        """
+        if self.is_empty():
+            return []
+        B = self.parent()._element_constructor_
+        resu = []
+        bt = self
+        while not bt.is_empty():
+            if hasattr(bt, "label"):
+                lab = bt.label()
+                resu.append(B([bt[0], None], lab))
+            else:
+                resu.append(B([bt[0], None]))
+            bt = bt[1]
+        return resu
+
+    def dendriform_shuffle(self, other):
+        """
+        Return the list of terms in the dendriform product.
+
+        This is the list of all binary trees that can be obtained by
+        identifying the rightmost path in ``self`` and the leftmost
+        path in ``other``. Every term corresponds to a shuffle of the
+        vertices on the rightmost path in ``self`` and the vertices on
+        the leftmost path in ``other``.
+
+        EXAMPLES::
+
+            sage: u = BinaryTree()
+            sage: g = BinaryTree([])
+            sage: l = BinaryTree([g, u])
+            sage: r = BinaryTree([u, g])
+
+            sage: list(g.dendriform_shuffle(g))
+            [[[., .], .], [., [., .]]]
+
+            sage: list(l.dendriform_shuffle(l))
+            [[[[[., .], .], .], .], [[[., .], [., .]], .],
+            [[., .], [[., .], .]]]
+
+            sage: list(l.dendriform_shuffle(r))
+            [[[[., .], .], [., .]], [[., .], [., [., .]]]]
+
+        TESTS::
+
+            sage: list(u.dendriform_shuffle(u))
+            [.]
+            sage: list(u.dendriform_shuffle(g))
+            [[., .]]
+            sage: list(u.dendriform_shuffle(l))
+            [[[., .], .]]
+            sage: list(u.dendriform_shuffle(r))
+            [[., [., .]]]
+            sage: list(r.dendriform_shuffle(u))
+            [[., [., .]]]
+            sage: list(l.dendriform_shuffle(u))
+            [[[., .], .]]
+        """
+        from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
+        from sage.combinat.words.word import Word
+        if self.is_empty():
+            yield other
+        elif other.is_empty():
+            yield self
+        else:
+            B = self.parent()._element_constructor_
+            left_list = self.over_decomposition()
+            right_list = other.under_decomposition()
+            w_left = Word('L' * len(left_list))
+            w_right = Word('R' * len(right_list))
+            for w in ShuffleProduct_w1w2(w_left, w_right):
+                t = B(None)
+                c_left_list = list(left_list)
+                c_right_list = list(right_list)
+                for letter in w:
+                    if letter == 'L':
+                        lt = c_left_list.pop()
+                        t = lt.over(t)
+                    else:
+                        rt = c_right_list.pop()
+                        t = t.under(rt)
+                yield t
 
     def sylvester_class(self, left_to_right=False):
         r"""
@@ -3415,6 +3685,132 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return False
         return self[0].is_full() and self[1].is_full()
 
+    def to_full(self):
+        r"""
+        Return the full binary tree constructed from ``self``.
+
+        Let `T` be a binary tree with `n` nodes. We construct a full
+        binary tree `F` from `T` by attaching a leaf to each node of
+        `T` which does not have 2 children. The resulting tree will
+        have `2n + 1` nodes.
+
+        OUTPUT:
+
+        A full binary tree. See :meth:`is_full` for the definition of full.
+
+        .. SEEALSO::
+
+            :meth:`prune`
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[None,[]],None])
+            sage: bt.to_full().is_full()
+            True
+            sage: ascii_art(bt)
+              o
+             /
+            o
+             \
+              o
+            sage: ascii_art(bt.to_full())
+                 __o___
+                /      \
+              _o_       o
+             /   \
+            o     o
+                 / \
+                o   o
+
+            sage: bt = BinaryTree([[],[]])
+            sage: ascii_art(bt)
+              o
+             / \
+            o   o
+            sage: ascii_art(bt.to_full())
+                __o__
+               /     \
+              o       o
+             / \     / \
+            o   o   o   o
+
+            sage: BinaryTree(None).to_full()
+            [., .]
+
+        """
+        if self.is_empty():
+            return BinaryTree("[.,.]")
+
+        return BinaryTree([self[0].to_full(), self[1].to_full()])
+
+    def prune(self):
+        r"""
+        Return the binary tree obtained by deleting each leaf of ``self``.
+
+        The operation of pruning is the left inverse of attaching as
+        many leaves as possible to each node of a binary tree.
+        That is to say, for all binary trees ``bt``, we have::
+
+            bt == bt.to_full().prune()
+
+        However, it is only a right inverse if and only if ``bt``
+        is a full binary tree::
+
+            bt == bt.prune().to_full()
+
+        OUTPUT:
+
+        A binary tree.
+
+        .. SEEALSO::
+
+            :meth:`to_full`
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[[None, []], [[], []]], None])
+            sage: ascii_art(bt)
+                  o
+                 /
+              __o__
+             /     \
+            o       o
+             \     / \
+              o   o   o
+            sage: ascii_art(bt.prune())
+                o
+               /
+              o
+             / \
+            o   o
+
+        We check the relationship with :meth:`to_full`::
+
+            sage: bt = BinaryTree([[[], [[None, []], []]], [[],[]]])
+            sage: bt == bt.to_full().prune()
+            True
+            sage: bt == bt.prune().to_full()
+            False
+
+            sage: bt = BinaryTree([[[], []], [[], [[[], []], []]]])
+            sage: bt.is_full()
+            True
+            sage: bt == bt.prune().to_full()
+            True
+
+        Pruning the empty tree is again the empty tree::
+
+            sage: bt = BinaryTree(None)
+            sage: bt.prune()
+            .
+        """
+        if self.is_empty():
+            return self
+
+        if self == BinaryTree([]):
+            return BinaryTree()
+        return BinaryTree([self[0].prune(), self[1].prune()])
+
     def is_perfect(self):
         r"""
         Return ``True`` if ``self`` is perfect, else return ``False``.
@@ -3552,13 +3948,25 @@ class BinaryTrees(UniqueRepresentation, Parent):
     """
     Factory for binary trees.
 
+    A binary tree is a tree with at most 2 children. The binary
+    trees considered here are also ordered (a.k.a. planar), that is
+    to say, their children are ordered.
+
+    A full binary tree is a binary tree with no nodes with 1 child.
+
     INPUT:
 
     - ``size`` -- (optional) an integer
+    - ``full`` -- (optional) a boolean
 
     OUTPUT:
 
-    - the set of all binary trees (of the given ``size`` if specified)
+    The set of all (full if ``full=True``) binary trees (of the given
+    ``size`` if specified).
+
+    .. SEEALSO::
+
+        :class:`BinaryTree`, :meth:`BinaryTree.is_full`
 
     EXAMPLES::
 
@@ -3568,22 +3976,42 @@ class BinaryTrees(UniqueRepresentation, Parent):
         sage: BinaryTrees(2)
         Binary trees of size 2
 
-    .. NOTE:: this is a factory class whose constructor returns instances of
-              subclasses.
+        sage: BinaryTrees(full=True)
+        Full binary trees
 
-    .. NOTE:: the fact that BinaryTrees is a class instead of a simple callable
-              is an implementation detail. It could be changed in the future
-              and one should not rely on it.
+        sage: BinaryTrees(3, full=True)
+        Full binary trees of size 3
+
+        sage: BinaryTrees(4, full=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be 0 or odd
+
+    .. NOTE::
+
+        This is a factory class whose constructor returns instances of
+        subclasses.
+
+    .. NOTE::
+
+        The fact that BinaryTrees is a class instead of a simple callable
+        is an implementation detail. It could be changed in the future
+        and one should not rely on it.
     """
     @staticmethod
-    def __classcall_private__(cls, n=None):
+    def __classcall_private__(cls, n=None, full=False):
         """
         TESTS::
 
-            sage: from sage.combinat.binary_tree import BinaryTrees_all, BinaryTrees_size
+            sage: from sage.combinat.binary_tree import (BinaryTrees_all,
+            ....:  BinaryTrees_size, FullBinaryTrees_all, FullBinaryTrees_size)
             sage: isinstance(BinaryTrees(2), BinaryTrees)
             True
             sage: isinstance(BinaryTrees(), BinaryTrees)
+            True
+            sage: isinstance(BinaryTrees(3, full=True), BinaryTrees)
+            True
+            sage: isinstance(BinaryTrees(full=True), BinaryTrees)
             True
             sage: BinaryTrees(2) is BinaryTrees_size(2)
             True
@@ -3591,13 +4019,28 @@ class BinaryTrees(UniqueRepresentation, Parent):
             42
             sage: BinaryTrees() is BinaryTrees_all()
             True
+            sage: BinaryTrees(3, full=True) is FullBinaryTrees_size(3)
+            True
+            sage: BinaryTrees(5, full=True).cardinality()
+            2
+            sage: BinaryTrees(full=True) is FullBinaryTrees_all()
+            True
         """
         if n is None:
-            return BinaryTrees_all()
+            if full:
+                return FullBinaryTrees_all()
+            else:
+                return BinaryTrees_all()
         else:
             if not (isinstance(n, (Integer, int)) and n >= 0):
                 raise ValueError("n must be a nonnegative integer")
-            return BinaryTrees_size(Integer(n))
+            if not full:
+                return BinaryTrees_size(Integer(n))
+            else:
+                if n % 2 == 1 or n == 0:
+                    return FullBinaryTrees_size(Integer(n))
+                else:
+                    raise ValueError("n must be 0 or odd")
 
     @cached_method
     def leaf(self):
@@ -3609,13 +4052,43 @@ class BinaryTrees(UniqueRepresentation, Parent):
             sage: BinaryTrees().leaf()
             .
 
-        TEST::
+        TESTS::
 
             sage: (BinaryTrees().leaf() is
             ....:  sage.combinat.binary_tree.BinaryTrees_all().leaf())
             True
         """
         return self(None)
+
+
+def from_tamari_sorting_tuple(key):
+    """
+    Return a binary tree from its Tamari-sorting tuple.
+
+    See :meth:`~sage.combinat.binary_tree.BinaryTree.tamari_sorting_tuple`
+
+    INPUT:
+
+    - ``key`` -- a tuple of integers
+
+    EXEMPLES::
+
+        sage: from sage.combinat.binary_tree import from_tamari_sorting_tuple
+        sage: t = BinaryTrees(60).random_element()
+        sage: from_tamari_sorting_tuple(t.tamari_sorting_tuple()[0]) == t
+        True
+    """
+    if not key:
+        return BinaryTree()
+    n = len(key)
+    # Find the root (or, rather, its index in the list of all
+    # nodes) and call it ``i``:
+    for i, v in enumerate(key):
+        if v == n - i - 1:
+            break
+
+    return BinaryTree([from_tamari_sorting_tuple(key[: i]),
+                       from_tamari_sorting_tuple(key[i + 1:])])
 
 #################################################################
 # Enumerated set of all binary trees
@@ -3651,7 +4124,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
     def _repr_(self):
         """
-        TEST::
+        TESTS::
 
             sage: BinaryTrees()   # indirect doctest
             Binary trees
@@ -3728,7 +4201,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
 class BinaryTrees_size(BinaryTrees):
     """
-    The enumerated sets of binary trees of given size
+    The enumerated sets of binary trees of given size.
 
     TESTS::
 
@@ -3746,7 +4219,8 @@ class BinaryTrees_size(BinaryTrees):
             sage: S is BinaryTrees(3)
             True
         """
-        super(BinaryTrees_size, self).__init__(category=FiniteEnumeratedSets())
+        super(BinaryTrees_size, self).__init__(facade=BinaryTrees_all(),
+                                               category=FiniteEnumeratedSets())
         self._size = size
 
     def _repr_(self):
@@ -3768,7 +4242,7 @@ class BinaryTrees_size(BinaryTrees):
             sage: S([[],[]]) in S
             True
         """
-        return isinstance(x, self.element_class) and x.node_number() == self._size
+        return isinstance(x, BinaryTree) and x.node_number() == self._size
 
     def _an_element_(self):
         """
@@ -3842,32 +4316,6 @@ class BinaryTrees_size(BinaryTrees):
                     for rgt in self.__class__(self._size - 1 - i):
                         yield self._element_constructor_([lft, rgt])
 
-    @lazy_attribute
-    def _parent_for(self):
-        """
-        The parent of the elements generated by ``self``.
-
-        TESTS::
-
-            sage: S = BinaryTrees(3)
-            sage: S._parent_for
-            Binary trees
-        """
-        return BinaryTrees_all()
-
-    @lazy_attribute
-    def element_class(self):
-        """
-        TESTS::
-
-            sage: S = BinaryTrees(3)
-            sage: S.element_class
-            <class 'sage.combinat.binary_tree.BinaryTrees_all_with_category.element_class'>
-            sage: S.first().__class__ == BinaryTrees().first().__class__
-            True
-        """
-        return self._parent_for.element_class
-
     def _element_constructor_(self, *args, **keywords):
         """
         EXAMPLES::
@@ -3884,9 +4332,276 @@ class BinaryTrees_size(BinaryTrees):
             sage: S([])
             [., .]
         """
-        res = self.element_class(self._parent_for, *args, **keywords)
+        res = BinaryTree(*args, **keywords)
         if res.node_number() != self._size:
             raise ValueError("wrong number of nodes")
+        return res
+
+
+#################################################################
+# Enumerated set of all full binary trees
+#################################################################
+
+class FullBinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
+    """
+    All full binary trees.
+    """
+    def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.combinat.binary_tree import FullBinaryTrees_all
+            sage: FB = FullBinaryTrees_all()
+            sage: FB.cardinality()
+            +Infinity
+
+            sage: it = iter(FB)
+            sage: (next(it), next(it), next(it), next(it), next(it))
+            (., [., .], [[., .], [., .]], [[., .], [[., .], [., .]]], [[[., .], [., .]],  [., .]])
+            sage: next(it).parent()
+            Binary trees
+            sage: FB([])
+            [., .]
+
+            sage: FB is FullBinaryTrees_all()
+            True
+            sage: TestSuite(FB).run() # long time
+        """
+        DisjointUnionEnumeratedSets.__init__(
+            self, Family(NonNegativeIntegers(), _full_construction),
+            facade=True, keepkey=False)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: BinaryTrees(full=True)
+            Full binary trees
+        """
+        return "Full binary trees"
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: FB = BinaryTrees(full=True)
+            sage: 1 in FB
+            False
+            sage: FB([]) in FB
+            True
+        """
+        return isinstance(x, BinaryTree) and x.is_full()
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: FB = BinaryTrees(full=True)
+            sage: FB._element_constructor_([])
+            [., .]
+            sage: FB([[],[]]) # indirect doctest
+            [[., .], [., .]]
+            sage: FB(None)    # indirect doctest
+            .
+            sage: FB([None, []]) #indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: not full
+        """
+        res = BinaryTree(*args, **keywords)
+        if not res.is_full():
+            raise ValueError("not full")
+        return res
+
+#################################################################
+# Enumerated set of full binary trees of a given size
+#################################################################
+
+def _full_construction(n):
+    """
+    Helper function for the disjoint union construction.
+
+    TESTS::
+
+        sage: from sage.combinat.binary_tree import _full_construction
+        sage: _full_construction(0)
+        Full binary trees of size 0
+        sage: _full_construction(1)
+        Full binary trees of size 1
+        sage: _full_construction(2)
+        Full binary trees of size 3
+        sage: _full_construction(3)
+        Full binary trees of size 5
+    """
+    if n == 0:
+        return FullBinaryTrees_size(0)
+    return FullBinaryTrees_size(2*n-1)
+
+class FullBinaryTrees_size(BinaryTrees):
+    """
+    Full binary trees of a fixed size (number of nodes).
+    """
+    def __init__(self, size):
+        r"""
+        TESTS::
+
+            sage: from sage.combinat.binary_tree import FullBinaryTrees_size
+            sage: for i in range(1,6):
+            ....:     TestSuite(BinaryTrees(2*i-1, full=True)).run()
+        """
+        super(FullBinaryTrees_size, self).__init__(facade=BinaryTrees_all(),
+                                                   category=FiniteEnumeratedSets())
+        self._size = size
+
+    def _repr_(self):
+        r"""
+        TESTS::
+
+            sage: BinaryTrees(3, full=True)
+            Full binary trees of size 3
+        """
+        return "Full binary trees of size %s" % self._size
+
+    def __contains__(self, x):
+        r"""
+        TESTS::
+
+            sage: FB3 = BinaryTrees(3, full=True)
+            sage: 1 in FB3
+            False
+            sage: FB3([[], []]) in FB3
+            True
+            sage: BinaryTree([[], []]) in FB3
+            True
+            sage: BinaryTree([None, []]) in FB3
+            False
+        """
+        return (isinstance(x, BinaryTree)
+                and x.node_number() == self._size
+                and x.is_full())
+
+    def _an_element_(self):
+        r"""
+        TESTS::
+
+            sage: BinaryTrees(0, full=True).an_element()
+            .
+
+            sage: ascii_art(BinaryTrees(5, full=True).an_element())
+              _o_
+             /   \
+            o     o
+                 / \
+                o   o
+        """
+        return self.first()
+
+    def cardinality(self):
+        r"""
+        The cardinality of ``self``
+
+        This is a Catalan number.
+
+        TESTS::
+
+            sage: BinaryTrees(0, full=True).cardinality()
+            1
+            sage: BinaryTrees(5, full=True).cardinality()
+            2
+            sage: BinaryTrees(11, full=True).cardinality()
+            42
+        """
+        if self._size == 0:
+            return Integer(1)
+        from sage.combinat.combinat import catalan_number
+        return catalan_number((self._size-1) // 2)
+
+    def random_element(self):
+        r"""
+        Return a random ``FullBinaryTree`` with uniform probability.
+
+        This method generates a random ``DyckWord`` of size `(s-1) / 2`,
+        where `s` is the size of ``self``, which uses a bijection between
+        Dyck words and binary trees to get a binary tree, and convert it
+        to a full binary tree.
+
+        EXAMPLES::
+
+            sage: BinaryTrees(5, full=True).random_element() # random
+            [[], [[], []]]
+            sage: BinaryTrees(0, full=True).random_element()
+            .
+            sage: BinaryTrees(1, full=True).random_element()
+            [., .]
+
+        TESTS::
+
+            sage: B = BinaryTrees(19, full=True)
+            sage: all([B.random_element() in B for i in range(20)])
+            True
+        """
+        from sage.combinat.dyck_word import CompleteDyckWords_size
+        if self._size == 0:
+            return BinaryTree(None)
+        return CompleteDyckWords_size((self._size-1) // 2).random_element().to_binary_tree().to_full()
+
+    def __iter__(self):
+        """
+        A basic generator.
+
+        .. TODO:: could be optimized.
+
+        TESTS::
+
+            sage: BinaryTrees(0, full=True).list()
+            [.]
+            sage: BinaryTrees(1, full=True).list()
+            [[., .]]
+            sage: BinaryTrees(7, full=True).list()
+            [[[., .], [[., .], [[., .], [., .]]]],
+             [[., .], [[[., .], [., .]], [., .]]],
+             [[[., .], [., .]], [[., .], [., .]]],
+             [[[., .], [[., .], [., .]]], [., .]],
+             [[[[., .], [., .]], [., .]], [., .]]]
+        """
+        if self._size == 0:
+            yield self._element_constructor_()
+        if self._size == 1:
+            yield self._element_constructor_("[.,.]")
+        else:
+            k = (self._size - 1) // 2 # number of internal nodes
+            for i in range(k):
+                for lft in FullBinaryTrees_size(2*i+1):
+                    for rgt in FullBinaryTrees_size(2*(k-1-i)+1):
+                        yield self._element_constructor_([lft, rgt])
+
+    def _element_constructor_(self, *args, **keywords):
+        """
+        EXAMPLES::
+
+            sage: FB0 = BinaryTrees(0, full=True)
+            sage: FB0(None)
+            .
+            sage: FB0([])
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong number of nodes
+
+            sage: FB1 = BinaryTrees(1, full=True)
+            sage: FB1([])
+            [., .]
+
+            sage: FB5 = BinaryTrees(5, full=True)
+            sage: FB5([[], [None, [None, []]]])
+            Traceback (most recent call last):
+            ...
+            ValueError: not full
+        """
+        res = BinaryTree(*args, **keywords)
+        if res.node_number() != self._size:
+            raise ValueError("wrong number of nodes")
+        if not res.is_full():
+            raise ValueError("not full")
         return res
 
 
@@ -4062,6 +4777,34 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         else:
             return "%s%s" % (self._label, self[:])
 
+    def _sort_key(self):
+        """
+        Return a tuple encoding the labelled binary tree ``self``.
+
+        The first entry of the tuple is a pair consisting of the
+        number of children of the root and the label of the root. Then
+        the rest of the tuple is the concatenation of the tuples
+        associated to these children (we view the children of
+        a tree as trees themselves) from left to right.
+
+        This tuple characterizes the labelled tree uniquely, and can
+        be used to sort the labelled binary trees provided that the
+        labels belong to a type which is totally ordered.
+
+        EXAMPLES::
+
+            sage: L2 = LabelledBinaryTree([], label='a')
+            sage: L3 = LabelledBinaryTree([], label='b')
+            sage: T23 = LabelledBinaryTree([L2, L3], label='c')
+            sage: T23._sort_key()
+            ((2, 'c'), (2, 'a'), (0,), (0,), (2, 'b'), (0,), (0,))
+        """
+        l = len(self)
+        if l == 0:
+            return ((0,),)
+        resu = [(l, self.label())] + [u for t in self for u in t._sort_key()]
+        return tuple(resu)
+
     def binary_search_insert(self, letter):
         """
         Return the result of inserting a letter ``letter`` into the
@@ -4153,14 +4896,14 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
         """
         LT = self.parent()._element_constructor_
         if not self:
-            return LT([], label=letter)
+            return LT([], label=letter, check=False)
         else:
             if letter <= self.label():
                 fils = self[0].binary_search_insert(letter)
-                return LT([fils, self[1]], label=self.label())
+                return LT([fils, self[1]], label=self.label(), check=False)
             else:
                 fils = self[1].binary_search_insert(letter)
-                return LT([self[0], fils], label=self.label())
+                return LT([self[0], fils], label=self.label(), check=False)
 
     def semistandard_insert(self, letter):
         """
@@ -4450,7 +5193,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
         """
         Return a labelled binary tree.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: LabelledBinaryTrees().an_element()   # indirect doctest
             toto[42[3[., .], 3[., .]], 5[None[., .], None[., .]]]
@@ -4499,6 +5242,54 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
     Element = LabelledBinaryTree
 
 
+def binary_search_tree_shape(w, left_to_right=True):
+    """
+    Direct computation of the binary search tree shape of a list of integers.
+
+    INPUT:
+
+    - ``w`` -- a list of integers
+
+    - ``left_to_right`` -- boolean (default ``True``)
+
+    OUTPUT: a non labelled binary tree
+
+    This is used under the same name as a method for permutations.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.binary_tree import binary_search_tree_shape
+        sage: binary_search_tree_shape([1,4,3,2])
+        [., [[[., .], .], .]]
+        sage: binary_search_tree_shape([5,1,3,2])
+        [[., [[., .], .]], .]
+
+    By passing the option ``left_to_right=False`` one can have
+    the insertion going from right to left::
+
+        sage: binary_search_tree_shape([1,6,4,2], False)
+        [[., .], [., [., .]]]
+
+    TESTS::
+
+        sage: t = Permutations(30).random_element()
+        sage: t.binary_search_tree().shape() == binary_search_tree_shape(t)
+        True
+        sage: t.binary_search_tree(False).shape() == binary_search_tree_shape(t, False)
+        True
+    """
+    if not w:
+        return BinaryTree()
+    if left_to_right:
+        root = w[0]
+    else:
+        root = w[-1]
+    left = [x for x in w if x < root]
+    right = [x for x in w if x > root]
+    return BinaryTree([binary_search_tree_shape(left, left_to_right),
+                      binary_search_tree_shape(right, left_to_right)])
+
+
 ################################################################
 # Interface attempt with species...
 #
@@ -4520,7 +5311,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 #     sage: BTsp_to_bintrees(BT.isotypes(range(5))[0])
 #     [., [., [., [., [., .]]]]]
 #     sage: def spls(size):
-#     ....:     return map(BTsp_to_bintrees, BT.isotypes(range(size)).list())
+#     ....:     return [BTsp_to_bintrees(u) for u in BT.isotypes(range(size)).list()]
 #     sage: spls(3)
 #     [[., [., [., .]]], [., [[., .], .]], [[., .], [., .]], [[., [., .]], .], [[[., .], .], .]]
 #     sage: all(spls(i) == BinaryTrees(i).list() for i in range(5))

@@ -32,7 +32,7 @@ algorithm in that paper:
 
 The best description of the algorithms used (other than this source
 code itself) is in the slides for my Sage Days 4 talk, currently available
-from http://www.sagemath.org:9001/days4schedule .
+from https://wiki.sagemath.org/days4schedule .
 """
 
 ################################################################################
@@ -130,7 +130,7 @@ from http://www.sagemath.org:9001/days4schedule .
 # This may be vastly faster than the exact calculations carried out
 # by this algorithm!  Is it enough faster to be faster than, say,
 # Pari's floating-point algorithms?)
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from random import Random
@@ -152,11 +152,10 @@ from sage.rings.real_mpfr cimport RealNumber
 
 cimport numpy
 
-# TODO: Just for the fabs function below
-from math import fabs
+from libc.math cimport fabs, sqrt, ldexp, frexp
 
-include "sage/ext/cdefs.pxi"
-
+from sage.libs.gmp.mpz cimport *
+from sage.libs.gmp.mpq cimport *
 from sage.libs.mpfr cimport *
 
 cdef class interval_bernstein_polynomial:
@@ -2218,8 +2217,8 @@ def cl_maximum_root_first_lambda(cl):
             pending_pos_exp = j
             posCounter = posCounter+1
 
-    if len(neg) == 0:
-        return RIF._upper_field().zero()
+    if not neg:
+        return RIF.upper_field().zero()
 
     max_ub_log = RIF('-infinity')
     for j in xrange(len(neg)):
@@ -2348,7 +2347,7 @@ def root_bounds(p):
     if n == 0:
         # not RIF.zero().endpoints() because of MPFI's convention that the
         # upper bound is -0.
-        return RIF._lower_field().zero(), RIF._upper_field().zero()
+        return RIF.lower_field().zero(), RIF.upper_field().zero()
 
     ub = cl_maximum_root(cl)
 

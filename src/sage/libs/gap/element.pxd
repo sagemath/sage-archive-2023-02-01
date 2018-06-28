@@ -8,7 +8,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .util cimport *
+from .gap_includes cimport libGAP_Obj, libGAP_UInt
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
@@ -44,7 +44,11 @@ cdef class GapElement(RingElement):
     cdef _initialize(self, parent, libGAP_Obj obj)
     cpdef _type_number(self)
     cpdef is_bool(self)
+    cpdef _add_(self, other)
+    cpdef _mul_(self, other)
+    cpdef _mod_(self, right)
 
+    cpdef GapElement deepcopy(self, bint mut)
 
 cdef class GapElement_Integer(GapElement):
     pass
@@ -77,7 +81,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
     cdef GapElement first_argument
 
 cdef class GapElement_Record(GapElement):
-    cpdef libGAP_UInt record_name_to_index(self, bytes py_name)
+    cpdef libGAP_UInt record_name_to_index(self, name)
 
 cdef class GapElement_RecordIterator(object):
     cdef GapElement_Record rec

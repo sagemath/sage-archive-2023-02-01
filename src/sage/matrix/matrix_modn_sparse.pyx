@@ -68,22 +68,24 @@ TESTS::
     []
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
+
 from __future__ import absolute_import
 
-include "sage/ext/cdefs.pxi"
-include "cysignals/signals.pxi"
-include "cysignals/memory.pxi"
+from cysignals.memory cimport check_calloc, sig_malloc, sig_free
+from cysignals.signals cimport sig_on, sig_off
 
 from sage.modules.vector_modn_sparse cimport *
 
-from cpython.sequence cimport *
-
+from sage.libs.gmp.mpz cimport mpz_init_set_si
 cimport sage.matrix.matrix as matrix
 cimport sage.matrix.matrix_sparse as matrix_sparse
 cimport sage.matrix.matrix_dense as matrix_dense
@@ -94,6 +96,7 @@ from sage.misc.misc import verbose, get_verbose
 import sage.rings.all as rings
 
 from sage.matrix.matrix2 import Matrix as Matrix2
+from .args cimport SparseEntry, MatrixArgs_init
 from sage.arith.all import is_prime
 
 from sage.structure.element import is_Vector
@@ -123,110 +126,46 @@ cdef Linbox_modn_sparse linbox
 linbox = Linbox_modn_sparse()
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
-
-    ########################################################################
-    # LEVEL 1 functionality
-    # x * __cinit__
-    # x * __dealloc__
-    # x * __init__
-    # x * set_unsafe
-    # x * get_unsafe
-    ########################################################################
-    def __cinit__(self, parent, entries, copy, coerce):
-        matrix.Matrix.__init__(self, parent)
-
-        # allocate memory
-        cdef Py_ssize_t i, nr, nc
-        cdef int p
-
-        nr = parent.nrows()
-        nc = parent.ncols()
-        p = parent.base_ring().order()
+    def __cinit__(self):
+        nr = self._nrows
+        nc = self._ncols
+        cdef int p = self._base_ring.order()
         self.p = p
 
+        self.rows = <c_vector_modint*>check_calloc(nr, sizeof(c_vector_modint))
 
-        self.rows = <c_vector_modint*> sig_malloc(nr*sizeof(c_vector_modint))
-        if self.rows == NULL:
-            raise MemoryError("error allocating memory for sparse matrix")
-
-        for i from 0 <= i < nr:
+        cdef Py_ssize_t i
+        for i in range(nr):
             init_c_vector_modint(&self.rows[i], p, nc, 0)
 
-
     def __dealloc__(self):
-        cdef int i
-        for i from 0 <= i < self._nrows:
-            clear_c_vector_modint(&self.rows[i])
-        sig_free(self.rows)
+        cdef Py_ssize_t i
+        if self.rows:
+            for i in range(self._nrows):
+                clear_c_vector_modint(&self.rows[i])
+            sig_free(self.rows)
 
-    def __init__(self, parent, entries, copy, coerce):
-        """
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
+        r"""
         Create a sparse matrix over the integers modulo ``n``.
 
         INPUT:
 
-        - ``parent`` -- a matrix space
+        - ``parent`` -- a matrix space over the integers modulo ``n``
 
-        - ``entries`` -- can be one of the following:
+        - ``entries`` -- see :func:`matrix`
 
-          * a Python dictionary whose items have the
-            form ``(i, j): x``, where ``0 <= i < nrows``,
-            ``0 <= j < ncols``, and ``x`` is coercible to
-            an element of the integers modulo ``n``.
-            The ``i,j`` entry of ``self`` is
-            set to ``x``.  The ``x``'s can be ``0``.
-          * Alternatively, entries can be a list of *all*
-            the entries of the sparse matrix, read
-            row-by-row from top to bottom (so they would
-            be mostly 0).
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``copy`` -- ignored
-
-        - ``coerce`` -- ignored
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
         """
-        cdef int s, z, p
-        cdef Py_ssize_t i, j, k
-
-        cdef PyObject** X
-
-        if entries is None:
-            return
-
-        if isinstance(entries, dict):
-            # Sparse input format.
-            R = self._base_ring
-            for ij, x in entries.iteritems():
-                z = R(x)
-                if z != 0:
-                    i, j = ij  # nothing better to do since this is user input, which may be bogus.
-                    if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
-                        raise IndexError("invalid entries list")
-                    set_entry(&self.rows[i], j, z)
-        elif isinstance(entries, list):
-            # Dense input format
-            if len(entries) != self._nrows * self._ncols:
-                raise TypeError("list of entries must be a dictionary of (i,j):x or a dense list of n * m elements")
-            seq = PySequence_Fast(entries,"expected a list")
-            X = PySequence_Fast_ITEMS(seq)
-            k = 0
-            R = self._base_ring
-            # Get fast access to the entries list.
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < self._ncols:
-                    z = R(<object>X[k])
-                    if z != 0:
-                        set_entry(&self.rows[i], j, z)
-                    k = k + 1
-        else:
-            # scalar?
-            s = int(self._base_ring(entries))
-            if s == 0:
-                return
-            if self._nrows != self._ncols:
-                raise TypeError("matrix must be square to initialize with a scalar.")
-            for i from 0 <= i < self._nrows:
-                set_entry(&self.rows[i], i, s)
-
+        ma = MatrixArgs_init(parent, entries)
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            z = se.entry
+            if z:
+                set_entry(&self.rows[se.i], se.j, z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         set_entry(&self.rows[i], j, (<IntegerMod_int> value).ivalue)
@@ -237,10 +176,6 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         IntegerMod_abstract.__init__(n, self._base_ring)
         n.ivalue = get_entry(&self.rows[i], j)
         return n
-
-    def __hash__(self):
-        return self._hash()
-
 
     ########################################################################
     # LEVEL 2 functionality
@@ -316,7 +251,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def _unpickle(self, data, version):
         if version == 1:
-            self.__init__(self.parent(), data, copy=False, coerce=False)
+            self.__init__(self.parent(), data, coerce=False)
         else:
             raise ValueError("unknown matrix format")
 
@@ -350,6 +285,17 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             sage: d = matrix(GF(43), 3, 8, range(24))
             sage: a*c == a*d
             True
+            
+        TESTS:
+        
+        The following shows that :trac:`23669` has been addressed::
+
+            sage: p = next_prime(2**15)
+            sage: M = Matrix(GF(p), 1,3, lambda i,j: -1, sparse=True); M
+            [32770 32770 32770]
+            sage: M*M.transpose() # previously returned [32738]
+            [3]
+
         """
         cdef Matrix_modn_sparse right, ans
         right = _right
@@ -378,10 +324,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     if v.positions[k] in c:
                         y = get_entry(&right.rows[v.positions[k]], j)
                         x = v.entries[k] * y
-                        s += x
+                        s = (s + x) % self.p
                 set_entry(&ans.rows[i], j, s)
         return ans
-
 
     def _matrix_times_matrix_dense(self, sage.structure.element.Matrix _right):
         """
@@ -463,7 +408,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         self.rows[n1] = self.rows[n2]
         self.rows[n2] = tmp
 
-    def _echelon_in_place_classical(self):
+    cpdef _echelon_in_place(self, str algorithm):
         """
         Replace self by its reduction to reduced row echelon form.
 
@@ -540,7 +485,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         It is safe to change the resulting list (unless you give the option copy=False).
 
-        EXAMPLE::
+        EXAMPLES::
             sage: M = Matrix(GF(7), [[0,0,0,1,0,0,0,0],[0,1,0,0,0,0,1,0]], sparse=True); M
             [0 0 0 1 0 0 0 0]
             [0 1 0 0 0 0 1 0]
@@ -596,7 +541,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         Return the transpose of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = matrix(GF(127),3,3,[0,1,0,2,0,0,3,0,0],sparse=True)
             sage: A
@@ -640,7 +585,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         -  ``rows`` - list or tuple of row indices
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = MatrixSpace(GF(127),3,3,sparse=True)
             sage: A = M(range(9)); A
@@ -656,7 +601,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(rows, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            rows = list(rows)
 
         A = self.new_matrix(nrows = len(rows))
 
@@ -695,7 +640,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint row
 
         if not isinstance(cols, (list, tuple)):
-            raise TypeError("rows must be a list of integers")
+            cols = list(cols)
 
         A = self.new_matrix(ncols = len(cols))
 
@@ -747,7 +692,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
            False)
 
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: A = random_matrix(GF(127),200,200,density=0.01,sparse=True)
             sage: r1 = A.rank(gauss=False)

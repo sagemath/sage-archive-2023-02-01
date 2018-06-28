@@ -102,7 +102,7 @@ sage: time z = expand((u + v + a + b + c)^100)
 Unhandled SIGBUS: A bus error occured in SAGE.
 
 done * pretty serious todo -- all predefined constants in utils.cpp get made wrong:
-    // TODO: BECAUSE of Floor divsion, this gives the wrong answer!!
+    // TODO: BECAUSE of Floor division, this gives the wrong answer!!
     // However, it gets called at ginac startup, so I don't yet
     // know how to change it to make a Sage Rational. Argh.
     value = Number_T(numer) / Number_T(denom);

@@ -575,11 +575,11 @@ You need to give hints to Sage so that it uses C++ (both Givaro and
 NTL are C++ libraries), and it also needs the GMP and STDC C++
 libraries. Here is a small example::
 
-    # These comments are hints to Sage/Pyrex about the compiler and
+    # These comments are hints to Cython about the compiler and
     # libraries needed for the Givaro library:
     #
-    #clang c++
-    #clib givaro gmpxx gmp m stdc++
+    # distutils: language = c++
+    # distutils: libraries = givaro gmpxx gmp m
     cimport sage.rings.finite_field_givaro
     # Construct a finite field of order 11.
     cdef sage.rings.finite_field_givaro.FiniteField_givaro K
@@ -725,9 +725,34 @@ You will need to do this from the command line.  Just run a command like this.
 
 * Linux (assuming you have Sage in ``/usr/bin``)::
 
-    env SAGE_BROWSER=opera /usr/bin/sage -notebook
+    env BROWSER=opera /usr/bin/sage --notebook
 
-* Mac (assuming you are in the directory of your downloaded Sage)::
+* Mac (assuming you are in the directory of your downloaded Sage).
+  With the Jupyter notebook::
 
-    SAGE_BROWSER='open -a Firefox' ./sage -notebook
-    SAGE_BROWSER='open -a Google\ Chrome' ./sage -notebook
+    BROWSER='open -a Firefox %s' ./sage --notebook jupyter
+    BROWSER='open -a Google\ Chrome %s' ./sage --notebook jupyter
+
+  With the old SageNB notebook::
+
+    BROWSER='open -a Firefox' ./sage --notebook
+    BROWSER='open -a Google\ Chrome' ./sage --notebook
+
+
+Where is the source code for ``<function>``?
+""""""""""""""""""""""""""""""""""""""""""""
+
+Functions and classes written in Python or Cython are in general accessible
+on the IPython command line with the ``??`` shortcut::
+
+    sage: plot??                            # not tested
+    Signature: plot(*args, **kwds)
+    Source:   
+    ...
+
+Objects that are built into Python or IPython are compiled and will
+not show, however. There are many functions in Sage implemented as
+symbolic functions, i.e., they can be used unevaluated as part of
+symbolic expressions. Their source code may also not be accessible
+from the command line, especially with elementary functions, because
+they are coded in C++ for efficiency reasons.

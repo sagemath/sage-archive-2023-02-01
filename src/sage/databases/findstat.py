@@ -90,7 +90,7 @@ lists::
     1: (St000042: The number of crossings of a perfect matching. , [], 105)
     ...
 
-This results tells us that the database contains another entriy that is
+This results tells us that the database contains another entry that is
 equidistributed with the number of nestings on perfect matchings of
 length `8`, namely the number of crossings.
 
@@ -125,7 +125,7 @@ We first have to find out, what the maps and the statistic actually do::
     sage: print(list_f[0].code() + "\r\n" + list_f[1].code())               # optional -- internet,random
     def complement(elt):
         n = len(elt)
-        return elt.__class__(elt.parent(), map(lambda x: n - x + 1, elt) )
+        return elt.__class__(elt.parent(), [n - x + 1 for x in elt])
     <BLANKLINE>
     def increasing_tree_shape(elt, compare=min):
         return elt.increasing_tree(compare).shape()
@@ -168,17 +168,17 @@ Classes and methods
 #*****************************************************************************
 from __future__ import print_function
 from six.moves import range
-from six import iteritems
+from six import iteritems, add_metaclass, string_types
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.categories.sets_cat import Sets
 from sage.structure.sage_object import SageObject
+from sage.structure.richcmp import richcmp
 
 from sage.misc.misc import verbose
 from sage.rings.integer import Integer
@@ -527,17 +527,19 @@ class FindStat(SageObject):
                 return (FindStatCollection(collection), lambda x: x)
 
         def query_by_dict(query, collection=None):
-            # we expect a dictionary from objects or strings to
-            # integers
+            """
+            we expect a dictionary from objects or strings to
+            integers
+            """
             l = iteritems(query)
             (key, value) = next(l)
 
             (collection, to_str) = get_collection(collection, key)
 
             data = ([([key], [to_str(key)], [Integer(value)])] +
-                    [([key], [to_str(key)], [Integer(value)]) for (key, value) in l])
+                    [([ky], [to_str(ky)], [Integer(val)]) for (ky, val) in l])
 
-            first_terms = [(key[0], value[0]) for (key, key_str, value) in data]
+            first_terms = [(ky[0], val[0]) for (ky, key_str, val) in data]
 
             return FindStatStatistic(id=0, data=data,
                                      first_terms=first_terms,
@@ -632,7 +634,7 @@ class FindStat(SageObject):
                 try:
                     code = inspect.getsource(query_2)
                 except IOError:
-                    _ = verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
+                    verbose("inspect.getsource could not get code from function provided", caller_name='FindStat')
                     code = ""
                 return FindStatStatistic(id=0, first_terms=first_terms,
                                          data=data, function=query_2, code=code,
@@ -844,7 +846,8 @@ class FindStatStatistic(SageObject):
             raise ValueError("FindStatStatistic._query should be either 'ID' or 'data', but is %s.  This should not happen.  Please send an email to the developers." %self._query)
 
     def __eq__(self, other):
-        """Return ``True`` if ``self`` is equal to ``other`` and ``False``
+        """
+        Return ``True`` if ``self`` is equal to ``other`` and ``False``
         otherwise.
 
         INPUT:
@@ -897,7 +900,8 @@ class FindStatStatistic(SageObject):
             return False
 
     def __ne__(self, other):
-        """Determine whether ``other`` is a different query.
+        """
+        Determine whether ``other`` is a different query.
 
         INPUT:
 
@@ -908,9 +912,9 @@ class FindStatStatistic(SageObject):
 
         A boolean.
 
-        SEEALSO:
+        .. SEEALSO::
 
-        :meth:`__eq__`
+            :meth:`__eq__`
 
         EXAMPLES::
 
@@ -950,7 +954,7 @@ class FindStatStatistic(SageObject):
 
         # get the database entry from FindStat
         url = FINDSTAT_URL_DOWNLOADS_STATISTICS %self.id_str()
-        _ = verbose("Fetching URL %s ..." %url, caller_name='FindStat')
+        verbose("Fetching URL %s ..." % url, caller_name='FindStat')
         try:
             self._raw = json.load(urlopen(url), object_pairs_hook=OrderedDict)
         except HTTPError as error:
@@ -1033,16 +1037,16 @@ class FindStatStatistic(SageObject):
         stat = [(elements_str, str(values)[1:-1]) for (elements, elements_str, values) in data]
 
         stat_str = "\n".join(["\n".join(keys) + "\n====> " + values for (keys, values) in stat])
-        _ = verbose("Sending the following data to FindStat\r\n %s" %stat_str, caller_name='FindStat')
+        verbose("Sending the following data to FindStat\r\n %s" % stat_str, caller_name='FindStat')
 
         values = urlencode({"freedata": stat_str, "depth": str(self._depth), "caller": "Sage"})
-        _ = verbose("Fetching URL %s with encoded data %s" %(url, values), caller_name='FindStat')
+        verbose("Fetching URL %s with encoded data %s" % (url, values), caller_name='FindStat')
 
         request = Request(url, data=values)
-        _ = verbose("Requesting %s" %request, caller_name='FindStat')
+        verbose("Requesting %s" % request, caller_name='FindStat')
 
         response = urlopen(request)
-        _ = verbose("Response was %s" %response.info(), caller_name='FindStat')
+        verbose("Response was %s" % response.info(), caller_name='FindStat')
 
         try:
             result = json.load(response)
@@ -1753,23 +1757,23 @@ class FindStatStatistic(SageObject):
 
         # write the file
         f = tempfile.NamedTemporaryFile(delete=False)
-        _ = verbose("Created temporary file %s" %f.name, caller_name='FindStat')
+        verbose("Created temporary file %s" % f.name, caller_name='FindStat')
         f.write(FINDSTAT_POST_HEADER)
         if self.id() == 0:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %FINDSTAT_URL_NEW)
         else:
             f.write(FINDSTAT_NEWSTATISTIC_FORM_HEADER %(FINDSTAT_URL_EDIT+self.id_str()))
         for key, value in iteritems(args):
-            _ = verbose("writing argument %s" %key, caller_name='FindStat')
+            verbose("writing argument %s" % key, caller_name='FindStat')
             value_encoded = cgi.escape(str(value), quote=True)
-            _ = verbose("%s" %value_encoded, caller_name='FindStat')
+            verbose("%s" % value_encoded, caller_name='FindStat')
             f.write((FINDSTAT_NEWSTATISTIC_FORM_FORMAT %(key, value_encoded)))
         f.write(FINDSTAT_NEWSTATISTIC_FORM_FOOTER)
         f.close()
-        _ = verbose("Opening file with webbrowser", caller_name='FindStat')
-        _ = webbrowser.open(f.name)
+        verbose("Opening file with webbrowser", caller_name='FindStat')
+        webbrowser.open(f.name)
 
-        _ = verbose("Waiting a little before deleting the temporary file", caller_name='FindStat')
+        verbose("Waiting a little before deleting the temporary file", caller_name='FindStat')
         time.sleep(1)
 
         f.unlink(f.name)
@@ -1811,6 +1815,8 @@ def _finite_irreducible_cartan_types_by_rank(n):
         cartan_types += [ CartanType(['G',n]) ]
     return cartan_types
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatCollection(Element):
     r"""
     A FindStat collection.
@@ -1851,13 +1857,10 @@ class FindStatCollection(Element):
         sage: FindStatCollection(DyckWords(2))                                  # optional -- internet
         Cc0005: Dyck paths
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatCollections`
-
+        :class:`FindStatCollections`
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -1923,7 +1926,7 @@ class FindStatCollection(Element):
         """
         return (FindStatCollection, (self.id(),))
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         TESTS::
 
@@ -1949,7 +1952,7 @@ class FindStatCollection(Element):
             sage: sorted(c for c in FindStatCollections())[0]                                       # optional -- internet
             Cc0001: Permutations
         """
-        return self.id().__cmp__(other.id())
+        return richcmp(self.id(), other.id(), op)
 
     def is_supported(self):
         """
@@ -1966,7 +1969,7 @@ class FindStatCollection(Element):
 
         """
         try:
-            self._sageconstructor(self._levels.keys()[0])
+            self._sageconstructor(next(iter(self._levels.keys())))
             return True
         except NotImplementedError:
             return False
@@ -2441,7 +2444,7 @@ class FindStatCollections(Parent, UniqueRepresentation):
         if isinstance(entry, FindStatCollection):
             return entry
 
-        if isinstance(entry, (str, unicode)):
+        if isinstance(entry, string_types):
             # find by name in _findstat_collections
             for (id, c) in iteritems(self._findstat_collections):
                 if entry.upper() in (c[0].upper(), c[1].upper(), c[2].upper()):
@@ -2514,6 +2517,8 @@ class FindStatCollections(Parent, UniqueRepresentation):
 
     Element = FindStatCollection
 
+
+@add_metaclass(InheritComparisonClasscallMetaclass)
 class FindStatMap(Element):
     r"""
     A FindStat map.
@@ -2539,13 +2544,11 @@ class FindStatMap(Element):
         sage: FindStatMap("descent composition")                                # optional -- internet
         Mp00071: descent composition
 
-    SEEALSO:
+    .. SEEALSO::
 
-    :class:`FindStatMaps`
+        :class:`FindStatMaps`
 
     """
-    __metaclass__ = InheritComparisonClasscallMetaclass
-
     @staticmethod
     def __classcall_private__(cls, entry):
         """
@@ -2645,7 +2648,7 @@ class FindStatMap(Element):
         """
         return "%s: %s" %(self.id_str(), self._map[FINDSTAT_MAP_NAME])
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         TESTS::
 
@@ -2671,7 +2674,7 @@ class FindStatMap(Element):
             sage: sorted(c for c in FindStatMaps())[0]                          # optional -- internet
             Mp00001: to semistandard tableau
         """
-        return self.id().__cmp__(other.id())
+        return richcmp(self.id(), other.id(), op)
 
     def name(self):
         r"""
@@ -2837,7 +2840,7 @@ class FindStatMaps(Parent, UniqueRepresentation):
         elif entry in self._findstat_maps:
             return self.element_class(self, entry)
 
-        elif isinstance(entry, (str, unicode)):
+        elif isinstance(entry, string_types):
             # find by name in _findstat_maps
             for c in self._findstat_maps:
                 if entry.upper() == c[FINDSTAT_MAP_NAME].upper():

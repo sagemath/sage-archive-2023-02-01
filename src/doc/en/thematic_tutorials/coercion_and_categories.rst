@@ -114,17 +114,13 @@ This base class provides a lot more methods than a general parent::
      '__rxor__',
      '__truediv__',
      '__xor__',
-     '_an_element',
-     '_an_element_c',
      '_an_element_impl',
      '_coerce_',
      '_coerce_c',
      '_coerce_impl',
      '_coerce_try',
      '_default_category',
-     '_gcd_univariate_polynomial',
      '_gens',
-     '_has_coerce_map_from',
      '_ideal_class_',
      '_latex_names',
      '_list',
@@ -132,7 +128,6 @@ This base class provides a lot more methods than a general parent::
      '_pseudo_fraction_field',
      '_random_nonzero_element',
      '_unit_ideal',
-     '_xgcd_univariate_polynomial',
      '_zero_element',
      '_zero_ideal',
      'algebraic_closure',
@@ -149,8 +144,6 @@ This base class provides a lot more methods than a general parent::
      'gcd',
      'gen',
      'gens',
-     'get_action_c',
-     'get_action_impl',
      'has_coerce_map_from_c',
      'ideal',
      'ideal_monoid',
@@ -308,24 +301,24 @@ considerations:
   etc. **We do not override the default double underscore __add__, __mul__**,
   since otherwise, we could not use Sage's coercion model.
 
-- Comparisons can be implemented using ``_cmp_``. This automatically
-  makes the relational operators like ``==`` and ``<`` work. In order
-  to support the Python ``cmp()`` function, it is safest to define both
-  ``_cmp_`` and ``__cmp__`` (because ``__cmp__`` is not inherited if
-  other comparison operators or ``__hash__`` are defined). Of course you
-  can just do ``__cmp__ = _cmp_``.
+- Comparisons can be implemented using ``_richcmp_`` or
+  ``_cmp_``. This automatically makes the relational operators like
+  ``==`` and ``<`` work. **Beware**: in these methods, calling the
+  Python2-only ``cmp`` function should be avoided for compatibility
+  with Python3. You can use instead the ``richcmp`` function provided
+  by sage.
 
-  Note that ``_cmp_`` should be provided, since otherwise comparison
-  does not work::
+  Note that either ``_cmp_`` or ``_richcmp_`` should be provided,
+  since otherwise comparison does not work::
 
       sage: class Foo(sage.structure.element.Element):
       ....:  def __init__(self, parent, x):
       ....:      self.x = x
       ....:  def _repr_(self):
-      ....:      return "<%s>"%self.x
+      ....:      return "<%s>" % self.x
       sage: a = Foo(ZZ, 1)
       sage: b = Foo(ZZ, 2)
-      sage: cmp(a,b)
+      sage: a <= b
       Traceback (most recent call last):
       ...
       NotImplementedError: comparison not implemented for <class '__main__.Foo'>
@@ -366,9 +359,9 @@ This gives rise to the following code::
     ....:         return self.d
     ....:     def _repr_(self):
     ....:         return "(%s):(%s)"%(self.n,self.d)
-    ....:     def _cmp_(self, other):
-    ....:         return cmp(self.n*other.denominator(), other.numerator()*self.d)
-    ....:     __cmp__ = _cmp_
+    ....:     def _richcmp_(self, other, op):
+    ....:         from sage.structure.richcmp import richcmp
+    ....:         return richcmp(self.n*other.denominator(), other.numerator()*self.d, op)
     ....:     def _add_(self, other):
     ....:         C = self.__class__
     ....:         D = self.d*other.denominator()
@@ -401,15 +394,6 @@ we stay inside a single parent structure::
     sage: a-b == MyElement(P, 1, 4)
     True
 
-.. end of output
-
-We didn't implement exponentiation\---but it just works::
-
-    sage: a^3
-    (27):(64)
-
-.. end of output
-
 There is a default implementation of element tests. We can already do
 ::
 
@@ -425,7 +409,7 @@ does not even give a wrong answer, but results in an error::
     sage: 1 in P
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -466,9 +450,9 @@ And indeed, ``MS2`` has *more* methods than ``MS1``::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    59
+    79
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    89
+    118
 
 This is because the class of ``MS2`` also inherits from the parent
 class for algebras::
@@ -537,8 +521,11 @@ fields instead of the category of fields::
     sage: [p for p in dir(QuotientFields().parent_class) if p not in dir(Fields().parent_class)]
     []
     sage: [p for p in dir(QuotientFields().element_class) if p not in dir(Fields().element_class)]
-    ['_derivative', 'denominator', 'derivative', 'factor',
-     'numerator', 'partial_fraction_decomposition']
+    ['_derivative',
+     'denominator',
+     'derivative',
+     'numerator',
+     'partial_fraction_decomposition']
 
 .. end of output
 
@@ -609,7 +596,7 @@ does not work, yet::
     sage: P.sum([a, b, c])
     Traceback (most recent call last):
     ...
-    NotImplementedError
+    NotImplementedError: cannot construct elements of NewFrac(Integer Ring)
 
 .. end of output
 
@@ -660,7 +647,12 @@ This little change provides several benefits:
       sage: P.sum([a,b,c])
       (36):(16)
 
-.. end of output
+- Exponentiation now works out of the box using the multiplication
+  that we defined::
+
+    sage: a^3
+    (729):(64)
+
 
 What did happen behind the scenes to make this work?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -821,7 +813,7 @@ thus have::
     sage: P1.has_coerce_map_from(P2)
     True
     sage: P1.coerce_map_from(P2)
-    Conversion map:
+    Coercion map:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
@@ -878,7 +870,8 @@ The four axioms requested for coercions
       rational field is a homomorphism of euclidean domains::
 
           sage: QQ.coerce_map_from(ZZ).category_for()
-          Join of Category of euclidean domains and Category of metric spaces
+          Join of Category of euclidean domains and Category of infinite sets
+          and Category of metric spaces
 
       .. end of output
 
@@ -1269,7 +1262,7 @@ functors are shuffled.
 ::
 
     sage: Compl, R = RR.construction(); Compl
-    Completion[+Infinity]
+    Completion[+Infinity, prec=53]
 
 .. end of output
 
@@ -1299,7 +1292,7 @@ When we apply ``Compl``, ``Matr`` and ``Poly`` to the ring of integers, we
 obtain::
 
     sage: (Poly*Matr*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Real Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
 
 .. end of output
 
@@ -1307,14 +1300,14 @@ Applying the shuffling procedure yields
 ::
 
     sage: (Poly*Matr*Fract*Poly*AlgClos*Fract*Compl)(ZZ)
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 
 and this is indeed equal to the pushout found by Sage::
 
     sage: pushout((Fract*Poly*AlgClos*Fract)(ZZ), (Poly*Matr*Compl)(ZZ))
-    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+    Univariate Polynomial Ring in x over Full MatrixSpace of 3 by 3 dense matrices over Fraction Field of Univariate Polynomial Ring in x over Algebraic Field
 
 .. end of output
 
@@ -1545,14 +1538,17 @@ Here are the tests that form the test suite of quotient fields::
      '_test_characteristic',
      '_test_characteristic_fields',
      '_test_distributivity',
+     '_test_divides',
      '_test_elements',
      '_test_elements_eq_reflexive',
      '_test_elements_eq_symmetric',
      '_test_elements_eq_transitive',
      '_test_elements_neq',
      '_test_euclidean_degree',
+     '_test_fraction_field',
      '_test_gcd_vs_xgcd',
-     '_test_one', '_test_prod',
+     '_test_one',
+     '_test_prod',
      '_test_quo_rem',
      '_test_some_elements',
      '_test_zero',
@@ -1590,6 +1586,7 @@ Let us see what tests are actually performed::
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
     running ._test_distributivity() . . . pass
+    running ._test_divides() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
@@ -1605,6 +1602,7 @@ Let us see what tests are actually performed::
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
@@ -1761,6 +1759,7 @@ interesting.
     running ._test_characteristic() . . . pass
     running ._test_characteristic_fields() . . . pass
     running ._test_distributivity() . . . pass
+    running ._test_divides() . . . pass
     running ._test_elements() . . .
       Running the test suite of self.an_element()
       running ._test_category() . . . pass
@@ -1777,6 +1776,7 @@ interesting.
     running ._test_elements_neq() . . . pass
     running ._test_eq() . . . pass
     running ._test_euclidean_degree() . . . pass
+    running ._test_fraction_field() . . . pass
     running ._test_gcd_vs_xgcd() . . . pass
     running ._test_new() . . . pass
     running ._test_not_implemented_methods() . . . pass
@@ -1854,12 +1854,9 @@ Appendix: The complete code
         # into the same parent, which is a fraction field. Hence, we
         # are allowed to use the denominator() and numerator() methods
         # on the second argument.
-        def _cmp_(self, other):
-            return cmp(self.n*other.denominator(), other.numerator()*self.d)
-
-        # Support for cmp() (in this example, we don't define __hash__
-        # so this is not strictly needed)
-        __cmp__ = _cmp_
+        def _richcmp_(self, other, op):
+            from sage.structure.richcmp import richcmp
+            return richcmp(self.n*other.denominator(), other.numerator()*self.d, op)
 
         # Arithmetic methods, single underscore. We can assume that both
         # arguments are coerced into the same parent.

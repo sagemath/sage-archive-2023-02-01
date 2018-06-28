@@ -30,6 +30,7 @@ available_integrators['maxima'] = external.maxima_integrator
 available_integrators['sympy'] = external.sympy_integrator
 available_integrators['mathematica_free'] = external.mma_free_integrator
 available_integrators['fricas'] = external.fricas_integrator
+available_integrators['giac'] = external.giac_integrator
 
 ######################################################
 #
@@ -61,7 +62,8 @@ class IndefiniteIntegral(BuiltinFunction):
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator]
 
-        BuiltinFunction.__init__(self, "integrate", nargs=2, conversions={'sympy': 'Integral'})
+        BuiltinFunction.__init__(self, "integrate", nargs=2, conversions={'sympy': 'Integral',
+                                                                          'giac': 'integrate'})
 
     def _eval_(self, f, x):
         """
@@ -77,14 +79,13 @@ class IndefiniteIntegral(BuiltinFunction):
         if not is_SymbolicVariable(x):
             if len(x.variables()) == 1:
                 nx = x.variables()[0]
-                f = f*x.diff(nx)
+                f = f * x.diff(nx)
                 x = nx
             else:
                 return None
 
         # we try all listed integration algorithms
         for integrator in self.integrators:
-            res = integrator(f, x)
             try:
                 return integrator(f, x)
             except NotImplementedError:
@@ -135,7 +136,7 @@ indefinite_integral = IndefiniteIntegral()
 class DefiniteIntegral(BuiltinFunction):
     def __init__(self):
         """
-        Symbolic function representing a definite integral.
+        The symbolic function representing a definite integral.
 
         EXAMPLES::
 
@@ -149,11 +150,12 @@ class DefiniteIntegral(BuiltinFunction):
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator]
 
-        BuiltinFunction.__init__(self, "integrate", nargs=4, conversions={'sympy': 'Integral'})
+        BuiltinFunction.__init__(self, "integrate", nargs=4, conversions={'sympy': 'Integral',
+                                                                          'giac': 'integrate'})
 
     def _eval_(self, f, x, a, b):
         """
-        Returns the results of symbolic evaluation of the integral
+        Return the results of symbolic evaluation of the integral
 
         EXAMPLES::
 
@@ -182,7 +184,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _evalf_(self, f, x, a, b, parent=None, algorithm=None):
         """
-        Returns numerical approximation of the integral
+        Return a numerical approximation of the integral
 
         EXAMPLES::
 
@@ -206,7 +208,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _tderivative_(self, f, x, a, b, diff_param=None):
         """
-        Returns derivative of symbolic integration
+        Return the derivative of symbolic integration
 
         EXAMPLES::
 
@@ -230,7 +232,7 @@ class DefiniteIntegral(BuiltinFunction):
 
     def _print_latex_(self, f, x, a, b):
         r"""
-        Returns LaTeX expression for integration of a symbolic function.
+        Convert this integral to LaTeX notation
 
         EXAMPLES::
 
@@ -250,6 +252,22 @@ class DefiniteIntegral(BuiltinFunction):
         else:
             dx_str = "{d %s}"%(latex(x))
         return "\\int_{%s}^{%s} %s\\,%s"%(latex(a), latex(b), latex(f), dx_str)
+
+    def _sympy_(self, f, x, a, b):
+        """
+        Convert this integral to the equivalent SymPy object
+
+        The resulting SymPy integral can be evaluated using ``doit()``.
+
+        EXAMPLES::
+
+            sage: integral(x, x, 0, 1, hold=True)._sympy_()
+            Integral(x, (x, 0, 1))
+            sage: _.doit()
+            1/2
+        """
+        from sympy.integrals import Integral
+        return Integral(f, (x, a, b))
 
 definite_integral = DefiniteIntegral()
 
@@ -349,9 +367,17 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
        - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
 
+       - 'giac' - use Giac
+
     To prevent automatic evaluation use the ``hold`` argument.
 
-     EXAMPLES::
+    .. SEEALSO::
+
+        To integrate a polynomial over a polytope, use the optional
+        ``latte_int`` package
+        :meth:`sage.geometry.polyhedron.base.Polyhedron_base.integrate`.
+
+    EXAMPLES::
 
         sage: x = var('x')
         sage: h = sin(x)/(cos(x))^2
@@ -480,8 +506,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
 
-        sage: _ = var('x, y, z')
-        sage: f = sin(x^2) + y^z
+        sage: _ = var('x, y, z')  # optional - internet
+        sage: f = sin(x^2) + y^z   # optional - internet
         sage: f.integrate(x, algorithm="mathematica_free")   # optional - internet
         x*y^z + sqrt(1/2)*sqrt(pi)*fresnels(sqrt(2)*x/sqrt(pi))
 
@@ -494,10 +520,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: _ = var('y, z')
         sage: (x^y - z).integrate(y)
         -y*z + x^y/log(x)
-        sage: (x^y - z).integrate(y, algorithm="sympy")  # see Trac #14694
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'ExprCondPair' object has no attribute '_sage_'
+        sage: (x^y - z).integrate(y, algorithm="sympy")
+        -y*z + cases(((log(x) == 0, y), (1, x^y/log(x))))
 
     We integrate the above function in Maple now::
 
@@ -543,6 +567,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
         sage: integrate(f(x), x, 1, 2, algorithm="sympy")
         -1/2*pi + arctan(8) + arctan(5) + arctan(2) + arctan(1/2)
+
+    Using Giac to integrate the absolute value of a trigonometric expression::
+
+        sage: integrate(abs(cos(x)), x, 0, 2*pi, algorithm='giac')
+        4
 
     ALIASES: integral() and integrate() are the same.
 
@@ -764,6 +793,20 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: integrate(cos(w+T) / (1+c*cos(T))^2, T, 0, 2*pi)
         2*pi*sqrt(-c^2 + 1)*c*cos(w)/(c^4 - 2*c^2 + 1)
 
+    Check that :trac:`13733` is fixed::
+
+        sage: a = integral(log(cot(x) - 1), x, 0, pi/4); a  # long time (about 6 s)
+        -1/4*pi*log(2) - 1/2*I*dilog(I + 1) + 1/2*I*dilog(-I + 1) + 1/2*I*dilog(1/2*I + 1/2) - 1/2*I*dilog(-1/2*I + 1/2)
+        sage: abs(N(a - pi*log(2)/8)) < 1e-15  # long time
+        True
+
+    Check that :trac:`17968` is fixed::
+
+        sage: a = N(integrate(exp(x^3), (x, 1, 2)), prec=54)
+        sage: a.real_part()    # abs tol 1e-13
+        275.510983763312
+        sage: a.imag_part()    # abs tol 1e-13
+        0.0
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

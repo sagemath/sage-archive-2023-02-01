@@ -36,9 +36,11 @@ from cpython.list cimport *
 from cpython.object cimport PyObject
 
 import os
+import sys
+import zipfile
+
 from functools import reduce
 from random import randint
-import zipfile
 from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
@@ -57,9 +59,7 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-# import the double infinity constant
-cdef extern from "math.h":
-     enum: INFINITY
+from libc.math cimport INFINITY
 
 
 default_texture = Texture()
@@ -266,11 +266,11 @@ cdef class Graphics3d(SageObject):
             # Java needs absolute paths
             # On cygwin, they should be native ones
             scene_native = scene_zip
-            import sys
+
             if sys.platform == 'cygwin':
-                from subprocess import check_output, STDOUT
-                scene_native = check_output(['cygpath', '-w', scene_native],
-                                            stderr=STDOUT).rstrip()
+                import cygwin
+                scene_native = cygwin.cygpath(scene_native, 'w')
+
             script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",
@@ -301,7 +301,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneWavefront container
             sage: out.obj.get()
-            'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
+            'mtllib ... 6 3 8 11\nf 8 7 12\nf 7 9 12\nf 9 10 12\nf 10 11 12\nf 11 8 12\n'
             sage: out.mtl.get()
             'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 1.0\n'
         """
@@ -329,7 +329,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1.0}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -358,37 +358,32 @@ cdef class Graphics3d(SageObject):
 
         EXAMPLES::
 
-            sage: sphere()._rich_repr_threejs()
+            sage: sphere(online=True)._rich_repr_threejs()
             OutputSceneThreejs container
         """
-        options = {}
-        options['aspect_ratio'] = [float(i) for i in kwds.get('aspect_ratio', [1,1,1])]
-        options['axes'] = kwds.get('axes', False)
-        options['axes_labels'] = kwds.get('axes_labels', ['x','y','z'])
-        options['decimals'] = int(kwds.get('decimals', 2))
-        options['frame'] = kwds.get('frame', True)
-        options['online'] = kwds.get('online', False)
+        options = self._process_viewing_options(kwds)
+        # Threejs specific options
+        options.setdefault('axes_labels', ['x','y','z'])
+        options.setdefault('decimals', 2)
+        options.setdefault('online', False)
+        # Normalization of options values for proper JSONing
+        options['aspect_ratio'] = [float(i) for i in options['aspect_ratio']]
+        options['decimals'] = int(options['decimals'])
 
         if not options['frame']:
             options['axes_labels'] = False
 
-        if options['online']:
-            scripts = ( """
-<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/build/three.min.js></script>
-<script src=https://cdn.rawgit.com/mrdoob/three.js/r80/examples/js/controls/OrbitControls.js></script>
-            """ )
-        else:
-            from sage.env import SAGE_SHARE
-            scripts = ( """
-<script src={0}/threejs/three.min.js></script>
-<script src={0}/threejs/OrbitControls.js></script>
-            """.format( SAGE_SHARE ) )
-
-        lights = "[{x:0, y:0, z:10}, {x:0, y:0, z:-10}]"
+        from sage.repl.rich_output import get_display_manager
+        scripts = get_display_manager().threejs_scripts(options['online'])
 
         b = self.bounding_box()
-        bounds = "[{{x:{}, y:{}, z:{}}}, {{x:{}, y:{}, z:{}}}]".format(
+        bounds = '[{{"x":{}, "y":{}, "z":{}}}, {{"x":{}, "y":{}, "z":{}}}]'.format(
                  b[0][0], b[0][1], b[0][2], b[1][0], b[1][1], b[1][2])
+
+        from sage.plot.colors import Color
+        lights = '[{{"x":-5, "y":3, "z":0, "color":"{}", "parent":"camera"}}]'.format(
+                 Color(.5,.5,.5).html_color())
+        ambient = '{{"color":"{}"}}'.format(Color(.5,.5,.5).html_color())
 
         import json
         points, lines, texts = [], [], []
@@ -397,20 +392,20 @@ cdef class Graphics3d(SageObject):
         for p in self.flatten().all:
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
-                opacity = p._extra_kwds.get('opacity', 1)
-                points.append("{{point:{}, size:{}, color:'{}', opacity:{}}}".format(
+                opacity = float(p._extra_kwds.get('opacity', 1))
+                points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
                               json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
-                opacity = p._extra_kwds.get('opacity', 1)
+                opacity = float(p._extra_kwds.get('opacity', 1))
                 thickness = p._extra_kwds.get('thickness', 1)
-                lines.append("{{points:{}, color:'{}', opacity:{}, linewidth:{}}}".format(
+                lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
             if hasattr(p, '_trans'):
                 if hasattr(p.all[0], 'string'):
                     m = p.get_transformation().get_matrix()
-                    texts.append("{{text:'{}', x:{}, y:{}, z:{}}}".format(
-                                  p.all[0].string, m[0,3], m[1,3], m[2,3]))
+                    texts.append('{{"text":"{}", "x":{}, "y":{}, "z":{}}}'.format(
+                                 p.all[0].string, m[0,3], m[1,3], m[2,3]))
 
         points = '[' + ','.join(points) + ']'
         lines = '[' + ','.join(lines) + ']'
@@ -421,15 +416,17 @@ cdef class Graphics3d(SageObject):
         surfaces = '[' + ','.join(surfaces) + ']'
 
         from sage.env import SAGE_EXTCODE
-        filename = os.path.join(SAGE_EXTCODE, 'threejs', 'threejs_template.html')
-        f = open(filename, 'r')
-        html = f.read()
-        f.close()
+        with open(os.path.join(
+                SAGE_EXTCODE, 'threejs', 'threejs_template.html')) as f:
+            html = f.read()
 
         html = html.replace('SAGE_SCRIPTS', scripts)
-        html = html.replace('SAGE_OPTIONS', json.dumps(options))
-        html = html.replace('SAGE_LIGHTS', lights)
+        js_options = dict((key, options[key]) for key in
+            ['aspect_ratio', 'axes', 'axes_labels', 'decimals', 'frame'])
+        html = html.replace('SAGE_OPTIONS', json.dumps(js_options))
         html = html.replace('SAGE_BOUNDS', bounds)
+        html = html.replace('SAGE_LIGHTS', lights)
+        html = html.replace('SAGE_AMBIENT', ambient)
         html = html.replace('SAGE_TEXTS', str(texts))
         html = html.replace('SAGE_POINTS', str(points))
         html = html.replace('SAGE_LINES', str(lines))
@@ -523,16 +520,16 @@ cdef class Graphics3d(SageObject):
             sage: D.aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._aspect_ratio = map(float, v)
+            self._aspect_ratio = [float(z) for z in v]
         else:
             if self._aspect_ratio is None:
-                self._aspect_ratio = [1.0,1.0,1.0]
+                self._aspect_ratio = [1.0, 1.0, 1.0]
             return self._aspect_ratio
 
     def frame_aspect_ratio(self, v=None):
@@ -557,16 +554,16 @@ cdef class Graphics3d(SageObject):
             sage: D.frame_aspect_ratio()
             [1.0, 1.0, 1.0]
         """
-        if not v is None:
+        if v is not None:
             if v == 1:
-                v = (1,1,1)
+                v = (1, 1, 1)
             if not isinstance(v, (tuple, list)):
                 raise TypeError("frame_aspect_ratio must be a list or tuple of "
                                 "length 3 or the integer 1")
-            self._frame_aspect_ratio = map(float, v)
+            self._frame_aspect_ratio = [float(z) for z in v]
         else:
             if self._frame_aspect_ratio is None:
-                self._frame_aspect_ratio = [1.0,1.0,1.0]
+                self._frame_aspect_ratio = [1.0, 1.0, 1.0]
             return self._frame_aspect_ratio
 
     def _determine_frame_aspect_ratio(self, aspect_ratio):
@@ -2176,7 +2173,17 @@ class Graphics3dGroup(Graphics3d):
             sage: G = sphere(texture=T) + sphere((1, 1, 1), texture=T)
             sage: len(G.texture_set())
             1
+
+        TESTS:
+
+        Check that :trac:`23200` is fixed::
+
+            sage: G = sage.plot.plot3d.base.Graphics3dGroup()
+            sage: G.texture_set()
+            set()
         """
+        if not self.all:
+            return set()
         return reduce(set.union, [g.texture_set() for g in self.all])
 
     def flatten(self):

@@ -10,9 +10,8 @@ AUTHORS:
 
 REFERENCES:
 
-- Chaps. 13, 14 of R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
-  (Boston) (1968)
-- Chap. 3 of S. Lang: *Algebra*, 3rd ed., Springer (New York) (2002)
+- Chap. 13, 14 of R. Godement : *Algebra* [God1968]_
+- Chap. 3 of S. Lang : *Algebra* [Lan2002]_
 
 """
 #******************************************************************************
@@ -24,14 +23,10 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
+from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
-from sage.categories.homset import Hom
-from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-
-import six
 
 
 class FiniteRankFreeModuleMorphism(Morphism):
@@ -71,7 +66,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
     EXAMPLES:
 
-    A homomorphism between two free modules over `\ZZ` is contructed
+    A homomorphism between two free modules over `\ZZ` is constructed
     as an element of the corresponding hom-set, by means of the function
     ``__call__``::
 
@@ -118,7 +113,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
     is a derived class of :class:`FiniteRankFreeModuleMorphism`::
 
         sage: type(phi)
-        <class 'sage.tensor.modules.free_module_morphism.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
+        <class 'sage.tensor.modules.free_module_homset.FreeModuleHomset_with_category_with_equality_by_id.element_class'>
         sage: isinstance(phi, sage.tensor.modules.free_module_morphism.FiniteRankFreeModuleMorphism)
         True
 
@@ -131,7 +126,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: phi.codomain()
         Rank-2 free module N over the Integer Ring
         sage: type(phi.domain)
-        <type 'sage.misc.constant_function.ConstantFunction'>
+        <... 'sage.misc.constant_function.ConstantFunction'>
 
     The matrix of the homomorphism with respect to a pair of bases is
     returned by the method :meth:`matrix`::
@@ -463,37 +458,6 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         return not self == other
 
-    def __cmp__(self, other):
-        r"""
-        Old-style (Python 2) comparison operator.
-
-        This is provisory, until migration to Python 3 is achieved.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
-            sage: e = M.basis('e') ; f = N.basis('f')
-            sage: phi = M.hom(N, [[-1,2,0], [5,1,2]], name='phi',
-            ....:             latex_name=r'\phi')
-            sage: psi = M.hom(N, [[-1,2,0], [5,1,2]])
-            sage: phi.__cmp__(psi)
-            0
-            sage: phi.__cmp__(phi)
-            0
-            sage: phi.__cmp__(phi+phi)
-            -1
-            sage: phi.__cmp__(2*psi)
-            -1
-            sage: phi.__cmp__(-phi)
-            -1
-
-        """
-        if self == other:
-            return 0
-        else:
-            return -1
-
     #
     # Required module methods
     #
@@ -523,7 +487,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             False
         """
         # Some matrix representation is picked at random:
-        matrix_rep = self._matrices.values()[0]
+        matrix_rep = next(itervalues(self._matrices))
         return not matrix_rep.is_zero()
 
     __nonzero__ = __bool__
@@ -717,7 +681,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             True
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in six.iteritems(self._matrices):
+        for bases, mat in self._matrices.items():
             resu._matrices[bases] = scalar * mat
         return resu
 
@@ -734,7 +698,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - an exact copy of ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -755,7 +719,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         resu = self.__class__(self.parent(), 0, is_identity=self._is_identity)
                                            # 0 = provisory value
-        for bases, mat in six.iteritems(self._matrices):
+        for bases, mat in self._matrices.items():
             resu._matrices[bases] = +mat
         if self._name is not None:
             resu._name = '+' + self._name
@@ -771,7 +735,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the homomorphism `-f`, where `f` is ``self``
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
@@ -792,7 +756,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         resu = self.__class__(self.parent(), 0)  # 0 = provisory value
-        for bases, mat in six.iteritems(self._matrices):
+        for bases, mat in self._matrices.items():
             resu._matrices[bases] = -mat
         if self._name is not None:
             resu._name = '-' + self._name
@@ -816,7 +780,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         - the image of ``element`` by ``self``
 
-        EXAMPLE:
+        EXAMPLES:
 
         Images of a homomorphism between two `\ZZ`-modules::
 
@@ -950,7 +914,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         # Some matrix representation is picked at random:
-        matrix_rep = self._matrices.values()[0]
+        matrix_rep = next(itervalues(self._matrices))
         return matrix_rep.right_kernel().rank() == 0
 
     def is_surjective(self):
@@ -962,7 +926,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         - ``True`` if ``self`` is a surjective homomorphism and ``False``
           otherwise
 
-        EXAMPLE:
+        EXAMPLES:
 
         This method has not been implemented yet::
 
@@ -1071,7 +1035,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         OUTPUT:
 
-        - the matrix representing representing the homomorphism ``self`` w.r.t
+        - the matrix representing the homomorphism ``self`` w.r.t
           to bases ``basis1`` and ``basis2``; more precisely, the columns of
           this matrix are formed by the components w.r.t. ``basis2`` of
           the images of the elements of ``basis1``.

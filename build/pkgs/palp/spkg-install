@@ -1,12 +1,4 @@
-#!/bin/sh
-
 # Move over the GNU makefile to the file 'Makefile'.
-# If SAGE64 is set to yes, add an '-m64' using 'sed'
-
-if [ "$SAGE64" != "no" ] ; then
-  echo "Creating a 64-bit version of PALP"
-  CC="$CC -m64"
-fi
 mv -f src/GNUmakefile src/Makefile
 
 cd src

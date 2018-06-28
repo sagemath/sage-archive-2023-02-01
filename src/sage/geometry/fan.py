@@ -45,7 +45,7 @@ you can use :func:`Fan2d` to construct it::
 
 But keep in mind that in higher dimensions the cone data is essential
 and cannot be omitted. Instead of building a fan from scratch, for
-this tutorial we will use an easy way to get two fans assosiated to
+this tutorial we will use an easy way to get two fans associated to
 :class:`lattice polytopes
 <sage.geometry.lattice_polytope.LatticePolytopeClass>`:
 :func:`FaceFan` and :func:`NormalFan`::
@@ -76,50 +76,50 @@ Given such "automatic" fans, you may wonder what are their rays and cones::
 The last output is not very illuminating. Let's try to improve it::
 
     sage: for cone in fan1: print(cone.rays())
-    M(1, 0,  0),
-    M(0, 1,  0),
-    M(0, 0, -1)
-    in 3-d lattice M
-    M( 0, 1,  0),
-    M(-1, 0,  0),
-    M( 0, 0, -1)
-    in 3-d lattice M
-    M(1,  0,  0),
-    M(0, -1,  0),
-    M(0,  0, -1)
-    in 3-d lattice M
-    M(-1,  0,  0),
-    M( 0, -1,  0),
-    M( 0,  0, -1)
-    in 3-d lattice M
-    M(1, 0, 0),
-    M(0, 1, 0),
-    M(0, 0, 1)
-    in 3-d lattice M
     M( 0, 1, 0),
     M( 0, 0, 1),
     M(-1, 0, 0)
-    in 3-d lattice M
-    M(1,  0, 0),
-    M(0,  0, 1),
-    M(0, -1, 0)
     in 3-d lattice M
     M( 0,  0, 1),
     M(-1,  0, 0),
     M( 0, -1, 0)
     in 3-d lattice M
+    M(-1,  0,  0),
+    M( 0, -1,  0),
+    M( 0,  0, -1)
+    in 3-d lattice M
+    M( 0, 1,  0),
+    M(-1, 0,  0),
+    M( 0, 0, -1)
+    in 3-d lattice M
+    M(1, 0,  0),
+    M(0, 1,  0),
+    M(0, 0, -1)
+    in 3-d lattice M
+    M(1, 0, 0),
+    M(0, 1, 0),
+    M(0, 0, 1)
+    in 3-d lattice M
+    M(1,  0, 0),
+    M(0,  0, 1),
+    M(0, -1, 0)
+    in 3-d lattice M
+    M(1,  0,  0),
+    M(0, -1,  0),
+    M(0,  0, -1)
+    in 3-d lattice M
 
 You can also do ::
 
     sage: for cone in fan1: print(cone.ambient_ray_indices())
-    (0, 1, 5)
-    (1, 3, 5)
-    (0, 4, 5)
-    (3, 4, 5)
-    (0, 1, 2)
     (1, 2, 3)
-    (0, 2, 4)
     (2, 3, 4)
+    (3, 4, 5)
+    (1, 3, 5)
+    (0, 1, 5)
+    (0, 1, 2)
+    (0, 2, 4)
+    (0, 4, 5)
 
 to see indices of rays of the fan corresponding to each cone.
 
@@ -236,9 +236,11 @@ import collections
 import warnings
 import copy
 
+from sage.structure.richcmp import richcmp_method, richcmp
 from sage.combinat.combination import Combinations
 from sage.combinat.posets.posets import FinitePoset
-from sage.geometry.cone import (Cone,
+from sage.geometry.cone import (_ambient_space_point,
+                                Cone,
                                 ConvexRationalPolyhedralCone,
                                 IntegralRayCollection,
                                 is_Cone,
@@ -589,7 +591,7 @@ def FaceFan(polytope, lattice=None):
       <sage.geometry.polyhedron.constructor.Polyhedron>` over `\QQ` or
       a :class:`lattice polytope
       <sage.geometry.lattice_polytope.LatticePolytopeClass>`. A (not
-      necessarily full-dimensional) polytope contaning the origin in
+      necessarily full-dimensional) polytope containing the origin in
       its :meth:`relative interior
       <sage.geometry.polyhedron.base.Polyhedron_base.relative_interior_contains>`.
 
@@ -618,17 +620,17 @@ def FaceFan(polytope, lattice=None):
         M( 0, -1)
         in 2-d lattice M
         sage: for cone in P1xP1: print(cone.rays())
-        M(1,  0),
-        M(0, -1)
-        in 2-d lattice M
         M(-1,  0),
         M( 0, -1)
+        in 2-d lattice M
+        M( 0, 1),
+        M(-1, 0)
         in 2-d lattice M
         M(1, 0),
         M(0, 1)
         in 2-d lattice M
-        M( 0, 1),
-        M(-1, 0)
+        M(1,  0),
+        M(0, -1)
         in 2-d lattice M
 
     TESTS::
@@ -720,12 +722,12 @@ def NormalFan(polytope, lattice=None):
         sage: P1xP1.rays()
         N( 1,  0),
         N( 0,  1),
-        N( 0, -1),
-        N(-1,  0)
+        N(-1,  0),
+        N( 0, -1)
         in 2-d lattice N
         sage: for cone in P1xP1: print(cone.rays())
-        N( 0, -1),
-        N(-1,  0)
+        N(-1,  0),
+        N( 0, -1)
         in 2-d lattice N
         N(1,  0),
         N(0, -1)
@@ -1059,6 +1061,7 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
         return self._star_generators
 
 
+@richcmp_method
 class RationalPolyhedralFan(IntegralRayCollection,
                             collections.Callable,
                             collections.Container):
@@ -1203,7 +1206,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         else:
             return self.cones(dim, codim)
 
-    def __cmp__(self, right):
+    def __richcmp__(self, right, op):
         r"""
         Compare ``self`` and ``right``.
 
@@ -1213,9 +1216,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         OUTPUT:
 
-        - 0 if ``right`` is also a fan, their rays are the same and stored in
-          the same order, and their generating cones are the same and stored
-          in the same order. 1 or -1 otherwise.
+        boolean
+
+        There is equality if ``right`` is also a fan, their rays are
+        the same and stored in the same order, and their generating
+        cones are the same and stored in the same order.
 
         TESTS::
 
@@ -1228,21 +1233,22 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: f3 = Fan(cones=[(1,2), (0,1)],
             ....:          rays=[(1,0), (0,1), (-1, 0)],
             ....:          check=False)
-            sage: cmp(f1, f2)
-            1
-            sage: cmp(f2, f1)
-            -1
-            sage: cmp(f2, f3)
-            0
+            sage: f1 > f2
+            True
+            sage: f2 < f1
+            True
+            sage: f2 == f3
+            True
             sage: f2 is f3
             False
         """
         if is_Fan(right):
-            return cmp(
-                [self.rays(), self.virtual_rays(), self.generating_cones()],
-                [right.rays(), right.virtual_rays(), right.generating_cones()])
+            return richcmp([self.rays(), self.virtual_rays(),
+                            self.generating_cones()],
+                           [right.rays(), right.virtual_rays(),
+                            right.generating_cones()], op)
         else:
-            return cmp(type(self), type(right))
+            return NotImplemented
 
     def __contains__(self, cone):
         r"""
@@ -1544,7 +1550,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             point = args
 
         try:
-            point = self._ambient_space_point(point)
+            point = _ambient_space_point(self, point)
         except TypeError as ex:
             if str(ex).endswith("have incompatible lattices!"):
                 warnings.warn("you have checked if a fan contains a point "
@@ -1936,10 +1942,10 @@ class RationalPolyhedralFan(IntegralRayCollection,
         except TypeError:
             # Got points (hopefully)
             try:
-                points = [self._ambient_space_point(_) for _ in points]
+                points = [_ambient_space_point(self, p) for p in points]
             except TypeError:
                 if len(points) == 1:
-                    points = [self._ambient_space_point(_) for _ in points[0]]
+                    points = [_ambient_space_point(self, p) for p in points[0]]
                 else:
                     raise
             # If we are still here, points are good
@@ -2797,11 +2803,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             sage: fan.is_smooth(codim=1)
             True
             sage: fan.generating_cone(0).rays()
-            N(-1,  1),
-            N(-1, -1)
+            N(-1, -1),
+            N(-1,  1)
             in 2-d lattice N
             sage: fan.generating_cone(0).rays().matrix().det()
-            2
+            -2
         """
         if codim is None or codim < 0:
             codim = 0
@@ -2979,7 +2985,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         `D-d` dimensions of `N_\QQ` "missed" by the actual rays. (In general
         addition of virtual rays is not sufficient to span `N` over `\ZZ`.)
 
-        ..note::
+        .. NOTE::
 
             You may use a particular choice of virtual rays by passing optional
             argument ``virtual_rays`` to the :func:`Fan` constructor.
@@ -3105,11 +3111,11 @@ class RationalPolyhedralFan(IntegralRayCollection,
             return all( not(I>=sr) for sr in SR)
 
         # Generators of SR are index sets I = {i1, ..., ik}
-        # called "primitve collections" such that
+        # called "primitive collections" such that
         # 1) I is not contained in a face
         # 2) if you remove any one entry j, then I-{j} is contained in a facet
         facets = [frozenset(c.ambient_ray_indices()) for c in self.generating_cones()]
-        all_points = frozenset( range(0,self.nrays()) )
+        all_points = frozenset( range(self.nrays()) )
         d_max = max(map(len,facets))+1
         SR = []
         for d in range(1,d_max):
@@ -3193,9 +3199,9 @@ class RationalPolyhedralFan(IntegralRayCollection,
         The boundary cones of ``cone`` as a formal linear combination
         of cones with coefficients `\pm 1`. Each summand is a facet of
         ``cone`` and the coefficient indicates whether their (chosen)
-        orientation argrees or disagrees with the "outward normal
+        orientation agrees or disagrees with the "outward normal
         first" boundary orientation. Note that the orientation of any
-        individial cone is arbitrary. This method once and for all
+        individual cone is arbitrary. This method once and for all
         picks orientations for all cones and then computes the
         boundaries relative to that chosen orientation.
 

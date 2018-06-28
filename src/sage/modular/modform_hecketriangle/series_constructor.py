@@ -21,9 +21,8 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, infinity, PolynomialRing, LaurentSeries, PowerSeriesRing, FractionField
+from sage.rings.all import ZZ, QQ, infinity, PowerSeriesRing
 from sage.rings.big_oh import O
-from sage.functions.all import exp
 from sage.arith.all import bernoulli, sigma, rising_factorial
 
 from sage.structure.sage_object import SageObject
@@ -192,7 +191,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             The Fourier expansion of ``J_inv`` for ``d!=1``
             is given by ``J_inv_ZZ(q/d)``.
 
-        .. TODO:
+        .. TODO::
 
           The functions that are used in this implementation are
           products of hypergeometric series with other, elementary,

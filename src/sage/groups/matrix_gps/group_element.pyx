@@ -78,11 +78,11 @@ from __future__ import print_function
 
 from sage.structure.element cimport MultiplicativeGroupElement, Element, MonoidElement, Matrix
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object cimport richcmp
+from sage.structure.richcmp cimport richcmp
 from sage.libs.gap.element cimport GapElement, GapElement_List
 from sage.groups.libgap_wrapper cimport ElementLibGAP
 
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 from sage.structure.factorization import Factorization
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import ZZ
@@ -177,7 +177,8 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             sage: W = CoxeterGroup(['A',3], base_ring=ZZ)
             sage: g = W.an_element()
             sage: hash(g)
-            -2
+            660522311176098153  # 64-bit
+            -606138007          # 32-bit
         """
         return hash(self._matrix)
 
@@ -309,6 +310,21 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
         """
         return self._matrix
 
+    def _matrix_(self, base=None):
+        """
+        Method used by the :func:`matrix` constructor.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 3], base_ring=ZZ)
+            sage: g = W.gen(0)
+            sage: matrix(RDF, g)
+            [-1.0  1.0  0.0]
+            [ 0.0  1.0  0.0]
+            [ 0.0  0.0  1.0]
+        """
+        return self.matrix()
+
     cpdef _mul_(self, other):
         """
         Return the product of ``self`` and`` other``, which must
@@ -372,12 +388,12 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
 
             sage: W = CoxeterGroup(['B',3])
             sage: W.base_ring()
-            Universal Cyclotomic Field
+            Number Field in a with defining polynomial x^2 - 2
             sage: g = W.an_element()
             sage: ~g
-            [            -1              1              0]
-            [            -1              0  E(8) - E(8)^3]
-            [-E(8) + E(8)^3              0              1]
+            [-1  1  0]
+            [-1  0  a]
+            [-a  0  1]
         """
         cdef Parent parent = self.parent()
         cdef Matrix M = self._matrix
@@ -469,7 +485,8 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             sage: G = MatrixGroup([MS([1,1,0,1]), MS([1,0,1,1])])
             sage: g = G.an_element()
             sage: hash(g)
-            0
+            -5306160029685893860  # 64-bit
+            -181258980            # 32-bit
         """
         return hash(self.matrix())
 
@@ -588,6 +605,22 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         m.set_immutable()
         return m
 
+    def _matrix_(self, base=None):
+        """
+        Method used by the :func:`matrix` constructor.
+
+        EXAMPLES::
+
+            sage: F = GF(3); MS = MatrixSpace(F,2,2)
+            sage: G = MatrixGroup([MS([1,1,0,1])])
+            sage: g = G.gen(0)
+            sage: M = matrix(GF(9), g); M; parent(M)
+            [1 1]
+            [0 1]
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field in z2 of size 3^2
+        """
+        return self.matrix()
+
     cpdef list list(self):
         """
         Return list representation of this matrix.
@@ -607,7 +640,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         return [r.list() for r in self.matrix().rows()]
 
     @cached_method
-    def order(self):
+    def multiplicative_order(self):
         """
         Return the order of this group element, which is the smallest
         positive integer `n` such that `g^n = 1`, or
@@ -615,7 +648,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
 
         EXAMPLES::
 
-            sage: k = GF(7);
+            sage: k = GF(7)
             sage: G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])]); G
             Matrix group over Finite Field of size 7 with 2 generators (
             [1 1]  [1 0]
@@ -623,6 +656,11 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
             )
             sage: G.order()
             21
+            sage: G.gen(0).multiplicative_order(), G.gen(1).multiplicative_order()
+            (7, 3)
+
+        ``order`` is just an alias for ``multiplicative_order``::
+
             sage: G.gen(0).order(), G.gen(1).order()
             (7, 3)
 
@@ -680,7 +718,7 @@ cdef class MatrixGroupElement_gap(ElementLibGAP):
         problem (the GAP functions ``EpimorphismFromFreeGroup`` and
         ``PreImagesRepresentative``).
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: G = GL(2,5); G
             General Linear Group of degree 2 over Finite Field of size 5

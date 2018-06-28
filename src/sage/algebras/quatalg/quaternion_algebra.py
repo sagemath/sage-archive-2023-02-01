@@ -894,11 +894,15 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
     def __hash__(self):
         """
-        Compute the hash of self.
+        Compute the hash of ``self``.
 
         EXAMPLES::
 
-            sage: h = hash(QuaternionAlgebra(-1,-7))
+            sage: h1 = hash(QuaternionAlgebra(-1,-7))
+            sage: h2 = hash(QuaternionAlgebra(-1,-7))
+            sage: h3 = hash(QuaternionAlgebra(-1,-5))
+            sage: h1  == h2 and h1 != h3
+            True
         """
         return hash((self.base_ring(), self._a, self._b))
 
@@ -1464,11 +1468,15 @@ class QuaternionOrder(Algebra):
 
     def __hash__(self):
         """
-        Compute the hash of self.
+        Compute the hash of ``self``.
 
         EXAMPLES::
 
-            sage: h = hash(QuaternionAlgebra(-1,-7).maximal_order())
+            sage: h1 = hash(QuaternionAlgebra(-1,-7).maximal_order())
+            sage: h2 = hash(QuaternionAlgebra(-1,-7).maximal_order())
+            sage: h3 = hash(QuaternionAlgebra(-1,-5).maximal_order())
+            sage: h1  == h2 and h1 != h3
+            True
         """
         return hash((self.__quaternion_algebra, self.__basis))
 

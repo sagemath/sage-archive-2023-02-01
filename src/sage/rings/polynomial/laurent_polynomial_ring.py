@@ -678,7 +678,12 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
         EXAMPLES::
 
-            sage: h = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h1 = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h2 = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h3 = hash(LaurentPolynomialRing(QQ,'x,y,z'))
+            sage: h4 = hash(LaurentPolynomialRing(ZZ,'x,y'))
+            sage: h1 == h2 and h1 != h3 and h1 != h4
+            True
         """
         return hash(self._R) ^ 12059065606945654693
 

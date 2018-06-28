@@ -6105,9 +6105,9 @@ class GenericGraph(GenericGraph_pyx):
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
         r"""
-        Returns a maximum edge cut of the graph. For more information, see the
-        `Wikipedia article on cuts
-        <http://en.wikipedia.org/wiki/Cut_%28graph_theory%29>`_.
+        Return a maximum edge cut of the graph.
+
+        For more information, see :wikipedia:`Maximum_cut`.
 
         INPUT:
 
@@ -6115,39 +6115,37 @@ class GenericGraph(GenericGraph_pyx):
 
           - When set to ``True`` (default), only the value is returned.
 
-          - When set to ``False``, both the value and a maximum edge cut
-            are returned.
+          - When set to ``False``, both the value and a maximum edge cut are
+            returned.
 
         - ``use_edge_labels`` -- boolean (default: ``False``)
 
-          - When set to ``True``, computes a maximum weighted cut
-            where each edge has a weight defined by its label. (If
-            an edge has no label, `1` is assumed.)
+          - When set to ``True``, computes a maximum weighted cut where each
+            edge has a weight defined by its label. (If an edge has no label,
+            `1` is assumed.)
 
           - When set to ``False``, each edge has weight `1`.
 
         - ``vertices`` -- boolean (default: ``False``)
 
-          - When set to ``True``, also returns the two sets of
-            vertices that are disconnected by the cut. This implies
-            ``value_only=False``.
+          - When set to ``True``, also returns the two sets of vertices that are
+            disconnected by the cut. This implies ``value_only=False``.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
 
-        Quite obviously, the max cut of a bipartite graph
-        is the number of edges, and the two sets of vertices
-        are the two sides ::
+        Quite obviously, the max cut of a bipartite graph is the number of
+        edges, and the two sets of vertices are the two sides ::
 
             sage: g = graphs.CompleteBipartiteGraph(5,6)
             sage: [ value, edges, [ setA, setB ]] = g.max_cut(vertices=True)

@@ -5956,19 +5956,17 @@ class GenericGraph(GenericGraph_pyx):
             return tuple(answer)
 
 
-    def multiway_cut(self, vertices, value_only = False, use_edge_labels = False, solver = None, verbose = 0):
+    def multiway_cut(self, vertices, value_only=False, use_edge_labels=False, solver=None, verbose=0):
         r"""
-        Returns a minimum edge multiway cut corresponding to the
-        given set of vertices
+        Return a minimum edge multiway cut.
+
+        A multiway cut for a vertex set `S` in a graph or a digraph `G` is a set
+        `C` of edges such that any two vertices `u,v` in `S` are disconnected
+        when removing the edges of `C` from `G`.
         ( cf. http://www.d.kth.se/~viggo/wwwcompendium/node92.html )
-        represented by a list of edges.
 
-        A multiway cut for a vertex set `S` in a graph or a digraph
-        `G` is a set `C` of edges such that any two vertices `u,v`
-        in `S` are disconnected when removing the edges from `C` from `G`.
-
-        Such a cut is said to be minimum when its cardinality
-        (or weight) is minimum.
+        Such a cut is said to be minimum when its cardinality (or weight) is
+        minimum.
 
         INPUT:
 
@@ -5976,63 +5974,62 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``value_only`` (boolean)
 
-            - When set to ``True``, only the value of a minimum
-              multiway cut is returned.
+            - When set to ``True``, only the value of a minimum multiway cut is
+              returned.
 
-            - When set to ``False`` (default), the list of edges
-              is returned
+            - When set to ``False`` (default), the list of edges is returned
 
         - ``use_edge_labels`` (boolean)
-            - When set to ``True``, computes a weighted minimum cut
-              where each edge has a weight defined by its label. ( if
-              an edge has no label, `1` is assumed )
+
+            - When set to ``True``, computes a weighted minimum cut where each
+              edge has a weight defined by its label. ( if an edge has no label,
+              `1` is assumed )
 
             - when set to ``False`` (default), each edge has weight `1`.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
 
-        Of course, a multiway cut between two vertices correspond
-        to a minimum edge cut ::
+        Of course, a multiway cut between two vertices correspond to a minimum
+        edge cut ::
 
             sage: g = graphs.PetersenGraph()
             sage: g.edge_cut(0,3) == g.multiway_cut([0,3], value_only = True)
             True
 
-        As Petersen's graph is `3`-regular, a minimum multiway cut
-        between three vertices contains at most `2\times 3` edges
-        (which could correspond to the neighborhood of 2
-        vertices)::
+        As Petersen's graph is `3`-regular, a minimum multiway cut between three
+        vertices contains at most `2\times 3` edges (which could correspond to
+        the neighborhood of 2 vertices)::
 
             sage: g.multiway_cut([0,3,9], value_only = True) == 2*3
             True
 
-        In this case, though, the vertices are an independent set.
-        If we pick instead vertices `0,9,` and `7`, we can save `4`
-        edges in the multiway cut ::
+        In this case, though, the vertices are an independent set.  If we pick
+        instead vertices `0,9,` and `7`, we can save `4` edges in the multiway
+        cut ::
 
             sage: g.multiway_cut([0,7,9], value_only = True) == 2*3 - 1
             True
 
-        This example, though, does not work in the directed case anymore,
-        as it is not possible in Petersen's graph to mutualise edges ::
+        This example, though, does not work in the directed case anymore, as it
+        is not possible in Petersen's graph to mutualise edges ::
 
             sage: g = DiGraph(g)
             sage: g.multiway_cut([0,7,9], value_only = True) == 3*3
             True
 
-        Of course, a multiway cut between the whole vertex set
-        contains all the edges of the graph::
+        Of course, a multiway cut between the whole vertex set contains all the
+        edges of the graph::
 
             sage: C = g.multiway_cut(g.vertices())
             sage: set(C) == set(g.edges())
@@ -6042,13 +6039,13 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         from itertools import combinations, chain
 
-        p = MixedIntegerLinearProgram(maximization = False, solver= solver)
+        p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
         # height[c,v] represents the height of vertex v for commodity c
         height = p.new_variable(nonnegative=True)
 
         # cut[e] represents whether e is in the cut
-        cut = p.new_variable(binary = True)
+        cut = p.new_variable(binary=True)
 
         # Reorder
         R = lambda x,y : (x,y) if x<y else (y,x)
@@ -6092,11 +6089,11 @@ class GenericGraph(GenericGraph_pyx):
 
         if value_only:
             if use_edge_labels:
-                return p.solve(objective_only = True, log = verbose)
+                return p.solve(objective_only=True, log=verbose)
             else:
-                return Integer(round(p.solve(objective_only = True, log = verbose)))
+                return Integer(round(p.solve(objective_only=True, log=verbose)))
 
-        p.solve(log = verbose)
+        p.solve(log=verbose)
 
         cut = p.get_values(cut)
 

@@ -895,6 +895,27 @@ cdef class Ring(ParentWithGens):
         """
         return False
 
+    def is_finite(self):
+        """
+        Return ``True`` if this ring is finite.
+
+        EXAMPLES::
+
+            sage: QQ.is_finite()
+            False
+            sage: GF(2^10,'a').is_finite()
+            True
+            sage: R.<x> = GF(7)[]
+            sage: R.is_finite()
+            False
+            sage: S.<y> = R.quo(x^2+1)
+            sage: S.is_finite()
+            True
+        """
+        if self.is_zero():
+            return True
+        return super(Ring, self).is_finite()
+
     def cardinality(self):
         """
         Return the cardinality of the underlying set.

@@ -1946,6 +1946,10 @@ class Triconnectivity:
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
         self.reverse_edges = set()
         self.dfs_number = [0 for i in range(self.n)]
+        self.newnum = [0 for i in range(self.n)]
+        self.highpt = [[] for i in range(self.n)]
+        self.old_to_new = [0 for i in range(self.n + 1)]
+        self.nodeAt = [0 for i in range(self.n + 1)]
         self.lowpt1 = [None for i in range(self.n)]
         self.lowpt2 = [None for i in range(self.n)]
         self.adj = [[] for i in range(self.n)]
@@ -1990,6 +1994,7 @@ class Triconnectivity:
                 self.reverse_edges.add(e)
 
         self.build_acceptable_adj_struct()
+        self.dfs2()
 
 
     def new_component(self, edges, type_c=0):
@@ -2224,3 +2229,42 @@ class Triconnectivity:
                     self.adj[e[0]].append(e)
                     self.in_adj[e] = self.adj[e[0]]
 
+    def pathFinder(self, v):
+        """
+        This function is a helper function for `dfs2` function.
+        """
+        self.newnum[v] = self.dfs_counter - self.nd[v] + 1
+        for e in self.adj[v]:
+            u, w, _ = e
+            if self.edge_status[e] == 1:
+                if e in self.reverse_edges:
+                    self.pathFinder(u)
+                else:
+                    self.pathFinder(w)
+                self.dfs_counter -= 1
+            else:
+                if e in self.reverse_edges:
+                    self.highpt[u].append(self.newnum[w])
+                else:
+                    self.highpt[w].append(self.newnum[u])
+
+    def dfs2(self):
+        """
+        Update the values of lowpt1 and lowpt2 lists with the help of
+        new numbering obtained from `Path Finder` funciton.
+        Populate `highpt` values.
+        """
+        self.dfs_counter = self.n
+
+        # As all the vertices are labeled from  0 to n -1,
+        # the first vertex will be 0.
+        self.pathFinder(0)
+
+        for v in range(self.n):
+            self.old_to_new[self.newnum[v]] = self.newnum[v]
+
+        # Update lowpt values.
+        for v in range(self.n):
+            self.nodeAt[self.newnum[v]] = v
+            self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
+            self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]

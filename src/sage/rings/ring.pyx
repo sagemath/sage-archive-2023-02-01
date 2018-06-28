@@ -54,7 +54,6 @@ AUTHORS:
 - Simon King (2011-03-29): Proper use of the category framework for rings.
 - Simon King (2011-05-20): Modify multiplication and _ideal_class_ to support
   ideals of non-commutative rings.
-- Sebastian Oehms (2018-06-28): remove :meth `is_finite` in order not to overwrite the implemantation from categegorial frame work (see Trac #25686)
 
 """
 

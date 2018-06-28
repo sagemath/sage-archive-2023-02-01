@@ -60,6 +60,7 @@ from sage.misc.functional import round
 from sage.arith.all import gcd, factor, lcm, CRT
 from sage.arith.all import factorial
 from copy import copy
+from sage.matrix.constructor import Matrix
 
 from sage.rings.number_field.number_field import is_real_place
 
@@ -139,7 +140,6 @@ def c3_func(SUK, prec=106):
         columns_of_C = []
         for unit in SUK.fundamental_units():
             columns_of_C.append( column_Log(SUK, unit, U, prec) )
-        from sage.matrix.constructor import Matrix
         C = Matrix(SUK.rank(), SUK.rank(), columns_of_C)
         # Is it invertible?
         if abs(C.determinant()) > 10**(-10):
@@ -263,6 +263,7 @@ def mus(SUK,v):
         temp.remove(1)
         return temp
 
+from itertools import combinations_with_replacement
 def possible_mu0s(SUK, v):
     r"""
     Return a list `[\mu_0]` of all possible `\mu_0` values defined on pp. 824-825 of TCDF, [Sma1995]_
@@ -302,7 +303,6 @@ def possible_mu0s(SUK, v):
     ns = [beta[1] for beta in beta_and_ns if beta[0] != betak]
     betas = [beta[0] for beta in beta_and_ns if beta[0] != betak]
     mu0s = []
-    from itertools import combinations_with_replacement
     for rs in combinations_with_replacement(range(nk.abs()),len(betas)):
         # n_0 = valuation_v of one of the coefficients of the equation = 0 for x + y = 1 p. 824
         n_rs = zip(ns,rs)

@@ -8469,19 +8469,17 @@ class GenericGraph(GenericGraph_pyx):
 
     def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False,vertex_bound=False, solver=None, verbose=0):
         r"""
-        Solves a multicommodity flow problem.
+        Solve a multicommodity flow problem.
 
-        In the multicommodity flow problem, we are given a set of pairs
-        `(s_i, t_i)`, called terminals meaning that `s_i` is willing
-        some flow to `t_i`.
+        In the multicommodity flow problem, we are given a set of pairs `(s_i,
+        t_i)`, called terminals meaning that `s_i` is willing some flow to
+        `t_i`.
 
-        Even though it is a natural generalisation of the flow problem
-        this version of it is NP-Complete to solve when the flows
-        are required to be integer.
+        Even though it is a natural generalisation of the flow problem this
+        version of it is NP-Complete to solve when the flows are required to be
+        integer.
 
-        For more information, see the
-        :wikipedia:`Wikipedia page on multicommodity flows
-        <Multi-commodity_flow_problem>`.
+        For more information, see the :wikipedia:`Multi-commodity_flow_problem`.
 
         INPUT:
 
@@ -8502,13 +8500,16 @@ class GenericGraph(GenericGraph_pyx):
           still send or receive several units of flow even though vertex_bound is set
           to ``True``, as this parameter is meant to represent topological properties.
 
-        - ``solver`` -- Specify a Linear Program solver to be used.
-          If set to ``None``, the default one is used.
-          function of ``MixedIntegerLinearProgram``. See the documentation  of ``MixedIntegerLinearProgram.solve``
-          for more informations.
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0
-          by default (quiet).
+        - ``verbose`` (integer) -- sets the level of verbosity. Set to 0 by
+          default (quiet).
 
         ALGORITHM:
 
@@ -8516,9 +8517,8 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES:
 
-        An easy way to obtain a satisfiable multiflow is to compute
-        a matching in a graph, and to consider the paired vertices
-        as terminals ::
+        An easy way to obtain a satisfiable multiflow is to compute a matching
+        in a graph, and to consider the paired vertices as terminals ::
 
             sage: g = graphs.PetersenGraph()
             sage: matching = [(u,v) for u,v,_ in g.matching()]
@@ -8526,9 +8526,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: len(h)
             5
 
-        We could also have considered ``g`` as symmetric and computed
-        the multiflow in this version instead. In this case, however
-        edges can be used in both directions at the same time::
+        We could also have considered ``g`` as symmetric and computed the
+        multiflow in this version instead. In this case, however edges can be
+        used in both directions at the same time::
 
             sage: h = DiGraph(g).multicommodity_flow(matching)
             sage: len(h)
@@ -8543,8 +8543,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         self._scream_if_not_simple(allow_loops=True)
         from sage.numerical.mip import MixedIntegerLinearProgram
-        g=self
-        p=MixedIntegerLinearProgram(maximization=True, solver = solver)
+        g = self
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
 
         # Adding the intensity if not present
         terminals = [(x if len(x) == 3 else (x[0],x[1],1)) for x in terminals]
@@ -8556,18 +8556,18 @@ class GenericGraph(GenericGraph_pyx):
             set_terminals.add(t)
 
         # flow[i,(u,v)] is the flow of commodity i going from u to v
-        flow=p.new_variable(nonnegative=True)
+        flow = p.new_variable(nonnegative=True)
 
         # Whether to use edge labels
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
-            capacity=lambda x: x if x in RR else 1
+            capacity = lambda x: x if x in RR else 1
         else:
-            capacity=lambda x: 1
+            capacity = lambda x: 1
 
         if g.is_directed():
             # This function return the balance of flow at X
-            flow_sum=lambda i,X: p.sum([flow[i,(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[i,(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
+            flow_sum = lambda i,X: p.sum([flow[i,(X,v)] for (u,v) in g.outgoing_edges([X],labels=None)])-p.sum([flow[i,(u,X)] for (u,v) in g.incoming_edges([X],labels=None)])
 
             # The flow leaving x
             flow_leaving = lambda i,X : p.sum([flow[i,(uu,vv)] for (uu,vv) in g.outgoing_edges([X],labels=None)])
@@ -8577,7 +8577,7 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             # This function return the balance of flow at X
-            flow_sum=lambda i,X:p.sum([flow[i,(X,v)]-flow[i,(v,X)] for v in g[X]])
+            flow_sum = lambda i,X:p.sum([flow[i,(X,v)]-flow[i,(v,X)] for v in g[X]])
 
             # The flow leaving x
             flow_leaving = lambda i, X : p.sum([flow[i,(X,vv)] for vv in g[X]])
@@ -8631,7 +8631,7 @@ class GenericGraph(GenericGraph_pyx):
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("The multiflow problem has no solution")
 
-        flow=p.get_values(flow)
+        flow = p.get_values(flow)
 
         # building clean flow digraphs
         flow_graphs = [g._build_flow_graph({e:f for (ii,e),f in iteritems(flow) if ii == i}, integer=integer)

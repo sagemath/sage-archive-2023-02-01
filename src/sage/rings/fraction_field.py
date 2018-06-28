@@ -694,7 +694,12 @@ class FractionField_generic(ring.Field):
 
         EXAMPLES::
 
-            sage: h = hash(Frac(ZZ['x']))
+            sage: h0 = hash(Frac(ZZ['x']))
+            sage: h1 = hash(Frac(ZZ['x']))
+            sage: h2 = hash(Frac(QQ['x']))
+            sage: h3 = hash(ZZ['x'])
+            sage: h0 == h1 and h1 != h2 and h1 != h3
+            True
         """
         return hash(self._R) ^ 147068341996611
 

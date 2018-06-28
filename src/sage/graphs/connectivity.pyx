@@ -2059,42 +2059,48 @@ def spqr_tree(G):
     vertices and one additional (virtual) edge per connected component resulting
     from deletion of the vertices in the cut. See :wikipedia:`SPQR_tree`.
 
-    OUTPUT: ``(R, S, P, SPR, tricomp, SPQR-tree)`` where ``R`` is a list of
-    rigid (3-connected) graphs, ``S`` a list of series graphs (cycles), ``P`` a
-    list of parallel classes (cocycle graphs), ``SPR`` the so-called three-block
-    into which a biconnected graph uniquely decomposes, ``tricomp`` a list of
-    all triconnected components which is generated from ``R`` and ``S`` blocks
-    and ``SQPR-tree`` a tree whose vertices are labeled with the vertices of
-    three-blocks in the decomposition and the block's type.
+    OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
+    and the subgraph of three-blocks in the decomposition.
 
     EXAMPLES::
 
         sage: from sage.graphs.connectivity import spqr_tree
-        sage: G = Graph({0:[1,2],3:[1,2],4:[1,2],5:[1,2],6:[1,2]})
-        sage: R,S,P,SPR,tricomp,SPQR_tree = spqr_tree(G)
-        sage: R
-        []
-        sage: C3 = graphs.CycleGraph(3)
-        sage: all(h.is_isomorphic(C3) for h in S)
-        True
-
-        sage: G = Graph(2)
-        sage: for i in range(3):
-        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
-        sage: R,S,P,SPR,tricomp,SPQR_tree = spqr_tree(G)
-        sage: CG4 = graphs.CompleteGraph(4)
-        sage: all(h.is_isomorphic(CG4) for h in R)
-        True
-
         sage: G = graphs.CompleteBipartiteGraph(2,3)
         sage: G.add_edge(2, 3)
         sage: G.allow_multiple_edges(True)
         sage: G.add_edges(G.edges())
         sage: G.add_edges([[0,1],[0,1],[0,1]])
-        sage: R,S,P,SPR,tricomp,SPQR_tree = spqr_tree(G)
-        sage: tricomp
-        [Subgraph of (): Multi-graph on 3 vertices,
-        Subgraph of (Complete bipartite graph): Graph on 4 vertices]
+        sage: Tree = spqr_tree(G)
+        sage: Tree
+        SPQR-tree of Complete bipartite graph: Graph on 10 vertices
+
+        sage: Tree.vertices()[0]
+        ('P', Subgraph of (): Multi-graph on 2 vertices)
+
+        sage: D = {'S': [], 'P':[], 'R':[]}
+        sage: for i in Tree.vertices(): D[i[0]].append(i[1])
+        sage: S, P, R = D['S'], D['P'], D['R']
+        sage: S, R
+        ([Subgraph of (): Multi-graph on 3 vertices],
+        [Subgraph of (Complete bipartite graph): Graph on 4 vertices])
+
+
+        sage: G = Graph({0:[1,2],3:[1,2],4:[1,2],5:[1,2],6:[1,2]})
+        sage: Tree = spqr_tree(G)
+        sage: S = [i[1] for i in Tree.vertices() if i[0]=='S']
+        sage: C3 = graphs.CycleGraph(3)
+        sage: all(h.is_isomorphic(C3) for h in S)
+        True
+
+
+        sage: G = Graph(2)
+        sage: for i in range(3):
+        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+        sage: Tree = spqr_tree(G)
+        sage: R = [i[1] for i in Tree.vertices() if i[0]=='R']
+        sage: CG4 = graphs.CompleteGraph(4)
+        sage: all(h.is_isomorphic(CG4) for h in R)
+        True
 
     TESTS::
 
@@ -2232,7 +2238,7 @@ def spqr_tree(G):
             block_type = 'S'
         else:
             block_type = 'R'
-        Treeverts.append((block_type,tuple(T.vertices()), Graph(T, immutable=True)))
+        Treeverts.append((block_type, Graph(T, immutable=True)))
 
     P_blocks = []
     cocycles_graph = Graph(cocycles, multiedges=True)
@@ -2244,7 +2250,7 @@ def spqr_tree(G):
             P_blocks.append(cocycles_graph.subgraph(vertices=[u, v]))
             for i in range(len(SPR)):
                 if SPR[i].has_edge(u, v):
-                    Tree.add_edge(('P',(u, v), Graph(P_blocks[-1], immutable=True)),Treeverts[i])
+                    Tree.add_edge(('P', Graph(P_blocks[-1], immutable=True)),Treeverts[i])
         else:
             for i in range(len(SPR)):
                 if SPR[i].has_edge(u, v):
@@ -2252,9 +2258,4 @@ def spqr_tree(G):
                         if SPR[j].has_edge(u, v):
                             Tree.add_edge(Treeverts[i],Treeverts[j])
 
-    thcomps = []
-    for component in polygons:
-        if component.order() == 3 and component.size() == 3:
-            thcomps.append(component)
-    thcomps += R_blocks
-    return R_blocks, polygons, P_blocks, R_blocks + polygons + P_blocks, thcomps, Tree
+    return Tree

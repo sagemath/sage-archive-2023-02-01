@@ -1030,8 +1030,6 @@ cdef class Element(SageObject):
             True
             sage: bool(v+w)
             False
-            sage: (v+w).__nonzero__()
-            False
 
         """
         try:
@@ -2175,32 +2173,32 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "from sage.structure.richcmp cimport richcmp",
         ....:     "cdef class MyBrokenElement(Element):",
         ....:     "    cdef public object x",
-        ....:     "    def __init__(self,P,x):",
-        ....:     "        self.x=x",
-        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __init__(self, P, x):",
+        ....:     "        self.x = x",
+        ....:     "        Element.__init__(self, P)",
         ....:     "    def __neg__(self):",
-        ....:     "        return MyBrokenElement(self.parent(),-self.x)",
+        ....:     "        return MyBrokenElement(self.parent(), -self.x)",
         ....:     "    def _repr_(self):",
-        ....:     "        return '<%s>'%self.x",
+        ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
         ....:     "    cpdef _richcmp_(left, right, int op):",
-        ....:     "        return richcmp(left.x,right.x,op)",
+        ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "cdef class MyElement(ElementWithCachedMethod):",
         ....:     "    cdef public object x",
-        ....:     "    def __init__(self,P,x):",
-        ....:     "        self.x=x",
-        ....:     "        Element.__init__(self,P)",
+        ....:     "    def __init__(self, P, x):",
+        ....:     "        self.x = x",
+        ....:     "        Element.__init__(self, P)",
         ....:     "    def __neg__(self):",
-        ....:     "        return MyElement(self.parent(),-self.x)",
+        ....:     "        return MyElement(self.parent(), -self.x)",
         ....:     "    def _repr_(self):",
-        ....:     "        return '<%s>'%self.x",
+        ....:     "        return '<%s>' % self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
         ....:     "    cpdef _richcmp_(left, right, int op):",
-        ....:     "        return richcmp(left.x,right.x,op)",
+        ....:     "        return richcmp(left.x, right.x, op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "class MyPythonElement(MyBrokenElement): pass",

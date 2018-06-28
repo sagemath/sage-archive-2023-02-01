@@ -407,7 +407,8 @@ def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, p
             cls_bases = cls.__bases__
             all_bases = set()
             for base in bases:
-                all_bases.update(base.mro())
+                if isinstance(base, type):
+                    all_bases.update(base.mro())
             cls_bases = tuple(b for b in cls_bases if b not in all_bases)
             bases = cls_bases + bases
     else:

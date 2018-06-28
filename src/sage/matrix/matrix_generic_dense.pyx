@@ -53,7 +53,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         sage: A.set_immutable()
         sage: hash(A)
         -3948850745060287342 # 64-bit
-        -1594888954          # 32-bit
+        1436884114           # 32-bit
     """
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""

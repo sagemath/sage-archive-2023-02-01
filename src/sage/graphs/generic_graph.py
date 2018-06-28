@@ -6260,7 +6260,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def longest_path(self, s=None, t=None, use_edge_labels=False, algorithm="MILP", solver=None, verbose=0):
         r"""
-        Returns a longest path of ``self``.
+        Return a longest path of ``self``.
 
         INPUT:
 
@@ -6291,10 +6291,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``solver`` -- (default: ``None``) Specify the Linear Program (LP)
           solver to be used. If set to ``None``, the default one is used. For
           more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
@@ -6327,8 +6327,8 @@ class GenericGraph(GenericGraph_pyx):
         The heuristic totally agrees::
 
             sage: g = graphs.PetersenGraph()
-            sage: g.longest_path(algorithm="backtrack").edges()
-            [(0, 1, None), (1, 2, None), (2, 3, None), (3, 4, None), (4, 9, None), (5, 7, None), (5, 8, None), (6, 8, None), (6, 9, None)]
+            sage: g.longest_path(algorithm="backtrack").edges(labels=False)
+            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 9), (5, 7), (5, 8), (6, 8), (6, 9)]
 
         .. PLOT::
 

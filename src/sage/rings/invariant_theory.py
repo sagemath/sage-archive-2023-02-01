@@ -110,6 +110,7 @@ AUTHORS:
 #*****************************************************************************
 
 
+from sage.rings.all import QQ
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
@@ -171,7 +172,7 @@ def _guess_variables(polynomial, *args):
     else:
         return tuple(args)
 
-def transvectant(f, g, h=1):
+def transvectant(f, g, h=1, scale='default'):
     r"""
     Return the h-th transvectant of f and g.
 
@@ -188,7 +189,7 @@ def transvectant(f, g, h=1):
 
     .. MATH::
 
-        (f,g)_h = \frac{(d_f - h)! \cdot (d_g-h)!}{d_f! \cdot d_g!}\left(
+        (f,g)_h = \frac{(d_f-h)! \cdot (d_g-h)!}{d_f! \cdot d_g!}\left(
                   \left(\frac{\partial}{\partial x}\frac{\partial}{\partial z'}
                   - \frac{\partial}{\partial x'}\frac{\partial}{\partial z}
                   \right)^h \left(f(x,z) \cdot g(x',z')\right)
@@ -203,6 +204,20 @@ def transvectant(f, g, h=1):
         2*x^2 - 4*x*y + 2*y^2
         sage: transvectant(f, f, 8).form()
         0
+
+    The default scaling will yield an error for fields of small characteristic,
+    as the degree of f or g will not be invertible. The scale argument can be
+    used to compute the transvectant in this case.::
+
+        sage: R.<a0,a1,a2,a3,a4,a5,x0,x1> = GF(5)[]
+        sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+        sage: f = AlgebraicForm(2, 5, p, x0, x1)
+        sage: transvectant(f, f, 4).form()
+        Traceback (most recent call last):
+        ...
+        ZeroDivisionError
+        sage: transvectant(f, f, 4, scale='none').form()
+        -a3^2*x0^2 + a2*a4*x0^2 + a2*a3*x0*x1 - a1*a4*x0*x1 - a2^2*x1^2 + a1*a3*x1^2
     """
     R = f._ring
     if not g._ring is R:
@@ -214,12 +229,21 @@ def transvectant(f, g, h=1):
         tv = R(0)
     else:
         from sage.functions.other import binomial, factorial
-        scalar = factorial(f._d-h) * factorial(g._d-h) * R(factorial(f._d)*factorial(g._d))**(-1)
+        if scale == 'default':
+            scalar = factorial(f._d-h) * factorial(g._d-h) * R(factorial(f._d)*factorial(g._d))**(-1)
+        elif scale == 'binomial':
+            scalar = R(factorial(h))**-2
+        else:
+            scalar = 1
         def diff(j):
             df = f.form().derivative(x,j).derivative(y,h-j)
             dg = g.form().derivative(x,h-j).derivative(y,j)
             return (-1)**j * binomial(h,j) * df * dg
         tv = scalar * sum([diff(j) for j in range(h+1)])
+        if not tv.parent() is R:
+            S = tv.parent()
+            x = S(x)
+            y = S(y)
     return AlgebraicForm(2, degree, tv, x, y)
 
 ######################################################################
@@ -1489,7 +1513,7 @@ class BinaryQuintic(AlgebraicForm):
         The Python constructor.
 
         TESTS::
-        
+
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariant_theory import BinaryQuintic
             sage: BinaryQuintic(2, 5, x^5+2*x^3*y^2+3*x*y^4)
@@ -1499,7 +1523,6 @@ class BinaryQuintic(AlgebraicForm):
         super(BinaryQuintic, self).__init__(2, 5, polynomial, *args)
         self._x = self._variables[0]
         self._y = self._variables[1]
-
 
     @cached_method
     def monomials(self):
@@ -1511,7 +1534,7 @@ class BinaryQuintic(AlgebraicForm):
         :meth:`coeffs`.
 
         EXAMPLES::
-        
+
             sage: R.<x,y> = QQ[]
             sage: quintic = invariant_theory.binary_quintic(x^5+y^5)
             sage: quintic.monomials()
@@ -1524,7 +1547,6 @@ class BinaryQuintic(AlgebraicForm):
             return (x1**5, x1**4*x0, x1**3*x0**2, x1**2*x0**3, x1*x0**4, x0**5)
         else:
             return (self._ring.one(), x0, x0**2, x0**3, x0**4, x0**5)
-
 
     @cached_method
     def coeffs(self):
@@ -1541,7 +1563,7 @@ class BinaryQuintic(AlgebraicForm):
         this function returns `a = (a_0, a_1, a_2, a_3, a_4, a_5)`
 
         EXAMPLES::
-        
+
             sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
             sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
             sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
@@ -1555,7 +1577,6 @@ class BinaryQuintic(AlgebraicForm):
             (a0, a1, a2, a3, a4, a5)
         """
         return self._extract_coefficients(self.monomials())
-
 
     def scaled_coeffs(self):
         """
@@ -1571,7 +1592,7 @@ class BinaryQuintic(AlgebraicForm):
         this function returns `a = (a_0, a_1, a_2, a_3, a_4, a_5)`
 
         EXAMPLES::
-        
+
             sage: R.<a0, a1, a2, a3, a4, a5, x0, x1> = QQ[]
             sage: p = a0*x1^5 + 5*a1*x1^4*x0 + 10*a2*x1^3*x0^2 + 10*a3*x1^2*x0^3 + 5*a4*x1*x0^4 + a5*x0^5
             sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
@@ -1586,7 +1607,6 @@ class BinaryQuintic(AlgebraicForm):
         """
         coeff = self.coeffs()
         return (coeff[0], coeff[1]/5, coeff[2]/10, coeff[3]/10, coeff[4]/5, coeff[5])
-
 
     @cached_method
     def H_covariant(self, asform=False):
@@ -1616,7 +1636,6 @@ class BinaryQuintic(AlgebraicForm):
         else:
             return cov.polynomial()
 
-
     @cached_method
     def i_covariant(self, asform=False):
         """
@@ -1641,7 +1660,6 @@ class BinaryQuintic(AlgebraicForm):
             return cov
         else:
             return cov.polynomial()
-
 
     @cached_method
     def T_covariant(self, asform=False):
@@ -1672,7 +1690,6 @@ class BinaryQuintic(AlgebraicForm):
             return cov
         else:
             return cov.polynomial()
-
 
     @cached_method
     def j_covariant(self, asform=False):
@@ -1708,7 +1725,6 @@ class BinaryQuintic(AlgebraicForm):
         else:
             return cov.polynomial()
 
-
     @cached_method
     def tau_covariant(self, asform=False):
         r"""
@@ -1738,7 +1754,6 @@ class BinaryQuintic(AlgebraicForm):
             return cov
         else:
             return cov.polynomial()
-
 
     @cached_method
     def theta_covariant(self, asform=False):
@@ -1770,7 +1785,6 @@ class BinaryQuintic(AlgebraicForm):
             return cov
         else:
             return cov.polynomial()
-
 
     @cached_method
     def alpha_covariant(self, asform=False):
@@ -1805,7 +1819,6 @@ class BinaryQuintic(AlgebraicForm):
         else:
             return cov.polynomial()
 
-
     @cached_method
     def beta_covariant(self, asform=False):
         r"""
@@ -1836,7 +1849,6 @@ class BinaryQuintic(AlgebraicForm):
             return cov
         else:
             return cov.polynomial()
-
 
     @cached_method
     def gamma_covariant(self, asform=False):
@@ -1869,7 +1881,6 @@ class BinaryQuintic(AlgebraicForm):
         else:
             return cov.polynomial()
 
-
     @cached_method
     def delta_covariant(self, asform=False):
         r"""
@@ -1901,7 +1912,6 @@ class BinaryQuintic(AlgebraicForm):
         else:
             return cov.polynomial()
 
-
     @cached_method
     def A_invariant(self):
         """
@@ -1923,9 +1933,12 @@ class BinaryQuintic(AlgebraicForm):
             4/5*a0*a1*a4*a5 - 2*a0^2*a5^2
         """
         i = self.i_covariant(asform=True)
-        cov = transvectant(i, i, 2)
-        return cov.polynomial()
-
+        A = transvectant(i, i, 2).polynomial()
+        try:
+            K = self._ring.base_ring()
+            return K(A)
+        except TypeError:
+            return A
 
     @cached_method
     def B_invariant(self):
@@ -1952,9 +1965,12 @@ class BinaryQuintic(AlgebraicForm):
         """
         i = self.i_covariant(asform=True)
         tau = self.tau_covariant(asform=True)
-        cov = transvectant(i, tau, 2)
-        return cov.polynomial()
-
+        B = transvectant(i, tau, 2).polynomial()
+        try:
+            K = self._ring.base_ring()
+            return K(B)
+        except TypeError:
+            return B
 
     @cached_method
     def C_invariant(self):
@@ -1980,9 +1996,12 @@ class BinaryQuintic(AlgebraicForm):
             6/625*a0^4*a2^2*a3^2*a5^4
         """
         tau = self.tau_covariant(asform=True)
-        cov = transvectant(tau, tau, 2)
-        return cov.polynomial()
-
+        C = transvectant(tau, tau, 2).polynomial()
+        try:
+            K = self._ring.base_ring()
+            return K(C)
+        except TypeError:
+            return C
 
     @cached_method
     def R_invariant(self):
@@ -2009,9 +2028,129 @@ class BinaryQuintic(AlgebraicForm):
         """
         beta = self.beta_covariant(asform=True)
         gamma = self.gamma_covariant(asform=True)
-        cov = transvectant(beta, gamma, 1)
-        return cov.polynomial()
+        R = transvectant(beta, gamma, 1).polynomial()
+        try:
+            K = self._ring.base_ring()
+            return K(R)
+        except TypeError:
+            return R
 
+    @cached_method
+    def clebsch_invariants(self, as_tuple=False):
+        """
+        Returns the invariants of a binary quintic as described by Clebsch.
+        The following invariants are returned: A, B, C and R.
+
+        OUTPUT:
+
+        The invariants of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 2*x1^5 + 4*x1^4*x0 + 5*x1^3*x0^2 + 7*x1^2*x0^3 - 11*x1*x0^4 + x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.clebsch_invariants()
+            {'A': -276032/625,
+             'B': 4983526016/390625,
+             'C': -247056495846408/244140625,
+             'R': -148978972828696847376/30517578125}
+
+            sage: quintic.clebsch_invariants(as_tuple=True)
+            (-276032/625,
+             4983526016/390625,
+             -247056495846408/244140625,
+             -148978972828696847376/30517578125)
+
+        """
+        if self._ring.characteristic() in [2, 3, 5]:
+            raise NotImplementedError('No invariants implemented for fields of characteristic 2, 3 or 5.') # todo: add support
+        else:
+            coeffs = self.coeffs()
+            x0, x1 = self._variables
+            invariants = {}
+            invariants['A'] = self.A_invariant()
+            invariants['B'] = self.B_invariant()
+            invariants['C'] = self.C_invariant()
+            invariants['R'] = self.R_invariant()
+        if as_tuple == True:
+            return (invariants['A'],invariants['B'],invariants['C'],invariants['R'])
+        else:
+            return invariants
+
+    @cached_method
+    def scaled_invariants(self):
+        """
+        Returns the invariants of a binary quintic as described by Clebsch,
+        scaled so that they have well-defined reduction for all primes.
+
+        OUTPUT:
+
+        The invariants of the binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 2*x1^5 + 4*x1^4*x0 + 5*x1^3*x0^2 + 7*x1^2*x0^3 - 11*x1*x0^4 + x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: quintic.scaled_invariants()
+            {'I12': -1156502613073152,
+             'I18': -12712872348048797642752,
+             'I4': -138016,
+             'I8': 14164936192}
+
+        We can check that the coefficients of the invariants have no common divisor
+        for a general quintic form::
+
+            sage: R.<a0,a1,a2,a3,a4,a5,x0,x1> = QQ[]
+            sage: p = a0*x1^5 + a1*x1^4*x0 + a2*x1^3*x0^2 + a3*x1^2*x0^3 + a4*x1*x0^4 + a5*x0^5
+            sage: quintic = invariant_theory.binary_quintic(p, x0, x1)
+            sage: scinvs = quintic.scaled_invariants()
+            sage: [scinvs[x].content() for x in scinvs]
+            [1, 1, 1, 1]
+
+        """
+        R = self._ring
+        clebsch = self.clebsch_invariants()
+        invariants = {}
+        invariants['I4'] = R(2)**-1*5**4*clebsch['A']
+        invariants['I8'] = 5**5 * (R(2)**-1*47*clebsch['A']**2-2**2*clebsch['B'])
+        invariants['I12'] = 5**10 * (R(2)**-1*3*clebsch['A']**3-2**5*R(3)**-1*clebsch['C'])
+        invariants['I18'] = 2**8*R(3)**-1*5**15 * clebsch['R']
+        return invariants
+
+    def canonical_form(self):
+        r"""
+        Returns a canonical representative of the `GL(2,K)`-orbit of
+        the quintic.
+
+        OUTPUT:
+
+        A canonical `GL(2,K)`-equivalent binary quintic.
+
+        EXAMPLES::
+
+            sage: R.<x0, x1> = QQ[]
+            sage: p = 2*x1^5 + 4*x1^4*x0 + 5*x1^3*x0^2 + 7*x1^2*x0^3 - 11*x1*x0^4 + x0^5
+            sage: f = invariant_theory.binary_quintic(p, x0, x1)
+            sage: g = matrix(QQ, [[11,5],[7,2]])
+            sage: gf = f.transformed(g)
+            sage: f.canonical_form() == gf.canonical_form()
+            True
+        """
+        from sage.rings.invariants.reconstruction import binary_quintic_from_invariants
+        clebsch = self.clebsch_invariants(as_tuple=True)
+        K = self._ring.base_ring()
+        if K == QQ:
+            # Note this method works for any number field with class number 1, but
+            # the scaled method is a lot faster as computing the class number
+            # takes a lot of time.
+            coeffs = binary_quintic_from_invariants(clebsch, reduced=True)
+        else:
+            coeffs = binary_quintic_from_invariants(clebsch, scaled=True)
+        x, y = self._variables
+        form = sum([coeffs[i]*x**i*y**(5-i) for i in range(6)])
+        return invariant_theory.binary_quintic(form, x, y)
 
 ######################################################################
 def _covariant_conic(A_scaled_coeffs, B_scaled_coeffs, monomials):

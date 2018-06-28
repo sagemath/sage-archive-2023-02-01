@@ -45,8 +45,8 @@ from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import factorial
 from sage.matrix.constructor import Matrix
-
 from sage.rings.number_field.number_field import is_real_place
+from itertools import combinations_with_replacement
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -245,7 +245,6 @@ def mus(SUK,v):
         temp.remove(1)
         return temp
 
-from itertools import combinations_with_replacement
 def possible_mu0s(SUK, v):
     r"""
     Return a list `[\mu_0]` of all possible `\mu_0` values defined on pp. 824-825 of TCDF, [Sma1995]_

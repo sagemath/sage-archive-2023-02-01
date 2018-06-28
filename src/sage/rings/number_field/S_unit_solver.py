@@ -447,7 +447,7 @@ def c13_func(SUK, v, prec=106):
     - [Sma1995]_ p. 825
     """
     try:
-        v.codomain()
+        _ = v.codomain()
     except AttributeError:
         raise TypeError('Place must be infinite')
     if is_real_place(v):

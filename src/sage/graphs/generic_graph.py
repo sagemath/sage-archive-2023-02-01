@@ -244,8 +244,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.vertex_cut` | Return a minimum vertex cut between non-adjacent vertices `s` and `t`
     :meth:`~GenericGraph.flow` | Return a maximum flow in the graph from ``x`` to ``y``
     :meth:`~GenericGraph.nowhere_zero_flow` | Return a `k`-nowhere zero flow of the (di)graph.
-    :meth:`~GenericGraph.edge_disjoint_paths` | Returns a list of edge-disjoint paths between two vertices
-    :meth:`~GenericGraph.vertex_disjoint_paths` | Return a list of vertex-disjoint paths between two vertices as given by Menger's theorem.
+    :meth:`~GenericGraph.edge_disjoint_paths` | Return a list of edge-disjoint paths between two vertices
+    :meth:`~GenericGraph.vertex_disjoint_paths` | Return a list of vertex-disjoint paths between two vertices
     :meth:`~GenericGraph.edge_connectivity` | Return the edge connectivity of the graph.
     :meth:`~GenericGraph.vertex_connectivity` | Return the vertex connectivity of the graph.
     :meth:`~GenericGraph.transitive_closure` | Compute the transitive closure of a graph and returns it.
@@ -8785,23 +8785,21 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             raise EmptySetError("The disjoint routed paths do not exist.")
 
-    def edge_disjoint_paths(self, s, t, algorithm = "FF"):
+    def edge_disjoint_paths(self, s, t, algorithm="FF", solver=None, verbose=False):
         r"""
-        Returns a list of edge-disjoint paths between two
-        vertices as given by Menger's theorem.
+        Return a list of edge-disjoint paths between two vertices.
 
-        The edge version of Menger's theorem asserts that the size
-        of the minimum edge cut between two vertices `s` and`t`
-        (the minimum number of edges whose removal disconnects `s`
-        and `t`) is equal to the maximum number of pairwise
-        edge-independent paths from `s` to `t`.
+        The edge version of Menger's theorem asserts that the size of the
+        minimum edge cut between two vertices `s` and`t` (the minimum number of
+        edges whose removal disconnects `s` and `t`) is equal to the maximum
+        number of pairwise edge-independent paths from `s` to `t`.
 
         This function returns a list of such paths.
 
         INPUT:
 
-        - ``algorithm`` -- There are currently two different
-          implementations of this method :
+        - ``algorithm`` -- There are currently two different implementations of
+          this method :
 
               * If ``algorithm = "FF"`` (default), a Python implementation of the
                 Ford-Fulkerson algorithm is used.
@@ -8809,10 +8807,21 @@ class GenericGraph(GenericGraph_pyx):
               * If ``algorithm = "LP"``, the flow problem is solved using
                 Linear Programming.
 
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
         .. NOTE::
 
-            This function is topological: it does not take the eventual
-            weights of the edges into account.
+            This function is topological: it does not take the eventual weights
+            of the edges into account.
 
         EXAMPLES:
 
@@ -8823,7 +8832,8 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
 
-        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False, algorithm=algorithm)
+        [obj, flow_graph] = self.flow(s,t,value_only=False, integer=True, use_edge_labels=False,
+                                      algorithm=algorithm, solver=solver, verbose=verbose)
 
         paths = []
 
@@ -8841,10 +8851,9 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def vertex_disjoint_paths(self, s, t):
+    def vertex_disjoint_paths(self, s, t, solver=solver, verbose=verbose):
         r"""
-        Return a list of vertex-disjoint paths between two vertices as given by
-        Menger's theorem.
+        Return a list of vertex-disjoint paths between two vertices.
 
         The vertex version of Menger's theorem asserts that the size of the
         minimum vertex cut between two vertices `s` and `t` (the minimum number
@@ -8852,6 +8861,22 @@ class GenericGraph(GenericGraph_pyx):
         maximum number of pairwise vertex-independent paths from `s` to `t`.
 
         This function returns a list of such paths.
+
+        INPUT:
+
+        - ``s,t`` -- two vertices of the graph.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
 
         EXAMPLES:
 
@@ -8871,7 +8896,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.vertex_disjoint_paths(1,0)
             []
         """
-        obj, flow_graph = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False, vertex_bound=True)
+        obj, flow_graph = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False,
+                                    vertex_bound=True, solver=solver, verbose=verbose)
 
         paths = []
         if not obj:

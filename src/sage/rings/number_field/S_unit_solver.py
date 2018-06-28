@@ -37,29 +37,13 @@ AUTHORS:
 
 from __future__ import absolute_import
 
-from sage.rings.ring import Field
 from sage.rings.all import Infinity
-from sage.rings.number_field.number_field import NumberField
-from sage.rings.number_field.unit_group import UnitGroup
-from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
-from sage.rings.number_field.number_field_element import NumberFieldElement
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.rings.number_field.number_field import NumberField_absolute
-from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.rings.finite_rings.integer_mod import mod
-from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
-from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RealField, RR
-from sage.rings.padics.factory import Qp
-from sage.modules.free_module_element import zero_vector
+from sage.rings.real_mpfr import RealField
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
-from sage.misc.functional import round
-from sage.arith.all import gcd, factor, lcm, CRT
 from sage.arith.all import factorial
-from copy import copy
 from sage.matrix.constructor import Matrix
 
 from sage.rings.number_field.number_field import is_real_place
@@ -185,8 +169,6 @@ def c4_func(SUK,v, A, prec=106):
 
     - [Sma1995]_ p. 824
     """
-    R = RealField(prec)
-
     return max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A)
 
 def beta_k(betas_and_ns):
@@ -466,10 +448,9 @@ def c13_func(SUK, v, prec=106):
     - [Sma1995]_ p. 825
     """
     try:
-        _ = v.codomain()
+        v.codomain()
     except AttributeError:
         raise TypeError('Place must be infinite')
-    R = RealField(prec)
     if is_real_place(v):
         return c3_func(SUK,prec)
     else:

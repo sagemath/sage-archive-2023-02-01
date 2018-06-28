@@ -3696,48 +3696,57 @@ class Graph(GenericGraph):
         return O
 
     @doc_index("Connectivity, orientations, trees")
-    def bounded_outdegree_orientation(self, bound):
+    def bounded_outdegree_orientation(self, bound, solver=None, verbose=False):
         r"""
         Computes an orientation of ``self`` such that every vertex `v`
         has out-degree less than `b(v)`
 
         INPUT:
 
-        - ``bound`` -- Maximum bound on the out-degree. Can be of
-          three different types :
+        - ``bound`` -- Maximum bound on the out-degree. Can be of three
+          different types :
 
-         * An integer `k`. In this case, computes an orientation
-           whose maximum out-degree is less than `k`.
+         * An integer `k`. In this case, computes an orientation whose maximum
+           out-degree is less than `k`.
 
-         * A dictionary associating to each vertex its associated
-           maximum out-degree.
+         * A dictionary associating to each vertex its associated maximum
+           out-degree.
 
-         * A function associating to each vertex its associated
-           maximum out-degree.
+         * A function associating to each vertex its associated maximum
+           out-degree.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         OUTPUT:
 
-        A DiGraph representing the orientation if it exists. A
-        ``ValueError`` exception is raised otherwise.
+        A DiGraph representing the orientation if it exists. A ``ValueError``
+        exception is raised otherwise.
 
         ALGORITHM:
 
         The problem is solved through a maximum flow :
 
-        Given a graph `G`, we create a ``DiGraph`` `D` defined on
-        `E(G)\cup V(G)\cup \{s,t\}`. We then link `s` to all of `V(G)`
-        (these edges having a capacity equal to the bound associated
-        to each element of `V(G)`), and all the elements of `E(G)` to
-        `t` . We then link each `v \in V(G)` to each of its incident
-        edges in `G`. A maximum integer flow of value `|E(G)|`
-        corresponds to an admissible orientation of `G`. Otherwise,
+        Given a graph `G`, we create a ``DiGraph`` `D` defined on `E(G)\cup
+        V(G)\cup \{s,t\}`. We then link `s` to all of `V(G)` (these edges having
+        a capacity equal to the bound associated to each element of `V(G)`), and
+        all the elements of `E(G)` to `t` . We then link each `v \in V(G)` to
+        each of its incident edges in `G`. A maximum integer flow of value
+        `|E(G)|` corresponds to an admissible orientation of `G`. Otherwise,
         none exists.
 
         EXAMPLES:
 
-        There is always an orientation of a graph `G` such that a
-        vertex `v` has out-degree at most `\lceil \frac {d(v)} 2
-        \rceil`::
+        There is always an orientation of a graph `G` such that a vertex `v` has
+        out-degree at most `\lceil \frac {d(v)} 2 \rceil`::
 
             sage: g = graphs.RandomGNP(40, .4)
             sage: b = lambda v : ceil(g.degree(v)/2)
@@ -3746,18 +3755,17 @@ class Graph(GenericGraph):
             True
 
 
-        Chvatal's graph, being 4-regular, can be oriented in such a
-        way that its maximum out-degree is 2::
+        Chvatal's graph, being 4-regular, can be oriented in such a way that its
+        maximum out-degree is 2::
 
             sage: g = graphs.ChvatalGraph()
             sage: D = g.bounded_outdegree_orientation(2)
             sage: max(D.out_degree())
             2
 
-        For any graph `G`, it is possible to compute an orientation
-        such that the maximum out-degree is at most the maximum
-        average degree of `G` divided by 2. Anything less, though, is
-        impossible.
+        For any graph `G`, it is possible to compute an orientation such that
+        the maximum out-degree is at most the maximum average degree of `G`
+        divided by 2. Anything less, though, is impossible.
 
             sage: g = graphs.RandomGNP(40, .4)
             sage: mad = g.maximum_average_degree()
@@ -3827,7 +3835,8 @@ class Graph(GenericGraph):
             d.add_edge(v, (u,v), 1)
 
         # Solving the maximum flow
-        value, flow = d.flow('s','t', value_only = False, integer = True, use_edge_labels = True)
+        value, flow = d.flow('s','t', value_only=False, integer=True,
+                             use_edge_labels=True, solver=solver, verbose=verbose)
 
         if value != self.size():
             raise ValueError("No orientation exists for the given bound")
@@ -4485,8 +4494,7 @@ class Graph(GenericGraph):
         Return a maximum weighted matching of the graph
         represented by the list of its edges.
 
-        For more information, see the `Wikipedia article on matchings
-        <http://en.wikipedia.org/wiki/Matching_%28graph_theory%29>`_.
+        For more information, see the :wikipedia:`Matching_%28graph_theory%29>`.
 
         Given a graph `G` such that each edge `e` has a weight `w_e`,
         a maximum matching is a subset `S` of the edges of `G` of
@@ -4666,7 +4674,7 @@ class Graph(GenericGraph):
 
 
     @doc_index("Algorithmically hard stuff")
-    def has_homomorphism_to(self, H, core = False, solver = None, verbose = 0):
+    def has_homomorphism_to(self, H, core=False, solver=None, verbose=0):
         r"""
         Checks whether there is a homomorphism between two graphs.
 
@@ -4735,8 +4743,8 @@ class Graph(GenericGraph):
         """
         self._scream_if_not_simple()
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-        p = MixedIntegerLinearProgram(solver=solver, maximization = False)
-        b = p.new_variable(binary = True)
+        p = MixedIntegerLinearProgram(solver=solver, maximization=False)
+        b = p.new_variable(binary=True)
 
         # Each vertex has an image
         for ug in self:
@@ -6116,7 +6124,7 @@ class Graph(GenericGraph):
             raise NotImplementedError("Only 'MILP', 'Cliquer' and 'mcqd' are supported.")
 
     @doc_index("Clique-related methods")
-    def clique_number(self, algorithm="Cliquer", cliques=None):
+    def clique_number(self, algorithm="Cliquer", cliques=None, solver=None, verbose=0):
         r"""
         Return the order of the largest clique of the graph
 
@@ -6149,6 +6157,17 @@ class Graph(GenericGraph):
 
         - ``cliques`` - an optional list of cliques that can be input if
           already computed. Ignored unless ``algorithm=="networkx"``.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         ALGORITHM:
 
@@ -6197,7 +6216,7 @@ class Graph(GenericGraph):
             import networkx
             return networkx.graph_clique_number(self.networkx_graph(copy=False),cliques)
         elif algorithm == "MILP":
-            return len(self.complement().independent_set(algorithm = algorithm))
+            return len(self.complement().independent_set(algorithm=algorithm, solver=solver, verbosity=verbose))
         elif algorithm == "mcqd":
             try:
                 from sage.graphs.mcqd import mcqd
@@ -6323,7 +6342,7 @@ class Graph(GenericGraph):
         return BipartiteGraph(networkx.make_clique_bipartite(self.networkx_graph(copy=False), **kwds))
 
     @doc_index("Algorithmically hard stuff")
-    def independent_set(self, algorithm = "Cliquer", value_only = False, reduction_rules = True, solver = None, verbosity = 0):
+    def independent_set(self, algorithm="Cliquer", value_only=False, reduction_rules=True, solver=None, verbosity=0):
         r"""
         Return a maximum independent set.
 
@@ -7406,7 +7425,7 @@ class Graph(GenericGraph):
                 and self.is_planar())
 
     @doc_index("Graph properties")
-    def is_circumscribable(self):
+    def is_circumscribable(self, solver="ppl", verbose=0):
         """
         Test whether the graph is the graph of a circumscribed polyhedron.
 
@@ -7416,6 +7435,19 @@ class Graph(GenericGraph):
         edge of the polyhedron, so that the weights on any face add to exactly
         one and the weights on any non-facial cycle add to more than one.
         If and only if this can be done, the polyhedron can be circumscribed.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``"ppl"``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES::
 
@@ -7467,7 +7499,7 @@ class Graph(GenericGraph):
         # introduce a variable c[0] and maximize it. If it is positive, then
         # the LP has a solution, such that all inequalities are strict
         # after removing the auxiliary variable c[0].
-        M = MixedIntegerLinearProgram(maximization=True, solver="ppl")
+        M = MixedIntegerLinearProgram(maximization=True, solver=solver)
         e = M.new_variable(nonnegative=True)
         c = M.new_variable()
         M.set_min(c[0], -1)
@@ -7507,14 +7539,14 @@ class Graph(GenericGraph):
 
         from sage.numerical.mip import MIPSolverException
         try:
-            solution = M.solve()
+            solution = M.solve(log=verbose)
         except MIPSolverException as e:
             if str(e) == "PPL : There is no feasible solution":
                 return False
         return solution > 0
 
     @doc_index("Graph properties")
-    def is_inscribable(self):
+    def is_inscribable(self, solver="ppl", verbose=0):
         """
         Test whether the graph is the graph of an inscribed polyhedron.
 
@@ -7522,6 +7554,19 @@ class Graph(GenericGraph):
         This is dual to the notion of circumscribed polyhedron: A Polyhedron is
         inscribed if and only if its polar dual is circumscribed and hence a
         graph is inscribable if and only if its planar dual is circumscribable.
+
+        INPUT:
+
+        - ``solver`` -- (default: ``"ppl"``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES::
 
@@ -7570,7 +7615,7 @@ class Graph(GenericGraph):
         """
         if not self.is_polyhedral():
             raise NotImplementedError('this method only works for polyhedral graphs')
-        return self.planar_dual().is_circumscribable()
+        return self.planar_dual().is_circumscribable(solver=solver, verbose=verbose)
 
     @doc_index("Graph properties")
     def is_prime(self):
@@ -7794,7 +7839,7 @@ class Graph(GenericGraph):
         return g
 
     @doc_index("Leftovers")
-    def two_factor_petersen(self):
+    def two_factor_petersen(self, solver=None, verbose=0):
         r"""
         Return a decomposition of the graph into 2-factors.
 
@@ -7812,6 +7857,19 @@ class Graph(GenericGraph):
         `C_1,\dots,C_r` such that for all `i`, the set `C_i` is a
         graph of maximal degree `2` ( a disjoint union of paths
         and cycles ).
+
+        INPUT:
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used, see
+          the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
 
         EXAMPLES:
 
@@ -7853,7 +7911,7 @@ class Graph(GenericGraph):
 
         # This new bipartite graph is now edge_colored
         from sage.graphs.graph_coloring import edge_coloring
-        classes = edge_coloring(g)
+        classes = edge_coloring(g, solver=solver, verbose=verbose)
 
         # The edges in the classes are of the form ((-1,u),(1,v))
         # and have to be translated back to (u,v)

@@ -18,6 +18,7 @@ from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+from sage.misc.misc import verbose
 import copy
 
 def Genus(A):
@@ -26,11 +27,11 @@ def Genus(A):
 
     INPUT:
 
-    - `A` -- a symmetric matrix with coefficients in `\ZZ`
+    - ``A`` -- a symmetric matrix with coefficients in `\ZZ`
 
     OUTPUT:
 
-    A ``GenusSymbol_global_ring`` object, encoding the Conway-Sloane
+    A :class:`GenusSymbol_global_ring` object, encoding the Conway-Sloane
     genus symbol of the quadratic form whose Gram matrix is `A`.
 
     EXAMPLES::
@@ -46,19 +47,19 @@ def Genus(A):
     return GenusSymbol_global_ring(A)
 
 
-def LocalGenusSymbol(A,p):
+def LocalGenusSymbol(A, p):
     """
-    Given a nonsingular symmetric matrix A, return the local symbol of A at the prime p.
+    Return the local symbol of `A` at the prime `p`.
 
     INPUT:
 
-    - A -- a symmetric matrix with coefficients in ZZ
-    - p -- an integer prime p > 0
+    - ``A`` -- a symmetric, non-singular matrix with coefficients in `\ZZ`
+    - ``p`` -- an integer prime `p > 0`
 
     OUTPUT:
 
-    A Genus_Symbol_p_adic_ring object, encoding the Conway-Sloane
-    genus symbol at p of the quadratic form whose Gram matrix is A.
+    A :class:`Genus_Symbol_p_adic_ring` object, encoding the Conway-Sloane
+    genus symbol at `p` of the quadratic form whose Gram matrix is `A`.
 
     EXAMPLES::
 
@@ -84,16 +85,16 @@ def LocalGenusSymbol(A,p):
 
 def is_GlobalGenus(G):
     """
-    Given a genus symbol G (specified by a collection of local symbols), return
-    True in G represents the genus of a global quadratic form or lattice.
+    Given a genus symbol `G` (specified by a collection of local symbols),
+    return ``True`` if `G` represents the genus of a global quadratic form or lattice.
 
     INPUT:
 
-    - G -- GenusSymbol_global_ring object
+    - ``G`` -- :class:`GenusSymbol_global_ring` object
 
     OUTPUT:
 
-    boolean
+    - boolean
 
     EXAMPLES::
 
@@ -124,15 +125,19 @@ def is_GlobalGenus(G):
         b = Integer(prod([ss[2] for ss in sym]))
         if p == 2:
             if not is_2_adic_genus(sym):
+                verbose(mesg="False in is_2_adic_genus(sym)", level=2)
                 return False
             if (a*b).kronecker(p) != 1:
+                verbose(mesg="False in (%s*%s).kronecker(%s)"%(a,b,p), level=2)
                 return False
             oddity -= loc.excess()
         else:
             if a.kronecker(p) != b:
+                verbose(mesg="False in %s.kronecker(%s) != *%s"%(a,p,b), level=2)
                 return False
             oddity += loc.excess()
     if oddity % 8 != 0:
+        verbose(mesg="False in oddity", level=2)
         return False
     return True
 
@@ -140,12 +145,12 @@ def is_GlobalGenus(G):
 
 def is_2_adic_genus(genus_symbol_quintuple_list):
     """
-    Given a 2-adic local symbol (as the underlying list of quintuples)
-    check whether it is the 2-adic symbol of a 2-adic form.
+    Given a `2`-adic local symbol (as the underlying list of quintuples)
+    check whether it is the `2`-adic symbol of a `2`-adic form.
 
     INPUT:
 
-    - genus_symbol_quintuple_list -- a quintuple of integers (with certain
+    - ``genus_symbol_quintuple_list`` -- a quintuple of integers (with certain
       restrictions).
 
     OUTPUT:
@@ -202,7 +207,7 @@ def is_2_adic_genus(genus_symbol_quintuple_list):
 
 def canonical_2_adic_compartments(genus_symbol_quintuple_list):
     """
-    Given a 2-adic local symbol (as the underlying list of quintuples)
+    Given a `2`-adic local symbol (as the underlying list of quintuples)
     this returns a list of lists of indices of the
     genus_symbol_quintuple_list which are in the same compartment.  A
     compartment is defined to be a maximal interval of Jordan
@@ -210,7 +215,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
 
     INPUT:
 
-    - genus_symbol_quintuple_list -- a quintuple of integers (with certain
+    - ``genus_symbol_quintuple_list`` -- a quintuple of integers (with certain
       restrictions).
 
     OUTPUT:
@@ -248,7 +253,8 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
 
     NOTES:
 
-        See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+    See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions
+    and examples.
     """
     symbol = genus_symbol_quintuple_list
     compartments = []
@@ -270,7 +276,7 @@ def canonical_2_adic_compartments(genus_symbol_quintuple_list):
 
 def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
     """
-    Given a 2-adic local symbol (as the underlying list of quintuples)
+    Given a `2`-adic local symbol (as the underlying list of quintuples)
     this returns a list of lists of indices of the
     genus_symbol_quintuple_list which are in the same train.  A train
     is defined to be a maximal interval of Jordan components so that
@@ -372,8 +378,8 @@ def canonical_2_adic_trains(genus_symbol_quintuple_list, compartments=None):
 
 def canonical_2_adic_reduction(genus_symbol_quintuple_list):
     """
-    Given a 2-adic local symbol (as the underlying list of quintuples)
-    this returns a canonical 2-adic symbol (again as a raw list of
+    Given a `2`-adic local symbol (as the underlying list of quintuples)
+    this returns a canonical `2`-adic symbol (again as a raw list of
     quintuples of integers) which has at most one minus sign per train
     and this sign appears on the smallest dimensional Jordan component
     in each train.  This results from applying the "sign-walking" and
@@ -381,9 +387,10 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
     INPUT:
 
-    - genus_symbol_quintuple_list -- a quintuple of integers (with certain
-      restrictions).
-    - compartments -- a list of lists of distinct integers (optional)
+    - ``genus_symbol_quintuple_list`` -- a quintuple of integers (with certain
+      restrictions)
+
+    - ``compartments`` -- a list of lists of distinct integers (optional)
 
     OUTPUT:
 
@@ -420,7 +427,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
 
     .. NOTE::
 
-        See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+        See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
 
     .. TODO::
 
@@ -443,6 +450,7 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
         for i in compart:
             genus_symbol_quintuple_list[i][4] = 0
         genus_symbol_quintuple_list[compart[0]][4] = oddity
+    verbose(mesg="End oddity fusion: %s" %canonical_symbol, level=2)
     # Sign walking:
     trains = canonical_2_adic_trains(genus_symbol_quintuple_list)
     for train in trains:
@@ -456,17 +464,18 @@ def canonical_2_adic_reduction(genus_symbol_quintuple_list):
                     if t1-1 in compart or t1 in compart:
                         o = canonical_symbol[compart[0]][4]
                         canonical_symbol[compart[0]][4] = (o+4) % 8
+    verbose(mesg="End sign walking: %s" %canonical_symbol, level=2)
     return canonical_symbol
 
 
 def basis_complement(B):
     """
-    Given an echelonized basis matrix (over a field), calculate a
-    matrix whose rows form a basis complement (to the rows of B).
+    Given an echelonized basis matrix `B` (over a field), calculate a
+    matrix whose rows form a basis complement (to the rows of `B`).
 
     INPUT:
 
-    - B -- matrix over a field in row echelon form
+    - ``B`` -- matrix over a field in row echelon form
 
     OUTPUT:
 
@@ -504,19 +513,19 @@ def basis_complement(B):
 
 def signature_pair_of_matrix(A):
     """
-    Computes the signature pair (p, n) of a non-degenerate symmetric
+    Computes the signature pair `(p, n)` of a non-degenerate symmetric
     matrix, where
 
-    - p = number of positive eigenvalues of A
-    - n = number of negative eigenvalues of A
+    - `p` is the number of positive eigenvalues of `A`
+    - `n` is the number of negative eigenvalues of `A`
 
     INPUT:
 
-    - A -- symmetric matrix (assumed to be non-degenerate)
+    - ``A`` -- symmetric matrix (assumed to be non-degenerate)
 
     OUTPUT:
 
-    a pair (tuple) of integers.
+    - `(p, n)` -- a pair (tuple) of integers.
 
     EXAMPLES::
 
@@ -558,11 +567,7 @@ def signature_pair_of_matrix(A):
 
 def p_adic_symbol(A, p, val):
     """
-    Given a symmetric matrix A and prime p, return the genus symbol at p.
-
-    val = valuation of the maximal elementary divisor of A
-    needed to obtain enough precision
-    calculation is modulo p to the val+3
+    Given a symmetric matrix `A` and prime `p`, return the genus symbol at `p`.
 
     .. TODO::
 
@@ -570,9 +575,10 @@ def p_adic_symbol(A, p, val):
 
     INPUT:
 
-    - A -- symmetric matrix with integer coefficients
-    - p -- prime number > 0
-    - val -- integer >= 0
+    - ``A`` -- symmetric matrix with integer coefficients
+    - ``p`` -- prime number > 0
+    - ``val`` -- integer >= 0; valuation of the maximal elementary divisor of `A`
+      needed to obtain enough precision. Calculation is modulo `p` to the ``val+3``.
 
     OUTPUT:
 
@@ -629,14 +635,14 @@ def p_adic_symbol(A, p, val):
 
 def is_even_matrix(A):
     """
-    Determines if the integral symmetric matrix A is even
+    Determines if the integral symmetric matrix `A` is even
     (i.e. represents only even numbers).  If not, then it returns the
     index of an odd diagonal entry.  If it is even, then we return the
     index -1.
 
     INPUT:
 
-    - A -- symmetric integer matrix
+    - ``A`` -- symmetric integer matrix
 
     OUTPUT:
 
@@ -663,18 +669,18 @@ def is_even_matrix(A):
 
 def split_odd(A):
     """
-    Given a non-degenerate Gram matrix A (mod 8), return a splitting [u] + B
-    such that u is odd and B is not even.
+    Given a non-degenerate Gram matrix `A (\mod 8)`, return a splitting
+    ``[u] + B`` such that u is odd and `B` is not even.
 
     INPUT:
 
-    - A -- an odd symmetric matrix with integer coefficients (which admits a
+    - ``A`` -- an odd symmetric matrix with integer coefficients (which admits a
       splitting as above).
 
     OUTPUT:
 
-    a pair (u, B) consisting of an odd integer u and an odd
-    integral symmetric matrix B.
+    a pair ``(u, B)`` consisting of an odd integer `u` and an odd
+    integral symmetric matrix `B`.
 
     EXAMPLES::
 
@@ -753,16 +759,16 @@ def split_odd(A):
 
 def trace_diag_mod_8(A):
     """
-    Return the trace of the diagonalised form of A of an integral
-    symmetric matrix which is diagonalizable mod 8.  (Note that since
-    the Jordan decomposition into blocks of size <= 2 is not unique
-    here, this is not the same as saying that A is always diagonal in
-    any 2-adic Jordan decomposition!)
+    Return the trace of the diagonalised form of `A` of an integral
+    symmetric matrix which is diagonalizable `\mod 8`.  (Note that since
+    the Jordan decomposition into blocks of size `<=` 2 is not unique
+    here, this is not the same as saying that `A` is always diagonal in
+    any `2`-adic Jordan decomposition!)
 
     INPUT:
 
-    - A -- symmetric matrix with coefficients in Z which is odd in Z/2Z and has
-      determinant not divisible by 8.
+    - ``A`` -- symmetric matrix with coefficients in `\ZZ` which is odd in
+      `\ZZ/2\ZZ` and has determinant not divisible by `8`.
 
     OUTPUT:
 
@@ -798,27 +804,25 @@ def trace_diag_mod_8(A):
 
 def two_adic_symbol(A, val):
     """
-    Given a symmetric matrix A and prime p, return the genus symbol at p.
+    Given a symmetric matrix `A` and prime `p`, return the genus symbol at `p`.
 
-    val = valuation of maximal 2-elementary divisor
-
-    The genus symbol of a component 2^m*f is of the form (m,n,s,d[,o]),
+    The genus symbol of a component 2^m*f is of the form ``(m,n,s,d[,o])``,
     where
 
     - m = valuation of the component
     - n = dimension of f
     - d = det(f) in {1,3,5,7}
     - s = 0 (or 1) if even (or odd)
-    - o = oddity of f (= 0 if s = 0) in Z/8Z
+    - o = oddity of f (= 0 if s = 0) in `Z/8Z`
 
     INPUT:
 
-    - A -- symmetric matrix with integer coefficients
-    - val -- integer >=0
+    - ``A`` -- symmetric matrix with integer coefficients, non-degenerate
+    - ``val`` -- integer >=0; valuation of maximal 2-elementary divisor
 
     OUTPUT:
 
-    a list of lists of integers (representing a Conway-Sloane 2-adic symbol)
+    a list of lists of integers (representing a Conway-Sloane `2`-adic symbol)
 
     EXAMPLES::
 
@@ -893,50 +897,47 @@ def two_adic_symbol(A, val):
 
 
 class Genus_Symbol_p_adic_ring(object):
-    """
+    r"""
     Local genus symbol over a p-adic ring.
+
+    The genus symbol of a component `p^m A` for odd prime `= p` is of the
+    form `(m,n,d)`, where
+
+    - `m` = valuation of the component
+    - `n` = rank of A
+    - `d = det(A) \in \{1,u\}` for a normalized quadratic non-residue `u`.
+
+    The genus symbol of a component `2^m A` is of the form `(m, n, s, d, o)`,
+    where
+
+    - `m` = valuation of the component
+    - `n` = rank of `A`
+    - `d` = det(A) in `\{1,3,5,7\}`
+    - `s` = 0 (or 1) if even (or odd)
+    - `o` = oddity of `A` (= 0 if s = 0) in `Z/8Z`
+          = the trace of the diagonalization of `A`
+
+    The genus symbol is a list of such symbols (ordered by `m`) for each
+    of the Jordan blocks `A_1,...,A_t`.
+
+    Reference: [Co1999]_ Conway and Sloane 3rd edition, Chapter 15, Section 7.
+
+
+    WARNING/NOTE: This normalization seems non-standard, and we
+    should review this entire class to make sure that we have our
+    doubling conventions straight throughout!  This is especially
+    noticeable in the determinant and excess methods!!
+
+    INPUT:
+
+    - ``prime`` -- a prime integer `> 0`
+    - ``symbol`` -- the list of invariants for Jordan blocks `A_t,...,A_t` given
+      as a list of lists of integers
     """
     def __init__(self, prime, symbol, check = True):
         """
         Create the local genus symbol of given prime and local invariants.
 
-        The genus symbol of a component p^m*A for odd prime = p is of the
-        form (m,n,d), where
-
-        - m = valuation of the component
-        - n = rank of A
-        - d = det(A) in {1,u} for normalized quadratic non-residue u.
-
-        The genus symbol of a component 2^m*A is of the form (m,n,s,d,o),
-        where
-
-        - m = valuation of the component
-        - n = rank of A
-        - d = det(A) in {1,3,5,7}
-        - s = 0 (or 1) if even (or odd)
-        - o = oddity of A (= 0 if s = 0) in Z/8Z
-          = the trace of the diagonalization of A
-
-        The genus symbol is a list of such symbols (ordered by m) for each
-        of the Jordan blocks A_1,...,A_t.
-
-        Reference: Conway and Sloane 3rd edition, Chapter 15, Section 7.
-
-
-        WARNING/NOTE: This normalization seems non-standard, and we
-        should review this entire class to make sure that we have our
-        doubling conventions straight throughout!  This is especially
-        noticeable in the determinant and excess methods!!
-
-        INPUT:
-
-        - prime -- a prime integer > 0
-        - symbol -- the list of invariants for Jordan blocks A_t,...,A_t given
-          as a list of lists of integers
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -971,11 +972,7 @@ class Genus_Symbol_p_adic_ring(object):
 
     def __repr__(self):
         r"""
-        String representation for the p-adic genus symbol
-
-        INPUT:
-
-        None
+        String representation for the `p`-adic genus symbol
 
         OUTPUT:
 
@@ -1086,7 +1083,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         INPUT:
 
-        a Genus_Symbol_p_adic_ring object
+        - other -- a :class:`Genus_Symbol_p_adic_ring` object
 
         OUTPUT:
 
@@ -1125,7 +1122,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         INPUT:
 
-        a ``Genus_Symbol_p_adic_ring`` object
+        - other -- a :class:`Genus_Symbol_p_adic_ring` object
 
         OUTPUT:
 
@@ -1166,12 +1163,8 @@ class Genus_Symbol_p_adic_ring(object):
     def canonical_symbol(self):
         """
         Return (and cache) the canonical p-adic genus symbol.  This is
-        only really affects the 2-adic symbol, since when p > 2 the
+        only really affects the `2`-adic symbol, since when `p > 2` the
         symbol is already canonical.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -1220,7 +1213,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         .. NOTE::
 
-            See Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
+            See [Co1999]_ Conway-Sloane 3rd edition, pp. 381-382 for definitions and examples.
 
         .. TODO::
 
@@ -1270,18 +1263,59 @@ class Genus_Symbol_p_adic_ring(object):
             assert Genus_Symbol_p_adic_ring(p, symG) == self, "oops"
         return G
 
-
-    def symbol_tuple_list(self):
-        """
-        Returns the underlying list of lists of integers defining the genus symbol.
-
-        INPUT:
-
-        None
+    def prime(self):
+        r"""
+        Return the prime number `p` of this `p`-adic local symbol.
 
         OUTPUT:
 
-        list of lists of integers
+        - an integer
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import LocalGenusSymbol
+            sage: M1 = matrix(ZZ,[2])
+            sage: p = 2
+            sage: G0 = LocalGenusSymbol(M1, 2)
+            sage: G0.prime()
+            2
+        """
+        return self._prime
+
+    def is_even(self):
+        r"""
+        Return if the underlying `p`-adic lattice is even.
+
+        If `p` is odd, every lattice is even.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import LocalGenusSymbol
+            sage: M0 = matrix(ZZ,[1])
+            sage: G0 = LocalGenusSymbol(M0, 2)
+            sage: G0.is_even()
+            False
+            sage: G1 = LocalGenusSymbol(M0, 3)
+            sage: G1.is_even()
+            True
+            sage: M2 = matrix(ZZ,[2])
+            sage: G2 = LocalGenusSymbol(M2, 2)
+            sage: G2.is_even()
+            True
+        """
+        if self.prime() != 2:
+            return True
+        sym = self.symbol_tuple_list()[0]
+        return sym[0] > 0 or sym[3]==0
+
+    def symbol_tuple_list(self):
+        """
+        Return a copy of the underlying list of lists of integers
+        defining the genus symbol.
+
+        OUTPUT:
+
+        a list of lists of integers
 
         EXAMPLES::
 
@@ -1307,17 +1341,11 @@ class Genus_Symbol_p_adic_ring(object):
             <... 'list'>
 
         """
-        return self._symbol
-
-
+        return copy.deepcopy(self._symbol)
 
     def number_of_blocks(self):
         """
-        Returns the number of positive dimensional symbols/Jordan blocks
-
-        INPUT:
-
-        None
+        Return the number of positive dimensional symbols/Jordan blocks.
 
         OUTPUT:
 
@@ -1348,14 +1376,10 @@ class Genus_Symbol_p_adic_ring(object):
 
     def determinant(self):
         """
-        Returns the (p-part of the) determinant (square-class) of the
+        Returns the (`p`-part of the) determinant (square-class) of the
         Hessian matrix of the quadratic form (given by regarding the
         integral symmetric matrix which generated this genus symbol as
-        the Gram matrix of Q) associated to this local genus symbol.
-
-        INPUT:
-
-        None
+        the Gram matrix of `Q`) associated to this local genus symbol.
 
         OUTPUT:
 
@@ -1383,56 +1407,15 @@ class Genus_Symbol_p_adic_ring(object):
         p = self._prime
         return prod([ p**(s[0]*s[1]) for s in self._symbol ])
 
-
-    def rank(self):
-        """
-        Returns the dimension of a quadratic form associated to this genus symbol.
-
-        .. TODO::
-
-            DELETE THIS METHOD IN FAVOR OF THE dimension() METHOD BELOW!
-
-        INPUT:
-
-        None
-
-        OUTPUT:
-
-        an integer >= 0
-
-        EXAMPLES::
-
-            sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
-            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
-
-            sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: p = 2
-            sage: G2 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G2
-            Genus symbol at 2:    [2^-2 4^1 8^1]_6
-            sage: G2.rank()
-            4
-
-            sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
-            sage: p = 3
-            sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2)); G3
-            Genus symbol at 3:     1^3 3^-1
-            sage: G3.rank()
-            4
-
-        """
-        return sum([ s[1] for s in self._symbol ])
+    det = determinant
 
     def dimension(self):
         """
-        Returns the dimension of a quadratic form associated to this genus symbol.
-
-        INPUT:
-
-        None
+        Return the dimension of a quadratic form associated to this genus symbol.
 
         OUTPUT:
 
-        an integer >= 0
+        an integer ``>= 0``
 
         EXAMPLES::
 
@@ -1454,8 +1437,12 @@ class Genus_Symbol_p_adic_ring(object):
             4
 
         """
-        return self.rank()
+        return sum([ s[1] for s in self._symbol ])
 
+    # TODO:
+    # DELETE rank() IN FAVOR OF THE dimension() ... why?
+
+    rank = dimension
 
     def excess(self):
         """
@@ -1469,11 +1456,7 @@ class Genus_Symbol_p_adic_ring(object):
 
         REFERENCE:
 
-        Conway and Sloane Book, 3rd edition, pp 370-371.
-
-        INPUT:
-
-        None
+        [Co1999]_ Conway and Sloane Book, 3rd edition, pp 370-371.
 
         OUTPUT:
 
@@ -1543,10 +1526,6 @@ class Genus_Symbol_p_adic_ring(object):
         symbol if it is associated to the prime p=2 (and raise an
         error for all other primes).
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         a list of integers >= 0
@@ -1577,10 +1556,6 @@ class Genus_Symbol_p_adic_ring(object):
         symbol if it is associated to the prime p=2 (and raise an
         error for all other primes).
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
         a list of integers >= 0
@@ -1609,6 +1584,12 @@ class GenusSymbol_global_ring(object):
     This represents a collection of local genus symbols (at primes)
     and signature information which represent the genus of a
     non-degenerate integral lattice.
+
+    INPUT:
+
+    - ``A`` -- a symmetric matrix with integer coefficients
+    - ``max_elem_divisors`` -- the input precision for the valuation of a
+      maximal p-elementary divisor. (OPTIONAL)
     """
 
     def __init__(self, A, max_elem_divisors=None):
@@ -1617,15 +1598,6 @@ class GenusSymbol_global_ring(object):
         integral gram matrix (and possibly information about its
         largest elementary divisors).
 
-        INPUT:
-
-        - A -- a symmetric matrix with integer coefficients
-        - max_elem_divisors -- the input precision for valuation of maximal
-          p-elementary divisor. (OPTIONAL)
-
-        OUTPUT:
-
-        None
 
         EXAMPLES::
 
@@ -1660,11 +1632,7 @@ class GenusSymbol_global_ring(object):
 
     def __repr__(self):
         r"""
-        Returns a string representing the global genus symbol.
-
-        INPUT:
-
-        None
+        Return a string representing the global genus symbol.
 
         OUTPUT:
 
@@ -1722,7 +1690,7 @@ class GenusSymbol_global_ring(object):
 
         INPUT:
 
-        a ``GenusSymbol_global_ring`` object
+        a :class:`GenusSymbol_global_ring` object
 
         OUTPUT:
 
@@ -1774,7 +1742,7 @@ class GenusSymbol_global_ring(object):
 
     def __ne__(self, other):
         """
-        Determines if two global genus symbols are unequal (not just inequivalent!).
+        Determine if two global genus symbols are unequal (not just inequivalent!).
 
         INPUT:
 
@@ -1808,20 +1776,28 @@ class GenusSymbol_global_ring(object):
         """
         return not self == other
 
+    def is_even(self):
+        r"""
+        Return if this genus is even.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: G = Genus(Matrix(ZZ,2,[2,1,1,2]))
+            sage: G.is_even()
+            True
+        """
+        return self._local_symbols[0].is_even()
 
     def signature_pair_of_matrix(self):
         """
-        Returns the signature pair (p, n) of the (non-degenerate)
+        Return the signature pair (p, n) of the (non-degenerate)
         global genus symbol, where p is the number of positive
         eigenvalues and n is the number of negative eigenvalues.
 
-        INPUT:
-
-        None
-
         OUTPUT:
 
-        a pair of integers (p, n) each >= 0
+        a pair of integers `(p, n)` each `>= 0`
 
         EXAMPLES::
 
@@ -1835,17 +1811,12 @@ class GenusSymbol_global_ring(object):
         """
         return self._signature
 
-
     def determinant(self):
         """
-        Returns the determinant of this genus, where the determinant
+        Return the determinant of this genus, where the determinant
         is the Hessian determinant of the quadratic form whose Gram
         matrix is the Gram matrix giving rise to this global genus
         symbol.
-
-        INPUT:
-
-        None
 
         OUTPUT:
 
@@ -1854,7 +1825,6 @@ class GenusSymbol_global_ring(object):
         EXAMPLES::
 
             sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring
-
             sage: A = DiagonalQuadraticForm(ZZ, [1,-2,3,4]).Hessian_matrix()
             sage: GS = GenusSymbol_global_ring(A)
             sage: GS.determinant()
@@ -1864,6 +1834,14 @@ class GenusSymbol_global_ring(object):
         r, s = self.signature_pair_of_matrix()
         return (-1)**s*prod([ G.determinant() for G in self._local_symbols ])
 
+    det = determinant
+
+    def dimension(self):
+        r"""
+        Return the dimension of this genus.
+        """
+        p, n = self.signature_pair_of_matrix()
+        return p + n
 
     def discriminant_form(self):
         r"""
@@ -1898,6 +1876,22 @@ class GenusSymbol_global_ring(object):
                 qL.append(_gram_from_jordan_block(p, block, True))
         q = matrix.block_diagonal(qL)
         return TorsionQuadraticForm(q)
+
+    def local_symbols(self):
+        r"""
+        Return a copy of the list of local symbols of this symbol.
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: A = matrix.diagonal(ZZ, [2,-4,6,8])
+            sage: GS = Genus(A)
+            sage: GS.local_symbols()
+            [Genus symbol at 2:    [2^-2 4^1 8^1]_4,
+             Genus symbol at 3:     1^-3 3^-1]
+        """
+        return copy.deepcopy(self._local_symbols)
+
 
 def _gram_from_jordan_block(p, block, discr_form=False):
     r"""

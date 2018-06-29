@@ -60,6 +60,7 @@ AUTHOR:
 from __future__ import print_function, absolute_import
 
 # Standard python imports
+from six import iteritems
 from six.moves import cPickle
 import os
 import types
@@ -214,8 +215,12 @@ def show_identifiers(hidden=False):
         sage: show_identifiers(hidden=True)        # random output
         ['__', '_i', '_6', '_4', '_3', '_1', '_ii', '__doc__', '__builtins__', '___', '_9', '__name__', '_', 'a', '_i12', '_i14', 'factor', '__file__', '_hello', '_i13', '_i11', '_i10', '_i15', '_i5', '_13', '_10', '_iii', '_i9', '_i8', '_i7', '_i6', '_i4', '_i3', '_i2', '_i1', '_init_cmdline', '_14']
     """
+    from sage.doctest.forker import DocTestTask
     state = caller_locals()
-    return sorted([x for x, v in state.iteritems() if _is_new_var(x, v, hidden)])
+    # Ignore extra variables injected into the global namespace by the doctest
+    # runner
+    return sorted([x for x, v in iteritems(state) if _is_new_var(x, v, hidden)
+                   and x not in DocTestTask.extra_globals])
 
 def save_session(name='sage_session', verbose=False):
     r"""

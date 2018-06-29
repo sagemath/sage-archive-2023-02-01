@@ -1540,7 +1540,6 @@ class BinaryQuintic(AlgebraicForm):
             sage: quintic.monomials()
             (y^5, x*y^4, x^2*y^3, x^3*y^2, x^4*y, x^5)
         """
-        quintic = self._polynomial
         x0 = self._x
         x1 = self._y
         if self._homogeneous:
@@ -2066,8 +2065,6 @@ class BinaryQuintic(AlgebraicForm):
         if self._ring.characteristic() in [2, 3, 5]:
             raise NotImplementedError('No invariants implemented for fields of characteristic 2, 3 or 5.') # todo: add support
         else:
-            coeffs = self.coeffs()
-            x0, x1 = self._variables
             invariants = {}
             invariants['A'] = self.A_invariant()
             invariants['B'] = self.B_invariant()

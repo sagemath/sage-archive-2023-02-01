@@ -60,11 +60,9 @@ This other facility uses a simple
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from IPython.core.formatters import DisplayFormatter, PlainTextFormatter
-from IPython.utils.py3compat import str_to_unicode, unicode_to_str
+from IPython.utils.py3compat import unicode_to_str
 
-from sage.structure.sage_object import SageObject
 from sage.repl.display.pretty_print import SagePrettyPrinter
 
 

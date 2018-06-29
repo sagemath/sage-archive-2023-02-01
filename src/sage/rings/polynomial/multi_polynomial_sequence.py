@@ -1,4 +1,4 @@
-"""
+r"""
 Polynomial Sequences
 
 We call a finite list of polynomials a ``Polynomial Sequence``.
@@ -1101,7 +1101,7 @@ class PolynomialSequence_generic(Sequence_generic):
         return self.ideal().basis_is_groebner()
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
-    """
+    r"""
     Polynomial Sequences over `\mathbb{F}_2`.
     """
     def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
@@ -1523,14 +1523,15 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         else:
             return PolynomialSequence_generic.reduced(self)
 
+
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
-    """
+    r"""
     PolynomialSequence over `\mathbb{F}_{2^e}`, i.e extensions over
     GF(2).
     """
 
     def weil_restriction(self):
-        """
+        r"""
         Project this polynomial system to `\mathbb{F}_2`.
 
         That is, compute the Weil restriction of scalars for the

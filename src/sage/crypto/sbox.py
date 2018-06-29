@@ -278,7 +278,7 @@ class SBox(SageObject):
         return  x + [self._F(0)]*(n-len(x))
 
     def __call__(self, X):
-        """
+        r"""
         Apply substitution to ``X``.
 
         If ``X`` is a list, it is interpreted as a sequence of bits

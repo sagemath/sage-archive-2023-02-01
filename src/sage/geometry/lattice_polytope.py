@@ -4335,7 +4335,7 @@ class NefPartition(SageObject,
         result = r"\text{Nef-partition } "
         for i, part in enumerate(self.parts()):
             if i != 0:
-                result += " \sqcup "
+                result += r" \sqcup "
             result += r"\{" + ", ".join("%d" % v for v in part) + r"\}"
         try:
             # We may or may not know the type of the partition

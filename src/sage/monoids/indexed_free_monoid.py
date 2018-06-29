@@ -586,12 +586,13 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         for k, v in iteritems(elt._monomial):
             if k not in d:
                 raise ValueError("invalid cancellation")
-            d[k] -= v
-        for k,v in d.items():
-            if v < 0:
+            diff = d[k] - v
+            if diff < 0:
                 raise ValueError("invalid cancellation")
-            if v == 0:
+            elif diff == 0:
                 del d[k]
+            else:
+                d[k] = diff
         return self.__class__(self.parent(), d)
 
     def __len__(self):

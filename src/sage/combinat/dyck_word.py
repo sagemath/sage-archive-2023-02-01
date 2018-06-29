@@ -527,7 +527,7 @@ class DyckWord(CombinatorialElement):
                 row += "| "+" ."*(n-1) + labels[-1] + "\n"
             return row
         else:
-            raise ValueError("The given type (=\s) is not valid." % type)
+            raise ValueError("The given type (=%s) is not valid." % type)
 
     def _ascii_art_(self):
         r"""

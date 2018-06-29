@@ -1086,8 +1086,10 @@ class KleshchevPartitionTupleCrystal(KleshchevPartitionTuple, KleshchevCrystalMi
 #--------------------------------------------------
 # Kleshchev partitions - parent classes
 #--------------------------------------------------
+
+
 class KleshchevPartitions(PartitionTuples):
-    """
+    r"""
     Kleshchev partitions
 
     A partition (tuple) `\mu` is Kleshchev if it can be recursively

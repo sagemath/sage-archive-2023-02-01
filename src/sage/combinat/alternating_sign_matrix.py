@@ -1935,12 +1935,13 @@ class ContreTableaux_n(ContreTableaux):
 
 
 def _next_column_iterator(previous_column, height, i = None):
-    """
+    r"""
     Return a generator for all columns of height ``height``
     properly filled from row 1 to ``i``.
-    ("Properly filled" means strictly increasing and having
+
+    "Properly filled" means strictly increasing and having
     the property that the `k`-th entry is `\geq` to the `k`-th
-    entry of ``previous_column`` for each `k`.)
+    entry of ``previous_column`` for each `k`.
 
     EXAMPLES::
 

@@ -1,4 +1,4 @@
-"""
+r"""
 Elements of Infinite Polynomial Rings
 
 AUTHORS:
@@ -1196,7 +1196,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     ## Essentials for Buchberger
     def reduce(self, I, tailreduce=False, report=None):
-        """
+        r"""
         Symmetrical reduction of ``self`` with respect to a symmetric ideal (or list of Infinite Polynomials).
 
         INPUT:

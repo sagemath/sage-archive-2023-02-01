@@ -4,12 +4,9 @@ cd src/
 # there is room for adding more options (set some flags, use a lot of libraries
 # shipped with Sage): go to the source directory and type: ./configure --help
 
+# This is NOT a autoconf script, so sdh_configure does not work
 ./configure --prefix="${SAGE_LOCAL}" \
              --with-libgmp="${SAGE_LOCAL}/lib/libgmp.a"
 
-$MAKE library
-
-# According to the doc, "make install" does not exist yet.
-cp lib/libcocoa.a "${SAGE_LOCAL}/lib"
-cp -a include/* "${SAGE_LOCAL}/include"
-
+sdh_make library
+sdh_make install

@@ -49,13 +49,23 @@ from __future__ import absolute_import
 from sage.rings.all import Infinity
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.integer import Integer
-from sage.rings.real_mpfr import RealField
-from sage.rings.number_field.number_field import is_real_place
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RealField, RR
+from sage.rings.rational_field import QQ
+from sage.rings.number_field.number_field import is_real_place, refine_embedding
+from sage.rings.finite_rings.integer_mod_ring import Integers
+from sage.rings.finite_rings.integer_mod import mod
+from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import factorial
-from sage.matrix.constructor import Matrix
+from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
+from sage.modules.free_module_element import zero_vector
 from itertools import combinations_with_replacement
+from sage.functions.log import log
+from sage.functions.other import sqrt
+from copy import copy
+from sage.misc.functional import round
 
 from sage.rings.ring import Field
 from sage.rings.number_field.number_field import NumberField
@@ -64,20 +74,7 @@ from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
 from sage.rings.number_field.number_field_element import NumberFieldElement
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.number_field.number_field import NumberField_absolute
-from sage.rings.finite_rings.integer_mod_ring import Integers
-from sage.rings.finite_rings.integer_mod import mod
-from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RR
-from sage.rings.padics.factory import Qp
-from sage.modules.free_module_element import zero_vector
-from sage.misc.functional import round
 from sage.arith.all import gcd, factor, lcm, CRT
-from copy import copy
-from sage.functions.log import log
-from sage.functions.other import sqrt
-from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix
-from sage.rings.number_field.number_field import refine_embedding
 import itertools
 
 def column_Log(SUK, iota, U, prec=106):
@@ -156,7 +153,7 @@ def c3_func(SUK, prec=106):
         columns_of_C = []
         for unit in SUK.fundamental_units():
             columns_of_C.append( column_Log(SUK, unit, U, prec) )
-        C = Matrix(SUK.rank(), SUK.rank(), columns_of_C)
+        C = matrix(SUK.rank(), SUK.rank(), columns_of_C)
         # Is it invertible?
         if abs(C.determinant()) > 10**(-10):
             poss_c1 = C.inverse().apply_map(abs).norm(Infinity)
@@ -609,11 +606,11 @@ def minimal_vector(A,y,prec=106):
 
     - ``A`` : a square n by n non-singular integer matrix whose rows generate a lattice `\mathcal L`
     - ``y`` : a row (1 by n) vector with integer coordinates
-    - ``prec`` : precision of real field (default 106)
+    - ``prec`` : (default: 106) precision of real field
 
     OUTPUT:
 
-    A low bound for the square of
+    A lower bound for the square of
 
     .. MATH::
 
@@ -639,9 +636,9 @@ def minimal_vector(A,y,prec=106):
 
         sage: B = random_matrix(ZZ,3)
         sage: B #random
-            [-2 -1 -1]
-            [ 1  1 -2]
-            [ 6  1 -1]
+        [-2 -1 -1]
+        [ 1  1 -2]
+        [ 6  1 -1]
         sage: y = vector([1,2,100])
         sage: minimal_vector(B,y) #random
         15/28
@@ -694,7 +691,7 @@ def reduction_step_real_case(place,B0,G,c7):
         sage: K.<a> = NumberField(x^3-2)
         sage: SK = sum([K.primes_above(p) for p in [2,3,5]],[])
         sage: G = [g for g in K.S_unit_group(S = SK).gens_values() if g.multiplicative_order() == Infinity]
-        sage: p1 = K.real_places(prec = 200)[0]
+        sage: p1 = K.real_places(prec = 300)[0]
         sage: reduction_step_real_case(p1,10**10,G,2)
         (58, False)
     """
@@ -721,7 +718,7 @@ def reduction_step_real_case(place,B0,G,c7):
     S = (n-1) * (B0)**2
     T = (1 + n * B0)/2
     finish = False
-    while  not finish:
+    while not finish:
         A = copy(identity_matrix(ZZ,n))
         v = vector([round(g*C) for g in Glog])
 
@@ -898,7 +895,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
                     #we take into account the second case of the theorem VI.2 of the reference page 85
 
-                    M = Matrix(ZZ,2,[A[n-1,n-1],A[n-1,n],A[n,n-1],A[n,n]])
+                    M = matrix(ZZ,2,[A[n-1,n-1],A[n-1,n],A[n,n-1],A[n,n]])
                     b = vector(ZZ,2,[-y[n-1],-y[n]])
                     if M.determinant() == 1 or M.determinant() == -1:
                         x = M.inverse() * b

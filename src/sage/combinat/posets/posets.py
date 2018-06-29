@@ -384,6 +384,14 @@ class ElementWithLabel:
         Two labeled elements are not equal if and only if first or second constituents are not equal.
 
         TESTS::
+            sage: from sage.combinat.posets.posets import ElementWithLabel
+            sage: a = ElementWithLabel(1, 'a')
+            sage: b = ElementWithLabel(1, 'b')
+            sage: x = ElementWithLabel(1, 'a')
+            sage: a != b
+            True
+            sage: a != x
+            False        
         """
         return not(self == other)
 

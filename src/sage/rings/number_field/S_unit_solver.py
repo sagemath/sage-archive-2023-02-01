@@ -677,7 +677,6 @@ def reduction_step_real_case(place,B0,G,c7):
         (58, False)
     """
     prec = place.codomain().precision()
-    R = RealField(prec)
     n = len(G)
 
     def e_s_real(a,place):
@@ -908,7 +907,6 @@ def cx_LLL_bound(SUK,A, prec=106):
         sage: cx_LLL_bound(SUK,A)
         22
     """
-    R = RealField(prec)
     cx_LLL = 0
     #initialize a bound, a bad guess, as we iterate over the places of the number field, we will replace its value with the largest complex LLL bound we've found across the places
     for v in SUK.number_field().places(prec = prec):
@@ -1219,9 +1217,7 @@ def embedding_to_Kp(a,prime,prec):
         raise ValueError('K has to be an absolute extension')
 
     g = defining_polynomial_for_Kp(prime,prec)
-    p = prime.smallest_integer()
     gen = K.gen()
-    n = g.degree()
     g = g.change_ring(QQ)
     f = K(a).lift()
 

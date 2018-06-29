@@ -14,7 +14,7 @@ from sage.misc.all import prod
 from sage.arith.all import LCM
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
@@ -1162,7 +1162,7 @@ class Genus_Symbol_p_adic_ring(object):
 
     def automorphous_numbers(self):
         r"""
-        Return the locally automorphous square classes at this prime.
+        Return generators of the automorphous square classes at this prime.
 
         A p-adic square class `r` (`p`-adically) is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
@@ -1170,23 +1170,39 @@ class Genus_Symbol_p_adic_ring(object):
 
         OUTPUT:
 
-        - a list of integers representing the square classes of the automorphous
-          numbers
+        - a list of integers representing the square classes of generators of
+          the automorphous numbers
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
-            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
-            sage: A = matrix.diagonal([1,2,3,4])
-            sage: p = 3
-            sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2))
-            sage: G3.automorphous_numbers()
-            [1, 2, 3, 6]
+        The following examples are given in
+        [Co1999]_ 3rd edition, Chapter 15, 9.6 pp. 392::
+
+            sage: from sage.quadratic_forms.genera.genus import Genus
+            sage: A = matrix.diagonal([3,16])
+            sage: G = Genus(A)
+            sage: sym2 = G.local_symbols()[0]
+            sage: sym2
+            Genus symbol at 2:    [1^-1]_1 :[16^1]_1
+            sage: sym2.automorphous_numbers()
+            [3, 5]
+
+            sage: A = matrix(ZZ,3,[2,1,0, 1,2,0, 0,0,18])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            Genus symbol at 2:    1^-2 [2^1]_1
+            sage: sym[0].automorphous_numbers()
+            [1, 3, 5, 7]
+            sage: sym[1]
+            Genus symbol at 3:     1^-1 3^-1 9^-1
+            sage: sym[1].automorphous_numbers()
+            [1, 3]
         """
         from .normal_form import collect_small_blocks, _min_nonsquare
         automorphs = []
         sym = self.symbol_tuple_list()
-        G = self.gram_matrix()
+        G = self.gram_matrix().change_ring(ZZ)
         p = self.prime()
         if p != 2:
             up = ZZ(_min_nonsquare(p))
@@ -1206,7 +1222,7 @@ class Genus_Symbol_p_adic_ring(object):
                 if block[1] > 2:
                     automorphs.append(up)
                     break
-            # square classes
+            # normalize the square classes and remove duplicates
             automorphs1 = set()
             for s in automorphs:
                 u = 1
@@ -1238,7 +1254,7 @@ class Genus_Symbol_p_adic_ring(object):
                 L.remove(r)
         n = len(L)
         for i in range(n):
-            for j in range(i, n):
+            for j in range(i):
                 r = L[i]*L[j]
                 automorphs.append(r)
 
@@ -1250,11 +1266,14 @@ class Genus_Symbol_p_adic_ring(object):
             break
 
         # supplement (ii)
-        for r1 in I:
-            for r2 in I:
-                r = r1*r2
-                v = r.valuation(2)
-                u = r.prime_to_m_part(2) % 8
+        I.sort(key=lambda x: x.valuation(2))
+        n = len(I)
+        for i in range(n):
+            for j in range(i):
+                r = I[i] / I[j]
+                v, u = r.val_unit(ZZ(2))
+                u = u % 8
+                assert v >= 0
                 if v==0 and u==1:
                     s = ZZ(2)
                 elif v==0 and u==5:
@@ -1269,10 +1288,10 @@ class Genus_Symbol_p_adic_ring(object):
                     continue
                 automorphs.append(s)
 
-        # square classes
+        # normalize the square classes and remove duplicates
         automorphs1 = set()
         for s in automorphs:
-            v, u = s.val_unit(2)
+            v, u = s.val_unit(ZZ(2))
             v = v % 2
             u = u % 8
             sq = u * 2**v

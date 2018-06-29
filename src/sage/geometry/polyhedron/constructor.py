@@ -275,7 +275,7 @@ AUTHORS:
     - Arnaud Bergeron: improvements to triangulation and rendering, 2008
     - Sebastien Barthelemy: documentation improvements, 2008
     - Volker Braun: refactoring, handle non-compact case, 2009 and 2010
-    - Andrey Novoseltsev: added Hasse_diagram_from_incidences, 2010
+    - Andrey Novoseltsev: added lattice_from_incidences, 2010
     - Volker Braun: rewrite to use PPL instead of cddlib, 2011
     - Volker Braun: Add support for arbitrary subfields of the reals
 """
@@ -291,7 +291,7 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from sage.rings.all import QQ, ZZ, RDF, RR
+from sage.rings.all import ZZ, RDF, RR
 
 from .misc import _make_listlist, _common_length_of
 

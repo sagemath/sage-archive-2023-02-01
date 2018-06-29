@@ -1160,6 +1160,125 @@ class Genus_Symbol_p_adic_ring(object):
     #    return len(self._symbol)
     ## ------------------------------------------------------
 
+    def automorphous_numbers(self):
+        r"""
+        Return the locally automorphous square classes at this prime.
+
+        A p-adic square class `r` (`p`-adically) is called automorphous if it is
+        the spinor norm of a proper `p`-adic integral automorphism of this form.
+        See [CS]_ 9.6 for details.
+
+        OUTPUT:
+
+        - a list of integers representing the square classes of the automorphous
+          numbers
+
+        EXAMPLES::
+
+            sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
+            sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+            sage: A = matrix.diagonal([1,2,3,4])
+            sage: p = 3
+            sage: G3 = Genus_Symbol_p_adic_ring(p, p_adic_symbol(A, p, 2))
+            sage: G3.automorphous_numbers()
+            [1, 2, 3, 6]
+        """
+        from .normal_form import collect_small_blocks, _min_nonsquare
+        automorphs = []
+        sym = self.symbol_tuple_list()
+        G = self.gram_matrix()
+        p = self.prime()
+        if p != 2:
+            up = ZZ(_min_nonsquare(p))
+            I = G.diagonal()
+            for r in I:
+                # We need to consider all pairs in I
+                # since at most 2 elements are part of a pair
+                # we need need at most 2 of each type
+                if I.count(r) > 2:
+                    I.remove(r)
+            # products of all pairs
+            for r1 in I:
+                for r2 in I:
+                    automorphs.append(r1*r2)
+            # supplement (i)
+            for block in sym:
+                if block[1] > 2:
+                    automorphs.append(up)
+                    break
+            # square classes
+            automorphs1 = set()
+            for s in automorphs:
+                u = 1
+                if s.prime_to_m_part(p).kronecker(p) == -1:
+                    u = up
+                v = (s.valuation(p) % 2)
+                sq = u * p**v
+                automorphs1.add(sq)
+            return list(automorphs1)
+
+        # p = 2
+        I = []
+        II = []
+        for block in collect_small_blocks(G):
+            if block.ncols() == 1:
+                u = block[0,0]
+                if I.count(u) < 2:
+                    I.append(block[0,0])
+            else: # rank2
+                q = block[0,1]
+                II += [2*q, 3*2*q, 5*2*q, 7*2*q]
+
+        L = I + II
+        # We need to consider all pairs in L
+        # since at most 2 elements are part of a pair
+        # we need need at most 2 of each type
+        for r in L:     # remove triplicates
+            if L.count(r) > 2:
+                L.remove(r)
+        n = len(L)
+        for i in range(n):
+            for j in range(i, n):
+                r = L[i]*L[j]
+                automorphs.append(r)
+
+        # supplement (i)
+        for k in range(len(sym)-3):
+            s = sym[k:k+3]
+            if sum([b[1] for b in s if s[0][0]-b[0] < 4]) >= 3:
+                automorphs += [ZZ(1), ZZ(3), ZZ(5), ZZ(7)]
+            break
+
+        # supplement (ii)
+        for r1 in I:
+            for r2 in I:
+                r = r1*r2
+                v = r.valuation(2)
+                u = r.prime_to_m_part(2) % 8
+                if v==0 and u==1:
+                    s = ZZ(2)
+                elif v==0 and u==5:
+                    s = ZZ(6)
+                elif v in [0, 2, 4]:
+                    s = ZZ(5)
+                elif v in [1, 3] and u in [1, 5]:
+                    s = ZZ(3)
+                elif v in [1, 3] and u in [3, 7]:
+                    s = ZZ(7)
+                else:
+                    continue
+                automorphs.append(s)
+
+        # square classes
+        automorphs1 = set()
+        for s in automorphs:
+            v, u = s.val_unit(2)
+            v = v % 2
+            u = u % 8
+            sq = u * 2**v
+            automorphs1.add(sq)
+        return list(automorphs1)
+
     def canonical_symbol(self):
         """
         Return (and cache) the canonical p-adic genus symbol.  This is

@@ -1424,7 +1424,7 @@ class SBox(SageObject):
         ret = 0
 
         for i in range(n):
-            deg_Si = self.component_function(1<<i).algebraic_normal_form().degree()
+            deg_Si = self.component_function(1<<i).algebraic_degree()
             if deg_Si > ret:
                 ret = deg_Si
         return ret
@@ -1444,7 +1444,7 @@ class SBox(SageObject):
         ret = self.m
 
         for b in range(1, 1<<n):
-            deg_bS = self.component_function(b).algebraic_normal_form().degree()
+            deg_bS = self.component_function(b).algebraic_degree()
             if deg_bS < ret:
                 ret = deg_bS
         return ret

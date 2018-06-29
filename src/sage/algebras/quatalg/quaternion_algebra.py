@@ -893,6 +893,20 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h1 = hash(QuaternionAlgebra(-1,-7))
+            sage: h2 = hash(QuaternionAlgebra(-1,-7))
+            sage: h3 = hash(QuaternionAlgebra(-1,-5))
+            sage: h1  == h2 and h1 != h3
+            True
+        """
+        return hash((self.base_ring(), self._a, self._b))
+
     def gen(self, i=0):
         """
         Return the `i^{th}` generator of ``self``.
@@ -1452,6 +1466,20 @@ class QuaternionOrder(Algebra):
             True
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h1 = hash(QuaternionAlgebra(-1,-7).maximal_order())
+            sage: h2 = hash(QuaternionAlgebra(-1,-7).maximal_order())
+            sage: h3 = hash(QuaternionAlgebra(-1,-5).maximal_order())
+            sage: h1  == h2 and h1 != h3
+            True
+        """
+        return hash((self.__quaternion_algebra, self.__basis))
 
     def basis(self):
         """

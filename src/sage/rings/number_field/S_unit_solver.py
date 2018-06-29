@@ -48,6 +48,31 @@ from sage.arith.all import factorial
 from sage.matrix.constructor import Matrix
 from itertools import combinations_with_replacement
 
+from sage.rings.ring import Field
+from sage.rings.number_field.number_field import NumberField
+from sage.rings.number_field.unit_group import UnitGroup
+from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
+from sage.rings.number_field.number_field_element import NumberFieldElement
+from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.number_field.number_field import NumberField_absolute
+from sage.rings.finite_rings.integer_mod_ring import Integers
+from sage.rings.finite_rings.integer_mod import mod
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR
+from sage.rings.padics.factory import Qp
+from sage.modules.free_module_element import zero_vector
+from sage.misc.functional import round
+from sage.arith.all import gcd, factor, lcm, CRT
+from copy import copy
+
+
+from sage.functions.log import log
+from sage.functions.other import sqrt
+from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix
+from sage.rings.number_field.number_field import refine_embedding
+import itertools
+
 def column_Log(SUK, iota, U, prec=106):
     r"""
     Return the log vector of ``iota``; i.e., the logs of all the valuations
@@ -169,7 +194,8 @@ def c4_func(SUK,v, A, prec=106):
 
     - [Sma1995]_ p. 824
     """
-    return max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A)
+    R = RealField(prec)
+    return R(max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A))
 
 def beta_k(betas_and_ns):
     r"""

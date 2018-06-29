@@ -46,34 +46,37 @@ EXAMPLES::
 
 from __future__ import absolute_import
 
-from sage.rings.ring import Field
 from sage.rings.all import Infinity
+from sage.rings.polynomial.polynomial_ring import polygen
+from sage.rings.integer import Integer
+from sage.rings.real_mpfr import RealField
+from sage.rings.number_field.number_field import is_real_place
+from sage.combinat.combination import Combinations
+from sage.misc.all import prod
+from sage.arith.all import factorial
+from sage.matrix.constructor import Matrix
+from itertools import combinations_with_replacement
+
+from sage.rings.ring import Field
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.number_field.unit_group import UnitGroup
 from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
 from sage.rings.number_field.number_field_element import NumberFieldElement
-from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.number_field.number_field import NumberField_absolute
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.integer_ring import ZZ
-from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ
-from sage.rings.real_mpfr import RealField, RR
+from sage.rings.real_mpfr import RR
 from sage.rings.padics.factory import Qp
 from sage.modules.free_module_element import zero_vector
-from sage.combinat.combination import Combinations
-from sage.misc.all import prod
 from sage.misc.functional import round
 from sage.arith.all import gcd, factor, lcm, CRT
-from sage.arith.all import factorial
 from copy import copy
 from sage.functions.log import log
 from sage.functions.other import sqrt
-from sage.matrix.constructor import Matrix, matrix, identity_matrix, vector, block_matrix
-from sage.rings.number_field.number_field import is_real_place
-from itertools import combinations_with_replacement
+from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix
 from sage.rings.number_field.number_field import refine_embedding
 import itertools
 
@@ -200,7 +203,7 @@ def c4_func(SUK,v, A, prec=106):
     """
     R = RealField(prec)
 
-    return max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A)
+    return R(max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A))
 
 def beta_k(betas_and_ns):
     r"""
@@ -481,7 +484,6 @@ def c13_func(SUK, v, prec=106):
         _ = v.codomain()
     except AttributeError:
         raise TypeError('Place must be infinite')
-    R = RealField(prec)
     if is_real_place(v):
         return c3_func(SUK,prec)
     else:

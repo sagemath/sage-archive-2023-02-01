@@ -2679,18 +2679,6 @@ class LatexExamples():
             LaTeX example for testing display of graphs...
         """
 
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.graph())
-                <class 'sage.misc.latex.graph'>
-            """
-            pass
-
         def _repr_(self):
             """
             String representation
@@ -2760,17 +2748,6 @@ from the notebook -- you should get a nice picture.
             sage: PS
             LaTeX example for testing display of pstricks...
         """
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.pstricks())
-                <class 'sage.misc.latex.pstricks'>
-            """
-            pass
 
         def _repr_(self):
             """
@@ -2831,17 +2808,6 @@ should get a nice picture."""
             sage: K
             LaTeX example for testing display of a knot...
         """
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.knot())
-                <class 'sage.misc.latex.knot'>
-            """
-            pass
 
         def _repr_(self):
             """
@@ -2894,17 +2860,6 @@ should get a nice picture.
             sage: CD
             LaTeX example for testing display of a commutative diagram...
         """
-        def __init__(self):
-            """
-            See the string representation for complete documentation.
-
-            EXAMPLES::
-
-                sage: from sage.misc.latex import latex_examples
-                sage: type(latex_examples.diagram())
-                <class 'sage.misc.latex.diagram'>
-            """
-            pass
 
         def _repr_(self):
             """

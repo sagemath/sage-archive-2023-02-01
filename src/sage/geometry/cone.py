@@ -145,7 +145,7 @@ You can work with subcones that form faces of other cones::
 If you need to know inclusion relations between faces, you can use ::
 
     sage: L = four_rays.face_lattice()
-    sage: list(map(len, L.level_sets()))
+    sage: [len(s) for s in L.level_sets()]
     [1, 4, 4, 1]
     sage: face = L.level_sets()[2][0]
     sage: face.rays()
@@ -6457,12 +6457,11 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         else:
             if K.lattice() is not lattice:
                 return False
-        return all([
-            K.nrays() >= min_rays,
-            K.nrays() <= max_rays or max_rays is None,
-            K.is_solid() == solid or solid is None,
-            K.is_strictly_convex() == strictly_convex or strictly_convex is None
-            ])
+        return all([K.nrays() >= min_rays,
+                    max_rays is None or K.nrays() <= max_rays,
+                    solid is None or K.is_solid() == solid,
+                    strictly_convex is None or
+                    K.is_strictly_convex() == strictly_convex])
 
     # Now we actually compute the thing. To avoid recursion (and the
     # associated "maximum recursion depth exceeded" error), we loop
@@ -6544,7 +6543,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
 
                     # rays has immutable elements
                     from copy import copy
-                    rays = map(copy, rays)
+                    rays = [copy(ray) for ray in rays]
 
                     for i, ray in enumerate(rays):
                         rays[i][0] = pm * (ray[0].abs() + 1)

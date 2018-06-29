@@ -17,6 +17,9 @@ build by typing ``graphs.`` in Sage and then hitting tab.
 """
 from __future__ import print_function, absolute_import, division
 from six.moves import range
+from six import PY2
+
+import subprocess
 
 # This method appends a list of methods to the doc as a 3xN table.
 
@@ -898,10 +901,15 @@ class GraphGenerators():
             sage: print(next(gen))
             >A geng -d0D3 n=4 e=0-6
         """
-        import subprocess
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
         sp = subprocess.Popen("geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True)
+                              stderr=subprocess.PIPE, close_fds=True,
+                              **enc_kwargs)
         if debug:
             yield sp.stderr.readline()
         gen = sp.stdout
@@ -1241,10 +1249,15 @@ class GraphGenerators():
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
-        import subprocess
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True)
+                              stderr=subprocess.PIPE, close_fds=True,
+                              **enc_kwargs)
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1331,10 +1344,15 @@ class GraphGenerators():
 
         command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
 
-        import subprocess
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True)
+                              stderr=subprocess.PIPE, close_fds=True,
+                              **enc_kwargs)
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1526,10 +1544,15 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        import subprocess
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True)
+                              stderr=subprocess.PIPE, close_fds=True,
+                              **enc_kwargs)
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1709,10 +1732,15 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        import subprocess
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True)
+                              stderr=subprocess.PIPE, close_fds=True,
+                              **enc_kwargs)
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)
@@ -1851,10 +1879,15 @@ class GraphGenerators():
                              'd' if dual else '',
                              order)
 
-        import subprocess
+        if PY2:
+            enc_kwargs = {}
+        else:
+            enc_kwargs = {'encoding': 'latin-1'}
+
         sp = subprocess.Popen(command, shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, close_fds=True)
+                              stderr=subprocess.PIPE, close_fds=True,
+                              **enc_kwargs)
 
         for G in graphs._read_planar_code(sp.stdout):
             yield(G)

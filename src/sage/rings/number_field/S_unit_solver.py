@@ -66,6 +66,17 @@ from sage.functions.log import log
 from sage.functions.other import sqrt
 from copy import copy
 from sage.misc.functional import round
+import itertools
+
+from sage.rings.ring import Field
+from sage.rings.number_field.number_field import NumberField
+from sage.rings.number_field.unit_group import UnitGroup
+from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
+from sage.rings.number_field.number_field_element import NumberFieldElement
+from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.number_field.number_field import NumberField_absolute
+from sage.arith.all import gcd, factor, lcm, CRT
+import sys
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -2142,8 +2153,8 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             print("construct_comp_exp_vec executed.")
 
         if verbose_flag:
-            print("Size of comp_exp_vec[q]: ", len(comp_exp_vec[q])
-            sys.stdout.flush())
+            print("Size of comp_exp_vec[q]: ", len(comp_exp_vec[q]))
+            sys.stdout.flush()
 
         # Now that we have a new dictionary, we compare all the dictionaries pairwise,
         # looking for opportunities to remove 'impossible' solutions.

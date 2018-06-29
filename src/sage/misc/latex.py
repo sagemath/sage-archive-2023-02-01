@@ -20,9 +20,21 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
+
+import os
+import random
+import re
+import shutil
+import subprocess
+
 from six import iteritems, integer_types
 
 from sage.cpython.string  import str_to_bytes
+
+from sage.misc import sage_eval
+from sage.misc.cachefunc import cached_function, cached_method
+from sage.misc.sage_ostools import have_program
+from sage.misc.temporary_file import tmp_dir
 
 EMBEDDED_MODE = False
 
@@ -56,15 +68,6 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-import shutil, re
-import os.path
-import random
-import subprocess
-
-from sage.misc.temporary_file import tmp_dir
-from . import sage_eval
-from sage.misc.sage_ostools import have_program
-from sage.misc.cachefunc import cached_function, cached_method
 
 @cached_function
 def have_latex():
@@ -1772,7 +1775,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
                 s += '%s'%L
                 s += r'\end{lrbox}'
                 s += r'\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{\usebox{\pgffigure}}' + '\n'
-            elif not '\\begin{verbatim}' in L:
+            elif '\\begin{verbatim}' not in L:
                 s += '%s%s%s'%(math_left, L, math_right)
             else:
                 s += '%s'%L

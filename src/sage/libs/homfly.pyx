@@ -64,9 +64,9 @@ def homfly_polynomial_string(link):
 
     EXAMPLES::
 
-        sage: from sage.libs.homfly import homfly_polynomial_string # optional - libhomfly
+        sage: from sage.libs.homfly import homfly_polynomial_string
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
-        sage: homfly_polynomial_string(trefoil) # optional - libhomfly
+        sage: homfly_polynomial_string(trefoil)
         ' - L^-4 - 2L^-2 + M^2L^-2'
     """
     link = str_to_bytes(link)
@@ -90,9 +90,9 @@ def homfly_polynomial_dict(link):
 
     EXAMPLES::
 
-        sage: from sage.libs.homfly import homfly_polynomial_dict # optional - libhomfly
+        sage: from sage.libs.homfly import homfly_polynomial_dict
         sage: trefoil = '1 6 0 1  1 -1  2 1  0 -1  1 1  2 -1 0 1 1 1 2 1'
-        sage: homfly_polynomial_dict(trefoil) # optional - libhomfly
+        sage: homfly_polynomial_dict(trefoil)
         {(-4, 0): -1, (-2, 0): -2, (-2, 2): 1}
     """
     link = str_to_bytes(link)

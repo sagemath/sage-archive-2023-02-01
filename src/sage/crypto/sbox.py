@@ -20,6 +20,8 @@ from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
+from sage.misc.superseded import deprecated_function_alias
+
 class SBox(SageObject):
     r"""
     A substitution box or S-box is one of the basic components of
@@ -416,6 +418,7 @@ class SBox(SageObject):
         for i in range(2**self.m):
             yield self(i)
 
+    @cached_method
     def difference_distribution_table(self):
         """
         Return difference distribution table (DDT) ``A`` for this S-box.
@@ -459,6 +462,8 @@ class SBox(SageObject):
         A.set_immutable()
 
         return A
+
+    difference_distribution_matrix = deprecated_function_alias(25708, difference_distribution_table)
 
     def maximal_difference_probability_absolute(self):
         """
@@ -589,6 +594,8 @@ class SBox(SageObject):
         A.set_immutable()
 
         return A
+
+    linear_approximation_matrix = deprecated_function_alias(25708, linear_approximation_table)
 
     def maximal_linear_bias_absolute(self):
         """
@@ -1316,6 +1323,8 @@ class SBox(SageObject):
         A.set_immutable()
         return A
 
+    boomerang_connectivity_matrix = deprecated_function_alias(25708, boomerang_connectivity_table)
+
 
     def linear_structures(self):
         r"""
@@ -1629,6 +1638,7 @@ class SBox(SageObject):
             True
         """
         return self == self.inverse()
+
 
 def feistel_construction(*args):
     r"""

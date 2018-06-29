@@ -701,6 +701,8 @@ class FractionField_generic(ring.Field):
             sage: h0 == h1 and h1 != h2 and h1 != h3
             True
         """
+        # to avoid having exactly the same hash as the base ring,
+        # we change this hash using a random number
         return hash(self._R) ^ 147068341996611
 
     def ngens(self):

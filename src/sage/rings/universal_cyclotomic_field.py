@@ -147,6 +147,12 @@ Check that :trac:`17117` is fixed::
     sage: imag(e3)
     -1/2*E(12)^7 + 1/2*E(12)^11
 
+Check that :trac:`25686` is fixed::
+
+    sage: UCF = UniversalCyclotomicField()
+    sage: UCF.is_finite()
+    False
+
 AUTHORS:
 
 - Christian Stump (2013): initial Sage version (see :trac:`8327`)

@@ -76,7 +76,6 @@ from sage.rings.number_field.number_field_element import NumberFieldElement
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.number_field.number_field import NumberField_absolute
 from sage.arith.all import gcd, factor, lcm, CRT
-import sys
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -2064,12 +2063,10 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
     if verbose_flag:
         print("Using the following primes: ", split_primes_list)
-        sys.stdout.flush()
     for q in split_primes_list:
         rho_images = rho_images_dict[q]
         if verbose_flag:
             print("q = ", q)
-            sys.stdout.flush()
         def epsilon_q(a, i):
             # a is an exponent vector
             # i is an index for one of the primes over q
@@ -2083,7 +2080,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         if verbose_flag:
             print("The evaluation function epsilon has been defined using rho_images = ", rho_images)
-            sys.stdout.flush()
         # Now, we run through the vectors in the iterator, but only keep the ones
         # which are compatible with the previously constructed dictionaries. That is,
         # in order to keep an exp_vec mod q, there must exist a compatible exp_vec mod p
@@ -2107,7 +2103,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
-                sys.stdout.flush()
         else:
             ev_to_rfv_dict = {}
             # We use compatibility requirements to keep the size of the dictionary down.
@@ -2126,7 +2121,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         if verbose_flag:
             print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
-            sys.stdout.flush()
         # At this point, we now have a dictionary ev_to_rfv_dict, which attaches
         # to each exponent vector a 'residue field vector,' which is a tuple of the
         # nK values epsilon_q(a,0),...,epsilon_q(a,nK-1).
@@ -2136,7 +2130,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         if verbose_flag:
             print("clean_rfv_dict executed.")
             print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
-            sys.stdout.flush()
         # We essentially construct an inverse dictionary: one whose keys are residue field vectors,
         # and whose values are the exponent vectors that yield each key
 
@@ -2145,7 +2138,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         if verbose_flag:
             print("construct_rfv_to_ev executed.")
             print("The rfv_to_ev dictionary currently has ", len(rfv_to_ev[q]), "rfv keys.")
-            sys.stdout.flush()
 
         comp_exp_vec[q] = construct_comp_exp_vec( rfv_to_ev[q], q )
 
@@ -2154,7 +2146,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         if verbose_flag:
             print("Size of comp_exp_vec[q]: ", len(comp_exp_vec[q]))
-            sys.stdout.flush()
 
         # Now that we have a new dictionary, we compare all the dictionaries pairwise,
         # looking for opportunities to remove 'impossible' solutions.
@@ -2163,7 +2154,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print("Comparing dictionaries for p = ", p, "and q = ", q, ".")
-                sys.stdout.flush()
 
             old_size_p = len(comp_exp_vec[p])
 
@@ -2172,7 +2162,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 cv_size = ( (q-1)/gcd(p-1, q-1) )**( rho_length - 1 )
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_p * cv_size)
-                sys.stdout.flush()
 
             for exp_vec in comp_exp_vec[p].copy():
                 if drop_vector(exp_vec, p, q, comp_exp_vec):
@@ -2180,7 +2169,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print("Shrunk dictionary p from ", old_size_p, " to ", len(comp_exp_vec[p]))
-                sys.stdout.flush()
 
             # Now, repeat, but swap p and q.
 
@@ -2191,7 +2179,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 cv_size = ( (p-1)/gcd(p-1, q-1) )**( rho_length - 1 )
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_q * cv_size)
-                sys.stdout.flush()
 
             for exp_vec in comp_exp_vec[q].copy():
                 if drop_vector(exp_vec, q, p, comp_exp_vec):
@@ -2199,7 +2186,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print("Shrunk dictionary q from ", old_size_q, " to ", len(comp_exp_vec[q]))
-                sys.stdout.flush()
 
     return comp_exp_vec
 

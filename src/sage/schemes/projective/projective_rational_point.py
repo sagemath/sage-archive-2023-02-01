@@ -157,6 +157,7 @@ def enum_projective_number_field(X, **kwds):
 
     This is an implementation of the revised algorithm (Algorithm 4) in
     [Doyle-Krumm]_. Algorithm 5 is used for imaginary quadratic fields.
+    
     INPUT:
 
     kwds:

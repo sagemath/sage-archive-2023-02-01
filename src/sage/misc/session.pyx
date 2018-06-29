@@ -60,8 +60,6 @@ AUTHOR:
 from __future__ import print_function, absolute_import
 
 # Standard python imports
-from six import iteritems
-from six.moves import cPickle
 import os
 import types
 
@@ -71,7 +69,7 @@ cdef caller_locals = builtins.locals
 
 # Sage imports
 from .misc import embedded
-from sage.misc.persist import load, save
+from sage.misc.persist import load, save, loads, dumps
 
 # This module-scope variables is used to save the
 # global state of the sage environment at the moment
@@ -219,8 +217,13 @@ def show_identifiers(hidden=False):
     state = caller_locals()
     # Ignore extra variables injected into the global namespace by the doctest
     # runner
-    return sorted([x for x, v in iteritems(state) if _is_new_var(x, v, hidden)
-                   and x not in DocTestTask.extra_globals])
+    _none = object()
+    def _in_extra_globals(name, val):
+        return val == DocTestTask.extra_globals.get(name, _none)
+
+    return sorted([x for x, v in state.items() if _is_new_var(x, v, hidden)
+                   and not _in_extra_globals(x, v)])
+
 
 def save_session(name='sage_session', verbose=False):
     r"""
@@ -315,7 +318,7 @@ def save_session(name='sage_session', verbose=False):
             # doesn't change in the Sage library itself).  Otherwise,
             # we could easily pickle whole sessions but get something
             # not at all useful.
-            _ = cPickle.loads(cPickle.dumps(x, protocol=2))
+            _ = loads(dumps(x, False), False)
             if verbose:
                 print("Saving %s" % k)
             D[k] = x

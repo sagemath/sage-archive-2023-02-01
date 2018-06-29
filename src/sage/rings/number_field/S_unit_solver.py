@@ -56,6 +56,7 @@ from itertools import combinations_with_replacement
 from sage.functions.log import log
 from sage.functions.other import sqrt
 from copy import copy
+from sage.misc.functional import round
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -700,9 +701,7 @@ def reduction_step_real_case(place,B0,G,c7):
     finish = False
     while not finish:
         A = copy(identity_matrix(ZZ,n))
-        print(Glog)
-        print(C)
-        v = vector(ZZ,[round(g*C) for g in Glog])
+        v = vector([round(g*C) for g in Glog])
 
         if v[n-1] == 0: #we replace the last element of v with an other non zero
             k = [i for i,a in enumerate(v) if not a.is_zero()][0]
@@ -725,7 +724,7 @@ def reduction_step_real_case(place,B0,G,c7):
                 return 0,True
         else:
             if sqrt(l-S) - T > 0:
-                return ZZ(round((log(C * 2)-log(sqrt(l-S) - T))/c7)),False
+                return round((log(C * 2)-log(sqrt(l-S) - T))/c7),False
             else:
                 return B0,False
 
@@ -793,7 +792,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
         finish = False
         while not finish:
             A = copy(identity_matrix(ZZ,n+1))
-            v = vector([ZZ(round(g * C)) for g in Glog_imag])
+            v = vector([round(g * C) for g in Glog_imag])
 
             if v[n] == 0:
                 #we replace the last element of v with an other non zero

@@ -1414,6 +1414,7 @@ def help_message_long(option, opt_str, value, parser):
         print(f())
     sys.exit(0)
 
+
 def help_message_short(option=None, opt_str=None, value=None, parser=None,
                        error=False):
     """
@@ -1424,12 +1425,13 @@ def help_message_short(option=None, opt_str=None, value=None, parser=None,
     requested a list (e.g., documents, formats, commands).
     """
     if not hasattr(parser.values, 'printed_help'):
-        if error == True:
+        if error is True:
             if not hasattr(parser.values, 'printed_list'):
                 parser.print_help()
         else:
             parser.print_help()
         setattr(parser.values, 'printed_help', 1)
+
 
 def help_wrapper(option, opt_str, value, parser):
     """

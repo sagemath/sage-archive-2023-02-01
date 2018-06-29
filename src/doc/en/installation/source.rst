@@ -1266,12 +1266,16 @@ Sage uses the following environment variables when it runs:
   time Sage starts.
   The default value is :file:`$DOT_SAGE/init.sage`.
 
-- :envvar:`SAGE_PATH` - a colon-separated list of directories which Sage
-  searches when trying to locate Python libraries.
-
 - :envvar:`BROWSER` - on most platforms, Sage will detect the command to
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
+
+- :envvar:`PYTHONPATH` from the `CPython environment variables
+  <https://docs.python.org/using/cmdline.html#environment-variables>`_ - a
+  colon-separated list of directories which Sage searches when trying to locate
+  Python libraries; See there for full details.
+  In Sage version 8.0 support for the :envvar:`SAGE_PATH` environment variable
+  was removed, and one can use :envvar:`PYTHONPATH` instead.
 
 Variables dealing with doctesting:
 

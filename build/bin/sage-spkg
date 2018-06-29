@@ -176,8 +176,8 @@ for dir in "$SAGE_SPKG_INST" "$SAGE_SPKG_SCRIPTS"; do
 done
 
 
-# Remove '.' from PYTHONPATH, which may also come from SAGE_PATH, to avoid
-# trouble with setuptools / easy_install (cf. #10192, #10176):
+# Remove '.' from PYTHONPATH, to avoid trouble with setuptools / easy_install
+# (cf. #10192, #10176):
 if [ -n "$PYTHONPATH" ]; then
     # We also collapse multiple slashs into a single one (first substitution),
     # remove leading './'s and trailing '/.'s (second and third), and

@@ -333,6 +333,20 @@ class ElementWithLabel:
         """
         return latex(self.label)
 
+    def __str__(self):
+        """
+        Returns the representation of `self` which is just the representation of the label.
+
+        TESTS::
+
+            sage: var('a_1')
+            a_1
+            sage: e = sage.combinat.posets.posets.ElementWithLabel(1, a_1)
+            sage: str(e)
+            'a_1'
+        """
+        return str(self.label)
+
     def __repr__(self):
         """
         Returns the representation of `self` which is just the representation of the label.

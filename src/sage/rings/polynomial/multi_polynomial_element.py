@@ -306,6 +306,15 @@ class MPolynomial_element(MPolynomial):
             sage: S.<x,y>=PolynomialRing(R)
             sage: x/S(2)
             1/2*x
+
+        Ensure that :trac:`17638` is fixed.::
+
+            sage: R.<x,y> = PolynomialRing(QQ,order = "neglex")
+            sage: f = 1+y
+            sage: g = 1+x
+            sage: h = f/g
+            sage: print(h*g == f)
+            True
         """
         if right in self.base_ring():
             inv = self.base_ring().one()/self.base_ring()(right)

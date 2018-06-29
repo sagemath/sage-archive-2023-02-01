@@ -1943,8 +1943,10 @@ class MathJax:
             <html><script type="math/tex; mode=display">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
             sage: MathJax().eval(3, mode='inline')
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}3</script></html>
-            sage: MathJax().eval(type(3), mode='inline')
+            sage: MathJax().eval(type(3), mode='inline')  # py2
             <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<type|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'>|</script></html>
+            sage: MathJax().eval(type(3), mode='inline')  # py3
+            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<class|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'>|</script></html>
         """
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)

@@ -67,16 +67,6 @@ from sage.functions.other import sqrt
 from copy import copy
 from sage.misc.functional import round
 
-from sage.rings.ring import Field
-from sage.rings.number_field.number_field import NumberField
-from sage.rings.number_field.unit_group import UnitGroup
-from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
-from sage.rings.number_field.number_field_element import NumberFieldElement
-from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.rings.number_field.number_field import NumberField_absolute
-from sage.arith.all import gcd, factor, lcm, CRT
-import itertools
-
 def column_Log(SUK, iota, U, prec=106):
     r"""
     Return the log vector of ``iota``; i.e., the logs of all the valuations

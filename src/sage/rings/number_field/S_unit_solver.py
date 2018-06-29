@@ -169,7 +169,9 @@ def c4_func(SUK,v, A, prec=106):
 
     - [Sma1995]_ p. 824
     """
-    return max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A)
+    R = RealField(prec)
+
+    return R(max(SUK.number_field().abs_val(v, alpha, prec) for alpha in A))
 
 def beta_k(betas_and_ns):
     r"""

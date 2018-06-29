@@ -416,9 +416,9 @@ class SBox(SageObject):
         for i in range(2**self.m):
             yield self(i)
 
-    def difference_distribution_matrix(self):
+    def difference_distribution_table(self):
         """
-        Return difference distribution matrix ``A`` for this S-box.
+        Return difference distribution table (DDT) ``A`` for this S-box.
 
         The rows of ``A`` encode the differences ``Delta I`` of the
         input and the columns encode the difference ``Delta O`` for
@@ -434,7 +434,7 @@ class SBox(SageObject):
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: S.difference_distribution_matrix()
+            sage: S.difference_distribution_table()
             [8 0 0 0 0 0 0 0]
             [0 2 2 0 2 0 0 2]
             [0 0 2 2 0 0 2 2]
@@ -480,7 +480,7 @@ class SBox(SageObject):
 
           This code is mainly called internally.
         """
-        A = self.difference_distribution_matrix().__copy__()
+        A = self.difference_distribution_table().__copy__()
         A[0,0] = 0
         return max(map(abs, A.list()))
 
@@ -500,9 +500,9 @@ class SBox(SageObject):
         return self.maximal_difference_probability_absolute()/(2.0**self.n)
 
     @cached_method
-    def linear_approximation_matrix(self, scale="absolute_bias"):
+    def linear_approximation_table(self, scale="absolute_bias"):
         r"""
-        Return linear approximation matrix (LAM) `A` for this S-box.
+        Return linear approximation table (LAT) `A` for this S-box.
 
         The entry `A[\alpha,\beta]` corresponds to the probability
         `Pr[\alpha\cdot x = \beta\cdot S(x)]`, where `S` is this S-box
@@ -521,7 +521,7 @@ class SBox(SageObject):
 
         INPUT:
 
-        - ``scale`` - string to choose the scaling for the LAM, one of
+        - ``scale`` - string to choose the scaling for the LAT, one of
             - "bias": elements are `e(\alpha, \beta)`
             - "correlation": elements are `c(\alpha, \beta)`
             - "absolute_bias": elements are `2^m\cdot e(\alpha, \beta)` (default)
@@ -531,7 +531,7 @@ class SBox(SageObject):
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: lat_abs_bias = S.linear_approximation_matrix()
+            sage: lat_abs_bias = S.linear_approximation_table()
             sage: lat_abs_bias
             [ 4  0  0  0  0  0  0  0]
             [ 0  0  0  0  2  2  2 -2]
@@ -542,16 +542,16 @@ class SBox(SageObject):
             [ 0 -2 -2  0  0 -2  2  0]
             [ 0 -2  2  0 -2  0  0 -2]
 
-            sage: lat_abs_bias/(1<<S.m) == S.linear_approximation_matrix(scale="bias")
+            sage: lat_abs_bias/(1<<S.m) == S.linear_approximation_table(scale="bias")
             True
 
-            sage: lat_abs_bias/(1<<(S.m-1)) == S.linear_approximation_matrix(scale="correlation")
+            sage: lat_abs_bias/(1<<(S.m-1)) == S.linear_approximation_table(scale="correlation")
             True
 
-            sage: lat_abs_bias*2 == S.linear_approximation_matrix(scale="fourier_coefficient")
+            sage: lat_abs_bias*2 == S.linear_approximation_table(scale="fourier_coefficient")
             True
 
-        According to this matrix the first bit of the input is equal
+        According to this table the first bit of the input is equal
         to the third bit of the output 6 out of 8 times::
 
             sage: for i in srange(8): print(S.to_bits(i)[0] == S.to_bits(S(i))[2])
@@ -603,7 +603,7 @@ class SBox(SageObject):
             sage: S.maximal_linear_bias_absolute()
             2
         """
-        A = self.linear_approximation_matrix().__copy__()
+        A = self.linear_approximation_table().__copy__()
         A[0,0] = 0
         return max(map(abs, A.list()))
 
@@ -1209,7 +1209,7 @@ class SBox(SageObject):
         m = self.m
         n = self.n
         ret = (1<<m) + (1<<n)
-        lat = self.linear_approximation_matrix()
+        lat = self.linear_approximation_table()
 
         for a in range(1, 1<<m):
             for b in range(1<<n):
@@ -1252,15 +1252,15 @@ class SBox(SageObject):
         from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 
         n = self.n
-        A = self.difference_distribution_matrix() * hadamard_matrix(1<<n)
+        A = self.difference_distribution_table() * hadamard_matrix(1<<n)
         A.set_immutable()
 
         return A
 
     @cached_method
-    def boomerang_connectivity_matrix(self):
+    def boomerang_connectivity_table(self):
         r"""
-        Return the boomerang connectivity matrix for this S-Box.
+        Return the boomerang connectivity table (BCT) for this S-Box.
 
         Boomerang connectivity matrix of an invertible `m \times m`
         S-Box `S` is an `2^m \times 2^m` matrix with entry at row
@@ -1277,7 +1277,7 @@ class SBox(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.sboxes import PRESENT
-            sage: PRESENT.boomerang_connectivity_matrix()
+            sage: PRESENT.boomerang_connectivity_table()
             [16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16]
             [16  0  4  4  0 16  4  4  4  4  0  0  4  4  0  0]
             [16  0  0  6  0  4  6  0  0  0  2  0  2  2  2  0]
@@ -1590,7 +1590,7 @@ class SBox(SageObject):
             True
             sage: S.nonlinearity()
             6
-            sage: S.linear_approximation_matrix()
+            sage: S.linear_approximation_table()
             [ 8 -2  2 -2]
             [ 0 -2  2 -2]
             [ 0 -2  2 -2]

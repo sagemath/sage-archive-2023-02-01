@@ -105,7 +105,7 @@ from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent

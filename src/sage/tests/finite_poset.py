@@ -6,8 +6,10 @@ As an examples: if a lattice is distributive, then it must be also
 modular, and if a poset is ranked, then the dual poset must also
 be ranked.
 """
+
 from sage.misc.prandom import randint
 from sage.misc.misc import attrcall
+from functools import reduce
 
 implications = {
  'doubling_convex': ['doubling_any'],

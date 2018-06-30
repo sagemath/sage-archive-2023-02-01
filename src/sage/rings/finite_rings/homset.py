@@ -348,5 +348,5 @@ class FiniteFieldHomset(RingHomset_generic):
         return K.hom([K.modulus().any_root(L)])
 
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_morphism', 'FiniteFieldHomset', FiniteFieldHomset)

@@ -56,3 +56,13 @@ def isfunction(obj):
 
 import inspect
 inspect.isfunction = isfunction
+
+
+# Monkey-patch ExtensionFileLoader to allow IPython to find the sources
+# of Cython files. See https://trac.sagemath.org/ticket/24681
+try:
+    from importlib.machinery import ExtensionFileLoader
+except ImportError:
+    pass  # Python 2
+else:
+    del ExtensionFileLoader.get_source

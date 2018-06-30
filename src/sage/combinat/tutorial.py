@@ -1268,7 +1268,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 The itertools methods ``imap`` and ``ifilter`` have been renamed to
 ``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
 
-    sage: from builtins import map, filter
+    sage: from six.moves import map, filter
 
 but they should rather be avoided, using list comprehension instead.
 

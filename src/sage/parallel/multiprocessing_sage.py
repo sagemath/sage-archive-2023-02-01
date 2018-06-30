@@ -67,8 +67,6 @@ def parallel_iter(processes, f, inputs):
         sage: v.sort(); v
         [(((2,), {}), 4), (((3,), {}), 6)]
     """
-    from twisted.internet import reactor   # do not delete this (!)  -- see trac 8785
-
     if processes == 0:
         processes = ncpus.ncpus()
     p = Pool(processes)

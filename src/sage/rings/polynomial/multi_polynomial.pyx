@@ -2295,7 +2295,7 @@ cdef class MPolynomial(CommutativeRingElement):
         z0 = z
         # creates and solves equations 4.4 in [SC], gives us a new z
         x,y = self.parent().gens()
-        F = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
+        F = S(phi(self(tuple((M * vector([x, y]))))))  # New self, S pushes it to polynomial ring
         #L1 = F.roots(ring=CF, multiplicities=True)
         L1 = complex_roots(F, min_prec=prec)
         L=[]

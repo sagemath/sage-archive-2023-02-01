@@ -34,7 +34,7 @@ from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.homset import Hom
 
 from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra import LieAlgebra, FinitelyGeneratedLieAlgebra
+from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra
 from sage.algebras.lie_algebras.lie_algebra_element import (LieGenerator,
                                                             GradedLieBracket,
                                                             LyndonBracket,

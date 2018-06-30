@@ -92,7 +92,7 @@ _sdh_cols() {
 }
 
 
-# Utility function to print a terminal-width horizonal rule using the given
+# Utility function to print a terminal-width horizontal rule using the given
 # character (or '-' by default)
 _sdh_hr() {
     local char="${1:--}"

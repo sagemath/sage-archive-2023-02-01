@@ -1407,8 +1407,8 @@ ext_modules = [
     Extension('sage.rings.polynomial.multi_polynomial_libsingular',
               sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx']),
 
-    Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
-              sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']),
+    Extension('sage.rings.polynomial.multi_polynomial_ring_base',
+              sources = ['sage/rings/polynomial/multi_polynomial_ring_base.pyx']),
 
     Extension('sage.rings.polynomial.polynomial_number_field',
               sources = ['sage/rings/polynomial/polynomial_number_field.pyx']),

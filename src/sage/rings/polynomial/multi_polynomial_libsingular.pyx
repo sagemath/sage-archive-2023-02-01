@@ -263,7 +263,7 @@ cimport cypari2.gen
 from . import polynomial_element
 
 permstore=[]
-cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
+cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
     def __cinit__(self):
         """
@@ -386,7 +386,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             ...
             ValueError: Multivariate Polynomial Rings must have more than 0 variables.
         """
-        MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
+        MPolynomialRing_base.__init__(self, base_ring, n, names, order)
         self._has_singular = True
         assert(n == len(self._names))
         self.__ngens = n
@@ -396,7 +396,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         self._one_element = one
         self._one_element_poly = one._poly
         # This polynomial ring should belong to Algebras(base_ring).
-        # Algebras(...).parent_class, which was called from MPolynomialRing_generic.__init__,
+        # Algebras(...).parent_class, which was called from MPolynomialRing_base.__init__,
         # tries to provide a conversion from the base ring, if it does not exist.
         # This is for algebras that only do the generic stuff in their initialisation.
         # But here, we want to use PolynomialBaseringInjection. Hence, we need to

@@ -76,6 +76,8 @@ REFERENCES:
 from __future__ import print_function, absolute_import, division
 from six import add_metaclass
 
+from functools import reduce
+
 from sage.structure.list_clone import ClonableArray
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent

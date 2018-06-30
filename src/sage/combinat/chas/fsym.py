@@ -19,7 +19,6 @@ AUTHORS:
 
 from sage.misc.bindable_class import BindableClass
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -29,6 +28,7 @@ from sage.categories.hopf_algebras import HopfAlgebras
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.tableau import Tableau, StandardTableaux
 from sage.combinat.sf.sf import SymmetricFunctions
+
 
 class FSymBasis_abstract(CombinatorialFreeModule, BindableClass):
     r"""

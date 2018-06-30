@@ -325,13 +325,24 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma(-3/2,5)._sympy_()
             -6*sqrt(5)*exp(-5)/25 + 4*sqrt(pi)*erfc(sqrt(5))/3
 
+        Check that :trac:`25597` is fixed::
+
+            sage: gamma(-1,5)._fricas_()                                        # optional - fricas
+            Gamma(- 1,5)
+
+            sage: var('t')                                                      # optional - fricas
+            t
+            sage: integrate(-exp(-x)*x^(t-1), x, algorithm="fricas")            # optional - fricas
+            gamma(t, x)
+
     .. SEEALSO::
 
         :meth:`gamma`
         """
         BuiltinFunction.__init__(self, "gamma", nargs=2, latex_name=r"\Gamma",
                 conversions={'maxima':'gamma_incomplete', 'mathematica':'Gamma',
-                    'maple':'GAMMA', 'sympy':'uppergamma', 'giac':'ugamma'})
+                             'maple':'GAMMA', 'sympy':'uppergamma', 'fricas':'Gamma',
+                             'giac':'ugamma'})
 
     def _eval_(self, x, y):
         """
@@ -970,4 +981,3 @@ class Function_beta(GinacFunction):
                                                 giac='Beta'))
 
 beta = Function_beta()
-

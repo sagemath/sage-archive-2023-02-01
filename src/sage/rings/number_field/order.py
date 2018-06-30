@@ -1308,7 +1308,7 @@ class AbsoluteOrder(Order):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
             sage: magma(K.maximal_order())  # optional - magma
             Equation Order with defining polynomial x^3 + 2 over its ground order
 
@@ -1318,7 +1318,7 @@ class AbsoluteOrder(Order):
             'Order([(_sage_[...]![1, 0, 0]),(_sage_[...]![0, 1, 0]),(_sage_[...]![0, 0, 1])])'
         """
         K = self.number_field()
-        v = [K(a)._magma_init_(magma) for a in self.gens()]
+        v = [K(a)._magma_init_(magma) for a in self.basis()]
         return 'Order([%s])'%(','.join(v))
 
     def discriminant(self):

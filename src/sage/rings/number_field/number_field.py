@@ -1456,8 +1456,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: R.<t> = QQ[]
-            sage: K.<a> = NumberField(t^2 + 1)
+            sage: R.<t> = QQ[] # optional - magma
+            sage: K.<a> = NumberField(t^2 + 1) # optional - magma
             sage: K._magma_init_(magma)                            # optional - magma
             'SageCreateWithNames(NumberField(_sage_[...]),["a"])'
             sage: L = magma(K)    # optional - magma
@@ -1478,8 +1478,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
         A relative number field::
 
-            sage: S.<u> = K[]
-            sage: M.<b> = NumberField(u^3+u+a)
+            sage: S.<u> = K[] # optional - magma
+            sage: M.<b> = NumberField(u^3+u+a) # optional - magma
             sage: L = magma(M)    # optional - magma
             sage: L               # optional - magma
             Number Field with defining polynomial u^3 + u + a over its ground field
@@ -9631,10 +9631,10 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         EXAMPLES::
 
-            sage: K=CyclotomicField(7,'z')
+            sage: K=CyclotomicField(7,'z') # optional - magma
             sage: K._magma_init_(magma)                                # optional - magma
             'SageCreateWithNames(CyclotomicField(7),["z"])'
-            sage: K=CyclotomicField(7,'zeta')
+            sage: K=CyclotomicField(7,'zeta') # optional - magma
             sage: K._magma_init_(magma)                                # optional - magma
             'SageCreateWithNames(CyclotomicField(7),["zeta"])'
         """

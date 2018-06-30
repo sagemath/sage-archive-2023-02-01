@@ -142,6 +142,34 @@ class NumberFieldIdeal(Ideal_generic):
         if field.absolute_degree() == 2:
             self.quadratic_form = self._quadratic_form
 
+    def _magma_init_(self, magma):
+        """
+        Return Magma version of this ideal.
+
+        INPUT:
+
+
+        -  ``magma`` - a Magma interpreter
+
+
+        OUTPUT: MagmaElement corresponding to this ideal.
+
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
+            sage: I = K.ideal(5) # optional - magma
+            sage: I._magma_init_(magma)            # optional - magma
+            '(_sage_[...]![5, 0, 0]) * _sage_[...]'
+        """
+        O = magma(self.number_field().maximal_order())
+        g = self.gens()[0]
+        ans = magma(g) * O
+        for g in self.gens()[1:]:
+            ans += magma(g) * O
+        v = '+'.join(['%s * %s'%(g._magma_init_(magma),O.name()) for g in self.gens()])
+        return v
+
     def __hash__(self):
         """
         EXAMPLES::

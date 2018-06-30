@@ -126,8 +126,7 @@ def enum_product_projective_rational_field(X, B):
     R = X.codomain().ambient_space()
     m = R.num_components()
 
-    comp = R.components()
-    comp_points = [ enum_projective_rational_field(comp[i], B) for i in range(m) ]
+    comp_points = [ enum_projective_rational_field(R[i], B) for i in range(m) ]
     indices = xmrange([len(comp_points[i]) for i in range(m)])
     points = [ R([comp_points[t][I[t]] for t in range(m)]) for I in indices ]
 

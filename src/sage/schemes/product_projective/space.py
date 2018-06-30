@@ -1187,9 +1187,10 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         tol = kwds.pop('tolerance', 1e-2)
         prec = kwds.pop('precision', 53)
         m = self.num_components()
-        comp_points = [list(self._components[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)) for i in range(m)]
+        comp_points = [list(self[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec)) for i in range(m)]
         indices = xmrange([len(comp_points[i]) for i in range(m)])
-        return iter([self([comp_points[t][I[t]] for t in range(m)]) for I in indices])
+        for I in indices:
+            yield self([comp_points[t][I[t]] for t in range(m)])
 
 class ProductProjectiveSpaces_finite_field(ProductProjectiveSpaces_field):
     def _point(self, *args, **kwds):

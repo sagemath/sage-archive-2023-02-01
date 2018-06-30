@@ -650,7 +650,9 @@ class OEISSequence(SageObject):
         Handle dead sequences: see  :trac:`17330` ::
 
             sage: oeis(17)                              # optional -- internet
-            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
+            doctest:warning
+            ...
+            RuntimeWarning: This sequence is dead: "A000017: Erroneous version of A032522."
             A000017: Erroneous version of A032522.
 
             sage: s = oeis._imaginary_sequence()
@@ -661,9 +663,8 @@ class OEISSequence(SageObject):
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
         if 'dead' in self.keywords(): 
-            ("This sequence is dead: \""+self.name()+"\"")
             from warnings import warn
-            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
+            warn('This sequence is dead: "{}: {}"'.format(self.id(), self.name()), RuntimeWarning)
 
 
     def id(self, format='A'):
@@ -1095,11 +1096,11 @@ class OEISSequence(SageObject):
 
         Handle dead sequences: see  :trac:`17330` ::
 
-            sage: oeis(17).first_terms(12)              # optional -- internet  
-            oeis(17).first_terms(12)
-            .. RuntimeWarning: This sequence is dead  "A000017: Erroneous version of A032522."
-            warn('This sequence is dead  "'+self.id()+": "+self.name()+'"', RuntimeWarning)
-            (1, 0, 0, 2, 2, 4, 8, 4, 16, 12, 48, 80)            
+            sage: oeis(5000).first_terms(12)              # optional -- internet
+            doctest:warning
+            ...
+            RuntimeWarning: This sequence is dead: "A005000: Erroneous version of A006505."
+            (1, 0, 0, 1, 1, 1, 11, 36, 92, 491, 2537)
 
         TESTS::
 

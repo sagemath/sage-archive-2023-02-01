@@ -420,59 +420,6 @@ def test_finite_lattice(L):
     if not L.sublattice([e, a, b]).is_distributive():
         raise ValueError("error in neutral_elements")
 
-def _random_linear_extension(P):
-    """
-    Return a random linear extension of `P`.
-
-    INPUT:
-
-    - ``P`` -- a poset
-    """
-    H = P.hasse_diagram()
-    result = []
-    while H.order():
-        mins = H.sources()
-        new = mins[randint(0, len(mins)-1)]
-        H.delete_vertex(new)
-        result.append(new)
-    return result
-
-def _random_maximal_chain(P):
-    """
-    Return a random maximal chain of `P`.
-
-    INPUT:
-
-    - ``P`` -- a poset
-    """
-    mins = P.minimal_elements()
-    new = mins[randint(0, len(mins)-1)]
-    result = [new]
-    nexts = P.upper_covers(new)
-    while nexts:
-        new = nexts[randint(0, len(nexts)-1)]
-        result.append(new)
-        nexts = P.upper_covers(new)
-    return result
-
-def _random_maximal_antichain(P):
-    """
-    Return a random maximal antichain of `P`.
-
-    INPUT:
-
-    - ``P`` -- a poset
-    """
-    elms = P.list()
-    result = []
-    while elms:
-        new_i = randint(0, len(elms)-1)
-        new = elms[new_i]
-        if all(P.compare_elements(new, e) is None for e in result):
-            result.append(new)
-        elms = elms[:new_i]+elms[new_i+1:]
-    return result
-
 def test_finite_poset(P):
     """
     Test several functions on a given finite poset.
@@ -514,7 +461,7 @@ def test_finite_poset(P):
         raise ValueError("error 2 in height")
     if not P.is_chain_of_poset(chain):
         raise ValueError("error 3 in height")
-    if len(_random_maximal_chain(P)) > h1:
+    if len(P.random_maximal_chain()) > h1:
         raise ValueError("error 4 in height")
     if h1-P_one_less.height() not in [0, 1]:
         raise ValueError("error 5 in height")
@@ -528,7 +475,7 @@ def test_finite_poset(P):
         raise ValueError("error 2 in width")
     if not P.is_antichain_of_poset(antichain):
         raise ValueError("error 3 in width")
-    if len(_random_maximal_antichain(P)) > w1:
+    if len(P.random_maximal_antichain()) > w1:
         raise ValueError("error 4 in width")
     if w1-P_one_less.width() not in [0, 1]:
         raise ValueError("error 5 in width")
@@ -543,7 +490,7 @@ def test_finite_poset(P):
     P_ = Poset( (P.list(), lambda a, b: all(linext.index(a) < linext.index(b) for linext in linexts)) )
     if P_ != Poset(P.hasse_diagram()):
         raise ValueError("error 3 in dimension")
-    x = [_random_linear_extension(P) for _ in range(dim1-1)]
+    x = [P.random_linear_extension() for _ in range(dim1-1)]
     P_ = Poset( (P.list(), lambda a, b: all(linext.index(a) < linext.index(b) for linext in x)) )
     if P_ == Poset(P.hasse_diagram()):
         raise ValueError("error 4 in dimension")
@@ -559,7 +506,7 @@ def test_finite_poset(P):
         raise ValueError("error 2 in jump number")
     if not P.is_linear_extension(linext):
         raise ValueError("error 3 in jump number")
-    if P.linear_extension(_random_linear_extension(P)).jump_count() < j1:
+    if P.linear_extension(P.random_linear_extension()).jump_count() < j1:
         raise ValueError("error 4 in jump number")
     if j1-P_one_less.jump_number() not in [0, 1]:
         raise ValueError("error 5 in jump number")
@@ -578,7 +525,7 @@ def test_finite_poset(P):
                 P_ = P.star_product(P)
                 if not P_.is_eulerian():
                     raise("error in star product / eulerian")
-        chain1 = _random_maximal_chain(P)
+        chain1 = P.random_maximal_chain()
         if len(chain1) != h1:
             raise ValueError("error in is_graded")
         if not P.is_ranked():
@@ -617,7 +564,7 @@ def test_finite_poset(P):
     if not P_.is_induced_subposet(P):
         raise ValueError("error in subposet / is induced subposet")
 
-    if not P.is_linear_extension(_random_linear_extension(P)):
+    if not P.is_linear_extension(P.random_linear_extension()):
         raise ValueError("error in is linear extension")
 
     x = list(P)

@@ -57,6 +57,7 @@ from sage.rings.number_field.unit_group import UnitGroup
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
+from sage.rings.infinity import PlusInfinity
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import factorial
@@ -472,7 +473,7 @@ def c13_func(SUK, v, prec=106):
     - [Sma1995]_ p. 825
     """
     try:
-        _ = v.codomain()
+        v.codomain()
     except AttributeError:
         raise TypeError('Place must be infinite')
     if is_real_place(v):
@@ -1709,7 +1710,6 @@ def clean_rfv_dict( rfv_dictionary ):
         {(1, 3): [3, 2], (2, 1): [4, 6], (3, 0): [6, 6], (5, 4): [3, 6]}
     """
 
-    garbage = []
     for a in rfv_dictionary.keys():
         if 1 in rfv_dictionary[a]:
             rfv_dictionary.pop(a)
@@ -1833,7 +1833,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
 
         # garbage removal
         for rf_vector_start in garbage:
-            trash = P_new.pop(rf_vector_start, 0)
+            P_new.pop(rf_vector_start, 0)
 
         if verbose_flag:
             print("After removing incompatible entries, P_new is down to ", len(P_new), " keys.")
@@ -2172,7 +2172,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             for exp_vec in comp_exp_vec[q].copy():
                 if drop_vector(exp_vec, q, p, comp_exp_vec):
-                    trash = comp_exp_vec[q].pop(exp_vec)
+                    comp_exp_vec[q].pop(exp_vec)
 
             if verbose_flag:
                 print("Shrunk dictionary q from ", old_size_q, " to ", len(comp_exp_vec[q]))
@@ -2278,7 +2278,6 @@ def compatible_vectors_check( a0, a1, m0, m1):
     """
 
     g = gcd(m0, m1)
-    a0_mod_g = (x % g for x in a0)
 
     length = len( a0 )
     if length != len( a1 ):
@@ -2545,7 +2544,6 @@ def solutions_from_systems( SUK, bound, cs_list, split_primes_list ):
         lift = compatible_system_lift( system, split_primes_list )
         ev = lift[0]
         cv = lift[1]
-        t = len( ev )
         ValidLift = True
         for x in ev[1:]:
         # coordinates must be less than or equal to H in absolute value
@@ -2642,7 +2640,6 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
          [(5, 0), (1, 0), -xi, xi + 1]]
     """
     S=list(S)
-    xi = K.gen()
     SUK = UnitGroup(K, S=tuple(S))
     initial_bound = bound
 
@@ -2698,15 +2695,23 @@ def solve_S_unit_equation(K, S, prec=106):
          [(1, 1), (2, 0), -xi + 1, xi]]
     """
 
+    S=list(S)
+    # Checks to make sure inputs are legal
+    # K must be an absolute extension:
     if not K.is_absolute():
         raise ValueError("K must be an absolute extension.")
+    # S must be a finite set
+    if not len(S) < PlusInfinity:
+        raise ValueError("S must be a finite set of primes.")
+    # S must only contain elements of OK that are primes in OK
+    OK = K.maximal_order()
+    for a in S:
+        if not (a in OK or a < K):
+            raise ValueError("Elements of S are not all integers or ideals of K")
+        elif not K.ideal(a).is_prime():
+            raise ValueError("S contains non-prime ideals.")
 
-    S=list(S)
-    xi = K.gen()
-    nK = K.absolute_degree()
     SUK = UnitGroup(K, S=tuple(S))
-    t = SUK.rank()
-    rho = SUK.gens_values()
     A = K.roots_of_unity()
 
     if len(S) == 0:

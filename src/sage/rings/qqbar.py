@@ -1,4 +1,4 @@
-"""
+r"""
 Field of Algebraic Numbers
 
 AUTHOR:
@@ -843,7 +843,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common):
             raise NotImplementedError
 
     def algebraic_closure(self):
-        """
+        r"""
         Return the algebraic closure of this field, which is the field
         `\overline{\QQ}` of algebraic numbers.
 
@@ -1673,8 +1673,9 @@ def rational_exact_root(r, d):
     if not den_exact: return None
     return (num_rt / den_rt)
 
+
 def clear_denominators(poly):
-    """
+    r"""
     Takes a monic polynomial and rescales the variable to get a monic
     polynomial with "integral" coefficients. Works on any univariate
     polynomial whose base ring has a ``denominator()`` method that returns
@@ -1697,14 +1698,13 @@ def clear_denominators(poly):
         (2, x + 3)
         sage: clear_denominators(x^2 + x/2 + 1/4)
         (2, x^2 + x + 1)
-
     """
 
     # This algorithm factors the polynomial denominators.
     # We should check the size of the denominators and switch to
     # an alternate, less precise algorithm if we decide factoring
     # would be too slow.
-
+    
     d = poly.denominator()
     if d == 1:
         return d, poly

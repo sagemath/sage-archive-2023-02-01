@@ -721,7 +721,7 @@ class Sha(SageObject):
         return shan
 
     def p_primary_order(self, p):
-        """
+        r"""
         Return the order of the `p`-primary part of the Tate-Shafarevich
         group.
 

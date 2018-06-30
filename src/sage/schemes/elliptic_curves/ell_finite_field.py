@@ -41,8 +41,9 @@ import sage.plot.all as plot
 import sage.libs.pari
 pari = sage.libs.pari.all.pari
 
+
 class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_field):
-    """
+    r"""
     Elliptic curve over a finite field.
 
     EXAMPLES::
@@ -1951,8 +1952,9 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
             print('WARNING: No checking done in set_order')
         self._order = value
 
+
 def supersingular_j_polynomial(p):
-    """
+    r"""
     Return a polynomial whose roots are the supersingular `j`-invariants
     in characteristic `p`, other than 0, 1728.
 
@@ -1989,7 +1991,6 @@ def supersingular_j_polynomial(p):
         Traceback (most recent call last):
         ...
         ValueError: p (=6) should be a prime number
-
     """
     try:
         p = ZZ(p)

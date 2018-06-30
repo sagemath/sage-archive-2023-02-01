@@ -1109,8 +1109,8 @@ class Partition(CombinatorialElement):
 
     def __next__(self):
         """
-        Return the partition that lexicographically follows ``self``. If
-        ``self`` is the last partition, then return ``False``.
+        Return the partition that lexicographically follows ``self``, of the
+        same size. If ``self`` is the last partition, then return ``False``.
 
         EXAMPLES::
 

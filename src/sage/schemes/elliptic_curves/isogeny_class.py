@@ -180,7 +180,7 @@ class IsogenyClass_EC(SageObject):
             return self._hash
 
     def _repr_(self):
-        """
+        r"""
         The string representation of this isogeny class.
 
         .. note::
@@ -379,8 +379,8 @@ class IsogenyClass_EC(SageObject):
 
     @cached_method
     def graph(self):
-        """
-        Returns a graph whose vertices correspond to curves in this
+        r"""
+        Return a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
         .. note::
@@ -583,12 +583,13 @@ class IsogenyClass_EC(SageObject):
             cpy._maps = None
         return cpy
 
+
 class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     """
     Isogeny classes for elliptic curves over number fields.
     """
     def __init__(self, E):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over a number field.
@@ -957,12 +958,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         # The domains and codomains here will be equal, but not the same Python object.
         self._maps = recomputed._maps
 
+
 class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
-    """
+    r"""
     Isogeny classes for elliptic curves over `\QQ`.
     """
     def __init__(self, E, algorithm="sage", label=None, empty=False):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over `\QQ`.

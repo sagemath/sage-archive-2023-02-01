@@ -2266,7 +2266,7 @@ class NumberField_relative(NumberField_generic):
         raise NotImplementedError("For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate")
 
     def order(self, *gens, **kwds):
-        """
+        r"""
         Return the order with given ring generators in the maximal
         order of this number field.
 

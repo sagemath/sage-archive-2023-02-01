@@ -687,7 +687,7 @@ class NumberFieldIdeal(Ideal_generic):
         not always) if self is principal then this function returns
         the unit ideal.
 
-        ALGORITHM: Calls pari's idealred function.
+        ALGORITHM: Calls :pari:`idealred` function.
 
         EXAMPLES::
 
@@ -1435,7 +1435,7 @@ class NumberFieldIdeal(Ideal_generic):
         return self.ramification_group(0)
 
     def random_element(self, *args, **kwds):
-        """
+        r"""
         Return a random element of this order.
 
         INPUT:
@@ -1941,7 +1941,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         return ZZ(self.pari_prime().pr_get_e())
 
     def reduce(self, f):
-        """
+        r"""
         Return the canonical reduction of the element of `f` modulo the ideal
         `I` (=self). This is an element of `R` (the ring of integers of the
         number field) that is equivalent modulo `I` to `f`.
@@ -2040,8 +2040,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         return sum([v[i]*Rbasis[i] for i in range(n)])
 
     def residues(self):
-        """
-        Returns a iterator through a complete list of residues modulo this integral ideal.
+        r"""
+        Return a iterator through a complete list of residues modulo this integral ideal.
 
         An error is raised if this fractional ideal is not integral.
 
@@ -2119,7 +2119,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
           `I`, i.e. a list of elements in the ring of integers `R` representing
           the elements of `(R/I)^*`.
 
-        ALGORITHM: Use pari's ``idealstar`` to find the group structure and
+        ALGORITHM: Use :pari:`idealstar` to find the group structure and
         generators of the multiplicative group modulo the ideal.
 
         EXAMPLES::

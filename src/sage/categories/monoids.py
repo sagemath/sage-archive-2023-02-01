@@ -332,7 +332,7 @@ class Monoids(CategoryWithAxiom):
             return l
 
     class Commutative(CategoryWithAxiom):
-        """
+        r"""
         Category of commutative (abelian) monoids.
 
         A monoid `M` is *commutative* if `xy = yx` for all `x,y \in M`.

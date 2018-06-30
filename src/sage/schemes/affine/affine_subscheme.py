@@ -56,15 +56,11 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
           x^2 - y*z
     """
-    def __init__(self, A, polynomials,
-                 ambient_projective_space=None,
-                 default_embedding_index=None):
+    def __init__(self, A, polynomials):
         AlgebraicScheme_subscheme.__init__(self, A, polynomials)
-        if ambient_projective_space is not None:
-            if default_embedding_index is None:
-                raise ValueError('an embedding index must be provided')
+        if A._ambient_projective_space is not None:
             self._embedding_morphism = self.projective_embedding \
-                (default_embedding_index, ambient_projective_space)
+                (A._default_embedding_index, A._ambient_projective_space)
 
     def _morphism(self, *args, **kwds):
         r"""

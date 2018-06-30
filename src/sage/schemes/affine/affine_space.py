@@ -736,7 +736,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         PP.affine_patch(i,self)
         return phi
 
-    def subscheme(self, X, **kwds):
+    def subscheme(self, X):
         """
         Return the closed subscheme defined by ``X``.
 
@@ -779,7 +779,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             0
         """
         from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
-        return AlgebraicScheme_subscheme_affine(self, X, **kwds)
+        return AlgebraicScheme_subscheme_affine(self, X)
 
     def _an_element_(self):
         r"""

@@ -1658,12 +1658,13 @@ void rational_power_parts(const numeric& a_orig, const numeric& b_orig,
         std::vector<std::pair<numeric, int>> factors;
         long max_prime_idx;
         static numeric maxnum = numeric(10).power(200);
-        if (a < maxnum) {
+        if (a.abs() < maxnum) {
                 double ad;
                 if (a.t == MPZ)
                         ad = mpz_get_d(a.v._bigint);
                 else
                         ad = a.v._long;
+                ad = std::abs(ad);
                 double adrootlog = std::log(ad) / denoml;
                 double adroot = std::exp(adrootlog);
                 double mpid = adroot*1.25506/adrootlog;

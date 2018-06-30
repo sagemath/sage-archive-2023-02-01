@@ -39,8 +39,6 @@ AUTHORS:
 - John Cremona and Charlie Turner <charlotteturner@gmail.com> (06-2010):
   improvements to clarity and documentation.
 
-- Raghukul Raman <raghukul.raman01@gmail.com> (2018): Added sieve algorithm.
-
 """
 
 #*****************************************************************************
@@ -54,11 +52,9 @@ AUTHORS:
 #*****************************************************************************
 from six.moves import range
 
-from sage.rings.all import ZZ, QQ, RR
+from sage.rings.all import ZZ, QQ
 from sage.misc.all import cartesian_product_iterator
-from sage.arith.all import lcm
 from sage.schemes.generic.scheme import is_Scheme
-from sage.schemes.projective.projective_rational_point import sieve as projective_sieve
 
 
 def enum_affine_rational_field(X, B):
@@ -89,11 +85,11 @@ def enum_affine_rational_field(X, B):
     ::
 
         sage: A.<w,x,y,z> = AffineSpace(4, QQ)
-        sage: S = A.subscheme([x^2-y*z+3, w^3+z+y^2])
+        sage: S = A.subscheme([x^2-y*z+1, w^3+z+y^2])
+        sage: enum_affine_rational_field(S(QQ), 1)
+        [(0, 0, -1, -1)]
         sage: enum_affine_rational_field(S(QQ), 2)
-        []
-        sage: enum_affine_rational_field(S(QQ), 3) # long time (10 s)
-        [(-2, 0, -3, -1)]
+        [(0, 0, -1, -1), (1, -1, -1, -2), (1, 1, -1, -2)]
 
     ::
 
@@ -311,61 +307,3 @@ def enum_affine_finite_field(X):
             pass
     pts.sort()
     return pts
-
-
-def sieve(X, bound):
-    r"""
-    Returns the list of all affine, rational points on scheme ``X`` of
-    height up to ``bound``.
-
-    INPUT:
-
-    - ``X`` - a scheme with ambient space defined over affine space
-
-    - ``bound`` - a positive integer bound
-
-    OUTPUT:
-
-     - a list containing the affine rational points of ``X`` of height
-    up to ``bound``, sorted
-
-    EXAMPLES::
-        
-        sage: from sage.schemes.affine.affine_rational_point import sieve
-        sage: A.<x,y,z> = AffineSpace(3, QQ)
-        sage: S = A.subscheme([x - 2*y - 3*z,x^2 - z^2])
-        sage: sieve(S, 2)
-        [(-2, 2, -2), (-1, -2, 1), (-1, 1, -1), (-1/2, -1, 1/2),
-         (-1/2, 1/2, -1/2), (0, 0, 0), (1/2, -1/2, 1/2),
-         (1/2, 1, -1/2), (1, -1, 1), (1, 2, -1), (2, -2, 2)]
-
-    """
-    # finds a projective embedding to use projective version of sieve
-    pi = X.projective_embedding(0)
-    P = pi.codomain()
-    AA = P.affine_patch(0)
-
-    # bound for affine scheme would be larger than projective
-    B = RR(bound).ceil() 
-    N = min(X.ambient_space().dimension(), B)
-    affine_bound = lcm([B - i for i in range(N)])
-
-    proj_L = projective_sieve(P, affine_bound)
-    L = set()
-    for point in proj_L: # make them back into affine points
-        if point[0] != 0:
-            L.add(X(point.dehomogenize(0)))
-
-    rat_point = []
-    for pt in L: # bound check
-        bound_satisfied = True
-        for coordinate in pt:
-            if coordinate.numerator().abs() > bound \
-                or coordinate.denominator().abs() > bound:
-                bound_satisfied = False
-                break
-        if bound_satisfied:
-            rat_point.append(pt)
-
-    return sorted(rat_point)
-

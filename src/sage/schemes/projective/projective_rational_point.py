@@ -320,7 +320,14 @@ def sieve(X, bound):
 
     ALGORITHM:
 
-    This is an implementation of the algorithm in [Hutz2015]_.
+    Main idea behind the algorithm is to find points modulo primes
+    and then reconstruct them using chinese remainder theorem.
+    We find modulo primes parallely and then lift them and apply
+    LLL in parallel.
+
+    For the algorithm to work correctly, sufficient primes need
+    to be present, these are calculated using the bound given in
+    this([Hutz2015]_) paper.
 
     INPUT:
 
@@ -354,19 +361,8 @@ def sieve(X, bound):
 
     TESTS:
 
-    This example illustrate efficiency of algorithm::
-
-        sage: from sage.schemes.projective.projective_rational_point import sieve
-        sage: P.<x,y,z,q>=ProjectiveSpace(QQ,3)
-        sage: Y=P.subscheme([x^2-3^2*y^2+z*q,x+z+4*q])
-        sage: len(sieve(Y, 6))
-        2
-        sage: from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-        sage: len(enum_projective_rational_field(Y, 6)) # long time (5 s)
-        2
-
     Algorithm works even if coefficients are fraction::
-        
+
         sage: from sage.schemes.projective.projective_rational_point import sieve
         sage: P.<x,y,z> = ProjectiveSpace(2,QQ)
         sage: X = P.subscheme(3*x - 3/2*y)
@@ -381,9 +377,6 @@ def sieve(X, bound):
     modulo_points = [] # list to store point modulo primes
     len_modulo_points = [] # stores number of points with respect to each prime
     primes_list = [] # list of good primes
-    
-    if isinstance(X, AlgebraicScheme_subscheme): # needs to be done only if defining polynomials exist
-        X.normalize_defining_polynomials()
 
     P = X.ambient_space()
     N = P.dimension()
@@ -423,12 +416,12 @@ def sieve(X, bound):
         max_length = len(small_primes)
         M[max_length] = small_primes
         current_count = max_length - 1
-        
+
         while current_count > 1:
             current_list = [] # stores prime which are bigger than least
             updated_list = []
             best_list = []
-            
+
             least = (RR(B)**(1.00/current_count)).floor()
             for i in range(current_count):
                 current_list.append(next_prime(least))
@@ -441,7 +434,7 @@ def sieve(X, bound):
                 best_list = updated_list + current_list[:current_count - len(updated_list)]
                 updated_list.append(previous_prime(least))
                 least = updated_list[-1]
-                
+
                 removed_prime = current_list[current_count - len(updated_list)]
                 prod_prime = (prod_prime * least) / removed_prime
 

@@ -1112,7 +1112,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         """
         BR = self.base_ring()
-        if BR == ZZ or BR == QQbar or BR in NumberFields() or is_NumberFieldOrder(BR):
+        if BR == QQbar or BR in NumberFields() or is_NumberFieldOrder(BR):
             normalized_polys = []
             initial_polys = list(self.__polys)
 
@@ -1122,14 +1122,14 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                 P = mult*P
                 # stores the common factor from all coefficients
                 div = gcd([_ for _ in P.coefficients()])
-                P = (1/div) * P
+                P = (BR.one()/div) * P
                 normalized_polys.append(P)
 
             self.__polys = tuple(normalized_polys)
 
         else:
                 raise NotImplementedError("currently normalization is implemented "
-                    "only for ZZ, QQbar, number fields and number field orders")
+                    "only for QQbar, number fields and number field orders")
 
     def defining_ideal(self):
         """

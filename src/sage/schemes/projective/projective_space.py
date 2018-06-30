@@ -991,11 +991,11 @@ class ProjectiveSpace_ring(AmbientSpace):
         #if no ith patch exists, we may still be here with AA==None
         if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
-            AA = AffineSpace(n, self.base_ring(), names = 'x')
+            AA = AffineSpace(n, self.base_ring(), names='x',
+                             ambient_projective_space=self,
+                             default_embedding_index=i)
         elif AA.dimension_relative() != n:
                 raise ValueError("affine space must be of the dimension %s"%(n))
-        AA._default_embedding_index = i
-        AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
         return AA
 

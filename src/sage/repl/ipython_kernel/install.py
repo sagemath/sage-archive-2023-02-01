@@ -111,7 +111,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_mathjax()
             sage: mathjax = os.path.join(spec.nbextensions_dir, 'mathjax')
             sage: os.path.isdir(mathjax)
@@ -128,7 +128,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_jsmol()
             sage: jsmol = os.path.join(spec.nbextensions_dir, 'jsmol')
             sage: os.path.isdir(jsmol)
@@ -145,7 +145,7 @@ class SageKernelSpec(object):
         EXAMPLES::
 
             sage: from sage.repl.ipython_kernel.install import SageKernelSpec
-            sage: spec = SageKernelSpec()
+            sage: spec = SageKernelSpec(prefix=tmp_dir())
             sage: spec.use_local_threejs()
             sage: threejs = os.path.join(spec.nbextensions_dir, 'threejs')
             sage: os.path.isdir(threejs)

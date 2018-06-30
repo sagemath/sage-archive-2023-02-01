@@ -381,7 +381,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             return self.element_class(self, tuple(sorted([lambda_chain[i] for i in data])))
 
     def vertices(self):
-        """
+        r"""
         Return a list of all the vertices of the crystal.
 
         The vertices are represented as lists of integers recording the folding

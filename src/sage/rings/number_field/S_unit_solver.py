@@ -19,8 +19,7 @@ EXAMPLES::
 
     sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
     sage: K.<xi> = NumberField(x^2+x+1)
-    sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-    sage: S=SUK.primes()
+    sage: S = K.primes_above(3)
     sage: solve_S_unit_equation(K, S, 200)
     [[(2, 1), (4, 0), xi + 2, -xi - 1],
      [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
@@ -57,7 +56,6 @@ from sage.rings.number_field.unit_group import UnitGroup
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
-from sage.rings.infinity import PlusInfinity
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import factorial
@@ -69,6 +67,7 @@ from sage.functions.other import sqrt
 from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 from sage.misc.functional import round
+from sage.categories.sets_cat import Sets
 import itertools
 
 
@@ -2664,7 +2663,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
 
     return s_unit_solutions
 
-def solve_S_unit_equation(K, S, prec=106):
+def solve_S_unit_equation(K, S, prec=106, returnBound = False):
     r"""
     Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
@@ -2673,6 +2672,7 @@ def solve_S_unit_equation(K, S, prec=106):
     - ``K`` -- a number field (an absolute extension of the rationals)
     - ``S`` -- a list of finite primes of ``K``
     - ``prec`` -- (default: 106) precision used for computations in real field, complex field, and p-adic field.
+    - ``returnBound`` -- (default: False) an optional parameter allowing the user to return the final computed bound
 
     OUTPUT:
 
@@ -2686,42 +2686,55 @@ def solve_S_unit_equation(K, S, prec=106):
 
         sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation
         sage: K.<xi> = NumberField(x^2+x+1)
-        sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-        sage: S=SUK.primes()
+        sage: S = K.primes_above(3)
         sage: solve_S_unit_equation(K, S, 200)
         [[(2, 1), (4, 0), xi + 2, -xi - 1],
          [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
          [(5, 0), (1, 0), -xi, xi + 1],
          [(1, 1), (2, 0), -xi + 1, xi]]
+
+    In order to see the bound as well use the optional parameter returnBound::
+
+        sage: solutions, bound = solve_S_unit_equation(K, S, 100, returnBound = True)
+        sage: bound
+        2
+
+    It is an error to use values in S that are not primes in K::
+
+        sage: solve_S_unit_equation(K, [3], 200)
+        Traceback (most recent call last):
+        ...
+        ValueError: S must consist only of prime ideals, or a single element from which a prime ideal can be constructed.
+
     """
 
-    S=list(S)
     # Checks to make sure inputs are legal
     # K must be an absolute extension:
     if not K.is_absolute():
         raise ValueError("K must be an absolute extension.")
-    # S must be a finite set
-    if not len(S) < PlusInfinity:
-        raise ValueError("S must be a finite set of primes.")
-    # S must only contain elements of OK that are primes in OK
-    OK = K.maximal_order()
-    for a in S:
-        if not (a in OK or a < K):
-            raise ValueError("Elements of S are not all integers or ideals of K")
-        elif not K.ideal(a).is_prime():
-            raise ValueError("S contains non-prime ideals.")
+    # S must be a finite set of primes
+    try:
+        SUK = UnitGroup(K, S = tuple(S))
+    except:
+        raise ValueError("S must consist only of prime ideals, or a single element from which a prime ideal can be constructed.")
 
-    SUK = UnitGroup(K, S=tuple(S))
+    # Gather the roots of unity of the number field
     A = K.roots_of_unity()
 
+    # First find a bound using the LLL reduction method
     if len(S) == 0:
         # this handles the case of S empty; the p-adic bound is not necessary
         all_LLL_bounds = [cx_LLL_bound(SUK,A, prec)]
     else:
         all_LLL_bounds = [p_adic_LLL_bound(SUK, A, prec)] + [cx_LLL_bound(SUK,A, prec)]
 
+    # Take the largest of all of the bounds we found
     final_LLL_bound = max(all_LLL_bounds)
 
-    s_unit_solutions = sieve_below_bound(K, S, final_LLL_bound)
+    # Use the sieve to more easily find all bounds 
+    S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound)
 
-    return s_unit_solutions
+    if returnBound:
+        return S_unit_solutions, final_LLL_bound
+    else:
+        return S_unit_solutions

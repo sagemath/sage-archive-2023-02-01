@@ -59,7 +59,7 @@ from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
 from sage.misc.all import prod
 from sage.arith.all import factorial
-from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
+from sage.matrix.constructor import Matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
 from itertools import combinations_with_replacement
 from sage.functions.log import log
@@ -147,7 +147,7 @@ def c3_func(SUK, prec=106):
         columns_of_C = []
         for unit in SUK.fundamental_units():
             columns_of_C.append( column_Log(SUK, unit, U, prec) )
-        C = matrix(SUK.rank(), SUK.rank(), columns_of_C)
+        C = Matrix(SUK.rank(), SUK.rank(), columns_of_C)
         # Is it invertible?
         if abs(C.determinant()) > 10**(-10):
             poss_c1 = C.inverse().apply_map(abs).norm(Infinity)
@@ -621,7 +621,7 @@ def minimal_vector(A,y,prec=106):
     EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import minimal_vector
-        sage: B = matrix(ZZ,2,[1,1,1,0])
+        sage: B = Matrix(ZZ,2,[1,1,1,0])
         sage: y = vector(ZZ,[2,1])
         sage: minimal_vector(B,y)
         1/2
@@ -888,7 +888,7 @@ def reduction_step_complex_case(place,B0,G,g0,c7):
 
                     #we take into account the second case of the theorem VI.2 of the reference page 85
 
-                    M = matrix(ZZ,2,[A[n-1,n-1],A[n-1,n],A[n,n-1],A[n,n]])
+                    M = Matrix(ZZ,2,[A[n-1,n-1],A[n-1,n],A[n,n-1],A[n,n]])
                     b = vector(ZZ,2,[-y[n-1],-y[n]])
                     if M.determinant() == 1 or M.determinant() == -1:
                         x = M.inverse() * b

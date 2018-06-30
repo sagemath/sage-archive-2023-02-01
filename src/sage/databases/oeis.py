@@ -315,7 +315,7 @@ class OEIS:
         -46368, 75025, -121393, 196418, -317811, 514229, -832040, 1346269,
         -2178309, 3524578, -5702887, 9227465, -14930352, 24157817)
 
-        sage: sfibo.first_terms(absolute_value=True)[2:20] == fibo.first_terms()[:18]   # optional -- internet
+        sage: tuple(abs(i) for i in sfibo.first_terms())[2:20] == fibo.first_terms()[:18]   # optional -- internet
         True
 
         sage: fibo.formulas()[4]                        # optional -- internet
@@ -546,13 +546,10 @@ class OEIS:
 
         """
         return ('%I A999999 M9999 N9999\n'
-                '%S A999999 1,1,1,1,1,1,1,1,\n'
+                '%S A999999 1,1,1,1,2,1,1,1,\n'
                 '%T A999999 1,1,1,1,1,1,1,1,1,\n'
                 '%U A999999 1,1,1,1,1,1,1,1,1\n'
-                '%V A999999 1,1,1,1,-1,1,1,1,\n'
-                '%W A999999 1,1,1,1,1,1,1,1,1,\n'
-                '%X A999999 1,1,1,1,1,1,1,1,1\n'
-                '%N A999999 The opposite of twice the characteristic sequence of 42 plus one, starting from 38.\n'
+                '%N A999999 The characteristic sequence of 42 plus one, starting from 38.\n'
                 '%D A999999 Lewis Carroll, Alice\'s Adventures in Wonderland.\n'
                 '%D A999999 Lewis Carroll, The Hunting of the Snark.\n'
                 '%D A999999 Deep Thought, The Answer to the Ultimate Question of Life, The Universe, and Everything.\n'
@@ -574,7 +571,7 @@ class OEIS:
                 '%o A999999     if n < 38:\n'
                 '%o A999999         raise ValueError("The value %s is not accepted." %str(n)))\n'
                 '%o A999999     elif n == 42:\n'
-                '%o A999999         return -1\n'
+                '%o A999999         return 2\n'
                 '%o A999999     else:\n'
                 '%o A999999         return 1\n'
                 '%K A999999 ' + keywords + '\n'
@@ -599,11 +596,11 @@ class OEIS:
 
             sage: s = oeis._imaginary_sequence()
             sage: s
-            A999999: The opposite of twice the characteristic sequence of 42 plus one, starting from 38.
+            A999999: The characteristic sequence of 42 plus one, starting from 38.
             sage: s[4]
-            -1
+            2
             sage: s(42)
-            -1
+            2
         """
         return OEISSequence(self._imaginary_entry(keywords))
 
@@ -754,7 +751,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence()
             sage: s.name()
-            'The opposite of twice the characteristic sequence of 42 plus one, starting from 38.'
+            'The characteristic sequence of 42 plus one, starting from 38.'
         """
         return self._fields['N'][0]
 
@@ -1075,7 +1072,7 @@ class OEISSequence(SageObject):
             return Unknown
 
     @cached_method
-    def first_terms(self, number=None, absolute_value=False):
+    def first_terms(self, number=None):
         r"""
 
         INPUT:
@@ -1083,10 +1080,6 @@ class OEISSequence(SageObject):
         - ``number`` - (integer or ``None``, default: ``None``) the number of
           terms returned (if less than the number of available terms). When set
           to None, returns all the known terms.
-
-        - ``absolute_value`` - (bool, default: ``False``) when a sequence has
-          negative entries, OEIS also stores the absolute values of its first
-          terms, when ``absolute_value`` is set to ``True``, you will get them.
 
         OUTPUT:
 
@@ -1112,32 +1105,11 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence()
             sage: s.first_terms()
-            (1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+            (1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
             sage: s.first_terms(5)
-            (1, 1, 1, 1, -1)
-            sage: s.first_terms(5, absolute_value=True)
-            (1, 1, 1, 1, 1)
-
-            sage: s = oeis._imaginary_sequence(keywords='full')
-            sage: s(40)
-            Traceback (most recent call last):
-            ...
-            TypeError: You found a sign inconsistency, please contact OEIS
-
-            sage: s = oeis._imaginary_sequence(keywords='sign,full')
-            sage: s(40)
-            1
-
-            sage: s = oeis._imaginary_sequence(keywords='nonn,full')
-            sage: s(42)
-            1
+            (1, 1, 1, 1, 2)
         """
-        if absolute_value or ('nonn' in self.keywords()) or ('dead' in self.keywords()):
-            fields = ['S', 'T', 'U']
-        elif ('sign' in self.keywords()):
-            fields = ['V', 'W', 'X']
-        else:
-            raise TypeError("You found a sign inconsistency, please contact OEIS")
+        fields = ['S', 'T', 'U']
         return to_tuple(" ".join(flatten([self._fields[a] for a in fields])))[:number]
 
     def _repr_(self):
@@ -1158,7 +1130,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence()
             sage: s
-            A999999: The opposite of twice the characteristic sequence of 42 plus one, starting from 38.
+            A999999: The characteristic sequence of 42 plus one, starting from 38.
         """
         return "%s: %s" % (self.id(), self.name())
 
@@ -1209,7 +1181,7 @@ class OEISSequence(SageObject):
             sage: s(38)
             1
             sage: s(42)
-            -1
+            2
             sage: s(2)
             Traceback (most recent call last):
             ...
@@ -1252,7 +1224,7 @@ class OEISSequence(SageObject):
             sage: s[2]
             1
             sage: s[4]
-            -1
+            2
             sage: s[38]
             Traceback (most recent call last):
             ...
@@ -1325,10 +1297,10 @@ class OEISSequence(SageObject):
             LookupError: Future values not provided by OEIS.
 
             sage: for i in s:
-            ....:     if i == -1:
+            ....:     if i == 2:
             ....:         print(i)
             ....:         break
-            -1
+            2
 
             sage: s = oeis._imaginary_sequence(keywords='sign,full')
             sage: for i in s: pass
@@ -1728,9 +1700,9 @@ class OEISSequence(SageObject):
             A999999
             <BLANKLINE>
             NAME
-            The opposite of twice the characteristic sequence of 42 plus ...
+            The characteristic sequence of 42 plus ...
             FIRST TERMS
-            (1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+            (1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
             <BLANKLINE>
             COMMENTS
             0: 42 is the product of the first 4 prime numbers, except ...
@@ -1784,7 +1756,7 @@ class OEISSequence(SageObject):
             3:     if n < 38:
             4:         raise ValueError("The value %s is not accepted." %str(n)))
             5:     elif n == 42:
-            6:         return -1
+            6:         return 2
             7:     else:
             8:         return 1
 

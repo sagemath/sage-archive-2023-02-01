@@ -1326,14 +1326,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 AssertionError: [2, 1] should be an element of Partitions
 
             Test that ``coefficient`` also works for those parents that do
-            not yet have an element_class::
+            not yet have an ``element_class``::
 
-                sage: G = DihedralGroup(3)
-                sage: F = CombinatorialFreeModule(QQ, G)
-                sage: hasattr(G, "element_class")
+                sage: H = End(ZZ)
+                sage: F = CombinatorialFreeModule(QQ, H)
+                sage: hasattr(H, "element_class")
                 False
-                sage: g = G.an_element()
-                sage: (2*F.monomial(g)).coefficient(g)
+                sage: h = H.an_element()
+                sage: (2*F.monomial(h)).coefficient(h)
                 2
             """
             # NT: coefficient_fast should be the default, just with appropriate assertions
@@ -2155,7 +2155,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A.an_element()
                     B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
                     sage: B.an_element()
-                    B[()] + 4*B[(1,2,3)] + 2*B[(1,3)]
+                    B[()] + B[(1,2)] + 3*B[(1,2,3)] + 2*B[(1,3)]
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """

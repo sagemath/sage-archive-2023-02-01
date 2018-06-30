@@ -290,6 +290,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
          'lift',
          'powers',
          'quo_rem',
+         'radical',
+         'squarefree_part',
          'xgcd']
 
     As one can see, the elements are now inheriting additional
@@ -520,14 +522,14 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             return parent.__make_element_class__(PolynomialQuotientRing_coercion)(R, self, category=parent.homset_category())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        # We need that elements of the base ring of the polynomial
+        # ring map canonically into codomain.
+        if not codomain.has_coerce_map_from(self.base_ring()):
+            return False
+
+        # We also need that the polynomial modulus maps to 0.
+        f = self.modulus()
         try:
-            # We need that elements of the base ring of the polynomial
-            # ring map canonically into codomain.
-
-            codomain._coerce_(self.base_ring()(1))
-
-            # We also need that the polynomial modulus maps to 0.
-            f = self.modulus()
             return codomain(f(im_gens[0])) == 0
         except (TypeError, ValueError):
             return False
@@ -1262,7 +1264,7 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         return clgp_gens
 
     def class_group(self, proof=True):
-        """
+        r"""
         If self is a quotient ring of a polynomial ring over a number
         field `K`, by a polynomial of nonzero discriminant, return a
         list of generators of the class group.
@@ -1579,6 +1581,33 @@ class PolynomialQuotientRing_generic(CommutativeRing):
                 gens.append(poly_gen)
 
         return gens
+
+    def _factor_multivariate_polynomial(self, f, proof=True):
+        r"""
+        Return the factorization of ``f`` over this ring.
+
+        TESTS::
+
+            sage: k.<a> = GF(4)
+            sage: R.<b> = k[]
+            sage: l.<b> = k.extension(b^2 + b + a)
+            sage: K.<x> = FunctionField(l)
+            sage: R.<t> = K[]
+            sage: F = t*x
+            sage: F.factor(proof=False)
+            (x) * t
+
+        """
+        from sage.structure.factorization import Factorization
+
+        if f.is_zero():
+            raise ValueError("factorization of 0 not defined")
+
+        from_isomorphic_ring, to_isomorphic_ring, isomorphic_ring = self._isomorphic_ring()
+        g = f.map_coefficients(to_isomorphic_ring)
+        F = g.factor()
+        unit = f.parent(from_isomorphic_ring(F.unit().constant_coefficient()))
+        return Factorization([(factor.map_coefficients(from_isomorphic_ring), e) for factor,e in F], unit=unit)
 
     def _factor_univariate_polynomial(self, f):
         r"""

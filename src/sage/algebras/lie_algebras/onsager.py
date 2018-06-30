@@ -39,8 +39,9 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
         \qquad
         [A_1, [A_1, [A_1, A_0]]] = -4 [A_1, A_0].
 
-    .. NOTE:: We are using a rescaled version of the usual defining
-              generators.
+    .. NOTE::
+
+        We are using a rescaled version of the usual defining generators.
 
     There exist a basis `\{A_m, G_n \mid m \in \ZZ, n \in \ZZ_{>0}\}`
     for `\mathcal{O}` with structure coefficients
@@ -56,7 +57,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
     where `m > m'`.
 
     The Onsager algebra is isomorphic to the subalgebra of the affine
-    Lie algebra `\widehat{\mathfrak{sl}}_2 = \mathfrak{sl}_2\otimes
+    Lie algebra `\widehat{\mathfrak{sl}}_2 = \mathfrak{sl}_2 \otimes
     \CC[t,t^{-1}] \oplus \CC K \oplus \CC d` that is invariant under
     the Chevalley involution. In particular, we have
 
@@ -187,7 +188,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
 
     @cached_method
     def basis(self):
-        """
+        r"""
         Return the basis of ``self``.
 
         EXAMPLES::
@@ -206,7 +207,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
 
     @cached_method
     def lie_algebra_generators(self):
-        """
+        r"""
         Return the generators of ``self`` as a Lie algebra.
 
         EXAMPLES::
@@ -219,7 +220,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
         return Family(self._names, d.__getitem__)
 
     def bracket_on_basis(self, x, y):
-        """
+        r"""
         Return the bracket of basis elements indexed by ``x`` and ``y``
         where ``x < y``.
 
@@ -234,7 +235,7 @@ class OnsagerAlgebra(LieAlgebraWithGenerators, IndexedGenerators):
             -G[16]
         """
         if x[0] == 1:
-            # From < property, we have x[1] == 1
+            # From < property, we have y[0] == 1
             # Therefore, we have [G_n, G_{n'}] = 0
             return self.zero()
         R = self.base_ring()
@@ -398,7 +399,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                                          category=Algebras(R).WithBasis().Filtered())
 
     def _basis_key(self, k):
-        """
+        r"""
         Key for ordering the basis elements of ``self._g``.
 
         We choose a key in order to obtain the ordering from [BK2017]_
@@ -457,7 +458,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
         return (-len(x), [self._basis_key(l) for l in x.to_word_list()])
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         EXAMPLES::
@@ -486,7 +487,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
                             latex(self._g.base_ring()), latex(self._c))
 
     def _repr_term(self, m):
-        """
+        r"""
         Return a string representation of the term indexed by ``m``.
 
         EXAMPLES::
@@ -559,7 +560,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
         return ' '.join(to_str(x) for x in m._sorted_items())
 
     def lie_algebra(self):
-        """
+        r"""
         Return the underlying Lie algebra of ``self``.
 
         EXAMPLES::
@@ -574,7 +575,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
         return self._g
 
     def algebra_generators(self):
-        """
+        r"""
         Return the algebra generators of ``self``.
 
         EXAMPLES::
@@ -663,7 +664,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
         return [G[0,0], G[0,3], G[0,-1], G[1,1], G[1,4]]
 
     def degree_on_basis(self, m):
-        """
+        r"""
         Return the degree of the basis element indexed by ``m``.
 
         EXAMPLES::
@@ -684,7 +685,7 @@ class QuantumOnsagerAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def product_on_basis(self, lhs, rhs):
-        """
+        r"""
         Return the product of the two basis elements ``lhs`` and ``rhs``.
 
         EXAMPLES::

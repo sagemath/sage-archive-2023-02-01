@@ -61,7 +61,6 @@ The arguments in the definition must be symbolic variables (:trac:`10747`)::
     SyntaxError: can't assign to function call
 """
 
-from sage.structure.parent_base import ParentWithBase
 from sage.symbolic.ring import SymbolicRing, SR
 from sage.categories.pushout import ConstructionFunctor
 

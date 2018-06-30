@@ -602,8 +602,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         else:
             raise MemoryError("creating the list would exhaust memory")
         N = self.__order
-        H = [i for i in range(N) if gcd(i, N) == 1]
-        return H
+        return [i for i in range(N) if gcd(i, N) == 1]
 
     @cached_method
     def multiplicative_subgroups(self):
@@ -1585,7 +1584,7 @@ Integers = IntegerModRing
 
 # Register unpickling methods for backward compatibility.
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.integer_mod_ring', 'IntegerModRing_generic', IntegerModRing_generic)
 
 def crt(v):

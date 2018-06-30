@@ -316,7 +316,6 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.sets_cat import Sets
 from sage.misc.abstract_method import abstract_method
 
 ####################################################

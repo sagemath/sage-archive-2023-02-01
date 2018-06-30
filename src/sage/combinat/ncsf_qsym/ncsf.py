@@ -45,9 +45,8 @@ from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Hom
 from sage.combinat.sf.sf import SymmetricFunctions
+
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -1907,6 +1906,54 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     return F.prod(F[Permutations(i)(range(1, i+1))] for i in I)
                 return F.linear_combination((on_basis(I), coeff)
                                             for I, coeff in S(self))
+
+            def to_fsym(self):
+                r"""
+                Return the image of ``self`` under the natural map to
+                `FSym`.
+
+                There is an injective Hopf algebra morphism from `NSym` to
+                `FSym` (see
+                :class:`~sage.combinat.chas.fsym.FreeSymmetricFunctions`),
+                which maps the ribbon `R_\alpha` indexed by a composition
+                `\alpha` to the sum of all tableaux whose descent
+                composition is `\alpha`.
+                If we regard `NSym` as a Hopf subalgebra of `FQSym` via
+                the morphism `\iota : NSym \to FQSym` (implemented as
+                :meth:`to_fqsym`), then this injective morphism is just
+                the inclusion map.
+
+                EXAMPLES::
+
+                    sage: N = NonCommutativeSymmetricFunctions(QQ)
+                    sage: R = N.ribbon()
+                    sage: x = 2*R[[]] + 2*R[1] + 3*R[2]
+                    sage: x.to_fsym()
+                    2*G[] + 2*G[1] + 3*G[12]
+                    sage: R[2,1].to_fsym()
+                    G[12|3]
+                    sage: R[1,2].to_fsym()
+                    G[13|2]
+                    sage: R[2,1,2].to_fsym()
+                    G[12|35|4] + G[125|3|4]
+                    sage: x = R.an_element(); x
+                    2*R[] + 2*R[1] + 3*R[1, 1]
+                    sage: x.to_fsym()
+                    2*G[] + 2*G[1] + 3*G[1|2]
+
+                    sage: y = N.Phi()[1,2]
+                    sage: y.to_fsym()
+                    -G[1|2|3] - G[12|3] + G[123] + G[13|2]
+
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: S[2].to_fsym()
+                    G[12]
+                    sage: S[2,1].to_fsym()
+                    G[12|3] + G[123]
+                """
+                from sage.combinat.chas.fsym import FreeSymmetricFunctions
+                G = FreeSymmetricFunctions(self.base_ring()).G()
+                return G(self)
 
             def expand(self, n, alphabet='x'):
                 r"""

@@ -478,7 +478,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Element classes may define a method called ``_evaluate_polynomial``
         to provide an alternative evaluation algorithm for a given argument
-        type. Note that ``_evaluated_polynomial`` may not always be used:
+        type. Note that ``_evaluate_polynomial`` may not always be used:
         for instance, subclasses dedicated to specific coefficient rings
         typically do not call it.
 
@@ -2760,6 +2760,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g//f
             x^2 - 2
         """
+        if (<Polynomial> right).is_one():
+            # quite typical when removing gcds...
+            return self
         Q, _ = self.quo_rem(right)
         return Q
 
@@ -4692,23 +4695,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: q = r * (x*y^2 - x + 1/3)
             sage: p.gcd(q)
             2*x*y + 1
-        """
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > 1:
-            base = self._parent._mpoly_base_ring()
-            ring = PolynomialRing(base, variables)
-            if ring._has_singular:
-                try:
-                    d1 = self._mpoly_dict_recursive()
-                    d2 = other._mpoly_dict_recursive()
-                    return self._parent(ring(d1).gcd(ring(d2)))
-                except NotImplementedError:
-                    pass
 
-        if hasattr(self.base_ring(), '_gcd_univariate_polynomial'):
-            return self.base_ring()._gcd_univariate_polynomial(self, other)
+        TESTS::
+
+            sage: Pol = QQ['x','y']['x']
+            sage: Pol.one().gcd(1)
+            1
+        """
+        cdef Polynomial _other = <Polynomial> other
+        if _other.is_one():
+            return other
+        elif self.is_one():
+            return self
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt.ngens() > 1 and tgt._has_singular:
+            g = flatten(self).gcd(flatten(other))
+            return flatten.section()(g)
+        try:
+            doit = self._parent._base._gcd_univariate_polynomial
+        except AttributeError:
+            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self._parent._base)
         else:
-            raise NotImplementedError("%s does not provide a gcd implementation for univariate polynomials"%self.base_ring())
+            return doit(self, other)
 
     @coerce_binop
     def lcm(self, other):
@@ -5534,10 +5543,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^4+2*x^2+1
             sage: f.exponents()
             [0, 2, 4]
+
+        TESTS::
+
+            sage: a = RIF['x'](1/3)
+            sage: (a - a).exponents()
+            [0]
         """
-        zero = self._parent.base_ring().zero()
-        l = self.list()
-        return [i for i in range(len(l)) if l[i] != zero]
+        cdef Py_ssize_t i
+        return [i for i, c in enumerate(self.list(copy=False)) if c]
 
     cpdef list list(self, bint copy=True):
         """
@@ -6398,9 +6412,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: r2 = p2.roots(multiplicities=False)
             sage: p = p1.composed_op(p2, operator.add)
             sage: p
-            1.000000000000000?*x^6 - 4.242640687119285?*x^4 -
-            3.464101615137755?*x^3 + 6.000000000000000?*x^2 -
-            14.69693845669907?*x + 0.1715728752538099?
+            x^6 - 4.242640687119285?*x^4 - 3.464101615137755?*x^3 + 6*x^2 - 14.69693845669907?*x + 0.1715728752538099?
             sage: all(p(x+y).is_zero() for x in r1 for y in r2)
             True
 

@@ -4,6 +4,7 @@ Soliton Cellular Automata
 AUTHORS:
 
 - Travis Scrimshaw (2017-06-30): Initial version
+- Travis Scrimshaw (2018-02-03): Periodic version
 """
 
 #*****************************************************************************
@@ -326,6 +327,7 @@ class SolitonCellularAutomata(SageObject):
             self._states = [KRT(*initial_state)]
 
         self._evolutions = []
+        self._initial_carrier = []
         self._nballs = len(self._states[0])
 
     def __eq__(self, other):
@@ -383,7 +385,7 @@ class SolitonCellularAutomata(SageObject):
     # -------------------
 
     def evolve(self, carrier_capacity=None, carrier_index=None, number=None):
-        """
+        r"""
         Evolve ``self``.
 
         Time evolution `T_s` of a SCA state `p` is determined by
@@ -523,6 +525,7 @@ class SolitonCellularAutomata(SageObject):
             empty_carrier = K.maximal_vector()
         except (ValueError, TypeError, AttributeError):
             empty_carrier = K.module_generators[0]
+        self._initial_carrier.append(empty_carrier)
         carrier_factor = (carrier_index, carrier_capacity)
         last_final_carrier = empty_carrier
         state = self._states[-1]
@@ -599,11 +602,7 @@ class SolitonCellularAutomata(SageObject):
         vacuum = self._vacuum_elt
         state = [vacuum]*(num_factors - len(self._states[num])) + list(self._states[num])
         final = []
-        try:
-            # FIXME: the maximal_vector() does not work in type E and F
-            u = [carrier.maximal_vector()]
-        except (ValueError, TypeError, AttributeError):
-            u = [carrier.module_generators[0]]
+        u = [self._initial_carrier[num]]
         # Assume every element has the same parent
         R = state[0].parent().R_matrix(carrier)
         for elt in reversed(state):
@@ -648,6 +647,7 @@ class SolitonCellularAutomata(SageObject):
         """
         self._states = [self._states[0]]
         self._evolutions = []
+        self._initial_carrier = []
 
     # Output functions
     # ----------------
@@ -1122,37 +1122,37 @@ class SolitonCellularAutomata(SageObject):
             sage: B.evolve(3)
             sage: B.latex_state_evolution(0)
             \begin{tikzpicture}[scale=1]
-            \node (i0) at (0,0.9) {$1$};
-            \node (i1) at (-2,0.9) {$1$};
-            \node (i2) at (-4,0.9) {$3$};
-            \node (i3) at (-6,0.9) {$1$};
-            \node (i4) at (-8,0.9) {$2$};
-            \node (i5) at (-10,0.9) {$3$};
-            \node (t0) at (0,-1) {$1$};
-            \node (t1) at (-2,-1) {$3$};
-            \node (t2) at (-4,-1) {$2$};
-            \node (t3) at (-6,-1) {$3$};
-            \node (t4) at (-8,-1) {$1$};
-            \node (t5) at (-10,-1) {$1$};
-            \node (u0) at (1,0) {$111$};
-            \node (u1) at (-1,0) {$111$};
-            \node (u2) at (-3,0) {$113$};
-            \node (u3) at (-5,0) {$112$};
-            \node (u4) at (-7,0) {$123$};
-            \node (u5) at (-9,0) {$113$};
-            \node (u6) at (-11,0) {$111$};
+            \node (i0) at (0.0,0.9) {$1$};
+            \node (i1) at (2.48,0.9) {$1$};
+            \node (i2) at (4.96,0.9) {$3$};
+            \node (i3) at (7.44,0.9) {$1$};
+            \node (i4) at (9.92,0.9) {$2$};
+            \node (i5) at (12.4,0.9) {$3$};
+            \node (t0) at (0.0,-1) {$1$};
+            \node (t1) at (2.48,-1) {$3$};
+            \node (t2) at (4.96,-1) {$2$};
+            \node (t3) at (7.44,-1) {$3$};
+            \node (t4) at (9.92,-1) {$1$};
+            \node (t5) at (12.4,-1) {$1$};
+            \node (u0) at (-1.24,0) {$111$};
+            \node (u1) at (1.24,0) {$111$};
+            \node (u2) at (3.72,0) {$113$};
+            \node (u3) at (6.2,0) {$112$};
+            \node (u4) at (8.68,0) {$123$};
+            \node (u5) at (11.16,0) {$113$};
+            \node (u6) at (13.64,0) {$111$};
             \draw[->] (i0) -- (t0);
-            \draw[->] (u0) -- (u1);
+            \draw[->] (u1) -- (u0);
             \draw[->] (i1) -- (t1);
-            \draw[->] (u1) -- (u2);
+            \draw[->] (u2) -- (u1);
             \draw[->] (i2) -- (t2);
-            \draw[->] (u2) -- (u3);
+            \draw[->] (u3) -- (u2);
             \draw[->] (i3) -- (t3);
-            \draw[->] (u3) -- (u4);
+            \draw[->] (u4) -- (u3);
             \draw[->] (i4) -- (t4);
-            \draw[->] (u4) -- (u5);
+            \draw[->] (u5) -- (u4);
             \draw[->] (i5) -- (t5);
-            \draw[->] (u5) -- (u6);
+            \draw[->] (u6) -- (u5);
             \end{tikzpicture}
             sage: B.latex_state_evolution(1)
             \begin{tikzpicture}[scale=1]
@@ -1160,24 +1160,321 @@ class SolitonCellularAutomata(SageObject):
             \end{tikzpicture}
         """
         from sage.graphs.graph_latex import setup_latex_preamble
-        from sage.misc.latex import latex, LatexExpr
+        from sage.misc.latex import LatexExpr
         setup_latex_preamble()
         u = self.state_evolution(num) # Also evolves as necessary
         final = self._states[num+1]
         vacuum = self._vacuum_elt
         initial = [vacuum]*(len(final) - len(self._states[num])) + list(self._states[num])
+        cs = len(u[0]) * 0.08 + 1 # carrier scaling
         def simple_repr(x):
             return ''.join(repr(x).strip('[]').split(', '))
         ret = '\\begin{{tikzpicture}}[scale={}]\n'.format(scale)
         for i,val in enumerate(initial):
-            ret += '\\node (i{}) at ({},0.9) {{${}$}};\n'.format(i, -2*i, simple_repr(val))
+            ret += '\\node (i{}) at ({},0.9) {{${}$}};\n'.format(i, 2*i*cs, simple_repr(val))
         for i,val in enumerate(final):
-            ret += '\\node (t{}) at ({},-1) {{${}$}};\n'.format(i, -2*i, simple_repr(val))
+            ret += '\\node (t{}) at ({},-1) {{${}$}};\n'.format(i, 2*i*cs, simple_repr(val))
         for i,val in enumerate(u):
-            ret += '\\node (u{}) at ({},0) {{${}$}};\n'.format(i, -2*i+1, simple_repr(val))
+            ret += '\\node (u{}) at ({},0) {{${}$}};\n'.format(i, (2*i-1)*cs, simple_repr(val))
         for i in range(len(initial)):
             ret += '\\draw[->] (i{}) -- (t{});\n'.format(i, i)
-            ret += '\\draw[->] (u{}) -- (u{});\n'.format(i, i+1)
+            ret += '\\draw[->] (u{}) -- (u{});\n'.format(i+1, i)
         ret += '\\end{tikzpicture}'
         return LatexExpr(ret)
+
+class PeriodicSolitonCellularAutomata(SolitonCellularAutomata):
+    r"""
+    A periodic soliton cellular automata.
+
+    Fix some `r \in I_0`. A *periodic soliton cellular automata* is a
+    :class:`SolitonCellularAutomata` with a state being a fixed number of
+    tensor factors `p = p_{\ell} \otimes \cdots \otimes p_1 \otimes p_0`
+    and the *time evolution* `T_s` is defined by
+
+    .. MATH::
+
+        R(p \otimes u) = u \otimes T_s(p),
+
+    for some element `u \in B^{r,s}`.
+
+    INPUT:
+
+    - ``initial_state`` -- the list of elements, can also be a string
+      when ``vacuum`` is 1 and ``n`` is `\mathfrak{sl}_n`
+    - ``cartan_type`` -- (default: 2) the value ``n``, for `\mathfrak{sl}_n`,
+      or a Cartan type
+    - ``r`` -- (default: 1) the node index `r`; typically this
+      corresponds to the height of the vacuum element
+
+    EXAMPLES:
+
+    The construction and usage is the same as for
+    :class:`SolitonCellularAutomata`::
+
+        sage: P = PeriodicSolitonCellularAutomata('1123334111241111423111411123112', 4)
+        sage: P.evolve()
+        sage: P
+        Soliton cellular automata of type ['A', 3, 1] and vacuum = 1
+          initial state:
+          ..23334...24....423...4...23..2
+          evoltuions: [(1, 31)]
+          current state:
+          34......24....243....4.223.233.
+        sage: P.evolve(carrier_capacity=2)
+        sage: P.evolve(carrier_index=2)
+        sage: P.evolve(carrier_index=2, carrier_capacity=3)
+        sage: P.print_states(10)
+        t: 0
+             ..23334...24....423...4...23..2
+        t: 1
+             34......24....243....4.223.233.
+        t: 2
+             ......24....24.3....4223.2333.4
+        t: 3
+             .....34....34.2..223234.24...3.
+        t: 4
+             ....34...23..242223.4..33....4.
+        t: 5
+             ..34.2223.224.3....4.33.....4..
+        t: 6
+             34223...24...3....433......4.22
+        t: 7
+             23....24....3...343....222434..
+        t: 8
+             ....24.....3..34.322244...3..23
+        t: 9
+             ..24.....332442342.......3.23..
+
+    Using `r = 2` in type `A_3^{(1)}`::
+
+        sage: initial = [[2,1],[2,1],[4,1],[2,1],[2,1],[2,1],[3,1],[3,1],[3,2]]
+        sage: P = PeriodicSolitonCellularAutomata(initial, 4, 2)
+        sage: P.print_states(10)
+        t: 0   4   333
+             ..1...112
+        t: 1  4 333
+             .1.112...
+        t: 2 433     3
+             112.....1
+        t: 3 3    334
+             2....111.
+        t: 4   334   3
+             ..111...2
+        t: 5 34     33
+             11.....21
+        t: 6     3334
+             ....1121.
+        t: 7  333  4
+             .112..1..
+        t: 8 3    4 33
+             2....1.11
+        t: 9    3433
+             ...1112..
+
+    We do some examples in other types::
+
+        sage: initial = [[1],[2],[2],[1],[1],[1],[3],[1],['E'],[1],[1]]
+        sage: P = PeriodicSolitonCellularAutomata(initial, ['D',4,3])
+        sage: P.print_states(10)
+        t: 0
+             .22...3.E..
+        t: 1
+             2....3.E..2
+        t: 2
+             ....3.E.22.
+        t: 3
+             ...3.E22...
+        t: 4
+             ..32E2.....
+        t: 5
+             .00.2......
+        t: 6 _
+             22.2.......
+        t: 7
+             2.2......3E
+        t: 8
+             .2.....30.2
+        t: 9
+             2....332.2.
+
+        sage: P = PeriodicSolitonCellularAutomata([[3],[2],[1],[1],[-2]], ['C',2,1])
+        sage: P.print_state_evolution(0)
+                3           2           1           1          -2
+            _   |           |           |       _   |      __   |       _
+        11112 --+-- 11112 --+-- 11111 --+-- 11112 --+-- 11122 --+-- 11112
+                |           |           |           |           |
+                2           1          -2          -2           1
+
+    REFERENCES:
+
+    - [KTT2006]_
+    - [KS2006]_
+    - [YT2002]_
+    - [YYT2003]_
+    """
+    def evolve(self, carrier_capacity=None, carrier_index=None, number=None):
+        r"""
+        Evolve ``self``.
+
+        Time evolution `T_s` of a SCA state `p` is determined by
+
+        .. MATH::
+
+            u \otimes T_s(p) = R(p \otimes u),
+
+        where `u` is some element in `B^{r,s}`.
+
+        INPUT:
+
+        - ``carrier_capacity`` -- (default: the number of balls in
+          the system) the size `s` of carrier
+
+        - ``carrier_index`` -- (default: the vacuum index) the index `r`
+          of the carrier
+
+        - ``number`` -- (optional) the number of times to perform
+          the evolutions
+
+        To perform multiple evolutions of the SCA, ``carrier_capacity``
+        and ``carrier_index`` may be lists of the same length.
+
+        .. WARNING::
+
+            Time evolution is only guaranteed to result in a solution
+            when the ``carrier_index`` is the defining `r` of the SCA.
+            If no solution is found, then this will raise an error.
+
+        EXAMPLES::
+
+            sage: P = PeriodicSolitonCellularAutomata('12411133214131221122', 4)
+            sage: P.evolve()
+            sage: P.print_state(0)
+            .24...332.4.3.22..22
+            sage: P.print_state(1)
+            4...33.2.42322..22..
+            sage: P.evolve(carrier_capacity=2)
+            sage: P.print_state(2)
+            ..33.22.4232..22...4
+            sage: P.evolve(carrier_capacity=[1,3,1,2])
+            sage: P.evolve(1, number=3)
+            sage: P.print_states(10)
+            t: 0
+                 .24...332.4.3.22..22
+            t: 1
+                 4...33.2.42322..22..
+            t: 2
+                 ..33.22.4232..22...4
+            t: 3
+                 .33.22.4232..22...4.
+            t: 4
+                 3222..43.2.22....4.3
+            t: 5
+                 222..43.2.22....4.33
+            t: 6
+                 2...4322.2.....43322
+            t: 7
+                 ...4322.2.....433222
+            t: 8
+                 ..4322.2.....433222.
+            t: 9
+                 .4322.2.....433222..
+
+            sage: P = PeriodicSolitonCellularAutomata('12411132121', 4)
+            sage: P.evolve(carrier_index=2, carrier_capacity=3)
+            sage: P.state_evolution(0)
+            [[[1, 1, 1], [2, 2, 4]],
+             [[1, 1, 2], [2, 2, 4]],
+             [[1, 1, 3], [2, 2, 4]],
+             [[1, 1, 1], [2, 2, 3]],
+             [[1, 1, 1], [2, 2, 3]],
+             [[1, 1, 1], [2, 2, 3]],
+             [[1, 1, 2], [2, 2, 3]],
+             [[1, 1, 1], [2, 2, 2]],
+             [[1, 1, 1], [2, 2, 2]],
+             [[1, 1, 1], [2, 2, 2]],
+             [[1, 1, 1], [2, 2, 4]],
+             [[1, 1, 1], [2, 2, 4]]]
+        """
+        if isinstance(carrier_capacity, (list, tuple)):
+            if not isinstance(carrier_index, (list, tuple)):
+                carrier_index = [carrier_index] * len(carrier_capacity)
+            if len(carrier_index) != len(carrier_capacity):
+                raise ValueError("carrier_index and carrier_capacity"
+                                 " must have the same length")
+            for i,r in zip(carrier_capacity, carrier_index):
+                self.evolve(i, r)
+            return
+        if isinstance(carrier_index, (list, tuple)):
+            # carrier_capacity must be not be a list/tuple if given
+            for r in carrier_index:
+                self.evolve(carrier_capacity, r)
+            return
+
+        if carrier_capacity is None:
+            carrier_capacity = self._nballs
+        if carrier_index is None:
+            carrier_index = self._vacuum
+
+        if number is not None:
+            for k in range(number):
+                self.evolve(carrier_capacity, carrier_index)
+            return
+        if carrier_capacity is None:
+            carrier_capacity = self._nballs
+        if carrier_index is None:
+            carrier_index = self._vacuum
+
+        K = KirillovReshetikhinTableaux(self._cartan_type, carrier_index, carrier_capacity)
+        carrier_factor = (carrier_index, carrier_capacity)
+        state = self._states[-1]
+        dims = state.parent().dims
+        for carrier in K:
+            KRT = TensorProductOfKirillovReshetikhinTableaux(self._cartan_type,
+                                                             dims + (carrier_factor,))
+            elt = KRT(*(list(state) + [carrier]))
+            RC = RiggedConfigurations(self._cartan_type, (carrier_factor,) + dims)
+            elt2 = RC(*elt.to_rigged_configuration()).to_tensor_product_of_kirillov_reshetikhin_tableaux()
+            # Back to an empty carrier or we are not getting any better
+            if elt2[0] == carrier:
+                KRT = TensorProductOfKirillovReshetikhinTableaux(self._cartan_type, dims)
+                self._states.append(KRT(*elt2[1:]))
+                self._evolutions.append(carrier_factor)
+                self._initial_carrier.append(carrier)
+                break
+        else:
+            raise ValueError("cannot find solution to time evolution")
+
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        Two periodic SCAs are equal when they have the same initial
+        state and evolutions.
+
+        TESTS::
+
+            sage: P1 = PeriodicSolitonCellularAutomata('34112223', 4)
+            sage: P2 = PeriodicSolitonCellularAutomata('34112223', 4)
+            sage: P1 == P2
+            True
+            sage: P1.evolve()
+            sage: P1 == P2
+            False
+            sage: P2.evolve()
+            sage: P1 == P2
+            True
+            sage: P1.evolve(5)
+            sage: P2.evolve(6)
+            sage: P1 == P2
+            False
+
+            sage: P = PeriodicSolitonCellularAutomata('34112223', 4)
+            sage: B = SolitonCellularAutomata('34112223', 4)
+            sage: P == B
+            False
+            sage: B == P
+            False
+        """
+        return (isinstance(other, PeriodicSolitonCellularAutomata)
+                and SolitonCellularAutomata.__eq__(self, other))
 

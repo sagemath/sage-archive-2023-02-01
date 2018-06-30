@@ -1,4 +1,4 @@
-""" 
+"""
 Iwahori-Hecke Algebras
 
 AUTHORS:
@@ -19,21 +19,21 @@ AUTHORS:
 #*****************************************************************************
 
 from functools import cmp_to_key
+import six
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import parent
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.categories.all import AlgebrasWithBasis, FiniteDimensionalAlgebrasWithBasis, CoxeterGroups
 from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.polynomial.polydict import ETuple
 from sage.arith.all import is_square
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
+
 
 def normalized_laurent_polynomial(R, p):
     r"""
@@ -1595,7 +1595,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             The hash involution `\alpha` is a `\ZZ`-algebra
             involution of the Iwahori-Hecke algebra determined by
-            `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto 
+            `q^{1/2} \mapsto q^{-1/2}`, and `T_w \mapsto
             (-q_1 q_2)^{-\ell(w)} T_w`, for `w` an element of the
             corresponding Coxeter group.
 
@@ -1631,7 +1631,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             indexed by ``w``.
 
             The goldman involution is the algebra involution of the
-            Iwahori-Hecke algebra determined by 
+            Iwahori-Hecke algebra determined by
 
             .. MATH::
 
@@ -2067,7 +2067,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         The `A`-basis of an Iwahori-Hecke algebra.
 
         The `A`-basis of the Iwahori-Hecke algebra is the simplest basis
-        that is invariant under the Goldman involution `\#`, up to sign. 
+        that is invariant under the Goldman involution `\#`, up to sign.
         For `w` in the underlying Coxeter group define:
 
         .. MATH::
@@ -2075,7 +2075,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             A_w = T_w + (-1)^{\ell(w)}T_w^{\#}
                 = T_w + (-1)^{\ell(w)}T_{w^{-1}}^{-1}
 
-        This gives a basis of the Iwahori-Hecke algebra whenever 2 is a unit 
+        This gives a basis of the Iwahori-Hecke algebra whenever 2 is a unit
         in the base ring. The `A`-basis induces a `\ZZ / 2\ZZ`-grading
         on the Iwahori-Hecke algebra.
 
@@ -2695,10 +2695,6 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             # \tau is the Hecke involution.
             return (-1)**w.length()*self.realization_of().Cp().to_T_basis(w).hash_involution()
 
-from sage.structure.sage_object import register_unpickle_override
-
-import six
-
-
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.algebras.iwahori_hecke_algebra',
                            'IwahoriHeckeAlgebraT', IwahoriHeckeAlgebra)

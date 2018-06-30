@@ -320,7 +320,8 @@ def isogenies_prime_degree_genus_0(E, l=None):
         return isogs
 
     if l is None:
-        return sum([isogenies_prime_degree_genus_0(E, l) for l in [2,3,5,7,13]],[])
+        return sum([isogenies_prime_degree_genus_0(E, ell)
+                    for ell in [2, 3, 5, 7, 13]],[])
 
 
 # The following code computes data to be used in
@@ -379,7 +380,7 @@ def _sporadic_Q_data(j):
     TESTS::
 
         sage: from sage.schemes.elliptic_curves.isogeny_small_degree import sporadic_j, _sporadic_Q_data
-        sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j.keys()) if j != -262537412640768000]
+        sage: [_sporadic_Q_data(j) for j in sorted(sporadic_j) if j != -262537412640768000]
         [([-269675595, -1704553285050],
           [-31653754873248632711650187487655160190139073510876609346911928661154296875/37,
            -1469048260972089939455942042937882262144594798448952781325533511718750,
@@ -1485,7 +1486,6 @@ def Psi2(l):
     data = _hyperelliptic_isogeny_data(l)
 
     R = PolynomialRing(QQ, 'u')
-    u = R.gen()
     L = PolynomialRing(R, 'v')
     v = L.gen()
     K = R.extension(v*v - R(data['hyper_poly']), 'v')
@@ -1607,10 +1607,11 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
 
     """
     if l is None:
-        return sum([isogenies_prime_degree_genus_plus_0(E, l) for l in hyperelliptic_primes],[])
+        return sum([isogenies_prime_degree_genus_plus_0(E, ell)
+                    for ell in hyperelliptic_primes],[])
 
     if not l in hyperelliptic_primes:
-        raise ValueError("%s must be one of %s."%(l,hyperelliptic_primes))
+        raise ValueError("%s must be one of %s." % (l, hyperelliptic_primes))
 
     F = E.base_ring()
     j = E.j_invariant()
@@ -1991,10 +1992,10 @@ def isogenies_prime_degree_general(E, l):
     # the division polynomial of the same degree, where this degree is
     # a divisor of (l-1)/2, so we keep only such factors:
 
-    l2 = (l-1)//2
-    factors = [h for h,e in psi_l.factor()]
-    factors_by_degree = dict([(d,[f for f in factors if f.degree()==d])
-                              for d in l2.divisors()])
+    l2 = (l - 1) // 2
+    factors = [h for h, _ in psi_l.factor()]
+    factors_by_degree = {d: [f for f in factors if f.degree() == d]
+                         for d in l2.divisors()}
 
     ker = [] # will store all kernel polynomials found
 
@@ -2003,8 +2004,8 @@ def isogenies_prime_degree_general(E, l):
     # we add to the list and remove the factors used.
 
     from sage.misc.all import prod
-    for d in factors_by_degree.keys():
-        if d*len(factors_by_degree[d]) == l2:
+    for d in list(factors_by_degree):
+        if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
 
     # Exit now if all factors have been used already:

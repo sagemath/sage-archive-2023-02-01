@@ -4,7 +4,7 @@ Coxeter Groups
 """
 #*****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
-#                2015    Christian Stump <christian.stump at gmail.com
+#                2015    Christian Stump <christian.stump at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -24,6 +24,8 @@ from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
 from copy import copy
+
+from sage.rings.integer_ring import ZZ
 
 class CoxeterGroups(Category_singleton):
     r"""
@@ -191,6 +193,143 @@ class CoxeterGroups(Category_singleton):
                 Coxeter type of ['H', 3]
             """
             return self.coxeter_matrix().coxeter_type()
+
+        def braid_relations(self):
+            r"""
+            Return the braid relations of ``self`` as a list of reduced
+            words of the braid relations.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(["A",2])
+                sage: W.braid_relations()
+                [[[1, 2, 1], [2, 1, 2]]]
+
+                sage: W = WeylGroup(["B",3])
+                sage: W.braid_relations()
+                [[[1, 2, 1], [2, 1, 2]], [[1, 3], [3, 1]], [[2, 3, 2, 3], [3, 2, 3, 2]]]
+            """
+            rels = []
+            M = self.coxeter_matrix()
+            I = self.index_set()
+            for ii,i in enumerate(I):
+                for j in I[ii+1:]:
+                    m = M[i,j]
+                    rel = [i,j] * m
+                    rels.append([rel[:m], rel[m:] if m % 2 == 1 else
+                                list(reversed(rel[m:]))])
+            return rels
+
+        def braid_group_as_finitely_presented_group(self):
+            r"""
+            Return the associated braid group.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroup(['A',2])
+                sage: W.braid_group_as_finitely_presented_group()
+                Finitely presented group < S1, S2 | S1*S2*S1*S2^-1*S1^-1*S2^-1 >
+
+                sage: W = WeylGroup(['B',2])
+                sage: W.braid_group_as_finitely_presented_group()
+                Finitely presented group < S1, S2 | (S1*S2)^2*(S1^-1*S2^-1)^2 >
+
+                sage: W = ReflectionGroup(['B',3], index_set=["AA","BB",5])  # optional - gap3
+                sage: W.braid_group_as_finitely_presented_group()            # optional - gap3
+                Finitely presented group < SAA, SBB, S5 |
+                 SAA*SBB*SAA*SBB^-1*SAA^-1*SBB^-1, SAA*S5*SAA^-1*S5^-1,
+                 (SBB*S5)^2*(SBB^-1*S5^-1)^2 >
+            """
+            from sage.groups.free_group import FreeGroup
+            from sage.misc.misc_c import prod
+
+            I = self.index_set()
+            F = FreeGroup(["S%s"%i for i in I])
+            S = F.gens()
+            rels = self.braid_relations()
+            return F / [ prod(S[I.index(i)] for i in l)*prod(S[I.index(i)]**-1 for i in reversed(r)) for l,r in rels ]
+
+        def braid_orbit(self, word):
+            r"""
+            Return the braid orbit of a word ``word`` of indices. The
+            input word does not need to be a reduced expression of an
+            element.
+
+            INPUT:
+
+            - ``word``: a list (or iterable) of indices in
+              ``self.index_set()``
+
+            OUTPUT: a list of all lists that can be obtained from
+                    ``word`` by replacements of braid relations
+
+            See :meth:`braid_relations` for the definition of braid
+            relations.
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroups().example()
+                sage: s = W.simple_reflections()
+                sage: w = s[0] * s[1] * s[2] * s[1]
+                sage: word = w.reduced_word(); word
+                [0, 1, 2, 1]
+
+                sage: sorted(W.braid_orbit(word))
+                [[0, 1, 2, 1], [0, 2, 1, 2], [2, 0, 1, 2]]
+
+                sage: W.braid_orbit([2,1,1,2,1])
+                [[2, 2, 1, 2, 2], [2, 1, 1, 2, 1], [1, 2, 1, 1, 2], [2, 1, 2, 1, 2]]
+
+                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])  # optional - gap3
+                sage: w = W.long_element()                                   # optional - gap3
+                sage: W.braid_orbit(w.reduced_word())                        # optional - gap3
+                [['AA', 5, 'BB', 5, 'AA', 'BB'],
+                 ['AA', 'BB', 5, 'BB', 'AA', 'BB'],
+                 [5, 'BB', 'AA', 5, 'BB', 5],
+                 ['BB', 5, 'AA', 'BB', 5, 'AA'],
+                 [5, 'BB', 5, 'AA', 'BB', 5],
+                 ['BB', 5, 'AA', 'BB', 'AA', 5],
+                 [5, 'AA', 'BB', 'AA', 5, 'BB'],
+                 ['BB', 'AA', 5, 'BB', 5, 'AA'],
+                 ['AA', 'BB', 'AA', 5, 'BB', 'AA'],
+                 [5, 'BB', 'AA', 'BB', 5, 'BB'],
+                 ['BB', 'AA', 5, 'BB', 'AA', 5],
+                 [5, 'AA', 'BB', 5, 'AA', 'BB'],
+                 ['AA', 'BB', 5, 'AA', 'BB', 'AA'],
+                 ['BB', 5, 'BB', 'AA', 'BB', 5],
+                 ['AA', 5, 'BB', 'AA', 5, 'BB'],
+                 ['BB', 'AA', 'BB', 5, 'BB', 'AA']]
+
+            .. TODO::
+
+                The result should be full featured finite enumerated set
+                (e.g., counting can be done much faster than iterating).
+
+            .. SEEALSO::
+
+                :meth:`.reduced_words`
+            """
+            word = list(word)
+            from sage.combinat.root_system.braid_orbit import BraidOrbit
+
+            braid_rels  = self.braid_relations()
+            I           = self.index_set()
+
+            be_careful  = any(i not in ZZ for i in I)
+
+            if be_careful:
+                Iinv        = { i:j for j,i in enumerate(I) }
+                word        = [ Iinv[i] for i in word ]
+                braid_rels  = [ [[Iinv[i] for i in l],[Iinv[i] for i in r]] for l,r in braid_rels ]
+
+            orb = BraidOrbit(word, braid_rels)
+
+            if be_careful:
+                orb = [ [ I[i] for i in word ] for word in orb ]
+            else:
+                orb = map(list, orb)
+
+            return orb
 
         def __iter__(self):
             r"""
@@ -1184,8 +1323,71 @@ class CoxeterGroups(Category_singleton):
             result = list(self.reduced_word_reverse_iterator())
             return list(reversed(result))
 
-        #def lex_min_reduced_word(w):
-        #    return list(reversed((w.inverse()).reduced_word()))
+        def reduced_words(self):
+            r"""
+            Return all reduced words for ``self``.
+
+            See :meth:`reduced_word` for the definition of a reduced
+            word.
+
+            The algorithm uses the Matsumoto property that any two
+            reduced expressions are related by braid relations, see
+            [Theorem 3.3.1(ii), BB2005].
+
+            REFERENCES:
+
+            .. [BB2005] A. Björner, F. Brenti *Combinatorics of Coxeter groups.*
+               Graduate Texts in Mathematics, 231. Springer, New York, 2005,
+               (MR2133266).
+
+            .. SEEALSO::
+
+                :meth:`braid_orbit`
+
+            EXAMPLES::
+
+                sage: W = CoxeterGroups().example()
+                sage: s = W.simple_reflections()
+                sage: w = s[0] * s[2]
+                sage: sorted(w.reduced_words())
+                [[0, 2], [2, 0]]
+
+                sage: W = WeylGroup(['E',6])
+                sage: w = W.from_reduced_word([2,3,4,2])
+                sage: sorted(w.reduced_words())
+                [[2, 3, 4, 2], [3, 2, 4, 2], [3, 4, 2, 4]]
+
+                sage: W = ReflectionGroup(['A',3], index_set=["AA","BB",5])  # optional - gap3
+                sage: w = W.long_element()                                   # optional - gap3
+                sage: w.reduced_words()                                      # optional - gap3
+                [['AA', 5, 'BB', 5, 'AA', 'BB'],
+                 ['AA', 'BB', 5, 'BB', 'AA', 'BB'],
+                 [5, 'BB', 'AA', 5, 'BB', 5],
+                 ['BB', 5, 'AA', 'BB', 5, 'AA'],
+                 [5, 'BB', 5, 'AA', 'BB', 5],
+                 ['BB', 5, 'AA', 'BB', 'AA', 5],
+                 [5, 'AA', 'BB', 'AA', 5, 'BB'],
+                 ['BB', 'AA', 5, 'BB', 5, 'AA'],
+                 ['AA', 'BB', 'AA', 5, 'BB', 'AA'],
+                 [5, 'BB', 'AA', 'BB', 5, 'BB'],
+                 ['BB', 'AA', 5, 'BB', 'AA', 5],
+                 [5, 'AA', 'BB', 5, 'AA', 'BB'],
+                 ['AA', 'BB', 5, 'AA', 'BB', 'AA'],
+                 ['BB', 5, 'BB', 'AA', 'BB', 5],
+                 ['AA', 5, 'BB', 'AA', 5, 'BB'],
+                 ['BB', 'AA', 'BB', 5, 'BB', 'AA']]
+
+            .. TODO::
+
+                The result should be full featured finite enumerated set
+                (e.g., counting can be done much faster than iterating).
+
+            .. SEEALSO::
+
+                :meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
+                :meth:`length`, :meth:`reduced_word_graph`
+            """
+            return self.parent().braid_orbit(self.reduced_word())
 
         def support(self):
             r"""
@@ -1223,42 +1425,6 @@ class CoxeterGroups(Category_singleton):
                 True
                 """
             return self.support() == set(self.parent().index_set())
-
-        def reduced_words(self):
-            r"""
-            Return all reduced words for ``self``.
-
-            See :meth:`reduced_word` for the definition of a reduced
-            word.
-
-            EXAMPLES::
-
-                sage: W=CoxeterGroups().example()
-                sage: s=W.simple_reflections()
-                sage: w=s[0]*s[2]
-                sage: w.reduced_words()
-                [[2, 0], [0, 2]]
-                sage: W=WeylGroup(['E',6])
-                sage: w=W.from_reduced_word([2,3,4,2])
-                sage: w.reduced_words()
-                [[3, 2, 4, 2], [2, 3, 4, 2], [3, 4, 2, 4]]
-
-            TODO: the result should be full featured finite enumerated
-            set (e.g. counting can be done much faster than iterating).
-
-            .. SEEALSO::
-
-                :meth:`.reduced_word`, :meth:`.reduced_word_reverse_iterator`,
-                :meth:`length`, :meth:`reduced_word_graph`
-            """
-            descents = self.descents()
-            if descents == []:
-                return [[]]
-            else:
-                return [ r + [i]
-                         for i in self.descents()
-                         for r in (self.apply_simple_reflection(i)).reduced_words()
-                         ]
 
         def reduced_word_graph(self):
             r"""

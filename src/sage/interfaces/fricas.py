@@ -597,8 +597,16 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get_string('concat([string(1) for i in 1..10000])') == "1"*10000    # optional - fricas
             True
 
+        A problem with leading space::
+
+            sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
+            sage: fricas.get_string(s)                                                       # optional - fricas
+            '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
         """
-        return self.get(str(var)).replace("\n", "")[1:-1]
+        # strip removes leading and trailing whitespace, after that
+        # we can assume that the first and the last character are
+        # double quotes
+        return self.get(str(var)).replace("\n", "").strip()[1:-1]
 
     def get_integer(self, var):
         """

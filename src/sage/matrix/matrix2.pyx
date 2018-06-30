@@ -689,7 +689,13 @@ cdef class Matrix(Matrix1):
             sage: A.elementwise_product(vector(ZZ, [1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: operand must be a matrix, not an element of Ambient free module of rank 4 over the principal ideal domain Integer Ring
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 5 by 10 dense matrices over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Integer Ring'
+
+            sage: A = matrix(2, 2, range(4))
+            sage: A.elementwise_product(polygen(parent(A)))
+            Traceback (most recent call last):
+            ...
+            TypeError: elementwise_product() argument should be a matrix or coercible to a matrix
 
         Matrices of different sizes for operands will raise an error. ::
 
@@ -698,7 +704,7 @@ cdef class Matrix(Matrix1):
             sage: A.elementwise_product(B)
             Traceback (most recent call last):
             ...
-            TypeError: incompatible sizes for matrices from: Full MatrixSpace of 5 by 10 dense matrices over Integer Ring and Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 5 by 10 dense matrices over Integer Ring' and 'Full MatrixSpace of 10 by 5 dense matrices over Integer Ring'
 
         Some pairs of rings do not have a common parent where
         multiplication makes sense.  This will raise an error. ::
@@ -758,14 +764,13 @@ cdef class Matrix(Matrix1):
         """
         # Optimized routines for specialized classes would likely be faster
         # See the "pairwise_product" of vectors for some guidance on doing this
-        from sage.structure.element import canonical_coercion
-        if not isinstance(right, Matrix):
-            raise TypeError('operand must be a matrix, not an element of %s' % right.parent())
-        if (self.nrows() != right.nrows()) or (self.ncols() != right.ncols()):
-            raise TypeError('incompatible sizes for matrices from: %s and %s'%(self.parent(), right.parent()))
-        if self._parent is not (<Matrix>right)._parent:
-            self, right = canonical_coercion(self, right)
-        return self._elementwise_product(right)
+        if have_same_parent(self, right):
+            return self._elementwise_product(right)
+        A, B = coercion_model.canonical_coercion(self, right)
+        if not isinstance(A, Matrix):
+            # Canonical coercion is not a matrix?!
+            raise TypeError("elementwise_product() argument should be a matrix or coercible to a matrix")
+        return (<Matrix>A)._elementwise_product(B)
 
     def permanent(self, algorithm="Ryser"):
         r"""
@@ -6910,7 +6915,7 @@ cdef class Matrix(Matrix1):
 
     cpdef _echelon_in_place(self, str algorithm):
         """
-        Transform ``self`` into echelon form and set the pivots of ``self``.
+        Transform ``self`` into echelon form and return the pivots of ``self``.
 
         EXAMPLES::
 
@@ -7045,7 +7050,7 @@ cdef class Matrix(Matrix1):
 
     def _echelon_in_place_classical(self):
         """
-        Transform self into echelon form and set the pivots of self.
+        Transform self into echelon form and return the pivots of self.
 
         EXAMPLES::
 
@@ -12511,7 +12516,7 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
-    def is_positive_definite(self):
+    def is_positive_definite(self, certificate=False):
         r"""
         Determines if a real or symmetric matrix is positive definite.
 
@@ -12521,7 +12526,7 @@ cdef class Matrix(Matrix1):
 
         .. MATH::
 
-            \vec{x}^\ast A\vec{x} > 0
+            \vec{x}^\ast A\vec{x} > 0.
 
         Here `\vec{x}^\ast` is the conjugate-transpose, which can be
         simplified to just the transpose in the real case.
@@ -12538,6 +12543,9 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         Any square matrix.
+
+        - ``certificate`` -- (default: ``False``) return the
+          decomposition from the indefinite factorization if possible
 
         OUTPUT:
 
@@ -12706,9 +12714,42 @@ cdef class Matrix(Matrix1):
         # positive definite iff all entries of d are positive
         zero = R.fraction_field().zero()
         if real:
-            return all(x > zero for x in d)
+            is_pos = all(x > zero for x in d)
         else:
-            return all(x.real() > zero for x in d)
+            is_pos = all(x.real() > zero for x in d)
+
+        if certificate:
+            if is_pos:
+                return is_pos, L, d
+            else:
+                return is_pos, None, None
+        else:
+            return is_pos
+
+    def principal_square_root(self, check_positivity=True):
+        r"""
+        Return the principal square root of a positive definte matrix.
+
+        A positive definite matrix `A` has a unique positive definite
+        matrix `M` such that `M^2 = A`.
+
+        See :wikipedia:`Square_root_of_a_matrix`.
+
+        EXAMPLES::
+
+            sage: A = Matrix([[1,-1/2,0],[-1/2,1,-1/2],[0,-1/2,1]])
+            sage: B = A.principal_square_root()
+            sage: A == B^2
+            True
+        """
+        from sage.matrix.special import diagonal_matrix
+        from sage.functions.other import sqrt
+
+        if check_positivity and not self.is_positive_definite():
+            return False
+
+        d, L = self.eigenmatrix_left()
+        return L.inverse() * diagonal_matrix([sqrt(a) for a in d.diagonal()]) * L
 
     def hadamard_bound(self):
         r"""
@@ -13185,7 +13226,7 @@ cdef class Matrix(Matrix1):
             sage: A.plot(cmap='Oranges')
             Graphics object consisting of 1 graphics primitive
         """
-        from sage.plot.plot import matrix_plot
+        from sage.plot.matrix_plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
 
     def derivative(self, *args):

@@ -126,7 +126,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import is_IntegerRing
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.rings.polynomial.multi_polynomial_ideal import NCPolynomialIdeal
 
 from sage.rings.polynomial.polydict import ETuple

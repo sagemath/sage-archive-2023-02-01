@@ -30,7 +30,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.algebras.lie_algebras.classical_lie_algebra import gl, sl, so, sp
 from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 from sage.algebras.lie_algebras.onsager import OnsagerAlgebra
 from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra as Affine

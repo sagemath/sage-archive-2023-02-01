@@ -1699,7 +1699,6 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
         return ''.join(ret)
 
-
     def _r_list(self, *args, **kwds):
         """
         This is used internally in the code for converting R
@@ -1708,13 +1707,13 @@ class RElement(ExtraTabCompletion, ExpectElement):
         EXAMPLES::
 
             sage: a = r([1,2,3])
-            sage: list(sorted(a._r_list(1,2,3,k=5).items()))
+            sage: sorted(a._r_list(1,2,3,k=5).items())
             [('#0', 1), ('#1', 2), ('#2', 3), ('k', 5)]
         """
         ret = dict(kwds)
         i = 0
         for k in args:
-            ret['#%s'%i] = k
+            ret['#%s' % i] = k
             i += 1
         return ret
 
@@ -1727,7 +1726,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: a = r([1,2,3])
             sage: d = a._r_structure('data', a=1, b=2)
-            sage: list(sorted(d.items()))
+            sage: sorted(d.items())
             [('DATA', 'data'), ('a', 1), ('b', 2)]
             sage: a._r_structure([1,2,3,4], _Dim=(2,2))
             [1 3]
@@ -1769,7 +1768,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
             sage: d = rs._sage_()
-            sage: list(sorted(d.items()))
+            sage: sorted(d.items())
             [('DATA', [1, 1.75, 3, 2.875, 4, 5]),
              ('_Names', ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']),
              ('_r_class', ['summaryDefault', 'table'])]

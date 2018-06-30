@@ -814,11 +814,6 @@ class Singular(ExtraTabCompletion, Expect):
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
-            try:
-                self._coerce_(S.an_element())
-                return True
-            except TypeError:
-                pass
         elif S in integer_types:
             return True
         return None

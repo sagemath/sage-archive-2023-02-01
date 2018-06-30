@@ -527,7 +527,7 @@ class DyckWord(CombinatorialElement):
                 row += "| "+" ."*(n-1) + labels[-1] + "\n"
             return row
         else:
-            raise ValueError("The given type (=\s) is not valid." % type)
+            raise ValueError("The given type (=%s) is not valid." % type)
 
     def _ascii_art_(self):
         r"""
@@ -4224,7 +4224,7 @@ def pealing(D, return_touches=False):
     else:
         return D
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.dyck_word', 'DyckWord', DyckWord)
 
 # Deprecations from trac:18555. July 2016

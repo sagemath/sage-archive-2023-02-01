@@ -512,7 +512,6 @@ from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _gen
 from sage.misc.lazy_attribute import lazy_attribute
 import collections
 import copy
-import os
 import sys
 import random
 import ctypes
@@ -1675,13 +1674,12 @@ class RESetMapReduceWorker(mp.Process):
         """
         profile = self._mapred._profile
         if profile is not None:
-            from multiprocessing import current_process
             import cProfile
             PROFILER = cProfile.Profile()
             PROFILER.runcall(self.run_myself)
 
             output = profile + str(self._iproc)
-            logger.warn("Profiling in %s ..."%output)
+            logger.warn("Profiling in %s ..." % output)
             PROFILER.dump_stats(output)
         else:
             self.run_myself()

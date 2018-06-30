@@ -1496,7 +1496,7 @@ class Link(object):
         return flatten(self._braid_word_components())
 
     def _homology_generators(self):
-        """
+        r"""
         The set of generators for the first homology group of the connected
         Seifert surface of the given link.
 
@@ -2905,11 +2905,11 @@ class Link(object):
             MLP.add_constraint(MLP.sum(horp) - MLP.sum(horm) == 0)
             MLP.add_constraint(MLP.sum(verp) - MLP.sum(verm) == 0)
         MLP.set_objective(MLP.sum(v.values()))
-        solved = MLP.solve()
+        MLP.solve()
         v = MLP.get_values(v)
         lengths = {piece: sum(v[a] for a in pieces[piece]) for piece in pieces}
         image = line([], **kwargs)
-        crossings = {tuple(self.pd_code()[0]): (0,0,0)}
+        crossings = {tuple(self.pd_code()[0]): (0, 0, 0)}
         availables = self.pd_code()[1:]
         used_edges = []
         ims = line([], **kwargs)

@@ -1920,17 +1920,18 @@ cdef class MPolynomial(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             NotImplementedError: GCD is not implemented for multivariate polynomials over Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+
+        TESTS::
+
+            sage: Pol = QQ['x']['x','y']
+            sage: Pol.one().gcd(1)
+            1
         """
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > self._parent.ngens():
-            base = self._parent._mpoly_base_ring()
-            d1 = self._mpoly_dict_recursive()
-            d2 = other._mpoly_dict_recursive()
-            ring = PolynomialRing(base, variables)
-            try:
-                return self._parent(ring(d1).gcd(ring(d2)))
-            except (AttributeError, NotImplementedError):
-                pass
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt is not self._parent and tgt._has_singular:
+            g = flatten(self).gcd(flatten(other))
+            return flatten.section()(g)
 
         try:
             self._parent._singular_().set_ring()
@@ -1942,10 +1943,12 @@ cdef class MPolynomial(CommutativeRingElement):
         x = self._parent.gens()[-1]
         uniself = self.polynomial(x)
         unibase = uniself.base_ring()
-        if hasattr(unibase, "_gcd_univariate_polynomial"):
-            return self._parent(unibase._gcd_univariate_polynomial(uniself, other.polynomial(x)))
-        else:
+        try:
+            doit = unibase._gcd_univariate_polynomial
+        except AttributeError:
             raise NotImplementedError("GCD is not implemented for multivariate polynomials over {}".format(self._parent._mpoly_base_ring()))
+        else:
+            return self.parent()(doit(uniself, other.polynomial(x)))
 
     def nth_root(self, n):
         r"""
@@ -2292,7 +2295,7 @@ cdef class MPolynomial(CommutativeRingElement):
         z0 = z
         # creates and solves equations 4.4 in [SC], gives us a new z
         x,y = self.parent().gens()
-        F = S(phi(self(tuple((M * vector([x, y])))))) # New self, S pushes it to polyomial ring
+        F = S(phi(self(tuple((M * vector([x, y]))))))  # New self, S pushes it to polynomial ring
         #L1 = F.roots(ring=CF, multiplicities=True)
         L1 = complex_roots(F, min_prec=prec)
         L=[]

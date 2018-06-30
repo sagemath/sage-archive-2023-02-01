@@ -46,7 +46,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
 
         EXAMPLES::
 
-            sage: TestSuite(algebras.FQSym(QQ).F()).run()
+            sage: TestSuite(algebras.FQSym(QQ).F()).run()  # long time
         """
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          Permutations(),
@@ -61,6 +61,8 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         The things that coerce into ``self`` are
 
         - free quasi-symmetric functions over a base with
+          a coercion map into ``self.base_ring()``
+        - free symmetric functions over a base with
           a coercion map into ``self.base_ring()``
 
         EXAMPLES::
@@ -95,6 +97,21 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
              over Finite Field of size 7 in the F basis to
              Free Quasi-symmetric functions over Integer Ring in the F basis
 
+        Check that `FSym` bases coerce in::
+
+            sage: FSym = algebras.FSym(ZZ)
+            sage: TG = FSym.G()
+            sage: t = StandardTableau([[1,3],[2,4],[5]])
+            sage: F(TG[t])
+            F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+             + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+            sage: algebras.FQSym(QQ)(TG[t])
+            F[2, 1, 5, 4, 3] + F[2, 5, 1, 4, 3] + F[2, 5, 4, 1, 3]
+             + F[5, 2, 1, 4, 3] + F[5, 2, 4, 1, 3]
+            sage: G7 = algebras.FQSym(GF(7)).G()
+            sage: G7(TG[[1,2],[3,4]])
+            G[2, 4, 1, 3] + G[3, 4, 1, 2]
+
         TESTS::
 
             sage: F = algebras.FQSym(ZZ).F()
@@ -124,6 +141,23 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             # Otherwise lift that basis up and then coerce over
             target = getattr(self.realization_of(), R._basis_name)()
             return self._coerce_map_via([target], R)
+
+        # FSym coerces in:
+        from sage.combinat.chas.fsym import FreeSymmetricFunctions
+        if isinstance(R, FreeSymmetricFunctions.Fundamental):
+            if not self.base_ring().has_coerce_map_from(R.base_ring()):
+                return False
+            G = self.realization_of().G()
+            P = G._indices
+            def G_to_G_on_basis(t):
+                return G.sum_of_monomials(P(sigma) for sigma in Permutations(t.size())
+                                          if sigma.right_tableau() == t)
+            phi = R.module_morphism(G_to_G_on_basis, codomain=G)
+            if self is G:
+                return phi
+            else:
+                return self.coerce_map_from(G) * phi
+
         return super(FQSymBasis_abstract, self)._coerce_map_from_(R)
 
     @cached_method
@@ -146,6 +180,7 @@ class FQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         """
         o = self([1])
         return o + 2 * o * o
+
 class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The free quasi-symmetric functions.
@@ -159,7 +194,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     a permutation (regarded as a word) into two (at every
     possible point) and standardizing the two pieces.
     This Hopf algebra was introduced in [MR]_.
-    See [GriRei16]_ (Chapter 8) for a treatment using modern
+    See [GriRei18]_ (Chapter 8) for a treatment using modern
     notations.
 
     In more detail:
@@ -220,7 +255,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
     Consider the `R`-linear map that sends each `G_u` to the sum of
     all words whose standardization (also known as "standard
     permutation"; see
-    :meth:`~sage.combinat.words.finite_word.standard_permutation`)
+    :meth:`~sage.combinat.words.finite_word.FiniteWord_class.standard_permutation`)
     is `u`. This map is an injective `R`-algebra homomorphism, and
     thus embeds `FQSym` into the latter ring.
 
@@ -266,12 +301,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     .. TODO::
 
-        Explain what `1 \prec 1` and `1 \succ 1` are.
-
-    .. TODO::
-
-        Doctest all 6 possibilities involving `1` on one
-        side of a `\prec` or `\succ`.
+        Decide what `1 \prec 1` and `1 \succ 1` are.
 
     .. NOTE::
 
@@ -313,7 +343,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
     - [MR]_
     - [LodayRonco]_
-    - [GriRei16]_
+    - [GriRei18]_
     """
 
     def __init__(self, R):
@@ -367,15 +397,15 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
         """
         return self.F()
 
-    _shorthands = tuple(['F', 'G'])
+    _shorthands = tuple(['F', 'G', 'M'])
 
     class F(FQSymBasis_abstract):
-        """
+        r"""
         The F-basis of `FQSym`.
 
         This is the basis `(F_w)`, with `w` ranging over all
-        permutations. See the documentation of :class:`FQSym`
-        for details.
+        permutations. See the documentation of
+        :class:`FreeQuasisymmetricFunctions` for details.
 
         EXAMPLES::
 
@@ -481,8 +511,7 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 sage: A.product_on_basis(x, x)
                 F[1, 2] + F[2, 1]
             """
-            basis = self.basis()
-            return self.sum(basis[u] for u in x.shifted_shuffle(y))
+            return self.sum_of_monomials(u for u in x.shifted_shuffle(y))
 
         def succ_product_on_basis(self, x, y):
             r"""
@@ -511,7 +540,11 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: u = A.one().support()[0]
+                sage: u = A.one().support()[0] # this is F[]
+                sage: A.succ_product_on_basis(x, u)
+                0
+                sage: A.succ_product_on_basis(u, x)
+                F[1, 2]
                 sage: A.succ_product_on_basis(u, u)
                 Traceback (most recent call last):
                 ...
@@ -529,8 +562,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             n = len(x)
             shy = Word([a + n for a in y])
             shy0 = shy[0]
-            return self.sum(basis[K([shy0] + list(u))]
-                            for u in Word(x).shuffle(Word(shy[1:])))
+            return self.sum_of_monomials(K([shy0] + list(u))
+                                         for u in Word(x).shuffle(Word(shy[1:])))
 
         def prec_product_on_basis(self, x, y):
             r"""
@@ -559,7 +592,11 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             TESTS::
 
-                sage: u = A.one().support()[0]
+                sage: u = A.one().support()[0] # this is F[]
+                sage: A.prec_product_on_basis(x, u)
+                F[1, 2]
+                sage: A.prec_product_on_basis(u, x)
+                0
                 sage: A.prec_product_on_basis(u, u)
                 Traceback (most recent call last):
                 ...
@@ -576,8 +613,8 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             n = len(x)
             shy = Word([a + n for a in y])
             x0 = x[0]
-            return self.sum(basis[K([x0] + list(u))]
-                            for u in Word(x[1:]).shuffle(shy))
+            return self.sum_of_monomials(K([x0] + list(u))
+                                         for u in Word(x[1:]).shuffle(shy))
 
         def coproduct_on_basis(self, x):
             r"""
@@ -651,12 +688,12 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                 return SGA._from_dict({Permutations(n)(key): c for (key, c) in self})
 
     class G(FQSymBasis_abstract):
-        """
+        r"""
         The G-basis of `FQSym`.
 
         This is the basis `(G_w)`, with `w` ranging over all
-        permutations. See the documentation of :class:`FQSym`
-        for details.
+        permutations. See the documentation of
+        :class:`FreeQuasisymmetricFunctions` for details.
 
         EXAMPLES::
 
@@ -853,15 +890,6 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: M([1, 2]) * M([1])
             M[1, 2, 3] + 2*M[1, 3, 2] + M[2, 3, 1] + M[3, 1, 2]
-
-        .. TODO::
-
-            Currently, the conversion of M to F bases is implemented
-            by inverting a unitriangular matrix. This works, but
-            there might be better ways -- it boils down to computing
-            the Mobius function of the weak order on the symmetric
-            group (more precisely, computing it on intervals whose
-            maximum is `w_0`).
         """
         _prefix = "M"
         _basis_name = "Monomial"
@@ -873,16 +901,17 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             EXAMPLES::
 
                 sage: M = algebras.FQSym(QQ).M()
-                sage: TestSuite(M).run()  # long time
+                sage: TestSuite(M).run(elements=M.some_elements()[:-1])  # long time
             """
             FQSymBasis_abstract.__init__(self, alg)
 
             F = self.realization_of().F()
             phi = F.module_morphism(self._F_to_M_on_basis, codomain=self,
                                     unitriangular="lower")
-            # check if really upper
             phi.register_as_coercion()
-            (~phi).register_as_coercion()
+            phi_i = self.module_morphism(self._M_to_F_on_basis, codomain=F,
+                                         unitriangular="lower")
+            phi_i.register_as_coercion()
 
         def _element_constructor_(self, x):
             r"""
@@ -1006,6 +1035,103 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.sum_of_monomials(w.permutohedron_greater(side='left'))
 
+        def _M_to_F_on_basis(self, w):
+            r"""
+            Return `\mathcal{M}_w` in terms of the F basis.
+
+            INPUT:
+
+            - ``w`` -- a permutation
+
+            OUTPUT:
+
+            - An element of the F basis
+
+            ALGORITHM:
+
+            If `w` is any permutation in `S_n`, then
+
+            .. MATH::
+
+                \mathcal{M}_w = \sum_u (-1)^{j(w, u)} F_u,
+
+            where the sum ranges over all permutations `u \in S_n`
+            obtained as follows:
+
+            * Let `v = w^{-1}`.
+
+            * Subdivide the list `(v(1), v(2), \ldots, v(n))` into
+              an arbitrary number of nonempty blocks (by putting
+              dividers between adjacent entries) in such a way that
+              each block is strictly increasing (i.e., each descent
+              of `v` is followed by a divider, but not every
+              divider must necessarily follow a descent).
+
+            * Reverse the order of entries in each block.
+
+            * Remove the dividers. The resulting list is the
+              one-line notation `(x(1), x(2), \ldots, x(n))` of
+              some permutation `x \in S_n`.
+
+            * Set `u = x^{-1}`. Also, let `j(w, u)` be `n` minus
+              the number of blocks in our subdivision.
+
+            This formula is equivalent to the formula (1.13) in
+            [AguSot05]_, since Corollary 3.2.8 in [BB05]_ expresses
+            the Mobius function of the weak order.
+
+            TESTS::
+
+                sage: FQSym = algebras.FQSym(ZZ)
+                sage: F = FQSym.F()
+                sage: M = FQSym.M()
+                sage: F(M[3, 2, 1] - 4 * F[4, 2, 1, 3])
+                F[3, 2, 1] - 4*F[4, 2, 1, 3]
+                sage: all(F(M._M_to_F_on_basis(w)) == M[w] for i in range(5)
+                ....:     for w in Permutations(i))
+                True
+                sage: all(M(F(M[w])) == M[w] for i in range(5)
+                ....:     for w in Permutations(i)) # indirect doctest
+                True
+                sage: M[3, 2, 1] == F[3, 2, 1]
+                True
+                sage: M[3, 2, 4, 1] == F[4, 2, 1, 3]
+                False
+                sage: F(M[[]]) == F[[]]
+                True
+            """
+            F = self.realization_of().F()
+            if len(w) <= 1:
+                return F.monomial(w)
+
+            w_i = w.inverse()
+            w_i = w_i[:]
+            n = len(w_i)
+            des = tuple([0] + [g for g in range(1, n) if w_i[g-1] > w_i[g]] + [n])
+            non_des = [g for g in range(1, n) if w_i[g-1] < w_i[g]]
+            # Now, des is a list of all descents of w_i and also 0 and n,
+            # whereas non_des is a list of all non-descents of w_i.
+
+            Perms = self.basis().keys()
+
+            R = self.base_ring()
+            one = R.one()
+            mine = -one
+
+            dc = {w: one}
+            from itertools import combinations
+            for k in range(len(non_des)):
+                kk = k + len(des)
+                for extra_des in combinations(non_des, k):
+                    breakpoints = sorted(des + extra_des)
+                    # so that kk == len(breakpoints)
+                    p = sum([w_i[breakpoints[g] : breakpoints[g+1]][::-1] for g in range(kk - 1)],
+                            [])
+                    u = Perms(p).inverse()
+                    dc[u] = one if n % 2 != kk % 2 else mine
+
+            return F._from_dict(dc)
+
         def degree_on_basis(self, t):
             """
             Return the degree of a permutation in
@@ -1062,9 +1188,45 @@ class FreeQuasisymmetricFunctions(UniqueRepresentation, Parent):
                        for i in range(n + 1)
                        if (i == 0 or i == n or min(x[:i]) > max(x[i:])))
 
+        class Element(FQSymBasis_abstract.Element):
+            def star_involution(self):
+                r"""
+                Return the image of the element ``self`` of `FQSym`
+                under the star involution.
+
+                See
+                :meth:`FQSymBases.ElementMethods.star_involution`
+                for a definition of the involution and for examples.
+
+                .. SEEALSO::
+
+                    :meth:`omega_involution`, :meth:`psi_involution`
+
+                EXAMPLES::
+
+                    sage: FQSym = algebras.FQSym(ZZ)
+                    sage: M = FQSym.M()
+                    sage: M[[2,3,1]].star_involution()
+                    M[3, 1, 2]
+                    sage: M[[]].star_involution()
+                    M[]
+
+                TESTS::
+
+                    sage: F = FQSym.F()
+                    sage: all(M(F[w]).star_involution() == M(F[w].star_involution())
+                    ....:     for w in Permutations(4))
+                    True
+                """
+                # See the FQSymBases.ElementMethods.star_involution doc
+                # for the formula we're using here.
+                M = self.parent()
+                return M._from_dict({w.complement().reverse(): c for (w, c) in self},
+                                    remove_zeros=False)
+
 class FQSymBases(Category_realization_of_parent):
     r"""
-    The category of bases of `FQSym`.
+    The category of graded bases of `FQSym` indexed by permutations.
     """
     def __init__(self, base):
         r"""
@@ -1150,6 +1312,31 @@ class FQSymBases(Category_realization_of_parent):
             """
             return self.monomial(Permutation(p))
 
+        def basis(self, degree=None):
+            r"""
+            The basis elements (optionally: of the specified degree).
+
+            OUTPUT: Family
+
+            EXAMPLES::
+
+                sage: FQSym = algebras.FQSym(QQ)
+                sage: G = FQSym.G()
+                sage: G.basis()
+                Lazy family (Term map from Standard permutations to Free Quasi-symmetric functions over Rational Field in the G basis(i))_{i in Standard permutations}
+                sage: G.basis().keys()
+                Standard permutations
+                sage: G.basis(degree=3).keys()
+                Standard permutations of 3
+                sage: G.basis(degree=3).list()
+                [G[1, 2, 3], G[1, 3, 2], G[2, 1, 3], G[2, 3, 1], G[3, 1, 2], G[3, 2, 1]]
+            """
+            from sage.combinat.family import Family
+            if degree is None:
+                return Family(self._indices, self.monomial)
+            else:
+                return Family(Permutations(degree), self.monomial)
+
         def is_field(self, proof=True):
             """
             Return whether this `FQSym` is a field.
@@ -1225,7 +1412,8 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`product`, :meth:`prec`, :meth:`over`, :meth:`under`
+                :meth:`~sage.categories.magmas.Magmas.ParentMethods.product`,
+                :meth:`prec`
 
             EXAMPLES::
 
@@ -1276,7 +1464,8 @@ class FQSymBases(Category_realization_of_parent):
 
             .. SEEALSO::
 
-                :meth:`product`, :meth:`succ`, :meth:`over`, :meth:`under`
+                :meth:`~sage.categories.magmas.Magmas.ParentMethods.product`,
+                :meth:`succ`
 
             EXAMPLES::
 
@@ -1335,6 +1524,339 @@ class FQSymBases(Category_realization_of_parent):
             return self._from_dict({Permutation(key): c for (key, c) in x})
 
     class ElementMethods:
+        def omega_involution(self):
+            r"""
+            Return the image of the element ``self`` of `FQSym`
+            under the omega involution.
+
+            The `\omega` involution is defined as the
+            linear map `FQSym \to FQSym` that sends each basis
+            element `F_u` of the F-basis of `FQSym`
+            to the basis element `F_{u \circ w_0}`, where `w_0` is
+            the longest word (i.e., `w_0(i) = n + 1 - i`) in the
+            symmetric group `S_n` that contains `u`. The `\omega`
+            involution is a graded algebra automorphism and a
+            coalgebra anti-automorphism of `FQSym`. Every
+            permutation `u \in S_n` satisfies
+
+            .. MATH::
+
+                \omega(F_u) = F_{u \circ w_0}, \qquad
+                \omega(G_u) = G_{w_0 \circ u},
+
+            where standard notations for classical bases of `FQSym`
+            are being used (that is, `F` for the F-basis, and
+            `G` for the G-basis).
+            In other words, writing permutations in one-line notation,
+            we have
+
+            .. MATH::
+
+                \omega(F_{(u_1, u_2, \ldots, u_n)})
+                = F_{(u_n, u_{n-1}, \ldots, u_1)}, \qquad
+                \omega(G_{(u_1, u_2, \ldots, u_n)})
+                = G_{(n+1-u_1, n+1-u_2, \ldots, n+1-u_n)}.
+
+            If we also consider the `\omega` involution
+            (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.omega_involution`)
+            of the quasisymmetric functions (by slight abuse
+            of notation), and if we let `\pi` be the canonical
+            projection `FQSym \to QSym`, then
+            `\pi \circ \omega = \omega \circ \pi`.
+
+            Additionally, consider the `\psi` involution
+            (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.psi_involution`)
+            of the noncommutative symmetric functions, and if we let
+            `\iota` be the canonical inclusion `NSym \to FQSym`,
+            then `\omega \circ \iota = \iota \circ \psi`.
+
+            .. TODO::
+
+                Duality?
+
+            .. SEEALSO::
+
+                :meth:`psi_involution`, :meth:`star_involution`
+
+            EXAMPLES::
+
+                sage: FQSym = algebras.FQSym(ZZ)
+                sage: F = FQSym.F()
+                sage: F[[2,3,1]].omega_involution()
+                F[1, 3, 2]
+                sage: (3*F[[1]] - 4*F[[]] + 5*F[[1,2]]).omega_involution()
+                -4*F[] + 3*F[1] + 5*F[2, 1]
+                sage: G = FQSym.G()
+                sage: G[[2,3,1]].omega_involution()
+                G[2, 1, 3]
+                sage: M = FQSym.M()
+                sage: M[[2,3,1]].omega_involution()
+                -M[1, 2, 3] - M[2, 1, 3] - M[3, 1, 2]
+
+            The omega involution is an algebra homomorphism::
+
+                sage: (F[1,2] * F[1]).omega_involution()
+                F[2, 1, 3] + F[2, 3, 1] + F[3, 2, 1]
+                sage: F[1,2].omega_involution() * F[1].omega_involution()
+                F[2, 1, 3] + F[2, 3, 1] + F[3, 2, 1]
+
+            The omega involution intertwines the antipode
+            and the inverse of the antipode::
+
+                sage: all( F(I).antipode().omega_involution().antipode()
+                ....:      == F(I).omega_involution()
+                ....:      for I in Permutations(4) )
+                True
+
+            Testing the `\pi \circ \omega = \omega \circ \pi` relation
+            noticed above::
+
+                sage: all( M[I].omega_involution().to_qsym()
+                ....:      == M[I].to_qsym().omega_involution()
+                ....:      for I in Permutations(4) )
+                True
+
+            Testing the `\omega \circ \iota = \iota \circ \psi` relation::
+
+                sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                sage: S = NSym.S()
+                sage: all( S[I].psi_involution().to_fqsym() == S[I].to_fqsym().omega_involution()
+                ....:      for I in Compositions(4) )
+                True
+
+            .. TODO::
+
+                Check further commutative squares.
+            """
+            # Convert to the F-basis, there apply the reversal
+            # componentwise, then convert back.
+            parent = self.parent()
+            F = parent.realization_of().F()
+            dct = {I.reverse(): coeff for (I, coeff) in F(self)}
+            return parent(F._from_dict(dct, remove_zeros=False))
+
+        def psi_involution(self):
+            r"""
+            Return the image of the element ``self`` of `FQSym`
+            under the psi involution.
+
+            The `\psi` involution is defined as the
+            linear map `FQSym \to FQSym` that sends each basis
+            element `F_u` of the F-basis of `FQSym`
+            to the basis element `F_{w_0 \circ u}`, where `w_0` is
+            the longest word (i.e., `w_0(i) = n + 1 - i`) in the
+            symmetric group `S_n` that contains `u`. The `\psi`
+            involution is a graded coalgebra automorphism and
+            an algebra anti-automorphism of `FQSym`. Every
+            permutation `u \in S_n` satisfies
+
+            .. MATH::
+
+                \psi(F_u) = F_{w_0 \circ u}, \qquad
+                \psi(G_u) = G_{u \circ w_0},
+
+            where standard notations for classical bases of `FQSym`
+            are being used (that is, `F` for the F-basis, and
+            `G` for the G-basis). In other words, writing
+            permutations in one-line notation, we have
+
+            .. MATH::
+
+                \psi(F_{(u_1, u_2, \ldots, u_n)})
+                = F_{(n+1-u_1, n+1-u_2, \ldots, n+1-u_n)}, \qquad
+                \psi(G_{(u_1, u_2, \ldots, u_n)})
+                = G_{(u_n, u_{n-1}, \ldots, u_1)}.
+
+            If we also consider the `\psi` involution
+            (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.psi_involution`)
+            of the quasisymmetric functions (by slight abuse of
+            notation), and if we let `\pi` be the canonical
+            projection `FQSym \to QSym`, then
+            `\pi \circ \psi = \psi \circ \pi`.
+
+            Additionally, consider the `\omega` involution
+            (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.omega_involution`)
+            of the noncommutative symmetric functions, and if we let
+            `\iota` be the canonical inclusion `NSym \to FQSym`,
+            then `\psi \circ \iota = \iota \circ \omega`.
+
+            .. TODO::
+
+                Duality?
+
+            .. SEEALSO::
+
+                :meth:`omega_involution`, :meth:`star_involution`
+
+            EXAMPLES::
+
+                sage: FQSym = algebras.FQSym(ZZ)
+                sage: F = FQSym.F()
+                sage: F[[2,3,1]].psi_involution()
+                F[2, 1, 3]
+                sage: (3*F[[1]] - 4*F[[]] + 5*F[[1,2]]).psi_involution()
+                -4*F[] + 3*F[1] + 5*F[2, 1]
+                sage: G = FQSym.G()
+                sage: G[[2,3,1]].psi_involution()
+                G[1, 3, 2]
+                sage: M = FQSym.M()
+                sage: M[[2,3,1]].psi_involution()
+                -M[1, 2, 3] - M[1, 3, 2] - M[2, 3, 1]
+
+            The `\psi` involution intertwines the antipode
+            and the inverse of the antipode::
+
+                sage: all( F(I).antipode().psi_involution().antipode()
+                ....:      == F(I).psi_involution()
+                ....:      for I in Permutations(4) )
+                True
+
+            Testing the `\pi \circ \psi = \psi \circ \pi` relation above::
+
+                sage: all( M[I].psi_involution().to_qsym()
+                ....:      == M[I].to_qsym().psi_involution()
+                ....:      for I in Permutations(4) )
+                True
+
+            Testing the `\psi \circ \iota = \iota \circ \omega` relation::
+
+                sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                sage: S = NSym.S()
+                sage: all( S[I].omega_involution().to_fqsym() == S[I].to_fqsym().psi_involution()
+                ....:      for I in Compositions(4) )
+                True
+
+            .. TODO::
+
+                Check further commutative squares.
+            """
+            # Convert to the F-basis, there apply the complement
+            # componentwise, then convert back.
+            parent = self.parent()
+            F = parent.realization_of().F()
+            dct = {I.complement(): coeff for (I, coeff) in F(self)}
+            return parent(F._from_dict(dct, remove_zeros=False))
+
+        def star_involution(self):
+            r"""
+            Return the image of the element ``self`` of `FQSym`
+            under the star involution.
+
+            The star involution is defined as the
+            linear map `FQSym \to FQSym` that sends each basis
+            element `F_u` of the F-basis of `FQSym`
+            to the basis element `F_{w_0 \circ u \circ w_0}`, where
+            `w_0` is the longest word (i.e., `w_0(i) = n + 1 - i`)
+            in the symmetric group `S_n` that contains `u`.
+            The star involution is a graded Hopf algebra
+            anti-automorphism of `FQSym`.
+            It is denoted by `f \mapsto f^*`. Every permutation
+            `u \in S_n` satisfies
+
+            .. MATH::
+
+                (F_u)^* = F_{w_0 \circ u \circ w_0}, \qquad
+                (G_u)^* = G_{w_0 \circ u \circ w_0}, \qquad
+                (\mathcal{M}_u)^* = \mathcal{M}_{w_0 \circ u \circ w_0},
+
+            where standard notations for classical bases of `FQSym`
+            are being used (that is, `F` for the F-basis,
+            `G` for the G-basis, and `\mathcal{M}` for the Monomial
+            basis). In other words, writing permutations in one-line
+            notation, we have
+
+            .. MATH::
+
+                (F_{(u_1, u_2, \ldots, u_n)})^*
+                = F_{(n+1-u_n, n+1-u_{n-1}, \ldots, n+1-u_1)}, \qquad
+                (G_{(u_1, u_2, \ldots, u_n)})^*
+                = G_{(n+1-u_n, n+1-u_{n-1}, \ldots, n+1-u_1)},
+
+            and
+
+            .. MATH::
+
+                (\mathcal{M}_{(u_1, u_2, \ldots, u_n)})^*
+                = \mathcal{M}_{(n+1-u_n, n+1-u_{n-1}, \ldots, n+1-u_1)}.
+
+            Let us denote the star involution by `(\ast)` as well.
+
+            If we also denote by `(\ast)` the star involution of
+            of the quasisymmetric functions
+            (:meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
+            and if we let `\pi : FQSym \to QSym` be the canonical
+            projection then `\pi \circ (\ast) = (\ast) \circ \pi`.
+            Similar for the noncommutative symmetric functions
+            (:meth:`~sage.combinat.ncsf_qsym.ncsf.NonCommutativeSymmetricFunctions.Bases.ElementMethods.star_involution`)
+            with `\pi : NSym \to FQSym` being the canonical inclusion
+            and the word quasisymmetric functions
+            (:meth:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Bases.ElementMethods.star_involution`)
+            with `\pi : FQSym \to WQSym` the canonical inclusion.
+
+            .. TODO::
+
+                Duality?
+
+            .. SEEALSO::
+
+                :meth:`omega_involution`, :meth:`psi_involution`
+
+            EXAMPLES::
+
+                sage: FQSym = algebras.FQSym(ZZ)
+                sage: F = FQSym.F()
+                sage: F[[2,3,1]].star_involution()
+                F[3, 1, 2]
+                sage: (3*F[[1]] - 4*F[[]] + 5*F[[1,2]]).star_involution()
+                -4*F[] + 3*F[1] + 5*F[1, 2]
+                sage: G = FQSym.G()
+                sage: G[[2,3,1]].star_involution()
+                G[3, 1, 2]
+                sage: M = FQSym.M()
+                sage: M[[2,3,1]].star_involution()
+                M[3, 1, 2]
+
+            The star involution commutes with the antipode::
+
+                sage: all( F(I).antipode().star_involution()
+                ....:      == F(I).star_involution().antipode()
+                ....:      for I in Permutations(4) )
+                True
+
+            Testing the `\pi \circ (\ast) = (\ast) \circ \pi` relation::
+
+                sage: all( M[I].star_involution().to_qsym()
+                ....:      == M[I].to_qsym().star_involution()
+                ....:      for I in Permutations(4) )
+                True
+
+            Similar for `NSym`::
+
+                sage: NSym = NonCommutativeSymmetricFunctions(ZZ)
+                sage: S = NSym.S()
+                sage: all( S[I].star_involution().to_fqsym() == S[I].to_fqsym().star_involution()
+                ....:      for I in Compositions(4) )
+                True
+
+            Similar for `WQSym`::
+
+                sage: WQSym = algebras.WQSym(ZZ)
+                sage: all( F(I).to_wqsym().star_involution()
+                ....:      == F(I).star_involution().to_wqsym()
+                ....:      for I in Permutations(4) )
+                True
+
+            .. TODO::
+
+                Check further commutative squares.
+            """
+            # Convert to the F-basis, there apply the reversal and
+            # complement componentwise, then convert back.
+            parent = self.parent()
+            F = parent.realization_of().F()
+            dct = {I.complement().reverse(): coeff for (I, coeff) in F(self)}
+            return parent(F._from_dict(dct, remove_zeros=False))
+
         def to_symmetric_group_algebra(self, n=None):
             """
             Return the element of a symmetric group algebra
@@ -1361,8 +1883,8 @@ class FQSymBases(Category_realization_of_parent):
             inclusion map `FQSym \to WQSym`.
 
             The canonical inclusion map `FQSym \to WQSym` is
-            an injective homomorphism of algebras. It sends a
-            basis element `G_w` of `FQSym` to the sum of
+            an injective homomorphism of Hopf algebras. It sends
+            a basis element `G_w` of `FQSym` to the sum of
             basis elements `\mathbf{M}_u` of `WQSym`, where `u`
             ranges over all packed words whose standardization
             is `w`.
@@ -1404,4 +1926,50 @@ class FQSymBases(Category_realization_of_parent):
                 return res
             return M.linear_combination((to_wqsym_on_G_basis(w), coeff)
                                         for w, coeff in G(self))
+
+        def to_qsym(self):
+            r"""
+            Return the image of ``self`` under the canonical
+            projection `FQSym \to QSym`.
+
+            The canonical projection `FQSym \to QSym` is a
+            surjective homomorphism of Hopf algebras. It sends a
+            basis element `F_w` of `FQSym` to the basis element
+            `F_{\operatorname{Comp} w}` of the fundamental basis
+            of `QSym`, where `\operatorname{Comp} w` stands for
+            the descent composition
+            (:meth:`sage.combinat.permutation.Permutation.descents_composition`)
+            of the permutation `w`.
+
+            .. SEEALSO::
+
+                :class:`QuasiSymmetricFunctions` for a
+                definition of `QSym`.
+
+            EXAMPLES::
+
+                sage: G = algebras.FQSym(QQ).G()
+                sage: x = G[1, 3, 2]
+                sage: x.to_qsym()
+                F[2, 1]
+                sage: G[2, 3, 1].to_qsym()
+                F[1, 2]
+                sage: F = algebras.FQSym(QQ).F()
+                sage: F[2, 3, 1].to_qsym()
+                F[2, 1]
+                sage: (F[2, 3, 1] + F[1, 3, 2] + F[1, 2, 3]).to_qsym()
+                2*F[2, 1] + F[3]
+                sage: F2 = algebras.FQSym(GF(2)).F()
+                sage: F2[2, 3, 1].to_qsym()
+                F[2, 1]
+                sage: (F2[2, 3, 1] + F2[1, 3, 2] + F2[1, 2, 3]).to_qsym()
+                F[3]
+            """
+            parent = self.parent()
+            FQSym = parent.realization_of()
+            F = FQSym.F()
+            from sage.combinat.ncsf_qsym.qsym import QuasiSymmetricFunctions
+            QF = QuasiSymmetricFunctions(parent.base_ring()).F()
+            return QF.sum_of_terms((w.descents_composition(), coeff)
+                                    for w, coeff in F(self))
 

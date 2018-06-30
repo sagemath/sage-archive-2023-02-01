@@ -1832,7 +1832,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: a = w^2*z^-1+3; a
             w^2*z^-1 + 3
             sage: d = a._dict()
-            sage: keys = list(sorted(d)); keys
+            sage: keys = sorted(d); keys
             [(0, 0), (2, -1)]
             sage: d[keys[0]]
             3
@@ -2291,7 +2291,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
             sage: L.<x,y,z> = LaurentPolynomialRing(QQ)
             sage: f = 4*x^7*z^-1 + 3*x^3*y + 2*x^4*z^-2 + x^6*y^-7
-            sage: list(sorted(f.dict().items()))
+            sage: sorted(f.dict().items())
             [((3, 1, 0), 3), ((4, 0, -2), 2), ((6, -7, 0), 1), ((7, 0, -1), 4)]
         """
         if self._prod is None:

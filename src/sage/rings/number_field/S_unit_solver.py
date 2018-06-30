@@ -53,6 +53,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RealField, RR
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import is_real_place, refine_embedding
+from sage.rings.number_field.unit_group import UnitGroup
 from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
@@ -64,18 +65,11 @@ from sage.modules.free_module_element import zero_vector
 from itertools import combinations_with_replacement
 from sage.functions.log import log
 from sage.functions.other import sqrt
+from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 from sage.misc.functional import round
 import itertools
 
-from sage.rings.ring import Field
-from sage.rings.number_field.number_field import NumberField
-from sage.rings.number_field.unit_group import UnitGroup
-from sage.rings.number_field.number_field_ideal import NumberFieldIdeal
-from sage.rings.number_field.number_field_element import NumberFieldElement
-from sage.rings.polynomial.polynomial_element import Polynomial
-from sage.rings.number_field.number_field import NumberField_absolute
-from sage.arith.all import gcd, factor, lcm, CRT
 
 def column_Log(SUK, iota, U, prec=106):
     r"""
@@ -696,7 +690,6 @@ def reduction_step_real_case(place,B0,G,c7):
         (58, False)
     """
     prec = place.codomain().precision()
-    R = RealField(prec)
     n = len(G)
 
     def e_s_real(a,place):
@@ -712,7 +705,7 @@ def reduction_step_real_case(place,B0,G,c7):
     C = round(max([1/abs(l) for l in Glog if l != 0])+1)
 
     #if the precision we have is not high enough we have to increase it and evaluate c7 again
-    if place.codomain().precision() < log(C)/log(2):
+    if prec < log(C)/log(2):
         return 0,True
 
     S = (n-1) * (B0)**2
@@ -927,7 +920,6 @@ def cx_LLL_bound(SUK,A, prec=106):
         sage: cx_LLL_bound(SUK,A)
         22
     """
-    R = RealField(prec)
     cx_LLL = 0
     #initialize a bound, a bad guess, as we iterate over the places of the number field, we will replace its value with the largest complex LLL bound we've found across the places
     for v in SUK.number_field().places(prec = prec):
@@ -1238,9 +1230,7 @@ def embedding_to_Kp(a,prime,prec):
         raise ValueError('K has to be an absolute extension')
 
     g = defining_polynomial_for_Kp(prime,prec)
-    p = prime.smallest_integer()
     gen = K.gen()
-    n = g.degree()
     g = g.change_ring(QQ)
     f = K(a).lift()
 
@@ -1701,7 +1691,7 @@ def clean_rfv_dict( rfv_dictionary ):
         - The values are residue field vectors. It is known that the entries of a residue field vector
           which comes from a solution to the S-unit equation cannot have 1 in any entry.
 
-    EXAMPLE:
+    EXAMPLES:
 
     In this example, we use a truncated list generated when solving the `S`-unit equation in the case that `K` is defined by the
     polynomial `x^2+x+1` and `S` consists of the primes above 3
@@ -1764,7 +1754,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
     # The values (all empty lists now) will be added in the next step.
 
     P = {}
-    P = { (v,) : [] for v in xrange(2, q) }
+    P = { (v,) : [] for v in range(2, q) }
 
     # Step 1. Populate the empty lists in P[ (v,) ].
     # Loop through the keys in rfv_dictionary. For each, look at the output rf_vector.
@@ -1804,7 +1794,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
     #
     # During the construction, we look for impossible entries for S-unit solutions, and drop them from the dictionary as needed.
 
-    for j in xrange( d-1 ):
+    for j in range( d-1 ):
         if verbose_flag:
             print("Constructing ", j, " th place of the residue field vectors, out of ", d-1, " total.")
         P_new = {}
@@ -1814,7 +1804,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
         for rf_vector_start in P:
 
             # each key of P provides q-2 possible keys for P_new, which we introduce and assign an empty list.
-            for w in xrange(2, q):
+            for w in range(2, q):
                 new_rf_vector_start = tuple( list( rf_vector_start ) + [w] )
                 P_new[ new_rf_vector_start ] = []
 
@@ -2074,7 +2064,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             # residue field of Qi. (Necessarily isomorphic to F_q.)
             # rho_images[i][j] == rho[j] modulo Q[i]
             eps_value = rho_images[i][0]**a[0] % q
-            for j in xrange(1, rho_length):
+            for j in range(1, rho_length):
                 eps_value = eps_value * rho_images[i][j]**a[j] % q
             return eps_value
 
@@ -2094,12 +2084,12 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             # a0 is in the range 0 .. w_0 - 1 and
             # aj is in the range 0 .. q - 2   (for j > 0)
 
-            lumpy_ev_iterator = itertools.product( xrange(w0), itertools.product( xrange(q-1), repeat = rho_length - 1))
+            lumpy_ev_iterator = itertools.product( range(w0), itertools.product( range(q-1), repeat = rho_length - 1))
             ev_iterator = itertools.imap(ev_flatten, lumpy_ev_iterator)
 
             # With the iterator built, we construct the exponent vector to residue field dictionary.
 
-            ev_to_rfv_dict = { ev : [epsilon_q(ev, i) for i in xrange(nK) ] for ev in ev_iterator }
+            ev_to_rfv_dict = { ev : [epsilon_q(ev, i) for i in range(nK) ] for ev in ev_iterator }
 
             if verbose_flag:
                 print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
@@ -2117,7 +2107,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 # Loop only over exponent vectors modulo q-1 which are compatible with exp_vec_mod_q0
                 for exp_vec in compatible_vectors(exp_vec_mod_q0, q0-1, q-1):
                     # fill the dictionary with the residue field vectors using the evaluation function.
-                    ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in xrange(nK) ]
+                    ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in range(nK) ]
 
         if verbose_flag:
             print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
@@ -2238,7 +2228,7 @@ def compatible_classes(a, m0, m1):
 
     g = gcd(m0, m1)
     a0 = a % g
-    return [a0 + b0*g for b0 in xrange(m1/g) ]
+    return [a0 + b0*g for b0 in range(m1/g) ]
 
 def compatible_vectors_check( a0, a1, m0, m1):
     r"""
@@ -2298,7 +2288,7 @@ def compatible_vectors_check( a0, a1, m0, m1):
         # exponent vectors must agree exactly in the 0th coordinate.
         return False
     else:
-        for j in xrange(1, length):
+        for j in range(1, length):
             if ( a0[j]-a1[j] ) % g != 0:
                 return False
 
@@ -2427,7 +2417,7 @@ def compatible_systems( split_prime_list, complement_exp_vec_dict ):
             for comp_vec in complement_exp_vec_dict[q][ exp_vec ]:
                 CompatibleSystem = True
                 for old_system in old_systems:
-                    for j in xrange(num_primes):
+                    for j in range(num_primes):
                         qj = S1[j]
                         exp_vec_qj = old_system[j][0]
                         comp_vec_qj = old_system[j][1]
@@ -2488,9 +2478,9 @@ def compatible_system_lift( compatible_system, split_primes_list ):
     moduli_list = [q-1 for q in split_primes_list]
     L = lcm( moduli_list )
 
-    for i in xrange(1,t):
-        exp_coord_residues = [ compatible_system[j][0][i] for j in xrange(m) ]
-        comp_coord_residues = [ compatible_system[j][1][i] for j in xrange(m) ]
+    for i in range(1,t):
+        exp_coord_residues = [ compatible_system[j][0][i] for j in range(m) ]
+        comp_coord_residues = [ compatible_system[j][1][i] for j in range(m) ]
 
         ev_lift_coordinate = CRT( exp_coord_residues, moduli_list)
         cv_lift_coordinate = CRT( comp_coord_residues, moduli_list)

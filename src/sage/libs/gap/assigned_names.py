@@ -21,9 +21,7 @@ EXAMPLES::
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
-
 from six.moves import cPickle
-import string
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.saved_workspace import workspace
 

@@ -12,7 +12,6 @@ lists all GAP operations for which ``Operation(x, ...)`` is defined.
 import re
 import string
 from sage.structure.sage_object import SageObject
-from sage.misc.cachefunc import cached_method
 from sage.libs.gap.libgap import libgap
 
 Length = libgap.function_factory('Length')
@@ -137,4 +136,3 @@ class OperationInspector(SageObject):
             else:
                 result.add(name)
         return sorted(result)
-

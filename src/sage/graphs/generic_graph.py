@@ -1793,7 +1793,7 @@ class GenericGraph(GenericGraph_pyx):
     am = adjacency_matrix # shorter call makes life easier
 
     def incidence_matrix(self, oriented=None, sparse=True):
-        """
+        r"""
         Return the incidence matrix of the (di)graph.
 
         Each row is a vertex, and each column is an edge. The vertices as
@@ -12671,7 +12671,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_gallai_tree(self):
         r"""
-        Returns whether the current graph is a Gallai tree.
+        Return whether the current graph is a Gallai tree.
 
         A graph is a Gallai tree if and only if it is
         connected and its `2`-connected components are all
@@ -12709,6 +12709,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([(-1,c[0]) for c in g.connected_components()])
             sage: g.is_gallai_tree()
             True
+
+        TESTS:
+
+        Check that :trac:`25613` is fixed::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.add_edge(0,5)
+            sage: g.is_gallai_tree()
+            True
         """
         self._scream_if_not_simple()
         if not self.is_connected():
@@ -12716,8 +12725,8 @@ class GenericGraph(GenericGraph_pyx):
 
         for c in self.blocks_and_cut_vertices()[0]:
             gg = self.subgraph(c)
-            #                    is it an odd cycle ?              a complete graph ?
-            if not ( (len(c)%2 == 1 and gg.size() == len(c)+1) or gg.is_clique() ):
+            #       is it an odd cycle ?              a complete graph ?
+            if not ((len(c) % 2 and gg.size() == len(c)) or gg.is_clique()):
                 return False
 
         return True
@@ -19437,7 +19446,8 @@ class GenericGraph(GenericGraph_pyx):
         graph should be laid out so that edges starting from ``1`` are
         going backward (e.g. going up instead of down)::
 
-            sage: def edge_options((u,v,label)):
+            sage: def edge_options(data):
+            ....:     u, v, label = data
             ....:     return { "backward": u == 1 }
             sage: print(G.graphviz_string(edge_options = edge_options))  # random
             digraph {
@@ -19466,7 +19476,8 @@ class GenericGraph(GenericGraph_pyx):
 
         We now test all options::
 
-            sage: def edge_options((u,v,label)):
+            sage: def edge_options(data):
+            ....:     u, v, label = data
             ....:     options = { "color": { f: "red", g: "blue" }[label] }
             ....:     if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
             ....:     if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"

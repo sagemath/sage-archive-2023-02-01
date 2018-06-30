@@ -197,7 +197,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
         return sorted(self._monomial_coefficients.keys(), key=lambda x: (-len(x), x))
 
     def reflection(self):
-        """
+        r"""
         Return the image of the reflection automorphism on ``self``.
 
         The *reflection automorphism* of a Clifford algebra is defined
@@ -319,7 +319,7 @@ class CliffordAlgebraElement(CombinatorialFreeModule.Element):
     # TODO: This is a general function which should be moved to a
     #   superalgebras category when one is implemented.
     def supercommutator(self, x):
-        """
+        r"""
         Return the supercommutator of ``self`` and ``x``.
 
         Let `A` be a superalgebra. The *supercommutator* of homogeneous
@@ -910,7 +910,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         return ZZ(2)**self._quadratic_form.dim()
 
     def pseudoscalar(self):
-        """
+        r"""
         Return the unit pseudoscalar of ``self``.
 
         Given the basis `e_1, e_2, \ldots, e_n` of the underlying
@@ -1645,7 +1645,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         return self.module_morphism(on_basis=f, codomain=E, category=cat)
 
     def volume_form(self):
-        """
+        r"""
         Return the volume form of ``self``.
 
         Given the basis `e_1, e_2, \ldots, e_n` of the underlying
@@ -1787,7 +1787,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         return self.term(m, (-self.base_ring().one())**len(m))
 
     def counit(self, x):
-        """
+        r"""
         Return the counit of ``x``.
 
         The counit of an element `\omega` of the exterior algebra
@@ -1803,7 +1803,7 @@ class ExteriorAlgebra(CliffordAlgebra):
         return x.constant_coefficient()
 
     def interior_product_on_basis(self, a, b):
-        """
+        r"""
         Return the interior product `\iota_b a` of ``a`` with respect to
         ``b``.
 
@@ -2726,7 +2726,7 @@ class ExteriorAlgebraCoboundary(ExteriorAlgebraDifferential):
         return "Coboundary"
 
     def _on_basis(self, m):
-        """
+        r"""
         Return the differential on the basis element indexed by ``m``.
 
         EXAMPLES:

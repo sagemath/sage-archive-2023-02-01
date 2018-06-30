@@ -977,7 +977,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         n = k if n is None else ZZ(n)
         if not k.divides(n):
             raise ValueError("n = {} must be a multiple of the conductor ({})".format(n, k))
-        return [P.element_class(P, obj.GaloisCyc(i)) for i in range(n) if n.gcd(i) == 1]
+        return [P.element_class(P, obj.GaloisCyc(i)) for i in n.coprime_integers(n)]
 
     def norm_of_galois_extension(self):
         r"""

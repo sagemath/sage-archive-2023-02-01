@@ -24,7 +24,6 @@ import os
 import zipfile
 
 from sage.cpython.string import bytes_to_str
-from sage.env import SAGE_LOCAL
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 
@@ -302,4 +301,3 @@ class JSMolHtml(SageObject):
             escaped_inner_html=escaped_inner_html,
         )
         return outer
-        

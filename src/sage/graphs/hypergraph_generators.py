@@ -197,6 +197,7 @@ class HypergraphGenerators():
             False
 
         TESTS::
+
             sage: hypergraphs.UniformRandomUniform(-52, 3, 17)
             Traceback (most recent call last):
             ...
@@ -264,6 +265,7 @@ class HypergraphGenerators():
             0
 
         TESTS::
+
             sage: hypergraphs.BinomialRandomUniform(50, 3, -0.1)
             Traceback (most recent call last):
             ...

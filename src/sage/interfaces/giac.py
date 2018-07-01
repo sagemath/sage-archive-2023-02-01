@@ -316,6 +316,7 @@ class Giac(Expect):
                         name = 'giac',
                         prompt = '[0-9]*>> ',
                         command = "giac --sage",
+                        env = {"LANG": "C"},
                         init_code= ['maple_mode(0);I:=i;'],      #  coercion could be broken in maple_mode
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,                        server = server,

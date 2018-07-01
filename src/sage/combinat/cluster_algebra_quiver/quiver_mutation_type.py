@@ -2391,7 +2391,7 @@ def _mutation_type_error(data):
     return_str  = str(data) + ' is not a valid quiver mutation type'
     return_str += '\n            Finite types have the form [ \'?\', n ] for type ? and rank n'
     return_str += '\n            Affine type A has the form [ \'A\', [ i, j ], 1 ] for rank i+j'
-    return_str += r'\n            Affine type ? has the form [ \'?\', k, \pm 1 ] for rank k+1'
+    return_str += '\n            Affine type ? has the form [ \'?\', k, \\pm 1 ] for rank k+1'
     return_str += '\n            Elliptic type ? has the form [ \'?\', k, [i, j] ] (1 <= i,j <= 3) for rank k+2'
     return_str += '\n            For correct syntax in other types, please consult the documentation.'
 

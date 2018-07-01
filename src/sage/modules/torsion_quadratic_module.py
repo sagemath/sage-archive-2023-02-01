@@ -237,11 +237,11 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         FGP_Module_class.__init__(self, V, W, check=check)
         if gens is not None:
-            self._gens = tuple(self(v) for v in gens)
+            self._gens_user = tuple(self(v) for v in gens)
         else:
             # this is taken care of in the .gens method
             # we do not want this at initialization
-            self._gens = None
+            self._gens_user = None
 
         # compute the modulus - this may be expensive
         if modulus is None or check:
@@ -505,9 +505,9 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.gens()
             ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         """
-        if self._gens is None:
+        if self._gens_user is None:
             return self.smith_form_gens()
-        return self._gens
+        return self._gens_user
 
     def is_genus(self, signature_pair, even=True):
         r"""

@@ -102,6 +102,8 @@ class PariGroup(object):
         """
         return Integer(self.__x[0])
 
+    cardinality = order
+
     def permutation_group(self):
         return TransitiveGroup(self.__degree, self.__x[2])
 

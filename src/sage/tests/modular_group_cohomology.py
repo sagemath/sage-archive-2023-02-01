@@ -9,8 +9,8 @@ TESTS::
 
     sage: from pGroupCohomology import CohomologyRing   # optional - p_group_cohomology
 
-Computation of a modular cohomology ring of a prime power group in characteristic 2,
-and comparison with stored result in a database::
+Computation of a modular cohomology ring of a prime power group in
+characteristic 2, and comparison with stored result in a database::
 
     sage: CohomologyRing.set_workspace(tmp_dir())       # optional - p_group_cohomology
     sage: H = CohomologyRing(64,14,from_scratch=True)   # optional - p_group_cohomology
@@ -20,14 +20,16 @@ and comparison with stored result in a database::
     sage: H == H0                                       # optional - p_group_cohomology
     True
 
-Computation of a modular cohomology ring of a prime power group in odd characteristic,
-and some algebraic constructions in the cohomology ring::
+Computation of a modular cohomology ring of a prime power group in odd
+characteristic, and some algebraic constructions in the cohomology
+ring::
 
     sage: H = CohomologyRing(27,4)                      # optional - p_group_cohomology
     sage: H.make()                                      # optional - p_group_cohomology
     sage: print(H)                                      # optional - p_group_cohomology
     <BLANKLINE>
-    Cohomology ring of Extraspecial 3-group of order 27 and exponent 9 with coefficients in GF(3)
+    Cohomology ring of Extraspecial 3-group of order 27
+    and exponent 9 with coefficients in GF(3)
     <BLANKLINE>
     Computation complete
     Minimal list of generators:
@@ -59,7 +61,9 @@ and some algebraic constructions in the cohomology ring::
 Computation of a modular cohomology ring of a non prime power group in
 characteristic 2::
 
-    sage: H = CohomologyRing(gap(AlternatingGroup(6)), GroupName="A(6)", prime=2, from_scratch=True) # optional - p_group_cohomology
+    sage: H = CohomologyRing(gap(AlternatingGroup(6)),  # optional - p_group_cohomology
+    ....:                    GroupName="A(6)", prime=2,
+    ....:                    from_scratch=True)
     sage: H.make()                                      # optional - p_group_cohomology
     sage: print(H)                                      # optional - p_group_cohomology
     <BLANKLINE>
@@ -72,5 +76,4 @@ characteristic 2::
      b_3_1: 3-Cocycle in H^*(A(6); GF(2))]
     Minimal list of algebraic relations:
     [b_3_0*b_3_1]
-
 """

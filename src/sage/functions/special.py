@@ -474,7 +474,7 @@ class EllipticE(BuiltinFunction):
             return (elliptic_e(z, m) - elliptic_f(z, m)) / (Integer(2) * m)
 
     def _print_latex_(self, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_e(pi, x))
@@ -484,8 +484,9 @@ class EllipticE(BuiltinFunction):
 
 elliptic_e = EllipticE()
 
+
 class EllipticEC(BuiltinFunction):
-    """
+    r"""
     Return the complete elliptic integral of the second kind:
 
     .. MATH::
@@ -788,7 +789,7 @@ class EllipticF(BuiltinFunction):
                       sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_f(x,pi))
@@ -797,6 +798,7 @@ class EllipticF(BuiltinFunction):
         return r"F(%s\,|\,%s)" % (latex(z), latex(m))
  
 elliptic_f = EllipticF()
+
 
 class EllipticKC(BuiltinFunction):
     r"""
@@ -1003,7 +1005,7 @@ class EllipticPi(BuiltinFunction):
                      sqrt(Integer(1) - m * sin(z) ** Integer(2)))))
 
     def _print_latex_(self, n, z, m):
-        """
+        r"""
         EXAMPLES::
 
             sage: latex(elliptic_pi(x,pi,0))

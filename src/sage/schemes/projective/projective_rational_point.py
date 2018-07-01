@@ -62,7 +62,6 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.misc.all import cartesian_product_iterator, prod
 from sage.misc.mrange import xmrange
 from sage.schemes.generic.scheme import is_Scheme
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
 from sage.matrix.constructor import matrix
@@ -377,6 +376,8 @@ def sieve(X, bound):
     modulo_points = [] # list to store point modulo primes
     len_modulo_points = [] # stores number of points with respect to each prime
     primes_list = [] # list of good primes
+
+    X.normalize_defining_polynomials()
 
     P = X.ambient_space()
     N = P.dimension()

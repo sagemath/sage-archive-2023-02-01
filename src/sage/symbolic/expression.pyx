@@ -123,6 +123,13 @@ Test if :trac:`9947` is fixed::
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
     2*sqrt(10)/(sqrt(3) + 5)
+
+Check the fix for :trac:`25251`::
+
+    sage: e1 = sqrt(2)*I - sqrt(2) - 2 
+    sage: e2 = sqrt(2)
+    sage: e1 * e2
+    sqrt(2)*((I - 1)*sqrt(2) - 2)
 """
 
 #*****************************************************************************

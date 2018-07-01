@@ -1436,8 +1436,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         x = P.gens()
         for i in range(len(I)):
             I[i] = I[i].replace('^','**')
-            I[i] = re.compile('E(\d\d*)').sub(r'E(\1)', I[i])
-            I[i] = re.compile('(\d)E\(').sub(r'\1*E(', I[i])
+            I[i] = re.compile(r'E(\d\d*)').sub(r'E(\1)', I[i])
+            I[i] = re.compile(r'(\d)E\(').sub(r'\1*E(', I[i])
             for j in range(len(x)):
                 I[i] = I[i].replace('x%s'%j,'*x[%s]'%j)
             I[i] = I[i].replace("+*","+").replace("-*","-").replace("ER(5)","*(E(5)-E(5)**2-E(5)**3+E(5)**4)").lstrip("*")

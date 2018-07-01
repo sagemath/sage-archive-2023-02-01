@@ -1215,8 +1215,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             return self.root_system.coroot_lattice()
 
         def coroot_space(self, base_ring = QQ):
-            """
-            Returns the coroot space over ``base_ring``
+            r"""
+            Return the coroot space over ``base_ring``.
 
             INPUT:
 
@@ -1497,8 +1497,8 @@ class RootLatticeRealizations(Category_over_base_ring):
 
         @cached_method
         def simple_reflections(self):
-            """
-            Returns the family `(s_i)_{i\in I}` of the simple reflections
+            r"""
+            Return the family `(s_i)_{i\in I}` of the simple reflections
             of this root system.
 
             EXAMPLES::

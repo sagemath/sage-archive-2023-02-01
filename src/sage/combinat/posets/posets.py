@@ -5877,8 +5877,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset({42: []}).random_maximal_antichain()
             [42]
         """
-        from sage.misc.prandom import randint
-
         H = self.hasse_diagram()
         result = []
 

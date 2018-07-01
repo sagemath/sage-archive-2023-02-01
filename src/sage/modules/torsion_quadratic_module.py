@@ -236,41 +236,35 @@ class TorsionQuadraticModule(FGP_Module_class):
                 raise ValueError("provided gens do not generate the quotient")
 
         FGP_Module_class.__init__(self, V, W, check=check)
-        if not gens is None:
-            self._gens = [self(v) for v in gens]
+        if gens is not None:
+            self._gens = tuple(self(v) for v in gens)
         else:
             # this is taken care of in the .gens method
             # we do not want this at initialization
             self._gens = None
 
+        # compute the modulus - this may be expensive
+        if modulus is None or check:
+            # The inner product of two elements `b(v1+W,v2+W)`
+            # is defined `mod (V,W)`
+            num = V.basis_matrix() * V.inner_product_matrix() * W.basis_matrix().T
+            self._modulus = gcd(num.list())
+
         if modulus is not None:
-            if check:
-                # The inner product of two elements `b(v1+W,v2+W)` is defined `mod (V,W)`
-                num = gcd([x.inner_product(y) for x in V.gens()
-                           for y in W.gens()])
-                if num / modulus not in self.base_ring():
-                    raise ValueError("the modulus must divide (V, W)")
+            if check and self._modulus / modulus not in self.base_ring():
+                raise ValueError("the modulus must divide (V, W)")
             self._modulus = modulus
-        else:
-            # The inner product of two elements `b(v1+W,v2+W)` is defined `mod (V,W)`
-            self._modulus = gcd([x.inner_product(y) for x in V.gens()
-                                 for y in W.gens()])
 
-
-        if modulus_qf is not None:
-            if check:
-                # The quadratic_product of an element `q(v+W)` is defined
-                # `\mod 2(V,W) + ZZ\{ (w,w) | w in w\}`
-                norm = gcd(self.W().gram_matrix().diagonal())
-                num = gcd(norm, 2 * self._modulus)
-                if num / modulus_qf not in self.base_ring():
-                    raise ValueError("the modulus_qf must divide (V, W)")
-            self._modulus_qf = modulus_qf
-        else:
+        if modulus_qf is None or check:
             # The quadratic_product of an element `q(v+W)` is defined
             # `\mod 2(V,W) + ZZ\{ (w,w) | w in w\}`
             norm = gcd(self.W().gram_matrix().diagonal())
             self._modulus_qf = gcd(norm, 2 * self._modulus)
+
+        if modulus_qf is not None:
+            if check and self._modulus_qf / modulus_qf not in self.base_ring():
+                raise ValueError("the modulus_qf must divide (V, W)")
+            self._modulus_qf = modulus_qf
 
     def _repr_(self):
         r"""
@@ -330,9 +324,9 @@ class TorsionQuadraticModule(FGP_Module_class):
             [0 0]
         """
         if check:
+            # figuring out the modulus can be expensive
             return TorsionQuadraticModule(V, W, check=check)
         else:
-            # figuring out the modulus can be expensive
             return TorsionQuadraticModule(V, W, check=check,
                                           modulus=self._modulus,
                                           modulus_qf=self._modulus_qf)
@@ -556,7 +550,7 @@ class TorsionQuadraticModule(FGP_Module_class):
         if even and self._modulus_qf != 2:
             raise ValueError("the discriminant form of an even lattice has"
                                  "values modulo 2.")
-        if (not even) and not (self.modulus == self._modulus_qf == 1):
+        if (not even) and not (self._modulus == self._modulus_qf == 1):
             raise ValueError("the discriminant form of an odd lattice has"
                              "values modulo 1.")
         if not even:
@@ -858,7 +852,7 @@ class TorsionQuadraticModule(FGP_Module_class):
 
         INPUT:
 
-        - ``gens`` -- a list of generators that coerce into ``self``
+        - ``gens`` -- a list of generators that convert into ``self``
 
         OUTPUT:
 
@@ -907,9 +901,11 @@ class TorsionQuadraticModule(FGP_Module_class):
             [1/5   0]
             [  0 1/5]
         """
-        T = self.submodule(gens)
-        T._gens = [self(v) for v in gens]
-        return T
+        gens = [self(v) for v in gens]
+        V = self.V().submodule([v.lift() for v in gens]) + self._W
+        W = self.W()
+        return TorsionQuadraticModule(V, W, gens=gens, modulus=self._modulus,
+                                      modulus_qf=self._modulus_qf, check=False)
 
     def twist(self, s):
         r"""

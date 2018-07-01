@@ -24,7 +24,6 @@ from six.moves import range
 from copy import copy
 from math import sin, cos, pi
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 
 
 def JohnsonGraph(n, k):
@@ -594,7 +593,7 @@ def BubbleSortGraph(n):
     :class:`~sage.groups.perm_gps.permgroup_named.SymmetricGroup`.
 
     The bubble sort graph is the underlying graph of the
-    :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`. 
+    :meth:`~sage.geometry.polyhedron.library.Polytopes.permutahedron`.
 
     INPUT:
 
@@ -946,7 +945,6 @@ def GoethalsSeidelGraph(k,r):
     from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
     from sage.matrix.constructor import Matrix
     from sage.matrix.constructor import block_matrix
-    from sage.matrix.constructor import identity_matrix
 
     v = (k-1)*r+1
     n = v*(r+1)
@@ -1860,13 +1858,14 @@ def PasechnikGraph(n):
 
     """
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
-    from sage.matrix.constructor import identity_matrix, matrix
+    from sage.matrix.constructor import identity_matrix
     H = skew_hadamard_matrix(4*n)
     M = H[1:].T[1:] - identity_matrix(4*n-1)
     G = Graph(M.tensor_product(M.T), format='seidel_adjacency_matrix')
     G.relabel()
     G.name("Pasechnik Graph_" + str((n)))
     return G
+
 
 def SquaredSkewHadamardMatrixGraph(n):
     """
@@ -2574,7 +2573,7 @@ def WindmillGraph(k, n):
         True
 
     The Windmill graph `Wd(3, 2)` is the Butterfly graph::
-    
+
         sage: W = graphs.WindmillGraph(3, 2)
         sage: W.is_isomorphic( graphs.ButterflyGraph() )
         True
@@ -2608,7 +2607,7 @@ def WindmillGraph(k, n):
     else:
         sector = 2*pi/n
         slide = 1/sin(sector/4)
-        
+
         pos_dict = {}
         for i in range(0,k):
             x = float(cos(i*pi/(k-2)))
@@ -2935,9 +2934,9 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
     K = GF(q,prefix='x')
     K_pairs = set(frozenset([x,-x]) for x in K)
     K_pairs.discard(frozenset([0]))
-    a = [None]*(q-1)    # order the non-0 elements of K as required 
+    a = [None]*(q-1)    # order the non-0 elements of K as required
     for i,(x,y) in enumerate(K_pairs):
-        a[i]   = x
+        a[i] = x
         a[-i-1] = y
     a.append(K(0))      # and append the 0 of K at the end
     P = map(lambda b: matrix(ZZ,q,q,lambda i,j: 1 if a[j]==a[i]+b else 0), a)
@@ -3144,7 +3143,6 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     from sage.rings.integer_ring import ZZ
     from time import time
     import itertools
-    from __builtin__ import range # we cannot use xrange here
 
     assert d > 1,              'd must be at least 2'
     assert is_even(n * (d-1)), 'n must be even or d must be odd'

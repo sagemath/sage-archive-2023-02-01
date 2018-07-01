@@ -2933,16 +2933,16 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             [-2]
         """
         E = self.get_edge_list()
-        # self._increase_precision(20)
 
         nninc = -2
         V = []
         p = self._p
-        while len(V) == 0:
+        while not V:
             nninc += 2
-            #print 'Searching for norm', q*self._p**nninc
-            F = lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1
-            V = filter(F, self._find_elements_in_order(q * self._p ** nninc))
+            V = [g for g in self._find_elements_in_order(q * self._p ** nninc)
+                 if prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0]))
+                          / self._character(p ** (nninc // 2))
+                          for v in self.get_extra_embedding_matrices()]) == 1]
 
         beta1 = Matrix(QQ, 4, 1, V[0])
 

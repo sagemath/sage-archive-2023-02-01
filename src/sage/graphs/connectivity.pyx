@@ -2396,20 +2396,21 @@ class Triconnectivity:
     adj = [] # i^th value contains a list of incident edges of vertex i
     in_adj = {} # this variable is used in the PathSearch() function
     newnum = [] # new DFS number of vertex i
-    startsPath = {} # dict of (edge, T/F) to denote if a path starts at edge
+    starts_path = {} # dict of (edge, T/F) to denote if a path starts at edge
     highpt = [] # List of fronds entering vertex i in the order they are visited
     old_to_new = [] # New DFS number of the vertex with i as old DFS number
     degree = [] # Degree of vertex i
     parent = [] # Parent vertex of vertex i in the palm tree
     tree_arc = [] # Tree arc entering the vertex i
     first_child = []
-    high = [] # One of the elements in highpt[i]
+    in_high = {} # One of the elements in highpt[i]
     dfs_counter = 0
     n = 0 # number of vertices
     m = 0 # number of edges
     is_biconnected = True # Boolean to store if the graph is biconnected or not
     cut_vertex = None # If graph is not biconnected
     graph_copy_adjacency = []
+    new_path = False # Boolean used to store if new path is started
 
     # Edges of the graph which are in the reverse direction in palm tree
     reverse_edges = set()
@@ -2424,10 +2425,9 @@ class Triconnectivity:
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
         self.reverse_edges = set()
         self.dfs_number = [0 for i in range(self.n)]
-        self.newnum = [0 for i in range(self.n)]
         self.highpt = [[] for i in range(self.n)]
         self.old_to_new = [0 for i in range(self.n + 1)]
-        self.nodeAt = [0 for i in range(self.n + 1)]
+        self.node_at = [0 for i in range(self.n + 1)]
         self.lowpt1 = [None for i in range(self.n)]
         self.lowpt2 = [None for i in range(self.n)]
         self.adj = [[] for i in range(self.n)]
@@ -2474,6 +2474,29 @@ class Triconnectivity:
         self.build_acceptable_adj_struct()
         self.dfs2()
 
+        self.t_stack_h = [None for i in range(2*self.m + 1)]
+        self.t_stack_a = [None for i in range(2*self.m + 1)]
+        self.t_stack_b = [None for i in range(2*self.m + 1)]
+        self.t_stack_top = 0
+        self.t_stack_a[self.t_stack_top] = -1
+
+        #self.path_search(self.start_vertex)
+
+    # Push a triple on Tstack
+    def tstack_push(self, h, a, b):
+        self.t_stack_top += 1
+        self.t_stack_h[self.t_stack_top] = h
+        self.t_stack_a[self.t_stack_top] = a
+        self.t_stack_b[self.t_stack_top] = b
+
+    # Push end-of-stack marker on Tstack
+    def tstack_push_eos(self):
+        self.t_stack_top += 1
+        self.t_stack_a[self.t_stack_top] = -1
+
+    # Returns true iff end-of-stack marker is not on top of Tstack
+    def tstack_not_eos(self):
+        return self.t_stack_a[self.t_stack_top] != -1
 
     def new_component(self, edges, type_c=0):
         c = self.Component(edges, type_c)
@@ -2482,10 +2505,26 @@ class Triconnectivity:
         for e in edges:
             self.edge_status[e] = 3
         self.num_components += 1
+        return c
 
-    def add_edge_to_component(self, comp, e):
+    def add_edges_to_component(self, comp, e):
         comp.add_edge(e)
         self.edge_status[e] = 3
+
+    def high(self, v):
+        if self.highpt[v]:
+            return self.highpt[v][0]
+        else:
+            return 0
+
+    def del_high(self, e):
+        e = self.high[e]
+        if e is not None:
+            if e in self.reversed_edges:
+                v = e[0]
+            else:
+                v = e[1]
+            self.highpt[v].remove(e)
 
     def split_multi_egdes(self):
         """
@@ -2707,24 +2746,24 @@ class Triconnectivity:
                     self.adj[e[0]].append(e)
                     self.in_adj[e] = self.adj[e[0]]
 
-    def pathFinder(self, v):
+    def path_finder(self, v):
         """
         This function is a helper function for `dfs2` function.
         """
         self.newnum[v] = self.dfs_counter - self.nd[v] + 1
         for e in self.adj[v]:
-            u, w, _ = e
-            if self.edge_status[e] == 1:
-                if e in self.reverse_edges:
-                    self.pathFinder(u)
-                else:
-                    self.pathFinder(w)
+            w = e[1] if e[0] == v else e[0] # opposite vertex of e
+            if self.new_path:
+                self.new_path = False
+                self.starts_path[e] = True
+            if self.edge_status[e] == 1: # tree arc
+                self.path_finder(w)
                 self.dfs_counter -= 1
             else:
-                if e in self.reverse_edges:
-                    self.highpt[u].append(self.newnum[w])
-                else:
-                    self.highpt[w].append(self.newnum[u])
+                self.highpt[w].append(self.newnum[v])
+                self.in_high[e] = self.highpt[w]
+                self.new_path = True
+
 
     def dfs2(self):
         """
@@ -2732,17 +2771,22 @@ class Triconnectivity:
         new numbering obtained from `Path Finder` funciton.
         Populate `highpt` values.
         """
+        self.highpt = [[] for i in range(self.n)]
+        self.in_high = dict((e, []) for e in self.graph_copy.edges())
         self.dfs_counter = self.n
+        self.newnum = [0 for i in range(self.n)]
+        self.starts_path = dict((e, False) for e in self.graph_copy.edges())
 
-        # As all the vertices are labeled from  0 to n -1,
-        # the first vertex will be 0.
-        self.pathFinder(0)
+        self.new_path = True
 
-        for v in range(self.n):
-            self.old_to_new[self.newnum[v]] = self.newnum[v]
+        # We call the pathFinder function with the start vertex
+        self.path_finder(self.start_vertex)
+
+        for v in self.graph_copy.vertices():
+            self.old_to_new[self.dfs_number[v]] = self.newnum[v]
 
         # Update lowpt values.
-        for v in range(self.n):
-            self.nodeAt[self.newnum[v]] = v
+        for v in self.graph_copy.vertices():
+            self.node_at[self.newnum[v]] = v
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]

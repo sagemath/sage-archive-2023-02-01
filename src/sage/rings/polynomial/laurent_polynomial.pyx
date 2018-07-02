@@ -207,14 +207,16 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
 
     def hamming_weight(self):
         """
-        Return the number of non-zero coefficients of self. Also called
-        weight, hamming weight or sparsity.
+        Return the hamming weight of ``self``.
+
+        The hamming weight is number of non-zero coefficients and
+        also known as the weight or sparsity.
 
         EXAMPLES::
 
             sage: R.<x> = LaurentPolynomialRing(ZZ)
             sage: f = x^3 - 1
-            sage: f.number_of_terms()
+            sage: f.hamming_weight()
             2
         """
         return self.number_of_terms()
@@ -629,8 +631,9 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
 
     cpdef long number_of_terms(self) except -1:
         """
-        Return the number of non-zero coefficients of self. Also called weight,
-        hamming weight or sparsity.
+        Return the number of non-zero coefficients of ``self``.
+
+        Also called weight, hamming weight or sparsity.
 
         EXAMPLES::
 
@@ -695,7 +698,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
         """
-        d = {repr(g): R.var(g) for g in self.parent().gens()}
+        d = {repr(g): R.var(g) for g in self._parent.gens()}
         return self.subs(**d)
 
     cpdef dict dict(self):
@@ -737,7 +740,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f.exponents()
             [-2, 1, 2, 3]
         """
-        return [i+self.__n for i in self.__u.exponents()]
+        return [i + self.__n for i in self.__u.exponents()]
 
     def __setitem__(self, n, value):
         """
@@ -752,8 +755,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         raise IndexError("Laurent polynomials are immutable")
 
-    def _unsafe_mutate(self, i, value):
-        """
+    cpdef _unsafe_mutate(self, i, value):
+        r"""
         Sage assumes throughout that commutative ring elements are
         immutable. This is relevant for caching, etc. But sometimes you
         need to change a Laurent polynomial and you really know what you're
@@ -874,7 +877,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
 
     def degree(self):
         """
-        Return the degree of this polynomial.
+        Return the degree of ``self``.
 
         EXAMPLES::
 
@@ -956,9 +959,9 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         return ret
 
     def is_monomial(self):
-        """
-        Return True if this element is a monomial.  That is, if self is
-        `x^n` for some integer `n`.
+        r"""
+        Return ``True`` if ``self`` is a monomial; that is, if ``self``
+        is `x^n` for some integer `n`.
 
         EXAMPLES::
 
@@ -1527,7 +1530,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         cdef long m, n = self.__n
         cdef list a = self.__u.list(copy=True)
         for m in range(len(a)):
-            a[m] *= (n+m)
+            a[m] *= n + m
         ret = <LaurentPolynomial_univariate> self._new_c()
         ret.__u = <ModuleElement> self._parent._R(a)
         ret.__n = self.__n - 1
@@ -2041,8 +2044,9 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef long number_of_terms(self) except -1:
         """
-        Return the number of non-zero coefficients of self. Also called weight,
-        hamming weight or sparsity.
+        Return the number of non-zero coefficients of ``self``.
+
+        Also called weight, hamming weight or sparsity.
 
         EXAMPLES::
 
@@ -2153,20 +2157,20 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f[6]
             Traceback (most recent call last):
             ...
-            TypeError: Must have exactly 3 inputs
+            TypeError: must have exactly 3 inputs
             sage: f[6,0]
             Traceback (most recent call last):
             ...
-            TypeError: Must have exactly 3 inputs
+            TypeError: must have exactly 3 inputs
             sage: f[6,0,0,0]
             Traceback (most recent call last):
             ...
-            TypeError: Must have exactly 3 inputs
+            TypeError: must have exactly 3 inputs
         """
         if isinstance(n, slice):
-            raise TypeError("Multivariate Laurent polynomials are not iterable")
+            raise TypeError("multivariate Laurent polynomials are not iterable")
         if not isinstance(n, tuple) or len(n) != self._parent.ngens():
-            raise TypeError("Must have exactly %s inputs" %
+            raise TypeError("must have exactly %s inputs" %
                             self.parent().ngens())
         cdef ETuple t = ETuple(n)
         if self._prod is None:
@@ -2235,7 +2239,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         INPUT:
 
-        - ``mon`` - a monomial
+        - ``mon`` -- a monomial
 
         .. SEEALSO::
 
@@ -2315,9 +2319,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
 
         The coefficient returned is an element of the parent of ``self``; in
-        this case, ``P``.
-
-        ::
+        this case, ``P``. ::
 
             sage: f = 2 * x * y
             sage: c = f.coefficient(x*y); c
@@ -2352,7 +2354,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def coefficients(self):
         """
-        Return the nonzero coefficients of this polynomial in a list.
+        Return the nonzero coefficients of ``self`` in a list.
+
         The returned list is decreasingly ordered by the term ordering
         of ``self.parent()``.
 
@@ -2371,7 +2374,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def variables(self, sort=True):
         """
-        Return a tuple of all variables occurring in self.
+        Return a tuple of all variables occurring in ``self``.
 
         INPUT:
 
@@ -2441,7 +2444,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _add_(self, _right):
         """
-        Returns the Laurent polynomial self + right.
+        Return the Laurent polynomial ``self + right``.
 
         EXAMPLES::
 
@@ -2466,7 +2469,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _sub_(self, _right):
         """
-        Returns the Laurent polynomial self - right.
+        Return the Laurent polynomial ``self - right``.
 
         EXAMPLES::
 
@@ -2475,7 +2478,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: g = y + z + x
             sage: f - g
             -y - z + y^-1
-
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
@@ -2525,7 +2527,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def is_monomial(self):
         """
-        Return True if this element is a monomial.
+        Return ``True`` if ``self`` is a monomial.
 
         EXAMPLES::
 
@@ -2547,7 +2549,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _neg_(self):
         """
-        Returns -self.
+        Return ``-self``.
 
         EXAMPLES::
 
@@ -2555,7 +2557,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f = x + y^-1
             sage: -f
             -x - y^-1
-
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon
@@ -2564,7 +2565,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _lmul_(self, Element right):
         """
-        Returns self * right where right is in self's base ring.
+        Return ``self * right`` where ``right`` is in ``self``'s base ring.
 
         EXAMPLES::
 
@@ -2572,7 +2573,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f = x + y^-1
             sage: f*(1/2)
             1/2*x + 1/2*y^-1
-
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon
@@ -2581,7 +2581,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _rmul_(self, Element left):
         """
-        Returns left*self where left is in self's base ring.
+        Return ``left * self`` where ``left`` is in ``self``'s base ring.
 
         EXAMPLES::
 
@@ -2589,7 +2589,6 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f = x + y^-1
             sage: (1/2)*f
             1/2*x + 1/2*y^-1
-
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
         ans._mon = self._mon
@@ -2598,7 +2597,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     cpdef _mul_(self, right):
         """
-        Return self*right.
+        Return ``self * right``.
 
         EXAMPLES::
 
@@ -2710,7 +2709,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def exponents(self):
         """
-        Returns a list of the exponents of self.
+        Return a list of the exponents of ``self``.
 
         EXAMPLES::
 
@@ -2726,7 +2725,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
     def degree(self, x=None):
         """
-        Returns the degree of x in self
+        Return the degree of ``x`` in ``self``.
 
         EXAMPLES::
 

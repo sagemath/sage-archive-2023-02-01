@@ -408,11 +408,11 @@ class TorsionQuadraticModule(FGP_Module_class):
             sage: T.brown_invariant()
             Traceback (most recent call last):
             ...
-            ValueError: The torsion quadratic form must have values in\QQ / 2\ZZ
+            ValueError: the torsion quadratic form must have values in QQ / 2 ZZ
         """
         if self._modulus_qf != 2:
-            raise ValueError("The torsion quadratic form must have values in"
-                            "\QQ / 2\ZZ")
+            raise ValueError("the torsion quadratic form must have values in "
+                             "QQ / 2 ZZ")
         from sage.quadratic_forms.genera.normal_form import collect_small_blocks
         brown = IntegerModRing(8).zero()
         for p in self.annihilator().gen().prime_divisors():

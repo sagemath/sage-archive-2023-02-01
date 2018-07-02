@@ -2407,7 +2407,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
 
         ::
 
-            sage: R.<x,y> = PolynomialRing(QQ,order = "neglex")
+            sage: R.<x,y> = PolynomialRing(QQ,order="neglex")
             sage: f = 1+y
             sage: g = 1+x
             sage: h = f/g

@@ -105,6 +105,15 @@ class SBox(SageObject):
             sage: S(0)
             7
 
+        Construct S-box from univariate polynomial.::
+
+            sage: R = PolynomialRing(GF(2**3), 'x')
+            sage: inv = R.gen()**(2**3-2)
+            sage: inv = SBox(inv); inv
+            (0, 1, 5, 6, 7, 2, 3, 4)
+            sage: inv.differential_uniformity()
+            2
+
         TESTS::
 
             sage: from sage.crypto.sbox import SBox
@@ -120,9 +129,19 @@ class SBox(SageObject):
             sage: S.n
             3
         """
+        from sage.rings.polynomial.polynomial_element import Polynomial
+
         if "S" in kwargs:
-            S = kwargs["S"]
-        elif len(args) == 1:
+            args = kwargs["S"]
+
+        if len(args) == 1 and isinstance(args[0], Polynomial):
+            # SBox defined via Univariate Polynomial, compute lookup table
+            # by evaluating the polynomial on every base_ring element
+            poly = args[0]
+            R = poly.parent().base_ring()
+            n = R.degree()
+            S = [poly(R(v)) for v in GF(2)**n]
+        elif len(args) == 1 and isinstance(args[0], (list, tuple)):
             S = args[0]
         elif len(args) > 1:
             S = args

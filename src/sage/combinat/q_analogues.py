@@ -571,77 +571,77 @@ def q_pochhammer(n, a, q=None):
     return R.prod((one - a*q**k) for k in range(n))
 
 
-@cached_function
-def q_jordan(t, q):
+@cached_function(key=lambda t, q: (Partition(t), q))
+def q_jordan(t, q=None):
     r"""
-    INPUT:
-
-    -  `t` -- a partition of an integer
-
-    -  `q` -- an integer or an indeterminate
-
-    OUTPUT:
+    Return the `q`-Jordan number of `t`.
 
     If `q` is the power of a prime number, the output is the number of
-    complete flags in `F_q^N` (where `N` is the size of `t`) stable
-    under a linear nilpotent endomorphism `f` whose Jordan type is
+    complete flags in `\GF{q}^N` (where `N` is the size of `t`) stable
+    under a linear nilpotent endomorphism `f_t` whose Jordan type is
     given by `t`, i.e. such that for all `i`:
 
     .. MATH::
 
-        \dim (\ker f^i) = t[0] + \cdots + t[i-1]
+        \dim (\ker f_t^i) = t[0] + \cdots + t[i-1]
 
-    If `q` is an indeterminate, the output is a polynomial whose
-    values at powers of prime numbers are the previous numbers.
+    If `q` is unspecified, then it defaults to using the generator `q` for
+    a univariate polynomial ring over the integers.
 
     The result is cached.
+
+    INPUT:
+
+    -  ``t`` -- an integer partition, or an argument accepted by
+       :class:`Partition`
+
+    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
+      default variable in `\ZZ[q]`
 
     EXAMPLES::
 
         sage: from sage.combinat.q_analogues import q_jordan
-        sage: [q_jordan(mu,2) for mu in Partitions(5)]
+        sage: [q_jordan(mu, 2) for mu in Partitions(5)]
         [9765, 1029, 213, 93, 29, 9, 1]
-        sage: [q_jordan(mu,2) for mu in Partitions(6)]
+        sage: [q_jordan(mu, 2) for mu in Partitions(6)]
         [615195, 40635, 5643, 2331, 1491, 515, 147, 87, 47, 11, 1]
-
-        sage: q=PolynomialRing(ZZ,'q').gen()
-        sage: q_jordan(Partition([3,2,1]),q)
+        sage: q_jordan([3,2,1])
         16*q^4 + 24*q^3 + 14*q^2 + 5*q + 1
+        sage: q_jordan([2,1], x)
+        2*x + 1
 
     If the partition is trivial (i.e. has only one part), we get
     the `q`-factorial (in this case, the nilpotent endomorphism is
     necessarily `0`)::
 
         sage: from sage.combinat.q_analogues import q_factorial
-        sage: q_jordan(Partition([5]),3) == q_factorial(5,3)
+        sage: q_jordan([5]) == q_factorial(5)
         True
-        sage: q_jordan(Partition([11]),5) == q_factorial(11,5)
+        sage: q_jordan([11], 5) == q_factorial(11, 5)
         True
 
     TESTS::
 
-        sage: q_jordan(Partition([4,3,1]),1)
-        Traceback (most recent call last):
-        ...
-        ValueError: q must not be equal to 1
+        sage: all(multinomial(mu.conjugate()) == q_jordan(mu, 1) for mu in Partitions(6))
+        True
 
     AUTHOR:
 
     - Xavier Caruso (2012-06-29)
     """
-    if q == 1:
-        raise ValueError("q must not be equal to 1")
+    if q is None:
+        q = ZZ['q'].gen()
 
     if len(t) == 0:
-        return 1
+        return parent(q)(1)
     tj = 0
-    res = 0
-    for i in range(len(t)-1,-1,-1):
+    res = parent(q)(0)
+    for i in range(len(t)-1, -1, -1):
         ti = t[i]
         if ti > tj:
-            tp = t.to_list()
+            tp = list(t)
             tp[i] -= 1
-            res += q_jordan(Partition(tp),q) * ((q**ti - q**tj) // (q-1))
+            res += q_jordan(Partition(tp), q) * q**tj * q_int(ti - tj, q)
             tj = ti
     return res
 

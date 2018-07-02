@@ -125,17 +125,42 @@ def enum_product_projective_rational_field(X, B):
 
     R = X.codomain().ambient_space()
     m = R.num_components()
-
-    comp_points = [ enum_projective_rational_field(R[i], B) for i in range(m) ]
-    indices = xmrange([len(comp_points[i]) for i in range(m)])
-    points = [ R([comp_points[t][I[t]] for t in range(m)]) for I in indices ]
+    iters = [ iter(enum_projective_rational_field(R[i], B)) for i in range(m) ]
+    dim = [R[i].dimension() + 1 for i in range(m)]
+    
+    dim_prefix = [0,dim[0]] # prefixes dim list
+    for i in range(1,len(dim)):
+        dim_prefix.append(dim_prefix[i] + dim[i])
 
     pts = []
-    for point in points:
+    P = []
+    for i in range(m):
+        pt = next(iters[i])
+        for j in range(dim[i]):
+            P.append(pt[j]) # initial value of P
+
+    try: # add the intial point
+        pts.append(X(P))
+    except TypeError:
+        pass
+
+    i = 0
+    while i < m:
         try:
-            pts.append(X(point))
-        except TypeError:
-            pass
+            pt = next(iters[i])
+            for j in range(dim[i]):
+                P[dim_prefix[i] + j] = pt[j]
+            try:
+                pts.append(X(P))
+            except TypeError:
+                pass
+            i = 0
+        except StopIteration:
+            iters[i] = iter(enum_projective_rational_field(R[i], B))
+            pt = next(iters[i]) # reset
+            for j in range(dim[i]):
+                P[dim_prefix[i] + j] = pt[j]
+            i += 1
     pts.sort()
 
     return pts

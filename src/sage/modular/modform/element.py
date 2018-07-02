@@ -1766,7 +1766,7 @@ class Newform(ModularForm_abstract):
         return w / Q0 / sign * self.character()(crt(1, Q//Q0, Q, N//Q))
 
     def atkin_lehner_action(self, d=None, normalization='analytic', embedding=None):
-        """
+        r"""
         Return the result of the Atkin-Lehner operator `W_d` on this form `f`,
         in the form of a constant `\lambda_d(f)` and a normalized newform `f'`
         such that
@@ -1844,7 +1844,6 @@ class Newform(ModularForm_abstract):
             Traceback (most recent call last):
             ...
             ValueError: d (= 2) does not divide the level (= 11)
-
         """
         # normalise d
         N = self.level()
@@ -2751,8 +2750,8 @@ class EisensteinSeries(ModularFormElement):
         return v
 
     def __compute_general_case(self, X):
-        """
-        Returns the list coefficients of `q^n` of the power series of self,
+        r"""
+        Return the list coefficients of `q^n` of the power series of self,
         for `n` in the list `X`.  The results are not cached.  (Use
         coefficients for cached results).
 

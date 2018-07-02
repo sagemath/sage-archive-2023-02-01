@@ -1227,7 +1227,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         return self._dual_hecke_matrices[n]
 
     def eigenvalue(self, n, name='alpha'):
-        """
+        r"""
         Assuming that self is a simple space, return the eigenvalue of the
         `n^{th}` Hecke operator on self.
 

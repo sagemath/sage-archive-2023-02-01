@@ -1842,7 +1842,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
     @cached_method
     def get_num_verts(self):
-        """
+        r"""
         Return the number of vertices in the quotient using the formula
         `V = 2(\mu/12 + e_3/3 + e_4/4)`.
 
@@ -3284,7 +3284,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             return stabs
 
     def _nebentype_check(self, vec, twom, E, A, flag = 2):
-        """
+        r"""
         Check if a quaternion maps into a subgroup of matrices
         determined by a nontrivial Dirichlet character (associated to
         self). If `N^+ = 1` then the condition is trivially satisfied.

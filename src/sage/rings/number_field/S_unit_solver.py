@@ -1144,7 +1144,7 @@ def defining_polynomial_for_Kp(prime, prec=106):
         sage: K.<a> = QuadraticField(2)
         sage: p2 = K.prime_above(7); p2
         Fractional ideal (-2*a + 1)
-        sage: defining_polynomial_for_Kp(p2,10)
+        sage: defining_polynomial_for_Kp(p2, 10)
         x + 266983762
 
     ::
@@ -1152,11 +1152,11 @@ def defining_polynomial_for_Kp(prime, prec=106):
         sage: K.<a> = QuadraticField(-6)
         sage: p2 = K.prime_above(2); p2
         Fractional ideal (2, a)
-        sage: defining_polynomial_for_Kp(p2,100)
+        sage: defining_polynomial_for_Kp(p2, 100)
         x^2 + 6
         sage: p5 = K.prime_above(5); p5
         Fractional ideal (5, a + 2)
-        sage: defining_polynomial_for_Kp(p5,100)
+        sage: defining_polynomial_for_Kp(p5, 100)
         x + 3408332191958133385114942613351834100964285496304040728906961917542037
     """
     K = prime.ring()
@@ -1171,12 +1171,12 @@ def defining_polynomial_for_Kp(prime, prec=106):
     find = False
     N = prec
     while find == False:
-        RQp = Qp(p,prec = N,type = 'capped-rel', print_mode = 'series')
+        RQp = Qp(p, prec=N, type='capped-rel', print_mode='series')
 
         #We factor f in Integers(p**(precision)) using the factorization in Qp
 
         g = f.change_ring(RQp)
-        factors = g.factor();
+        factors = g.factor()
 
         #We are going to find which factor of f is related to the prime ideal 'prime'
 
@@ -1188,7 +1188,7 @@ def defining_polynomial_for_Kp(prime, prec=106):
         else:
             N += 1
 
-def embedding_to_Kp(a,prime,prec):
+def embedding_to_Kp(a, prime, prec):
     r"""
 
     INPUT:
@@ -1211,7 +1211,7 @@ def embedding_to_Kp(a,prime,prec):
         sage: K.<a> = QuadraticField(17)
         sage: p = K.prime_above(13); p
         Fractional ideal (-a + 2)
-        sage: embedding_to_Kp(a-3,p,15)
+        sage: embedding_to_Kp(a-3, p, 15)
         -20542890112375827
 
     ::
@@ -1219,21 +1219,21 @@ def embedding_to_Kp(a,prime,prec):
         sage: K.<a> = NumberField(x^4-2)
         sage: p = K.prime_above(7); p
         Fractional ideal (-a^2 + a - 1)
-        sage: embedding_to_Kp(a^3-3,p,15)
+        sage: embedding_to_Kp(a^3-3, p, 15)
         -1261985118949117459462968282807202378
     """
     K = prime.ring()
     if not K.is_absolute():
         raise ValueError('K has to be an absolute extension')
 
-    g = defining_polynomial_for_Kp(prime,prec)
+    g = defining_polynomial_for_Kp(prime, prec)
     gen = K.gen()
     g = g.change_ring(QQ)
     f = K(a).lift()
 
-    return K(sum([b*gen**j for j,b in enumerate(f.mod(g))]))
+    return K( sum([b*gen**j for j,b in enumerate(f.mod(g))]) )
 
-def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
+def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     r"""
 
     INPUT:
@@ -1244,7 +1244,7 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
     - ``M_logp`` -- the p-adic logarithm of elements in `M`
     - ``m0`` -- an element of `K`, this is `\mu_0` from Lemma IX.3 of [Sma1998]_
     - ``c3`` -- a positive real constant
-    - ``precision`` -- the precision of the calculations (default 106)
+    - ``prec`` -- the precision of the calculations (default 106)
 
     OUTPUT:
 
@@ -1260,42 +1260,33 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
 
     EXAMPLES:
 
-    This example indictes a case where we must increase precision
-
-    ::
+    This example indictes a case where we must increase precision::
 
         sage: from sage.rings.number_field.S_unit_solver import p_adic_LLL_bound_one_prime
         sage: prec = 50
         sage: K.<a> = NumberField(x^3-3)
-        sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-        sage: v = tuple(K.primes_above(3))[0]
+        sage: S = K.primes_above(3)
+        sage: SUK = UnitGroup(K, S=S)
+        sage: v = S[0]
         sage: A = SUK.roots_of_unity()
         sage: K0_old = 9.4755766731093e17
         sage: Mus = [a^2 - 2]
         sage: Log_p_Mus = [185056824593551109742400*a^2 + 1389583284398773572269676*a + 717897987691852588770249]
         sage: mu0 = K(-1)
         sage: c3_value = 0.42578591347980
-        sage: m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime( v, K0_old, Mus, Log_p_Mus, mu0, c3_value, prec)
+        sage: m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime(v, K0_old, Mus, Log_p_Mus, mu0, c3_value, prec)
         sage: m0_Kv_new
         0
         sage: increase_precision
         True
 
-    And now we increase the precision to make it all work
-
-    ::
+    And now we increase the precision to make it all work::
 
         sage: prec = 106
-        sage: K.<a> = NumberField(x^3-3)
-        sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-        sage: v = tuple(K.primes_above(3))[0]
-        sage: A = SUK.roots_of_unity()
         sage: K0_old = 9.475576673109275443280257946930e17
-        sage: Mus = [a^2 - 2]
         sage: Log_p_Mus = [1029563604390986737334686387890424583658678662701816*a^2 + 661450700156368458475507052066889190195530948403866*a]
-        sage: mu0 = K(-1)
         sage: c3_value = 0.4257859134798034746197327286726
-        sage: m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime( v, K0_old, Mus, Log_p_Mus, mu0, c3_value, prec)
+        sage: m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime(v, K0_old, Mus, Log_p_Mus, mu0, c3_value, prec)
         sage: m0_Kv_new
         476
         sage: increase_precision
@@ -1308,19 +1299,20 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
     p = prime.smallest_integer()
     f = prime.residue_class_degree()
     e = prime.absolute_ramification_index()
-    c5 = c3/(f * e * log(p))
+    c5 = c3 / (f*e*R(p).log())
     theta = K.gen()
+    R = RealField(prec)
 
     #if M is empty then it is easy to give an upper bound
     if len(M) == 0:
         if m0 != 1:
-            return RR(max(log(p) * f * (m0-1).valuation(prime)/c3,0)).floor(),False
+            return R(max(R(p).log()*f*(m0-1).valuation(prime)/c3, 0)).floor(), False
         else:
-            return 0,False
+            return 0, False
     #we evaluate the p-adic logarithms of m0 and we embed it in the completion of K with respect to prime
 
-    m0_logp = log_p(m0,prime,precision)
-    m0_logp = embedding_to_Kp(m0_logp,prime,precision)
+    m0_logp = log_p(m0, prime, prec)
+    m0_logp = embedding_to_Kp(m0_logp, prime, prec)
     n = len(M_logp)
     #Below we implement paragraph VI.4.2 of [Smart], pages 89-93
 
@@ -1342,15 +1334,15 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
     for a in m0_logp:
         if a != 0:
             if c8 > a.valuation(p):
-                B1 = (c8 + ordp_Disc/2)/c5
+                B1 = (c8 + ordp_Disc/2) / c5
                 if B1 > low_bound:
-                    return RR(B1).floor(),False
+                    return RR(B1).floor(), False
                 else:
-                    return low_bound,False
+                    return low_bound, False
 
-    c8 = min([a.valuation(p) for a in m0_logp]+[c8])
+    c8 = min([a.valuation(p) for a in m0_logp] + [c8])
     B = [g/lam for g in M_logp]
-    b0 = m0_logp/lam
+    b0 = m0_logp / lam
     c9 = c8 + ordp_Disc/2
 
     #We evaluate 'u' and we construct the matrix A
@@ -1358,28 +1350,28 @@ def p_adic_LLL_bound_one_prime(prime,B0,M,M_logp,m0,c3,precision=106):
     m = e * f
     u = 1
     while True:
-        if u > (precision * log(2))/log(p):
-            return 0,True
+        if u > (prec * R(2).log()) / R(p).log():
+            return 0, True
 
         #We construct the matrix A as a block matrix
 
-        A11 = copy(identity_matrix(ZZ,n))
-        A12 = copy(zero_matrix(ZZ,n,m))
-        A21 = copy(zero_matrix(ZZ,n,m))
-        A22 = p**u * copy(identity_matrix(ZZ,m))
+        A11 = copy(identity_matrix(ZZ, n))
+        A12 = copy(zero_matrix(ZZ, n, m))
+        A21 = copy(zero_matrix(ZZ, n, m))
+        A22 = p**u * copy(identity_matrix(ZZ, m))
         for i,b in enumerate(B):
             A21[i] = vector([mod(b[j],p**u) for j in range(m)])
-        A = block_matrix([[A11,A12],[A21.transpose(),A22]])
+        A = block_matrix( [[A11,A12], [A21.transpose(),A22]] )
 
-        y = copy(zero_vector(ZZ,n+m))
+        y = copy(zero_vector(ZZ, n+m))
         for i in range(m):
-            y[i+n] = -mod(b0[i],p**u)
+            y[i+n] = -mod(b0[i], p**u)
         #This refers to c10 from Smart
-        c10squared = minimal_vector(A.transpose(),y)
+        c10squared = minimal_vector(A.transpose(), y)
         if c10squared > n * B0**2:
-            B2 = (u + c9)/c5
+            B2 = (u+c9) / c5
             if B2 > low_bound:
-                return RR(B2).floor(),False
+                return R(B2).floor(),False
             else:
                 return low_bound,False
         else:
@@ -1393,7 +1385,7 @@ def p_adic_LLL_bound(SUK, A, prec=106):
 
     - ``SUK`` -- a group of `S`-units
     - ``A`` -- a list of all products of each potential ``a``, ``b`` in the `S`-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
-    - ``prec``-- precision for p-adic LLL calculations (default 106)
+    - ``prec``-- precision for p-adic LLL calculations (default: 106)
 
     OUTPUT:
 
@@ -1415,26 +1407,26 @@ def p_adic_LLL_bound(SUK, A, prec=106):
     for i,v in enumerate(S):
         #Kv_old = K0_by_finite_place[0]
         Mus0 = possible_mu0s(SUK, v)
-        Mus = mus(SUK,v)
-        Log_p_Mus = [log_p(a,v,prec) for a in Mus]
+        Mus = mus(SUK, v)
+        Log_p_Mus = [log_p(a, v, prec) for a in Mus]
         local_prec = prec
         val = 0
         for m0 in Mus0:
             m0_Kv_old = K0_old
-            m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime( v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
+            m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime(v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK, local_prec), local_prec)
             while increase_precision:
                 local_prec *= 2
-                Log_p_Mus = [log_p(a,v,local_prec) for a in Mus]
-                Log_p_Mus = [embedding_to_Kp(a,v,prec) for a in Log_p_Mus]
-                m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime( v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
+                Log_p_Mus = [log_p(a, v, local_prec) for a in Mus]
+                Log_p_Mus = [embedding_to_Kp(a, v, prec) for a in Log_p_Mus]
+                m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime(v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK, local_prec), local_prec)
 
             while m0_Kv_new < m0_Kv_old:
                 m0_Kv_old = m0_Kv_new
-                m0_Kv_new , increase_precision = p_adic_LLL_bound_one_prime(v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
+                m0_Kv_new, increase_precision = p_adic_LLL_bound_one_prime(v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
                 while increase_precision:
                     local_prec *= 2
-                    Log_p_Mus = [log_p(a,v,local_prec) for a in Mus]
-                    m0_Kv_new,increase_precision = p_adic_LLL_bound_one_prime( v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK,local_prec), local_prec)
+                    Log_p_Mus = [log_p(a, v, local_prec) for a in Mus]
+                    m0_Kv_new,increase_precision = p_adic_LLL_bound_one_prime(v, m0_Kv_old, Mus, Log_p_Mus, m0, c3_func(SUK, local_prec), local_prec)
 
             if m0_Kv_old > val:
                 val = m0_Kv_old

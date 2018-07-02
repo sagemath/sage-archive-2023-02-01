@@ -39,7 +39,6 @@
 
 namespace GiNaC {
 
-static bool debug=true;
 int CMatcher::level = 0;
 
 static bool trivial_match(const ex& s, const ex& pattern, exmap& map)
@@ -95,8 +94,12 @@ std::vector<exmap> ex::all_matches(const ex & pattern) const
         CMatcher cm(*this, pattern, map);
         do {
                 opt_exmap m = cm.get();
-                if (m)
+                if (m) {
                         vec.push_back(m.value());
+                        cm.clear_ret();
+                        if (cm.finished)
+                                break;
+                }
                 else
                         break;
         }
@@ -376,7 +379,7 @@ void CMatcher::noncomm_run()
                 else {
                         if (not cms[index]) {
                                 exmap m = map_repo[index];
-                                cms[index].emplace(CMatcher(e, p, m));
+                                cms[index].emplace(e, p, m);
                         }
                         else {
                                 cms[index].value().ret_val.reset();
@@ -438,19 +441,18 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
         while (true) {
                 int ii = P;
                 while (--ii >= 0) {
-                        if (m_cmatch[ii]
-                            and cms[ii]
+                        if (cms[ii]
                             and not cms[ii].value().finished)
                                 break;
                 }
                 size_t index;
-                if (ii >= 0) {
+                if (ii >= 0)
                         index = static_cast<size_t>(ii);
-                        while (unsigned(++ii) < P)
-                                cms[ii].reset();
-                }
-                else // no cmatcher or all uninitialized
+                else // no cmatcher or all uninitialized or finished
                         index = 0;
+                while (unsigned(++ii) < P)
+                        if (cms[ii])
+                                cms[ii].reset();
                 finished = true;
                 // The second loop increases index to get a new ops term
                 do {
@@ -473,7 +475,7 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                         else {
                                 if (not cms[index]) {
                                         exmap m = map_repo[index];
-                                        cms[index].emplace(CMatcher(e, p, m));
+                                        cms[index].emplace(e, p, m);
                                 }
                                 else {
                                         cms[index].value().ret_val.reset();
@@ -483,8 +485,7 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                                         map_repo[index] = ret_map.value();
                                         continue;
                                 }
-                                else
-                                        cms[index].reset();
+                                cms[index].reset();
                         }
                         // unfinished cmatchers in this permutation?
                         bool alt_solution_found = false;
@@ -516,9 +517,13 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
                         // give back one solution of this cmatch call
                         // possibly still permutations left
                         if (std::all_of(cms.begin(), cms.end(),
-                              [](const opt_CMatcher& cm) { return not cm or cm.value().finished; } ))
+                              [](const opt_CMatcher& cm) { return not cm or cm.value().finished; } )) {
                                 finished = not std::next_permutation(perm.begin(),
                                                 perm.end());
+                        }
+                        else
+                                finished = false;
+
                         ret_val = true;
                         ret_map = map_repo[P-1];
                         return;
@@ -543,7 +548,7 @@ void CMatcher::perm_run(const exvector& sterms, const exvector& pterms)
         ret_val = false;
 }
 
-// The case with at least one wildcard term in a sum or product.
+// The case with one global wildcard term in a sum or product.
 //
 // For all wildcard terms in the pattern, we remove it and define it
 // as the global (so P is now one less); for all combinations of P-1
@@ -646,19 +651,18 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms,
         while (true) {
                 int ii = P;
                 while (--ii >= 0) {
-                        if (cmneeded[perm[ii]]
-                            and cms[comb[ii]]
+                        if (cms[comb[ii]]
                             and not cms[comb[ii]].value().finished)
                                 break;
                 }
                 size_t index;
                 if (ii >= 0) {
                         index = static_cast<size_t>(ii);
-                        while (unsigned(++ii) < P)
-                                cms[comb[ii]].reset();
                 }
                 else // no cmatcher or all uninitialized
                         index = 0;
+                while (unsigned(++ii) < P)
+                        cms[comb[ii]].reset();
                 finished = true;
                 // The second loop increases index to get a new ops term
                 do {
@@ -681,7 +685,7 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms,
                         else {
                                 if (not cms[comb[index]]) {
                                         exmap m = map_repo[comb[index]];
-                                        cms[comb[index]].emplace(CMatcher(e, p, m));
+                                        cms[comb[index]].emplace(e, p, m);
                                 }
                                 else {
                                         cms[comb[index]].value().ret_val.reset();
@@ -729,8 +733,10 @@ void CMatcher::comb_run(const exvector& sterms, const exvector& pterms,
                                     and not cms[comb[i]].value().finished)
                                         break;
                         if (i >= P)
-                                finished = not std::next_permutation(perm.begin(),
+                                finished =  not std::next_permutation(perm.begin(),
                                                 perm.end());
+                        else
+                                finished = false;
                         ret_val = true;
                         ret_map = map_repo[comb[P-1]];
                         return;

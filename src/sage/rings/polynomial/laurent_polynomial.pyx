@@ -24,6 +24,22 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
     """
     Base class for Laurent polynomials.
     """
+    cdef LaurentPolynomial _new_c(self):
+        """
+        Return a new Laurent polynomial.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LaurentPolynomialRing(QQ) # indirect doctest
+            sage: x*y
+            x*y
+        """
+        cdef type t = type(self)
+        cdef LaurentPolynomial ans
+        ans = t.__new__(t)
+        ans._parent = self._parent
+        return ans
+
     cpdef _add_(self, other):
         """
         Abstract addition method
@@ -203,6 +219,21 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
         """
         return self.number_of_terms()
 
+    cpdef dict dict(self):
+        """
+        Abstract ``dict`` method.
+
+        EXAMPLES::
+
+            sage: R.<x> = LaurentPolynomialRing(ZZ)
+            sage: from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
+            sage: LaurentPolynomial.dict(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial):
     """
@@ -255,16 +286,16 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
 
         if isinstance(f, LaurentPolynomial_univariate):
             n += (<LaurentPolynomial_univariate>f).__n
-            if (<LaurentPolynomial_univariate>f).__u._parent is parent.polynomial_ring():
+            if (<LaurentPolynomial_univariate>f).__u._parent is parent._R:
                 f = (<LaurentPolynomial_univariate>f).__u
             else:
-                f = parent.polynomial_ring()((<LaurentPolynomial_univariate>f).__u)
+                f = parent._R((<LaurentPolynomial_univariate>f).__u)
         elif (not isinstance(f, Polynomial)) or (parent is not f.parent()):
             if isinstance(f, dict):
                 v = min(f) if f else 0
-                f = dict((i-v,c) for i,c in f.items())
+                f = {i-v: c for i,c in f.items()}
                 n += v
-            f = parent.polynomial_ring()(f)
+            f = parent._R(f)
 
         # self is that t^n * u:
         self.__u = f
@@ -361,7 +392,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         return codomain(self(im_gens[0]))
 
-    def __normalize(self):
+    cpdef __normalize(self):
         r"""
         A Laurent series is a pair `(u(t), n)`, where either `u = 0`
         (to some precision) or `u` is a unit. This pair corresponds to
@@ -583,11 +614,16 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             ...
             NotImplementedError: polynomial slicing with a step is not defined
         """
+        cdef LaurentPolynomial_univariate ret
         if isinstance(i, slice):
             start = i.start - self.__n if i.start is not None else 0
             stop = i.stop - self.__n if i.stop is not None else self.__u.degree() + 1
             f = self.__u[start:stop:i.step]  # deprecation(18940)
-            return LaurentPolynomial_univariate(self._parent, f, self.__n)
+            ret = <LaurentPolynomial_univariate> self._new_c()
+            ret.__u = f
+            ret.__n = self.__n
+            ret.__normalize()
+            return ret
 
         return self.__u[i - self.__n]
 
@@ -659,10 +695,10 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             ...
             TypeError: positive characteristic not allowed in symbolic computations
         """
-        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        d = {repr(g): R.var(g) for g in self.parent().gens()}
         return self.subs(**d)
 
-    def dict(self):
+    cpdef dict dict(self):
         """
         Return a dictionary representing ``self``.
 
@@ -674,7 +710,8 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f.dict()
             {-9: y^3, -6: 3*x^3*y^2, -3: 3*x^6*y, 0: x^9, 2: 1}
         """
-        return dict(zip(self.exponents(), self.coefficients()))
+        cdef dict d = self.__u.dict()
+        return {k+self.__n: d[k] for k in d}
 
     def coefficients(self):
         """
@@ -737,7 +774,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             if value != 0:
                 self.__n = self.__n + j
                 R = self._parent.base_ring()
-                coeffs = [value] + [R(0) for _ in range(1,-j)] + self.__u.list()
+                coeffs = [value] + [R.zero() for _ in range(1,-j)] + self.__u.list()
                 self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
@@ -767,6 +804,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_m
         cdef long m
+        cdef LaurentPolynomial_univariate ret
 
         # 1. Special case when one or the other is 0.
         if not right:
@@ -788,7 +826,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             f1 = self.__u
             f2 = right.__u
         # 3. Add
-        return LaurentPolynomial_univariate(self._parent, f1 + f2, m)
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> (f1 + f2)
+        ret.__n = m
+        ret.__normalize()
+        return ret
 
     cpdef _sub_(self, right_m):
         """
@@ -806,6 +848,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_m
         cdef long m
+        cdef LaurentPolynomial_univariate ret
 
         # 1. Special case when one or the other is 0.
         if not right:
@@ -823,7 +866,11 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             f1 = self.__u << self.__n - m
             f2 = right.__u
         # 3. Subtract
-        return LaurentPolynomial_univariate(self._parent, f1 - f2, m)
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> (f1 - f2)
+        ret.__n = m
+        ret.__normalize()
+        return ret
 
     def degree(self):
         """
@@ -851,7 +898,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: -(1+t^5)
             -1 - t^5
         """
-        return LaurentPolynomial_univariate(self._parent, -self.__u, self.__n)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> -self.__u
+        ret.__n = self.__n
+        # No need to normalize
+        return ret
 
     cpdef _mul_(self, right_r):
         """
@@ -864,9 +916,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^-3 + x^-2 + x^-1 + x^8
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_r
-        return LaurentPolynomial_univariate(self._parent,
-                             self.__u * right.__u,
-                             self.__n + right.__n)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> (self.__u * right.__u)
+        ret.__n = self.__n + right.__n
+        ret.__normalize()
+        return ret
 
     cpdef _rmul_(self, Element c):
         """
@@ -877,7 +932,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: 3 * f
             3*x^-3 + 3*x + 3*x^2 + 9*x^4
         """
-        return LaurentPolynomial_univariate(self._parent, self.__u._rmul_(c), self.__n)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> self.__u._rmul_(c)
+        ret.__n = self.__n
+        ret.__normalize()
+        return ret
 
     cpdef _lmul_(self, Element c):
         """
@@ -888,7 +948,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f * 3
             3*x^-3 + 3*x + 3*x^2 + 9*x^4
         """
-        return LaurentPolynomial_univariate(self._parent, self.__u._lmul_(c), self.__n)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> self.__u._lmul_(c)
+        ret.__n = self.__n
+        ret.__normalize()
+        return ret
 
     def is_monomial(self):
         """
@@ -909,7 +974,6 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: (38*z^-2909).is_monomial()
             False
         """
-
         return self.__u.is_monomial()
 
     def __pow__(_self, r, dummy):
@@ -925,10 +989,10 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
         """
         cdef LaurentPolynomial_univariate self = _self
-        right = int(r)
+        cdef long right = long(r)
         if right != r:
             raise ValueError("exponent must be an integer")
-        return LaurentPolynomial_univariate(self._parent, self.__u**right, self.__n*right)
+        return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
 
     cpdef _floordiv_(self, rhs):
         """
@@ -949,9 +1013,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             0
         """
         cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> rhs
-        return LaurentPolynomial_univariate(self._parent,
-                                            self.__u // right.__u,
-                                            self.__n - right.__n)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> (self.__u // right.__u)
+        ret.__n = self.__n - right.__n
+        ret.__normalize()
+        return ret
 
     def shift(self, k):
         r"""
@@ -970,7 +1037,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f << 4
             1 + 4*t^2 + 6*t^4 + 4*t^6 + t^8
         """
-        return LaurentPolynomial_univariate(self._parent, self.__u, self.__n + k)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = self.__u
+        ret.__n = self.__n + k
+        # No need to normalize
+        return ret
 
     def __lshift__(LaurentPolynomial_univariate self, k):
         """
@@ -984,7 +1056,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f << 4
             1 + 4*t^2 + 6*t^4 + 4*t^6 + t^8
         """
-        return LaurentPolynomial_univariate(self._parent, self.__u, self.__n + k)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = self.__u
+        ret.__n = self.__n + k
+        # No need to normalize
+        return ret
 
     def __rshift__(LaurentPolynomial_univariate self, k):
         """
@@ -998,7 +1075,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f >> 10
             t^-14 + 4*t^-12 + 6*t^-10 + 4*t^-8 + t^-6
         """
-        return LaurentPolynomial_univariate(self._parent, self.__u, self.__n - k)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = self.__u
+        ret.__n = self.__n - k
+        # No need to normalize
+        return ret
 
     cpdef _div_(self, rhs):
         """
@@ -1041,14 +1123,19 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: i.parent()
             Fraction Field of Univariate Polynomial Ring in t over Rational Field
         """
+        cdef LaurentPolynomial_univariate ret
         if self.__u.is_constant(): # this has a single term c*x^n
+            ret = <LaurentPolynomial_univariate> self._new_c()
             if self.__u.is_unit():
-                return LaurentPolynomial_univariate(self._parent, self.__u.inverse_of_unit(), -self.__n)
+                ret.__u = self.__u.inverse_of_unit()
+                ret.__n = -self.__n
+                ret.__normalize()
+                return ret
             # Enlarge the ring so we can divide by the coefficient
-            R = self.base_ring().fraction_field()
-            P = self.parent().change_ring(R)
-            return LaurentPolynomial_univariate(P, ~R(self.__u), -self.__n)
-        P = self.parent().polynomial_ring()
+            R = self._parent.base_ring().fraction_field()
+            P = self._parent.change_ring(R)
+            return P.element_class(P, ~R(self.__u), -self.__n)
+        P = self._parent._R
         if self.__n < 0:
             return P.gen()**-self.__n / self.__u
         return P.one() / (P.gen()**self.__n * self.__u)
@@ -1087,7 +1174,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f._fraction_pair()
             (x^13 + 2*x^11 + 3*x^10 + x^7 + 4, x^7)
         """
-        P = self.parent().polynomial_ring()
+        P = self._parent._R
         numer = self.__u
         denom = P.one()
         if self.__n > 0:
@@ -1112,8 +1199,13 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: gcd((t^-2 + t)*(t + t^-1), (t^5 + t^8)*(1 + t^-2))
             t^-3 + t^-1 + 1 + t^2
         """
-        b = <LaurentPolynomial_univariate>self._parent(right)
-        return LaurentPolynomial_univariate(self._parent, self.__u.gcd(b.__u), min(self.__n, b.__n))
+        b = <LaurentPolynomial_univariate> self._parent(right)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = self.__u.gcd(b.__u)
+        ret.__n = min(self.__n, b.__n)
+        ret.__normalize()
+        return ret
 
     @coerce_binop
     def quo_rem(self, right_r):
@@ -1131,11 +1223,18 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: (t^-2 + 3 + t).quo_rem(t^-4 + t)
             (0, 1 + 3*t^2 + t^3)
         """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_r
+        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> right_r
         q,r = self.__u.quo_rem(right.__u)
-        ql = LaurentPolynomial_univariate(self._parent, q, self.__n - right.__n)
-        rl = LaurentPolynomial_univariate(self._parent, r, 0)
-        return (ql, rl)
+        cdef LaurentPolynomial_univariate ql, qr
+        ql = <LaurentPolynomial_univariate> self._new_c()
+        ql.__u = <ModuleElement> q
+        ql.__n = self.__n - right.__n
+        ql.__normalize()
+        qr = <LaurentPolynomial_univariate> self._new_c()
+        qr.__u = <ModuleElement> r
+        qr.__n = 0
+        qr.__normalize()
+        return (ql, qr)
 
     cpdef _richcmp_(self, right_r, int op):
         r"""
@@ -1177,9 +1276,9 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f > g
             True
         """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate>right_r
+        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> right_r
 
-        zero = self.base_ring().zero()
+        zero = self._parent.base_ring().zero()
 
         if not self and not right:
             return rich_to_bool(op, 0)
@@ -1236,8 +1335,13 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             0
         """
         if n <= self.valuation():
-            return self._parent(0)
-        return LaurentPolynomial_univariate(self._parent, self.__u.truncate(n-self.__n), self.__n)
+            return self._parent.zero()
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> self.__u.truncate(n - self.__n)
+        ret.__n = self.__n
+        ret.__normalize()
+        return ret
 
     def variable_name(self):
         """
@@ -1331,7 +1435,12 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             True
         """
         from copy import copy
-        return LaurentPolynomial_univariate(self._parent, copy(self.__u), self.__n)
+        cdef LaurentPolynomial_univariate ret
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = copy(self.__u)
+        ret.__n = self.__n
+        # No need to normalize
+        return ret
 
     def derivative(self, *args):
         """
@@ -1402,20 +1511,28 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f._derivative(t)
             2*x^-1 + (6*t + 6)*x
         """
+        cdef LaurentPolynomial_univariate ret
         if var is not None and var is not self._parent.gen():
             # call _derivative() recursively on coefficients
-            u = [coeff._derivative(var) for coeff in self.__u.list()]
-            u = self._parent.polynomial_ring()(u)
-            return LaurentPolynomial_univariate(self._parent, u, self.__n)
+            u = [coeff._derivative(var) for coeff in self.__u.list(copy=False)]
+            ret = <LaurentPolynomial_univariate> self._new_c()
+            ret.__u = <ModuleElement> self._parent._R(u)
+            ret.__n = self.__n
+            ret.__normalize()
+            return ret
 
         # compute formal derivative with respect to generator
         if self.is_zero():
-            return LaurentPolynomial_univariate(self._parent, 0)
+            return self  # this is already 0
         cdef long m, n = self.__n
-        a = self.__u.list()
-        v = [(n+m)*a[m] for m from 0 <= m < len(a)]
-        u = self._parent.polynomial_ring()(v)
-        return LaurentPolynomial_univariate(self._parent, u, n-1)
+        cdef list a = self.__u.list(copy=True)
+        for m in range(len(a)):
+            a[m] *= (n+m)
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> self._parent._R(a)
+        ret.__n = self.__n - 1
+        ret.__normalize()
+        return ret
 
     def integral(self):
         r"""
@@ -1461,21 +1578,26 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             True
         """
         cdef long i, n = self.__n
-        a = self.__u.list()
+        cdef LaurentPolynomial_univariate ret
         if self[-1] != 0:
-            raise ArithmeticError(
-                  "the integral of is not a Laurent polynomial, since t^-1 has nonzero coefficient")
+            raise ArithmeticError("the integral of is not a Laurent polynomial,"
+                                  " since t^-1 has nonzero coefficient")
 
+        cdef list a = self.__u.list(copy=False)
         if n < 0:
             v = [a[i]/(n+i+1) for i in range(min(-1-n,len(a)))] + [0]
         else:
             v = []
         v += [a[i]/(n+i+1) for i in range(max(-n,0), len(a))]
         try:
-            u = self._parent.polynomial_ring()(v)
+            u = self._parent._R(v)
         except TypeError:
             raise ArithmeticError("coefficients of integral cannot be coerced into the base ring")
-        return LaurentPolynomial_univariate(self._parent, u, n+1)
+        ret = <LaurentPolynomial_univariate> self._new_c()
+        ret.__u = <ModuleElement> u
+        ret.__n = n + 1
+        ret.__normalize()
+        return ret
 
     def __call__(self, *x, **kwds):
         """
@@ -1531,12 +1653,19 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f.factor()
             (t^-7) * (4 + t + 3*t^10 + 2*t^11)
         """
+        cdef LaurentPolynomial_univariate u, d
         pf = self.__u.factor()
-        u = LaurentPolynomial_univariate(self._parent, pf.unit(), self.__n)
+        u = <LaurentPolynomial_univariate> self._new_c()
+        u.__u = pf.unit()
+        u.__n = self.__n
+        u.__normalize()
 
         f = []
         for t in pf:
-            d = LaurentPolynomial_univariate(self._parent, t[0], 0)
+            d = <LaurentPolynomial_univariate> self._new_c()
+            d.__u = t[0]
+            d.__n = 0
+            d.__normalize()
             if d.is_unit():
                 u *= d ** t[1]
             else:
@@ -1562,7 +1691,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: f.residue().parent()
             Rational Field
         """
-        return self[-1]
+        return self.__u[-1 - self.__n]
 
     def constant_coefficient(self):
         """
@@ -1578,7 +1707,7 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             sage: g.constant_coefficient()
             0
         """
-        return self[0]
+        return self.__u[-self.__n]
 
 
 cdef class LaurentPolynomial_mpair(LaurentPolynomial):
@@ -1687,7 +1816,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
                 x = (<LaurentPolynomial_mpair>x)._poly
             else: # since x should coerce into parent, _mon should be (0,...,0)
                 self._mon = ETuple({}, int(parent.ngens()))
-        self._poly = parent.polynomial_ring()(x)
+        self._poly = parent._R(x)
         CommutativeAlgebraElement.__init__(self, parent)
 
     def __reduce__(self):
@@ -1766,24 +1895,10 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         return result
 
-    cdef _new_c(self):
-        """
-        Returns a new Laurent polynomial
-
-        EXAMPLES::
-
-            sage: L.<x,y> = LaurentPolynomialRing(QQ) # indirect doctest
-            sage: x*y
-            x*y
-        """
-        cdef LaurentPolynomial_mpair ans
-        ans = LaurentPolynomial_mpair.__new__(LaurentPolynomial_mpair)
-        ans._parent = self._parent
-        return ans
-
-    def _normalize(self, i=None):
-        """
-        Removes the common monomials from self._poly and stores them in self._mon
+    cdef _normalize(self, i=None):
+        r"""
+        Remove the common monomials from ``self._poly`` and store
+        them in ``self._mon``.
 
         INPUT:
 
@@ -1792,72 +1907,62 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         EXAMPLES::
 
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
-            sage: f = x*y + 2*y*x^2 + y # indirect doctest
+            sage: f = x*y + 2*y*x^2 + y  # indirect doctest
             sage: f.factor() # Notice the y has been factored out.
             (y) * (2*x^2 + x + 1)
 
         Check that :trac:`23864` has been fixed::
 
-            sage: L.zero()._normalize()
+            sage: hash(L.zero())
+            0
         """
         if not self._poly:
-            self._mon = ETuple({}, int(self.parent().ngens()))
+            self._mon = ETuple({}, int(self._parent.ngens()))
             return
 
-        D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
+        cdef dict D = <dict> self._poly._mpoly_dict_recursive(
+                                        <tuple> self._parent.variable_names(),
+                                        self._parent.base_ring()
+                                        )
+        cdef ETuple e
         if i is None:
             e = None
             for k in D:
                 if e is None:
-                    e = k
+                    e = <ETuple> k
                 else:
                     e = e.emin(k)
             if not e.is_constant():
-                self._poly = self._poly // self._poly.parent()({e: 1})
+                self._poly = <ModuleElement> (self._poly // self._poly._parent({e: 1}))
                 self._mon = self._mon.eadd(e)
         else:
             e = None
             for k in D:
                 if e is None or k[i] < e:
-                    e = k[i]
+                    e = <ETuple> k[i]
             if e > 0:
-                self._poly = self._poly // self._poly.parent().gen(i)
+                self._poly = <ModuleElement> (self._poly // self._poly._parent.gen(i))
                 self._mon = self._mon.eadd_p(e, i)
 
-    def _dict(self):
+    cdef _compute_polydict(self):
         """
         EXAMPLES::
 
             sage: L.<w,z> = LaurentPolynomialRing(QQ)
-            sage: a = w^2*z^-1+3; a
-            w^2*z^-1 + 3
-            sage: d = a._dict()
-            sage: keys = sorted(d); keys
-            [(0, 0), (2, -1)]
-            sage: d[keys[0]]
-            3
-            sage: d[keys[1]]
-            1
-
+            sage: a = w^2*z^-1 +3
+            sage: a.dict()  # indirect doctest
+            {(0, 0): 3, (2, -1): 1}
         """
-        D = self._poly._mpoly_dict_recursive(self.parent().variable_names(), self.parent().base_ring())
-        if not self._mon.is_constant():
-            DD = {}
-            for k in D:
-                DD[k.eadd(self._mon)] = D[k]
-            return DD
-        else:
-            return D
-
-    def _compute_polydict(self):
-        """
-        EXAMPLES::
-
-            sage: L.<w,z> = LaurentPolynomialRing(QQ)
-            sage: a = w^2*z^-1+3
-            sage: a._compute_polydict()
-        """
-        self._prod = PolyDict(self._dict(), force_etuples=False)
+        cdef dict D = <dict> self._poly._mpoly_dict_recursive(self._parent.variable_names(),
+                                                              self._parent.base_ring())
+        cdef dict DD
+        if self._mon.is_constant():
+            self._prod = PolyDict(D, force_etuples=False)
+            return
+        DD = {}
+        for k in D:
+            DD[k.eadd(self._mon)] = D[k]
+        self._prod = PolyDict(DD, force_etuples=False)
 
     def is_unit(self):
         """
@@ -2060,14 +2165,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         if isinstance(n, slice):
             raise TypeError("Multivariate Laurent polynomials are not iterable")
-        if not isinstance(n, tuple) or len(n) != self.parent().ngens():
+        if not isinstance(n, tuple) or len(n) != self._parent.ngens():
             raise TypeError("Must have exactly %s inputs" %
                             self.parent().ngens())
         cdef ETuple t = ETuple(n)
         if self._prod is None:
             self._compute_polydict()
         if t not in self._prod.exponents():
-            return self.parent().base_ring().zero()
+            return self._parent.base_ring().zero()
         return self._prod[t]
 
     def __iter__(self):
@@ -2084,10 +2189,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         if self._prod is None:
             self._compute_polydict()
-        for c, exps in self._prod.list():
-            prod = self.parent().one()
+        cdef tuple G = <tuple> self._parent.gens()
+        cdef Py_ssize_t i
+        cdef list exps
+        for c, e in self._prod.list():
+            exps = <list> e
+            prod = self._parent.one()
             for i in range(len(exps)):
-                prod *= self.parent().gens()[i]**exps[i]
+                prod *= G[i]**exps[i]
             yield (c, prod)
 
     def monomials(self):
@@ -2101,13 +2210,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.monomials()
             [x^6, x^-3*y^2, x^-2*y, x^-2*y^3]
         """
-        L = []
+        cdef list L = []
         if self._prod is None:
             self._compute_polydict()
-        for c, exps in self._prod.list():
-            prod = self.parent().one()
+        cdef tuple gens = self._parent.gens()
+        cdef list exps
+        for c, e in self._prod.list():
+            exps = <list> e
+            prod = self._parent.one()
             for i in range(len(exps)):
-                prod *= self.parent().gens()[i]**exps[i]
+                prod *= gens[i]**exps[i]
             L.append(prod)
         return L
 
@@ -2139,14 +2251,15 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.monomial_coefficient(x^2)
             0
         """
-        if mon.parent() != self.parent():
-            raise TypeError("Input must have the same parent")
+        if mon.parent() != self._parent:
+            raise TypeError("input must have the same parent")
+        cdef LaurentPolynomial_mpair m = <LaurentPolynomial_mpair> mon
         if self._prod is None:
             self._compute_polydict()
-        if (<LaurentPolynomial_mpair>mon)._prod is None:
-            mon._compute_polydict()
-        return self.parent().base_ring()(self._prod.monomial_coefficient(
-                        (<LaurentPolynomial_mpair>mon)._prod.dict()))
+        if m._prod is None:
+            m._compute_polydict()
+        c = self._prod.monomial_coefficient(m._prod.dict())
+        return self._parent.base_ring()(c)
 
     def constant_coefficient(self):
         """
@@ -2164,7 +2277,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.constant_coefficient()
             1
         """
-        return self[(0,)*self.parent().ngens()]
+        return self[(0,)*self._parent.ngens()]
 
     def coefficient(self, mon):
         r"""
@@ -2228,13 +2341,14 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.coefficient(1)
             -x^6 - 7*x^-2*y^2 + 5*x^-2*y + x^-3*y^2
         """
-        if mon.parent() is not self.parent():
-            mon = self.parent()(mon)
+        if mon.parent() is not self._parent:
+            mon = self._parent(mon)
+        cdef LaurentPolynomial_mpair m = <LaurentPolynomial_mpair> mon
         if self._prod is None:
             self._compute_polydict()
-        if (<LaurentPolynomial_mpair>mon)._prod is None:
-            mon._compute_polydict()
-        return self.parent()(self._prod.coefficient((<LaurentPolynomial_mpair>mon).dict()))
+        if m._prod is None:
+            m._compute_polydict()
+        return self._parent(self._prod.coefficient(m.dict()))
 
     def coefficients(self):
         """
@@ -2272,20 +2386,20 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.variables(sort=False) #random
             (y, z, x)
         """
-        d = self.dict()
-        g = self.parent().gens()
-        nvars = len(g)
-        vars = []
+        cdef dict d = self.dict()
+        cdef tuple g = self._parent.gens()
+        cdef Py_ssize_t nvars = len(g)
+        cdef list vars = []
         for k in d:
             vars = union(vars, k.nonzero_positions())
             if len(vars) == nvars:
                 break
-        v = [g[i] for i in vars]
+        cdef list v = [g[i] for i in vars]
         if sort:
             v.sort()
         return tuple(v)
 
-    def dict(self):
+    cpdef dict dict(self):
         """
         EXAMPLES::
 
@@ -2296,7 +2410,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         if self._prod is None:
             self._compute_polydict()
-        return self._prod.dict()
+        return <dict> self._prod.dict()
 
     def _fraction_pair(self):
         """
@@ -2314,7 +2428,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f._fraction_pair()
             (4*x^7*y^7*z + 3*x^3*y^8*z^2 + 2*x^4*y^7 + x^6*z^2, y^7*z^2)
         """
-        ring = self.parent().polynomial_ring()
+        ring = self._parent._R
         numer = self._poly
         denom = ring.one()
         var = ring.gens()
@@ -2341,11 +2455,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         cdef LaurentPolynomial_mpair right = <LaurentPolynomial_mpair>_right
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
         if not a.is_constant():
-            ans._poly = self._poly * self._poly.parent()({a: 1})
+            ans._poly = self._poly * self._poly._parent({a: 1})
         else:
             ans._poly = self._poly
         if not b.is_constant():
-            ans._poly += right._poly * self._poly.parent()({b: 1})
+            ans._poly += right._poly * self._poly._parent({b: 1})
         else:
             ans._poly += right._poly
         return ans
@@ -2368,11 +2482,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         cdef ETuple a, b
         ans._mon, a, b = self._mon.combine_to_positives(right._mon)
         if not a.is_constant():
-            ans._poly = self._poly * self._poly.parent()({a: 1})
+            ans._poly = self._poly * self._poly._parent({a: 1})
         else:
             ans._poly = self._poly
         if not b.is_constant():
-            ans._poly -= right._poly * self._poly.parent()({b: 1})
+            ans._poly -= right._poly * self._poly._parent({b: 1})
         else:
             ans._poly -= right._poly
         return ans
@@ -2535,10 +2649,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             b + 1
         """
         cdef LaurentPolynomial_mpair ans = self._new_c()
+        cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair> right
         self._normalize()
-        right._normalize()
-        ans._mon = self._mon.esub((<LaurentPolynomial_mpair>right)._mon)
-        ans._poly = self._poly // (<LaurentPolynomial_mpair>right)._poly
+        rightl._normalize()
+        ans._mon = self._mon.esub(rightl._mon)
+        ans._poly = self._poly // rightl._poly
         return ans
 
     @coerce_binop
@@ -2565,7 +2680,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: (s^-2-t^2).quo_rem(s^-1-t)
             (t + s^-1, 0)
         """
-        cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair>right
+        cdef LaurentPolynomial_mpair rightl = <LaurentPolynomial_mpair> right
         q, r = self._poly.quo_rem(rightl._poly)
         ql = LaurentPolynomial_mpair(self._parent, q,
                                      mon=self._mon.esub(rightl._mon))
@@ -2589,8 +2704,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         if self._prod is None:
             self._compute_polydict()
-        if (<LaurentPolynomial_mpair>right)._prod is None:
-            right._compute_polydict()
+        if (<LaurentPolynomial_mpair> right)._prod is None:
+            (<LaurentPolynomial_mpair> right)._compute_polydict()
         return richcmp(self._prod, (<LaurentPolynomial_mpair>right)._prod, op)
 
     def exponents(self):
@@ -2609,7 +2724,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         """
         return [a.eadd(self._mon) for a in self._poly.exponents()]
 
-    def degree(self,x=None):
+    def degree(self, x=None):
         """
         Returns the degree of x in self
 
@@ -2624,19 +2739,19 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.degree(z)
             0
         """
-
         if not x:
             return self._poly.total_degree() + sum(self._mon)
 
-        g = self.parent().gens()
-        no_generator_found = True
+        cdef tuple g = <tuple> self._parent.gens()
+        cdef Py_ssize_t i
+        cdef bint no_generator_found = True
         for i in range(len(g)):
             if g[i] is x:
                 no_generator_found = False
                 break
         if no_generator_found:
             raise TypeError("x must be a generator of parent")
-        return self._poly.degree(self.parent().polynomial_ring().gens()[i]) + self._mon[i]
+        return self._poly.degree(self._parent._R.gens()[i]) + self._mon[i]
 
     def has_inverse_of(self, i):
         """
@@ -2660,7 +2775,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: f.has_inverse_of(2)
             True
         """
-        if (not isinstance(i, (int, Integer))) or (i < 0) or (i >= self.parent().ngens()):
+        if (not isinstance(i, (int, Integer))) or (i < 0) or (i >= self._parent.ngens()):
             raise TypeError("argument is not the index of a generator")
         if self._mon[i] < 0:
             self._normalize(i)
@@ -2727,16 +2842,16 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
 
         cdef int l = len(x)
 
-        if l == 1 and (isinstance(x[0], tuple) or isinstance(x[0], list)):
+        if l == 1 and isinstance(x[0], (tuple, list)):
             x = x[0]
             l = len(x)
 
-        if l != self.parent().ngens():
+        if l != self._parent.ngens():
             raise TypeError("number of arguments does not match the number"
                             " of generators in parent")
 
         #Check to make sure that we aren't dividing by zero
-        cdef int m
+        cdef Py_ssize_t m
         for m in range(l):
             if x[m] == 0:
                 if self.has_inverse_of(m):
@@ -2801,10 +2916,11 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: x.subs({x: 2}, x=1)
             1
         """
-        variables = list(self.parent().gens())
-        for i in range(0,len(variables)):
+        cdef list variables = list(self._parent.gens())
+        cdef Py_ssize_t i
+        for i in range(len(variables)):
             if str(variables[i]) in kwds:
-                variables[i]=kwds[str(variables[i])]
+                variables[i] = kwds[str(variables[i])]
             elif in_dict and variables[i] in in_dict:
                 variables[i] = in_dict[variables[i]]
         return self(tuple(variables))
@@ -2825,7 +2941,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: (1/b).is_constant()
             False
         """
-        return (self._mon == ETuple({}, int(self.parent().ngens())) and
+        return (self._mon == ETuple({}, int(self._parent.ngens())) and
                 self._poly.is_constant())
 
     def _symbolic_(self, R):
@@ -2843,7 +2959,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
             sage: g(x=2,y=2)
             9
         """
-        d = dict([(repr(g), R.var(g)) for g in self.parent().gens()])
+        d = {repr(g): R.var(g) for g in self._parent.gens()}
         return self.subs(**d)
 
     def derivative(self, *args):
@@ -2907,8 +3023,8 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         if var is None:
             raise ValueError("must specify which variable to differentiate "
                              "with respect to")
-        P = self.parent()
-        gens = list(P.gens())
+        P = self._parent
+        cdef list gens = list(P.gens())
 
         # check if var is one of the generators
         try:
@@ -2919,7 +3035,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
                       for (m, c) in self.dict().iteritems()})
 
         # compute formal derivative with respect to generator
-        d = {}
+        cdef dict d = {}
         for m, c in self.dict().iteritems():
             if m[index] != 0:
                 new_m = [u for u in m]
@@ -3001,7 +3117,7 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         if R is None:
             R = LaurentPolynomialRing(self.base_ring(), x)
 
-        return R(dict((m[i],c) for m,c in self.dict().items()))
+        return R({m[i]: c for m,c in self.dict().iteritems()})
 
     def factor(self):
         """
@@ -3017,16 +3133,18 @@ cdef class LaurentPolynomial_mpair(LaurentPolynomial):
         pf = self._poly.factor()
         u = self.parent(pf.unit().dict()) # self.parent won't currently take polynomials
 
-        g = self.parent().gens()
+        cdef tuple g = <tuple> self._parent.gens()
         for i in self._mon.nonzero_positions():
             u *= g[i] ** self._mon[i]
 
-        f = []
+        cdef list f = []
+        cdef dict d
         for t in pf:
-            d = t[0].dict()
+            d = <dict> (t[0].dict())
             if len(d) == 1:  # monomials are units
                 u *= self.parent(d) ** t[1]
             else:
                 f.append((self.parent(d), t[1]))
 
         return Factorization(f, unit=u)
+

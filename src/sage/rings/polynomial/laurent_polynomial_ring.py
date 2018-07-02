@@ -47,6 +47,7 @@ from six.moves import range
 
 from sage.structure.category_object import normalize_names
 from sage.structure.element import is_Element, parent
+from sage.structure.parent import Parent
 from sage.rings.ring import is_Ring
 from sage.rings.infinity import infinity
 from sage.rings.integer import Integer
@@ -54,7 +55,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.latex import latex
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair, LaurentPolynomial_univariate
 from sage.rings.ring import CommutativeRing
-from sage.structure.parent_gens import ParentWithGens
 
 def is_LaurentPolynomialRing(R):
     """
@@ -385,7 +385,7 @@ def _split_laurent_polynomial_dict_(P, M, d):
     return sum(P({k: 1}) * value(v, P) for k, v in iteritems(D)).dict()
 
 
-class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
+class LaurentPolynomialRing_generic(CommutativeRing, Parent):
     """
     Laurent polynomial ring (base class).
 
@@ -887,6 +887,8 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             raise ValueError("must be 1 generator")
         LaurentPolynomialRing_generic.__init__(self, R)
 
+    Element = LaurentPolynomial_univariate
+
     def _repr_(self):
         """
         TESTS::
@@ -970,7 +972,7 @@ class LaurentPolynomialRing_univariate(LaurentPolynomialRing_generic):
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 
-        return LaurentPolynomial_univariate(self, x)
+        return self.element_class(self, x)
 
     def __reduce__(self):
         """
@@ -1001,6 +1003,8 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
         if not R.base_ring().is_integral_domain():
             raise ValueError("base ring must be an integral domain")
         LaurentPolynomialRing_generic.__init__(self, R)
+
+    Element = LaurentPolynomial_mpair
 
     def _repr_(self):
         """
@@ -1038,14 +1042,12 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             ...
             TypeError: tuple key must have same length as ngens
         """
-        element_class = LaurentPolynomial_mpair
-
         if len(args) != self.ngens():
             raise TypeError("tuple key must have same length as ngens")
 
         from sage.rings.polynomial.polydict import ETuple
         m = ETuple(args, int(self.ngens()))
-        return element_class(self, self.polynomial_ring().one(), m)
+        return self.element_class(self, self.polynomial_ring().one(), m)
 
     def _element_constructor_(self, x, mon=None):
         """
@@ -1137,15 +1139,14 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             y^-1*z^-1 + x^-1*z^-1 + x^-1*y^-1
         """
         from sage.symbolic.expression import Expression
-        element_class = LaurentPolynomial_mpair
 
         if mon is not None:
-            return element_class(self, x, mon)
+            return self.element_class(self, x, mon)
 
         P = parent(x)
         if P is self.polynomial_ring():
             from sage.rings.polynomial.polydict import ETuple
-            return element_class( self, x, mon=ETuple({}, int(self.ngens())) )
+            return self.element_class( self, x, mon=ETuple({}, int(self.ngens())) )
 
         elif isinstance(x, Expression):
             return x.laurent_polynomial(ring=self)
@@ -1164,13 +1165,13 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             elif self.base_ring().has_coerce_map_from(P):
                 from sage.rings.polynomial.polydict import ETuple
                 mz = ETuple({}, int(self.ngens()))
-                return element_class(self, {mz: self.base_ring()(x)}, mz)
+                return self.element_class(self, {mz: self.base_ring()(x)}, mz)
             elif x.is_constant() and self.has_coerce_map_from(P.base_ring()):
                 return self(x.constant_coefficient())
             elif len(self.variable_names()) == len(P.variable_names()):
                 x = x.dict()
 
-        return element_class(self, x)
+        return self.element_class(self, x)
 
     def __reduce__(self):
         """
@@ -1178,7 +1179,7 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
 
         EXAMPLES::
 
-            sage: L = LaurentPolynomialRing(QQ,2,'x')
+            sage: L = LaurentPolynomialRing(QQ, 2, 'x')
             sage: loads(dumps(L)) == L
             True
         """

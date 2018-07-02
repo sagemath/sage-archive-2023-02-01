@@ -110,7 +110,6 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
@@ -1056,6 +1055,7 @@ class QuadraticForm(AlgebraicForm):
             sage: quadratic.discriminant()
             4*a*b*c - c*d^2 - b*e^2 + d*e*f - a*f^2
         """
+        from sage.misc.functional import is_odd
         A = 2*self._matrix_()
         if is_odd(self._n):
             return A.det() / 2

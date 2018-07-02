@@ -1219,7 +1219,7 @@ class Genus_Symbol_p_adic_ring(object):
                     automorphs.append(r1*r2)
             # supplement (i)
             for block in sym:
-                if block[1] > 2:
+                if block[1] >= 2:
                     automorphs.append(up)
                     break
             # normalize the square classes and remove duplicates

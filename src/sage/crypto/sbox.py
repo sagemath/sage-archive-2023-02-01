@@ -1227,11 +1227,11 @@ class SBox(SageObject):
         return ret
 
     @cached_method
-    def autocorrelation_matrix(self):
+    def autocorrelation_table(self):
         r"""
-        Return autocorrelation matrix correspond to this S-Box.
+        Return the autocorrelation table corresponding to this S-Box.
 
-        for an `m \times n` S-Box `S`, its autocorrelation matrix entry at
+        for an `m \times n` S-Box `S`, its autocorrelation table entry at
         row `a \in \GF{2}^m` and column `b \in \GF{2}^n`
         (considering their integer representation) is defined as:
 
@@ -1239,14 +1239,14 @@ class SBox(SageObject):
 
             \sum_{x \in \GF{2}^m} (-1)^{b \cdot S(x) \oplus b \cdot S(x \oplus a)}
 
-        Equivalently, the columns `b` of autocorrelation matrix correspond to
+        Equivalently, the columns `b` of autocorrelation table correspond to
         the autocorrelation spectrum of component function `b \cdot S(x)`.
 
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
             sage: S = SBox(7,6,0,4,2,5,1,3)
-            sage: S.autocorrelation_matrix()
+            sage: S.autocorrelation_table()
             [ 8  8  8  8  8  8  8  8]
             [ 8  0  0  0  0  0  0 -8]
             [ 8  0 -8  0  0  0  0  0]
@@ -1263,6 +1263,8 @@ class SBox(SageObject):
         A.set_immutable()
 
         return A
+
+    autocorrelation_matrix = deprecated_function_alias(25708, autocorrelation_table)
 
     @cached_method
     def boomerang_connectivity_table(self):
@@ -1357,7 +1359,7 @@ class SBox(SageObject):
         """
         n = self.n
         m = self.m
-        act = self.autocorrelation_matrix()
+        act = self.autocorrelation_table()
         ret = []
 
         for j in range(1, 1<<n):

@@ -2,6 +2,11 @@ r"""
 S-Boxes and Their Algebraic Representations
 """
 from __future__ import print_function, division
+
+cimport cython
+
+from sage.structure.sage_object cimport SageObject
+
 from six.moves import range
 from six import integer_types
 
@@ -18,9 +23,37 @@ from sage.rings.ideal import FieldIdeal, Ideal
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.structure.sage_object import SageObject
 
-class SBox(SageObject):
+cdef int _nterms(int nvars, int deg):
+    """
+    Return the number of monomials possible up to a given
+    degree.
+
+    INPUT:
+
+    - ``nvars`` - number of variables
+
+    - ``deg`` - degree
+
+    TESTS::
+
+        sage: from sage.crypto.sbox import SBox
+        sage: S = SBox(7,6,0,4,2,5,1,3)
+        sage: F = S.polynomials(degree=3) # indirect doctest
+    """
+    total = 1
+    divisor = 1
+    var_choices = 1
+
+    for d in range(1, deg+1):
+        var_choices *= (nvars - d + 1)
+        divisor *= d
+        total += var_choices/divisor
+
+    return total
+
+@cython.auto_pickle(True)
+cdef class SBox(SageObject):
     r"""
     A substitution box or S-box is one of the basic components of
     symmetric key cryptography. In general, an S-box takes ``m`` input
@@ -80,6 +113,12 @@ class SBox(SageObject):
     - [CDL2015]_
     """
 
+    cdef list _S
+    cdef object _ring
+    cdef int m
+    cdef int n
+    cdef int _big_endian
+
     def __init__(self, *args,  **kwargs):
         """
         Construct a substitution box (S-box) for a given lookup table
@@ -117,7 +156,7 @@ class SBox(SageObject):
             ...
             TypeError: Lookup table length is not a power of 2.
             sage: S = SBox(5, 6, 0, 3, 4, 2, 1, 2)
-            sage: S.n
+            sage: S.output_size()
             3
         """
         if "S" in kwargs:
@@ -142,10 +181,11 @@ class SBox(SageObject):
 
         self.m = ZZ(len(S)).exact_log(2)
         self.n = ZZ(max(S)).nbits()
-        self._F = GF(2)
         self._big_endian = kwargs.get("big_endian",True)
 
-        self.differential_uniformity = self.maximal_difference_probability_absolute
+        X = range(self.m)
+        Y = range(self.n)
+        self._ring = PolynomialRing(GF(2), self.m+self.n, ["x%d"%i for i in X] + ["y%d"%i for i in Y])
 
     def _repr_(self):
         """
@@ -169,7 +209,7 @@ class SBox(SageObject):
         """
         return self.m
 
-    def __eq__(self, other):
+    def __eq__(self, rhs):
         """
         S-boxes are considered to be equal if all construction
         parameters match.
@@ -181,7 +221,8 @@ class SBox(SageObject):
             sage: loads(dumps(S)) == S
             True
         """
-        return (self._S, self._big_endian) == (other._S, self._big_endian)
+        cdef SBox other = rhs
+        return (self._S == other._S) and (self._big_endian == self._big_endian)
 
     def __ne__(self, other):
         """
@@ -228,7 +269,7 @@ class SBox(SageObject):
             swp = lambda x: list(reversed(x))
         else:
             swp = lambda x: x
-        return swp(self._rpad([self._F(_) for _ in ZZ(x).digits(2)], n))
+        return swp(self._rpad([GF(2)(_) for _ in ZZ(x).digits(2)], n))
 
     def from_bits(self, x, n=None):
         """
@@ -275,7 +316,7 @@ class SBox(SageObject):
         """
         if n is None and self.input_size() == self.output_size():
             n = self.output_size()
-        return  x + [self._F(0)]*(n-len(x))
+        return  x + [GF(2)(0)]*(n-len(x))
 
     def __call__(self, X):
         r"""
@@ -471,18 +512,17 @@ class SBox(SageObject):
             [0 2 2 0 0 2 2 0]
             [0 0 0 0 2 2 2 2]
         """
-        m = self.input_size()
-        n = self.output_size()
+        nrows = 1 << self.input_size()
+        ncols = 1 << self.output_size()
 
-        nrows = 1<<m
-        ncols = 1<<n
-
-        A = Matrix(ZZ, nrows, ncols)
+        A = [0]*(nrows*ncols)
 
         for i in range(nrows):
             si = self(i)
             for di in range(nrows):
-                A[ di , si^self(i^di)] += 1
+                A[di*nrows + si^self(i^di)] += 1
+
+        A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
 
         return A
@@ -510,6 +550,8 @@ class SBox(SageObject):
         A = self.difference_distribution_matrix().__copy__()
         A[0,0] = 0
         return max(map(abs, A.list()))
+
+    differential_uniformity = maximal_difference_probability_absolute
 
     def maximal_difference_probability(self):
         r"""
@@ -569,10 +611,10 @@ class SBox(SageObject):
             [ 0 -2 -2  0  0 -2  2  0]
             [ 0 -2  2  0 -2  0  0 -2]
 
-            sage: lat_abs_bias/(1<<S.m) == S.linear_approximation_matrix(scale="bias")
+            sage: lat_abs_bias/(1<<S.input_size()) == S.linear_approximation_matrix(scale="bias")
             True
 
-            sage: lat_abs_bias/(1<<(S.m-1)) == S.linear_approximation_matrix(scale="correlation")
+            sage: lat_abs_bias/(1<<(S.input_size()-1)) == S.linear_approximation_matrix(scale="correlation")
             True
 
             sage: lat_abs_bias*2 == S.linear_approximation_matrix(scale="fourier_coefficient")
@@ -665,17 +707,6 @@ class SBox(SageObject):
             sage: S.ring()
             Multivariate Polynomial Ring in x0, x1, x2, y0, y1, y2 over Finite Field of size 2
         """
-        try:
-            return self._ring
-        except AttributeError:
-            pass
-
-        m = self.input_size()
-        n = self.output_size()
-
-        X = range(m)
-        Y = range(n)
-        self._ring = PolynomialRing(self._F, m+n, ["x%d"%i for i in X] + ["y%d"%i for i in Y])
         return self._ring
 
     def solutions(self, X=None, Y=None):
@@ -770,36 +801,10 @@ class SBox(SageObject):
              y1 + x0*x2 + x1 + 1,
              y2 + x0 + x1*x2 + x1 + x2 + 1]
         """
-        def nterms(nvars, deg):
-            """
-            Return the number of monomials possible up to a given
-            degree.
-
-            INPUT:
-
-            - ``nvars`` - number of variables
-
-            - ``deg`` - degree
-
-            TESTS::
-
-                sage: from sage.crypto.sbox import SBox
-                sage: S = SBox(7,6,0,4,2,5,1,3)
-                sage: F = S.polynomials(degree=3) # indirect doctest
-            """
-            total = 1
-            divisor = 1
-            var_choices = 1
-
-            for d in range(1, deg+1):
-                var_choices *= (nvars - d + 1)
-                divisor *= d
-                total += var_choices/divisor
-            return total
 
         m = self.input_size()
         n = self.output_size()
-        F = self._F
+        F = GF(2)
 
         if X is None and Y is None:
             P = self.ring()
@@ -816,7 +821,7 @@ class SBox(SageObject):
 
         ncols = (1<<m) + 1
 
-        A = Matrix(P, nterms(m + n, degree), ncols)
+        A = Matrix(P, _nterms(m + n, degree), ncols)
 
         exponents = []
         for d in range(degree+1):
@@ -1665,6 +1670,7 @@ class SBox(SageObject):
         """
         return self == self.inverse()
 
+
 def feistel_construction(*args):
     r"""
     Return an S-Box constructed by Feistel structure using smaller S-Boxes in
@@ -1710,7 +1716,7 @@ def feistel_construction(*args):
         if not isinstance(sb, SBox):
             raise TypeError("All input must be an instance of SBox object")
 
-    b = sboxes[0].m
+    b = sboxes[0].input_size()
     m = 2*b
 
     def substitute(x):
@@ -1764,7 +1770,7 @@ def misty_construction(*args):
         if not isinstance(sb, SBox):
             raise TypeError("All input must be an instance of SBox object")
 
-    b = sboxes[0].m
+    b = sboxes[0].input_size()
     m = 2*b
 
     def substitute(x):

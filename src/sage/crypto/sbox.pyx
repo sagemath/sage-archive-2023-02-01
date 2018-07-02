@@ -609,7 +609,12 @@ class SBox(SageObject):
         else:
             raise ValueError("no such scaling for the LAM: %s" % scale)
 
-        L = [self.component_function(i).walsh_hadamard_transform() for i in range(ncols)]
+        # compute the component functions of self, without trying to convert
+        # the input arguments all the time, because we know which input format
+        # we are using here
+        L = [BooleanFunction([ZZ(i & self(x)).popcount() & 1
+                              for x in range(nrows)]).walsh_hadamard_transform()
+             for i in range(ncols)]
 
         A = Matrix(ZZ, ncols, nrows, L)
         A = A.transpose()/scale_factor

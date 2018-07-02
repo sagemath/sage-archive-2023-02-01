@@ -53,7 +53,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
     :meth:`~posets.UpDownPoset` | Return the up-down poset on `n` elements.
     :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
-    :meth:`~posets.YoungsLattice` | Return the Young's Lattice up to rank `n`.
+    :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
     :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
     :meth:`~posets.YoungFibonacci` | Return the Young-Fibonacci lattice up to rank `n`.
 
@@ -1438,11 +1438,11 @@ class Posets(object):
         """
         Return the Young-Fibonacci lattice up to rank `n`.
 
-        Elements of the (infinite) lattice contains strings of '1' and '2'.
-        Covers for an element are 1) strings with another '1' added somewhere
-        not after the first occurence of an existing '1' and 2) strings where
-        the first '1' is changed to '2'. Here we cut the lattice to the given
-        finite rank.
+        Elements of the (infinite) lattice are words with letters '1'
+        and '2'.  The covers of a word are the words with another '1'
+        added somewhere not after the first occurence of an existing
+        '1' and, additionally, the words where the first '1' is replaced by a
+        '2'. The lattice is truncated to have rank `n`.
 
         See :wikipedia:`Young-Fibonacci lattice`.
 

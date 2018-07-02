@@ -1091,7 +1091,7 @@ def log_p_series_part(a, prime, prec):
     #since later we divide by p^t, we must increase the precision by t at this point.
     m = (gamma-1).valuation(prime) / e
     n = Integer(1)
-    step = 10 ** (prec.log()/R(10).log()).floor()
+    step = 10 ** (R(prec).log()/R(10).log()).floor()
     while n < (R(n).log()/R(p).log() + prec)/m:
         n += step
     #could use smaller stepsize to get actual smallest integer n, however this seems to run faster.

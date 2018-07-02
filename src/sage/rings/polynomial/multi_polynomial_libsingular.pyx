@@ -2411,7 +2411,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 1+y
             sage: g = 1+x
             sage: h = f/g
-            sage: print(h*g == f)
+            sage: h*g == f
             True
         """
         cdef poly *p

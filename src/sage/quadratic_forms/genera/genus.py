@@ -933,6 +933,25 @@ class Genus_Symbol_p_adic_ring(object):
     - ``prime`` -- a prime integer `> 0`
     - ``symbol`` -- the list of invariants for Jordan blocks `A_t,...,A_t` given
       as a list of lists of integers
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
+        sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
+
+        sage: A = diagonal_matrix(ZZ, [1,2,3,4])
+        sage: p = 2
+        sage: s2 = p_adic_symbol(A, p, 2); s2
+        [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
+        sage: G2 = Genus_Symbol_p_adic_ring(p,s2);G2
+        Genus symbol at 2:    [1^-2 2^1 4^1]_6
+
+        sage: A = diagonal_matrix(ZZ, [1,2,3,4])
+        sage: p = 3
+        sage: s3 = p_adic_symbol(A, p, 1); s3
+        [[0, 3, -1], [1, 1, 1]]
+        sage: G3 = Genus_Symbol_p_adic_ring(p,s3);G3
+        Genus symbol at 3:     1^-3 3^1
     """
     def __init__(self, prime, symbol, check = True):
         """
@@ -941,28 +960,26 @@ class Genus_Symbol_p_adic_ring(object):
 
         EXAMPLES::
 
+
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
-
             sage: A = diagonal_matrix(ZZ, [1,2,3,4])
             sage: p = 2
             sage: s2 = p_adic_symbol(A, p, 2); s2
             [[0, 2, 3, 1, 4], [1, 1, 1, 1, 1], [2, 1, 1, 1, 1]]
-            sage: G = Genus_Symbol_p_adic_ring(p,s2);G
+            sage: G2 = Genus_Symbol_p_adic_ring(p,s2);G2
             Genus symbol at 2:    [1^-2 2^1 4^1]_6
-            sage: G == loads(dumps(G))
-            True
 
             sage: A = diagonal_matrix(ZZ, [1,2,3,4])
             sage: p = 3
             sage: s3 = p_adic_symbol(A, p, 1); s3
             [[0, 3, -1], [1, 1, 1]]
-            sage: G = Genus_Symbol_p_adic_ring(p,s3);G
+            sage: G3 = Genus_Symbol_p_adic_ring(p,s3);G3
             Genus symbol at 3:     1^-3 3^1
-            sage: G == loads(dumps(G))
+            sage: G2 == loads(dumps(G2))
             True
-
-
+            sage: G3 == loads(dumps(G3))
+            True
         """
         if check:
            pass

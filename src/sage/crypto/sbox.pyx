@@ -118,6 +118,7 @@ cdef class SBox(SageObject):
     cdef int m
     cdef int n
     cdef int _big_endian
+    cdef dict __dict__  # for cached_methods
 
     def __init__(self, *args,  **kwargs):
         """

@@ -816,13 +816,8 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: with open(input, 'w') as F:
         ....:     _ = F.write(s)
         sage: L = ["sage", "--ipynb2rst", input, output]
-        sage: try:
-        ....:     _ = test_executable(['pandoc', '--version'])
-        ....: except OSError:
-        ....:     print('True')
-        ....: else:
-        ....:     _ = test_executable(L)
-        ....:     print(open(output, 'r').read() == t)
+        sage: _ = test_executable(L)                        # optional - pandoc
+        sage: print(open(output, 'r').read() == t)          # optional - pandoc
         True
 
     Test ``sage --rst2txt file.rst`` on a ReST file::

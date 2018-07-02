@@ -593,7 +593,6 @@ def K1_func(SUK, v, A, prec=106):
 
 def minimal_vector(A, y, prec=106):
     r"""
-
     INPUT:
 
     - ``A`` : a square n by n non-singular integer matrix whose rows generate a lattice `\mathcal L`
@@ -654,7 +653,6 @@ def minimal_vector(A, y, prec=106):
 
 def reduction_step_real_case(place, B0, G, c7):
     r"""
-
     INPUT:
 
     - ``place`` -- (ring morphism) an infinite place of a number field `K`
@@ -740,7 +738,6 @@ def reduction_step_real_case(place, B0, G, c7):
 
 def reduction_step_complex_case(place,B0,G,g0,c7):
     r"""
-
     INPUT:
 
     - ``place`` -- (ring morphism) an infinite place of a number field `K`
@@ -972,7 +969,6 @@ def cx_LLL_bound(SUK, A, prec=106):
 
 def log_p(a, prime, prec):
     r"""
-
     INPUT:
 
     - ``a`` -- an element of a number field `K`
@@ -1036,7 +1032,6 @@ def log_p(a, prime, prec):
 
 def log_p_series_part(a, prime, prec):
     r"""
-
     INPUT:
 
     - ``a`` -- an element of a number field `K`
@@ -1124,7 +1119,6 @@ def log_p_series_part(a, prime, prec):
 
 def defining_polynomial_for_Kp(prime, prec=106):
     r"""
-
     INPUT:
 
     - ``prime`` -- a prime ideal of a number field `K`
@@ -1190,7 +1184,6 @@ def defining_polynomial_for_Kp(prime, prec=106):
 
 def embedding_to_Kp(a, prime, prec):
     r"""
-
     INPUT:
 
     - ``a`` -- an element of a number field `K`
@@ -1235,7 +1228,6 @@ def embedding_to_Kp(a, prime, prec):
 
 def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     r"""
-
     INPUT:
 
     - ``prime`` -- a prime ideal of a number field `K`
@@ -1265,7 +1257,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
         sage: from sage.rings.number_field.S_unit_solver import p_adic_LLL_bound_one_prime
         sage: prec = 50
         sage: K.<a> = NumberField(x^3-3)
-        sage: S = K.primes_above(3)
+        sage: S = tuple(K.primes_above(3))
         sage: SUK = UnitGroup(K, S=S)
         sage: v = S[0]
         sage: A = SUK.roots_of_unity()
@@ -1299,9 +1291,9 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     p = prime.smallest_integer()
     f = prime.residue_class_degree()
     e = prime.absolute_ramification_index()
+    R = RealField(prec)
     c5 = c3 / (f*e*R(p).log())
     theta = K.gen()
-    R = RealField(prec)
 
     #if M is empty then it is easy to give an upper bound
     if len(M) == 0:
@@ -1450,7 +1442,7 @@ def split_primes_large_lcm(SUK, bound):
     - each prime `q` in `L` splits completely in `K`
     - if `Q` is a prime in `S` and `q` is the rational
       prime below `Q`, then `q` is **not** in `L`
-    - the value ``lcm { q - 1 : q in L }`` is greater than or equal to ``2 * bound + 1``.
+    - the value ``lcm { q-1 : q in L }`` is greater than or equal to ``2*bound + 1``.
 
     .. NOTE::
 
@@ -1476,8 +1468,7 @@ def split_primes_large_lcm(SUK, bound):
 
         sage: from sage.rings.number_field.S_unit_solver import split_primes_large_lcm
         sage: K.<xi> = NumberField(x^2 + 163)
-        sage: S = K.primes_above(23)
-        sage: SUK = UnitGroup(K,S=tuple(S))
+        sage: SUK = UnitGroup(K, S=tuple(K.primes_above(23)))
         sage: split_primes_large_lcm(SUK, 8)
         Traceback (most recent call last):
         ...
@@ -1491,7 +1482,7 @@ def split_primes_large_lcm(SUK, bound):
     for prime_ideal in SUK.primes():
         q0 = prime_ideal.residue_field().characteristic()
         if q0 not in S0:
-            S0.append( q0 )
+            S0.append(q0)
 
     split_prime_list = K.completely_split_primes(4*bound + 4)
     lcm_list = []
@@ -1570,7 +1561,7 @@ def sieve_ordering(SUK, q):
     for Qi in primes_over_q:
         resfield = Qi.residue_field()
         rho_mod_Qi = [resfield(rho_j) for rho_j in rho]
-        orderprod = prod( rho_ij.multiplicative_order() for rho_ij in rho_mod_Qi )
+        orderprod = prod(rho_ij.multiplicative_order() for rho_ij in rho_mod_Qi)
         q_data.append([Qi, resfield, rho_mod_Qi, orderprod])
     q_data.sort(key=lambda X: [X[3],X[0],X[1],X[2]])
     # zip() will change the list of n list of length m to m tuples of length n
@@ -1619,7 +1610,7 @@ def bounded_integer_lifts(r, m, bound):
 
     return lifts
 
-def bounded_vector_lifts( exponent_vector, m, bound ):
+def bounded_vector_lifts(exponent_vector, m, bound):
     r"""
     Given an exponent vector modulo ``m``, construct the possible lifts which agree modulo ``m`` and with no entry exceeding ``bound`` in absolute value.
 
@@ -1652,17 +1643,17 @@ def bounded_vector_lifts( exponent_vector, m, bound ):
         return [(exponent_vector[0],)]
     else:
         # We work recursively. First, lift the final entry of the vector.
-        final_entry_lifts = bounded_integer_lifts( exponent_vector[-1], m, bound )
+        final_entry_lifts = bounded_integer_lifts(exponent_vector[-1], m, bound)
         # Second, get the lifts of the shorter vector:
         start_of_exponent_vector = exponent_vector[:-1]
         lifted_vectors = []
-        for start_of_lift in bounded_vector_lifts( start_of_exponent_vector, m, bound ):
+        for start_of_lift in bounded_vector_lifts(start_of_exponent_vector, m, bound):
             for final_entry in final_entry_lifts:
                 new_vector = start_of_lift + (final_entry,)
-                lifted_vectors.append( new_vector )
+                lifted_vectors.append(new_vector)
         return lifted_vectors
 
-def clean_rfv_dict( rfv_dictionary ):
+def clean_rfv_dict(rfv_dictionary):
     r"""
     Given a residue field vector dictionary, removes some impossible keys and entries.
 
@@ -1683,9 +1674,7 @@ def clean_rfv_dict( rfv_dictionary ):
     EXAMPLES:
 
     In this example, we use a truncated list generated when solving the `S`-unit equation in the case that `K` is defined by the
-    polynomial `x^2+x+1` and `S` consists of the primes above 3
-
-    ::
+    polynomial `x^2+x+1` and `S` consists of the primes above 3::
 
         sage: from sage.rings.number_field.S_unit_solver import clean_rfv_dict
         sage: rfv_dict = {(1, 3): [3, 2], (3, 0): [6, 6], (5, 4): [3, 6], (2, 1): [4, 6], (5, 1): [3, 1], (2, 5): [1, 5], (0, 3): [1, 6]}
@@ -1702,7 +1691,7 @@ def clean_rfv_dict( rfv_dictionary ):
         if 1 in rfv_dictionary[a]:
             rfv_dictionary.pop(a)
 
-def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
+def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
     r"""
     Returns a reverse lookup dictionary, to find the exponent vectors associated to a given residue field vector.
 
@@ -1711,7 +1700,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
     - ``rfv_dictionary`` -- a dictionary whose keys are exponent vectors and whose values are the associated residue field vectors
     - ``q`` -- a prime (assumed to split completely in the relevant number field)
     - ``d`` -- the number of primes in `K` above the rational prime ``q``
-    - ``verbose_flag`` -- a boolean flag to indicate more detailed output is desired
+    - ``verbose_flag`` -- a boolean flag to indicate more detailed output is desired (default: False)
 
     OUTPUT:
 
@@ -1727,9 +1716,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
     EXAMPLES:
 
     In this example, we use a truncated list generated when solving the `S`-unit equation in the case that `K` is defined by the
-    polynomial `x^2+x+1` and `S` consists of the primes above 3
-
-    ::
+    polynomial `x^2+x+1` and `S` consists of the primes above 3::
 
         sage: from sage.rings.number_field.S_unit_solver import construct_rfv_to_ev
         sage: rfv_dict = {(1, 3): [3, 2], (3, 0): [6, 6], (5, 4): [3, 6], (2, 1): [4, 6], (4, 0): [4, 2], (1, 2): [5, 6]}
@@ -1737,20 +1724,18 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
         {(3, 2): [(1, 3)], (4, 2): [(4, 0)], (4, 6): [(2, 1)], (5, 6): [(1, 2)]}
     """
 
-    # Step 0. Initialize P:
     # The keys in P are just the possible first entries of a residue field vector.
     # The values (all empty lists now) will be added in the next step.
 
-    P = {}
-    P = { (v,) : [] for v in range(2, q) }
+    P = {(v,) : [] for v in range(2, q)}
 
-    # Step 1. Populate the empty lists in P[ (v,) ].
+    # Step 1. Populate the empty lists in P[(v,)].
     # Loop through the keys in rfv_dictionary. For each, look at the output rf_vector.
     # Find the key in P which matches the first entry of the rf_vector.
     # Dump the **rest** of the rf_vector into a pair [exp_vec, rf_vec[1:]],
     # and append this pair into the dictionary P at the key (rf_vec[0], ).
 
-    # Now, P[ (v,) ] = [ [a_0, e_0], [a_1, e_1], ...]
+    # Now, P[(v,)] = [ [a_0, e_0], [a_1, e_1], ...]
     #
     # The relationship between v, a_i, and e_i is as follows:
     #
@@ -1761,7 +1746,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
         residue_field_vector = rfv_dictionary[exponent_vector]
         rf_vector_start = (residue_field_vector[0], )
         rf_vector_end = residue_field_vector[1:]
-        P[rf_vector_start].append( [exponent_vector, rf_vector_end] )
+        P[rf_vector_start].append([exponent_vector, rf_vector_end])
 
     if verbose_flag:
         print("Populated P. Currently it has ", len(P), "keys.")
@@ -1782,7 +1767,7 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
     #
     # During the construction, we look for impossible entries for S-unit solutions, and drop them from the dictionary as needed.
 
-    for j in range( d-1 ):
+    for j in range(d-1):
         if verbose_flag:
             print("Constructing ", j, " th place of the residue field vectors, out of ", d-1, " total.")
         P_new = {}
@@ -1793,15 +1778,15 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
 
             # each key of P provides q-2 possible keys for P_new, which we introduce and assign an empty list.
             for w in range(2, q):
-                new_rf_vector_start = tuple( list( rf_vector_start ) + [w] )
-                P_new[ new_rf_vector_start ] = []
+                new_rf_vector_start = tuple(list(rf_vector_start) + [w])
+                P_new[new_rf_vector_start] = []
 
             # we populate P_new[ new_rf_vector_start ] using P[rf_vector_start]
-            for exponent_vector, rf_vector_end in P[ rf_vector_start ]:
+            for exponent_vector, rf_vector_end in P[rf_vector_start]:
                 new_rf_vector_end = rf_vector_end[1:]
                 w = rf_vector_end[0]
-                new_rf_vector_start = tuple( list( rf_vector_start ) + [w] )
-                P_new[ new_rf_vector_start ].append( [exponent_vector, new_rf_vector_end] )
+                new_rf_vector_start = tuple(list(rf_vector_start) + [w])
+                P_new[new_rf_vector_start].append([exponent_vector, new_rf_vector_end])
 
         if verbose_flag:
             print("P_new is populated with ", len(P_new), " keys.")
@@ -1813,11 +1798,11 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
             # No loss to insist that it is rf_vector_start.
             if rf_vector_start[-1] < (q+3)/2:
                 # we find the complement to rf_vector_start:
-                rf_vector_complement_start = tuple( [ q+1-j for j in rf_vector_start] )
-                if P_new[ rf_vector_start ] == [] or P_new[ rf_vector_complement_start ] == []:
+                rf_vector_complement_start = tuple([ q+1-j for j in rf_vector_start])
+                if P_new[ rf_vector_start ] == [] or P_new[rf_vector_complement_start] == []:
                     # these can't be solutions. Mark them for deletion.
-                    garbage[ rf_vector_start ] = True
-                    garbage[ rf_vector_complement_start ] = True
+                    garbage[rf_vector_start] = True
+                    garbage[rf_vector_complement_start] = True
 
         # garbage removal
         for rf_vector_start in garbage:
@@ -1833,13 +1818,13 @@ def construct_rfv_to_ev( rfv_dictionary, q, d, verbose_flag = False ):
     for residue_field_vector in P:
         # at this instant, P[ residue_field_vector ] is a list of pairs: [ [a0,e0], ... ]
         # We only care about the exponent vectors a0,...
-        P[residue_field_vector] = [ a[0] for a in P[residue_field_vector] ]
+        P[residue_field_vector] = [a[0] for a in P[residue_field_vector]]
 
     if verbose_flag:
         print("Returning dictionary P with ", len(P), " keys.")
     return P.copy()
 
-def construct_comp_exp_vec( rfv_to_ev_dict, q ):
+def construct_comp_exp_vec(rfv_to_ev_dict, q):
     r"""
     Constructs a dictionary associating complement vectors to residue field vectors.
 
@@ -1861,7 +1846,7 @@ def construct_comp_exp_vec( rfv_to_ev_dict, q ):
 
         sage: from sage.rings.number_field.S_unit_solver import construct_comp_exp_vec
         sage: rfv_to_ev_dict = {(6, 6): [(3, 0)], (5, 6): [(1, 2)], (5, 4): [(5, 3)], (6, 2): [(5, 5)], (2, 5): [(0, 1)], (5, 5): [(3, 4)], (4, 4): [(0, 2)], (6, 3): [(1, 4)], (3, 6): [(5, 4)], (2, 2): [(0, 4)], (3, 5): [(1, 0)], (6, 4): [(1, 1)], (3, 2): [(1, 3)], (2, 6): [(4, 5)], (4, 5): [(4, 3)], (2, 3): [(2, 3)], (4, 2): [(4, 0)], (6, 5): [(5, 2)], (3, 3): [(3, 2)], (5, 3): [(5, 0)], (4, 6): [(2, 1)], (3, 4): [(3, 5)], (4, 3): [(0, 5)], (5, 2): [(3, 1)], (2, 4): [(2, 0)]}
-        sage: construct_comp_exp_vec( rfv_to_ev_dict, 7 )
+        sage: construct_comp_exp_vec(rfv_to_ev_dict, 7)
         {(0, 1): [(1, 4)],
          (0, 2): [(0, 2)],
          (0, 4): [(3, 0)],
@@ -1887,16 +1872,15 @@ def construct_comp_exp_vec( rfv_to_ev_dict, q ):
          (5, 3): [(3, 5)],
          (5, 4): [(3, 1)],
          (5, 5): [(4, 5)]}
-
     """
 
     comp_exp_vec_dict = {}
     for residue_field_vector in rfv_to_ev_dict:
-        rf_vector_complement = tuple( [q + 1 - j for j in residue_field_vector] )
+        rf_vector_complement = tuple([q + 1 - j for j in residue_field_vector])
         exponent_vector_list = rfv_to_ev_dict[ residue_field_vector ][:]
-        exponent_vector_complement_list = rfv_to_ev_dict[ rf_vector_complement ][:]
+        exponent_vector_complement_list = rfv_to_ev_dict[rf_vector_complement][:]
         for exponent_vector in exponent_vector_list:
-            comp_exp_vec_dict[ exponent_vector ] = exponent_vector_complement_list
+            comp_exp_vec_dict[exponent_vector] = exponent_vector_complement_list
     return comp_exp_vec_dict
 
 def drop_vector(ev, p, q, complement_ev_dict):
@@ -1941,9 +1925,9 @@ def drop_vector(ev, p, q, complement_ev_dict):
         # do they appear in the other dictionary?
         if compatible_exp_vec in complement_ev_dict[q]:
             # OK, but the complements need to be compatible, too!
-            ev_complement_list = complement_ev_dict[p][ ev ]
+            ev_complement_list = complement_ev_dict[p][ev]
             for ev_comp in ev_complement_list:
-                for compatible_cv in compatible_vectors( ev_comp, p-1, q-1 ):
+                for compatible_cv in compatible_vectors(ev_comp, p-1, q-1):
                     if compatible_cv in complement_ev_dict[q][compatible_exp_vec]:
                         return False
     return True
@@ -1956,7 +1940,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
     - ``split_primes_list`` -- a list of rational primes which split completely in the number field `K`
     - ``SUK`` -- the `S`-unit group for a number field `K`
-    - ``verbose_flag`` -- (default: False) a boolean to provide additional feedback
+    - ``verbose_flag`` -- a boolean to provide additional feedback (default: False)
 
     OUTPUT:
 
@@ -1980,9 +1964,9 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         sage: f = x^2 + 5
         sage: H = 10
         sage: K.<xi> = NumberField(f)
-        sage: SUK = K.S_unit_group( S = K.primes_above(H) )
+        sage: SUK = K.S_unit_group(S=K.primes_above(H))
         sage: split_primes_list = [3, 7]
-        sage: construct_complement_dictionaries( split_primes_list, SUK )
+        sage: construct_complement_dictionaries(split_primes_list, SUK)
         {3: {(0, 1, 0): [(1, 0, 0), (0, 1, 0)], (1, 0, 0): [(1, 0, 0), (0, 1, 0)]},
         7: {(0, 1, 0): [(1, 0, 0), (1, 4, 4), (1, 2, 2)],
         (0, 1, 2): [(0, 1, 2), (0, 3, 4), (0, 5, 0)],
@@ -1999,8 +1983,6 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         (1, 4, 0): [(1, 0, 4), (1, 4, 2), (1, 2, 0)],
         (1, 4, 2): [(1, 2, 4), (1, 4, 0), (1, 0, 2)],
         (1, 4, 4): [(0, 5, 4), (0, 3, 2), (0, 1, 0)]}}
-
-
     """
 
     # we define a custom function to flatten tuples for use in a later step.
@@ -2053,7 +2035,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             # rho_images[i][j] == rho[j] modulo Q[i]
             eps_value = rho_images[i][0]**a[0] % q
             for j in range(1, rho_length):
-                eps_value = eps_value * rho_images[i][j]**a[j] % q
+                eps_value = (eps_value * rho_images[i][j]**a[j]) % q
             return eps_value
 
         if verbose_flag:
@@ -2072,12 +2054,12 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
             # a0 is in the range 0 .. w_0 - 1 and
             # aj is in the range 0 .. q - 2   (for j > 0)
 
-            lumpy_ev_iterator = itertools.product( range(w0), itertools.product( range(q-1), repeat = rho_length - 1))
+            lumpy_ev_iterator = itertools.product(range(w0), itertools.product(range(q-1), repeat=rho_length-1))
             ev_iterator = itertools.imap(ev_flatten, lumpy_ev_iterator)
 
             # With the iterator built, we construct the exponent vector to residue field dictionary.
 
-            ev_to_rfv_dict = { ev : [epsilon_q(ev, i) for i in range(nK) ] for ev in ev_iterator }
+            ev_to_rfv_dict = {ev : [epsilon_q(ev, i) for i in range(nK)] for ev in ev_iterator}
 
             if verbose_flag:
                 print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
@@ -2095,7 +2077,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 # Loop only over exponent vectors modulo q-1 which are compatible with exp_vec_mod_q0
                 for exp_vec in compatible_vectors(exp_vec_mod_q0, q0-1, q-1):
                     # fill the dictionary with the residue field vectors using the evaluation function.
-                    ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in range(nK) ]
+                    ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in range(nK)]
 
         if verbose_flag:
             print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
@@ -2111,13 +2093,13 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
         # We essentially construct an inverse dictionary: one whose keys are residue field vectors,
         # and whose values are the exponent vectors that yield each key
 
-        rfv_to_ev[q] = construct_rfv_to_ev( ev_to_rfv_dict, q, nK, verbose_flag )
+        rfv_to_ev[q] = construct_rfv_to_ev(ev_to_rfv_dict, q, nK, verbose_flag)
 
         if verbose_flag:
             print("construct_rfv_to_ev executed.")
             print("The rfv_to_ev dictionary currently has ", len(rfv_to_ev[q]), "rfv keys.")
 
-        comp_exp_vec[q] = construct_comp_exp_vec( rfv_to_ev[q], q )
+        comp_exp_vec[q] = construct_comp_exp_vec(rfv_to_ev[q], q)
 
         if verbose_flag:
             print("construct_comp_exp_vec executed.")
@@ -2137,9 +2119,9 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print("Size of comp_exp_vec[p] is: ", old_size_p, ".")
-                cv_size = ( (q-1)/gcd(p-1, q-1) )**( rho_length - 1 )
+                cv_size = ((q-1)/gcd(p-1, q-1)) ** (rho_length - 1)
                 print("Length of compatible_vectors: ", cv_size, ".")
-                print("Product: ", old_size_p * cv_size)
+                print("Product: ", old_size_p*cv_size)
 
             for exp_vec in comp_exp_vec[p].copy():
                 if drop_vector(exp_vec, p, q, comp_exp_vec):
@@ -2154,7 +2136,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             if verbose_flag:
                 print("Size of comp_exp_vec[q] is: ", old_size_q, ".")
-                cv_size = ( (p-1)/gcd(p-1, q-1) )**( rho_length - 1 )
+                cv_size = ((p-1)/gcd(p-1, q-1)) ** (rho_length - 1)
                 print("Length of compatible_vectors: ", cv_size, ".")
                 print("Product: ", old_size_q * cv_size)
 
@@ -2201,9 +2183,7 @@ def compatible_classes(a, m0, m1):
         sage: compatible_classes(2, 18, 27)
         [2, 11, 20]
 
-    Use CRT to check the output
-
-    ::
+    Use CRT to check the output::
 
         sage: CRT(2, 2, 18, 27)
         2
@@ -2216,9 +2196,9 @@ def compatible_classes(a, m0, m1):
 
     g = gcd(m0, m1)
     a0 = a % g
-    return [a0 + b0*g for b0 in range(m1/g) ]
+    return [a0 + b0*g for b0 in range(m1/g)]
 
-def compatible_vectors_check( a0, a1, m0, m1):
+def compatible_vectors_check(a0, a1, m0, m1):
     r"""
     Given exponent vectors with respect to two moduli, determines if they are compatible.
 
@@ -2231,7 +2211,7 @@ def compatible_vectors_check( a0, a1, m0, m1):
 
     OUTPUT:
 
-    True if there is an integer exponent vector a satisfying
+    True if there is an integer exponent vector a satisfying 
 
     .. MATH::
 
@@ -2267,8 +2247,8 @@ def compatible_vectors_check( a0, a1, m0, m1):
 
     g = gcd(m0, m1)
 
-    length = len( a0 )
-    if length != len( a1 ):
+    length = len(a0)
+    if length != len(a1):
         raise ValueError("Exponent vectors a0 and a1 are not the same length.")
 
     if a0[0] != a1[0]:
@@ -2276,7 +2256,7 @@ def compatible_vectors_check( a0, a1, m0, m1):
         return False
     else:
         for j in range(1, length):
-            if ( a0[j]-a1[j] ) % g != 0:
+            if (a0[j]-a1[j]) % g != 0:
                 return False
 
     # all conditions hold
@@ -2314,34 +2294,31 @@ def compatible_vectors(a, m0, m1):
         (3, 7, 8, 1),
         (3, 7, 8, 7)]
 
-    The order of the moduli matters.
-
-    ::
+    The order of the moduli matters. ::
 
         sage: len(compatible_vectors(a, 18, 12))
         8
         sage: len(compatible_vectors(a, 12, 18))
         27
-
     """
 
     # to start, recall that the 0th entry must be an exact match.
-    compatible_list = [ ( a[0], ) ]
+    compatible_list = [( a[0], )]
 
     # we now build a new list, extending the length of the compatible vectors.
     compatible_list_new = []
 
     for entry in a[1:]:
-        compatible_entries = compatible_classes( entry, m0, m1 )
+        compatible_entries = compatible_classes(entry, m0, m1)
         for compatible_vector in compatible_list:
             for new_entry in compatible_entries:
-                compatible_list_new.append( tuple(list(compatible_vector) + [new_entry]) )
+                compatible_list_new.append(tuple(list(compatible_vector) + [new_entry]))
         compatible_list = compatible_list_new
         compatible_list_new = []
 
     return compatible_list
 
-def compatible_systems( split_prime_list, complement_exp_vec_dict ):
+def compatible_systems(split_prime_list, complement_exp_vec_dict):
     r"""
     Given dictionaries of complement exponent vectors for various primes that split in K, compute all possible compatible systems.
 
@@ -2375,13 +2352,11 @@ def compatible_systems( split_prime_list, complement_exp_vec_dict ):
     EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import compatible_systems
-        sage: K.<xi> = NumberField(x^2+5)
-        sage: SUK = K.S_unit_group( S=K.primes_above(10) )
         sage: split_primes_list = [3, 7]
-        sage: compatible_systems(split_primes_list,{3: {(0, 1, 0): [(1, 0, 0)]}, 7: {(0, 1, 0): [(1, 0, 0)]}})
+        sage: checking_dict = {3: {(0, 1, 0): [(1, 0, 0)]}, 7: {(0, 1, 0): [(1, 0, 0)]}}
+        sage: compatible_systems(split_primes_list, checking_dict)
         [[[(0, 1, 0), (1, 0, 0)], [(0, 1, 0), (1, 0, 0)]]]
     """
-
     S0 = split_prime_list[:]
 
     if len(S0) == 0:
@@ -2390,37 +2365,37 @@ def compatible_systems( split_prime_list, complement_exp_vec_dict ):
         system_list = []
         q = S0[0]
         for exponent_vector in complement_exp_vec_dict[q]:
-            for complementary_vector in complement_exp_vec_dict[q][ exponent_vector ]:
-                pair = [ [exponent_vector, complementary_vector] ]
-                system_list.append( pair )
+            for complementary_vector in complement_exp_vec_dict[q][exponent_vector]:
+                pair = [[exponent_vector, complementary_vector]]
+                system_list.append(pair)
         return system_list
     else:
         system_list = []
         S1 = S0[:-1]
         num_primes = len(S1)
-        old_systems = compatible_systems( S1, complement_exp_vec_dict )
+        old_systems = compatible_systems(S1, complement_exp_vec_dict)
         q = S0[-1]
         for exp_vec in complement_exp_vec_dict[q]:
-            for comp_vec in complement_exp_vec_dict[q][ exp_vec ]:
+            for comp_vec in complement_exp_vec_dict[q][exp_vec]:
                 CompatibleSystem = True
                 for old_system in old_systems:
                     for j in range(num_primes):
                         qj = S1[j]
                         exp_vec_qj = old_system[j][0]
                         comp_vec_qj = old_system[j][1]
-                        CompatibleSystem = compatible_vectors_check( exp_vec, exp_vec_qj, q-1, qj-1 )
+                        CompatibleSystem = compatible_vectors_check(exp_vec, exp_vec_qj, q-1, qj-1)
                         if CompatibleSystem:
-                            CompatibleSystem = compatible_vectors_check( comp_vec, comp_vec_qj, q-1, qj-1 )
+                            CompatibleSystem = compatible_vectors_check(comp_vec, comp_vec_qj, q-1, qj-1)
                         if not CompatibleSystem:
                             # no reason to finish the j loop.
                             break
                     if CompatibleSystem:
                         # build the new system and append it to the list.
-                        new_system = old_system + [ [exp_vec, comp_vec] ]
-                        system_list.append( new_system )
+                        new_system = old_system + [[exp_vec, comp_vec]]
+                        system_list.append(new_system)
         return system_list
 
-def compatible_system_lift( compatible_system, split_primes_list ):
+def compatible_system_lift(compatible_system, split_primes_list):
     r"""
     Given a compatible system of exponent vectors and complementary exponent vectors, return a lift to the integers.
 
@@ -2443,34 +2418,32 @@ def compatible_system_lift( compatible_system, split_primes_list ):
     EXAMPLES::
 
         sage: from sage.rings.number_field.S_unit_solver import compatible_system_lift
-        sage: K.<xi> = NumberField(x^2+5)
-        sage: SUK = K.S_unit_group(S=K.primes_above(10))
         sage: split_primes_list = [3, 7]
         sage: comp_sys = [[(0, 1, 0), (0, 1, 0)], [(0, 3, 4), (0, 1, 2)]]
-        sage: compatible_system_lift( comp_sys, split_primes_list )
+        sage: compatible_system_lift(comp_sys, split_primes_list)
         [(0, 3, -2), (0, 1, 2)]
     """
 
-    if len(split_primes_list) != len( compatible_system ):
+    if len(split_primes_list) != len(compatible_system):
         raise ValueError("The number of primes does not match the length of the given exponent vectors.")
 
-    m = len( split_primes_list )
-    t = len( compatible_system[0][0] )
+    m = len(split_primes_list)
+    t = len(compatible_system[0][0])
 
     # the first entries are already determined.
-    exponent_vector_lift = ( ZZ(compatible_system[0][0][0]), )
-    complement_vector_lift = ( ZZ(compatible_system[0][1][0]), )
+    exponent_vector_lift = (ZZ(compatible_system[0][0][0]),)
+    complement_vector_lift = (ZZ(compatible_system[0][1][0]),)
 
     # fill in exponent_vector_lift
     moduli_list = [q-1 for q in split_primes_list]
-    L = lcm( moduli_list )
+    L = lcm(moduli_list)
 
     for i in range(1,t):
-        exp_coord_residues = [ compatible_system[j][0][i] for j in range(m) ]
-        comp_coord_residues = [ compatible_system[j][1][i] for j in range(m) ]
+        exp_coord_residues = [compatible_system[j][0][i] for j in range(m)]
+        comp_coord_residues = [compatible_system[j][1][i] for j in range(m)]
 
-        ev_lift_coordinate = CRT( exp_coord_residues, moduli_list)
-        cv_lift_coordinate = CRT( comp_coord_residues, moduli_list)
+        ev_lift_coordinate = CRT(exp_coord_residues, moduli_list)
+        cv_lift_coordinate = CRT(comp_coord_residues, moduli_list)
 
         # these values lie in the range [0, L-1], so we must shift them if they are bigger than L/2.
 
@@ -2479,12 +2452,12 @@ def compatible_system_lift( compatible_system, split_primes_list ):
         if cv_lift_coordinate > L/2:
             cv_lift_coordinate -= L
 
-        exponent_vector_lift = exponent_vector_lift + ( ev_lift_coordinate, )
+        exponent_vector_lift = exponent_vector_lift + (ev_lift_coordinate, )
         complement_vector_lift = complement_vector_lift + (cv_lift_coordinate, )
 
-    return [ exponent_vector_lift, complement_vector_lift ]
+    return [exponent_vector_lift, complement_vector_lift]
 
-def solutions_from_systems( SUK, bound, cs_list, split_primes_list ):
+def solutions_from_systems(SUK, bound, cs_list, split_primes_list):
     r"""
     Lifts compatible systems to the integers and returns the S-unit equation solutions the lifts yield.
 
@@ -2513,9 +2486,7 @@ def solutions_from_systems( SUK, bound, cs_list, split_primes_list ):
 
     EXAMPLES:
 
-    Given a single compatible system, a solution can be found.
-
-    ::
+    Given a single compatible system, a solution can be found. ::
 
         sage: from sage.rings.number_field.S_unit_solver import solutions_from_systems
         sage: K.<xi> = NumberField(x^2-15)
@@ -2525,11 +2496,10 @@ def solutions_from_systems( SUK, bound, cs_list, split_primes_list ):
         sage: solutions_from_systems( SUK, 20, a_compatible_system, split_primes_list )
         [[(0, 0, -1), (0, 0, -1), 1/2, 1/2]]
     """
-
     solutions = []
 
     for system in cs_list:
-        lift = compatible_system_lift( system, split_primes_list )
+        lift = compatible_system_lift(system, split_primes_list)
         ev = lift[0]
         cv = lift[1]
         ValidLift = True
@@ -2555,7 +2525,7 @@ def solutions_from_systems( SUK, bound, cs_list, split_primes_list ):
 
     return solutions
 
-def clean_sfs( sfs_list ):
+def clean_sfs(sfs_list):
     r"""
     Given a list of S-unit equation solutions, remove trivial redundancies.
 
@@ -2574,9 +2544,7 @@ def clean_sfs( sfs_list ):
 
     EXAMPLES:
 
-    The function is not dependent on the number field and removes redundancies in any list
-
-    ::
+    The function is not dependent on the number field and removes redundancies in any list. ::
 
         sage: from sage.rings.number_field.S_unit_solver import clean_sfs
         sage: sols = [[(1, 0, 0), (0, 0, 1), -1, 2], [(0, 0, 1), (1, 0, 0), 2, -1]]
@@ -2592,7 +2560,7 @@ def clean_sfs( sfs_list ):
         if entry in new_sfs or swapped_entry in new_sfs:
             repeat = True
         if not repeat:
-            new_sfs.append( entry )
+            new_sfs.append(entry)
     return new_sfs
 
 def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
@@ -2603,9 +2571,9 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
 
     - ``K`` -- a number field (an absolute extension of the rationals)
     - ``S`` -- a list of finite primes of ``K``
-    - ``bound`` -- (default: 10) a positive integer upper bound for exponents, solutions with exponents having absolute value below this bound will be found
-    - ``bump`` -- (default: 10) a positive integer by which the minimum LCM will be increased if not enough split primes are found in sieving step
-    - ``split_primes_list`` -- (default: []) a list of rational primes that split completely in the extension K/Q, used for sieving.  For complete list of solutions should have lcm of {(p_i-1)} for primes p_i greater than bound
+    - ``bound`` -- a positive integer upper bound for exponents, solutions with exponents having absolute value below this bound will be found (default: 10)
+    - ``bump`` -- a positive integer by which the minimum LCM will be increased if not enough split primes are found in sieving step (default: 10)
+    - ``split_primes_list`` -- a list of rational primes that split completely in the extension K/Q, used for sieving.  For complete list of solutions should have lcm of {(p_i-1)} for primes p_i greater than bound (default: [])
 
     OUTPUT:
 
@@ -2620,14 +2588,14 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
         sage: from sage.rings.number_field.S_unit_solver import sieve_below_bound
         sage: K.<xi> = NumberField(x^2+x+1)
         sage: SUK = UnitGroup(K,S=tuple(K.primes_above(3)))
-        sage: S=SUK.primes()
+        sage: S = SUK.primes()
         sage: sieve_below_bound(K, S, 10)
         [[(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
          [(2, 1), (4, 0), xi + 2, -xi - 1],
          [(2, 0), (1, 1), xi, -xi + 1],
          [(5, 0), (1, 0), -xi, xi + 1]]
     """
-    S=list(S)
+    S = list(S)
     SUK = UnitGroup(K, S=tuple(S))
     initial_bound = bound
 
@@ -2648,9 +2616,9 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
 
     sfs_list = solutions_from_systems(SUK, bound, cs_list, split_primes_list)
 
-    s_unit_solutions = clean_sfs(sfs_list)
+    S_unit_solutions = clean_sfs(sfs_list)
 
-    return s_unit_solutions
+    return S_unit_solutions
 
 def solve_S_unit_equation(K, S, prec=106, returnBound = False):
     r"""
@@ -2703,7 +2671,7 @@ def solve_S_unit_equation(K, S, prec=106, returnBound = False):
         raise ValueError("K must be an absolute extension.")
     # S must be a finite set of primes
     try:
-        SUK = UnitGroup(K, S = tuple(S))
+        SUK = UnitGroup(K, S=tuple(S))
     except:
         raise ValueError("S must consist only of prime ideals, or a single element from which a prime ideal can be constructed.")
 
@@ -2713,9 +2681,9 @@ def solve_S_unit_equation(K, S, prec=106, returnBound = False):
     # First find a bound using the LLL reduction method
     if len(S) == 0:
         # this handles the case of S empty; the p-adic bound is not necessary
-        all_LLL_bounds = [cx_LLL_bound(SUK,A, prec)]
+        all_LLL_bounds = [cx_LLL_bound(SUK, A, prec)]
     else:
-        all_LLL_bounds = [p_adic_LLL_bound(SUK, A, prec)] + [cx_LLL_bound(SUK,A, prec)]
+        all_LLL_bounds = [p_adic_LLL_bound(SUK, A, prec)] + [cx_LLL_bound(SUK, A, prec)]
 
     # Take the largest of all of the bounds we found
     final_LLL_bound = max(all_LLL_bounds)

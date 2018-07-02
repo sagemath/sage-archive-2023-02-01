@@ -548,15 +548,15 @@ class SkewTableau(ClonableList):
             sage: all(by_word(t) == SkewTableau(t).weight() for t in SST)
             True
         """
-        if len(self) == 0:
+        if len(self) == 0 or all(c is None for row in self for c in row):
             return []
-        m = max(max(row) for row in self)
+        m = max(c for row in self for c in row if c is not None)
         if m is None:
             return []
         res = [0] * m
         for row in self:
             for i in row:
-                if not (i is None) and i > 0:
+                if (i is not None) and i > 0:
                     res[i - 1] += 1
         return res
 
@@ -777,12 +777,10 @@ class SkewTableau(ClonableList):
             [[1]]
         """
         if max_entry is None:
-            if len(self) == 0:
+            if len(self) == 0 or all(c is None for row in self for c in row):
                 max_entry = 0
             else:
-                max_entry = max(max(row) for row in self)
-            if max_entry is None:
-                max_entry = 0
+                max_entry = max(c for row in self for c in row if c is not None)
         return [self.restriction_outer_shape(x) for x in range(max_entry+1)]
 
     def slide(self, corner=None, return_vacated=False):

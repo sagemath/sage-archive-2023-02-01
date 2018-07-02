@@ -640,7 +640,7 @@ class GroupAlgebraFunctor(ConstructionFunctor):
 
 
 class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
-    """
+    r"""
     An abstract base class for categories of monoid algebras,
     groups algebras, and the like.
 

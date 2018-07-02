@@ -332,7 +332,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         return t
 
     def division_field(self, p, names, map=False, **kwds):
-        """
+        r"""
         Given an elliptic curve over a number field `F` and a prime number `p`,
         construct the field `F(E[p])`.
 
@@ -3216,8 +3216,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return ZZ(0)
 
     def lll_reduce(self, points, height_matrix=None, precision=None):
-        """
-        Returns an LLL-reduced basis from a given basis, with transform
+        r"""
+        Return an LLL-reduced basis from a given basis, with transform
         matrix.
 
         INPUT:
@@ -3457,8 +3457,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     @cached_method
     def has_rational_cm(self, field=None):
-        """
-        Returns whether or not this curve has CM defined over its
+        r"""
+        Return whether or not this curve has CM defined over its
         base field or a given extension.
 
         INPUT:
@@ -3756,7 +3756,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
 
     def gens_quadratic(self, **kwds):
-        """
+        r"""
         Return generators for the Mordell-Weil group modulo torsion, for a
         curve which is a base change from `\QQ` to a quadratic field.
 
@@ -3792,7 +3792,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Traceback (most recent call last):
             ...
             ValueError: gens_quadratic() requires the elliptic curve to be a base change from Q
-
         """
         if not kwds:
             try:

@@ -9,7 +9,7 @@ AUTHORS:
 
 - William Stein (2008)
 
-- Paul Masson (2016): Three.js support 
+- Paul Masson (2016): Three.js support
 
 .. TODO::
 
@@ -1737,9 +1737,9 @@ end_scene""" % (render_params.antialiasing,
             sage: x,y,z = var('x,y,z')
             sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
             sage: astl = a.stl_ascii_string()
-            sage: astl.splitlines()[:7]
+            sage: astl.splitlines()[:7]  # abs tol 1e-10
             ['solid surface',
-            'facet normal 0.973328526785 -0.162221421131 -0.162221421131',
+            'facet normal 0.9733285267845754 -0.16222142113076257 -0.16222142113076257',
             '    outer loop',
             '        vertex 2.94871794872 -0.384615384615 -0.39358974359',
             '        vertex 2.95021367521 -0.384615384615 -0.384615384615',
@@ -1749,7 +1749,7 @@ end_scene""" % (render_params.antialiasing,
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
             sage: print(p.stl_ascii_string(name='triangle'))
             solid triangle
-            facet normal 0.0 0.832050294338 -0.554700196225
+            facet normal 0.0 0.8320502943378436 -0.5547001962252291
                 outer loop
                     vertex 0.0 0.0 0.0
                     vertex 1.0 2.0 3.0
@@ -1764,7 +1764,7 @@ end_scene""" % (render_params.antialiasing,
             sage: Q = P.plot().all[-1]
             sage: Q.stl_ascii_string().splitlines()[:6]
             ['solid surface',
-            'facet normal 0.850650808352 -0.0 0.525731112119',
+            'facet normal 0.8506508083520398 -0.0 0.5257311121191338',
             '    outer loop',
             '        vertex 1.2360679775 -0.472135955 0.0',
             '        vertex 1.2360679775 0.472135955 0.0',
@@ -2611,7 +2611,7 @@ class BoundingSphere(SageObject):
             sage: BoundingSphere((0,0,0), 1) + BoundingSphere((0,0,100), 1)
             Center (0.0, 0.0, 50.0) radius 51.0
             sage: BoundingSphere((0,0,0), 1) + BoundingSphere((1,1,1), 2)
-            Center (0.7886751345948128, 0.7886751345948128, 0.7886751345948128) radius 2.36602540378
+            Center (0.7886751345948128, 0.7886751345948128, 0.7886751345948128) radius 2.3660254037844384
 
         Treat None and 0 as the identity::
 

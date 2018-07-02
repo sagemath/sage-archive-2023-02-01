@@ -103,6 +103,8 @@ AUTHORS:
 
 - Javier Lopez Pena (2013): Added conjugacy classes.
 
+- Sebastian Oehms (2018): added _coerce_map_from_ in order to use isomorphism coming up with as_permutation_group method (Trac #25706)
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -716,6 +718,35 @@ class PermutationGroup_generic(group.FiniteGroup):
             if  compatible_domains and (self.__class__ == SymmetricGroup or x._gap_() in self._gap_()):
                 return self._element_class()(x.cycle_tuples(), self, check=False)
         raise TypeError("no implicit coercion of element into permutation group")
+
+
+    def _coerce_map_from_(self, G):
+        """
+        Override this method in order to use more specific information about coercion maps        
+        in the case the group is constructed via an isomorphism from an other group via
+        the as_permutation_group method (see Trac #25707).
+
+        EXAMPLES::
+
+           sage: MG = GU(3,2).as_matrix_group()
+           sage: PG = MG.as_permutation_group()
+           sage: f=PG._coerce_map_from_(MG)
+           sage: mg = MG.an_element()
+           sage: f(mg)
+           (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
+        """
+        try:
+            PG = G.as_permutation_group()
+            if hasattr(G, '_permutation_group_element_' ):
+                if PG == self:                                         
+                    return G._permutation_group_element_
+                if self.has_coerce_map_from(PG):
+                    return self.coerce_map_from(PG) * G._permutation_group_element_
+
+        except (AttributeError, TypeError):
+            pass
+        return super(PermutationGroup_generic, self)._coerce_map_from_(G) 
+
 
     def list(self):
         """

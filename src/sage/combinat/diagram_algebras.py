@@ -48,6 +48,7 @@ from sage.functions.other import ceil
 
 import itertools
 
+
 def partition_diagrams(k):
     r"""
     Return a generator of all partition diagrams of order ``k``.
@@ -1240,8 +1241,9 @@ class PartitionDiagrams(AbstractPartitionDiagrams):
             203
         """
         if self.order in ZZ:
-            return bell_number(2*self.order)
-        return bell_number(2*(self.order-1/2))
+            return bell_number(2 * self.order)
+        return bell_number(2 * self.order - 1)
+
 
 class BrauerDiagrams(AbstractPartitionDiagrams):
     r"""
@@ -1318,9 +1320,9 @@ class BrauerDiagrams(AbstractPartitionDiagrams):
             15
         """
         if self.order in ZZ:
-            return (2*self.order-1).multifactorial(2)
+            return (2 * self.order - 1).multifactorial(2)
         else:
-            return (2*(self.order-1/2)-1).multifactorial(2)
+            return (2 * self.order - 2).multifactorial(2)
 
     def symmetric_diagrams(self, l=None, perm=None):
         r"""
@@ -1441,7 +1443,7 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         if self.order in ZZ:
             return catalan_number(self.order)
         else:
-            return catalan_number(self.order-1/2)
+            return catalan_number(self.order - QQ.one() / 2)
 
     def __contains__(self, obj):
         r"""

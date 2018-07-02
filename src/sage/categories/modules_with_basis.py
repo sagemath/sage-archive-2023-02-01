@@ -1005,7 +1005,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return self.sum(self.term(index, coeff) for (index, coeff) in terms)
 
         def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-            """
+            r"""
             Return the linear combination `\lambda_1 v_1 + \cdots +
             \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
             \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates

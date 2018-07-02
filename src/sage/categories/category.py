@@ -1315,7 +1315,7 @@ class Category(UniqueRepresentation, SageObject):
 
     @cached_method
     def full_super_categories(self):
-        """
+        r"""
         Return the *immediate* full super categories of ``self``.
 
         .. SEEALSO::

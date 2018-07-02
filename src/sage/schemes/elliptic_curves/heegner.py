@@ -516,7 +516,7 @@ class RingClassField(SageObject):
 
     @cached_method
     def galois_group(self, base=QQ):
-        """
+        r"""
         Return the Galois group of ``self`` over base.
 
         INPUT:
@@ -543,7 +543,6 @@ class RingClassField(SageObject):
             Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 15 over Ring class field extension of QQ[sqrt(-7)] of conductor 5
             sage: C.galois_group(A).cardinality()
             4
-
         """
         return GaloisGroup(self, base)
 
@@ -2972,7 +2971,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
     @cached_method
     def satisfies_kolyvagin_hypothesis(self, n=None):
-        """
+        r"""
         Return ``True`` if this Heegner point and `n` satisfy the
         Kolyvagin hypothesis, i.e., that each prime dividing the
         conductor `c` of ``self`` is inert in K and coprime to `ND`.
@@ -4279,7 +4278,7 @@ class KolyvaginPoint(HeegnerPoint):
         return self._recognize_point_over_QQ(P, 2*self.index())
 
     def _recognize_point_over_QQ(self, P, n):
-        """
+        r"""
         Used internally when computing an exact point on an elliptic curve.
 
         INPUT:
@@ -6024,8 +6023,9 @@ class HeegnerQuatAlgEmbedding(SageObject):
 # Utility Functions
 #############################################################################
 
+
 def quadratic_order(D, c, names='a'):
-    """
+    r"""
     Return order of conductor `c` in quadratic field with fundamental
     discriminant `D`.
 
@@ -6291,7 +6291,7 @@ def make_monic(f):
 #####################################################################
 
 def ell_heegner_point(self, D, c=ZZ(1), f=None, check=True):
-    """
+    r"""
     Returns the Heegner point on this curve associated to the
     quadratic imaginary field `K=\QQ(\sqrt{D})`.
 
@@ -6357,8 +6357,8 @@ def ell_heegner_point(self, D, c=ZZ(1), f=None, check=True):
     return y.map_to_curve(self)
 
 def kolyvagin_point(self, D, c=ZZ(1), check=True):
-    """
-    Returns the Kolyvagin point on this curve associated to the
+    r"""
+    Return the Kolyvagin point on this curve associated to the
     quadratic imaginary field `K=\QQ(\sqrt{D})` and conductor `c`.
 
     INPUT:
@@ -6881,7 +6881,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
 
 #################################################################################
 def _heegner_index_in_EK(self, D):
-    """
+    r"""
     Return the index of the sum of `E(\QQ)/tor + E^D(\QQ)/tor` in `E(K)/tor`.
 
     INPUT:
@@ -7137,8 +7137,9 @@ def heegner_sha_an(self, D, prec=53):
     self.__heegner_sha_an[(D, prec)] = sha_an
     return sha_an
 
+
 def _heegner_forms_list(self, D, beta=None, expected_count=None):
-    """
+    r"""
     Returns a list of quadratic forms corresponding to Heegner points
     with discriminant `D` and a choice of `\beta` a square root of
     `D` mod `4N`. Specifically, given a quadratic form

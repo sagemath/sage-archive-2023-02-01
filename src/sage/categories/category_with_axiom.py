@@ -1,4 +1,4 @@
-"""
+r"""
 Axioms
 
 This documentation covers how to implement axioms and proceeds with an

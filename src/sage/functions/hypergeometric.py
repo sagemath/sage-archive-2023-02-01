@@ -34,7 +34,7 @@ Simplification (note that ``simplify_full`` does not yet call
     sage: a.simplify_hypergeometric()
     1/((-e^x + 1)^e^x)
     sage: a.simplify_hypergeometric(algorithm='sage')
-    (-e^x + 1)^(-e^x)
+    1/((-e^x + 1)^e^x)
 
 Equality testing::
 
@@ -145,7 +145,7 @@ Series expansions of confluent hypergeometric functions::
 
     sage: hypergeometric_M(2, 2, x).series(x, 3)
     1 + 1*x + 1/2*x^2 + Order(x^3)
-    sage: hypergeometric_U(2, 2, x).series(x == 3, 100).subs(x=1).n()
+    sage: hypergeometric_U(2, 2, x).series(x == 3, 100).subs(x=1).n() # known bug (see :trac:`25688`)
     0.403652637676806
     sage: hypergeometric_U(2, 2, 1).n()
     0.403652637676806
@@ -773,7 +773,7 @@ def closed_form(hyp):
         sage: closed_form(hypergeometric([], [], z))
         e^z
         sage: closed_form(hypergeometric([a], [], z))
-        (-z + 1)^(-a)
+        1/((-z + 1)^a)
         sage: closed_form(hypergeometric([1, 1, 2], [1, 1], z))
         (z - 1)^(-2)
         sage: closed_form(hypergeometric([2, 3], [1], x))
@@ -1121,7 +1121,7 @@ class Hypergeometric_U(BuiltinFunction):
                 sage: var('a b z')
                 (a, b, z)
                 sage: hypergeometric_U(a, b, z).generalized()
-                z^(-a)*hypergeometric((a, a - b + 1), (), -1/z)
+                hypergeometric((a, a - b + 1), (), -1/z)/z^a
                 sage: hypergeometric_U(1, 3, 1/2).generalized()
                 2*hypergeometric((1, -1), (), -2)
                 sage: hypergeometric_U(3, I, 2).generalized()

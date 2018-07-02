@@ -527,11 +527,15 @@ class OverconvergentModularFormsSpace(Module):
 
     def __hash__(self):
         """
-        Return the hash of self.
+        Return the hash of ``self``.
 
         EXAMPLES::
 
-            sage: h = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h1 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h2 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h3 = hash(OverconvergentModularForms(3, 0, 1/2))
+            sage: h1 == h2 and h1 != h3
+            True
         """
         return hash(self._params())
 

@@ -1122,7 +1122,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
                 P = mult*P
                 # stores the common factor from all coefficients
                 div = gcd([_ for _ in P.coefficients()])
-                P = (BR.one()/div) * P
+                poly_ring = P.parent() # need to coerce, since division might change base ring
+                P = poly_ring((BR.one()/div)*P)
                 normalized_polys.append(P)
 
             self.__polys = tuple(normalized_polys)

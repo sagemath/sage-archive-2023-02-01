@@ -1096,7 +1096,7 @@ class SBox(SageObject):
             except TypeError:
                 raise TypeError("Cannot handle input argument %s" % (b,))
 
-        ret = BooleanFunction([ZZ(b & self(x)).popcount() for x in range(1 << m)])
+        ret = BooleanFunction([ZZ(b & self(x)).popcount() & 1 for x in range(1 << m)])
 
         return ret
 

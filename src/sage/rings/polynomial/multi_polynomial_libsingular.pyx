@@ -2403,7 +2403,9 @@ cdef class MPolynomial_libsingular(MPolynomial):
             ...
             ZeroDivisionError: rational division by zero
 
-        Ensure that :trac:`17638` is fixed::
+        Ensure that :trac:`17638` is fixed
+
+        ::
 
             sage: R.<x,y> = PolynomialRing(QQ,order = "neglex")
             sage: f = 1+y

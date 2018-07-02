@@ -53,9 +53,9 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.TetrahedralPoset` | Return the Tetrahedral poset with `n-1` layers based on the input colors.
     :meth:`~posets.UpDownPoset` | Return the up-down poset on `n` elements.
     :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
-    :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
+    :meth:`~posets.YoungsLattice` | Return the Young's Lattice up to rank `n`.
     :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
-    :meth:`~posets.YoungFibonacci` | Return Young-Fibonacci lattice up to rank `n`.
+    :meth:`~posets.YoungFibonacci` | Return the Young-Fibonacci lattice up to rank `n`.
 
 Constructions
 -------------
@@ -1446,12 +1446,12 @@ class Posets(object):
 
         See :wikipedia:`Young-Fibonacci lattice`.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: Y5 = posets.YoungFibonacci(5); Y5
             Finite meet-semilattice containing 20 elements
-            sage: sorted(Y5.upper_covers('211'))
-            ['1211', '2111', '221']
+            sage: sorted(Y5.upper_covers(Word('211')))
+            [word: 1211, word: 2111, word: 221]
 
         TESTS::
 
@@ -1462,9 +1462,18 @@ class Posets(object):
         """
         from sage.combinat.posets.lattices import FiniteMeetSemilattice
         from sage.categories.finite_posets import FinitePosets
+        from sage.combinat.words.word import Word
+
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
 
         if n == 0:
             return MeetSemilattice({'': []})
+
         covers = []
         current_level = ['']
         for i in range(1, n+1):
@@ -1487,6 +1496,7 @@ class Posets(object):
             current_level = new_level
 
         D = DiGraph([[], covers], format='vertices_and_edges')
+        D.relabel(lambda v: Word(v), inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
 
 

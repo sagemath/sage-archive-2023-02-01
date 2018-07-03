@@ -42,15 +42,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import
-from six import iteritems, iterkeys, integer_types
+from six import iteritems, iterkeys
 from six.moves import range
 
-from sage.structure.category_object import normalize_names
-from sage.structure.element import is_Element, parent
+from sage.structure.element import parent
 from sage.structure.parent import Parent
-from sage.rings.ring import is_Ring
 from sage.rings.infinity import infinity
-from sage.rings.integer import Integer
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.misc.latex import latex
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair, LaurentPolynomial_univariate

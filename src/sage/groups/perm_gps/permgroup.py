@@ -303,7 +303,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
     according to the order of the elements of the domain::
 
         sage: list(PermutationGroup([['b','c','a']], domain=['a','b','c']))
-        [(), ('a','b','c'), ('a','c','b')]
+        [(), ('a','c','b'), ('a','b','c')]
         sage: list(PermutationGroup([['b','c','a']], domain=['b','c','a']))
         [()]
         sage: list(PermutationGroup([['b','c','a']], domain=['a','c','b']))
@@ -724,10 +724,30 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
             sage: G.list()
-            [(), (1,2), (1,2,3,4), (1,3)(2,4), (1,3,4), (2,3,4), (1,4,3,2),
-             (1,3,2,4), (1,3,4,2), (1,2,4,3), (1,4,2,3), (2,4,3), (1,4,3),
-             (1,4)(2,3), (1,4,2), (1,3,2), (1,3), (3,4), (2,4), (1,4), (2,3),
-             (1,2)(3,4), (1,2,3), (1,2,4)]
+            [(),
+             (1,4)(2,3),
+             (1,2)(3,4),
+             (1,3)(2,4),
+             (2,4,3),
+             (1,4,2),
+             (1,2,3),
+             (1,3,4),
+             (2,3,4),
+             (1,4,3),
+             (1,2,4),
+             (1,3,2),
+             (3,4),
+             (1,4,2,3),
+             (1,2),
+             (1,3,2,4),
+             (2,4),
+             (1,4,3,2),
+             (1,2,3,4),
+             (1,3),
+             (2,3),
+             (1,4),
+             (1,2,4,3),
+             (1,3,4,2)]
 
             sage: G = PermutationGroup([[('a','b')]], domain=('a', 'b')); G
             Permutation Group with generators [('a','b')]
@@ -800,53 +820,98 @@ class PermutationGroup_generic(group.FiniteGroup):
         return item in self
 
     def __iter__(self):
+        r"""
+        Return an iterator going through all elements in ``self``.
+
+        For options and faster iteration see :meth:`iteration`.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
+            sage: for g in G: print(g)
+            ()
+            (1,4)(2,3)
+            (1,2)(3,4)
+            (1,3)(2,4)
+            (2,4,3)
+            (1,4,2)
+            (1,2,3)
+            (1,3,4)
+            (2,3,4)
+            (1,4,3)
+            (1,2,4)
+            (1,3,2)
+            (3,4)
+            (1,4,2,3)
+            (1,2)
+            (1,3,2,4)
+            (2,4)
+            (1,4,3,2)
+            (1,2,3,4)
+            (1,3)
+            (2,3)
+            (1,4)
+            (1,2,4,3)
+            (1,3,4,2)
+
+            sage: G = PermutationGroup([('A','B'),('B','C')])
+            sage: [ g for g in G ]
+            [(), ('A','B','C'), ('A','C','B'), ('B','C'), ('A','B'), ('A','C')]
+        """
+        return self.iteration(algorithm="SGS")
+
+    def iteration(self, algorithm="SGS"):
         """
         Return an iterator over the elements of this group.
+
+        INPUT:
+
+        - ``algorithm`` -- either "SGS" (default, strong generating
+          system) or "RES" (recursively enumerated set.
+
+        In general, the algorithm "SGS" is (unually much) faster, only
+        for very small groups, "RES" might be faster.
+
+        .. warning::
+
+            The order in which the iterator visits the elements differs
+            in the two algorithms, and is not even guaranteed to always
+            be the same for one of the two.
 
         EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
-            sage: [a for a in G]
+            sage: list(G.iteration())
+            [(), (1,2,3), (1,3,2), (2,3), (1,2), (1,3)]
+            sage: list(G.iteration(algorithm="RES"))
             [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
-
-        Test that it is possible to iterate through moderately large groups
-        (:trac:`18239`)::
 
             sage: p = [(i,i+1) for i in range(1,601,2)]
             sage: q = [tuple(range(1+i,601,3)) for i in range(3)]
             sage: A = PermutationGroup([p,q])
             sage: A.cardinality()
             60000
-            sage: for x in A:    # long time - 2 secs
-            ....:     pass       # long time
+            sage: for x in A.iteration(): pass
+            sage: for x in A.iteration(algorithm="RES"): pass           # long time - 0.5 secs
         """
-        from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-        return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
-                successors=lambda g: (g._mul_(h) for h in self.gens())))
+        if algorithm == "SGS":
+            def elements(SGS):
+                S = SGS.pop()
+                if not SGS:
+                    yield S[0]
+                else:
+                    for s in elements(SGS):
+                        for g in S:
+                            yield s._mul_(g)
 
-    def __iter_alt__(self):
-        """
-        Return an iterator over the elements of this group. In some cases, this
-        is much faster then the standard iterator.
-
-        EXAMPLES::
-
-            sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
-            sage: sorted([a for a in G.__iter_alt__()])
-            [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]
-
-        """
-        def elements(SGS):
-            S = SGS.pop()
-            if not SGS:
-                yield S[0]
-            else:
-                for s in elements(SGS):
-                    for g in S:
-                        yield s._mul_(g)
-
-        SGS = self.strong_generating_system(implementation="gap")
-        return elements(SGS)
+            SGS = self.strong_generating_system(implementation="gap")
+            return elements(SGS)
+        elif algorithm == "RES":
+            from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
+            return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
+                    successors=lambda g: (g._mul_(h) for h in self.gens())))
+        else:
+            raise ValueError("The input algorithm (='%s') must be either 'SGS' or 'RES'"%algorithm)
 
     def gens(self):
         """
@@ -4317,7 +4382,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         Subgroup of (Dihedral group of order 8 as a permutation group) generated by [(1,2,3,4)]
         sage: K = H.subgroup(gens)
         sage: K.list()
-        [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
+        [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4)]
         sage: K.ambient_group()
         Dihedral group of order 8 as a permutation group
         sage: K.gens()
@@ -4358,7 +4423,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
             sage: S
             Subgroup of (Dihedral group of order 8 as a permutation group) generated by [(1,2,3,4)]
             sage: S.list()
-            [(), (1,2,3,4), (1,3)(2,4), (1,4,3,2)]
+            [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4)]
             sage: S.ambient_group()
             Dihedral group of order 8 as a permutation group
 

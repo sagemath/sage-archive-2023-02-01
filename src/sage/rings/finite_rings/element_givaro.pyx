@@ -1089,7 +1089,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if self.element == cache.objectptr.one:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         elif self.element % 2 == 0:
-            return make_FiniteField_givaroElement(cache, self.element/2)
+            return make_FiniteField_givaroElement(cache, self.element // 2)
         elif cache.objectptr.characteristic() == 2:
             return make_FiniteField_givaroElement(cache, (cache.objectptr.cardinality() - 1 + self.element)/2)
         elif extend:

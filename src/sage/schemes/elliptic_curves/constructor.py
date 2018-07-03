@@ -592,7 +592,7 @@ def EllipticCurve_from_c4c6(c4, c6):
 
 
 def EllipticCurve_from_j(j, minimal_twist=True):
-    """
+    r"""
     Return an elliptic curve with given `j`-invariant.
 
     INPUT:
@@ -642,9 +642,9 @@ def EllipticCurve_from_j(j, minimal_twist=True):
        sage: E = EllipticCurve_from_j(2^256+1,minimal_twist=False)
        sage: E.j_invariant() == 2^256+1
        True
-
     """
     return EllipticCurve(coefficients_from_j(j, minimal_twist))
+
 
 def coefficients_from_j(j, minimal_twist=True):
     """

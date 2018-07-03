@@ -678,7 +678,12 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
         EXAMPLES::
 
-            sage: h = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h1 = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h2 = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h3 = hash(LaurentPolynomialRing(QQ,'x,y,z'))
+            sage: h4 = hash(LaurentPolynomialRing(ZZ,'x,y'))
+            sage: h1 == h2 and h1 != h3 and h1 != h4
+            True
         """
         return hash(self._R) ^ 12059065606945654693
 
@@ -689,7 +694,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))
             \Bold{Q}[x_{0}^{\pm 1}, x_{1}^{\pm 1}]
         """
-        vars = ', '.join([a + '^{\pm 1}' for a in self.latex_variable_names()])
+        vars = ', '.join([a + r'^{\pm 1}' for a in self.latex_variable_names()])
         return "%s[%s]"%(latex(self.base_ring()), vars)
 
     def _ideal_class_(self, n=0):

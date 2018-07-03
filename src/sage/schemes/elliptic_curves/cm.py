@@ -404,7 +404,7 @@ def largest_fundamental_disc_with_class_number(h):
 
 @cached_function
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
-    """
+    r"""
     Return dictionary with keys class numbers `h\le hmax` and values the
     list of all pairs `(D, f)`, with `D<0` a fundamental discriminant such
     that `Df^2` has class number `h`.  If the optional bound `B` is given,

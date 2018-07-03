@@ -482,7 +482,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 cls, base_ring, nrows, ncols, sparse, matrix_cls)
 
     def __init__(self, base_ring, nrows, ncols, sparse, implementation):
-        """
+        r"""
         INPUT:
 
         - ``base_ring`
@@ -1490,7 +1490,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                       hidden_function=old_index)
 
     def dimension(self):
-        """
+        r"""
         Returns (m rows) \* (n cols) of self as Integer
 
         EXAMPLES::
@@ -2074,8 +2074,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         K = polymake(self.base_ring())
         return '"Matrix<{}>"'.format(K)
 
+
 def dict_to_list(entries, nrows, ncols):
-    """
+    r"""
     Given a dictionary of coordinate tuples, return the list given by
     reading off the nrows\*ncols matrix in row order.
 

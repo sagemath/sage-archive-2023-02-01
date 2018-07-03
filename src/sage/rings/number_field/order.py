@@ -925,7 +925,7 @@ class Order(IntegralDomain):
         return not (self == other)
 
     def random_element(self, *args, **kwds):
-        """
+        r"""
         Return a random element of this order.
 
         INPUT:
@@ -1683,7 +1683,7 @@ class RelativeOrder(Order):
         return (RelativeOrder, (self.number_field(), self.absolute_order(), self._is_maximal, False))
 
     def basis(self):
-        """
+        r"""
         Return a basis for this order as `\ZZ`-module.
 
         EXAMPLES::
@@ -2125,7 +2125,7 @@ def relative_order_from_ring_generators(gens,
 
 
 def GaussianIntegers(names="I"):
-    """
+    r"""
     Return the ring of Gaussian integers, that is all complex numbers
     of the form `a + b I` with `a` and `b` integers and `I = \sqrt{-1}`.
 
@@ -2150,7 +2150,7 @@ def GaussianIntegers(names="I"):
 
 
 def EisensteinIntegers(names="omega"):
-    """
+    r"""
     Return the ring of Eisenstein integers, that is all complex numbers
     of the form `a + b \omega` with `a` and `b` integers and
     `omega = (-1 + \sqrt{-3})/2`.

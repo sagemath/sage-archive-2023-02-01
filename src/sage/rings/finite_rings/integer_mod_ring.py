@@ -1007,7 +1007,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         return factor(self.__order, int_=(self.__order < 2**31))
 
     def factored_unit_order(self):
-        """
+        r"""
         Return a list of :class:`Factorization` objects, each the factorization
         of the order of the units in a `\ZZ / p^n \ZZ` component of this group
         (using the Chinese Remainder Theorem).
@@ -1195,7 +1195,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             i = i + 1
 
     def _coerce_map_from_(self, S):
-        """
+        r"""
         EXAMPLES::
 
             sage: R = Integers(15)

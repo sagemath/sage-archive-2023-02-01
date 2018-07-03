@@ -4270,9 +4270,10 @@ def SylvesterGraph():
     g.name("Sylvester Graph")
     return g
 
+
 def SimsGewirtzGraph():
-    """
-    Returns the Sims-Gewirtz Graph.
+    r"""
+    Return the Sims-Gewirtz Graph.
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)

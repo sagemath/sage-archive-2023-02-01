@@ -2669,7 +2669,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # Update self._faces.
         # Note: can't iterate over self._faces, because the dictionary
         # size may change during iteration.
-        for L in self._faces.keys():
+        for L in list(self._faces):
             del self._faces[L]
             if L is None or Simplex(face) not in L:
                 self.faces(L)

@@ -147,7 +147,7 @@ the fan. In this case check out
 
     sage: L = fan1.cone_lattice()
     sage: L
-    Finite poset containing 28 elements with distinguished linear extension
+    Finite lattice containing 28 elements with distinguished linear extension
     sage: L.bottom()
     0-d cone of Rational polyhedral fan in 3-d lattice M
     sage: L.top()
@@ -245,7 +245,7 @@ from sage.geometry.cone import (_ambient_space_point,
                                 IntegralRayCollection,
                                 is_Cone,
                                 normalize_rays)
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
@@ -856,7 +856,7 @@ def Fan2d(rays, lattice=None):
         ....:        (2, -11), (2, -8), (1, 0), (0, -5), (1, -4), (2, 0),
         ....:        (1, -6), (2, -7), (2, -5), (-1, -3), (1, -1), (1, -2),
         ....:        (0, -4), (2, -3), (2, -1)]).cone_lattice()
-        Finite poset containing 44 elements with distinguished linear extension
+        Finite lattice containing 44 elements with distinguished linear extension
 
         sage: Fan2d([(1,1)]).is_complete()
         False
@@ -1310,7 +1310,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
             sage: fan = toric_varieties.P1xP1().fan()
             sage: fan.cone_lattice() # indirect doctest
-            Finite poset containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements with distinguished linear extension
 
         These 10 elements are: 1 origin, 4 rays, 4 generating cones, 1 fan.
 
@@ -1371,7 +1371,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
         # completeness relies on this function
         if "_is_complete" in self.__dict__ and self._is_complete:
             # We can use a fast way for complete fans
-            self._cone_lattice = Hasse_diagram_from_incidences(
+            self._cone_lattice = lattice_from_incidences(
                                 # When there are no rays, fan is the only atom
                                 self._ray_to_cones() if self.rays() else [()],
                                 (cone.ambient_ray_indices() for cone in self),
@@ -2151,7 +2151,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             # It seems that there is no reason to believe that the order of
             # faces in level sets has anything to do with the order of
             # vertices in the Hasse diagram of FinitePoset. So, while
-            # Hasse_diagram_from_incidences tried to ensure a "good order,"
+            # lattice_from_incidences tried to ensure a "good order,"
             # we will sort faces corresponding to rays, as well as faces
             # corresponding to generating cones, if they are all of the same
             # dimension (otherwise it is not very useful).

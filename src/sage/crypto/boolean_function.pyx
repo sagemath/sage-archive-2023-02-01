@@ -44,17 +44,9 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 include "sage/data_structures/bitset.pxi"
 
-# for details about the implementation of hamming_weight_int,
+# for details about the implementation of hamming_weight (in .pxd),
 # walsh_hadamard transform, reed_muller transform, and a lot
 # more, see 'Matters computational' available on www.jjj.de.
-
-cdef inline unsigned int hamming_weight_int(unsigned int x):
-    # valid for 32bits
-    x -=  (x>>1) & 0x55555555UL                        # 0-2 in 2 bits
-    x  = ((x>>2) & 0x33333333UL) + (x & 0x33333333UL)  # 0-4 in 4 bits
-    x  = ((x>>4) + x) & 0x0f0f0f0fUL                   # 0-8 in 8 bits
-    x *= 0x01010101UL
-    return x>>24
 
 cdef walsh_hadamard(long *f, int ldn):
     r"""
@@ -71,15 +63,15 @@ cdef walsh_hadamard(long *f, int ldn):
         sage: B.walsh_hadamard_transform() # indirect doctest
         (0, 0, 0, -4)
     """
-    cdef long n, ldm, m, mh, t1, t2, r
+    cdef long n, ldm, m, mh, t1, t2, r, j
     n = 1 << ldn
-    for 1 <= ldm <= ldn:
+    for ldm in range(1, ldn+1):
         m  = (1<<ldm)
         mh = m//2
-        for 0 <= r <n by m:
+        for r in range(0, n, m):
             t1 = r
             t2 = r+mh
-            for 0 <= j < mh:
+            for j in range(mh):
                 u = f[t1]
                 v = f[t2]
                 f[t1] = u + v
@@ -133,19 +125,19 @@ cdef reed_muller(mp_limb_t* f, int ldn):
         sage: B.truth_table() # indirect doctest
         (False, False, False, True, False, False, False, True)
     """
-    cdef long n, ldm, m, mh, t1, t2, r
+    cdef long n, ldm, m, mh, t1, t2, r, j
     n = 1 << ldn
     # intra word transform
-    for 0 <= r < n:
+    for r in range(n):
         f[r] = yellow_code(f[r])
     # inter word transform
-    for 1 <= ldm <= ldn:
+    for ldm in range(1, ldn+1):
         m  = (1<<ldm)
         mh = m//2
-        for 0 <= r <n by m:
+        for r in range(0, n, m):
             t1 = r
             t2 = r+mh
-            for 0 <= j < mh:
+            for j in range(mh):
                 f[t2] ^= f[t1]
                 t1 += 1
                 t2 += 1
@@ -220,7 +212,7 @@ cdef class BooleanFunction(SageObject):
     """
 
     cdef bitset_t _truth_table
-    cdef object _walsh_hadamard_transform
+    cdef tuple _walsh_hadamard_transform
     cdef object _nvariables
     cdef object _nonlinearity
     cdef object _correlation_immunity
@@ -289,6 +281,8 @@ cdef class BooleanFunction(SageObject):
             ...
             ValueError: the length of the truth table must be a power of 2
         """
+        cdef long i
+
         if isinstance(x, str):
             L = ZZ(len(x))
             if L.is_power_of(2):
@@ -308,7 +302,7 @@ cdef class BooleanFunction(SageObject):
 
             # then, initialize our bitset
             bitset_init(self._truth_table, L)
-            for 0<= i < L:
+            for i in range(L):
                 bitset_set_to(self._truth_table, i, x[i])#int(x[i])&1)
 
         elif isinstance(x, BooleanPolynomial):
@@ -466,11 +460,12 @@ cdef class BooleanFunction(SageObject):
             raise ValueError("the two Boolean functions must have the same number of variables")
 
         cdef BooleanFunction res=BooleanFunction(self.nvariables()+1)
+        cdef long i
 
         nb_limbs = self._truth_table.limbs
         if nb_limbs == 1:
             L = len(self)
-            for i in xrange(L):
+            for i in range(L):
                 res[i  ]=self[i]
                 res[i+L]=other[i]
             return res
@@ -504,14 +499,16 @@ cdef class BooleanFunction(SageObject):
         R = BooleanPolynomialRing(self._nvariables,"x")
         G = R.gens()
         P = R(0)
-        for 0 <= i < anf.limbs:
+
+        cdef long i, j, k
+        for i in range(anf.limbs):
             if anf.bits[i]:
                 inf = i*sizeof(long)*8
                 sup = min( (i+1)*sizeof(long)*8 , (1<<self._nvariables) )
-                for inf <= j < sup:
+                for j in range(inf, sup):
                     if bitset_in(anf,j):
                         m = R(1)
-                        for 0 <= k < self._nvariables:
+                        for k in range(self._nvariables):
                             if (j>>k)&1:
                                 m *= G[k]
                         P+=m
@@ -684,7 +681,7 @@ cdef class BooleanFunction(SageObject):
         """
         return self._walsh_hadamard_transform
 
-    def walsh_hadamard_transform(self):
+    cpdef tuple walsh_hadamard_transform(self):
         r"""
         Compute the Walsh Hadamard transform `W` of the function `f`.
 
@@ -699,16 +696,17 @@ cdef class BooleanFunction(SageObject):
             (0, -4, 0, 4, 0, 4, 0, 4)
         """
         cdef long *temp
+        cdef long i
 
         if self._walsh_hadamard_transform is None:
             n =  self._truth_table.size
             temp = <long *>sig_malloc(sizeof(long)*n)
 
-            for 0<= i < n:
-                temp[i] = 1 - (bitset_in(self._truth_table,i)<<1)
+            for i in range(n):
+                temp[i] = 1 - (bitset_in(self._truth_table, i) << 1)
 
             walsh_hadamard(temp, self._nvariables)
-            self._walsh_hadamard_transform = tuple(temp[i] for i in xrange(n))
+            self._walsh_hadamard_transform = tuple([temp[i] for i in range(n)])
             sig_free(temp)
 
         return self._walsh_hadamard_transform
@@ -772,7 +770,7 @@ cdef class BooleanFunction(SageObject):
         """
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
         for i in xrange(2**self._nvariables):
-            if T[ hamming_weight_int(i) ] != bitset_in(self._truth_table, i):
+            if T[ hamming_weight(i) ] != bitset_in(self._truth_table, i):
                 return False
         return True
 
@@ -834,7 +832,7 @@ cdef class BooleanFunction(SageObject):
             W = self.walsh_hadamard_transform()
             for 0 < i < len(W):
                 if (W[i] != 0):
-                    c = min( c , hamming_weight_int(i) )
+                    c = min( c , hamming_weight(i) )
             self._correlation_immunity = ZZ(c-1)
         return self._correlation_immunity
 
@@ -873,13 +871,14 @@ cdef class BooleanFunction(SageObject):
             (8, 8, 0, 0, 0, 0, 0, 0)
         """
         cdef long *temp
+        cdef long i
 
         if self._autocorrelation is None:
             n =  self._truth_table.size
             temp = <long *>sig_malloc(sizeof(long)*n)
             W = self.walsh_hadamard_transform()
 
-            for 0<= i < n:
+            for i in range(n):
                 temp[i] = W[i]*W[i]
 
             walsh_hadamard(temp, self._nvariables)
@@ -1368,7 +1367,8 @@ def random_boolean_function(n):
     r = current_randstate().python_random()
     cdef BooleanFunction B = BooleanFunction(n)
     cdef bitset_t T
+    cdef long i
     T[0] = B._truth_table[0]
-    for 0 <= i < T.limbs:
+    for i in range(T.limbs):
         T.bits[i] = r.randrange(0,Integer(1)<<(sizeof(unsigned long)*8))
     return B

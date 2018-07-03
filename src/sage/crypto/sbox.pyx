@@ -4,6 +4,7 @@ S-Boxes and Their Algebraic Representations
 from __future__ import print_function, division
 
 cimport cython
+from cysignals.memory cimport sig_malloc, sig_free
 
 from sage.structure.sage_object cimport SageObject
 
@@ -12,6 +13,7 @@ from six import integer_types
 
 from sage.combinat.integer_vector import IntegerVectors
 from sage.crypto.boolean_function import BooleanFunction
+from sage.crypto.boolean_function cimport hamming_weight, walsh_hadamard
 from sage.matrix.constructor import Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.functional import is_even
@@ -117,7 +119,7 @@ cdef class SBox(SageObject):
     cdef object _ring
     cdef int m
     cdef int n
-    cdef int _big_endian
+    cdef bint _big_endian
     cdef dict __dict__  # for cached_methods
 
     def __init__(self, *args,  **kwargs):
@@ -634,33 +636,38 @@ cdef class SBox(SageObject):
             True
             True
         """
-        m = self.input_size()
-        n = self.output_size()
+        cdef long m = self.input_size()
+        cdef long n = self.output_size()
 
-        nrows = 1<<m
-        ncols = 1<<n
+        cdef long nrows = 1<<m
+        cdef long ncols = 1<<n
 
-        scale_factor = 1
+        # directly compute the walsh_hadamard transform here, without
+        # creating the BooleanFunction object
+        cdef long* temp = <long *>sig_malloc(sizeof(long)*nrows*ncols)
+        cdef long i, j
+
+        for i in range(ncols):
+            for j in range(nrows):
+                temp[i*nrows + j] = 1 - (<int>(hamming_weight(i & self(j)) & 1) << 1)
+            walsh_hadamard(&temp[i*nrows], m)
+
+        L = [temp[i*nrows + j] for j in range(nrows) for i in range(ncols)]
+        sig_free(temp)
+
+        A = Matrix(ZZ, nrows, ncols, L)
+
         if (scale is None) or (scale == "absolute_bias"):
-            scale_factor = 2
+            A /= 2
         elif scale == "bias":
-            scale_factor = 1<<(m+1)
+            A /= 1<<(m+1)
         elif scale == "correlation":
-            scale_factor = 1<<m
+            A /= 1<<m
         elif scale == "fourier_coefficient":
             pass
         else:
             raise ValueError("no such scaling for the LAM: %s" % scale)
 
-        # compute the component functions of self, without trying to convert
-        # the input arguments all the time, because we know which input format
-        # we are using here
-        L = [BooleanFunction([ZZ(i & self(x)).popcount() & 1
-                              for x in range(nrows)]).walsh_hadamard_transform()
-             for i in range(ncols)]
-
-        A = Matrix(ZZ, ncols, nrows, L)
-        A = A.transpose()/scale_factor
         A.set_immutable()
 
         return A

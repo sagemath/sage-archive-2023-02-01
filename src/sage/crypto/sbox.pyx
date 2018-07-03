@@ -4,7 +4,7 @@ S-Boxes and Their Algebraic Representations
 from __future__ import print_function, division
 
 cimport cython
-from cysignals.memory cimport sig_malloc, sig_free
+from cysignals.memory cimport check_allocarray, sig_free
 
 from sage.structure.sage_object cimport SageObject
 
@@ -47,6 +47,7 @@ cdef int _nterms(int nvars, int deg):
     divisor = 1
     var_choices = 1
 
+    cdef long d
     for d in range(1, deg+1):
         var_choices *= (nvars - d + 1)
         divisor *= d
@@ -186,9 +187,9 @@ cdef class SBox(SageObject):
         self.n = ZZ(max(S)).nbits()
         self._big_endian = kwargs.get("big_endian",True)
 
-        X = range(self.m)
-        Y = range(self.n)
-        self._ring = PolynomialRing(GF(2), self.m+self.n, ["x%d"%i for i in X] + ["y%d"%i for i in Y])
+        cdef long i
+        self._ring = PolynomialRing(GF(2), self.m+self.n, \
+            ["x%d" % i for i in range(self.m)] + ["y%d" % i for i in range(self.n)])
 
     def _repr_(self):
         """
@@ -224,7 +225,10 @@ cdef class SBox(SageObject):
             sage: loads(dumps(S)) == S
             True
         """
-        cdef SBox other = rhs
+        if not isinstance(rhs, SBox):
+            raise NotImplemented
+
+        cdef SBox other = <SBox>rhs
         return (self._S == other._S) and (self._big_endian == self._big_endian)
 
     def __ne__(self, other):
@@ -304,7 +308,8 @@ cdef class SBox(SageObject):
         else:
             swp = lambda x: x
 
-        return ZZ( [ZZ(_) for _ in self._rpad(swp(x), n)], 2)
+        cdef bint i
+        return ZZ( [i for i in self._rpad(swp(x), n)], 2)
 
     def _rpad(self,x, n=None):
         """
@@ -377,6 +382,7 @@ cdef class SBox(SageObject):
         if isinstance(X, integer_types + (Integer,)):
             return self._S[ZZ(X)]
 
+        cdef int i
         try:
             from sage.modules.free_module_element import vector
             K = X.parent()
@@ -388,7 +394,7 @@ cdef class SBox(SageObject):
                 X = list(reversed(X))
             else:
                 X = list(X)
-            X = ZZ([ZZ(_) for _ in X], 2)
+            X = ZZ([ZZ(i) for i in X], 2)
             out =  self.to_bits(self._S[X], self.output_size())
             if self._big_endian:
                 out = list(reversed(out))
@@ -400,7 +406,7 @@ cdef class SBox(SageObject):
             if len(X) == self.input_size():
                 if self._big_endian:
                     X = list(reversed(X))
-                X = ZZ([ZZ(_) for _ in X], 2)
+                X = ZZ([ZZ(i) for i in X], 2)
                 out =  self._S[X]
                 return self.to_bits(out,self.output_size())
         except TypeError:
@@ -473,7 +479,8 @@ cdef class SBox(SageObject):
         if self.input_size() != self.output_size():
             return False
         m = self.input_size()
-        return len(set([self(i) for i in range(2**m)])) == 2**m
+        cdef long i
+        return len(set([self(i) for i in range(1<<m)])) == 1<<m
 
     def __iter__(self):
         """
@@ -484,7 +491,8 @@ cdef class SBox(SageObject):
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
         """
-        for i in range(2**self.input_size()):
+        cdef long i
+        for i in range(1<<self.input_size()):
             yield self(i)
 
     def difference_distribution_matrix(self):
@@ -515,8 +523,9 @@ cdef class SBox(SageObject):
             [0 2 2 0 0 2 2 0]
             [0 0 0 0 2 2 2 2]
         """
-        nrows = 1 << self.input_size()
-        ncols = 1 << self.output_size()
+        cdef long nrows = 1 << self.input_size()
+        cdef long ncols = 1 << self.output_size()
+        cdef unsigned long i, di
 
         A = [0]*(nrows*ncols)
 
@@ -644,7 +653,7 @@ cdef class SBox(SageObject):
 
         # directly compute the walsh_hadamard transform here, without
         # creating the BooleanFunction object
-        cdef long* temp = <long *>sig_malloc(sizeof(long)*nrows*ncols)
+        cdef long* temp = <long *>check_allocarray(nrows*ncols, sizeof(long))
         cdef long i, j
 
         for i in range(ncols):
@@ -746,6 +755,7 @@ cdef class SBox(SageObject):
         m = self.input_size()
         n = self.output_size()
 
+        cdef long i
         solutions = []
         for i in range(1<<m):
             solution = self.to_bits(i, m) + self(self.to_bits(i, m))
@@ -823,6 +833,7 @@ cdef class SBox(SageObject):
 
         gens = X + Y
 
+        cdef long i
         bits = []
         for i in range(1<<m):
             bits.append(self.to_bits(i, m) + self(self.to_bits(i, m)))
@@ -831,6 +842,7 @@ cdef class SBox(SageObject):
 
         A = Matrix(P, _nterms(m + n, degree), ncols)
 
+        cdef long d
         exponents = []
         for d in range(degree+1):
             exponents += IntegerVectors(d, max_length=m+n, min_length=m+n, min_part=0, max_part=1).list()
@@ -842,6 +854,7 @@ cdef class SBox(SageObject):
                 A[row,col] = mul([bits[col][i] for i in range(len(exponent)) if exponent[i]])
             row +=1
 
+        cdef long c
         for c in range(ncols):
             A[0,c] = 1
 
@@ -1060,6 +1073,7 @@ cdef class SBox(SageObject):
         """
         m, n = self.input_size(), self.output_size()
 
+        cdef long i
         if xi is None:
             xi = [i+1 for i in range(m)]
 
@@ -1077,7 +1091,8 @@ cdef class SBox(SageObject):
             output_bits = list(reversed(output_bits))
 
         C = [] # the set of clauses
-        for e in range(2**m):
+        cdef long e, output_bit, v
+        for e in range(1<<m):
             x = self.to_bits(e, m)
             y = self(x) # evaluate at x
             for output_bit in output_bits: # consider each bit
@@ -1141,6 +1156,7 @@ cdef class SBox(SageObject):
         else:
             raise TypeError("cannot compute component function using parameter %s"%(b,))
 
+        cdef long x
         for x in range(1<<m):
             ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
         return ret
@@ -1222,12 +1238,13 @@ cdef class SBox(SageObject):
         n = self.output_size()
         ret = (1<<m) + (1<<n)
 
+        cdef long a, b
         for a in range(1<<m):
             for b in range(1<<n):
                 if (a != b):
                     x = a ^ b
                     y = self(a) ^ self(b)
-                    w = ZZ(x).popcount() + ZZ(y).popcount()
+                    w = hamming_weight(x) + hamming_weight(y)
                     if w < ret:
                         ret = w
         return ret
@@ -1259,10 +1276,11 @@ cdef class SBox(SageObject):
         ret = (1<<m) + (1<<n)
         lat = self.linear_approximation_matrix()
 
+        cdef long a, b
         for a in range(1, 1<<m):
             for b in range(1<<n):
                 if lat[a,b] != 0:
-                    w = ZZ(a).popcount() + ZZ(b).popcount()
+                    w = hamming_weight(a) + hamming_weight(b)
                     if w < ret:
                         ret = w
         return ret
@@ -1343,16 +1361,14 @@ cdef class SBox(SageObject):
             [16  0  2  2  0  0  2  2  2  2  0  0  2  2  0  0]
             [16  8  0  0  8  0  0  0  0  0  0  8  0  0  8 16]
         """
-        Si = self.inverse()
+        cdef SBox Si = self.inverse()
 
-        m = self.input_size()
-        n = self.output_size()
-
-        nrows = 1 << m
-        ncols = 1 << n
+        nrows = 1 << self.input_size()
+        ncols = 1 << self.output_size()
 
         A = Matrix(ZZ, nrows, ncols)
 
+        cdef long x, di, do
         for x in range(nrows):
             for di in range(nrows):
                 for do in range(ncols):
@@ -1399,6 +1415,7 @@ cdef class SBox(SageObject):
         act = self.autocorrelation_matrix()
         ret = []
 
+        cdef long j, i
         for j in range(1, 1<<n):
             for i in range(1, 1<<m):
                 if (abs(act[i,j]) == (1<<m)):
@@ -1471,6 +1488,7 @@ cdef class SBox(SageObject):
         n = self.output_size()
         ret = 0
 
+        cdef long i
         for i in range(n):
             deg_Si = self.component_function(1<<i).algebraic_degree()
             if deg_Si > ret:
@@ -1491,6 +1509,7 @@ cdef class SBox(SageObject):
         n = self.output_size()
         ret = self.input_size()
 
+        cdef long b
         for b in range(1, 1<<n):
             deg_bS = self.component_function(b).algebraic_degree()
             if deg_bS < ret:
@@ -1512,6 +1531,7 @@ cdef class SBox(SageObject):
         """
         n = self.output_size()
 
+        cdef long b
         for b in range(1, 1<<n):
             bS = self.component_function(b)
             if not bS.is_balanced():
@@ -1553,6 +1573,7 @@ cdef class SBox(SageObject):
             sage: S.fixed_points()
             [0, 1]
         """
+        cdef long i
         m = self.input_size()
         return [i for i in range(1<<m) if i == self(i)]
 
@@ -1574,6 +1595,7 @@ cdef class SBox(SageObject):
         if not self.is_permutation():
             raise TypeError("S-Box must be a permutation")
 
+        cdef long i
         m = self.input_size()
         L = [self(i) for i in range(1<<m)]
         return SBox([L.index(i) for i in range(1<<m)], big_endian=self._big_endian)
@@ -1614,6 +1636,7 @@ cdef class SBox(SageObject):
         """
         n = self.output_size()
 
+        cdef long b
         for b in range(1, 1<<n):
             bS = self.component_function(b)
             if not bS.is_plateaued():
@@ -1735,6 +1758,7 @@ def feistel_construction(*args):
             xl, xr = sb(xl) ^ xr, xl
         return (xl<<b) | xr
 
+    cdef long i
     return SBox([substitute(i) for i in range(1<<m)])
 
 def misty_construction(*args):
@@ -1789,4 +1813,5 @@ def misty_construction(*args):
             xl, xr = sb(xr) ^ xl, xl
         return (xl<<b) | xr
 
+    cdef long i
     return SBox([substitute(i) for i in range(1<<m)])

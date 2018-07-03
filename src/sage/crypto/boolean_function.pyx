@@ -727,6 +727,7 @@ cdef class BooleanFunction(SageObject):
             {8: 64}
         """
         d = {}
+        cdef long i
         for i in self.walsh_hadamard_transform():
             if abs(i) in d:
                 d[abs(i)] += 1
@@ -769,7 +770,8 @@ cdef class BooleanFunction(SageObject):
             True
         """
         cdef list T = [ self(2**i-1) for i in xrange(self._nvariables+1) ]
-        for i in xrange(2**self._nvariables):
+        cdef long i
+        for i in range(1<<self._nvariables):
             if T[ hamming_weight(i) ] != bitset_in(self._truth_table, i):
                 return False
         return True
@@ -791,8 +793,10 @@ cdef class BooleanFunction(SageObject):
             sage: B.nonlinearity()
             28
         """
+        cdef long w
         if self._nonlinearity is None:
-            self._nonlinearity = ( (1<<self._nvariables) - max( [abs(w) for w in self.walsh_hadamard_transform()] ) ) >> 1
+            self._nonlinearity = \
+                ( (1<<self._nvariables) - max( [abs(w) for w in self.walsh_hadamard_transform()] ) ) >> 1
         return self._nonlinearity
 
     def is_bent(self):
@@ -826,11 +830,11 @@ cdef class BooleanFunction(SageObject):
             sage: B.correlation_immunity()
             2
         """
-        cdef int c
+        cdef long c, i
         if self._correlation_immunity is None:
             c = self._nvariables
             W = self.walsh_hadamard_transform()
-            for 0 < i < len(W):
+            for i in range(len(W)):
                 if (W[i] != 0):
                     c = min( c , hamming_weight(i) )
             self._correlation_immunity = ZZ(c-1)
@@ -899,6 +903,7 @@ cdef class BooleanFunction(SageObject):
             [(0, 33), (8, 58), (16, 28), (24, 6), (32, 2), (128, 1)]
         """
         d = {}
+        cdef long i
         for i in self.autocorrelation():
             if abs(i) in d:
                 d[abs(i)] += 1
@@ -918,6 +923,7 @@ cdef class BooleanFunction(SageObject):
             sage: B.absolut_indicator()
             32
         """
+        cdef long a
         if self._absolut_indicator is None:
             D = self.autocorrelation()
             self._absolut_indicator = max([ abs(a) for a in D[1:] ])
@@ -934,6 +940,7 @@ cdef class BooleanFunction(SageObject):
             sage: B.sum_of_square_indicator()
             32768
         """
+        cdef long a
         if self._sum_of_square_indicator is None:
             D = self.autocorrelation()
             self._sum_of_square_indicator = sum([ a**2 for a in D ])
@@ -978,15 +985,17 @@ cdef class BooleanFunction(SageObject):
 
         from sage.matrix.constructor import Matrix
         from sage.arith.all import binomial
-        M = Matrix(GF(2),sum(binomial(self._nvariables,i) for i in xrange(d+1)),len(s))
+        M = Matrix(GF(2), sum(binomial(self._nvariables,i) for i in range(d+1)), len(s))
 
-        for i in xrange(1, d + 1):
-            C = Combinations(self._nvariables,i)
+        cdef long i
+        for i in range(1, d+1):
+            C = Combinations(self._nvariables, i)
             for c in C:
                 r.append(prod([G[i] for i in c]))
 
         cdef BooleanFunction t
 
+        cdef long j
         for i,m in enumerate(r):
             t = BooleanFunction(m)
             for j,v in enumerate(s):
@@ -1031,7 +1040,8 @@ cdef class BooleanFunction(SageObject):
         """
         f = self
         g = ~self
-        for i in xrange(self._nvariables):
+        cdef long i
+        for i in range(self._nvariables):
             for fun in [f, g]:
                 A = fun.annihilator(i)
                 if A is not None:
@@ -1180,6 +1190,7 @@ cdef class BooleanFunction(SageObject):
         """
         a = self.autocorrelation()
         nvars = self._nvariables
+        cdef long i
         return any(abs(a[i]) == 1<<nvars for i in range(1, 1<<nvars))
 
     def linear_structures(self):
@@ -1207,6 +1218,7 @@ cdef class BooleanFunction(SageObject):
         """
         from sage.modules.free_module import VectorSpace
 
+        cdef long i
         nvars = self.nvariables()
         a = self.autocorrelation()
         l = [ZZ(i).digits(base=2, padto=nvars) for i in range(1<<nvars) if abs(a[i]) == 1<<nvars]

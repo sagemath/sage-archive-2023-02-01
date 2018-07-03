@@ -870,8 +870,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             prod.perm[i] = right.perm[left.perm[i]]
         return prod
 
-    cpdef _generate_new(self, list v):
+    cpdef PermutationGroupElement _generate_new(self, list v):
         """
+        Generate a new permutation group element with the same parent
+        as ``self`` from ``v``.
+
         EXAMPLES::
 
             sage: P = PermutationGroup([(1,2),(1,2,3,4)])
@@ -883,16 +886,19 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         cdef PermutationGroupElement new = self._new_c()
         cdef Py_ssize_t i, j, vn = len(v)
-        assert(vn <= self.n)
+        assert vn <= self.n
         for i in range(vn):
             j = v[i]
             new.perm[i] = j - 1
-        for i from vn <= i < self.n:
+        for i in range(vn, self.n):
             new.perm[i] = i
         return new
 
-    cpdef _generate_new_GAP(self, lst_in):
+    cpdef PermutationGroupElement _generate_new_GAP(self, lst_in):
         """
+        Generate a new permutation group element with the same parent
+        as ``self`` from the GAP list ``lst_in``.
+
         EXAMPLES::
 
             sage: from sage.libs.gap.libgap import libgap
@@ -906,18 +912,18 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: one._generate_new_GAP(perm)
             (1,4)(2,3)
         """
-        cdef GapElement_List lst = <GapElement_List> lst_in
+        cdef GapElement_List lst = <GapElement_List?> lst_in
         cdef libGAP_Obj obj = lst.value
 
         cdef PermutationGroupElement new = self._new_c()
-        cdef Py_ssize_t i, j, vn = lst.__len__()
+        cdef Py_ssize_t i, j, vn = len(lst)
 
-        assert(vn <= self.n)
+        assert vn <= self.n
 
         for i in range(vn):
             j = libGAP_INT_INTOBJ(libGAP_ELM_LIST(obj, i+1))
-            new.perm[i] = j-1
-        for i from vn <= i < self.n:
+            new.perm[i] = j - 1
+        for i in range(vn, self.n):
             new.perm[i] = i
         return new
 
@@ -1575,7 +1581,7 @@ cdef class SymmetricGroupElement(PermutationGroupElement):
 
             sage: S = SymmetricGroup(3)
             sage: [x.absolute_length() for x in S]
-            [0, 2, 2, 1, 1, 1]
+            [0, 1, 2, 1, 2, 1]
         """
         from sage.combinat.permutation import Permutation
         return Permutation(self).absolute_length()

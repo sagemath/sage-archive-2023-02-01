@@ -523,7 +523,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         Return a permutation group representation for the group.
 
         In most cases occurring in practice, this is a permutation
-        group of minimal degree (the degree begin determined from
+        group of minimal degree (the degree being determined from
         orbits under the group action). When these orbits are hard to
         compute, the procedure can be time-consuming and the degree
         may not be minimal.

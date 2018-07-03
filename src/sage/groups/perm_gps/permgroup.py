@@ -668,6 +668,8 @@ class PermutationGroup_generic(FiniteGroup):
 
         if isinstance(x, PermutationGroupElement):
             x_parent = x.parent()
+            # We check if we can lift ``x`` to ``self`` directly
+            #   so we can pass check=False for speed.
             if (isinstance(x_parent, PermutationGroup_subgroup)
                 and x_parent._ambient_group is self):
                 return self.element_class(x.cycle_tuples(), self, check=False)

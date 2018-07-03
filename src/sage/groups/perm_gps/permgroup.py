@@ -714,6 +714,18 @@ class PermutationGroup_generic(FiniteGroup):
             Traceback (most recent call last):
             ...
             TypeError: 'sage.rings.integer.Integer' object is not iterable
+
+        If this permutation group has been constructed via ``as_permutation_group``
+        method (from finite matrix groups)::
+
+           sage: MG = GU(3,2).as_matrix_group()
+           sage: PG = MG.as_permutation_group()
+           sage: f=PG._coerce_map_from_(MG)
+           sage: mg = MG.an_element()
+           sage: p = f(mg); p
+           (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
+           sage: PG(p._gap_()) == p
+           True
         """
         if isinstance(G, PermutationGroup_subgroup):
             if G._ambient_group is self:
@@ -723,35 +735,17 @@ class PermutationGroup_generic(FiniteGroup):
         if isinstance(G, PermutationGroup_generic):
             if G.is_subgroup(self):
                 return True
-        return super(PermutationGroup_generic, self)._coerce_map_from_(G)
-
-
-    def _coerce_map_from_(self, G):
-        """
-        Override this method in order to use more specific information about coercion maps        
-        in the case the group is constructed via an isomorphism from an other group via
-        the as_permutation_group method (see Trac #25707).
-
-        EXAMPLES::
-
-           sage: MG = GU(3,2).as_matrix_group()
-           sage: PG = MG.as_permutation_group()
-           sage: f=PG._coerce_map_from_(MG)
-           sage: mg = MG.an_element()
-           sage: f(mg)
-           (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
-        """
-        try:
-            PG = G.as_permutation_group()
-            if hasattr(G, '_permutation_group_element_' ):
-                if PG == self:                                         
-                    return G._permutation_group_element_
+        if hasattr(G, "_permutation_group_"):
+            # see if this permutation group has been constructed by an as_permutation_group method (Trac #25706)
+            PG = G._permutation_group_()
+            # _permutation_group_element is a morphism
+            if hasattr(G, '_permutation_group_morphism'):
+                if PG is self:
+                    return G._permutation_group_morphism
                 if self.has_coerce_map_from(PG):
-                    return self.coerce_map_from(PG) * G._permutation_group_element_
+                    return self.coerce_map_from(PG) * G._permutation_group_morphism
 
-        except (AttributeError, TypeError):
-            pass
-        return super(PermutationGroup_generic, self)._coerce_map_from_(G) 
+        return super(PermutationGroup_generic, self)._coerce_map_from_(G)
 
 
     def list(self):

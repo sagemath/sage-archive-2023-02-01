@@ -26,7 +26,7 @@ chmod -R u+w "$GAP"
 mkdir src
 for pkg in \
     aclib cohomolo corelg crime ctbllib design factint gbnp grape \
-    guava Hap HAPcryst hecke laguna liealgdb liepring liering loops mapclass polymaking \
+    guava Hap HAPcryst hecke laguna liealgdb liepring liering loops mapclass nq polymaking \
     QPA quagroup repsn sla sonata toric polycyclic autpgrp Alnuth atlasrep
 do
     echo "Copying package $pkg"

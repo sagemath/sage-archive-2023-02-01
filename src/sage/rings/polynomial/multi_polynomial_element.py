@@ -1412,7 +1412,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.__lc
 
     def lt(self):
-        """
+        r"""
         Returns the leading term of self i.e., self.lc()\*self.lm(). The
         notion of "leading term" depends on the ordering defined in the
         parent ring.
@@ -1435,7 +1435,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f=x+y
             sage: f.lt()
             x
-
         """
         try:
             return self.__lt

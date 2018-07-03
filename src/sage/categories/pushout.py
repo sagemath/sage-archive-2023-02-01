@@ -164,8 +164,7 @@ class ConstructionFunctor(Functor):
         """
         Equality here means that they are mathematically equivalent, though they may have
         specific implementation data. This method will usually be overloaded in subclasses.
-        by default, only the types of the functors are compared. Also see the \code{merge}
-        function.
+        by default, only the types of the functors are compared. Also see the :meth:`merge` function.
 
         TESTS::
 
@@ -216,7 +215,7 @@ class ConstructionFunctor(Functor):
         """
         s = str(type(self))
         import re
-        return re.sub("<.*'.*\.([^.]*)'>", "\\1", s)
+        return re.sub(r"<.*'.*\.([^.]*)'>", "\\1", s)
 
     def merge(self, other):
         """

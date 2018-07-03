@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 FindStat - the Combinatorial Statistic Finder.
 

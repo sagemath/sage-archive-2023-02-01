@@ -251,9 +251,10 @@ class CoxeterGroups(Category_singleton):
 
         def braid_orbit(self, word):
             r"""
-            Return the braid orbit of a word ``word`` of indices. The
-            input word does not need to be a reduced expression of an
-            element.
+            Return the braid orbit of a word ``word`` of indices.
+
+            The input word does not need to be a reduced expression of
+            an element.
 
             INPUT:
 
@@ -325,11 +326,9 @@ class CoxeterGroups(Category_singleton):
             orb = BraidOrbit(word, braid_rels)
 
             if be_careful:
-                orb = [ [ I[i] for i in word ] for word in orb ]
+                return [[I[i] for i in word] for word in orb]
             else:
-                orb = map(list, orb)
-
-            return orb
+                return [list(I) for I in orb]
 
         def __iter__(self):
             r"""
@@ -1835,7 +1834,7 @@ class CoxeterGroups(Category_singleton):
 
         @cached_in_parent_method
         def bruhat_lower_covers(self):
-            """
+            r"""
             Returns all elements that ``self`` covers in (strong) Bruhat order.
 
             If ``w = self`` has a descent at `i`, then the elements that
@@ -2452,7 +2451,7 @@ class CoxeterGroups(Category_singleton):
             return dsp.apply_simple_projection(des, side = 'left')
 
         def deodhar_lift_up(self, w, index_set):
-            """
+            r"""
             Letting ``v = self``, given a Bruhat relation ``v W'`` $\le$ ``w W'`` among cosets
             with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
             returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` $\le$ ``x``.

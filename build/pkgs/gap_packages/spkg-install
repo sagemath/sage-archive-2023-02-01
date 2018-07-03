@@ -28,7 +28,7 @@ cd src/
 for p in \
     aclib cohomolo-1.6.4 corelg crime ctbllib cryst crystcat design factint gbnp grape \
     guava-3.13 Hap1.11 HAPcryst happrime hecke laguna liealgdb liepring liering loops mapclass nq-2.5.3 polymaking \
-    QPA-1.25 quagroup repsn sla sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
+    QPA-1.24 quagroup repsn sla sonata toric1.8 polycyclic-2.11 autpgrp Alnuth-3.0.0 atlasrep
 do
     echo "Copying package $p"
     cp -r $p "$PKG_DIR"

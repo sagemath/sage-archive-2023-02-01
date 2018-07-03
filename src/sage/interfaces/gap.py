@@ -1554,7 +1554,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     g.eval('SetUserPreference("HistoryMaxLines", 30)')
     for pkg in ['GAPDoc', 'ctbllib', 'sonata', 'guava', 'factint', \
                 'gapdoc', 'grape', 'design', \
-                'toric', 'laguna', 'braid']:
+                'toric', 'laguna', 'braid', 'polycyclic', 'nq']:
         # NOTE: Do *not* autoload hap - it screws up PolynomialRing(Rationals,2)
         try:
             g.load_package(pkg, verbose=verbose)

@@ -20,7 +20,6 @@ from sage.categories.rings import Rings
 from sage.categories.algebras_with_basis import AlgebrasWithBasis
 from sage.categories.commutative_algebras import CommutativeAlgebras
 from sage.categories.coalgebras_with_basis import CoalgebrasWithBasis
-from sage.categories.tensor import TensorProductsCategory, tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.alphabet import Alphabet
 from sage.combinat.words.words import Words
@@ -30,6 +29,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.sets.family import Family
+
 
 class ShuffleAlgebra(CombinatorialFreeModule):
     r"""

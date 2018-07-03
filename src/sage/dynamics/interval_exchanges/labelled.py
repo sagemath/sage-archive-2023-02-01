@@ -750,9 +750,8 @@ def LabelledPermutationsIET_iterator(nintervals=None,
         b a c
         *****
     """
-    from builtins import map
     from itertools import product
-    from six.moves import filter
+    from six.moves import filter, map
     from sage.combinat.permutation import Permutations
 
     if not irreducible:
@@ -2384,8 +2383,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from builtins import map
-        from six.moves import filter
+        from six.moves import filter, map
 
         g = self.path(start)
 
@@ -2423,8 +2421,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             [1 1]
             *****
         """
-        from builtins import map
-        from six.moves import filter
+        from six.moves import filter, map
 
         g = self.path(start)
 

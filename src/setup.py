@@ -895,7 +895,10 @@ class sage_install(install):
             use ``data_files`` for this.
         """
         from sage.repl.ipython_kernel.install import SageKernelSpec
-        SageKernelSpec.update()
+        # Jupyter packages typically use the data_files option to
+        # setup() to install kernels and nbextensions. So we should use
+        # the install_data directory for installing our Jupyter files.
+        SageKernelSpec.update(prefix=self.install_data)
 
     def clean_stale_files(self):
         """

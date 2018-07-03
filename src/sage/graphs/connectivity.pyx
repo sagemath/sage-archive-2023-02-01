@@ -1167,7 +1167,8 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
     r"""
     Return the vertex connectivity of the graph.
 
-    For more information, see the :wikipedia:`Connectivity_(graph_theory)`.
+    For more information, see :wikipedia:`Connectivity_(graph_theory)` and
+    :wikipedia:`K-vertex-connected_graph`.
 
     .. NOTE::
 
@@ -1316,6 +1317,21 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
         Traceback (most recent call last):
         ...
         TypeError: the input must be a Sage graph
+
+    Complete Graph with loops or multiple edges (:trac:`25589`)::
+
+        sage: G = Graph([(0, 1), (0, 1)], multiedges=True)
+        sage: G.vertex_connectivity()
+        1
+        sage: G = graphs.CompleteGraph(4)
+        sage: G.allow_loops(True)
+        sage: G.add_edge(0, 0)
+        sage: G.vertex_connectivity(value_only=False, verbose=1)
+        (3, [])
+        sage: G.allow_multiple_edges(True)
+        sage: G.add_edge(0, 1)
+        sage: G.vertex_connectivity(value_only=False, verbose=1)
+        (3, [])
     """
     from sage.graphs.generic_graph import GenericGraph
     if not isinstance(G, GenericGraph):
@@ -1340,7 +1356,8 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
         value_only = False
 
     # When the graph is complete, the MILP below is infeasible.
-    if g.is_clique(directed_clique=g.is_directed()):
+    if (g.is_clique(directed_clique=g.is_directed()) \
+        or (not g.is_directed() and g.to_simple().is_clique())):
         if k is not None:
             return g.order() > k
         if value_only:

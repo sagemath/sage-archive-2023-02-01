@@ -206,7 +206,7 @@ def _lagrange_polynomial(R, eval_pts, values):
 
 
 class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
-    """
+    r"""
     A general implementation of univariate skew polynomialring over a commutative ring.
 
     Let `R` be a commutative ring, and let `\sigma` be an automorphism of
@@ -902,7 +902,7 @@ class SkewPolynomialRing_general(Algebra, UniqueRepresentation):
         return _minimal_vanishing_polynomial(_base_ring_to_fraction_field(self), eval_pts)
 
     def lagrange_polynomial(self, points):
-        """
+        r"""
         Return the minimal-degree polynomial which interpolates the given
         points.
 

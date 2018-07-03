@@ -1397,7 +1397,7 @@ class AbstractTree(object):
         return "".join(["%x" % len(self)] + [u.to_hexacode() for u in self])
 
     def tree_factorial(self):
-        """
+        r"""
         Return the tree-factorial of ``self``.
 
         Definition:
@@ -1460,7 +1460,7 @@ class AbstractTree(object):
         begin_env = "\\begin{tikzpicture}[auto]\n"
         end_env = "\\end{tikzpicture}"
         # it uses matrix trick to place each node
-        matrix_begin = "\\matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\&]{\n"
+        matrix_begin = "\\matrix[column sep=.3cm, row sep=.3cm,ampersand replacement=\\&]{\n"
         matrix_end = "\\\\\n};\n"
         # a basic path to each edges
         path_begin = "\\path[ultra thick, red] "

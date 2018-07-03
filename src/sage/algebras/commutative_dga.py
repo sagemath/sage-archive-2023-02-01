@@ -1,4 +1,4 @@
-"""
+r"""
 Commutative Differential Graded Algebras
 
 An algebra is said to be *graded commutative* if it is endowed with a

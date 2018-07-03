@@ -183,8 +183,9 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
 
         return super(CartesianProductFunctor, self).__call__(args, **kwds)
 
+
 class CartesianProductsCategory(CovariantConstructionCategory):
-    """
+    r"""
     An abstract base class for all ``CartesianProducts`` categories.
 
     TESTS::

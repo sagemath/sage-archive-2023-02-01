@@ -597,8 +597,9 @@ def RandomHolmeKim(n, m, p, seed=None):
     import networkx
     return Graph(networkx.powerlaw_cluster_graph(n, m, p, seed=seed))
 
+
 def RandomIntervalGraph(n):
-    """
+    r"""
     Returns a random interval graph.
 
     An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
@@ -684,8 +685,9 @@ def RandomLobster(n, p, q, seed=None):
     import networkx
     return Graph(networkx.random_lobster(n, p, q, seed=seed))
 
+
 def RandomTree(n):
-    """
+    r"""
     Returns a random tree on `n` nodes numbered `0` through `n-1`.
 
     By Cayley's theorem, there are `n^{n-2}` trees with vertex
@@ -794,9 +796,10 @@ def RandomTreePowerlaw(n, gamma=3, tries=100, seed=None):
     except networkx.NetworkXError:
         return False
 
+
 def RandomRegular(d, n, seed=None):
-    """
-    Returns a random d-regular graph on n vertices, or returns False on
+    r"""
+    Return a random d-regular graph on n vertices, or returns False on
     failure.
 
     Since every edge is incident to two vertices, n\*d must be even.

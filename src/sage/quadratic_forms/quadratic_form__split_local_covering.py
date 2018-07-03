@@ -22,7 +22,7 @@ from sage.arith.all import GCD
 
 
 def cholesky_decomposition(self, bit_prec = 53):
-    """
+    r"""
     Give the Cholesky decomposition of this quadratic form `Q` as a real matrix
     of precision ``bit_prec``.
 
@@ -82,7 +82,6 @@ def cholesky_decomposition(self, bit_prec = 53):
         [ 1.00000000000000  1.00000000000000  1.50000000000000]
         [0.000000000000000  3.00000000000000 0.333333333333333]
         [0.000000000000000 0.000000000000000  3.41666666666667]
-
     """
 
     ## Check that the precision passed is allowed.

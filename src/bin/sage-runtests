@@ -33,6 +33,9 @@ if __name__ == "__main__":
     parser.add_option("--sagenb", action="store_true", default=False, help="test all files from the Sage notebook sources")
 
     parser.add_option("-l", "--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
+    parser.add_option("-s", "--short", dest="target_walltime", default=None, action="callback",
+        callback=optional_argument, callback_args=(int, 300), nargs=0,
+        metavar="SECONDS", help="run as many doctests as possible in about 300 seconds (or the number of seconds given as an optional argument)")
     parser.add_option("--warn-long", dest="warn_long", default=None, action="callback",
         callback=optional_argument, callback_args=(float, 1.0), nargs=0,
         metavar="SECONDS", help="warn if tests take more time than SECONDS")

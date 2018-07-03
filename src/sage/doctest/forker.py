@@ -425,6 +425,8 @@ class SageSpoofInOut(SageObject):
             result += b"\n"
         return bytes_to_str(result)
 
+from collections import namedtuple
+TestResults = namedtuple('TestResults', 'failed attempted')
 
 class SageDocTestRunner(doctest.DocTestRunner, object):
     def __init__(self, *args, **kwds):
@@ -466,6 +468,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         self.references = []
         self.setters = {}
         self.running_global_digest = hashlib.md5()
+        self.total_walltime_skips = 0
+        self.total_performed_tests = 0
+        self.total_walltime = 0
 
     def _run(self, test, compileflags, out):
         """
@@ -502,7 +507,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
         set_globals(test.globs)
 
         # Keep track of the number of failures and tries.
-        failures = tries = 0
+        failures = tries = walltime_skips = 0
         quiet = False
 
         # Save the option flags (since option directives can be used
@@ -535,12 +540,19 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     else:
                         self.optionflags &= ~optionflag
 
+            # Skip this test if we exceeded our --short budget of walltime for
+            # this doctest
+            if self.options.target_walltime is not None and self.total_walltime >= self.options.target_walltime:
+                walltime_skips += 1
+                self.optionflags |= doctest.SKIP
+
             # If 'SKIP' is set, then skip this example.
             if self.optionflags & doctest.SKIP:
                 continue
-
+            
             # Record that we started this example.
             tries += 1
+
             # We print the example we're running for easier debugging
             # if this file times out or crashes.
             with OriginalSource(example):
@@ -656,6 +668,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                                            self.optionflags):
                         outcome = SUCCESS
 
+            self.total_walltime += example.walltime
+
             # Report the outcome.
             if outcome is SUCCESS:
                 if self.options.warn_long and example.walltime > self.options.warn_long:
@@ -679,7 +693,9 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
 
         # Record and return the number of failures and tries.
         self._DocTestRunner__record_outcome(test, failures, tries)
-        return doctest.TestResults(failures, tries)
+        self.total_walltime_skips += walltime_skips
+        self.total_performed_tests += tries
+        return TestResults(failures, tries)
 
     def run(self, test, compileflags=None, out=None, clear_globs=True):
         """
@@ -1462,6 +1478,8 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                 D[key] = []
             if hasattr(self, key):
                 D[key].append(self.__dict__[key])
+        D['tests'] = self.total_performed_tests
+        D['walltime_skips'] = self.total_walltime_skips
         if hasattr(self, 'failures'):
             D['failures'] = self.failures
             return self.failures
@@ -1617,6 +1635,7 @@ class DocTestDispatcher(SageObject):
             Killing test .../test1.py
         """
         opt = self.controller.options
+
         source_iter = iter(self.controller.sources)
 
         # If timeout was 0, simply set a very long time
@@ -1631,6 +1650,15 @@ class DocTestDispatcher(SageObject):
             die_timeout = 600
         elif die_timeout < 60:
             die_timeout = 60
+
+        # If we think that we can not finish running all tests until
+        # target_endtime, we skip individual tests. (Only enabled with
+        # --short.)
+        if opt.target_walltime is None:
+            target_endtime = None
+        else:
+            target_endtime = time.time() + opt.target_walltime
+        pending_tests = len(self.controller.sources)
 
         # List of alive DocTestWorkers (child processes). Workers which
         # are done but whose messages have not been read are also
@@ -1742,6 +1770,8 @@ class DocTestDispatcher(SageObject):
                             w.output,
                             pid=w.pid)
 
+                        pending_tests -= 1
+
                         restart = True
                         follow = None
 
@@ -1758,7 +1788,11 @@ class DocTestDispatcher(SageObject):
                             source_iter = None
                         else:
                             # Start a new worker.
-                            w = DocTestWorker(source, options=opt, funclist=[sel_exit])
+                            import copy
+                            worker_options = copy.copy(opt)
+                            if target_endtime is not None:
+                                worker_options.target_walltime = (target_endtime - now)/(max(1, pending_tests/opt.nthreads))
+                            w = DocTestWorker(source, options=worker_options, funclist=[sel_exit])
                             heading = self.controller.reporter.report_head(w.source)
                             if not self.controller.options.only_errors:
                                 w.messages = heading + "\n"
@@ -2338,7 +2372,7 @@ class DocTestTask(object):
             runner.basename = self.source.basename
             runner.filename = self.source.path
             N = options.file_iterations
-            results = DictAsObject(dict(walltime=[],cputime=[],err=None))
+            results = DictAsObject(dict(walltime=[],cputime=[],err=None,walltime_skips=0))
 
             # multiprocessing.Process instances don't run exit
             # functions, so we run the functions added by doctests

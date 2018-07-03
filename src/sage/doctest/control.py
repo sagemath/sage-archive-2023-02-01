@@ -106,6 +106,7 @@ class DocTestDefaults(SageObject):
         self.failed = False
         self.new = False
         self.show_skipped = False
+        self.target_walltime = None
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")

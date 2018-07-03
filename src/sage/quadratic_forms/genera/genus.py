@@ -29,8 +29,11 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     INPUT:
 
     - ``sig_vec`` -- a pair of non-negative integers giving the signature
+
     - ``determinant`` -- an integer the sign is ignored
+
     - ``max_level`` -- (default: ``True``) an integer the maximum level of a jordan block
+
     - ``even`` -- bool (default: ``True``)
 
     OUTPUT:
@@ -111,9 +114,13 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     INPUT:
 
     - ``p`` -- a prime number
+
     - ``rank`` -- the rank of this genus
+
     - ``det_val`` -- valuation of the determinant at p
+
     - ``max_level`` -- an integer the maximal level of a jordan block
+
     - ``even`` -- ``bool``; is igored if `p` is not `2`
 
     EXAMPLES::
@@ -177,6 +184,8 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     # further restrictions apply and are defered to _blocks
     # (brute force sieving is too slow)
     # TODO: If this is too slow, enumerate only the canonical symbols.
+    # as a drawback one has to reconstruct the symbol from the canonical symbol
+    # this is more work for the programmer
     if p == 2:
         for g in levels_rks:
             n = len(g)
@@ -207,26 +216,21 @@ def _blocks(b, even_only=False):
 
     - ``b`` -- a list of `5` non-negative integers the first two are kept
       and all possibilities for the remaining `3` are enumerated
+
     - ``even_only`` -- bool (default: ``True``) if set, the blocks are even
 
     EXAMPLES::
 
-        sage: from sage.genera.genus.genus import _blocks
-        sage: _blocks([15,2,0,0,0])
+        sage: from sage.quadratic_forms.genera.genus import _blocks
+        sage: _blocks([15, 2, 0, 0, 0])
         [[15, 2, 3, 0, 0],
-        [15, 2, 7, 0, 0],
-        [15, 2, 1, 1, 0],
-        [15, 2, 1, 1, 2],
-        [15, 2, 1, 1, 6],
-        [15, 2, 7, 1, 0],
-        [15, 2, 7, 1, 2],
-        [15, 2, 7, 1, 6],
-        [15, 2, 3, 1, 2],
-        [15, 2, 3, 1, 4],
-        [15, 2, 3, 1, 6],
-        [15, 2, 5, 1, 2],
-        [15, 2, 5, 1, 4],
-        [15, 2, 5, 1, 6]]
+         [15, 2, 7, 0, 0],
+         [15, 2, 1, 1, 2],
+         [15, 2, 5, 1, 6],
+         [15, 2, 1, 1, 6],
+         [15, 2, 5, 1, 2],
+         [15, 2, 7, 1, 0],
+         [15, 2, 3, 1, 4]]
     """
     blocks = []
     rk = b[1]

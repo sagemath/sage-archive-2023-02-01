@@ -672,9 +672,10 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
             INPUT:
 
-            -  ``nu`` -- a partition
+            -  ``nu`` -- a partition or a list of integers
 
-            - ``t`` -- a parameter (default: None, in this case `t` is used)
+            - ``t`` -- (default: ``None``, in which case ``t`` is used) an
+              element of the base ring
 
             REFERENCES:
 

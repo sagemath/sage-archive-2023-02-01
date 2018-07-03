@@ -5269,9 +5269,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         INPUT:
 
-        - ``nu`` -- a partition
+        - ``nu`` -- a partition or a list of integers
 
-        - ``t`` -- (default: ``None``, in which case ``t`` is used) a parameter
+        - ``t`` -- (default: ``None``, in which case ``t`` is used) an element
+          of the base ring
 
         REFERENCES:
 
@@ -5298,26 +5299,37 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             0
             sage: s([3,2]).hl_creation_operator([2,1,1])
             (t^2-t)*s[2, 2, 2, 2, 1] + t^3*s[3, 2, 2, 1, 1] + (t^3-t^2)*s[3, 2, 2, 2] + t^3*s[3, 3, 1, 1, 1] + t^4*s[3, 3, 2, 1] + t^3*s[4, 2, 1, 1, 1] + t^4*s[4, 2, 2, 1] + 2*t^4*s[4, 3, 1, 1] + t^5*s[4, 3, 2] + t^5*s[4, 4, 1] + t^4*s[5, 2, 1, 1] + t^5*s[5, 3, 1]
+            sage: s([3,2]).hl_creation_operator([-2])
+            (-t^2+t)*s[1, 1, 1] + (-t^2+1)*s[2, 1]
+            sage: s([3,2]).hl_creation_operator(-2)
+            Traceback (most recent call last):
+            ...
+            TypeError: nu must be a list of integers
 
         TESTS::
 
             sage: s(0).hl_creation_operator([1])
             0
+            sage: s.one().hl_creation_operator([2,-1])
+            0
         """
+        if not (isinstance(nu,list) and
+                all(isinstance(a,(int,Integer)) for a in nu)):
+            raise ValueError("nu must be a list of integers"%(nu))
         s = self.parent().realization_of().schur()
         if t is None:
             if hasattr(self.parent(),"t"):
                 t = self.parent().t
             else:
-                t = QQ['t'].gen()
+                t = self.parent().base_ring()('t')
         P = self.parent()
-        self = s(self)
-        return P(self*s(nu) +
-                 s.sum( s.sum_of_terms( (lam,c) for lam, c in s(mu)*s(nu) if len(lam) <= len(nu) ) *
-                        self.skew_by(s(mu).plethysm((t-1)*s([1])))
-                        for d in range(self.degree())
-                        for mu in Partitions(d+1, max_length=len(nu)) )
-                )
+        def bco(nu, f):
+            # repeated Bernstein creation operator
+            for a in nu[::-1]:
+                f = f.bernstein_creation_operator(a)
+            return f
+        return P(s.sum(t**la.size()*c*s(la)*bco(nu,s(mu)((1-t)*s[1])) for \
+            ((la,mu),c) in s(self).coproduct()))
 
     def eval_at_permutation_roots(self, rho):
         r"""

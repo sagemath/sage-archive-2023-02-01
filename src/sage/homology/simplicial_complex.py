@@ -184,8 +184,9 @@ lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import rename_keyword
 
+
 def lattice_paths(t1, t2, length=None):
-    """
+    r"""
     Given lists (or tuples or ...) ``t1`` and ``t2``, think of them as
     labelings for vertices: ``t1`` labeling points on the x-axis,
     ``t2`` labeling points on the y-axis, both increasing.  Return the
@@ -2668,7 +2669,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # Update self._faces.
         # Note: can't iterate over self._faces, because the dictionary
         # size may change during iteration.
-        for L in self._faces.keys():
+        for L in list(self._faces):
             del self._faces[L]
             if L is None or Simplex(face) not in L:
                 self.faces(L)
@@ -2748,7 +2749,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     __add__ = connected_sum
 
     def link(self, simplex, is_mutable=True):
-        """
+        r"""
         The link of a simplex in this simplicial complex.
 
         The link of a simplex `F` is the simplicial complex formed by

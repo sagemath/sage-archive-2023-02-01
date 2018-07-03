@@ -1346,7 +1346,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     return '\n'.join(F)
 
 def implicit_mul(code, level=5):
-    """
+    r"""
     Inserts \*'s to make implicit multiplication explicit.
 
     INPUT:

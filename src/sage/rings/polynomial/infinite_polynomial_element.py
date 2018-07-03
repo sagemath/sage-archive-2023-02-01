@@ -1,4 +1,4 @@
-"""
+r"""
 Elements of Infinite Polynomial Rings
 
 AUTHORS:
@@ -6,7 +6,7 @@ AUTHORS:
 - Simon King <simon.king@nuigalway.ie>
 - Mike Hansen <mhansen@gmail.com>
 
-An Infinite Polynomial Ring has generators `x_\\ast, y_\\ast,...`, so
+An Infinite Polynomial Ring has generators `x_\ast, y_\ast,...`, so
 that the variables are of the form `x_0, x_1, x_2, ..., y_0, y_1,
 y_2,...,...` (see :mod:`~sage.rings.polynomial.infinite_polynomial_ring`).
 Using the generators, we can create elements as follows::
@@ -1196,7 +1196,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     ## Essentials for Buchberger
     def reduce(self, I, tailreduce=False, report=None):
-        """
+        r"""
         Symmetrical reduction of ``self`` with respect to a symmetric ideal (or list of Infinite Polynomials).
 
         INPUT:

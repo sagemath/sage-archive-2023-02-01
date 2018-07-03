@@ -145,7 +145,7 @@ You can work with subcones that form faces of other cones::
 If you need to know inclusion relations between faces, you can use ::
 
     sage: L = four_rays.face_lattice()
-    sage: list(map(len, L.level_sets()))
+    sage: [len(s) for s in L.level_sets()]
     [1, 4, 4, 1]
     sage: face = L.level_sets()[2][0]
     sage: face.rays()
@@ -200,7 +200,7 @@ from sage.combinat.posets.posets import FinitePoset
 from sage.geometry.point_collection import PointCollection
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
-from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
+from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice, \
     is_ToricLatticeQuotient
 from sage.geometry.toric_plotter import ToricPlotter, label_list
@@ -449,7 +449,7 @@ def Cone(rays, lattice=None, check=True, normalize=True):
 
 
 def _Cone_from_PPL(cone, lattice, original_rays=None):
-    """
+    r"""
     Construct a cone from a :class:`~sage.libs.ppl.Polyhedron`.
 
     This is a private function and not intended to be exposed to the
@@ -1513,7 +1513,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
             sage: C = Cone([(1,0)])
             sage: C.face_lattice()
-            Finite poset containing 2 elements with distinguished linear extension
+            Finite lattice containing 2 elements with distinguished linear extension
             sage: C._test_pickling()
             sage: C2 = loads(dumps(C)); C2
             1-d cone in 2-d lattice N
@@ -2235,7 +2235,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: L = quadrant.face_lattice()
             sage: L
-            Finite poset containing 4 elements with distinguished linear extension
+            Finite lattice containing 4 elements with distinguished linear extension
 
         To see all faces arranged by dimension, you can do this::
 
@@ -2300,7 +2300,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: supercone = Cone([(1,2,3,4), (5,6,7,8),
             ....:                   (1,2,4,8), (1,3,9,7)])
             sage: supercone.face_lattice()
-            Finite poset containing 16 elements with distinguished linear extension
+            Finite lattice containing 16 elements with distinguished linear extension
             sage: supercone.face_lattice().top()
             4-d cone in 4-d lattice N
             sage: cone = supercone.facets()[0]
@@ -2362,7 +2362,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     # and there is only a conversion (no coercion)
                     # between them as of Trac ticket #10513.
                     try:
-                        _ = S(ray)
+                        S(ray)
                         subspace_rays.append(i)
                     except (TypeError, ValueError):
                         facets = [j for j, normal in enumerate(normals)
@@ -2387,7 +2387,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                     else:
                         return self
 
-                self._face_lattice = Hasse_diagram_from_incidences(
+                self._face_lattice = lattice_from_incidences(
                                     atom_to_facets, facet_to_atoms, ConeFace,
                                     key = id(self))
             else:
@@ -4199,7 +4199,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.
                 try:
-                    _ = linear_subspace(x)
+                    linear_subspace(x)
                     return False
                 except (TypeError, ValueError):
                     return True
@@ -6457,12 +6457,11 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
         else:
             if K.lattice() is not lattice:
                 return False
-        return all([
-            K.nrays() >= min_rays,
-            K.nrays() <= max_rays or max_rays is None,
-            K.is_solid() == solid or solid is None,
-            K.is_strictly_convex() == strictly_convex or strictly_convex is None
-            ])
+        return all([K.nrays() >= min_rays,
+                    max_rays is None or K.nrays() <= max_rays,
+                    solid is None or K.is_solid() == solid,
+                    strictly_convex is None or
+                    K.is_strictly_convex() == strictly_convex])
 
     # Now we actually compute the thing. To avoid recursion (and the
     # associated "maximum recursion depth exceeded" error), we loop
@@ -6544,7 +6543,7 @@ def random_cone(lattice=None, min_ambient_dim=0, max_ambient_dim=None,
 
                     # rays has immutable elements
                     from copy import copy
-                    rays = map(copy, rays)
+                    rays = [copy(ray) for ray in rays]
 
                     for i, ray in enumerate(rays):
                         rays[i][0] = pm * (ray[0].abs() + 1)

@@ -31,7 +31,7 @@ import six
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
 def SymmetricGroupAlgebra(R, W, category=None):
-    """
+    r"""
     Return the symmetric group algebra of order ``W`` over the ring ``R``.
 
     INPUT:
@@ -548,7 +548,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         # sanitizing of right_action_product.
 
     def canonical_embedding(self, other):
-        """
+        r"""
         Return the canonical coercion of ``self`` into a symmetric
         group algebra ``other``.
 
@@ -685,7 +685,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         return Poset([Partitions(self.n), lambda x,y: x.dominates(y)])
 
     def cell_module_indices(self, la):
-        """
+        r"""
         Return the indices of the cell module of ``self``
         indexed by ``la`` .
 
@@ -1787,7 +1787,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
 epsilon_ik_cache = {}
 def epsilon_ik(itab, ktab, star=0):
-    """
+    r"""
     Return the seminormal basis element of the symmetric group
     algebra `\QQ S_n` corresponding to the pair of tableaux
     ``itab`` and ``ktab`` (or restrictions of these tableaux,
@@ -2603,7 +2603,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         return [self.t(_) for _ in range(1, self.n)]
 
     def jucys_murphy(self, k):
-        """
+        r"""
         Return the Jucys-Murphy element `J_k` of the Hecke algebra.
 
         These Jucys-Murphy elements are defined by

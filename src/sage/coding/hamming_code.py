@@ -144,7 +144,7 @@ class HammingCode(AbstractLinearCode):
         m = n - self.dimension()
         MS = MatrixSpace(F,n,m)
         X = ProjectiveSpace(m-1,F)
-        PFn = [list(p) for p in X.point_set(F).points(F)]
+        PFn = [list(p) for p in X.point_set(F).points()]
 
         H = MS(PFn).transpose()
         H = H[::-1, :]

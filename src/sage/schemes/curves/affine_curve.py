@@ -1100,7 +1100,7 @@ class AffinePlaneCurve(AffineCurve):
         return v
 
     def plot(self, *args, **kwds):
-        """
+        r"""
         Plot the real points on this affine plane curve.
 
         INPUT:
@@ -1583,8 +1583,8 @@ class AffinePlaneCurve_prime_finite_field(AffinePlaneCurve_finite_field):
     # CHECK WHAT ASSUMPTIONS ARE MADE REGARDING AFFINE VS. PROJECTIVE MODELS!!!
     # THIS IS VERY DIRTY STILL -- NO DATASTRUCTURES FOR DIVISORS.
 
-    def riemann_roch_basis(self,D):
-        """
+    def riemann_roch_basis(self, D):
+        r"""
         Interfaces with Singular's BrillNoether command.
 
         INPUT:

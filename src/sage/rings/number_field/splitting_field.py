@@ -124,7 +124,7 @@ class SplittingData:
 
 
 def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=None, simplify=True, simplify_all=False):
-    """
+    r"""
     Compute the splitting field of a given polynomial, defined over a
     number field.
 

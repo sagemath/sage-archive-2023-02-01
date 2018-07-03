@@ -597,8 +597,34 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get_string('concat([string(1) for i in 1..10000])') == "1"*10000    # optional - fricas
             True
 
+        A problem with leading space::
+
+            sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
+            sage: fricas.get_string(s)                                                       # optional - fricas
+            '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
+
+        Check that :trac:`25628` is fixed::
+
+            sage: var("a b"); f = 1/(1+a*cos(x))                                # optional - fricas
+            (a, b)
+            sage: lF = integrate(f, x, algorithm="fricas")                      # optional - fricas
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: f = 1/(b*x^2+a); lF = integrate(f, x, algorithm="fricas"); lF # optional - fricas
+            [1/2*log((2*a*b*x + (b*x^2 - a)*sqrt(-a*b))/(b*x^2 + a))/sqrt(-a*b),
+             arctan(sqrt(a*b)*x/a)/sqrt(a*b)]
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+
         """
-        return self.get(str(var)).replace("\n", "")[1:-1]
+        # strip removes leading and trailing whitespace, after that
+        # we can assume that the first and the last character are
+        # double quotes
+        return self.get(str(var)).replace("\n", "").strip()[1:-1]
 
     def get_integer(self, var):
         """
@@ -1097,14 +1123,14 @@ class FriCASElement(ExpectElement):
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN,
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I,
              1.11976951499863,
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN]
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I]
             sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
             sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
             [0.716297870199024,

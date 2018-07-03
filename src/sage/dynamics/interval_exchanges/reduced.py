@@ -459,8 +459,7 @@ def ReducedPermutationsIET_iterator(
         a b c
         c b a
     """
-    from builtins import map
-    from six.moves import filter
+    from six.moves import filter, map
     from sage.combinat.permutation import Permutations
 
     if irreducible is False:

@@ -599,7 +599,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         return self.orbit(f,[n,n+1])[0]
 
     def _forward_image(self, f, check = True):
-        """
+        r"""
         Compute the forward image of this subscheme by the morphism ``f``.
 
         The forward image is computed through elimination and ``f`` must be

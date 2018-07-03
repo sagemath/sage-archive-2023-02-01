@@ -289,12 +289,12 @@ cdef class Morphism(Map):
             sage: S = SymmetricGroup(4)
             sage: phi = Hom(S, ZZ)(lambda x: ZZ(x.sign()))
             sage: x = S.an_element(); x
-            (1,2,3,4)
+            (2,3,4)
             sage: phi(x)
-            -1
+            1
             sage: phi.register_as_conversion()
             sage: ZZ(x)
-            -1
+            1
         """
         self._codomain.register_conversion(self)
 

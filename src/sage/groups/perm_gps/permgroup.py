@@ -138,7 +138,7 @@ from six import integer_types
 from functools import wraps
 
 from sage.misc.randstate import current_randstate
-import sage.groups.old as group
+from sage.groups.group import FiniteGroup
 
 from sage.rings.all import QQ, Integer
 from sage.interfaces.expect import is_ExpectElement
@@ -347,7 +347,7 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
 
 
 @richcmp_method
-class PermutationGroup_generic(group.FiniteGroup):
+class PermutationGroup_generic(FiniteGroup):
     """
     A generic permutation group.
 
@@ -404,8 +404,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: TestSuite(PermutationGroup([(0,1)])).run()
         """
         from sage.categories.permutation_groups import PermutationGroups
-        category = PermutationGroups().FinitelyGenerated().Finite() \
-                   .or_subcategory(category)
+        category = PermutationGroups().FinitelyGenerated().Finite().or_subcategory(category)
         super(PermutationGroup_generic, self).__init__(category=category)
         if (gens is None and gap_group is None):
             raise ValueError("you must specify gens or gap_group")
@@ -440,7 +439,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         if not gens:  # length 0
             gens = [()]
-        gens = [self._element_class()(x, self, check=False) for x in gens]
+        gens = [self.element_class(x, self, check=False) for x in gens]
         if canonicalize:
             gens = sorted(set(gens))
         self._gens = gens
@@ -600,22 +599,9 @@ class PermutationGroup_generic(group.FiniteGroup):
             return rich_to_bool(op, -1)
         return rich_to_bool(op, gapcmp)
 
-    def _element_class(self):
-        r"""
-        Return the class to be used for creating elements of this group. By
-        default this is
-        ``sage.groups.perm_gps.permgroup_element.PermutationGroupElement``, but
-        it may be overridden in derived subclasses (most importantly
-        ``sage.rings.number_field.galois_group.GaloisGroup_v2``).
+    Element = PermutationGroupElement
 
-        EXAMPLES::
-
-            sage: AlternatingGroup(17)._element_class()
-            <type 'sage.groups.perm_gps.permgroup_element.PermutationGroupElement'>
-        """
-        return PermutationGroupElement
-
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         """
         Coerce ``x`` into this permutation group.
 
@@ -666,25 +652,47 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             TypeError: permutation [(1, 2)] not in Permutation Group with generators [(1,2,3,4)]
         """
-        try:
-            if x.parent() is self:
-                return x
-        except AttributeError:
-            pass
-
         if isinstance(x, integer_types + (Integer,)) and x == 1:
             return self.identity()
 
-        return self._element_class()(x, self, check=check)
+        if isinstance(x, PermutationGroupElement):
+            x_parent = x.parent()
+            if (isinstance(x_parent, PermutationGroup_subgroup)
+                and x_parent._ambient_group is self):
+                return self.element_class(x.cycle_tuples(), self, check=False)
 
-    def _coerce_impl(self, x):
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            compatible_domains = all(point in self._domain_to_gap
+                                     for point in x_parent.domain())
+            if compatible_domains and (isinstance(self, SymmetricGroup)
+                                       or x._gap_() in self._gap_()):
+                return self.element_class(x.cycle_tuples(), self, check=False)
+
+        return self.element_class(x, self, check=check)
+
+    def _coerce_map_from_(self, G):
         r"""
-        Implicit coercion of ``x`` into ``self``.
+        Return if there is a coercion map from ``G`` into ``self``.
 
         EXAMPLES:
 
-        We illustrate some arithmetic that involves implicit
-        coercion of elements in different permutation groups::
+        We have coercion maps from subgroups::
+
+            sage: G = SymmetricGroup(5)
+            sage: H = G.subgroup([[(1,2,3)], [(4,5)]])
+            sage: G._coerce_map_from_(H)
+            True
+            sage: K = H.subgroup([[(1,2,3)]])
+            sage: H.has_coerce_map_from(K)
+            True
+            sage: G.has_coerce_map_from(K)
+            True
+            sage: G = PermutationGroup([[(1,2)], [(3,4,5)], [(2,3)]])
+            sage: G.has_coerce_map_from(K)
+            True
+
+        We illustrate some arithmetic that involves coercion
+        of elements in different permutation groups::
 
             sage: g1 = PermutationGroupElement([(1,2),(3,4,5)])
             sage: g1.parent()
@@ -699,25 +707,23 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: g2*g1
             (3,4,5)
 
-        We try to implicitly coerce in a non-permutation, which raises a
-        TypeError::
+        We try to convert in a non-permutation::
 
             sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
-            sage: G._coerce_impl(1)
+            sage: G(2)
             Traceback (most recent call last):
             ...
-            TypeError: no implicit coercion of element into permutation group
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
         """
-        from .permgroup_named import SymmetricGroup
-        if isinstance(x, PermutationGroupElement):
-            x_parent = x.parent()
-            if x_parent is self:
-                return x
-
-            compatible_domains = all(point in self._domain_to_gap for point in x_parent.domain())
-            if  compatible_domains and (self.__class__ == SymmetricGroup or x._gap_() in self._gap_()):
-                return self._element_class()(x.cycle_tuples(), self, check=False)
-        raise TypeError("no implicit coercion of element into permutation group")
+        if isinstance(G, PermutationGroup_subgroup):
+            if G._ambient_group is self:
+                return True
+            if self.has_coerce_map_from(G._ambient_group):
+                return self._coerce_map_via([G._ambient_group], G)
+        if isinstance(G, PermutationGroup_generic):
+            if G.is_subgroup(self):
+                return True
+        return super(PermutationGroup_generic, self)._coerce_map_from_(G)
 
 
     def _coerce_map_from_(self, G):
@@ -804,12 +810,13 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: [('a', 'b')] in G
             True
         """
+        if isinstance(item, integer_types + (Integer,)):
+            return item == 1
         try:
-            item = self(item, check=True)
+            item = self._element_constructor_(item, check=True)
         except Exception:
             return False
         return True
-
 
     def has_element(self, item):
         """
@@ -925,7 +932,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             True
         """
         gens = self._gap_().SmallGeneratingSet()
-        return [self._element_class()(x, self, check=False) for x in gens]
+        return [self.element_class(x, self, check=False) for x in gens]
 
     def gen(self, i=None):
         r"""
@@ -997,7 +1004,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: S.identity()
             ()
         """
-        return self._element_class()([], self, check=True)
+        return self.element_class([], self, check=True)
 
     def exponent(self):
         r"""
@@ -1164,7 +1171,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         ans = self._gap_().RepresentativeAction(self._domain_to_gap[x],
                                                 self._domain_to_gap[y])
-        return self._element_class()(ans, self, check=False)
+        return self.element_class(ans, self, check=False)
 
     @cached_method
     def orbits(self):
@@ -1985,7 +1992,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         cl = self._gap_().ConjugacyClasses()
         n = Integer(cl.Length())
         L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(cl.name(),  cl.name()))
-        return [ConjugacyClassGAP(self,self._element_class()(L[i], self, check=False)) for i in range(1,n+1)]
+        return [ConjugacyClassGAP(self,self.element_class(L[i], self, check=False)) for i in range(1,n+1)]
 
     def conjugate(self, g):
         r"""
@@ -4309,7 +4316,7 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
             TypeError: each generator must be in the ambient group
         """
         if not isinstance(ambient, PermutationGroup_generic):
-            raise TypeError("ambient (=%s) must be perm group."%ambient)
+            raise TypeError("ambient (=%s) must be perm group"%ambient)
         if domain is None:
             domain = ambient.domain()
         if category is None:
@@ -4319,9 +4326,12 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
 
         self._ambient_group = ambient
         if check:
-            for g in self.gens():
-                if g not in ambient:
-                    raise TypeError("each generator must be in the ambient group")
+            from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+            if not isinstance(ambient, SymmetricGroup):
+                ambient_gap_group = ambient._gap_()
+                for g in self.gens():
+                    if g._gap_() not in ambient_gap_group:
+                        raise TypeError("each generator must be in the ambient group")
 
     def __richcmp__(self, other, op):
         r"""

@@ -290,6 +290,7 @@ from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.parallel.decorate import parallel
 from sage.parallel.parallelism import Parallelism
+from sage.symbolic.ring import SR
 
 class TensorFieldParal(FreeModuleTensor, TensorField):
     r"""
@@ -2035,3 +2036,36 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                                      "{} in the {}".format(ind, frame))
                 comp_resu._comp[ind] = val_resu
         return resu
+
+    def series(self, symbol, order=None):
+        from sage.tensor.modules.comp import Components
+        from sage.manifolds.chart_func import ChartFunctionRing
+        if order is None:
+            order = 20
+        res = [0] * (order + 1)
+        for k in range(order + 1):
+            res[k] = self.domain().tensor_field(*self.tensor_type(),
+                                                dest_map=self._fmodule._dest_map,
+                                                sym=self._sym,
+                                                antisym=self._antisym)
+        for frame in self._components:
+            decompo = {}
+            comp = self.comp(frame)
+            res_comp = [0] * (order + 1)
+            for inds in comp.index_generator():
+                decompo[inds] = comp[inds].expr().series(symbol, order+1). \
+                    truncate().coefficients()
+            for k in range(order + 1):
+                res_comp[k] = Components(SR, frame, self.tensor_rank())
+                for inds in comp.index_generator():
+                    res_comp_k = [decompo[inds][l][0] for l in
+                                  range(len(decompo[inds])) if
+                                  decompo[inds][l][1] == k]
+                    res_comp[k][inds] = res_comp_k[0] if len(
+                        res_comp_k) >= 1 else 0
+                res[k].add_comp(frame)[:] = res_comp[k][:]
+        return list(zip(res, list(range(order + 1))))
+
+    def truncate(self, symbol, order):
+        s = self.series(symbol, order)
+        return sum(symbol**i*s[i][0] for i in range(order+1))

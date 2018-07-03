@@ -751,7 +751,7 @@ documentation for math blocks
        \begin{align}
           1+...+n &= n(n+1)/2\\
           &= O(n^2)\\
-       \end{tabular}
+       \end{align}
 
 .. MATH::
    :nowrap:

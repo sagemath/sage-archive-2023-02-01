@@ -887,7 +887,7 @@ structures like the dihedral groups::
     sage: G.cardinality()
     8
     sage: G.list()
-    [(), (1,4)(2,3), (1,2,3,4), (1,3)(2,4), (1,3), (2,4), (1,4,3,2), (1,2)(3,4)]
+    [(), (1,3)(2,4), (1,4,3,2), (1,2,3,4), (2,4), (1,3), (1,4)(2,3), (1,2)(3,4)]
 
 or the algebra of `2\times 2` matrices over the finite field
 `\ZZ/2\ZZ`::

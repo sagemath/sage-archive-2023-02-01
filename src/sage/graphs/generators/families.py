@@ -2874,15 +2874,15 @@ def MathonPseudocyclicStronglyRegularGraph(t, G=None, L=None):
         sage: ff=list(map(lambda y: (y[0]-1,y[1]-1),
         ....:          Permutation(map(lambda x: 1+r.index(x^-1), r)).cycle_tuples()[1:]))
         sage: L = sum(i*(r[a]-r[b]) for i,(a,b) in zip(range(1,len(ff)+1), ff)); L
-        [ 0  1 -1  2  3 -4 -2  4 -3]
-        [-1  0  1 -4  2  3 -3 -2  4]
-        [ 1 -1  0  3 -4  2  4 -3 -2]
-        [-2  4 -3  0  1 -1  2  3 -4]
-        [-3 -2  4 -1  0  1 -4  2  3]
-        [ 4 -3 -2  1 -1  0  3 -4  2]
-        [ 2  3 -4 -2  4 -3  0  1 -1]
-        [-4  2  3 -3 -2  4 -1  0  1]
-        [ 3 -4  2  4 -3 -2  1 -1  0]
+        [ 0 -1  1 -2 -3 -4  2  4  3]
+        [ 1  0 -1 -4 -2 -3  3  2  4]
+        [-1  1  0 -3 -4 -2  4  3  2]
+        [ 2  4  3  0 -1  1 -2 -3 -4]
+        [ 3  2  4  1  0 -1 -4 -2 -3]
+        [ 4  3  2 -1  1  0 -3 -4 -2]
+        [-2 -3 -4  2  4  3  0 -1  1]
+        [-4 -2 -3  3  2  4  1  0 -1]
+        [-3 -4 -2  4  3  2 -1  1  0]
         sage: G.relabel()
         sage: G3x3=graphs.MathonPseudocyclicStronglyRegularGraph(2,G=G,L=L)
         sage: G3x3.is_strongly_regular(parameters=True)

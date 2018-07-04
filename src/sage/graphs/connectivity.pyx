@@ -51,6 +51,7 @@ Here is what the module can do:
     :meth:`bridges` | Returns a list of the bridges (or cut edges) of given undirected graph.
     :meth:`cleave` | Return the connected subgraphs separated by the input vertex cut.
     :meth:`spqr_tree` | Return a SPQR-tree representing the triconnected components of the graph.
+    :meth:`spqr_tree_to_graph` | Return the graph represented by the SPQR-tree `T`.
 
 Methods
 -------
@@ -2074,6 +2075,9 @@ def spqr_tree(G):
         sage: K4 = graphs.CompleteGraph(4)
         sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
         True
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
 
         sage: G = Graph(2)
         sage: for i in range(3):
@@ -2084,6 +2088,8 @@ def spqr_tree(G):
         sage: C4 = graphs.CycleGraph(4)
         sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
         True
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
 
         sage: G.allow_multiple_edges(True)
         sage: G.add_edges(G.edges())
@@ -2092,29 +2098,40 @@ def spqr_tree(G):
         13
         sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
         True
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
 
         sage: G = graphs.CycleGraph(6)
         sage: spqr_tree(G).order()
         1
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
 
     TESTS::
 
-    sage: G = graphs.PathGraph(4)
-    sage: spqr_tree(G)
-    Traceback (most recent call last):
-    ...
-    ValueError: generation of SPQR trees is only implemented for 2-connected graphs
+        sage: G = graphs.PathGraph(4) 
+        sage: spqr_tree(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: generation of SPQR-trees is only implemented for 2-connected graphs
+        sage: G = Graph([(0, 0)], loops=True)
+        sage: spqr_tree(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: generation of SPQR-trees is only implemented for graphs without loops
     """
     from sage.graphs.graph import Graph
     from collections import Counter
+
+    if G.has_loops():
+        raise ValueError("generation of SPQR-trees is only implemented for graphs without loops")
+
     cut_size, cut_vertices = G.vertex_connectivity(value_only=False)
 
     if cut_size < 2:
-        raise ValueError("generation of SPQR trees is only implemented for 2-connected graphs")
+        raise ValueError("generation of SPQR-trees is only implemented for 2-connected graphs")
     elif cut_size > 2:
-        return Graph({('R', Graph(G, immutable=True)):[]})
-    elif G.is_cycle():
-        return Graph({('S', Graph(G, immutable=True)):[]})
+        return Graph({('R', Graph(G, immutable=True)):[]}, name='SPQR-tree of {}'.format(G.name()))
 
     # Split_multiple_edge Algorithm. If the input graph has multiple edges, we
     # make SG a simple graph while recording virtual edges that will be needed
@@ -2206,7 +2223,7 @@ def spqr_tree(G):
     Tree.add_vertices(SR_blocks)
     for e,num in cocycles_count.items():
         if num:
-            P_block = ('P', Graph([e] * (num + counter_multiedges[e]), multiedges=True, immutable=True))
+            P_block = ('P', Graph([e] * (num + max(0, counter_multiedges[e] - 1)), multiedges=True, immutable=True))
             for block in SR_blocks:
                 # Note: here we use a try...except statement since the immutable
                 # graph backend raises an error if an end vertex of the edge is
@@ -2231,3 +2248,53 @@ def spqr_tree(G):
                     continue
 
     return Tree
+
+def spqr_tree_to_graph(T):
+    r"""
+    Return the graph represented by the SPQR-tree `T`.
+
+    The main purpose of this method is to test :meth:`spqr_tree`.
+
+    INPUT:
+
+    - ``T`` -- a SPQR tree as returned by :meth:`spqr_tree`.
+
+    OUTPUT: a (multi) graph
+
+    EXAMPLES::
+
+        sage: from sage.graphs.connectivity import spqr_tree
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+        sage: G = Graph([(0, 2), (0, 2), (1, 3), (2, 3)], multiedges=True)
+        sage: for i in range(3):
+        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+        sage: for i in range(3):
+        ....:     G.add_clique([2, 3, G.add_vertex(), G.add_vertex()])
+        sage: T = spqr_tree(G)
+        sage: H = spqr_tree_to_graph(T)
+        sage: H.is_isomorphic(G)
+        True
+
+        sage: H = spqr_tree_to_graph(Graph())
+        sage: H.is_isomorphic(Graph())
+        True
+    """
+    from sage.graphs.graph import Graph
+    from collections import Counter
+
+    count_G = Counter()
+    for t,g in T.vertex_iterator():
+        if not t == 'P':
+            count_G.update(g.edge_iterator(labels=False))
+    for t,g in T.vertex_iterator():
+        if t == 'P':
+            count_g = Counter(g.edge_iterator(labels=False))
+            for e,num in count_g.items():
+                count_G[e] = abs(count_g[e] - count_G[e])
+
+    G = Graph(multiedges=True)
+    for e,num in count_G.items():
+        for _ in range(num):
+            G.add_edge(e)
+
+    return G

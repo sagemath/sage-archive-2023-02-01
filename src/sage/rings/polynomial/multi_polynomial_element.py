@@ -1686,11 +1686,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
 
         Check that the global proof flag for polynomials is honored::
 
-            sage: k.<u> = GF(4)
-            sage: R.<v> = k[]
-            sage: l.<v> = R.quo(v^3 + v + 1)
-            sage: R.<x,y> = l[]
-            sage: f = y^3 + x^3 + (u + 1)*x
+            sage: R.<x,y> = QQbar[]
+            sage: f = x^2 + y^2
             sage: with proof.WithProof('polynomial', True):
             ....:     f.factor()
             Traceback (most recent call last):
@@ -1701,7 +1698,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             Traceback (most recent call last):
             ...
             TypeError: no conversion of this ring to a Singular ring defined
-
 
         We check that the original issue in :trac:`7554` is fixed::
 
@@ -1732,6 +1728,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f = z^4 - 6*z + 3
             sage: f.factor()
             (z - 1.60443920904349) * (z - 0.511399619393097) * (z + 1.05791941421830 - 1.59281852704435*I) * (z + 1.05791941421830 + 1.59281852704435*I)
+
+        We check a case that failed with an exception at some point::
+
+            sage: k.<u> = GF(4)
+            sage: R.<v> = k[]
+            sage: l.<v> = R.quo(v^3 + v + 1)
+            sage: R.<x,y> = l[]
+            sage: f = y^3 + x^3 + (u + 1)*x
+            sage: f.factor()
+            x^3 + y^3 + (u + 1)*x
 
         """
         R = self.parent()

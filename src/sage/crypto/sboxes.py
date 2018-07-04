@@ -6,6 +6,7 @@ This module provides the following SBoxes:
 constructions
     - Gold
     - Kasami
+    - Welch
 
 8 bit to 8 bit
     - AES ([DR2002]_)
@@ -189,6 +190,31 @@ def kasami(n, i):
 
     R = PolynomialRing(GF(2**n, name='x'), 'X')
     poly = R.gen()**(2**(2*i) - 2**i + 1)
+    return SBox(poly)
+
+
+def welch(n):
+    """
+    Return the Welch function defined by `x \mapsto x^(2^((n-1)/2) + 3)` over `\GF(2^n)`
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sboxes import welch
+        sage: welch(3)
+        (0, 1, 7, 2, 3, 4, 5, 6)
+
+        sage: welch(3).differential_uniformity()
+        2
+    """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    if n % 2 == 0:
+        raise TypeError("Welch functions are only defined for odd n")
+
+    t = (n - 1) / 2
+    R = PolynomialRing(GF(2**n, name='x'), 'X')
+    poly = R.gen()**(2**t + 3)
     return SBox(poly)
 
 

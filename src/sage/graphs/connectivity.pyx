@@ -59,8 +59,9 @@ from sage.rings.integer import Integer
 
 def is_connected(G):
     """
-    Indicate whether the (di)graph is connected. Note that in a graph,
-    path connected is equivalent to connected.
+    Test whether the (di)graph is connected.
+
+    Note that in a graph, path connected is equivalent to connected.
 
     INPUT:
 
@@ -129,7 +130,7 @@ def connected_components(G, sort=True):
     - ``G`` (generic_graph) -- the input graph.
 
     - ``sort`` -- boolean (default ``True``)
-       whether to sort vertices inside each component
+      whether to sort vertices inside each component
 
     EXAMPLES::
 
@@ -249,7 +250,7 @@ def connected_component_containing_vertex(G, vertex, sort=True):
     - ``v`` -- the vertex to search for.
 
     - ``sort`` -- boolean (default ``True``)
-       whether to sort vertices inside the component
+      whether to sort vertices inside the component
 
     EXAMPLES::
 

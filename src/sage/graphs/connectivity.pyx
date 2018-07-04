@@ -2073,7 +2073,7 @@ def spqr_tree(G):
         sage: Tree.order()
         4
         sage: K4 = graphs.CompleteGraph(4)
-        sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'S')
+        sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
         True
         sage: from sage.graphs.connectivity import spqr_tree_to_graph
         sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
@@ -2275,7 +2275,7 @@ def spqr_tree_to_graph(T):
         sage: from sage.graphs.connectivity import spqr_tree
         sage: from sage.graphs.connectivity import spqr_tree_to_graph
 
-    Wikipedia reference paper example::
+    :wikipedia:`SPQR_tree` reference paper example::
 
         sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (3, 4), (2, 3),
         ....: (2, 13), (3, 13), (4, 5), (4, 7), (5, 6), (5, 8), (5, 7), (6, 7),

@@ -7,6 +7,7 @@ constructions
     - BrackenLeander
     - Gold
     - Kasami
+    - Niho
     - Welch
 
 8 bit to 8 bit
@@ -216,6 +217,38 @@ def kasami(n, i):
 
     R = PolynomialRing(GF(2**n, name='x'), 'X')
     poly = R.gen()**(2**(2*i) - 2**i + 1)
+    return SBox(poly)
+
+
+def niho(n):
+    """
+    Return the Niho function over `\GF(2^n)`
+
+    It is defined by `x \mapsto x^(2^t + 2^s - 1)` with `s = t/2` if t is even
+    or `s = (3t+1)/2` if t is odd.
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sboxes import niho
+        sage: niho(3)
+        (0, 1, 7, 2, 3, 4, 5, 6)
+
+        sage: niho(3).differential_uniformity()
+        2
+    """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    if n % 2 == 0:
+        raise TypeError("Niho functions are only defined for n odd")
+
+    t = (n - 1) / 2
+
+    R = PolynomialRing(GF(2**n, name='x'), 'X')
+    if t % 2 == 0:
+        poly = R.gen()**(2**t + 2**(t/2) - 1)
+    else:
+        poly = R.gen()**(2**t + 2**((3*t+1)/2) - 1)
     return SBox(poly)
 
 

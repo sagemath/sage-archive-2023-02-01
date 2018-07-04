@@ -4,6 +4,7 @@ S-Boxes used in cryptographic schemes
 This module provides the following SBoxes:
 
 constructions
+    - BrackenLeander
     - Gold
     - Kasami
     - Welch
@@ -140,6 +141,31 @@ AUTHOR:
 """
 
 from sage.crypto.sbox import SBox
+
+def bracken_leander(n):
+    """
+    Return the Bracken-Leander construction
+
+    For n = 4*k and odd k, the construction is `x \mapsto x^(2^(2k) + 2^k + 1)`
+    over `\GF(2^n)`
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sboxes import bracken_leander
+        sage: sbox = bracken_leander(12); [sbox(i) for i in range(8)]
+        [0, 1, 2742, 4035, 1264, 408, 1473, 1327]
+    """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    if n % 4 == 1 or (n / 4) % 2 == 0:
+        raise TypeError("Welch functions are only defined for n = 4k, with k odd")
+
+    k = n / 4
+    R = PolynomialRing(GF(2**n, name='x'), 'X')
+    poly = R.gen()**(2**(2*k) + 2**k + 1)
+    return SBox(poly)
+
 
 def gold(n, i):
     """

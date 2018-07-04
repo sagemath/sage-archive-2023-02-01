@@ -1691,7 +1691,7 @@ def clean_rfv_dict(rfv_dictionary):
         if 1 in rfv_dictionary[a]:
             rfv_dictionary.pop(a)
 
-def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
+def construct_rfv_to_ev(rfv_dictionary, q, d, verbose=False):
     r"""
     Returns a reverse lookup dictionary, to find the exponent vectors associated to a given residue field vector.
 
@@ -1700,7 +1700,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
     - ``rfv_dictionary`` -- a dictionary whose keys are exponent vectors and whose values are the associated residue field vectors
     - ``q`` -- a prime (assumed to split completely in the relevant number field)
     - ``d`` -- the number of primes in `K` above the rational prime ``q``
-    - ``verbose_flag`` -- a boolean flag to indicate more detailed output is desired (default: False)
+    - ``verbose`` -- a boolean flag to indicate more detailed output is desired (default: False)
 
     OUTPUT:
 
@@ -1748,7 +1748,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
         rf_vector_end = residue_field_vector[1:]
         P[rf_vector_start].append([exponent_vector, rf_vector_end])
 
-    if verbose_flag:
+    if verbose:
         print("Populated P. Currently it has ", len(P), "keys.")
 
     # Step 2: We build a new dictionary, P_new, from P.
@@ -1768,7 +1768,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
     # During the construction, we look for impossible entries for S-unit solutions, and drop them from the dictionary as needed.
 
     for j in range(d-1):
-        if verbose_flag:
+        if verbose:
             print("Constructing ", j, " th place of the residue field vectors, out of ", d-1, " total.")
         P_new = {}
         garbage = {}
@@ -1788,7 +1788,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
                 new_rf_vector_start = tuple(list(rf_vector_start) + [w])
                 P_new[new_rf_vector_start].append([exponent_vector, new_rf_vector_end])
 
-        if verbose_flag:
+        if verbose:
             print("P_new is populated with ", len(P_new), " keys.")
 
         # we now loop over the keys of P_new, looking for incompatible entries.
@@ -1808,7 +1808,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
         for rf_vector_start in garbage:
             P_new.pop(rf_vector_start, 0)
 
-        if verbose_flag:
+        if verbose:
             print("After removing incompatible entries, P_new is down to ", len(P_new), " keys.")
 
         # Time to move on to the next dictionary.
@@ -1820,7 +1820,7 @@ def construct_rfv_to_ev(rfv_dictionary, q, d, verbose_flag=False):
         # We only care about the exponent vectors a0,...
         P[residue_field_vector] = [a[0] for a in P[residue_field_vector]]
 
-    if verbose_flag:
+    if verbose:
         print("Returning dictionary P with ", len(P), " keys.")
     return P.copy()
 
@@ -1932,7 +1932,7 @@ def drop_vector(ev, p, q, complement_ev_dict):
                         return False
     return True
 
-def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = False):
+def construct_complement_dictionaries(split_primes_list, SUK, verbose=False):
     r"""
     A function to construct the complement exponent vector dictionaries.
 
@@ -1940,7 +1940,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
     - ``split_primes_list`` -- a list of rational primes which split completely in the number field `K`
     - ``SUK`` -- the `S`-unit group for a number field `K`
-    - ``verbose_flag`` -- a boolean to provide additional feedback (default: False)
+    - ``verbose`` -- a boolean to provide additional feedback (default: False)
 
     OUTPUT:
 
@@ -2021,11 +2021,11 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
     q0 = split_primes_list[0]
 
-    if verbose_flag:
+    if verbose:
         print("Using the following primes: ", split_primes_list)
     for q in split_primes_list:
         rho_images = rho_images_dict[q]
-        if verbose_flag:
+        if verbose:
             print("q = ", q)
         def epsilon_q(a, i):
             # a is an exponent vector
@@ -2038,7 +2038,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 eps_value = (eps_value * rho_images[i][j]**a[j]) % q
             return eps_value
 
-        if verbose_flag:
+        if verbose:
             print("The evaluation function epsilon has been defined using rho_images = ", rho_images)
         # Now, we run through the vectors in the iterator, but only keep the ones
         # which are compatible with the previously constructed dictionaries. That is,
@@ -2061,7 +2061,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
             ev_to_rfv_dict = {ev : [epsilon_q(ev, i) for i in range(nK)] for ev in ev_iterator}
 
-            if verbose_flag:
+            if verbose:
                 print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
         else:
             ev_to_rfv_dict = {}
@@ -2079,7 +2079,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                     # fill the dictionary with the residue field vectors using the evaluation function.
                     ev_to_rfv_dict[exp_vec] = [epsilon_q(exp_vec, i) for i in range(nK)]
 
-        if verbose_flag:
+        if verbose:
             print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
         # At this point, we now have a dictionary ev_to_rfv_dict, which attaches
         # to each exponent vector a 'residue field vector,' which is a tuple of the
@@ -2087,24 +2087,24 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         clean_rfv_dict( ev_to_rfv_dict )
 
-        if verbose_flag:
+        if verbose:
             print("clean_rfv_dict executed.")
             print("The residue field dictionary currently has ", len(ev_to_rfv_dict), " exponent vector keys.")
         # We essentially construct an inverse dictionary: one whose keys are residue field vectors,
         # and whose values are the exponent vectors that yield each key
 
-        rfv_to_ev[q] = construct_rfv_to_ev(ev_to_rfv_dict, q, nK, verbose_flag)
+        rfv_to_ev[q] = construct_rfv_to_ev(ev_to_rfv_dict, q, nK, verbose=verbose)
 
-        if verbose_flag:
+        if verbose:
             print("construct_rfv_to_ev executed.")
             print("The rfv_to_ev dictionary currently has ", len(rfv_to_ev[q]), "rfv keys.")
 
         comp_exp_vec[q] = construct_comp_exp_vec(rfv_to_ev[q], q)
 
-        if verbose_flag:
+        if verbose:
             print("construct_comp_exp_vec executed.")
 
-        if verbose_flag:
+        if verbose:
             print("Size of comp_exp_vec[q]: ", len(comp_exp_vec[q]))
 
         # Now that we have a new dictionary, we compare all the dictionaries pairwise,
@@ -2112,12 +2112,12 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
 
         for p in [qi for qi in comp_exp_vec.keys() if qi != q]:
 
-            if verbose_flag:
+            if verbose:
                 print("Comparing dictionaries for p = ", p, "and q = ", q, ".")
 
             old_size_p = len(comp_exp_vec[p])
 
-            if verbose_flag:
+            if verbose:
                 print("Size of comp_exp_vec[p] is: ", old_size_p, ".")
                 cv_size = ((q-1)/gcd(p-1, q-1)) ** (rho_length - 1)
                 print("Length of compatible_vectors: ", cv_size, ".")
@@ -2127,14 +2127,14 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 if drop_vector(exp_vec, p, q, comp_exp_vec):
                     trash = comp_exp_vec[p].pop(exp_vec)
 
-            if verbose_flag:
+            if verbose:
                 print("Shrunk dictionary p from ", old_size_p, " to ", len(comp_exp_vec[p]))
 
             # Now, repeat, but swap p and q.
 
             old_size_q = len(comp_exp_vec[q])
 
-            if verbose_flag:
+            if verbose:
                 print("Size of comp_exp_vec[q] is: ", old_size_q, ".")
                 cv_size = ((p-1)/gcd(p-1, q-1)) ** (rho_length - 1)
                 print("Length of compatible_vectors: ", cv_size, ".")
@@ -2144,7 +2144,7 @@ def construct_complement_dictionaries(split_primes_list, SUK, verbose_flag = Fal
                 if drop_vector(exp_vec, q, p, comp_exp_vec):
                     comp_exp_vec[q].pop(exp_vec)
 
-            if verbose_flag:
+            if verbose:
                 print("Shrunk dictionary q from ", old_size_q, " to ", len(comp_exp_vec[q]))
 
     return comp_exp_vec
@@ -2563,7 +2563,7 @@ def clean_sfs(sfs_list):
             new_sfs.append(entry)
     return new_sfs
 
-def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
+def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose=False):
     r"""
     Return all solutions to the S-unit equation ``x + y = 1`` over K with exponents below the given bound.
 
@@ -2574,6 +2574,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
     - ``bound`` -- a positive integer upper bound for exponents, solutions with exponents having absolute value below this bound will be found (default: 10)
     - ``bump`` -- a positive integer by which the minimum LCM will be increased if not enough split primes are found in sieving step (default: 10)
     - ``split_primes_list`` -- a list of rational primes that split completely in the extension K/Q, used for sieving.  For complete list of solutions should have lcm of {(p_i-1)} for primes p_i greater than bound (default: [])
+    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving process
 
     OUTPUT:
 
@@ -2610,7 +2611,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
     if not K.is_absolute():
         raise ValueError("K must be an absolute extension.")
 
-    complement_exp_vec_dict = construct_complement_dictionaries(split_primes_list, SUK)
+    complement_exp_vec_dict = construct_complement_dictionaries(split_primes_list, SUK, verbose=verbose)
 
     cs_list = compatible_systems(split_primes_list, complement_exp_vec_dict)
 
@@ -2620,7 +2621,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[]):
 
     return S_unit_solutions
 
-def solve_S_unit_equation(K, S, prec=106, returnBound = False):
+def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
     r"""
     Return all solutions to the S-unit equation ``x + y = 1`` over K.
 
@@ -2630,6 +2631,7 @@ def solve_S_unit_equation(K, S, prec=106, returnBound = False):
     - ``S`` -- a list of finite primes of ``K``
     - ``prec`` -- (default: 106) precision used for computations in real field, complex field, and p-adic field.
     - ``returnBound`` -- (default: False) an optional parameter allowing the user to return the final computed bound
+    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving step
 
     OUTPUT:
 
@@ -2688,8 +2690,11 @@ def solve_S_unit_equation(K, S, prec=106, returnBound = False):
     # Take the largest of all of the bounds we found
     final_LLL_bound = max(all_LLL_bounds)
 
+    if verbose:
+        print("The LLL bound is: ", final_LLL_bound)
+
     # Use the sieve to more easily find all bounds 
-    S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound)
+    S_unit_solutions = sieve_below_bound(K, list(S), final_LLL_bound, verbose=verbose)
 
     if returnBound:
         return S_unit_solutions, final_LLL_bound

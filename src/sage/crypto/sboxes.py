@@ -3,6 +3,9 @@ S-Boxes used in cryptographic schemes
 
 This module provides the following SBoxes:
 
+constructions
+    - Gold
+
 8 bit to 8 bit
     - AES ([DR2002]_)
     - Anubis ([BR2000a]_)
@@ -133,6 +136,29 @@ AUTHOR:
 """
 
 from sage.crypto.sbox import SBox
+
+def gold(n, i):
+    """
+    return the Gold function defined by `x \mapsto x^(2^i + 1)` over `\GF(2^n)`
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sboxes import gold
+        sage: gold(3, 1)
+        (0, 1, 3, 4, 5, 6, 7, 2)
+
+        sage: gold(3, 1).differential_uniformity()
+        2
+
+        sage: gold(4, 2)
+        (0, 1, 6, 6, 7, 7, 7, 6, 1, 7, 1, 6, 1, 6, 7, 1)
+    """
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    R = PolynomialRing(GF(2**n, name='x'), 'X')
+    poly = R.gen()**(2**i + 1)
+    return SBox(poly)
 
 AES = SBox([
     0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,

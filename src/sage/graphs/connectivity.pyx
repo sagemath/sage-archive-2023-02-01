@@ -56,14 +56,15 @@ Methods
 from __future__ import absolute_import
 from sage.rings.integer import Integer
 
+
 def is_connected(G):
     """
-    Indicates whether the (di)graph is connected. Note that in a graph,
+    Indicate whether the (di)graph is connected. Note that in a graph,
     path connected is equivalent to connected.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
 
     .. SEEALSO::
 
@@ -115,17 +116,20 @@ def is_connected(G):
         return len(conn_verts) == G.num_verts()
 
 
-def connected_components(G):
+def connected_components(G, sort=True):
     """
-    Returns the list of connected components.
+    Return the list of connected components.
 
-    Returns a list of lists of vertices, each list representing a
+    This returns a list of lists of vertices, each list representing a
     connected component. The list is ordered from largest to smallest
     component.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
+
+    - ``sort`` -- boolean (default ``True``)
+       whether to sort vertices inside each component
 
     EXAMPLES::
 
@@ -157,7 +161,7 @@ def connected_components(G):
     components = []
     for v in G:
         if v not in seen:
-            c = connected_component_containing_vertex(G, v)
+            c = connected_component_containing_vertex(G, v, sort=sort)
             seen.update(c)
             components.append(c)
     components.sort(key=lambda comp: -len(comp))
@@ -166,11 +170,11 @@ def connected_components(G):
 
 def connected_components_number(G):
     """
-    Returns the number of connected components.
+    Return the number of connected components.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
 
     EXAMPLES::
 
@@ -194,12 +198,12 @@ def connected_components_number(G):
         ...
         TypeError: the input must be a Sage graph
     """
-    return len(connected_components(G))
+    return len(connected_components(G, sort=False))
 
 
 def connected_components_subgraphs(G):
     """
-    Returns a list of connected components as graph objects.
+    Return a list of connected components as graph objects.
 
     EXAMPLES::
 
@@ -227,22 +231,25 @@ def connected_components_subgraphs(G):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    cc = connected_components(G)
+    cc = connected_components(G, sort=False)
     list = []
     for c in cc:
         list.append(G.subgraph(c, inplace=False))
     return list
 
 
-def connected_component_containing_vertex(G, vertex):
+def connected_component_containing_vertex(G, vertex, sort=True):
     """
-    Returns a list of the vertices connected to vertex.
+    Return a list of the vertices connected to vertex.
 
     INPUT:
 
-    - ``G`` (generic_graph) - the input graph.
+    - ``G`` (generic_graph) -- the input graph.
 
-    - ``v`` - the vertex to search for.
+    - ``v`` -- the vertex to search for.
+
+    - ``sort`` -- boolean (default ``True``)
+       whether to sort vertices inside the component
 
     EXAMPLES::
 
@@ -275,7 +282,8 @@ def connected_component_containing_vertex(G, vertex):
     except AttributeError:
         c = list(G.depth_first_search(vertex, ignore_direction=True))
 
-    c.sort()
+    if sort:
+        c.sort()
     return c
 
 
@@ -313,12 +321,13 @@ def connected_components_sizes(G):
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    return sorted((len(cc) for cc in connected_components(G)),reverse=True)
+    return sorted((len(cc) for cc in connected_components(G, False)),
+                  reverse=True)
 
 
 def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
     """
-    Computes the blocks and cut vertices of the graph.
+    Compute the blocks and cut vertices of the graph.
 
     In the case of a digraph, this computation is done on the underlying
     graph.

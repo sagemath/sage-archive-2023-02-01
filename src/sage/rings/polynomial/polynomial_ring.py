@@ -2195,9 +2195,10 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         """
         R = self.base_ring()
         p = R.characteristic()
-        from sage.rings.fraction_field_FpT import FpT
-        if p != 0 and R.is_prime_field() and 2 < p and p < FpT.INTEGER_LIMIT:
-            return FpT(self)
+        if p != 0 and R.is_prime_field():
+            from sage.rings.fraction_field_FpT import FpT
+            if 2 < p and p < FpT.INTEGER_LIMIT:
+                return FpT(self)
         else:
             from sage.rings.fraction_field import FractionField_1poly_field
             return FractionField_1poly_field(self)

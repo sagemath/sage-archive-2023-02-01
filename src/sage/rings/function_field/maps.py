@@ -637,7 +637,7 @@ class FunctionFieldMorphism(RingHomomorphism):
             sage: f._repr_defn()
             'y |--> 2*y'
         """
-        a = '%s |--> %s'%(self.domain().gen(), self._im_gen)
+        a = '%s |--> %s'%(self.domain().variable_name(), self._im_gen)
         if self._base_morphism is not None:
             a += '\n' + self._base_morphism._repr_defn()
         return a

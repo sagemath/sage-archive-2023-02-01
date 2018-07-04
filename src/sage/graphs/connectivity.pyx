@@ -2073,7 +2073,7 @@ def spqr_tree(G):
         sage: Tree.order()
         4
         sage: K4 = graphs.CompleteGraph(4)
-        sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
+        sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'S')
         True
         sage: from sage.graphs.connectivity import spqr_tree_to_graph
         sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
@@ -2102,8 +2102,15 @@ def spqr_tree(G):
         True
 
         sage: G = graphs.CycleGraph(6)
-        sage: spqr_tree(G).order()
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
         1
+        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+        True
+        sage: G.add_edge(0, 3)
+        sage: Tree = spqr_tree(G)
+        sage: Tree.order()
+        3
         sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
         True
 
@@ -2114,6 +2121,7 @@ def spqr_tree(G):
         Traceback (most recent call last):
         ...
         ValueError: generation of SPQR-trees is only implemented for 2-connected graphs
+
         sage: G = Graph([(0, 0)], loops=True)
         sage: spqr_tree(G)
         Traceback (most recent call last):
@@ -2208,6 +2216,7 @@ def spqr_tree(G):
         elif block.has_multiple_edges():
             cut = block.multiple_edges(labels=False)[0]
             S,C,f = cleave(block, cut_vertices=cut)
+            # Remove the cut edge from `S block` components if present
             for h in S:
                 while h.has_edge(cut):
                     h.delete_edge(cut)
@@ -2265,6 +2274,17 @@ def spqr_tree_to_graph(T):
 
         sage: from sage.graphs.connectivity import spqr_tree
         sage: from sage.graphs.connectivity import spqr_tree_to_graph
+
+    Wikipedia reference paper example::
+
+        sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (3, 4), (2, 3),
+        ....: (2, 13), (3, 13), (4, 5), (4, 7), (5, 6), (5, 8), (5, 7), (6, 7),
+        ....: (8, 11), (8, 9), (8, 12), (9, 10), (9, 11), (9, 12), (10, 12)])
+        sage: T = spqr_tree(G)
+        sage: H = spqr_tree_to_graph(T)
+        sage: H.is_isomorphic(G)
+        True
+
         sage: G = Graph([(0, 2), (0, 2), (1, 3), (2, 3)], multiedges=True)
         sage: for i in range(3):
         ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
@@ -2286,6 +2306,7 @@ def spqr_tree_to_graph(T):
     for t,g in T.vertex_iterator():
         if not t == 'P':
             count_G.update(g.edge_iterator(labels=False))
+
     for t,g in T.vertex_iterator():
         if t == 'P':
             count_g = Counter(g.edge_iterator(labels=False))

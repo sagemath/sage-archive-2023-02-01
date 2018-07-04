@@ -2176,11 +2176,27 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.<t> = GF(5)[]
             sage: R.fraction_field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
+
+        TESTS:
+
+        Check that :trac:`25449` has been resolved::
+
+            sage: k = GF(25453)
+            sage: F.<x> = FunctionField(k)
+            sage: R.<t> = k[]
+            sage: t(x)
+
+            sage: k = GF(55667)
+            sage: F.<x> = FunctionField(k)
+            sage: R.<t> = k[]
+            sage: t(x)
+            x
+
         """
         R = self.base_ring()
         p = R.characteristic()
-        if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
-            from sage.rings.fraction_field_FpT import FpT
+        from sage.rings.fraction_field_FpT import FpT
+        if p != 0 and R.is_prime_field() and 2 < p and p < FpT.INTEGER_LIMIT:
             return FpT(self)
         else:
             from sage.rings.fraction_field import FractionField_1poly_field

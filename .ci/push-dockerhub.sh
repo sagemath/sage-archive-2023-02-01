@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This script gets called from CI to push our docker images to
-# $DOCKER_USER/sagemath* on the Docker Hub.
+# $DOCKER_NAMESPACE/sagemath* on the Docker Hub.
 # This script expects a single parameter, the base name of the docker image
 # such as sagemath or sagemath-dev.
 
@@ -25,5 +25,5 @@ if [ -z "$DOCKER_USER" -o -z "$SECRET_DOCKER_PASS" ]; then
     echo "DOCKER_USER/SECRET_DOCKER_PASS variables have not been configured in your Continuous Integration setup. Not pushing built images to Docker Hub."
 else
   cat "$SECRET_DOCKER_PASS" | docker login -u $DOCKER_USER --password-stdin
-  docker push ${DOCKER_USER:-sagemath}/$1:$DOCKER_TAG
+  docker push ${DOCKER_NAMESPACE:-sagemath}/$1:$DOCKER_TAG
 fi

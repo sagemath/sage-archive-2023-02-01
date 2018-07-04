@@ -581,9 +581,8 @@ from sage.misc.decorators import options
 from .graphics import Graphics, GraphicsArray
 from sage.plot.polygon import polygon
 
-# line below is only for redirection of imports
+# import of line2d below is only for redirection of imports
 from sage.plot.line import line, line2d
-
 
 
 #Currently not used - see comment immediately above about
@@ -2350,8 +2349,6 @@ def _plot(funcs, xrange, parametric=False,
     if polar:
         data = [(y*cos(x), y*sin(x)) for x, y in data]
 
-    from sage.plot.all import line
-
     detect_poles = options.pop('detect_poles', False)
     legend_label = options.pop('legend_label', None)
     if excluded_points or detect_poles:
@@ -2972,7 +2969,7 @@ def list_plot(data, plotjoined=False, **kwargs):
         sage: d['ymin']
         100.0
     """
-    from sage.plot.all import line, point
+    from sage.plot.all import point
     try:
         if not data:
             return Graphics()
@@ -3859,7 +3856,6 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         data = sorted(data + initial_points)
 
     exceptions = 0
-    msg = ''
     exception_indices = []
     for i in range(len(data)):
         xi = data[i]
@@ -3867,12 +3863,13 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
         try:
             data[i] = (float(xi), float(f(xi)))
             if str(data[i][1]) in ['nan', 'NaN', 'inf', '-inf']:
-                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+                msg = "Unable to compute f(%s)" % xi
+                sage.misc.misc.verbose(msg, 1)
                 exceptions += 1
                 exception_indices.append(i)
 
-        except (ArithmeticError, TypeError, ValueError) as msg:
-            sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, xi),1)
+        except (ArithmeticError, TypeError, ValueError) as m:
+            sage.misc.misc.verbose("%s\nUnable to compute f(%s)" % (m, xi), 1)
 
             if i == 0: # Given an error for left endpoint, try to move it in slightly
                 for j in range(1, 99):
@@ -3886,6 +3883,7 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                     except (ArithmeticError, TypeError, ValueError):
                         pass
                 else:
+                    msg = m
                     exceptions += 1
                     exception_indices.append(i)
 
@@ -3901,9 +3899,11 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
                     except (ArithmeticError, TypeError, ValueError):
                         pass
                 else:
+                    msg = m
                     exceptions += 1
                     exception_indices.append(i)
             else:
+                msg = m
                 exceptions += 1
                 exception_indices.append(i)
 
@@ -3924,6 +3924,6 @@ def generate_plot_points(f, xrange, plot_points=5, adaptive_tolerance=0.01, adap
 
     if (len(data) == 0 and exceptions > 0) or exceptions > 10:
         sage.misc.misc.verbose("WARNING: When plotting, failed to evaluate function at %s points." % exceptions, level=0)
-        sage.misc.misc.verbose("Last error message: '%s'"%msg, level=0)
+        sage.misc.misc.verbose("Last error message: '%s'" % msg, level=0)
 
     return data

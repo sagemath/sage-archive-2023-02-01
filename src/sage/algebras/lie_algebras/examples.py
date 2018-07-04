@@ -30,9 +30,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra # this is used, just not in this file
+from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
+from sage.algebras.lie_algebras.onsager import OnsagerAlgebra
 from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra as Affine
-
 
 def three_dimensional(R, a, b, c, d, names=['X', 'Y', 'Z']):
     r"""

@@ -51,6 +51,7 @@ AUTHORS:
 - Robert Lipshitz
 - Thierry Monteil: add a ``__hash__`` method consistent with the word
   problem to ensure correct Cayley graph computations.
+- Sebastian Oehms (July 2018): add other versions for burau_matrix (unitary + wikipedia)
 """
 
 ##############################################################################
@@ -170,7 +171,7 @@ class Braid(FiniteTypeArtinGroupElement):
         cycles = self.permutation().to_cycles(singletons=False)
         return self.strands() - sum(len(c)-1 for c in cycles)
 
-    def burau_matrix(self, var='t', reduced=False):
+    def burau_matrix(self, var='t', reduced=False, version=None):
         """
         Return the Burau matrix of the braid.
 
@@ -180,13 +181,17 @@ class Braid(FiniteTypeArtinGroupElement):
           variable in the entries of the matrix
         - ``reduced`` -- boolean (default: ``False``); whether to
           return the reduced or unreduced Burau representation
+        - ``version`` -- string (default: None);
+                       ``unitary``:   returns the unitary form according to Squier (see the reference below)
+                       ``wikipedia``: returns the form given on the wikipedia page
+
 
         OUTPUT:
 
         The Burau matrix of the braid. It is a matrix whose entries
         are Laurent polynomials in the variable ``var``. If ``reduced``
         is ``True``, return the matrix for the reduced Burau representation
-        instead.
+        instead. If the version is specified the output will be according to it.
 
         EXAMPLES::
 
@@ -209,10 +214,34 @@ class Braid(FiniteTypeArtinGroupElement):
             [-t  1  0]
             [-t  0  1]
 
+        using the version-option::
+
+            sage: b.burau_matrix(version='wikipedia')
+            [    1 - t -t^-1 + 1        -1]
+            [        1 -t^-1 + 1        -1]
+            [        1     -t^-1         0]
+            sage: b.burau_matrix(version='unitary')
+            [  1 - t^2 -t^-1 + t      -t^2]
+            [     t^-1 -t^-2 + 1        -t]
+            [     t^-2     -t^-3         0]
+
+
         REFERENCES:
 
         - :wikipedia:`Burau_representation`
+
+        - C. C. Squier:`THE BURAU REPRESENTATION IS UNITARY`, PROCEEDINGS OF THE
+                                                              AMERICAN MATHEMATICAL SOCIETY
+                                                              Volume 90. Number 2, February 1984
         """
+
+        if version != None:
+            if  type( version ) != str:
+                raise ValueError( 'version must be a string' )
+            if version not in ('wikipedia', 'unitary'):
+                raise ValueError( 'version must be one of \'wikipedia\' or \'unitary\'' )
+            reduced = True
+
         R = LaurentPolynomialRing(IntegerRing(), var)
         t = R.gen()
         n = self.strands()
@@ -233,28 +262,50 @@ class Braid(FiniteTypeArtinGroupElement):
                 M = M * A
         else:
             M = identity_matrix(R, n - 1)
-            for j in self.Tietze():
-                A = identity_matrix(R, n - 1)
-                if j > 1:
-                    i = j-1
-                    A[i-1, i-1] = 1-t
-                    A[i, i] = 0
-                    A[i, i-1] = 1
-                    A[i-1, i] = t
-                if j < -1:
-                    i = j+1
-                    A[-1-i, -1-i] = 0
-                    A[-i, -i] = 1-t**(-1)
-                    A[-1-i, -i] = 1
-                    A[-i, -1-i] = t**(-1)
-                if j == 1:
-                    for k in range(n - 1):
-                        A[k, 0] = -t
-                if j == -1:
-                    A[0, 0] = -t**(-1)
-                    for k in range(1, n - 1):
-                        A[k, 0] = -1
-                M = M * A
+            if version == None:
+                for j in self.Tietze():
+                    A = identity_matrix(R, n - 1)
+                    if j > 1:
+                        i = j-1
+                        A[i-1, i-1] = 1-t
+                        A[i, i] = 0
+                        A[i, i-1] = 1
+                        A[i-1, i] = t
+                    if j < -1:
+                        i = j+1
+                        A[-1-i, -1-i] = 0
+                        A[-i, -i] = 1-t**(-1)
+                        A[-1-i, -i] = 1
+                        A[-i, -1-i] = t**(-1)
+                    if j == 1:
+                        for k in range(n - 1):
+                            A[k, 0] = -t
+                    if j == -1:
+                        A[0, 0] = -t**(-1)
+                        for k in range(1, n - 1):
+                            A[k, 0] = -1
+                    M = M * A
+            else:
+                for j in self.Tietze():
+                    A = identity_matrix(R, n-1)
+                    if j > 0:
+                        A[j-1, j-1] = -t
+                        if j > 1:
+                            A[j-1, j-2] = t
+                        if j < n-1:
+                            A[j-1, j] = 1
+                    if j < 0:
+                        A[-j-1, -j-1] = -t**(-1)
+                        if -j > 1:
+                            A[-j-1, -j-2] = 1
+                        if -j < n-1 :
+                            A[-j-1, -j] = t**(-1)
+                    M = M * A
+
+            if version == 'unitary':
+                subs = R.hom([t**2], codomain=R)
+                M = matrix(R, n-1, n-1, lambda i, j: t**(j-i)*subs(M[i,j]))
+ 
         return M
 
     def alexander_polynomial(self, var='t', normalized=True):

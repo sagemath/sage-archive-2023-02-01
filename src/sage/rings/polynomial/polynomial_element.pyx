@@ -2329,7 +2329,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: kk.<a,b> = GF(2)[]
             sage: k.<y,w> = kk.quo(a^2+a+1)
-            sage: K.<T> = k[] 
+            sage: K.<T> = k[]
             sage: (T*y)^21
             T^21
         """
@@ -7687,10 +7687,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
                 if D > 0:
-                    l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1), 
-                         ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)] 
+                    l = [((-coeffs[1]-sqrt(D))/2/coeffs[2], 1),
+                         ((-coeffs[1]+sqrt(D))/2/coeffs[2], 1)]
                 elif D < 0:
-                    l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1), 
+                    l = [((-coeffs[1]-I*sqrt(-D))/2/coeffs[2], 1),
                          ((-coeffs[1]+I*sqrt(-D))/2/coeffs[2], 1)]
                 else:
                     l = [(-coeffs[1]/2/coeffs[2]), 2]
@@ -8073,7 +8073,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             P(x) = Q(x + q/x) x^{\deg(Q)} R(x).
 
-        In this relation, `Q` has all roots in the real interval 
+        In this relation, `Q` has all roots in the real interval
         `[-2\sqrt{q}, 2\sqrt{q}]` if and only if `P` has all roots on the
         circle `|x| = \sqrt{q}` and `R` divides `x^2-q`.
 
@@ -10025,6 +10025,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Return `True` if this polynomial divides `p`.
 
+        This method is only implemented for polynomials over an integral domain.
+
         EXAMPLES::
 
             sage: R.<x> = ZZ[]
@@ -10045,8 +10047,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             False
             sage: q.divides(p * q)
             True
+            sage: R.<x> = Zmod(6)[]
+            sage: p = 4*x + 3
+            sage: q = 5*x**2 + x + 2
+            sage: p.divides(q)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: divisibility test only implemented for polynomials over an integral domain
 
         TESTS::
+
             sage: R.<x> = PolynomialRing(ZZ, implementation="NTL")
             sage: (2*x + 1).divides(4*x**2 + 1)
             False
@@ -10063,16 +10073,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: q = (y^2-x^2) * z^2 + z + x-y
             sage: p.divides(q), p.divides(p*q)
             (False, True)
-            sage: R.<x> = Zmod(6)[]
-            sage: p = 4*x + 3
-            sage: q = 5*x**2 + x + 2
-            sage: p.divides(q)
-            False
-            sage: p.divides(p*q)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: divisibility test is only implemented for integral domains
         """
+        if not self.base_ring().is_integral_domain():
+            raise NotImplementedError("divisibility test only implemented for polynomials over an integral domain")
+
         if p.is_zero(): return True          # everything divides 0
         if self.is_zero(): return False      # 0 only divides 0
         try:
@@ -10085,9 +10089,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         if not self.leading_coefficient().divides(p.leading_coefficient()):
             return False
-
-        if not self.base_ring().is_integral_domain():
-            raise NotImplementedError("divisibility test is only implemented for integral domains")
 
         try:
             return (p % self).is_zero()      # if quo_rem is defined

@@ -25,6 +25,11 @@ EXAMPLES::
      [(5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3],
      [(5, 0), (1, 0), -xi, xi + 1],
      [(1, 1), (2, 0), -xi + 1, xi]]
+
+.. TODO::
+
+    - Use Cython to improve timings on the sieve
+    - Write as a method on Number Fields
 """
 
 
@@ -80,7 +85,7 @@ def column_Log(SUK, iota, U, prec=106):
     - ``SUK`` -- a group of `S`-units
     - ``iota`` -- an element of ``K``
     - ``U`` -- a list of places (finite or infinite) of ``K``
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -113,7 +118,7 @@ def c3_func(SUK, prec=106):
     INPUT:
 
     - ``SUK`` -- a group of `S`-units
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -164,7 +169,7 @@ def c4_func(SUK, v, A, prec=106):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the ``S``-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -330,7 +335,7 @@ def c8_c9_func(SUK, v, A, prec=106):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- a finite place of ``K`` (a fractional ideal)
     - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field
 
     OUTPUT:
 
@@ -397,7 +402,7 @@ def c11_func(SUK, v, A, prec=106):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- a place of ``K``, finite (a fractional ideal) or infinite (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- the set of the product of the coefficients of the `S`-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -436,7 +441,7 @@ def c13_func(SUK, v, prec=106):
 
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -486,7 +491,7 @@ def K0_func(SUK, A, prec=106):
 
     - ``SUK`` -- a group of `S`-units
     - ``A`` -- the set of the products of the coefficients of the `S`-unit equation with each root of unity of ``K``
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -534,7 +539,7 @@ def K1_func(SUK, v, A, prec=106):
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
     - ``A`` -- a list of all products of each potential ``a``, ``b`` in the $S$-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
-    - ``prec`` -- (default: 106) the precision of the real field
+    - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
 
@@ -597,7 +602,7 @@ def minimal_vector(A, y, prec=106):
 
     - ``A`` : a square n by n non-singular integer matrix whose rows generate a lattice `\mathcal L`
     - ``y`` : a row (1 by n) vector with integer coordinates
-    - ``prec`` : (default: 106) precision of real field
+    - ``prec`` : precision of real field (default: 106)
 
     OUTPUT:
 
@@ -899,7 +904,7 @@ def cx_LLL_bound(SUK, A, prec=106):
 
     - ``SUK`` -- a group of `S`-units
     - ``A`` -- a list of all products of each potential ``a``, ``b`` in the `S`-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
-    - ``prec`` -- precision of real field (default 106)
+    - ``prec`` -- precision of real field (default: 106)
 
     OUTPUT:
 
@@ -1122,7 +1127,7 @@ def defining_polynomial_for_Kp(prime, prec=106):
     INPUT:
 
     - ``prime`` -- a prime ideal of a number field `K`
-    - ``prec`` -- a positive natural number (default 106)
+    - ``prec`` -- a positive natural number (default: 106)
 
     OUTPUT:
 
@@ -1236,7 +1241,7 @@ def p_adic_LLL_bound_one_prime(prime, B0, M, M_logp, m0, c3, prec=106):
     - ``M_logp`` -- the p-adic logarithm of elements in `M`
     - ``m0`` -- an element of `K`, this is `\mu_0` from Lemma IX.3 of [Sma1998]_
     - ``c3`` -- a positive real constant
-    - ``prec`` -- the precision of the calculations (default 106)
+    - ``prec`` -- the precision of the calculations (default: 106)
 
     OUTPUT:
 
@@ -2574,7 +2579,7 @@ def sieve_below_bound(K, S, bound = 10, bump = 10, split_primes_list=[], verbose
     - ``bound`` -- a positive integer upper bound for exponents, solutions with exponents having absolute value below this bound will be found (default: 10)
     - ``bump`` -- a positive integer by which the minimum LCM will be increased if not enough split primes are found in sieving step (default: 10)
     - ``split_primes_list`` -- a list of rational primes that split completely in the extension K/Q, used for sieving.  For complete list of solutions should have lcm of {(p_i-1)} for primes p_i greater than bound (default: [])
-    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving process
+    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving process (default: False)
 
     OUTPUT:
 
@@ -2629,9 +2634,9 @@ def solve_S_unit_equation(K, S, prec=106, returnBound=False, verbose=False):
 
     - ``K`` -- a number field (an absolute extension of the rationals)
     - ``S`` -- a list of finite primes of ``K``
-    - ``prec`` -- (default: 106) precision used for computations in real field, complex field, and p-adic field.
-    - ``returnBound`` -- (default: False) an optional parameter allowing the user to return the final computed bound
-    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving step
+    - ``prec`` -- precision used for computations in real field, complex field, and p-adic field (default: 106)
+    - ``returnBound`` -- an optional parameter allowing the user to return the final computed bound (default: False)
+    - ``verbose`` -- an optional parameter allowing the user to print information during the sieving step (default: False)
 
     OUTPUT:
 

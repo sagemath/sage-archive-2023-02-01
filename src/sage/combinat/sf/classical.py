@@ -297,8 +297,6 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         # Last shot -- try calling R(x) #
         #################################
         else:
-            if isinstance(x, list) and all(isinstance(a,(int, Integer)) for a in x):
-                raise NotImplementedError
             try:
                 return eclass(self, {_Partitions([]): R(x)})
             except Exception:

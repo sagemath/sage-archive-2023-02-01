@@ -5304,7 +5304,10 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s([3,2]).hl_creation_operator(-2)
             Traceback (most recent call last):
             ...
-            TypeError: nu must be a list of integers
+            ValueError: nu must be a list of integers
+            sage: s = SymmetricFunctions(FractionField(ZZ['t'])).schur()
+            sage: s[2].hl_creation_operator([3])
+            s[3, 2] + t*s[4, 1] + t^2*s[5]
 
         TESTS::
 
@@ -5313,9 +5316,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s.one().hl_creation_operator([2,-1])
             0
         """
-        if not (isinstance(nu,list) and
-                all(isinstance(a,(int,Integer)) for a in nu)):
-            raise ValueError("nu must be a list of integers"%(nu))
         s = self.parent().realization_of().schur()
         if t is None:
             if hasattr(self.parent(),"t"):
@@ -5323,18 +5323,20 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             else:
                 t = self.parent().base_ring()('t')
         P = self.parent()
-        if nu in Partitions():
+        if nu in _Partitions:
             self = s(self)
             return P(self*s(nu) +
                      s.sum( s.sum_of_terms( (lam,c) for lam, c in s(mu)*s(nu) if len(lam) <= len(nu) ) *
                             self.skew_by(s(mu).plethysm((t-1)*s([1])))
                             for d in range(self.degree())
                             for mu in Partitions(d+1, max_length=len(nu)) ) )
-        else:
+        elif isinstance(nu,list) and all(isinstance(a,(int,Integer)) for a in nu):
             return P(s.sum(t**la.size()*c*d*s(la)*
-                     s._repeated_bernstein_creation_operator_on_basis(ga, nu) \
-                     for ((la,mu),c) in s(self).coproduct() \
+                     s._repeated_bernstein_creation_operator_on_basis(ga, nu)
+                     for ((la,mu),c) in s(self).coproduct()
                      for (ga, d) in s(mu).plethysm((1-t)*s[1]) ) )
+        else:
+            raise ValueError("nu must be a list of integers")
 
     def eval_at_permutation_roots(self, rho):
         r"""

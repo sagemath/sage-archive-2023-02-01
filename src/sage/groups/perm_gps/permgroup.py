@@ -828,34 +828,14 @@ class PermutationGroup_generic(group.FiniteGroup):
         EXAMPLES::
 
             sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
-            sage: for g in G: print(g)
-            ()
-            (1,4)(2,3)
-            (1,2)(3,4)
-            (1,3)(2,4)
-            (2,4,3)
-            (1,4,2)
-            (1,2,3)
-            (1,3,4)
-            (2,3,4)
-            (1,4,3)
-            (1,2,4)
-            (1,3,2)
-            (3,4)
-            (1,4,2,3)
-            (1,2)
-            (1,3,2,4)
-            (2,4)
-            (1,4,3,2)
-            (1,2,3,4)
-            (1,3)
-            (2,3)
-            (1,4)
-            (1,2,4,3)
-            (1,3,4,2)
+            sage: [g for g in G]
+            [(), (1,4)(2,3), (1,2)(3,4), (1,3)(2,4), (2,4,3), (1,4,2),
+             (1,2,3), (1,3,4), (2,3,4), (1,4,3), (1,2,4), (1,3,2), (3,4),
+             (1,4,2,3), (1,2), (1,3,2,4), (2,4), (1,4,3,2), (1,2,3,4),
+             (1,3), (2,3), (1,4), (1,2,4,3), (1,3,4,2)]
 
             sage: G = PermutationGroup([('A','B'),('B','C')])
-            sage: [ g for g in G ]
+            sage: [g for g in G]
             [(), ('A','B','C'), ('A','C','B'), ('B','C'), ('A','B'), ('A','C')]
         """
         return self.iteration(algorithm="SGS")
@@ -866,17 +846,20 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         INPUT:
 
-        - ``algorithm`` -- either "SGS" (default, strong generating
-          system) or "RES" (recursively enumerated set.
+        - ``algorithm`` -- (default: ``"SGS"``) either
 
-        In general, the algorithm "SGS" is (unually much) faster, only
-        for very small groups, "RES" might be faster.
+          * ``"SGS"`` - using strong generating system
+          * ``"RES"`` - a recursively enumerated set
 
-        .. warning::
+        .. NOTE::
+
+            In general, the algorithm ``"SGS"`` is (unually much) faster.
+            Yet, for small groups, ``"RES"`` might be faster.
+
+        .. NOTE::
 
             The order in which the iterator visits the elements differs
-            in the two algorithms, and is not even guaranteed to always
-            be the same for one of the two.
+            in the two algorithms.
 
         EXAMPLES::
 
@@ -892,7 +875,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: A.cardinality()
             60000
             sage: for x in A.iteration(): pass
-            sage: for x in A.iteration(algorithm="RES"): pass           # long time - 0.5 secs
+            sage: for x in A.iteration(algorithm="RES"): pass
         """
         if algorithm == "SGS":
             def elements(SGS):
@@ -911,7 +894,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
                     successors=lambda g: (g._mul_(h) for h in self.gens())))
         else:
-            raise ValueError("The input algorithm (='%s') must be either 'SGS' or 'RES'"%algorithm)
+            raise ValueError("the input algorithm (='%s') must be either 'SGS' or 'RES'" % algorithm)
 
     def gens(self):
         """
@@ -1556,25 +1539,28 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         INPUT:
 
-        - ``base_of_group`` (optional) -- default: ``[1, 2, 3, ..., d]``
-          -- a list containing the integers
-          `1, 2, \dots , d` in any order (`d` is the degree of ``self``)
+        - ``base_of_group`` (optional) -- (default: ``[1, 2, 3, ..., d]``)
+          a list containing the integers `1, 2, \ldots , d` in any order,
+          where `d` is the degree of ``self``
 
-        - ``implementation`` (optional) -- default: "sage".
-          -- either "sage" or "gap", if "gap" is used, then
-             ``base_of_group`` must be ``None`` and the computation is
-             directly performed in GAP.
+        - ``implementation`` -- (default: ``"sage"``) either
+
+          * ``"sage"`` - use the direct implementation in Sage
+
+          * ``"gap"`` - if used, the ``base_of_group`` must be ``None``
+             and the computation is directly performed in GAP
 
         OUTPUT:
 
-        - A list of lists of permutations from the group, which form a strong
-          generating system.
+        A list of lists of permutations from the group, which form a strong
+        generating system.
 
         .. WARNING::
 
-            The outputs for implementations "sage" and "gap" differ: First,
-            the output is reversed, and second, it might be that "sage"
-            does not contain the trivial subgroup while "gap" does.
+            The outputs for implementations ``"sage"`` and ``"gap"`` differ:
+            First, the output is reversed, and second, it might be that
+            ``"sage"`` does not contain the trivial subgroup while ``"gap"``
+            does.
 
             Also, both algorithms might yield different results based on the
             order in which ``base_of_group`` is given in the first situation.
@@ -1586,21 +1572,34 @@ class PermutationGroup_generic(group.FiniteGroup):
             [[()], [()], [(), (3,4,5), (3,5)], [(), (4,5)], [()], [()], [(), (7,8)], [()]]
             sage: G = PermutationGroup([[(1,2,3,4)],[(1,2)]])
             sage: G.strong_generating_system()
-            [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)], [(), (2,3,4), (2,4,3)], [(), (3,4)], [()]]
+            [[(), (1,2)(3,4), (1,3)(2,4), (1,4)(2,3)],
+             [(), (2,3,4), (2,4,3)], [(), (3,4)], [()]]
             sage: G = PermutationGroup([[(1,2,3)],[(4,5,7)],[(1,4,6)]])
             sage: G.strong_generating_system()
-            [[(), (1,2,3), (1,4,6), (1,3,2), (1,5,7,4,6), (1,6,4), (1,7,5,4,6)], [(), (2,6,3), (2,5,7,6,3), (2,3,6), (2,7,5,6,3), (2,4,7,6,3)], [(), (3,6,7), (3,5,6), (3,7,6), (3,4,7,5,6)], [(), (4,5)(6,7), (4,7)(5,6), (4,6)(5,7)], [(), (5,7,6), (5,6,7)], [()], [()]]
+            [[(), (1,2,3), (1,4,6), (1,3,2), (1,5,7,4,6), (1,6,4), (1,7,5,4,6)],
+             [(), (2,6,3), (2,5,7,6,3), (2,3,6), (2,7,5,6,3), (2,4,7,6,3)],
+             [(), (3,6,7), (3,5,6), (3,7,6), (3,4,7,5,6)],
+             [(), (4,5)(6,7), (4,7)(5,6), (4,6)(5,7)],
+             [(), (5,7,6), (5,6,7)], [()], [()]]
             sage: G = PermutationGroup([[(1,2,3)],[(2,3,4)],[(3,4,5)]])
             sage: G.strong_generating_system([5,4,3,2,1])
-            [[(), (1,5,3,4,2), (1,5,4,3,2), (1,5)(2,3), (1,5,2)], [(), (1,3)(2,4), (1,2)(3,4), (1,4)(2,3)], [(), (1,3,2), (1,2,3)], [()], [()]]
+            [[(), (1,5,3,4,2), (1,5,4,3,2), (1,5)(2,3), (1,5,2)],
+             [(), (1,3)(2,4), (1,2)(3,4), (1,4)(2,3)],
+             [(), (1,3,2), (1,2,3)], [()], [()]]
             sage: G = PermutationGroup([[(3,4)]])
             sage: G.strong_generating_system()
             [[()], [()], [(), (3,4)], [()]]
             sage: G.strong_generating_system(base_of_group=[3,1,2,4])
             [[(), (3,4)], [()], [()], [()]]
-            sage: G = TransitiveGroup(12,17)                # optional - database_gap
-            sage: G.strong_generating_system()              # optional - database_gap
-            [[(), (1,4,11,2)(3,6,5,8)(7,10,9,12), (1,8,3,2)(4,11,10,9)(5,12,7,6), (1,7)(2,8)(3,9)(4,10)(5,11)(6,12), (1,12,7,2)(3,10,9,8)(4,11,6,5), (1,11)(2,8)(3,5)(4,10)(6,12)(7,9), (1,10,11,8)(2,3,12,5)(4,9,6,7), (1,3)(2,8)(4,10)(5,7)(6,12)(9,11), (1,2,3,8)(4,9,10,11)(5,6,7,12), (1,6,7,8)(2,3,4,9)(5,10,11,12), (1,5,9)(3,11,7), (1,9,5)(3,7,11)], [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)], [()], [()], [()], [()], [()], [()], [()], [()], [()], [()]]
+            sage: G = TransitiveGroup(12,17)         # optional - database_gap
+            sage: G.strong_generating_system()       # optional - database_gap
+            [[(), (1,4,11,2)(3,6,5,8)(7,10,9,12), (1,8,3,2)(4,11,10,9)(5,12,7,6),
+              (1,7)(2,8)(3,9)(4,10)(5,11)(6,12), (1,12,7,2)(3,10,9,8)(4,11,6,5),
+              (1,11)(2,8)(3,5)(4,10)(6,12)(7,9), (1,10,11,8)(2,3,12,5)(4,9,6,7),
+              (1,3)(2,8)(4,10)(5,7)(6,12)(9,11), (1,2,3,8)(4,9,10,11)(5,6,7,12),
+              (1,6,7,8)(2,3,4,9)(5,10,11,12), (1,5,9)(3,11,7), (1,9,5)(3,7,11)],
+             [(), (2,6,10)(4,12,8), (2,10,6)(4,8,12)],
+             [()], [()], [()], [()], [()], [()], [()], [()], [()], [()]]
 
             sage: A = PermutationGroup([(1,2),(1,2,3,4,5,6,7,8,9)])
             sage: X = A.strong_generating_system()
@@ -1620,7 +1619,8 @@ class PermutationGroup_generic(group.FiniteGroup):
         if implementation == "gap":
             from sage.libs.gap.libgap import libgap
             if not base_of_group is None:
-                raise ValueError("The optional argument 'base_of_group' (='%s' must be 'None' if 'implementation' = 'gap'"%base_of_group)
+                raise ValueError("the optional argument 'base_of_group'"
+                                 " (='%s') must be None if 'implementation'='gap'" % base_of_group)
 
             gap_cosets = libgap.function_factory("""function ( S0 )
                 local   CosetsStabChain;
@@ -1659,15 +1659,12 @@ class PermutationGroup_generic(group.FiniteGroup):
                end;
                return CosetsStabChain(S0);
             end;""")
-            G = libgap.Group(self.gens())
+            G = libgap(self) #libgap.Group(self.gens())
             S = G.StabChain()
             cosets = gap_cosets(S)
             one = self.one()
-            # the following also works but is much slower:
-            #gap2sage = lambda elt: one._generate_new(libgap.ListPerm(elt).sage())
-            #gap2sage = lambda elt: libgap.ListPerm(elt)._generate_perm(one)
-            gap2sage = lambda elt: one._generate_new_GAP(libgap.ListPerm(elt))
-            return [ [ gap2sage(elt) for elt in coset] for coset in cosets ]
+            return [[one._generate_new_GAP(libgap.ListPerm(elt))
+                     for elt in coset] for coset in cosets]
 
         if implementation == "sage":
             sgs = []
@@ -1680,7 +1677,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             return sgs
 
         else:
-            raise ValueError("The optional argument 'implementation' (='%s') must be 'sage' or 'gap'"%implementation)
+            raise ValueError("the optional argument 'implementation'"
+                             " (='%s') must be 'sage' or 'gap'" % implementation)
 
     def _repr_(self):
         r"""

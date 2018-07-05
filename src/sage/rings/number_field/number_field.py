@@ -4974,7 +4974,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         return rets
 
     def absolute_degree(self):
-        """
+        r"""
         Return the degree of self over `\QQ`.
 
         EXAMPLES::
@@ -8462,7 +8462,7 @@ class NumberField_absolute(NumberField_generic):
     Minkowski_embedding = deprecated_function_alias(23685, minkowski_embedding)
 
     def places(self, all_complex=False, prec=None):
-        """
+        r"""
         Return the collection of all infinite places of self.
 
         By default, this returns the set of real places as
@@ -9722,7 +9722,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         return self.__n
 
     def _latex_(self):
-        """
+        r"""
         Return the latex representation of this cyclotomic field.
 
         EXAMPLES::
@@ -10861,7 +10861,7 @@ class NumberField_quadratic(NumberField_absolute):
         return NumberField_absolute._coerce_map_from_(self, K)
 
     def _latex_(self):
-        """
+        r"""
         Return the latex representation of this quadratic field.
 
         EXAMPLES::
@@ -11083,6 +11083,26 @@ class NumberField_quadratic(NumberField_absolute):
         from sage.schemes.elliptic_curves.all import hilbert_class_polynomial as HCP
         return QQ[name](HCP(D))
 
+    def number_of_roots_of_unity(self):
+        """
+        Return the number of roots of unity in this quadratic field.
+
+        This is always 2 except when d is -3 or -4.
+
+        EXAMPLES::
+
+            sage: QF = QuadraticField
+            sage: [QF(d).number_of_roots_of_unity() for d in range(-7, -2)]
+            [2, 2, 2, 4, 6]
+        """
+        d = self.discriminant()
+        if d == -4:
+            return 4
+        if d == -3:
+            return 6
+        return 2
+
+
 def is_fundamental_discriminant(D):
     r"""
     Return True if the integer `D` is a fundamental
@@ -11100,9 +11120,9 @@ def is_fundamental_discriminant(D):
         [-15, -11, -8, -7, -4, -3, 5, 8, 12, 13]
     """
     d = D % 4
-    if not (d in [0,1]):
+    if not (d in [0, 1]):
         return False
-    return D != 1 and  D != 0 and \
+    return D != 1 and D != 0 and \
            (arith.is_squarefree(D) or \
             (d == 0 and (D//4)%4 in [2,3] and arith.is_squarefree(D//4)))
 
@@ -11378,5 +11398,3 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
-
-

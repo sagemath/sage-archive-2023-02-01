@@ -139,7 +139,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
                                          sorting_key=self._genkey)
 
     def _genkey(self, t):
-        """
+        r"""
         Construct a key for comparison for a term indexed by ``t``.
 
         The key we create is the tuple in the following order:
@@ -447,7 +447,7 @@ class RationalCherednikAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def trivial_idempotent(self):
-        """
+        r"""
         Return the trivial idempotent of ``self``.
 
         Let `e = |W|^{-1} \sum_{w \in W} w` is the trivial idempotent.

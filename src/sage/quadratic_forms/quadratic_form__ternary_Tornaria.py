@@ -65,7 +65,7 @@ def disc(self):
 
 
 def content(self):
-    """
+    r"""
     Return the GCD of the coefficients of the quadratic form.
 
     .. warning::

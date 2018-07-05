@@ -849,33 +849,45 @@ class PermutationGroup_generic(group.FiniteGroup):
         - ``algorithm`` -- (default: ``"SGS"``) either
 
           * ``"SGS"`` - using strong generating system
-          * ``"RES"`` - a recursively enumerated set
+          * ``"BFS"`` - a breadth first search on the Cayley graph with
+                        respect to ``self.gens()``
+          * ``"DFS"`` - a depth first search on the Cayley graph with
+                        respect to ``self.gens()``
 
         .. NOTE::
 
-            In general, the algorithm ``"SGS"`` is (unually much) faster.
-            Yet, for small groups, ``"RES"`` might be faster.
+            In general, the algorithm ``"SGS"`` is faster. Yet, for
+            small groups, ``"BFS"`` and ``"DFS"`` might be faster.
 
         .. NOTE::
 
             The order in which the iterator visits the elements differs
-            in the two algorithms.
+            in the algorithms.
 
         EXAMPLES::
 
-            sage: G = PermutationGroup([[(1,2,3)], [(1,2)]])
+            sage: G = PermutationGroup([[(1,2)], [(2,3)]])
+
             sage: list(G.iteration())
             [(), (1,2,3), (1,3,2), (2,3), (1,2), (1,3)]
-            sage: list(G.iteration(algorithm="RES"))
-            [(), (1,2), (1,2,3), (2,3), (1,3,2), (1,3)]
+
+            sage: list(G.iteration(algorithm="BFS"))
+            [(), (2,3), (1,2), (1,3,2), (1,2,3), (1,3)]
+
+            sage: list(G.iteration(algorithm="DFS"))
+            [(), (1,2), (1,3,2), (1,3), (1,2,3), (2,3)]
+
+        TESTS::
 
             sage: p = [(i,i+1) for i in range(1,601,2)]
             sage: q = [tuple(range(1+i,601,3)) for i in range(3)]
             sage: A = PermutationGroup([p,q])
             sage: A.cardinality()
             60000
+
             sage: for x in A.iteration(): pass
-            sage: for x in A.iteration(algorithm="RES"): pass
+            sage: for x in A.iteration(algorithm="BFS"): pass
+            sage: for x in A.iteration(algorithm="DFS"): pass
         """
         if algorithm == "SGS":
             def elements(SGS):
@@ -889,12 +901,21 @@ class PermutationGroup_generic(group.FiniteGroup):
 
             SGS = self.strong_generating_system(implementation="gap")
             return elements(SGS)
-        elif algorithm == "RES":
+        elif algorithm in ["BFS", "DFS"]:
             from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
-            return iter(RecursivelyEnumeratedSet(seeds=[self.one()],
-                    successors=lambda g: (g._mul_(h) for h in self.gens())))
+            seeds = [self.one()]
+            gens = self.gens()
+            successors = lambda g: (g._mul_(h) for h in gens)
+            if algorithm[0] == "B":
+                enumeration = "breadth"
+            else:
+                enumeration = "depth"
+            return iter(RecursivelyEnumeratedSet(
+                                    seeds=seeds,
+                                    successors=successors,
+                                    enumeration=enumeration))
         else:
-            raise ValueError("the input algorithm (='%s') must be either 'SGS' or 'RES'" % algorithm)
+            raise ValueError("the input algorithm (='%s') must be 'SGS', 'BFS' or 'DFS'" % algorithm)
 
     def gens(self):
         """

@@ -904,7 +904,7 @@ class DocTestController(SageObject):
                 finally:
                     self.timer.stop()
                     self.reporter.finalize()
-                    self.cleanup(it == N - 1)
+                    self.cleanup(False)
         else:
             self.log("No files to doctest")
             self.reporter = DictAsObject(dict(error_status=0))
@@ -1174,6 +1174,7 @@ class DocTestController(SageObject):
             if self.options.optional is True or 'external' in self.options.optional:
                 self.log("External software detected for doctesting: "
                          + ','.join(available_software.seen()))
+            self.cleanup()
             return self.reporter.error_status
 
 def run_doctests(module, options=None):

@@ -2378,6 +2378,12 @@ class Triconnectivity:
             component_type = type_c
         def add_edge(self, e):
             self.edge_list.append(e)
+        def finish_tric_or_poly(self, e):
+            self.edge_list.append(e)
+            if len(self.edge_list) >= 4:
+                component_type = 2
+            else:
+                component_type = 1
 
     graph_copy = None #type SparseGraph
     vertex_to_int = {} # mapping of vertices to integers in c_graph
@@ -2385,8 +2391,11 @@ class Triconnectivity:
     start_vertex = 0
     num_components = 0
     edge_status = {} # status of each edge, unseen=0, tree=1, frond=2, removed=3
-    Estack = []
-    Tstack = []
+    e_stack = []
+    t_stack_h = []
+    t_stack_a = []
+    t_stack_b = []
+    t_stack_top = 0
     dfs_number = [] # DFS number of vertex i
     vertex_at = [] # vertex with DFS number of i$
     lowpt1 = [] # lowpt1 number of vertex i
@@ -2448,7 +2457,7 @@ class Triconnectivity:
         # Triconnectivity algorithm
         self.split_multi_egdes()
         self.dfs_counter = 0 # Initialisation for dfs1()
-        self.start_vertex = 0 # Initialisation for dfs1()
+        self.start_vertex = 7 # Initialisation for dfs1()
         self.cut_vertex = self.dfs1(self.start_vertex, check=check)
 
         if check:
@@ -2498,7 +2507,12 @@ class Triconnectivity:
     def tstack_not_eos(self):
         return self.t_stack_a[self.t_stack_top] != -1
 
-    def new_component(self, edges, type_c=0):
+    def estack_pop(self):
+        e = self.e_stack[-1]
+        self.e_stack = self.e_stack[0:-1]
+        return e
+
+    def new_component(self, edges=[], type_c=0):
         c = self.Component(edges, type_c)
         self.components_list.append(c)
         # Remove the edges from graph
@@ -2507,7 +2521,7 @@ class Triconnectivity:
         self.num_components += 1
         return c
 
-    def add_edges_to_component(self, comp, e):
+    def add_edge_to_component(self, comp, e):
         comp.add_edge(e)
         self.edge_status[e] = 3
 
@@ -2518,13 +2532,13 @@ class Triconnectivity:
             return 0
 
     def del_high(self, e):
-        e = self.high[e]
-        if e is not None:
-            if e in self.reversed_edges:
+        it = self.in_high[e]
+        if it:
+            if e in self.reverse_edges:
                 v = e[0]
             else:
                 v = e[1]
-            self.highpt[v].remove(e)
+            self.highpt[v].remove(it)
 
     def split_multi_egdes(self):
         """
@@ -2653,7 +2667,6 @@ class Triconnectivity:
             sage: tric.cut_vertex
             3
         """
-
         first_son = None # For testing biconnectivity
         s1 = None # Storing the cut vertex, if there is one
         self.dfs_counter += 1
@@ -2718,6 +2731,7 @@ class Triconnectivity:
                 continue
 
             # compute phi value
+            # bucket sort adjacency list by phi values
             if e in self.reverse_edges:
                 if edge_type==1: # tree arc
                     if self.lowpt2[e[0]] < self.dfs_number[e[1]]:
@@ -2741,10 +2755,10 @@ class Triconnectivity:
             for e in bucket[i]:
                 if e in self.reverse_edges:
                     self.adj[e[1]].append(e)
-                    self.in_adj[e] = self.adj[e[1]]
+                    self.in_adj[e] = e
                 else:
                     self.adj[e[0]].append(e)
-                    self.in_adj[e] = self.adj[e[0]]
+                    self.in_adj[e] = e
 
     def path_finder(self, v):
         """
@@ -2761,7 +2775,7 @@ class Triconnectivity:
                 self.dfs_counter -= 1
             else:
                 self.highpt[w].append(self.newnum[v])
-                self.in_high[e] = self.highpt[w]
+                self.in_high[e] = self.newnum[v]
                 self.new_path = True
 
 
@@ -2790,3 +2804,262 @@ class Triconnectivity:
             self.node_at[self.newnum[v]] = v
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]
+
+    def path_search(self, v):
+        """
+        Function to find the separation pairs.
+        """
+        y = 0
+        vnum = self.newnum[v]
+        adj = self.adj[v]
+        outv = len(adj)
+        for e in adj:
+            it = e
+            if e in self.reverse_edges:
+                w = e[0] # target
+            else:
+                w = e[1]
+            wnum = self.newnum[w]
+            if self.edge_status[e] == 1: # tree arc
+                if self.starts_path[e]:
+                    y = 0
+                    if self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
+                        while self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
+                            y = max(y, self.t_stack_h[self.t_stack_top])
+                            b = self.t_stack_b[self.t_stack_top]
+                            self.t_stack_top -= 1
+                        self.tstack_push(y, self.lowpt1[w], b)
+
+                    else:
+                        self.tstack_push(wnum + self.nd[w] - 1, self.lowpt1[w], vnum)
+                    self.tstack_push_eos()
+
+                self.path_search(w)
+
+                self.e_stack.append(self.tree_arc[w])
+
+                temp = self.adj[w][0]
+                if temp in self.reverse_edges:
+                    temp_target = temp[0]
+                else:
+                    temp_target = temp[1]
+                # while vnum is not the start_vertex
+                while vnum != 0 and ((self.t_stack_a[self.t_stack_top] == vnum) or \
+                        (self.degree[w] == 2 and self.newnum[temp_target] > wnum)):
+                    a = self.t_stack_a[self.t_stack_top]
+                    b = self.t_stack_b[self.t_stack_top]
+                    e_virt = None
+
+                    if a == vnum and self.parent[self.node_at[b]] == self.node_at[a]:
+                        self.t_stack_top -= 1
+
+                    else:
+                        e_ab = None
+                        if self.degree[w] == 2 and self.newnum[temp_target] > wnum:
+                            # found type-2 separation pair
+                            print "found type-2 separation pair (",v,", ", temp_target, ")"
+                            e1 = self.estack_pop()
+                            e2 = self.estack_pop()
+                            self.adj[w].remove(self.in_adj[e2]) # check run time
+
+                            if e2 in self.reverse_edges:
+                                x = e2[0]
+                            else:
+                                x = e2[1]
+
+                            #e_virt = self.graph_copy.add_edge(v, x) # but edge is not returned ?
+                            self.graph_copy.add_edge(v, x)
+                            e_virt = (v, x, None)
+                            self.degree[v] -= 1
+                            self.degree[x] -= 1
+
+                            if e2 in self.reverse_edges:
+                                e2_source = e2[1]
+                            else:
+                                e2_source = e2[0]
+                            if e2_source != w: # OGDF_ASSERT
+                                raise ValueError("graph is not biconnected?")
+
+                            self.new_component([e1, e2, e_virt], 1)
+
+                            if self.e_stack:
+                                e1 = self.e_stack[-1]
+                                if e1 in self.reverse_edges:
+                                    if e1[1] == x and e1[0] == v:
+                                        e_ab = self.estack_pop()
+                                        self.adj[x].remove(self.in_adj[e_ab])
+                                        self.del_high(e_ab)
+                                else:
+                                    if e1[0] == x and e1[1] == v:
+                                        e_ab = self.estack_pop()
+                                        self.adj[x].remove(self.in_adj[e_ab])
+                                        self.del_high(e_ab)
+
+                        else: # found type-2 separation pair
+                            print "found type-2 separation pair (",a,", ", b, ")"
+                            h = self.t_stack_h[self.t_stack_top]
+                            self.t_stack_top -= 1
+
+                            comp = self.new_component()
+                            while True:
+                                xy = self.e_stack[-1]
+                                if xy in self.reverse_edges:
+                                    x = xy[1]
+                                    xy_target = xy[0]
+                                else:
+                                    x = xy[0]
+                                    xy_target = xy[1]
+                                if not (a <= self.newnum[x] and self.newnum[x] <= h and \
+                                    a <= self.newnum[xy_target] and self.newnum[xy_target] <= h):
+                                    break
+                                if (self.newnum[x] == a and self.newnum[xy_target] == b) or \
+                                    (self.newnum[xy_target] == a and self.newnum[x] == b):
+                                    e_ab = self.estack_pop()
+                                    if e_ab in self.reverse_edges:
+                                        e_ab_source = e_ab[1]
+                                    else:
+                                        e_ab_source = e_ab[0]
+                                    self.adj[e_ab_source].remove(self.in_adj[e_ab])
+                                    self.del_high(e_ab)
+
+                                else:
+                                    eh = self.estack_pop()
+                                    if eh in self.reverse_edges:
+                                        eh_source = eh[1]
+                                    else:
+                                        eh_source = eh[0]
+                                    if it != self.in_adj[eh]:
+                                        self.adj[eh_source].remove(self.in_adj[eh])
+                                        self.del_high(eh)
+
+                                    comp.add_edge(eh) # check
+                                    self.degree[x] -= 1
+                                    self.degree[xy_target] -= 1
+
+                            self.graph_copy.add_edge(self.node_at[a], self.node_at[b])
+                            e_virt = (self.node_at[a], self.node_at[b], None)
+                            comp.finish_tric_or_poly(e_virt)
+                            x = self.node_at[b]
+
+                        if e_ab is not None:
+                            comp = self.new_component([e_ab, e_virt], type_c=0)
+                            self.graph_copy.add_edge(v,x)
+                            e_virt = (v,x,None)
+                            comp.add_edge(e_virt)
+                            self.degree[x] -= 1
+                            self.degree[v] -= 1
+
+                        self.e_stack.append(e_virt)
+                        it = e_virt
+                        self.in_adj[e_virt] = it
+                        self.degree[x] += 1
+                        self.degree[v] += 1
+                        self.parent[x] = v
+                        self.tree_arc[x] = e_virt
+                        self.edge_status[e_virt] = 1
+                        w = x
+                        wnum = self.newnum[w]
+
+                # start type-1 check
+                if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
+                    (self.parent[v] != self.start_vertex or outv >= 2):
+                    # type-1 separation pair
+                    print "Found type-1 separation pair (", self.node_at[self.lowpt1[w]], ", ", v, ")"
+                    c = self.new_component()
+                    if not self.e_stack: # OGDF_ASSERT
+                        raise ValueError("stack is empty")
+                    while self.e_stack:
+                        xy = self.e_stack[-1]
+                        if xy in self.reverse_edges:
+                            xx = self.newnum[xy[1]] #source
+                            y = self.newnum[xy[0]] #target
+                        else:
+                            xx = self.newnum[xy[0]] #source
+                            y = self.newnum[xy[1]] #target
+
+                        if not ((wnum <= xx and  xx < wnum + self.nd[w]) or \
+                            (wnum <= y and y < wnum + self.nd[w])):
+                            break
+
+                        comp.add_edge(self.estack_pop())
+                        self.del_high(xy)
+                        self.degree[self.node_at[xx]] -= 1
+                        self.degree[self.node_at[y]] -= 1
+
+                    self.graph_copy.add_edge(v, self.node_at[self.lowpt1[w]])
+                    e_virt = (v, self.node_at[self.lowpt1[w]], None)
+                    comp.finish_tric_or_poly(e_virt);
+
+                    if (xx == vnum and y == self.lowpt1[w]) or \
+                        (y == vnum and xx == self.lowpt1[w]):
+                        comp_bond = self.new_component(type_c = 0)
+                        eh = self.estack_pop()
+                        if self.in_adj[eh] != it:
+                            if eh in self.reverse_edges:
+                                self.adj[eh[1]].remove(self.in_adj[eh])
+                            else:
+                                self.adj[eh[0]].remove(self.in_adj[eh])
+
+                        comp_bond.add_edge(eh)
+                        comp_bond.add_edge(e_virt) # TODO combine them
+                        self.graph_copy.add_edge(v, self.node_at[self.lowpt1[w]])
+                        e_virt = (v, self.node_at[self.lowpt1[w]], None)
+                        comp_bond.add_edge(e_virt)
+                        self.in_high[e_virt] = self.in_high[eh]
+                        self.degree[v] -= 1
+                        self.degree[self.node_at[self.lowpt1[w]]] -= 1
+
+                    if self.node_at[self.lowpt1[w]] != self.parent[v]:
+                        self.e_stack.append(e_virt)
+                        it = e_virt
+                        self.in_adj[e_virt] = it
+                        if not self.in_high[e_virt] and self.high(self.node_at[self.lowpt1[w]]) < vnum:
+                            self.highpt[self.node_at[self.lowpt1[w]]] = [vnum] + self.highpt[self.node_at[self.lowpt1[w]]]
+                            self.in_high[e_virt] = vnum
+
+                        self.degree[v] += 1
+                        self.degree[self.node_at[self.lowpt1[w]]] += 1
+
+                    else:
+                        adj.remove(it)
+                        comp_bond = self.new_component([e_virt], type_c=0)
+                        self.graph_copy.add_edge(self.node_at[self.lowpt1[w]], v)
+                        e_virt = (self.node_at[self.lowpt1[w]], c, None)
+                        comp_bond.add_edge(e_virt)
+
+                        eh = self.tree_arc[v];
+                        comp_bond.add_edge(eh)
+
+                        self.tree_arc[v] = e_virt
+                        self.egde_status[e_virt] = 1
+                        self.in_adj[e_virt] = self.in_adj[eh]
+                        self.in_adj[eh] = e_virt
+
+                # end type-1 search
+                if self.starts_path[e]:
+                    while self.tstack_not_eos():
+                        self.t_stack_top -= 1
+                    self.t_stack_top -= 1
+
+                while self.tstack_not_eos() and self.t_stack_b[self.t_stack_top] != vnum \
+                    and self.high(v) > self.t_stack_h[self.t_stack_top]:
+                    self.t_stack_top -= 1
+
+                outv -= 1
+
+            else: #frond
+                if self.starts_path[e]:
+                    y = 0
+                    if self.t_stack_a[self.t_stack_top] > wnum:
+                        while self.t_stack_a[self.t_stack_top] > wnum:
+                            y = max(y, self.t_stack_h[self.t_stack_top])
+                            b = self.t_stack_b[self.t_stack_top]
+                            self.t_stack_top -= 1
+                        self.tstack_push(y, wnum, b)
+
+                    else:
+                        self.tstack_push(vnum, wnum, vnum)
+                self.e_stack.append(e) # add (v,w) to ESTACK
+
+
+

@@ -1040,7 +1040,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: chi = G.character(G.character_table()[2])
             sage: R.<x,y,z,w> = QQ[]
             sage: G.reynolds_operator(x*y, chi)
-            1/4*x + (-1/4*v)*y - 1/4*z + (1/4*v)*w
+            1/4*x*y + (1/4*zeta4)*y*z + (-1/4*zeta4)*x*w - 1/4*z*w
 
         ::
 
@@ -1052,7 +1052,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             1/3*x*y^5 + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*x^5*z + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*y*z^5
             sage: R.<x,y,z> = QQbar[]
             sage: G.reynolds_operator(x*y^5, chi)
-            1/3*x*y^5 + (-2/3*izeta3^3 - izeta3^2 - 8/3*izeta3 - 4/3)*x^5*z + (2/3*izeta3^3 + izeta3^2 + 8/3*izeta3 + 1)*y*z^5
+            1/3*x*y^5 + (-0.1666666666666667? + 0.2886751345948129?*I)*x^5*z + (-0.1666666666666667? - 0.2886751345948129?*I)*y*z^5
 
         ::
 

@@ -246,22 +246,22 @@ class Groups(CategoryWithAxiom):
                 sage: G = DiCyclicGroup(3)
                 sage: T = G.cayley_table()
                 sage: T.column_keys()
-                ((), (1,3,2,4)(5,7), ..., (1,2)(3,4)(5,7,6))
+                ((), (5,6,7), ..., (1,3,2,4)(5,7))
                 sage: T
                 *  a b c d e f g h i j k l
                  +------------------------
                 a| a b c d e f g h i j k l
-                b| b e f j i h d k a l c g
-                c| c g d e h b k l j f i a
-                d| d k e h l g i a f b j c
-                e| e i h l a k j c b g f d
-                f| f d j i k e c g l h a b
-                g| g h b f j l e i c a d k
-                h| h j l a c i f d g k b e
-                i| i a k g b c l f e d h j
-                j| j c i k g d a b h e l f
-                k| k l g b f a h j d c e i
-                l| l f a c d j b e k i g h
+                b| b c a e f d i g h l j k
+                c| c a b f d e h i g k l j
+                d| d e f a b c j k l g h i
+                e| e f d b c a l j k i g h
+                f| f d e c a b k l j h i g
+                g| g h i j k l d e f a b c
+                h| h i g k l j f d e c a b
+                i| i g h l j k e f d b c a
+                j| j k l g h i a b c d e f
+                k| k l j h i g c a b f d e
+                l| l j k i g h b c a e f d
 
             ::
 
@@ -322,13 +322,13 @@ class Groups(CategoryWithAxiom):
                  *   1  I  J -1 -K  K -I -J
                   +------------------------
                  1|  1  I  J -1 -K  K -I -J
-                 I|  I -1  K -I  J -J  1 -K
-                 J|  J -K -1 -J -I  I  K  1
-                -1| -1 -I -J  1  K -K  I  J
-                -K| -K -J  I  K -1  1  J -I
-                 K|  K  J -I -K  1 -1 -J  I
-                -I| -I  1 -K  I -J  J -1  K
-                -J| -J  K  1  J  I -I -K -1
+                 I|  I  1 -1  J  K -K -J -I
+                 J|  J -1  I  1 -I -J  K -K
+                -1| -1  J  1  I -J -I -K  K
+                -K| -K  K -J -I  I  1  J -1
+                 K|  K -K -I -J  1  I -1  J
+                -I| -I -J -K  K -1  J  I  1
+                -J| -J -I  K -K  J -1  1  I
 
             ::
 
@@ -389,21 +389,21 @@ class Groups(CategoryWithAxiom):
                 .  a b c d e f g h i j k l
                  +------------------------
                 a| a a a a a a a a a a a a
-                b| a a h d a d h h a h d d
-                c| a d a a a d d a d d d a
-                d| a h a a a h h a h h h a
-                e| a a a a a a a a a a a a
-                f| a h h d a a d h h d a d
-                g| a d h d a h a h d a h d
-                h| a d a a a d d a d d d a
-                i| a a h d a d h h a h d d
-                j| a d h d a h a h d a h d
-                k| a h h d a a d h h d a d
-                l| a h a a a h h a h h h a
+                b| a a a a a a c c c c c c
+                c| a a a a a a b b b b b b
+                d| a a a a a a a a a a a a
+                e| a a a a a a c c c c c c
+                f| a a a a a a b b b b b b
+                g| a b c a b c a c b a c b
+                h| a b c a b c b a c b a c
+                i| a b c a b c c b a c b a
+                j| a b c a b c a c b a c b
+                k| a b c a b c b a c b a c
+                l| a b c a b c c b a c b a
                 sage: trans = T.translation()
                 sage: comm = [trans['a'], trans['d'],trans['h']]
                 sage: comm
-                [(), (5,7,6), (5,6,7)]
+                [(), (1,2)(3,4), (1,4,2,3)(5,6)]
                 sage: P=G.cayley_table(elements=comm)
                 sage: P
                 *  a b c

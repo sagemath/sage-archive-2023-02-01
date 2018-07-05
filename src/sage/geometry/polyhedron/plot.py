@@ -536,7 +536,7 @@ class Projection(SageObject):
             sage: from sage.geometry.polyhedron.plot import ProjectionFuncStereographic
             sage: pproj_stereo = pproj.__call__(proj = ProjectionFuncStereographic([1,2,3]))
             sage: pproj_stereo.polygons[0]
-            [10, 1, 4]
+            [6, 1, 8]
         """
         self.transformed_coords = \
             Sequence([proj(p) for p in self.coords])

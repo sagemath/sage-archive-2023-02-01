@@ -885,10 +885,10 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: [[decomposition[i][j].dimension()          # long time (4s)
                 ....:   for j in range(len(decomposition))]
                 ....:  for i in range(len(decomposition))]
-                [[1, 0, 0, 0, 0],
+                [[9, 0, 0, 0, 0],
                  [0, 9, 0, 0, 0],
                  [0, 0, 4, 0, 0],
-                 [0, 0, 0, 9, 0],
+                 [0, 0, 0, 1, 0],
                  [0, 0, 0, 0, 1]]
 
             The dimension of each block is `d^2`, where `d` is the

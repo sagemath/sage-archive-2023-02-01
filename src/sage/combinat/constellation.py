@@ -1202,8 +1202,8 @@ class Constellations_ld(UniqueRepresentation, Parent):
             sage: C = Constellations(3,3)
             sage: C.braid_group_action()
             [Looped multi-digraph on 3 vertices,
-             Looped multi-digraph on 3 vertices,
-             Looped multi-digraph on 1 vertex]
+             Looped multi-digraph on 1 vertex,
+             Looped multi-digraph on 3 vertices]
         """
         G = []
         for c in self:
@@ -1226,9 +1226,9 @@ class Constellations_ld(UniqueRepresentation, Parent):
             sage: [x.profile() for x in O[0]]
             [([1, 1, 1], [3], [3]), ([3], [1, 1, 1], [3]), ([3], [3], [1, 1, 1])]
             sage: [x.profile() for x in O[1]]
-            [([2, 1], [2, 1], [3]), ([2, 1], [3], [2, 1]), ([3], [2, 1], [2, 1])]
-            sage: [x.profile() for x in O[2]]
             [([3], [3], [3])]
+            sage: [x.profile() for x in O[2]]
+            [([2, 1], [2, 1], [3]), ([2, 1], [3], [2, 1]), ([3], [2, 1], [2, 1])]
         """
         return [g.vertices() for g in self.braid_group_action()]
 

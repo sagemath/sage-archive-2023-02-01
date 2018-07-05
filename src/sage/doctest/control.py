@@ -1135,6 +1135,30 @@ class DocTestController(SageObject):
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
             0
+
+        We check that #25378 is fixed (testing external packages while
+        providing a logfile does not raise a ValueError: I/O operation on
+        closed file)::
+
+            sage: DD = DocTestDefaults(optional=set(['sage', 'external']), logfile=tmp_filename())
+            sage: filename = os.path.join(SAGE_SRC, "sage", "misc", "latex.py")
+            sage: DC = DocTestController(DD, [filename])
+            sage: DC.run()
+            Running doctests with ID ...
+            Using --optional=external,sage
+            External software to be detected: ...
+            Doctesting 1 file.
+            sage -t .../sage/misc/latex.py
+                [... tests, ... s]
+            ----------------------------------------------------------------------
+            All tests passed!
+            ----------------------------------------------------------------------
+            Total time for all tests: ... seconds
+                cpu time: ... seconds
+                cumulative wall time: ... seconds
+            External software detected for doctesting: ...
+            0
+
         """
         opt = self.options
         L = (opt.gdb, opt.valgrind, opt.massif, opt.cachegrind, opt.omega)

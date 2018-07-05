@@ -201,6 +201,8 @@ def carlet_tang_tang_liao(n, c=None, bf=None):
         c = K.random_element()
         while c.trace() == 0 or (1/c).trace() == 0:
             c = K.random_element()
+    elif c.trace() == 0 or (1/c).trace() == 0:
+        raise TypeError("c.trace() and (1/c).trace() have to be 1")
 
     if bf is None:
         def bf(x):
@@ -211,9 +213,9 @@ def carlet_tang_tang_liao(n, c=None, bf=None):
     elif isinstance(bf, (BooleanFunction,)):
         bf_f2 = bf
         def bf(x):
-            xprime = x.polynomial().list()
+            xprime = map(int, x.polynomial().list())
             xprime += [0]*(n-1 - len(xprime))
-            return K(bf_f2(xprime))
+            return int(bf_f2(xprime))
 
     def f(x):
         xs = x.polynomial().list()

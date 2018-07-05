@@ -146,8 +146,11 @@ test-jupyter:
 push-dockerhub:
   stage: release
   only:
-    - branches
-    - tags
+    refs:
+      - branches
+      - tags
+    variables:
+      - $SECRET_DOCKER_PASS
   script:
     - . .ci/pull-gitlab.sh sagemath
     - sh .ci/push-dockerhub.sh sagemath
@@ -157,9 +160,12 @@ push-dockerhub:
 push-dockerhub-dev:
   stage: release
   only:
-    - master
-    - develop
-    - tags
+    refs:
+      - master
+      - develop
+      - tags
+    variables:
+      - $SECRET_DOCKER_PASS
   script:
     - . .ci/pull-gitlab.sh sagemath-dev
     - sh .ci/push-dockerhub.sh sagemath-dev

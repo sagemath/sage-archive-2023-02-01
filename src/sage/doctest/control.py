@@ -894,12 +894,11 @@ class DocTestController(SageObject):
             self.reporter = DocTestReporter(self)
             self.dispatcher = DocTestDispatcher(self)
             N = self.options.global_iterations
-            for it in range(N):
+            for _ in range(N):
                 try:
                     self.timer = Timer().start()
                     self.dispatcher.dispatch()
                 except KeyboardInterrupt:
-                    it = N - 1
                     break
                 finally:
                     self.timer.stop()
@@ -1258,6 +1257,7 @@ def run_doctests(module, options=None):
     if not save_dtmode:
         if options.debug:
             raise ValueError("You should not try to run doctests with a debugger from within Sage: IPython objects to embedded shells")
+        from IPython import get_ipython
         IP = get_ipython()
         old_color = IP.colors
         IP.run_line_magic('colors', 'NoColor')

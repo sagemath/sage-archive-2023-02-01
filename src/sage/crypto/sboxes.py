@@ -5,6 +5,7 @@ This module provides the following SBoxes:
 
 constructions
     - BrackenLeander
+    - CarletTangTangLiao
     - Gold
     - Kasami
     - Niho
@@ -166,6 +167,71 @@ def bracken_leander(n):
     R = PolynomialRing(GF(2**n, name='x'), 'X')
     poly = R.gen()**(2**(2*k) + 2**k + 1)
     return SBox(poly)
+
+
+def carlet_tang_tang_liao(n, c=None, bf=None):
+    r"""
+    Return the Carlet-Tang-Tang-Liao construction
+
+    See [CTTL2014]_ for its definition.
+
+    INPUT:
+
+    - ``n`` - integer, the bit length of inputs and outputs, has to be even and >= 6
+    - ``c`` - element of `\GF(2^(n-1)` used in the construction
+        (default: random element)
+    - ``f`` - Function from `\GF(2^n) \to \GF(2)` or BooleanFunction on `n-1` bits
+        (default: ``x -> (1/(x+1)).trace())``
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sboxes import carlet_tang_tang_liao as cttl
+        sage: cttl(6).differential_uniformity()
+        4
+    """
+    from sage.crypto.boolean_function import BooleanFunction
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    if n < 6 or n % 2 == 1:
+        raise TypeError("n >= 6 has to be even")
+    K = GF(2**(n-1))
+    L = GF(2**n)
+
+    if c is None:
+        c = K.random_element()
+        while c.trace() == 0 or (1/c).trace() == 0:
+            c = K.random_element()
+
+    if bf is None:
+        def bf(x):
+            if x == 1:
+                return 0
+            return (1/(x+1)).trace()
+
+    elif isinstance(bf, (BooleanFunction,)):
+        bf_f2 = bf
+        def bf(x):
+            xprime = x.polynomial().list()
+            xprime += [0]*(n-1 - len(xprime))
+            return K(bf_f2(xprime))
+
+    def f(x):
+        xs = x.polynomial().list()
+        xs += [0]*(n - len(xs))
+        xprime = K(xs[:n-1])
+
+        if xprime == 0:
+            res = [0]*(n-1), bf(xprime/c) + xs[-1]
+        elif xs[-1] == 0:
+            res = (1/xprime).polynomial().list(), bf(xprime)
+        else:
+            res = (c/xprime).polynomial().list(), bf(xprime/c) + 1
+
+        res = res[0] + [0]*(n-1-len(res[0])) + [res[1]]
+
+        return L(res)
+
+    return SBox([f(L(x)) for x in GF(2)**n])
 
 
 def gold(n, i):

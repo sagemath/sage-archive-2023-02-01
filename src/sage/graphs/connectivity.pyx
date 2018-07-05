@@ -2011,7 +2011,7 @@ class Triconnectivity:
         self.t_stack_top = 0
         self.t_stack_a[self.t_stack_top] = -1
 
-        #self.path_search(self.start_vertex)
+        self.path_search(self.start_vertex)
 
     # Push a triple on Tstack
     def tstack_push(self, h, a, b):
@@ -2487,7 +2487,7 @@ class Triconnectivity:
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair
                     print "Found type-1 separation pair (", self.node_at[self.lowpt1[w]], ", ", v, ")"
-                    c = self.new_component()
+                    comp = self.new_component()
                     if not self.e_stack: # OGDF_ASSERT
                         raise ValueError("stack is empty")
                     while self.e_stack:
@@ -2546,7 +2546,7 @@ class Triconnectivity:
                         adj.remove(it)
                         comp_bond = self.new_component([e_virt], type_c=0)
                         self.graph_copy.add_edge(self.node_at[self.lowpt1[w]], v)
-                        e_virt = (self.node_at[self.lowpt1[w]], c, None)
+                        e_virt = (self.node_at[self.lowpt1[w]], v, None)
                         comp_bond.add_edge(e_virt)
 
                         eh = self.tree_arc[v];

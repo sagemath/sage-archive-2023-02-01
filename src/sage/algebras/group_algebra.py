@@ -63,7 +63,7 @@ def GroupAlgebra(G, R=IntegerRing()):
         sage: A = GroupAlgebra(G, R); A
         Algebra of Dihedral group of order 6 as a permutation group over Rational Field
         sage: a = A.an_element(); a
-        () + 4*(1,2,3) + 2*(1,3)
+        () + 4*(1,2,3) + 2*(1,3,2)
 
     This space is endowed with an algebra structure, obtained by extending
     by bilinearity the multiplication of `G` to a multiplication on `RG`::
@@ -71,7 +71,7 @@ def GroupAlgebra(G, R=IntegerRing()):
         sage: A in Algebras
         True
         sage: a * a
-        5*() + 8*(2,3) + 8*(1,2) + 8*(1,2,3) + 16*(1,3,2) + 4*(1,3)
+        17*() + 12*(1,2,3) + 20*(1,3,2)
 
     :func:`GroupAlgebra` is just a short hand for a more general
     construction that covers, e.g., monoid algebras, additive group

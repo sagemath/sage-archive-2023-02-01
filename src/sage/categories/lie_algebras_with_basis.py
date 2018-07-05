@@ -229,7 +229,7 @@ class LieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: y.lift()
                 b1
                 sage: x * y
-                b1*b2 + b4 - b5
+                b1*b2 - b3 + b5
             """
             P = self.parent()
             UEA = P.universal_enveloping_algebra()

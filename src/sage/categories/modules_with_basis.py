@@ -771,7 +771,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S3A = S3.algebra(QQ)
                 sage: basis = S3A.annihilator_basis(S3A.algebra_generators(), S3A.bracket)
                 sage: basis
-                ((), (1,2,3) + (1,3,2), (2,3) + (1,2) + (1,3))
+                ((), (2,3) + (1,2) + (1,3), (1,2,3) + (1,3,2))
                 sage: center = S3A.submodule(basis,
                 ....:                        category=AlgebrasWithBasis(QQ).Subobjects(),
                 ....:                        already_echelonized=True)
@@ -782,7 +782,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: center.print_options(prefix='c')
                 sage: c = center.basis()
                 sage: c[1].lift()
-                (1,2,3) + (1,3,2)
+                (2,3) + (1,2) + (1,3)
                 sage: c[0]^2
                 c[0]
                 sage: e = 1/6*(c[0]+c[1]+c[2])

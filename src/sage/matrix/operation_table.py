@@ -316,9 +316,9 @@ class OperationTable(SageObject):
     group ``H``, using a simple ``for`` loop::
 
         sage: L = H.list()    #list of elements of the group H
-        sage: elts = [L[i] for i in {0, 2}]
+        sage: elts = [L[i] for i in {0, 1}]
         sage: elts
-        [(), (1,4,3,2)]
+        [(), (1,3)(2,4)]
         sage: OperationTable(H, operator.mul, elements=elts)
         *  a b
          +----

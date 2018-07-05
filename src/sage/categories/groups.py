@@ -401,9 +401,9 @@ class Groups(CategoryWithAxiom):
                 k| a b c a b c b a c b a c
                 l| a b c a b c c b a c b a
                 sage: trans = T.translation()
-                sage: comm = [trans['a'], trans['d'],trans['h']]
+                sage: comm = [trans['a'], trans['b'],trans['c']]
                 sage: comm
-                [(), (1,2)(3,4), (1,4,2,3)(5,6)]
+                [(), (5,6,7), (5,7,6)]
                 sage: P=G.cayley_table(elements=comm)
                 sage: P
                 *  a b c

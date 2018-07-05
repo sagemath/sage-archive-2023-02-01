@@ -1,4 +1,4 @@
-$(PYTHON) | cmake sqlite m4ri boost_cropped
+$(PYTHON) | cmake sqlite m4ri boost_cropped zlib libpng
 
 ----------
 All lines of this file are ignored except the first.

@@ -2304,45 +2304,67 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
         EXAMPLES::
 
             sage: R.<x> = QQ[]
+
+        Construct an element in the usual (diagram) basis of the partition algebra::
+
             sage: A2 = PartitionAlgebra(2, x, R)
+            sage: a2 = A2([[1,2],[-1,-2]]); a2
+            P{{-2, -1}, {1, 2}}
+
+        There is a natural embedding into partition algebras on more elements, by adding identity strands::
+
+            sage: A4 = PartitionAlgebra(4, x, R)
+            sage: A4(a2)
+            P{{-4, 4}, {-3, 3}, {-2, -1}, {1, 2}}
+
+        Thus, the empty partition corresponds to the identity::
+
+            sage: A4([])
+            P{{-4, 4}, {-3, 3}, {-2, 2}, {-1, 1}}
+            sage: A4(5)
+            5*P{{-4, 4}, {-3, 3}, {-2, 2}, {-1, 1}}
+
+        The group algebra of the symmetric group is a subalgebra::
+
+            sage: S3 = SymmetricGroupAlgebra(ZZ, 3)
+            sage: s3 = S3([2,3,1]); s3
+            [2, 3, 1]
+            sage: A4(s3)
+            P{{-4, 4}, {-3, 2}, {-2, 1}, {-1, 3}}
+            sage: A4([2,1])
+            P{{-4, 4}, {-3, 3}, {-2, 1}, {-1, 2}}
+
+        Be careful not to confuse the embedding of the group algebra
+        of the symmetric group with the embedding of partial set
+        partitions.  The latter are embedded by adding the parts
+        `\{i,-i\}` if possible, and singletons sets for the remaining
+        parts::
+
+            sage: A4([[2,1]])
+            P{{-4, 4}, {-3, 3}, {-2}, {-1}, {1, 2}}
+            sage: A4([[-1,3],[-2,-3,1]])
+            P{{-4, 4}, {-3, -2, 1}, {-1, 3}, {2}}
+
+        Another subalgebra is the Brauer algebra, which has perfect
+        matchings as basis elements.  The group algebra of the
+        symmetric group is in fact a subalgebra of the Brauer
+        algebra::
+
+            sage: B3 = BrauerAlgebra(3, x, R)
+            sage: b3 = B3(s3); b3
+            B{{-3, 2}, {-2, 1}, {-1, 3}}
+
+        An important basis of the partition algebra is the orbit basis::
+
             sage: O2 = A2.orbit_basis()
-            sage: S = SymmetricGroupAlgebra(ZZ, 3)
-            sage: A = PartitionAlgebra(3, x, R)
-            sage: B = BrauerAlgebra(3, x, R)
-            sage: O = A.orbit_basis()
-            sage: O2.an_element()
-            3*O{{-2}, {-1, 1, 2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
-            sage: A(O2.an_element())
-            3*P{{-3, 3}, {-2}, {-1, 1, 2}} - 3*P{{-3, 3}, {-2, -1, 1, 2}} + 2*P{{-3, 3}, {-2, 1, 2}, {-1}}
-            sage: A2.an_element()
-            3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
-            sage: A(A2.an_element())
-            3*P{{-3, 3}, {-2}, {-1, 1, 2}} + 2*P{{-3, 3}, {-2, -1, 1, 2}} + 2*P{{-3, 3}, {-2, 1, 2}, {-1}}
-            sage: S.an_element()
-            [1, 2, 3] + 2*[1, 3, 2] + 3*[2, 1, 3] + [3, 1, 2]
-            sage: A(S.an_element())
-            P{{-3, 1}, {-2, 3}, {-1, 2}} + 2*P{{-3, 2}, {-2, 3}, {-1, 1}}
-             + 3*P{{-3, 3}, {-2, 1}, {-1, 2}} + P{{-3, 3}, {-2, 2}, {-1, 1}}
-            sage: B.an_element()
-            3*B{{-3, 1}, {-2, -1}, {2, 3}} + 2*B{{-3, 1}, {-2, 2}, {-1, 3}}
-             + 2*B{{-3, 1}, {-2, 3}, {-1, 2}}
-            sage: A(B.an_element())
-            3*P{{-3, 1}, {-2, -1}, {2, 3}} + 2*P{{-3, 1}, {-2, 2}, {-1, 3}}
-             + 2*P{{-3, 1}, {-2, 3}, {-1, 2}}
-            sage: O.an_element()
-            3*O{{-3}, {-2, -1, 1, 2, 3}} + 2*O{{-3, -2, -1, 1, 2, 3}} + 2*O{{-3, -1, 1, 2, 3}, {-2}}
-            sage: A(O.an_element())
-            3*P{{-3}, {-2, -1, 1, 2, 3}} - 3*P{{-3, -2, -1, 1, 2, 3}} + 2*P{{-3, -1, 1, 2, 3}, {-2}}
-            sage: A([])
-            P{{-3, 3}, {-2, 2}, {-1, 1}}
-            sage: A(4)
-            4*P{{-3, 3}, {-2, 2}, {-1, 1}}
-            sage: A([2,1])
-            P{{-3, 3}, {-2, 1}, {-1, 2}}
-            sage: A([[2,1]])
-            P{{-3, 3}, {-2}, {-1}, {1, 2}}
-            sage: A([[-1,3],[-2,-3,1]])
-            P{{-3, -2, 1}, {-1, 3}, {2}}
+            sage: o2 = O2([[1,2],[-1,-2]]) + O2([[1,2,-1,-2]]); o2
+            O{{-2, -1}, {1, 2}} + O{{-2, -1, 1, 2}}
+
+        The diagram basis element corresponds to the sum of all orbit
+        basis elements indexed by coarser set partitions::
+
+            sage: A2(o2)
+            P{{-2, -1}, {1, 2}}
 
         TESTS::
 
@@ -2375,6 +2397,7 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             Traceback (most recent call last):
             ...
             ValueError: the diagram {{-2, 1}, {-1, 2}} must be planar
+
         """
         # coercion from basis keys
         if self.basis().keys().is_parent_of(x):
@@ -2458,10 +2481,10 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
         TESTS::
 
-            sage: elt = O3.an_element(); elt
-            3*O{{-3}, {-2, -1, 1, 2, 3}} + 2*O{{-3, -2, -1, 1, 2, 3}} + 2*O{{-3, -1, 1, 2, 3}, {-2}}
+            sage: elt = O3([[-3], [-2, -1, 1, 2, 3]]) + O3([[-3, -2, -1, 1, 2, 3]]) + O3([[-3, -1, 1, 2, 3], [-2]]); elt
+            O{{-3}, {-2, -1, 1, 2, 3}} + O{{-3, -2, -1, 1, 2, 3}} + O{{-3, -1, 1, 2, 3}, {-2}}
             sage: A._coerce_map_from_(O3)(elt)
-            3*P{{-4, 4}, {-3}, {-2, -1, 1, 2, 3}} - 3*P{{-4, 4}, {-3, -2, -1, 1, 2, 3}} + 2*P{{-4, 4}, {-3, -1, 1, 2, 3}, {-2}}
+            P{{-4, 4}, {-3}, {-2, -1, 1, 2, 3}} - P{{-4, 4}, {-3, -2, -1, 1, 2, 3}} + P{{-4, 4}, {-3, -1, 1, 2, 3}, {-2}}
           """
         # coerce from Orbit basis.
         if isinstance(R, OrbitBasis):
@@ -2537,10 +2560,10 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
 
                 sage: R.<x> = QQ[]
                 sage: P = PartitionAlgebra(2, x, R)
-                sage: pp = P.an_element(); pp
-                3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
+                sage: pp = P([[-2], [-1, 1, 2]]) + P([[-2, -1, 1, 2]]) + P([[-2, 1, 2], [-1]]); pp
+                P{{-2}, {-1, 1, 2}} + P{{-2, -1, 1, 2}} + P{{-2, 1, 2}, {-1}}
                 sage: pp.to_orbit_basis()
-                3*O{{-2}, {-1, 1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
+                O{{-2}, {-1, 1, 2}} + 3*O{{-2, -1, 1, 2}} + O{{-2, 1, 2}, {-1}}
             """
             OP = self.parent().orbit_basis()
             return OP(self)
@@ -2770,8 +2793,9 @@ class OrbitBasis(DiagramAlgebra):
             sage: P2 = O2.diagram_basis(); P2
             Partition Algebra of rank 2 with parameter x over Univariate
             Polynomial Ring in x over Rational Field
-            sage: P2(O2.an_element())
-            3*P{{-2}, {-1, 1, 2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
+            sage: o2 = O2([[-2, -1, 1], [2]]) + O2([[-2, -1, 1, 2]]) + O2([[-2, -1, 2], [1]])
+            sage: P2(o2)
+            P{{-2, -1, 1}, {2}} - P{{-2, -1, 1, 2}} + P{{-2, -1, 2}, {1}}
 
         TESTS::
 
@@ -2836,8 +2860,8 @@ class OrbitBasis(DiagramAlgebra):
 
             sage: R.<x> = QQ[]
             sage: OP = PartitionAlgebra(2, x, R).orbit_basis()
-            sage: SP = OP.basis().keys()
-            sage: OP.product_on_basis(SP.an_element(), SP.an_element())
+            sage: SP = OP.basis().keys(); sp = SP([[-2, -1, 1, 2]])
+            sage: OP.product_on_basis(sp, sp)
             O{{-2, -1, 1, 2}}
             sage: o1 = OP.one(); o2 = OP([]); o3 = OP.an_element()
             sage: o2 == o1
@@ -2846,8 +2870,9 @@ class OrbitBasis(DiagramAlgebra):
             True
             sage: o3 * o1 == o1 * o3 and o3 * o1 == o3
             True
-            sage: o3 * o3
-            6*O{{-2}, {-1, 1, 2}} + 4*O{{-2, -1, 1, 2}} + 4*O{{-2, 1, 2}, {-1}}
+            sage: o4 = OP([[-2, -1, 1], [2]]) + OP([[-2, -1, 1, 2]]) + OP([[-2, -1, 2], [1]])
+            sage: o4 * o4
+            O{{-2, -1, 1}, {2}} + O{{-2, -1, 1, 2}} + O{{-2, -1, 2}, {1}}
 
         We compute Examples 4.5 in [BH2017]_::
 
@@ -2945,13 +2970,13 @@ class OrbitBasis(DiagramAlgebra):
                 sage: R.<x> = QQ[]
                 sage: P = PartitionAlgebra(2, x, R)
                 sage: O = P.orbit_basis()
-                sage: elt = O.an_element(); elt
-                3*O{{-2}, {-1, 1, 2}} + 2*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
+                sage: elt = O([[-2], [-1, 1, 2]]) + O([[-2, -1, 1, 2]]) + O([[-2, 1, 2], [-1]]); elt
+                O{{-2}, {-1, 1, 2}} + O{{-2, -1, 1, 2}} + O{{-2, 1, 2}, {-1}}
                 sage: elt.to_diagram_basis()
-                3*P{{-2}, {-1, 1, 2}} - 3*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
-                sage: pp = P.an_element()
+                P{{-2}, {-1, 1, 2}} - P{{-2, -1, 1, 2}} + P{{-2, 1, 2}, {-1}}
+                sage: pp = P([[-2], [-1, 1, 2]])
                 sage: op = pp.to_orbit_basis(); op
-                3*O{{-2}, {-1, 1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1, 2}, {-1}}
+                O{{-2}, {-1, 1, 2}} + O{{-2, -1, 1, 2}}
                 sage: pp == op.to_diagram_basis()
                 True
             """
@@ -3040,11 +3065,12 @@ class SubPartitionAlgebra(DiagramBasis):
 
                 sage: R.<x> = QQ[]
                 sage: B = BrauerAlgebra(2, x, R)
-                sage: bb = B.an_element(); bb
-                3*B{{-2, -1}, {1, 2}} + 2*B{{-2, 1}, {-1, 2}} + 2*B{{-2, 2}, {-1, 1}}
-                sage: bb.to_orbit_basis()
-                3*O{{-2, -1}, {1, 2}} + 7*O{{-2, -1, 1, 2}} + 2*O{{-2, 1}, {-1, 2}}
-                 + 2*O{{-2, 2}, {-1, 1}}
+                sage: b = B([[-2, -1], [1, 2]]); b
+                B{{-2, -1}, {1, 2}}
+                sage: o = b.to_orbit_basis(); o
+                O{{-2, -1}, {1, 2}} + O{{-2, -1, 1, 2}}
+                sage: o.parent()
+                Orbit basis of Partition Algebra of rank 2 with parameter x over Univariate Polynomial Ring in x over Rational Field
             """
             P = self.parent().lift.codomain()
             OP = P.orbit_basis()

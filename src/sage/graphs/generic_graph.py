@@ -19045,6 +19045,12 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: 3D plotting of multiple edges or loops not implemented.
 
+        Using the ``partition`` keyword::
+
+            sage: G = graphs.WheelGraph(7)
+            sage: G.plot3d(partition=[[0],[1,2,3,4,5,6]])
+            Graphics3d Object
+
         TESTS::
 
             sage: G = DiGraph({0:{1:'a', 2:'a'}, 1:{0:'b'}, 2:{0:'c'}})
@@ -19081,7 +19087,14 @@ class GenericGraph(GenericGraph_pyx):
             verts = self.vertices()
 
             if vertex_colors is None:
-                vertex_colors = { (1,0,0) : verts }
+                if 'partition' in kwds:
+                    from sage.plot.colors import rainbow
+                    partition = kwds['partition']
+                    l = len(partition)
+                    R = rainbow(l)
+                    vertex_colors = {R[i]: partition[i] for i in range(l)}
+                else:
+                    vertex_colors = { (1,0,0) : verts }
 
             if color_by_label:
                 if edge_colors is  None:

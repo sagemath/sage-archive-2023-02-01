@@ -117,6 +117,11 @@ build-from-clean:
   tags:
     # 60 GB of HDD are available
     - do
+  # This build takes several CPU hours. It is very unlikely that there are any
+  # actual build errors for a tagged release but the (discounted) cloud
+  # machines this is running on might be preempted during the long build time.
+  # So let's try three times before we give up.
+  retry: 2
 
 test-dev:
   stage: test

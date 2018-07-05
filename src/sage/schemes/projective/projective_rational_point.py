@@ -336,8 +336,8 @@ def sieve(X, bound):
 
     OUTPUT:
 
-     - a list containing the projective rational points of ``X`` of height
-    up to ``bound``, sorted
+    - a list containing the projective rational points of ``X`` of height
+      up to ``bound``, sorted
 
     EXAMPLES::
 
@@ -368,7 +368,6 @@ def sieve(X, bound):
         sage: sieve(X, 3)
         [(-1 : -2 : 1), (-1/2 : -1 : 1), (-1/3 : -2/3 : 1), (0 : 0 : 1),
          (1/3 : 2/3 : 1), (1/2 : 1 : 0), (1/2 : 1 : 1), (1 : 2 : 1)]
-
     """
     if bound < 1: # no projective rational point with height less than 1
         return []

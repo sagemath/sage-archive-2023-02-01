@@ -26,5 +26,5 @@ set -ex
 # automatically from the log output.
 docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
 docker pull $CI_REGISTRY_IMAGE/$1:$DOCKER_TAG
-export DOCKER_IMAGE="${DOCKER_USER:-sagemath}/$1:$DOCKER_TAG"
+export DOCKER_IMAGE="${DOCKER_NAMESPACE:-sagemath}/$1:$DOCKER_TAG"
 docker tag $CI_REGISTRY_IMAGE/$1:$DOCKER_TAG $DOCKER_IMAGE

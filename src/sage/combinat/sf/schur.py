@@ -190,13 +190,13 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             sage: rbco(Partition([2,1]),[-3, 0])
             s[]
         """
-        r = len(nu)+len(la)
+        r = len(nu) + len(la)
         ga = [a-b for (a,b) in zip(nu+la.to_list(), range(-r,0))]
-        if r==len(set(ga)) and min(ga)>0:
-            m = sum(1 for i in range(len(ga)) for j in range(i,len(ga)) \
-                    if ga[i]<ga[j])
+        if r == len(set(ga)) and min(ga) > 0:
+            m = sum(1 for i in range(len(ga)) for j in range(i, len(ga))
+                    if ga[i] < ga[j])
             ga.sort(reverse=True)
-            return (-1)**m*self([a+b for (a,b) in zip(ga, range(-r,0))])
+            return (-1)**m * self([a+b for (a,b) in zip(ga, range(-r,0))])
         return self.zero()
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):

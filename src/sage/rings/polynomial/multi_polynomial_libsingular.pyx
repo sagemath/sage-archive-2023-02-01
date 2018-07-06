@@ -190,8 +190,8 @@ from sage.libs.singular.decl cimport (
     n_IsUnit, n_Invers,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
-    omFree, pDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
-    pDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
+    omFree, pMDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
+    pMDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, p_Series, p_Head, idInit, fast_map_common_subexp, id_Delete,
     p_IsHomogeneous, p_Homogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
     idLift, IDELEMS, On, Off, SW_USE_CHINREM_GCD, SW_USE_EZGCD,
@@ -1693,8 +1693,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
         if not g._poly:
             raise ZeroDivisionError
 
-        if r!=currRing: rChangeCurrRing(r)  # pDivide
-        res = pDivide(f._poly, g._poly)
+        if r!=currRing: rChangeCurrRing(r)  # pMDivide
+        res = pMDivide(f._poly, g._poly)
         if coeff:
             if r.cf.type == n_unknown or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
                 n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
@@ -1853,8 +1853,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
                    and (<MPolynomial_libsingular>g) \
                    and g.parent() is self \
                    and p_LmDivisibleBy((<MPolynomial_libsingular>g)._poly, m, r):
-                if r!=currRing: rChangeCurrRing(r)  # pDivide
-                flt = pDivide(f._poly, (<MPolynomial_libsingular>g)._poly)
+                if r!=currRing: rChangeCurrRing(r)  # pMDivide
+                flt = pMDivide(f._poly, (<MPolynomial_libsingular>g)._poly)
                 #p_SetCoeff(flt, n_Div( p_GetCoeff(f._poly, r) , p_GetCoeff((<MPolynomial_libsingular>g)._poly, r), r), r)
                 p_SetCoeff(flt, n_Init(1, r), r)
                 return new_MP(self,flt), g
@@ -4055,10 +4055,10 @@ cdef class MPolynomial_libsingular(MPolynomial):
             if _right.is_monomial():
                 p = _self._poly
                 quo = p_ISet(0,r)
-                if r != currRing: rChangeCurrRing(r)   # pDivide
+                if r != currRing: rChangeCurrRing(r)   # pMDivide
                 while p:
                     if p_DivisibleBy(_right._poly, p, r):
-                        temp = pDivide(p, _right._poly)
+                        temp = pMDivide(p, _right._poly)
                         p_SetCoeff0(temp, n_Copy(p_GetCoeff(p, r), r), r)
                         quo = p_Add_q(quo, temp, r)
                     p = pNext(p)

@@ -998,7 +998,7 @@ cdef class NCPolynomialRing_plural(Ring):
         if not g._poly:
             raise ZeroDivisionError
 
-        res = pDivide(f._poly,g._poly)
+        res = pMDivide(f._poly,g._poly)
         if coeff:
             if (r.cf.type == n_unknown) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
                 n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
@@ -1193,7 +1193,7 @@ cdef class NCPolynomialRing_plural(Ring):
             if isinstance(g, NCPolynomial_plural) \
                    and (<NCPolynomial_plural>g) \
                    and p_LmDivisibleBy((<NCPolynomial_plural>g)._poly, m, r):
-                flt = pDivide(f._poly, (<NCPolynomial_plural>g)._poly)
+                flt = pMDivide(f._poly, (<NCPolynomial_plural>g)._poly)
                 #p_SetCoeff(flt, n_Div( p_GetCoeff(f._poly, r) , p_GetCoeff((<NCPolynomial_plural>g)._poly, r), r), r)
                 p_SetCoeff(flt, n_Init(1, r), r)
                 return new_NCP(self,flt), g

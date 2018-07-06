@@ -170,7 +170,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     int n_NumberOfParameters(const n_Procs_s* r)
 
-    ctypedef struct poly "polyrec":
+    ctypedef struct poly "spolyrec":
         poly *next
         number *coef
         unsigned long exp[1]
@@ -632,7 +632,7 @@ cdef extern from "singular/Singular/libsingular.h":
 
     # divide monomial p by monomial q, p,q const
 
-    poly *pDivide(poly *p,poly *q)
+    poly *pMDivide(poly *p,poly *q)
 
     # return the i-th power of p; p destroyed, requires global ring
 

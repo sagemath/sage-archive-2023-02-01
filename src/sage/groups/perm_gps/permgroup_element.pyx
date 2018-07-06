@@ -9,7 +9,65 @@ AUTHORS:
 
 - Robert Bradshaw (2007-11): convert to Cython
 
-EXAMPLES: The Rubik's cube group::
+There are several ways to define a permutation group element:
+
+-  Define a permutation group `G`, then use
+   ``G.gens()`` and multiplication \* to construct
+   elements.
+
+-  Define a permutation group `G`, then use e.g.,
+   ``G([(1,2),(3,4,5)])`` to construct an element of the
+   group. You could also use ``G('(1,2)(3,4,5)')``
+
+-  Use e.g.,
+   ``PermutationGroupElement([(1,2),(3,4,5)])`` or
+   ``PermutationGroupElement('(1,2)(3,4,5)')`` to make a
+   permutation group element with parent `S_5`.
+
+
+EXAMPLES: We illustrate construction of permutation using several
+different methods.
+
+First we construct elements by multiplying together generators for
+a group.
+
+::
+
+    sage: G = PermutationGroup(['(1,2)(3,4)', '(3,4,5,6)'], canonicalize=False)
+    sage: s = G.gens()
+    sage: s[0]
+    (1,2)(3,4)
+    sage: s[1]
+    (3,4,5,6)
+    sage: s[0]*s[1]
+    (1,2)(3,5,6)
+    sage: (s[0]*s[1]).parent()
+    Permutation Group with generators [(1,2)(3,4), (3,4,5,6)]
+
+Next we illustrate creation of a permutation using coercion into an
+already-created group.
+
+::
+
+    sage: g = G([(1,2),(3,5,6)])
+    sage: g
+    (1,2)(3,5,6)
+    sage: g.parent()
+    Permutation Group with generators [(1,2)(3,4), (3,4,5,6)]
+    sage: g == s[0]*s[1]
+    True
+
+We can also use a string or one-line notation to specify the
+permutation.
+
+::
+
+    sage: h = G('(1,2)(3,5,6)')
+    sage: i = G([2,1,5,4,6,3])
+    sage: g == h == i
+    True
+
+The Rubik's cube group::
 
     sage: f= [(17,19,24,22),(18,21,23,20),(6,25,43,16),(7,28,42,13),(8,30,41,11)]
     sage: b=[(33,35,40,38),(34,37,39,36),( 3, 9,46,32),( 2,12,47,29),( 1,14,48,27)]
@@ -28,21 +86,6 @@ EXAMPLES: The Rubik's cube group::
     43252003274489856000
     sage: F.order()
     4
-
-The interested user may wish to explore the following commands:
-move = cube.random_element() and time word_problem([F,B,L,R,U,D],
-move, False). This typically takes about 5 minutes (on a 2 Ghz
-machine) and outputs a word ('solving' the cube in the position
-move) with about 60 terms or so.
-
-OTHER EXAMPLES: We create element of a permutation group of large
-degree.
-
-::
-
-    sage: G = SymmetricGroup(30)
-    sage: s = G(srange(30,0,-1)); s
-    (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
 #*****************************************************************************

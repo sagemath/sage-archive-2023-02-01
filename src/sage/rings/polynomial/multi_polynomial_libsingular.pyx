@@ -4888,7 +4888,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if right.is_zero():
             raise ZeroDivisionError
 
-        if not self._parent._base.is_field() and not is_IntegerRing(self._parent._base):
+        if not self._parent._base.is_field():
             py_quo = self//right
             py_rem = self - right*py_quo
             return py_quo, py_rem

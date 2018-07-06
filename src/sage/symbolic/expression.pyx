@@ -126,8 +126,8 @@ Test if :trac:`9947` is fixed::
 
 Test if :trac:`24883` is fixed::
 
-    sage: a=e^(I*pi/4)+1
-    sage: b=1-e^(I*pi/4)
+    sage: a = exp(I*pi/4) + 1
+    sage: b = 1 - exp(I*pi/4)
     sage: a*b
     1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 

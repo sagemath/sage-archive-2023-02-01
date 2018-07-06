@@ -461,6 +461,20 @@ def process_dollars(s):
             s = s[:m.start()] + "$" + s[m.end():]
     return s
 
+
+# Sage trac ticket shortcuts. For example, :trac:`7549` .
+pythonversion = sys.version.split(' ')[0]
+extlinks = {
+    'python': ('https://docs.python.org/release/'+pythonversion+'/%s', ''),
+    'trac': ('https://trac.sagemath.org/%s', 'trac ticket #'),
+    'wikipedia': ('https://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
+    'arxiv': ('https://arxiv.org/abs/%s', 'Arxiv '),
+    'oeis': ('https://oeis.org/%s', 'OEIS sequence '),
+    'doi': ('https://doi.org/%s', 'doi:'),
+    'pari': ('https://pari.math.u-bordeaux.fr/dochtml/help/%s', 'pari:'),
+    'mathscinet': ('https://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
+}
+
 def process_extlinks(s, embedded=False):
     r"""nodetex
 
@@ -494,10 +508,6 @@ def process_extlinks(s, embedded=False):
     """
     if embedded:
         return s
-    oldpath = sys.path
-    sys.path = [os.path.join(SAGE_DOC_SRC, 'common')] + oldpath
-    from conf import extlinks
-    sys.path = oldpath
     for key in extlinks:
         while True:
             m = re.search(':%s:`([^`]*)`' % key, s)

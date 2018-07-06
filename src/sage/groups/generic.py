@@ -1244,7 +1244,6 @@ def order_from_bounds(P, bounds, d=None, operation='+',
 
     """
     from operator import mul, add
-    Z = integer_ring.ZZ
 
     if operation in multiplication_names:
         op = mul
@@ -1326,7 +1325,6 @@ def merge_points(P1,P2, operation='+',
         True
     """
     from operator import mul, add
-    Z = integer_ring.ZZ
 
     g1, n1 = P1
     g2, n2 = P2
@@ -1429,7 +1427,7 @@ def structure_description(G, latex=False):
 
     import re
     def correct_dihedral_degree(match):
-        return "%sD%d" % (match.group(1), int(match.group(2))/2)
+        return "%sD%d" % (match.group(1), int(match.group(2)) // 2)
 
     description = str(G._gap_().StructureDescription())
 

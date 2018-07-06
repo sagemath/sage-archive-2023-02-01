@@ -285,14 +285,15 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
 
         for i in range(1,n):
             dim_prefix.append(dim_prefix[i] + dim[i])
-        equal = True
 
         # compare ratio of coordinates for each projective component
         for m in range(n):
             l = dim_prefix[m]; r = dim_prefix[m] + dim[m]
-            equal = equal and all([self[i]*right[j] == self[j]*right[i] \
-                                    for i in range(l, r) for j in range(i+1, r)])
-        return equal
+            for i in range(l,r):
+                for j in range(i+1,r):
+                    if self[i]*right[j] != self[j]*right[i]:
+                        return False
+        return True
 
     def __ne__(self, right):
         """

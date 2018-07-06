@@ -45,6 +45,7 @@ Some examples in the multiplicative group of a finite field:
 
 - Orders of elements::
 
+    sage: from sage.groups.generic import order_from_multiple, order_from_bounds
     sage: k.<a> = GF(5^5)
     sage: b = a^4
     sage: order_from_multiple(b,5^5-1,operation='*')
@@ -56,14 +57,14 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 - Discrete logs::
 
-    sage: F=GF(37^2,'a')
-    sage: E=EllipticCurve(F,[1,1])
-    sage: F.<a>=GF(37^2,'a')
-    sage: E=EllipticCurve(F,[1,1])
-    sage: P=E(25*a + 16 , 15*a + 7 )
+    sage: F = GF(37^2,'a')
+    sage: E = EllipticCurve(F,[1,1])
+    sage: F.<a> = GF(37^2,'a')
+    sage: E = EllipticCurve(F,[1,1])
+    sage: P = E(25*a + 16 , 15*a + 7 )
     sage: P.order()
     672
-    sage: Q=39*P; Q
+    sage: Q = 39*P; Q
     (36*a + 32 : 5*a + 12 : 1)
     sage: discrete_log(Q,P,P.order(),operation='+')
     39
@@ -81,6 +82,7 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 - Orders of elements::
 
+    sage: from sage.groups.generic import order_from_multiple, order_from_bounds
     sage: k.<a> = GF(5^5)
     sage: E = EllipticCurve(k,[2,4])
     sage: P = E(3*a^4 + 3*a , 2*a + 1 )
@@ -94,6 +96,16 @@ Some examples in the group of points of an elliptic curve over a finite field:
     7
     sage: order_from_bounds(Q, Hasse_bounds(5^5), operation='+')
     7
+
+TESTS:
+
+Check deprecation from :trac:`25785`::
+
+    sage: bsgs
+    doctest:warning...:
+    DeprecationWarning: this is being removed from the global namespace
+    See https://trac.sagemath.org/25785 for details.
+    ...
 """
 
 #*****************************************************************************
@@ -338,7 +350,6 @@ class multiples:
         self.bound = n
         self.indexed = indexed
 
-
     def __next__(self):
         """
         Returns the next item in this multiples iterator.
@@ -404,6 +415,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
 
     EXAMPLES::
 
+        sage: from sage.groups.generic import bsgs
         sage: b = Mod(2,37);  a = b^20
         sage: bsgs(b, a, (0,36))
         20
@@ -498,6 +510,7 @@ def bsgs(a, b, bounds, operation='*', identity=None, inverse=None, op=None):
         d=op(c,d)
 
     raise ValueError("Log of %s to the base %s does not exist in %s."%(b,a,bounds))
+
 
 def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
     """
@@ -664,6 +677,7 @@ def discrete_log_rho(a, base, ord=None, operation='*', hash_function=hash):
 
     raise ValueError("Pollard rho algorithm failed to find a logarithm")
 
+
 def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     r"""
     Totally generic discrete log function.
@@ -828,11 +842,13 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
     except ValueError:
         raise ValueError("No discrete log of %s found to base %s"%(a,base))
 
+
 def discrete_log_generic(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None):
     """
     Alias for ``discrete_log``.
     """
     return discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, inverse=None, op=None)
+
 
 def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
     """
@@ -941,6 +957,7 @@ def discrete_log_lambda(a, base, bounds, operation='*', hash_function=hash):
 #
 ################################################################
 
+
 def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
     r"""
     Function which solves the equation ``a*P=m*Q`` or ``P^a=Q^m``.
@@ -1040,6 +1057,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
 #
 ################################################################
 
+
 def order_from_multiple(P, m, plist=None, factorization=None, check=True,
                         operation='+'):
     r"""
@@ -1066,6 +1084,7 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
 
     EXAMPLES::
 
+        sage: from sage.groups.generic import order_from_multiple
         sage: k.<a> = GF(5^5)
         sage: b = a^4
         sage: order_from_multiple(b,5^5-1,operation='*')
@@ -1095,7 +1114,6 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
         sage: order_from_multiple(a, 3^60-1, operation='*', check=False)
         42391158275216203514294433200
     """
-    from operator import mul, add
     Z = integer_ring.ZZ
 
     if operation in multiplication_names:
@@ -1147,7 +1165,6 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
         else:
             # try to split the list wisely
             sum_left = 0
-            i = 0
             for k in range(l):
                 p,e = L[k]
                 # multiplying by p**e require roughly 'e log_2(p) / 2' additions
@@ -1169,8 +1186,6 @@ def order_from_multiple(P, m, plist=None, factorization=None, check=True,
             return o1*o2
 
     return _order_from_multiple_helper(P, F, sage.functions.log.log(float(M)) )
-
-
 
 
 def order_from_bounds(P, bounds, d=None, operation='+',
@@ -1208,6 +1223,7 @@ def order_from_bounds(P, bounds, d=None, operation='+',
 
     EXAMPLES::
 
+        sage: from sage.groups.generic import order_from_bounds
         sage: k.<a> = GF(5^5)
         sage: b = a^4
         sage: order_from_bounds(b,(5^4,5^5),operation='*')
@@ -1256,6 +1272,7 @@ def order_from_bounds(P, bounds, d=None, operation='+',
 
     return order_from_multiple(P, m, operation=operation, check=False)
 
+
 def merge_points(P1,P2, operation='+',
                          identity=None, inverse=None, op=None, check=True):
     r"""
@@ -1281,6 +1298,7 @@ def merge_points(P1,P2, operation='+',
 
     EXAMPLES::
 
+        sage: from sage.groups.generic import merge_points
         sage: F.<a>=GF(3^6,'a')
         sage: b = a^7
         sage: c = a^13
@@ -1339,6 +1357,7 @@ def merge_points(P1,P2, operation='+',
     g1 = multiple(g1,m1,operation=operation)
     g2 = multiple(g2,m2,operation=operation)
     return (op(g1,g2), m)
+
 
 def structure_description(G, latex=False):
     r"""

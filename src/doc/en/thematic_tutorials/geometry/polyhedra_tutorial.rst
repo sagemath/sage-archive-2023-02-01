@@ -604,7 +604,7 @@ string containing a path to a file to be written.
 The :code:`ppl` backend
 -----------------------
 
-The default backend for polyhedron objects i :code:`ppl`.
+The default backend for polyhedron objects is :code:`ppl`.
 
 ::
 

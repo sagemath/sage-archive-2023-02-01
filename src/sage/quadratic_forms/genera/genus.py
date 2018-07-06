@@ -960,7 +960,6 @@ class Genus_Symbol_p_adic_ring(object):
 
         EXAMPLES::
 
-
             sage: from sage.quadratic_forms.genera.genus import p_adic_symbol
             sage: from sage.quadratic_forms.genera.genus import Genus_Symbol_p_adic_ring
             sage: A = diagonal_matrix(ZZ, [1,2,3,4])
@@ -1194,9 +1193,9 @@ class Genus_Symbol_p_adic_ring(object):
         r"""
         Return generators of the automorphous square classes at this prime.
 
-        A p-adic square class `r` (`p`-adically) is called automorphous if it is
+        A `p`-adic square class `r` is called automorphous if it is
         the spinor norm of a proper `p`-adic integral automorphism of this form.
-        See [CS]_ 9.6 for details.
+        These classes form a group. See [CS]_ chapter 15 §9.6 for details.
 
         OUTPUT:
 
@@ -1213,7 +1212,7 @@ class Genus_Symbol_p_adic_ring(object):
             sage: G = Genus(A)
             sage: sym2 = G.local_symbols()[0]
             sage: sym2
-            Genus symbol at 2:    [1^-1]_1 :[16^1]_1
+            Genus symbol at 2:    [1^-1]_3:[16^1]_1
             sage: sym2.automorphous_numbers()
             [3, 5]
 
@@ -1228,6 +1227,37 @@ class Genus_Symbol_p_adic_ring(object):
             Genus symbol at 3:     1^-1 3^-1 9^-1
             sage: sym[1].automorphous_numbers()
             [1, 3]
+
+        Note that the generating set given is not minimal.
+        The first supplementation rule is used here::
+
+            sage: A = matrix.diagonal([2,2,4])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            Genus symbol at 2:    [2^2 4^1]_3
+            sage: sym[0].automorphous_numbers()
+            [1, 2, 3, 5, 7]
+
+        but not there::
+
+            sage: A = matrix.diagonal([2,2,32])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            Genus symbol at 2:    [2^2]_2:[32^1]_1
+            sage: sym[0].automorphous_numbers()
+            [1, 2, 5]
+
+        Here the second supplementation rule is used::
+
+            sage: A = matrix.diagonal([2,2,64])
+            sage: G = Genus(A)
+            sage: sym = G.local_symbols()
+            sage: sym[0]
+            Genus symbol at 2:    [2^2]_2:[64^1]_1
+            sage: sym[0].automorphous_numbers()
+            [1, 2, 5]
         """
         from .normal_form import collect_small_blocks, _min_nonsquare
         automorphs = []
@@ -1289,9 +1319,9 @@ class Genus_Symbol_p_adic_ring(object):
                 automorphs.append(r)
 
         # supplement (i)
-        for k in range(len(sym)-3):
+        for k in range(len(sym)):
             s = sym[k:k+3]
-            if sum([b[1] for b in s if s[0][0]-b[0] < 4]) >= 3:
+            if sum([b[1] for b in s if b[0] - s[0][0] < 4]) >= 3:
                 automorphs += [ZZ(1), ZZ(3), ZZ(5), ZZ(7)]
             break
 
@@ -1305,18 +1335,15 @@ class Genus_Symbol_p_adic_ring(object):
                 u = u % 8
                 assert v >= 0
                 if v==0 and u==1:
-                    s = ZZ(2)
-                elif v==0 and u==5:
-                    s = ZZ(6)
-                elif v in [0, 2, 4]:
-                    s = ZZ(5)
-                elif v in [1, 3] and u in [1, 5]:
-                    s = ZZ(3)
-                elif v in [1, 3] and u in [3, 7]:
-                    s = ZZ(7)
-                else:
-                    continue
-                automorphs.append(s)
+                    automorphs.append(ZZ(2))
+                if v==0 and u==5:
+                    automorphs.append(ZZ(6))
+                if v in [0, 2, 4]:  # this overlaps with the first two cases!
+                    automorphs.append(ZZ(5))
+                if v in [1, 3] and u in [1, 5]:
+                    automorphs.append(ZZ(3))
+                if v in [1, 3] and u in [3, 7]:
+                    automorphs.append(ZZ(7))
 
         # normalize the square classes and remove duplicates
         automorphs1 = set()
@@ -2105,14 +2132,14 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         [1/2   0   0   0]
         [  0   0 1/2   0]
         [  0   0   0 1/2]
-        """
+    """
     from sage.quadratic_forms.genera.normal_form import _min_nonsquare
     level = block[0]
     rk = block[1]
     det = block[2]
     if p == 2:
-        o = block[3]
-        t = block[4]
+        o = ZZ(block[3])
+        t = ZZ(block[4])
         U = matrix(QQ,2,[0,1,1,0])
         V = matrix(QQ,2,[2,1,1,2])
         W = matrix(QQ,1,[1])
@@ -2163,13 +2190,13 @@ def _gram_from_jordan_block(p, block, discr_form=False):
         q = matrix.identity(QQ, rk)
         d = 2**(rk % 2)
         if Integer(d).kronecker(p) != det:
-            u = _min_nonsquare(p)
+            u = ZZ(_min_nonsquare(p))
             q[0,0] = u
         q = q * (2 / p**level)
     if p != 2 and not discr_form:
         q = matrix.identity(QQ, rk)
         if det != 1:
-            u = _min_nonsquare(p)
+            u = ZZ(_min_nonsquare(p))
             q[0,0] = u
         q = q * p**level
     return q

@@ -924,6 +924,18 @@ class Order(IntegralDomain):
         """
         return not (self == other)
 
+    def __hash__(self):
+        """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: O1 = K.order(a)
+            sage: h = hash(O1)
+        """
+        return hash((self._K, self._module_rep))
+
     def random_element(self, *args, **kwds):
         r"""
         Return a random element of this order.

@@ -301,7 +301,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
                backend=None):
-    """
+    r"""
     Construct a polyhedron object.
 
     You may either define it with vertex/ray/line or

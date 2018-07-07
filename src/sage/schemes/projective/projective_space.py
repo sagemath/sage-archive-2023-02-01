@@ -82,7 +82,7 @@ from __future__ import print_function
 from six.moves import range
 from six import integer_types
 
-from sage.arith.all import gcd, binomial
+from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -101,6 +101,8 @@ from sage.categories.map import Map
 
 from sage.misc.all import (latex,
                            prod)
+from sage.misc.all import cartesian_product_iterator
+
 from sage.structure.category_object import normalize_names
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
@@ -1297,10 +1299,13 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: list(P.points_of_bounded_height(bound=5))
-            [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
-            (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
-            (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
+            sage: sorted(list(P.points_of_bounded_height(bound=5)))
+            [(-5 : 1), (-4 : 1), (-3 : 1), (-5/2 : 1), (-2 : 1), (-5/3 : 1), (-3/2 : 1),
+             (-4/3 : 1), (-5/4 : 1), (-1 : 1), (-4/5 : 1), (-3/4 : 1), (-2/3 : 1), (-3/5 : 1),
+             (-1/2 : 1), (-2/5 : 1), (-1/3 : 1), (-1/4 : 1), (-1/5 : 1), (0 : 1), (1/5 : 1),
+             (1/4 : 1), (1/3 : 1), (2/5 : 1), (1/2 : 1), (3/5 : 1), (2/3 : 1), (3/4 : 1),
+             (4/5 : 1), (1 : 0), (1 : 1), (5/4 : 1), (4/3 : 1), (3/2 : 1), (5/3 : 1),
+             (2 : 1), (5/2 : 1), (3 : 1), (4 : 1), (5 : 1)]
 
         ::
 
@@ -1321,33 +1326,33 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         n = self.dimension_relative()
         R = self.base_ring()
-        zero = R(0)
-        i = n
-        while not i < 0:
-            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
-            yield self(P)
-            if not ftype: # if rational field
-                iters = [ R.range_by_height(B) for _ in range(i) ]
-            else: # if number field
+        if ftype:
+            zero = R(0)
+            i = n
+            while not i < 0:
+                P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+                yield self(P)
                 tol = kwds.pop('tolerance', 1e-2)
                 prec = kwds.pop('precision', 53)
                 iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i) ]
-            for x in iters: next(x) # put at zero
-            j = 0
-            while j < i:
-                try:
-                    P[j] = next(iters[j])
-                    yield self(P)
-                    j = 0
-                except StopIteration:
-                    if not ftype: # if rational field
-                        iters[j] = R.range_by_height(B) # reset
-                    else: # if number field
+                for x in iters: next(x) # put at zero
+                j = 0
+                while j < i:
+                    try:
+                        P[j] = next(iters[j])
+                        yield self(P)
+                        j = 0
+                    except StopIteration:
                         iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) # reset
-                    next(iters[j]) # put at zero
-                    P[j] = zero
-                    j += 1
-            i -= 1
+                        next(iters[j]) # put at zero
+                        P[j] = zero
+                        j += 1
+                i -= 1
+        else: # base ring QQ
+            zero = (0,) * (n+1)
+            for c in cartesian_product_iterator([srange(-B,B+1) for _ in range(n+1)]):
+                if gcd(c) == 1 and c > zero:
+                    yield self(c)
 
     def subscheme_from_Chow_form(self, Ch, dim):
         r"""

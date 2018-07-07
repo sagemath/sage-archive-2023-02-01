@@ -40,9 +40,6 @@ from six.moves import range
 
 SMALL_DISC = 1000000
 
-
-import sage.libs.all
-
 import sage.misc.latex as latex
 
 import sage.rings.rational_field as rational_field
@@ -52,8 +49,7 @@ import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
-
-from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
+from sage.rings.ideal import Ideal_generic
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
@@ -2244,11 +2240,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
         AUTHOR: Maite Aranes.
         """
-
         if self.norm() == 1:
             return xmrange_iter([[1]], lambda l: l[0])
 
-        k = self.number_field()
         G = self.idealstar(2)
 
         invs = G.invariants()
@@ -2670,8 +2664,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         # otherwise translate answer in terms of given gens
         G = self.idealstar(2)
         invs = G.invariants()
-        g = G.gens()
-        n = G.ngens()
 
         from sage.matrix.all import matrix, identity_matrix, zero_matrix, diagonal_matrix, block_matrix
 
@@ -3333,7 +3325,6 @@ def quotient_char_p(I, p):
     # Step 1. Write each basis vector for I (as a ZZ-module)
     # in terms of the basis for OK.
 
-    B_I = M_I.basis()
     M_OK_mat = M_OK.basis_matrix()
     M_OK_change = M_OK_mat**(-1)
     B_I_in_terms_of_M = M_I.basis_matrix() * M_OK_change

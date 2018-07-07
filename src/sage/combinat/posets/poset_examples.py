@@ -55,6 +55,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.YoungDiagramPoset` | Return the poset of cells in the Young diagram of a partition.
     :meth:`~posets.YoungsLattice` | Return Young's Lattice up to rank `n`.
     :meth:`~posets.YoungsLatticePrincipalOrderIdeal` | Return the principal order ideal of the partition `lam` in Young's Lattice.
+    :meth:`~posets.YoungFibonacci` | Return the Young-Fibonacci lattice up to rank `n`.
 
 Constructions
 -------------
@@ -1431,6 +1432,73 @@ class Posets(object):
         ideal = list(set(contained_partitions(lam)))
         H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
         return LatticePoset(H.reverse())
+
+    @staticmethod
+    def YoungFibonacci(n):
+        """
+        Return the Young-Fibonacci lattice up to rank `n`.
+
+        Elements of the (infinite) lattice are words with letters '1'
+        and '2'.  The covers of a word are the words with another '1'
+        added somewhere not after the first occurence of an existing
+        '1' and, additionally, the words where the first '1' is replaced by a
+        '2'. The lattice is truncated to have rank `n`.
+
+        See :wikipedia:`Young-Fibonacci lattice`.
+
+        EXAMPLES::
+
+            sage: Y5 = posets.YoungFibonacci(5); Y5
+            Finite meet-semilattice containing 20 elements
+            sage: sorted(Y5.upper_covers(Word('211')))
+            [word: 1211, word: 2111, word: 221]
+
+        TESTS::
+
+            sage: posets.YoungFibonacci(0)
+            Finite meet-semilattice containing 1 elements
+            sage: posets.YoungFibonacci(1)
+            Finite meet-semilattice containing 2 elements
+        """
+        from sage.combinat.posets.lattices import FiniteMeetSemilattice
+        from sage.categories.finite_posets import FinitePosets
+        from sage.combinat.words.word import Word
+
+        try:
+            n = Integer(n)
+        except TypeError:
+            raise TypeError("number of elements must be an integer, not {0}".format(n))
+        if n < 0:
+            raise ValueError("number of elements must be non-negative, not {0}".format(n))
+
+        if n == 0:
+            return MeetSemilattice({'': []})
+
+        covers = []
+        current_level = ['']
+        for i in range(1, n+1):
+            new_level = set()
+            for low in current_level:
+                ind = low.find('1')
+                if ind != -1:  # = found a '1' -> change first '1' to '2'
+                    up = low[:ind]+'2'+low[ind+1:]
+                    new_level.add(up)
+                    covers.append((low, up))
+                else:  # no '1' in low
+                    ind = len(low)
+
+                # add '1' to every position not after first existing '1'
+                for j in range(ind+1):
+                    up = '2'*j + '1' + low[j:len(low)]
+                    new_level.add(up)
+                    covers.append((low, up))
+
+            current_level = new_level
+
+        D = DiGraph([[], covers], format='vertices_and_edges')
+        D.relabel(lambda v: Word(v), inplace=True)
+        return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
+
 
 ## RANDOM LATTICES
 

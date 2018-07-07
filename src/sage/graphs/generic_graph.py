@@ -12855,7 +12855,9 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: i = graphs.CompleteGraph(4).to_directed()
             sage: i.delete_edge([0,1])
-            sage: i.is_clique()
+            sage: i.is_clique(directed_clique=False, induced=True)
+            False
+            sage: i.is_clique(directed_clique=False, induced=False)
             True
             sage: i.is_clique(directed_clique=True)
             False

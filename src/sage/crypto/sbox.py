@@ -1113,8 +1113,8 @@ class SBox(SageObject):
 
         INPUT:
 
-        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
-          length ``self.output_size()``
+        - ``b`` -- either an integer or a list/tuple/vector of `\GF{2}`
+          elements of length ``self.output_size()``
 
         EXAMPLES::
 
@@ -1130,17 +1130,20 @@ class SBox(SageObject):
         """
         m = self.input_size()
         n = self.output_size()
-        ret = BooleanFunction(m)
 
-        if isinstance(b, integer_types + (Integer,)):
-            b = vector(GF(2), self.to_bits(b, n))
-        elif len(b) == n:
-            b = vector(GF(2), b)
-        else:
-            raise TypeError("cannot compute component function using parameter %s"%(b,))
+        try:
+            b = list(b)
+            if len(b) > n:
+                raise ValueError("Input (%s) is too long and would be truncated." % (b,))
+            b = self.from_bits(b)
+        except TypeError:
+            try:
+                b = ZZ(b)
+            except TypeError:
+                raise TypeError("Cannot handle input argument %s" % (b,))
 
-        for x in range(1<<m):
-            ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
+        ret = BooleanFunction([ZZ(b & self(x)).popcount() & 1 for x in range(1 << m)])
+
         return ret
 
     def nonlinearity(self):

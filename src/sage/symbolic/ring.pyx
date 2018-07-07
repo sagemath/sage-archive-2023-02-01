@@ -1072,6 +1072,17 @@ cdef class SymbolicRing(CommutativeRing):
         from .subring import SymbolicSubring
         return SymbolicSubring(*args, **kwds)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(SR)          # indirect doctest, optional - fricas
+            Expression Integer
+        """
+        return 'Expression Integer'
+
 SR = SymbolicRing()
 
 cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:

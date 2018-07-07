@@ -1432,6 +1432,17 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return 'Integers'
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS representation of ``self``.
+
+        EXAMPLES::
+
+            sage: fricas(ZZ)          # indirect doctest, optional - fricas
+            Integer
+        """
+        return 'Integer'
+
     def _magma_init_(self, magma):
         """
         Return a magma representation of ``self``.

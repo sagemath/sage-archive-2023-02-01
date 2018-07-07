@@ -447,6 +447,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return "ComplexField(%s : Bits := true)" % self.prec()
 
+    def _fricas_init_(self):
+        r"""
+        Return a string representation of ``self`` in the FriCAS language.
+
+        EXAMPLES::
+
+            sage: fricas(CDF)                     # indirect doctest, optional - fricas
+            'Complex DoubleFloat'
+        """
+        return "Complex DoubleFloat"
+
     def prec(self):
         """
         Return the precision of this complex double field (to be more

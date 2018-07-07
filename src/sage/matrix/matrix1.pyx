@@ -163,6 +163,45 @@ cdef class Matrix(Matrix0):
         from sage.libs.gap.libgap import libgap
         return libgap._construct_matrix(self)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS string representation of this matrix.
+
+        EXAMPLES::
+
+            sage: M = matrix(ZZ,2,range(4))
+            sage: fricas(M)                                                     # optional - fricas
+            +0  1+
+            |    |
+            +2  3+
+
+        ::
+
+            sage: M = matrix(QQ,3,[1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: fricas(M).sage().parent()                                     # optional - fricas
+            Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+
+        ::
+
+            sage: P.<x> = ZZ[]
+            sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
+            sage: fricas(M)                                                     # optional - fricas
+            +     2                      +
+            |- 9 x  - 2 x + 2    x - 1   |
+            |                            |
+            |     2                 2    |
+            +    x  + 8 x      - 3 x  + 5+
+
+        """
+        s = str(self.rows()).replace('(','[').replace(')',']')
+        R = self.base_ring()
+        try:
+            R._fricas_()
+        except TypeError:
+            return "matrix(%s)"%(s)
+
+        return "matrix(%s)$Matrix(%s)"%(s, R._fricas_init_())
+
     def _giac_init_(self):
         """
         Return a Giac string representation of this matrix.

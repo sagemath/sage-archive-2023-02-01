@@ -12,6 +12,8 @@ named cellular automata.
 
 - :class:`cellular_automata.Elementary
   <sage.dynamics.cellular_automata.elementary.ElementaryCellularAutomata>`
+- :class:`cellular_automata.GraftalLace
+  <sage.dynamics.cellular_automata.glca.GraftalLaceCellularAutomata>`
 - :class:`cellular_automata.PeriodicSoliton
   <sage.dynamics.cellular_automata.solitons.PeriodicSolitonCellularAutomata>`
 - :class:`cellular_automata.Soliton
@@ -21,6 +23,8 @@ named cellular automata.
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.dynamics.cellular_automata.elementary',
             'ElementaryCellularAutomata', 'Elementary',)
+lazy_import('sage.dynamics.cellular_automata.glca',
+            'GraftalLaceCellularAutomata', 'GraftalLace',)
 lazy_import('sage.dynamics.cellular_automata.solitons',
             'SolitonCellularAutomata', 'Soliton')
 lazy_import('sage.dynamics.cellular_automata.solitons',

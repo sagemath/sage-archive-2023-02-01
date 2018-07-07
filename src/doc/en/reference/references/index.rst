@@ -1524,6 +1524,9 @@ REFERENCES:
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
 
+.. [Kas2018] András Kaszanyitzky. *The GraftalLace Cellular Automata*.
+             Preprint, :arxiv:`1805.11532`.
+
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.
 

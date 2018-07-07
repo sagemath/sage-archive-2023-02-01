@@ -2191,7 +2191,7 @@ def spqr_tree(G):
         virtual_edges.update(frozenset(e) for e in f.edge_iterator(labels=False))
 
 
-    # Cycles of order > 3 may have been be triangulated; We undo this to reduce
+    # Cycles of order > 3 may have been triangulated; We undo this to reduce
     # the number of S-blocks. We start removing edges of the triangulation.
     count = Counter([frozenset(e) for e in cycles_graph.multiple_edges(labels=False)])
     for e,num in count.items():
@@ -2270,13 +2270,12 @@ def spqr_tree_to_graph(T):
 
     OUTPUT: a (multi) graph
 
-    EXAMPLES::
-
-        sage: from sage.graphs.connectivity import spqr_tree
-        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+    EXAMPLES:
 
     :wikipedia:`SPQR_tree` reference paper example::
 
+        sage: from sage.graphs.connectivity import spqr_tree
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
         sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (3, 4), (2, 3),
         ....: (2, 13), (3, 13), (4, 5), (4, 7), (5, 6), (5, 8), (5, 7), (6, 7),
         ....: (8, 11), (8, 9), (8, 12), (9, 10), (9, 11), (9, 12), (10, 12)])
@@ -2284,6 +2283,8 @@ def spqr_tree_to_graph(T):
         sage: H = spqr_tree_to_graph(T)
         sage: H.is_isomorphic(G)
         True
+
+    A small multigraph ::
 
         sage: G = Graph([(0, 2), (0, 2), (1, 3), (2, 3)], multiedges=True)
         sage: for i in range(3):
@@ -2294,6 +2295,8 @@ def spqr_tree_to_graph(T):
         sage: H = spqr_tree_to_graph(T)
         sage: H.is_isomorphic(G)
         True
+
+    TESTS::
 
         sage: H = spqr_tree_to_graph(Graph())
         sage: H.is_isomorphic(Graph())

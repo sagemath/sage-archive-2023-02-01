@@ -2185,6 +2185,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: F.<x> = FunctionField(k)
             sage: R.<t> = k[]
             sage: t(x)
+            x
 
             sage: k = GF(55667)
             sage: F.<x> = FunctionField(k)
@@ -2199,9 +2200,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             from sage.rings.fraction_field_FpT import FpT
             if 2 < p and p < FpT.INTEGER_LIMIT:
                 return FpT(self)
-        else:
-            from sage.rings.fraction_field import FractionField_1poly_field
-            return FractionField_1poly_field(self)
+        from sage.rings.fraction_field import FractionField_1poly_field
+        return FractionField_1poly_field(self)
 
 
 class PolynomialRing_dense_finite_field(PolynomialRing_field):

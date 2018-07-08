@@ -25,6 +25,7 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cpython.int cimport *
 from sage.ext.stdsage cimport PY_NEW
@@ -37,6 +38,8 @@ import sage.rings.finite_rings.integer_mod
 from cypari2.types cimport *
 from cypari2.gen cimport Gen as pari_gen
 from sage.rings.infinity import infinity
+from sage.structure.element cimport parent
+
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 # The following Integer is used so that the functions here don't need to initialize an mpz_t.
@@ -139,7 +142,6 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
     else:
-        from sage.structure.element import parent
         raise NotImplementedError("Can not determine p-adic valuation of an element of %s"%parent(x))
     # Should check for overflow
     return k * e
@@ -210,7 +212,6 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         if mpz_cmp_ui(temp.value, 1) != 0:
             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
     else:
-        from sage.structure.element import parent
         raise NotImplementedError("Can not determine p-adic precision of an element of %s"%parent(x))
     return k * e
 

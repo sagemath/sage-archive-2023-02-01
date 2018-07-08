@@ -1,5 +1,5 @@
 r"""
-Elliptic curves with prescribed good reduction.
+Elliptic curves with prescribed good reduction
 
 Construction of elliptic curves with good reduction outside a finite
 set of primes
@@ -71,6 +71,7 @@ required have conductors 13068 and 52272 so are in the database)::
 AUTHORS:
 
 - John Cremona (6 April 2009): initial version (over `\QQ` only).
+
 """
 
 #*****************************************************************************
@@ -147,7 +148,7 @@ def curve_key(E1):
         from sage.databases.cremona import parse_cremona_label, class_to_int
         N, l, k = parse_cremona_label(E1.label())
         return (N, 0, class_to_int(l), k)
-    except RuntimeError:
+    except LookupError:
         return (E1.conductor(), 1, E1.ainvs())
 
 
@@ -419,9 +420,6 @@ def egros_get_j(S=[], proof=None, verbose=False):
             print("w = ", w, "=", w.factor())
             sys.stdout.flush()
         a6 = -1728*w
-        d2 = 0
-        d3 = 0
-        u0 = (2**d2)*(3**d3)
         E = EllipticCurve([0,0,0,0,a6])
         # This curve may not be minimal at 2 or 3, but the
         # S-integral_points function requires minimality at primes in

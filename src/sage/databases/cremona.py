@@ -421,9 +421,10 @@ def parse_lmfdb_label(label):
         num = "1"
     return int(conductor), iso, int(num)
 
+
 def split_code(key):
     """
-    Splits class+curve id string into its two parts.
+    Splits class + curve id string into its two parts.
 
     EXAMPLES::
 
@@ -431,8 +432,8 @@ def split_code(key):
         sage: cremona.split_code('ba2')
         ('ba', '2')
     """
-    cu = re.split("[a-z]*", key)[1]
-    cl =  re.split("[0-9]*", key)[0]
+    cu = re.split("[a-z]+", key)[1]
+    cl =  re.split("[0-9]+", key)[0]
     return (cl, cu)
 
 
@@ -754,7 +755,7 @@ class MiniCremonaDatabase(SQLDatabase):
         Note the 'h3', which is the unique case in the tables where
         the optimal curve doesn't have label ending in 1::
 
-            sage: list(sorted(CremonaDatabase().curves(990).keys()))
+            sage: sorted(CremonaDatabase().curves(990))
             ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h3', 'i1', 'j1', 'k1', 'l1']
 
         TESTS::
@@ -1015,8 +1016,7 @@ class MiniCremonaDatabase(SQLDatabase):
         conductor = int(conductor)
         classes = []
         A = self.allcurves(conductor)
-        K = A.keys()
-        K.sort(key=sort_key)
+        K = sorted(A, key=sort_key)
         for k in K:
             v = A[k]
             # test if not first curve in class

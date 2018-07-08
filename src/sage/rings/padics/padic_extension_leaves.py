@@ -59,11 +59,11 @@ from .qadic_flint_FP import qAdicFloatingPointElement
 
 def _make_integral_poly(exact_modulus, p, prec):
     """
-    Converts a defining polynomial into one with integral coefficients.
+    Convert a defining polynomial into one with integral coefficients.
 
-    INPUTS:
+    INPUT:
 
-    - ``exact_modulus`` - a univariate polynomial
+    - ``exact_modulus`` -- a univariate polynomial
 
     - ``p`` -- a prime
 
@@ -649,6 +649,21 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
         self._exact_modulus = exact_modulus
         self._implementation = implementation
         EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXFMElement)
+
+    def fraction_field(self):
+        """
+        Eisenstein extensions with fixed modulus do not support fraction fields.
+
+        EXAMPLES::
+
+            sage: S.<x> = ZZ[]
+            sage: R.<a> = ZpFM(5).extension(x^2 - 5)
+            sage: R.fraction_field()
+            Traceback (most recent call last):
+            ...
+            TypeError: This implementation of the p-adic ring does not support fields of fractions.
+        """
+        raise TypeError("This implementation of the p-adic ring does not support fields of fractions.")
 
     #def coerce_map_explicit(self, S):
     #    from sage.rings.padics.morphism import Morphism_ZZ_EisFM, Morphism_ZpFM_EisFM

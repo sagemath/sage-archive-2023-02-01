@@ -11,9 +11,8 @@ Indexed Generators
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from sage.rings.all import Integer
 from sage.structure.category_object import normalize_names
+
 
 class IndexedGenerators(object):
     r"""nodetex
@@ -75,8 +74,6 @@ class IndexedGenerators(object):
     - ``tensor_symbol`` -- string or ``None`` (default: ``None``),
       string to use for tensor product in the print representation. If
       ``None``, use  ``sage.categories.tensor.symbol``.
-
-    - ``generator_cmp`` -- deprecated
 
     - ``sorting_key`` -- a key function (default: ``lambda x: x``),
       to use for sorting elements in the output of elements
@@ -231,20 +228,11 @@ class IndexedGenerators(object):
              ('sorting_reverse', False), ('string_quotes', True),
              ('tensor_symbol', None)]
             sage: F.print_options(bracket='[') # reset
-            sage: F.print_options(generator_cmp=lambda x,y: (x < y) - (x > y))
-            doctest:...: DeprecationWarning: Option generator_cmp is deprecated use sorting_key and sorting_reverse instead.
-            See http://trac.sagemath.org/17229 for details.
         """
         # don't just use kwds.get(...) because I want to distinguish
         # between an argument like "option=None" and the option not
         # being there altogether.
         if kwds:
-            if 'generator_cmp' in kwds:
-                from sage.misc.superseded import deprecation
-                deprecation(17229, "Option generator_cmp is deprecated use sorting_key and sorting_reverse instead.")
-                from functools import cmp_to_key
-                kwds['sorting_key'] = cmp_to_key(kwds['generator_cmp'])
-                del kwds['generator_cmp']
             for option in kwds:
                 if option in self._print_options:
                     self._print_options[option] = kwds[option]
@@ -366,7 +354,7 @@ class IndexedGenerators(object):
         """
         from sage.typeset.ascii_art import AsciiArt, ascii_art
         pref = AsciiArt([self.prefix()])
-        r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(m))
+        r = pref * (AsciiArt([" " * len(pref)]) + ascii_art(m))
         r._baseline = r._h - 1
         return r
 
@@ -396,7 +384,7 @@ class IndexedGenerators(object):
         """
         from sage.typeset.unicode_art import UnicodeArt, unicode_art
         pref = UnicodeArt([self.prefix()])
-        r = pref * (UnicodeArt([" " ** Integer(len(pref))]) + unicode_art(m))
+        r = pref * (UnicodeArt([" " * len(pref)]) + unicode_art(m))
         r._baseline = r._h - 1
         return r
 
@@ -522,7 +510,7 @@ def split_index_keywords(kwds):
     ret = {}
     for option in ['prefix', 'latex_prefix', 'bracket', 'latex_bracket',
                    'scalar_mult', 'latex_scalar_mult', 'tensor_symbol',
-                   'generator_cmp', 'sorting_key', 'sorting_reverse',
+                   'sorting_key', 'sorting_reverse',
                    'string_quotes']:
         try:
             ret[option] = kwds.pop(option)

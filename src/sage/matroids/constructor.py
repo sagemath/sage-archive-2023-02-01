@@ -107,7 +107,7 @@ from six import itervalues
 from itertools import combinations
 from sage.matrix.constructor import Matrix
 from sage.graphs.all import Graph
-import sage.matrix.matrix
+from sage.structure.element import is_Matrix
 from sage.rings.all import ZZ, QQ
 from sage.rings.finite_rings.finite_field_base import FiniteField
 import sage.matroids.matroid
@@ -116,6 +116,7 @@ from .rank_matroid import RankMatroid
 from .circuit_closures_matroid import CircuitClosuresMatroid
 from .basis_matroid import BasisMatroid
 from .linear_matroid import LinearMatroid, RegularMatroid, BinaryMatroid, TernaryMatroid, QuaternaryMatroid
+from .graphic_matroid import GraphicMatroid
 import sage.matroids.utilities
 
 
@@ -311,7 +312,7 @@ def Matroid(groundset=None, data=None, **kwds):
             sage: M = Matroid(groundset='abcd', circuits=['abc', 'abd', 'acd',
             ....:                                         'bcd'])
             sage: type(M)
-            <type 'sage.matroids.basis_matroid.BasisMatroid'>
+            <... 'sage.matroids.basis_matroid.BasisMatroid'>
 
         Strange things can happen if the input does not satisfy the circuit
         axioms, and these are not always caught by the
@@ -336,37 +337,76 @@ def Matroid(groundset=None, data=None, **kwds):
 
             sage: G = graphs.PetersenGraph()
             sage: Matroid(G)
-            Regular matroid of rank 9 on 15 elements with 2000 bases
+            Graphic matroid of rank 9 on 15 elements
 
-
-        Note: if a groundset is specified, we assume it is in the same order
-        as
-        :meth:`G.edge_iterator() <sage.graphs.generic_graph.GenericGraph.edge_iterator>`
-        provides::
-
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)],multiedges=True)
-            sage: M = Matroid('abcd', G)
-            sage: M.rank(['b', 'c'])
-            1
-
-        If no groundset is provided, we attempt to use the edge labels::
+        If each edge has a unique label, then those are used as the ground set
+        labels::
 
             sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'c')])
             sage: M = Matroid(G)
             sage: sorted(M.groundset())
             ['a', 'b', 'c']
 
-        If no edge labels are present and the graph is simple, we use the
+        If there are parallel edges, then integers are used for the ground set.
+        If there are no edges in parallel, and is not a complete list of labels,
+        or the labels are not unique, then vertex tuples are used::
+
+            sage: G = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'b')])
+            sage: M = Matroid(G)
+            sage: sorted(M.groundset())
+            [(0, 1), (0, 2), (1, 2)]
+            sage: H = Graph([(0, 1, 'a'), (0, 2, 'b'), (1, 2, 'b'), (1, 2, 'c')], multiedges=True)
+            sage: N = Matroid(H)
+            sage: sorted(N.groundset())
+            [0, 1, 2, 3]
+
+        The GraphicMatroid object forces its graph to be connected. If a
+        disconnected graph is used as input, it will connect the components.
+
+            sage: G1 = graphs.CycleGraph(3); G2 = graphs.DiamondGraph()
+            sage: G = G1.disjoint_union(G2)
+            sage: M = Matroid(G)
+            sage: M
+            Graphic matroid of rank 5 on 8 elements
+            sage: M.graph()
+            Looped multi-graph on 6 vertices
+            sage: M.graph().is_connected()
+            True
+            sage: M.is_connected()
+            False
+
+
+        If the keyword ``regular`` is set to ``True``, the output will instead
+        be an instance of ``RegularMatroid``.
+
+        ::
+
+            sage: G = Graph([(0, 1), (0, 2), (1, 2)])
+            sage: M = Matroid(G, regular=True); M
+            Regular matroid of rank 2 on 3 elements with 3 bases
+
+        Note: if a groundset is specified, we assume it is in the same order
+        as
+        :meth:`G.edge_iterator() <sage.graphs.generic_graph.GenericGraph.edge_iterator>`
+        provides::
+
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges=True)
+            sage: M = Matroid('abcd', G)
+            sage: M.rank(['b', 'c'])
+            1
+
+        As before,
+        if no edge labels are present and the graph is simple, we use the
         tuples ``(i, j)`` of endpoints. If that fails, we simply use a list
         ``[0..m-1]`` ::
 
             sage: G = Graph([(0, 1), (0, 2), (1, 2)])
-            sage: M = Matroid(G)
+            sage: M = Matroid(G, regular=True)
             sage: sorted(M.groundset())
             [(0, 1), (0, 2), (1, 2)]
 
-            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)],multiedges=True)
-            sage: M = Matroid(G)
+            sage: G = Graph([(0, 1), (0, 2), (0, 2), (1, 2)], multiedges=True)
+            sage: M = Matroid(G, regular=True)
             sage: sorted(M.groundset())
             [0, 1, 2, 3]
 
@@ -376,7 +416,7 @@ def Matroid(groundset=None, data=None, **kwds):
         documentation)::
 
             sage: Matroid(graph=':I`AKGsaOs`cI]Gb~')
-            Regular matroid of rank 9 on 17 elements with 4004 bases
+            Graphic matroid of rank 9 on 17 elements
 
         However, this method is no more clever than ``Graph()``::
 
@@ -670,7 +710,7 @@ def Matroid(groundset=None, data=None, **kwds):
     if key is None:
         if isinstance(data, sage.graphs.graph.Graph):
             key = 'graph'
-        elif isinstance(data, sage.matrix.matrix.Matrix):
+        elif is_Matrix(data):
             key = 'matrix'
         elif isinstance(data, sage.matroids.matroid.Matroid):
             key = 'matroid'
@@ -726,25 +766,14 @@ def Matroid(groundset=None, data=None, **kwds):
         M = BasisMatroid(groundset=groundset, bases=BB)
 
     # Graphs:
+
     elif key == 'graph':
-        # Construct the incidence matrix
-        # NOTE: we are not using Sage's built-in method because
-        # 1) we would need to fix the loops anyway
-        # 2) Sage will sort the columns, making it impossible to keep labels!
         if isinstance(data, sage.graphs.generic_graph.GenericGraph):
             G = data
         else:
             G = Graph(data)
-        V = G.vertices()
-        n = G.num_verts()
-        m = G.num_edges()
-        A = Matrix(ZZ, n, m, 0)
-        mm = 0
-        for i, j, k in G.edge_iterator():
-            A[V.index(i), mm] = -1
-            A[V.index(j), mm] += 1  # So loops get 0
-            mm += 1
         # Decide on the groundset
+        m = G.num_edges()
         if groundset is None:
             # 1. Attempt to use edge labels.
             sl = G.edge_labels()
@@ -756,8 +785,23 @@ def Matroid(groundset=None, data=None, **kwds):
             else:
                 # 3. Use numbers
                 groundset = list(range(m))
-        M = RegularMatroid(matrix=A, groundset=groundset)
-        want_regular = False  # Save some time, since result is already regular
+        if want_regular:
+        # Construct the incidence matrix
+        # NOTE: we are not using Sage's built-in method because
+        # 1) we would need to fix the loops anyway
+        # 2) Sage will sort the columns, making it impossible to keep labels!
+            V = G.vertices()
+            n = G.num_verts()
+            A = Matrix(ZZ, n, m, 0)
+            mm = 0
+            for i, j, k in G.edge_iterator():
+                A[V.index(i), mm] = -1
+                A[V.index(j), mm] += 1  # So loops get 0
+                mm += 1
+            M = RegularMatroid(matrix=A, groundset=groundset)
+            want_regular = False  # Save some time, since result is already regular
+        else:
+            M = GraphicMatroid(G, groundset=groundset)
 
     # Matrices:
     elif key in ['matrix', 'reduced_matrix']:
@@ -765,7 +809,7 @@ def Matroid(groundset=None, data=None, **kwds):
         is_reduced = (key == 'reduced_matrix')
 
         # Fix the representation
-        if not isinstance(A, sage.matrix.matrix.Matrix):
+        if not is_Matrix(A):
             if base_ring is not None:
                 A = Matrix(base_ring, A)
             else:

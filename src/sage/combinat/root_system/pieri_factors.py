@@ -63,8 +63,7 @@ class PieriFactors(UniqueRepresentation, Parent):
         sage: PF.generating_series()
         6*z^6 + 14*z^5 + 18*z^4 + 15*z^3 + 9*z^2 + 4*z + 1
         sage: [w.reduced_word() for w in PF if w.length() == 2]
-        [[2, 0], [0, 1], [2, 3], [1, 2], [3, 2], [3, 1], [2, 1], [3, 0], [1, 0]]
-
+        [[2, 3], [1, 0], [2, 0], [0, 1], [2, 1], [3, 1], [3, 0], [3, 2], [1, 2]]
 
     REFERENCES:
 
@@ -144,7 +143,7 @@ class PieriFactors(UniqueRepresentation, Parent):
 
             sage: PF = WeylGroup(['A',3]).pieri_factors()
             sage: [w.reduced_word() for w in PF.elements()]
-            [[3, 2, 1], [2, 1], [1], [], [3, 1], [3], [3, 2], [2]]
+            [[3, 2, 1], [2, 1], [3, 1], [3, 2], [2], [1], [3], []]
 
         .. SEEALSO:: :meth:`maximal_elements`
 
@@ -242,7 +241,7 @@ class PieriFactors(UniqueRepresentation, Parent):
             sage: WeylGroup(['B',5,1]).pieri_factors()._test_maximal_elements()
         """
         tester = self._tester(**options)
-        tester.assert_(set(self.maximal_elements()) == set(self.maximal_elements_combinatorial()))
+        tester.assertTrue(set(self.maximal_elements()) == set(self.maximal_elements_combinatorial()))
 
     @cached_method
     def max_length(self):
@@ -781,12 +780,12 @@ class PieriFactors_type_A_affine(PieriFactors_affine_type):
             [[0], [1], [2], [3], [4], [1, 0]]
         """
         from sage.combinat.subset import Subsets
-        index_set = self.W.index_set()
         for l in range(self._min_length, self._max_length+1):
-            for extra in Subsets(self._extra_support, l - len(self._min_support)):
+            for extra in Subsets(self._extra_support,
+                                 l - len(self._min_support)):
                 yield self[self._min_support.union(extra)]
 
-    def stanley_symm_poly_weight(self,w):
+    def stanley_symm_poly_weight(self, w):
         r"""
         Weight used in computing (affine) Stanley symmetric polynomials for affine type A.
 

@@ -23,7 +23,8 @@ from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.with_realizations import WithRealizationsCategory
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-from sage.structure.element import generic_power
+from sage.arith.power import generic_power
+
 
 class Monoids(CategoryWithAxiom):
     r"""
@@ -60,6 +61,12 @@ class Monoids(CategoryWithAxiom):
         sage: C = Monoids()
         sage: TestSuite(C).run()
 
+    ::
+
+        sage: S = Monoids().example()
+        sage: x = S("aa")
+        sage: x^0, x^1, x^2, x^3, x^4, x^5
+        ('', 'aa', 'aaaa', 'aaaaaa', 'aaaaaaaa', 'aaaaaaaaaa')
     """
 
     _base_category_class_and_axiom = (Semigroups, "Unital")
@@ -191,11 +198,11 @@ class Monoids(CategoryWithAxiom):
                 sage: S._test_prod(elements = (S('a'), S('b')))
             """
             tester = self._tester(**options)
-            tester.assert_(self.prod([]) == self.one())
+            tester.assertTrue(self.prod([]) == self.one())
             for x in tester.some_elements():
-                tester.assert_(self.prod([x]) == x)
-                tester.assert_(self.prod([x, x]) == x**2)
-                tester.assert_(self.prod([x, x, x]) == x**3)
+                tester.assertTrue(self.prod([x]) == x)
+                tester.assertTrue(self.prod([x, x]) == x**2)
+                tester.assertTrue(self.prod([x, x, x]) == x**3)
 
 
         def submonoid(self, generators, category=None):
@@ -258,7 +265,7 @@ class Monoids(CategoryWithAxiom):
             """
             return self == self.parent().one()
 
-        def __pow__(self, n):
+        def _pow_int(self, n):
             r"""
             Return ``self`` to the `n^{th}` power.
 
@@ -269,14 +276,10 @@ class Monoids(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: S = Monoids().example()
-                sage: x = S("aa")
-                sage: x^0, x^1, x^2, x^3, x^4, x^5
-                ('', 'aa', 'aaaa', 'aaaaaa', 'aaaaaaaa', 'aaaaaaaaaa')
-
+                sage: S("a") ^ 5
+                'aaaaa'
             """
-            if not n: # FIXME: why do we need to do that?
-                return self.parent().one()
-            return generic_power(self, n, self.parent().one())
+            return generic_power(self, n)
 
         def _pow_naive(self, n):
             r"""
@@ -329,7 +332,7 @@ class Monoids(CategoryWithAxiom):
             return l
 
     class Commutative(CategoryWithAxiom):
-        """
+        r"""
         Category of commutative (abelian) monoids.
 
         A monoid `M` is *commutative* if `xy = yx` for all `x,y \in M`.

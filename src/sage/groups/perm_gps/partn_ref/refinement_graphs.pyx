@@ -9,7 +9,6 @@ REFERENCE:
 
 - [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
   Vol. 30 (1981), pp. 45-87.
-
 """
 
 #*****************************************************************************
@@ -36,32 +35,33 @@ from .double_coset cimport double_coset
 
 def isomorphic(G1, G2, partn, ordering2, dig, use_indicator_function, sparse=False):
     """
-    Tests whether two graphs are isomorphic.
+    Test whether two graphs are isomorphic.
 
-    sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
+    EXAMPLES::
 
-    sage: G = Graph(2)
-    sage: H = Graph(2)
-    sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
-    {0: 0, 1: 1}
-    sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
-    {0: 0, 1: 1}
-    sage: isomorphic(G, H, [[0],[1]], [0,1], 0, 1)
-    {0: 0, 1: 1}
-    sage: isomorphic(G, H, [[0],[1]], [1,0], 0, 1)
-    {0: 1, 1: 0}
+        sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
 
-    sage: G = Graph(3)
-    sage: H = Graph(3)
-    sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
-    {0: 0, 1: 1, 2: 2}
-    sage: G.add_edge(0,1)
-    sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
-    False
-    sage: H.add_edge(1,2)
-    sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
-    {0: 1, 1: 2, 2: 0}
+        sage: G = Graph(2)
+        sage: H = Graph(2)
+        sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
+        {0: 0, 1: 1}
+        sage: isomorphic(G, H, [[0,1]], [0,1], 0, 1)
+        {0: 0, 1: 1}
+        sage: isomorphic(G, H, [[0],[1]], [0,1], 0, 1)
+        {0: 0, 1: 1}
+        sage: isomorphic(G, H, [[0],[1]], [1,0], 0, 1)
+        {0: 1, 1: 0}
 
+        sage: G = Graph(3)
+        sage: H = Graph(3)
+        sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
+        {0: 0, 1: 1, 2: 2}
+        sage: G.add_edge(0,1)
+        sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
+        False
+        sage: H.add_edge(1,2)
+        sage: isomorphic(G, H, [[0,1,2]], [0,1,2], 0, 1)
+        {0: 1, 1: 2, 2: 0}
     """
     cdef PartitionStack *part
     cdef int *output
@@ -185,37 +185,40 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
     Compute canonical labels and automorphism groups of graphs.
 
     INPUT:
-    G_in -- a Sage graph
-    partition -- a list of lists representing a partition of the vertices
-    lab -- if True, compute and return the canonical label in addition to the
-        automorphism group.
-    dig -- set to True for digraphs and graphs with loops.  If True, does not
-        use optimizations based on Lemma 2.25 in [1] that are valid only for
-        simple graphs.
-    dict_rep -- if True, return a dictionary with keys the vertices of the
-        input graph G_in and values elements of the set the permutation group
-        acts on.  (The point is that graphs are arbitrarily labelled, often
-        0..n-1, and permutation groups always act on 1..n.  This dictionary
-        maps vertex labels (such as 0..n-1) to the domain of the permutations.)
-    certificate -- if True, return the permutation from G to its canonical label.
-    verbosity -- currently ignored
-    use_indicator_function -- option to turn off indicator function
-        (True is generally faster)
-    sparse -- whether to use sparse or dense representation of the graph
-        (ignored if G is already a CGraph - see sage.graphs.base)
-    base -- whether to return the first sequence of split vertices (used in
-        computing the order of the group)
-    order -- whether to return the order of the automorphism group
+
+    - ``G_in`` -- a Sage graph
+    - ``partition`` -- a list of lists representing a partition of the vertices
+    - ``lab`` -- if True, compute and return the canonical label in addition to the
+      automorphism group
+    - ``dig`` -- set to True for digraphs and graphs with loops.  If True, does not
+      use optimizations based on Lemma 2.25 in [1] that are valid only for
+      simple graphs.
+    - ``dict_rep`` -- if ``True``, return a dictionary with keys the vertices of the
+      input graph G_in and values elements of the set the permutation group
+      acts on.  (The point is that graphs are arbitrarily labelled, often
+      0..n-1, and permutation groups always act on 1..n.  This dictionary
+      maps vertex labels (such as 0..n-1) to the domain of the permutations.)
+    - ``certificate`` -- if ``True``, return the permutation from G to its canonical label.
+    - ``verbosity`` -- currently ignored
+    - ``use_indicator_function`` -- option to turn off indicator function
+      (``True`` is generally faster)
+    - ``sparse`` -- whether to use sparse or dense representation of the graph
+      (ignored if G is already a CGraph - see sage.graphs.base)
+    - ``base`` -- whether to return the first sequence of split vertices (used in
+      computing the order of the group)
+    - ``order`` -- whether to return the order of the automorphism group
 
     OUTPUT:
+
     Depends on the options. If more than one thing is returned, they are in a
     tuple in the following order:
-        list of generators in list-permutation format -- always
-        dict -- if dict_rep
-        graph -- if lab
-        dict -- if certificate
-        list -- if base
-        integer -- if order
+
+    - list of generators in list-permutation format -- always
+    - dict -- if dict_rep
+    - graph -- if lab
+    - dict -- if certificate
+    - list -- if base
+    - integer -- if order
 
     EXAMPLES::
 
@@ -223,17 +226,20 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: from sage.graphs.base.dense_graph import DenseGraph
         sage: from sage.graphs.base.sparse_graph import SparseGraph
 
-    Graphs on zero vertices:
+    Graphs on zero vertices::
+
         sage: G = Graph()
         sage: st(G, [[]], order=True)
         ([], Graph on 0 vertices, 1)
 
-    Graphs on one vertex:
+    Graphs on one vertex::
+
         sage: G = Graph(1)
         sage: st(G, [[0]], order=True)
         ([], Graph on 1 vertex, 1)
 
-    Graphs on two vertices:
+    Graphs on two vertices::
+
         sage: G = Graph(2)
         sage: st(G, [[0,1]], order=True)
         ([[1, 0]], Graph on 2 vertices, 2)
@@ -245,7 +251,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: st(G, [[0],[1]], order=True)
         ([], Graph on 2 vertices, 1)
 
-    Graphs on three vertices:
+    Graphs on three vertices::
+
         sage: G = Graph(3)
         sage: st(G, [[0,1,2]], order=True)
         ([[0, 2, 1], [1, 0, 2]], Graph on 3 vertices, 6)
@@ -261,20 +268,23 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: st(G, [[0,1],[2]], order=True)
         ([[1, 0, 2]], Graph on 3 vertices, 2)
 
-    The Dodecahedron has automorphism group of size 120:
+    The Dodecahedron has automorphism group of size 120::
+
         sage: G = graphs.DodecahedralGraph()
         sage: Pi = [range(20)]
         sage: st(G, Pi, order=True)[2]
         120
 
-    The three-cube has automorphism group of size 48:
+    The three-cube has automorphism group of size 48::
+
         sage: G = graphs.CubeGraph(3)
         sage: G.relabel()
         sage: Pi = [G.vertices()]
         sage: st(G, Pi, order=True)[2]
         48
 
-    We obtain the same output using different types of Sage graphs:
+    We obtain the same output using different types of Sage graphs::
+
         sage: G = graphs.DodecahedralGraph()
         sage: GD = DenseGraph(20)
         sage: GS = SparseGraph(20)
@@ -304,7 +314,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: b == bdg
         True
 
-    Cubes!
+    Cubes!::
+
         sage: C = graphs.CubeGraph(1)
         sage: gens, order = st(C, [C.vertices()], lab=False, order=True); order
         2
@@ -324,7 +335,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: gens, order = st(C, [C.vertices()], lab=False, order=True); order
         46080
 
-    One can also turn off the indicator function (note- this will take longer)
+    One can also turn off the indicator function (note: this will take longer)::
+
         sage: D1 = DiGraph({0:[2],2:[0],1:[1]}, loops=True)
         sage: D2 = DiGraph({1:[2],2:[1],0:[0]}, loops=True)
         sage: a,b = st(D1, [D1.vertices()], dig=True, use_indicator_function=False)
@@ -332,7 +344,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: b==d
         True
 
-    This example is due to Chris Godsil:
+    This example is due to Chris Godsil::
+
         sage: HS = graphs.HoffmanSingletonGraph()
         sage: alqs = [Set(c) for c in (HS.complement()).cliques_maximum()]
         sage: Y = Graph([alqs, lambda s,t: len(s.intersection(t))==0])
@@ -344,7 +357,8 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
         sage: st(HS, [HS.vertices()])[1] == st(Y1, [Y1.vertices()])[1]
         True
 
-    Certain border cases need to be tested as well:
+    Certain border cases need to be tested as well::
+
         sage: G = Graph('Fll^G')
         sage: a,b,c = st(G, [range(G.num_verts())], order=True); b
         Graph on 7 vertices
@@ -500,25 +514,25 @@ def search_tree(G_in, partition, lab=True, dig=False, dict_rep=False, certificat
 
 cdef int refine_by_degree(PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len):
     r"""
-    Refines the input partition by checking degrees of vertices to the given
+    Refine the input partition by checking degrees of vertices to the given
     cells.
 
     INPUT:
-    PS -- a partition stack, whose finest partition is the partition to be
-        refined.
-    S -- a graph struct object, which contains scratch space, the graph in
-        question, and some flags.
-    cells_to_refine_by -- a list of pointers to cells to check degrees against
-        in refining the other cells (updated in place). Must be allocated to
-        length at least the degree of PS, since the array may grow
-    ctrb_len -- how many cells in cells_to_refine_by
+
+    - ``PS`` -- a partition stack, whose finest partition is the partition to be
+      refined
+    - ``S`` -- a graph struct object, which contains scratch space, the graph in
+      question, and some flags
+    - ``cells_to_refine_by`` -- a list of pointers to cells to check degrees against
+      in refining the other cells (updated in place). Must be allocated to
+      length at least the degree of PS, since the array may grow
+    - ``ctrb_len`` -- how many cells in cells_to_refine_by
 
     OUTPUT:
 
     An integer invariant under the orbits of $S_n$.  That is, if $\gamma$ is a
     permutation of the vertices, then
     $$ I(G, PS, cells_to_refine_by) = I( \gamma(G), \gamma(PS), \gamma(cells_to_refine_by) ) .$$
-
     """
     cdef GraphStruct GS = <GraphStruct> S
     cdef CGraph G = GS.G
@@ -644,9 +658,9 @@ cdef int compare_graphs(int *gamma_1, int *gamma_2, void *S1, void *S2, int degr
     \code{cmp}) function.
 
     INPUT:
-    gamma_1, gamma_2 -- list permutations (inverse)
-    S1, S2 -- graph struct objects
 
+    - ``gamma_1``, ``gamma_2`` -- list permutations (inverse)
+    - ``S1``, ``S2`` -- graph struct objects
     """
     cdef int i, j, m
     cdef GraphStruct GS1 = <GraphStruct> S1
@@ -673,11 +687,13 @@ cdef bint all_children_are_equivalent(PartitionStack *PS, void *S):
     same structure.
 
     WARNING:
+
     Converse does not hold in general!  See Lemma 2.25 of [1] for details.
 
     INPUT:
-    PS -- the partition stack to be checked
-    S -- a graph struct object
+
+    - ``PS`` -- the partition stack to be checked
+    - ``S`` -- a graph struct object
     """
     cdef GraphStruct GS = <GraphStruct> S
     if GS.directed or GS.loops:
@@ -706,16 +722,17 @@ cdef bint all_children_are_equivalent(PartitionStack *PS, void *S):
 
 cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, bint reverse):
     """
-    Returns the number of edges from the vertex corresponding to entry to
+    Return the number of edges from the vertex corresponding to entry to
     vertices in the cell corresponding to cell_index.
 
     INPUT:
-    PS -- the partition stack to be checked
-    S -- a graph struct object
-    entry -- the position of the vertex in question in the entries of PS
-    cell_index -- the starting position of the cell in question in the entries
-        of PS
-    reverse -- whether to check for arcs in the other direction
+
+    - ``PS`` -- the partition stack to be checked
+    - ``S`` -- a graph struct object
+    - ``entry`` -- the position of the vertex in question in the entries of PS
+    - ``cell_index`` -- the starting position of the cell in question in the entries
+      of PS
+    - ``reverse`` -- whether to check for arcs in the other direction
     """
     cdef int num_arcs = 0
     entry = PS.entries[entry]
@@ -739,9 +756,10 @@ cdef inline int degree(PartitionStack *PS, CGraph G, int entry, int cell_index, 
 
 def all_labeled_graphs(n):
     """
-    Returns all labeled graphs on n vertices {0,1,...,n-1}. Used in
-    classifying isomorphism types (naive approach), and more importantly
-    in benchmarking the search algorithm.
+    Return all labeled graphs on n vertices {0,1,...,n-1}.
+
+    Used in classifying isomorphism types (naive approach), and more
+    importantly in benchmarking the search algorithm.
 
     EXAMPLES::
 
@@ -793,9 +811,10 @@ def random_tests(num=10, n_max=60, perms_per_graph=5):
     and random graphs G, and that isomorphic returns an isomorphism.
 
     INPUT:
-    num -- run tests for this many graphs
-    n_max -- test graphs with at most this many vertices
-    perms_per_graph -- test each graph with this many random permutations
+
+    - ``num`` -- run tests for this many graphs
+    - ``n_max`` -- test graphs with at most this many vertices
+    - ``perms_per_graph`` -- test each graph with this many random permutations
 
     DISCUSSION:
 
@@ -886,11 +905,9 @@ def orbit_partition(gamma, list_perm=False):
 
     INPUT:
 
-
-    -  ``list_perm`` - if True, assumes
-       ``gamma`` is a list representing the map
-       `i \mapsto ``gamma``[i]`.
-
+    - ``list_perm`` - if ``True``, assumes
+      ``gamma`` is a list representing the map
+      `i \mapsto ``gamma``[i]`
 
     EXAMPLES::
 
@@ -938,7 +955,7 @@ def orbit_partition(gamma, list_perm=False):
 
 def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
     """
-    Returns the coarsest equitable refinement of ``partition`` for ``G``.
+    Return the coarsest equitable refinement of ``partition`` for ``G``.
 
     This is a helper function for the graph function of the same name.
 
@@ -948,7 +965,6 @@ def coarsest_equitable_refinement(CGraph G, list partition, bint directed):
         sage: from sage.graphs.base.sparse_graph import SparseGraph
         sage: coarsest_equitable_refinement(SparseGraph(7), [[0], [1,2,3,4], [5,6]], 0)
         [[0], [1, 2, 3, 4], [5, 6]]
-
     """
     cdef int i, j = 0, k = 0, n = G.num_verts
 
@@ -1013,7 +1029,6 @@ def get_orbits(list gens, int n):
         sage: from sage.groups.perm_gps.partn_ref.refinement_graphs import get_orbits
         sage: get_orbits([[1,2,3,0,4,5], [0,1,2,3,5,4]], 6)
         [[0, 1, 2, 3], [4, 5]]
-
     """
     cdef int i, j
     if len(gens) == 0:
@@ -1041,10 +1056,7 @@ def get_orbits(list gens, int n):
     OP_dealloc(OP)
     sig_free(perm_ints)
 
-    return orbit_dict.values()
-
-
-
+    return list(orbit_dict.itervalues())
 
 
 
@@ -1391,7 +1403,7 @@ def generate_dense_graphs_edge_addition(int n, bint loops, G = None, depth = Non
 # Dense graphs: adding vertices
 
 # This implements an augmentation scheme as follows:
-# * Seed objects are graphs with one verticex and no edges.
+# * Seed objects are graphs with one vertex and no edges.
 # * Augmentations consist of adding a single vertex connected to some subset of
 #   the previous vertices.
 
@@ -1661,16 +1673,3 @@ def generate_dense_graphs_vert_addition(int n, base_G = None, bint construct = F
         if base_G is None:
             number += 1
         return number
-
-
-
-
-
-
-
-
-
-
-
-
-

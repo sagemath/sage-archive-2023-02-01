@@ -498,7 +498,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         weak_lattice = weak_poset
 
         def inversion_sequence(self, word):
-            """
+            r"""
             Return the inversion sequence corresponding to the ``word``
             in indices of simple generators of ``self``.
 
@@ -676,7 +676,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
             """
             Return ``True`` since ``self`` is a real reflection group.
 
-            EXMAPLES::
+            EXAMPLES::
 
                 sage: CoxeterGroup(['F',4]).is_real()
                 True

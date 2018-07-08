@@ -147,8 +147,8 @@ class Groups(CategoryWithAxiom):
             """
             tester = self._tester(**options)
             for x in tester.some_elements():
-                tester.assertEquals(x * ~x, self.one())
-                tester.assertEquals(~x * x, self.one())
+                tester.assertEqual(x * ~x, self.one())
+                tester.assertEqual(~x * x, self.one())
 
         def semidirect_product(self, N, mapping, check = True):
             r"""
@@ -412,12 +412,12 @@ class Groups(CategoryWithAxiom):
                 b| b c a
                 c| c a b
 
-            TODO:
+            .. TODO::
 
-            Arrange an ordering of elements into cosets of a normal
-            subgroup close to size `\sqrt{n}`.  Then the quotient
-            group structure is often apparent in the table.  See
-            comments on :trac:`7555`.
+                Arrange an ordering of elements into cosets of a normal
+                subgroup close to size `\sqrt{n}`.  Then the quotient
+                group structure is often apparent in the table.  See
+                comments on :trac:`7555`.
 
             AUTHOR:
 
@@ -484,7 +484,7 @@ class Groups(CategoryWithAxiom):
     Algebras = LazyImport('sage.categories.group_algebras', 'GroupAlgebras', at_startup=True)
 
     class Commutative(CategoryWithAxiom):
-        """
+        r"""
         Category of commutative (abelian) groups.
 
         A group `G` is *commutative* if `xy = yx` for all `x,y \in G`.
@@ -638,6 +638,27 @@ class Groups(CategoryWithAxiom):
                 """
                 from sage.misc.misc_c import prod
                 return prod(c.cardinality() for c in self.cartesian_factors())
+
+        class ElementMethods:
+            def multiplicative_order(self):
+                r"""
+                Return the multiplicative order of this element.
+
+                EXAMPLES::
+
+                    sage: G1 = SymmetricGroup(3)
+                    sage: G2 = SL(2,3)
+                    sage: G = cartesian_product([G1,G2])
+                    sage: G((G1.gen(0), G2.gen(1))).multiplicative_order()
+                    12
+                """
+                from sage.rings.infinity import Infinity
+                orders = [x.multiplicative_order() for x in self.cartesian_factors()]
+                if any(o is Infinity for o in orders):
+                    return Infinity
+                else:
+                    from sage.arith.functions import LCM_list
+                    return LCM_list(orders)
 
     class Topological(TopologicalSpacesCategory):
         """

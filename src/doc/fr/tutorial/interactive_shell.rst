@@ -97,7 +97,7 @@ Voici un exemple :
     6: eval(_i1)
     7: %hist
 
-Dans la suite de ce tutorial et le reste de la documentation de Sage,
+Dans la suite de ce tutoriel et le reste de la documentation de Sage,
 nous omettrons la numérotation des sorties.
 
 Il est possible de créer (pour la durée d'une session) une macro qui

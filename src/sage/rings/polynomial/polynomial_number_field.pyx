@@ -68,8 +68,9 @@ We can also construct polynomials over relative number fields::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
-from polynomial_element_generic import Polynomial_generic_dense_field
+from .polynomial_element_generic import Polynomial_generic_dense_field
 from sage.rings.rational_field import QQ
 from sage.structure.element import coerce_binop
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

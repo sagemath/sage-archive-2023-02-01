@@ -38,8 +38,8 @@ AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
 - Joris Vankerschaver (2010): for the idea of storing only the non-zero
-  components as dictionaries, whose keys are the component indices (see
-  class :class:`~sage.tensor.differential_form_element.DifferentialForm`)
+  components as dictionaries, whose keys are the component indices (implemented
+  in the old class ``DifferentialForm``; see :trac:`24444`)
 - Marco Mancini (2015) : parallelization of some computations
 
 EXAMPLES:
@@ -139,7 +139,7 @@ the :class:`Components` constructor::
 
 If some formatter function or unbound method is provided via the argument
 ``output_formatter`` in the :class:`Components` constructor, it is used to
-change the ouput of the access operator ``[...]``::
+change the output of the access operator ``[...]``::
 
     sage: a = Components(QQ, basis, 2, output_formatter=Rational.numerical_approx)
     sage: a[1,2] = 1/3
@@ -331,7 +331,7 @@ class Components(SageObject):
         -3
 
     If some formatter function or unbound method is provided via the argument
-    ``output_formatter``, it is used to change the ouput of the access
+    ``output_formatter``, it is used to change the output of the access
     operator ``[...]``::
 
         sage: a = Components(QQ, basis, 2, output_formatter=Rational.numerical_approx)
@@ -582,7 +582,7 @@ class Components(SageObject):
         """
         result = self._new_instance()
         for ind, val in self._comp.items():
-            if hasattr(val, 'copy'):
+            if isinstance(val, SageObject) and hasattr(val, 'copy'):
                 result._comp[ind] = val.copy()
             else:
                 result._comp[ind] = val
@@ -753,18 +753,30 @@ class Components(SageObject):
 
     def _get_list(self, ind_slice, no_format=True, format_type=None):
         r"""
-        Return the list of components.
+        Return the list of components (as nested list or matrix).
 
         INPUT:
 
-        - ``ind_slice`` --  a slice object
+        - ``ind_slice`` --  a slice object. Unless the dimension is 1,
+          this must be ``[:]``.
+        - ``no_format`` -- (default: ``True``) determines whether some
+          formatting of the components is to be performed
+        - ``format_type`` -- (default: ``None``) argument to be passed
+          to the formatting function ``self._output_formatter``, as the
+          second (optional) argument
 
         OUTPUT:
 
-        - the full list of components if  ``ind_slice = [:]``, or a slice
-          of it if ``ind_slice = [a:b]`` (1-D case), in the form
-          ``T[i][j]...`` for the components `T_{ij...}` (for a 2-indices
-          object, a matrix is returned).
+        - general case: the nested list of components in the form
+          ``T[i][j]...`` for the components `T_{ij...}`.
+
+        - in the 1-dim case, a slice of that list if
+          ``ind_slice = [a:b]``.
+
+        - in the 2-dim case, a matrix (over the base ring of the components or
+          of the formatted components if ``no_format`` is ``False``) is
+          returned instead, except if the formatted components do not belong
+          to any ring (for instance if they are strings).
 
         EXAMPLES::
 
@@ -785,9 +797,7 @@ class Components(SageObject):
             [4, 5]
             sage: v._get_list(slice(2,3))
             [6]
-
         """
-        from sage.matrix.constructor import matrix
         si = self._sindex
         nsi = si + self._dim
         if self._nid == 1:
@@ -811,15 +821,12 @@ class Components(SageObject):
         resu = [self._gen_list([i], no_format, format_type)
                 for i in range(si, nsi)]
         if self._nid == 2:
-            try:
-                for i in range(self._dim):
-                    for j in range(self._dim):
-                        a = resu[i][j]
-                        if hasattr(a, '_express'):
-                            resu[i][j] = a._express
-                resu = matrix(resu)  # for a nicer output
-            except TypeError:
-                pass
+            # 2-dim case: convert to matrix for a nicer output
+            from sage.matrix.constructor import matrix
+            from sage.structure.element import parent
+            from sage.categories.rings import Rings
+            if parent(resu[0][0]) in Rings():
+                return matrix(resu)
         return resu
 
     def _gen_list(self, ind, no_format=True, format_type=None):
@@ -913,9 +920,16 @@ class Components(SageObject):
             self._set_list(indices, format_type, value)
         else:
             ind = self._check_indices(indices)
-            if value == 0:
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
+            if zero_value:
                 # if the component has been set previously, it is deleted,
-                # otherwise nothing is done:
+                # otherwise nothing is done (zero components are not stored):
                 if ind in self._comp:
                     del self._comp[ind]
             else:
@@ -1074,7 +1088,7 @@ class Components(SageObject):
             c_111 = 3
 
         By default, all indices are printed as subscripts, but any index
-        position can be specifed::
+        position can be specified::
 
             sage: c.display('c', index_positions='udd')
             c^0_10 = -2
@@ -1197,8 +1211,13 @@ class Components(SageObject):
         for ind in generator:
             ind_arg = ind + (format_spec,)
             val = self[ind_arg]
-            if not (val == 0) or not only_nonzero:  # val != 0 would not be
-                                                    # correct, see :trac:`22520`
+            # Check whether the value is zero, preferably via the
+            # fast method is_trivial_zero():
+            if hasattr(val, 'is_trivial_zero'):
+                zero_value = val.is_trivial_zero()
+            else:
+                zero_value = val == 0
+            if not zero_value or not only_nonzero:
                 indices = ''  # text indices
                 d_indices = '' # LaTeX down indices
                 u_indices = '' # LaTeX up indices
@@ -1521,7 +1540,7 @@ class Components(SageObject):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be " +
@@ -1636,7 +1655,7 @@ class Components(SageObject):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         return self + (-other)  #!# correct, deals properly with
                                 # symmetries, but is probably not optimal
@@ -3252,14 +3271,21 @@ class CompWithSym(Components):
             self._set_list(indices, format_type, value)
         else:
             sign, ind = self._ordered_indices(indices)
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
             if sign == 0:
-                if not (value == 0):
+                if not zero_value:
                     raise ValueError("by antisymmetry, the component cannot " +
                                      "have a nonzero value for the indices " +
                                      str(indices))
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
-            elif value == 0:
+            elif zero_value:
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
@@ -3402,7 +3428,7 @@ class CompWithSym(Components):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -4811,7 +4837,16 @@ class CompFullySym(CompWithSym):
             self._set_list(indices, format_type, value)
         else:
             ind = self._ordered_indices(indices)[1]  # [0]=sign is not used
-            if value == 0:
+            # Check for a zero value
+            #   The fast method is_trivial_zero() is employed preferably
+            #   to the (possibly expensive) direct comparison to zero:
+            if hasattr(value, 'is_trivial_zero'):
+                zero_value = value.is_trivial_zero()
+            else:
+                zero_value = value == 0
+            if zero_value:
+                # if the component has been set previously, it is deleted,
+                # otherwise nothing is done (zero components are not stored):
                 if ind in self._comp:
                     del self._comp[ind]  # zero values are not stored
             else:
@@ -4898,7 +4933,7 @@ class CompFullySym(CompWithSym):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +
@@ -5198,7 +5233,7 @@ class CompFullyAntiSym(CompWithSym):
             sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
         """
-        if other == 0:
+        if isinstance(other, (int, Integer)) and other == 0:
             return +self
         if not isinstance(other, Components):
             raise TypeError("the second argument for the addition must be a " +

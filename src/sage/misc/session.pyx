@@ -23,7 +23,7 @@ session permanently, since ``SAGE_TMP`` will be removed when leaving Sage!
 This saves a dictionary with ``w`` as one of the keys::
 
     sage: z = load(os.path.join(SAGE_TMP, 'session'))
-    sage: z.keys()
+    sage: list(z)
     ['w']
     sage: z['w']
     2/3
@@ -70,7 +70,7 @@ cdef caller_locals = builtins.locals
 
 # Sage imports
 from .misc import embedded
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save
 
 # This module-scope variables is used to save the
 # global state of the sage environment at the moment

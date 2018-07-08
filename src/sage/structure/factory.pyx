@@ -263,7 +263,10 @@ cdef class UniqueFactory(SageObject):
         sage: loads(dumps(d)) is d
         False
         sage: d._factory_data
-        (<class '__main__.MyFactory'>, (...), (2,), {'impl': 'D'})
+        (<__main__.MyFactory object at ...>,
+         (...),
+         (2,),
+         {'impl': 'D'})
 
     Only when we have a new style class that can be weak referenced and allows
     for attribute assignment, everything works::
@@ -274,10 +277,11 @@ cdef class UniqueFactory(SageObject):
         sage: loads(dumps(e)) is e
         True
         sage: e._factory_data
-        (<class '__main__.MyFactory'>, (...), (3,), {'impl': None})
-
+        (<__main__.MyFactory object at ...>,
+         (...),
+         (3,),
+         {'impl': None})
     """
-
     cdef readonly _name
     cdef readonly _cache
 
@@ -544,7 +548,7 @@ cdef class UniqueFactory(SageObject):
             Making object (1, 2)
             sage: test_factory.reduce_data(a)
             (<built-in function generic_factory_unpickle>,
-             (<class 'sage.structure.test_factory.UniqueFactoryTester'>,
+             (<sage.structure.test_factory.UniqueFactoryTester object at ...>,
               (...),
               (1, 2),
               {}))
@@ -564,7 +568,7 @@ def register_factory_unpickle(name, callable):
 
     :class:`UniqueFactory` pickles use a global name through
     :func:`generic_factory_unpickle()`, so the usual
-    :func:`~sage.structure.sage_object.register_unpickle_override()`
+    :func:`~sage.misc.persist.register_unpickle_override()`
     cannot be used here.
 
     .. SEEALSO::
@@ -754,5 +758,5 @@ def lookup_global(name):
     return getattr(all, name)
 
 
-# To make the pickle jar happy:
+# Old imports required for unpickling old pickles
 from sage.structure.test_factory import test_factory

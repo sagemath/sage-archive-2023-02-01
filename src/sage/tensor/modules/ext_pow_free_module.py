@@ -55,6 +55,7 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
+from sage.rings.integer import Integer
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
@@ -240,7 +241,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         self._zero_element = 0 # provisory (to avoid infinite recursion
                                # in what follows)
         if name is None and fmodule._name is not None:
-            name = '/\^{}('.format(degree) + fmodule._name + ')'
+            name = r'/\^{}('.format(degree) + fmodule._name + ')'
         if latex_name is None and fmodule._latex_name is not None:
             latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
                                        fmodule._latex_name + r'\right)'
@@ -287,7 +288,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
             a = 3 e_0/\e_2 - e_1/\e_2
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         resu = self.element_class(self._fmodule, self._degree, name=name,
                                   latex_name=latex_name)
@@ -619,7 +620,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                 latex_name = fmodule._latex_name + r'^*'
         else:
             if name is None and fmodule._name is not None:
-                name = '/\^{}('.format(degree) + fmodule._name + '*)'
+                name = r'/\^{}('.format(degree) + fmodule._name + '*)'
             if latex_name is None and fmodule._latex_name is not None:
                 latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
                              fmodule._latex_name + r'^*\right)'
@@ -672,7 +673,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             a = 3 e^0/\e^2 - e^1/\e^2
 
         """
-        if comp == 0:
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         if isinstance(comp, FreeModuleTensor):
             # coercion of a tensor of type (0,1) to a linear form

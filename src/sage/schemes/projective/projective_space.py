@@ -82,8 +82,7 @@ from __future__ import print_function
 from six.moves import range
 from six import integer_types
 
-from sage.arith.misc import binomial
-
+from sage.arith.all import gcd, binomial
 from sage.rings.all import (PolynomialRing,
                             Integer,
                             ZZ)
@@ -96,21 +95,20 @@ from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 _Fields = Fields()
 
-from sage.categories.homset import Hom, End
+from sage.categories.homset import Hom
 from sage.categories.number_fields import NumberFields
 from sage.categories.map import Map
 
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.category_object import normalize_names
-from sage.arith.all import gcd, binomial
 from sage.combinat.integer_vector import IntegerVectors
+from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
 from sage.combinat.tuple import Tuples
 from sage.combinat.tuple import UnorderedTuples
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
-
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.projective.projective_homset import (SchemeHomset_points_projective_ring,
                                                        SchemeHomset_points_projective_field)
@@ -199,12 +197,18 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: PS
         Projective Space of dimension 1 over Complex Field with 53 bits of precision
 
+    ::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: ProjectiveSpace(R).variable_names()
+        ('x', 'y', 'z')
+
     Projective spaces are not cached, i.e., there can be several with
     the same base ring and dimension (to facilitate gluing
     constructions).
     """
     if is_MPolynomialRing(n) and R is None:
-        A = ProjectiveSpace(n.ngens()-1, n.base_ring())
+        A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A
     if isinstance(R, integer_types + (Integer,)):
@@ -923,7 +927,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             "_test_elements_eq_symmetric", "_test_elements_eq_transitive",\
             "_test_elements_neq"])
         """
-        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i, AA=None):
@@ -991,7 +995,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         elif AA.dimension_relative() != n:
                 raise ValueError("affine space must be of the dimension %s"%(n))
         AA._default_embedding_index = i
-        phi = AA.projective_embedding(i, self)
+        AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
         return AA
 
@@ -1029,14 +1033,14 @@ class ProjectiveSpace_ring(AmbientSpace):
 
         - ``m`` -- an integer.
 
-        OUTPUT: an endomorphism of this projective space.
+        OUTPUT: a dynamical system on this projective space.
 
         Examples::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: E = EllipticCurve(QQ,[-1, 0])
             sage: P.Lattes_map(E, 2)
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
                     (x^4 + 2*x^2*y^2 + y^4 : 4*x^3*y - 4*x*y^3)
         """
@@ -1049,8 +1053,8 @@ class ProjectiveSpace_ring(AmbientSpace):
         x, y = R.gens()
         phi = F[0].parent().hom([x],R)
         F = [phi(F[0]).homogenize(y), phi(F[1]).homogenize(y)*y]
-        H = Hom(self,self)
-        return(H(F))
+        from sage.dynamics.arithmetic_dynamics.projective_ds import DynamicalSystem_projective
+        return DynamicalSystem_projective(F, domain=self)
 
     def cartesian_product(self, other):
         r"""
@@ -1080,48 +1084,48 @@ class ProjectiveSpace_ring(AmbientSpace):
     def chebyshev_polynomial(self, n, kind='first'):
         """
         Generates an endomorphism of this projective line by a Chebyshev polynomial.
-    
+
         Chebyshev polynomials are a sequence of recursively defined orthogonal
         polynomials. Chebyshev of the first kind are defined as `T_0(x) = 1`,
         `T_1(x) = x`, and `T_{n+1}(x) = 2xT_n(x) - T_{n-1}(x)`. Chebyshev of
         the second kind are defined as `U_0(x) = 1`,
         `U_1(x) = 2x`, and `U_{n+1}(x) = 2xU_n(x) - U_{n-1}(x)`.
-    
+
         INPUT:
-    
+
         - ``n`` -- a non-negative integer.
-    
+
         - ``kind`` -- ``first`` or ``second`` specifying which kind of chebyshev the user would like
           to generate. Defaults to ``first``.
-    
-        OUTPUT: :class:`SchemeMorphism_polynomial_projective_space`
-    
+
+        OUTPUT: :class:`DynamicalSystem_projective`
+
         EXAMPLES::
-    
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P.chebyshev_polynomial(5, 'first')
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x : y) to
             (16*x^5 - 20*x^3*y^2 + 5*x*y^4 : y^5)
-    
+
         ::
-    
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P.chebyshev_polynomial(3, 'second')
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
+            Dynamical System of Projective Space of dimension 1 over Rational Field
             Defn: Defined on coordinates by sending (x : y) to
             (8*x^3 - 4*x*y^2 : y^3)
-    
+
         ::
-    
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P.chebyshev_polynomial(3, 2)
             Traceback (most recent call last):
             ...
             ValueError: keyword 'kind' must have a value of either 'first' or 'second'
-    
+
         ::
-    
+
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: P.chebyshev_polynomial(-4, 'second')
             Traceback (most recent call last):
@@ -1141,10 +1145,79 @@ class ProjectiveSpace_ring(AmbientSpace):
         n = ZZ(n)
         if (n < 0):
             raise ValueError("first parameter 'n' must be a non-negative integer")
-        #use the affine version and then homogenize.        
+        #use the affine version and then homogenize.
         A = self.affine_patch(1)
         f = A.chebyshev_polynomial(n, kind)
         return f.homogenize(1)
+
+    def veronese_embedding(self, d, CS=None, order='lex'):
+        r"""
+        Return the degree ``d`` Veronese embedding from this projective space.
+
+        INPUT:
+
+        - ``d`` -- a positive integer.
+
+        - ``CS`` -- a projective ambient space to embed into. If this projective space has dimension `N`, the
+          dimension of ``CS`` must be `\binom{N + d}{d} - 1`. This is constructed if not specified. Default:
+          ``None``.
+
+        - ``order`` -- a monomial order to use to arrange the monomials defining the embedding. The monomials
+          will be arranged from greatest to least with respect to this order. Default: ``'lex'``.
+
+        OUTPUT:
+
+        - a scheme morphism from this projective space to ``CS``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: vd = P.veronese_embedding(4, order='invlex')
+            sage: vd
+            Scheme morphism:
+              From: Projective Space of dimension 1 over Rational Field
+              To:   Projective Space of dimension 4 over Rational Field
+              Defn: Defined on coordinates by sending (x : y) to
+                    (y^4 : x*y^3 : x^2*y^2 : x^3*y : x^4)
+
+        Veronese surface::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: Q.<q,r,s,t,u,v> = ProjectiveSpace(QQ, 5)
+            sage: vd = P.veronese_embedding(2, Q)
+            sage: vd
+            Scheme morphism:
+              From: Projective Space of dimension 2 over Rational Field
+              To:   Projective Space of dimension 5 over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 : x*y : x*z : y^2 : y*z : z^2)
+            sage: vd(P.subscheme([]))
+            Closed subscheme of Projective Space of dimension 5 over Rational Field
+            defined by:
+              -u^2 + t*v,
+              -s*u + r*v,
+              -s*t + r*u,
+              -s^2 + q*v,
+              -r*s + q*u,
+              -r^2 + q*t
+        """
+        d = ZZ(d)
+        if d <= 0:
+            raise ValueError("(=%s) must be a positive integer"%d)
+        N = self.dimension()
+        # construct codomain space if not given
+        if CS is None:
+            CS = ProjectiveSpace(self.base_ring(), binomial(N + d, d) - 1)
+        else:
+            if not is_ProjectiveSpace(CS):
+                raise TypeError("(=%s) must be a projective space"%CS)
+            if CS.dimension() != binomial(N + d, d) - 1:
+                raise TypeError("(=%s) has the wrong dimension to serve as the codomain space"%CS)
+
+        R = self.coordinate_ring().change_ring(order=order)
+        monomials = sorted([R({tuple(v) : 1}) for v in WeightedIntegerVectors(d, [1] * (N + 1))])
+        monomials.reverse() # order the monomials greatest to least via the given monomial order
+        return Hom(self, CS)(monomials)
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1192,36 +1265,39 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
-    def points_of_bounded_height(self, bound, prec=53):
+    def points_of_bounded_height(self, **kwds):
         r"""
         Returns an iterator of the points in self of absolute height of at most the given bound.
 
         Bound check is strict for the rational field. Requires self to be projective space
-        over a number field. Uses the Doyle-Krumm algorithm for computing algebraic numbers
-        up to a given height [Doyle-Krumm]_.
+        over a number field. Uses the
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
 
         INPUT:
 
-        - ``bound`` - a real number.
+        kwds:
 
-        - ``prec`` - the precision to use to compute the elements of bounded height for number fields.
+        - ``bound`` - a real number
+
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
-        - an iterator of points in this space.
-
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm]_ algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
+        - an iterator of points in this space
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: list(P.points_of_bounded_height(5))
+            sage: list(P.points_of_bounded_height(bound=5))
             [(0 : 1), (1 : 1), (-1 : 1), (1/2 : 1), (-1/2 : 1), (2 : 1), (-2 : 1), (1/3 : 1),
             (-1/3 : 1), (3 : 1), (-3 : 1), (2/3 : 1), (-2/3 : 1), (3/2 : 1), (-3/2 : 1), (1/4 : 1),
             (-1/4 : 1), (4 : 1), (-4 : 1), (3/4 : 1), (-3/4 : 1), (4/3 : 1), (-4/3 : 1), (1 : 0)]
@@ -1230,7 +1306,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
-            sage: len(list(P.points_of_bounded_height(1.5)))
+            sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
             57
         """
         if (is_RationalField(self.base_ring())):
@@ -1240,7 +1316,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         else:
             raise NotImplementedError("self must be projective space over a number field")
 
-        bound = bound**(self.base_ring().absolute_degree()) # convert to relative height
+        bound = kwds.pop('bound')
+        B = bound**(self.base_ring().absolute_degree()) # convert to relative height
 
         n = self.dimension_relative()
         R = self.base_ring()
@@ -1250,9 +1327,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
             yield self(P)
             if not ftype: # if rational field
-                iters = [ R.range_by_height(bound) for _ in range(i) ]
+                iters = [ R.range_by_height(B) for _ in range(i) ]
             else: # if number field
-                iters = [ R.elements_of_bounded_height(bound, precision=prec) for _ in range(i) ]
+                tol = kwds.pop('tolerance', 1e-2)
+                prec = kwds.pop('precision', 53)
+                iters = [ R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i) ]
             for x in iters: next(x) # put at zero
             j = 0
             while j < i:
@@ -1262,9 +1341,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                     j = 0
                 except StopIteration:
                     if not ftype: # if rational field
-                        iters[j] = R.range_by_height(bound) # reset
+                        iters[j] = R.range_by_height(B) # reset
                     else: # if number field
-                        iters[j] = R.elements_of_bounded_height(bound, precision=prec) # reset
+                        iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) # reset
                     next(iters[j]) # put at zero
                     P[j] = zero
                     j += 1
@@ -1342,8 +1421,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         n = self.dimension_relative()
         R = Ch.parent()
         if binomial(n+1,n-dim) != R.ngens():
-            raise ValueError("for given dimension, there should be %d variables in the Chow form" %binomial(n+1,n-dim))
-        vars = list(R.gens())
+            raise ValueError("for given dimension, there should be %d variables in the Chow form" % binomial(n+1,n-dim))
         #create the brackets associated to variables
         L1 = []
         for t in UnorderedTuples(list(range(n + 1)), dim+1):
@@ -1522,8 +1600,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         INPUT:
 
-        - ``F`` -- a polynomial, or a list or tuple of polynomials in the coorinate ring
-          of this projective space.
+        - ``F`` -- a polynomial, or a list or tuple of polynomials in
+          the coordinate ring of this projective space.
 
         EXAMPLES::
 
@@ -1778,7 +1856,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
 
 
 #fix the pickles from moving projective_space.py
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.schemes.generic.projective_space',
                            'ProjectiveSpace_field',
                            ProjectiveSpace_field)

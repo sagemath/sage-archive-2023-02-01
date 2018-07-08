@@ -1287,10 +1287,10 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
         ....:     m = n//3
         ....:     perm1 = list(range(2*m))
         ....:     shuffle(perm1)
-        ....:     perm1 += range(2*m,n)
-        ....:     perm2 = range(m,n)
+        ....:     perm1 += list(range(2*m,n))
+        ....:     perm2 = list(range(m,n))
         ....:     shuffle(perm2)
-        ....:     perm2 = range(m) + perm2
+        ....:     perm2 = list(range(m)) + perm2
         ....:     SC_test_list_perms([perm1, perm2], n, limit, gap, 0, contains)
         sage: for n in [4..9]:                     # long time
         ....:     for _ in range(2):                 # long time
@@ -1346,7 +1346,10 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
 
     """
     if gap:
-        from sage.all import PermutationGroup, PermutationGroupElement, shuffle
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        from sage.misc.prandom import shuffle
+
     cdef StabilizerChain *SC
     cdef StabilizerChain *SCC
     cdef StabilizerChain *SCCC

@@ -226,6 +226,10 @@ Predefined classes
 
      - :meth:`~sage.graphs.generic_graph.GenericGraph.is_planar`
 
+   * - Polyhedral
+
+     - :meth:`~sage.graphs.generic_graph.Graph.is_polyhedral`
+
    * - Split
 
      - :meth:`~sage.graphs.graph.Graph.is_split`
@@ -865,8 +869,6 @@ class GraphClasses(UniqueRepresentation):
         root = tree.getroot()
         DB = _XML_to_dict(root)
 
-        giveme = lambda x,y : str(x.getAttribute(y))
-
         classes = {c['id']:c for c in DB['GraphClasses']["GraphClass"]}
         for c in itervalues(classes):
             c["problem"] = { pb.pop("name"):pb for pb in c["problem"]}
@@ -905,8 +907,6 @@ class GraphClasses(UniqueRepresentation):
 
             sage: graph_classes.update_db() # Not tested -- requires internet
         """
-        from sage.misc.misc import SAGE_TMP, SAGE_DB
-
         self._download_db()
 
         print("Database downloaded")
@@ -938,8 +938,7 @@ class GraphClasses(UniqueRepresentation):
         """
 
         import os.path
-        from sage.all import save, load
-        from sage.misc.misc import SAGE_TMP, SAGE_DB
+        from sage.misc.misc import SAGE_DB
 
         try:
             open(os.path.join(SAGE_DB,_XML_FILE))
@@ -953,7 +952,7 @@ class GraphClasses(UniqueRepresentation):
             else:
                 directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
-        except IOError as e:
+        except IOError:
             directory = os.path.join(GRAPHS_DATA_DIR,_XML_FILE)
 
         self._parse_db(directory)
@@ -1061,8 +1060,10 @@ graph_classes.Biconnected = GraphClass("Biconnected", "gc_771", recognition_func
 graph_classes.BinaryTrees = GraphClass("BinaryTrees", "gc_847")
 graph_classes.Bipartite = GraphClass("Bipartite", "gc_69", recognition_function = lambda x:x.is_bipartite())
 graph_classes.Block = GraphClass("Block", "gc_93", recognition_function = lambda x:x.is_block_graph())
+graph_classes.Cactus = GraphClass("Cactus", "gc_108", recognition_function = lambda x:x.is_cactus())
 graph_classes.Chordal = GraphClass("Chordal", "gc_32", recognition_function = lambda x:x.is_chordal())
 graph_classes.ClawFree = GraphClass("Claw-free", "gc_62")
+graph_classes.CoGraph = GraphClass("CoGraph", "gc_151", recognition_function = lambda x:x.is_cograph())
 graph_classes.Comparability = GraphClass("Comparability", "gc_72", recognition_function = lambda x: __import__('sage').graphs.comparability.is_comparability)
 graph_classes.Gallai = GraphClass("Gallai", "gc_73")
 graph_classes.Grid = GraphClass("Grid", "gc_464")
@@ -1072,6 +1073,7 @@ graph_classes.Modular = GraphClass("Modular", "gc_50")
 graph_classes.Outerplanar = GraphClass("Outerplanar", "gc_110")
 graph_classes.Perfect = GraphClass("Perfect", "gc_56", recognition_function = lambda x:x.is_perfect())
 graph_classes.Planar = GraphClass("Planar", "gc_43", recognition_function = lambda x:x.is_planar())
+graph_classes.Polyhedral = GraphClass("Polyhedral", "gc_986", recognition_function = lambda x:x.is_polyhedral())
 graph_classes.Split = GraphClass("Split", "gc_39", recognition_function = lambda x:x.is_split())
 graph_classes.Tree = GraphClass("Tree", "gc_342", recognition_function = lambda x:x.is_tree())
 graph_classes.UnitDisk = GraphClass("UnitDisk", "gc_389")

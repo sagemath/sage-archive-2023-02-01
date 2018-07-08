@@ -18,3 +18,20 @@
 # SAGE_LOCAL is the installation prefix and can be customized by using
 # ./configure --prefix
 export SAGE_LOCAL="@prefix@"
+
+#######################################
+# Compilers set at configuration time
+#######################################
+export CONFIGURED_CC="@CC@"
+export CONFIGURED_CXX="@CXX@"
+export CONFIGURED_FC="@FC@"
+export CONFIGURED_OBJC="@OBJC@"
+export CONFIGURED_OBJCXX="@OBJCXX@"
+
+#######################################
+# Other configuration
+#######################################
+export SAGE_PYTHON_VERSION=@SAGE_PYTHON_VERSION@
+if [ "$SAGE_PYTHON_VERSION" = 3 ]; then
+    export SAGE_PYTHON3=yes
+fi

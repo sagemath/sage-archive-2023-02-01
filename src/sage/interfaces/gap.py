@@ -175,13 +175,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import absolute_import, print_function
+import six
 from six import string_types
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
+from sage.cpython.string import bytes_to_str
 from sage.env import SAGE_LOCAL, SAGE_EXTCODE
 from sage.misc.misc import is_in_string
-from sage.misc.superseded import deprecation
 from sage.misc.cachefunc import cached_method
 from sage.docs.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
@@ -595,9 +596,9 @@ class Gap_generic(ExtraTabCompletion, Expect):
         except OSError:
             raise RuntimeError("Error evaluating %s in %s"%(line, self))
         if not wait_for_prompt:
-            return ('','')
+            return (b'',b'')
         if len(line)==0:
-            return ('','')
+            return (b'',b'')
         try:
             terminal_echo = []   # to be discarded
             normal_outputs = []  # GAP stdout
@@ -607,13 +608,18 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 x = E.expect_list(self._compiled_full_pattern)
                 current_outputs.append(E.before)
                 if x == 0:   # @p
-                    if E.after != '@p1.':
+                    if E.after != b'@p1.':
                         print("Warning: possibly wrong version of GAP package interface\n")
                         print("Crossing fingers and continuing\n")
                 elif x == 1: #@@
-                    current_outputs.append('@')
+                    current_outputs.append(b'@')
                 elif x == 2: #special char
-                    current_outputs.append(chr(ord(E.after[1:2])-ord('A')+1))
+                    c = ord(E.after[1:2]) - ord(b'A') + 1
+                    if six.PY2:
+                        s = chr(c)
+                    else:
+                        s = bytes([c])
+                    current_outputs.append(s)
                 elif x == 3: # garbage collection info, ignore
                     pass
                 elif x == 4: # @e -- break loop
@@ -645,7 +651,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 raise RuntimeError("Unexpected EOF from %s executing %s"%(self,line))
         except IOError:
             raise RuntimeError("IO Error from %s executing %s"%(self,line))
-        return ("".join(normal_outputs),"".join(error_outputs))
+        return (b"".join(normal_outputs), b"".join(error_outputs))
 
     def _keyboard_interrupt(self):
         """
@@ -741,6 +747,12 @@ class Gap_generic(ExtraTabCompletion, Expect):
             (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))
 
+            # The internal method _execute_line returns bytes but the bytes it
+            # returns should contain text (any terminal commands and other
+            # garbage should be filtered out by this point); here we decode
+            # them (on Python 3), currently just using the default encoding
+            normal, error = bytes_to_str(normal), bytes_to_str(error)
+
             if len(error):
                 if 'Error, Rebuild completion files!' in error:
                     error += "\nRunning gap_reset_workspace()..."
@@ -753,7 +765,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             if isinstance(wait_for_prompt, string_types) and normal.ends_with(wait_for_prompt):
                 n = len(wait_for_prompt)
-            elif normal.endswith(self._prompt):
+            elif normal.endswith(bytes_to_str(self._prompt)):
                 n = len(self._prompt)
             elif normal.endswith(self._continuation_prompt()):
                 n = len(self._continuation_prompt())
@@ -765,7 +777,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             return out
 
         except (RuntimeError,TypeError) as message:
-            if 'EOF' in message[0] or E is None or not E.isalive():
+            if 'EOF' in message.args[0] or E is None or not E.isalive():
                 print("** %s crashed or quit executing '%s' **" % (self, line))
                 print("Restarting %s and trying again" % self)
                 self._start()
@@ -864,7 +876,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: print(gap.version())
-            4.8...
+            4...
         """
         return self.eval('VERSION')[1:-1]
 
@@ -896,7 +908,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
             sage: g = Gap()
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
 
         When the command itself is so long that it warrants use of a temporary
@@ -904,7 +916,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         the file will contain a single command::
 
             sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
-            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )), 
+            [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ () ] )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),SymmetricGroup( [ 1 .. 2 ] )) ]
 
         """
@@ -966,7 +978,8 @@ class Gap_generic(ExtraTabCompletion, Expect):
 
 
 # We need to inherit from ModuleElement to support
-# sage.structure.coerce_actions.ModuleAction
+# sage.structure.coerce_actions.ModuleAction and it needs to be first
+# in the MRO because extension types should always come first.
 @instancedoc
 class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
     r"""
@@ -978,8 +991,19 @@ class GapElement_generic(ModuleElement, ExtraTabCompletion, ExpectElement):
 
     - Franco Saliola (Feb 2010): refactored to separate out the generic
       code
-
     """
+    def _add_(self, other):
+        """
+        EXAMPLES::
+
+            sage: a = gap(1)
+            sage: a + a
+            2
+        """
+        # This is just a copy of ExpectElement._add_ to fix the fact
+        # that the abtract method ModuleElement._add_ comes first in
+        # the MRO.
+        return self._operation("+", other)
 
     def bool(self):
         """
@@ -1129,7 +1153,8 @@ class Gap(Gap_generic):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for gap interpeter.
+        Set the seed for gap interpreter.
+
         The seed should be an integer.
 
         EXAMPLES::
@@ -1341,13 +1366,14 @@ class Gap(Gap_generic):
             (sline,) = match.groups()
             if self.is_remote():
                 self._get_tmpfile()
-            F = io.open(self._local_tmpfile(), "r", encoding=gap_encoding)
-            help = F.read()
-            if pager:
-                from IPython.core.page import page
-                page(help, start = int(sline)-1)
-            else:
-                return help
+            with io.open(self._local_tmpfile(), "r",
+                         encoding=gap_encoding) as fobj:
+                help = fobj.read()
+                if pager:
+                    from IPython.core.page import page
+                    page(help, start=int(sline) - 1)
+                else:
+                    return help
 
     def set(self, var, value):
         """
@@ -1765,13 +1791,14 @@ def intmod_gap_to_sage(x):
     """
     from sage.rings.finite_rings.all import FiniteField
     from sage.rings.finite_rings.integer_mod import Mod
+    from sage.rings.integer import Integer
     s = str(x)
     m = re.search(r'Z\(([0-9]*)\)', s)
     if m:
-        return gfq_gap_to_sage(x, FiniteField(m.group(1)))
+        return gfq_gap_to_sage(x, FiniteField(Integer(m.group(1))))
     m = re.match(r'Zmod[np]ZObj\( ([0-9]*), ([0-9]*) \)', s)
     if m:
-        return Mod(m.group(1), m.group(2))
+        return Mod(Integer(m.group(1)), Integer(m.group(2)))
     raise ValueError("Unable to convert Gap element '%s'" % s)
 
 #############
@@ -1790,31 +1817,6 @@ def reduce_load_GAP():
     """
     return gap
 
-# This is only for backwards compatibility, in order to be able
-# to unpickle the invalid objects that are in the pickle jar.
-def reduce_load():
-    """
-    This is for backwards compatibility only.
-
-    To be precise, it only serves at unpickling the invalid
-    gap elements that are stored in the pickle jar.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.gap import reduce_load
-        sage: reduce_load()
-        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
-        See http://trac.sagemath.org/18848 for details.
-        (invalid <class 'sage.interfaces.gap.GapElement'> object -- The session in which this object was defined is no longer running.)
-
-    By :trac:`18848`, pickling actually often works::
-
-        sage: loads(dumps(gap([1,2,3])))
-        [ 1, 2, 3 ]
-
-    """
-    deprecation(18848, "This function is only used to unpickle invalid objects")
-    return GapElement(None, None)
 
 def gap_console():
     """
@@ -1837,11 +1839,15 @@ def gap_console():
 
     TESTS::
 
-        sage: import subprocess
+        sage: import subprocess as sp
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-        sage: 'http://www.gap-system.org' in gap_startup
+        sage: gap_startup = sp.check_output(cmd, shell=True,  # py2
+        ....:                               stderr=sp.STDOUT)
+        sage: gap_startup = sp.check_output(cmd, shell=True,  # py3
+        ....:                               stderr=sp.STDOUT,
+        ....:                               encoding='latin1')
+        sage: 'www.gap-system.org' in gap_startup
         True
         sage: 'Error' not in gap_startup
         True

@@ -30,6 +30,9 @@ Pure Python classes have normal methods, not slot wrappers::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from .string import bytes_to_str
+
+
 def wrapperdescr_call(slotwrapper, self, *args, **kwds):
     """
     Call a slot wrapper without any type checks.
@@ -67,7 +70,7 @@ def wrapperdescr_call(slotwrapper, self, *args, **kwds):
         63/5
         sage: from sage.numerical.mip import MixedIntegerLinearProgram
         sage: wrapperdescr_call(type.__call__, MixedIntegerLinearProgram, maximization=False)
-        Mixed Integer Program  ( minimization, 0 variables, 0 constraints )
+        Mixed Integer Program (no objective, 0 variables, 0 constraints)
 
     TESTS::
 
@@ -93,6 +96,7 @@ cdef wrapperdescr_fastcall(wrapper_descriptor slotwrapper, self, args, kwds):
         return wk(self, args, slotwrapper.d_wrapped, kwds)
 
     if <PyObject*>kwds is not NULL and kwds:
-        raise TypeError(f"wrapper {slotdef.name} slotdef doesn't take keyword arguments")
+        raise TypeError(f"wrapper {bytes_to_str(slotdef.name)} slotdef "
+                         "doesn't take keyword arguments")
 
     return slotdef.wrapper(self, args, slotwrapper.d_wrapped)

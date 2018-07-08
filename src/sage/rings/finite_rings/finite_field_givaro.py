@@ -4,16 +4,6 @@ Givaro Finite Field
 Finite fields that are implemented using Zech logs and the
 cardinality must be less than `2^{16}`. By default, Conway polynomials are
 used as minimal polynomial.
-
-TESTS:
-
-Test backwards compatibility::
-
-    sage: from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
-    sage: FiniteField_givaro(9, 'a')
-    doctest:...: DeprecationWarning: constructing a FiniteField_givaro without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead
-    See http://trac.sagemath.org/16930 for details.
-    Finite Field in a of size 3^2
 """
 from __future__ import absolute_import
 
@@ -30,12 +20,11 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.finite_rings.finite_field_base import FiniteField, is_FiniteField
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.element_givaro import Cache_givaro
-from sage.rings.integer_ring import ZZ
-from sage.databases.conway import ConwayPolynomials
 from sage.libs.pari.all import pari
+
 
 class FiniteField_givaro(FiniteField):
     """
@@ -150,13 +139,7 @@ class FiniteField_givaro(FiniteField):
 
         from sage.rings.polynomial.polynomial_element import is_Polynomial
         if not is_Polynomial(modulus):
-            from sage.misc.superseded import deprecation
-            deprecation(16930, "constructing a FiniteField_givaro without giving a polynomial as modulus is deprecated, use the more general FiniteField constructor instead")
-            R = GF(p)['x']
-            if modulus is None or isinstance(modulus, str):
-                modulus = R.irreducible_element(k, algorithm=modulus)
-            else:
-                modulus = R(modulus)
+            raise TypeError("modulus must be a polynomial")
 
         self._cache = Cache_givaro(self, p, k, modulus, repr, cache)
         self._modulus = modulus

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Directed graphs
 
@@ -84,6 +85,7 @@ graphs. Here is what they can do
     :meth:`~DiGraph.is_directed_acyclic` | Returns whether the digraph is acyclic or not.
     :meth:`~DiGraph.is_transitive` | Returns whether the digraph is transitive or not.
     :meth:`~DiGraph.is_aperiodic` | Returns whether the digraph is aperiodic or not.
+    :meth:`~DiGraph.is_tournament` | Check whether the digraph is a tournament.
     :meth:`~DiGraph.period` | Returns the period of the digraph.
     :meth:`~DiGraph.level_sets` | Returns the level set decomposition of the digraph.
     :meth:`~DiGraph.topological_sort_generator` | Returns a list of all topological sorts of the digraph if it is acyclic
@@ -111,8 +113,51 @@ graphs. Here is what they can do
 Methods
 -------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+
+# ****************************************************************************
+#       Copyright (C) 2010      Alexandre Blondin Masse <alexandre.blondin.masse at gmail.com>
+#                               Carl Witty <cwitty@newtonlabs.com>
+#                               Gregory McWhirter <gmcwhirt@uci.edu>
+#                               Minh Van Nguyen <nguyenminh2@gmail.com>
+#                     2010-2011 Robert L. Miller <rlm@rlmiller.org>
+#                     2010-2015 Nathann Cohen <nathann.cohen@gmail.com>
+#                               Nicolas M. Thiery <nthiery@users.sf.net>
+#                     2011      Johannes Klaus Fichte <fichte@kr.tuwien.ac.at>
+#                     2012      Javier López Peña <vengoroso@gmail.com>
+#                     2012      Jim Stark <jstarx@gmail.com>
+#                     2012      Karl-Dieter Crisman <kcrisman@gmail.com>
+#                     2012      Keshav Kini <keshav.kini@gmail.com>
+#                     2012      Lukas Lansky <lansky@kam.mff.cuni.cz>
+#                     2012-2015 Volker Braun <vbraun.name@gmail.com>
+#                     2012-2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2012-2018 David Coudert <david.coudert@inria.fr>
+#                     2013      Emily Gunawan <egunawan@umn.edu>
+#                     2013      Gregg Musiker <musiker@math.mit.edu>
+#                     2013      Mathieu Guay-Paquet <mathieu.guaypaquet@gmail.com>
+#                     2013-2014 Simon King <simon.king@uni-jena.de>
+#                     2014      Clemens Heuberger <clemens.heuberger@aau.at>
+#                               Erik Massop <e.massop@hccnet.nl>
+#                               R. Andrew Ohana <andrew.ohana@gmail.com>
+#                               Wilfried Luebbe <wluebbe@gmail.com>
+#                     2014-2015 André Apitzsch <andre.apitzsch@etit.tu-chemnitz.de>
+#                               Darij Grinberg <darijgrinberg@gmail.com>
+#                               Travis Scrimshaw <tscrim at ucdavis.edu>
+#                               Vincent Delecroix <20100.delecroix@gmail.com>
+#                     2014-2017 Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2015      Michele Borassi <michele.borassi@imtlucca.it>
+#                     2015-2017 John H. Palmieri <palmieri@math.washington.edu>
+#                               Jori Mäntysalo <jori.mantysalo@uta.fi>
+#                     2016      Dima Pasechnik <dimpase@gmail.com>
+#                     2018      Meghana M Reddy <mreddymeghana@gmail.com>
+#                               Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -620,11 +665,12 @@ class DiGraph(GenericGraph):
             (not data[1] or callable(getattr(data[1][0],"__iter__",None)))):
             format = "vertices_and_edges"
 
-        if format is None and isinstance(data,dict):
-            keys = data.keys()
-            if len(keys) == 0: format = 'dict_of_dicts'
+        if format is None and isinstance(data, dict):
+            if not data:
+                format = 'dict_of_dicts'
             else:
-                if isinstance(data[keys[0]], dict):
+                val = next(iter(data.values()))
+                if isinstance(val, dict):
                     format = 'dict_of_dicts'
                 else:
                     format = 'dict_of_lists'
@@ -656,7 +702,6 @@ class DiGraph(GenericGraph):
         if format is None and isinstance(data,list):
             format = "list_of_edges"
             if weighted is None: weighted = False
-            num_verts=0
 
         if format == 'weighted_adjacency_matrix':
             if weighted is False:
@@ -753,7 +798,7 @@ class DiGraph(GenericGraph):
             self.allow_multiple_edges(multiedges,check=False)
             self.allow_loops(loops,check=False)
             self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
         elif format == 'igraph':
             if not data.is_directed():
                 raise ValueError("A *directed* igraph graph was expected. To "+
@@ -817,7 +862,7 @@ class DiGraph(GenericGraph):
 
     ### Formats
     def dig6_string(self):
-        """
+        r"""
         Return the dig6 representation of the digraph as an ASCII string.
 
         This is only valid for single (no multiple edges) digraphs
@@ -996,7 +1041,7 @@ class DiGraph(GenericGraph):
         Immutable graphs yield immutable graphs (:trac:`17005`)::
 
             sage: DiGraph([[1, 2]], immutable=True).to_undirected()._backend
-            <type 'sage.graphs.base.static_sparse_backend.StaticSparseBackend'>
+            <sage.graphs.base.static_sparse_backend.StaticSparseBackend object at ...>
         """
         if sparse is not None:
             if data_structure is not None:
@@ -1539,10 +1584,69 @@ class DiGraph(GenericGraph):
             ....:     if x != y:
             ....:         print("Oh my, oh my !")
             ....:         break
+
+        Loops are part of the feedback edge set (:trac:`23989`)::
+
+            sage: D = digraphs.DeBruijn(2,2)
+            sage: D.loops(labels=None)
+            [('11', '11'), ('00', '00')]
+            sage: FAS = D.feedback_edge_set(value_only=False)
+            sage: all(l in FAS for l in D.loops(labels=None))
+            True
+            sage: FAS2 =  D.feedback_edge_set(value_only=False, constraint_generation=False)
+            sage: len(FAS) == len(FAS2)
+            True
+
+        Check that multi-edges are properly taken into account::
+
+            sage: cycle = graphs.CycleGraph(5)
+            sage: dcycle = DiGraph(cycle)
+            sage: dcycle.feedback_edge_set(value_only=True)
+            5
+            sage: dcycle.allow_multiple_edges(True)
+            sage: dcycle.add_edges(dcycle.edges())
+            sage: dcycle.feedback_edge_set(value_only=True)
+            10
+            sage: dcycle.feedback_edge_set(value_only=True, constraint_generation=False)
+            10
+
+        Strongly connected components are well handled (:trac:`23989`)::
+
+            sage: g = digraphs.Circuit(3) * 2
+            sage: g.add_edge(0, 3)
+            sage: g.feedback_edge_set(value_only=True)
+            2
         """
         # It would be a pity to start a LP if the digraph is already acyclic
         if self.is_directed_acyclic():
             return 0 if value_only else []
+
+        if self.has_loops():
+            # We solve the problem on a copy without loops of the digraph
+            D = DiGraph(self.edges(), multiedges=self.allows_multiple_edges(), loops=True)
+            D.allow_loops(False)
+            FAS = D.feedback_edge_set(constraint_generation=constraint_generation,
+                                          value_only=value_only, solver=solver, verbose=verbose)
+            if value_only:
+                return FAS + self.number_of_loops()
+            else:
+                return FAS + self.loops(labels=None)
+
+        if not self.is_strongly_connected():
+            # If the digraph is not strongly connected, we solve the problem on
+            # each of its strongly connected components
+
+            FAS = 0 if value_only else []
+
+            for h in self.strongly_connected_components_subgraphs():
+                if value_only:
+                    FAS += h.feedback_edge_set(constraint_generation=constraint_generation,
+                                                value_only=True, solver=solver, verbose=verbose)
+                else:
+                    FAS.extend( h.feedback_edge_set(constraint_generation=constraint_generation,
+                                                    value_only=False, solver=solver, verbose=verbose) )
+            return FAS
+
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -1551,85 +1655,88 @@ class DiGraph(GenericGraph):
         ########################################
         if constraint_generation:
 
-            p = MixedIntegerLinearProgram(constraint_generation = True,
-                                          maximization = False)
+            p = MixedIntegerLinearProgram(constraint_generation=True,
+                                          maximization=False, solver=solver)
 
             # An variable for each edge
-            b = p.new_variable(binary = True)
+            b = p.new_variable(binary=True)
 
-            # Variables are binary, and their coefficient in the objective is 1
+            # Variables are binary, and their coefficient in the objective is
+            # the number of occurence of the corresponding edge, so 1 if the
+            # graph is simple
+            p.set_objective( p.sum( b[u,v] for u,v in self.edges(labels=False)))
 
-            p.set_objective( p.sum( b[u,v]
-                                  for u,v in self.edges(labels = False)))
+            p.solve(log=verbose)
 
-            p.solve(log = verbose)
-
-            # For as long as we do not break because the digraph is
-            # acyclic....
+            # For as long as we do not break because the digraph is acyclic....
             while True:
 
                 # Building the graph without the edges removed by the LP
                 h = DiGraph()
-                for u,v in self.edges(labels = False):
+                for u,v in self.edges(labels=False):
                     if p.get_values(b[u,v]) < .5:
                         h.add_edge(u,v)
 
                 # Is the digraph acyclic ?
-                isok, certificate = h.is_directed_acyclic(certificate = True)
+                isok, certificate = h.is_directed_acyclic(certificate=True)
 
                 # If so, we are done !
                 if isok:
                     break
 
-                if verbose:
-                    print("Adding a constraint on circuit : {}".format(certificate))
-
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
+                while not isok:
 
-                p.add_constraint(
-                    p.sum( b[u,v] for u,v in
-                         zip(certificate, certificate[1:] + [certificate[0]])),
-                    min = 1)
+                    if verbose:
+                        print("Adding a constraint on circuit : {}".format(certificate))
 
-                obj = p.solve(log = verbose)
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
+                    p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
+
+                    # Is there another edge disjoint circuit ?
+                    # for python3, we need to recreate the zip iterator
+                    edges = zip(certificate, certificate[1:] + [certificate[0]])
+                    h.delete_edges(edges)
+                    isok, certificate = h.is_directed_acyclic(certificate=True)
+
+                obj = p.solve(log=verbose)
 
             if value_only:
                 return Integer(round(obj))
 
             else:
-
                 # listing the edges contained in the MFAS
-                return [(u,v) for u,v in self.edges(labels = False)
-                        if p.get_values(b[u,v]) > .5]
+                return [(u, v) for u, v in self.edges(labels=False)
+                        if p.get_values(b[u, v]) > .5]
 
         ######################################
         # Ordering-based MILP Implementation #
         ######################################
         else:
-            p=MixedIntegerLinearProgram(maximization=False, solver=solver)
+            p = MixedIntegerLinearProgram(maximization=False, solver=solver)
 
-            b=p.new_variable(binary=True)
-            d=p.new_variable(integer=True, nonnegative=True)
+            b = p.new_variable(binary=True)
+            d = p.new_variable(integer=True, nonnegative=True)
 
-            n=self.order()
+            n = self.order()
 
-            for (u,v) in self.edges(labels=None):
-                p.add_constraint(d[u]-d[v]+n*(b[(u,v)]),min=1)
+            for u,v in self.edges(labels=None):
+                p.add_constraint(d[u] - d[v] + n * b[u,v], min=1)
 
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum([b[(u,v)] for (u,v) in self.edges(labels=None)]))
+            p.set_objective(p.sum(b[u,v] for u,v in self.edges(labels=None)))
 
             if value_only:
                 return Integer(round(p.solve(objective_only=True, log=verbose)))
             else:
                 p.solve(log=verbose)
 
-                b_sol=p.get_values(b)
+                b_sol = p.get_values(b)
 
-                return [(u,v) for (u,v) in self.edges(labels=None) if b_sol[(u,v)]==1]
+                return [(u,v) for u,v in self.edges(labels=None) if b_sol[u,v]==1]
 
     ### Construction
 
@@ -1781,7 +1888,7 @@ class DiGraph(GenericGraph):
             sage: D.edges()
             [(0, 1, 'A'), (0, 1, 'B'), (0, 1, 'mouse'), (1, 0, 'cat')]
 
-        Finally, an exception is raised when Sage does not know how to chose
+        Finally, an exception is raised when Sage does not know how to choose
         between allowing multiple edges and losing some data::
 
             sage: D = DiGraph([(0,1,'A'),(1,0,'B')])
@@ -2755,9 +2862,8 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``implementation`` -- Use the default Cython implementation
-          (``implementation = default``), the default NetworkX library
-          (``implementation = "NetworkX"``) or the recursive NetworkX
-          implementation (``implementation = "recursive"``)
+          (``implementation = default``), or the default NetworkX library
+          (``implementation = "NetworkX"``)
 
         .. SEEALSO::
 
@@ -2781,12 +2887,7 @@ class DiGraph(GenericGraph):
 
         Using the NetworkX implementation ::
 
-            sage: D.topological_sort(implementation = "NetworkX")
-            [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
-
-        Using the NetworkX recursive implementation ::
-
-            sage: D.topological_sort(implementation = "recursive")
+            sage: list(D.topological_sort(implementation = "NetworkX"))
             [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
 
         ::
@@ -2797,21 +2898,6 @@ class DiGraph(GenericGraph):
             ...
             TypeError: Digraph is not acyclic; there is no topological
             sort.
-
-        .. note::
-
-           There is a recursive version of this in NetworkX, it used to
-           have problems in earlier versions but they have since been
-           fixed::
-
-              sage: import networkx
-              sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
-              ....:   5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
-              sage: N = D.networkx_graph()
-              sage: networkx.topological_sort(N)
-              [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
-              sage: networkx.topological_sort_recursive(N)
-              [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
 
         TESTS:
 
@@ -2831,12 +2917,9 @@ class DiGraph(GenericGraph):
             else:
                 raise TypeError('Digraph is not acyclic; there is no topological sort.')
 
-        elif implementation == "NetworkX" or implementation == "recursive":
+        elif implementation == "NetworkX":
             import networkx
-            if implementation == "NetworkX":
-                S = networkx.topological_sort(self.networkx_graph(copy=False))
-            else:
-                S = networkx.topological_sort_recursive(self.networkx_graph(copy=False))
+            S = networkx.topological_sort(self.networkx_graph(copy=False))
             if S is None:
                 raise TypeError('Digraph is not acyclic; there is no topological sort.')
             else:
@@ -3061,167 +3144,6 @@ class DiGraph(GenericGraph):
             level = new_level
         return Levels
 
-    def strongly_connected_component_containing_vertex(self, v):
-        """
-        Returns the strongly connected component containing a given vertex
-
-        INPUT:
-
-        - ``v`` -- a vertex
-
-        EXAMPLES:
-
-        In the symmetric digraph of a graph, the strongly connected components are the connected
-        components::
-
-            sage: g = graphs.PetersenGraph()
-            sage: d = DiGraph(g)
-            sage: d.strongly_connected_component_containing_vertex(0)
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        """
-
-        if self.order()==1:
-            return [v]
-
-        try:
-            return self._backend.strongly_connected_component_containing_vertex(v)
-
-        except AttributeError:
-            raise AttributeError("This function is only defined for C graphs.")
-
-    def strongly_connected_components_subgraphs(self):
-        r"""
-        Returns the strongly connected components as a list of subgraphs.
-
-        EXAMPLES:
-
-        In the symmetric digraph of a graph, the strongly connected components are the connected
-        components::
-
-            sage: g = graphs.PetersenGraph()
-            sage: d = DiGraph(g)
-            sage: d.strongly_connected_components_subgraphs()
-            [Subgraph of (Petersen graph): Digraph on 10 vertices]
-
-        """
-        return [self.subgraph(_) for _ in self.strongly_connected_components()]
-
-    def strongly_connected_components_digraph(self, keep_labels = False):
-        r"""
-        Returns the digraph of the strongly connected components
-
-        INPUT:
-
-         - ``keep_labels`` -- boolean (default: False)
-
-        The digraph of the strongly connected components of a graph `G` has
-        a vertex per strongly connected component included in `G`. There
-        is an edge from a component `C_1` to a component `C_2` if there is
-        an edge from one to the other in `G`.
-
-        EXAMPLES:
-
-        Such a digraph is always acyclic ::
-
-            sage: g = digraphs.RandomDirectedGNP(15,.1)
-            sage: scc_digraph = g.strongly_connected_components_digraph()
-            sage: scc_digraph.is_directed_acyclic()
-            True
-
-        The vertices of the digraph of strongly connected components are
-        exactly the strongly connected components::
-
-            sage: g = digraphs.ButterflyGraph(2)
-            sage: scc_digraph = g.strongly_connected_components_digraph()
-            sage: g.is_directed_acyclic()
-            True
-            sage: all([ Set(scc) in scc_digraph.vertices() for scc in g.strongly_connected_components()])
-            True
-
-        The following digraph has three strongly connected components,
-        and the digraph of those is a chain::
-
-            sage: g = DiGraph({0:{1:"01", 2: "02", 3: "03"}, 1: {2: "12"}, 2:{1: "21", 3: "23"}})
-            sage: scc_digraph = g.strongly_connected_components_digraph()
-            sage: scc_digraph.vertices()
-            [{0}, {3}, {1, 2}]
-            sage: scc_digraph.edges()
-            [({0}, {1, 2}, None), ({0}, {3}, None), ({1, 2}, {3}, None)]
-
-        By default, the labels are discarded, and the result has no
-        loops nor multiple edges. If ``keep_labels`` is ``True``, then
-        the labels are kept, and the result is a multi digraph,
-        possibly with multiple edges and loops. However, edges in the
-        result with same source, target, and label are not duplicated
-        (see the edges from 0 to the strongly connected component
-        `\{1,2\}` below)::
-
-            sage: g = DiGraph({0:{1:"0-12", 2: "0-12", 3: "0-3"}, 1: {2: "1-2", 3: "1-3"}, 2:{1: "2-1", 3: "2-3"}})
-            sage: scc_digraph = g.strongly_connected_components_digraph(keep_labels = True)
-            sage: scc_digraph.vertices()
-            [{0}, {3}, {1, 2}]
-            sage: scc_digraph.edges()
-            [({0}, {1, 2}, '0-12'),
-             ({0}, {3}, '0-3'),
-             ({1, 2}, {1, 2}, '1-2'),
-             ({1, 2}, {1, 2}, '2-1'),
-             ({1, 2}, {3}, '1-3'),
-             ({1, 2}, {3}, '2-3')]
-        """
-
-        from sage.sets.set import Set
-
-        scc = self.strongly_connected_components()
-        scc_set = [Set(_) for _ in scc]
-
-        d = {}
-        for i,c in enumerate(scc):
-            for v in c:
-                d[v] = i
-
-        if keep_labels:
-            g = DiGraph(multiedges=True, loops=True)
-            g.add_vertices(range(len(scc)))
-
-            g.add_edges( set((d[u], d[v], label) for (u,v,label) in self.edges() ) )
-            g.relabel(scc_set, inplace=True)
-
-        else:
-            g = DiGraph(multiedges=False, loops=False)
-            g.add_vertices(range(len(scc)))
-
-            g.add_edges(((d[u], d[v]) for u, v in self.edges(labels=False)), loops=False)
-            g.relabel(scc_set, inplace=True)
-
-        return g
-
-    def is_strongly_connected(self):
-        r"""
-        Returns whether the current ``DiGraph`` is strongly connected.
-
-        EXAMPLES:
-
-        The circuit is obviously strongly connected ::
-
-            sage: g = digraphs.Circuit(5)
-            sage: g.is_strongly_connected()
-            True
-
-        But a transitive triangle is not::
-
-            sage: g = DiGraph({ 0 : [1,2], 1 : [2]})
-            sage: g.is_strongly_connected()
-            False
-        """
-        if self.order()==1:
-            return True
-
-        try:
-            return self._backend.is_strongly_connected()
-
-        except AttributeError:
-            return len(self.strongly_connected_components()) == 1
-
 
     def immediate_dominators(self, r, reverse=False):
         r"""
@@ -3263,6 +3185,8 @@ class DiGraph(GenericGraph):
             sage: D = digraphs.Complete(4) * 2
             sage: D.add_edges([(0, 4), (7, 3)])
             sage: d = D.immediate_dominators(0)
+            doctest:...: DeprecationWarning: immediate_dominators is now deprecated. Please use method dominator_tree instead.
+            See https://trac.sagemath.org/25030 for details.
             sage: T = DiGraph([(d[u], u) for u in d if u != d[u]])
             sage: Graph(T).is_tree()
             True
@@ -3329,6 +3253,8 @@ class DiGraph(GenericGraph):
             sage: all(d[i] == dx[i] for i in d) and all(d[i] == dx[i] for i in dx)
             True
         """
+        deprecation(25030, "immediate_dominators is now deprecated."
+                        + " Please use method dominator_tree instead.")
         if r not in self:
             raise ValueError("the given root must be in the digraph")
 
@@ -3373,111 +3299,6 @@ class DiGraph(GenericGraph):
 
         return idom
 
-    def strong_articulation_points(self):
-        r"""
-        Return the strong articulation points of this digraph.
-
-        A vertex is a strong articulation point if its deletion increases the
-        number of strongly connected components. This method implements the
-        algorithm described in [ILS2012]_. The time complexity is dominated by
-        the time complexity of the immediate dominators finding algorithm.
-
-        OUTPUT: The list of strong articulation points.
-
-        EXAMPLES:
-
-        Two cliques sharing a vertex::
-
-            sage: D = digraphs.Complete(4)
-            sage: D.add_clique([3, 4, 5, 6])
-            sage: D.strong_articulation_points()
-            [3]
-
-        Two cliques connected by some arcs::
-
-            sage: D = digraphs.Complete(4) * 2
-            sage: D.add_edges([(0, 4), (7, 3)])
-            sage: sorted( D.strong_articulation_points() )
-            [0, 3, 4, 7]
-            sage: D.add_edge(1, 5)
-            sage: sorted( D.strong_articulation_points() )
-            [3, 7]
-            sage: D.add_edge(6, 2)
-            sage: D.strong_articulation_points()
-            []
-
-        .. SEEALSO::
-
-            - :meth:`~DiGraph.strongly_connected_components`
-            - :meth:`~DiGraph.immediate_dominators`
-
-        TESTS:
-
-        All strong articulation points are found::
-
-            sage: def sap_naive(G):
-            ....:     nscc = len(G.strongly_connected_components())
-            ....:     S = []
-            ....:     for u in G:
-            ....:         H = copy(G)
-            ....:         H.delete_vertex(u)
-            ....:         if len(H.strongly_connected_components()) > nscc:
-            ....:             S.append(u)
-            ....:     return S
-            sage: D = digraphs.RandomDirectedGNP(20, 0.1)
-            sage: X = sap_naive(D)
-            sage: SAP = D.strong_articulation_points()
-            sage: set(X) == set(SAP)
-            True
-
-        Trivial cases::
-
-            sage: DiGraph().strong_articulation_points()
-            []
-            sage: DiGraph(1).strong_articulation_points()
-            []
-            sage: DiGraph(2).strong_articulation_points()
-            []
-        """
-        # The method is applied on each strongly connected component
-        if self.is_strongly_connected():
-            # Make a mutable copy of self
-            L = [ DiGraph( [(u, v) for u, v in self.edge_iterator(labels=0) if u != v],
-                               data_structure='sparse', immutable=False) ]
-        else:
-            # Get the list of strongly connected components of self as mutable
-            # subgraphs
-            L = [ self.subgraph(scc, immutable=False) for scc in self.strongly_connected_components() ]
-
-        SAP = []
-        for g in L:
-            n = g.order()
-            if n <= 1:
-                continue
-            if n == 2:
-                SAP.extend( g.vertices() )
-                continue
-
-            # 1. Choose arbitrarily a vertex r, and test whether r is a strong
-            # articulation point.
-            r = next(g.vertex_iterator())
-            E = g.incoming_edges(r) + g.outgoing_edges(r)
-            g.delete_vertex(r)
-            if not g.is_strongly_connected():
-                SAP.append(r)
-            g.add_edges(E)
-
-            # 2. Compute the set of non-trivial immediate dominators in g
-            Dr = set( g.immediate_dominators(r).values() )
-
-            # 3. Compute the set of non-trivial immediate dominators in the
-            # reverse digraph
-            DRr = set( g.immediate_dominators(r, reverse=True).values() )
-
-            # 4. Store D(r) + DR(r) - r
-            SAP.extend( Dr.union(DRr).difference([r]) )
-
-        return SAP
 
     def is_aperiodic(self):
         r"""
@@ -3769,6 +3590,48 @@ class DiGraph(GenericGraph):
 
         return Polyhedron(ieqs=ineqs, eqns=eqs)
 
+    def is_tournament(self):
+        r"""
+        Check whether the digraph is a tournament.
+
+        A tournament is a digraph in which each pair of distinct vertices is
+        connected by a single arc.
+
+        EXAMPLES::
+
+            sage: g = digraphs.RandomTournament(6)
+            sage: g.is_tournament()
+            True
+            sage: u,v = next(g.edge_iterator(labels=False))
+            sage: g.add_edge(v, u)
+            sage: g.is_tournament()
+            False
+            sage: g.add_edges([(u, v), (v, u)])
+            sage: g.is_tournament()
+            False
+
+        .. SEEALSO::
+
+            - :wikipedia:`Tournament_(graph_theory)`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.RandomTournament`
+            - :meth:`~sage.graphs.digraph_generators.DiGraphGenerators.TransitiveTournament`
+        """
+        self._scream_if_not_simple()
+
+        if self.size() != self.order() * (self.order() - 1) // 2:
+            return False
+
+        import itertools
+        for u,v in itertools.combinations(self.vertices(), 2):
+            if not self.has_edge(u, v) != self.has_edge(v, u):
+                return False
+        return True
+
     # Aliases to functions defined in other modules
     from sage.graphs.comparability import is_transitive
     from sage.graphs.base.static_sparse_graph import tarjan_strongly_connected_components as strongly_connected_components
+    from sage.graphs.connectivity import is_strongly_connected
+    from sage.graphs.connectivity import strongly_connected_components_digraph
+    from sage.graphs.connectivity import strongly_connected_components_subgraphs
+    from sage.graphs.connectivity import strongly_connected_component_containing_vertex
+    from sage.graphs.connectivity import strong_articulation_points

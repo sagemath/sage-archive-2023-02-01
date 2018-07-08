@@ -22,7 +22,6 @@ REFERENCES:
 - Chaps. 15, 24 of R. Godement: *Algebra* [God1968]_
 
 """
-from __future__ import absolute_import
 #******************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #
@@ -31,6 +30,8 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from __future__ import absolute_import
+from six import itervalues
 
 from sage.structure.element import MultiplicativeGroupElement
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
@@ -897,9 +898,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
             True
             sage: a^(-1)*a == id
             True
-
         """
-        from sage.matrix.constructor import matrix
         from .comp import Components
         if self._is_identity:
             return self
@@ -1225,7 +1224,7 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return self._matrices.values()[0].det() # pick a random value in the
+        return next(itervalues(self._matrices)).det() # pick a random value in the
                                                 # dictionary self._matrices
                                                 # and compute the determinant
 
@@ -1258,6 +1257,6 @@ class FreeModuleAutomorphism(FreeModuleTensor, MultiplicativeGroupElement):
         self.matrix() # forces the update of the matrix in the module's default
                       # basis, to make sure that the dictionary self._matrices
                       # is not empty
-        return self._matrices.values()[0].trace() # pick a random value in the
+        return next(itervalues(self._matrices)).trace() # pick a random value in the
                                                   # dictionary self._matrices
                                                   # and compute the trace

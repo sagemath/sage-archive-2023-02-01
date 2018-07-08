@@ -60,7 +60,6 @@ from cypari2.paridecl cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.ring cimport Ring
-from .element_ext_pari import FiniteField_ext_pariElement
 from .element_pari_ffelt cimport FiniteFieldElement_pari_ffelt
 from sage.structure.richcmp cimport richcmp
 from sage.structure.sage_object cimport SageObject
@@ -433,7 +432,7 @@ cdef class Cache_givaro(SageObject):
         elif isinstance(e, Gen):
             pass # handle this in next if clause
 
-        elif isinstance(e, FiniteFieldElement_pari_ffelt) or isinstance(e, FiniteField_ext_pariElement):
+        elif isinstance(e, FiniteFieldElement_pari_ffelt):
             # Reduce to pari
             e = e.__pari__()
 
@@ -694,7 +693,7 @@ cdef class Cache_givaro(SageObject):
                         ret = coeff + variable + " + " + ret
                 else:
                     ret = str(coeff) + " + " + ret
-            quo = quo/b
+            quo = quo//b
         if ret == '':
             return "0"
         return ret[:-3]
@@ -919,7 +918,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
 
     def _element(self):
         """
-        Returns the int interally representing this element.
+        Return the int internally representing this element.
 
         EXAMPLES::
 
@@ -1090,7 +1089,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if self.element == cache.objectptr.one:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         elif self.element % 2 == 0:
-            return make_FiniteField_givaroElement(cache, self.element/2)
+            return make_FiniteField_givaroElement(cache, self.element // 2)
         elif cache.objectptr.characteristic() == 2:
             return make_FiniteField_givaroElement(cache, (cache.objectptr.cardinality() - 1 + self.element)/2)
         elif extend:
@@ -1129,7 +1128,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         r = self._cache.objectptr.mul(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(self._cache,r)
-
 
     cpdef _div_(self, right):
         """
@@ -1587,8 +1585,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         # TODO -- I'm sure this can be made vastly faster
         # using how elements are represented as a power of the generator ??
-
-        # code copy'n'pasted from element_ext_pari.py
         import sage.arith.all
 
         if self._multiplicative_order is not None:
@@ -1644,7 +1640,6 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: S(gap('Z(25)^3'))
             4*b + 3
         """
-        #copied from element_ext_pari.py
         cdef Cache_givaro cache = self._cache
         if self == 0:
             return '0*Z(%s)'%cache.order_c()
@@ -1751,7 +1746,7 @@ def unpickle_FiniteField_givaroElement(parent, int x):
     """
     return make_FiniteField_givaroElement(parent._cache, x)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_givaro', 'unpickle_FiniteField_givaroElement', unpickle_FiniteField_givaroElement)
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givaro cache, int x):

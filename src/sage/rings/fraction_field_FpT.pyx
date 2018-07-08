@@ -1,5 +1,5 @@
 "Univariate rational functions over prime fields"
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 import sys
 
@@ -17,7 +17,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_zmod_flint cimport Polynomial_zmod_flint, get_cparent
 import sage.algebras.algebra
 
-from sage.rings.finite_rings.integer_mod cimport jacobi_int, mod_inverse_int, mod_pow_int
+from sage.rings.finite_rings.integer_mod cimport mod_inverse_int
 
 class FpT(FractionField_1poly_field):
     """
@@ -106,7 +106,7 @@ cdef class FpTElement(RingElement):
         self.p = parent.p
         nmod_poly_init(self._numer, self.p)
         nmod_poly_init(self._denom, self.p)
-        self.initalized = True
+        self.initialized = True
         cdef long n
         for n, a in enumerate(numer):
             nmod_poly_set_coeff_ui(self._numer, n, a)
@@ -125,7 +125,7 @@ cdef class FpTElement(RingElement):
             sage: t = K.gen()
             sage: del t # indirect doctest
         """
-        if self.initalized:
+        if self.initialized:
             nmod_poly_clear(self._numer)
             nmod_poly_clear(self._denom)
 
@@ -153,7 +153,7 @@ cdef class FpTElement(RingElement):
         x.p = self.p
         nmod_poly_init_preinv(x._numer, x.p, self._numer.mod.ninv)
         nmod_poly_init_preinv(x._denom, x.p, self._numer.mod.ninv)
-        x.initalized = True
+        x.initialized = True
         return x
 
     cdef FpTElement _copy_c(self):
@@ -167,7 +167,7 @@ cdef class FpTElement(RingElement):
         nmod_poly_init2_preinv(x._denom, x.p, self._denom.mod.ninv, self._denom.length)
         nmod_poly_set(x._numer, self._numer)
         nmod_poly_set(x._denom, self._denom)
-        x.initalized = True
+        x.initialized = True
         return x
 
     def numer(self):
@@ -1032,7 +1032,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
         RingHomomorphism.__init__(self, R.ring_of_integers().Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1044,8 +1044,9 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
             sage: f(t^2 + 1)
             t^2 + 1
         """
-        _slots['p'] = self.p
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1082,7 +1083,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
         nmod_poly_init(ans._denom, ans.p)
         nmod_poly_set(ans._numer, &x.x)
         nmod_poly_set_coeff_ui(ans._denom, 0, 1)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1157,7 +1158,7 @@ cdef class Polyring_FpT_coerce(RingHomomorphism):
                 normalize(ans._numer, ans._denom, ans.p)
         else:
             raise TypeError("FpT only supports two positional arguments")
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     def section(self):
@@ -1234,7 +1235,7 @@ cdef class FpT_Polyring_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1252,8 +1253,9 @@ cdef class FpT_Polyring_section(Section):
             ...
             ValueError: not integral
         """
-        _slots['p'] = self.p
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1348,7 +1350,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
         RingHomomorphism.__init__(self, R.base_ring().Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1363,8 +1365,9 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
             sage: g(GF(5)(2)) == f(GF(5)(2))
             True
         """
-        _slots['p'] = self.p
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1404,7 +1407,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
         nmod_poly_init(ans._denom, ans.p)
         nmod_poly_set_coeff_ui(ans._numer, 0, x.ivalue)
         nmod_poly_set_coeff_ui(ans._denom, 0, 1)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1453,7 +1456,7 @@ cdef class Fp_FpT_coerce(RingHomomorphism):
             raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     def section(self):
@@ -1535,7 +1538,7 @@ cdef class FpT_Fp_section(Section):
         self.p = f.p
         Section.__init__(self, f)
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1559,8 +1562,9 @@ cdef class FpT_Fp_section(Section):
             sage: g(K(0))
             0
         """
-        _slots['p'] = self.p
-        return Section._extra_slots(self, _slots)
+        slots = Section._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1668,7 +1672,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
         RingHomomorphism.__init__(self, ZZ.Hom(R))
         self.p = R.base_ring().characteristic()
 
-    cdef dict _extra_slots(self, dict _slots):
+    cdef dict _extra_slots(self):
         """
         Helper for copying and pickling.
 
@@ -1685,8 +1689,9 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
             sage: g(0) == f(0)
             True
         """
-        _slots['p'] = self.p
-        return RingHomomorphism._extra_slots(self, _slots)
+        slots = RingHomomorphism._extra_slots(self)
+        slots['p'] = self.p
+        return slots
 
     cdef _update_slots(self, dict _slots):
         """
@@ -1728,7 +1733,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
         nmod_poly_init(ans._denom, ans.p)
         nmod_poly_set_coeff_ui(ans._numer, 0, mpz_fdiv_ui(x.value, self.p))
         nmod_poly_set_coeff_ui(ans._denom, 0, 1)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1779,7 +1784,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism):
             raise ValueError("FpT only supports two positional arguments")
         if 'reduce' not in kwds or kwds['reduce']:
             normalize(ans._numer, ans._denom, ans.p)
-        ans.initalized = True
+        ans.initialized = True
         return ans
 
     def section(self):

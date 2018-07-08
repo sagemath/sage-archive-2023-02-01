@@ -12,6 +12,8 @@ from sage.rings.morphism import RingHomomorphism_im_gens, RingHomomorphism
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.structure.sequence import Sequence
+from sage.structure.richcmp import richcmp
+
 
 class NumberFieldHomset(RingHomset_generic):
     """
@@ -25,6 +27,27 @@ class NumberFieldHomset(RingHomset_generic):
         ...
         The following tests failed: _test_elements
     """
+    def __init__(self, R, S, category=None):
+        """
+        TESTS:
+
+        Check that :trac:`23647` is fixed::
+
+            sage: K.<a, b> = NumberField([x^2 - 2, x^2 - 3])
+            sage: e, u, v, w = End(K)
+            sage: e.abs_hom().parent().category()
+            Category of homsets of number fields
+            sage: (v*v).abs_hom().parent().category()
+            Category of homsets of number fields
+        """
+        if category is None:
+            from sage.categories.all import Fields, NumberFields
+            if S in NumberFields:
+                category = NumberFields()
+            elif S in Fields:
+                category = Fields()
+        RingHomset_generic.__init__(self, R, S, category)
+
     def __call__(self, im_gens, check=True):
         """
         Create the homomorphism sending the generators to ``im_gens``.
@@ -42,7 +65,7 @@ class NumberFieldHomset(RingHomset_generic):
             return self._coerce_impl(im_gens)
         try:
             return NumberFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError) as err:
+        except (NotImplementedError, ValueError):
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:
@@ -69,7 +92,6 @@ class NumberFieldHomset(RingHomset_generic):
             sage: g = End(H1.domain(), category=Rings())(f)
             sage: f == End(H1.domain(), category=NumberFields())(g)
             True
-
         """
         if not isinstance(x, NumberFieldHomomorphism_im_gens):
             raise TypeError
@@ -279,8 +301,10 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
             raise TypeError("Can only invert isomorphisms")
         V, V_into_K, _ = K.vector_space()
         _, _, L_into_W = L.vector_space()
-        linear_inverse = ~V.hom([(L_into_W*self*V_into_K)(_) for _ in V.basis()])
-        return L.hom([(V_into_K*linear_inverse*L_into_W)(_) for _ in [L.gen()]])
+        linear_inverse = ~V.hom([(L_into_W * self * V_into_K)(b)
+                                 for b in V.basis()])
+        return L.hom([(V_into_K * linear_inverse * L_into_W)(b)
+                      for b in [L.gen()]])
 
     def preimage(self, y):
         r"""
@@ -632,7 +656,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
         self.__im_gens = v
         return v
 
-    def _cmp_(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare
 
@@ -643,9 +667,7 @@ class RelativeNumberFieldHomomorphism_from_abs(RingHomomorphism):
             sage: all([u^2 == e, u*v == w, u != e])
             True
         """
-        return cmp(self.abs_hom(), other.abs_hom())
-
-    __cmp__ = _cmp_
+        return richcmp(self.abs_hom(), other.abs_hom(), op)
 
     def _repr_defn(self):
         r"""
@@ -709,7 +731,7 @@ class CyclotomicFieldHomset(NumberFieldHomset):
             return self._coerce_impl(im_gens)
         try:
             return CyclotomicFieldHomomorphism_im_gens(self, im_gens, check=check)
-        except (NotImplementedError, ValueError) as err:
+        except (NotImplementedError, ValueError):
             try:
                 return self._coerce_impl(im_gens)
             except TypeError:

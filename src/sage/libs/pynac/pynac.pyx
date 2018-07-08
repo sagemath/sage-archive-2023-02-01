@@ -13,7 +13,6 @@ Pynac interface
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 from __future__ import absolute_import, division, print_function
 
 from cpython cimport *
@@ -27,10 +26,12 @@ from sage.libs.gsl.gamma cimport gsl_sf_lngamma_complex_e
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.libs.pari.all import pari
 
+from sage.cpython.string cimport str_to_bytes, char_to_str
+
 from sage.arith.all import gcd, lcm, is_prime, factorial, bernoulli
 
 from sage.structure.element cimport Element, parent, coercion_model
-from sage.structure.sage_object import loads, dumps
+from sage.misc.persist import loads, dumps
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer, smallInteger
@@ -288,7 +289,7 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)
         len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
-          <... 'int'>,        # 64-bit
+          <type 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
           <type 'sage.symbolic.expression.Expression'>]
         x
@@ -340,8 +341,8 @@ cdef stdstring* py_repr(o, int level):
         else:
             t = s
         # Python complexes are always printed with parentheses
-        # we try to avoid double parantheses
-        if type(o) is not complex and \
+        # we try to avoid double parentheses
+        if not isinstance(o, complex) and \
                 (' ' in t or '/' in t or '+' in t or '-' in t or '*' in t \
                 or '^' in t):
             s = '(%s)'%s
@@ -370,11 +371,15 @@ cdef stdstring* string_from_pystr(py_str) except NULL:
     cdef bytes s
     if isinstance(py_str, bytes):
         s = <bytes>py_str
+    elif isinstance(py_str, str):
+        # Note: This should only by the case on Python 3 since on Python 2
+        # bytes is str
+        s = str_to_bytes(py_str)
     else:
         s = b"(INVALID)"  # Avoid segfaults for invalid input
     return new stdstring(s)
 
-cdef stdstring* py_latex_variable(char* var_name):
+cdef stdstring* py_latex_variable(var_name):
     """
     Returns a c++ string containing the latex representation of the given
     variable name.
@@ -399,7 +404,6 @@ cdef stdstring* py_latex_variable(char* var_name):
         sage: py_latex_variable('beta_00')
         \beta_{00}
     """
-    cdef Py_ssize_t slen
     from sage.misc.latex import latex_variable_name
     py_vlatex = latex_variable_name(var_name)
     return string_from_pystr(py_vlatex)
@@ -416,7 +420,7 @@ def py_latex_variable_for_doctests(x):
         \sigma
     """
     cdef stdstring* ostr = py_latex_variable(x)
-    print(ostr.c_str())
+    print(char_to_str(ostr.c_str()))
     del ostr
 
 def py_print_function_pystring(id, args, fname_paren=False):
@@ -655,7 +659,7 @@ def py_print_fderivative_for_doctests(id, params, args):
 
     """
     cdef stdstring* ostr = py_print_fderivative(id, params, args)
-    print(ostr.c_str())
+    print(char_to_str(ostr.c_str()))
     del ostr
 
 cdef stdstring* py_latex_fderivative(unsigned id, params,
@@ -741,7 +745,7 @@ def py_latex_fderivative_for_doctests(id, params, args):
         \mathrm{D}_{0, 1, 0, 1}func_with_args(x, y^z)
     """
     cdef stdstring* ostr = py_latex_fderivative(id, params, args)
-    print(ostr.c_str())
+    print(char_to_str(ostr.c_str()))
     del ostr
 
 #################################################################
@@ -804,15 +808,14 @@ cdef int py_get_parent_char(o) except -1:
     """
     TESTS:
 
-    We check that :trac:`21187` is resolved::
+    :trac:`24072` fixes the workaround provided in :trac:`21187`::
 
         sage: p = next_prime(2^100)
         sage: R.<y> = FiniteField(p)[]
         sage: y = SR(y)
-        sage: x + y
-        x + y
-        sage: p * y
-        0
+        Traceback (most recent call last):
+        ...
+        TypeError: positive characteristic not allowed in symbolic computations
     """
     if not isinstance(o, Element):
         return 0
@@ -980,10 +983,9 @@ cdef py_real(x):
         sage: py_real(complex(2,2))
         2.0
     """
-    if type(x) is float or type(x) is int or \
-            type(x) is long:
+    if isinstance(x, (float, int, long)):
         return x
-    elif type(x) is complex:
+    elif isinstance(x, complex):
         return x.real
 
     try:
@@ -1037,9 +1039,9 @@ cdef py_imag(x):
         sage: py_imag(complex(2,2))
         2.0
     """
-    if type(x) is float:
-        return float(0)
-    if type(x) is complex:
+    if isinstance(x, float):
+        return 0.0
+    if isinstance(x, complex):
         return x.imag
     try:
         return x.imag()
@@ -1076,9 +1078,9 @@ cdef py_conjugate(x):
         return x # assume is real since it doesn't have an imag attribute.
 
 cdef bint py_is_rational(x):
-    return type(x) is Rational or \
-           type(x) is Integer or\
-           isinstance(x, int) or isinstance(x, long)
+    return (type(x) is Rational or
+            type(x) is Integer or
+            isinstance(x, (int, long)))
 
 cdef bint py_is_equal(x, y):
     """
@@ -1112,10 +1114,13 @@ cdef bint py_is_integer(x):
         sage: py_is_integer(3.0r)
         False
     """
-    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
-           (isinstance(x, Element) and
-            ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR) and
-            (x in ZZ))
+    if isinstance(x, (int, long, Integer)):
+        return True
+    if not isinstance(x, Element):
+        return False
+    P = (<Element>x)._parent
+    return (P is ring.SR or P.is_exact()) and x in ZZ
+
 
 def py_is_integer_for_doctests(x):
     """
@@ -1172,8 +1177,7 @@ def py_is_crational_for_doctest(x):
     return py_is_crational(x)
 
 cdef bint py_is_real(a):
-    if type(a) is int or isinstance(a, Integer) or\
-            type(a) is long or type(a) is float:
+    if isinstance(a, (int, long, Integer, float)):
         return True
     try:
         P = parent(a)
@@ -1196,10 +1200,15 @@ cdef bint py_is_prime(n):
         pass
     return False
 
+
 cdef bint py_is_exact(x):
-    return isinstance(x, int) or isinstance(x, long) or isinstance(x, Integer) or \
-           (isinstance(x, Element) and
-            ((<Element>x)._parent.is_exact() or (<Element>x)._parent == ring.SR))
+    if isinstance(x, (int, long, Integer)):
+        return True
+    if not isinstance(x, Element):
+        return False
+    P = (<Element>x)._parent
+    return P is ring.SR or P.is_exact()
+
 
 cdef py_numer(n):
     """
@@ -1386,7 +1395,7 @@ cdef py_tgamma(x):
         sage: py_tgamma(1/2)
         1.77245385090552
     """
-    if type(x) is int or type(x) is long:
+    if isinstance(x, (int, long)):
         x = float(x)
     if type(x) is float:
         return math.tgamma(PyFloat_AS_DOUBLE(x))
@@ -1522,8 +1531,8 @@ cdef py_sin(x):
         0.909297426825682
         sage: sin(2.*I)
         3.62686040784702*I
-        sage: sin(QQbar(I))
-        sin(I)
+        sage: sin(QQbar(I))   # known bug
+        I*sinh(1)
     """
     try:
         return x.sin()
@@ -1544,8 +1553,8 @@ cdef py_cos(x):
         -0.416146836547142
         sage: cos(2.*I)
         3.76219569108363
-        sage: cos(QQbar(I))
-        cos(I)
+        sage: cos(QQbar(I))   # known bug
+        cosh(1)
     """
     try:
         return x.cos()
@@ -1707,7 +1716,7 @@ cdef py_log(x):
     """
     cdef gsl_complex res
     cdef double real, imag
-    if type(x) is int or type(x) is long:
+    if isinstance(x, (int, long)):
         x = float(x)
     if type(x) is float:
         real = PyFloat_AS_DOUBLE(x)
@@ -1815,25 +1824,19 @@ cdef py_atan2(x, y):
         sage: atan2(CC(I), CC(I+1))
         0.553574358897045 + 0.402359478108525*I
         sage: atan2(CBF(I), CBF(I+1))
-        [0.55357435889705 +/- 5.75e-15] + [0.40235947810852 +/- 6.01e-15]*I
+        [0.55357435889705 +/- ...] + [0.402359478108525 +/- ...]*I
+
+    Check that :trac:`23776` is fixed and RDF input gives real output::
+
+        sage: atan2(RDF(-3), RDF(-1))
+        -1.8925468811915387
     """
     from sage.symbolic.constants import pi, NaN
-    from sage.rings.real_arb import RealBallField
-    from sage.rings.real_mpfr import RealField_class
     P = coercion_model.common_parent(x, y)
-    is_real = False
     if P is ZZ:
         P = RR
-    if (P is float
-            or parent(P) is RealField_class
-            or isinstance(P, RealBallField)):
-        is_real = True
     if y != 0:
-        try:
-            is_real = is_real or (x.is_real() and y.is_real())
-        except AttributeError:
-            is_real = False
-        if is_real:
+        if RR.has_coerce_map_from(P):
             if x > 0:
                 res = py_atan(abs(y/x))
             elif x < 0:
@@ -1910,6 +1913,10 @@ cdef py_atanh(x):
     try:
         return x.arctanh()
     except AttributeError:
+        pass
+    try:
+        return RR(x).arctanh()
+    except TypeError:
         return CC(x).arctanh()
 
 cdef py_lgamma(x):
@@ -2435,23 +2442,18 @@ def init_function_table():
     called before Pynac is used; otherwise, there will be segfaults.
     """
 
-    py_funcs.py_binomial_int = &py_binomial_int
-    py_funcs.py_binomial = &py_binomial
     py_funcs.py_gcd = &py_gcd
     py_funcs.py_lcm = &py_lcm
     py_funcs.py_real = &py_real
     py_funcs.py_imag = &py_imag
     py_funcs.py_numer = &py_numer
     py_funcs.py_denom = &py_denom
-    py_funcs.py_conjugate = &py_conjugate
 
     py_funcs.py_is_rational = &py_is_rational
-    py_funcs.py_is_crational = &py_is_crational
     py_funcs.py_is_real = &py_is_real
     py_funcs.py_is_integer = &py_is_integer
     py_funcs.py_is_equal = &py_is_equal
     py_funcs.py_is_even = &py_is_even
-    py_funcs.py_is_cinteger = &py_is_cinteger
     py_funcs.py_is_prime = &py_is_prime
     py_funcs.py_is_exact = &py_is_exact
 
@@ -2465,7 +2467,6 @@ def init_function_table():
     py_funcs.py_mpq_from_rational = &py_mpq_from_rational
 
     py_funcs.py_float = &py_float
-    py_funcs.py_RDF_from_double = &py_RDF_from_double
 
     py_funcs.py_factorial = &py_factorial
     py_funcs.py_doublefactorial = &py_doublefactorial
@@ -2489,22 +2490,13 @@ def init_function_table():
     py_funcs.py_asinh = &py_asinh
     py_funcs.py_acosh = &py_acosh
     py_funcs.py_atanh = &py_atanh
-    py_funcs.py_tgamma = &py_tgamma
-    py_funcs.py_lgamma = &py_lgamma
     py_funcs.py_isqrt = &py_isqrt
     py_funcs.py_sqrt = &py_sqrt
-    py_funcs.py_abs = &py_abs
     py_funcs.py_mod = &py_mod
     py_funcs.py_smod = &py_smod
     py_funcs.py_irem = &py_irem
-    py_funcs.py_iquo = &py_iquo
-    py_funcs.py_iquo2 = &py_iquo2
-    py_funcs.py_li = &py_li
-    py_funcs.py_li2 = &py_li2
     py_funcs.py_psi = &py_psi
     py_funcs.py_psi2 = &py_psi2
-
-    py_funcs.py_int_length = &py_int_length
 
     py_funcs.py_eval_constant = &py_eval_constant
     py_funcs.py_eval_unsigned_infinity = &py_eval_unsigned_infinity
@@ -2534,7 +2526,6 @@ def init_function_table():
     py_funcs.py_print_fderivative =  &py_print_fderivative
     py_funcs.py_latex_fderivative =  &py_latex_fderivative
     py_funcs.paramset_to_PyTuple = &paramset_to_PyTuple
-    py_funcs.py_rational_power_parts = &py_rational_power_parts
 
 init_function_table()
 init_pynac_I()

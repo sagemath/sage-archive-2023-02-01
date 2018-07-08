@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-p-adic L-functions of elliptic curves
+`p`-adic `L`-functions of elliptic curves
 
 To an elliptic curve `E` over the rational numbers and a prime `p`, one
 can associate a `p`-adic L-function; at least if `E` does not have additive
@@ -87,7 +87,7 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
+from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
@@ -99,8 +99,8 @@ from sage.modules.free_module_element import vector
 import sage.matrix.all as matrix
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 # from sage.interfaces.all import gp
-from sage.misc.functional import log
-
+from sage.functions.log import log
+from sage.functions.other import floor
 from sage.misc.decorators import rename_keyword
 
 
@@ -110,6 +110,7 @@ class pAdicLseries(SageObject):
     The `p`-adic L-series of an elliptic curve.
 
     EXAMPLES:
+
     An ordinary example::
 
         sage: e = EllipticCurve('389a')
@@ -196,7 +197,7 @@ class pAdicLseries(SageObject):
             raise NotImplementedError("p (=%s) must be a prime of semi-stable reduction"%p)
 
         try :
-            crla = E.label()
+            E.label()
         except RuntimeError :
             print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
@@ -211,11 +212,10 @@ class pAdicLseries(SageObject):
 
         EXAMPLES::
 
-        sage: E = EllipticCurve('11a1')
-        sage: lp = E.padic_lseries(5)
-        sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
-        -1/2
-
+            sage: E = EllipticCurve('11a1')
+            sage: lp = E.padic_lseries(5)
+            sage: lp.modular_symbol(1/7,sign=-1)  #indirect doctest
+            -1/2
         """
         self._negative_modular_symbol = self._E.modular_symbol(sign=-1, implementation="sage", normalize=self._normalize)
 
@@ -468,9 +468,11 @@ class pAdicLseries(SageObject):
         just the unit root.
 
         INPUT:
+
         -  ``prec`` - positive integer, the `p`-adic precision of the root.
 
         EXAMPLES:
+
         Consider the elliptic curve 37a::
 
             sage: E = EllipticCurve('37a')
@@ -521,7 +523,7 @@ class pAdicLseries(SageObject):
                 if a.valuation() < 1:
                     self._alpha[prec] = K(a)
                     return K(a)
-            raise RunTimeError("bug in p-adic L-function alpha")
+            raise RuntimeError("bug in p-adic L-function alpha")
         else: # supersingular case
             f = f.change_ring(K)
             A = K.extension(f, names="alpha")
@@ -790,9 +792,10 @@ class pAdicLseriesOrdinary(pAdicLseries):
           Teichmueller character on the group of roots of unity in
           `\ZZ_p^\times`)
 
-        ALIAS: power_series is identical to series.
+        :meth:`power_series` is identical to ``series``.
 
         EXAMPLES:
+
         We compute some `p`-adic L-functions associated to the elliptic
         curve 11a::
 
@@ -1563,6 +1566,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def bernardi_sigma_function(self, prec=20):
         r"""
         Return the  `p`-adic sigma function of Bernardi in terms of `z = log(t)`.
+
         This is the same as ``padic_sigma`` with ``E2 = 0``.
 
         EXAMPLES::
@@ -1573,7 +1577,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
             z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 + O(z^10)
         """
         E = self._E
-        p = self._p
 
         Eh = E.formal()
         lo = Eh.log(prec + 5)
@@ -1620,11 +1623,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # we will have to do it properly with David Harvey's _multiply_point()
         n = arith.LCM(E.tamagawa_numbers())
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
-
-        if p < 5:
-            phi = self.frobenius(min(6,prec),algorithm="approx")
-        else:
-            phi = self.frobenius(prec+2,algorithm="mw")
 
         def height(P,check=True):
             if P.is_finite_order():

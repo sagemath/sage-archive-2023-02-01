@@ -56,7 +56,6 @@ import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
 import sage.rings.ideal
-import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
 from sage.categories.basic import EuclideanDomains
@@ -314,27 +313,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         ParentWithGens.__init__(self, self, ('x',), normalize=False,
                                 category=(EuclideanDomains(), InfiniteEnumeratedSets().Metric()))
-        self._populate_coercion_lists_(element_constructor=integer.Integer,
-                                       init_no_parent=True,
+        self._populate_coercion_lists_(init_no_parent=True,
                                        convert_method_name='_integer_')
 
-    def __cinit__(self):
-        """
-        Cython initialize ``self``.
-
-        EXAMPLES::
-
-            sage: ZZ # indirect doctest
-            Integer Ring
-        """
-        # This is here because very old pickled integers don't have unique parents.
-        global number_of_integer_rings
-        if type(self) is IntegerRing_class:
-            if number_of_integer_rings > 0:
-                self._populate_coercion_lists_(element_constructor=integer.Integer,
-                                               init_no_parent=True,
-                                               convert_method_name='_integer_')
-            number_of_integer_rings += 1
+    _element_constructor_ = integer.Integer
 
     def __reduce__(self):
         """
@@ -596,7 +578,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
             sage: f = ZZ.coerce_map_from(int); f
             Native morphism:
-              From: Set of Python objects of type 'int'
+              From: Set of Python objects of class 'int'
               To:   Integer Ring
             sage: f(4r)
             4
@@ -605,26 +587,23 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         Note that the input *MUST* be an ``int``::
 
-            sage: a = 10000000000000000000000r
-            sage: type(a)
-            <type 'long'>
-            sage: f(a) # random
-            5
+            sage: a = 10000000000000000000000rL
+            sage: f(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: must be a Python int object
         """
-        if S is int:
-            return sage.rings.integer.int_to_Z()
-        elif S is long:
+        if S is long:
             return sage.rings.integer.long_to_Z()
+        elif S is int:
+            return sage.rings.integer.int_to_Z()
         elif S is bool:
             return True
         elif is_numpy_type(S):
             import numpy
             if issubclass(S, numpy.integer):
                 return True
-            else:
-                return None
-        else:
-            None
+        return None
 
     def random_element(self, x=None, y=None, distribution=None):
         r"""
@@ -1127,7 +1106,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
     def completion(self, p, prec, extras = {}):
         r"""
-        Return the completion of the integers at the prime `p`.
+        Return the metric completion of the integers at the prime `p`.
 
         INPUT:
 
@@ -1145,13 +1124,12 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: ZZ.completion(infinity, 53)
-            Real Field with 53 bits of precision
+            Integer Ring
             sage: ZZ.completion(5, 15, {'print_mode': 'bars'})
             5-adic Ring with capped relative precision 15
         """
         if p == sage.rings.infinity.Infinity:
-            from sage.rings.real_mpfr import create_RealField
-            return create_RealField(prec, **extras)
+            return self
         else:
             from sage.rings.padics.factory import Zp
             return Zp(p, prec, **extras)
@@ -1324,11 +1302,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
 
         # The dense algorithm is to compute the roots from the factorization.
         if algorithm == "dense":
-            #NOTE: the content sometimes return an ideal sometimes a number...
-            if parent(p).is_sparse():
-                cont = p.content().gen()
-            else:
-                cont = p.content()
+            cont = p.content_ideal().gen()
             if not cont.is_unit():
                 p = p.map_coefficients(lambda c: c // cont)
             return p._roots_from_factorization(p.factor(), multiplicities)
@@ -1353,13 +1327,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if k == 1 + deg:
             return roots + p._roots_from_factorization(p.factor(), multiplicities)
 
-        #TODO: the content sometimes return an ideal sometimes a number... this
-        # should be corrected. See
-        # <https://groups.google.com/forum/#!topic/sage-devel/DP_R3rl0vH0>
-        if parent(p).is_sparse():
-            cont = p.content().gen()
-        else:
-            cont = p.content()
+        cont = p.content_ideal().gen()
         if not cont.is_unit():
             p = p.map_coefficients(lambda c: c // cont)
 
@@ -1513,6 +1481,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             {atomic:ZZ}
         """
         return sib.name('ZZ')
+
+    def valuation(self, p):
+        r"""
+        Return the discrete valuation with uniformizer ``p``.
+
+        EXAMPLES::
+
+            sage: v = ZZ.valuation(3); v
+            3-adic valuation
+            sage: v(3)
+            1
+
+        .. SEEALSO::
+
+            :meth:`Order.valuation() <sage.rings.number_field.order.Order.valuation>`,
+            :meth:`RationalField.valuation() <sage.rings.rational_field.RationalField.valuation>`
+
+        """
+        from sage.rings.padics.padic_valuation import pAdicValuation
+        return pAdicValuation(self, p)
 
 ZZ = IntegerRing_class()
 Z = ZZ

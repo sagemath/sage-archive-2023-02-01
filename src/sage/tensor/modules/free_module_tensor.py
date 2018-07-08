@@ -596,7 +596,7 @@ class FreeModuleTensor(ModuleElement):
             sage: w = - 3/4 * de[1] + de[2] ; w
             Linear form on the 2-dimensional vector space M over the Rational
              Field
-            sage: w.set_name('w', latex_name='\omega')
+            sage: w.set_name('w', latex_name='\\omega')
             sage: w.display()
             w = -3/4 e^1 + e^2
             sage: latex(w.display())  # display in the notebook
@@ -665,9 +665,13 @@ class FreeModuleTensor(ModuleElement):
         for ind in comp.index_generator():
             ind_arg = ind + (format_spec,)
             coef = comp[ind_arg]
-            if not (coef == 0):   # NB: coef != 0 would return False for
-                                  # cases in which Sage cannot conclude
-                                  # see :trac:`22520`
+            # Check whether the coefficient is zero, preferably via
+            # the fast method is_trivial_zero():
+            if hasattr(coef, 'is_trivial_zero'):
+                zero_coef = coef.is_trivial_zero()
+            else:
+                zero_coef = coef == 0
+            if not zero_coef:
                 bases_txt = []
                 bases_latex = []
                 for k in range(n_con):
@@ -1167,7 +1171,7 @@ class FreeModuleTensor(ModuleElement):
             sage: M.set_change_of_basis(e, f, a)
             sage: t.display(e)
             t = -4 e_1*e^2
-            sage: sorted(t._components)  # random output (dictionary keys)
+            sage: sorted(t._components, key=repr)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
 
@@ -1233,7 +1237,7 @@ class FreeModuleTensor(ModuleElement):
 
         The components w.r.t. basis e have been kept::
 
-            sage: sorted(t._components) # # random output (dictionary keys)
+            sage: sorted(t._components, key=repr)
             [Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring,
              Basis (f_0,f_1,f_2) on the Rank-3 free module M over the Integer Ring]
             sage: t.display(f)
@@ -1270,7 +1274,7 @@ class FreeModuleTensor(ModuleElement):
             sage: u = M([2,1,-5])
             sage: f = M.basis('f')
             sage: u.add_comp(f)[:] = [0,4,2]
-            sage: sorted(u._components) # random output (dictionary keys)
+            sage: sorted(u._components, key=repr)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp(f)
@@ -1280,7 +1284,7 @@ class FreeModuleTensor(ModuleElement):
         Let us restore the components w.r.t. e and delete those w.r.t. f::
 
             sage: u.add_comp(e)[:] = [2,1,-5]
-            sage: sorted(u._components)  # random output (dictionary keys)
+            sage: sorted(u._components, key=repr)
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
              Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
             sage: u.del_other_comp()  # default argument: basis = e
@@ -1503,9 +1507,9 @@ class FreeModuleTensor(ModuleElement):
 
         Indeed, v is now known in basis e::
 
-            sage: sorted(v._components) # random output (dictionary keys)
-            [Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring,
-             Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
+            sage: sorted(v._components, key=repr)
+            [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring,
+             Basis (f_1,f_2,f_3) on the Rank-3 free module M over the Integer Ring]
 
         """
         # Compatibility checks:
@@ -1606,7 +1610,7 @@ class FreeModuleTensor(ModuleElement):
             return self._fmodule._def_basis  # the default basis is privileged
         else:
             # a basis is picked arbitrarily:
-            return self._components.items()[0][0]
+            return next(iter(self._components.items()))[0]
 
     def __eq__(self, other):
         r"""
@@ -1806,8 +1810,6 @@ class FreeModuleTensor(ModuleElement):
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
-        if other == 0:
-            return +self
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the addition")
@@ -1863,8 +1865,6 @@ class FreeModuleTensor(ModuleElement):
         """
         # No need for consistency check since self and other are guaranted
         # to belong to the same tensor module
-        if other == 0:
-            return +self
         basis = self.common_basis(other)
         if basis is None:
             raise ValueError("no common basis for the subtraction")
@@ -2365,7 +2365,7 @@ class FreeModuleTensor(ModuleElement):
 
         Instead of the explicit call to the method :meth:`contract`, the index
         notation can be used to specify the contraction, via Einstein
-        conventation (summation on repeated indices); it suffices to pass the
+        convention (summation on repeated indices); it suffices to pass the
         indices as a string inside square brackets::
 
             sage: s1 = a['_i']*b['^i'] ; s1

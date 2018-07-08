@@ -73,7 +73,7 @@ class AmbientSpace(CombinatorialFreeModule):
         sage: e1 == e2
         False
     """
-    def __init__(self, root_system, base_ring):
+    def __init__(self, root_system, base_ring, index_set=None):
         """
         EXAMPLES::
 
@@ -87,9 +87,10 @@ class AmbientSpace(CombinatorialFreeModule):
             (1, -1, 0, 0)
         """
         self.root_system = root_system
+        if index_set is None:
+            index_set = tuple(range(0, self.dimension()))
         CombinatorialFreeModule.__init__(self, base_ring,
-                                         range(0,self.dimension()),
-                                         element_class = AmbientSpaceElement,
+                                         index_set,
                                          prefix='e',
                                          category = WeightLatticeRealizations(base_ring))
         coroot_lattice = self.root_system.coroot_lattice()
@@ -121,12 +122,12 @@ class AmbientSpace(CombinatorialFreeModule):
         D = T.symmetrizer()
         alpha = self.simple_roots()
         for C in T.dynkin_diagram().connected_components():
-            tester.assertEquals(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
+            tester.assertEqual(len( set( alpha[i].scalar(alpha[i]) / D[i] for i in C ) ), 1)
 
     # FIXME: attribute or method?
     def dimension(self):
         """
-        Returns the dimension of this ambient space.
+        Return the dimension of this ambient space.
 
         EXAMPLES::
 
@@ -143,7 +144,7 @@ class AmbientSpace(CombinatorialFreeModule):
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
         """
-        Returns the smallest ground ring over which the ambient space can be realized.
+        Return the smallest ground ring over which the ambient space can be realized.
 
         This class method will get called with the Cartan type as
         input. This default implementation returns `\QQ`; subclasses
@@ -507,3 +508,6 @@ class AmbientSpaceElement(CombinatorialFreeModule.Element):
 
         """
         return self
+
+AmbientSpace.Element = AmbientSpaceElement
+

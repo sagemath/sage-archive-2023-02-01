@@ -14,8 +14,8 @@ of `S` in `G`, denoted `rw_G(S)`, is equal to the rank in `GF(2)` of the `|S|
 `\overline S` is the complement of `S` in `V(G)`.
 
 A *rank-decomposition* of `G` is a tree whose `n` leaves are the elements of
-`V(G)`, and whose internal noes have degree 3. In a tree, ay edge naturally
-corresponds to a bipartition of the vertex set : indeed, the reoal of any edge
+`V(G)`, and whose internal nodes have degree 3. In a tree, any edge naturally
+corresponds to a bipartition of the vertex set : indeed, the removal of any edge
 splits the tree into two connected components, thus splitting the set of leaves
 (i.e. vertices of `G`) into two sets. Hence we can define for any edge `e\in
 E(G)` a width equal to the value `rw_G(S)` or `rw_G(\overline S)`, where

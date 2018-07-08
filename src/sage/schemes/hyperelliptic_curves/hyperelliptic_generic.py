@@ -33,7 +33,11 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import PolynomialRing, RR, PowerSeriesRing, LaurentSeriesRing, O
+from sage.rings.polynomial.all import PolynomialRing
+from sage.rings.big_oh import O
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.laurent_series_ring import LaurentSeriesRing
+from sage.rings.real_mpfr import RR
 from sage.functions.all import log
 from sage.structure.category_object import normalize_names
 
@@ -550,20 +554,21 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
             t^-3 + t - t^3 - t^5 + 3*t^7 - 10*t^11 + O(t^12)
 
         AUTHOR:
-            - Jennifer Balakrishnan (2007-12)
+
+        - Jennifer Balakrishnan (2007-12)
         """
         g = self.genus()
         pol = self.hyperelliptic_polynomials()[0]
         K = LaurentSeriesRing(self.base_ring(), name, default_prec=prec+2)
         t = K.gen()
-        L = PolynomialRing(self.base_ring(),'x')
+        L = PolynomialRing(K,'x')
         x = L.gen()
         i = 0
         w = (x**g/t)**2-pol
         wprime = w.derivative(x)
         x = t**-2
         for i in range((RR(log(prec+2)/log(2))).ceil()):
-            x = x-w(x)/wprime(x)
+            x = x - w(x)/wprime(x)
         y = x**g/t
         return x+O(t**(prec+2)) , y+O(t**(prec+2))
 

@@ -102,7 +102,7 @@ TESTS::
     True
 
 """
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from cysignals.memory cimport sig_malloc, sig_free
 
@@ -126,7 +126,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import is_IntegerRing
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.rings.polynomial.multi_polynomial_ideal import NCPolynomialIdeal
 
 from sage.rings.polynomial.polydict import ETuple
@@ -701,7 +700,6 @@ cdef class NCPolynomialRing_plural(Ring):
         result = ringlist(self, ring=self)
         return result
 
-
     def relations(self, add_commutative = False):
         """
         Return the relations of this g-algebra.
@@ -734,7 +732,7 @@ cdef class NCPolynomialRing_plural(Ring):
                 return self._relations_commutative
 
             from sage.algebras.free_algebra import FreeAlgebra
-            A = FreeAlgebra( self.base_ring(), self.ngens(), self.variable_names() )
+            A = FreeAlgebra(self.base_ring(), self.ngens(), self.variable_names())
 
             res = {}
             n = self.ngens()
@@ -748,7 +746,7 @@ cdef class NCPolynomialRing_plural(Ring):
             return self._relations
 
         from sage.algebras.free_algebra import FreeAlgebra
-        A = FreeAlgebra( self.base_ring(), self.ngens(), self.variable_names() )
+        A = FreeAlgebra(self.base_ring(), self.ngens(), self.variable_names())
 
         res = {}
         n = self.ngens()
@@ -1778,7 +1776,7 @@ cdef class NCPolynomial_plural(RingElement):
         return s
 
     def _latex_(self):
-        """
+        r"""
         Return a polynomial LaTeX representation of this polynomial.
 
         EXAMPLES::
@@ -2725,8 +2723,7 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     self._ring = rw._ring
 
     wrapped_ring = wrap_ring(self._ring)
-    cur_refcnt = sage.libs.singular.ring.ring_refcount_dict.get(wrapped_ring, 0)
-    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] = cur_refcnt + 1
+    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
 
     self._ring.ShortOut = 0
 
@@ -2796,8 +2793,7 @@ cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     self._ring = rw._ring
 
     wrapped_ring = wrap_ring(self._ring)
-    cur_refcnt = sage.libs.singular.ring.ring_refcount_dict.get(wrapped_ring, 0)
-    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] = cur_refcnt + 1
+    sage.libs.singular.ring.ring_refcount_dict[wrapped_ring] += 1
 
     self._ring.ShortOut = 0
 

@@ -5,19 +5,19 @@ Families of graphs
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
-###########################################################################
+# ****************************************************************************
+#       Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#                          Emily A. Kirkman
+#                     2009 Michael C. Yurko <myurko@gmail.com>
+#                     2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
 #
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
-#                              and Emily A. Kirkman
-#           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
-#
-#           Copyright (C) 2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
-#            (Rowan Schrecker supported by UK EPSRC grant EP/K040251/2)
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-###########################################################################
-from __future__ import print_function
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, division
 import six
 from six.moves import range
 
@@ -119,7 +119,7 @@ def KneserGraph(n,k):
 
     from sage.combinat.subset import Subsets
     S = Subsets(n,k)
-    if k>n/2:
+    if 2 * k > n:
         g.add_vertices(S)
 
     s0 = S.underlying_set()    # {1,2,...,n}
@@ -197,22 +197,13 @@ def BalancedTree(r, h):
     gracefully::
 
         sage: graphs.BalancedTree(1, 10)
-        Balanced tree: Graph on 2 vertices
-
-        sage: graphs.BalancedTree(-1, 10)
-        Balanced tree: Graph on 1 vertex
+        Balanced tree: Graph on 11 vertices
 
     Similarly, we usually want the tree must have height `h \geq 1`
     but the algorithm also degenerates gracefully here::
 
         sage: graphs.BalancedTree(3, 0)
         Balanced tree: Graph on 1 vertex
-
-        sage: graphs.BalancedTree(5, -2)
-        Balanced tree: Graph on 0 vertices
-
-        sage: graphs.BalancedTree(-2,-2)
-        Balanced tree: Graph on 0 vertices
     """
     import networkx
     return Graph(networkx.balanced_tree(r, h), name="Balanced tree")
@@ -510,6 +501,43 @@ def TadpoleGraph(n1, n2):
     return G
 
 
+def AztecDiamondGraph(n):
+    """
+    Return the Aztec Diamond graph of order ``n``.
+
+    EXAMPLES::
+
+        sage: graphs.AztecDiamondGraph(2)
+        Aztec Diamond graph of order 2
+
+        sage: [graphs.AztecDiamondGraph(i).num_verts() for i in range(8)]
+        [0, 4, 12, 24, 40, 60, 84, 112]
+
+        sage: [graphs.AztecDiamondGraph(i).num_edges() for i in range(8)]
+        [0, 4, 16, 36, 64, 100, 144, 196]
+
+        sage: G = graphs.AztecDiamondGraph(3)
+        sage: sum(1 for p in G.perfect_matchings())
+        64
+
+    REFERENCE:
+
+    - :wikipedia:`Aztec_diamond`
+    """
+    from sage.graphs.generators.basic import Grid2dGraph
+    if n:
+        N = 2 * n
+        G = Grid2dGraph(N, N)
+        H = G.subgraph([(i, j) for i in range(N) for j in range(N)
+                        if i - n <= j <= n + i and
+                        n - 1 - i <= j <= 3 * n - i - 1])
+    else:
+        H = Graph()
+    H.rename('Aztec Diamond graph of order {}'.format(n))
+    return H
+
+
+
 def DipoleGraph(n):
     r"""
     Returns a dipole graph with n edges.
@@ -652,7 +680,7 @@ def chang_graphs():
     Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
     called the Chang graphs. The fourth is the line graph of `K_8`. For more
     information about the Chang graphs, see :wikipedia:`Chang_graphs` or
-    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+    https://www.win.tue.nl/~aeb/graphs/Chang.html.
 
     EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
     same parameters::
@@ -687,7 +715,7 @@ def chang_graphs():
                loops=False, multiedges=False)
     g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
                loops=False, multiedges=False)
-    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+    g3 = Graph(r"[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
                loops=False, multiedges=False)
     return [g1,g2,g3]
 
@@ -896,7 +924,7 @@ def GoethalsSeidelGraph(k,r):
     vertices with degree `k=(n+r-1)/2`.
 
     It appears under this name in Andries Brouwer's `database of strongly
-    regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
+    regular graphs <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
 
     INPUT:
 
@@ -1015,15 +1043,14 @@ def FoldedCubeGraph(n):
 
 def FriendshipGraph(n):
     r"""
-    Returns the friendship graph `F_n`.
+    Return the friendship graph `F_n`.
 
     The friendship graph is also known as the Dutch windmill graph. Let
     `C_3` be the cycle graph on 3 vertices. Then `F_n` is constructed by
     joining `n \geq 1` copies of `C_3` at a common vertex. If `n = 1`,
     then `F_1` is isomorphic to `C_3` (the triangle graph). If `n = 2`,
     then `F_2` is the butterfly graph, otherwise known as the bowtie
-    graph. For more information, see this
-    `Wikipedia article on the friendship graph <http://en.wikipedia.org/wiki/Friendship_graph>`_.
+    graph. For more information, see :wikipedia:`Friendship_graph`.
 
     INPUT:
 
@@ -1285,9 +1312,9 @@ def GeneralizedPetersenGraph(n,k):
 
     - Anders Jonsson (2009-10-15)
     """
-    if (n < 3):
+    if n < 3:
             raise ValueError("n must be larger than 2")
-    if (k < 1 or k>((n-1)/2)):
+    if k < 1 or k > (n - 1) // 2:
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
     G = Graph()
@@ -1418,9 +1445,10 @@ def HyperStarGraph(n,k):
 
     return g
 
+
 def LCFGraph(n, shift_list, repeats):
-    """
-    Returns the cubic graph specified in LCF notation.
+    r"""
+    Return the cubic graph specified in LCF notation.
 
     LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
     describing cubic Hamiltonian graphs. The way a graph is constructed
@@ -1774,23 +1802,38 @@ def PaleyGraph(q):
 
     EXAMPLES::
 
-        sage: G=graphs.PaleyGraph(9);G
+        sage: G = graphs.PaleyGraph(9); G
         Paley graph with parameter 9: Graph on 9 vertices
         sage: G.is_regular()
         True
 
     A Paley graph is always self-complementary::
 
-        sage: G.complement().is_isomorphic(G)
+        sage: G.is_self_complementary()
         True
+
+    TESTS:
+
+    Wrong parameter::
+
+        sage: graphs.PaleyGraph(6)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter q must be a prime power
+        sage: graphs.PaleyGraph(3)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameter q must be congruent to 1 mod 4
     """
     from sage.rings.finite_rings.integer_mod import mod
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
-    assert is_prime_power(q), "Parameter q must be a prime power"
-    assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
+    if not is_prime_power(q):
+        raise ValueError("parameter q must be a prime power")
+    if not mod(q, 4) == 1:
+        raise ValueError("parameter q must be congruent to 1 mod 4")
     g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
-    loops=False, name = "Paley graph with parameter %d"%q)
+                  loops=False, name="Paley graph with parameter {}".format(q))
     return g
 
 def PasechnikGraph(n):
@@ -2426,24 +2469,22 @@ def WheelGraph(n):
     """
     Returns a Wheel graph with n nodes.
 
-    A Wheel graph is a basic structure where one node is connected to
-    all other nodes and those (outer) nodes are connected cyclically.
+    A Wheel graph is a basic structure where one node is connected to all other
+    nodes and those (outer) nodes are connected cyclically.
 
-    This constructor depends on NetworkX numeric labels.
+    PLOTTING: Upon construction, the position dictionary is filled to override
+    the spring-layout algorithm. By convention, each wheel graph will be
+    displayed with the first (0) node in the center, the second node at the top,
+    and the rest following in a counterclockwise manner.
 
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each wheel
-    graph will be displayed with the first (0) node in the center, the
-    second node at the top, and the rest following in a
-    counterclockwise manner.
+    With the wheel graph, we see that it doesn't take a very large n at all for
+    the spring-layout to give a counter-intuitive display. (See Graphics Array
+    examples below).
 
-    With the wheel graph, we see that it doesn't take a very large n at
-    all for the spring-layout to give a counter-intuitive display. (See
-    Graphics Array examples below).
+    EXAMPLES:
 
-    EXAMPLES: We view many wheel graphs with a Sage Graphics Array,
-    first with this constructor (i.e., the position dictionary
-    filled)::
+    We view many wheel graphs with a Sage Graphics Array, first with this
+    constructor (i.e., the position dictionary filled)::
 
         sage: g = []
         sage: j = []
@@ -2487,15 +2528,16 @@ def WheelGraph(n):
         sage: spring23.show() # long time
         sage: posdict23.show() # long time
     """
-    pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n):
-        x = float(cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        y = float(sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.wheel_graph(n)
-    return Graph(G, pos=pos_dict, name="Wheel graph")
+    from sage.graphs.generators.basic import CycleGraph
+    if n < 4:
+        G = CycleGraph(n)
+    else:
+        G = CycleGraph(n-1)
+        G.relabel(perm=list(range(1, n)), inplace=True)
+        G.add_edges([(0, i) for i in range(1, n)])
+        G._pos[0] = (0, 0)
+    G.name("Wheel graph")
+    return G
 
 def WindmillGraph(k, n):
     r"""
@@ -2683,9 +2725,10 @@ def RingedTree(k, vertex_labels = True):
 
     REFERENCES:
 
-    .. [CFHM12] On the Hyperbolicity of Small-World and Tree-Like Random Graphs
-      Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney
-      http://arxiv.org/abs/1201.1717
+    .. [CFHM12] *On the Hyperbolicity of Small-World and
+       Tree-Like Random Graphs*
+       Wei Chen, Wenjie Fang, Guangda Hu, Michael W. Mahoney
+       :arxiv:`1201.1717`
     """
     if k<1:
         raise ValueError('The number of levels must be >= 1.')
@@ -3111,7 +3154,7 @@ def MuzychukS6Graph(n, d, Phi='fixed', Sigma='fixed', verbose=False):
     # build L, L_i and the design
     m = int((n**d-1)/(n-1) + 1) #from m = p + 1, p = (n^d-1) / (n-1)
     L = CompleteGraph(m)
-    L.delete_edges([(2*x, 2*x + 1) for x in range(m/2)])
+    L.delete_edges([(2 * x, 2 * x + 1) for x in range(m // 2)])
     L_i = [L.edges_incident(x, labels=False) for x in range(m)]
     Design = ProjectiveGeometryDesign(d, d-1, GF(n, 'a'), point_coordinates=False)
     projBlocks = Design.blocks()

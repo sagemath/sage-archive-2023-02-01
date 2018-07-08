@@ -13,20 +13,22 @@ Numerical computation of newforms
 #*****************************************************************************
 from six import integer_types
 
+from sage.arith.all              import prime_range
+from sage.matrix.constructor     import matrix
+from sage.misc.misc              import verbose
+from sage.misc.prandom           import randint
+from sage.modular.arithgroup.all import Gamma0
+from sage.modular.modsym.all     import ModularSymbols
+from sage.modules.all            import vector
+from sage.rings.all              import CDF, Integer, QQ
+from sage.structure.richcmp      import richcmp_method, richcmp
 from sage.structure.sage_object  import SageObject
 from sage.structure.sequence     import Sequence
-from sage.modular.modsym.all     import ModularSymbols
-from sage.modular.arithgroup.all import Gamma0
-from sage.modules.all            import vector
-from sage.misc.misc              import verbose
-from sage.rings.all import CDF, Integer, QQ
-from sage.arith.all import next_prime, prime_range
-from sage.misc.prandom           import randint
-from sage.matrix.constructor     import matrix
 
 # This variable controls importing the SciPy library sparingly
 scipy=None
 
+@richcmp_method
 class NumericalEigenforms(SageObject):
     """
     numerical_eigenforms(group, weight=2, eps=1e-20, delta=1e-2, tp=[2,3,5])
@@ -108,24 +110,22 @@ class NumericalEigenforms(SageObject):
         self._eps = eps
         self._delta = delta
 
-    def __cmp__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Compare two spaces of numerical eigenforms. Currently
-        returns 0 if they come from the same space of modular
-        symbols, and -1 otherwise.
+        Compare two spaces of numerical eigenforms.
+
+        They are considered equal if and only if they come from the
+        same space of modular symbols.
 
         EXAMPLES::
 
             sage: n = numerical_eigenforms(23)
-            sage: n.__cmp__(loads(dumps(n)))
-            0
+            sage: n == loads(dumps(n))
+            True
         """
-        if not isinstance( other, NumericalEigenforms ):
-            raise ValueError("%s is not a space of numerical eigenforms"%other)
-        if self.modular_symbols() == other.modular_symbols():
-            return 0
-        else:
-            return -1
+        if not isinstance(other, NumericalEigenforms):
+            return NotImplemented
+        return richcmp(self.modular_symbols(), other.modular_symbols(), op)
 
     def level(self):
         """
@@ -224,7 +224,6 @@ class NumericalEigenforms(SageObject):
             pass
         verbose('Finding eigenvector basis')
         M = self.modular_symbols()
-        N = self.level()
 
         tp = self._tp
         p = tp[0]

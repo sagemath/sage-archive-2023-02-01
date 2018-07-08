@@ -186,7 +186,8 @@ symbolic ring. This is currently not supported as SR is not exact::
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt(3)/2)])
     Traceback (most recent call last):
     ...
-    ValueError: invalid base ring
+    ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+
     sage: SR.is_exact()
     False
 
@@ -198,6 +199,36 @@ triangle, that would be::
     sage: Polyhedron([(0,0), (1,0), (1/2, sqrt3/2)])
     A 2-dimensional polyhedron in (Number Field in sqrt3 with defining
     polynomial x^2 - 3)^2 defined as the convex hull of 3 vertices
+
+.. WARNING::
+
+    Be careful when you construct polyhedra with floating point numbers. The only
+    available backend for such computation is `cdd` which uses machine floating
+    point numbers which have have limited precision. If the input consists of
+    floating point numbers and the `base_ring` is not specified, the base ring is
+    set to be the `RealField` with the precision given by the minimal bit precision
+    of the input. Then, if the obtained minimum is 53 bits of precision, the
+    constructor converts automatically the base ring to `RDF`. Otherwise,
+    it returns an error::
+
+        sage: Polyhedron(vertices = [[1.12345678901234, 2.12345678901234]])
+        A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+        sage: Polyhedron(vertices = [[1.12345678901234, 2.123456789012345]])
+        A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+        sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]])
+        Traceback (most recent call last):
+        ...
+        ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+
+    The strongly suggested method to input floating point numbers is to specify the
+    `base_ring` to be `RDF`::
+
+        sage: Polyhedron(vertices = [[1.123456789012345, 2.123456789012345]], base_ring=RDF)
+        A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
+
+.. SEEALSO::
+
+    :mod:`Parents for polyhedra <sage.geometry.polyhedron.parent.Polyhedra>`
 
 Base classes
 ------------
@@ -244,7 +275,7 @@ AUTHORS:
     - Arnaud Bergeron: improvements to triangulation and rendering, 2008
     - Sebastien Barthelemy: documentation improvements, 2008
     - Volker Braun: refactoring, handle non-compact case, 2009 and 2010
-    - Andrey Novoseltsev: added Hasse_diagram_from_incidences, 2010
+    - Andrey Novoseltsev: added lattice_from_incidences, 2010
     - Volker Braun: rewrite to use PPL instead of cddlib, 2011
     - Volker Braun: Add support for arbitrary subfields of the reals
 """
@@ -260,7 +291,7 @@ AUTHORS:
 from __future__ import print_function
 from __future__ import absolute_import
 
-from sage.rings.all import QQ, ZZ, RDF, RR
+from sage.rings.all import ZZ, RDF, RR
 
 from .misc import _make_listlist, _common_length_of
 
@@ -270,7 +301,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
                backend=None):
-    """
+    r"""
     Construct a polyhedron object.
 
     You may either define it with vertex/ray/line or
@@ -338,8 +369,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       not used.
 
     - ``verbose`` -- boolean (default: ``False``). Whether to print
-      verbose output for debugging purposes. Only supported by the cdd
-      backends.
+      verbose output for debugging purposes. Only supported by the cdd and
+      normaliz backends.
 
     OUTPUT:
 
@@ -443,6 +474,25 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         sage: f = Fraction(int(6), int(8))
         sage: Polyhedron(vertices=[[f]])
         A 0-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex
+
+    Check that input with too many bits of precision returns an error (see
+    :trac:`22552`)::
+
+        sage: Polyhedron(vertices=[(8.3319544851638732, 7.0567045956967727), (6.4876921900819049, 4.8435898415984129)])
+        Traceback (most recent call last):
+        ...
+        ValueError: the only allowed inexact ring is 'RDF' with backend 'cdd'
+
+    Check that setting ``base_ring`` to a ``RealField`` returns an error (see :trac:`22552`)::
+
+        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(40))
+        Traceback (most recent call last):
+        ...
+        ValueError: no appropriate backend for computations with Real Field with 40 bits of precision
+        sage: Polyhedron(vertices =[(8.3, 7.0), (6.4, 4.8)], base_ring=RealField(53))
+        Traceback (most recent call last):
+        ...
+        ValueError: no appropriate backend for computations with Real Field with 53 bits of precision
     """
     # Clean up the arguments
     vertices = _make_listlist(vertices)
@@ -504,25 +554,25 @@ def Polyhedron(vertices=None, rays=None, lines=None,
             base_ring = base_ring.fraction_field()
             convert = True
 
-    # TODO: find a more robust way of checking that the coefficients are indeed
-    # real numbers
-    if base_ring not in Rings() or not RDF.has_coerce_map_from(base_ring):
-        raise ValueError("invalid base ring")
+        if base_ring not in Rings():
+            raise ValueError('invalid base ring')
 
-    # TODO: remove this hack
-    if base_ring is RR:
-        base_ring = RDF
-        convert = True
+        if not base_ring.is_exact():
+            # TODO: remove this hack?
+            if base_ring is RR:
+                base_ring = RDF
+                convert = True
+            elif base_ring is not RDF:
+                raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
     # Add the origin if necessary
-    if got_Vrep and len(vertices)==0:
+    if got_Vrep and len(vertices) == 0:
         vertices = [ [0]*ambient_dim ]
 
     # Specific backends can override the base_ring
     from sage.geometry.polyhedron.parent import Polyhedra
     parent = Polyhedra(base_ring, ambient_dim, backend=backend)
     base_ring = parent.base_ring()
-
 
     # finally, construct the Polyhedron
     Hrep = Vrep = None

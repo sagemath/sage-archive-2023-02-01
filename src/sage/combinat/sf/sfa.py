@@ -217,11 +217,9 @@ from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
-from sage.categories.algebras import Algebras
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
-import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.misc.all import prod, uniq
@@ -1015,7 +1013,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             basis ``self``. These functions are defined below.
 
             The Carlitz-Shareshian-Wachs symmetric functions have been
-            introduced in [GriRei2014]_, Exercise 2.87, as
+            introduced in [GriRei18]_, Exercise 2.9.11, as
             refinements of a certain particular case of chromatic
             quasisymmetric functions defined by Shareshian and Wachs.
             Their definitions are as follows:
@@ -1037,7 +1035,7 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 X_{n, d, s} = \sum_{w \in W(n, d, s)} x_w .
 
             This is a symmetric function (according to
-            [GriRei2014]_, Exercise 2.87(b)), and for `s = 0` equals
+            [GriRei18]_, Exercise 2.9.11(b)), and for `s = 0` equals
             the `t^d`-coefficient of the descent enumerator of Smirnov
             words of length `n` (an example of a chromatic
             quasisymmetric function which happens to be symmetric --
@@ -1056,14 +1054,16 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
             `w = (w_1, w_2, \ldots, w_n) \in W(n, d, s)`. These
             three power series `U_{n, d, s}`, `V_{n, d, s}` and
             `W_{n, d, s}` are symmetric functions as well
-            ([GriRei2014]_, Exercise 2.87(c)). Their sum is
+            ([GriRei18]_, Exercise 2.9.11(c)). Their sum is
             `X_{n, d, s}`.
 
             REFERENCES:
 
             .. [ShaWach2014] John Shareshian, Michelle L. Wachs.
                *Chromatic quasisymmetric functions*.
-               :arxiv:`1405.4629v1`.
+               :arxiv:`1405.4629v2`.
+
+            .. [GriRei18]_
 
             INPUT:
 
@@ -1287,9 +1287,7 @@ class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
             sage: bases = FilteredSymmetricFunctionsBases(Sym)
             sage: bases.super_categories()
             [Category of bases of Symmetric Functions over Rational Field,
-             Join of Category of hopf algebras with basis over Rational Field
-                 and Category of filtered algebras with basis over Rational Field
-                 and Category of commutative algebras over Rational Field]
+             Category of commutative filtered hopf algebras with basis over Rational Field]
         """
         cat = HopfAlgebras(self.base().base_ring()).Commutative().WithBasis().Filtered()
         return [SymmetricFunctionsBases(self.base()), cat]
@@ -1559,7 +1557,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         self._sym = Sym
         if graded:
             cat = GradedSymmetricFunctionsBases(Sym)
-        else: # Right now, there are no non-filted bases
+        else: # Right now, there are no non-filtered bases
             cat = FilteredSymmetricFunctionsBases(Sym)
         CombinatorialFreeModule.__init__(self, Sym.base_ring(), _Partitions,
                                          category=cat,
@@ -2398,7 +2396,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
             (f \cdot g) \{ h \} = (f \{ h \}) \ast (g \{ h \})~.
 
-        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`, 
+        .. SEEALSO:: :meth:`_inner_plethysm_pk_g`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.itensor`,
             :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.inner_plethysm`
 
@@ -2822,7 +2820,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).plethysm(s(0))
             s[]
 
-        Sage also handles plethsym of tensor products of symmetric functions::
+        Sage also handles plethysm of tensor products of symmetric functions::
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: X = tensor([s[1],s[[]]])
@@ -4270,6 +4268,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         r"""
         Return the standard scalar product between ``self`` and ``x``.
 
+        This is also known as the "Hall inner product" or the
+        "Hall scalar product".
+
         INPUT:
 
         - ``x`` -- element of the ring of symmetric functions over the
@@ -4979,7 +4980,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         resPR = PolynomialRing(parent.base_ring(), n, alphabet)
         if self == parent.zero():
             return resPR.zero()
-        e = eval('symmetrica.compute_' + str(classical.translate[parent.basis_name()]).lower() + '_with_alphabet')
+        import sage.libs.symmetrica.all as symmetrica
+        e = getattr(symmetrica, 'compute_{}_with_alphabet'.format(classical.translate[parent.basis_name()].lower()))
         def f(part):
             if not part:
                 return resPR.one()

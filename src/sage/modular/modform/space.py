@@ -70,12 +70,10 @@ from .element import ModularFormElement, Newform
 from . import defaults
 from . import hecke_operator_on_qexp
 
-
-import sage.modular.modform.constructor
-
 from sage.matrix.constructor import zero_matrix
 from sage.arith.all import gcd
 from sage.rings.infinity import PlusInfinity
+from sage.rings.integer import Integer
 
 WARN=False
 
@@ -136,9 +134,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             WARN=False
         if not arithgroup.is_CongruenceSubgroup(group):
             raise TypeError("group (=%s) must be a congruence subgroup"%group)
-        weight = int(weight)
-        #if not isinstance(weight, int):
-        #    raise TypeError, "weight must be an int"
+        weight = Integer(weight)
         if not ((character is None) or isinstance(character, dirichlet.DirichletCharacter)):
             raise TypeError("character must be a Dirichlet character")
         if not isinstance(base_ring, rings.Ring):
@@ -306,10 +302,19 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: ModularForms(Gamma0(11),2).character()
             Dirichlet character modulo 11 of conductor 1 mapping 2 |--> 1
 
-        A space of forms with nontrivial character::
+        Spaces of forms with nontrivial character::
 
             sage: ModularForms(DirichletGroup(20).0,3).character()
             Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
+
+            sage: M = ModularForms(DirichletGroup(11).0, 3)
+            sage: M.character()
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
+            sage: s = M.cuspidal_submodule()
+            sage: s.character()
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
+            sage: CuspForms(DirichletGroup(11).0,3).character()
+            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
 
         A space of forms with no particular character (hence None is
         returned)::
@@ -824,7 +829,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         # It's over Q; we just need to intersect it with ZZ^n.
         A = rings.ZZ**prec
-        zero = rings.ZZ(0)
         gens = [f.padded_list(prec) for f in B]
         C = A.span(gens)
         D = C.saturation()
@@ -1167,7 +1171,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if self.is_ambient() or x.is_ambient():
             return richcmp(self.dimension(), x.dimension(), op)
         else:
-            return richcmp(self.free_module(), x.free_module(), op)
+            return self.free_module()._echelon_matrix_richcmp(x.free_module(), op)
 
     def span_of_basis(self, B):
         """
@@ -1463,23 +1467,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__sturm_bound = G.sturm_bound(self.weight())+1
         return self.__sturm_bound
 
-    def character(self):
-        """
-        Return the Dirichlet character of this space.
-
-        EXAMPLES::
-
-            sage: M = ModularForms(DirichletGroup(11).0, 3)
-            sage: M.character()
-            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
-            sage: s = M.cuspidal_submodule()
-            sage: s.character()
-            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
-            sage: CuspForms(DirichletGroup(11).0,3).character()
-            Dirichlet character modulo 11 of conductor 11 mapping 2 |--> zeta10
-        """
-        return self.__character
-
     def cuspidal_submodule(self):
         """
         Return the cuspidal submodule of self.
@@ -1516,16 +1503,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         except AttributeError:
             pass
         if self.is_ambient():
-            # By definition the cuspidal submodule of the ambient space
-            # is spanned by the first n standard basis vectors, where
-            # n is the dimension of the cuspidal submodule.
-            n = self.__ambient_cusp_dimension()
-            W = self.__submodule_from_subset_of_basis(range(n))
-            S = ModularForms(self, W)
-            S.__is_cuspidal = True
-            S.__is_eisenstein = (n==0)
-            self.__cuspidal_submodule = S
-            return S
+            raise NotImplementedError("ambient modular forms spaces must override cuspidal_submodule")
         C = self.ambient_module().cuspidal_submodule()
         S = self.intersection(C)
         if S.dimension() < self.dimension():
@@ -1715,19 +1693,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             pass
 
         if self.is_ambient():
-            # By definition the eisenstein submodule of the ambient space
-            # is spanned by the n+1 through n+d standard basis vectors, where
-            # n is the dimension of the cuspidal submodule and d
-            # is the dimension of the eisenstein submodule (i.e., the
-            # number of eisenstein series).
-            n = self.__ambient_cusp_dimension()
-            d = self.__ambient_eis_dimension()
-            W = self.__submodule_from_subset_of_basis(range(n,n+d))
-            E = ModularForms(self, W)
-            E.__is_eisenstein = True
-            E.__is_cuspidal = (d==0)
-            self.__eisenstein_submodule = E
-            return E
+            raise NotImplementedError("ambient modular forms spaces must override eisenstein_submodule")
         A = self.ambient_module().eisenstein_submodule()
         E = self.intersection(A)
         if E.dimension() < self.dimension():

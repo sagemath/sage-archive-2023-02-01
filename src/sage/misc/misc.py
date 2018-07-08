@@ -54,6 +54,10 @@ from sage.env import DOT_SAGE, HOSTNAME
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
+#################################################################
+# File and directory utilities
+#################################################################
+
 def sage_makedirs(dir):
     """
     Python version of ``mkdir -p``: try to create a directory, and also
@@ -579,13 +583,13 @@ def generic_cmp(x,y):
     Compare x and y and return -1, 0, or 1.
 
     This is similar to x.__cmp__(y), but works even in some cases
-    when a .__cmp__ method isn't defined.
+    when a .__cmp__ method is not defined.
     """
     from sage.misc.superseded import deprecation
     deprecation(21926, "generic_cmp() is deprecated")
-    if x<y:
+    if x < y:
         return -1
-    elif x==y:
+    elif x == y:
         return 0
     return 1
 
@@ -594,9 +598,12 @@ def cmp_props(left, right, props):
     from sage.misc.superseded import deprecation
     deprecation(23149, "cmp_props is deprecated")
     for a in props:
-        c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
-        if c:
-            return c
+        lx = left.__getattribute__(a)()
+        rx = right.__getattribute__(a)()
+        if lx < rx:
+            return -1
+        elif lx > rx:
+            return 1
     return 0
 
 
@@ -1174,10 +1181,29 @@ def random_sublist(X, s):
     return [a for a in X if random.random() <= s]
 
 
-def some_tuples(elements, repeat, bound):
+def some_tuples(elements, repeat, bound, max_samples=None):
     r"""
     Return an iterator over at most ``bound`` number of ``repeat``-tuples of
     ``elements``.
+
+    INPUT:
+
+    - ``elements`` -- an iterable
+    - ``repeat`` -- integer (default ``None``), the length of the tuples to be returned.
+      If ``None``, just returns entries from ``elements``.
+    - ``bound`` -- the maximum number of tuples returned (ignored if ``max_samples`` given)
+    - ``max_samples`` -- non-negative integer (default ``None``).  If given,
+      then a sample of the possible tuples will be returned,
+      instead of the first few in the standard order.
+
+    OUTPUT:
+
+    If ``max_samples`` is not provided, an iterator over the first
+    ``bound`` tuples of length ``repeat``, in the standard nested-for-loop order.
+
+    If ``max_samples`` is provided, a list of at most ``max_samples`` tuples,
+    sampled uniformly from the possibilities.  In this case, ``elements``
+    must be finite.
 
     TESTS::
 
@@ -1192,15 +1218,44 @@ def some_tuples(elements, repeat, bound):
         sage: len(list(l))
         10
 
-    .. TODO::
-
-        Currently, this only return an iterator over the first element of the
-        Cartesian product. It would be smarter to return something more
-        "random like" as it is used in tests. However, this should remain
-        deterministic.
+        sage: l = some_tuples(range(3), 2, None, max_samples=10)
+        sage: len(list(l))
+        9
     """
-    from itertools import islice, product
-    return islice(product(elements, repeat=repeat), bound)
+    if max_samples is None:
+        from itertools import islice, product
+        P = elements if repeat is None else product(elements, repeat=repeat)
+        return islice(P, bound)
+    else:
+        if not (hasattr(elements, '__len__') and hasattr(elements, '__getitem__')):
+            elements = list(elements)
+        n = len(elements)
+        N = n if repeat is None else n**repeat
+        if N <= max_samples:
+            from itertools import product
+            return elements if repeat is None else product(elements, repeat=repeat)
+        return _some_tuples_sampling(elements, repeat, max_samples, n)
+
+def _some_tuples_sampling(elements, repeat, max_samples, n):
+    """
+    Internal function for :func:`some_tuples`.
+
+    TESTS::
+
+        sage: from sage.misc.misc import _some_tuples_sampling
+        sage: list(_some_tuples_sampling(range(3), 3, 2, 3))
+        [(0, 1, 0), (1, 1, 1)]
+        sage: list(_some_tuples_sampling(range(20), None, 4, 20))
+        [0, 6, 9, 3]
+    """
+    from sage.rings.integer import Integer
+    N = n if repeat is None else n**repeat
+    # We sample on range(N) and create tuples manually since we don't want to create the list of all possible tuples in memory
+    for a in random.sample(range(N), max_samples):
+        if repeat is None:
+            yield elements[a]
+        else:
+            yield tuple(elements[j] for j in Integer(a).digits(n, padto=repeat))
 
 def powerset(X):
     r"""

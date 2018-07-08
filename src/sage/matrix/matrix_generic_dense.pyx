@@ -10,6 +10,7 @@ from cpython.ref cimport *
 
 cimport sage.matrix.matrix_dense as matrix_dense
 from . import matrix_dense
+from .args cimport MatrixArgs_init
 
 cimport sage.matrix.matrix as matrix
 
@@ -41,20 +42,33 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         True
         sage: A+1 < A
         False
+
+    Test hashing::
+
+        sage: A = random_matrix(Integers(25)['x'], 2)
+        sage: hash(A)
+        Traceback (most recent call last):
+        ...
+        TypeError: mutable matrices are unhashable
+        sage: A.set_immutable()
+        sage: hash(A)
+        6226886770042072326  # 64-bit
+        -1594888954          # 32-bit
     """
-    ########################################################################
-    # LEVEL 1 functionality
-    # 0 * __cinit__   (not needed)
-    # x * __init__
-    # 0 * __dealloc__   (not needed)
-    # x * set_unsafe
-    # x * get_unsafe
-    # x * def _pickle
-    # x * def _unpickle
-    ########################################################################
-    def __init__(self, parent, entries, copy, coerce):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
-        See :class:`Matrix_generic_dense` for documentation.
+        Initialize a dense matrix.
+
+        INPUT:
+
+        - ``parent`` -- a matrix space
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         TESTS:
 
@@ -69,76 +83,20 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             sage: Matrix_generic_dense(M, (x, y), True, True)
             [x y]
         """
-        matrix.Matrix.__init__(self, parent)
-
-        cdef Py_ssize_t i,j
-        cdef bint is_list
-
-        R = parent.base_ring()
-        zero = R.zero()
-
-        # determine if entries is a list or a scalar
-        if entries is None:
-            entries = zero
-            is_list = False
-        elif parent_c(entries) is R:
-            is_list = False
-        elif type(entries) is list:
-            # here we do a strong type checking as we potentially want to
-            # assign entries to self._entries without copying it
-            self._entries = entries
-            is_list = True
-        elif isinstance(entries, (list,tuple)):
-            # it is needed to check for list here as for example Sequence
-            # inherits from it but fails the strong type checking above
-            self._entries = list(entries)
-            is_list = True
-            copy = False
-        else:
-            # not sure what entries is at this point... try scalar first
-            try:
-                entries = R(entries)
-                is_list = False
-            except TypeError:
-                try:
-                    self._entries = list(entries)
-                    is_list = True
-                    copy = False
-                except TypeError:
-                    raise TypeError("entries must be coercible to a list or the base ring")
-
-        # now set self._entries
-        if is_list:
-            if len(self._entries) != self._nrows * self._ncols:
-                raise TypeError("entries has the wrong length")
-            if coerce:
-                self._entries = [R(x) for x in self._entries]
-            elif copy:
-                self._entries = self._entries[:]
-        elif self._nrows == self._ncols:
-            self._entries = [zero]*(self._nrows*self._nrows)
-            for i in range(self._nrows):
-                self._entries[i+self._ncols*i]=entries
-        elif entries == zero:
-            self._entries = [zero]*(self._nrows*self._ncols)
-        else:
-            raise TypeError("nonzero scalar matrix must be square")
+        ma = MatrixArgs_init(parent, entries)
+        self._entries = ma.list(coerce)
 
     cdef Matrix_generic_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols):
         r"""
         Return a new dense matrix with no entries set.
         """
-        cdef Matrix_generic_dense res
-        res = self.__class__.__new__(self.__class__, 0, 0, 0)
-
         if nrows == self._nrows and ncols == self._ncols:
-            res._parent = self._parent
+            MS = self._parent
         else:
-            res._parent = self.matrix_space(nrows, ncols)
-        res._ncols  = ncols
-        res._nrows  = nrows
-        res._base_ring = self._base_ring
-        return res
+            MS = self.matrix_space(nrows, ncols)
+
+        cdef type t = <type>type(self)
+        return <Matrix_generic_dense>t.__new__(t, MS)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         self._entries[i*self._ncols + j] = value
@@ -181,21 +139,6 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             self._entries = data
         else:
             raise RuntimeError("unknown matrix version")
-
-    def __hash__(self):
-        """
-        EXAMPLES:
-            sage: A = random_matrix(Integers(25)['x'],2)
-            sage: hash(A)
-            Traceback (most recent call last):
-            ...
-            TypeError: mutable matrices are unhashable
-            sage: A.set_immutable()
-            sage: hash(A)
-            139665060168050560   # 64-bit
-            -623270016           # 32-bit
-        """
-        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality

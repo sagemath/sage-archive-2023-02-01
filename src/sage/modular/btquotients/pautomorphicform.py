@@ -45,7 +45,7 @@ REFERENCES:
    Cameron Franc
    Ph.D. thesis, McGill University, 2011.
 """
-from __future__ import print_function
+from __future__ import print_function, division
 
 from builtins import zip
 
@@ -69,6 +69,7 @@ from sage.misc.misc import verbose
 from sage.rings.real_mpfr import RR
 from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+from sage.misc.superseded import deprecated_function_alias
 
 # Need this to be pickleable
 
@@ -403,11 +404,11 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: X = BruhatTitsQuotient(3,17)
             sage: H = X.harmonic_cocycles(2,prec=10)
             sage: H.basis()[0]._compute_element()
-            (1 + O(3^9), O(3^9), 0)
+            (1 + O(3^10), O(3^10), 0)
             sage: H.basis()[1]._compute_element()
-            (0, 1 + O(3^9), 0)
+            (0, 1 + O(3^10), 0)
             sage: H.basis()[2]._compute_element()
-            (0, O(3^9), 1 + O(3^10))
+            (0, O(3^10), 1 + O(3^10))
         """
         R = self._R
         A = self.parent().basis_matrix().transpose()
@@ -555,13 +556,13 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: b = H.basis()[0]
             sage: R.<a> = Qq(9,prec=10)
             sage: x1 = b.modular_form(a,level = 0); x1
-            a + (2*a + 1)*3 + (a + 1)*3^2 + (a + 1)*3^3 + 3^4 + (a + 2)*3^5 + O(3^7)
+            a + (2*a + 1)*3 + (a + 1)*3^2 + (a + 1)*3^3 + 3^4 + (a + 2)*3^5 + a*3^7 + O(3^8)
             sage: x2 = b.modular_form(a,level = 1); x2
-            a + (a + 2)*3 + (2*a + 1)*3^3 + (2*a + 1)*3^4 + 3^5 + (a + 2)*3^6 + O(3^7)
+            a + (a + 2)*3 + (2*a + 1)*3^3 + (2*a + 1)*3^4 + 3^5 + (a + 2)*3^6 + a*3^7 + O(3^8)
             sage: x3 = b.modular_form(a,level = 2); x3
-            a + (a + 2)*3 + (2*a + 2)*3^2 + 2*a*3^4 + (a + 1)*3^5 + 3^6 + O(3^7)
+            a + (a + 2)*3 + (2*a + 2)*3^2 + 2*a*3^4 + (a + 1)*3^5 + 3^6 + O(3^8)
             sage: x4 = b.modular_form(a,level = 3);x4
-            a + (a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + 2*a*3^5 + a*3^6 + O(3^7)
+            a + (a + 2)*3 + (2*a + 2)*3^2 + (2*a + 2)*3^3 + 2*a*3^5 + a*3^6 + (a + 2)*3^7 + O(3^8)
             sage: (x4-x3).valuation()
             3
 
@@ -627,9 +628,9 @@ class BruhatTitsHarmonicCocycleElement(HeckeModuleElement):
             sage: b.modular_form(a,level=0) == b.derivative(a,level=0,order=0)
             True
             sage: b.derivative(a,level=1,order=1)
-            (2*a + 2)*3 + (a + 2)*3^2 + 2*a*3^3 + O(3^4)
+            (2*a + 2)*3 + (a + 2)*3^2 + 2*a*3^3 + 2*3^4 + O(3^5)
             sage: b.derivative(a,level=2,order=1)
-            (2*a + 2)*3 + 2*a*3^2 + 3^3 + O(3^4)
+            (2*a + 2)*3 + 2*a*3^2 + 3^3 + a*3^4 + O(3^5)
 
         """
         def F(z):
@@ -750,7 +751,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
 
         self._U = Symk(self._k - 2, base=self._R, act_on_left=True,
                        adjuster=_btquot_adjuster(),
-                       dettwist=-ZZ((self._k - 2) / 2), act_padic=True)
+                       dettwist=-ZZ((self._k - 2) // 2), act_padic=True)
 
         if basis_matrix is None:
             self.__rank = self._X.dimension_harmonic_cocycles(self._k)
@@ -1301,9 +1302,9 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         """
         HeckeData, alpha = self._X._get_hecke_data(l)
         if self.level() % l == 0:
-            factor = QQ(l ** (Integer((self._k - 2) / 2)) / (l + 1))
+            factor = QQ(l ** (Integer((self._k - 2) // 2)) / (l + 1))
         else:
-            factor = QQ(l ** (Integer((self._k - 2) / 2)))
+            factor = QQ(l ** (Integer((self._k - 2) // 2)))
         p = self._X._p
         alphamat = self.embed_quaternion(alpha)
         tmp = [self._U(0) for jj in range(len(self._E))]
@@ -1818,7 +1819,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         """
         MMM = self.parent()
         U = MMM._U
-        S0 = MMM._Sigma0
 
         h1 = MMM([o.lift(M=MMM.precision_cap()) for o in self._value])
         h2 = MMM._apply_Up_operator(h1, True)
@@ -1924,7 +1924,7 @@ class pAdicAutomorphicFormElement(ModuleElement):
                 delta = e.determinant()
                 verbose('%s' % (R2([e[0, 1], e[0, 0]])
                                 / R2([e[1, 1], e[1, 0]])))
-                tmp = ((c * x + d) ** n * delta ** -ZZ(n / 2)) * f((a * x + b) / (c * x + d))
+                tmp = ((c * x + d) ** n * delta ** -ZZ(n // 2)) * f((a * x + b) / (c * x + d))
                 exp = R1(tmp.numerator()) / R1(tmp.denominator())
                 new = eval_dist_at_powseries(self.evaluate(e), exp)
 
@@ -2146,7 +2146,6 @@ class pAdicAutomorphicFormElement(ModuleElement):
         R = PolynomialRing(K, 'x')
         x = R.gen()
         R1 = LaurentSeriesRing(K, 'r1', default_prec=self.parent()._U.base_ring().precision_cap())
-        r1 = R1.gen()
         if E is None:
             E = self.parent()._source._BT.find_covering(t1, t2)
             # print('Got ', len(E), ' open balls.')
@@ -2282,12 +2281,12 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
                                         prec_cap=U - 1 + t,
                                         act_on_left=True,
                                         adjuster=_btquot_adjuster(),
-                                        dettwist=-ZZ((U - 2) / 2),
+                                        dettwist=-ZZ((U - 2) // 2),
                                         act_padic=True)
             else:
                 self._U = Symk(U - 2, base=self._R, act_on_left=True,
                                adjuster=_btquot_adjuster(),
-                               dettwist=-ZZ((U - 2) / 2),
+                               dettwist=-ZZ((U - 2) // 2),
                                act_padic=True)
         else:
             self._U = U
@@ -2320,7 +2319,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
         """
         return self._p
 
-    def zero_element(self):
+    def zero(self):
         r"""
         Return the zero element of ``self``.
 
@@ -2328,10 +2327,20 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
             sage: X = BruhatTitsQuotient(5, 7)
             sage: H1 = X.padic_automorphic_forms( 2, prec=10)
-            sage: H1.zero_element() == 0
+            sage: H1.zero() == 0
             True
+
+        TESTS::
+
+           sage: H1.zero_element() == 0
+           doctest:...:
+           DeprecationWarning: zero_element is deprecated. Please use zero instead.
+           See http://trac.sagemath.org/24203 for details.
+           True
         """
         return self.element_class(self, [self._U(0) for o in self._list])
+
+    zero_element = deprecated_function_alias(24203, zero)
 
     def __eq__(self, other):
         r"""
@@ -2478,7 +2487,7 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
             vals = self._make_invariant([self._U(o,normalize=False) for o in F])
             return self.element_class(self, vals)
         if data == 0:
-            return self.zero_element()
+            return self.zero()
 
     def _an_element_(self):
         r"""

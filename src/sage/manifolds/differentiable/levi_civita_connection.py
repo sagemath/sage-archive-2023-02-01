@@ -42,7 +42,7 @@ class LeviCivitaConnection(AffineConnection):
     Let `C^\infty(M)` be the algebra of smooth functions
     `M\rightarrow \RR` (cf.
     :class:`~sage.manifolds.differentiable.scalarfield_algebra.DiffScalarFieldAlgebra`)
-    and let `\mathcal{X}(M)` be the `C^\infty(M)`-module of vector fields on
+    and let `\mathfrak{X}(M)` be the `C^\infty(M)`-module of vector fields on
     `M` (cf.
     :class:`~sage.manifolds.differentiable.vectorfield_module.VectorFieldModule`).
     The *Levi-Civita connection associated with* `g` is the unique operator
@@ -50,14 +50,14 @@ class LeviCivitaConnection(AffineConnection):
     .. MATH::
 
         \begin{array}{cccc}
-        \nabla: & \mathcal{X}(M)\times \mathcal{X}(M) & \longrightarrow &
-                 \mathcal{X}(M) \\
+        \nabla: & \mathfrak{X}(M)\times \mathfrak{X}(M) & \longrightarrow &
+                 \mathfrak{X}(M) \\
                 & (u,v) & \longmapsto & \nabla_u v
         \end{array}
 
     that
 
-    - is `\RR`-bilinear, i.e. is bilinear when considering `\mathcal{X}(M)` as
+    - is `\RR`-bilinear, i.e. is bilinear when considering `\mathfrak{X}(M)` as
       a vector space over `\RR`
     - is `C^\infty(M)`-linear w.r.t. the first argument:
       `\forall f\in C^\infty(M),\ \nabla_{fu} v = f\nabla_u v`
@@ -65,7 +65,7 @@ class LeviCivitaConnection(AffineConnection):
       `\forall f\in C^\infty(M),\ \nabla_u (f v) = \mathrm{d}f(u)\, v + f  \nabla_u v`
     - is torsion-free
     - is compatible with `g`:
-      `\forall (u,v,w)\in \mathcal{X}(M)^3,\ u(g(v,w)) = g(\nabla_u v, w) + g(v, \nabla_u w)`
+      `\forall (u,v,w)\in \mathfrak{X}(M)^3,\ u(g(v,w)) = g(\nabla_u v, w) + g(v, \nabla_u w)`
 
     The Levi-Civita connection `\nabla` gives birth to the *covariant derivative
     operator* acting on tensor fields, denoted by the same symbol:
@@ -86,13 +86,13 @@ class LeviCivitaConnection(AffineConnection):
 
     .. MATH::
 
-        \forall u \in\mathcal{X}(M), \   \nabla_u v = \nabla v(., u)
+        \forall u \in\mathfrak{X}(M), \   \nabla_u v = \nabla v(., u)
 
     More generally for any tensor field `t\in T^{(k,l)}(M)`, we have
 
     .. MATH::
 
-        \forall u \in\mathcal{X}(M), \   \nabla_u t = \nabla t(\ldots, u)
+        \forall u \in\mathfrak{X}(M), \   \nabla_u t = \nabla t(\ldots, u)
 
 
     .. NOTE::
@@ -532,7 +532,7 @@ class LeviCivitaConnection(AffineConnection):
                         # sequential
                         for ind in gam.non_redundant_index_generator():
                             i, j, k = ind
-                            # The computation is performed at the CoordFunction level:
+                            # The computation is performed at the ChartFunction level:
                             rsum = 0
                             for s in manif.irange():
                                 rsum += ginv[i,s, chart] * (

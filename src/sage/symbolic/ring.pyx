@@ -14,6 +14,8 @@ The symbolic ring
 #*****************************************************************************
 from __future__ import absolute_import
 
+from sage.ext.cplusplus cimport ccrepr
+
 from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
@@ -22,6 +24,7 @@ from sage.rings.real_mpfr cimport RealNumber
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
 
 from sage.misc.latex import latex_variable_name
+from sage.cpython.string cimport str_to_bytes, char_to_str
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -47,7 +50,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             sage: isinstance(SR, sage.symbolic.ring.SymbolicRing)
             True
-            sage: TestSuite(SR).run()
+            sage: TestSuite(SR).run(skip=['_test_divides'])
 
         """
         if base_ring is None:
@@ -229,7 +232,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: x.subs(x=y0/y1)
             y0/y1
             sage: x + long(1)
-            x + 1L
+            x + 1
 
         If `a` is already in the symbolic expression ring, coercing returns
         `a` itself (not a copy)::
@@ -260,12 +263,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._coerce_(RIF(pi))
             3.141592653589794?
 
-        A number modulo 7::
-
-            sage: a = SR(Mod(3,7)); a
-            3
-            sage: a^2
-            2
+        The complex number `I`::
 
             sage: si = SR.coerce(I)
             sage: si^2
@@ -298,14 +296,6 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t.operator(), t.operands()
             (<function mul_vararg at 0x...>, [x^5, log(y), 3])
 
-        Check that :trac:`20162` is fixed::
-
-            sage: k.<a> = GF(9)
-            sage: SR(a).is_real()
-            False
-            sage: SR(a).is_positive()
-            False
-
         We get a sensible error message if conversion fails::
 
             sage: SR(int)
@@ -330,6 +320,15 @@ cdef class SymbolicRing(CommutativeRing):
             False
             sage: sin(x).subs(x=complex('NaN'))
             sin(NaN)
+
+        Check that :trac:`24072` is solved::
+
+            sage: x = polygen(GF(3))
+            sage: a = SR.var('a')
+            sage: (2*x + 1) * a
+            Traceback (most recent call last):
+            ...
+            TypeError: positive characteristic not allowed in symbolic computations
         """
         cdef GEx exp
         if is_Expression(x):
@@ -337,7 +336,7 @@ cdef class SymbolicRing(CommutativeRing):
                 return x
             else:
                 return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        elif hasattr(x, '_symbolic_'):
+        if hasattr(x, '_symbolic_'):
             return x._symbolic_(self)
         elif isinstance(x, str):
             try:
@@ -361,7 +360,7 @@ cdef class SymbolicRing(CommutativeRing):
                 from sage.symbolic.constants import NaN
                 return NaN
             exp = x
-        elif isinstance(x, (Integer, long)):
+        elif isinstance(x, long):
             exp = x
         elif isinstance(x, int):
             exp = GEx(<long>x)
@@ -372,6 +371,8 @@ cdef class SymbolicRing(CommutativeRing):
         elif x is unsigned_infinity:
             return new_Expression_from_GEx(self, g_UnsignedInfinity)
         elif isinstance(x, (RingElement, Matrix)):
+            if x.parent().characteristic():
+                raise TypeError('positive characteristic not allowed in symbolic computations')
             exp = x
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
@@ -684,7 +685,7 @@ cdef class SymbolicRing(CommutativeRing):
             # get symbol
             symb = ex_to_symbol(e._gobj)
             if latex_name is not None:
-                symb.set_texname(latex_name)
+                symb.set_texname(str_to_bytes(latex_name))
             if domain is not None:
                 symb.set_domain(sage_domain_to_ginac_domain(domain))
             e._gobj = GEx(symb)
@@ -709,7 +710,8 @@ cdef class SymbolicRing(CommutativeRing):
                     ginac_domain = sage_domain_to_ginac_domain(domain)
                 else:
                     ginac_domain = domain_complex
-                symb = ginac_symbol(name, latex_name, ginac_domain)
+                symb = ginac_symbol(str_to_bytes(name),
+                                    str_to_bytes(latex_name), ginac_domain)
                 self.symbols[name] = e
 
             e._gobj = GEx(symb)
@@ -728,7 +730,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         - ``latex_name`` -- (optional) string used when printing in latex mode, if not specified use ``'name'``
 
-        - ``n`` -- (optional) nonnegative integer; number of symbolic variables, indexed from `0` to `n-1`
+        - ``n`` -- (optional) positive integer; number of symbolic variables, indexed from `0` to `n-1`
 
         - ``domain`` -- (optional) specify the domain of the variable(s); it is the complex plane
           by default, and possible options are (non-exhaustive list, see note below):
@@ -778,8 +780,11 @@ cdef class SymbolicRing(CommutativeRing):
 
         Automatic indexing is available as well::
 
-            sage: SR.var('x', 4)
-            (x0, x1, x2, x3)
+            sage: x = SR.var('x', 4)
+            sage: x[0], x[3]
+            (x0, x3)
+            sage: sum(x)
+            x0 + x1 + x2 + x3
 
         TESTS::
 
@@ -878,7 +883,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR._repr_element_(x+2)
             'x + 2'
         """
-        return GEx_to_str(&x._gobj)
+        return ccrepr(x._gobj)
 
     def _latex_element_(self, Expression x):
         """
@@ -891,7 +896,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: latex(var('theta') + 2)
             \theta + 2
         """
-        return GEx_to_str_latex(&x._gobj)
+        return char_to_str(GEx_to_str_latex(&x._gobj))
 
     def _call_element_(self, _the_element, *args, **kwds):
         """

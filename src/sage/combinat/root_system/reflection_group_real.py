@@ -33,12 +33,6 @@ AUTHORS:
     experimental package (installed by ``sage -i gap3``) or to
     download by hand from `Jean Michel's website
     <http://webusers.imj-prg.fr/~jean.michel/gap3/>`_.
-
-.. TODO::
-
-    - Implement descents, left/right descents, ``has_descent``,
-      ``first_descent`` directly in this class, since the generic
-      implementation is much slower.
 """
 #*****************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
@@ -309,14 +303,22 @@ class RealReflectionGroup(ComplexReflectionGroup):
           * ``'breadth'`` - iterate over in a linear extension of the
             weak order
           * ``'depth'`` - iterate by a depth-first-search
+          * ``'parabolic'`` - iterate by using parabolic subgroups
 
         - ``tracking_words`` (default: ``True``) -- whether or not to keep
           track of the reduced words and store them in ``_reduced_word``
 
         .. NOTE::
 
-            The fastest iteration is the depth first algorithm without
-            tracking words. In particular, ``'depth'`` is ~1.5x faster.
+            The fastest iteration is the parabolic iteration and the
+            depth first algorithm without tracking words is second.
+            In particular, ``'depth'`` is ~1.5x faster than ``'breadth'``.
+
+        .. NOTE::
+
+            The ``'parabolic'`` iteration does not track words and requires
+            keeping the subgroup corresponding to `I \setminus \{i\}` in
+            memory (for each `i` individually).
 
         EXAMPLES::
 
@@ -406,7 +408,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
         """
         if len(self._type) == 1:
             ct = self._type[0]
-            return CartanType([ct['series'], ct['rank']])
+            C = CartanType([ct['series'], ct['rank']])
+            return C.relabel({ i+1 : ii for i,ii in enumerate(self.index_set()) })
         else:
             return CartanType([W.cartan_type() for W in self.irreducible_components()])
 
@@ -592,7 +595,6 @@ class RealReflectionGroup(ComplexReflectionGroup):
             [2 3 1]
         """
         return self.cartan_type().coxeter_matrix()
-
 
     @cached_method
     def right_coset_representatives(self, J):

@@ -23,6 +23,7 @@ from .element cimport parent, coercion_model, Element, ModuleElement
 from .parent cimport Parent
 from .coerce_exceptions import CoercionException
 from sage.categories.action cimport InverseAction, PrecomposedAction
+from sage.arith.long cimport integer_check_long
 
 
 cdef _record_exception():
@@ -141,7 +142,7 @@ cdef class ActOnAction(GenericAction):
             2*x + 3*y + z
 
             sage: type(A)
-            <type 'sage.structure.coerce_actions.ActOnAction'>
+            <... 'sage.structure.coerce_actions.ActOnAction'>
         """
         if self._is_left:
             return (<Element>a)._act_on_(b, True)
@@ -164,7 +165,7 @@ cdef class ActedUponAction(GenericAction):
             Infinity
 
             sage: type(A)
-            <type 'sage.structure.coerce_actions.ActedUponAction'>
+            <... 'sage.structure.coerce_actions.ActedUponAction'>
         """
         if self._is_left:
             return (<Element>b)._acted_upon_(a, False)
@@ -208,7 +209,7 @@ def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
         sage: detect_element_action(A, ZZ, True)
         Traceback (most recent call last):
         ...
-        RuntimeError: an_element() for <class '__main__.MyParent'> returned None
+        RuntimeError: an_element() for <__main__.MyParent object at ...> returned None
     """
     cdef Element x
     if X_el is None or (parent(X_el) is not X):
@@ -521,10 +522,10 @@ cdef class ModuleAction(Action):
             Power Series Ring in y over Symbolic Constants Subring
             sage: R.<x> = SR.subring(no_variables=True)[]
             sage: cm = sage.structure.element.get_coercion_model()
-            sage: cm.explain(x, 1, operator.div)
+            sage: cm.explain(x, 1, operator.truediv)
             Action discovered.
                 Right inverse action by Symbolic Constants Subring on Univariate Polynomial Ring in x over Symbolic Constants Subring
-                with precomposition on right by Coercion map:
+                with precomposition on right by Conversion via _symbolic_ method map:
                   From: Integer Ring
                   To:   Symbolic Constants Subring
             Result lives in Univariate Polynomial Ring in x over Symbolic Constants Subring
@@ -646,46 +647,76 @@ cdef class RightModuleAction(ModuleAction):
         return (<ModuleElement>a)._lmul_(<Element>g)  # a * g
 
 
-cdef class IntegerMulAction(Action):
+cdef class IntegerAction(Action):
+    """
+    Abstract base class representing some action by integers on
+    something. Here, "integer" is defined loosely in the "duck typing"
+    sense.
 
-    def __init__(self, ZZ, M, is_left=True, m=None):
-        r"""
-        This class implements the action `n \cdot a = a + a + \cdots + a` via
-        repeated doubling.
+    INPUT:
 
-        Both addition and negation must be defined on the set `M`.
+    - ``Z`` -- a type or parent representing integers
 
-        NOTE:
+    For the other arguments, see :class:`Action`.
 
-        This class is used internally in Sage's coercion model. Outside of the
-        coercion model, special precautions are needed to prevent domains of
-        the action from being garbage collected.
+    .. NOTE::
 
-        INPUT:
+        This class is used internally in Sage's coercion model. Outside
+        of the coercion model, special precautions are needed to prevent
+        domains of the action from being garbage collected.
+    """
+    def __init__(self, Z, S, is_left, op):
+        if isinstance(Z, type):
+            from sage.structure.parent import Set_PythonType
+            Z = Set_PythonType(Z)
+        super().__init__(Z, S, is_left, op)
 
-        - An integer ring, ``ZZ``
-        - A ``ZZ`` module ``M``
-        - Optional: An element ``m`` of ``M``
-
+    def __invert__(self):
+        """
         EXAMPLES::
 
             sage: from sage.structure.coerce_actions import IntegerMulAction
-            sage: R.<x> = QQ['x']
-            sage: act = IntegerMulAction(ZZ, R)
-            sage: act(5, x)
-            5*x
-            sage: act(0, x)
-            0
-            sage: act(-3, x-1)
-            -3*x + 3
+            sage: act = IntegerMulAction(ZZ, CDF)
+            sage: ~act
+            Traceback (most recent call last):
+            ...
+            TypeError: actions by ZZ cannot be inverted
         """
-        if isinstance(ZZ, type):
-            from sage.structure.parent import Set_PythonType
-            ZZ = Set_PythonType(ZZ)
+        raise TypeError("actions by ZZ cannot be inverted")
+
+
+cdef class IntegerMulAction(IntegerAction):
+    r"""
+    Implement the action `n \cdot a = a + a + ... + a` via repeated
+    doubling.
+
+    Both addition and negation must be defined on the set `M`.
+
+    INPUT:
+
+    - ``Z`` -- a type or parent representing integers
+
+    - ``M`` -- a ``ZZ``-module
+
+    - ``m`` -- (optional) an element of ``M``
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce_actions import IntegerMulAction
+        sage: R.<x> = QQ['x']
+        sage: act = IntegerMulAction(ZZ, R)
+        sage: act(5, x)
+        5*x
+        sage: act(0, x)
+        0
+        sage: act(-3, x-1)
+        -3*x + 3
+    """
+    def __init__(self, Z, M, is_left=True, m=None):
         if m is None:
             m = M.an_element()
-        test = m + (-m) # make sure addition and negation is allowed
-        Action.__init__(self, ZZ, M, is_left, operator.mul)
+        test = m + (-m)  # make sure addition and negation is allowed
+        super().__init__(Z, M, is_left, operator.mul)
 
     cpdef _call_(self, nn, a):
         """
@@ -724,32 +755,22 @@ cdef class IntegerMulAction(Action):
 
         Check that large multiplications can be interrupted::
 
-            sage: alarm(0.5); (2^(10^7)) * P
+            sage: alarm(0.5); (2^(10^7)) * P  # not tested; see trac:#24986
             Traceback (most recent call last):
             ...
             AlarmInterrupt
 
         """
+        cdef int err = 0
+        cdef long n_long
+
         if not self._is_left:
             a, nn = nn, a
-        if type(nn) is not int:
-            nn = PyNumber_Int(nn)
-            if type(nn) is not int:
-                return fast_mul(a, nn)
-        return fast_mul_long(a, PyInt_AS_LONG(nn))
 
-    def __invert__(self):
-        """
-        EXAMPLES::
+        if integer_check_long(nn, &n_long, &err) and not err:
+            return fast_mul_long(a, n_long)
 
-            sage: from sage.structure.coerce_actions import IntegerMulAction
-            sage: act = IntegerMulAction(ZZ, CDF)
-            sage: ~act
-            Traceback (most recent call last):
-            ...
-            TypeError: No generic module division by Z.
-        """
-        raise TypeError("No generic module division by Z.")
+        return fast_mul(a, nn)
 
     def _repr_name_(self):
         """
@@ -767,6 +788,101 @@ cdef class IntegerMulAction(Action):
         """
         return "Integer Multiplication"
 
+
+cdef class IntegerPowAction(IntegerAction):
+    r"""
+    The right action ``a ^ n = a * a * ... * a`` where `n` is an
+    integer.
+
+    The action is implemented using the ``_pow_int`` method on elements.
+
+    INPUT:
+
+    - ``Z`` -- a type or parent representing integers
+
+    - ``M`` -- a parent whose elements implement ``_pow_int``
+
+    - ``m`` -- (optional) an element of ``M``
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce_actions import IntegerPowAction
+        sage: R.<x> = LaurentSeriesRing(QQ)
+        sage: act = IntegerPowAction(ZZ, R)
+        sage: act(x, 5)
+        x^5
+        sage: act(x, -2)
+        x^-2
+        sage: act(x, int(5))
+        x^5
+
+    TESTS::
+
+        sage: IntegerPowAction(ZZ, R, True)
+        Traceback (most recent call last):
+        ...
+        ValueError: powering must be a right action
+        sage: IntegerPowAction(ZZ, QQ^3)
+        Traceback (most recent call last):
+        ...
+        TypeError: no integer powering action defined on Vector space of dimension 3 over Rational Field
+
+    ::
+
+        sage: var('x,y')
+        (x, y)
+        sage: RDF('-2.3')^(x+y^3+sin(x))
+        (-2.3)^(y^3 + x + sin(x))
+        sage: RDF('-2.3')^x
+        (-2.3)^x
+    """
+    def __init__(self, Z, M, is_left=False, m=None):
+        if is_left:
+            raise ValueError("powering must be a right action")
+        if m is None:
+            m = M.an_element()
+        try:
+            # Check that there is a _pow_int() method
+            m._pow_int
+        except AttributeError:
+            raise TypeError(f"no integer powering action defined on {M}")
+        super().__init__(Z, M, False, operator.pow)
+
+    cpdef _call_(self, a, n):
+        """
+        EXAMPLES:
+
+        Note that coerce actions should only be used inside of the coercion
+        model. For this test, we need to strongly reference the field
+        ``GF(101)``::
+
+            sage: from sage.structure.coerce_actions import IntegerPowAction
+            sage: GF101 = GF(101)
+            sage: act = IntegerPowAction(ZZ, GF101)
+            sage: act(3, 100)
+            1
+            sage: act(3, -1)
+            34
+            sage: act(3, 1000000000000000000000000000000000000000000001)
+            3
+        """
+        cdef Element e = <Element>a
+        cdef long value = 0
+        cdef int err
+        integer_check_long(n, &value, &err)
+        if not err:
+            return e._pow_long(value)
+        return e._pow_int(n)
+
+    def _repr_name_(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.structure.coerce_actions import IntegerPowAction
+            sage: IntegerPowAction(ZZ, QQ)
+            Right Integer Powering by Integer Ring on Rational Field
+        """
+        return "Integer Powering"
 
 
 cdef inline fast_mul(a, n):

@@ -21,7 +21,6 @@ from sage.misc.lazy_import import LazyImport, lazy_import
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
-from sage.misc.sage_itertools import max_cmp, min_cmp
 from sage.categories.homsets import HomsetsCategory
 from sage.categories.cartesian_product import CartesianProductsCategory
 from sage.categories.tensor import tensor, TensorProductsCategory
@@ -676,8 +675,8 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                the elements of ``gens`` are already in (not necessarily
                reduced) echelon form
 
-            - ``unitrangular`` -- (default: ``False``) whether
-              the lift morphism is unitrangular
+            - ``unitriangular`` -- (default: ``False``) whether
+              the lift morphism is unitriangular
 
             If ``already_echelonized`` is ``False``, then the
             generators are put in reduced echelon form using
@@ -1006,7 +1005,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return self.sum(self.term(index, coeff) for (index, coeff) in terms)
 
         def linear_combination(self, iter_of_elements_coeff, factor_on_left=True):
-            """
+            r"""
             Return the linear combination `\lambda_1 v_1 + \cdots +
             \lambda_k v_k` (resp.  the linear combination `v_1 \lambda_1 +
             \cdots + v_k \lambda_k`) where ``iter_of_elements_coeff`` iterates
@@ -1327,14 +1326,14 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 AssertionError: [2, 1] should be an element of Partitions
 
             Test that ``coefficient`` also works for those parents that do
-            not yet have an element_class::
+            not have an ``element_class``::
 
-                sage: G = DihedralGroup(3)
-                sage: F = CombinatorialFreeModule(QQ, G)
-                sage: hasattr(G, "element_class")
+                sage: H = End(ZZ)
+                sage: F = CombinatorialFreeModule(QQ, H)
+                sage: hasattr(H, "element_class")
                 False
-                sage: g = G.an_element()
-                sage: (2*F.monomial(g)).coefficient(g)
+                sage: h = H.an_element()
+                sage: (2*F.monomial(h)).coefficient(h)
                 2
             """
             # NT: coefficient_fast should be the default, just with appropriate assertions
@@ -1582,7 +1581,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.leading_support()
                 [3]
             """
-            return max_cmp(self.support(), *args, **kwds)
+            return max(self.support(), *args, **kwds)
 
         def leading_item(self, *args, **kwds):
             r"""
@@ -1728,7 +1727,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: f.trailing_support()
                 [1]
             """
-            return min_cmp(self.support(), *args, **kwds)
+            return min(self.support(), *args, **kwds)
 
         def trailing_item(self, *args, **kwds):
             r"""
@@ -2025,7 +2024,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 This method simply delegates the work to
                 :meth:`ModulesWithBasis.ParentMethods.module_morphism`. It
                 is used by :meth:`Homset.__call__` to handle the
-                ``on_basis`` argument, and will disapear as soon as
+                ``on_basis`` argument, and will disappear as soon as
                 the logic will be generalized.
 
                 EXAMPLES::
@@ -2156,7 +2155,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                     sage: A.an_element()
                     B[word: ] + 2*B[word: a] + 3*B[word: b] + B[word: bab]
                     sage: B.an_element()
-                    B[()] + 4*B[(1,2,3)] + 2*B[(1,3)]
+                    B[()] + B[(1,2)] + 3*B[(1,2,3)] + 2*B[(1,3)]
                     sage: cartesian_product((A, B, A)).an_element()           # indirect doctest
                     2*B[(0, word: )] + 2*B[(0, word: a)] + 3*B[(0, word: b)]
                 """

@@ -366,8 +366,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         if all(n.parent() is f for n, f in zip(element, factors)):
             parent = self
         else:
-            from .misc import underlying_class
-            parent = underlying_class(self)(tuple(n.parent() for n in element),
+            parent = self._underlying_class()(tuple(n.parent() for n in element),
                                             category=self.category())
         return parent(element)
 
@@ -683,7 +682,6 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
         """
         from .growth_group import GenericGrowthGroup, AbstractGrowthGroupFunctor
         from .misc import merge_overlapping
-        from .misc import underlying_class
         from sage.structure.element import get_coercion_model
 
         Sfactors = self.cartesian_factors()
@@ -701,7 +699,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             try:
                 return merge_overlapping(
                     Sfactors, Ofactors,
-                    lambda f: (underlying_class(f), f._var_.var_repr))
+                    lambda f: (f._underlying_class(), f._var_.var_repr))
             except ValueError:
                 pass
 
@@ -723,7 +721,7 @@ class GenericProduct(CartesianProductPoset, GenericGrowthGroup):
             try:
                 return merge_overlapping(
                     tuple(subfactors(Sfactors)), tuple(subfactors(Ofactors)),
-                    lambda f: (underlying_class(f), f._var_.var_repr))
+                    lambda f: (f._underlying_class(), f._var_.var_repr))
             except ValueError:
                 pass
 

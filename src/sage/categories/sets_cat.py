@@ -10,8 +10,8 @@ Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
+from six.moves import range
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
@@ -241,7 +241,7 @@ class Sets(Category_singleton):
            Proper forgetful functors will eventually be implemented, with
            another syntax.
         """
-        if enumerated_set and type(X) in (tuple,list):
+        if enumerated_set and type(X) in (tuple,list,range):
             from sage.categories.enumerated_sets import EnumeratedSets
             return EnumeratedSets()(X)
         from sage.sets.set import Set
@@ -941,12 +941,8 @@ class Sets(Category_singleton):
         Facades = deprecated_function_alias(17073, Facade)
 
     class ParentMethods:
-#         # currently overriden by the default implementation in sage.structure.Parent
-#         def __call__(self, *args, **options):
-#             return self.element_class(*args, **options)
-
-        # Todo: simplify the _element_constructor definition logic
-        # Todo: find a nicer mantra for conditionaly defined methods
+        # TODO: simplify the _element_constructor_ definition logic
+        # TODO: find a nicer mantra for conditionally defined methods
         @lazy_attribute
         def _element_constructor_(self):
             r"""
@@ -961,13 +957,13 @@ class Sets(Category_singleton):
                 sage: A = FreeModule(QQ, 3)
                 sage: A.element_class
                 <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
-                sage: A._element_constructor
+                sage: A._element_constructor_
                 <bound method FreeModule_ambient_field_with_category._element_constructor_ of Vector space of dimension 3 over Rational Field>
 
                 sage: B = SymmetricGroup(3).algebra(ZZ)
                 sage: B.element_class
                 <...SymmetricGroupAlgebra_n_with_category.element_class'>
-                sage: B._element_constructor
+                sage: B._element_constructor_
                 <bound method SymmetricGroupAlgebra_n_with_category._element_constructor_
                 of Symmetric group algebra of order 3 over Integer Ring>
             """
@@ -1261,7 +1257,8 @@ class Sets(Category_singleton):
             We test a non transitive equality::
 
                 sage: R = Zp(3)
-                sage: Sets().ParentMethods._test_elements_eq_transitive.__func__(R,elements=[R(3,2),R(3,1),R(0)])
+                sage: test = raw_getattr(Sets().ParentMethods, "_test_elements_eq_transitive")
+                sage: test(R, elements=[R(3,2),R(3,1),R(0)])
                 Traceback (most recent call last):
                 ...
                 AssertionError: non transitive equality:
@@ -1388,7 +1385,7 @@ class Sets(Category_singleton):
             tester = self._tester(**options)
             elements = self.some_elements()
             # Todo: enable this once
-            #tester.assert_(elements != iter(elements),
+            #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
                 tester.assertTrue(x in self, LazyFormat(
@@ -1562,14 +1559,15 @@ class Sets(Category_singleton):
                 sage: A.category()
                 Category of finite group algebras over Rational Field
                 sage: a = A.an_element(); a
-                () + 4*(1,2,3,4) + 2*(1,4)(2,3)
+                () + 3*(1,2,3,4) + (1,3) + 2*(1,4)(2,3)
 
             This space is endowed with an algebra structure, obtained
             by extending by bilinearity the multiplication of `G` to a
             multiplication on `RG`::
 
                 sage: a * a
-                5*() + 8*(2,4) + 8*(1,2,3,4) + 8*(1,3) + 16*(1,3)(2,4) + 4*(1,4)(2,3)
+                6*() + 6*(2,4) + 3*(1,2)(3,4) + 8*(1,2,3,4) + 8*(1,3)
+                 + 9*(1,3)(2,4) + 2*(1,4,3,2) + 7*(1,4)(2,3)
 
             If `S` is a :class:`monoid <Monoids>`, the result is its
             monoid algebra `KS`::
@@ -2166,7 +2164,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
-                wheels = map(iter, factors)
+                wheels = [iter(f) for f in factors]
                 digits = [next(it) for it in wheels]
                 while True:
                     yield self._cartesian_product_of_elements(digits)
@@ -2552,7 +2550,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 """
                 tester = self._tester(**options)
                 for R in self.realizations():
-                    tester.assert_(R in self.Realizations())
+                    tester.assertTrue(R in self.Realizations())
                 # Could check that there are coerce maps between any two realizations
 
             @lazy_attribute

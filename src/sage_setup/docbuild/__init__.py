@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The documentation builder
 
@@ -9,6 +10,33 @@ in a subprocess call to sphinx, see :func:`builder_helper`.
 * The builder can be configured in build_options.py
 * The sphinx subprocesses are configured in conf.py
 """
+# ****************************************************************************
+#       Copyright (C) 2008-2009 Mike Hansen <mhansen@gmail.com>
+#                     2009-2010 Mitesh Patel <qed777@gmail.com>
+#                     2009-2015 J. H. Palmieri <palmieri@math.washington.edu>
+#                     2009 Carl Witty <cwitty@newtonlabs.com>
+#                     2010-2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2012 William Stein <wstein@gmail.com>
+#                     2012-2014 Nicolas M. Thiery <nthiery@users.sf.net>
+#                     2012-2015 André Apitzsch <andre.apitzsch@etit.tu-chemnitz.de>
+#                     2012 Florent Hivert <Florent.Hivert@univ-rouen.fr>
+#                     2013-2014 Volker Braun <vbraun.name@gmail.com>
+#                     2013 R. Andrew Ohana <andrew.ohana@gmail.com>
+#                     2015 Thierry Monteil <sage@lma.metelu.net>
+#                     2015 Marc Mezzarobba <marc@mezzarobba.net>
+#                     2015 Travis Scrimshaw <tscrim at ucdavis.edu>
+#                     2016-2017 Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2016 Erik M. Bray <erik.bray@lri.fr>
+#                     2017 Kwankyu Lee <ekwankyu@gmail.com>
+#                     2017 François Bissey <frp.bissey@gmail.com>
+#                     2018 Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+# ****************************************************************************
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -16,6 +44,8 @@ from six.moves import range
 
 import optparse, os, shutil, subprocess, sys, re
 import logging, warnings
+
+logger = logging.getLogger(__name__)
 
 import sphinx.cmdline
 import sphinx.util.console
@@ -29,33 +59,6 @@ from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC
 from .build_options import (LANGUAGES, SPHINXOPTS, PAPER, OMIT,
      PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS,
      INCREMENTAL_BUILD, ABORT_ON_ERROR)
-
-
-def excepthook(*exc_info):
-    """
-    Print docbuild error and hint how to solve it
-    """
-    logger.error('Error building the documentation.', exc_info=exc_info)
-    if INCREMENTAL_BUILD:
-        logger.error('''
-Note: incremental documentation builds sometimes cause spurious
-error messages. To be certain that these are real errors, run
-"make doc-clean" first and try again.''')
-
-
-def delete_empty_directories(root_dir):
-    """
-    Delete all empty directories found under ``root_dir``
-
-    INPUT:
-
-    - ``root_dir`` -- string. A valid directory name.
-    """
-    for dirpath, dirnames, filenames in os.walk(root_dir, topdown=False):
-        if not dirnames + filenames:
-            logger.warning('Deleting empty directory {0}'.format(dirpath))
-            os.rmdir(dirpath)
-
 
 ##########################################
 #      Parallel Building Ref Manual      #
@@ -78,6 +81,28 @@ def builder_helper(type):
     """
     Returns a function which builds the documentation for
     output type ``type``.
+
+    TESTS:
+
+    Check that :trac:`25161` has been resolved::
+
+        sage: from sage_setup.docbuild import DocBuilder, setup_parser
+        sage: DocBuilder._options = setup_parser().parse_args([])[0] # builder_helper needs _options to be set
+
+        sage: import sage_setup.docbuild.sphinxbuild
+        sage: def raiseBaseException():
+        ....:     raise BaseException("abort pool operation")
+        sage: original_runsphinx, sage_setup.docbuild.sphinxbuild.runsphinx = sage_setup.docbuild.sphinxbuild.runsphinx, raiseBaseException
+
+        sage: from sage_setup.docbuild import builder_helper, build_many, build_ref_doc
+        sage: helper = builder_helper("html")
+        sage: build_many(build_ref_doc, [("docname", "en", "html", {})])
+        Traceback (most recent call last):
+        ...
+        Exception: ('Non-exception during docbuild: abort pool operation', BaseException('abort pool operation',))
+
+        sage: sage_setup.docbuild.sphinxbuild.runsphinx = original_runsphinx
+
     """
     def f(self, *args, **kwds):
         output_dir = self._output_dir(type)
@@ -106,6 +131,12 @@ def builder_helper(type):
         except Exception:
             if ABORT_ON_ERROR:
                 raise
+        except BaseException as e:
+            # We need to wrap a BaseException that is not an Exception in a
+            # regular Exception. Otherwise multiprocessing.Pool.get hangs, see
+            # #25161
+            if ABORT_ON_ERROR:
+                raise Exception("Non-exception during docbuild: %s"%(e,), e)
 
         if "/latex" in output_dir:
             logger.warning("LaTeX file written to {}".format(output_dir))
@@ -198,8 +229,7 @@ class DocBuilder(object):
         """
         Builds the PDF files for this document.  This is done by first
         (re)-building the LaTeX output, going into that LaTeX
-        directory, and running 'make all-pdf' (or for the special case of
-        the ja docs, 'all-pdf-ja(ex,to run platex)' there.
+        directory, and running 'make all-pdf' there.
 
         EXAMPLES::
 
@@ -212,13 +242,7 @@ class DocBuilder(object):
         pdf_dir = self._output_dir('pdf')
         make_target = "cd '%s' && $MAKE %s && mv -f *.pdf '%s'"
         error_message = "failed to run $MAKE %s in %s"
-        MB_LANG = {'ja': 'all-pdf-ja'} # language name : the modified target
-
-        # Replace the command for languages that require special processing
-        if self.lang in MB_LANG:
-            command = MB_LANG[self.lang]
-        else:
-            command = 'all-pdf'
+        command = 'all-pdf'
 
         if subprocess.call(make_target%(tex_dir, command, pdf_dir), shell=True):
             raise RuntimeError(error_message%(command, tex_dir))
@@ -240,7 +264,6 @@ class DocBuilder(object):
     linkcheck = builder_helper('linkcheck')
     # import the customized builder for object.inv files
     inventory = builder_helper('inventory')
-
 
 if NUM_THREADS > 1:
     def build_many(target, args):
@@ -640,7 +663,7 @@ for a webpage listing all of the documents.''' % (output_dir,
             ['reference/algebras',
              'reference/arithgroup',
              ...,
-             'reference/tensor_free_modules']
+             'reference/valuations']
         """
         documents = []
 
@@ -688,23 +711,22 @@ class ReferenceSubBuilder(DocBuilder):
         """
         # Force regeneration of all modules if the inherited
         # and/or underscored members options have changed.
-        global options
         cache = self.get_cache()
         force = False
         try:
-            if (cache['option_inherited'] != options.inherited or
-                cache['option_underscore'] != options.underscore):
+            if (cache['option_inherited'] != self._options.inherited or
+                cache['option_underscore'] != self._options.underscore):
                 logger.info("Detected change(s) in inherited and/or underscored members option(s).")
                 force = True
         except KeyError:
             force = True
-        cache['option_inherited'] = options.inherited
-        cache['option_underscore'] = options.underscore
+        cache['option_inherited'] = self._options.inherited
+        cache['option_underscore'] = self._options.underscore
         self.save_cache()
 
         # After "sage -clone", refresh the reST file mtimes in
         # environment.pickle.
-        if options.update_mtimes:
+        if self._options.update_mtimes:
             logger.info("Checking for reST file mtimes to update...")
             self.update_mtimes()
 
@@ -774,14 +796,16 @@ class ReferenceSubBuilder(DocBuilder):
         Returns the Sphinx environment for this project.
         """
         from sphinx.environment import BuildEnvironment
-        class Foo(object):
-            pass
-        config = Foo()
-        config.values = []
+        class FakeConfig(object):
+            values = tuple()
+        class FakeApp(object):
+            def __init__(self, dir):
+                self.srcdir = dir
+                self.config = FakeConfig()
 
         env_pickle = os.path.join(self._doctrees_dir(), 'environment.pickle')
         try:
-            env = BuildEnvironment.frompickle(self.dir, config, env_pickle)
+            env = BuildEnvironment.frompickle(env_pickle, FakeApp(self.dir))
             logger.debug("Opened Sphinx environment: %s", env_pickle)
             return env
         except IOError as err:
@@ -1027,8 +1051,7 @@ class ReferenceSubBuilder(DocBuilder):
         outfile.write('='*len(title) + "\n\n")
         outfile.write('.. This file has been autogenerated.\n\n')
 
-        global options
-        inherited = ':inherited-members:' if options.inherited else ''
+        inherited = ':inherited-members:' if self._options.inherited else ''
 
         automodule = '''
 .. automodule:: %s
@@ -1116,8 +1139,6 @@ class SingleFileBuilder(DocBuilder):
         - ``path`` - the path to the file for which documentation
           should be built
         """
-        global options
-
         self.lang = 'en'
         self.name = 'single_file'
         path = os.path.abspath(path)
@@ -1129,8 +1150,8 @@ class SingleFileBuilder(DocBuilder):
         module_name = os.path.splitext(os.path.basename(path))[0]
         latex_name = module_name.replace('_', r'\_')
 
-        if options.output_dir:
-            base_dir = os.path.join(options.output_dir, module_name)
+        if self._options.output_dir:
+            base_dir = os.path.join(self._options.output_dir, module_name)
             if os.path.exists(base_dir):
                 logger.warning('Warning: Directory %s exists. It is safer to build in a new directory.' % base_dir)
         else:
@@ -1540,10 +1561,17 @@ def setup_parser():
     return parser
 
 def setup_logger(verbose=1, color=True):
-    """
-    Sets up and returns a Python Logger instance for the Sage
-    documentation builder.  The optional argument sets logger's level
-    and message format.
+    r"""
+    Set up a Python Logger instance for the Sage documentation builder. The
+    optional argument sets logger's level and message format.
+
+    EXAMPLES::
+
+        sage: from sage_setup.docbuild import setup_logger, logger
+        sage: setup_logger()
+        sage: logger
+        <logging.Logger object at ...>
+
     """
     # Set up colors. Adapted from sphinx.cmdline.
     import sphinx.util.console as c
@@ -1569,9 +1597,6 @@ def setup_logger(verbose=1, color=True):
         if i != len(fields):
             format_debug += " "
 
-    # Documentation:  http://docs.python.org/library/logging.html
-    logger = logging.getLogger('docbuild')
-
     # Note: There's also Handler.setLevel().  The argument is the
     # lowest severity message that the respective logger or handler
     # will pass on.  The default levels are DEBUG, INFO, WARNING,
@@ -1591,8 +1616,6 @@ def setup_logger(verbose=1, color=True):
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    return logger
-
 
 class IntersphinxCache:
     """
@@ -1622,8 +1645,8 @@ class IntersphinxCache:
 def main():
     # Parse the command-line.
     parser = setup_parser()
-    global options
     options, args = parser.parse_args()
+    DocBuilder._options = options
 
     # Get the name and type (target format) of the document we are
     # trying to build.
@@ -1634,8 +1657,15 @@ def main():
         sys.exit(1)
 
     # Set up module-wide logging.
-    global logger
-    logger = setup_logger(options.verbose, options.color)
+    setup_logger(options.verbose, options.color)
+
+    def excepthook(*exc_info):
+        logger.error('Error building the documentation.', exc_info=exc_info)
+        if INCREMENTAL_BUILD:
+            logger.error('''
+    Note: incremental documentation builds sometimes cause spurious
+    error messages. To be certain that these are real errors, run
+    "make doc-clean" first and try again.''')
 
     sys.excepthook = excepthook
 
@@ -1671,7 +1701,10 @@ def main():
     # Delete empty directories. This is needed in particular for empty
     # directories due to "git checkout" which never deletes empty
     # directories it leaves behind. See Trac #20010.
-    delete_empty_directories(SAGE_DOC_SRC)
+    for dirpath, dirnames, filenames in os.walk(SAGE_DOC_SRC, topdown=False):
+        if not dirnames + filenames:
+            logger.warning('Deleting empty directory {0}'.format(dirpath))
+            os.rmdir(dirpath)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

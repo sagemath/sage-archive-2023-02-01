@@ -399,17 +399,41 @@ class Mathematica(ExtraTabCompletion, Expect):
     """
     Interface to the Mathematica interpreter.
     """
-    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None, server_tmpdir=None):
+    def __init__(self, maxread=None, script_subdirectory=None, logfile=None, server=None,
+                 server_tmpdir=None, command=None, verbose_start=False):
+        # We use -rawterm to get a raw text interface in Mathematica 9 or later.
+        # This works around the following issues of Mathematica 9 or later
+        # (tested with Mathematica 11.0.1 for Mac OS X x86 (64-bit))
+        #
+        # 1) If TERM is unset and input is a pseudoterminal, Mathematica shows no
+        # prompts, so pexpect will not work.
+        #
+        # 2) If TERM is set (to dumb, lpr, vt100, or xterm), there will be
+        # prompts; but there is bizarre echoing behavior by Mathematica (not
+        # the terminal driver).  For example, with TERM=dumb, many spaces and
+        # \r's are echoed.  With TERM=vt100 or better, in addition, many escape
+        # sequences are printed.
+        #
+        if command is None:
+            command = os.getenv('SAGE_MATHEMATICA_COMMAND') or 'math -rawterm'
+        eval_using_file_cutoff = 1024
+        # Removing terminal echo using "stty -echo" is not essential but it slightly
+        # improves performance (system time) and eliminates races of the terminal echo
+        # as a possible source of error.
+        if server:
+            command = 'stty -echo; {}'.format(command)
+        else:
+            command = 'sh -c "stty -echo; {}"'.format(command)
         Expect.__init__(self,
                         name = 'mathematica',
+                        command = command,
                         prompt = 'In[[0-9]+]:=',
-                        command = "math-readline",
                         server = server,
                         server_tmpdir = server_tmpdir,
                         script_subdirectory = script_subdirectory,
-                        verbose_start = False,
+                        verbose_start = verbose_start,
                         logfile=logfile,
-                        eval_using_file_cutoff=50)
+                        eval_using_file_cutoff=eval_using_file_cutoff)
 
     def _read_in_file_command(self, filename):
         return '<<"%s"'%filename
@@ -872,7 +896,11 @@ class MathematicaElement(ExpectElement):
             sage: from sage.repl.rich_output import get_display_manager
             sage: dm = get_display_manager()
             sage: P = mathematica('Plot[Sin[x],{x,-2Pi,4Pi}]')   # optional - mathematica
-            sage: P._rich_repr_(dm)                              # optional - mathematica
+
+        The following test requires a working X display on Linux so that the
+        Mathematica frontend can do the rendering (:trac:`23112`)::
+
+            sage: P._rich_repr_(dm)                              # optional - mathematica mathematicafrontend
             OutputImagePng container
         """
         if self._is_graphics():
@@ -925,7 +953,7 @@ class MathematicaElement(ExpectElement):
     def str(self):
         return str(self)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
         #    return coerce.cmp(self, other)
         P = self.parent()

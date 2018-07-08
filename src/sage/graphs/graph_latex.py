@@ -202,7 +202,7 @@ This example illustrates switching between the built-in styles when using the tk
 This example illustrates using the optional dot2tex module::
 
     sage: g = graphs.PetersenGraph()
-    sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - dot2tex
+    sage: g.set_latex_options(format='dot2tex', prog='neato')
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
     sage: latex(g)  # optional - dot2tex graphviz
@@ -677,7 +677,7 @@ class GraphLatex(SageObject):
           to see possible values.  This color is ignored for the
           ``sphere`` vertex shape.
 
-        - ``vertex__fill_colors`` -- a dictionary whose keys are vertices
+        - ``vertex_fill_colors`` -- a dictionary whose keys are vertices
           of the graph and whose values are colors.  These will be used
           to fill the interior of vertices.  See the explanation
           above for the ``vertex_color`` option to see possible values.
@@ -1074,7 +1074,7 @@ class GraphLatex(SageObject):
         cc = ColorConverter()  # used as a color tester
 
         if not(option_name in GraphLatex.__graphlatex_options):
-            raise ValueError( "%s is not a LaTeX option for a graph." % option_name )
+            raise ValueError("%s is not a LaTeX option for a graph." % option_name)
         if option_value is None:    # clear the option, if set
             if option_name in self._options:
                 del self._options[option_name]
@@ -1105,16 +1105,16 @@ class GraphLatex(SageObject):
             #
             #  Checks/test on single values (ie graph-wide defaults)
             #
-            if name == 'tkz_style' and not( value in styles ):
+            if name == 'tkz_style' and value not in styles:
                 raise ValueError('%s is not "Custom", nor an implemented tkz-graph style' % name)
-            elif name == 'format' and not( value in formats ):
+            elif name == 'format' and value not in formats:
                 raise ValueError('%s option must be one of: tkz_graph, dot2tex not %s' % (name, value))
-            elif name == 'units' and not( value in unit_names ):
+            elif name == 'units' and value not in unit_names:
                 raise ValueError('%s option must be one of: in, mm, cm, pt, em, ex, not %s' % (name, value))
-            elif name == 'graphic_size' and not( isinstance(value, tuple) and (len(value) == 2) ):
+            elif name == 'graphic_size' and not(isinstance(value, tuple) and (len(value) == 2)):
                 raise ValueError( '%s option must be an ordered pair, not %s' % (name, value))
-            elif name == 'margins' and not( (isinstance(value, tuple)) and (len(value) == 4) ):
-                raise ValueError( '%s option must be 4-tuple, not %s' % (name, value))
+            elif name == 'margins' and not((isinstance(value, tuple)) and (len(value) == 4)):
+                raise ValueError('%s option must be 4-tuple, not %s' % (name, value))
             elif name in color_options:
                 try:
                     cc.to_rgb(value)
@@ -1124,13 +1124,13 @@ class GraphLatex(SageObject):
                 raise ValueError('%s option must be True or False, not %s' % (name, value))
             elif name == 'vertex_shape' and value not in shape_names:
                 raise ValueError('%s option must be the shape of a vertex, not %s' % (name, value))
-            elif name in positive_scalars and not ( type(value) in number_types and (value >= 0.0) ):
-                raise ValueError( '%s option must be a positive number, not %s' % (name, value))
+            elif name in positive_scalars and not (type(value) in number_types and (value >= 0.0)):
+                raise ValueError('%s option must be a positive number, not %s' % (name, value))
             elif name == 'vertex_label_placement' and not(value == 'center') and not(isinstance(value, tuple) and len(value) == 2 and type(value[0]) in number_types and value[0] >= 0 and type(value[1]) in number_types and value[1] >= 0):
-                raise ValueError( '%s option must be None, or a pair of positive numbers, not %s' % (name, value))
+                raise ValueError('%s option must be None, or a pair of positive numbers, not %s' % (name, value))
             elif name == 'edge_label_placement' and not(((type(value) in number_types) and (0 <= value) and (value <= 1)) or (value in label_places)):
-                raise ValueError( '%s option must be a number between 0.0 and 1.0 or a place (like "above"), not %s' % (name, value))
-            elif name == 'loop_placement' and not( (isinstance(value, tuple)) and (len(value) == 2) and (value[0] >= 0) and (value[1] in compass_points) ):
+                raise ValueError('%s option must be a number between 0.0 and 1.0 or a place (like "above"), not %s' % (name, value))
+            elif name == 'loop_placement' and not(isinstance(value, tuple) and (len(value) == 2) and (value[0] >= 0) and (value[1] in compass_points)):
                 raise ValueError( '%s option must be a pair that is a positive number followed by a compass point abbreviation, not %s' % (name, value))
             #
             #  Checks/test on dictionaries of values (ie per-vertex or per-edge defaults)
@@ -1201,7 +1201,7 @@ class GraphLatex(SageObject):
 
         INPUT:
 
-         - kwds - any number of option/value pairs to set many graph latex
+         - kwds -- any number of option/value pairs to set many graph latex
            options at once (a variable number, in any order). Existing
            values are overwritten, new values are added.  Existing
            values can be cleared by setting the value to ``None``.
@@ -1225,7 +1225,7 @@ class GraphLatex(SageObject):
 
         INPUT:
 
-        - option_name - the name of an option
+        - option_name -- the name of an option
 
         OUTPUT:
 
@@ -1251,7 +1251,7 @@ class GraphLatex(SageObject):
             ValueError: bad_name is not a Latex option for a graph.
         """
         if not(option_name in GraphLatex.__graphlatex_options):
-            raise ValueError( "%s is not a Latex option for a graph." % option_name )
+            raise ValueError("%s is not a Latex option for a graph." % option_name)
         else:
             if option_name in self._options:
                 return self._options[option_name]
@@ -1344,6 +1344,18 @@ class GraphLatex(SageObject):
             %
             \end{tikzpicture}
 
+        Check that :trac:`25120` is fixed::
+
+            sage: G = Graph([(0,1)])
+            sage: G.set_latex_options(edge_colors = {(0,1): 'red'})
+            sage: print(G.latex_options().dot2tex_picture()) # optional - dot2tex graphviz
+            \begin{tikzpicture}[>=latex,line join=bevel,]
+            ...
+            \draw [red,] (node_0) ... (node_1);
+            ...
+            \end{tikzpicture}
+
+
         .. NOTE::
 
             There is a lot of overlap between what tkz_picture and
@@ -1355,6 +1367,19 @@ class GraphLatex(SageObject):
 
         options = self.__graphlatex_options.copy()
         options.update(self._options)
+
+        # NOTE: the edge_labels option for graphviz_string is opposite
+        # see https://trac.sagemath.org/ticket/25120
+        if 'edge_colors' in options:
+            edge_colors = options['edge_colors']
+            new_edge_colors = {}
+            for edge,col in edge_colors.items():
+                if col in new_edge_colors:
+                    new_edge_colors[col].append(edge)
+                else:
+                    new_edge_colors[col] = [edge]
+            options['edge_colors'] = new_edge_colors
+
         dotdata = self._graph.graphviz_string(labels="latex", **options)
         import dot2tex
         return dot2tex.dot2tex(dotdata,
@@ -1484,8 +1509,6 @@ class GraphLatex(SageObject):
 
         from matplotlib.colors import ColorConverter
         from sage.misc.latex import latex
-        from sage.rings.real_mpfr import RealLiteral  # remove?
-        import copy
 
         # On first use of this method, the next call may print warnings
         # as a side effect, but will be silent on any subsequent use.
@@ -1539,12 +1562,11 @@ class GraphLatex(SageObject):
 
         # We grab the graph's layout (or it is computed as a consequence of the request)
         pos = self._graph.layout()
-
-        if len(pos.values()) > 0:
-            xmin = min([ i[0] for i in pos.values()])
-            ymin = min([ i[1] for i in pos.values()])
-            xmax = max([ i[0] for i in pos.values()])
-            ymax = max([ i[1] for i in pos.values()])
+        if pos.values():
+            xmin = min(i[0] for i in pos.values())
+            ymin = min(i[1] for i in pos.values())
+            xmax = max(i[0] for i in pos.values())
+            ymax = max(i[1] for i in pos.values())
         else:
             xmax, ymax = 0, 0
 
@@ -1592,7 +1614,7 @@ class GraphLatex(SageObject):
         # Needs care for perfectly horizontal and vertical layouts
         # pos = copy.deepcopy(self._graph.layout(layout = layout, labels = "latex"))
         pos = self._graph.layout()
-        if len(pos.values()) > 0:
+        if pos.values():
             xmin = min(i[0] for i in pos.values())
             ymin = min(i[1] for i in pos.values())
             xmax = max(i[0] for i in pos.values())
@@ -1621,10 +1643,6 @@ class GraphLatex(SageObject):
         # and doing a shift of the larger to center
         # A linear function will map layout positions into the bordered graphic space
 
-        def translate(p):
-            return ((p[0] - xmin) * x_scale + llx,
-                    (p[1] - ymin) * y_scale + lly)
-
         #############
         #  Vertices
         #############
@@ -1649,7 +1667,7 @@ class GraphLatex(SageObject):
         if customized:
             dvc = cc.to_rgb(self.get_option('vertex_color'))
             dvfc = cc.to_rgb(self.get_option('vertex_fill_color'))
-            dsh = self.get_option( 'vertex_shape' )
+            dsh = self.get_option('vertex_shape')
             dvs = self.get_option('vertex_size')
             #
             # Default label information, if using vertex labels
@@ -1864,18 +1882,18 @@ class GraphLatex(SageObject):
             vertex_label_color_names = {}
             for u in vertex_list:
                 vertex_color_names[ u ] = 'c' + prefix + str(index_of_vertex[ u ])
-                s += ['\definecolor{', vertex_color_names[ u ], '}{rgb}', '{']
+                s += [r'\definecolor{', vertex_color_names[ u ], '}{rgb}', '{']
                 s += [str(round( v_color[u][0],4)), ',']
                 s += [str(round( v_color[u][1],4)), ',']
                 s += [str(round( v_color[u][2],4)), '}\n']
                 vertex_fill_color_names[ u ] = 'cf' + prefix + str(index_of_vertex[ u ])
-                s += ['\definecolor{', vertex_fill_color_names[ u ], '}{rgb}', '{']
+                s += [r'\definecolor{', vertex_fill_color_names[ u ], '}{rgb}', '{']
                 s += [str(round( vf_color[u][0],4)), ',']
                 s += [str(round( vf_color[u][1],4)), ',']
                 s += [str(round( vf_color[u][2],4)), '}\n']
                 if vertex_labels:
                     vertex_label_color_names[u] = 'cl' + prefix + str(index_of_vertex[ u ])
-                    s += ['\definecolor{', vertex_label_color_names[ u ], '}{rgb}{']
+                    s += [r'\definecolor{', vertex_label_color_names[ u ], '}{rgb}{']
                     s += [str(round( vl_color[u][0],4)), ',']
                     s += [str(round( vl_color[u][1],4)), ',']
                     s += [str(round( vl_color[u][2],4)), '}\n']
@@ -1886,19 +1904,19 @@ class GraphLatex(SageObject):
             for e in self._graph.edges():
                 edge = (e[0], e[1])
                 edge_color_names[edge] = 'c' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
-                s += ['\definecolor{', edge_color_names[edge], '}{rgb}{']
+                s += [r'\definecolor{', edge_color_names[edge], '}{rgb}{']
                 s += [str(round( e_color[edge][0],4)), ',']
                 s += [str(round( e_color[edge][1],4)), ',']
                 s += [str(round( e_color[edge][2],4)), '}\n']
                 if edge_fills:
                     edge_fill_color_names[edge] = 'cf' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
-                    s += ['\definecolor{', edge_fill_color_names[edge], '}{rgb}{']
+                    s += [r'\definecolor{', edge_fill_color_names[edge], '}{rgb}{']
                     s += [str(round( ef_color[edge][0],4)), ',']
                     s += [str(round( ef_color[edge][1],4)), ',']
                     s += [str(round( ef_color[edge][2],4)), '}\n']
                 if edge_labels:
                     edge_label_color_names[edge] = 'cl' + prefix + str(index_of_vertex[edge[0]]) + prefix + str(index_of_vertex[edge[1]])
-                    s += ['\definecolor{', edge_label_color_names[edge], '}{rgb}{']
+                    s += [r'\definecolor{', edge_label_color_names[edge], '}{rgb}{']
                     s += [str(round( el_color[edge][0],4)), ',']
                     s += [str(round( el_color[edge][1],4)), ',']
                     s += [str(round( el_color[edge][2],4)), '}\n']
@@ -1934,9 +1952,9 @@ class GraphLatex(SageObject):
             # but may be ignored by the style, so not apparent
             if vertex_labels or not customized:
                 if vertex_labels_math and not (isinstance(u, str) and u[0] == '$' and u[-1] == '$'):
-                    lab = '\hbox{$%s$}' % latex(u)
+                    lab = r'\hbox{$%s$}' % latex(u)
                 else:
-                    lab = '\hbox{%s}' % u
+                    lab = r'\hbox{%s}' % u
                 s += ['L=', lab, ',']
             scaled_pos = translate(pos[u])
             s += ['x=', str(round(scale * scaled_pos[0],4)), units, ',']
@@ -1980,9 +1998,9 @@ class GraphLatex(SageObject):
                     s += ['},']
                     el = self._graph.edge_label(edge[0],edge[1])
                     if edge_labels_math and not (isinstance(el, str) and el[0] == '$' and el[-1] == '$'):
-                        lab = '\hbox{$%s$}' % latex(el)
+                        lab = r'\hbox{$%s$}' % latex(el)
                     else:
-                        lab = '\hbox{%s}' % el
+                        lab = r'\hbox{%s}' % el
                     s += ['label=', lab, ',']
             s += [']']
             if not loop:

@@ -65,22 +65,15 @@ TESTS::
 #       Copyright (C) 2004-2009 William Stein <wstein@gmail.com>
 #                     2014 Julian Rueth <julian.rueth@fsfe.org>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from __future__ import absolute_import, print_function
 from six import integer_types
-
-from sage.structure.parent_gens import localvars
 
 import sage.libs.ntl.all as ntl
 
@@ -94,17 +87,16 @@ from . import structure
 
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
-from warnings import warn
 
-import sage.rings.rational as rational
-import sage.rings.integer as integer
 import sage.rings.polynomial.polynomial_element as polynomial_element
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from . import number_field_element
 import sage.rings.number_field.number_field_ideal_rel
 from .number_field_ideal import is_NumberFieldIdeal
-from sage.rings.number_field.number_field import NumberField, NumberField_generic, put_natural_embedding_first, proof_flag
+from .number_field import (NumberField, NumberField_generic,
+    put_natural_embedding_first, proof_flag,
+    is_NumberFieldHomsetCodomain)
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.number_field.order import RelativeOrder
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
@@ -115,9 +107,6 @@ from sage.rings.integer_ring import ZZ
 import sage.rings.complex_interval_field
 CIF = sage.rings.complex_interval_field.ComplexIntervalField()
 
-# from sage.rings.number_field.number_field import is_AbsoluteNumberField
-# from sage.rings.number_field.number_field import is_QuadraticField
-# from sage.rings.number_field.number_field import is_CyclotomicField
 
 def is_RelativeNumberField(x):
     r"""
@@ -290,8 +279,8 @@ class NumberField_relative(NumberField_generic):
         if not isinstance(polynomial, polynomial_element.Polynomial):
             try:
                 polynomial = polynomial.polynomial(base)
-            except (AttributeError, TypeError) as msg:
-                raise TypeError("polynomial (=%s) must be a polynomial."%repr(polynomial))
+            except (AttributeError, TypeError):
+                raise TypeError("polynomial (=%r) must be a polynomial" % polynomial)
         if name == base.variable_name():
             raise ValueError("base field and extension cannot have the same name %r" % name)
         if polynomial.parent().base_ring() != base:
@@ -762,29 +751,33 @@ class NumberField_relative(NumberField_generic):
 
         return "Number Field in %s with defining polynomial %s over its base field"%(self.variable_name(), self.relative_polynomial())
 
-    def _Hom_(self, codomain, cat=None):
+    def _Hom_(self, codomain, category=None):
         """
         Return homset of homomorphisms from this relative number field
         to the codomain.
 
-        The cat option is currently ignored. The result is not cached.
-
         EXAMPLES:
-        This function is implicitly called by the Hom method or function.::
+
+        This function is implicitly called by the ``Hom`` method or
+        function::
 
             sage: K.<a,b> = NumberField([x^3 - 2, x^2+1])
             sage: K.Hom(K) # indirect doctest
             Automorphism group of Number Field in a with defining polynomial x^3 - 2 over its base field
             sage: type(K.Hom(K))
             <class 'sage.rings.number_field.morphism.RelativeNumberFieldHomset_with_category'>
-        """
 
-        from .number_field import is_NumberFieldHomsetCodomain
-        if is_NumberFieldHomsetCodomain(codomain):
-            from . import morphism
-            return morphism.RelativeNumberFieldHomset(self, codomain)
-        else:
-            raise TypeError
+        TESTS::
+
+            sage: H = End(K)
+            sage: loads(dumps(H)) is H
+            True
+        """
+        if not is_NumberFieldHomsetCodomain(codomain):
+            raise TypeError("{} is not suitable as codomain for homomorphisms from {}".format(codomain, self))
+
+        from .morphism import RelativeNumberFieldHomset
+        return RelativeNumberFieldHomset(self, codomain, category)
 
     def _latex_(self):
         r"""
@@ -1568,7 +1561,7 @@ class NumberField_relative(NumberField_generic):
             sage: L._pari_relative_structure()
             (x^2 + Mod(-y, y^2 + 1),
              Mod(Mod(1/2*y - 1/2, y^2 + 1)*x, x^2 + Mod(-y, y^2 + 1)),
-             Mod(Mod(-y - 1, y^2 + 1)*x, x^2 + Mod(-1/2, y^2 + 1)))
+             Mod(Mod(-y - 1, y^2 + 1)*x, Mod(1, y^2 + 1)*x^2 + Mod(-1/2, y^2 + 1)))
 
         An example where both fields are defined by non-integral or
         non-monic polynomials::
@@ -1578,7 +1571,7 @@ class NumberField_relative(NumberField_generic):
             sage: L._pari_relative_structure()
             (x^2 + Mod(y, y^2 + 2)*x + 1,
              Mod(Mod(-1/3*y, y^2 + 2)*x + Mod(1/3, y^2 + 2), x^2 + Mod(y, y^2 + 2)*x + 1),
-             Mod(Mod(3/2*y, y^2 + 2)*x + Mod(-1/2*y, y^2 + 2), x^2 + Mod(-1/3, y^2 + 2)))
+             Mod(Mod(3/2*y, y^2 + 2)*x + Mod(-1/2*y, y^2 + 2), Mod(1, y^2 + 2)*x^2 + Mod(-1/3, y^2 + 2)))
 
         Note that in the last example, the *absolute* defining
         polynomials is the same for Sage and PARI, even though this is
@@ -1751,22 +1744,21 @@ class NumberField_relative(NumberField_generic):
             self.__abs_gen = self._element_class(self, QQ['x'].gen())
             return self.__abs_gen
 
-    @cached_method
     def absolute_field(self, names):
-        r"""
-        Return an absolute number field `K` that is isomorphic to this
-        field along with a field-theoretic bijection from self to `K`
-        and from `K` to self.
+        """
+        Return ``self`` as an absolute number field.
 
         INPUT:
 
         - ``names`` -- string; name of generator of the absolute field
 
-        OUTPUT: an absolute number field
+        OUTPUT:
+
+        An absolute number field `K` that is isomorphic to this field.
 
         Also, ``K.structure()`` returns ``from_K`` and ``to_K``, where
-        ``from_K`` is an isomorphism from `K` to self and ``to_K`` is
-        an isomorphism from self to `K`.
+        ``from_K`` is an isomorphism from `K` to ``self`` and ``to_K``
+        is an isomorphism from ``self`` to `K`.
 
         EXAMPLES::
 
@@ -2274,7 +2266,7 @@ class NumberField_relative(NumberField_generic):
         raise NotImplementedError("For a relative number field you must use relative_discriminant or absolute_discriminant as appropriate")
 
     def order(self, *gens, **kwds):
-        """
+        r"""
         Return the order with given ring generators in the maximal
         order of this number field.
 
@@ -2333,7 +2325,7 @@ class NumberField_relative(NumberField_generic):
         - ``type`` - ``'pari'`` or ``'gap'``: type of object to return -- a
           wrapper around a Pari or Gap transitive group object.         -
 
-        - algorithm - 'pari', 'kash', 'magma' (default: 'pari', except when
+        - algorithm -- 'pari', 'kash', 'magma' (default: 'pari', except when
           the degree is >= 12 when 'kash' is tried)
 
         At present much less functionality is available for Galois groups of
@@ -2550,7 +2542,7 @@ class NumberField_relative(NumberField_generic):
 
             sage: K.<a, b> = NumberField([x^2 + 23, x^2 - 3])
             sage: P = K.prime_factors(5)[0]; P
-            Fractional ideal (5, 1/2*a - b - 5/2)
+            Fractional ideal (5, 1/2*a + b - 5/2)
             sage: u = K.uniformizer(P)
             sage: u.valuation(P)
             1

@@ -13,6 +13,7 @@ AUTHORS:
 - David Roe
 - Adriana Salerno
 - Ander Steele
+- Kiran Kedlaya (modified gauss_sum 2017/09)
 """
 #*****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
@@ -28,9 +29,10 @@ from __future__ import absolute_import
 
 from six.moves.builtins import min as python_min
 from six.moves.builtins import max as python_max
+from six.moves.builtins import range, zip
 from sage.rings.infinity import infinity
 
-def gauss_sum(a, p, f, prec=20):
+def gauss_sum(a, p, f, prec=20, factored=False, algorithm='pari', parent=None):
     r"""
     Return the Gauss sum `g_q(a)` as a `p`-adic number.
 
@@ -47,13 +49,14 @@ def gauss_sum(a, p, f, prec=20):
     Rend. Sem. Mat. Univ. Padova 105 (2001), 157--170.
 
     Let `p` be a prime, `f` a positive integer, `q=p^f`, and `\pi` be
-    a root of `f(x) = x^{p-1}+p`.  Let `0\leq a < q-1`. Then the
+    the unique root of `f(x) = x^{p-1}+p` congruent to `\zeta_p - 1` modulo
+    `(\zeta_p - 1)^2`. Let `0\leq a < q-1`. Then the
     Gross-Koblitz formula gives us the value of the Gauss sum `g_q(a)`
-    as a product of p-adic Gamma functions as follows:
+    as a product of `p`-adic Gamma functions as follows:
 
     .. MATH::
 
-        g_q(a) = \pi^s \prod_{0\leq i < f} \Gamma_p(a^{(i)}/(q-1)),
+        g_q(a) = -\pi^s \prod_{0\leq i < f} \Gamma_p(a^{(i)}/(q-1)),
 
     where `s` is the sum of the digits of `a` in base `p` and the
     `a^{(i)}` have `p`-adic expansions obtained from cyclic
@@ -69,9 +72,16 @@ def gauss_sum(a, p, f, prec=20):
 
     - ``prec`` -- positive integer (optional, 20 by default)
 
+    - ``factored`` - boolean (optional, False by default)
+
+    - ``algorithm`` - flag passed to p-adic Gamma function (optional, "pari" by default)
+
     OUTPUT:
 
-    a `p`-adic number in an Eisenstein extension of `\QQ_p`
+    If ``factored`` is ``False``, returns a `p`-adic number in an Eisenstein extension of `\QQ_p`.
+    This number has the form `pi^e * z` where `pi` is as above, `e` is some nonnegative
+    integer, and `z` is an element of `\ZZ_p`; if ``factored`` is ``True``, the pair `(e,z)`
+    is returned instead, and the Eisenstein extension is not formed.
 
     .. NOTE::
 
@@ -100,22 +110,38 @@ def gauss_sum(a, p, f, prec=20):
         6*pi^2 + 7*pi^14 + 11*pi^26 + 3*pi^62 + 6*pi^74 + 3*pi^86 + 5*pi^98 +
         pi^110 + 7*pi^134 + 9*pi^146 + 4*pi^158 + 6*pi^170 + 4*pi^194 +
         pi^206 + 6*pi^218 + 9*pi^230 + O(pi^242)
+        sage: gauss_sum(2,13,2,prec=5,factored=True)
+        (2, 6 + 6*13 + 10*13^2 + O(13^5))
+
+    .. SEEALSO::
+
+        - :func:`sage.arith.misc.gauss_sum` for general finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum`
+          for prime finite fields
+        - :meth:`sage.modular.dirichlet.DirichletCharacter.gauss_sum_numerical`
+          for prime finite fields
     """
     from sage.rings.padics.factory import Zp
     from sage.rings.all import PolynomialRing
-    a = a % (p**f - 1)
-    R = Zp(p, prec)
+
+    q = p**f
+    a = a % (q-1)
+    if parent is None:
+        R = Zp(p, prec)
+    else:
+        R = parent
+    out = -R.one()
+    if a != 0:
+        t = R(1/(q-1))
+        for i in range(f):
+            out *= (a*t).gamma(algorithm)
+            a = (a*p) % (q-1)
+    s = sum(a.digits(base=p))
+    if factored:
+        return(s, out)
     X = PolynomialRing(R, name='X').gen()
     pi = R.ext(X**(p - 1) + p, names='pi').gen()
-    digits = Zp(p)(a).list(start_val=0)
-    n = len(digits)
-    digits = digits + [0] * (f - n)
-    s = sum(digits)
-    out = -pi**s
-    for i in range(f):
-        a_i = R.sum(digits[k] * p**((i + k) % f) for k in range(f))
-        if a_i:
-            out *= R((a_i / (p**f - 1)).gamma())
+    out *= pi**s
     return out
 
 
@@ -179,5 +205,49 @@ def precprint(prec_type, prec_cap, p):
     precD = {'capped-rel':'with capped relative precision %s'%prec_cap,
              'capped-abs':'with capped absolute precision %s'%prec_cap,
              'floating-point':'with floating precision %s'%prec_cap,
-             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap)}
+             'fixed-mod':'of fixed modulus %s^%s'%(p, prec_cap),
+             'lattice-cap':'with lattice-cap precision',
+             'lattice-float':'with lattice-float precision'}
     return precD[prec_type]
+
+def trim_zeros(L):
+    r"""
+    Strips trailing zeros/empty lists from a list.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.misc import trim_zeros
+        sage: trim_zeros([1,0,1,0])
+        [1, 0, 1]
+        sage: trim_zeros([[1],[],[2],[],[]])
+        [[1], [], [2]]
+        sage: trim_zeros([[],[]])
+        []
+        sage: trim_zeros([])
+        []
+
+    Zeros are also trimmed from nested lists (one deep):
+
+        sage: trim_zeros([[1,0]])
+        [[1]]
+        sage: trim_zeros([[0],[1]])
+        [[], [1]]
+    """
+    strip_trailing = True
+    n = len(L)
+    for i, c in zip(reversed(range(len(L))), reversed(L)):
+        if strip_trailing and (c == 0 or c == []):
+            n = i
+        elif isinstance(c, list):
+            strip_trailing = False
+            m = len(c)
+            # strip trailing zeros from the sublists
+            for j, d in zip(reversed(range(len(c))), reversed(c)):
+                if d == 0:
+                    m = j
+                else:
+                    break
+            L[i] = c[:m]
+        else:
+            break
+    return L[:n]

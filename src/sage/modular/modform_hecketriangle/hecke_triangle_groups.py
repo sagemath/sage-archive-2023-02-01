@@ -20,7 +20,7 @@ from __future__ import absolute_import
 
 from sage.rings.all import ZZ, QQ, AA, AlgebraicField, infinity, PolynomialRing, NumberField
 from sage.functions.all import cos,exp,sec
-from sage.functions.other import psi1
+from sage.functions.gamma import psi1
 from sage.symbolic.all import pi,i
 from sage.matrix.constructor import matrix
 from sage.misc.latex import latex
@@ -1003,8 +1003,8 @@ class HeckeTriangleGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             return False
 
         def is_cycle_of_length(seq, n):
-            for i in range(n, len(seq)):
-                if seq[i] != seq[i % n]:
+            for j in range(n, len(seq)):
+                if seq[j] != seq[j % n]:
                     return False
             return True
 

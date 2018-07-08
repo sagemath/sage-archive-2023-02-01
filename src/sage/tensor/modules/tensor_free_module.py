@@ -188,7 +188,7 @@ class TensorFreeModule(FiniteRankFreeModule):
     See the documentation of
     :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
     for the full list of arguments that can be provided to the __call__
-    operator. For instance, to contruct a tensor symmetric with respect to the
+    operator. For instance, to construct a tensor symmetric with respect to the
     last two indices::
 
         sage: t = T([], name='t', sym=(1,2))
@@ -436,7 +436,8 @@ class TensorFreeModule(FiniteRankFreeModule):
             True
 
         """
-        if comp == 0:
+        from sage.rings.integer import Integer
+        if isinstance(comp, (int, Integer)) and comp == 0:
             return self._zero_element
         if isinstance(comp, FiniteRankFreeModuleMorphism):
             # coercion of an endomorphism to a type-(1,1) tensor:

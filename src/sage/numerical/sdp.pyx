@@ -1,8 +1,8 @@
 r"""
 SemiDefinite Programming
 
-A semidefinite program (`SDP <http://en.wikipedia.org/wiki/Semidefinite_programming>`_)
-is an `optimization problem <http://en.wikipedia.org/wiki/Optimization_%28mathematics%29>`_
+A semidefinite program (:wikipedia:`SDP <Semidefinite_programming>`)
+is an optimization problem (:wikipedia:`Optimization_(mathematics)>`)
 of the following form
 
 .. MATH::
@@ -97,7 +97,7 @@ of primal and dual problems. Thus we can get the optimizer `X` of the dual probl
 as follows, as diagonal blocks, one per each constraint, via :meth:`~SemidefiniteProgram.dual_variable`.
 E.g.::
 
-    sage: p.dual_variable(1)  # rel tol 1e-03
+    sage: p.dual_variable(1)  # rel tol 2e-03
     [ 85555.0 -85555.0]
     [-85555.0  85555.0]
 
@@ -224,7 +224,7 @@ from sage.structure.element cimport Element
 from sage.misc.cachefunc import cached_method
 from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
 from sage.matrix.all import Matrix
-from sage.matrix.matrix import is_Matrix
+from sage.structure.element import is_Matrix
 
 
 cdef class SemidefiniteProgram(SageObject):
@@ -517,8 +517,8 @@ cdef class SemidefiniteProgram(SageObject):
         """
         Construct the first `n` SDPVariables.
 
-        This method is used for the generater syntax (see below). You
-        probably shouldn't use it for anything else.
+        This method is used for the generator syntax (see below). You
+        probably should not use it for anything else.
 
         INPUT:
 
@@ -740,8 +740,7 @@ cdef class SemidefiniteProgram(SageObject):
         for l in lists:
             if isinstance(l, SDPVariable):
                     c = {}
-                    for (k,v) in l.items():
-                        #c[k] = self._values[v] if self._values.has_key(v) else None
+                    for k, v in l.items():
                         c[k] = self._backend.get_variable_value(self._variables[v])
                     val.append(c)
             elif isinstance(l, list):
@@ -989,7 +988,7 @@ cdef class SemidefiniteProgram(SageObject):
             sage: p.add_constraint(b1*x[0] + b2*x[1] <= b3)
             sage: p.solve()                                                         # tol 1e-08
             -3.0
-            sage: x=p.get_values(x).values()
+            sage: x = p.get_values(x).values()
             sage: -(a3*p.dual_variable(0)).trace()-(b3*p.dual_variable(1)).trace()  # tol 1e-07
             -3.0
 
@@ -1286,43 +1285,42 @@ cdef class SDPVariable(Element):
 
     def keys(self):
         r"""
-        Returns the keys already defined in the dictionary.
+        Return the keys already defined in the dictionary.
 
         EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: v.keys()
+            sage: list(v.keys())
             [0, 1]
         """
         return self._dict.keys()
 
     def items(self):
         r"""
-        Returns the pairs (keys,value) contained in the dictionary.
+        Return the pairs (keys,value) contained in the dictionary.
 
         EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: v.items()
+            sage: list(v.items())
             [(0, x_0), (1, x_1)]
         """
         return self._dict.items()
 
-
     def values(self):
         r"""
-        Returns the symbolic variables associated to the current dictionary.
+        Return the symbolic variables associated to the current dictionary.
 
         EXAMPLES::
 
             sage: p = SemidefiniteProgram()
             sage: v = p.new_variable()
             sage: p.set_objective(v[0] + v[1])
-            sage: v.values()
+            sage: list(v.values())
             [x_0, x_1]
         """
         return self._dict.values()
@@ -1334,8 +1332,7 @@ cdef class SDPVariable(Element):
         result = dict()
         for i, row in enumerate(m.rows()):
             x = self[i]
-            assert len(x.dict()) == 1
-            x_index = x.dict().keys()[0]
+            x_index, = x.dict().keys()
             result[x_index] = row
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.ncols())
@@ -1349,8 +1346,7 @@ cdef class SDPVariable(Element):
         result = dict()
         for i, col in enumerate(m.columns()):
             x = self[i]
-            assert len(x.dict()) == 1
-            x_index = x.dict().keys()[0]
+            x_index, = x.dict().keys()
             result[x_index] = col
         from sage.modules.free_module import FreeModule
         V = FreeModule(self._p.base_ring(), m.nrows())
@@ -1371,7 +1367,7 @@ cdef class SDPVariable(Element):
             sage: m * v
             (1.0, 3.0)*x_0 + (2.0, 4.0)*x_1
         """
-        from sage.matrix.matrix import is_Matrix
+        from sage.structure.element import is_Matrix
         if is_Matrix(mat):
             return self._matrix_rmul_impl(mat) if self_on_left else self._matrix_lmul_impl(mat)
 

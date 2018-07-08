@@ -31,26 +31,7 @@ cdef class GraphStruct:
     cdef bint use_indicator
     cdef int *scratch # length 3n+1
 
-cdef int refine_by_degree(PartitionStack *, void *, int *, int)
-cdef int compare_graphs(int *, int *, void *, void *, int)
-cdef bint all_children_are_equivalent(PartitionStack *, void *)
-cdef inline int degree(PartitionStack *, CGraph, int, int, bint)
 
 cdef struct dg_edge_gen_data:
     iterator *edge_iterator
     void *graph
-
-cdef void *dg_edge_gen_next(void *, int *, bint *)
-
-cdef int gen_children_dg_edge(void *S, aut_gp_and_can_lab *group, iterator *it)
-cdef void *apply_dg_edge_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err)
-cdef void free_dg_edge(void *child)
-cdef void *canonical_dg_edge_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err)
-
-cdef int gen_children_dg_vert(void *S, aut_gp_and_can_lab *group, iterator *it)
-cdef void *apply_dg_vert_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err)
-cdef void free_dg_vert(void *child)
-cdef void *canonical_dg_vert_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err)
-
-
-

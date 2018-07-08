@@ -145,7 +145,7 @@ class CCInterpreter(StackInterpreter):
             sage: print(interp.c_header)
             <BLANKLINE>
             #include <mpc.h>
-            #include "interpreters/wrapper_cc.h"
+            #include "sage/ext/interpreters/wrapper_cc.h"
             <BLANKLINE>
 
         So instructions where you need to interact with Python can
@@ -167,7 +167,7 @@ class CCInterpreter(StackInterpreter):
         self.c_header = ri(0,
             '''
             #include <mpc.h>
-            #include "interpreters/wrapper_cc.h"
+            #include "sage/ext/interpreters/wrapper_cc.h"
             ''')
 
         self.pxd_header = ri(0,

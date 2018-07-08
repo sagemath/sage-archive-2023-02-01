@@ -49,11 +49,12 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from libc.math cimport sqrt, sin, cos, tan, asin, acos, atan, M_PI
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
-from sage.plot.misc import rename_keyword
+from sage.misc.decorators import rename_keyword
 from .base import Graphics3dGroup, Graphics3d
 from .index_face_set cimport IndexFaceSet, PrimitiveObject
 from .transform cimport point_c
@@ -184,6 +185,7 @@ class Box(IndexFaceSet):
         return "<Box size='%s %s %s'/>" % tuple(self.size)
 
 
+@rename_keyword(alpha='opacity')
 def ColorCube(size, colors, opacity=1, **kwds):
     """
     Return a cube with given size and sides with given colors.
@@ -237,8 +239,9 @@ def ColorCube(size, colors, opacity=1, **kwds):
     if len(colors) == 3:
         colors = colors * 2
     all = []
+    kwds['opacity'] = opacity
 
-    from texture import Texture
+    from .texture import Texture
     for k in range(6):
         all.append(IndexFaceSet([faces[k]], enclosed=True,
              texture=Texture(colors[k], opacity=opacity),
@@ -595,7 +598,7 @@ draw %s width %s {%s %s %s} {%s %s %s}\n%s
         else: # u == 2:
             res.x, res.y, res.z = 0, 0, self.height
 
-
+@rename_keyword(alpha='opacity')
 def LineSegment(start, end, thickness=1, radius=None, **kwds):
     """
     Create a line segment, which is drawn as a cylinder from start to
@@ -744,7 +747,7 @@ def arrow3d(start, end, width=1, radius=None, head_radius=None, head_len=None, *
         sage: len(a.all)
         1
         sage: type(a.all[0])
-        <type 'sage.plot.plot3d.shapes.Cone'>
+        <... 'sage.plot.plot3d.shapes.Cone'>
 
     Arrows are always constructed pointing up in the z direction from
     the origin, and then rotated/translated into place. This works for

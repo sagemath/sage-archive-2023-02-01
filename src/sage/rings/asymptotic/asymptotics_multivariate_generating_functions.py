@@ -60,9 +60,15 @@ A univariate smooth point example::
     sage: decomp = F.asymptotic_decomposition(alpha)
     sage: decomp
     (0, []) +
-    (-1/2*(x^2 + 6*x + 9)*r^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
-     - 1/2*(5*x^2 + 24*x + 27)*r/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
-     - 3*(x^2 + 3*x + 3)/(x^5 + 9*x^4 + 27*x^3 + 27*x^2),
+    (-1/2*r^2*(x^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     + 6*x/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     + 9/(x^5 + 9*x^4 + 27*x^3 + 27*x^2))
+     - 1/2*r*(5*x^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     + 24*x/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     + 27/(x^5 + 9*x^4 + 27*x^3 + 27*x^2))
+     - 3*x^2/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     - 9*x/(x^5 + 9*x^4 + 27*x^3 + 27*x^2)
+     - 9/(x^5 + 9*x^4 + 27*x^3 + 27*x^2),
      [(x - 1/2, 1)])
     sage: F1 = decomp[1]
     sage: p = {x: 1/2}
@@ -139,14 +145,14 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
     sage: alpha = (var('a'), var('b'))
     sage: decomp =  F.asymptotic_decomposition(alpha); decomp
     (0, []) +
-    (-1/9*(2*b^2*x^2 - 5*a*b*x*y + 2*a^2*y^2)*r^2/(x^2*y^2)
-      - 1/9*(6*b*x^2 - 5*(a + b)*x*y + 6*a*y^2)*r/(x^2*y^2)
-      - 1/9*(4*x^2 - 5*x*y + 4*y^2)/(x^2*y^2),
+    (-1/9*r^2*(2*a^2/x^2 + 2*b^2/y^2 - 5*a*b/(x*y))
+     - 1/9*r*(6*a/x^2 + 6*b/y^2 - 5*a/(x*y) - 5*b/(x*y))
+     - 4/9/x^2 - 4/9/y^2 + 5/9/(x*y),
      [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
     sage: F1 = decomp[1]
     sage: F1.asymptotics(p, alpha, 2)
-    (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*((1/3)^(-a)*(1/3)^(-b))^r,
-     (1/3)^(-a)*(1/3)^(-b), -3*(2*a^2 - 5*a*b + 2*b^2)*r^2 - 3*(a + b)*r - 9)
+    (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*(1/((1/3)^a*(1/3)^b))^r,
+     1/((1/3)^a*(1/3)^b), -3*(2*a^2 - 5*a*b + 2*b^2)*r^2 - 3*(a + b)*r - 9)
     sage: alpha = [4, 3]
     sage: decomp =  F.asymptotic_decomposition(alpha)
     sage: F1 = decomp[1]
@@ -527,7 +533,7 @@ class FractionWithFactoredDenominator(RingElement):
             2
         """
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
         R = self.denominator_ring
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
@@ -1076,7 +1082,7 @@ class FractionWithFactoredDenominator(RingElement):
                      [Ss[j] ** df[j][1] - Ts[j] for j in range(m)])
         J = J.elimination_ideal(Xs + Ss)
 
-        # Coerce J into the polynomial ring in the indeteminates Ts[m:].
+        # Coerce J into the polynomial ring in the indeterminates Ts[m:].
         # I choose the negdeglex order because i find it useful in my work.
         RRR = PolynomialRing(F, [str(t) for t in Ts], order='negdeglex')
         return RRR.ideal(J)
@@ -1480,9 +1486,9 @@ class FractionWithFactoredDenominator(RingElement):
             sage: alpha = [var('a')]
             sage: F.asymptotic_decomposition(alpha)
             (0, []) +
-            (1/54*(5*a^2*x^2 + 2*a^2*x + 11*a^2)*r^2/x^2
-             - 1/54*(5*a*x^2 - 2*a*x - 33*a)*r/x^2 + 11/27/x^2, [(x - 1, 1)]) +
-            (-5/27, [(x + 2, 1)])
+            (1/54*(5*a^2 + 2*a^2/x + 11*a^2/x^2)*r^2
+             - 1/54*(5*a - 2*a/x - 33*a/x^2)*r + 11/27/x^2,
+            [(x - 1, 1)]) + (-5/27, [(x + 2, 1)])
 
         ::
 
@@ -1495,7 +1501,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: alpha = var('a, b')
             sage: F.asymptotic_decomposition(alpha)
             (0, []) +
-            (1/3*(2*b*x - a*y)*r/(x*y) + 1/3*(2*x - y)/(x*y),
+            (-1/3*r*(a/x - 2*b/y) - 1/3/x + 2/3/y,
              [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
         """
         R = self.denominator_ring
@@ -1600,7 +1606,7 @@ class FractionWithFactoredDenominator(RingElement):
             (1, [(x*y + x + y - 1, 2)])
             sage: alpha = [4, 3]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
-            (0, []) + (-3/2*r*(y + 1)/y - 1/2*(y + 1)/y, [(x*y + x + y - 1, 1)])
+            (0, []) + (-3/2*r*(1/y + 1) - 1/2/y - 1/2, [(x*y + x + y - 1, 1)])
             sage: F1 = decomp[1]
             sage: p = {y: 1/3, x: 1/2}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True)
@@ -1634,7 +1640,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: alpha = [3, 3, 2]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
             (0, []) +
-            (16*r*(4*y - 3*z)/(y*z) + 16*(2*y - z)/(y*z),
+            (-16*r*(3/y - 4/z) - 16/y + 32/z,
              [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])
             sage: F1 = decomp[1]
             sage: p = {x: 1, y: 1, z: 1}
@@ -1779,7 +1785,8 @@ class FractionWithFactoredDenominator(RingElement):
         """
         from sage.calculus.functions import jacobian
         from sage.calculus.var import function
-        from sage.functions.other import factorial, gamma, sqrt
+        from sage.functions.other import factorial, sqrt
+        from sage.functions.gamma import gamma
         from sage.functions.log import exp, log
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
@@ -2152,7 +2159,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: p = {x: 1/3, y: 1/3}
             sage: alpha = (var('a'), var('b'))
             sage: F.asymptotics_multiple(p, alpha, 2, var('r')) # long time
-            (3*((1/3)^(-a)*(1/3)^(-b))^r*e^(2/3), (1/3)^(-a)*(1/3)^(-b), 3*e^(2/3))
+            (3*(1/((1/3)^a*(1/3)^b))^r*e^(2/3), 1/((1/3)^a*(1/3)^b), 3*e^(2/3))
         """
         from itertools import product
         from sage.calculus.functions import jacobian
@@ -2164,7 +2171,7 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector
         from sage.rings.all import CC
-        from sage.rings.arith import binomial
+        from sage.arith.misc import binomial
         from sage.rings.rational_field import QQ
         from sage.symbolic.constants import pi
         from sage.symbolic.relation import solve
@@ -2440,7 +2447,7 @@ class FractionWithFactoredDenominator(RingElement):
     def grads(self, p):
         r"""
         Return a list of the gradients of the polynomials
-        ``[q for (q, e) in self.denominator_factored()]`` evalutated at ``p``.
+        ``[q for (q, e) in self.denominator_factored()]`` evaluated at ``p``.
 
         INPUT:
 
@@ -2486,7 +2493,7 @@ class FractionWithFactoredDenominator(RingElement):
     def log_grads(self, p):
         r"""
         Return a list of the logarithmic gradients of the polynomials
-        ``[q for (q, e) in self.denominator_factored()]`` evalutated at ``p``.
+        ``[q for (q, e) in self.denominator_factored()]`` evaluated at ``p``.
 
         The logarithmic gradient of a function `f` at point `p` is the
         vector `(x_1 \partial_1 f(x), \ldots, x_d \partial_d f(x) )`
@@ -3287,7 +3294,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             q = R(denominator)
 
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
             if is_PolynomialRing(R) or is_MPolynomialRing(R):
                 if not R(q).is_unit():
                     # Factor denominator
@@ -3357,7 +3364,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         if is_FractionField(P):
             B = P.base()
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
             if is_PolynomialRing(B) or is_MPolynomialRing(B):
                 if self.base().has_coerce_map_from(B):
                     return True

@@ -37,19 +37,19 @@ cdef class ConstantFunction(SageObject):
         sage: g == loads(dumps(g))
         Traceback (most recent call last):
         ...
-        PicklingError: Can't pickle <... 'function'>: attribute lookup __builtin__.function failed
+        PicklingError: Can't pickle ...: attribute lookup ... failed
         sage: f == loads(dumps(f))
         True
 
     Also, in the long run, the information that this function is
     constant could be used by some algorithms.
 
-    TODO:
+    .. TODO::
 
-    - Should constant functions have unique representation?
-    - Should the number of arguments be specified in the input?
-    - Should this go into ``sage.categories.maps``?
-      Then what should be the parent (e.g. for ``lambda x: True``)?
+        - Should constant functions have unique representation?
+        - Should the number of arguments be specified in the input?
+        - Should this go into ``sage.categories.maps``?
+          Then what should be the parent (e.g. for ``lambda x: True``)?
 
     TESTS:
 

@@ -499,7 +499,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: v
             [1, 5, 3, 4]
             sage: type(v[2])
-            <type 'sage.rings.integer.Integer'>
+            <... 'sage.rings.integer.Integer'>
         """
         self._require_mutable()
         if isinstance(n, slice):
@@ -553,7 +553,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             sage: v = Sequence([1/3,2,3,4])
             sage: v.append(4)
             sage: type(v[4])
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
         """
         self._require_mutable()
         y = self.__universe(x)
@@ -617,7 +617,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.remove(self, value)
 
-    def sort(self, cmp=None, key=None, reverse=False):
+    def sort(self, key=None, reverse=False):
         """
         Sort this list *IN PLACE*.
 
@@ -627,10 +627,6 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
         
         - ``reverse`` - see Python ``list sort``
 
-        - ``cmp`` - see Python ``list sort`` (deprecated)
-
-        Because ``cmp`` is not allowed in Python3, it must be avoided.
-
         EXAMPLES::
 
             sage: B = Sequence([3,2,1/5])
@@ -639,19 +635,9 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             [1/5, 2, 3]
             sage: B.sort(reverse=True); B
             [3, 2, 1/5]
-
-        TESTS::
-
-            sage: B.sort(cmp = lambda x,y: cmp(y,x)); B
-            doctest:...: DeprecationWarning: sorting using cmp is deprecated
-            See http://trac.sagemath.org/21376 for details.
-            [3, 2, 1/5]
         """
-        if cmp is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(21376, 'sorting using cmp is deprecated')
         self._require_mutable()
-        list.sort(self, cmp=cmp, key=key, reverse=reverse)
+        list.sort(self, key=key, reverse=reverse)
 
     def __hash__(self):
         """
@@ -805,7 +791,7 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             True
             sage: a[0] = 100
             sage: type(a[0])
-            <type 'sage.rings.rational.Rational'>
+            <... 'sage.rings.rational.Rational'>
             sage: a.set_immutable()
             sage: a[0] = 50
             Traceback (most recent call last):
@@ -893,5 +879,5 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             raise AttributeError("'Sequence_generic' object has no attribute '%s'"%name)
 seq = Sequence
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.structure.sequence', 'Sequence', Sequence_generic)

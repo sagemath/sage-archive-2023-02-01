@@ -18,13 +18,16 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Exterior <sage.algebras.clifford_algebra.ExteriorAlgebra>`
 - :class:`algebras.FiniteDimensional
   <sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra.FiniteDimensionalAlgebra>`
+- :class:`algebras.FQSym <sage.combinat.fqsym.FreeQuasisymmetricFunctions>`
 - :class:`algebras.Free <sage.algebras.free_algebra.FreeAlgebraFactory>`
 - :class:`algebras.FreeZinbiel <sage.algebras.free_zinbiel_algebra.FreeZinbielAlgebra>`
 - :class:`algebras.FreePreLie <sage.combinat.free_prelie_algebra.FreePreLieAlgebra>`
 - :class:`algebras.FreeDendriform <sage.combinat.free_dendriform_algebra.FreeDendriformAlgebra>`
+- :class:`algebras.FSym <sage.combinat.chas.fsym.FreeSymmetricFunctions>`
 - :func:`algebras.GradedCommutative
   <sage.algebras.commutative_dga.GradedCommutativeAlgebra>`
 - :class:`algebras.Group <sage.algebras.group_algebra.GroupAlgebra>`
+- :class:`algebras.GrossmanLarson <sage.combinat.grossman_larson_algebras.GrossmanLarsonAlgebra>`
 - :class:`algebras.Hall <sage.algebras.hall_algebra.HallAlgebra>`
 - :class:`algebras.Incidence <sage.combinat.posets.incidence_algebras.IncidenceAlgebra>`
 - :class:`algebras.IwahoriHecke
@@ -33,6 +36,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Jordan
   <sage.algebras.jordan_algebra.JordanAlgebra>`
 - :class:`algebras.Lie <sage.algebras.lie_algebras.lie_algebra.LieAlgebra>`
+- :class:`algebras.MalvenutoReutenauer <sage.combinat.fqsym.FreeQuasisymmetricFunctions>`
 - :class:`algebras.NilCoxeter
   <sage.algebras.nil_coxeter_algebra.NilCoxeterAlgebra>`
 - :class:`algebras.OrlikSolomon
@@ -52,6 +56,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 - :class:`algebras.Steenrod
   <sage.algebras.steenrod.steenrod_algebra.SteenrodAlgebra>`
 - :class:`algebras.TemperleyLieb <sage.combinat.diagram_algebras.TemperleyLiebAlgebra>`
+- :class:`algebras.WQSym <sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions>`
 - :class:`algebras.Yangian <sage.algebras.yangian.Yangian>`
 - :class:`algebras.YokonumaHecke
   <sage.algebras.yokonuma_hecke_algebra.YokonumaHeckeAlgebra>`
@@ -59,7 +64,6 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 """
 
 from sage.algebras.free_algebra import FreeAlgebra as Free
-from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra as IwahoriHecke
 from sage.algebras.quatalg.quaternion_algebra import QuaternionAlgebra as Quaternion
 from sage.algebras.steenrod.steenrod_algebra import SteenrodAlgebra as Steenrod
 from sage.algebras.finite_dimensional_algebras.finite_dimensional_algebra import FiniteDimensionalAlgebra as FiniteDimensional
@@ -70,6 +74,7 @@ from sage.algebras.weyl_algebra import DifferentialWeylAlgebra as DifferentialWe
 from sage.algebras.lie_algebras.lie_algebra import LieAlgebra as Lie
 
 from sage.misc.lazy_import import lazy_import
+lazy_import('sage.algebras.iwahori_hecke_algebra', 'IwahoriHeckeAlgebra', 'IwahoriHecke')
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')
 lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZinbiel')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
@@ -89,6 +94,11 @@ lazy_import('sage.combinat.diagram_algebras', 'TemperleyLiebAlgebra', 'Temperley
 lazy_import('sage.combinat.posets.moebius_algebra', 'MoebiusAlgebra', 'Moebius')
 lazy_import('sage.combinat.free_prelie_algebra', 'FreePreLieAlgebra', 'FreePreLie')
 lazy_import('sage.combinat.free_dendriform_algebra', 'FreeDendriformAlgebra', 'FreeDendriform')
+lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'FQSym')
+lazy_import('sage.combinat.fqsym', 'FreeQuasisymmetricFunctions', 'MalvenutoReutenauer')
+lazy_import('sage.combinat.chas.wqsym', 'WordQuasiSymmetricFunctions', 'WQSym')
+lazy_import('sage.combinat.chas.fsym', 'FreeSymmetricFunctions', 'FSym')
+lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')

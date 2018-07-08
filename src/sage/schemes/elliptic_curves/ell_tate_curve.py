@@ -15,12 +15,7 @@ the series `s_4(q)` and `s_6(q)` such that the
 Points of good reduction correspond to points of valuation
 `0` in `\bar{\QQ}^{\times}_p`.
 
-See chapter V of [Sil2]_ for more details.
-
-REFERENCES :
-
-.. [Sil2] Silverman Joseph, Advanced Topics in the Arithmetic of
-   Elliptic Curves, GTM 151, Springer 1994.
+See chapter V of [Sil1994]_ for more details.
 
 AUTHORS:
 
@@ -54,7 +49,7 @@ from sage.structure.richcmp import richcmp, richcmp_method
 from sage.arith.all import LCM
 from sage.modular.modform.constructor import EisensteinForms, CuspForms
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
-from sage.misc.functional import log
+from sage.functions.log import log
 from sage.misc.all import denominator, prod
 import sage.matrix.all as matrix
 
@@ -78,7 +73,7 @@ class TateCurve(SageObject):
         sage: eq == loads(dumps(eq))
         True
 
-    REFERENCES: [Sil2]_
+    REFERENCES: [Sil1994]_
     """
     def __init__(self, E, p):
         r"""

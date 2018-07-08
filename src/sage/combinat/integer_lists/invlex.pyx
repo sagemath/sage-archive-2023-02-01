@@ -27,9 +27,10 @@ limitations and lack of robustness w.r.t. input.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
-from builtins import object
+from __future__ import print_function, absolute_import
+
+import builtins
 
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.cachefunc import cached_method
@@ -260,6 +261,8 @@ class IntegerListsLex(IntegerLists, metaclass=ClasscallMetaclass):
         sage: oeis(_)                  # optional -- internet
         0: A001006: Motzkin numbers: number of ways of drawing any number
         of nonintersecting chords joining n (labeled) points on a circle.
+        1: ...
+        2: ...
 
     or Dyck words (see also :class:`DyckWords`), through the bijection
     with paths from `(0,0)` to `(n,n)` with left and up steps that remain
@@ -1088,7 +1091,7 @@ DECREASE  = 2
 POP       = 1
 STOP      = 0
 
-class IntegerListsLexIter(object):
+class IntegerListsLexIter(builtins.object):
     r"""
     Iterator class for IntegerListsLex.
 
@@ -1547,7 +1550,7 @@ class IntegerListsLexIter(object):
         ``self._current_list``. The current algorithm computes,
         for `k = j, j+1, \ldots`, a lower bound `l_k` and an upper
         bound `u_k` for `v_0+\dots+v_k`, and stops if none of the
-        invervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
+        intervals `[l_k, u_k]` intersect ``[min_sum, max_sum]``.
 
         The lower bound `l_k` is given by the area below
         `v_0,\dots,v_{j-1}` prolongated by the lower envelope

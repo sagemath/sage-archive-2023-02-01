@@ -303,7 +303,7 @@ cdef class LazyImport(object):
             sage: from sage.misc.lazy_import import LazyImport
             sage: rm = LazyImport('sage.all', 'random_matrix')
             sage: rm._sage_argspec_()
-            ArgSpec(args=['ring', 'nrows', 'ncols', 'algorithm'], varargs='args', keywords='kwds', defaults=(None, 'randomize'))
+            ArgSpec(args=['ring', 'nrows', 'ncols', 'algorithm', 'implementation'], varargs='args', keywords='kwds', defaults=(None, 'randomize', None))
         """
         return sageinspect.sage_getargspec(self.get_object())
 
@@ -569,7 +569,7 @@ cdef class LazyImport(object):
             sage: type(version_info)
             <type 'sage.misc.lazy_import.LazyImport'>
             sage: iter(version_info)
-            <iterator object at ...>
+            <...iterator object at ...>
         """
         return iter(self.get_object())
 
@@ -1110,7 +1110,7 @@ def save_cache_file():
     cache_dir = os.path.dirname(cache_file)
 
     sage_makedirs(cache_dir)
-    with atomic_write(cache_file) as f:
+    with atomic_write(cache_file, binary=True) as f:
         pickle.dump(star_imports, f)
 
 def get_star_imports(module_name):
@@ -1145,7 +1145,7 @@ def get_star_imports(module_name):
     if star_imports is None:
         star_imports = {}
         try:
-            with open(get_cache_file()) as cache_file:
+            with open(get_cache_file(), "rb") as cache_file:
                 star_imports = pickle.load(cache_file)
         except IOError:        # file does not exist
             pass

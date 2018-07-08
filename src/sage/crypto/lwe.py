@@ -88,16 +88,15 @@ REFERENCES:
 """
 from six.moves import range
 
-from sage.functions.log import exp, log
+from sage.functions.log import log
 from sage.functions.other import sqrt, floor, ceil
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
-from sage.misc.misc import get_verbose
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import random_vector, vector
 from sage.numerical.optimize import find_root
-from sage.rings.all import ZZ, RealField, IntegerModRing, RR
+from sage.rings.all import ZZ, IntegerModRing, RR
 from sage.arith.all import next_prime, euler_phi
 from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
@@ -240,7 +239,7 @@ class LWE(SageObject):
     .. automethod:: __call__
     """
     def __init__(self, n, q, D, secret_dist='uniform', m=None):
-        """
+        r"""
         Construct an LWE oracle in dimension ``n`` over a ring of order
         ``q`` with noise distribution ``D``.
 

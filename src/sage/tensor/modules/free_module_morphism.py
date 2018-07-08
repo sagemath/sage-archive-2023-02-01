@@ -23,11 +23,11 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+from six import itervalues
 
 from sage.rings.integer import Integer
 from sage.categories.morphism import Morphism
-from sage.categories.homset import Hom
-from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+
 
 class FiniteRankFreeModuleMorphism(Morphism):
     r"""
@@ -66,7 +66,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
     EXAMPLES:
 
-    A homomorphism between two free modules over `\ZZ` is contructed
+    A homomorphism between two free modules over `\ZZ` is constructed
     as an element of the corresponding hom-set, by means of the function
     ``__call__``::
 
@@ -126,7 +126,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
         sage: phi.codomain()
         Rank-2 free module N over the Integer Ring
         sage: type(phi.domain)
-        <type 'sage.misc.constant_function.ConstantFunction'>
+        <... 'sage.misc.constant_function.ConstantFunction'>
 
     The matrix of the homomorphism with respect to a pair of bases is
     returned by the method :meth:`matrix`::
@@ -458,37 +458,6 @@ class FiniteRankFreeModuleMorphism(Morphism):
         """
         return not self == other
 
-    def __cmp__(self, other):
-        r"""
-        Old-style (Python 2) comparison operator.
-
-        This is provisory, until migration to Python 3 is achieved.
-
-        EXAMPLES::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: N = FiniteRankFreeModule(ZZ, 2, name='N')
-            sage: e = M.basis('e') ; f = N.basis('f')
-            sage: phi = M.hom(N, [[-1,2,0], [5,1,2]], name='phi',
-            ....:             latex_name=r'\phi')
-            sage: psi = M.hom(N, [[-1,2,0], [5,1,2]])
-            sage: phi.__cmp__(psi)
-            0
-            sage: phi.__cmp__(phi)
-            0
-            sage: phi.__cmp__(phi+phi)
-            -1
-            sage: phi.__cmp__(2*psi)
-            -1
-            sage: phi.__cmp__(-phi)
-            -1
-
-        """
-        if self == other:
-            return 0
-        else:
-            return -1
-
     #
     # Required module methods
     #
@@ -518,7 +487,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
             False
         """
         # Some matrix representation is picked at random:
-        matrix_rep = self._matrices.values()[0]
+        matrix_rep = next(itervalues(self._matrices))
         return not matrix_rep.is_zero()
 
     __nonzero__ = __bool__
@@ -945,7 +914,7 @@ class FiniteRankFreeModuleMorphism(Morphism):
 
         """
         # Some matrix representation is picked at random:
-        matrix_rep = self._matrices.values()[0]
+        matrix_rep = next(itervalues(self._matrices))
         return matrix_rep.right_kernel().rank() == 0
 
     def is_surjective(self):

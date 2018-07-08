@@ -61,7 +61,7 @@ class LocalGeneric(CommutativeRing):
         category = category.Metric().Complete()
         if default_category is not None:
             category = check_default_category(default_category, category)
-        Parent.__init__(self, base, names=(names,), normalize=False, category=category, element_constructor=element_class)
+        Parent.__init__(self, base, names=(names,), normalize=False, category=category)
 
     def is_capped_relative(self):
         """
@@ -165,6 +165,35 @@ class LocalGeneric(CommutativeRing):
         """
         return False
 
+    def is_lattice_prec(self):
+        """
+        Returns whether this `p`-adic ring bounds precision using
+        a lattice model.
+
+        In lattice precision, relationships between elements
+        are stored in a precision object of the parent, which
+        allows for optimal precision tracking at the cost of
+        increased memory usage and runtime.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5, 15)
+            sage: R.is_lattice_prec()
+            False
+            sage: x = R(25, 8)
+            sage: x - x
+            O(5^8)
+            sage: S = ZpLC(5, 15)
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/23505 for details.
+            sage: S.is_lattice_prec()
+            True
+            sage: x = S(25, 8)
+            sage: x - x
+            O(5^30)
+        """
+        return False
+
     def is_lazy(self):
         """
         Returns whether this `p`-adic ring bounds precision in a lazy
@@ -209,6 +238,7 @@ class LocalGeneric(CommutativeRing):
         - ``print_alphabet`` -- dict
         - ``show_prec`` -- bool
         - ``check`` -- bool
+        - ``label`` -- string (only for lattice precision)
 
         The following arguments are only applied to the top ring in the tower:
 
@@ -324,6 +354,14 @@ class LocalGeneric(CommutativeRing):
             sage: S = R.change(prec=50)
             sage: S.defining_polynomial(exact=True)
             x^3 + 3*x + 3
+
+        Changing label for lattice precision (the precision lattice is not copied)::
+
+            sage: R = ZpLC(37, (8,11))
+            sage: S = R.change(label = "change"); S
+            37-adic Ring with lattice-cap precision (label: change)
+            sage: S.change(label = "new")
+            37-adic Ring with lattice-cap precision (label: new)
         """
         # We support both print_* and * for *=mode, pos, sep, alphabet
         for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):
@@ -365,6 +403,13 @@ class LocalGeneric(CommutativeRing):
            (functor_dict['print_mode'].get('mode') == 'digits' and p > getattr(functor, "p", p))):
             from .padic_printing import _printer_defaults
             kwds['alphabet'] = _printer_defaults.alphabet()[:p]
+        # For fraction fields of fixed-mod rings, we need to explicitly set show_prec = False
+        if 'field' in kwds and 'type' not in kwds:
+            if self._prec_type() == 'capped-abs':
+                kwds['type'] = 'capped-rel'
+            elif self._prec_type() == 'fixed-mod':
+                kwds['type'] = 'floating-point'
+                kwds['show_prec'] = False # This can be removed once printing of fixed mod elements is changed.
 
         # There are two kinds of functors possible:
         # CompletionFunctor and AlgebraicExtensionFunctor
@@ -378,11 +423,6 @@ class LocalGeneric(CommutativeRing):
                 field = kwds.pop('field')
                 if field:
                     ring = ring.fraction_field()
-                    if 'type' not in kwds:
-                        if self._prec_type() == 'capped-abs':
-                            kwds['type'] = 'capped-rel'
-                        elif self._prec_type() == 'fixed-mod':
-                            raise TypeError('You must specify the type explicitly')
                 elif ring.is_field():
                     ring = ring.ring_of_integers()
             for atr in ('p', 'prec', 'type'):
@@ -403,6 +443,11 @@ class LocalGeneric(CommutativeRing):
                 functor.extras['names'] = kwds.pop('names')
             elif functor.extras['names'][0] == curpstr:
                 functor.extras['names'] = (str(p),)
+            # labels for lattice precision
+            if 'label' in kwds:
+                functor.extras['label'] = kwds.pop('label')
+            elif 'label' in functor.extras and functor.type not in ['lattice-cap','lattice-float']:
+                del functor.extras['label']
             for atr in ('ram_name', 'var_name'):
                 if atr in kwds:
                     functor.extras['print_mode'][atr] = kwds.pop(atr)
@@ -425,6 +470,7 @@ class LocalGeneric(CommutativeRing):
             functor.kwds = copy(functor.kwds)
             functor.kwds['print_mode'] = copy(functor.kwds['print_mode'])
             if 'prec' in kwds:
+                # This will need to be modified once lattice precision supports extensions
                 prec = kwds.pop('prec')
                 baseprec = (prec - 1) // self.e() + 1
                 if baseprec > self.base_ring().precision_cap():
@@ -466,15 +512,7 @@ class LocalGeneric(CommutativeRing):
 
     def precision_cap(self):
         r"""
-        Returns the precision cap for ``self``.
-
-        INPUT:
-
-        - ``self`` -- a local ring
-
-        OUTPUT:
-
-        - integer -- ``self``'s precision cap
+        Returns the precision cap for this ring.
 
         EXAMPLES::
 
@@ -485,7 +523,7 @@ class LocalGeneric(CommutativeRing):
             sage: R = Zp(3, 10,'capped-abs'); R.precision_cap()
             10
 
-        NOTES::
+        .. NOTE::
 
             This will have different meanings depending on the type of
             local ring.  For fixed modulus rings, all elements are
@@ -496,8 +534,22 @@ class LocalGeneric(CommutativeRing):
             ``self.precision_cap()``.  Rings with relative caps
             (e.g. the class ``pAdicRingCappedRelative``) are the same
             except that the precision is the precision of the unit
-            part of each element.  For lazy rings, this gives the
-            initial precision to which elements are computed.
+            part of each element.
+        """
+        return self._prec
+
+    def _precision_cap(self):
+        r"""
+        Returns the precision cap for this ring, in the format
+        used by the factory methods to create the ring.
+
+        For most `p`-adic types, this is the same as :meth:`precision_cap`,
+        but there is a difference for lattice precision.
+
+        EXAMPLES::
+
+            sage: Zp(17,34)._precision_cap()
+            34
         """
         return self._prec
 
@@ -858,7 +910,7 @@ class LocalGeneric(CommutativeRing):
             if self.is_capped_absolute():
                 tester.assertEqual(y.precision_absolute(), 0)
                 tester.assertEqual(y, self.zero())
-            elif self.is_capped_relative():
+            elif self.is_capped_relative() or self.is_lattice_prec():
                 tester.assertLessEqual(y.precision_absolute(), 0)
             elif self.is_fixed_mod() or self.is_floating_point():
                 tester.assertGreaterEqual((x-y).valuation(), 0)
@@ -866,18 +918,15 @@ class LocalGeneric(CommutativeRing):
                 raise NotImplementedError
 
             # if absprec < 0, then the result is in the fraction field (see #13591)
-            try:
-                y = x.add_bigoh(-1)
-            except ValueError:
-                tester.assertTrue(self.is_fixed_mod())
-            else:
-                tester.assertIs(y.parent(), self.fraction_field())
-                if not self.is_floating_point():
-                    tester.assertLessEqual(y.precision_absolute(), -1)
+            y = x.add_bigoh(-1)
+            tester.assertIs(y.parent(), self.fraction_field())
+            if not self.is_floating_point() and not self.is_fixed_mod():
+                tester.assertLessEqual(y.precision_absolute(), -1)
 
             # make sure that we handle very large values correctly
-            absprec = Integer(2)**1000
-            tester.assertEqual(x.add_bigoh(absprec), x)
+            if self._prec_type() != 'lattice-float':   # in the lattice-float model, there is no cap
+                absprec = Integer(2)**1000
+                tester.assertEqual(x.add_bigoh(absprec), x)
 
     def _test_residue(self, **options):
         r"""
@@ -917,3 +966,304 @@ class LocalGeneric(CommutativeRing):
                 tester.assertEqual(y.valuation(), 0)
             z = y.residue()
             tester.assertEqual(x, z)
+
+    def _matrix_smith_form(self, M, transformation, integral, exact):
+        r"""
+        Return the Smith normal form of the matrix `M`.
+
+        This method gets called by
+        :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
+        normal form over local rings and fields.
+
+        The entries of the Smith normal form are normalized such that non-zero
+        entries of the diagonal are powers of the distinguished uniformizer.
+
+        INPUT:
+
+        - ``M`` -- a matrix over this ring
+
+        - ``transformation`` -- a boolean; whether the transformation matrices
+        are returned
+
+        - ``integral`` -- a subring of the base ring or ``True``; the entries
+        of the transformation matrices are in this ring.  If ``True``, the
+        entries are in the ring of integers of the base ring.
+
+        - ``exact`` -- boolean.  If ``True``, the diagonal smith form will
+          be exact, or raise a ``PrecisionError`` if this is not posssible.
+          If ``False``, the diagonal entries will be inexact, but the
+          transformation matrices will be exact.
+
+        EXAMPLES::
+
+            sage: A = Zp(5, prec=10, print_mode="digits")
+            sage: M = matrix(A, 2, 2, [2, 7, 1, 6])
+
+            sage: S, L, R = M.smith_form()  # indirect doctest
+            sage: S
+            [ ...1     0]
+            [    0 ...10]
+            sage: L
+            [...222222223          ...]
+            [...444444444         ...2]
+            sage: R
+            [...0000000001 ...2222222214]
+            [            0 ...0000000001]
+
+        If not needed, it is possible to avoid the computation of
+        the transformations matrices `L` and `R`::
+
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [ ...1     0]
+            [    0 ...10]
+
+        This method works for rectangular matrices as well::
+
+            sage: M = matrix(A, 3, 2, [2, 7, 1, 6, 3, 8])
+            sage: S, L, R = M.smith_form()  # indirect doctest
+            sage: S
+            [ ...1     0]
+            [    0 ...10]
+            [    0     0]
+            sage: L
+            [...222222223          ...          ...]
+            [...444444444         ...2          ...]
+            [...444444443         ...1         ...1]
+            sage: R
+            [...0000000001 ...2222222214]
+            [            0 ...0000000001]
+
+        If some of the elementary divisors have valuation larger than the
+        minimum precision of any entry in the matrix, then they are
+        reported as an inexact zero::
+
+            sage: A = ZpCA(5, prec=10)
+            sage: M = matrix(A, 2, 2, [5, 5, 5, 5])
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+            [5 + O(5^10)     O(5^10)]
+            [    O(5^10)     O(5^10)]
+
+        However, an error is raised if the precision on the entries is
+        not enough to determine which column to use as a pivot at some point::
+
+            sage: M = matrix(A, 2, 2, [A(0,5), A(5^6,10), A(0,8), A(5^7,10)]); M
+            [       O(5^5) 5^6 + O(5^10)]
+            [       O(5^8) 5^7 + O(5^10)]
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to compute Smith normal form
+
+        TESTS::
+
+            sage: A = ZpCR(5, prec=10)
+            sage: M = zero_matrix(A, 2)
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [0 0]
+            [0 0]
+
+            sage: M = matrix(2, 2, [ A(0,10), 0, 0, 0] )
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PrecisionError: some elementary divisors indistinguishable from zero (try exact=False)
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+            [O(5^10) O(5^10)]
+            [O(5^10) O(5^10)]
+        """
+        from sage.rings.all import infinity
+        from sage.matrix.constructor import matrix
+        from .precision_error import PrecisionError
+        from copy import copy
+        n = M.nrows()
+        m = M.ncols()
+        if m > n:
+            ## It's easier below if we can always deal with precision on left.
+            if transformation:
+                d, u, v = self._matrix_smith_form(M.transpose(), True, integral, exact)
+                return d.transpose(), v.transpose(), u.transpose()
+            else:
+                return self._matrix_smith_form(M.transpose(), False, integral, exact).transpose()
+        smith = M.parent()(0)
+        S = copy(M)
+        Z = self.integer_ring()
+        if integral is None or integral is self or integral is (not self.is_field()):
+            integral = not self.is_field()
+            R = self
+        elif integral is True or integral is Z:
+            # This is a field, but we want the integral smith form
+            # The diagonal matrix may not be integral, but the transformations should be
+            R = Z
+            integral = True
+        elif integral is False or integral is self.fraction_field():
+            # This is a ring, but we want the field smith form
+            # The diagonal matrix should be over this ring, but the transformations should not
+            R = self.fraction_field()
+            integral = False
+        else:
+            raise NotImplementedError("Smith normal form over this subring")
+        ## the difference between ball_prec and inexact_ring is just for lattice precision.
+        ball_prec = R._prec_type() in ['capped-rel','capped-abs']
+        inexact_ring = R._prec_type() not in ['fixed-mod','floating-point']
+        precM = min(x.precision_absolute() for x in M.list())
+
+        if transformation:
+            from sage.matrix.special import identity_matrix
+            left = identity_matrix(R,n)
+            right = identity_matrix(R,m)
+
+        if ball_prec and precM is infinity: # capped-rel and M = 0 exactly
+            return (smith, left, right) if transformation else smith
+
+        val = -infinity
+        for piv in range(m): # m <= n
+            curval = infinity
+            pivi = pivj = piv
+            # allzero tracks whether every possible pivot is zero.
+            # if so, we can stop.  allzero is also used in detecting some
+            # precision problems: if we can't determine what pivot has
+            # the smallest valuation, or if exact=True and some elementary
+            # divisor is zero modulo the working precision
+            allzero = True
+            # allexact is tracked because there is one case where we can correctly
+            # deduce the exact smith form even with some elementary divisors zero:
+            # if the bottom right block consists entirely of exact zeros.
+            allexact = True
+            for i in range(piv,n):
+                for j in range(piv,m):
+                    Sij = S[i,j]
+                    v = Sij.valuation()
+                    allzero = allzero and Sij.is_zero()
+                    if exact: # we only care in this case
+                        allexact = allexact and Sij.precision_absolute() is infinity
+                    if v < curval:
+                        pivi = i; pivj = j
+                        curval = v
+                        if v == val: break
+                else: continue
+                break
+            val = curval
+
+            if inexact_ring and not allzero and val >= precM:
+                if ball_prec:
+                    raise PrecisionError("not enough precision to compute Smith normal form")
+                precM = min([ S[i,j].precision_absolute() for i in range(piv,n) for j in range(piv,m) ])
+                if val >= precM:
+                    raise PrecisionError("not enough precision to compute Smith normal form")
+
+            if allzero:
+                if exact:
+                    if allexact:
+                        # We need to finish checking allexact since we broke out of the loop early
+                        for i in range(i,n):
+                            for j in range(piv,m):
+                                allexact = allexact and S[i,j].precision_absolute() is infinity
+                                if not allexact: break
+                            else: continue
+                            break
+                    if not allexact:
+                        raise PrecisionError("some elementary divisors indistinguishable from zero (try exact=False)")
+                break
+
+            # We swap the lowest valuation pivot into position
+            S.swap_rows(pivi,piv)
+            S.swap_columns(pivj,piv)
+            if transformation:
+                left.swap_rows(pivi,piv)
+                right.swap_columns(pivj,piv)
+
+            # ... and clear out this row and column.  Note that we
+            # will deal with precision later, thus the call to lift_to_precision
+            smith[piv,piv] = self(1) << val
+            inv = (S[piv,piv] >> val).inverse_of_unit()
+            if ball_prec:
+                inv = inv.lift_to_precision()
+            for i in range(piv+1,n):
+                scalar = -inv * Z(S[i,piv] >> val)
+                if ball_prec:
+                    scalar = scalar.lift_to_precision()
+                S.add_multiple_of_row(i,piv,scalar,piv+1)
+                if transformation:
+                    left.add_multiple_of_row(i,piv,scalar)
+            if transformation:
+                left.rescale_row(piv,inv)
+                for j in range(piv+1,m):
+                    scalar = -inv * Z(S[piv,j] >> val)
+                    if ball_prec:
+                        scalar = scalar.lift_to_precision()
+                    right.add_multiple_of_column(j,piv,scalar)
+        else:
+            # We use piv as an upper bound on a range below, and need to set it correctly
+            # in the case that we didn't break out of the loop
+            piv = m
+        # We update the precision on left
+        # The bigoh measures the effect of multiplying by row operations
+        # on the left in order to clear out the digits in the smith form
+        # with valuation at least precM
+        if ball_prec and exact and transformation:
+            for j in range(n):
+                delta = min(left[i,j].valuation() - smith[i,i].valuation() for i in range(piv))
+                if delta is not infinity:
+                    for i in range(n):
+                        left[i,j] = left[i,j].add_bigoh(precM + delta)
+        ## Otherwise, we update the precision on smith
+        if ball_prec and not exact:
+            smith = smith.apply_map(lambda x: x.add_bigoh(precM))
+        ## We now have to adjust the elementary divisors (and precision) in the non-integral case
+        if not integral:
+            for i in range(piv):
+                v = smith[i,i].valuation()
+                if transformation:
+                    for j in range(n):
+                        left[i,j] = left[i,j] >> v
+                if exact:
+                    smith[i,i] = self(1)
+                else:
+                    for j in range(n):
+                        smith[i,j] = smith[i,j] >> v
+        if transformation:
+            return smith, left, right
+        else:
+            return smith
+
+    def _test_matrix_smith(self, **options):
+        r"""
+        Test that :meth:`_matrix_smith_form` works correctly.
+
+        EXAMPLES::
+
+            sage: ZpCA(5, 15)._test_matrix_smith()
+
+        """
+        tester = self._tester(**options)
+        tester.assertEqual(self.residue_field().characteristic(), self.residue_characteristic())
+
+        from itertools import chain
+        from sage.all import MatrixSpace
+        from .precision_error import PrecisionError
+        matrices = chain(*[MatrixSpace(self, n, m).some_elements() for n in (1,3,7) for m in (1,4,7)])
+        for M in tester.some_elements(matrices):
+            bases = [self]
+            if self is not self.integer_ring():
+                bases.append(self.integer_ring())
+            for base in bases:
+                try:
+                    S,U,V = M.smith_form(integral=base)
+                except PrecisionError:
+                    continue
+
+                if self.is_exact() or self._prec_type() not in ['fixed-mod','floating-point']:
+                    tester.assertEqual(U*M*V, S)
+
+                tester.assertEqual(U.nrows(), U.ncols())
+                tester.assertEqual(U.base_ring(), base)
+
+                tester.assertEqual(V.nrows(), V.ncols())
+                tester.assertEqual(V.base_ring(), base)
+
+                for d in S.diagonal():
+                    if not d.is_zero():
+                        tester.assertTrue(d.unit_part().is_one())
+
+                for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
+                    tester.assertTrue(d.divides(dd))

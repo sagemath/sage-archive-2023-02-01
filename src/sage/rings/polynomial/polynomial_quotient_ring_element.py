@@ -86,8 +86,10 @@ AUTHORS:
 from six.moves import range
 
 from sage.structure.element import CommutativeRingElement
+from sage.structure.richcmp import richcmp
 import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
+
 
 class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_singular_repr, CommutativeRingElement):
     """
@@ -276,16 +278,21 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def __neg__(self):
         return self.__class__(self.parent(), -self._polynomial)
 
-    def __cmp__(self, other):
+    def _richcmp_(self, other, op):
         """
         Compare this element with something else, where equality testing
         coerces the object on the right, if possible (and necessary).
 
         EXAMPLES:
+
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = R.quotient(x^3-2)
+            sage: (a^2 - 4) / (a+2) == a - 2
+            True
+            sage: a^2 - 4 == a
+            False
         """
-        return cmp(self._polynomial, other._polynomial)
-
-
+        return richcmp(self._polynomial, other._polynomial, op)
 
     def __getitem__(self, n):
         return self._polynomial[n]

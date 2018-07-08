@@ -499,20 +499,16 @@ Running Sage from a directory with spaces in its name will also fail.
 #. Optional, but highly recommended:
    Read the :file:`README.md` file there.
 
-#. On OSX 10.4, OS 10.5, Solaris 10 and OpenSolaris, if you wish to build a
-   64-bit version of Sage, assuming your computer and operating system are
-   64-bit, type::
-
-       export SAGE64=yes
-
-   It should be noted that as of April 2011, 64-bit builds of Sage on both
-   Solaris 10 and OpenSolaris are not very stable, so you are advised not to
-   set :envvar:`SAGE64` to ``yes``.
-   This will then create stable 32-bit versions of Sage.
-   See http://wiki.sagemath.org/solaris for the latest information.
-
 #. Optional:  Set various other environment variables that influence the
    build process; see :ref:`section_envvar`.
+
+   Some environment variables deserve a special mention: `CC`, `CXX` and `FC`;
+   and on OS X, `OBJC` and `OBJCXX`. Those variables defining your compilers
+   can be set at configuration time and their values will be recorded for
+   further use at runtime. Those initial values are over-ridden if Sage builds
+   its own compiler or they are set to a different value again before calling
+   Sage. Note that some packages will ignore the compiler settings and use
+   values deemed safe for that package on a particular OS.
 
 #. Optional:  Run the configure script to set some options that
    influence the build process.
@@ -959,32 +955,15 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python``, then always run the test suite for
-  MPIR, but always skip the test suite for Python.
+  So if this is set to ``mpir,!python2``, then always run the test suite for
+  MPIR, but always skip the test suite for Python 2.
 
   .. note::
 
-     As of this writing (April 2013, Sage 5.8), the test suite for the Python
-     spkg fails on most platforms.
+     As of this writing (September 2017, Sage 8.1), the test suites for the
+     Python 2 and 3 spkgs fail on most platforms.
      So when this variable is empty or unset, Sage uses a default of
-     ``!python``.
-
-- :envvar:`SAGE64` - if set to ``yes``, then build a 64-bit binary on platforms
-  which default to 32-bit, even though they can build 64-bit binaries.
-  It adds the compiler flag ``-m64`` when compiling programs.
-  The :envvar:`SAGE64` variable is mainly of use on OS X (pre 10.6), Solaris
-  and OpenSolaris, though it will add the ``-m64`` flag on any operating
-  system.
-  If you are running Linux or version 10.6 or later of OS X on a 64-bit
-  machine, then Sage will automatically build a 64-bit binary, so this
-  variable does not need to be set.
-
-- :envvar:`CFLAG64` - default value ``-m64``.
-  If Sage detects that it should build a 64-bit binary, then it uses this flag
-  when compiling C code.
-  Modify it if necessary for your system and C compiler.
-  This should not be necessary on most systems -- this flag will typically be
-  set automatically, based on the setting of :envvar:`SAGE64`, for example.
+     ``!python2,!python3``.
 
 - :envvar:`SAGE_INSTALL_GCC` - by default, Sage will automatically detect
   whether to install the `GNU Compiler Collection (GCC) <http://gcc.gnu.org/>`_
@@ -1130,19 +1109,6 @@ Here are some of the more commonly used variables affecting the build process:
   supports :envvar:`SAGE_SUDO`, into a root-owned installation
   hierarchy (:envvar:`SAGE_LOCAL`).
 
-- :envvar:`SAGE_PYTHON3` - set this to ``yes`` to build Sage using
-  Python 3 rather than Python 2.
-
-  .. WARNING::
-
-     This will probably break your Sage installation!
-
-  .. WARNING::
-
-     This environment variable may not be supported in future versions
-     of Sage; it may be replaced by (for example) ``configure``
-     options.
-
 Variables to set if you're trying to build Sage with an unusual setup, e.g.,
 an unsupported machine or an unusual compiler:
 
@@ -1287,6 +1253,9 @@ Some standard environment variables which are used by Sage:
   :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`, :envvar:`CXXFLAG64`,
   :envvar:`LDFLAG64`, and :envvar:`LD`.
 
+- :envvar:`OPENBLAS_CONFIGURE` - adds additional configuration flags for
+  the OpenBLAS package that gets added to the make command. (see :trac:`23272`)
+
 Sage uses the following environment variables when it runs:
 
 - :envvar:`DOT_SAGE` - this is the directory, to which the user has read and
@@ -1304,15 +1273,6 @@ Sage uses the following environment variables when it runs:
   run a web browser, but if this doesn't seem to work on your machine, set this
   variable to the appropriate command.
 
-Sage overrides the user's settings of the following variables:
-
-- :envvar:`MPLCONFIGDIR` - ordinarily, this variable lets the user set their
-  matplotlib config directory.
-  Due to incompatibilities in the contents of this directory among different
-  versions of matplotlib, Sage overrides the user's setting, defining it
-  instead to be :file:`$DOT_SAGE/matplotlib-VER`, with ``VER`` replaced by the
-  current matplotlib version number.
-
 Variables dealing with doctesting:
 
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of seconds
@@ -1323,16 +1283,6 @@ Variables dealing with doctesting:
   seconds to allow a doctest before timing it out, if tests are run using
   ``sage -t --long``.
   If this isn't set, the default is 1800 seconds (30 minutes).
-
-- :envvar:`SAGE_PICKLE_JAR` - if you want to update the standard pickle
-  jar, set this to something non-empty and run the doctest suite.
-  See the documentation for the functions :func:`picklejar` and
-  :func:`unpickle_all` in
-  :file:`$SAGE_ROOT/src/sage/structure/sage_object.pyx`, online
-  `here (picklejar)
-  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.picklejar>`_
-  and `here (unpickle_all)
-  <http://doc.sagemath.org/html/en/reference/sage/structure/sage_object.html#sage.structure.sage_object.unpickle_all>`_.
 
 - :envvar:`SAGE_TEST_GLOBAL_ITER`, :envvar:`SAGE_TEST_ITER`: these can
   be used instead of passing the flags ``--global-iterations`` and
@@ -1433,4 +1383,4 @@ the directory where you want to install Sage.
 
 
 
-**This page was last updated in February 2017 (Sage 7.6).**
+**This page was last updated in September 2017 (Sage 8.1).**

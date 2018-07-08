@@ -1,3 +1,4 @@
+# distutils: libraries = gap gmp m
 ###############################################################################
 #       Copyright (C) 2009, William Stein <wstein@gmail.com>
 #       Copyright (C) 2012, Volker Braun <vbraun.name@gmail.com>
@@ -9,10 +10,7 @@
 ###############################################################################
 
 
-cdef extern from "<gap/system.h>":
-    ctypedef char libGAP_Char
-    ctypedef int libGAP_Int
-    ctypedef unsigned char libGAP_UChar
+from .types cimport *
 
 cdef extern from "<gap/libgap.h>":
     void libgap_initialize(int argc, char** argv)
@@ -30,13 +28,7 @@ cdef extern from "<gap/libgap.h>":
     void libgap_enter()
     void libgap_exit()
 
-cdef extern from "<gap/code.h>":
-    ctypedef unsigned int libGAP_Stat
-    ctypedef libGAP_Stat* libGAP_PtrBody
-
 cdef extern from "<gap/gap.h>":
-    ctypedef unsigned int libGAP_UInt
-    ctypedef void* libGAP_ExecStatus
     void libGAP_ViewObjHandler(void*)
     void libGAP_InitializeGap(int*, char** argv)
     void libGAP_set_system_variables(char**, char**)
@@ -53,8 +45,11 @@ cdef extern from "<gap/gap.h>":
     cdef libGAP_ExecStatus libGAP_STATUS_QQUIT
 
 cdef extern from "<gap/objects.h>":
-    ctypedef void* libGAP_Obj
+    bint libGAP_IS_MUTABLE_OBJ(libGAP_Obj obj)
+    bint libGAP_IS_COPYABLE_OBJ(libGAP_Obj obj)
     libGAP_Obj libGAP_SHALLOW_COPY_OBJ(libGAP_Obj obj)
+    libGAP_Obj libGAP_CopyObj(libGAP_Obj obj, int mut)
+
     bint libGAP_IS_INTOBJ(libGAP_Obj obj)
     libGAP_Obj libGAP_INTOBJ_INT(libGAP_Int)
     libGAP_Int libGAP_INT_INTOBJ(libGAP_Obj)
@@ -254,8 +249,9 @@ cdef extern from "<gap/gasman.h>":
     libGAP_Obj* libGAP_ChangedBags
 
 # in gasman.c but not declared in gasman.h
-cdef extern libGAP_Obj* libGAP_StopBags
-cdef extern libGAP_Obj* libGAP_EndBags
+cdef extern:
+    libGAP_Obj* libGAP_StopBags
+    libGAP_Obj* libGAP_EndBags
 
 cdef extern from "<gap/ariths.h>":
     libGAP_Obj libGAP_SUM (libGAP_Obj, libGAP_Obj)
@@ -288,14 +284,19 @@ cdef extern from "<gap/plist.h>":
     libGAP_Obj libGAP_ELM_PLIST(libGAP_Obj lst, int pos)
 
 cdef extern from "<gap/lists.h>":
-    void libGAP_UNB_LIST(libGAP_Obj list, int pos)
+    void libGAP_UNB_LIST(libGAP_Obj lst, int pos)
     bint libGAP_IS_LIST(libGAP_Obj lst)
     int libGAP_LEN_LIST(libGAP_Obj lst)
     libGAP_Obj libGAP_ELM_LIST(libGAP_Obj lst, int pos)
+    void libGAP_ASS_LIST(libGAP_Obj lst, int pos, libGAP_Obj elt)
 
 cdef extern from "<gap/listfunc.h>":
     void libGAP_AddList(libGAP_Obj list, libGAP_Obj obj)
     void libGAP_AddPlist(libGAP_Obj list, libGAP_Obj obj)
+
+cdef extern from "<gap/macfloat.h>":
+    bint libGAP_IS_MACFLOAT(libGAP_Obj obj)
+    double libGAP_VAL_MACFLOAT(libGAP_Obj obj)
 
 cdef extern from "<gap/records.h>":
     char* libGAP_NAME_RNAM(libGAP_UInt rnam)
@@ -324,8 +325,3 @@ cdef extern from "<gap/bool.h>":
 cdef extern from "<gap/vars.h>":
      cdef int libGAP_T_LVARS
      libGAP_Obj libGAP_BottomLVars
-
-
-
-
-

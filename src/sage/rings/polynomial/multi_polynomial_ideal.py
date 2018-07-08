@@ -233,7 +233,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function
-import six
+from six import iteritems
 from six.moves import range
 
 from sage.interfaces.all import (singular as singular_default,
@@ -246,7 +246,8 @@ from sage.rings.ideal import Ideal_generic
 from sage.rings.noncommutative_ideals import Ideal_nc
 from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
-
+from sage.structure.richcmp import (richcmp_method, op_EQ, op_NE,
+                                    op_LT, op_GT, op_LE, op_GE, rich_to_bool)
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod, verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
@@ -527,7 +528,7 @@ class MPolynomialIdeal_singular_base_repr:
 
         if get_verbose()>=2:
             opt['prot'] = True
-        for name,value in six.iteritems(kwds):
+        for name, value in iteritems(kwds):
             if value is not None:
                 opt[name] = value
 
@@ -1404,7 +1405,7 @@ class MPolynomialIdeal_singular_repr(
         if get_verbose() >= 2:
             kwds['prot'] = True
 
-        for o,v in six.iteritems(kwds):
+        for o, v in iteritems(kwds):
             o = _options_py_to_singular.get(o,o)
             if v:
                 if o in ['degBound','multBound']:
@@ -1452,7 +1453,7 @@ class MPolynomialIdeal_singular_repr(
 
     @require_field
     def genus(self):
-        """
+        r"""
         Return the genus of the projective curve defined by this ideal,
         which must be 1 dimensional.
 
@@ -2226,7 +2227,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = ideal([x^2+2*y-5,x+y+3])
             sage: v = I.variety(AA)[0]; v
             {x: 4.464101615137755?, y: -7.464101615137755?}
-            sage: v.keys()[0].parent()
+            sage: list(v)[0].parent()
             Multivariate Polynomial Ring in x, y over Algebraic Real Field
             sage: v[x]
             4.464101615137755?
@@ -3002,6 +3003,7 @@ class NCPolynomialIdeal(MPolynomialIdeal_singular_repr, Ideal_nc):
         return self.__call_singular('res', length)
 
 
+@richcmp_method
 class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                         MPolynomialIdeal_macaulay2_repr, \
                         MPolynomialIdeal_magma_repr, \
@@ -3074,9 +3076,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         """
         return self.gens()
 
-    def __lt__(self, other):
+    def __richcmp__(self, other, op):
         """
-        Decides whether ``self`` is contained in ``other``.
+        Compare ``self`` and ``other``.
 
         INPUT:
 
@@ -3084,23 +3086,31 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         OUTPUT:
 
-        - ``True`` if ``self`` is contained in ``other``; ``False`` otherwise
+        boolean
 
         ALGORITHM:
 
-        We use ideal membership to test whether ``self`` is a subset of ``other``.
+        Comparison for ``==`` and ``!=`` compares two Groebner bases.
 
-        #. Let $F$ be the generators of ``self``.
-        #. Let $G$ be a Groebner basis of ``other``.
-        #. If any $f\in F$ does not reduce to zero modulo $G$:
+        Comparison for ``<=` and ``>=`` tests the inclusion of ideals
+        using the usual ideal membership test, namely all generators
+        of one ideal must reduce to zero in the other ideal's Groebner
+        basis.
 
-           #. Return ``False``.
-
-        #. Else:
-
-           #. Return ``True``.
+        Comparison for ``<`` and ``>`` tests for inclusion and different
+        Groebner bases.
 
         EXAMPLES::
+
+            sage: R.<x,y> = ZZ[]; I = R*[x^2 + y, 2*y]; J = R*[x^2 + y]
+            sage: I > J
+            True
+            sage: J < I
+            True
+            sage: I == I
+            True
+
+        ::
 
             sage: R.<x,y> = GF(32003)[]
             sage: I = R*[x^2 + x, y]
@@ -3110,80 +3120,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I < J
             True
 
-        TESTS:
-
-            We test to make sure that pickling works with the cached Groebner basis::
-
-            sage: loads(dumps(I)).__getstate__()
-            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
-             {'_Ideal_generic__gens': (x^2 + x, y),
-              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
-              '_cache__groebner_basis': {},
-              '_gb_by_ordering': {'degrevlex': [x^2 + x, y]},
-              'gens': Pickle of the cached method "gens",
-              'groebner_basis': Pickle of the cached method "groebner_basis"})
-
-        """
-        # first check the type
-        if not isinstance(other, MPolynomialIdeal):
-            return False
-
-        # the ideals may be defined w.r.t. to different term orders
-        # but are still the same.
-        R = self.ring()
-        S = other.ring()
-        # separate next two tests to avoid unnecessary creation of Groebner basis
-        if S != R:
-          if S.change_ring(order=R.term_order()) != R: # rings are unique
-            return False
-          else:
-            # at this point, the rings are the same, but for the term order,
-            # and we can fix that easily
-            other_new = other.change_ring(R)
-        else:
-            other_new = other
-
-        # now, check whether the GBs are cached already
-        l = self.gens()
-        try:
-            if other_new.groebner_basis.is_in_cache():
-                r = other_new.groebner_basis()
-            elif len(other_new._gb_by_ordering) != 0:
-                o, r = next(six.iteritems(other_new._gb_by_ordering))
-                l = self.change_ring(R.change_ring(order=o)).gens()
-            else: # use easy GB otherwise
-                l = self.change_ring(R.change_ring(order="degrevlex")).gens()
-                r = other_new.change_ring(R.change_ring(order="degrevlex")).groebner_basis()
-                # remember this Groebner basis for future reference
-                other._gb_by_ordering['degrevlex'] = r
-        except AttributeError: # e.g. quotient rings
-            r = other_new.groebner_basis()
-        for f in l:
-            if f.reduce(r) != 0:
-                return False
-        return True
-
-    def __gt__(self, other):
-        """
-        Decides whether ``self`` contains ``other``.
-
-        INPUT:
-
-        - ``other`` -- a polynomial ideal
-
-        OUTPUT:
-
-        - ``True`` if ``self`` contains ``other``; ``False`` otherwise
-
-        ALGORITHM:
-
-        #. Return ``other`` < ``self``.
-
-        .. SEEALSO::
-
-            :meth:`__lt__`.
-
-        EXAMPLES::
+        ::
 
             sage: R.<x,y> = GF(32003)[]
             sage: I = R*[x^2 + x, y]
@@ -3192,86 +3129,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             True
             sage: I > J
             False
-        """
-        return other.__lt__(self)
 
-    def __cmp__(self, other):
-        """
-        Comparison of ``self`` with ``other``.
-
-        INPUT:
-
-        - ``other`` -- a polynomial ideal
-
-        OUTPUT:
-
-        - 0 if ``self`` and ``other`` are the same ideal, 1 otherwise.
-
-        NOTES:
-
-        This algorithm relies on :meth:`.__eq__`.
-
-        EXAMPLES::
-
-            sage: R.<x,y> = ZZ[]; I = R*[x^2 + y, 2*y]; J = R*[x^2 + y]
-            sage: cmp(I,J)
-            1
-            sage: cmp(J,I)
-            -1
-            sage: cmp(I,I)
-            0
-        """
-
-        # first check the type
-        if not isinstance(other, MPolynomialIdeal):
-            return 1
-
-        # the ideals may be defined w.r.t. to different term orders
-        # but are still the same.
-        R = self.ring()
-        S = other.ring()
-        if R is not S: # rings are unique
-            if type(R) is type(S) and (R.base_ring() == S.base_ring()) and (R.ngens() == S.ngens()):
-                other = other.change_ring(R)
-            else:
-                return cmp((type(R), R.base_ring(), R.ngens()), (type(S), S.base_ring(), S.ngens()))
-
-        # now, check whether the GBs are cached already
-        l = self.gens()
-        try:
-            if other.groebner_basis.is_in_cache():
-                l = self.groebner_basis()
-                r = other.groebner_basis()
-            else: # use easy GB otherwise
-                l = self.change_ring(R.change_ring(order="degrevlex")).groebner_basis()
-                r = other.change_ring(R.change_ring(order="degrevlex")).groebner_basis()
-        except AttributeError: # e.g. quotient rings
-            l = self.groebner_basis()
-            r = other.groebner_basis()
-        return cmp(l,r)
-
-    def __eq__(self, other):
-        r"""
-        Decides whether ``self`` equals ``other``.
-
-        INPUT:
-
-        - ``other`` -- a polynomial ideal
-
-        OUTPUT:
-
-        - ``True`` if the ideals are the same; ``False`` otherwise
-
-        ALGORITHM:
-
-        #. Return ``True`` iff ``self`` and ``other`` contain each other.
-
-        .. SEEALSO::
-
-            :meth:`__lt__`
-            :meth:`__gt__`
-
-        EXAMPLES::
+        ::
 
             sage: R = PolynomialRing(QQ,'x,y,z')
             sage: I = R.ideal()
@@ -3282,8 +3141,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: R = PolynomialRing(QQ, names=[])
             sage: R.ideal(0) == R.ideal(0)
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
-            verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
             True
 
         ::
@@ -3304,6 +3161,26 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             True
 
         TESTS:
+
+        We test to make sure that pickling works with the cached
+        Groebner basis::
+
+            sage: R.<x,y> = GF(32003)[]
+            sage: I = R*[x^2 + x, y]
+            sage: J = R*[x + 1, y]
+            sage: J >= I
+            True
+            sage: I >= J
+            False
+
+            sage: loads(dumps(I)).__getstate__()
+            (Monoid of ideals of Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+             {'_Ideal_generic__gens': (x^2 + x, y),
+              '_Ideal_generic__ring': Multivariate Polynomial Ring in x, y over Finite Field of size 32003,
+              '_cache__groebner_basis': {},
+              '_gb_by_ordering': {'degrevlex': [x^2 + x, y]},
+              'gens': Pickle of the cached method "gens",
+              'groebner_basis': Pickle of the cached method "groebner_basis"})
 
         This example checks :trac:`12802`::
 
@@ -3333,7 +3210,84 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I == J
             True
         """
-        return self < other and self > other
+        # first check the type
+        if not isinstance(other, MPolynomialIdeal):
+            return NotImplemented
+
+        if self is other:
+            return rich_to_bool(op, 0)
+
+        # comparison for >= and > : swap the arguments
+        if op == op_GE:
+            return other.__richcmp__(self, op_LE)
+        elif op == op_GT:
+            return other.__richcmp__(self, op_LT)
+
+        # the ideals may be defined w.r.t. to different term orders
+        # but are still the same.
+        R = self.ring()
+        S = other.ring()
+
+        # separate next two tests to avoid unnecessary creation of
+        # Groebner basis
+        if S is not R:
+          if S.change_ring(order=R.term_order()) != R: # rings are unique
+            return NotImplemented
+          else:
+            # at this point, the rings are the same, but for the term order,
+            # and we can fix that easily
+            other_new = other.change_ring(R)
+        else:
+            other_new = other
+
+        if set(self.gens()) == set(other_new.gens()):
+            return rich_to_bool(op, 0)
+
+        # comparison for <=
+        # needs just the Groebner basis for other
+        if op == op_LE:
+            l = self.gens()
+            try:
+                # first check whether the GB is cached already
+                if other_new.groebner_basis.is_in_cache():
+                    r = other_new.groebner_basis()
+                elif len(other_new._gb_by_ordering):
+                    o, r = next(iteritems(other_new._gb_by_ordering))
+                    l = self.change_ring(R.change_ring(order=o)).gens()
+                else: # use easy GB otherwise
+                    newR = R.change_ring(order="degrevlex")
+                    l = self.change_ring(newR).gens()
+                    r = other_new.change_ring(newR).groebner_basis()
+                    # remember this Groebner basis for future reference
+                    other_new._gb_by_ordering['degrevlex'] = r
+            except AttributeError: # e.g. quotient rings
+                r = other_new.groebner_basis()
+            return all(f.reduce(r) == 0 for f in l)
+
+        # comparison for == and != and <
+        # needs both groebner bases for the same term order
+        # first check whether the GBs are cached already
+        if op in [op_EQ, op_NE, op_LT]:
+            try:
+                if (other_new.groebner_basis.is_in_cache()
+                    or self.groebner_basis().is_in_cache()):
+                    l = self.groebner_basis()
+                    r = other_new.groebner_basis()
+                else: # use easy GB otherwise
+                    newR = R.change_ring(order="degrevlex")
+                    l = self.change_ring(newR).groebner_basis()
+                    r = other_new.change_ring(newR).groebner_basis()
+            except AttributeError: # e.g. quotient rings
+                l = self.groebner_basis()
+                r = other_new.groebner_basis()
+            contained = all(f.reduce(r) == 0 for f in l)
+            contains = all(f.reduce(l) == 0 for f in r)
+            if op == op_EQ:
+                return contained and contains
+            elif op == op_NE:
+                return not (contained and contains)
+            else:  # remaining case <
+                return contained and not contains
 
     def groebner_fan(self, is_groebner_basis=False, symmetry=None, verbose=False):
         r"""
@@ -3883,7 +3837,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.subs(a=x, b=y)
             Ideal (x^2 + y^2 + x - y + 2) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        The resulting ring need not be a mulitvariate polynomial ring::
+        The resulting ring need not be a multivariate polynomial ring::
 
             sage: T.<t> = PolynomialRing(QQ)
             sage: I.subs(a=t, b=t)
@@ -4231,16 +4185,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
-
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
 
         if not self.is_principal():
-            raise TypeError("Ideal must be principal.")
-
+            raise TypeError("ideal must be principal")
 
         f = self.gens()[0]
 
@@ -4291,7 +4241,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             raise TypeError("Ideal generator may not have either 2 or 3 variables.")
 
     def random_element(self, degree, compute_gb=False, *args, **kwds):
-        """
+        r"""
         Return a random element in this ideal as `r = \sum h_i·f_i`.
 
         INPUT:
@@ -4379,7 +4329,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     @require_field
     def weil_restriction(self):
-        """
+        r"""
         Compute the Weil restriction of this ideal over some extension
         field. If the field is a finite field, then this computes
         the Weil restriction to the prime subfield.

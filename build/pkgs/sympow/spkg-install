@@ -4,21 +4,6 @@ if [ "$SAGE_LOCAL" = "" ]; then
    exit 1
 fi
 
-# Let the environment variable CFLAG64 specify the compiler flag
-# to build 64-bit code. It it is not set, set it to -m64
-if [ -z $CFLAG64 ] ; then
-   CFLAG64=-m64
-fi
-
-# If SAGE64 is "yes", build 64-bit.
-if [ "x$SAGE64" = xyes ] ; then
-   echo "Building SYMPOW 64-bit"
-   CFLAGS="$CFLAGS $CFLAG64"
-   LDFLAGS="$LDFLAGS $CFLAG64"
-   export CFLAGS
-   export LDFLAGS
-fi
-
 
 #######################################################################
 # Fix FPU precision

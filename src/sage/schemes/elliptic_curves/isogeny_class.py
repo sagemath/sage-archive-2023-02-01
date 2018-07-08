@@ -180,7 +180,7 @@ class IsogenyClass_EC(SageObject):
             return self._hash
 
     def _repr_(self):
-        """
+        r"""
         The string representation of this isogeny class.
 
         .. note::
@@ -379,8 +379,8 @@ class IsogenyClass_EC(SageObject):
 
     @cached_method
     def graph(self):
-        """
-        Returns a graph whose vertices correspond to curves in this
+        r"""
+        Return a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
         .. note::
@@ -565,7 +565,8 @@ class IsogenyClass_EC(SageObject):
                 except ValueError:
                     raise ValueError("order does not yield a permutation of curves")
             curves.append(self.curves[j])
-            if need_perm: perm.append(j+1)
+            if need_perm:
+                perm.append(j+1)
         cpy.curves = tuple(curves)
         if need_perm:
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -575,11 +576,13 @@ class IsogenyClass_EC(SageObject):
                 n = len(self._maps)
                 cpy._maps = [self._maps[perm(i+1)-1] for i in range(n)]
                 for i in range(n):
-                    cpy._maps[i] = [cpy._maps[i][perm(jj+1)-1] for jj in range(n)]
+                    cpy._maps[i] = [cpy._maps[i][perm(jj + 1)-1]
+                                    for jj in range(n)]
         else:
             cpy._mat = None
             cpy._maps = None
         return cpy
+
 
 class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     """
@@ -631,7 +634,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
 
         The array of isogenies themselves is not filled out but only
         contains those used to construct the class, the other entries
-        containing the interger 0.  This will be changed when the
+        containing the integer 0.  This will be changed when the
         class :class:`EllipticCurveIsogeny` allowed composition.  In
         this case we used `2`-isogenies to go from 0 to 2 and from 1
         to 3, and `3`-isogenies to go from 0 to 1 and from 2 to 3::
@@ -873,7 +876,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             print("Sorting permutation = %s" % perm)
 
         mat = MatrixSpace(ZZ,ncurves)(0)
-        self._maps = [[0]*ncurves for _ in range(ncurves)]
+        self._maps = [[0] * ncurves for _ in range(ncurves)]
         for i,j,l,phi in tuples:
             if phi!=0:
                 mat[perm[i],perm[j]] = l
@@ -979,12 +982,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         # The domains and codomains here will be equal, but not the same Python object.
         self._maps = recomputed._maps
 
+
 class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
-    """
+    r"""
     Isogeny classes for elliptic curves over `\QQ`.
     """
     def __init__(self, E, algorithm="sage", label=None, empty=False):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over `\QQ`.
@@ -1011,7 +1015,7 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             sage: E.isogeny_class(order='database')
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to find Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field in the database
+            LookupError: Cremona database does not contain entry for Elliptic Curve defined by y^2 = x^3 + 1001 over Rational Field
             sage: TestSuite(isocls).run()
         """
         self._algorithm = algorithm

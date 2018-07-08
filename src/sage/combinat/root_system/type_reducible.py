@@ -58,7 +58,7 @@ class CartanType(SageObject, CartanType_abstract):
     super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
 
         sage: t.__class__.mro()
-        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <... 'object'>]
+        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <... 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <... 'object'>]
 
     The index set of the reducible Cartan type is obtained by
     relabelling successively the nodes of the Dynkin diagrams of
@@ -252,10 +252,6 @@ class CartanType(SageObject, CartanType_abstract):
         the Cartan matrix is a subdivided block matrix showing the
         reducibility but the subdivision can be suppressed with
         the option ``subdivide = False``.
-
-        .. TODO::
-
-            Currently ``subdivide`` is currently ignored.
 
         EXAMPLES::
 
@@ -566,8 +562,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             [(1, -1, 0, 0, 0), (0, 0, 1, -1, 0), (0, 0, 1, 0, -1), (0, 0, 0, 1, -1)]
         """
         res = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            res.extend(self.inject_weights(i, v) for v in ambient_space.positive_roots())
+        for i, ambient_sp in enumerate(self.ambient_spaces()):
+            res.extend(self.inject_weights(i, v) for v in ambient_sp.positive_roots())
         return res
 
     def negative_roots(self):
@@ -578,8 +574,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             [(-1, 1, 0, 0, 0), (0, 0, -1, 1, 0), (0, 0, -1, 0, 1), (0, 0, 0, -1, 1)]
         """
         ret = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            ret.extend(self.inject_weights(i, v) for v in ambient_space.negative_roots())
+        for i, ambient_sp in enumerate(self.ambient_spaces()):
+            ret.extend(self.inject_weights(i, v) for v in ambient_sp.negative_roots())
         return ret
 
     def fundamental_weights(self):
@@ -590,8 +586,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
             Finite family {1: (1, 0, 0, 0, 0), 2: (1, 1, 0, 0, 0), 3: (0, 0, 0, 1, 0), 4: (0, 0, 0, 1/2, 1/2)}
         """
         fw = []
-        for i, ambient_space in enumerate(self.ambient_spaces()):
-            fw.extend(self.inject_weights(i, v) for v in ambient_space.fundamental_weights())
+        for i, ambient_sp in enumerate(self.ambient_spaces()):
+            fw.extend(self.inject_weights(i, v) for v in ambient_sp.fundamental_weights())
         return Family(dict([i,fw[i-1]] for i in range(1,len(fw)+1)))
 
 

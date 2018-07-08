@@ -26,13 +26,12 @@ AUTHORS:
 #*****************************************************************************
 # python3
 from __future__ import division, print_function
-from six import iteritems, add_metaclass
+from six import add_metaclass
 
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import parent, Element
-from sage.structure.richcmp import op_EQ, op_NE
 
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.six_vertex_model import (SquareIceModel,
@@ -45,7 +44,6 @@ from sage.matrix.constructor import matrix
 from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.misc.all import prod
-from sage.misc.lazy_attribute import lazy_attribute
 
 # edges of a fpl in terms of the six vertex possible configurations
 R = (1, 0)
@@ -863,8 +861,7 @@ class FullyPackedLoop(Element):
 
         link_options = {}
         loop_options = {}
-        extra_options = {}
-        for k,v in options.items():
+        for k, v in options.items():
             if k == 'link':
                 link = v
             elif k == 'loop':
@@ -1051,9 +1048,8 @@ class FullyPackedLoop(Element):
         else:
             return orbit
 
-
     def link_pattern(self):
-        """
+        r"""
         Return a link pattern corresponding to a fully packed loop.
 
         Here we define a link pattern `LP` to be a partition of the list

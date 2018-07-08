@@ -20,6 +20,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -174,27 +175,27 @@ cdef class Lfunction:
 
         EXAMPLES::
 
-            sage: chi=DirichletGroup(5)[2] #This is a quadratic character
+            sage: chi = DirichletGroup(5)[2]  # Quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
-            sage: L=Lfunction_from_character(chi, type="int")
+            sage: L = Lfunction_from_character(chi, type="int")
             sage: L.hardy_z_function(0)
             0.231750947504... 
-            sage: L.hardy_z_function(.5).imag().abs() < 1.0e-16
-            True
+            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-15
+            1.17253174178320e-17
             sage: L.hardy_z_function(.4+.3*I)
             0.2166144222685... - 0.00408187127850...*I
-            sage: chi=DirichletGroup(5)[1]
-            sage: L=Lfunction_from_character(chi,type="complex")
+            sage: chi = DirichletGroup(5)[1]
+            sage: L = Lfunction_from_character(chi, type="complex")
             sage: L.hardy_z_function(0)
             0.793967590477...
-            sage: L.hardy_z_function(.5).imag().abs() < 1.0e-16
-            True
-            sage: E=EllipticCurve([-82,0])
-            sage: L=Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
+            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-15
+            0.000000000000000
+            sage: E = EllipticCurve([-82,0])
+            sage: L = Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
             sage: L.hardy_z_function(2.1)
             -0.00643179176869...
-            sage: L.hardy_z_function(2.1).imag().abs() < 1.0e-16
-            True
+            sage: L.hardy_z_function(2.1).imag()  # abs tol 1e-15
+            -3.93833660115668e-19
         """
         #This takes s -> .5 + I*s
         cdef ComplexNumber complexified_s = CCC(0.5)+ CCC(0,1)*CCC(s)
@@ -406,7 +407,7 @@ cdef class Lfunction_I(Lfunction):
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
 
-    See (23) in http://arxiv.org/abs/math/0412181
+    See (23) in :arxiv:`math/0412181`
 
     INPUT:
 
@@ -543,7 +544,7 @@ cdef class Lfunction_D(Lfunction):
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
-    See (23) in http://arxiv.org/abs/math/0412181
+    See (23) in :arxiv:`math/0412181`
 
     INPUT:
 
@@ -682,7 +683,7 @@ cdef class Lfunction_C:
 
         \Lambda(s) = Q^s \left( \prod_{j=1}^a \Gamma(\kappa_j s + \gamma_j) \right) L(s)
 
-    See (23) in http://arxiv.org/abs/math/0412181
+    See (23) in :arxiv:`math/0412181`
 
     INPUT:
 

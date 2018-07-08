@@ -844,7 +844,7 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             return max(degree_on_basis(m) for m in self.support())
 
         def homogeneous_component(self, n):
-            """
+            r"""
             Return the homogeneous component of degree ``n`` of the
             element ``self``.
 

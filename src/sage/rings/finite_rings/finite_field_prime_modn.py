@@ -36,7 +36,7 @@ import sage.rings.finite_rings.integer_mod as integer_mod
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
@@ -127,6 +127,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             Traceback (most recent call last):
             ...
             TypeError: natural coercion morphism from Ring of integers modulo 9 to Finite Field of size 5 not defined
+
+        There is no coercion from a `p`-adic ring to its residue field::
+
+            sage: GF(3).has_coerce_map_from(Zp(3))
+            False
         """
         if S is int:
             return integer_mod.Int_to_IntegerMod(self)
@@ -144,6 +149,25 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         to_ZZ = ZZ._internal_coerce_map_from(S)
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
+
+    def _convert_map_from_(self, R):
+        """
+        Conversion from p-adic fields.
+
+        EXAMPLES::
+
+            sage: GF(3).convert_map_from(Qp(3))
+            Reduction morphism:
+              From: 3-adic Field with capped relative precision 20
+              To:   Finite Field of size 3
+            sage: GF(3).convert_map_from(Zp(3))
+            Reduction morphism:
+              From: 3-adic Ring with capped relative precision 20
+              To:   Finite Field of size 3
+        """
+        from sage.rings.padics.padic_generic import pAdicGeneric, ResidueReductionMap
+        if isinstance(R, pAdicGeneric) and R.residue_field() is self:
+            return ResidueReductionMap._create_(R, self)
 
     def construction(self):
         """
@@ -199,9 +223,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__polynomial[name]
         except  AttributeError:
-            from sage.rings.finite_rings.finite_field_constructor import FiniteField
-            R = FiniteField(self.characteristic())[name]
-            f = self[name]([0,1])
+            f = self[name]([0, 1])
             try:
                 self.__polynomial[name] = f
             except (KeyError, AttributeError):

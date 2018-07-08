@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 r"""
-Galois representations for elliptic curves over number fields.
+Galois representations for elliptic curves over number fields
 
 This file contains the code to compute for which primes the Galois
-representation attached to an elliptic curve (over an arbitrary
-number field) is surjective. The functions in this file are called by
-the ``is_surjective`` and ``non_surjective`` methods of an elliptic curve
-over a number field.
+representation attached to an elliptic curve (over an arbitrary number field)
+is surjective. The functions in this file are called by the ``is_surjective``
+and ``non_surjective`` methods of an elliptic curve over a number field.
 
 EXAMPLES::
 
@@ -59,7 +58,7 @@ from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.misc.functional import cyclotomic_polynomial
 from sage.arith.all import legendre_symbol, primes
 from sage.sets.set import Set
-from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.all import Integer, ZZ, QQ, Infinity
 
 class GaloisRepresentation(SageObject):
     r"""
@@ -530,7 +529,7 @@ def Frobenius_filter(E, L, patience=100):
         sage: sage.schemes.elliptic_curves.gal_reps_number_field.Frobenius_filter(E, primes(20))
         [2, 3]
 
-    Here the curve really does possess isognies of degrees 2 and 3::
+    Here the curve really does possess isogenies of degrees 2 and 3::
 
         sage: [len(E.isogenies_prime_degree(l)) for l in [2,3]]
         [1, 1]
@@ -582,8 +581,8 @@ def Frobenius_filter(E, L, patience=100):
 def _exceptionals(E, L, patience=1000):
     r"""
     Determine which primes in L are exceptional for E, using Proposition 19
-    of Section 2.8 of Serre's ``Proprietes Galoisiennes des Points d'Ordre
-    Fini des Courbes Elliptiques'' [Serre72].
+    of Section 2.8 of Serre's ``Propriétés Galoisiennes des Points d'Ordre
+    Fini des Courbes Elliptiques'' [Serre72]_.
 
     INPUT:
 
@@ -799,9 +798,8 @@ def deg_one_primes_iter(K, principal_only=False):
     start = K.discriminant().abs() // 4 if principal_only and K.signature() == (0,1) else 2
 
     K_is_Q = (K==QQ)
-    from sage.arith.misc import primes
-    from sage.rings.infinity import infinity
-    for p in primes(start=start, stop=infinity):
+
+    for p in primes(start=start, stop=Infinity):
         if K_is_Q:
             yield ZZ.ideal(p)
         else:
@@ -983,7 +981,7 @@ def _possible_normalizers(E, SA):
 
     OUTPUT:
 
-    - list - A list of primes, which contains all primes `l` such that the
+    - list -- A list of primes, which contains all primes `l` such that the
              Galois image at `l` is contained in the normalizer of a Cartan
              subgroup, such that the corresponding quadratic character is
              ramified only at primes in SA.

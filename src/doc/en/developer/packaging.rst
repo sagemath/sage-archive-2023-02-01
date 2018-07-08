@@ -129,6 +129,14 @@ build and/or install the package.  If no ``spkg-build`` exists, then the
 ``spkg-install`` is responsible for both steps, though separating them is
 encouraged where possible.
 
+It is also possible to include a similar script named ``spkg-postinst`` to run
+additional steps after the package has been installed into ``$SAGE_LOCAL``. It
+is encouraged to put such steps in a separate ``spkg-postinst`` script rather
+than combinging them with ``spkg-install``.  This is because since
+:trac:`24106`, ``spkg-install`` does not necessarily install packages directly
+to ``$SAGE_LOCAL``.  However, by the time ``spkg-postinst`` is run, the
+installation to ``$SAGE_LOCAL`` is complete.
+
 These scripts should *not* be prefixed with a shebang line (``#!...``) and
 should not have the executable bit set in their permissions.  These are
 added automatically, along with some additional boilerplate, when the
@@ -237,11 +245,11 @@ Python-based packages
 The best way to install a Python-based package is to use pip, in which
 case the ``spkg-install`` script might just consist of ::
 
-    cd src && $PIP_INSTALL .
+    cd src && sdh_pip_install .
 
-Where ``$PIP_INSTALL`` is a variable provided by Sage that points to the
-correct ``pip`` for the Python used by Sage, and includes some default flags
-needed for correct installation into Sage.
+Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
+points to the correct ``pip`` for the Python used by Sage, and includes some
+default flags needed for correct installation into Sage.
 
 If pip will not work but a command like ``python setup.py install``
 will, then the ``spkg-install`` script should call ``sage-python23``

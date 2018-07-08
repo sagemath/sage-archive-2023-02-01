@@ -122,7 +122,7 @@ def parent_to_repr_short(P):
     from sage.rings.rational_field import QQ
     from sage.symbolic.ring import SR
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
     from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
         if P is ZZ:
@@ -401,37 +401,6 @@ def substitute_raise_exception(element, e):
                 (element, element.parent())), e)
 
 
-def underlying_class(P):
-    r"""
-    Return the underlying class (class without the attached
-    categories) of the given instance.
-
-    OUTPUT:
-
-    A class.
-
-    EXAMPLES::
-
-        sage: from sage.rings.asymptotic.misc import underlying_class
-        sage: type(QQ)
-        <class 'sage.rings.rational_field.RationalField_with_category'>
-        sage: underlying_class(QQ)
-        <class 'sage.rings.rational_field.RationalField'>
-    """
-    cls = type(P)
-    if not hasattr(P, '_is_category_initialized') or not P._is_category_initialized():
-        return cls
-    from sage.structure.misc import is_extension_type
-    if is_extension_type(cls):
-        return cls
-
-    from sage.categories.sets_cat import Sets
-    Sets_parent_class = Sets().parent_class
-    while issubclass(cls, Sets_parent_class):
-        cls = cls.__base__
-    return cls
-
-
 def merge_overlapping(A, B, key=None):
     r"""
     Merge the two overlapping tuples/lists.
@@ -534,7 +503,7 @@ def merge_overlapping(A, B, key=None):
 
         Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
 
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
+        Adapted from https://stackoverflow.com/a/30056066/1052778.
         """
         matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])

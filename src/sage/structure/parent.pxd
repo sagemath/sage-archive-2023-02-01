@@ -10,9 +10,9 @@ cimport sage.structure.category_object
 from sage.structure.coerce_dict cimport MonoDict, TripleDict
 
 cdef class Parent(sage.structure.category_object.CategoryObject):
-    cdef public _element_constructor
+    cdef _element_constructor
+    cdef bint _element_init_pass_parent
     cdef public _convert_method_name
-    cdef public bint _element_init_pass_parent
     cdef public _initial_coerce_list
     cdef public _initial_action_list
     cdef public _initial_convert_list
@@ -23,14 +23,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cdef inline bint get_flag(self, int flag):
         return self.flags & flag
 
-    cpdef bint is_coercion_cached(self, domain)
-    cpdef bint is_conversion_cached(self, domain)
+    cpdef bint _is_coercion_cached(self, domain)
+    cpdef bint _is_conversion_cached(self, domain)
     cpdef register_coercion(self, mor)
     cpdef register_action(self, action)
     cpdef register_conversion(self, mor)
     cpdef register_embedding(self, embedding)
 
-    cpdef int _cmp_(left, right) except -2
     cpdef bint is_exact(self) except -2
 
     # Called from the __init__ method to set up coercion.
@@ -48,6 +47,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cpdef convert_map_from(self, S)
     cpdef _internal_convert_map_from(self, S)
     cpdef _convert_map_from_(self, S)
+    cdef convert_method_map(self, S, method_name)
 
     # returns the Action by/on self on/by S
     # corresponding to op and self_on_left

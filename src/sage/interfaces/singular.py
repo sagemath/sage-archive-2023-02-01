@@ -322,6 +322,7 @@ from __future__ import absolute_import
 from six.moves import range
 from six import integer_types, string_types
 
+import io
 import os
 import re
 import sys
@@ -400,7 +401,8 @@ class Singular(ExtraTabCompletion, Expect):
 
     def set_seed(self,seed=None):
         """
-        Sets the seed for singular interpeter.
+        Set the seed for singular interpreter.
+
         The seed should be an integer at least 1
         and not more than 30 bits.
         See
@@ -812,11 +814,6 @@ class Singular(ExtraTabCompletion, Expect):
         if hasattr(S, 'an_element'):
             if hasattr(S.an_element(), '_singular_'):
                 return True
-            try:
-                self._coerce_(S.an_element())
-                return True
-            except TypeError:
-                pass
         elif S in integer_types:
             return True
         return None
@@ -1261,10 +1258,10 @@ class Singular(ExtraTabCompletion, Expect):
         self._start()
         raise KeyboardInterrupt("Restarting %s (WARNING: all variables defined in previous session are now invalid)" % self)
 
-    
+
 @instancedoc
 class SingularElement(ExtraTabCompletion, ExpectElement):
-    
+
     def __init__(self, parent, type, value, is_name=False):
         """
         EXAMPLES::
@@ -1277,12 +1274,12 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         if parent is None: return
         if not is_name:
             try:
-                self._name = parent._create( value, type)
+                self._name = parent._create(value, type)
             # Convert SingularError to TypeError for
             # coercion to work properly.
             except SingularError as x:
                 self._session_number = -1
-                raise_(TypeError, x, sys.exc_info()[2])
+                raise_(TypeError, TypeError(x), sys.exc_info()[2])
             except BaseException:
                 self._session_number = -1
                 raise
@@ -1671,6 +1668,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: singular('z^4')
             (-z3-z2-z-1)
 
+        Test that :trac:`25297` is fixed::
+
+            sage: R.<x,y> = QQ[]
+            sage: SE.<xbar,ybar> = R.quotient(x^2 + y^2 - 1)
+            sage: P = ideal(xbar,ybar)
+            sage: P2 = P._singular_().sage()
+            sage: P2.0.lift().parent()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
         AUTHORS:
 
         - Martin Albrecht (2006-05-18)
@@ -1688,17 +1694,19 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # TODO: Refactor imports to move this to the top
         from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
         from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.polydict import PolyDict,ETuple
+        from sage.rings.polynomial.polydict import ETuple
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         from sage.rings.quotient_ring import QuotientRing_generic
-        from sage.rings.quotient_ring_element import QuotientRingElement
 
         ring_is_fine = False
         if R is None:
             ring_is_fine = True
             R = self.sage_global_ring()
+
+        if isinstance(R, QuotientRing_generic) and (ring_is_fine or can_convert_to_singular(R)):
+            p = self.sage_poly(R.ambient(), kcache)
+            return R(p)
 
         sage_repr = {}
         k = R.base_ring()
@@ -1746,7 +1754,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 
-        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and (ring_is_fine or can_convert_to_singular(R)):
+        if isinstance(R, MPolynomialRing_polydict) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))
@@ -1775,11 +1783,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
-            p = MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
-            if isinstance(R, MPolynomialRing_polydict):
-                return p
-            else:
-                return QuotientRingElement(R,p,reduce=False)
+            return R(sage_repr)
 
         elif is_PolynomialRing(R) and (ring_is_fine or can_convert_to_singular(R)):
 
@@ -1917,7 +1921,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: Q.sage()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
             sage: singular('x^2+y').sage()
-            x^2 + y
+            y
             sage: singular('x^2+y').sage().parent()
             Quotient of Multivariate Polynomial Ring in x, y, z over Finite Field in a of size 3^2 by the ideal (y^4 - y^2*z^3 + z^6, x + y^2 + z^3)
 
@@ -2103,11 +2107,12 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: list(iter(A))
             [[1,3], [2,4]]
         """
-        if self.type()=='matrix':
+        if self.type() == 'matrix':
             l = self.ncols()
         else:
             l = len(self)
-        for i in range(1, l + 1):
+
+        for i in range(1, int(l + 1)):
             yield self[i]
 
     def _singular_(self):
@@ -2235,36 +2240,6 @@ def is_SingularElement(x):
     """
     return isinstance(x, SingularElement)
 
-# This is only for backwards compatibility, in order to be able
-# to unpickle the invalid objects that are in the pickle jar.
-def reduce_load():
-    """
-    This is for backwards compatibility only.
-
-    To be precise, it only serves at unpickling the invalid
-    singular elements that are stored in the pickle jar.
-
-    EXAMPLES::
-
-        sage: from sage.interfaces.singular import reduce_load
-        sage: reduce_load()
-        doctest:...: DeprecationWarning: This function is only used to unpickle invalid objects
-        See http://trac.sagemath.org/18848 for details.
-        (invalid <class 'sage.interfaces.singular.SingularElement'> object -- The session in which this object was defined is no longer running.)
-
-    By :trac:`18848`, pickling actually often works::
-
-        sage: loads(dumps(singular.ring()))
-        polynomial ring, over a field, global ordering
-        //   coefficients: QQ
-        //   number of vars : 1
-        //        block   1 : ordering lp
-        //                  : names    x
-        //        block   2 : ordering C
-
-    """
-    deprecation(18848, "This function is only used to unpickle invalid objects")
-    return SingularElement(None, None, None)
 
 nodes = {}
 node_names = {}
@@ -2294,24 +2269,27 @@ def generate_docstring_dictionary():
 
     L, in_node, curr_node = [], False, None
 
-    for line in open(singular_docdir + "singular.hlp"):
-        m = re.match(new_node,line)
-        if m:
-            # a new node starts
-            in_node = True
-            nodes[curr_node] = "".join(L)
-            L = []
-            curr_node, = m.groups()
-        elif in_node: # we are in a node
-           L.append(line)
-        else:
-           m = re.match(new_lookup, line)
-           if m:
-               a,b = m.groups()
-               node_names[a] = b.strip()
+    # singular.hlp contains a few iso-5559-1 encoded special characters
+    with io.open(os.path.join(singular_docdir, 'singular.hlp'),
+                 encoding='latin-1') as f:
+        for line in f:
+            m = re.match(new_node,line)
+            if m:
+                # a new node starts
+                in_node = True
+                nodes[curr_node] = "".join(L)
+                L = []
+                curr_node, = m.groups()
+            elif in_node: # we are in a node
+               L.append(line)
+            else:
+               m = re.match(new_lookup, line)
+               if m:
+                   a,b = m.groups()
+                   node_names[a] = b.strip()
 
-        if line == "6 Index\n":
-            in_node = False
+            if line == "6 Index\n":
+                in_node = False
 
     nodes[curr_node] = "".join(L) # last node
 

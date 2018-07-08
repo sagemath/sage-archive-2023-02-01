@@ -19,10 +19,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 
 from sage.rings.polynomial.polynomial_element import is_Polynomial
-from sage.functions.other import floor
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial
 from sage.structure.sage_object import SageObject
@@ -30,7 +29,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 
 
 class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
-    """
+    r"""
     A Kazhdan-Lusztig polynomial.
 
     INPUT:
@@ -219,8 +218,9 @@ class KazhdanLusztigPolynomial(UniqueRepresentation, SageObject):
                 return self._base_ring.one()
             else:
                 return self._base_ring.zero()
-        p = sum(-self.R(x,t)*self.P(t,y) for t in self._coxeter_group.bruhat_interval(x,y) if t != x)
-        tr = floor((y.length()-x.length()+1)/2)
+        p = sum(-self.R(x, t) * self.P(t, y)
+                for t in self._coxeter_group.bruhat_interval(x, y) if t != x)
+        tr = (y.length() - x.length() + 1) // 2
         ret = p.truncate(tr)
         if self._trace:
             print("    P({},{})={}".format(x, y, ret))

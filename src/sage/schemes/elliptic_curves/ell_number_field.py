@@ -91,7 +91,7 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, verbose, forall, prod, union, flatten
+from sage.misc.all import cached_method, verbose, prod, union, flatten
 from six import reraise as raise_
 
 class EllipticCurve_number_field(EllipticCurve_field):
@@ -246,11 +246,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
               C = Mod(y, y^2 + 7)
             <BLANKLINE>
               Computing L(S,2)
-              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+              L(S,2) = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(-1, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(-1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(x^2 + 2, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y + 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x + Mod(1/2*y - 3/2, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
             <BLANKLINE>
               Computing the Selmer group
               #LS2gen = 2
-               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x - 1, x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
+               LS2gen = [Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7)), Mod(Mod(1, y^2 + 7)*x^2 + Mod(1/2*y + 1/2, y^2 + 7)*x + Mod(-1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))]
               Search for trivial points on the curve
              Trivial points on the curve = [[Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7)], [1, 1, 0], [Mod(1/2*y + 3/2, y^2 + 7), Mod(-y - 2, y^2 + 7), 1]]
               zc = Mod(Mod(-1/2*y + 1/2, y^2 + 7)*x^2 + Mod(-1/2*y - 1/2, y^2 + 7)*x + Mod(-y - 1, y^2 + 7), x^3 + Mod(1, y^2 + 7)*x + Mod(y, y^2 + 7))
@@ -332,7 +332,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         return t
 
     def division_field(self, p, names, map=False, **kwds):
-        """
+        r"""
         Given an elliptic curve over a number field `F` and a prime number `p`,
         construct the field `F(E[p])`.
 
@@ -527,11 +527,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - points - either a list of points, which must be on this
+        - points -- either a list of points, which must be on this
           curve, or (default) None, in which case self.gens() will be
           used.
 
-        - precision - number of bits of precision of result
+        - precision -- number of bits of precision of result
           (default: None, for default RealField precision)
 
         EXAMPLES::
@@ -589,7 +589,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
             RR = RealField()
         else:
             RR = RealField(precision)
-
         from sage.matrix.all import MatrixSpace
         M = MatrixSpace(RR, r)
         mat = M()
@@ -619,7 +618,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Q = E(1,0)
             sage: E.regulator_of_points([P,Q])
             0.000000000000000
-            sage: 2*P==Q
+            sage: 2*P == Q
             True
 
         ::
@@ -723,10 +722,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_local_integral_model(P1,P2)
             True
         """
-        if len(P)==1: P=P[0]
-        if isinstance(P,(tuple,list)):
-            return forall(P, lambda x : self.is_local_integral_model(x))[0]
-        return forall(self.ainvs(), lambda x : x.valuation(P) >= 0)[0]
+        if len(P) == 1:
+            P = P[0]
+        if isinstance(P, (tuple, list)):
+            return all(self.is_local_integral_model(x) for x in P)
+        return all(x.valuation(P) >= 0 for x in self.ainvs())
 
     def local_integral_model(self,*P):
         r"""
@@ -750,7 +750,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E.local_integral_model((P1,P2))
             Elliptic Curve defined by y^2 + (-i)*x*y + (-25*i)*y = x^3 + 5*i*x^2 + 125*i*x + 3125*i over Number Field in i with defining polynomial x^2 + 1
         """
-        if len(P)==1: P=P[0]
+        if len(P) == 1: P=P[0]
         if isinstance(P,(tuple,list)):
             E=self
             for Pi in P: E=E.local_integral_model(Pi)
@@ -762,7 +762,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def is_global_integral_model(self):
         r"""
-        Return true iff self is integral at all primes.
+        Return whether ``self`` is integral at all primes.
 
         EXAMPLES::
 
@@ -773,7 +773,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: Emin.is_global_integral_model()
             True
         """
-        return forall(self.a_invariants(), lambda x : x.is_integral())[0]
+        return all(x.is_integral() for x in self.a_invariants())
 
     def global_integral_model(self):
         r"""
@@ -943,7 +943,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         K = self.base_field()
         r1, r2 = K.signature()
-        if r1+r2==1: # unit rank is 0
+        if r1+r2 == 1: # unit rank is 0
             return self
 
         prec = 1000  # lower precision works badly!
@@ -970,7 +970,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
-        - ``P`` -- either None or a prime ideal of the base field of self.
+        - ``P`` -- either None, a prime ideal of the base field of self, or an element of the base field that generates a prime ideal.
 
         - ``proof`` -- whether to only use provably correct methods
           (default controlled by global proof module).  Note that the
@@ -1028,6 +1028,14 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
+            sage: E.local_data(2*i + 1)
+            Local data at Fractional ideal (2*i + 1):
+            Reduction type: bad non-split multiplicative
+            Local minimal model: Elliptic Curve defined by y^2 + (i+1)*x*y + y = x^3 over Number Field in i with defining polynomial x^2 + 1
+            Minimal discriminant valuation: 1
+            Conductor exponent: 1
+            Kodaira Symbol: I1
+            Tamagawa Number: 1
 
         An example raised in :trac:`3897`::
 
@@ -1040,6 +1048,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             Conductor exponent: 0
             Kodaira Symbol: I0
             Tamagawa Number: 1
+
+
         """
         if proof is None:
             import sage.structure.proof.proof
@@ -1446,7 +1456,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         for the local information at finite places. If the model is a global minimal model then `C(E/K)` is
         simply the product of the Tamagawa numbers `c_v` where `v` runs over all prime ideals of `K`. Otherwise, if the model has to be changed at a place `v` a correction factor appears.
         The definition is such that `C(E/K)` times the periods at the infinite places is invariant
-        under change of the Weierstrass model. See [Ta2] and [Do] for details.
+        under change of the Weierstrass model. See [Tate1966]_ and [DD2010]_ for details.
 
         .. note::
 
@@ -1479,18 +1489,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [dav.tamagawa_number() for dav in da]
             [1, 1]
 
-        An example over `\mathbb{Q}` (:trac:`9413`)::
+        An example over `\QQ` (:trac:`9413`)::
 
             sage: E = EllipticCurve('30a')
             sage: E.tamagawa_product_bsd()
             6
-
-        REFERENCES:
-
-        - [Ta2] Tate, John, On the conjectures of Birch and Swinnerton-Dyer and a geometric analog. Seminaire Bourbaki, Vol. 9, Exp. No. 306.
-
-        - [Do] Dokchitser, Tim and Vladimir, On the Birch-Swinnerton-Dyer quotients modulo squares, Annals of Math., 2010.
-
         """
         da = self.local_data()
         pr = 1
@@ -1596,7 +1599,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         # Note: for number fields other than QQ we could initialize
         # N=K.ideal(1) or N=OK.ideal(1), which are the same, but for
-        # K==QQ it has to be ZZ.ideal(1).
+        # K == QQ it has to be ZZ.ideal(1).
         OK = self.base_ring().ring_of_integers()
         self._conductor = prod([d.prime()**(d.conductor_valuation()) \
                                 for d in self.local_data()],\
@@ -1658,7 +1661,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # we treat separately the case where there are no bad primes,
         # which cannot happen over QQ, since ideals of QQ behave
         # differently to (fractional) ideals of other number fields.
-        if len(dat)==0:
+        if len(dat) == 0:
             return self.base_field().ideal(1)
         return prod([d.prime()**d.discriminant_valuation() for d in dat])
 
@@ -1804,7 +1807,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         K = self.base_field()
         Cl = K.class_group()
-        if K.class_number()==1:
+        if K.class_number() == 1:
             return Cl(1)
         D = self.discriminant()
         dat = self.local_data()
@@ -2452,11 +2455,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^2 + 23, 'a')
-            sage: E = EllipticCurve(K, '37')
-            sage: E == loads(dumps(E))
-            True
+            sage: E = EllipticCurve(K,[0,0,0,101,0])
             sage: E.gens()
-            [(0 : 0 : 1), (1/8*a + 5/8 : -3/16*a - 7/16 : 1)]
+            [(23831509/8669448*a - 2867471/8669448 : 76507317707/18049790736*a - 424166479633/18049790736 : 1),
+             (-2031032029/969232392*a + 58813561/969232392 : -15575984630401/21336681877488*a + 451041199309/21336681877488 : 1),
+             (-186948623/4656964 : 549438861195/10049728312*a : 1)]
 
         It can happen that no points are found if the height bounds
         used in the search are too small (see :trac:`10745`)::
@@ -2469,23 +2472,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (1,
              [(369/25*y^3 + 539/25*y^2 + 1178/25*y + 1718/25 : -29038/125*y^3 - 43003/125*y^2 - 92706/125*y - 137286/125 : 1)])
 
-        Here is a curve of rank 2, yet the list contains many points::
+        Here is a curve of rank 2::
 
             sage: K.<t> = NumberField(x^2-17)
             sage: E = EllipticCurve(K,[-4,0])
             sage: E.gens()
-            [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1),
-            (-2*t + 8 : -8*t + 32 : 1),
-            (1/2*t + 3/2 : -1/2*t - 7/2 : 1),
-            (-1/8*t - 7/8 : -1/16*t - 23/16 : 1),
-            (1/8*t - 7/8 : -1/16*t + 23/16 : 1),
-            (t + 3 : -2*t - 10 : 1),
-            (2*t + 8 : -8*t - 32 : 1),
-            (1/2*t + 1/2 : -1/2*t - 1/2 : 1),
-            (-1/2*t + 3/2 : -1/2*t + 7/2 : 1),
-            (t + 7 : -4*t - 20 : 1),
-            (-t + 7 : -4*t + 20 : 1),
-            (-t + 3 : -2*t + 10 : 1)]
+            [(-1/2*t + 1/2 : -1/2*t + 1/2 : 1), (-t + 3 : -2*t + 10 : 1)]
             sage: E.rank()
             2
 
@@ -2501,11 +2493,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         IMPLEMENTATION:
 
-        Uses Denis Simon's PARI/GP scripts from
-        http://www.math.unicaen.fr/~simon/.
+        For curves over quadratic fields which are base-changes from
+        `\QQ`, we delegate the work to :meth:`gens_quadratic` where
+        methods over `\QQ` suffice.  Otherwise, we use Denis Simon's
+        PARI/GP scripts from http://www.math.unicaen.fr/~simon/.
         """
-        self.simon_two_descent(**kwds)
-        return self._known_points
+        try:
+            return self.gens_quadratic(**kwds)
+        except ValueError:
+            self.simon_two_descent(**kwds)
+            return self._known_points
 
     def period_lattice(self, embedding):
         r"""
@@ -2661,7 +2658,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         The array of isogenies themselves is not filled out but only
         contains those used to construct the class, the other entries
-        containing the interger 0.  This will be changed when the
+        containing the integer 0.  This will be changed when the
         class :class:`EllipticCurveIsogeny` allowed composition.  In
         this case we used `2`-isogenies to go from 0 to 2 and from 1
         to 3, and `3`-isogenies to go from 0 to 1 and from 2 to 3::
@@ -2746,9 +2743,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(j=js[0])
             sage: E.has_rational_cm()
             True
-            sage: len(E.isogenies_prime_degree())
+            sage: len(E.isogenies_prime_degree())  # long time
             3
-            sage: C = E.isogeny_class(); len(C)
+            sage: C = E.isogeny_class(); len(C)  # long time
             6
 
         The reason for the isogeny class having size six while the
@@ -2758,7 +2755,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         sorted first by CM discriminant (then lexicographically using
         a-invariants)::
 
-            sage: [F.cm_discriminant() for F in C]
+            sage: [F.cm_discriminant() for F in C]  # long time
             [-23, -23, -23, -92, -92, -92]
 
         `2` splits in the order with discriminant `-23`, into two
@@ -2767,10 +2764,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         third `2`-isogeny is to a curve with the smaller endomorphism
         ring::
 
-            sage: [phi.codomain().cm_discriminant() for phi in E.isogenies_prime_degree()]
+            sage: [phi.codomain().cm_discriminant() for phi in E.isogenies_prime_degree()]  # long time
             [-92, -23, -23]
 
-            sage: C.matrix()
+            sage: C.matrix()  # long time
             [1 2 2 4 2 4]
             [2 1 2 2 4 4]
             [2 2 1 4 4 2]
@@ -2801,8 +2798,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         blocks, by contrast, the prime entries `2` are unique
         determined::
 
-            sage: G = C.graph()
-            sage: G.adjacency_matrix()
+            sage: G = C.graph()  # long time
+            sage: G.adjacency_matrix()  # long time
             [0 1 1 0 1 0]
             [1 0 1 1 0 0]
             [1 1 0 0 0 1]
@@ -2812,13 +2809,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         To display the graph without any edge labels::
 
-            G.show() # long time
+            sage: G.show()  # not tested
 
         To display the graph with edge labels: by default, for curves
         with rational CM, the labels are the coefficients of the
         associated quadratic forms::
 
-            G.show(edge_labels=True) # long time
+            sage: G.show(edge_labels=True)  # not tested
 
         For an alternative view, first relabel the edges using only 2
         labels to distinguish between isogenies between curves with
@@ -2826,8 +2823,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         different endomorphism rings, then use a 3-dimensional plot
         which can be rotated::
 
-            sage: for i,j,l in G.edge_iterator():  G.set_edge_label(i,j,l.count(','))
-            sage: G.show3d(color_by_label=True)
+            sage: for i,j,l in G.edge_iterator():  # long time
+            ....:     G.set_edge_label(i, j, l.count(','))
+            sage: G.show3d(color_by_label=True)  # long time
 
         A class number `6` example.  First we set up the fields: ``pol``
         defines the same field as ``pol26`` but is simpler::
@@ -2986,7 +2984,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
            For curves with rational CM, isogenies of primes degree
            exist for infinitely many primes `\ell`, though there are
-           only finitely many isogenous curves up to isomoprhism.  The
+           only finitely many isogenous curves up to isomorphism.  The
            list returned only includes one isogeny of prime degree for
            each codomain.
 
@@ -3003,7 +3001,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: js = hilbert_class_polynomial(-23).roots(L,multiplicities=False); len(js)
             3
             sage: E = EllipticCurve(j=js[0])
-            sage: len(E.isogenies_prime_degree())
+            sage: len(E.isogenies_prime_degree())  # long time
             3
 
         Set ``minimal_models`` to False to avoid computing minimal
@@ -3256,12 +3254,12 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: EE = EllipticCurve('14a2')
             sage: E1 = E.change_ring(F)
             sage: E2 = EE.change_ring(F)
-            sage: E1.isogeny_degree(E2)
+            sage: E1.isogeny_degree(E2)  # long time
             2
             sage: E2.isogeny_degree(E2)
             1
             sage: E5 = EllipticCurve('14a5').change_ring(F)
-            sage: E1.isogeny_degree(E5)
+            sage: E1.isogeny_degree(E5)  # long time
             6
 
             sage: E = EllipticCurve('11a1')
@@ -3361,8 +3359,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         return possible_isogeny_degrees(self, max_l=max_l, num_l=num_l, exact=True, verbose=verbose)
 
     def lll_reduce(self, points, height_matrix=None, precision=None):
-        """
-        Returns an LLL-reduced basis from a given basis, with transform
+        r"""
+        Return an LLL-reduced basis from a given basis, with transform
         matrix.
 
         INPUT:
@@ -3455,11 +3453,13 @@ class EllipticCurve_number_field(EllipticCurve_field):
         Some examples over number fields (see :trac:`9411`)::
 
             sage: K.<a> = QuadraticField(-23, 'a')
-            sage: E = EllipticCurve(K, '37')
-            sage: E.lll_reduce(E.gens())
+            sage: E = EllipticCurve(K, [0,0,1,-1,0])
+            sage: P = E(-2,-(a+1)/2)
+            sage: Q = E(0,-1)
+            sage: E.lll_reduce([P,Q])
             (
-                                                    [ 1 -1]
-            [(0 : 0 : 1), (-2 : -1/2*a - 1/2 : 1)], [ 0  1]
+                                                     [0 1]
+            [(0 : -1 : 1), (-2 : -1/2*a - 1/2 : 1)], [1 0]
             )
 
         ::
@@ -3600,8 +3600,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     @cached_method
     def has_rational_cm(self, field=None):
-        """
-        Returns whether or not this curve has CM defined over its
+        r"""
+        Return whether or not this curve has CM defined over its
         base field or a given extension.
 
         INPUT:
@@ -3687,3 +3687,283 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return D.is_square()
         raise ValueError("Error in has_rational_cm: %s is not an extension field of %s"
                          % (field,self.base_field()))
+
+
+    def saturation(self, points, verbose=False,
+                   max_prime=0, one_prime=0, odd_primes_only=False,
+                   lower_ht_bound=None, reg=None, debug=False):
+        r"""
+        Given a list of rational points on `E` over `K`, compute the
+        saturation in `E(K)` of the subgroup they generate.
+
+        INPUT:
+
+        - ``points (list)`` - list of points on E.  Points of finite
+          order are ignored; the remaining points should be independent,
+          or an error is raised.
+
+        - ``verbose`` (bool) - (default: ``False``), if ``True``, give
+          verbose output.
+
+        - ``max_prime`` (int, default 0), saturation is performed
+          for all primes up to ``max_prime``. If ``max_prime`` is 0,
+          perform saturation at *all* primes, i.e., compute the true
+          saturation.
+
+        - ``odd_primes_only`` (bool, default ``False``) -- only do
+          saturation at odd primes.
+
+        - ``one_prime`` (int, default 0) -- if nonzero, only do
+          saturation at this prime.
+
+        The following two inputs are optional, and may be provided to speed
+        up the computation.
+
+        - ``lower_ht_bound`` (real, default ``None``) -- lower bound of
+          the regulator `E(K)`, if known.
+
+        - ``reg`` (real, default ``None``), regulator of the span of
+          points, if known.
+
+        - ``debug`` (int, default 0) -- , used for debugging and
+          testing.
+
+        OUTPUT:
+
+        - ``saturation`` (list) - points that form a basis for the
+          saturation.
+
+        - ``index`` (int) - the index of the group generated by the
+          input points in their saturation.
+
+        - ``regulator`` (real with default precision, or ``None``) -
+          regulator of saturated points.
+
+        EXAMPLES::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve('389a1')
+            sage: EK = E.change_ring(K)
+            sage: P = EK(-1,1); Q = EK(0,-1)
+
+            sage: EK.saturation([2*P], max_prime=2)
+            ([(-1 : 1 : 1)], 2, 0.686667083305587)
+            sage: EK.saturation([12*P], max_prime=2)
+            ([(26/361 : -5720/6859 : 1)], 4, 6.18000374975028)
+            sage: EK.saturation([12*P], lower_ht_bound=0.1)
+            ([(-1 : 1 : 1)], 12, 0.686667083305587)
+            sage: EK.saturation([2*P, Q], max_prime=2)
+            ([(-1 : 1 : 1), (0 : -1 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
+            ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([P+Q, 17*Q], lower_ht_bound=0.1)  # long time
+            ([(4 : 8 : 1), (0 : -1 : 1)], 17, 0.152460177943143)
+
+            sage: R = EK(i-2,-i-3)
+            sage: EK.saturation([P+R, P+Q, Q+R], lower_ht_bound=0.1)
+            ([(841/1369*i - 171/1369 : 41334/50653*i - 74525/50653 : 1),
+              (4 : 8 : 1),
+              (-1/25*i + 18/25 : -69/125*i - 58/125 : 1)],
+             2,
+             0.103174443217351)
+            sage: EK.saturation([26*Q], lower_ht_bound=0.1)
+            ([(0 : -1 : 1)], 26, 0.327000773651605)
+
+        Another number field::
+
+            sage: E = EllipticCurve('389a1')
+            sage: K.<a> = NumberField(x^3-x+1)
+            sage: EK = E.change_ring(K)
+            sage: P = EK(-1,1); Q = EK(0,-1)
+            sage: EK.saturation([P+Q, P-Q], lower_ht_bound=0.1)
+            ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([3*P, P+5*Q], lower_ht_bound=0.1)
+            ([(-185/2209 : -119510/103823 : 1), (80041/34225 : -26714961/6331625 : 1)],
+             15,
+             0.152460177943144)
+
+        A different curve::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: E = EllipticCurve('37a1')
+            sage: EK = E.change_ring(K)
+            sage: P = EK(0,0); Q = EK(2-a,2*a-4)
+            sage: EK.saturation([3*P-Q, 3*P+Q], lower_ht_bound=.01)
+            ([(0 : 0 : 1), (1/2*a : -1/4*a - 1/4 : 1)], 6, 0.0317814530725985)
+
+        The points must be linearly independent::
+
+            sage: EK.saturation([2*P, 3*Q, P-Q])
+            Traceback (most recent call last):
+            ...
+            ValueError: points not linearly independent in saturation()
+
+        Degenerate case::
+
+            sage: EK.saturation([])
+            ([], 1, 1.00000000000000)
+
+        ALGORITHM:
+
+        For rank 1 subgroups, simply do trial division up to the maximal
+        prime divisor. For higher rank subgroups, perform trial division
+        on all linear combinations for small primes, and look for
+        projections `E(K) \rightarrow \oplus E(k) \otimes \mathbf{F}_p` which
+        are either full rank or provide `p`-divisible linear combinations,
+        where the `k` here are residue fields of `K`.
+
+        TESTS::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: E = EllipticCurve('389a1')
+            sage: EK = E.change_ring(K)
+            sage: P = EK(-1,1); Q = EK(0,-1)
+
+            sage: EK.saturation([P+Q, P-Q], lower_ht_bound=.1, debug=2)
+            ([(-1 : 1 : 1), (1 : 0 : 1)], 2, 0.152460177943144)
+            sage: EK.saturation([5*P+6*Q, 5*P-3*Q], lower_ht_bound=.1)
+            ([(-3/4 : -15/8 : 1), (159965/16129 : -67536260/2048383 : 1)],
+            45,
+            0.152460177943144)
+            sage: EK.saturation([5*P+6*Q, 5*P-3*Q], lower_ht_bound=.1, debug=2)
+            ([(-3/4 : -15/8 : 1), (159965/16129 : -67536260/2048383 : 1)],
+            45,
+            0.152460177943144)
+        """
+        full_saturation = (max_prime == 0) and (one_prime == 0)
+        Plist = [self(P) for P in points]
+        Plist = [P for P in points if P.has_infinite_order()]
+        n = len(Plist)
+        index = ZZ(1)
+
+        if n == 0:
+            return Plist, index, RealField()(1)
+
+
+        # compute the list of primes p at which p-saturation is
+        # required.
+
+        heights = [P.height() for P in Plist]
+        if reg is None:
+            reg = self.regulator_of_points(Plist)
+        if reg / min(heights) < 1e-6:
+            raise ValueError("points not linearly independent in saturation()")
+        sat_reg = reg
+
+        from sage.rings.all import prime_range
+        if full_saturation:
+            if lower_ht_bound is None:
+                # TODO (robertb): verify this for rank > 1
+                if verbose:
+                    print("Computing lower height bound..")
+                lower_ht_bound = self.height_function().min(.1, 5) ** n
+                if verbose:
+                    print("..done: %s" % lower_ht_bound)
+            index_bound = (reg/lower_ht_bound).sqrt()
+            prime_list = prime_range(index_bound.ceil() + 1)
+            if verbose:
+                print("Testing primes up to %s" % prime_list[-1])
+        else:
+            if one_prime:
+                prime_list = [one_prime]
+            else:
+                prime_list = prime_range(max_prime+1)
+        if odd_primes_only and 2 in prime_list:
+            prime_list.remove(2)
+
+        # Now saturate at each prime in prime_list.  The dict
+        # lin_combs keeps the values of linear combinations of the
+        # points, indexed by coefficient tuples, for efficiency; it is
+        # rest whenever the point list changes.
+
+        from sage.schemes.elliptic_curves.saturation import full_p_saturation
+        lin_combs = dict()
+        for p in prime_list:
+            if full_saturation and (p > index_bound): break
+            if verbose:
+                print("Saturating at p=%s" % p)
+            newPlist, expo = full_p_saturation(Plist, p, lin_combs, verbose)
+            if expo:
+                if verbose:
+                    print(" --gaining index %s^%s" % (p,expo))
+                pe = p**expo
+                index *= pe
+                if full_saturation: index_bound /= pe
+                sat_reg /= pe**2
+                Plist = newPlist
+            else:
+                if verbose:
+                    print(" --already %s-saturated" % p)
+
+        return Plist, index, sat_reg
+
+
+    def gens_quadratic(self, **kwds):
+        r"""
+        Return generators for the Mordell-Weil group modulo torsion, for a
+        curve which is a base change from `\QQ` to a quadratic field.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve([1,2,3,40,50])
+            sage: E.conductor()
+            2123582
+            sage: E.gens()
+            [(5 : 17 : 1)]
+            sage: K.<i> = QuadraticField(-1)
+            sage: EK = E.change_ring(K)
+            sage: EK.gens_quadratic()
+            [(5 : 17 : 1), (-13 : 48*i + 5 : 1)]
+
+            sage: E.change_ring(QuadraticField(3, 'a')).gens_quadratic()
+            [(5 : 17 : 1), (-1 : 2*a - 1 : 1), (11/4 : 33/4*a - 23/8 : 1)]
+
+            sage: K.<a> = QuadraticField(-7)
+            sage: E = EllipticCurve([0,0,0,197,0])
+            sage: E.conductor()
+            2483776
+            sage: E.gens()
+            [(47995604297578081/7389879786648100 : -25038161802544048018837479/635266655830129794121000 : 1)]
+            sage: K.<a> = QuadraticField(7)
+            sage: E.change_ring(K).gens_quadratic()
+            [(-1209642055/59583566*a + 1639995844/29791783 : -377240626321899/1720892553212*a + 138577803462855/245841793316 : 1),
+             (1/28 : 393/392*a : 1),
+             (-61*a + 162 : 1098*a - 2916 : 1)]
+
+            sage: E = EllipticCurve([1, a])
+            sage: E.gens_quadratic()
+            Traceback (most recent call last):
+            ...
+            ValueError: gens_quadratic() requires the elliptic curve to be a base change from Q
+        """
+        if not kwds:
+            try:
+                return list(self.__gens)
+            except AttributeError:
+                pass
+
+        K = self.base_ring()
+        if K.absolute_degree() != 2:
+            raise ValueError("gens_quadratic() requires the base field to be quadratic")
+
+        EE = self.descend_to(QQ)
+        if not EE:
+            raise ValueError("gens_quadratic() requires the elliptic curve to be a base change from Q")
+
+        # In all cases there are exactly two distinct curves /Q whose
+        # base-change to K is the original.  NB These need not be
+        # quadratic twists of each other!  For example, '32a1' and
+        # '32a2' are not quadratic twists of each other (each is its
+        # own twist by -1) but they become isomorphic over
+        # Q(sqrt(-1)).
+
+        EQ1 = EE[0]
+        EQ2 = EE[1]
+        iso1 = EQ1.change_ring(K).isomorphism_to(self)
+        iso2 = EQ2.change_ring(K).isomorphism_to(self)
+        gens1 = [iso1(P) for P in EQ1.gens(**kwds)]
+        gens2 = [iso2(P) for P in EQ2.gens(**kwds)]
+        gens = self.saturation(gens1+gens2, max_prime=2)[0]
+        self.__gens = gens
+        return gens
+

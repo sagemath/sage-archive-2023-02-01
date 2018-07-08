@@ -57,7 +57,7 @@ def is_Scheme(x):
 
 
 class Scheme(Parent):
-    """
+    r"""
     The base class for all schemes.
 
     INPUT:
@@ -74,7 +74,7 @@ class Scheme(Parent):
 
         sage: from sage.schemes.generic.scheme import Scheme
         sage: Scheme(ZZ)
-        <class 'sage.schemes.generic.scheme.Scheme_with_category'>
+        <sage.schemes.generic.scheme.Scheme_with_category object at ...>
 
     A scheme is in the category of all schemes over its base::
 
@@ -183,7 +183,7 @@ class Scheme(Parent):
         """
         Extend the base of the scheme.
 
-        Derived clases must override this method.
+        Derived classes must override this method.
 
         EXAMPLES::
 

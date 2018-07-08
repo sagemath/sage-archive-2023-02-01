@@ -710,7 +710,7 @@ class QuantumGL(QuantumMatrixCoordinateAlgebra_abstract):
 
     REFERENCES:
 
-    .. [DD91] R. Dipper and S. Donkin. *Quantum* `GL_n`.
+    .. [DD91] \R. Dipper and S. Donkin. *Quantum* `GL_n`.
        Proc. London Math. Soc. (3) **63** (1991), no. 1, pp. 165-211.
 
     .. [Karimipour93] Vahid Karimipour.

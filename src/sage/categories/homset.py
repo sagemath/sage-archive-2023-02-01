@@ -47,8 +47,6 @@ AUTHORS:
 
 - Simon King (2013-02): added examples
 """
-from __future__ import absolute_import
-
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>, William Stein <wstein@gmail.com>
 #
@@ -64,7 +62,9 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.category import Category
+from __future__ import absolute_import, print_function
+
+from sage.categories.category import Category, JoinCategory
 from . import morphism
 from sage.structure.parent import Parent, Set_generic
 from sage.misc.fast_methods import WithEqualityById
@@ -81,7 +81,7 @@ import types
 # trac ticket #14159
 
 from sage.structure.coerce_dict import TripleDict
-_cache = TripleDict(53, weak_values=True)
+_cache = TripleDict(weak_values=True)
 
 def Hom(X, Y, category=None, check=True):
     """
@@ -236,14 +236,14 @@ def Hom(X, Y, category=None, check=True):
         sage: U1 = FreeModule(ZZ,2)
         sage: U2 = FreeModule(ZZ,2,inner_product_matrix=matrix([[1,0],[0,-1]]))
         sage: U1 == U2, U1 is U2
-        (True, False)
+        (False, False)
         sage: V = ZZ^3
         sage: H1 = Hom(U1, V); H2 = Hom(U2, V)
         sage: H1 == H2, H1 is H2
-        (True, False)
+        (False, False)
         sage: H1 = Hom(V, U1); H2 = Hom(V, U2)
         sage: H1 == H2, H1 is H2
-        (True, False)
+        (False, False)
 
     Since :trac:`11900`, the meet of the categories of the given arguments is
     used to determine the default category of the homset. This can also be a
@@ -252,11 +252,11 @@ def Hom(X, Y, category=None, check=True):
         sage: PA = Parent(category=Algebras(QQ))
         sage: PJ = Parent(category=Rings() & Modules(QQ))
         sage: Hom(PA,PJ)
-        Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
+        Set of Homomorphisms from <sage.structure.parent.Parent object at ...> to <sage.structure.parent.Parent object at ...>
         sage: Hom(PA,PJ).category()
         Category of homsets of unital magmas and right modules over Rational Field and left modules over Rational Field
         sage: Hom(PA,PJ, Rngs())
-        Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
+        Set of Morphisms from <sage.structure.parent.Parent object at ...> to <sage.structure.parent.Parent object at ...> in Category of rngs
 
     .. TODO::
 
@@ -276,7 +276,7 @@ def Hom(X, Y, category=None, check=True):
         sage: R = sage.structure.parent.Set_PythonType(int)
         sage: S = sage.structure.parent.Set_PythonType(float)
         sage: Hom(R, S)
-        Set of Morphisms from Set of Python objects of type 'int' to Set of Python objects of type 'float' in Category of sets
+        Set of Morphisms from Set of Python objects of class 'int' to Set of Python objects of class 'float' in Category of sets
 
     Checks that the domain and codomain are in the specified
     category. Case of a non parent::
@@ -343,6 +343,34 @@ def Hom(X, Y, category=None, check=True):
         si... = ... pg_Hom(si..., si..., ...) ...
         sage: Q == loads(dumps(Q))
         True
+
+    Check that the ``_Hom_`` method of the ``category`` input is used::
+
+        sage: from sage.categories.category_types import Category_over_base_ring
+        sage: class ModulesWithHom(Category_over_base_ring):
+        ....:     def super_categories(self):
+        ....:         return [Modules(self.base_ring())]
+        ....:     class ParentMethods:
+        ....:         def _Hom_(self, Y, category=None):
+        ....:             print("Modules")
+        ....:             raise TypeError
+        sage: class AlgebrasWithHom(Category_over_base_ring):
+        ....:     def super_categories(self):
+        ....:         return [Algebras(self.base_ring()), ModulesWithHom(self.base_ring())]
+        ....:     class ParentMethods:
+        ....:         def _Hom_(self, Y, category=None):
+        ....:             R = self.base_ring()
+        ....:             if category is not None and category.is_subcategory(Algebras(R)):
+        ....:                 print("Algebras")
+        ....:             raise TypeError
+        sage: from sage.structure.element import Element
+        sage: class Foo(Parent):
+        ....:     _no_generic_basering_coercion = True
+        ....:     class Element(Element):
+        ....:         pass
+        sage: X = Foo(base=QQ, category=AlgebrasWithHom(QQ))
+        sage: H = Hom(X, X, ModulesWithHom(QQ))
+        Modules
     """
     # This should use cache_function instead
     # However some special handling is currently needed for
@@ -394,18 +422,31 @@ def Hom(X, Y, category=None, check=True):
         try: # _Hom_ hook from the parent
             H = X._Hom_(Y, category)
         except (AttributeError, TypeError):
-            try:
-                # Workaround in case the above fails, but the category
-                # also provides a _Hom_ hook.
-                # FIXME:
-                # - If X._Hom_ actually comes from category and fails, it
-                #   will be called twice.
-                # - This is bound to fail if X is an extension type and
-                #   does not actually inherit from category.parent_class
-                H = category.parent_class._Hom_(X, Y, category = category)
-            except (AttributeError, TypeError):
+            # Workaround in case the above fails, but the category
+            # also provides a _Hom_ hook.
+            # FIXME:
+            # - If X._Hom_ actually comes from category and fails, it
+            #   will be called twice.
+            # - This is bound to fail if X is an extension type and
+            #   does not actually inherit from category.parent_class
+            # For join categories, we check all of the direct super
+            #   categories as the parent_class of the join category is
+            #   not (necessarily) inherited and join categories do not
+            #   implement a _Hom_ (see trac #23418).
+            if not isinstance(category, JoinCategory):
+                cats = [category]
+            else:
+                cats = category.super_categories()
+            H = None
+            for C in cats:
+                try:
+                    H = C.parent_class._Hom_(X, Y, category=category)
+                    break
+                except (AttributeError, TypeError):
+                    pass
+            if H is None:
                 # By default, construct a plain homset.
-                H = Homset(X, Y, category = category, check=check)
+                H = Homset(X, Y, category=category, check=check)
     _cache[key] = H
     if isinstance(X, UniqueRepresentation) and isinstance(Y, UniqueRepresentation):
         if not isinstance(H, WithEqualityById):
@@ -507,6 +548,7 @@ def end(X, f):
         x^2 + 2*x + 6
     """
     return End(X)(f)
+
 
 class Homset(Set_generic):
     """
@@ -646,7 +688,8 @@ class Homset(Set_generic):
             (<function Hom at ...>,
              (Vector space of dimension 2 over Rational Field,
               Vector space of dimension 3 over Rational Field,
-              Category of finite dimensional vector spaces with basis over (quotient fields and metric spaces),
+              Category of finite dimensional vector spaces with basis over
+                 (number fields and quotient fields and metric spaces),
               False))
 
         TESTS::
@@ -707,21 +750,98 @@ class Homset(Set_generic):
 
     __nonzero__ = __bool__
 
-    def _generic_convert_map(self, S, category=None):
+    def homset_category(self):
         """
-        Return a generic map from a given homset to ``self``.
+        Return the category that this is a Hom in, i.e., this is typically
+        the category of the domain or codomain object.
 
-        INPUT:
+        EXAMPLES::
 
-        - ``S`` -- a homset
+            sage: H = Hom(AlternatingGroup(4), AlternatingGroup(7))
+            sage: H.homset_category()
+            Category of finite enumerated permutation groups
+        """
+        return self.__category
 
-        - ``category`` -- a category
+    def _element_constructor_(self, x, check=None, **options):
+        r"""
+        Construct a morphism in this homset from ``x`` if possible.
 
-        OUTPUT:
+        EXAMPLES::
 
-        A map (by default: a Call morphism) from ``S`` to ``self``.
+            sage: H = Hom(SymmetricGroup(4), SymmetricGroup(7))
+            sage: phi = Hom(SymmetricGroup(5), SymmetricGroup(6)).natural_map()
+            sage: phi
+            Coercion morphism:
+              From: Symmetric group of order 5! as a permutation group
+              To:   Symmetric group of order 6! as a permutation group
 
-        EXAMPLES:
+        When converting `\phi` into `H`, some coerce maps are applied. Note
+        that (in contrast to what is stated in the following string
+        representation) it is safe to use the resulting map, since a composite
+        map prevents the codomains of all constituent maps from garbage
+        collection, if there is a strong reference to its domain (which is the
+        case here)::
+
+            sage: H(phi)
+            Composite map:
+              From: Symmetric group of order 4! as a permutation group
+              To:   Symmetric group of order 7! as a permutation group
+              Defn:   (map internal to coercion system -- copy before use)
+                    Coercion map:
+                      From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 5! as a permutation group
+                    then
+                      Coercion morphism:
+                      From: Symmetric group of order 5! as a permutation group
+                      To:   Symmetric group of order 6! as a permutation group
+                    then
+                      (map internal to coercion system -- copy before use)
+                    Coercion map:
+                      From: Symmetric group of order 6! as a permutation group
+                      To:   Symmetric group of order 7! as a permutation group
+
+        Also note that making a copy of the resulting map will automatically
+        make strengthened copies of the composed maps::
+
+            sage: copy(H(phi))
+            Composite map:
+              From: Symmetric group of order 4! as a permutation group
+              To:   Symmetric group of order 7! as a permutation group
+              Defn:   Coercion map:
+                      From: Symmetric group of order 4! as a permutation group
+                      To:   Symmetric group of order 5! as a permutation group
+                    then
+                      Coercion morphism:
+                      From: Symmetric group of order 5! as a permutation group
+                      To:   Symmetric group of order 6! as a permutation group
+                    then
+                      Coercion map:
+                      From: Symmetric group of order 6! as a permutation group
+                      To:   Symmetric group of order 7! as a permutation group
+            sage: H = Hom(ZZ, ZZ, Sets())
+            sage: f = H( lambda x: x + 1 )
+            sage: f.parent()
+            Set of Morphisms from Integer Ring to Integer Ring in Category of sets
+            sage: f.domain()
+            Integer Ring
+            sage: f.codomain()
+            Integer Ring
+            sage: f(1), f(2), f(3)
+            (2, 3, 4)
+
+            sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
+            sage: f = H( lambda x: 4-x )
+            sage: f.parent()
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
+            sage: f(1), f(2), f(3) # todo: not implemented
+
+            sage: H = Hom(ZZ, QQ, Sets())
+            sage: f = H( ConstantFunction(2/3) )
+            sage: f.parent()
+            Set of Morphisms from Integer Ring to Rational Field in Category of sets
+            sage: f(1), f(2), f(3)
+            (2/3, 2/3, 2/3)
 
         By :trac:`14711`, conversion and coerce maps should be copied
         before using them outside of the coercion system::
@@ -730,7 +850,7 @@ class Homset(Set_generic):
             sage: P.<t> = ZZ[]
             sage: f = P.hom([2*t])
             sage: phi = H._generic_convert_map(f.parent()); phi
-            Call morphism:
+            Conversion map:
               From: Set of Homomorphisms from Univariate Polynomial Ring in t over Integer Ring to Univariate Polynomial Ring in t over Integer Ring
               To:   Set of Morphisms from Integer Ring to Univariate Polynomial Ring in t over Rational Field in Category of commutative additive groups
             sage: H._generic_convert_map(f.parent())(f)
@@ -767,106 +887,31 @@ class Homset(Set_generic):
                             Natural morphism:
                               From: Integer Ring
                               To:   Rational Field
-        """
-        if self._element_constructor is None:
-            from sage.categories.morphism import CallMorphism
-            from sage.categories.homset import Hom
-            return CallMorphism(Hom(S, self))
-        else:
-            return Parent._generic_convert_map(self, S, category)
 
-    def homset_category(self):
-        """
-        Return the category that this is a Hom in, i.e., this is typically
-        the category of the domain or codomain object.
+        TESTS::
 
-        EXAMPLES::
-
-            sage: H = Hom(AlternatingGroup(4), AlternatingGroup(7))
-            sage: H.homset_category()
-            Category of finite enumerated permutation groups
-        """
-        return self.__category
-
-    def __call__(self, x=None, y=None, check=True, **options):
-        r"""
-        Construct a morphism in this homset from ``x`` if possible.
-
-        EXAMPLES::
-
-            sage: H = Hom(SymmetricGroup(4), SymmetricGroup(7))
-            sage: phi = Hom(SymmetricGroup(5), SymmetricGroup(6)).natural_map()
-            sage: phi
-            Coercion morphism:
-              From: Symmetric group of order 5! as a permutation group
-              To:   Symmetric group of order 6! as a permutation group
-
-        When converting `\phi` into `H`, some coerce maps are applied. Note
-        that (in contrast to what is stated in the following string
-        representation) it is safe to use the resulting map, since a composite
-        map prevents the codomains of all constituent maps from garbage
-        collection, if there is a strong reference to its domain (which is the
-        case here)::
-
-            sage: H(phi)
-            Composite map:
-              From: Symmetric group of order 4! as a permutation group
-              To:   Symmetric group of order 7! as a permutation group
-              Defn:   (map internal to coercion system -- copy before use)
-                    Call morphism:
-                      From: Symmetric group of order 4! as a permutation group
-                      To:   Symmetric group of order 5! as a permutation group
-                    then
-                      Coercion morphism:
-                      From: Symmetric group of order 5! as a permutation group
-                      To:   Symmetric group of order 6! as a permutation group
-                    then
-                      (map internal to coercion system -- copy before use)
-                    Call morphism:
-                      From: Symmetric group of order 6! as a permutation group
-                      To:   Symmetric group of order 7! as a permutation group
-
-      Also note that making a copy of the resulting map will automatically
-      make strengthened copies of the composed maps::
-
-            sage: copy(H(phi))
-            Composite map:
-              From: Symmetric group of order 4! as a permutation group
-              To:   Symmetric group of order 7! as a permutation group
-              Defn:   Call morphism:
-                      From: Symmetric group of order 4! as a permutation group
-                      To:   Symmetric group of order 5! as a permutation group
-                    then
-                      Coercion morphism:
-                      From: Symmetric group of order 5! as a permutation group
-                      To:   Symmetric group of order 6! as a permutation group
-                    then
-                      Call morphism:
-                      From: Symmetric group of order 6! as a permutation group
-                      To:   Symmetric group of order 7! as a permutation group
-            sage: H = Hom(ZZ, ZZ, Sets())
-            sage: f = H( lambda x: x + 1 )
-            sage: f.parent()
-            Set of Morphisms from Integer Ring to Integer Ring in Category of sets
-            sage: f.domain()
-            Integer Ring
-            sage: f.codomain()
-            Integer Ring
-            sage: f(1), f(2), f(3)
-            (2, 3, 4)
-
-            sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
-            sage: f = H( lambda x: 4-x )
-            sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
-            sage: f(1), f(2), f(3) # todo: not implemented
-
-            sage: H = Hom(ZZ, QQ, Sets())
-            sage: f = H( ConstantFunction(2/3) )
-            sage: f.parent()
-            Set of Morphisms from Integer Ring to Rational Field in Category of sets
-            sage: f(1), f(2), f(3)
-            (2/3, 2/3, 2/3)
+            sage: G.<x,y,z> = FreeGroup()
+            sage: H = Hom(G, G)
+            sage: H(H.identity())
+            Identity endomorphism of Free Group on generators {x, y, z}
+            sage: H()
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 0 to an element of
+             Set of Morphisms from Free Group on generators {x, y, z}
+             to Free Group on generators {x, y, z} in Category of groups
+            sage: H("whatever")
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert 'whatever' to an element of
+             Set of Morphisms from Free Group on generators {x, y, z}
+             to Free Group on generators {x, y, z} in Category of groups
+            sage: HH = Hom(H, H)
+            sage: HH(HH.identity(), foo="bar")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: no keywords are implemented for
+             constructing elements of ...
 
         AUTHORS:
 
@@ -876,36 +921,30 @@ class Homset(Set_generic):
             # TODO: this is specific for ModulesWithBasis; generalize
             # this to allow homsets and categories to provide more
             # morphism constructors (on_algebra_generators, ...)
-            if 'on_basis' or 'diagonal' in options:
-                return self.__call_on_basis__(category = self.homset_category(),
-                                              **options)
-            else:
-                raise NotImplementedError
+            try:
+                call_with_keywords = self.__call_on_basis__
+            except AttributeError:
+                raise NotImplementedError("no keywords are implemented for constructing elements of {}".format(self))
+            options.setdefault("category", self.homset_category())
+            return call_with_keywords(**options)
 
-        assert x is not None
         if isinstance(x, morphism.Morphism):
-            if x.parent() is self:
-                return x
-            elif x.parent() == self:
-                x._set_parent(self) # needed due to non-uniqueness of homsets
-                return x
-            else:
-                if x.domain() != self.domain():
-                    mor = x.domain()._internal_coerce_map_from(self.domain())
-                    if mor is None:
-                        raise TypeError("Incompatible domains: x (=%s) cannot be an element of %s"%(x,self))
-                    x = x * mor
-                if x.codomain() != self.codomain():
-                    mor = self.codomain()._internal_coerce_map_from(x.codomain())
-                    if mor is None:
-                        raise TypeError("Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self))
-                    x = mor * x
-                return x
+            if x.domain() != self.domain():
+                mor = x.domain()._internal_coerce_map_from(self.domain())
+                if mor is None:
+                    raise TypeError("Incompatible domains: x (=%s) cannot be an element of %s"%(x,self))
+                x = x * mor
+            if x.codomain() != self.codomain():
+                mor = self.codomain()._internal_coerce_map_from(x.codomain())
+                if mor is None:
+                    raise TypeError("Incompatible codomains: x (=%s) cannot be an element of %s"%(x,self))
+                x = mor * x
+            return x
 
-        if isinstance(x, (types.FunctionType, types.MethodType, ConstantFunction)):
+        if callable(x):
             return self.element_class_set_morphism(self, x)
 
-        raise TypeError("Unable to coerce x (=%s) to a morphism in %s"%(x,self))
+        raise TypeError("unable to convert {!r} to an element of {}".format(x, self))
 
     @lazy_attribute
     def _abstract_element_class(self):
@@ -1118,6 +1157,22 @@ class Homset(Set_generic):
         else:
             raise TypeError("Identity map only defined for endomorphisms. Try natural_map() instead.")
 
+    def one(self):
+        """
+        The identity map of this homset.
+
+        .. NOTE::
+
+            Of course, this only exists for sets of endomorphisms.
+
+        EXAMPLES::
+
+            sage: K = GaussianIntegers()
+            sage: End(K).one()
+            Identity endomorphism of Gaussian Integers in Number Field in I with defining polynomial x^2 + 1
+        """
+        return self.identity()
+
     def domain(self):
         """
         Return the domain of this homset.
@@ -1147,27 +1202,6 @@ class Homset(Set_generic):
             True
         """
         return self._codomain
-
-    def is_endomorphism_set(self):
-        """
-        Return ``True`` if the domain and codomain of ``self`` are the same
-        object.
-
-        EXAMPLES::
-
-            sage: P.<t> = ZZ[]
-            sage: f = P.hom([1/2*t])
-            sage: f.parent().is_endomorphism_set()
-            False
-            sage: g = P.hom([2*t])
-            sage: g.parent().is_endomorphism_set()
-            True
-        """
-        sD = self.domain()
-        sC = self.codomain()
-        if sC is None or sD is None:
-            raise RuntimeError("Domain or codomain of this homset have been deallocated")
-        return sD is sC
 
     def reversed(self):
         """

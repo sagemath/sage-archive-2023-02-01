@@ -1,4 +1,4 @@
-"""
+r"""
 Polynomial Sequences
 
 We call a finite list of polynomials a ``Polynomial Sequence``.
@@ -129,7 +129,7 @@ easily::
     sage: A.rank()
     4056
     sage: A[4055]*v
-    (k001*k003)
+    (k002*k003)
 
 TESTS::
 
@@ -160,7 +160,6 @@ from sage.misc.cachefunc import cached_method
 
 from types import GeneratorType
 from sage.misc.converting_dict import KeyConvertingDict
-from sage.misc.package import is_package_installed
 
 from sage.structure.sequence import Sequence, Sequence_generic
 
@@ -277,7 +276,7 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         sage: PolynomialSequence([0], R)
         [0]
     """
-    from sage.matrix.matrix import is_Matrix
+    from sage.structure.element import is_Matrix
     from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
 
     is_ring = lambda r: is_MPolynomialRing(r) or isinstance(r, BooleanMonomialMonoid) or (is_QuotientRing(r) and is_MPolynomialRing(r.cover_ring()))
@@ -661,7 +660,7 @@ class PolynomialSequence_generic(Sequence_generic):
 
         J = RR.ideal([ Ts[j] - RR(self[j]) for j in range(r)])
         JJ = J.elimination_ideal(Xs)
-        # By the elimination theorem, JJ is the kernel of the ring homorphism
+        # By the elimination theorem, JJ is the kernel of the ring morphism
         # `phi:K[\bar T] \to K[\bar X]` that fixes `K` and sends each
         # `T_i` to `f_i`.
         # So JJ is the ideal of annihilating polynomials of `f_1,\ldots,f_r`,
@@ -1102,7 +1101,7 @@ class PolynomialSequence_generic(Sequence_generic):
         return self.ideal().basis_is_groebner()
 
 class PolynomialSequence_gf2(PolynomialSequence_generic):
-    """
+    r"""
     Polynomial Sequences over `\mathbb{F}_2`.
     """
     def eliminate_linear_variables(self, maxlength=Infinity, skip=None, return_reductors=False, use_polybori=False):
@@ -1442,9 +1441,8 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         if S != []:
             if algorithm == "exhaustive_search":
-                if not is_package_installed('fes'):
-                    from sage.misc.package import PackageNotFoundError
-                    raise PackageNotFoundError("fes")
+                from sage.features.fes import LibFES
+                LibFES().require()
                 from sage.libs.fes import exhaustive_search
                 solutions = exhaustive_search(S, max_sols=n, verbose=verbose, **kwds)
 
@@ -1525,14 +1523,15 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         else:
             return PolynomialSequence_generic.reduced(self)
 
+
 class PolynomialSequence_gf2e(PolynomialSequence_generic):
-    """
+    r"""
     PolynomialSequence over `\mathbb{F}_{2^e}`, i.e extensions over
     GF(2).
     """
 
     def weil_restriction(self):
-        """
+        r"""
         Project this polynomial system to `\mathbb{F}_2`.
 
         That is, compute the Weil restriction of scalars for the
@@ -1563,6 +1562,6 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
         J += FieldIdeal(J.ring())
         return PolynomialSequence(J)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialSystem_generic", PolynomialSequence_generic)
 register_unpickle_override("sage.crypto.mq.mpolynomialsystem","MPolynomialRoundSystem_generic", PolynomialSequence_generic)

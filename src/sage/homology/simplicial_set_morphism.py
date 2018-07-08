@@ -320,7 +320,7 @@ class SimplicialSetMorphism(Morphism):
         r"""
         Return a morphism of simplicial sets.
 
-        INPUTS:
+        INPUT:
 
         - ``data`` -- optional. Dictionary defining the map.
         - ``domain`` -- simplicial set
@@ -498,16 +498,16 @@ class SimplicialSetMorphism(Morphism):
         d = {sigma:data[sigma] for sigma in data if sigma.is_nondegenerate()}
         # For each simplex in d.keys(), add its faces, and the faces
         # of its faces, etc., to d.
-        for simplex in d.keys():
+        for simplex in list(d):
             faces = domain.faces(simplex)
             add = []
             if faces:
-                for (i,sigma) in enumerate(faces):
+                for (i, sigma) in enumerate(faces):
                     nondegen = sigma.nondegenerate()
                     if nondegen not in d:
-                        add.append((sigma,i,simplex))
+                        add.append((sigma, i, simplex))
             while add:
-                (sigma,i,tau) = add.pop()
+                (sigma, i, tau) = add.pop()
                 # sigma is the ith face of tau.
                 face_f = codomain.face(d[tau], i)
                 degens = sigma.degeneracies()
@@ -795,7 +795,7 @@ class SimplicialSetMorphism(Morphism):
 
     def is_injective(self):
         """
-        Return ``True`` if this map is surjective.
+        Return ``True`` if this map is injective.
 
         EXAMPLES::
 
@@ -825,7 +825,7 @@ class SimplicialSetMorphism(Morphism):
 
     def is_bijective(self):
         """
-        Return ``True`` if this map is surjective.
+        Return ``True`` if this map is bijective.
 
         EXAMPLES::
 

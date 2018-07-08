@@ -810,12 +810,12 @@ class Func_chebyshev_T(ChebyshevFunction):
             sage: z2 = numpy.array([[1,2],[1,2]])
             sage: z3 = numpy.array([1,2,3.])
             sage: chebyshev_T(1,z)
-            array([ 1.,  2.])
+            array([1., 2.])
             sage: chebyshev_T(1,z2)
-            array([[ 1.,  2.],
-                   [ 1.,  2.]])
+            array([[1., 2.],
+                   [1., 2.]])
             sage: chebyshev_T(1,z3)
-            array([ 1.,  2.,  3.])
+            array([1., 2., 3.])
             sage: chebyshev_T(z,0.1)
             array([ 0.1 , -0.98])
         """
@@ -1095,12 +1095,12 @@ class Func_chebyshev_U(ChebyshevFunction):
             sage: z2 = numpy.array([[1,2],[1,2]])
             sage: z3 = numpy.array([1,2,3.])
             sage: chebyshev_U(1,z)
-            array([ 2.,  4.])
+            array([2., 4.])
             sage: chebyshev_U(1,z2)
-            array([[ 2.,  4.],
-                   [ 2.,  4.]])
+            array([[2., 4.],
+                   [2., 4.]])
             sage: chebyshev_U(1,z3)
-            array([ 2.,  4.,  6.])
+            array([2., 4., 6.])
             sage: chebyshev_U(z,0.1)
             array([ 0.2 , -0.96])
         """

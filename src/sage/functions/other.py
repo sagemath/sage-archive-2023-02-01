@@ -389,7 +389,7 @@ class Function_ceil(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: ceil(a)
-            array([ 0.,  1.,  1.,  2.,  2.,  2.])
+            array([0., 1., 1., 2., 2., 2.])
 
         Test pickling::
 
@@ -538,7 +538,7 @@ class Function_floor(BuiltinFunction):
             sage: import numpy
             sage: a = numpy.linspace(0,2,6)
             sage: floor(a)
-            array([ 0.,  0.,  0.,  1.,  1.,  2.])
+            array([0., 0., 0., 1., 1., 2.])
             sage: floor(x)._sympy_()
             floor(x)
 
@@ -839,7 +839,7 @@ def sqrt(x, *args, **kwds):
             sage: import numpy
             sage: a = numpy.arange(2,5)
             sage: sqrt(a)
-            array([ 1.41421356,  1.73205081,  2.        ])
+            array([1.41421356, 1.73205081, 2.        ])
         """
         if isinstance(x, float):
             return math.sqrt(x)

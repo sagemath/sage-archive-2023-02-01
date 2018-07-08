@@ -2519,7 +2519,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             sage: P.is_unitary(algorithm='orthonormal')
             Traceback (most recent call last):
             ...
-            ValueError: failed to create intent(cache|hide)|optional array-- must have defined dimensions but got (0,)
+            error: ((lwork==-1)||(lwork >= MAX(1,2*n))) failed for 3rd keyword lwork: zgees:lwork=0
 
         TESTS::
 
@@ -3635,8 +3635,8 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: m.numpy()
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
 
         Alternatively, numpy automatically calls this function (via
         the magic :meth:`__array__` method) to convert Sage matrices
@@ -3647,16 +3647,16 @@ cdef class Matrix_double_dense(Matrix_dense):
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.,  1.,  2.],
-                   [ 3.,  4.,  5.]])
+            array([[0., 1., 2.],
+                   [3., 4., 5.]])
             sage: numpy.array(m).dtype
             dtype('float64')
             sage: m = matrix(CDF, 2, range(6)); m
             [0.0 1.0 2.0]
             [3.0 4.0 5.0]
             sage: numpy.array(m)
-            array([[ 0.+0.j,  1.+0.j,  2.+0.j],
-                   [ 3.+0.j,  4.+0.j,  5.+0.j]])
+            array([[0.+0.j, 1.+0.j, 2.+0.j],
+                   [3.+0.j, 4.+0.j, 5.+0.j]])
             sage: numpy.array(m).dtype
             dtype('complex128')
 

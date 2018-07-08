@@ -987,7 +987,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.numpy()
             array([1, 2, 5/6], dtype=object)
             sage: v.numpy(dtype=float)
-            array([ 1.        ,  2.        ,  0.83333333])
+            array([1.        , 2.        , 0.83333333])
             sage: v.numpy(dtype=int)
             array([1, 2, 0])
             sage: import numpy
@@ -998,7 +998,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         be more efficient but may have unintended consequences::
 
             sage: v.numpy(dtype=None)
-            array([ 1.        ,  2.        ,  0.83333333])
+            array([1.        , 2.        , 0.83333333])
 
             sage: w = vector(ZZ, [0, 1, 2^63 -1]); w
             (0, 1, 9223372036854775807)

@@ -279,8 +279,8 @@ class NumberField_relative(NumberField_generic):
         if not isinstance(polynomial, polynomial_element.Polynomial):
             try:
                 polynomial = polynomial.polynomial(base)
-            except (AttributeError, TypeError) as msg:
-                raise TypeError("polynomial (=%s) must be a polynomial."%repr(polynomial))
+            except (AttributeError, TypeError):
+                raise TypeError("polynomial (=%r) must be a polynomial" % polynomial)
         if name == base.variable_name():
             raise ValueError("base field and extension cannot have the same name %r" % name)
         if polynomial.parent().base_ring() != base:

@@ -1326,7 +1326,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 AssertionError: [2, 1] should be an element of Partitions
 
             Test that ``coefficient`` also works for those parents that do
-            not yet have an ``element_class``::
+            not have an ``element_class``::
 
                 sage: H = End(ZZ)
                 sage: F = CombinatorialFreeModule(QQ, H)

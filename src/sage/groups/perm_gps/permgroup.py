@@ -403,11 +403,13 @@ class PermutationGroup_generic(FiniteGroup):
             sage: TestSuite(PermutationGroup([])).run()
             sage: TestSuite(PermutationGroup([(0,1)])).run()
         """
-        from sage.categories.permutation_groups import PermutationGroups
-        category = PermutationGroups().FinitelyGenerated().Finite().or_subcategory(category)
-        super(PermutationGroup_generic, self).__init__(category=category)
         if (gens is None and gap_group is None):
             raise ValueError("you must specify gens or gap_group")
+
+        from sage.categories.permutation_groups import PermutationGroups
+        category = (PermutationGroups().FinitelyGenerated().Finite()
+                    .or_subcategory(category))
+        super(PermutationGroup_generic, self).__init__(category=category)
 
         #Handle the case where only the GAP group is specified.
         if gens is None:
@@ -651,12 +653,25 @@ class PermutationGroup_generic(FiniteGroup):
             Traceback (most recent call last):
             ...
             TypeError: permutation [(1, 2)] not in Permutation Group with generators [(1,2,3,4)]
+
+        TESTS:
+
+        Test round-trip conversion (even if there is no coercion)::
+
+            sage: L = DihedralGroup(4).subgroups()
+            sage: for G1 in L:  # long time
+            ....:     elt = G1.an_element()
+            ....:     for G2 in L:
+            ....:         if elt in G2:
+            ....:             assert G1(G2(elt)) == elt
         """
         if isinstance(x, integer_types + (Integer,)) and x == 1:
             return self.identity()
 
         if isinstance(x, PermutationGroupElement):
             x_parent = x.parent()
+            # We check if we can lift ``x`` to ``self`` directly
+            #   so we can pass check=False for speed.
             if (isinstance(x_parent, PermutationGroup_subgroup)
                 and x_parent._ambient_group is self):
                 return self.element_class(x.cycle_tuples(), self, check=False)
@@ -707,14 +722,6 @@ class PermutationGroup_generic(FiniteGroup):
             sage: g2*g1
             (3,4,5)
 
-        We try to convert in a non-permutation::
-
-            sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
-            sage: G(2)
-            Traceback (most recent call last):
-            ...
-            TypeError: 'sage.rings.integer.Integer' object is not iterable
-
         If this permutation group has been constructed via ``as_permutation_group``
         method (from finite matrix groups)::
 
@@ -726,6 +733,44 @@ class PermutationGroup_generic(FiniteGroup):
            (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
            sage: PG(p._gap_()) == p
            True
+
+        TESTS:
+
+        We try to convert in a non-permutation::
+
+            sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
+            sage: G(2)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'sage.rings.integer.Integer' object is not iterable
+
+        We check consistency of coercion maps::
+
+            sage: L = list(DihedralGroup(4).subgroups())
+            sage: out = sys.stdout.write
+            sage: for G1 in L:
+            ....:    for G2 in L:
+            ....:        out("x" if G1.has_coerce_map_from(G2) else " ")
+            ....:    out("\n")
+            x
+            xx
+            x x
+            x  x
+            x   x
+            x    x
+            xxxx  x
+            xx     x
+            xx  xx  x
+            xxxxxxxxxx
+            sage: for G1 in L:  # long time
+            ....:     elt = G1.an_element()
+            ....:     for G2 in L:
+            ....:         for G3 in L:
+            ....:             f = G2.coerce_map_from(G1)
+            ....:             g = G3.coerce_map_from(G2)
+            ....:             if f is not None and g is not None:
+            ....:                 h = G3.coerce_map_from(G1)
+            ....:                 assert h(elt) == g(f(elt))
         """
         if isinstance(G, PermutationGroup_subgroup):
             if G._ambient_group is self:
@@ -746,7 +791,6 @@ class PermutationGroup_generic(FiniteGroup):
                     return self.coerce_map_from(PG) * G._permutation_group_morphism
 
         return super(PermutationGroup_generic, self)._coerce_map_from_(G)
-
 
     def list(self):
         """
@@ -804,10 +848,8 @@ class PermutationGroup_generic(FiniteGroup):
             sage: [('a', 'b')] in G
             True
         """
-        if isinstance(item, integer_types + (Integer,)):
-            return item == 1
         try:
-            item = self._element_constructor_(item, check=True)
+            self._element_constructor_(item)
         except Exception:
             return False
         return True

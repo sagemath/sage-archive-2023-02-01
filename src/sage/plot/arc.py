@@ -94,8 +94,8 @@ class Arc(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
-        """
-        Returns a dictionary with the bounding box data.
+        r"""
+        Return a dictionary with the bounding box data.
 
         The bounding box is computed as minimal as possible.
 

@@ -4306,7 +4306,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
             sage: a._magma_init_(magma)            # optional - magma
             '(_sage_[...]![0, 1, 0])'
             sage: m = magma((2/3)*a^2 - 17/3); m   # optional - magma
@@ -4318,8 +4318,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         ::
 
-            sage: K = CyclotomicField(9)
-            sage: K.gen()
+            sage: K = CyclotomicField(9) # optional - magma
+            sage: K.gen() # optional - magma
             zeta9
             sage: K.gen()._magma_init_(magma)     # optional - magma
             '(_sage_[...]![0, 1, 0, 0, 0, 0])'

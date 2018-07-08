@@ -399,6 +399,10 @@ REFERENCES:
             Adv. Math. **222** (2009), 1883–1942.
             :mathscinet:`MR2562768`
 
+.. [BK2017] Pascal Baseilhac and Stefan Kolb. *Braid group action
+            and root vectors for the* `q`-*Onsager algebra*.
+            Preprint, (2017) :arxiv:`1706.08747`.
+
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
               J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
@@ -856,6 +860,10 @@ REFERENCES:
 
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
+
+.. [DG1982] Louise Dolan and Michael Grady.
+            *Conserved charges from self-duality*,
+            Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
 
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
@@ -2159,6 +2167,10 @@ REFERENCES:
 
 .. [ONe1983] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
              (San Diego) (1983)
+
+.. [Onsager1944] Lars Onsager. *Crystal statistics. I. A two-dimensional
+                 model with an order-disorder transition*, Phys. Rev.
+                 (2) **65** (1944), pp. 117-149.
 
 .. [Or2016] \M. Orlitzky. The Lyapunov rank of an improper
             cone. Citation: Optimization Methods and Software

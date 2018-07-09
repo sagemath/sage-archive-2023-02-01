@@ -1246,7 +1246,7 @@ class FanMorphism(FreeModuleMorphism):
         if for any cone `\sigma' \in \Sigma'` and any primitive
         preimage cone `\sigma \in \Sigma` corresponding to `\sigma'`
         the linear map of vector spaces `\phi_\RR` induces a bijection
-        between `\sigma` and `\sigma'`, and, in addition, `phi` is
+        between `\sigma` and `\sigma'`, and, in addition, `\phi` is
         :meth:`dominant <is_dominant>` (that is, `\phi_\RR: N_\RR \to
         N'_\RR$ is surjective).
 

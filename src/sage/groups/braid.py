@@ -192,6 +192,8 @@ class Braid(FiniteTypeArtinGroupElement):
         are Laurent polynomials in the variable ``var``. If ``reduced``
         is ``True``, return the matrix for the reduced Burau representation
         instead. If the version is specified the output will be according to it.
+        In the case of the unitary version the hermitian form is returned
+        as a second value.
 
         EXAMPLES::
 
@@ -305,6 +307,16 @@ class Braid(FiniteTypeArtinGroupElement):
             if version == 'unitary':
                 subs = R.hom([t**2], codomain=R)
                 M = matrix(R, n-1, n-1, lambda i, j: t**(j-i)*subs(M[i,j]))
+
+                hermitian_form = self.parent()._hermitian_form_
+                if hermitian_form == None:
+                    hermitian_form = (t+t**(-1))*identity_matrix(R, n-1) # defining the hermitian form
+                    for i in range(n-2):
+                        hermitian_form[i,i+1] =-1
+                        hermitian_form[i+1 ,i] =-1
+                    self.parent()._hermitian_form_ = hermitian_form
+
+                return M, hermitian_form
  
         return M
 
@@ -1510,6 +1522,9 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         # For caching TL_representation()
         self._TL_representation_dict = {}
+
+        # For caching hermitian form of unitary burau representation
+        self._hermitian_form_ = None
 
     def __reduce__(self):
         """

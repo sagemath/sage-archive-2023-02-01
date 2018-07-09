@@ -15,8 +15,10 @@ lazy_import('sage.groups.generic',
              'addition_names', 'order_from_multiple', 'order_from_bounds',
              'merge_points', 'structure_description'],
             deprecation=(25785, "this is being removed from the global namespace"))
-lazy_import('sage.groups.generic',
-            'power',
+
+# deprecation(24256)
+lazy_import('sage.structure.element',
+            'generic_power', 'power',
             deprecation=(24256, "use sage.structure.element.generic_power instead"))
 
 lazy_import('sage.groups.class_function', 'ClassFunction')

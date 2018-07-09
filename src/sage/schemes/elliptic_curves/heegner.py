@@ -91,7 +91,9 @@ The above is consistent with the following analytic computation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+
+from __future__ import print_function, absolute_import, division
+
 from six.moves import range
 
 from sage.misc.all import verbose, prod
@@ -109,6 +111,7 @@ from sage.rings.all import (ZZ, GF, QQ, CDF,
                             is_fundamental_discriminant)
 from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
         binomial)
+from sage.rings.factorint import factor_trial_division
 from sage.quadratic_forms.all import (BinaryQF,
                                       BinaryQF_reduced_representatives)
 from sage.matrix.all import MatrixSpace, matrix
@@ -4938,7 +4941,7 @@ class HeegnerQuatAlg(SageObject):
                 reps = Q.representation_vector_list(n+1)[-1]
                 k = len([r for r in reps if gcd(r) == 1])
                 assert k%2 == 0
-                v[i] += k/2
+                v[i] += k // 2
         return B(v)
 
     @cached_method
@@ -6249,7 +6252,8 @@ def satisfies_weak_heegner_hypothesis(N, D):
 def make_monic(f):
     r"""
     Return a monic integral polynomial `g` and an integer `d` such
-    that if `\alpha` is a root of `g` then a root of `f` is `\alpha/d`.
+    that if `\alpha` is a root of `g`, then `\alpha/d` is a root of `f`.
+    In other words, `c f(x) = g(d x)` for some scalar `c`.
 
     INPUT:
 
@@ -6279,22 +6283,30 @@ def make_monic(f):
 
     TESTS::
 
-        sage: f = x**5 + x**3/4 + 5
+        sage: f = x^5 + x^3/4 + 5
         sage: make_monic(f)
         (x^5 + x^3 + 160, 2)
+
+    Scalar factors do not matter, the result is always monic::
+
+        sage: make_monic(f * 1000000)
+        (x^5 + x^3 + 160, 2)
+        sage: make_monic(f / 1000000)
+        (x^5 + x^3 + 160, 2)
     """
+    R = f.parent()
     n = f.degree()
-    x = f.parent().gen()
-    f = f / f.leading_coefficient()
-    d = 1
-    for k in range(1, n + 1):
-        den = f[n - k].denominator()
-        while den != 1:
-            rad = den.radical()
-            d *= rad
-            f = rad**n * f(x / rad)
-            den = f[n - k].denominator()
-    return f, d
+    lc = f[n]
+    d = ZZ.one()
+    for i in range(n):
+        expo = n - i
+        # We require that (d^expo * f[i] / lc) is an integer
+        den = (d**expo * f[i] / lc).denominator()
+        for p, e in factor_trial_division(den, 1000000):
+            # Round up e/expo
+            d *= p ** ((e + expo - 1) // expo)
+    g = R([d**(n-i) * f[i] / lc for i in range(n+1)])
+    return g, d
 
 
 #####################################################################

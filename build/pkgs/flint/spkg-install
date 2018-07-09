@@ -17,6 +17,8 @@ if [ "$SAGE_DEBUG" = "yes" ]; then
     FLINT_CONFIGURE="--enable-assert $FLINT_CONFIGURE"
 fi
 
+CFLAGS=" $CFLAGS"; export CFLAGS
+
 cd src
 
 echo "Configuring FLINT."

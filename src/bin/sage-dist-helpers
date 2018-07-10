@@ -212,7 +212,7 @@ sdh_install() {
     # Prefix SAGE_DESTDIR to the destination for DESTDIR installs
     dest="${SAGE_DESTDIR}$dest"
 
-    if [ -e "$dest" -a ! -d "$dest" ]; then
+    if [ $T -eq 0 -a -e "$dest" -a ! -d "$dest" ]; then
         sdh_die "Error: destination $dest for sdh_install exists and is not a directory"
     fi
 

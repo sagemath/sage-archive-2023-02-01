@@ -1283,7 +1283,7 @@ class ImplicitSuffixTree(SageObject):
 
     def LZ_decomposition(self):
         r"""
-        Return a list of index of the begining of the block of the Lempel-Ziv
+        Return a list of index of the beginning of the block of the Lempel-Ziv
         decomposition of ``self.word``
 
         The *Lempel-Ziv decomposition* is the factorisation `u_1...u_k` of a

@@ -331,6 +331,8 @@ class ChartFunction(AlgebraElement):
         # Derived quantities:
         self._der = None  # list of partial derivatives (to be set by diff()
                           # and unset by del_derived())
+        self._symbol = None
+        self._order = 0
 
     def chart(self):
         r"""
@@ -2219,6 +2221,9 @@ class ChartFunction(AlgebraElement):
         curr = self._calc_method._current
         self._express[curr] = self._simplify(self.expr(curr))
         self._del_derived()
+        if curr =='SR' and self._symbol is not None:
+            self._express[curr] = self._express[curr].series(self._symbol,
+                                                    self._order).truncate()
         return self
 
     def factor(self):

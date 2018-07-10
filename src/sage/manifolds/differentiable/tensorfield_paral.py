@@ -626,6 +626,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         # Initialization of derived quantities:
         self._init_derived()
 
+
     def _repr_(self):
         r"""
         String representation of ``self``.
@@ -2069,3 +2070,14 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
     def truncate(self, symbol, order):
         s = self.series(symbol, order)
         return sum(symbol**i*s[i][0] for i in range(order+1))
+
+    def set_calc_order(self, symbol, order, truncate = False):
+        self._symbol = symbol
+        self._order = order
+        for frame in self._components:
+            for ind in self._components[frame].non_redundant_index_generator():
+                self._components[frame][ind]._symbol = self._symbol
+                self._components[frame][ind]._order = self._order
+                if truncate:
+                    self._components[frame][ind].simplify()
+        self._del_derived()

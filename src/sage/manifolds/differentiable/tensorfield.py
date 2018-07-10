@@ -432,6 +432,9 @@ class TensorField(ModuleElement):
                     # including self, with domains as keys. Its elements can be
                     # seen as outgoing edges on a graph.
 
+        self._order = 0
+        self._symbol = None
+
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
@@ -2277,7 +2280,13 @@ class TensorField(ModuleElement):
         other_r = other.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
             # call of the FreeModuleTensor version:
-            return FreeModuleTensor.__mul__(self_r, other_r)
+            resu = FreeModuleTensor.__mul__(self_r, other_r)
+            if self._symbol is not None:
+                if other._symbol == self._symbol:
+                    resu.set_calc_order(self._symbol,
+                                        min(self._order, other._order),
+                                        truncate=True)
+            return resu
         dest_map = self._vmodule._dest_map
         dest_map_resu = dest_map.restrict(dom_resu, subcodomain=ambient_dom_resu)
         vmodule = dom_resu.vector_field_module(dest_map=dest_map_resu)
@@ -2297,6 +2306,12 @@ class TensorField(ModuleElement):
                               antisym=resu_rst[0]._antisym)
         for rst in resu_rst:
             resu._restrictions[rst._domain] = rst
+
+        if self._symbol is not None: #TODO étendre aux autres opérations
+            if other._symbol == self._symbol:
+                resu.set_calc_order(self._symbol,
+                                    min(self._order, other._order),
+                                    truncate=True)
         return resu
 
     def __truediv__(self, scalar):

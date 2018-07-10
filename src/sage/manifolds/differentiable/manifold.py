@@ -445,7 +445,6 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer import Integer
-from sage.misc.latex import latex
 from sage.manifolds.manifold import TopologicalManifold
 
 ###############################################################################
@@ -623,7 +622,7 @@ class DifferentiableManifold(TopologicalManifold):
         sage: TestSuite(M).run()
 
     """
-    def __init__(self, n, name, field, structure, ambient=None,
+    def __init__(self, n, name, field, structure, base_manifold=None,
                  diff_degree=infinity, latex_name=None, start_index=0,
                  category=None, unique_tag=None):
         r"""
@@ -653,7 +652,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: TestSuite(U).run()
 
         """
-        if ambient is None:
+        if base_manifold is None:
             if category is None:
                 if field == 'real':
                     field_c = RR
@@ -665,11 +664,11 @@ class DifferentiableManifold(TopologicalManifold):
                     category = Manifolds(field_c).Smooth()
                 else:
                     category = Manifolds(field_c).Differentiable()
-        elif not isinstance(ambient, DifferentiableManifold):
-            raise TypeError("the argument 'ambient' must be a " +
+        elif not isinstance(base_manifold, DifferentiableManifold):
+            raise TypeError("the argument 'base_manifold' must be a " +
                             "differentiable manifold")
         TopologicalManifold.__init__(self, n, name, field, structure,
-                                     ambient=ambient,
+                                     base_manifold=base_manifold,
                                      latex_name=latex_name,
                                      start_index=start_index,
                                      category=category)
@@ -818,10 +817,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         """
         resu = DifferentiableManifold(self._dim, name, self._field,
-                                   self._structure, ambient=self._manifold,
-                                   diff_degree=self._diff_degree,
-                                   latex_name=latex_name,
-                                   start_index=self._sindex)
+                                      self._structure, base_manifold=self._manifold,
+                                      diff_degree=self._diff_degree,
+                                      latex_name=latex_name,
+                                      start_index=self._sindex)
         resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:

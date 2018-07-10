@@ -15,13 +15,13 @@ Ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from .primitive import GraphicPrimitive
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
 from math import sin, cos, sqrt, pi, fmod
+
 
 class Ellipse(GraphicPrimitive):
     """
@@ -72,8 +72,8 @@ class Ellipse(GraphicPrimitive):
         GraphicPrimitive.__init__(self, options)
 
     def get_minmax_data(self):
-        """
-        Returns a dictionary with the bounding box data.
+        r"""
+        Return a dictionary with the bounding box data.
 
         The bounding box is computed to be as minimal as possible.
 

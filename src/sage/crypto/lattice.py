@@ -25,7 +25,7 @@ from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 
 def gen_lattice(type='modular', n=4, m=8, q=11, seed=None,
                 quotient=None, dual=False, ntl=False, lattice=False):
-    """
+    r"""
     This function generates different types of integral lattice bases
     of row vectors relevant in cryptography.
 

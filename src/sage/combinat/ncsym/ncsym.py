@@ -162,20 +162,23 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
     indexed by set partitions.
 
     Let `A = \{A_1, A_2, \ldots, A_r\}` be a set partition of the integers
-    `\{ 1, 2, \ldots, k \}`.  A monomial basis element indexed by `A`
-    represents the sum of monomials `x_{i_1} x_{i_2} \cdots x_{i_k}` where
-    `i_c = i_d` if and only if `c` and `d` are in the same part `A_i` for some `i`.
+    `[k] := \{ 1, 2, \ldots, k \}`.  This partition `A` determines an
+    equivalence relation `\sim_A` on `[k]`, which has `c \sim_A d` if and
+    only if `c` and `d` are in the same part `A_j` of `A`.
+    The monomial basis element `\mathbf{m}_A` indexed by `A` is the sum of
+    monomials `x_{i_1} x_{i_2} \cdots x_{i_k}` such that `i_c = i_d` if
+    and only if `c \sim_A d`.
 
     The `k`-th graded component of the ring of symmetric functions in
     non-commutative variables has its dimension equal to the number of
-    set partitions of `k`. (If we work, instead, with finitely many --
+    set partitions of `[k]`. (If we work, instead, with finitely many --
     say, `n` -- variables, then its dimension is equal to the number of
-    set partitions of `k` where the number of parts is at most `n`.)
+    set partitions of `[k]` where the number of parts is at most `n`.)
 
     .. NOTE::
 
-        All set partitions are considered standard, a set partition of `[n]`
-        for some `n`, unless otherwise stated.
+        All set partitions are considered standard (i.e., set partitions
+        of `[n]` for some `n`) unless otherwise stated.
 
     REFERENCES:
 
@@ -537,7 +540,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             and `A | B` is the
             :meth:`SetPartition.pipe` operation.
             Equivalently we can describe all `C` as matchings between the
-            partitions of `A` and `B` where if `a \in A` is matched
+            parts of `A` and `B` where if `a \in A` is matched
             with `b \in B`, we take `a \cup b` instead of `a` and `b` in `C`.
 
             INPUT:

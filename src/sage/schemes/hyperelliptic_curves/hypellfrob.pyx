@@ -1,13 +1,14 @@
 r"""
-Frobenius on Monsky-Washnitzer cohomology of a hyperelliptic curve over GF(p),
-for largish p
+Frobenius on Monsky-Washnitzer cohomology of a hyperelliptic curve over a largish prime finite field
 
 This is a wrapper for the matrix() function in hypellfrob.cpp.
 
 AUTHOR:
 
 - David Harvey (2007-05)
+
 - David Harvey (2007-12): rewrote for hypellfrob version 2.0
+
 """
 
 #*****************************************************************************

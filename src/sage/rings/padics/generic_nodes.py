@@ -624,7 +624,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
             sage: R2.precision().diffused_digits([x2,y2])
             0
 
-        On the other hand, this issue dissapears when we use multiple
+        On the other hand, this issue disappears when we use multiple
         conversion::
 
             sage: x2,y2 = R2.convert_multiple(x,y)

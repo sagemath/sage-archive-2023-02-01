@@ -126,23 +126,17 @@ cdef Linbox_modn_sparse linbox
 linbox = Linbox_modn_sparse()
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
-    def __cinit__(self, parent, entries, copy, coerce):
-        matrix.Matrix.__init__(self, parent)
-
-        # allocate memory
-        cdef Py_ssize_t i, nr, nc
-        cdef int p
-
-        nr = parent.nrows()
-        nc = parent.ncols()
-        p = parent.base_ring().order()
+    def __cinit__(self):
+        nr = self._nrows
+        nc = self._ncols
+        cdef int p = self._base_ring.order()
         self.p = p
 
         self.rows = <c_vector_modint*>check_calloc(nr, sizeof(c_vector_modint))
 
-        for i from 0 <= i < nr:
+        cdef Py_ssize_t i
+        for i in range(nr):
             init_c_vector_modint(&self.rows[i], p, nc, 0)
-
 
     def __dealloc__(self):
         cdef Py_ssize_t i
@@ -414,7 +408,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         self.rows[n1] = self.rows[n2]
         self.rows[n2] = tmp
 
-    def _echelon_in_place_classical(self):
+    cpdef _echelon_in_place(self, str algorithm):
         """
         Replace self by its reduction to reduced row echelon form.
 

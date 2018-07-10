@@ -24,19 +24,16 @@ AUTHORS:
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
-from sage.misc.randstate import current_randstate
 
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from .ell_field import EllipticCurve_field
 from .constructor import EllipticCurve, EllipticCurve_from_j
 from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
-import sage.rings.ring as ring
 from sage.rings.all import Integer, ZZ, PolynomialRing, GF, polygen
 from sage.rings.finite_rings.element_base import is_FiniteFieldElement
 import sage.groups.generic as generic
 from . import ell_point
 from sage.arith.all import gcd, lcm, binomial
-from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
 
 import sage.plot.all as plot
@@ -44,8 +41,9 @@ import sage.plot.all as plot
 import sage.libs.pari
 pari = sage.libs.pari.all.pari
 
+
 class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_field):
-    """
+    r"""
     Elliptic curve over a finite field.
 
     EXAMPLES::
@@ -1447,7 +1445,6 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         """
         k = self.base_field()
         q = k.order()
-        p = k.characteristic()
         d = k.degree()
         j = self.j_invariant()
         if d>1:
@@ -1955,8 +1952,9 @@ self.cardinality(extension_degree=field.degree()//self.base_field().degree())\
             print('WARNING: No checking done in set_order')
         self._order = value
 
+
 def supersingular_j_polynomial(p):
-    """
+    r"""
     Return a polynomial whose roots are the supersingular `j`-invariants
     in characteristic `p`, other than 0, 1728.
 
@@ -1993,7 +1991,6 @@ def supersingular_j_polynomial(p):
         Traceback (most recent call last):
         ...
         ValueError: p (=6) should be a prime number
-
     """
     try:
         p = ZZ(p)

@@ -31,6 +31,7 @@ with ``delete()``.
     :func:`shortest_paths` | Uses Dijkstra or Bellman-Ford algorithm to compute the single-source shortest paths.
     :func:`johnson_shortest_paths` | Uses Johnson algorithm to compute the all-pairs shortest paths.
     :func:`johnson_closeness_centrality` | Uses Johnson algorithm to compute the closeness centrality of all vertices.
+    :func:`blocks_and_cut_vertices` | Uses Tarjan's algorithm to compute the blocks and cut vertices of the graph.
 
 Functions
 ---------
@@ -699,6 +700,100 @@ cpdef min_spanning_tree(g,
     else:
         edges = [(int_to_vertex[<int> result[2*i]], int_to_vertex[<int> result[2*i+1]]) for i in range(n-1)]
         return sorted([(min(e[0],e[1]), max(e[0],e[1]), g.edge_label(e[0], e[1])) for e in edges])
+
+
+cpdef blocks_and_cut_vertices(g):
+    r"""
+    Computes the blocks and cut vertices of the graph.
+
+    This method uses the implementation of Tarjan's algorithm available in the
+    Boost library .
+
+    INPUT:
+
+    - ``g`` (``Graph``) - the input graph.
+
+    OUTPUT:
+
+    A 2-dimensional vector with m+1 rows (m is the number of biconnected
+    components), where each of the first m rows correspond to vertices in a
+    block, and the last row is the list of cut vertices.
+
+    .. SEEALSO::
+
+        - :meth:`sage.graphs.generic_graph.GenericGraph.blocks_and_cut_vertices`
+
+    EXAMPLES::
+
+        sage: from sage.graphs.base.boost_graph import blocks_and_cut_vertices
+        sage: g = graphs.KrackhardtKiteGraph()
+        sage: blocks_and_cut_vertices(g)
+        ([[8, 9], [7, 8], [0, 1, 2, 3, 5, 4, 6, 7]], [8, 7])
+
+        sage: G = Graph([(0,1,{'name':'a','weight':1}), (0,2,{'name':'b','weight':3}), (1,2,{'name':'b','weight':1})])
+        sage: blocks_and_cut_vertices(G)
+        ([[0, 1, 2]], [])
+
+    TESTS:
+
+    Given an input which is not a graph::
+
+        sage: blocks_and_cut_vertices("I am not a graph!")
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be a Sage graph
+    """
+    from sage.graphs.generic_graph import GenericGraph
+
+    if not isinstance(g, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+
+    if g.allows_loops() or g.allows_multiple_edges():
+        g = g.to_simple()
+
+    cdef BoostVecGraph g_boost
+    cdef vector[vector[v_index]] result
+    cdef list int_to_vertex = g.vertices()
+    cdef list vertex_status = [-1]*g.order()
+
+    boost_graph_from_sage_graph(&g_boost, g)
+    sig_on()
+    result = g_boost.blocks_and_cut_vertices()
+    sig_off()
+
+    cdef list result_blocks = []
+    cdef set result_cut = set()
+    cdef list result_temp = []
+    cdef int i
+    cdef v_index v
+
+    # We iterate over the vertices in the blocks and find articulation points
+    for i in range(len(result)):
+        for v in result[i]:
+            # The vertex is seen for the first time
+            if vertex_status[v] == -1:
+                result_temp.append(int_to_vertex[<int> v])
+                vertex_status[v] = i
+            # Vertex belongs to a previous block also, must be a cut vertex
+            elif vertex_status[v] < i:
+                result_cut.add(int_to_vertex[<int> v])
+                result_temp.append(int_to_vertex[<int> v])
+                # Change the block number to avoid adding the vertex twice 
+                # as a cut vertex if it is repeated in block i
+                vertex_status[v] = i
+            # elif vertex_status[v] == i:
+            # Nothing to do since we have already added the vertex to block i
+
+        result_blocks.append(result_temp)
+        result_temp = []
+
+    # If a vertex does not belong to any block, it must be an isolated vertex.
+    # Hence, it is considered a block.
+    for i in range(g.order()):
+        if vertex_status[i] == -1:
+            result_blocks.append([int_to_vertex[<int> i]])
+
+    return (result_blocks, list(result_cut))
 
 
 cpdef shortest_paths(g, start, weight_function=None, algorithm=None):

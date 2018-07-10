@@ -691,7 +691,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         - ``coefficients`` -- the coefficients of ``G`` in the :meth:`~sage.rings.valuation.developing_valuation.DevelopingValuation.phi`-adic expansion if known (default: ``None``)
 
-        - ``valauations`` -- the valuations of ``coefficients`` if known
+        - ``valuations`` -- the valuations of ``coefficients`` if known
           (default: ``None``)
 
         - ``check`` -- whether to check that ``G`` is a squarefree monic
@@ -811,7 +811,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 verbose("Newton-Polygon for v(phi)=%s : %s"%(self(phi), NP), level=11)
                 slopes = NP.slopes(repetition=True)
                 multiplicities = {slope : len([s for s in slopes if s == slope]) for slope in slopes}
-                slopes = multiplicities.keys()
+                slopes = list(multiplicities)
                 if NP.vertices()[0][0] != 0:
                     slopes = [-infinity] + slopes
                     multiplicities[-infinity] = 1
@@ -1029,16 +1029,18 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             from sage.rings.all import PolynomialRing
             R = PolynomialRing(f.parent(), 'phi')
             f = R(coefficients[phi_divides:])(self.phi())
-        valuations = [v-self.mu()*phi_divides for v in valuations[phi_divides:]]
+        valuations = [vv - self.mu() * phi_divides
+                      for vv in valuations[phi_divides:]]
         coefficients = coefficients[phi_divides:]
         valuation = min(valuations)
 
         R = self.equivalence_unit(-valuation)
         R = next(self.coefficients(R))
-        fR_valuations = [v-valuation for v in valuations]
+        fR_valuations = [vv - valuation for vv in valuations]
         from sage.rings.all import infinity
-        fR_coefficients = [next(self.coefficients(c*R)) if v is not infinity and v == 0 else 0
-                           for c,v in zip(coefficients,fR_valuations)]
+        fR_coefficients = [next(self.coefficients(c * R))
+                           if vv is not infinity and vv == 0 else 0
+                           for c, vv in zip(coefficients, fR_valuations)]
 
         return valuation, phi_divides, self.reduce(f*R, check=False, degree_bound=degree_bound, coefficients=fR_coefficients, valuations=fR_valuations)
 
@@ -1474,7 +1476,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         tester = self._tester(**options)
     
         try:
-            k = self.residue_ring()
+            self.residue_ring()
         except NotImplementedError:
             from sage.categories.fields import Fields
             if self.domain().base() in Fields():

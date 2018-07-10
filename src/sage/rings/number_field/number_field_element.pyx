@@ -169,7 +169,8 @@ def _inverse_mod_generic(elt, I):
         raise ValueError("inverse is not defined modulo the zero ideal")
     n = R.absolute_degree()
     B = R.basis()
-    m = matrix(ZZ, map(R.coordinates, I.integral_basis() + [elt*s for s in B]))
+    m = matrix(ZZ, [R.coordinates(x)
+                    for x in I.integral_basis() + [elt*s for s in B]])
     a, b = m.echelon_form(transformation=True)
     if a[0:n] != 1:
         raise ZeroDivisionError("%s is not invertible modulo %s" % (elt, I))
@@ -2063,6 +2064,25 @@ cdef class NumberFieldElement(FieldElement):
                 return False, None
         else:
             return t
+
+    def is_padic_square(self, P, check=True):
+        r"""
+        Return if ``self`` is a square in the completion at the prime `P`.
+
+        INPUT:
+
+        - ``P`` -- a prime ideal
+        - ``check`` -- (default: ``True``); check if `P` is prime
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 2)
+            sage: p = K.primes_above(2)[0]
+            sage: K(5).is_padic_square(p)
+            False
+        """
+        infinity = sage.rings.infinity.infinity
+        return self.parent().quadratic_defect(self, P, check=check) == infinity
 
     def sqrt(self, all=False):
         """
@@ -4286,7 +4306,7 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
             sage: a._magma_init_(magma)            # optional - magma
             '(_sage_[...]![0, 1, 0])'
             sage: m = magma((2/3)*a^2 - 17/3); m   # optional - magma
@@ -4298,8 +4318,8 @@ cdef class NumberFieldElement_absolute(NumberFieldElement):
 
         ::
 
-            sage: K = CyclotomicField(9)
-            sage: K.gen()
+            sage: K = CyclotomicField(9) # optional - magma
+            sage: K.gen() # optional - magma
             zeta9
             sage: K.gen()._magma_init_(magma)     # optional - magma
             '(_sage_[...]![0, 1, 0, 0, 0, 0])'

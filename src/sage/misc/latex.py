@@ -56,12 +56,10 @@ r'''\textwidth=1.1\textwidth
 \textheight=2\textheight
 ''')
 
-import sys
 import shutil, re
 import os.path
 import random
 import subprocess
-import types
 
 from sage.misc.temporary_file import tmp_dir
 from . import sage_eval

@@ -69,6 +69,13 @@
 #    The -T option treats DEST as a normal file instead (e.g. for copying a
 #    file to a different filename).  All directory components are still created
 #    in this case.
+#
+# - sdh_preload_lib EXECUTABLE SONAME
+#
+#    (Linux only--no-op on other platforms.)  Check shared libraries loaded by
+#    EXECUTABLE (may be a program or another library) for a library starting
+#    with SONAME, and if found appends SONAME to the LD_PRELOAD environment
+#    variable.  See https://trac.sagemath.org/24885.
 
 set -o allexport
 
@@ -85,7 +92,7 @@ _sdh_cols() {
 }
 
 
-# Utility function to print a terminal-width horizonal rule using the given
+# Utility function to print a terminal-width horizontal rule using the given
 # character (or '-' by default)
 _sdh_hr() {
     local char="${1:--}"
@@ -224,5 +231,27 @@ sdh_install() {
     done
 }
 
+
+sdh_preload_lib() {
+    local executable="$1"
+    local soname="$2"
+    if [ "$UNAME" != "Linux" ]; then
+        return 0
+    fi
+
+    local ldlibs="$(ldd $(which $executable))"
+    if [ $? -ne 0 ]; then
+        sdh_die "Could not get shared library dependencies for $executable"
+    fi
+
+    local lib=$(echo "$ldlibs" | sed -n 's/\s*'$soname'.* => \(.\+\) .*/\1/p')
+    if [ -n "$lib" ]; then
+        if [ -n "$LD_PRELOAD" ]; then
+            export LD_PRELOAD="$LD_PRELOAD:$lib"
+        else
+            export LD_PRELOAD="$lib"
+        fi
+    fi
+}
 
 set +o allexport

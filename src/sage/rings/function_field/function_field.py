@@ -172,7 +172,7 @@ class FunctionField(Field):
 
         INPUT:
 
-        - ``base_field`` -- function fied; the base of this function field
+        - ``base_field`` -- field; the base of this function field
 
         - ``names`` -- string that gives the name of the generator
 
@@ -1676,8 +1676,8 @@ class FunctionField_polymod(FunctionField):
         """
         # Unfortunately Singular can not compute the genus with the
         # polynomial_ring()._singular_ object because genus method only accepts
-        # a ring of transdental degree 2 over a prime field not a ring of
-        # transdental degree 1 over a rational function field of one variable
+        # a ring of transcendental degree 2 over a prime field not a ring of
+        # transcendental degree 1 over a rational function field of one variable
 
         if (is_RationalFunctionField(self._base_field) and
             self._base_field.constant_field().is_prime_field()):
@@ -2541,22 +2541,16 @@ class RationalFunctionField(FunctionField):
             sage: f.factor().prod() == f
             True
 
-        We check that ``proof`` parameter is passed to the underlying
-        polynomial (see :trac:`24510`). However, factoring over a function
-        field over a tower of finite fields does not work yet (see
-        :trac:`24533`)::
+        Factoring over a function field over a tower of finite fields::
 
-            sage: k = GF(4)
             sage: k.<a> = GF(4)
             sage: R.<b> = k[]
-            sage: l.<b> = k.extension(a^2 + a + b)
+            sage: l.<b> = k.extension(b^2 + b + a)
             sage: K.<x> = FunctionField(l)
             sage: R.<t> = K[]
             sage: F = t*x
             sage: F.factor(proof=False)
-            Traceback (most recent call last):
-            ...
-            TypeError: no conversion of this ring to a Singular ring defined
+            (x) * t
 
         """
         old_variable_name = f.variable_name()
@@ -2580,7 +2574,10 @@ class RationalFunctionField(FunctionField):
             if old_variable_name != a.variable_name():
                 a = a.change_variable_name(old_variable_name)
             unit *= (c**e)
-            w.append((a,e))
+            if a.is_unit():
+                unit *= a**e
+            else:
+                w.append((a,e))
         from sage.structure.factorization import Factorization
         return Factorization(w, unit=unit)
 
@@ -2757,8 +2754,8 @@ class RationalFunctionField(FunctionField):
         INPUT:
 
         - ``im_gens`` -- exactly one element of some ring.  It must be
-          invertible and trascendental over the image of ``base_morphism``; this
-          is not checked.
+          invertible and transcendental over the image of
+          ``base_morphism``; this is not checked.
 
         - ``base_morphism`` -- a homomorphism from the base field into the
           other ring.  If ``None``, try to use a coercion map.

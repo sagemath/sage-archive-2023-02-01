@@ -367,10 +367,10 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
 
             sage: from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
             sage: d = DynkinDiagram_class(CartanType(['A',3]))
-            sage: list(sorted(d.edges()))
+            sage: sorted(d.edges())
             []
             sage: d.add_edge(2, 3)
-            sage: list(sorted(d.edges()))
+            sage: sorted(d.edges())
             [(2, 3, 1), (3, 2, 1)]
         """
         DiGraph.add_edge(self, i, j, label)

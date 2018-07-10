@@ -660,6 +660,16 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
         12
         sage: automorphism_group(gg,[[0],[1,2,3,4]]).cardinality()              # optional - bliss
         6
+
+    Making sure that #25426 is fixed:
+
+        sage: j = matrix([(3, 2, 1, 0, 0),
+        ....:  (2, 2, 0, 1, 0),
+        ....:  (1, 0, 3, 0, 2),
+        ....:  (0, 1, 0, 2, 1),
+        ....:  (0, 0, 2, 1, 2)])
+        sage: j.automorphisms_of_rows_and_columns()
+        [((), ()), ((1,3)(2,5), (1,3)(2,5))]
     """
     # We need this to convert the numbers from <unsigned int> to
     # <long>. This assertion should be true simply for memory reasons.
@@ -707,7 +717,7 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
     gens = automorphism_group_gens_from_edge_list(Vnr, Vout, Vin, Lnr, labels, int2vert, partition, directed)
 
     from sage.groups.perm_gps.permgroup import PermutationGroup
-    return PermutationGroup(gens,domain=G)
+    return PermutationGroup(gens,domain=sorted(G))
 
 #####################################################
 # old direct interactions graphs <-> bliss graphs

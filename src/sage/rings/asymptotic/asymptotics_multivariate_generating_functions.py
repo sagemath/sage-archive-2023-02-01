@@ -151,8 +151,8 @@ A multiple point example (Example 6.5 of [RaWi2012]_)::
      [(x + 2*y - 1, 1), (2*x + y - 1, 1)])
     sage: F1 = decomp[1]
     sage: F1.asymptotics(p, alpha, 2)
-    (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*((1/3)^(-a)*(1/3)^(-b))^r,
-     (1/3)^(-a)*(1/3)^(-b), -3*(2*a^2 - 5*a*b + 2*b^2)*r^2 - 3*(a + b)*r - 9)
+    (-3*((2*a^2 - 5*a*b + 2*b^2)*r^2 + (a + b)*r + 3)*(1/((1/3)^a*(1/3)^b))^r,
+     1/((1/3)^a*(1/3)^b), -3*(2*a^2 - 5*a*b + 2*b^2)*r^2 - 3*(a + b)*r - 9)
     sage: alpha = [4, 3]
     sage: decomp =  F.asymptotic_decomposition(alpha)
     sage: F1 = decomp[1]
@@ -533,7 +533,7 @@ class FractionWithFactoredDenominator(RingElement):
             2
         """
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
         R = self.denominator_ring
         if is_PolynomialRing(R) or is_MPolynomialRing(R):
             return R.ngens()
@@ -2159,7 +2159,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: p = {x: 1/3, y: 1/3}
             sage: alpha = (var('a'), var('b'))
             sage: F.asymptotics_multiple(p, alpha, 2, var('r')) # long time
-            (3*((1/3)^(-a)*(1/3)^(-b))^r*e^(2/3), (1/3)^(-a)*(1/3)^(-b), 3*e^(2/3))
+            (3*(1/((1/3)^a*(1/3)^b))^r*e^(2/3), 1/((1/3)^a*(1/3)^b), 3*e^(2/3))
         """
         from itertools import product
         from sage.calculus.functions import jacobian
@@ -3294,7 +3294,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
             q = R(denominator)
 
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
             if is_PolynomialRing(R) or is_MPolynomialRing(R):
                 if not R(q).is_unit():
                     # Factor denominator
@@ -3364,7 +3364,7 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
         if is_FractionField(P):
             B = P.base()
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-            from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
             if is_PolynomialRing(B) or is_MPolynomialRing(B):
                 if self.base().has_coerce_map_from(B):
                     return True

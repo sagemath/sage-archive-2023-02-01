@@ -31,13 +31,10 @@ from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
-from . import constructor
 import sage.databases.cremona
 from sage.rings.all import ZZ, QQ
-from sage.rings.number_field.all import QuadraticField
-from sage.misc.all import flatten, abstract_method, cached_method, lazy_attribute
+from sage.misc.all import flatten, cached_method
 from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
-from sage.schemes.elliptic_curves.ell_rational_field import EllipticCurve_rational_field
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
 
 
@@ -183,7 +180,7 @@ class IsogenyClass_EC(SageObject):
             return self._hash
 
     def _repr_(self):
-        """
+        r"""
         The string representation of this isogeny class.
 
         .. note::
@@ -382,8 +379,8 @@ class IsogenyClass_EC(SageObject):
 
     @cached_method
     def graph(self):
-        """
-        Returns a graph whose vertices correspond to curves in this
+        r"""
+        Return a graph whose vertices correspond to curves in this
         class, and whose edges correspond to prime degree isogenies.
 
         .. note::
@@ -568,7 +565,8 @@ class IsogenyClass_EC(SageObject):
                 except ValueError:
                     raise ValueError("order does not yield a permutation of curves")
             curves.append(self.curves[j])
-            if need_perm: perm.append(j+1)
+            if need_perm:
+                perm.append(j+1)
         cpy.curves = tuple(curves)
         if need_perm:
             from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -578,18 +576,20 @@ class IsogenyClass_EC(SageObject):
                 n = len(self._maps)
                 cpy._maps = [self._maps[perm(i+1)-1] for i in range(n)]
                 for i in range(n):
-                    cpy._maps[i] = [cpy._maps[i][perm(j+1)-1] for j in range(n)]
+                    cpy._maps[i] = [cpy._maps[i][perm(jj + 1)-1]
+                                    for jj in range(n)]
         else:
             cpy._mat = None
             cpy._maps = None
         return cpy
+
 
 class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     """
     Isogeny classes for elliptic curves over number fields.
     """
     def __init__(self, E):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over a number field.
@@ -760,7 +760,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             True
 
         """
-        from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
+        from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
         from sage.sets.set import Set
         self._maps = None
@@ -847,12 +847,12 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
             key_function = lambda E: flatten([list(ai) for ai in E.ainvs()])
 
         self.curves = sorted(curves,key=key_function)
-        perm = dict([(i,self.curves.index(E)) for i,E in enumerate(curves)])
+        perm = {ix: self.curves.index(Ex) for ix, Ex in enumerate(curves)}
         if verbose:
             print("Sorting permutation = %s" % perm)
 
         mat = MatrixSpace(ZZ,ncurves)(0)
-        self._maps = [[0]*ncurves for i in range(ncurves)]
+        self._maps = [[0] * ncurves for _ in range(ncurves)]
         for i,j,l,phi in tuples:
             if phi!=0:
                 mat[perm[i],perm[j]] = l
@@ -958,12 +958,13 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         # The domains and codomains here will be equal, but not the same Python object.
         self._maps = recomputed._maps
 
+
 class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
-    """
+    r"""
     Isogeny classes for elliptic curves over `\QQ`.
     """
     def __init__(self, E, algorithm="sage", label=None, empty=False):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over `\QQ`.
@@ -1037,7 +1038,6 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
             [0 2 0 0 0 0]
         """
         algorithm = self._algorithm
-        from sage.schemes.elliptic_curves.ell_curve_isogeny import fill_isogeny_matrix, unfill_isogeny_matrix
         from sage.matrix.all import MatrixSpace
         self._maps = None
         if algorithm == "database":
@@ -1075,12 +1075,12 @@ class IsogenyClass_EC_Rational(IsogenyClass_EC_NumberField):
                         curves.append(Edash)
                     ijl_triples.append((i,j,l,phi))
                 if l_list is None:
-                    l_list = [l for l in set([ZZ(f.degree()) for f in isogs])]
+                    l_list = [ell for ell in set([ZZ(f.degree()) for f in isogs])]
                 i += 1
             self.curves = tuple(curves)
             ncurves = len(curves)
-            self._mat = MatrixSpace(ZZ,ncurves)(0)
-            self._maps = [[0]*ncurves for i in range(ncurves)]
+            self._mat = MatrixSpace(ZZ, ncurves)(0)
+            self._maps = [[0] * ncurves for _ in range(ncurves)]
             for i,j,l,phi in ijl_triples:
                 self._mat[i,j] = l
                 self._maps[i][j]=phi

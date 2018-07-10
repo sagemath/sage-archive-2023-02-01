@@ -1316,7 +1316,7 @@ class Permutation(CombinatorialElement):
     _left_to_right_multiply_on_left = left_action_product
 
     def right_action_product(self, rp):
-        """
+        r"""
         Return the permutation obtained by composing ``self`` with
         ``rp`` in such an order that ``self`` is applied first and
         ``rp`` is applied afterwards.
@@ -4401,7 +4401,7 @@ class Permutation(CombinatorialElement):
         return d
 
     def action(self, a):
-        """
+        r"""
         Return the action of the permutation ``self`` on a list ``a``.
 
         The action of a permutation `p \in S_n` on an `n`-element list
@@ -4619,7 +4619,7 @@ class Permutation(CombinatorialElement):
         return binary_search_tree_shape(list(self), left_to_right)
 
     def sylvester_class(self, left_to_right=False):
-        """
+        r"""
         Iterate over the equivalence class of the permutation ``self``
         under sylvester congruence.
 
@@ -5437,9 +5437,10 @@ class Permutations(UniqueRepresentation, Parent):
                             checker=lambda char: isinstance(char,str))
         mult = dict(default="l2r",
                   description="The multiplication of permutations",
-                  values=dict(l2r="left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
-                              r2l="right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
+                  values=dict(l2r=r"left to right: `(p_1 \cdot p_2)(x) = p_2(p_1(x))`",
+                              r2l=r"right to left: `(p_1 \cdot p_2)(x) = p_1(p_2(x))`"),
                   case_sensitive=False)
+
 
 class Permutations_nk(Permutations):
     r"""
@@ -6178,8 +6179,9 @@ class StandardPermutations_all(Permutations):
                 yield self.element_class(self, p)
             n += 1
 
+
 class StandardPermutations_n_abstract(Permutations):
-    """
+    r"""
     Abstract base class for subsets of permutations of the
     set `\{1, 2, \ldots, n\}`.
 
@@ -6515,7 +6517,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
         return self.element_class(self, l)
 
     def conjugacy_classes_representatives(self):
-        """
+        r"""
         Return a complete list of representatives of conjugacy classes
         in ``self``.
 
@@ -6630,7 +6632,7 @@ class StandardPermutations_n(StandardPermutations_n_abstract):
 
     @cached_method
     def index_set(self):
-        """
+        r"""
         Return the index set for the descents of the symmetric group ``self``.
 
         This is `\{ 1, 2, \ldots, n-1 \}`, where ``self`` is `S_n`.
@@ -7206,6 +7208,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
 
     while G.size() > 0:
         matching = G.matching(use_edge_labels=True)
+        matching = [(min(u,v), max(u, v), w) for u,v,w in matching]
 
         # This minimum is strictly larger than 0
         minimum = min([x[2] for x in matching])
@@ -7278,7 +7281,7 @@ def bounded_affine_permutation(A):
 
 
 class StandardPermutations_descents(StandardPermutations_n_abstract):
-    """
+    r"""
     Permutations of `\{1, \ldots, n\}` with a fixed set of descents.
     """
     @staticmethod
@@ -7296,7 +7299,7 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
         return super(StandardPermutations_descents, cls).__classcall__(cls, tuple(d), n)
 
     def __init__(self, d, n):
-        """
+        r"""
         The class of all permutations of `\{1, 2, ..., n\}`
         with set of descent positions `d` (where the descent positions
         are being counted from `0`, so that `i` lies in this set if
@@ -8737,7 +8740,7 @@ class PermutationsNK(Permutations_setk):
         self.__class__ = Permutations_setk
         self.__init__(tuple(range(state['_n'])), state['_k'])
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override("sage.combinat.permutation", "Permutation_class", Permutation)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutationsOfPartition_partition", CyclicPermutationsOfPartition)
 register_unpickle_override("sage.combinat.permutation", "CyclicPermutations_mset", CyclicPermutations)

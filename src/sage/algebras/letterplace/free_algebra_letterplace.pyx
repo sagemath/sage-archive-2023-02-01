@@ -106,7 +106,6 @@ from sage.misc.misc_c import prod
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.libs.singular.function import lib, singular_function
 from sage.rings.polynomial.term_order import TermOrder
-from sage.rings.polynomial.multi_polynomial_ring_generic import MPolynomialRing_generic
 from sage.categories.algebras import Algebras
 from sage.rings.noncommutative_ideals import IdealMonoid_nc
 

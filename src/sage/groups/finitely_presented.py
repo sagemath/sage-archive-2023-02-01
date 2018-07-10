@@ -1130,7 +1130,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         return ret_fpg
 
     def semidirect_product(self, H, hom, check=True, reduced=False):
-        """
+        r"""
         The semidirect product of ``self`` with ``H`` via ``hom``.
 
         If there exists a homomorphism `\phi` from a group `G` to the

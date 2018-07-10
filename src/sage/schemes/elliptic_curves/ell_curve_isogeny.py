@@ -72,20 +72,17 @@ from sage.categories import homset
 
 from sage.categories.morphism import Morphism
 
-from sage.rings.all import PolynomialRing, Integer, ZZ, LaurentSeriesRing
+from sage.rings.all import PolynomialRing, Integer, LaurentSeriesRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 
 from sage.rings.number_field.number_field_base import is_NumberField
 
-from sage.rings.rational_field import is_RationalField, QQ
-
 from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, isomorphisms
 
 from sage.sets.set import Set
 from sage.structure.richcmp import richcmp_not_equal, richcmp
-from sage.misc.cachefunc import cached_function
 
 #
 # Private function for parsing input to determine the type of
@@ -1007,7 +1004,6 @@ class EllipticCurveIsogeny(Morphism):
                 raise ValueError("If specifying isogeny by domain and codomain, degree parameter must be set.")
 
             # save the domain/codomain: really used now (trac #7096)
-            old_domain = E
             old_codomain = codomain
 
             (pre_isom, post_isom, E, codomain, kernel) = compute_sequence_of_maps(E, codomain, degree)
@@ -1660,7 +1656,6 @@ class EllipticCurveIsogeny(Morphism):
             x
             sage: phi._EllipticCurveIsogeny__init_kernel_polynomial()
             [0, 1]
-
         """
 
         if (self.__kernel_polynomial_list is not None):
@@ -1669,10 +1664,9 @@ class EllipticCurveIsogeny(Morphism):
         if ("velu" == self.__algorithm):
             ker_poly_list = self.__init_kernel_polynomial_velu()
         else:
-            raise InputError("The kernel polynomial should already be defined!")
+            raise RuntimeError("The kernel polynomial should already be defined!")
 
         return ker_poly_list
-
 
     def __set_pre_isomorphism(self, domain, isomorphism):
         r"""
@@ -2215,7 +2209,6 @@ class EllipticCurveIsogeny(Morphism):
 
         """
         poly_ring = self.__poly_ring
-        x = poly_ring.gen()
         E = self.__E1
 
         # Convert to a univariate polynomial, even if it had a
@@ -4137,16 +4130,13 @@ def unfill_isogeny_matrix(M):
         sage: unfill_isogeny_matrix(M1) == M
         True
     """
-    from sage.matrix.all import Matrix
-    from sage.rings.infinity import Infinity
-
     n = M.nrows()
     M1 = copy(M)
     zero = Integer(0)
     for i in range(n):
-        M1[i,i] = zero
+        M1[i, i] = zero
         for j in range(i):
-            if not M1[i,j].is_prime():
-                M1[i,j] = zero
-                M1[j,i] = zero
+            if not M1[i, j].is_prime():
+                M1[i, j] = zero
+                M1[j, i] = zero
     return M1

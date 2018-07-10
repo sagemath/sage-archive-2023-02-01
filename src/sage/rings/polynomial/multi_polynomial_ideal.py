@@ -670,7 +670,6 @@ class MPolynomialIdeal_singular_repr(
 
     @require_field
     @cached_method
-    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def complete_primary_decomposition(self, algorithm="sy"):
         r"""
@@ -761,17 +760,6 @@ class MPolynomialIdeal_singular_repr(
             []
             sage: I.is_prime()
             False
-
-        Check that operation over ``QQbar`` is supported::
-
-            sage: R.<x,y,z> = PolynomialRing(QQbar)
-            sage: p = z^2 + 1; q = z^3 + 2
-            sage: I = (p*q, y-z^2)*R
-            sage: pd = I.complete_primary_decomposition()
-            sage: reduce(lambda Qi,Qj: Qi.intersection(Qj), [Qi for (Qi,radQi) in pd]) == I
-            True
-            sage: [Qi.radical() == radQi for (Qi,radQi) in pd]
-            [True, True, True, True, True]
 
         """
 
@@ -1579,7 +1567,6 @@ class MPolynomialIdeal_singular_repr(
         return R.ideal(K)
 
     @require_field
-    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def minimal_associated_primes(self):
         """
@@ -1610,7 +1597,6 @@ class MPolynomialIdeal_singular_repr(
         return [R.ideal(J) for J in M]
 
     @require_field
-    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def radical(self):
         r"""
@@ -1664,7 +1650,6 @@ class MPolynomialIdeal_singular_repr(
         return S.ideal(r)
 
     @require_field
-    @handle_AA_and_QQbar(factor_field=True)
     @libsingular_gb_standard_options
     def integral_closure(self, p=0, r=True, singular=singular_default):
         """

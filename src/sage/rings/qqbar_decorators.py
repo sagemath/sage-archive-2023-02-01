@@ -14,7 +14,7 @@ Decorators
 from sage.misc.decorators import decorator_keywords, sage_wraps
 
 @decorator_keywords
-def handle_AA_and_QQbar(func, factor_field=False):
+def handle_AA_and_QQbar(func):
     r"""
     Decorator to call a function that only accepts arguments in number fields.
 
@@ -25,10 +25,15 @@ def handle_AA_and_QQbar(func, factor_field=False):
 
     Keyword arguments are currently not converted.
 
-    If the decorator is used with the optional argument `factor_field=True`,
-    the polynomials and/or ideals are converted to a larger number field in
-    which they can be factored.  While slower, this option is required for
-    methods that depend the ability to factor their arguments.
+    This decorator can not used with methods that depend on factoring, since
+    factorization might require larger number fields than those required to
+    express the polynomials.  No means is provided to check whether factoring
+    is being attempted by a wrapped method, and if a method invoked a library
+    or subprocess (like Singular), it's hard to imagine how such a check could
+    be performed.
+
+    See https://mathoverflow.net/questions/304525 for a discussion of why a
+    simple attempt to overcome this limitation didn't work.
     """
 
     @sage_wraps(func)
@@ -52,10 +57,6 @@ def handle_AA_and_QQbar(func, factor_field=False):
                 polynomials.append(a)
 
         orig_elems = flatten([p.coefficients() for p in polynomials])
-
-        if factor_field is True:
-            for p in polynomials:
-                orig_elems.extend(flatten([f[0].coefficients() for f in p.factor()]))
 
         # We need minimal=True if these elements are over AA, because
         # same_field=True might trigger an exception otherwise.

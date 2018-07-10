@@ -47,9 +47,9 @@ from sage.rings.finite_rings.finite_field_constructor import is_PrimeFiniteField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.fraction_field import FractionField
 from sage.rings.fraction_field import is_FractionField
-from sage.rings.quotient_ring import is_QuotientRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.quotient_ring import is_QuotientRing
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space_field
 from sage.schemes.affine.affine_morphism import SchemeMorphism_polynomial_affine_space_finite_field
@@ -228,6 +228,14 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             ValueError: "domain" must be an affine scheme
 
         ::
+
+            sage: R.<x,y,z>=QQ[]
+            sage: f=DynamicalSystem_affine([x+y+z,y*z])
+            Traceback (most recent call last):
+            ...
+            ValueError: polys (=[x + y + z, y*z]) do not define a rational endomorphism of the Affine Space of dimension 3 over Rational Field
+
+        ::
             sage: P.<x,y> = AffineSpace(QQ,2)
             sage: f = DynamicalSystem([CC.0*x^2, y^2], domain=P)
             Traceback (most recent call last):
@@ -294,6 +302,9 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             if fraction_field:
                 CR = CR.ring()
             domain = AffineSpace(CR)
+        if len(polys) != domain.ambient_space().coordinate_ring().ngens():
+            msg = 'polys (={}) do not define a rational endomorphism of the {}'
+            raise ValueError(msg.format(polys, domain))
         PR = domain.ambient_space().coordinate_ring()
         try:
             if fraction_field:

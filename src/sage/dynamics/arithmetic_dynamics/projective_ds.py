@@ -317,7 +317,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: DynamicalSystem_projective([y, x, y], domain=P1)
             Traceback (most recent call last):
             ...
-            ValueError: polys (=[y, x, y]) do not define a rational endomorphism of the domain
+            ValueError: polys (=[y, x, y]) do not define a rational endomorphism of the Projective Space of dimension 1 over Rational Field
 
         ::
 
@@ -404,8 +404,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("Symbolic Ring cannot be the base ring")
 
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            msg = 'polys (={}) do not define a rational endomorphism of the domain'
-            raise ValueError(msg.format(polys))
+            msg = 'polys (={}) do not define a rational endomorphism of the {}'
+            raise ValueError(msg.format(polys, domain))
 
         if is_ProductProjectiveSpaces(domain):
             splitpolys = domain._factors(polys)

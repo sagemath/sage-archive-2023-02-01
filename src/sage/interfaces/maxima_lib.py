@@ -1236,6 +1236,7 @@ sage_op_dict = {
     sage.functions.other.factorial : "MFACTORIAL",
     sage.functions.error.erf : "%ERF",
     sage.functions.gamma.gamma_inc : "%GAMMA_INCOMPLETE",
+    sage.functions.other.conjugate : "$CONJUGATE",
 }
 #we compile the dictionary
 sage_op_dict = dict([(k,EclObject(sage_op_dict[k])) for k in sage_op_dict])

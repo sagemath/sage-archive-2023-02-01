@@ -556,9 +556,10 @@ def _sporadic_Q_data(j):
         kerpolcoeffs = [c.real().round() for c in list(kerpol)]
     return (a4a6,kerpolcoeffs)
 
+
 def isogenies_sporadic_Q(E, l=None, minimal_models=True):
-    """
-    Returns a list of sporadic l-isogenies from E (l = 11, 17, 19, 37,
+    r"""
+    Return a list of sporadic l-isogenies from E (l = 11, 17, 19, 37,
     43, 67 or 163). Only for elliptic curves over `\QQ`.
 
     INPUT:
@@ -662,7 +663,8 @@ def isogenies_sporadic_Q(E, l=None, minimal_models=True):
 
 
 def isogenies_2(E, minimal_models=True):
-    """Returns a list of all 2-isogenies with domain ``E``.
+    r"""
+    Return a list of all 2-isogenies with domain ``E``.
 
     INPUT:
 
@@ -704,8 +706,10 @@ def isogenies_2(E, minimal_models=True):
     isogs = [E.isogeny(f, model=model) for f in ff]
     return isogs
 
+
 def isogenies_3(E, minimal_models=True):
-    """Returns a list of all 3-isogenies with domain ``E``.
+    """
+    Return a list of all 3-isogenies with domain ``E``.
 
     INPUT:
 

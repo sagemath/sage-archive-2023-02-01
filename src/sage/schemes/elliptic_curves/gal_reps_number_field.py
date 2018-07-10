@@ -1309,9 +1309,9 @@ def Billerey_B_bound(E, max_l=200, num_l=8, small_prime_bound=0, debug=False):
     ll = primes(5,max_l) # iterator
     while B!=1 and len(ells)<num_l:
         try:
-            l = ll.next()
+            l = next(ll)
             while B0.valuation(l):
-                l = ll.next()
+                l = next(ll)
         except StopIteration:
             break
         if debug:
@@ -1341,8 +1341,10 @@ def Billerey_B_bound(E, max_l=200, num_l=8, small_prime_bound=0, debug=False):
         print("..failed to find a bound")
     return [0]
 
+
 def Billerey_R_bound(E, max_l=200, num_l=8, small_prime_bound=None, debug=False):
-    """Compute Billerey's bound `R`.
+    r"""
+    Compute Billerey's bound `R`.
 
     We compute `R_q` for `q` dividing primes `\ell` up to ``max_l``
     (at most) until ``num_l`` nonzero values are found (at most).
@@ -1415,9 +1417,9 @@ def Billerey_R_bound(E, max_l=200, num_l=8, small_prime_bound=None, debug=False)
     ll = primes(5, max_l) # iterator
     while len(ells) < num_l and B != 1:
         try:
-            l = ll.next()
+            l = next(ll)
             while B0.valuation(l):
-                l = ll.next()
+                l = next(ll)
         except StopIteration:
             break
         q = K.prime_above(l)
@@ -1445,8 +1447,10 @@ def Billerey_R_bound(E, max_l=200, num_l=8, small_prime_bound=None, debug=False)
         print("..failed to find a bound")
     return [0]
 
+
 def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
-    """Return a finite set of primes `\ell` containing all those for which
+    r"""
+    Return a finite set of primes `\ell` containing all those for which
     `E` has a `K`-rational ell-isogeny, where `K` is the base field of
     `E`: i.e., the mod-`\ell` representation is irreducible for all
     `\ell` outside the set returned.
@@ -1553,8 +1557,10 @@ def reducible_primes_Billerey(E, num_l=None, max_l=None, verbose=False):
         print("... after Frobenius filter = {}".format(B))
     return B
 
+
 def reducible_primes_naive(E, max_l=None, num_P=None, verbose=False):
-    """Return locally reducible primes `\ell` up to ``max_l``.
+    r"""
+    Return locally reducible primes `\ell` up to ``max_l``.
 
     The list of primes `\ell` returned consists of all those up to
     ``max_l`` such that `E` mod `P` has an `\ell`-isogeny, where `K`

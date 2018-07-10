@@ -589,7 +589,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
     Isogeny classes for elliptic curves over number fields.
     """
     def __init__(self, E, reducible_primes=None, algorithm='Billerey', minimal_models=True):
-        """
+        r"""
         INPUT:
 
         - ``E`` -- an elliptic curve over a number field.

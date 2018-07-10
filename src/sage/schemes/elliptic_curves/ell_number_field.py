@@ -2617,7 +2617,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         .. note::
 
             If using the algorithm 'heuristic' for non-CM curves, the
-            result is not guarenteed to be the complete isogeny class,
+            result is not guaranteed to be the complete isogeny class,
             since only reducible primes up to the default bound in
             :meth:`reducible_primes_naive` (currently 1000) are
             tested.  However, no examples of non-CM elliptic curves
@@ -3288,7 +3288,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
     def reducible_primes(self, algorithm='Billerey', max_l=None,
                          num_l=None, verbose=False):
-        """Return a finite set of primes `\ell` for which `E` has a
+        r"""
+        Return a finite set of primes `\ell` for which `E` has a
         K-rational `\ell`-isogeny.
 
         For curves without CM the list returned is exactly the finite

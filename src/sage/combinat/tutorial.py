@@ -1268,7 +1268,7 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 The itertools methods ``imap`` and ``ifilter`` have been renamed to
 ``map`` and ``filter`` in Python 3. You can get them also in Python 2 using::
 
-    sage: from builtins import map, filter
+    sage: from six.moves import map, filter
 
 but they should rather be avoided, using list comprehension instead.
 
@@ -1421,7 +1421,9 @@ usual combinatorial operations and also its structure as a product group::
     sage: H = cartesian_product([G,G])
     sage: H in Groups()
     True
-    sage: t = H.an_element()
+    sage: H.an_element()
+    ((1,3), (1,3))
+    sage: t = H([G.gen(0), G.gen(0)])
     sage: t
     ((1,2,3,4), (1,2,3,4))
     sage: t*t

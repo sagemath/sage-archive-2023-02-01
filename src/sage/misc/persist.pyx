@@ -28,16 +28,18 @@ save member functions and commands.
 """
 from __future__ import absolute_import
 
+import io
 import os
 import sys
+
+from textwrap import dedent
 
 # change to import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
-from six.moves import cPickle
-from six.moves import cStringIO as StringIO
+from six.moves import cPickle as pickle
 
 from .misc import SAGE_DB
 from .sage_unittest import TestSuite
@@ -84,7 +86,8 @@ def load(*filename, compress=True, verbose=True):
     We test loading a file or multiple files or even mixing loading files and objects::
 
         sage: t = tmp_filename(ext='.py')
-        sage: _ = open(t,'w').write("print('hello world')")
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write("print('hello world')")
         sage: load(t)
         hello world
         sage: load(t,t)
@@ -111,7 +114,8 @@ def load(*filename, compress=True, verbose=True):
 
         sage: code = '      subroutine hello\n         print *, "Hello World!"\n      end subroutine hello\n'
         sage: t = tmp_filename(ext=".F")
-        sage: _ = open(t, 'w').write(code)
+        sage: with open(t, 'w') as f:
+        ....:     _ = f.write(code)
         sage: load(t)
         sage: hello
         <fortran object>
@@ -143,7 +147,8 @@ def load(*filename, compress=True, verbose=True):
         filename = _normalize_filename(filename)
 
     ## Load file by absolute filename
-    X = loads(open(filename).read(), compress=compress)
+    with open(filename, 'rb') as fobj:
+        X = loads(fobj.read(), compress=compress)
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
@@ -248,14 +253,12 @@ def _base_dumps(obj, compress=True):
     method, in which case that is tried first.
     """
 
-    # the protocol=2 is very important -- this enables saving extensions
-    # classes (with no attributes).
-    pickle = cPickle.dumps(obj, protocol=2)
+    gherkin = SagePickler.dumps(obj)
 
     if compress:
-        return comp.compress(pickle)
+        return comp.compress(gherkin)
 
-    return pickle
+    return gherkin
 
 
 def dumps(obj, compress=True):
@@ -268,9 +271,10 @@ def dumps(obj, compress=True):
 
         sage: a = 2/3
         sage: s = dumps(a)
-        sage: len(s)
-        49
-        sage: loads(s)
+        sage: a2 = loads(s)
+        sage: type(a) is type(a2)
+        True
+        sage: a2
         2/3
     """
     if make_pickle_jar:
@@ -346,17 +350,18 @@ def register_unpickle_override(module, name, callable, call_name=None):
 
         sage: from sage.structure.element import Element
         sage: class SourPickle(CombinatorialObject): pass
-        sage: class SweetPickle(CombinatorialObject,Element): pass
+        sage: class SweetPickle(CombinatorialObject, Element): pass
         sage: import __main__
-        sage: __main__.SourPickle=SourPickle
-        sage: __main__.SweetPickle=SweetPickle  # a hack to allow us to pickle command line classes
-        sage: gherkin = dumps( SourPickle([1,2,3]) )
+        sage: __main__.SourPickle = SourPickle
+        sage: __main__.SweetPickle = SweetPickle  # a hack to allow us to pickle command line classes
+        sage: gherkin = dumps(SourPickle([1, 2, 3]))
 
-    Using :func:`register_unpickle_override` we try to sweeten our pickle, but we are unable to eat it::
+    Using :func:`register_unpickle_override` we try to sweeten our pickle, but
+    we are unable to eat it::
 
         sage: from sage.misc.persist import register_unpickle_override
-        sage: register_unpickle_override('__main__','SourPickle',SweetPickle)
-        sage: loads( gherkin )
+        sage: register_unpickle_override('__main__', 'SourPickle', SweetPickle)
+        sage: loads(gherkin)
         Traceback (most recent call last):
         ...
         KeyError: 0
@@ -367,10 +372,13 @@ def register_unpickle_override(module, name, callable, call_name=None):
     unpickling for :class:`CombinatorialObject`. We can fix this by explicitly
     defining a new :meth:`__setstate__` method::
 
-        sage: class SweeterPickle(CombinatorialObject,Element):
+        sage: class SweeterPickle(CombinatorialObject, Element):
         ....:     def __setstate__(self, state):
-        ....:         if isinstance(state, dict):       # a pickle from CombinatorialObject is just its instance dictionary
-        ....:             self._set_parent(Tableaux())  # this is a fudge: we need an appropriate parent here
+        ....:         # a pickle from CombinatorialObject is just its instance
+        ....:         # dictionary
+        ....:         if isinstance(state, dict):
+        ....:             # this is a fudge: we need an appropriate parent here
+        ....:             self._set_parent(Tableaux())
         ....:             self.__dict__ = state
         ....:         else:
         ....:             P, D = state
@@ -378,10 +386,10 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:                 self._set_parent(P)
         ....:             self.__dict__ = D
         sage: __main__.SweeterPickle = SweeterPickle
-        sage: register_unpickle_override('__main__','SourPickle',SweeterPickle)
-        sage: loads( gherkin )
+        sage: register_unpickle_override('__main__', 'SourPickle', SweeterPickle)
+        sage: loads(gherkin)
         [1, 2, 3]
-        sage: loads(dumps( SweeterPickle([1,2,3]) ))   # check that pickles work for SweeterPickle
+        sage: loads(dumps(SweeterPickle([1, 2, 3])))  # check that pickles work for SweeterPickle
         [1, 2, 3]
 
     The ``state`` passed to :meth:`__setstate__` will usually be something like
@@ -397,7 +405,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:    def __init__(self,value):
         ....:        self.original_attribute = value
         ....:    def __repr__(self):
-        ....:        return 'A(%s)'%self.original_attribute
+        ....:        return 'A(%s)' % self.original_attribute
         sage: class B(object):
         ....:    def __init__(self,value):
         ....:        self.new_attribute = value
@@ -407,14 +415,16 @@ def register_unpickle_override(module, name, callable, call_name=None):
         ....:        except KeyError:      # an old pickle
         ....:            self.new_attribute = state['original_attribute']
         ....:    def __repr__(self):
-        ....:        return 'B(%s)'%self.new_attribute
+        ....:        return 'B(%s)' % self.new_attribute
         sage: import __main__
-        sage: __main__.A=A; __main__.B=B  # a hack to allow us to pickle command line classes
+        sage: # a hack to allow us to pickle command line classes
+        sage: __main__.A = A
+        sage: __main__.B = B
         sage: A(10)
         A(10)
-        sage: loads( dumps(A(10)) )
+        sage: loads(dumps(A(10)))
         A(10)
-        sage: sage.misc.explain_pickle.explain_pickle( dumps(A(10)) )
+        sage: sage.misc.explain_pickle.explain_pickle(dumps(A(10)))
         pg_A = unpickle_global('__main__', 'A')
         si = unpickle_newobj(pg_A, ())
         pg_make_integer = unpickle_global('sage.rings.integer', 'make_integer')
@@ -422,17 +432,18 @@ def register_unpickle_override(module, name, callable, call_name=None):
         si
         sage: from sage.misc.persist import register_unpickle_override
         sage: register_unpickle_override('__main__', 'A', B)
-        sage: loads( dumps(A(10)) )
+        sage: loads(dumps(A(10)))
         B(10)
-        sage: loads( dumps(B(10)) )
+        sage: loads(dumps(B(10)))
         B(10)
 
     Pickling for python classes and extension classes, such as cython, is
-    different -- again this is discussed in the `python pickling documentation`_. For the
-    unpickling of extension classes you need to write a :meth:`__reduce__`
-    method which typically returns a tuple ``(f, args,...)`` such that
-    ``f(*args)`` returns (a copy of) the original object. The following code
-    snippet is the :meth:`~sage.rings.integer.Integer.__reduce__` method from
+    different -- again this is discussed in the `python pickling
+    documentation`_. For the unpickling of extension classes you need to write
+    a :meth:`__reduce__` method which typically returns a tuple ``(f,
+    args,...)`` such that ``f(*args)`` returns (a copy of) the original object.
+    The following code snippet is the
+    :meth:`~sage.rings.integer.Integer.__reduce__` method from
     :class:`sage.rings.integer.Integer`.
 
     .. code-block:: cython
@@ -462,7 +473,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
             return sage.rings.integer.make_integer, (self.str(32),)
 
     """
-    unpickle_override[(module,name)] = (callable, call_name)
+    unpickle_override[(module, name)] = (callable, call_name)
 
 
 def unpickle_global(module, name):
@@ -478,19 +489,19 @@ def unpickle_global(module, name):
 
         sage: from sage.misc.persist import unpickle_override, register_unpickle_override
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <... 'sage.rings.integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     Now we horribly break the pickling system::
 
         sage: register_unpickle_override('sage.rings.integer', 'Integer', Rational, call_name=('sage.rings.rational', 'Rational'))
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <... 'sage.rings.rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     and we reach into the internals and put it back::
 
         sage: del unpickle_override[('sage.rings.integer', 'Integer')]
         sage: unpickle_global('sage.rings.integer', 'Integer')
-        <... 'sage.rings.integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     A meaningful error message with resolution instructions is displayed for
     old pickles that accidentally got broken because a class or entire module
@@ -533,6 +544,381 @@ def unpickle_global(module, name):
     return getattr(mod, name)
 
 
+IF PY_MAJOR_VERSION == 2:
+    class _BasePickler(object):
+        """
+        Wrapper class for `cPickle.Pickler`.
+
+        On Python 2, `cPickle.Pickler` is not actually a class, but a function
+        that is effectively the ``__new__`` method for an old-fashioned type
+        that otherwise cannot be imported or instantiated directly.
+
+        TESTS::
+
+            sage: from io import BytesIO
+            sage: from sage.misc.persist import _BasePickler
+            sage: p = BytesIO()
+            sage: pick = _BasePickler(p)
+            sage: pick.dump(1)
+            sage: _ = p.seek(0)
+            sage: loads(p.getvalue(), compress=False)
+            1
+
+        We can also subclass this, which is not immediately possible with the
+        original `cPickle.Pickler`::
+
+            sage: class MyPickler(_BasePickler):
+            ....:     def dump(self, obj):
+            ....:         print("dumping pickle...")
+            ....:         return super(MyPickler, self).dump(obj)
+            sage: p = BytesIO()
+            sage: unp = MyPickler(p)
+            sage: unp.dump(1)
+            dumping pickle...
+            sage: _ = p.seek(0)
+            sage: loads(p.getvalue(), compress=False)
+            1
+
+        It also accepts setting a ``persistent_id`` function via the
+        constructor.
+        """
+
+        def __init__(self, file_obj, protocol=0, persistent_id=None):
+            self._pickler = pickle.Pickler(file_obj, protocol)
+            if persistent_id is not None:
+                self._pickler.persistent_id = persistent_id
+
+        def dump(self, obj):
+            self._pickler.dump(obj)
+
+        def clear_memo(self):
+            self._pickler.clear_memo()
+
+
+    # On Python 2 we always pickle with protocol version 2 (the highest
+    # version that will ever be on Python 2)
+    _DEFAULT_PROTOCOL_VERSION = 2
+
+
+    class _BaseUnpickler(object):
+        """
+        Wrapper class for `cPickle.Unpickler`.
+
+        On Python 2, `cPickle.Unpickler` is not actually a class, but a
+        function that is effectively the ``__new__`` method for an
+        old-fashioned type that otherwise cannot be imported or instantiated
+        directly.
+
+        TESTS::
+
+            sage: from io import BytesIO
+            sage: from sage.misc.persist import _BaseUnpickler
+            sage: p = BytesIO(dumps(1, compress=False))
+            sage: unp = _BaseUnpickler(p)
+            sage: unp.load()
+            1
+
+        We can also subclass this, which is not immediately possible with
+        the original `cPickle.Unpickler`::
+
+            sage: class MyUnpickler(_BaseUnpickler):
+            ....:     def load(self):
+            ....:         print("loading pickle...")
+            ....:         return super(MyUnpickler, self).load()
+            sage: _ = p.seek(0)
+            sage: unp = MyUnpickler(p)
+            sage: unp.load()
+            loading pickle...
+            1
+
+        It also accepts setting a ``persistent_load`` function via the
+        constructor and sets Sage's :func:`sage.misc.persist.unpickle_global`
+        as its ``find_global`` attribute.  This is discussed further in the
+        documentation for :class:`sage.misc.persist.SageUnpickler` for which
+        this serves as the base class.
+        """
+
+        def __init__(self, file_obj, persistent_load=None):
+            self._unpickler = pickle.Unpickler(file_obj)
+            self._unpickler.find_global = unpickle_global
+            if persistent_load is not None:
+                self._unpickler.persistent_load = persistent_load
+
+        def load(self):
+            return self._unpickler.load()
+
+        def noload(self):
+            return self._unpickler.noload()
+ELSE:
+    class _BasePickler(pickle.Pickler):
+        """
+        Provides the Python 3 implementation for
+        :class:`sage.misc.persist.SagePickler`.
+
+        This is simpler than the Python 2 case since `pickle.Pickler` is a
+        modern built-in type which can be easily subclassed to provide new
+        functionality.
+
+        See the documentation for that class for tests and examples.
+        """
+
+        def __init__(self, file_obj, protocol=None, persistent_id=None, *,
+                     fix_imports=True):
+            super(_BasePickler, self).__init__(file_obj, protocol,
+                                               fix_imports=fix_imports)
+            self._persistent_id = persistent_id
+
+            def persistent_id(self, obj):
+                """
+                Implement persistence of external objects with the
+                ``persistent_id`` function given at instantiation, if any.
+                Otherwise returns ``None`` as in the base class.
+
+                See the documentation for
+                :class:`sage.misc.persist.SagePickler` for more details.
+                """
+
+                if self._persistent_id is not None:
+                    return self._persistent_id(obj)
+
+                return super(_BasePickler, self).persistent_id(obj)
+
+
+    # Since Python 3.4, protocol version 4 is the "best" protocol, so we
+    # use that by default on Sage for Python 3; by default pickles made on
+    # Python 3 can only be used on Python 3
+    _DEFAULT_PROTOCOL_VERSION = 4
+
+
+    class _BaseUnpickler(pickle.Unpickler):
+        """
+        Provides the Python 3 implementation for
+        :class:`sage.misc.persist.SageUnpickler`.
+
+        This is simpler than the Python 2 case since `pickle.Unpickler` is
+        a modern built-in type which can be easily subclassed to provide new
+        functionality.
+
+        See the documentation for that class for tests and examples.
+        """
+
+        def __init__(self, file_obj, persistent_load=None, *, **kwargs):
+            super(_BaseUnpickler, self).__init__(file_obj, **kwargs)
+            self._persistent_load = persistent_load
+
+        def persistent_load(self, pid):
+            """
+            Implement persistent loading with the ``persistent_load`` function
+            given at instantiation, if any.  Otherwise raises a
+            `pickle.UnpicklingError` as in the base class.
+
+            See the documentation for :class:`sage.misc.persist.SageUnpickler`
+            for more details.
+            """
+
+            if self._persistent_load is not None:
+                return self._persistent_load(pid)
+
+            return super(_BaseUnpickler, self).persistent_load(pid)
+
+        def find_class(self, module, name):
+            """
+            The Unpickler uses this class to load module-level objects.
+            Contrary to the name, it is used for functions as well as classes.
+
+            (This is equivalent to what was previously called ``find_global``
+            which seems like a better name, albeit still somewhat misleading).
+
+            This is just a thin wrapper around
+            :func:`sage.misc.persist.unpickle_global`
+            """
+
+            # First try using Sage's unpickle_global to go through the unpickle
+            # override system
+            try:
+                return unpickle_global(module, name)
+            except ImportError:
+                # Failing that, go through the base class's find_class to give
+                # it a try (this is necessary in particular to support
+                # fix_imports)
+                return super(_BaseUnpickler, self).find_class(module, name)
+
+
+class SagePickler(_BasePickler):
+    """
+    Subclass `pickle.Pickler` with Sage-specific default options, and
+    built-in support for external object persistence.
+
+    INPUT:
+
+    - ``file_obj`` -- a readable file-like object returning ``bytes`` from
+      which the pickle data will be loaded.
+
+    - ``persistent_id`` -- callable or None; if given this callable takes a
+      single object to be pickled, and returns an "ID" (a key with which to
+      restore the object upon unpickling, which may itself be any pickleable
+      object).  See the Python documentation on `pickling and unpickling
+      external objects`_ for more details.
+
+    - ``py2compat`` -- on Python 3 only, this creates pickles that have a
+      better chance of being read on Python 2, by using protocol version 2
+      (instead of 4) and fixing up imports of standard library modules and
+      types whose names changed between Python 2 and 3.  This is enabled by
+      default for the best chances of cross-Python compatibility.
+
+    .. _pickling and unpickling external objects: https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-external-objects
+
+    EXAMPLES::
+
+        sage: from sage.misc.persist import (
+        ....:     unpickle_override, register_unpickle_override, SageUnpickler)
+        sage: from sage.rings.integer import make_integer
+        sage: from io import BytesIO
+        sage: def fake_constructor(x):
+        ....:     print("unpickling an Integer")
+        ....:     return make_integer(x)
+        sage: register_unpickle_override('sage.rings.integer', 'make_integer',
+        ....:                            fake_constructor)
+        sage: unp = SageUnpickler(BytesIO(dumps(1, compress=False)))
+        sage: unp.load()
+        unpickling an Integer
+        1
+        sage: del unpickle_override[('sage.rings.integer', 'make_integer')]
+
+    The `SagePickler` can also be passed a ``persistent_id`` function::
+
+        sage: table = {1: 'a', 2: 'b'}
+        sage: # in practice this might be a database or something...
+        sage: def load_object_from_table(obj_id):
+        ....:     tag, obj_id
+        ....:     return table[obj_id]
+    """
+
+    def __init__(self, file_obj, persistent_id=None, py2compat=True):
+        protocol = _DEFAULT_PROTOCOL_VERSION
+
+        IF PY_MAJOR_VERSION > 2:
+            if py2compat:
+                protocol = 2
+
+        super(SagePickler, self).__init__(file_obj, protocol=protocol,
+                                          persistent_id=persistent_id)
+
+    @classmethod
+    def dumps(cls, obj, **kwargs):
+        """
+        Equivalent to :func:`pickle.dumps` but using the
+        :class:`sage.misc.persist.SagePickler`.
+
+        INPUT:
+
+        - ``obj`` - the object to pickle.
+
+        - ``kwargs`` - keyword arguments passed to the
+          :class:`sage.misc.persist.SagePickler` constructor.
+
+        OUTPUT:
+
+        - ``pickle`` - the pickled object as `bytes`.
+
+        EXAMPLES::
+
+            sage: import pickle
+            sage: from sage.misc.persist import SagePickler
+            sage: gherkin = SagePickler.dumps(1)
+            sage: pickle.loads(gherkin)
+            1
+        """
+
+        buf = io.BytesIO()
+        pickler = cls(buf, **kwargs)
+        pickler.dump(obj)
+        return buf.getvalue()
+
+
+class SageUnpickler(_BaseUnpickler):
+    """
+    Subclass `pickle.Unpickler` to control how certain objects get unpickled
+    (registered overrides, specifically).
+
+    This is only needed in Python 3 and up.  On Python 2 the behavior of the
+    ``cPickle`` module is customized differently.
+
+    This class simply overrides ``Unpickler.find_class`` to wrap
+    `sage.misc.persist.unpickle_global``.
+
+    INPUT:
+
+    - ``file_obj`` -- a readable file-like object returning ``bytes`` from
+      which the pickle data will be loaded.
+
+    - ``persistent_load`` -- callable or None; if given this callable
+      implements loading of persistent external objects.  The function
+      should take a single argument, the persistent object ID. See the
+      Python documentation on `pickling and unpickling external objects`_
+      for more details.
+
+    - ``kwargs`` -- additional keyword arguments passed to the
+      `pickle.Unpickler` constructor.
+
+    .. _pickling and unpickling external objects: https://docs.python.org/2.7/library/pickle.html#pickling-and-unpickling-external-objects
+
+    EXAMPLES::
+
+        sage: from sage.misc.persist import (
+        ....:     unpickle_override, register_unpickle_override, SageUnpickler)
+        sage: from sage.rings.integer import make_integer
+        sage: from io import BytesIO
+        sage: def fake_constructor(x):
+        ....:     print("unpickling an Integer")
+        ....:     return make_integer(x)
+        sage: register_unpickle_override('sage.rings.integer', 'make_integer',
+        ....:                            fake_constructor)
+        sage: unp = SageUnpickler(BytesIO(dumps(1, compress=False)))
+        sage: unp.load()
+        unpickling an Integer
+        1
+        sage: del unpickle_override[('sage.rings.integer', 'make_integer')]
+
+    The `SageUnpickler` can also be passed a ``persistent_load`` function::
+
+        sage: table = {1: 'a', 2: 'b'}
+        sage: # in practice this might be a database or something...
+        sage: def load_object_from_table(obj_id):
+        ....:     tag, obj_id
+        ....:     return table[obj_id]
+    """
+
+    @classmethod
+    def loads(cls, data, **kwargs):
+        """
+        Equivalent to :func:`pickle.dumps` but using the
+        :class:`sage.misc.persist.SagePickler`.
+
+        INPUT:
+
+        - ``data`` - the pickle data as `bytes`.
+
+        - ``kwargs`` - keyword arguments passed to the
+          :class:`sage.misc.persist.SageUnpickler` constructor.
+
+        OUTPUT:
+
+        - ``obj`` - the object that was serialized to the given pickle data.
+
+
+        EXAMPLES::
+
+            sage: import pickle
+            sage: from sage.misc.persist import SageUnpickler
+            sage: gherkin = pickle.dumps(1)
+            sage: SageUnpickler.loads(gherkin)
+            1
+        """
+
+        return cls(io.BytesIO(data), **kwargs).load()
+
+
 def loads(s, compress=True):
     """
     Recover an object x that has been dumped to a string s
@@ -565,8 +951,9 @@ def loads(s, compress=True):
         ...
         UnpicklingError: invalid load key, 'x'.
     """
-    if not isinstance(s, str):
-        raise TypeError("s must be a string")
+    if not isinstance(s, bytes):
+        raise TypeError("s must be bytes")
+
     if compress:
         try:
             s = comp.decompress(s)
@@ -577,9 +964,7 @@ def loads(s, compress=True):
                 # Maybe data is uncompressed?
                 pass
 
-    unpickler = cPickle.Unpickler(StringIO(s))
-    unpickler.find_global = unpickle_global
-
+    unpickler = SageUnpickler(io.BytesIO(s))
     return unpickler.load()
 
 
@@ -636,7 +1021,7 @@ def picklejar(obj, dir=None):
         sage: os.chmod(dir, 0o755)
     """
     if dir is None:
-        dir = os.environ['SAGE_ROOT'] + '/tmp/pickle_jar/'
+        dir = os.path.join(os.environ['SAGE_ROOT'], '/tmp/pickle_jar/')
     try:
         os.makedirs(dir)
     except OSError as err:
@@ -645,24 +1030,29 @@ def picklejar(obj, dir=None):
         if not err.errno == errno.EEXIST:
             raise
 
-    s = comp.compress(cPickle.dumps(obj,protocol=2))
+    s = comp.compress(SagePickler.dumps(obj))
 
     typ = str(type(obj))
     name = ''.join([x if (x.isalnum() or x == '_') else '_' for x in typ])
-    base = '%s/%s'%(dir, name)
+    base = os.path.join(dir, name)
     if os.path.exists(base):
         i = 0
-        while os.path.exists(base + '-%s'%i):
+        while os.path.exists(f'{base}-{i}'):
             i += 1
-        base += '-%s'%i
+        base += f'-{i}'
 
-    open(base + '.sobj', 'wb').write(s)
-    txt = "type(obj) = %s\n"%typ
+    with open(base + '.sobj', 'wb') as fobj:
+        fobj.write(s)
+
     import sage.version
-    txt += "version = %s\n"%sage.version.version
-    txt += "obj =\n'%s'\n"%str(obj)
+    stamp = dedent("""\
+        type(obj) = {typ}
+        version = {ver}
+        obj = {obj}
+    """.format(typ=typ, ver=sage.version.version, obj=obj))
 
-    open(base + '.txt', 'w').write(txt)
+    with open(base + '.txt', 'w') as fobj:
+        fobj.write(stamp)
 
 
 def unpickle_all(dir, debug=False, run_test_suite=False):
@@ -742,10 +1132,6 @@ def make_None(*args, **kwds):
     return None
 
 
-# Generators is no longer used (#21382)
-register_unpickle_override('sage.structure.generators', 'make_list_gens', make_None)
-
-
 def load_sage_object(cls, dic):   # not used
     X = cls.__new__(cls)
     try:
@@ -758,7 +1144,7 @@ def load_sage_object(cls, dic):   # not used
 def load_sage_element(cls, parent, dic_pic):
     X = cls.__new__(cls)
     X._set_parent(parent)
-    X.__dict__ = cPickle.loads(dic_pic)
+    X.__dict__ = SageUnpickler.loads(dic_pic)
     return X
 
 

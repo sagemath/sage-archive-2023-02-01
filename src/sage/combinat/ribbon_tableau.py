@@ -1154,7 +1154,7 @@ class RibbonTableau_class(RibbonTableau):
         self.__class__ = RibbonTableau
         self.__init__(RibbonTableaux(), state['_list'])
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableau_class', RibbonTableau_class)
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableaux_shapeweightlength', RibbonTableaux)
 register_unpickle_override('sage.combinat.ribbon_tableau', 'SemistandardMultiSkewTtableaux_shapeweight', SemistandardMultiSkewTableaux)

@@ -2438,7 +2438,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         return E.reduction(p)(P)
 
     def height(self, precision=None, normalised=True, algorithm='pari'):
-        """
+        r"""
         Return the Néron-Tate canonical height of the point.
 
         INPUT:

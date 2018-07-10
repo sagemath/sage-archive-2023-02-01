@@ -1725,7 +1725,7 @@ class DiagramAlgebra(CombinatorialFreeModule):
         return self[p]
 
     def _diag_to_Blst(self, d):
-        """
+        r"""
         Return an element of ``self`` from the input ``d``.
 
         If ``d`` is a partial diagram of `\{1,2,\ldots,k,-1,-2,\ldots,-k\}`
@@ -3317,8 +3317,9 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
         set_partition = to_Brauer_partition(set_partition, k=self.order())
         return SubPartitionAlgebra._element_constructor_(self, set_partition)
 
+
 class PlanarAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
-    """
+    r"""
     A planar algebra.
 
     The planar algebra of rank `k` is an algebra with basis indexed by the

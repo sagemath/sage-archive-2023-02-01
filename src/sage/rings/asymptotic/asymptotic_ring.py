@@ -3829,7 +3829,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation):
         from .misc import combine_exceptions
         from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
         from sage.rings.power_series_ring import is_PowerSeriesRing
 
         if isinstance(P, SymbolicRing):

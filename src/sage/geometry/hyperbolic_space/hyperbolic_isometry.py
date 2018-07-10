@@ -163,7 +163,7 @@ class HyperbolicIsometry(Morphism):
             \end{array}\right)
         """
         if self.domain().is_isometry_group_projective():
-            return "\pm " + latex(self._matrix)
+            return r"\pm " + latex(self._matrix)
         else:
             return latex(self._matrix)
 

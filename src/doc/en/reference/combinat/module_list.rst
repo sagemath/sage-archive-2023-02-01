@@ -227,6 +227,7 @@ Comprehensive Module list
     sage/combinat/root_system/ambient_space
     sage/combinat/root_system/associahedron
     sage/combinat/root_system/braid_move_calculator
+    sage/combinat/root_system/braid_orbit
     sage/combinat/root_system/branching_rules
     sage/combinat/root_system/cartan_matrix
     sage/combinat/root_system/cartan_type

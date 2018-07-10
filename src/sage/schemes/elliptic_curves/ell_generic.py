@@ -2590,14 +2590,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.plot()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
+            NotImplementedError: plotting of curves over Complex Field with 53 bits of precision is not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
         if components not in ['both', 'bounded', 'unbounded']:
             raise ValueError("component must be one of 'both', 'bounded' or 'unbounded'")
 

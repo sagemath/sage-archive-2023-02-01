@@ -2224,6 +2224,6 @@ class ChainComplex_class(Parent):
 
         return ret
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)
 

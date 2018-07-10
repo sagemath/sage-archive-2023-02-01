@@ -2478,7 +2478,7 @@ class PartitionTuples_level_size(PartitionTuples):
 ## Regular partition tuples
 
 class RegularPartitionTuples(PartitionTuples):
-    """
+    r"""
     Abstract base class for `\ell`-regular partition tuples.
     """
     def __init__(self, regular, **kwds):
@@ -2552,7 +2552,7 @@ class RegularPartitionTuples(PartitionTuples):
         return self.element_class(self, list(elt))
 
 class RegularPartitionTuples_all(RegularPartitionTuples):
-    """
+    r"""
     Class of `\ell`-regular partition tuples.
     """
     def __init__(self, regular):
@@ -2610,8 +2610,9 @@ class RegularPartitionTuples_all(RegularPartitionTuples):
                 for mu in RegularPartitionTuples_level_size(N-size+1, size, self._ell):
                     yield self.element_class(self, list(mu))
 
+
 class RegularPartitionTuples_level(RegularPartitionTuples):
-    """
+    r"""
     Class of `\ell`-regular partition tuples with a fixed level.
     """
     def __init__(self, level, regular):
@@ -2698,7 +2699,7 @@ class RegularPartitionTuples_level(RegularPartitionTuples):
                 yield self.element_class(self, list(mu))
 
 class RegularPartitionTuples_size(RegularPartitionTuples):
-    """
+    r"""
     Class of `\ell`-regular partition tuples with a fixed size.
     """
     def __init__(self, size, regular):
@@ -2781,8 +2782,9 @@ class RegularPartitionTuples_size(RegularPartitionTuples):
             for mu in RegularPartitionTuples_level_size(level, self._size, self._ell):
                 yield self.element_class(self, list(mu))
 
+
 class RegularPartitionTuples_level_size(RegularPartitionTuples):
-    """
+    r"""
     Class of `\ell`-regular partition tuples with a fixed level and a fixed
     size.
     """

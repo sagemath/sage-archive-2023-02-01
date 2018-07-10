@@ -73,7 +73,7 @@ class AdditiveMagmas(Category_singleton):
 
         @cached_method
         def AdditiveAssociative(self):
-            """
+            r"""
             Return the full subcategory of the additive associative
             objects of ``self``.
 
@@ -99,7 +99,7 @@ class AdditiveMagmas(Category_singleton):
 
         @cached_method
         def AdditiveCommutative(self):
-            """
+            r"""
             Return the full subcategory of the commutative objects of ``self``.
 
             An :class:`additive magma <AdditiveMagmas>` `M` is

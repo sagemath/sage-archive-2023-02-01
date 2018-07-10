@@ -31,7 +31,7 @@ import six
 # TODO: Remove this function and replace it with the class
 # TODO: Create parents for other bases (such as the seminormal basis)
 def SymmetricGroupAlgebra(R, W, category=None):
-    """
+    r"""
     Return the symmetric group algebra of order ``W`` over the ring ``R``.
 
     INPUT:
@@ -93,7 +93,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGA.group()
         Symmetric group of order 4! as a permutation group
         sage: SGA.an_element()
-        () + 2*(1,2) + 4*(1,2,3,4)
+        () + (2,3,4) + 2*(1,2) + 3*(1,2,3,4)
 
         sage: SGA = SymmetricGroupAlgebra(QQ, WeylGroup(["A",3], prefix='s')); SGA
         Symmetric group algebra of order 4 over Rational Field
@@ -247,7 +247,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: S = SymmetricGroupAlgebra(QQ,4)
             sage: S(G.an_element())
-            [1, 2, 3, 4] + 2*[2, 1, 3, 4] + 4*[2, 3, 4, 1]
+            [1, 2, 3, 4] + [1, 3, 4, 2] + 2*[2, 1, 3, 4] + 3*[2, 3, 4, 1]
             sage: G(S.an_element())
             () + 2*(3,4) + 3*(2,3) + (1,4,3,2)
 
@@ -548,7 +548,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         # sanitizing of right_action_product.
 
     def canonical_embedding(self, other):
-        """
+        r"""
         Return the canonical coercion of ``self`` into a symmetric
         group algebra ``other``.
 
@@ -685,7 +685,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         return Poset([Partitions(self.n), lambda x,y: x.dominates(y)])
 
     def cell_module_indices(self, la):
-        """
+        r"""
         Return the indices of the cell module of ``self``
         indexed by ``la`` .
 
@@ -936,7 +936,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
             sage: G = SymmetricGroup(4).algebra(QQ)
             sage: G.retract_okounkov_vershik(G.an_element(), 3)
-            () + 2*(1,2) + 4*(1,2,3)
+            () + (2,3) + 2*(1,2) + 3*(1,2,3)
 
         .. SEEALSO::
 
@@ -1787,7 +1787,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
 epsilon_ik_cache = {}
 def epsilon_ik(itab, ktab, star=0):
-    """
+    r"""
     Return the seminormal basis element of the symmetric group
     algebra `\QQ S_n` corresponding to the pair of tableaux
     ``itab`` and ``ktab`` (or restrictions of these tableaux,
@@ -2603,7 +2603,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
         return [self.t(_) for _ in range(1, self.n)]
 
     def jucys_murphy(self, k):
-        """
+        r"""
         Return the Jucys-Murphy element `J_k` of the Hecke algebra.
 
         These Jucys-Murphy elements are defined by
@@ -2669,6 +2669,6 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
 
 # For unpickling backward compatibility (Sage <= 4.1)
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.symmetric_group_algebra', 'HeckeAlgebraSymmetricGroupElement_t',  CombinatorialFreeModule.Element)
 register_unpickle_override('sage.combinat.symmetric_group_algebra', 'SymmetricGroupAlgebraElement_n',  CombinatorialFreeModule.Element)

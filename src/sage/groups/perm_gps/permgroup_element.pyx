@@ -129,9 +129,9 @@ def make_permgroup_element_v2(G, x, domain):
     # G._domain_to_gap be set.
     G._domain = domain
     G._deg = len(domain)
-    G._domain_to_gap = dict([(key, i+1) for i, key in enumerate(domain)])
-    G._domain_from_gap = dict([(i+1, key) for i, key in enumerate(domain)])
-    return G(x, check=False)
+    G._domain_to_gap = {key: i+1 for i, key in enumerate(domain)}
+    G._domain_from_gap = {i+1: key for i, key in enumerate(domain)}
+    return G.element_class(x, G, check=False)
 
 
 def is_PermutationGroupElement(x):

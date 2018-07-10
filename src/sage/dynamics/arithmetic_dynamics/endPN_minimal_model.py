@@ -246,9 +246,9 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     BR = vp.domain().base_ring()
     conj = matrix(BR, 2, 2, 1)
     flag = True
+    vp.normalize_coordinates()
     d = vp.degree()
 
-    vp.normalize_coordinates()
     Affvp = vp.dehomogenize(1)
     R = Affvp.coordinate_ring()
     if R.is_field():
@@ -472,11 +472,12 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     This function modifies the Bruin-Molnar algorithm ([BM2012]_) to solve in the inequalities
     as ``<=`` instead of ``<``. Among the list of solutions is all conjugations
     which preserve the resultant. From that list the `SL(2,ZZ)` orbits
-    are identified and one representative from each orbit is returned.
+    are identified and one representative from each orbit is returned. This function
+    assumes that the given model is a minimal model.
 
     INPUT:
 
-    - ``vp`` -- dynamical system on the projective line
+    - ``vp`` -- a minimal model of a dynamical system on the projective line
 
     - ``return_transformation`` -- (default: False) a boolean value, default value True. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to

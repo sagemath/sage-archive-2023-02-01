@@ -6425,9 +6425,10 @@ class FiniteWord_class(Word_class):
 
     def delta(self):
         r"""
-        Return the image of ``self`` under the delta morphism. This is the
-        word composed of the length of consecutive runs of the same letter
-        in a given word.
+        Return the image of ``self`` under the delta morphism, also known 
+        as the run-lenght encoding of ``self``. This is the word composed
+        of the length of consecutive runs of the same letter in a given
+        word.
 
         EXAMPLES::
 

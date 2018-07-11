@@ -90,6 +90,7 @@ def GammaH_constructor(level, H):
         _gammaH_cache[key] = GammaH_class(level, H, Hlist)
         return _gammaH_cache[key]
 
+
 def is_GammaH(x):
     """
     Return True if x is a congruence subgroup of type GammaH.

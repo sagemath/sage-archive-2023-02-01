@@ -626,8 +626,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         """
         timeout = 600
         proc = pexpect.spawn(executable, timeout=timeout)
-        proc.expect('Evaluating Commandline Options \.\.\.')
-        proc.expect('\.\.\. done\.')
+        proc.expect(r'Evaluating Commandline Options \.\.\.')
+        proc.expect(r'\.\.\. done\.')
         proc.setecho(0)
         assert proc.readline().strip() == ''
 

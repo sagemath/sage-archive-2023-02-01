@@ -79,7 +79,7 @@ def HyperbolicSpace(n):
 
 
 class HyperbolicPlane(Parent, UniqueRepresentation):
-    """
+    r"""
     The hyperbolic plane `\mathbb{H}^2`.
 
     Here are the models currently implemented:

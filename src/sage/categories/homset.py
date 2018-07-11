@@ -788,7 +788,7 @@ class Homset(Set_generic):
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
               Defn:   (map internal to coercion system -- copy before use)
-                    Call morphism:
+                    Coercion map:
                       From: Symmetric group of order 4! as a permutation group
                       To:   Symmetric group of order 5! as a permutation group
                     then
@@ -797,7 +797,7 @@ class Homset(Set_generic):
                       To:   Symmetric group of order 6! as a permutation group
                     then
                       (map internal to coercion system -- copy before use)
-                    Call morphism:
+                    Coercion map:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
 
@@ -808,7 +808,7 @@ class Homset(Set_generic):
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
-              Defn:   Call morphism:
+              Defn:   Coercion map:
                       From: Symmetric group of order 4! as a permutation group
                       To:   Symmetric group of order 5! as a permutation group
                     then
@@ -816,7 +816,7 @@ class Homset(Set_generic):
                       From: Symmetric group of order 5! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
                     then
-                      Call morphism:
+                      Coercion map:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
             sage: H = Hom(ZZ, ZZ, Sets())

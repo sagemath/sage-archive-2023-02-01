@@ -192,8 +192,9 @@ class Braid(FiniteTypeArtinGroupElement):
         are Laurent polynomials in the variable ``var``. If ``reduced``
         is ``True``, return the matrix for the reduced Burau representation
         instead. If the version is specified the output will be according to it.
-        In the case of the unitary version the hermitian form is returned
-        as a second value.
+        In the case of the unitary version a triple ``M, Madj, Herm`` is returned where
+        ``M ``is the burau matrix in the unitary form, ``Madj`` the adjoined to ``M``
+        and ``Herm`` the hermitian form.
 
         EXAMPLES::
 
@@ -305,18 +306,21 @@ class Braid(FiniteTypeArtinGroupElement):
                     M = M * A
 
             if version == 'unitary':
-                subs = R.hom([t**2], codomain=R)
-                M = matrix(R, n-1, n-1, lambda i, j: t**(j-i)*subs(M[i,j]))
+                t_sq = R.hom([t**2], codomain=R)
+                M = matrix(R, n-1, n-1, lambda i, j: t**(j-i)*t_sq(M[i,j]))
 
-                hermitian_form = self.parent()._hermitian_form_
-                if hermitian_form == None:
-                    hermitian_form = (t+t**(-1))*identity_matrix(R, n-1) # defining the hermitian form
+                t_inv = R.hom([t**(-1)], codomain=R)
+                Madj = matrix(R, n-1, n-1, lambda i, j: t_sq(M[j,i]))
+
+                Herm = self.parent()._hermitian_form_
+                if Herm == None:
+                    Herm = (t+t**(-1))*identity_matrix(R, n-1) # defining the hermitian form
                     for i in range(n-2):
-                        hermitian_form[i,i+1] =-1
-                        hermitian_form[i+1 ,i] =-1
-                    self.parent()._hermitian_form_ = hermitian_form
+                        Herm[i,i+1] =-1
+                        Herm[i+1 ,i] =-1
+                    self.parent()._hermitian_form_ = Herm
 
-                return M, hermitian_form
+                return M, Madj, Herm
  
         return M
 

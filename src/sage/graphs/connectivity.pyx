@@ -1922,24 +1922,46 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
         sage: G = Graph(2)
         sage: for _ in range(3):
         ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
-        sage: S,C,f = cleave(G, cut_vertices=[0, 1])
-        sage: [g.order() for g in S]
+        sage: S1,C1,f1 = cleave(G, cut_vertices=[0, 1])
+        sage: [g.order() for g in S1]
         [4, 4, 4]
-        sage: C.order(), C.size()
+        sage: C1.order(), C1.size()
         (2, 4)
-        sage: f.vertices(), f.edges()
+        sage: f1.vertices(), f1.edges()
         ([0, 1], [])
+
+    if `virtual_edges` set for False and an edge between cut vertices::
+
+        sage: G.subgraph([0, 1]).complement() == Graph([[0, 1], []])
+        True
+        sage: S2,C2,f2 = cleave(G, cut_vertices=[0, 1], virtual_edges = False)
+        sage: (S1 == S2, C1 == C2, f1 == f2)
+        (True, True, True)
 
     If cut vertices doesn't have edge between them::
 
         sage: G.delete_edge(0, 1)
-        sage: S,C,f = cleave(G, cut_vertices=[0, 1])
-        sage: [g.order() for g in S]
+        sage: S1,C1,f1 = cleave(G, cut_vertices=[0, 1])
+        sage: [g.order() for g in S1]
         [4, 4, 4]
-        sage: C.order(), C.size()
+        sage: C1.order(), C1.size()
         (2, 3)
-        sage: f.vertices(), f.edges()
+        sage: f1.vertices(), f1.edges()
         ([0, 1], [(0, 1, None)])
+
+    if `virtual_edges` set for False and no edge between cut vertices::
+
+        sage: G.subgraph([0, 1]).complement() == Graph([[0, 1], []])
+        False
+        sage: S2,C2,f2 = cleave(G, cut_vertices=[0, 1], virtual_edges = False)
+        sage: [g.order() for g in S2]
+        [4, 4, 4]
+        sage: C2.order(), C2.size()
+        (2, 0)
+        sage: f2.vertices(), f2.edges()
+        ([0, 1], [])
+        sage: (S1 == S2, C1 == C2, f1 == f2)
+        (False, False, False)
 
     If `G` is a biconnected multigraph::
 

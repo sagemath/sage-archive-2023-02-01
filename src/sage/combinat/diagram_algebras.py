@@ -275,14 +275,11 @@ class AbstractPartitionDiagram(AbstractSetPartition):
             sage: pd2 = da.AbstractPartitionDiagram(pd, [[[1,2],[-1,-2]]]) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: {{[-1, -2], [1, 2]}} does not represent two rows of vertices of order 2
+            TypeError: unhashable type: 'list'
         """
         if self._base_diagram:
-            try:
-                tst = frozenset(e for B in self._base_diagram for e in B)
-                if tst != self.parent()._set:
-                    raise TypeError
-            except TypeError:
+            tst = frozenset(e for B in self._base_diagram for e in B)
+            if tst != self.parent()._set:
                 raise ValueError("{} does not represent two rows of vertices of order {}".format(
                                      self, self.parent().order))
 
@@ -2311,7 +2308,8 @@ class PartitionAlgebra(DiagramBasis, UnitDiagramMixin):
             sage: a2 = 3*A2[[-2], [-1, 1, 2]] + 2*A2[[-2, -1, 1, 2]] + 2*A2[[-2, 1, 2], [-1]]; a2
             3*P{{-2}, {-1, 1, 2}} + 2*P{{-2, -1, 1, 2}} + 2*P{{-2, 1, 2}, {-1}}
 
-        There is a natural embedding into partition algebras on more elements, by adding identity strands::
+        There is a natural embedding into partition algebras on more elements,
+        by adding identity strands::
 
             sage: A4 = PartitionAlgebra(4, x, R)
             sage: A4(a2)

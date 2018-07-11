@@ -5210,10 +5210,9 @@ def U42Graph216():
        :arxiv:`1609.07133`
     """
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
+    from sage.features.gap import GapPackage
 
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    GapPackage("grape", spkg="gap_packages").require()
 
     adj_list=libgap.function_factory("""function()
                 local gg, hl, o216, a216, x, h, re, G;
@@ -5259,10 +5258,9 @@ def U42Graph540():
 
     """
     from sage.libs.gap.libgap import libgap
-    from sage.misc.package import is_package_installed, PackageNotFoundError
+    from sage.features.gap import GapPackage
 
-    if not is_package_installed('gap_packages'):
-        raise PackageNotFoundError('gap_packages')
+    GapPackage("grape", spkg="gap_packages").require()
 
     adj_list=libgap.function_factory("""function()
                 local f, o540, a540, x, oh, h, lo, G;

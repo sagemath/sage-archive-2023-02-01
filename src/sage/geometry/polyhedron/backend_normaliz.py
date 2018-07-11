@@ -176,6 +176,22 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._init_Vrepresentation_from_normaliz()
             self._init_Hrepresentation_from_normaliz()
 
+    def _init_from_normaliz_data(self, data, verbose=False):
+        import PyNormaliz
+        if verbose:
+            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+            import six
+            if isinstance(verbose, six.string_types):
+                print("# Wrote equivalent Normaliz input file to {}".format(verbose))
+                self._normaliz_format(data, file_output=verbose)
+            else:
+                print("# ----8<---- Equivalent Normaliz input file ----8<----")
+                print(self._normaliz_format(data), end='')
+                print("# ----8<-------------------8<-------------------8<----")
+        cone = PyNormaliz.NmzCone(**data)
+        assert cone, "NmzCone(**{}) did not return a cone".format(data)
+        self._init_from_normaliz_cone(cone)
+
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         r"""
         Construct polyhedron from V-representation data.
@@ -203,7 +219,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Vrepresentation(p, [], [], [])   # optional - pynormaliz
         """
-        import PyNormaliz
         if vertices is None:
             vertices = []
         nmz_vertices = []
@@ -230,14 +245,10 @@ class Polyhedron_normaliz(Polyhedron_base):
             #   All input matrices empty!
             self._init_empty_polyhedron()
         else:
-            data = ["vertices", nmz_vertices,
-                    "cone", nmz_rays,
-                    "subspace", nmz_lines]
-            if verbose:
-                print("# Calling PyNormaliz.NmzCone({})".format(data))
-            cone = PyNormaliz.NmzCone(data)
-            assert cone, "NmzCone({}) did not return a cone".format(data)
-            self._init_from_normaliz_cone(cone)
+            data = {"vertices": nmz_vertices,
+                    "cone": nmz_rays,
+                    "subspace": nmz_lines}
+            self._init_from_normaliz_data(data, verbose=verbose)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -264,7 +275,6 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz   # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])   # optional - pynormaliz
         """
-        import PyNormaliz
         if ieqs is None: ieqs = []
         nmz_ieqs = []
         for ieq in ieqs:
@@ -286,14 +296,9 @@ class Polyhedron_normaliz(Polyhedron_base):
             b = deqn[0]
             A = deqn[1:]
             nmz_eqns.append(A + [b])
-        data = ["inhom_equations", nmz_eqns,
-                "inhom_inequalities", nmz_ieqs]
-        self._normaliz_cone = PyNormaliz.NmzCone(data)
-        if verbose:
-            print("# Calling PyNormaliz.NmzCone({})".format(data))
-        cone = PyNormaliz.NmzCone(data)
-        assert cone, "NmzCone({}) did not return a cone".format(data)
-        self._init_from_normaliz_cone(cone)
+        data = {"inhom_equations": nmz_eqns,
+                "inhom_inequalities": nmz_ieqs}
+        self._init_from_normaliz_data(data, verbose=verbose)
 
     def _init_Vrepresentation_from_normaliz(self):
         r"""
@@ -374,7 +379,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         """
         super(Polyhedron_normaliz, self)._init_empty_polyhedron()
         # Can't seem to set up an empty _normaliz_cone.
-        # For example, PyNormaliz.NmzCone(['vertices', []]) gives
+        # For example, PyNormaliz.NmzCone(vertices=[]) gives
         # error: Some error in the normaliz input data detected: All input matrices empty!
         self._normaliz_cone = None
 
@@ -390,6 +395,114 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: PI = P.integral_hull()                 # indirect doctest; optional - pynormaliz
         """
         return cls(parent, None, None, normaliz_cone=normaliz_cone)
+
+    @staticmethod
+    def _make_normaliz_cone(data,verbose=False):
+        r"""
+        Returns a normaliz cone from ``data``.
+
+        INPUT:
+
+        - ``data`` -- a dictionary.
+
+        - ``verbose`` -- a boolean (default: ``False``).
+
+        TESTS::
+
+        """
+        import PyNormaliz
+        if verbose:
+            print("# Calling PyNormaliz.NmzCone(**{})".format(data))
+        cone = PyNormaliz.NmzCone(**data)
+        assert cone, "NmzCone(**{}) did not return a cone".format(data)
+        return cone
+
+    def _get_nmzcone_data(self):
+        r"""
+        Get the data necessary to reproduce the normaliz cone.
+
+        OUTPUT:
+
+        - ``data`` -- a dictionary.
+
+        TESTS:
+
+        The empty polyhedron::
+
+            sage: P = Polyhedron(backend='normaliz')
+            sage: P._get_nmzcone_data()
+            {}
+
+        Another simple example::
+
+            sage: C = Polyhedron(backend='normaliz',rays=[[1,2],[2,1]])
+            sage: C._get_nmzcone_data()
+            {'cone': [[1L, 2L], [2L, 1L]],
+             'inhom_equations': [],
+             'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]],
+             'subspace': [],
+             'vertices': [[0L, 0L, 1L]]}
+        """
+        import PyNormaliz
+        if self.is_empty():
+            return {}
+
+        vertices = PyNormaliz.NmzResult(self._normaliz_cone, "VerticesOfPolyhedron")
+        # get rid of the last 0 in rays:
+        rays = [r[:-1] for r in PyNormaliz.NmzResult(self._normaliz_cone, "ExtremeRays")]
+        lines = PyNormaliz.NmzResult(self._normaliz_cone, "MaximalSubspace")
+        ineqs = PyNormaliz.NmzResult(self._normaliz_cone, "SupportHyperplanes")
+        eqs = PyNormaliz.NmzResult(self._normaliz_cone, "Equations")
+
+        data = {'vertices': vertices,
+                'cone': rays,
+                'subspace': lines,
+                'inhom_equations': eqs,
+                'inhom_inequalities': ineqs}
+
+        return data
+
+    def _normaliz_format(self, data, file_output=None):
+        r"""
+        Return a string containing normaliz format.
+
+        INPUT:
+
+        - ``data`` -- a dictionary of PyNormaliz cone input properties.
+
+        - ``file_output`` (string; optional) -- a filename to which the
+          representation should be written. If set to ``None`` (default),
+          representation is returned as a string.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[0, 0], [0, 1], [1, 0]], # indirect doctest; optional - pynormaliz
+            ....:                backend='normaliz', verbose=True)
+            # Calling ...
+            # ----8<---- Equivalent Normaliz input file ----8<----
+            amb_space 2
+            subspace 0
+            vertices 3
+             0 0 1
+             0 1 1
+             1 0 1
+            cone 0
+            # ----8<-------------------8<-------------------8<----
+        """
+        s = 'amb_space {}\n'.format(self.ambient_dim())
+        for key, value in data.iteritems():
+            s += '{} {}\n'.format(key, len(value))
+            for e in value:
+                for x in e:
+                    s += ' ' + repr(x)
+                s += '\n'
+
+        if file_output is not None:
+            in_file = open(file_output, 'w')
+            in_file.write(s)
+            in_file.close()
+        else:
+            return s
 
     def integral_hull(self):
         r"""

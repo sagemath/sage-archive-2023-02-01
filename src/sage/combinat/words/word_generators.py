@@ -960,8 +960,7 @@ class WordGenerator(object):
     def KolakoskiWord(self, alphabet=(1,2)):
         r"""
         Returns the Kolakoski word over the given alphabet and
-        starting with the first letter of the alphabet. This
-        word is also known as the Oldenburger word.
+        starting with the first letter of the alphabet. 
 
         Let `A = \{a,b\}` be an alphabet, where `a` and `b` are two
         distinct positive integers. The Kolakoski word `K_{a,b}`
@@ -973,6 +972,9 @@ class WordGenerator(object):
         Note that `K_{a,b} \neq K_{b,a}`. On the other hand, the
         words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
         that are fixed by `\Delta`.
+
+        Also note that the Kolakoski word is also known as the 
+        Oldenburger word.
 
         INPUT:
 

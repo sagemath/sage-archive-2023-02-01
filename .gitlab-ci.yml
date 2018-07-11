@@ -31,9 +31,11 @@
 # * runners tagged as "gce" (Google Compute Engine) provide about 22GB of HDD,
 #   a single core, 4GB of RAM. Since we are relying on OverlayFS, the disk
 #   space is not sufficient to build sage from scratch.
+# The shared runners are terminated after three hours. Currently, this is often
+# insufficient to build sage from scratch.
 
 # If you want to provide your own runners, make sure to tag them as follows:
-# * "do" (60GB of disk space are available) to make build-from-clean pass.
+# * "big" (60GB of disk space are available) to make build-from-clean pass.
 
 image: docker:latest
 
@@ -116,7 +118,7 @@ build-from-clean:
   except: []
   tags:
     # 60 GB of HDD are available
-    - do
+    - big
   # This build takes several CPU hours. It is very unlikely that there are any
   # actual build errors for a tagged release but the (discounted) cloud
   # machines this is running on might be preempted during the long build time.

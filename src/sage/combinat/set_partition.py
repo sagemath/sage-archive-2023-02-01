@@ -1970,6 +1970,24 @@ class SetPartitions_set(SetPartitions):
             sage: SetPartitions(3).list()
             [{{1, 2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}]
         """
+        for sp in self._fast_iterator():
+            yield self.element_class(self, sp, check=False)
+
+    def _fast_iterator(self):
+        """
+        A fast iterator for the set partitions of the base set, which
+        returns lists of lists instead of set partitions types.
+
+        EXAMPLES::
+
+            sage: list(SetPartitions([1,-1,x])._fast_iterator())
+            [[[1, -1, x]],
+             [[1, -1], [x]],
+             [[1, x], [-1]],
+             [[1], [-1, x]],
+             [[1], [-1], [x]]]
+
+        """
         base_set = list(self.base_set())
         def from_word(w):
             sp = []
@@ -1978,7 +1996,7 @@ class SetPartitions_set(SetPartitions):
                     sp.append([i])
                 else:
                     sp[b].append(i)
-            return self.element_class(self, sp, check=False)
+            return sp
 
         # Knuth, TAOCP 4A 7.2.1.5, Algorithm H
         N = len(base_set)
@@ -2247,6 +2265,21 @@ class SetPartitions_setn(SetPartitions_set):
              {{1, 2}, {3, 4}},
              {{1, 2, 3}, {4}}]
         """
+        for sp in self._fast_iterator():
+            yield self.element_class(self, sp, check=False)
+
+    def _fast_iterator(self):
+        """
+        A fast iterator for the set partitions of the base set into the
+        specified number of blocks, which returns lists of lists
+        instead of set partitions types.
+
+        EXAMPLES::
+
+            sage: list(SetPartitions([1,-1,x], 2)._fast_iterator())
+            [[[1, x], [-1]], [[1], [-1, x]], [[1, -1], [x]]]
+
+        """
         base_set = list(self.base_set())
         def from_word(w):
             sp = []
@@ -2255,7 +2288,7 @@ class SetPartitions_setn(SetPartitions_set):
                     sp.append([i])
                 else:
                     sp[b].append(i)
-            return self.element_class(self, sp, check=False)
+            return sp
 
         # Ruskey, Combinatorial Generation, Algorithm 4.23
         n = len(base_set)

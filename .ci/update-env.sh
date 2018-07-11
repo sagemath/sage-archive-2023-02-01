@@ -36,8 +36,8 @@ export DOCKER_TAG=`echo $DOCKER_TAG | tr -d '[:space:]' | tr -c '[:alnum:]_.-' '
 [[ -z "$DOCKER_TAG" ]] && export DOCKER_TAG=none
 [[ "$DOCKER_TAG" = "master" ]] && export DOCKER_TAG=latest
 
-export DOCKER_IMAGE_CLI=${DOCKER_USER:-sagemath}/sagemath:$DOCKER_TAG
-export DOCKER_IMAGE_DEV=${DOCKER_USER:-sagemath}/sagemath-dev:$DOCKER_TAG
+export DOCKER_IMAGE_CLI=${DOCKER_NAMESPACE:-sagemath}/sagemath:$DOCKER_TAG
+export DOCKER_IMAGE_DEV=${DOCKER_NAMESPACE:-sagemath}/sagemath-dev:$DOCKER_TAG
 
 # Seed the build cache with this image (set to source-clean to build from
 # scratch.)

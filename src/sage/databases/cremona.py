@@ -53,8 +53,8 @@ from sage.misc.prandom import randint
 
 import sage.schemes.elliptic_curves.constructor as elliptic
 from .sql_db import SQLDatabase, verify_column
-from sage.misc.package import is_package_installed
-from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
+from sage.env import SAGE_SHARE
+from sage.features.databases import DatabaseCremona
 from sage.misc.all import walltime
 
 import re
@@ -619,7 +619,7 @@ class MiniCremonaDatabase(SQLDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(CREMONA_MINI_DATA_DIR, name+'.db')
+        db_path = DatabaseCremona(name=name).absolute_path()
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
@@ -835,7 +835,7 @@ class MiniCremonaDatabase(SQLDatabase):
             if N < self.largest_conductor():
                 message = "There is no elliptic curve with label " + label \
                     + " in the database"
-            elif is_package_installed('database_cremona_ellcurve'):
+            elif DatabaseCremona().is_present():
                 message = "There is no elliptic curve with label " + label \
                     + " in the currently available databases"
             else:
@@ -1430,7 +1430,8 @@ class LargeCremonaDatabase(MiniCremonaDatabase):
         """
         self.name = name
         name = name.replace(' ','_')
-        db_path = os.path.join(CREMONA_LARGE_DATA_DIR, name+'.db')
+        # DatabaseCremona(name = name).require
+        db_path = DatabaseCremona(name = name).absolute_path()
         if build:
             if name is None:
                 raise RuntimeError('The database must have a name.')
@@ -1668,14 +1669,19 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
         sage: c = CremonaDatabase('should not exist',mini=True)
         Traceback (most recent call last):
         ...
-        ValueError: Desired database (='should not exist') does not exist
+        FeatureNotPresentError: Cremona's database of elliptic curves is not available.
+        'should_not_exist.db' not found in any of [...]
+        To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
+        Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
+        You can influence the search path by setting the environment variable `CREMONA_DATA_DIR`.
         sage: c = CremonaDatabase('should not exist',mini=False)
         Traceback (most recent call last):
         ...
-        ValueError: Desired database (='should not exist') does not exist
-        sage: from sage.env import SAGE_SHARE
-        sage: os.path.isfile(os.path.join(SAGE_SHARE,'cremona','should_not_exist.db'))
-        False
+        FeatureNotPresentError: Cremona's database of elliptic curves is not available.
+        'should_not_exist.db' not found in any of [...]
+        To install Cremona's database of elliptic curves you can try to run 'sage -i database_cremona_ellcurve'.
+        Further installation instructions might be available at https://github.com/JohnCremona/ecdata.
+        You can influence the search path by setting the environment variable `CREMONA_DATA_DIR`.
     """
     global _db
     if set_global is None:
@@ -1683,7 +1689,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
     if name is None and not set_global:
         return _db
     if set_global and name is None:
-        if is_package_installed('database_cremona_ellcurve'):
+        if DatabaseCremona().is_present():
             name = 'cremona'
         else:
             name = 'cremona mini'

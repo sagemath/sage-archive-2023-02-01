@@ -12821,13 +12821,13 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``vertices`` -- Vertices can be a single vertex or an iterable
-           container of vertices, e.g. a list, set, graph, file or numeric
-           array. If not passed, defaults to the entire graph.
+          container of vertices, e.g. a list, set, graph, file or numeric
+          array. If not passed, defaults to the entire graph.
 
         - ``directed_clique`` -- (default: ``False``) If set to ``False``, only
-           consider the underlying undirected graph. If set to ``True`` and the
-           graph is directed, only return True if all possible edges in _both_
-           directions exist.
+          consider the underlying undirected graph. If set to ``True`` and the
+          graph is directed, only return True if all possible edges in _both_
+          directions exist.
 
         - ``induced`` -- (default: ``True``) If set to ``True``, check that the
           graph has exactly one edge between any two vertices. If set to
@@ -12909,8 +12909,18 @@ class GenericGraph(GenericGraph_pyx):
             True
             sage: G.is_clique(induced=False, loops=True)
             True
+
+        Giving a set of vertices that is not a subset of the vertices of the
+        graph::
+
+            sage: g = Graph({1: [2]})
+            sage: g.is_clique([1, 2, 3])
+            False
         """
         if vertices is not None:
+            for u in vertices:
+                if not self.has_vertex(u):
+                    return False
             G = self.subgraph(vertices, immutable=False)
         else:
             G = self

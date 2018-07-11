@@ -372,12 +372,12 @@ class ClusterQuiver(SageObject):
                 mlist = self._mlist = []
 
             elif isinstance(frozen,list):
-                if not set(frozen).issubset(set(data.vertices())):
+                if not set(frozen).issubset(set(data.vertex_iterator())):
                     raise ValueError("the optional list of frozen elements"
                                      " must be vertices of the digraph")
                 else:
                     mlist = self._mlist = list(frozen)
-                    nlist = self._nlist = [x for x in data.vertices() if x not in mlist]
+                    nlist = self._nlist = sorted(x for x in data.vertex_iterator() if x not in mlist)
                     labelDict = {(nlist + mlist)[i]: range(len(nlist) + len(mlist))[i] for i in range(data.order())}
                     m = self._m = len(frozen)
                     n = self._n = data.order() - m
@@ -389,12 +389,12 @@ class ClusterQuiver(SageObject):
             dg = copy( data )
             dg_labelling = False
             edges = data.edges(labels=False)
-            if any((a,a) in edges for a in data.vertices()):
+            if any((a,a) in edges for a in data.vertex_iterator()):
                 raise ValueError("the input DiGraph contains a loop")
             if any((b,a) in edges for (a,b) in edges):
                 raise ValueError("the input DiGraph contains two-cycles")
 
-            if not set(dg.vertices()) == set(range(n+m)):
+            if not set(dg.vertex_iterator()) == set(range(n + m)):
                 # frozen vertices must be preserved
                 if m != 0:
                     dg_labelling = nlist + mlist

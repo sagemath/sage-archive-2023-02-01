@@ -767,7 +767,7 @@ class HasseDiagram(DiGraph):
         # rank[i] is the rank of point i. It is equal to None until the rank of
         # i is computed
         rank = [None]*self.order()
-        not_found = set(self.vertices())
+        not_found = set(self.vertex_iterator())
         while not_found:
             y = not_found.pop()
             rank[y] = 0  # We set some vertex to have rank 0
@@ -2136,7 +2136,7 @@ class HasseDiagram(DiGraph):
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
         if not(exclude is None):
-            vertices = [u for u in self.vertices() if not u in exclude]
+            vertices = [u for u in self.vertex_iterator() if not u in exclude]
         else:
             vertices = self.vertices()
         return PairwiseCompatibleSubsets(vertices,

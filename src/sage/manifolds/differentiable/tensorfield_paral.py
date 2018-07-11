@@ -622,6 +622,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         self._extensions_graph = {self._domain: self}
         self._restrictions_graph = {self._domain: self}
+        self._order = 0
+        self._symbol = None
 
         # Initialization of derived quantities:
         self._init_derived()
@@ -2081,3 +2083,73 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                 if truncate:
                     self._components[frame][ind].simplify()
         self._del_derived()
+
+    def _rmul_(self, scalar):
+        from sage.manifolds.scalarfield import ScalarField
+        resu = FreeModuleTensor._rmul_(self, scalar)
+        if self._symbol is not None:
+            if isinstance(scalar, ScalarField):
+                if scalar._symbol == self._symbol:
+                    resu.set_calc_order(self._symbol,
+                                        min(self._order, scalar._order),
+                                        truncate=True)
+            else:
+                resu.set_calc_order(self._symbol, self._order, truncate=True)
+        return resu
+
+    def _lmul_(self, scalar):
+        from sage.manifolds.scalarfield import ScalarField
+        resu = FreeModuleTensor._rmul_(self, scalar)
+        if self._symbol is not None:
+            if isinstance(scalar, ScalarField):
+                if scalar._symbol == self._symbol:
+                    resu.set_calc_order(self._symbol,
+                                        min(self._order, scalar._order),
+                                        truncate=True)
+            else:
+                resu.set_calc_order(self._symbol, self._order, truncate=True)
+        return resu
+
+    def __mul__(self, other):
+        from sage.manifolds.scalarfield import ScalarField
+        resu = FreeModuleTensor.__mul__(self, other)
+        if self._symbol is not None:
+            if not isinstance(other, (TensorField, ScalarField)):
+                resu.set_calc_order(self._symbol, self._order, truncate=True)
+            else:
+                if other._symbol == self._symbol:
+                    resu.set_calc_order(self._symbol,
+                                        min(self._order, other._order),
+                                        truncate=True)
+        return resu
+
+    def _add_(self, other):
+        resu = FreeModuleTensor._add_(self, other)
+        if self._symbol is not None:
+            if other._symbol == self._symbol:
+                resu.set_calc_order(self._symbol,
+                                    min(self._order, other._order),
+                                    truncate=True)
+        return resu
+
+    def _sub_(self, other):
+        resu = FreeModuleTensor._sub_(self, other)
+        if self._symbol is not None:
+            if other._symbol == self._symbol:
+                resu.set_calc_order(self._symbol,
+                                    min(self._order, other._order),
+                                    truncate=True)
+        return resu
+
+    def __neg__(self):
+        resu = FreeModuleTensor.__neg__()
+        if self._symbol is not None:
+            resu.set_calc_order(self._symbol, self._order)
+        return resu
+
+    def __pos__(self):
+        resu = FreeModuleTensor.__pos__()
+        if self._symbol is not None:
+            resu.set_calc_order(self._symbol, self._order)
+        return resu
+

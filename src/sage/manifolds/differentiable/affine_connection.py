@@ -367,6 +367,8 @@ class AffineConnection(SageObject):
                                  # vector frames as keys
         # Initialization of derived quantities:
         AffineConnection._init_derived(self)
+        self._order = 0
+        self._symbol = 0
 
     def _repr_(self):
         r"""
@@ -1869,7 +1871,7 @@ class AffineConnection(SageObject):
                                                        gam_gam[[i,l,j,k]] -  \
                                                        gam_sc[[i,j,k,l]]
             self._riemann = resu
-
+        self._riemann.set_calc_order(self._symbol, self._order, truncate=True)
         return self._riemann
 
     def ricci(self):
@@ -1918,6 +1920,7 @@ class AffineConnection(SageObject):
         """
         if self._ricci is None:
             self._ricci = self.riemann().trace(0,2)
+        self._ricci.set_calc_order(self._symbol, self._order, truncate=True)
         return self._ricci
 
     def connection_form(self, i, j, frame=None):
@@ -2271,3 +2274,14 @@ class AffineConnection(SageObject):
                     forms[(i1,j1)] = omega
             self._curvature_forms[frame] = forms
         return  self._curvature_forms[frame][(i,j)]
+
+    def set_calc_order(self, symbol, order, truncate = False):
+        self._symbol = symbol
+        self._order = order
+        for coef in self._coefficients.values():
+            for ind in coef.non_redundant_index_generator():
+                coef[ind]._symbol = self._symbol
+                coef[ind]._order = self._order
+                if truncate:
+                    coef[ind].simplify()
+        self._del_derived()

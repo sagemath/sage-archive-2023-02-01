@@ -643,7 +643,7 @@ class PseudoRiemannianMetric(TensorField):
                 rst.set(symbiform_rst)
 
 
-    def inverse(self):
+    def inverse(self, symbol=None, order=1):
         r"""
         Return the inverse metric.
 
@@ -771,6 +771,10 @@ class PseudoRiemannianMetric(TensorField):
             self._connection = LeviCivitaConnection(self, name,
                                                     latex_name=latex_name,
                                                     init_coef=init_coef)
+
+            if self._symbol is not None:
+                self._connection.set_calc_order(self._symbol, self._order,
+                                                truncate=True)
         return self._connection
 
     def christoffel_symbols(self, chart=None):
@@ -2220,7 +2224,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             rst = self.restrict(dom)
             rst.set(symbiform_rst)
 
-    def inverse(self):
+    def inverse(self, symbol=None, order=1):
         r"""
         Return the inverse metric.
 
@@ -2269,6 +2273,21 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]
 
         """
+
+        if symbol is not None:
+            if order!=1:
+                raise NotImplementedError("Only first order inverse is "
+                                          "implemented")
+            decompo = self.series(symbol, 1)
+            g0 = decompo[0][0]
+            g1 = decompo[1][0]
+
+            g0m = self._new_instance()
+            g0m.set_comp()[:]=g0[:]
+            self._inverse = g0m.inverse()-g1.contract(0,g0m.inverse(),0)\
+                .contract(1,g0m.inverse(),0)*symbol
+            return self._inverse
+
         from sage.matrix.constructor import matrix
         from sage.tensor.modules.comp import CompFullySym
         from sage.manifolds.differentiable.vectorframe import CoordFrame

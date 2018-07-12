@@ -1359,7 +1359,6 @@ class FiniteWord_class(Word_class):
         """
         return len(list(self.factor_iterator(n)))
     
-
     def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
         Return the set of factors (of length ``n``) of ``self``.
@@ -3133,7 +3132,6 @@ class FiniteWord_class(Word_class):
             sage: w = words.FibonacciWord()[:100]
             sage: [w.palindromic_complexity(i) for i in range(20)]
             [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2]
-    
 
         ::
 

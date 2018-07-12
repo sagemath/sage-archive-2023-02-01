@@ -405,7 +405,7 @@ some work (ie: a node) from another worker. This is performed in the
 From the point of view of ``W`` here is what happens:
 
 - ``W`` signals to the master that it is idle :meth:`master._signal_task_done`;
-- ``W`` chose a victim ``V`` at random;
+- ``W`` chooses a victim ``V`` at random;
 - ``W`` sends a request to ``V`` : it puts its identifier into ``V._request``;
 - ``W`` tries to read a node from ``W._read_task``. Then three things may happen:
 
@@ -504,16 +504,14 @@ Classes and methods
 """
 from __future__ import print_function, absolute_import
 
-from multiprocessing import Process, Value, Semaphore, Lock
-from multiprocessing.queues import Pipe, Queue, SimpleQueue
-from multiprocessing.sharedctypes import RawArray
+import six
+
 from threading import Thread
 from six.moves import queue
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet # _generic
 from sage.misc.lazy_attribute import lazy_attribute
 import collections
 import copy
-import os
 import sys
 import random
 import ctypes
@@ -540,6 +538,19 @@ formatter = logging.Formatter(
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+
+if six.PY2:
+    import multiprocessing as mp
+    from multiprocessing.queues import SimpleQueue
+    # Put SimpleQueue in the multiprocessing top-level namespace for
+    # compatibility with Python 3
+    mp.SimpleQueue = SimpleQueue
+    del SimpleQueue
+else:
+    # Set up a multiprocessing context to use for this modules (using the
+    # 'fork' method which is basically same as on Python 2
+    import multiprocessing as mp
+    mp = mp.get_context('fork')
 
 
 def proc_number(max_proc=None):
@@ -604,8 +615,8 @@ class ActiveTaskCounterDarwin(object):
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
             running ._test_new() . . . pass
         """
-        self._active_tasks = Value(ctypes.c_int, task_number)
-        self._lock = Lock()
+        self._active_tasks = mp.Value(ctypes.c_int, task_number)
+        self._lock = mp.Lock()
 
     def __repr__(self):
         """
@@ -735,7 +746,7 @@ class ActiveTaskCounterPosix(object):
             sage: TestSuite(t).run(skip="_test_pickling", verbose=True)
             running ._test_new() . . . pass
         """
-        self._active_tasks = Semaphore(task_number)
+        self._active_tasks = mp.Semaphore(task_number)
 
     def __repr__(self):
         """
@@ -1068,10 +1079,10 @@ class RESetMapReduce(object):
             2
         """
         self._nprocess = proc_number(max_proc)
-        self._results = Queue()
+        self._results = mp.Queue()
         self._active_tasks = ActiveTaskCounter(self._nprocess)
-        self._done = Lock()
-        self._aborted = Value(ctypes.c_bool, False)
+        self._done = mp.Lock()
+        self._aborted = mp.Value(ctypes.c_bool, False)
         sys.stdout.flush()
         sys.stderr.flush()
         self._workers = [RESetMapReduceWorker(self, i, reduce_locally)
@@ -1469,7 +1480,7 @@ class RESetMapReduce(object):
         """
         res = [""] # classical trick to have a local variable shared with the
         # local function (see e.g:
-        # http://stackoverflow.com/questions/2609518/python-nested-function-scopes).
+        # https://stackoverflow.com/questions/2609518/python-nested-function-scopes).
         def pstat(name, start, end, ist):
             res[0] += "\n" + name
             res[0] += " ".join(
@@ -1500,7 +1511,7 @@ class RESetMapReduce(object):
                                 self.reduce_init())
 
 
-class RESetMapReduceWorker(Process):
+class RESetMapReduceWorker(mp.Process):
     """
     Worker for generate-map-reduce
 
@@ -1533,15 +1544,15 @@ class RESetMapReduceWorker(Process):
             sage: RESetMapReduceWorker(EX, 200, True)
             <RESetMapReduceWorker(RESetMapReduceWorker-..., initial)>
         """
-        Process.__init__(self)
+        mp.Process.__init__(self)
         self._iproc = iproc
         self._todo = collections.deque()
-        self._request = SimpleQueue()  # Faster than Queue
+        self._request = mp.SimpleQueue()  # Faster than Queue
         # currently this is not possible to have to simultaneous read or write
         # on the following Pipe. So there is no need to have a queue.
-        self._read_task, self._write_task = Pipe(duplex=False)
+        self._read_task, self._write_task = mp.Pipe(duplex=False)
         self._mapred = mapred
-        self._stats  =  RawArray('i', 4)
+        self._stats  =  mp.RawArray('i', 4)
         self._reduce_locally = reduce_locally
 
     def _thief(self):
@@ -1666,13 +1677,12 @@ class RESetMapReduceWorker(Process):
         """
         profile = self._mapred._profile
         if profile is not None:
-            from multiprocessing import current_process
             import cProfile
             PROFILER = cProfile.Profile()
             PROFILER.runcall(self.run_myself)
 
             output = profile + str(self._iproc)
-            logger.warn("Profiling in %s ..."%output)
+            logger.warn("Profiling in %s ..." % output)
             PROFILER.dump_stats(output)
         else:
             self.run_myself()

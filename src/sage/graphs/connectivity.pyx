@@ -1879,7 +1879,7 @@ def bridges(G, labels=True):
 
 def cleave(G, cut_vertices=None, virtual_edges=True):
     r"""
-    Return the connected subgraphs separated by the input vertex cut.
+    Returns the connected subgraphs separated by the input vertex cut.
 
     Given a connected (multi)graph `G` and a vertex cut `X`, this method
     computes the list of subgraphs of `G` induced by each connected component
@@ -1901,11 +1901,13 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
     - `S` is a list of the graphs that are sides of the vertex cut.
 
-    - `C` is the graph of the cocycles. For each pair of vertices of the cut, it
-      has one copy of each edge connecting them in ``G`` per sides of the cut
-      plus one extra copy. Furthermore, when ``virtual_edges == True``, if a
-      pair of vertices of the cut is not connected by an edge in ``G``, then it
-      has one virtual edge between them per sides of the cut.
+    - `C` is the graph of the cocycles. For each pair of vertices of the cut,
+      if there exists an edge between them, `C` has one copy of each edge
+      connecting them in ``G`` per sides of the cut plus one extra copy.
+      Furthermore, when ``virtual_edges == True``, if a pair of vertices of the
+      cut is not connected by an edge in ``G``, then it has one virtual edge
+      between them per sides of the cut.
+
 
     - `f` is the complement of the subgraph of ``G`` induced but the vertex
       cut. Hence, its vertex set is the vertex cut, and its edge set is the set
@@ -2033,7 +2035,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
 def spqr_tree(G):
     r"""
-    Return a SPQR-tree representing the triconnected components of the graph.
+    Returns an SPQR-tree representing the triconnected components of the graph.
 
     An SPQR-tree is a tree data structure used to represent the triconnected
     components of a biconnected (multi)graph and the 2-vertex cuts separating
@@ -2260,7 +2262,7 @@ def spqr_tree(G):
 
 def spqr_tree_to_graph(T):
     r"""
-    Return the graph represented by the SPQR-tree `T`.
+    Returns the graph represented by the SPQR-tree `T`.
 
     The main purpose of this method is to test :meth:`spqr_tree`.
 

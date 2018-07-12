@@ -213,9 +213,9 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     - ``D`` -- a list of primes, in case one only wants to check minimality
       at those specific primes
 
-    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
-      signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model
+  - ``return_transformation`` -- (default: ``False``) boolean; this
+    signals a return of the `PGL_2` transformation to conjugate
+    this map to the calculated models
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
       algorithm determines F/G is not minimal, otherwise algorithm only
@@ -337,7 +337,7 @@ def Min(Fun, p, ubRes, conj, all_orbits=0):
 
     - ``conj`` -- a 2x2 matrix keeping track of the conjugation
 
-    - ``all_orbits`` -- integer 0 or 1, whether or not to all == in the inequalities
+    - ``all_orbits`` -- integer 0 or 1, whether or not to use == in the inequalities
       to find all orbits
 
     OUTPUT:
@@ -467,11 +467,11 @@ def Min(Fun, p, ubRes, conj, all_orbits=0):
 #modification of Bruin-Molnar for all representatives
 def BM_all_minimal(vp, return_transformation=False, D=None):
     r"""
-    Determine a representative in each SL(2,ZZ) orbit with minimal resultant.
+    Determine a representative in each `SL(2,\ZZ)` orbit with minimal resultant.
 
     This function modifies the Bruin-Molnar algorithm ([BM2012]_) to solve in the inequalities
     as ``<=`` instead of ``<``. Among the list of solutions is all conjugations
-    which preserve the resultant. From that list the `SL(2,ZZ)` orbits
+    which preserve the resultant. From that list the `SL(2,\ZZ)` orbits
     are identified and one representative from each orbit is returned. This function
     assumes that the given model is a minimal model.
 
@@ -486,8 +486,10 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     - ``D`` -- a list of primes, in case one only wants to check minimality
       at those specific primes
 
-    OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      2x2 matrix.
+    OUTPUT:
+
+    - list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
+      `2 \times 2` matrix
     """
     map = copy(vp)
     map.normalize_coordinates()
@@ -583,15 +585,18 @@ def HS_minimal(f, return_transformation=False, D=None):
 
     - ``f`` -- dynamical system on the projective line with minimal resultant
 
-    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
-      signals a return of the ``PGL_2`` transformation to conjugate `f`` to
-      the calculated minimal model
+    - ``return_transformation`` -- (default: ``False``) boolean; this
+      signals a return of the `PGL_2` transformation to conjugate
+      this map to the calculated models
 
     - ``D`` -- a list of primes, in case one only wants to check minimality
       at those specific primes
 
-    OUTPUT: a pair ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      2x2 matrix.
+    OUTPUT:
+
+    - a dynamical system
+
+    - (optional) a `2 \times 2` matrix
     """
     F = copy(f)
     d = F.degree()
@@ -643,10 +648,10 @@ def HS_minimal(f, return_transformation=False, D=None):
 #find all representatives of orbits for one prime
 def HS_all_minimal_p(p, f, m=None, return_transformation=True):
     r"""
-    Find a representative in each distinct SL(2,ZZ) orbit with minimal `p`-resultant
+    Find a representative in each distinct `SL(2,\ZZ)` orbit with minimal `p`-resultant
 
     This function implements the algorithm in Hutz-Stoll [HS2018]_. A representatives in
-    each distinct `SL(2,ZZ)` orbit with minimal valuation with respect to the prime ``p``
+    each distinct `SL(2,\ZZ)` orbit with minimal valuation with respect to the prime ``p``
     is returned. The input ``f`` must have minimal resultant in its conguacy class.
 
     INPUT:
@@ -662,7 +667,7 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=True):
       the calculated minimal model
 
     OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      2x2 matrix.
+      `2 \times 2` matrix.
     """
     count = 0
     prev = 0 #no exclusions
@@ -715,10 +720,10 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=True):
 #find all representatives of orbits
 def HS_all_minimal(f, return_transformation=True, D=None):
     r"""
-    Determine a representative in each SL(2,ZZ) orbit with minimal resultant.
+    Determine a representative in each `SL(2,\ZZ)` orbit with minimal resultant.
 
     This function implements the algorithm in Hutz-Stoll [HS2018]_. A representatives in
-    each distinct `SL(2,ZZ)` orbit is returned. The input ``f`` must
+    each distinct `SL(2,\ZZ)` orbit is returned. The input ``f`` must
     have minimal resultant in its conguacy class.
 
     INPUT:
@@ -733,7 +738,7 @@ def HS_all_minimal(f, return_transformation=True, D=None):
       at those specific primes
 
     OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      2x2 matrix.
+      `2 \times 2` matrix.
     """
     m = matrix(ZZ,2,2,[1, 0, 0, 1])
     F = copy(f)

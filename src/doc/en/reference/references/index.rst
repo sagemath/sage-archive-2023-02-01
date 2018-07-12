@@ -1409,7 +1409,7 @@ REFERENCES:
              http://www.maths.usyd.edu.au/u/bobh/hrt.pdf
 
 .. [HS2018] \B. Hutz, \M.Stoll. "Smallest representatives of
-            $\SL(2,\Z)$-orbits of binary forms and endomorphisms of P1",
+            $SL(2,\Z)$-orbits of binary forms and endomorphisms of P1",
             :arxiv:`1805.08579`, 2018.
 
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular

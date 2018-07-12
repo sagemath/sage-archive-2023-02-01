@@ -2437,8 +2437,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``prime_list`` -- (optional) a list of primes, in case one
           only wants to determine minimality at those specific primes
 
-        - ``algorithm`` -- (optional) string; either BM2012 for the Bruin-Molnar
-          algorithm or HS2018 for the Hutz-Stoll algorithm
+        - ``algorithm`` -- (optional) string; either BM for the Bruin-Molnar
+          algorithm or HS for the Hutz-Stoll algorithm
 
         OUTPUT:
 
@@ -2492,7 +2492,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: PS.<x,y> = ProjectiveSpace(ZZ,1)
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
-            sage: g,M = f.minimal_model(return_transformation=True, algorithm='BM2012')
+            sage: g,M = f.minimal_model(return_transformation=True, algorithm='BM')
             sage: f.conjugate(M) == g
             True
 
@@ -2535,7 +2535,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
             sage: f = DynamicalSystem([2*x^2, y^2])
-            sage: f.minimal_model(algorithm = 'BM2012')
+            sage: f.minimal_model(algorithm = 'BM')
             Traceback (most recent call last):
             ...
             TypeError: affine minimality is only considered for maps not of the form f or 1/f for a polynomial f
@@ -2547,10 +2547,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if self.degree() == 1:
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
-        if algorithm == 'BM2012':
+        if algorithm == 'BM':
             from .endPN_minimal_model import affine_minimal
             return affine_minimal(self, return_transformation=return_transformation, D=prime_list, quick=False)
-        if algorithm == 'HS2018':
+        if algorithm == 'HS':
             from .endPN_minimal_model import HS_minimal
             return HS_minimal(self, return_transformation=return_transformation, D=prime_list)
         #algorithm not specified
@@ -2572,7 +2572,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def all_minimal_models(self, return_transformation=False, prime_list=None, algorithm=None, check_minimal=True):
         r"""
-        Determine a representative in each `SL(2,ZZ)`-orbit of this map.
+        Determine a representative in each `SL(2,\ZZ)`-orbit of this map.
 
         This can be done either with the Bruin-Molnar algorithm or the Hutz-Stoll algorithm.
         The Hutz-Stoll algorithm requires the map to have minimal resultant and then
@@ -2595,8 +2595,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``prime_list`` -- (optional) a list of primes, in case one
           only wants to determine minimality at those specific primes
 
-        - ``algorithm`` -- (optional) string; either BM2012 for the Bruin-Molnar
-          algorithm or HS2018 for the Hutz-Stoll algorithm. If not specified,
+        - ``algorithm`` -- (optional) string; either BM for the Bruin-Molnar
+          algorithm or HS for the Hutz-Stoll algorithm. If not specified,
           properties of the map are utilized to choose
 
         - ``check_minimal`` -- (optional) boolean. To first check if the map is minimal
@@ -2622,9 +2622,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: c = 2*3^6
             sage: f = DynamicalSystem([x^3 - c^2*y^3, x*y^2])
-            sage: len(f.all_minimal_models(algorithm='HS2018'))
+            sage: len(f.all_minimal_models(algorithm='HS'))
             14
-            sage: len(f.all_minimal_models(prime_list=[2], algorithm='HS2018'))
+            sage: len(f.all_minimal_models(prime_list=[2], algorithm='HS'))
             2
 
         ::
@@ -2633,7 +2633,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem([237568*x^3 + 1204224*x^2*y + 2032560*x*y^2\
             ....:     + 1142289*y^3, -131072*x^3 - 663552*x^2*y - 1118464*x*y^2\
             ....:     - 627664*y^3])
-            sage: len(f.all_minimal_models(algorithm='BM2012'))
+            sage: len(f.all_minimal_models(algorithm='BM'))
             2
 
         TESTS::
@@ -2641,10 +2641,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: c = 2^2*5^2*11^3
             sage: f = DynamicalSystem([x^3 - c^2*y^3, x*y^2])
-            sage: MM = f.all_minimal_models(return_transformation=True, algorithm='BM2012')
+            sage: MM = f.all_minimal_models(return_transformation=True, algorithm='BM')
             sage: all([f.conjugate(m) == F for F,m in MM])
             True
-            sage: MM = f.all_minimal_models(return_transformation=True, algorithm='HS2018')
+            sage: MM = f.all_minimal_models(return_transformation=True, algorithm='HS')
             sage: all([f.conjugate(m) == F for F,m in MM])
             True
         """
@@ -2661,10 +2661,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f = self
             m = matrix(ZZ,2,2,[1,0,0,1])
 
-        if algorithm == 'BM2012':
+        if algorithm == 'BM':
             from .endPN_minimal_model import BM_all_minimal
             models = BM_all_minimal(f, return_transformation=True, D=prime_list)
-        elif algorithm == 'HS2018':
+        elif algorithm == 'HS':
             from .endPN_minimal_model import HS_all_minimal
             models = HS_all_minimal(f, return_transformation=True, D=prime_list)
         #algorithm not specified

@@ -1358,7 +1358,7 @@ class FiniteWord_class(Word_class):
             [1, 2, 4, 6, 10, 12, 16, 20, 22, 24, 28, 32, 36, 40, 42, 44, 46, 48, 52, 56]
         """
         return len(list(self.factor_iterator(n)))
-    
+
     def factor_set(self, n=None, algorithm='suffix tree'):
         r"""
         Return the set of factors (of length ``n``) of ``self``.

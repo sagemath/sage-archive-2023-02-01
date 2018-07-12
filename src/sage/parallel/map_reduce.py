@@ -1106,7 +1106,7 @@ class RESetMapReduce(object):
             sage: all(w.is_alive() for w in S._workers)
             True
 
-            sage: sleep(2)
+            sage: sleep(1)
             sage: all(not w.is_alive() for w in S._workers)
             True
 

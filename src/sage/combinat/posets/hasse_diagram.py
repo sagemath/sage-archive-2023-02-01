@@ -2869,6 +2869,7 @@ class HasseDiagram(DiGraph):
             irr = [(v, self.neighbors_in(v)[0]) for v in join_irreducibles]
         else:
             irr = [(self.neighbors_out(v)[0], v) for v in meet_irreducibles]
+        irr.sort(key=lambda x: x[0]-x[1])
         tried = []
         for pair in irr:
             cong = self.congruence([pair], stop_pairs=tried)

@@ -1345,15 +1345,13 @@ class FiniteWord_class(Word_class):
 
             sage: w = words.FibonacciWord()[:100]
             sage: [w.factor_complexity(i) for i in range(20)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]    
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
         ::
 
-            sage: w = words.ThueMorseWord()[:100]
+            sage: w = words.ThueMorseWord()[:1000]
             sage: [w.factor_complexity(i) for i in range(20)]
-            [1, 2, 4, 6, 10, 12, 16, 20, 22, 24, 28, 32, 36, 40, 42, 44, 46, 48, 50, 52]
-
-
+            [1, 2, 4, 6, 10, 12, 16, 20, 22, 24, 28, 32, 36, 40, 42, 44, 46, 48, 52, 56]
         """
         return len(list(self.factor_iterator(n)))
     

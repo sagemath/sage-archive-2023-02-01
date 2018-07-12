@@ -1345,10 +1345,6 @@ class FiniteWord_class(Word_class):
 
         - ``n`` -- the length of the factors.
 
-        OUTPUT:
-
-        an integer -- the number of distinct factors of length ``n`` of ``self``.
-
         EXAMPLES::
 
             sage: w = words.FibonacciWord()[:100]
@@ -3131,10 +3127,6 @@ class FiniteWord_class(Word_class):
         INPUT:
 
         - ``n`` -- the length of the factors.
-
-        OUTPUT:
-
-        an integer -- the number of distinct palindromic factors of length ``n`` of ``self``.
 
         EXAMPLES::
 

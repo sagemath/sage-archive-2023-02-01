@@ -326,6 +326,7 @@ class DocTestReporter(SageObject):
                 4 long tests not run
                 5 magma tests not run
                 2 other tests skipped
+                0 tests not run because we ran out of time
                 [... tests, ... s]
 
         Test an internal error in the reporter::

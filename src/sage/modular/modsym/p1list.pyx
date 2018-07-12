@@ -773,10 +773,9 @@ cdef class P1List(object):
 
             sage: L = P1List(8)
             sage: L.__reduce__()
-            (<built-in function _make_p1list>, (8,))
+            (<type 'sage.modular.modsym.p1list.P1List'>, (8,))
         """
-        import sage.modular.modsym.p1list
-        return sage.modular.modsym.p1list._make_p1list, (self.__N, )
+        return type(self), (self.__N, )
 
     def __getitem__(self, n):
         r"""
@@ -1372,7 +1371,10 @@ def _make_p1list(n):
 
         sage: from sage.modular.modsym.p1list import _make_p1list
         sage: _make_p1list(3)
+        doctest:...: DeprecationWarning: _make_p1list() is deprecated
+        See https://trac.sagemath.org/25848 for details.
         The projective line over the integers modulo 3
-
     """
+    from sage.misc.superseded import deprecation
+    deprecation(25848, '_make_p1list() is deprecated')
     return P1List(n)

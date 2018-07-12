@@ -283,10 +283,11 @@ continue down the MRO and find the ``_add_`` method in the category.
 
 from __future__ import absolute_import, division, print_function
 
+cimport cython
 from cpython cimport *
-from sage.ext.stdsage cimport *
-
 from cpython.ref cimport PyObject
+
+from sage.ext.stdsage cimport *
 
 import types
 cdef add, sub, mul, div, truediv, floordiv, mod, pow
@@ -384,6 +385,7 @@ cdef class Element(SageObject):
     .. automethod:: __floordiv__
     .. automethod:: __mod__
     """
+    @cython.binding(False)
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
         return InheritComparisonMetaclass

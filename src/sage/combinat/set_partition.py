@@ -546,9 +546,7 @@ class SetPartition(AbstractSetPartition):
             {}
         """
         self._latex_options = {}
-        sets = map(frozenset, s)
-        blocks = sorted(sets, key=min)
-        ClonableArray.__init__(self, parent, blocks, check=check)
+        ClonableArray.__init__(self, parent, sorted(map(frozenset, s), key=min), check=check)
 
     def check(self):
         """

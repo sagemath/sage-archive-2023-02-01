@@ -1227,7 +1227,7 @@ class IntegralRayCollection(SageObject,
 
 
 def classify_cone_2d(ray0, ray1, check=True):
-    """
+    r"""
     Return `(d,k)` classifying the lattice cone spanned by the two rays.
 
     INPUT:

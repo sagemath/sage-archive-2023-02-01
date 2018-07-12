@@ -3660,7 +3660,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         - if ``certificate=False``, return only ``True`` or ``False``
         - if ``certificate=True``, return either
 
-          * ``(True, list)`` where `list` is a nested list showing the
+          * ``(True, list)`` where ``list`` is a nested list showing the
             decomposition; for example ``list[1][0]`` is a lower part of
             upper part of the lattice when decomposed twise.
           * ``(False, M)`` where `M` is a minimally interval non-dismantlable
@@ -4231,7 +4231,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         Return ``True`` if the lattice is uniform and ``False`` otherwise.
 
-        A congruence is *uniform* if all blocks are have equal number
+        A congruence is *uniform* if all blocks have equal number
         of elements. A lattice is uniform if it has only uniform
         congruences.
 

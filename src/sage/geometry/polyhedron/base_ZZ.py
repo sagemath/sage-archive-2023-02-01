@@ -25,7 +25,7 @@ from sage.misc.superseded import deprecated_function_alias
 
 #########################################################################
 class Polyhedron_ZZ(Polyhedron_QQ):
-    """
+    r"""
     Base class for Polyhedra over `\ZZ`
 
     TESTS::
@@ -361,7 +361,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
                 plane._delete()
 
     def find_translation(self, translated_polyhedron):
-        """
+        r"""
         Return the translation vector to ``translated_polyhedron``.
 
         INPUT:
@@ -400,7 +400,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
         return v
 
     def _subpoly_parallel_facets(self):
-        """
+        r"""
         Generator for all lattice sub-polyhedra with parallel facets.
 
         In a sub-polyhedron `Y\subset X` not all edges of `Y` need to
@@ -469,7 +469,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
     @cached_method
     def minkowski_decompositions(self):
-        """
+        r"""
         Return all Minkowski sums that add up to the polyhedron.
 
         OUTPUT:

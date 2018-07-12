@@ -381,7 +381,7 @@ class CoxeterGroups(Category_singleton):
                 [ 2 -a]
                 [ a -1]
                 sage: W1(W3.an_element())
-                s1
+                s1*s2
                 sage: s1,s2 = W1.simple_reflections()
                 sage: W = CoxeterGroup("A1")
                 sage: W(s1*s2)

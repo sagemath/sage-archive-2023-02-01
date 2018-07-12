@@ -5182,7 +5182,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.with_bounds()
             Finite lattice containing 7 elements
 
-            sage: P = posets.PentagonPoset(facade = False)
+            sage: P = posets.PentagonPoset(facade=False)
             sage: P.with_bounds()
             Finite lattice containing 7 elements
 

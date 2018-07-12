@@ -2140,7 +2140,7 @@ def spqr_tree(G):
 
     TESTS::
 
-        sage: G = graphs.PathGraph(4) 
+        sage: G = graphs.PathGraph(4)
         sage: spqr_tree(G)
         Traceback (most recent call last):
         ...

@@ -45,6 +45,11 @@ def AfricaMap(continental=False, year=2018):
         48
         sage: 'Madagaskar' in cont_Africa
         False
+
+    TESTS::
+
+        sage: Africa.plot()
+        Graphics object consisting of 159 graphics primitives
     """
     if year != 2018:
         raise ValueError("currently only year 2018 is implemented")
@@ -82,7 +87,7 @@ def AfricaMap(continental=False, year=2018):
      'Zambia': ['Malawi', 'Mozambique', 'Namibia', 'Zimbabwe']
      }
 
-    no_land_border = ['Cape Verde', 'Seychelles', 'Mauritius', 'S\xc3\xa3o Tom\xc3\xa9 and Pr\xc3\xadncipe', 'Madagascar', 'Comoros']
+    no_land_border = ['Cape Verde', 'Seychelles', 'Mauritius', u'São Tomé and Príncipe', 'Madagascar', 'Comoros']
 
     G = Graph(common_border, format='dict_of_lists')
 
@@ -94,6 +99,7 @@ def AfricaMap(continental=False, year=2018):
         G.name(new="Africa Map")
 
     return G
+
 
 def EuropeMap(continental=False, year=2018):
     """
@@ -158,6 +164,7 @@ def EuropeMap(continental=False, year=2018):
         G.name(new="Europe Map")
 
     return G
+
 
 def USAMap(continental=False):
     """

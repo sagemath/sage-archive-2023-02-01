@@ -7263,12 +7263,12 @@ class Graph(GenericGraph):
 
         These modules being of special interest, the disjoint union of
         graphs is called a Parallel composition, and the complement of
-        a disjoint union is called a Parallel composition. A graph
+        a disjoint union is called a Series composition. A graph
         whose only modules are singletons is called Prime.
 
         For more information on modular decomposition, in particular
         for an explanation of the terms "Parallel," "Prime" and
-        "Serie," see the `Wikipedia article on modular decomposition
+        "Series," see the `Wikipedia article on modular decomposition
         <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
 
         You may also be interested in the survey from Michel Habib and

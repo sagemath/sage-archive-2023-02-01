@@ -30,7 +30,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     cpdef register_conversion(self, mor)
     cpdef register_embedding(self, embedding)
 
-    cpdef int _cmp_(left, right) except -2
     cpdef bint is_exact(self) except -2
 
     # Called from the __init__ method to set up coercion.

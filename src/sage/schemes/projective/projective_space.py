@@ -91,6 +91,7 @@ from sage.rings.all import (PolynomialRing,
 from sage.rings.ring import CommutativeRing
 from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 
 from sage.categories.fields import Fields
@@ -208,7 +209,20 @@ def ProjectiveSpace(n, R=None, names='x'):
     Projective spaces are not cached, i.e., there can be several with
     the same base ring and dimension (to facilitate gluing
     constructions).
+
+    ::
+
+        sage: R.<x> = QQ[]
+        sage: ProjectiveSpace(R)
+        Traceback (most recent call last):
+        ...
+        TypeError: Polynomial ring must be multivariate to construct a projective space
+    
+    Note that we need atleast 2 generators for any projective space, since a projective
+    space of dimension 0 does not make sense.
     """
+    if is_PolynomialRing(n) and R is None:
+        raise TypeError('Polynomial ring must be multivariate to construct a projective space')
     if is_MPolynomialRing(n) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n

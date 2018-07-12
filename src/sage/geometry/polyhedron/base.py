@@ -2198,11 +2198,14 @@ class Polyhedron_base(Element):
             sage: p.center()
             (1, 0, 0)
         """
-        vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
-        for v in self.vertex_generator():
-            vertex_sum += v.vector()
-        vertex_sum.set_immutable()
-        return vertex_sum / self.n_vertices()
+        if self.dim() == 0:
+            return self.vertices()[0].vector()
+        else:
+            vertex_sum = vector(self.base_ring(), [0]*self.ambient_dim())
+            for v in self.vertex_generator():
+                vertex_sum += v.vector()
+            vertex_sum.set_immutable()
+            return vertex_sum / self.n_vertices()
 
     @cached_method
     def representative_point(self):
@@ -2718,7 +2721,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def minkowski_sum(self, other):
-        """
+        r"""
         Return the Minkowski sum.
 
         Minkowski addition of two subsets of a vector space is defined
@@ -2783,7 +2786,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def minkowski_difference(self, other):
-        """
+        r"""
         Return the Minkowski difference.
 
         Minkowski subtraction can equivalently be defined via
@@ -2938,7 +2941,7 @@ class Polyhedron_base(Element):
         return self + (-other)
 
     def is_minkowski_summand(self, Y):
-        """
+        r"""
         Test whether ``Y`` is a Minkowski summand.
 
         See :meth:`minkowski_sum`.
@@ -3133,6 +3136,116 @@ class Polyhedron_base(Element):
                           rays=new_rays, lines=new_lines,
                           base_ring=new_ring)
 
+    def subdirect_sum(self, other):
+        """
+        Return the subdirect sum of ``self`` and ``other``. 
+
+        The subdirect sum of two polyhedron is a projection of the join of the
+        two polytopes. It is obtained by placing the two objects in orthogonal subspaces
+        intersecting at the origin.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron_base`.
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[1],[2]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[3],[4]], base_ring=QQ)
+            sage: sds = P1.subdirect_sum(P2);sds
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4
+            vertices
+            sage: sds.vertices()
+            (A vertex at (0, 3),
+             A vertex at (0, 4),
+             A vertex at (1, 0),
+             A vertex at (2, 0))
+
+        .. SEEALSO::
+
+            :meth:`join`
+            :meth:`direct_sum`
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x)+[0]*dim_other for x in self.vertex_generator()] + \
+                       [[0]*dim_self+list(x) for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r+[0]*dim_other
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self+r
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l+[0]*dim_other
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self+l
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
+    def direct_sum(self, other):
+        """
+        Return the direct sum of ``self`` and ``other``.
+
+        The direct sum of two polyhedron is the subdirect sum of the two, when
+        they have the origin in their interior. To avoid checking if the origin
+        is contained in both, we place the affine subspace containing ``other``
+        at the center of ``self``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`Polyhedron_base`.
+
+        EXAMPLES::
+
+            sage: P1 = Polyhedron([[1],[2]], base_ring=ZZ)
+            sage: P2 = Polyhedron([[3],[4]], base_ring=QQ)
+            sage: ds = P1.direct_sum(P2);ds
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+            sage: ds.vertices()
+            (A vertex at (1, 0),
+             A vertex at (2, 0),
+             A vertex at (3/2, -1/2),
+             A vertex at (3/2, 1/2))
+
+        .. SEEALSO::
+
+            :meth:`join`
+            :meth:`subdirect_sum`
+        """
+        try:
+            new_ring = self.parent()._coerce_base_ring(other)
+        except TypeError:
+            raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
+                     + " and " + str(other.parent()))
+
+        dim_self = self.ambient_dim()
+        dim_other = other.ambient_dim()
+
+        new_vertices = [list(x) + [0]*dim_other for x in self.vertex_generator()] + \
+                       [list(self.center()) + list(x.vector() - other.center()) for x in other.vertex_generator()]
+        new_rays = []
+        new_rays.extend( [ r + [0]*dim_other
+                           for r in self.ray_generator() ] )
+        new_rays.extend( [ [0]*dim_self + r
+                           for r in other.ray_generator() ] )
+        new_lines = []
+        new_lines.extend( [ l + [0]*dim_other
+                            for l in self.line_generator() ] )
+        new_lines.extend( [ [0]*dim_self + l
+                            for l in other.line_generator() ] )
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines,
+                          base_ring=new_ring)
+
     def dilation(self, scalar):
         """
         Return the dilated (uniformly stretched) polyhedron.
@@ -3302,7 +3415,7 @@ class Polyhedron_base(Element):
 
     @coerce_binop
     def intersection(self, other):
-        """
+        r"""
         Return the intersection of one polyhedron with another.
 
         INPUT:
@@ -3752,17 +3865,17 @@ class Polyhedron_base(Element):
 
         For a full-dimensional polytope, the basic algorithm is
         described in
-        :func:`~sage.geometry.hasse_diagram.Hasse_diagram_from_incidences`.
+        :func:`~sage.geometry.hasse_diagram.lattice_from_incidences`.
         There are three generalizations of [KP2002]_ necessary to deal
         with more general polytopes, corresponding to the extra
         H/V-representation objects:
 
         * Lines are removed before calling
-          :func:`Hasse_diagram_from_incidences`, and then added back
+          :func:`lattice_from_incidences`, and then added back
           to each face V-representation except for the "empty face".
 
         * Equations are removed before calling
-          :func:`Hasse_diagram_from_incidences`, and then added back
+          :func:`lattice_from_incidences`, and then added back
           to each face H-representation.
 
         * Rays: Consider the half line as an example. The
@@ -3771,7 +3884,7 @@ class Polyhedron_base(Element):
           infinity has no inequality associated to it, so there is
           only one H-representation object alltogether. The face
           lattice does not contain the "face at infinity". This means
-          that in :func:`Hasse_diagram_from_incidences`, one needs to
+          that in :func:`lattice_from_incidences`, one needs to
           drop faces with V-representations that have no matching
           H-representation. In addition, one needs to ensure that
           every non-empty face contains at least one vertex.
@@ -3780,7 +3893,7 @@ class Polyhedron_base(Element):
 
             sage: square = polytopes.hypercube(2)
             sage: square.face_lattice()
-            Finite poset containing 10 elements with distinguished linear extension
+            Finite lattice containing 10 elements with distinguished linear extension
             sage: list(_)
             [<>, <0>, <1>, <2>, <3>, <0,1>, <0,2>, <2,3>, <1,3>, <0,1,2,3>]
             sage: poset_element = _[6]
@@ -3881,9 +3994,8 @@ class Polyhedron_base(Element):
             Hindices = tuple(sorted([ coatom_to_Hindex[i] for i in coatoms ]+equations))
             return self._make_polyhedron_face(Vindices, Hindices)
 
-        from sage.geometry.hasse_diagram import Hasse_diagram_from_incidences
-        return Hasse_diagram_from_incidences\
-            (atoms_incidences, coatoms_incidences,
+        from sage.geometry.hasse_diagram import lattice_from_incidences
+        return lattice_from_incidences(atoms_incidences, coatoms_incidences,
              face_constructor=face_constructor, required_atoms=atoms_vertices)
 
     def faces(self, face_dimension):
@@ -4036,7 +4148,7 @@ class Polyhedron_base(Element):
     graph = vertex_graph
 
     def vertex_digraph(self, f, increasing=True):
-        """
+        r"""
         Return the directed graph of the polyhedron according to a linear form.
 
         The underlying undirected graph is the graph of vertices and edges.
@@ -4221,6 +4333,106 @@ class Polyhedron_base(Element):
         new_lines =       [ [0] + l for l in self.lines()]
         return Polyhedron(vertices=new_verts, rays=new_rays, lines=new_lines,
                           base_ring=self.base_ring())
+
+    def one_point_suspension(self, vertex):
+        """
+        Return the one-point suspension of ``self`` by splitting the vertex
+        ``vertex``.
+
+        The resulting polyhedron has one more vertex and its dimension
+        increases by one.
+
+        INPUT:
+
+        - ``vertex`` -- a Vertex of ``self``.
+
+        EXAMPLES::
+
+            sage: cube = polytopes.cube()
+            sage: v = cube.vertices()[0]
+            sage: ops_cube = cube.one_point_suspension(v)
+            sage: ops_cube.f_vector()
+            (1, 9, 24, 24, 9, 1)
+
+            sage: pentagon  = polytopes.regular_polygon(5)
+            sage: v = pentagon.vertices()[0]
+            sage: ops_pentagon = pentagon.one_point_suspension(v)
+            sage: ops_pentagon.f_vector()
+            (1, 6, 12, 8, 1)
+
+        It works with a polyhedral face as well::
+
+            sage: vv = cube.faces(0)[0]
+            sage: ops_cube2 = cube.one_point_suspension(vv)
+            sage: ops_cube == ops_cube2
+            True
+
+        .. SEEALSO::
+
+            :meth:`face_split`
+
+        TESTS::
+
+            sage: e = cube.faces(1)[0]
+            sage: cube.one_point_suspension(e)
+            Traceback (most recent call last):
+            ...
+            TypeError: The vertex <0,1> should be a Vertex or PolyhedronFace of dimension 0
+        """
+        from sage.geometry.polyhedron.representation import Vertex
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if isinstance(vertex,Vertex):
+            return self.face_split(vertex)
+        elif isinstance(vertex,PolyhedronFace) and vertex.dim() == 0:
+            return self.face_split(vertex)
+        else:
+            raise TypeError("The vertex {} should be a Vertex or PolyhedronFace of dimension 0".format(vertex))
+
+    def face_split(self, face):
+        """
+        Return the face splitting of the face ``face``.
+
+        Splitting a face correspond to the bipyramid (see :meth:`bipyramid`)
+        of ``self`` where the two new vertices are placed above and below 
+        the center of ``face`` instead of the center of the whole polyhedron.
+        The two new vertices are placed in the new dimension at height `-1` and
+        `1`.
+
+        INPUT:
+
+        - ``face`` -- a PolyhedronFace or a Vertex.
+
+        EXAMPLES::
+
+            sage: pentagon  = polytopes.regular_polygon(5)
+            sage: f = pentagon.faces(1)[0]
+            sage: fsplit_pentagon = pentagon.face_split(f)
+            sage: fsplit_pentagon.f_vector()
+            (1, 7, 14, 9, 1)
+
+        .. SEEALSO::
+
+            :meth:`one_point_suspension`
+        """
+        from sage.geometry.polyhedron.representation import Vertex
+        from sage.geometry.polyhedron.face import PolyhedronFace
+        if isinstance(face,Vertex):
+            new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                           [list(face) + [x] for x in [-1,1]]  # Splitting the vertex
+        elif isinstance(face,PolyhedronFace):
+            new_vertices = [list(x) + [0] for x in self.vertex_generator()] + \
+                           [list(face.as_polyhedron().center()) + [x] for x in [-1,1]]  # Splitting the face
+        else:
+            raise TypeError("The face {} should be a Vertex or PolyhedronFace".format(face)) 
+
+        new_rays = []
+        new_rays.extend( [ r + [0] for r in self.ray_generator() ] )
+
+        new_lines = []
+        new_lines.extend( [ l + [0] for l in self.line_generator() ] )
+
+        return Polyhedron(vertices=new_vertices,
+                          rays=new_rays, lines=new_lines)
 
     def projection(self):
         """
@@ -5371,7 +5583,7 @@ class Polyhedron_base(Element):
         box_points = prod(max_coord-min_coord+1 for min_coord, max_coord in zip(box_min, box_max))
         if  not self.is_lattice_polytope() or \
                 (self.is_simplex() and box_points < 1000) or \
-                box_points<threshold:
+                box_points < threshold:
             from sage.geometry.integral_points import rectangular_box_points
             return rectangular_box_points(list(box_min), list(box_max), self)
 

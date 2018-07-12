@@ -83,6 +83,8 @@ AUTHORS:
 
 - Amritanshu Prasad (2014-08): added clique polynomial
 
+- Julian Rüth (2018-06-21): upgrade to NetworkX 2
+
 Graph Format
 ------------
 
@@ -409,12 +411,17 @@ Methods
 -------
 """
 
-#*****************************************************************************
-#      Copyright (C) 2006 - 2007 Robert L. Miller <rlmillster@gmail.com>
+
+# ****************************************************************************
+#       Copyright (C) 2006-2007 Robert L. Miller <rlmillster@gmail.com>
+#                          2018 Julian Rüth <julian.rueth@fsfe.org>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 import six
@@ -1199,7 +1206,7 @@ class Graph(GenericGraph):
             self.allow_loops(loops, check=False)
             self.allow_multiple_edges(multiedges, check=False)
             self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
         elif format == 'igraph':
             if data.is_directed():
                 raise ValueError("An *undirected* igraph graph was expected. "+
@@ -1291,7 +1298,7 @@ class Graph(GenericGraph):
 
     @doc_index("Basic methods")
     def graph6_string(self):
-        """
+        r"""
         Return the graph6 representation of the graph as an ASCII string.
 
         This is only valid for simple (no loops, no multiple edges) graphs
@@ -1541,7 +1548,7 @@ class Graph(GenericGraph):
     ### Properties
     @doc_index("Graph properties")
     def is_tree(self, certificate=False, output='vertex'):
-        """
+        r"""
         Tests if the graph is a tree
 
         The empty graph is defined to be not a tree.
@@ -3207,7 +3214,7 @@ class Graph(GenericGraph):
 
     @doc_index("Graph properties")
     def is_edge_transitive(self):
-        """
+        r"""
         Returns true if self is an edge transitive graph.
 
         A graph is edge-transitive if its automorphism group acts transitively
@@ -3254,7 +3261,7 @@ class Graph(GenericGraph):
 
     @doc_index("Graph properties")
     def is_arc_transitive(self):
-        """
+        r"""
         Returns true if self is an arc-transitive graph
 
         A graph is arc-transitive if its automorphism group acts transitively on
@@ -4585,8 +4592,7 @@ class Graph(GenericGraph):
             ....: , (1,2,3), (1,3,3), (2,3,3)]
             sage: g = Graph(edge_list, loops=True, multiedges=True)
             sage: g.matching(use_edge_labels=True)
-            [(0, 3, 3), (1, 2, 6)]
-
+            [(1, 2, 6), (0, 3, 3)]
 
         TESTS:
 
@@ -4621,18 +4627,18 @@ class Graph(GenericGraph):
             g = networkx.Graph()
             if use_edge_labels:
                 for u, v in W:
-                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
+                    g.add_edge(u, v, weight=W[u, v])
             else:
                 for u, v in L:
                     g.add_edge(u, v)
             d = networkx.max_weight_matching(g)
             if value_only:
                 if use_edge_labels:
-                    return sum(W[u, v] for u, v in six.iteritems(d) if u < v)
+                    return sum(W[min(u, v), max(u, v)] for u, v in d)
                 else:
-                    return Integer(len(d) // 2)
+                    return Integer(len(d))
             else:
-                return [(u, v, L[u, v]) for u, v in six.iteritems(d) if u < v]
+                return [(u, v, L[min(u, v), max(u, v)]) for u, v in d]
 
         elif algorithm == "LP":
             g = self
@@ -6261,7 +6267,7 @@ class Graph(GenericGraph):
         return networkx.number_of_cliques(self.networkx_graph(copy=False), vertices, cliques)
 
     @doc_index("Clique-related methods")
-    def cliques_get_max_clique_graph(self, name=''):
+    def cliques_get_max_clique_graph(self):
         """
         Return the clique graph.
 
@@ -6276,10 +6282,6 @@ class Graph(GenericGraph):
             Currently only implemented for undirected graphs. Use to_undirected
             to convert a digraph to an undirected graph.
 
-        INPUT:
-
-        -  ``name`` - The name of the new graph.
-
         EXAMPLES::
 
             sage: (graphs.ChvatalGraph()).cliques_get_max_clique_graph()
@@ -6292,7 +6294,7 @@ class Graph(GenericGraph):
             sage: (G.cliques_get_max_clique_graph()).show(figsize=[2,2])
         """
         import networkx
-        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), name=name, create_using=networkx.MultiGraph()))
+        return Graph(networkx.make_max_clique_graph(self.networkx_graph(copy=False), create_using=networkx.MultiGraph()))
 
     @doc_index("Clique-related methods")
     def cliques_get_clique_bipartite(self, **kwds):
@@ -7066,7 +7068,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def cores(self, k = None, with_labels=False):
-        """
+        r"""
         Return the core number for each vertex in an ordered list.
 
         (for homomorphisms cores, see the :meth:`Graph.has_homomorphism_to`
@@ -7261,12 +7263,12 @@ class Graph(GenericGraph):
 
         These modules being of special interest, the disjoint union of
         graphs is called a Parallel composition, and the complement of
-        a disjoint union is called a Parallel composition. A graph
+        a disjoint union is called a Series composition. A graph
         whose only modules are singletons is called Prime.
 
         For more information on modular decomposition, in particular
         for an explanation of the terms "Parallel," "Prime" and
-        "Serie," see the `Wikipedia article on modular decomposition
+        "Series," see the `Wikipedia article on modular decomposition
         <http://en.wikipedia.org/wiki/Modular_decomposition>`_.
 
         You may also be interested in the survey from Michel Habib and
@@ -7865,7 +7867,7 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def kirchhoff_symanzik_polynomial(self, name='t'):
-        """
+        r"""
         Return the Kirchhoff-Symanzik polynomial of a graph.
 
         This is a polynomial in variables `t_e` (each of them representing an
@@ -7873,7 +7875,7 @@ class Graph(GenericGraph):
 
         .. MATH::
 
-            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \\not\in E(T)} t_e
+            \Psi_G(t) = \sum_{\substack{T\subseteq V \\ \text{a spanning tree}}} \prod_{e \not\in E(T)} t_e
 
         This is also called the first Symanzik polynomial or the Kirchhoff
         polynomial.
@@ -7892,7 +7894,7 @@ class Graph(GenericGraph):
             3.1 of [Marcolli2009]_.
 
             As an intermediate step, one computes a cycle basis `\mathcal C` of
-            `G` and a rectangular `|\mathcal C| \\times |E(G)|` matrix with
+            `G` and a rectangular `|\mathcal C| \times |E(G)|` matrix with
             entries in `\{-1,0,1\}`, which describes which edge belong to which
             cycle of `\mathcal C` and their respective orientations.
 

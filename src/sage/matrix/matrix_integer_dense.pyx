@@ -2507,7 +2507,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         - ``algorithm`` - determines which algorithm to use, options are:
 
           - 'flint' - use the algorithm from the FLINT library
-          - 'pari' - use the ``matkerint()`` function from the PARI library
+          - 'pari' - use the :pari:`matkerint` function from the PARI library
           - 'padic' - use the p-adic algorithm from the IML library
           - 'default' - use a heuristic to decide which of the three above
             routines is fastest.  This is the default value.
@@ -2835,7 +2835,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
           called, reduction is much faster but the result is not fully
           BKZ reduced.
 
-        NLT SPECIFIC INPUT:
+        NTL SPECIFIC INPUT:
 
         - ``prune`` -- (default: ``0``) The optional parameter
           ``prune`` can be set to any positive number to invoke the
@@ -2847,9 +2847,10 @@ cdef class Matrix_integer_dense(Matrix_dense):
           disabled. Recommended usage: for ``block_size==30``, set
           ``10 <= prune <=15``.
 
-        - ``use_givens`` -- Use Given's orthogonalization. This is a
-          bit slower, but generally much more stable, and is really
-          the preferred orthogonalization strategy. For a nice
+        - ``use_givens`` -- Use Givens orthogonalization.  Only
+          applies to approximate reduction using NTL.  This is a bit
+          slower, but generally much more stable, and is really the
+          preferred orthogonalization strategy.  For a nice
           description of this, see Chapter 5 of [GL1996]_.
 
         fpLLL SPECIFIC INPUT:
@@ -2857,8 +2858,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
         - ``precision`` -- (default: ``0`` for automatic choice) bit
           precision to use if ``fp='rr'`` is set
 
-        - ``**kwds`` -- kwds are passed through to fpylll. See
-          `fpylll.fplll.BKZ.Param` for details.
+        - ``**kwds`` -- keywords to be passed to :mod:`fpylll`.  See
+          :class:`fpylll.BKZ.Param` for details.
 
         Also, if the verbose level is at least `2`, some output
         is printed during the computation.
@@ -3007,12 +3008,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
         -  For any `i < d`, we have `\delta \lvert b_i^* \rvert^2 \leq
            \lvert b_{i + 1}^* + \mu_{i+1, i} b_i^* \rvert^2`,
 
-        where `μ_{i,j} = \langle b_i, b_j^* \rangle / \langle b_j^*, b_j^*
+        where `\mu_{i,j} = \langle b_i, b_j^* \rangle / \langle b_j^*, b_j^*
         \rangle` and `b_i^*` is the `i`-th vector of the Gram-Schmidt
         orthogonalisation of `(b_1, b_2, ..., b_d)`.
 
-        The default reduction parameters are `\delta = 3/4` and `\eta = 0.501`.
-        The parameters `\delta` and `\eta` must satisfy: `0.25 < \delta
+        The default reduction parameters are `\delta = 0.99` and `\eta = 0.501`.
+        The parameters `\delta` and `\eta` must satisfy `0.25 < \delta
         \leq 1.0` and `0.5 \leq \eta < \sqrt{\delta}`. Polynomial time
         complexity is only guaranteed for `\delta < 1`. Not every algorithm
         admits the case `\delta = 1`.
@@ -3030,7 +3031,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         - ``eta`` -- (default: ``0.501``) `\eta` parameter as described above,
           ignored by NTL
 
-        - ``algorithm`` -- string one of the algorithms listed below
+        - ``algorithm`` -- string; one of the algorithms listed below
           (default: ``"fpLLL:wrapper"``).
 
         - ``fp`` -- floating point number implementation:
@@ -3047,30 +3048,30 @@ cdef class Matrix_integer_dense(Matrix_dense):
         - ``early_red`` -- (default: ``False``) perform early reduction,
           ignored by NTL
 
-        - ``use_givens`` -- (default: ``False``) use Givens orthogonalization
-          only applicable to approximate reductions and NTL; this is more
-          stable but slower
+        - ``use_givens`` -- (default: ``False``) use Givens
+          orthogonalization.  Only applies to approximate reduction
+          using NTL.  This is slower but generally more stable.
 
         - ``use_siegel`` -- (default: ``False``) use Siegel's condition
-          instead of Lovasz's condition, ignored by NTL
+          instead of Lovász's condition, ignored by NTL
 
-        - ``**kwds`` -- kwds are passed through to fpylll.  See
-          `fpylll.fplll.LLL.reduction` for details.
+        - ``**kwds`` -- keywords to be passed to :mod:`fpylll`.  See
+          :meth:`fpylll.LLL.reduction` for details.
 
         Also, if the verbose level is at least `2`, some output
         is printed during the computation.
 
         AVAILABLE ALGORITHMS:
 
-        - ``NTL:LLL`` - NTL's LLL + choice of ``fp``.
+        - ``'NTL:LLL'`` - NTL's LLL + choice of ``fp``.
 
-        - ``fpLLL:heuristic`` - fpLLL's heuristic + choice of ``fp``.
+        - ``'fpLLL:heuristic'`` - fpLLL's heuristic + choice of ``fp``.
 
-        - ``fpLLL:fast`` - fpLLL's fast + choice of ``fp``.
+        - ``'fpLLL:fast'`` - fpLLL's fast + choice of ``fp``.
 
-        - ``fpLLL:proved`` - fpLLL's proved + choice of ``fp``.
+        - ``'fpLLL:proved'`` - fpLLL's proved + choice of ``fp``.
 
-        - ``fpLLL:wrapper`` - fpLLL's automatic choice (default).
+        - ``'fpLLL:wrapper'`` - fpLLL's automatic choice (default).
 
         OUTPUT:
 
@@ -3144,14 +3145,14 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
-        ..  NOTE::
+        .. NOTE::
 
-            See ``ntl.mat_ZZ`` or ``fpylll.fplll.lll`` for details on
-            the used algorithms.
+            See :mod:`sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ.LLL` and
+            :mod:`fpylll.fplll.lll` for details on the algorithms used.
 
-            Albeit LLL is a deterministic algorithm, the output for different
-            implementations and on CPUs (32-bit vs. 64-bit) may vary, while
-            still being correct.
+            Although LLL is a deterministic algorithm, the output for
+            different implementations and CPUs (32-bit vs. 64-bit) may
+            vary, while still being correct.
         """
         if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")

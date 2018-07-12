@@ -1892,7 +1892,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if all(a[1] % 2 == 0 for a in f) and u.is_square():
             g = u.sqrt()
             for a in f:
-                g *= a[0] ** (a[1] / 2)
+                g *= a[0] ** (a[1] // 2)
             return (True, g) if root else True
         else:
             return (False, None) if root else False
@@ -4175,6 +4175,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = (x - a)*(b*x + c)*(a*b*x + a*c) / (a + 2)
             sage: factor(p)
             (a/(a + 2)) * (x - a) * (b*x + c)^2
+
+        Check that :trac:`24973` is fixed::
+
+            sage: x1 = ZZ['x'].gen()
+            sage: x2 = ZZ['x']['x'].gen()
+            sage: (x1 - x2).factor()
+            -x + x
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -4227,17 +4234,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return Factorization([], unit=self.get_unsafe(0))
 
         # Use multivariate implementations for polynomials over polynomial rings
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > 1:
-            base = self._parent._mpoly_base_ring()
-            ring = PolynomialRing(base, variables)
-            if ring._has_singular:
-                try:
-                    d = self._mpoly_dict_recursive()
-                    F = ring(d).factor(**kwargs)
-                    return Factorization([(self._parent(f),m) for (f,m) in F], unit = F.unit())
-                except NotImplementedError:
-                    pass
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt is not self._parent and tgt._has_singular:
+            try:
+                F = flatten(self).factor(**kwargs)
+                unflatten = flatten.section()
+                return Factorization(((unflatten(f),m) for (f,m) in F), unit = F.unit())
+            except NotImplementedError:
+                pass
 
         R = self._parent.base_ring()
         if hasattr(R, '_factor_univariate_polynomial'):

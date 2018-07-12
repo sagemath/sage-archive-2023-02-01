@@ -265,7 +265,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=ZZ, backend=backend)
 
     def simplex(self, dim=3, project=False, backend=None):
-        """
+        r"""
         Return the ``dim`` dimensional simplex.
 
         The `d`-simplex is the convex hull in `\RR^{d+1}` of the standard basis
@@ -325,7 +325,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, backend=backend)
 
     def icosahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return an icosahedron with edge length 1.
 
         The icosahedron is one of the Platonic solid. It has 20 faces
@@ -395,7 +395,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def dodecahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return a dodecahedron.
 
         The dodecahedron is the Platonic solid dual to the :meth:`icosahedron`.
@@ -437,7 +437,7 @@ class Polytopes():
         return self.icosahedron(exact=exact, base_ring=base_ring, backend=backend).polar()
 
     def small_rhombicuboctahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the (small) rhombicuboctahedron.
 
         The rhombicuboctahedron is an Archimedean solid with 24 vertices and 26
@@ -498,7 +498,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, backend=backend)
 
     def great_rhombicuboctahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the great rhombicuboctahedron.
 
         The great rhombicuboctahedron (or truncated cuboctahedron) is an
@@ -603,7 +603,7 @@ class Polytopes():
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def cuboctahedron(self, backend=None):
-        """
+        r"""
         Return the cuboctahedron.
 
         The cuboctahedron is an Archimedean solid with 12 vertices and 14 faces
@@ -652,7 +652,7 @@ class Polytopes():
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def truncated_cube(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the truncated cube.
 
         The truncated cube is an Archimedean solid with 24 vertices
@@ -752,7 +752,7 @@ class Polytopes():
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def truncated_tetrahedron(self, backend=None):
-        """
+        r"""
         Return the truncated tetrahedron.
 
         The truncated tetrahedron is an Archimedean solid with 12
@@ -797,7 +797,7 @@ class Polytopes():
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def truncated_octahedron(self, backend=None):
-        """
+        r"""
         Return the truncated octahedron.
 
         The truncated octahedron is an Archimedean solid with 24
@@ -842,7 +842,7 @@ class Polytopes():
         return Polyhedron(vertices=v, base_ring=ZZ, backend=backend)
 
     def octahedron(self, backend=None):
-        """
+        r"""
         Return the octahedron.
 
         The octahedron is a Platonic solid with 6 vertices and 8 faces
@@ -922,7 +922,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=base_ring)
 
     def buckyball(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the bucky ball.
 
         The bucky ball, also known as the truncated icosahedron is an Archimedean solid.
@@ -1017,7 +1017,7 @@ class Polytopes():
             return Polyhedron(vertices=verts, backend=backend)
 
     def icosidodecahedron_V2(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the icosidodecahedron.
 
         The icosidodecahedron is an Archimedean solid.
@@ -1079,7 +1079,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def truncated_dodecahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the truncated dodecahedron.
 
         The truncated dodecahedron is an Archimedean solid.
@@ -1145,7 +1145,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def pentakis_dodecahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the pentakis dodecahedron.
 
         The pentakis dodecahedron (orkisdodecahedron) is a face-regular,
@@ -1189,7 +1189,7 @@ class Polytopes():
         return self.buckyball(exact=exact, base_ring=base_ring, backend=backend).polar()
 
     def Kirkman_icosahedron(self, backend=None):
-        """
+        r"""
         Return the Kirkman icosahedron.
 
         The Kirkman icosahedron is a 3-polytope with integer coordinates: `(\pm
@@ -1228,7 +1228,7 @@ class Polytopes():
         return Polyhedron(vertices=vertices, base_ring=ZZ, backend=backend)
 
     def rhombicosidodecahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the rhombicosidodecahedron.
 
         The rhombicosidodecahedron is an Archimedean solid.
@@ -1296,7 +1296,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def truncated_icosidodecahedron(self, exact=True, base_ring=None, backend=None):
-        """
+        r"""
         Return the truncated icosidodecahedron.
 
         The truncated icosidodecahedron is an Archimedean solid.
@@ -1639,7 +1639,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=ZZ, backend=backend)
 
     def cyclic_polytope(self, dim, n, base_ring=QQ, backend=None):
-        """
+        r"""
         Return a cyclic polytope.
 
         A cyclic polytope of dimension ``dim`` with ``n`` vertices is the convex
@@ -1671,7 +1671,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, base_ring=base_ring, backend=backend)
 
     def hypersimplex(self, dim, k, project=False, backend=None):
-        """
+        r"""
         Return the hypersimplex in dimension ``dim`` and parameter ``k``.
 
         The hypersimplex `\Delta_{d,k}` is the convex hull of the vertices made
@@ -1718,7 +1718,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, backend=backend)
 
     def permutahedron(self, n, project=False, backend=None):
-        """
+        r"""
         Return the standard permutahedron of (1,...,n).
 
         The permutahedron (or permutohedron) is the convex hull of the
@@ -1775,7 +1775,7 @@ class Polytopes():
         return Polyhedron(vertices=verts, backend=backend)
 
     def hypercube(self, dim, backend=None):
-        """
+        r"""
         Return a hypercube in the given dimension.
 
         The `d` dimensional hypercube is the convex hull of the points `(\pm 1,
@@ -1838,7 +1838,7 @@ class Polytopes():
         return self.hypercube(3)
 
     def cross_polytope(self, dim, backend=None):
-        """
+        r"""
         Return a cross-polytope in dimension ``dim``.
 
         A cross-polytope is a higher dimensional generalization of the
@@ -1897,13 +1897,14 @@ class Polytopes():
         """
         from sage.modules.free_module_element import vector
         from sage.structure.sequence import Sequence
-        generators = map(vector,generators)
+        generators = [vector(v) for v in generators]
         V = Sequence(generators).universe()
         R = V.base_ring()
 
         from itertools import combinations
-        par =  [ V.zero() ]
-        par.extend(sum(c) for k in range(1,len(generators)+1) for c in combinations(generators,k))
+        par = [V.zero()]
+        par.extend(sum(c) for k in range(1, len(generators) + 1)
+                   for c in combinations(generators, k))
         return Polyhedron(vertices=par, base_ring=R, backend=backend)
 
     zonotope = parallelotope

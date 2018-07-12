@@ -7080,7 +7080,7 @@ cdef class int_to_Z(Morphism):
             Set of Morphisms from Set of Python objects of class 'int' to Integer Ring in Category of sets
         """
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), integer_ring.ZZ))
 
     cpdef Element _call_(self, a):
@@ -7126,7 +7126,7 @@ cdef class long_to_Z(Morphism):
     """
     def __init__(self):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(long), integer_ring.ZZ))
 
     cpdef Element _call_(self, a):

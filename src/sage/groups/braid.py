@@ -181,10 +181,11 @@ class Braid(FiniteTypeArtinGroupElement):
           variable in the entries of the matrix
         - ``reduced`` -- boolean (default: ``False``); whether to
           return the reduced or unreduced Burau representation
-        - ``version`` -- string (default: None);
-                       ``unitary``:   returns the unitary form according to Squier (see the reference below)
-                       ``wikipedia``: returns the form given on the wikipedia page
+        - ``version`` -- string (default: None)
 
+                       ``unitary``:   returns the unitary form according to Squier (see the reference below)
+
+                       ``wikipedia``: returns the reduced form given on the wikipedia page, which differs from the reduced version given as default
 
         OUTPUT:
 
@@ -193,7 +194,7 @@ class Braid(FiniteTypeArtinGroupElement):
         is ``True``, return the matrix for the reduced Burau representation
         instead. If the version is specified the output will be according to it.
         In the case of the unitary version a triple ``M, Madj, Herm`` is returned where
-        ``M ``is the burau matrix in the unitary form, ``Madj`` the adjoined to ``M``
+        ``M`` is the burau matrix in the unitary form, ``Madj`` the adjoined to ``M``
         and ``Herm`` the hermitian form.
 
         EXAMPLES::
@@ -224,18 +225,23 @@ class Braid(FiniteTypeArtinGroupElement):
             [        1 -t^-1 + 1        -1]
             [        1     -t^-1         0]
             sage: b.burau_matrix(version='unitary')
-            [  1 - t^2 -t^-1 + t      -t^2]
-            [     t^-1 -t^-2 + 1        -t]
-            [     t^-2     -t^-3         0]
+            (
+            [  1 - t^2 -t^-1 + t      -t^2]  [-t^-2 + 1         t       t^2]
+            [     t^-1 -t^-2 + 1        -t]  [ t^-1 - t   1 - t^2      -t^3]
+            [     t^-2     -t^-3         0], [    -t^-2     -t^-1         0],
+            [t^-1 + t       -1        0]
+            [      -1 t^-1 + t       -1]
+            [       0       -1 t^-1 + t]
+            )
+            sage: M, Madj, Herm = _
+            sage: Madj * Herm * M == Herm
+            True
 
 
         REFERENCES:
 
         - :wikipedia:`Burau_representation`
-
-        - C. C. Squier:`THE BURAU REPRESENTATION IS UNITARY`, PROCEEDINGS OF THE
-                                                              AMERICAN MATHEMATICAL SOCIETY
-                                                              Volume 90. Number 2, February 1984
+        - [Squ1984]_
         """
 
         if version != None:
@@ -310,7 +316,7 @@ class Braid(FiniteTypeArtinGroupElement):
                 M = matrix(R, n-1, n-1, lambda i, j: t**(j-i)*t_sq(M[i,j]))
 
                 t_inv = R.hom([t**(-1)], codomain=R)
-                Madj = matrix(R, n-1, n-1, lambda i, j: t_sq(M[j,i]))
+                Madj = matrix(R, n-1, n-1, lambda i, j: t_inv(M[j,i]))
 
                 Herm = self.parent()._hermitian_form_
                 if Herm == None:

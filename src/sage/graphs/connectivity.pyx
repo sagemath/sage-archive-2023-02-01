@@ -1879,7 +1879,7 @@ def bridges(G, labels=True):
 
 def cleave(G, cut_vertices=None, virtual_edges=True):
     r"""
-    Returns the connected subgraphs separated by the input vertex cut.
+    Return the connected subgraphs separated by the input vertex cut.
 
     Given a connected (multi)graph `G` and a vertex cut `X`, this method
     computes the list of subgraphs of `G` induced by each connected component
@@ -1909,7 +1909,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
       between them per sides of the cut.
 
 
-    - `f` is the complement of the subgraph of ``G`` induced but the vertex
+    - `f` is the complement of the subgraph of ``G`` induced by the vertex
       cut. Hence, its vertex set is the vertex cut, and its edge set is the set
       of virtual edges (i.e., edges between pairs of vertices of the cut that
       are not connected by an edge in ``G``).
@@ -2057,7 +2057,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
 def spqr_tree(G):
     r"""
-    Returns an SPQR-tree representing the triconnected components of the graph.
+    Return an SPQR-tree representing the triconnected components of the graph.
 
     An SPQR-tree is a tree data structure used to represent the triconnected
     components of a biconnected (multi)graph and the 2-vertex cuts separating
@@ -2284,7 +2284,7 @@ def spqr_tree(G):
 
 def spqr_tree_to_graph(T):
     r"""
-    Returns the graph represented by the SPQR-tree `T`.
+    Return the graph represented by the SPQR-tree `T`.
 
     The main purpose of this method is to test :meth:`spqr_tree`.
 

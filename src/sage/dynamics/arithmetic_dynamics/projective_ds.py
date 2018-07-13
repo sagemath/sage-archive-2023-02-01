@@ -97,6 +97,7 @@ from sage.schemes.projective.projective_morphism import (
 from sage.schemes.projective.projective_space import (ProjectiveSpace,
                                                       is_ProjectiveSpace)
 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
+from sage.structure.element import get_coercion_model
 from sage.symbolic.constants import e
 from copy import copy
 from sage.parallel.ncpus import ncpus
@@ -390,7 +391,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             X,Y = proj_CR.gens()
             polys = [proj_CR(Y**d * poly(X/Y)) for poly in polys]
 
-        from sage.structure.element import get_coercion_model
         PR = get_coercion_model().common_parent(*polys)
         polys = [PR(poly) for poly in polys]
         if domain is None:

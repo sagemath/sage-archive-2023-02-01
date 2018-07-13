@@ -55,6 +55,7 @@ from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
+from sage.structure.element import get_coercion_model
 from sage.symbolic.ring import is_SymbolicExpressionRing
 from sage.symbolic.ring import var
 from sage.symbolic.ring import SR
@@ -259,7 +260,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         else:
             polys = [morphism_or_polys]
 
-        from sage.structure.element import get_coercion_model
         PR = get_coercion_model().common_parent(*polys)         
         fraction_field = any([is_FractionField(poly.parent()) for poly in polys])
         if fraction_field:

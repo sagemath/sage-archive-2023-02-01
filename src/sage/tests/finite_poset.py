@@ -76,6 +76,9 @@ two_to_one = [ ['distributive', 'dismantlable', 'planar'],
 
 mutually_exclusive = [
  ['doubling_any', 'simple'],
+ ['vertically_decomposable', 'atomic'],
+ ['vertically_decomposable', 'coatomic'],
+ ['vertically_decomposable', 'regular'],
 ]
 
 set_inclusions = [

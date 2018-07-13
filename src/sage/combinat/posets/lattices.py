@@ -2964,7 +2964,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         .. SEEALSO::
 
             - Weaker properties: :meth:`is_subdirectly_reducible`
-            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`
+            - Mutually exclusive properties: :meth:`is_atomic`, :meth:`is_coatomic`,
+              :meth:`is_regular`
             - Other: :meth:`vertical_decomposition`
 
         TESTS::
@@ -4238,7 +4239,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         INPUT:
 
         - ``certificate`` -- (default: ``False``) whether to return
-          a certificate if the lattice is not regular
+          a certificate if the lattice is not uniform
 
         OUTPUT:
 
@@ -4333,6 +4334,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             - Stronger properties: :meth:`is_uniform`,
               :meth:`is_sectionally_complemented`,
               :meth:`is_cosectionally_complemented`
+            - Mutually exclusive properties: :meth:`is_vertically_decomposable`
             - Other: :meth:`congruence`
 
         TESTS::

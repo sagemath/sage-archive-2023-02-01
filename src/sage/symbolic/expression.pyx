@@ -1457,6 +1457,19 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.expression_conversions import sympy_converter
         return sympy_converter(self)
 
+    def _fricas_init_(self):
+        """
+        Return a FriCAS version of this object.
+
+        EXAMPLES::
+
+            sage: pi._fricas_()                                                 # optional - fricas
+            %pi
+
+        """
+        from sage.symbolic.expression_conversions import fricas_converter
+        return fricas_converter(self)
+
     def _algebraic_(self, field):
         """
         Convert a symbolic expression to an algebraic number.

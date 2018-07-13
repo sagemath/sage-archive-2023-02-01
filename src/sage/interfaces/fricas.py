@@ -1177,6 +1177,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.log import dilog
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+        register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})
 
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),

@@ -842,6 +842,68 @@ class SympyConverter(Converter):
 
 sympy_converter = SympyConverter()
 
+##########
+# FriCAS #
+##########
+class FriCASConverter(InterfaceInit):
+    """
+    Converts any expression to FriCAS.
+
+    EXAMPLES::
+
+        sage: var('x,y')
+        (x, y)
+        sage: f = exp(x^2) - arcsin(pi+x)/y
+        sage: f._fricas_()                                                      # optional - fricas
+             2
+            x
+        y %e   - asin(x + %pi)
+        ----------------------
+                   y
+
+    """
+    def __init__(self):
+        import sage.interfaces.fricas
+        super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
+
+    def derivative(self, ex, operator):
+        """
+        Convert the derivative of ``self`` in FriCAS.
+
+        INPUT:
+
+        - ``ex`` -- a symbolic expression
+
+        - ``operator`` -- operator
+
+        EXAMPLES::
+
+            sage: var('x,y,z')
+            (x, y)
+            sage: f = function("F")
+            sage: f(x)._fricas_()                                               # optional - fricas
+            F(x)
+            sage: diff(f(x,y,z), x, z, x)._fricas_()                            # optional - fricas
+            F      (x,y,z)
+             ,1,1,3
+        """
+        from sage.symbolic.ring import is_SymbolicVariable
+        args = ex.operands()
+        if (not all(is_SymbolicVariable(v) for v in args) or
+            len(args) != len(set(args))):
+            raise NotImplementedError
+        else:
+            f = operator.function()(*args)
+            params = operator.parameter_set()
+            params_set = set(params)
+            vars = "[" + ",".join(args[i]._fricas_init_() for i in params_set) + "]"
+            mult = "[" + ",".join(str(params.count(i)) for i in params_set) + "]"
+            outstr = "D(%s, %s, %s)"%(f._fricas_init_(), vars, mult)
+
+        return outstr
+
+fricas_converter = FriCASConverter()
+
 #############
 # Algebraic #
 #############

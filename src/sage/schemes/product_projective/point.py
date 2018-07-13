@@ -450,6 +450,10 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         r"""
         Returns the absolute logarithmic height of the point.
 
+        This function computes the maximum of global height of each
+        component point in the product. Global height of component
+        point is computed using function for projective point.
+
         INPUT:
 
         - ``prec`` -- desired floating point precision (default:
@@ -493,12 +497,16 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         if K not in NumberFields() and not is_NumberFieldOrder(K) and K != QQbar:
             raise TypeError("must be over a number field or a number field order or QQbar")
 
-        return max([self[i].global_height(prec=prec) \
-                     for i in range(self.codomain().ambient_space().num_components())])
+        n = self.codomain().ambient_space().num_components()
+        return max(self[i].global_height(prec=prec) for i in range(n))
 
     def local_height(self, v, prec=None):
         r"""
         Returns the maximum of the local height of the coordinates of this point.
+
+        This function computes the maximum of local height of each component point
+        in the product. Local height of component point is computed using function
+        for projective point.
 
         INPUT:
 
@@ -528,9 +536,9 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         K = FractionField(self.domain().base_ring())
         if K not in NumberFields():
             raise TypeError("must be over a number field or a number field order")
-
-        return max([self[i].local_height(v, prec=prec) \
-                     for i in range(self.codomain().ambient_space().num_components())])
+        
+        n = self.codomain().ambient_space().num_components()
+        return max(self[i].local_height(v, prec=prec) for i in range(n))
 
 class ProductProjectiveSpaces_point_field(ProductProjectiveSpaces_point_ring):
 

@@ -92,8 +92,8 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
       * ``morphism_or_polys`` is a list of polynomials or rational
         functions and ``domain`` is unspecified; ``domain`` is then
-        taken to be the affine space of appropriate dimension over the
-        base ring of the first element of ``morphism_or_polys``
+        taken to be the affine space of appropriate dimension over the 
+        common base ring, if one exists, of the elements of ``morphism_or_polys``
 
       * ``morphism_or_polys`` is a single polynomial or rational
         function; ``domain`` is ignored and assumed to be the
@@ -233,11 +233,11 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             sage: f=DynamicalSystem_affine([x+y+z,y*z])
             Traceback (most recent call last):
             ...
-            ValueError: polys (=[x + y + z, y*z]) do not define a rational endomorphism of the Affine Space of dimension 3 over Rational Field
+            ValueError: Number of polys does not match dimension of the Affine Space of dimension 3 over Rational Field
 
         ::
-            sage: P.<x,y> = AffineSpace(QQ,2)
-            sage: f = DynamicalSystem([CC.0*x^2, y^2], domain=P)
+            sage: A.<x,y> = AffineSpace(QQ,2)
+            sage: f = DynamicalSystem_affine([CC.0*x^2, y^2], domain=A)
             Traceback (most recent call last):
             ...
             TypeError: coefficients of polynomial not in Rational Field
@@ -261,57 +261,40 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         else:
             polys = [morphism_or_polys]
 
-        # We now arrange for all of our list entries to lie in the same ring
-        # Fraction field case first
-        fraction_field = False
-        for poly in polys:
-            P = poly.parent()
-            if is_FractionField(P):
-                fraction_field = True
-                break
+        from sage.structure.element import get_coercion_model
+        PR = get_coercion_model().common_parent(*polys)         
+        fraction_field = any([is_FractionField(poly.parent()) for poly in polys])
         if fraction_field:
-            K = P.base_ring().fraction_field()
+            K = PR.base_ring().fraction_field()
             # Replace base ring with its fraction field
-            P = P.ring().change_ring(K).fraction_field()
-            polys = [P(poly) for poly in polys]
+            PR = PR.ring().change_ring(K).fraction_field()
+            polys = [PR(poly) for poly in polys]
         else:
+            quotient_ring = any([is_QuotientRing(poly.parent()) for poly in polys])
             # If any of the list entries lies in a quotient ring, we try
             # to lift all entries to a common polynomial ring.
-            quotient_ring = False
-            for poly in polys:
-                P = poly.parent()
-                if is_QuotientRing(P):
-                    quotient_ring = True
-                    break
             if quotient_ring:
-                polys = [P(poly).lift() for poly in polys]
+                polys = [PR(poly).lift() for poly in polys]
             else:
-                poly_ring = False
-                for poly in polys:
-                    P = poly.parent()
-                    if is_PolynomialRing(P) or is_MPolynomialRing(P):
-                        poly_ring = True
-                        break
-                if poly_ring:
-                    polys = [P(poly) for poly in polys]
+                polys = [PR(poly) for poly in polys]
         if domain is None:
-            f = polys[0]
-            CR = f.parent()
+            CR = polys[0].parent()
             if CR is SR:
                 raise TypeError("Symbolic Ring cannot be the base ring")
             if fraction_field:
                 CR = CR.ring()
             domain = AffineSpace(CR)
+        else:
+            # Check if we can coerce the given polynomials over the given domain 
+            PR = domain.ambient_space().coordinate_ring()
+            try:
+                if fraction_field:
+                    PR = PR.fraction_field()
+                polys = [PR(poly) for poly in polys]
+            except TypeError:
+                raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            msg = 'polys (={}) do not define a rational endomorphism of the {}'
-            raise ValueError(msg.format(polys, domain))
-        PR = domain.ambient_space().coordinate_ring()
-        try:
-            if fraction_field:
-                PR = PR.fraction_field()
-            polys = [PR(poly) for poly in polys]
-        except TypeError:
-            raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
+            raise ValueError('Number of polys does not match dimension of the {}'.format(domain))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")
@@ -323,7 +306,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         if is_FiniteField(R):
                 return DynamicalSystem_affine_finite_field(polys, domain)
         return DynamicalSystem_affine_field(polys, domain)
-
 
     def __init__(self, polys_or_rat_fncts, domain):
         r"""

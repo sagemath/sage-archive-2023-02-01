@@ -142,8 +142,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
       * ``morphism_or_polys`` is a list of homogeneous polynomials and
         ``domain`` is unspecified; ``domain`` is then taken to be the
-        projective space of appropriate dimension over the base ring of
-        the first element of ``morphism_or_polys``.
+        projective space of appropriate dimension over the common base ring,
+        if one exists, of the elements of ``morphism_or_polys``.
 
       * ``morphism_or_polys`` is a single polynomial or rational
         function; ``domain`` is ignored and taken to be a
@@ -317,7 +317,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: DynamicalSystem_projective([y, x, y], domain=P1)
             Traceback (most recent call last):
             ...
-            ValueError: polys (=[y, x, y]) do not define a rational endomorphism of the Projective Space of dimension 1 over Rational Field
+            ValueError: Number of polys does not match dimension of the Projective Space of dimension 1 over Rational Field
 
         ::
 
@@ -390,22 +390,25 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             X,Y = proj_CR.gens()
             polys = [proj_CR(Y**d * poly(X/Y)) for poly in polys]
 
+        from sage.structure.element import get_coercion_model
+        PR = get_coercion_model().common_parent(*polys)
+        polys = [PR(poly) for poly in polys]
         if domain is None:
             f = polys[0]
             proj_CR = f.parent()
             domain = ProjectiveSpace(proj_CR)
-        PR = domain.ambient_space().coordinate_ring()
-        try:
-            polys = [PR(poly) for poly in polys]
-        except TypeError:
-            raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
+        else:
+            # Check if we can coerce the given polynomials over the given domain 
+            PR = domain.ambient_space().coordinate_ring()
+            try:
+                polys = [PR(poly) for poly in polys]
+            except TypeError:
+                raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
+        if len(polys) != domain.ambient_space().coordinate_ring().ngens():
+            raise ValueError('Number of polys does not match dimension of the {}'.format(domain)) 
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")
-
-        if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            msg = 'polys (={}) do not define a rational endomorphism of the {}'
-            raise ValueError(msg.format(polys, domain))
 
         if is_ProductProjectiveSpaces(domain):
             splitpolys = domain._factors(polys)

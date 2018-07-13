@@ -1433,6 +1433,34 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         return all(H.kappa_dual(v) is not None
                    for v in H if H.out_degree(v) == 1)
 
+    def is_extremal(self):
+        """
+        Return ``True`` if the lattice is extremal, and ``False``
+        otherwise.
+
+        A lattice is extremal if the number of join-irreducibles is equal
+        to the number of meet-irreducibles and to the number of
+        cover relations in the longest chains.
+
+        EXAMPLES::
+
+            sage: posets.PentagonPoset().is_extremal()
+            True
+
+            sage: P = LatticePoset(posets.SymmetricGroupWeakOrderPoset(3))
+            sage: P.is_extremal()
+            False
+
+        REFERENCES:
+
+        .. [Mark1992] George Markowsky, *Primes, irreducibles and
+           extremal lattices*, Order 9 (1992), no. 3, 265-290.
+           :doi:`10.1007%2FBF00383950`
+        """
+        ji = len(self.join_irreducibles())
+        mi = len(self.meet_irreducibles())
+        return ji == mi == self.height() - 1
+
     def is_complemented(self, certificate=False):
         r"""
         Return ``True`` if the lattice is complemented, and

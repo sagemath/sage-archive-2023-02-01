@@ -88,6 +88,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.complements` | Return the list of complements of an element, or the dictionary of complements for all elements.
     :meth:`~FiniteMeetSemilattice.pseudocomplement` | Return the pseudocomplement of an element.
     :meth:`~FiniteLatticePoset.is_modular_element` | Return ``True`` if given element is modular in the lattice.
+    :meth:`~FiniteLatticePoset.is_left_modular_element` | Return ``True`` if given element is left modular in the lattice.
     :meth:`~FiniteLatticePoset.neutral_elements` | Return neutral elements of the lattice.
     :meth:`~FiniteLatticePoset.canonical_joinands` | Return the canonical joinands of an element.
     :meth:`~FiniteLatticePoset.canonical_meetands` | Return the canonical meetands of an element.
@@ -2582,10 +2583,44 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         .. SEEALSO::
 
-            :meth:`is_modular` to check modularity for the full lattice or
-            some set of elements
+            - Weaker properties: :meth:`is_left_modular_element`
+            - Other: :meth:`is_modular` to check modularity for the full
+              lattice or some set of elements
         """
         return self.is_modular([x])
+
+    def is_left_modular_element(self, x):
+        r"""
+        Return ``True`` if ``x`` is a left modular element
+        and ``False`` otherwise.
+
+        INPUT:
+
+        - ``x`` -- an element of the lattice
+
+        An element `x` in a lattice `L` is *left modular* if
+
+        .. MATH::
+
+            (y \vee x) \wedge z = y \vee (x \wedge z)
+
+        for every `y \leq z \in L`.
+
+        It is enough to check this condition on all cover relations `y < z`.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: [i for i in P if P.is_left_modular_element(i)]
+            [0, 2, 3, 4]
+
+        .. SEEALSO::
+
+            - Stronger properties: :meth:`is_modular_element`
+        """
+        return all(self.meet(self.join(y, x), z) ==
+                   self.join(y, self.meet(x, z))
+                   for y, z in self.cover_relations_iterator())
 
     def is_upper_semimodular(self, certificate=False):
         r"""

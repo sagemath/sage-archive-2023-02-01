@@ -2509,8 +2509,9 @@ REFERENCES:
                and J.-D. Legat, *ICEBERG: An involutional cipher efficient for block
                encryption in reconfigurable hardware*; in FSE, (2004), pp. 279-299.
 
-.. [Squ1984] \C. C. Squier, *The Burau representation is unitary*;
-             Proceedings of the American Mathematical Society, Volume 90. Number 2, February 1984, pp. 199-202.
+.. [Squ1984] \C. C. Squier. *The Burau representation is unitary*.
+             Proceedings of the American Mathematical Society,
+             Volume 90. Number 2, February 1984, pp. 199-202.
 
 .. [SS1990] Bruce E. Sagan and Richard P. Stanley.
             *Robinson-Schensted algorithms for skew tableaux*.

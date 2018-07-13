@@ -1908,11 +1908,11 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
       cut is not connected by an edge in ``G``, then it has one virtual edge
       between them per sides of the cut.
 
-
     - `f` is the complement of the subgraph of ``G`` induced by the vertex
       cut. Hence, its vertex set is the vertex cut, and its edge set is the set
       of virtual edges (i.e., edges between pairs of vertices of the cut that
-      are not connected by an edge in ``G``).
+      are not connected by an edge in ``G``). When ``virtual_edges == False``,
+      the edge set is empty.
 
     EXAMPLES:
 
@@ -1930,7 +1930,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
         sage: f1.vertices(), f1.edges()
         ([0, 1], [])
 
-    if `virtual_edges` set for False and an edge between cut vertices::
+    If ``virtual_edges == False`` and there is an edge between cut vertices::
 
         sage: G.subgraph([0, 1]).complement() == Graph([[0, 1], []])
         True
@@ -1949,7 +1949,8 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
         sage: f1.vertices(), f1.edges()
         ([0, 1], [(0, 1, None)])
 
-    if `virtual_edges` set for False and no edge between cut vertices::
+    If ``virtual_edges == False`` and the cut vertices are not connected by an
+    edge::
 
         sage: G.subgraph([0, 1]).complement() == Graph([[0, 1], []])
         False
@@ -2062,10 +2063,10 @@ def spqr_tree(G):
     An SPQR-tree is a tree data structure used to represent the triconnected
     components of a biconnected (multi)graph and the 2-vertex cuts separating
     them. A node of a SPQR-tree, and the graph associated with it, can be one of
-    the following four types::
+    the following four types:
 
-    - ``S`` -- the associated graph is a cycle with at least three
-      vertices. ``S`` stands for ``series``.
+    - ``S`` -- the associated graph is a cycle with at least three vertices.
+      ``S`` stands for ``series``.
 
     - ``P`` -- the associated graph is a dipole graph, a multigraph with two
       vertices and three or more edges. ``P`` stands for ``parallel``.
@@ -2247,6 +2248,7 @@ def spqr_tree(G):
                 h.add_edge(cut)
                 tmp.append(h)
         else:
+            # This should never happen
             raise ValueError("something goes wrong")
 
 

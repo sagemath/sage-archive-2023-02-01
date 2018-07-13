@@ -886,6 +886,17 @@ class FriCASConverter(InterfaceInit):
             sage: diff(f(x,y,z), x, z, x)._fricas_()                            # optional - fricas
             F      (x,y,z)
              ,1,1,3
+
+        Check that :trac:`25838` is fixed::
+
+            sage: var('x')
+            x
+            sage: F = function('F')
+            sage: integrate(F(x), x, algorithm="fricas")                        # optional - fricas
+            integral(F(x), x)
+
+            sage: integrate(diff(F(x), x)*sin(F(x)), x, algorithm="fricas")     # optional - fricas
+            -cos(F(x))
         """
         from sage.symbolic.ring import is_SymbolicVariable
         args = ex.operands()

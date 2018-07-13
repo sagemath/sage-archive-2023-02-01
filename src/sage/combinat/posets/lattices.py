@@ -50,6 +50,7 @@ List of (semi)lattice methods
     :meth:`~FiniteLatticePoset.is_atomic` | Return ``True`` if every element of the lattice can be written as a join of atoms.
     :meth:`~FiniteLatticePoset.is_coatomic` | Return ``True`` if every element of the lattice can be written as a meet of coatoms.
     :meth:`~FiniteLatticePoset.is_geometric` | Return ``True`` if the lattice is atomic and upper semimodular.
+    :meth:`~FiniteLatticePoset.is_extremal` | Return ``True`` if the lattice is extremal.
     :meth:`~FiniteLatticePoset.is_complemented` | Return ``True`` if every element of the lattice has at least one complement.
     :meth:`~FiniteLatticePoset.is_sectionally_complemented` | Return ``True`` if every interval from the bottom is complemented.
     :meth:`~FiniteLatticePoset.is_cosectionally_complemented` | Return ``True`` if every interval to the top is complemented.
@@ -1450,6 +1451,10 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: P = LatticePoset(posets.SymmetricGroupWeakOrderPoset(3))
             sage: P.is_extremal()
             False
+
+        .. SEEALSO::
+
+            - Stronger properties: :meth:`is_distributive`
 
         REFERENCES:
 

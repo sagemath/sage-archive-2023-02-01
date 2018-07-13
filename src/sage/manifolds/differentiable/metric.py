@@ -771,10 +771,6 @@ class PseudoRiemannianMetric(TensorField):
             self._connection = LeviCivitaConnection(self, name,
                                                     latex_name=latex_name,
                                                     init_coef=init_coef)
-
-            if self._symbol is not None:
-                self._connection.set_calc_order(self._symbol, self._order,
-                                                truncate=True)
         return self._connection
 
     def christoffel_symbols(self, chart=None):
@@ -2224,7 +2220,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             rst = self.restrict(dom)
             rst.set(symbiform_rst)
 
-    def inverse(self, symbol=None, order=1):
+    def inverse(self, symbol=None, order=2):
         r"""
         Return the inverse metric.
 
@@ -2275,17 +2271,24 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         """
 
         if symbol is not None:
-            if order!=1:
+            if self._inverse is not None and bool(self._inverse._components) and \
+                self._inverse._components.values()[0][0,0]._symbol is symbol and \
+                self._inverse._components.values()[0][0,0]._order == order:
+                return self._inverse
+
+            if order!=2:
                 raise NotImplementedError("Only first order inverse is "
                                           "implemented")
-            decompo = self.series(symbol, 1)
+            decompo = self.series(symbol, 2)
             g0 = decompo[0][0]
             g1 = decompo[1][0]
 
-            g0m = self._new_instance()
-            g0m.set_comp()[:]=g0[:]
+            g0m = self._new_instance() # needed because only metrics have
+            g0m.set_comp()[:]=g0[:]    # an "inverse" method.
+
             self._inverse = g0m.inverse()-g1.contract(0,g0m.inverse(),0)\
                 .contract(1,g0m.inverse(),0)*symbol
+            self._inverse.set_calc_order(symbol, 2)
             return self._inverse
 
         from sage.matrix.constructor import matrix

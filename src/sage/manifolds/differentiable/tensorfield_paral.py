@@ -622,8 +622,6 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         self._extensions_graph = {self._domain: self}
         self._restrictions_graph = {self._domain: self}
-        self._order = 0
-        self._symbol = None
 
         # Initialization of derived quantities:
         self._init_derived()
@@ -2045,8 +2043,8 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         from sage.manifolds.chart_func import ChartFunctionRing
         if order is None:
             order = 20
-        res = [0] * (order + 1)
-        for k in range(order + 1):
+        res = [0] * order
+        for k in range(order):
             res[k] = self.domain().tensor_field(*self.tensor_type(),
                                                 dest_map=self._fmodule._dest_map,
                                                 sym=self._sym,
@@ -2054,11 +2052,11 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
         for frame in self._components:
             decompo = {}
             comp = self.comp(frame)
-            res_comp = [0] * (order + 1)
+            res_comp = [0] * order
             for inds in comp.index_generator():
-                decompo[inds] = comp[inds].expr().series(symbol, order+1). \
-                    truncate().coefficients()
-            for k in range(order + 1):
+                decompo[inds] = comp[inds].expr().series(symbol, order). \
+                    truncate().coefficients(symbol)
+            for k in range(order):
                 res_comp[k] = Components(SR, frame, self.tensor_rank())
                 for inds in comp.index_generator():
                     res_comp_k = [decompo[inds][l][0] for l in
@@ -2067,89 +2065,17 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
                     res_comp[k][inds] = res_comp_k[0] if len(
                         res_comp_k) >= 1 else 0
                 res[k].add_comp(frame)[:] = res_comp[k][:]
-        return list(zip(res, list(range(order + 1))))
+        return list(zip(res, list(range(order))))
 
     def truncate(self, symbol, order):
         s = self.series(symbol, order)
-        return sum(symbol**i*s[i][0] for i in range(order+1))
+        return sum(symbol**i*s[i][0] for i in range(order))
 
     def set_calc_order(self, symbol, order, truncate = False):
-        self._symbol = symbol
-        self._order = order
         for frame in self._components:
             for ind in self._components[frame].non_redundant_index_generator():
-                self._components[frame][ind]._symbol = self._symbol
-                self._components[frame][ind]._order = self._order
+                self._components[frame][ind]._symbol = symbol
+                self._components[frame][ind]._order = order
                 if truncate:
                     self._components[frame][ind].simplify()
         self._del_derived()
-
-    def _rmul_(self, scalar):
-        from sage.manifolds.scalarfield import ScalarField
-        resu = FreeModuleTensor._rmul_(self, scalar)
-        if self._symbol is not None:
-            if isinstance(scalar, ScalarField):
-                if scalar._symbol == self._symbol:
-                    resu.set_calc_order(self._symbol,
-                                        min(self._order, scalar._order),
-                                        truncate=True)
-            else:
-                resu.set_calc_order(self._symbol, self._order, truncate=True)
-        return resu
-
-    def _lmul_(self, scalar):
-        from sage.manifolds.scalarfield import ScalarField
-        resu = FreeModuleTensor._rmul_(self, scalar)
-        if self._symbol is not None:
-            if isinstance(scalar, ScalarField):
-                if scalar._symbol == self._symbol:
-                    resu.set_calc_order(self._symbol,
-                                        min(self._order, scalar._order),
-                                        truncate=True)
-            else:
-                resu.set_calc_order(self._symbol, self._order, truncate=True)
-        return resu
-
-    def __mul__(self, other):
-        from sage.manifolds.scalarfield import ScalarField
-        resu = FreeModuleTensor.__mul__(self, other)
-        if self._symbol is not None:
-            if not isinstance(other, (TensorField, ScalarField)):
-                resu.set_calc_order(self._symbol, self._order, truncate=True)
-            else:
-                if other._symbol == self._symbol:
-                    resu.set_calc_order(self._symbol,
-                                        min(self._order, other._order),
-                                        truncate=True)
-        return resu
-
-    def _add_(self, other):
-        resu = FreeModuleTensor._add_(self, other)
-        if self._symbol is not None:
-            if other._symbol == self._symbol:
-                resu.set_calc_order(self._symbol,
-                                    min(self._order, other._order),
-                                    truncate=True)
-        return resu
-
-    def _sub_(self, other):
-        resu = FreeModuleTensor._sub_(self, other)
-        if self._symbol is not None:
-            if other._symbol == self._symbol:
-                resu.set_calc_order(self._symbol,
-                                    min(self._order, other._order),
-                                    truncate=True)
-        return resu
-
-    def __neg__(self):
-        resu = FreeModuleTensor.__neg__()
-        if self._symbol is not None:
-            resu.set_calc_order(self._symbol, self._order)
-        return resu
-
-    def __pos__(self):
-        resu = FreeModuleTensor.__pos__()
-        if self._symbol is not None:
-            resu.set_calc_order(self._symbol, self._order)
-        return resu
-

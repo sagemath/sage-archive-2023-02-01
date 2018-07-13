@@ -432,9 +432,6 @@ class TensorField(ModuleElement):
                     # including self, with domains as keys. Its elements can be
                     # seen as outgoing edges on a graph.
 
-        self._order = 0
-        self._symbol = None
-
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
@@ -1926,8 +1923,6 @@ class TensorField(ModuleElement):
             resu._name = '+' + self._name
         if self._latex_name is not None:
             resu._latex_name = '+' + self._latex_name
-        if self._symbol is not None:
-            resu.set_calc_order(self._symbol, self._order, truncate=True)
         return resu
 
     def __neg__(self):
@@ -1974,8 +1969,6 @@ class TensorField(ModuleElement):
             resu._name = '-' + self._name
         if self._latex_name is not None:
             resu._latex_name = '-' + self._latex_name
-        if self._symbol is not None:
-            resu.set_calc_order(self._symbol, self._order)
         return resu
 
     ######### ModuleElement arithmetic operators ########
@@ -2043,11 +2036,6 @@ class TensorField(ModuleElement):
             resu._name = self._name + '+' + other._name
         if self._latex_name is not None and other._latex_name is not None:
             resu._latex_name = self._latex_name + '+' + other._latex_name
-        if self._symbol is not None:
-            if other._symbol == self._symbol:
-                resu.set_calc_order(self._symbol,
-                                    min(self._order, other._order),
-                                    truncate=True)
         return resu
 
     def _sub_(self, other):
@@ -2111,11 +2099,6 @@ class TensorField(ModuleElement):
             resu._name = self._name + '-' + other._name
         if self._latex_name is not None and other._latex_name is not None:
             resu._latex_name = self._latex_name + '-' + other._latex_name
-        if self._symbol is not None:
-            if other._symbol == self._symbol:
-                resu.set_calc_order(self._symbol,
-                                    min(self._order, other._order),
-                                    truncate=True)
         return resu
 
     def _rmul_(self, scalar):
@@ -2180,15 +2163,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
-        print("ici")
-        if self._symbol is not None:
-            if isinstance(scalar, ScalarField):
-                if scalar._symbol == self._symbol:
-                    resu.set_calc_order(self._symbol,
-                                        min(self._order, scalar._order),
-                                        truncate=True)
-            else:
-                resu.set_calc_order(self._symbol, self._order, truncate=True)
         return resu
 
     ######### End of ModuleElement arithmetic operators ########
@@ -2305,11 +2279,6 @@ class TensorField(ModuleElement):
         if ambient_dom_resu.is_manifestly_parallelizable():
             # call of the FreeModuleTensor version:
             resu = FreeModuleTensor.__mul__(self_r, other_r)
-            if self._symbol is not None:
-                if other._symbol == self._symbol:
-                    resu.set_calc_order(self._symbol,
-                                        min(self._order, other._order),
-                                        truncate=True)
             return resu
         dest_map = self._vmodule._dest_map
         dest_map_resu = dest_map.restrict(dom_resu, subcodomain=ambient_dom_resu)
@@ -2331,11 +2300,6 @@ class TensorField(ModuleElement):
         for rst in resu_rst:
             resu._restrictions[rst._domain] = rst
 
-        if self._symbol is not None:
-            if other._symbol == self._symbol:
-                resu.set_calc_order(self._symbol,
-                                    min(self._order, other._order),
-                                    truncate=True)
         return resu
 
     def __truediv__(self, scalar):
@@ -2399,8 +2363,6 @@ class TensorField(ModuleElement):
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst / scalar
-        if self._symbol is not None:
-            resu.set_calc_order(self._symbol, self._order, truncate=True)
         return resu
 
     __div__ = __truediv__
@@ -2968,11 +2930,6 @@ class TensorField(ModuleElement):
                                   antisym=resu_rst[0]._antisym)
         for rst in resu_rst:
             resu._restrictions[rst._domain] = rst
-        if self._symbol is not None:
-            if other._symbol == self._symbol:
-                resu.set_calc_order(self._symbol,
-                                    min(self._order, other._order),
-                                    truncate=True)
         return resu
 
     def symmetrize(self, *pos):
@@ -3098,8 +3055,6 @@ class TensorField(ModuleElement):
                                     antisym=resu_rst[0]._antisym)
         for rst in resu_rst:
             resu._restrictions[rst._domain] = rst
-        if self._symbol is not None:
-                resu.set_calc_order(self._symbol, self._order, truncate=True)
         return resu
 
     def lie_derivative(self, vector):
@@ -4021,13 +3976,9 @@ class TensorField(ModuleElement):
                         dom1 = chart1.domain()
                         rrmap = rmapping.restrict(dom1, subcodomain=rdom)
                         resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
-        if self._symbol is not None:
-            resu.set_calc_order(self._symbol, self._order, truncate=True)
         return resu
 
     def set_calc_order(self, symbol, order, truncate = False):
-        self._symbol = symbol
-        self._order = order
         for rst in self._restrictions.values():
             rst.set_calc_order(symbol, order, truncate)
         self._del_derived()

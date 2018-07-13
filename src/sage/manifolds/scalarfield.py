@@ -1099,8 +1099,6 @@ class ScalarField(CommutativeAlgebraElement):
                 else:
                     self._express[chart] = chart.function(coord_expression)
         self._init_derived()   # initialization of derived quantities
-        self._symbol = None
-        self._order = 0
 
     ####### Required methods for an algebra element (beside arithmetic) #######
 
@@ -3240,8 +3238,6 @@ class ScalarField(CommutativeAlgebraElement):
         return resu
 
     def set_calc_order(self, symbol, order, truncate = False):
-        self._symbol = symbol
-        self._order = order
         for expr in self._express.values():
             expr._symbol = self._symbol
             expr._order = self._order

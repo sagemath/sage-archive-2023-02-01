@@ -27,6 +27,29 @@ from sage.graphs.graph import Graph
 from sage.graphs import graph
 
 
+def IGraph(p, s){
+	g = Graph()
+	X = graphs.CompleteGraph(4)
+	Y = Graph()
+	Y.add_vertices(itertools.product(range(4), range(4)))
+	for v in Y:
+		for u in Y:
+			if not Y.has_edge(v,u) and v[0] != u[0] and v[1] != u[1] and (v[0] - v[1]) % 4 != (u[0] - u[1]) % 4:
+				Y.add_edge(v,u)
+	g.add_vertices(*itertools.product(itertools.chain(itertools.repeat(Y, p), itertools.repeat(X,s))))
+	for v in g:
+		for u in g:
+			different_component = None
+			for i in len(v):
+				if(v[i] != u[i]):
+					if different_component: break
+					else: different_component = i
+			else:
+				if not different_component: break
+				if not g.has_edge(v,u) and ((different_component < p and Y.has_edge(v[i], u[i])) or different_component >= p):
+					g.add_edge(v,u)
+					
+
 def JohnsonGraph(n, k):
     r"""
     Returns the Johnson graph with parameters `n, k`.

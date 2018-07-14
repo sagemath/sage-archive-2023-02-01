@@ -1440,7 +1440,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         Return ``True`` if the lattice is extremal, and ``False``
         otherwise.
 
-        A lattice is extremal if the number of join-irreducibles is equal
+        A lattice is *extremal* if the number of join-irreducibles is equal
         to the number of meet-irreducibles and to the number of
         cover relations in the longest chains.
 
@@ -1459,9 +1459,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         REFERENCES:
 
-        .. [Mark1992] George Markowsky, *Primes, irreducibles and
-           extremal lattices*, Order 9 (1992), no. 3, 265-290.
-           :doi:`10.1007%2FBF00383950`
+        - [Mark1992]_
         """
         ji = len(self.join_irreducibles())
         mi = len(self.meet_irreducibles())

@@ -182,7 +182,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           Defn: Defined on coordinates by sending (a : b) to
                 (a^2 : b^2)
 
-    Symbolic Ring elements are not allows::
+    Symbolic Ring elements are not allowed::
 
         sage: x,y = var('x,y')
         sage: DynamicalSystem_projective([x^2,y^2])
@@ -318,7 +318,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: DynamicalSystem_projective([y, x, y], domain=P1)
             Traceback (most recent call last):
             ...
-            ValueError: Number of polys does not match dimension of the Projective Space of dimension 1 over Rational Field
+            ValueError: Number of polys does not match dimension of Projective Space of dimension 1 over Rational Field
 
         ::
 
@@ -338,8 +338,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: f=DynamicalSystem([CC.0*x^2+2*y^2,1*y^2], domain=P)
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem([CC.0*x^2 + 2*y^2, 1*y^2], domain=P)
             Traceback (most recent call last):
             ...
             TypeError: coefficients of polynomial not in Rational Field
@@ -391,12 +391,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             X,Y = proj_CR.gens()
             polys = [proj_CR(Y**d * poly(X/Y)) for poly in polys]
 
-        PR = get_coercion_model().common_parent(*polys)
-        polys = [PR(poly) for poly in polys]
         if domain is None:
-            f = polys[0]
-            proj_CR = f.parent()
-            domain = ProjectiveSpace(proj_CR)
+            PR = get_coercion_model().common_parent(*polys)
+            polys = [PR(poly) for poly in polys]
+            domain = ProjectiveSpace(PR)
         else:
             # Check if we can coerce the given polynomials over the given domain 
             PR = domain.ambient_space().coordinate_ring()
@@ -405,7 +403,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of the {}'.format(domain)) 
+            raise ValueError('Number of polys does not match dimension of {}'.format(domain)) 
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")

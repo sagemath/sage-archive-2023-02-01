@@ -194,8 +194,6 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         Traceback (most recent call last):
         ...
         TypeError: Symbolic Ring cannot be the base ring
-
-
     """
 
     @staticmethod
@@ -228,11 +226,11 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
         ::
 
-            sage: R.<x,y,z>=QQ[]
-            sage: f=DynamicalSystem_affine([x+y+z,y*z])
+            sage: R.<x,y,z> = QQ[]
+            sage: f = DynamicalSystem_affine([x+y+z, y*z])
             Traceback (most recent call last):
             ...
-            ValueError: Number of polys does not match dimension of the Affine Space of dimension 3 over Rational Field
+            ValueError: Number of polys does not match dimension of Affine Space of dimension 3 over Rational Field
 
         ::
             sage: A.<x,y> = AffineSpace(QQ,2)
@@ -276,12 +274,11 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             else:
                 polys = [PR(poly) for poly in polys]
         if domain is None:
-            CR = polys[0].parent()
-            if CR is SR:
+            if PR is SR:
                 raise TypeError("Symbolic Ring cannot be the base ring")
             if fraction_field:
-                CR = CR.ring()
-            domain = AffineSpace(CR)
+                PR = PR.ring()
+            domain = AffineSpace(PR)
         else:
             # Check if we can coerce the given polynomials over the given domain 
             PR = domain.ambient_space().coordinate_ring()
@@ -292,7 +289,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of the {}'.format(domain))
+            raise ValueError('Number of polys does not match dimension of {}'.format(domain))
         R = domain.base_ring()
         if R is SR:
             raise TypeError("Symbolic Ring cannot be the base ring")

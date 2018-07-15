@@ -2357,7 +2357,6 @@ class Component:
     def __init__(self, edges, type_c):
         self.edge_list = edges
         self.component_type = type_c
-        print "creating new component ", edges
     def add_edge(self, e):
         self.edge_list.append(e)
     def finish_tric_or_poly(self, e):
@@ -2494,9 +2493,7 @@ class Triconnectivity:
         self.path_search(self.start_vertex)
 
         # last split component
-        print "last split component ", self.e_stack
         c = Component([],0)
-        print "new component edge list ", c.edge_list
         while self.e_stack:
             c.add_edge(self.estack_pop())
         c.component_type = 2 if len(c.edge_list) > 4 else 1
@@ -2551,7 +2548,6 @@ class Triconnectivity:
             else:
                 v = e[1]
             self.highpt[v].remove(it)
-            print "delhigh test ", e, self.highpt[v], it
 
     def split_multi_egdes(self):
         """
@@ -2588,13 +2584,12 @@ class Triconnectivity:
 
         comp = []
         if self.graph_copy.has_multiple_edges():
-            sorted_edges = sorted(self.graph_copy.multiple_edges(labels=False))
+            sorted_edges = sorted(self.graph_copy.multiple_edges(labels=True))
             for i in range(len(sorted_edges) - 1):
 
                 # It will add k - 1 multiple edges to comp
                 if sorted_edges[i] == sorted_edges[i + 1]:
                     self.edge_status[sorted_edges[i]] = 3 # edge removed
-                    print "edge removed: ", sorted_edges[i], self.edge_status[sorted_edges[i]]
                     comp.append(sorted_edges[i])
                 else:
                     if comp:
@@ -2606,9 +2601,6 @@ class Triconnectivity:
                 comp.append(sorted_edges[i-1])
                 comp.append(sorted_edges[i-1])
                 self.new_component(comp)
-        print "Edge status after split_multi_edges():"
-        for e in self.graph_copy.edges():
-            print e, self.edge_status[e]
 
 
     def dfs1(self, v, u=None, check=True):
@@ -2829,17 +2821,13 @@ class Triconnectivity:
         y = 0
         vnum = self.newnum[v]
         outv = len(self.adj[v])
-        #print "path_search(v) with parameter ", v, " with vnum ", vnum
-        #print "PRINTING ADJ IN PATHSEARCH ", v
-        #print self.adj
-        #for e in adj:
         # ERROR fixed
+        #for e in adj:
         for i in range(len(self.adj[v])):
             #it = e
             e = self.adj[v][i]
             it = e
 
-            print "going through edges of ", v, ": edge ", e
             if e in self.reverse_edges:
                 w = e[0] # target
             else:
@@ -2868,20 +2856,13 @@ class Triconnectivity:
                     temp_target = temp[0]
                 else:
                     temp_target = temp[1]
-                #print "w and its adjacency: ", w, "  " , temp
                 # while vnum is not the start_vertex
-                #print "checking the while nvum!=1 test ", vnum
-                #print "stack_top_num=", self.t_stack_top, " :stack_top=",self.t_stack_a[self.t_stack_top]
-                #print "degree[w]=", self.degree[w], "  target=", temp_target, "   last val=", self.newnum[temp_target]
-                #print "WHILECHECK:", self.adj[w]
                 while vnum != 1 and ((self.t_stack_a[self.t_stack_top] == vnum) or \
                         (self.degree[w] == 2 and self.newnum[temp_target] > wnum)):
-                    #print "entered the nvum!=1 while loop ", vnum
                     a = self.t_stack_a[self.t_stack_top]
                     b = self.t_stack_b[self.t_stack_top]
                     e_virt = None
 
-                    print "list indices NONE?? ", a, b
                     print self.node_at[a]
                     print self.node_at[b]
                     if a == vnum and self.parent[self.node_at[b]] == self.node_at[a]:
@@ -2914,7 +2895,6 @@ class Triconnectivity:
                             if e2_source != w: # OGDF_ASSERT
                                 raise ValueError("graph is not biconnected?")
 
-                            print "before creating new component ", [e1, e2, e_virt]
                             comp = Component([e1, e2, e_virt], 1)
                             self.components_list.append(comp)
                             comp = None
@@ -2937,7 +2917,6 @@ class Triconnectivity:
                             h = self.t_stack_h[self.t_stack_top]
                             self.t_stack_top -= 1
 
-                            print "before creating new component - empty edge_list"
                             comp = Component([],0)
                             while True:
                                 xy = self.e_stack[-1]
@@ -2982,7 +2961,6 @@ class Triconnectivity:
                             x = self.node_at[b]
 
                         if e_ab is not None:
-                            print "before creating new component ", [e_ab, e_virt]
                             comp = Component([e_ab, e_virt], type_c=0)
                             self.graph_copy.add_edge(v,x)
                             e_virt = (v,x,None)
@@ -2993,8 +2971,8 @@ class Triconnectivity:
                             comp = None
 
                         self.e_stack.append(e_virt)
-                        #it = e_virt
                         # ERROR fixed
+                        #it = e_virt
                         self.adj[v][i] = e_virt
                         it = e_virt
 
@@ -3007,13 +2985,11 @@ class Triconnectivity:
                         w = x
                         wnum = self.newnum[w]
 
-                print "going to start type-1 check"
                 # start type-1 check
                 if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair
                     print "Found type-1 separation pair (", self.node_at[self.lowpt1[w]], ", ", v, ")"
-                    print "before creating new component  - empty edgelist"
                     comp = Component([],0)
                     if not self.e_stack: # OGDF_ASSERT
                         raise ValueError("stack is empty")
@@ -3035,7 +3011,6 @@ class Triconnectivity:
                         self.degree[self.node_at[xx]] -= 1
                         self.degree[self.node_at[y]] -= 1
 
-                    #print "TYPE1: xx and y,, and vnum and wnum" , xx, y, vnum, self.lowpt1[w]
                     self.graph_copy.add_edge(v, self.node_at[self.lowpt1[w]])
                     e_virt = (v, self.node_at[self.lowpt1[w]], None)
                     comp.finish_tric_or_poly(e_virt)
@@ -3044,8 +3019,6 @@ class Triconnectivity:
 
                     if (xx == vnum and y == self.lowpt1[w]) or \
                         (y == vnum and xx == self.lowpt1[w]):
-                        #print "TYPE1:firstIFcondition"
-                        print "before creating new component - empty edgelist "
                         comp_bond = Component([],type_c = 0)
                         eh = self.estack_pop()
                         if self.in_adj[eh] != it:
@@ -3075,8 +3048,7 @@ class Triconnectivity:
                         it = e_virt
 
                         self.in_adj[e_virt] = it
-                        #print "TYPE1:secondIFcondition ", it, self.in_adj[e_virt]
-                        # ERROR1 fixed:
+                        # ERROR fixed:
                         #if not self.in_high[e_virt] and self.high(self.node_at[self.lowpt1[w]]) < vnum:
                         if not e_virt in self.in_high and self.high(self.node_at[self.lowpt1[w]]) < vnum:
                             self.highpt[self.node_at[self.lowpt1[w]]] = [vnum] + self.highpt[self.node_at[self.lowpt1[w]]]
@@ -3087,7 +3059,6 @@ class Triconnectivity:
 
                     else:
                         self.adj[v].remove(it)
-                        print "before creating new component ", [e_virt]
                         comp_bond = Component([e_virt], type_c=0)
                         self.graph_copy.add_edge(self.node_at[self.lowpt1[w]], v)
                         e_virt = (self.node_at[self.lowpt1[w]], v, None)

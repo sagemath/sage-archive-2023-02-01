@@ -27,7 +27,7 @@ from sage.graphs.graph import Graph
 from sage.graphs import graph
 
 
-def IGraph(p, s){
+def IGraph(p, s):
 	g = Graph()
 	X = graphs.CompleteGraph(4)
 	Y = Graph()
@@ -48,8 +48,25 @@ def IGraph(p, s){
 				if not different_component: break
 				if not g.has_edge(v,u) and ((different_component < p and Y.has_edge(v[i], u[i])) or different_component >= p):
 					g.add_edge(v,u)
-					
-
+	return g
+	
+def HammingGraph(n, q, X=[]):
+	if not X:
+		X = range(q)
+	g = Graph()
+	g.add_vertices(itertools.product(*itertools.repeat(X, n)))
+	for v in g:
+		for u in g:
+			different_component = None
+			for i in len(v):
+				if(v[i] != u[i]):
+					if different_component: break
+					else: different_component = i
+			else:
+				if different_component:
+					g.add_edge(v,u)
+	return g
+				
 def JohnsonGraph(n, k):
     r"""
     Returns the Johnson graph with parameters `n, k`.

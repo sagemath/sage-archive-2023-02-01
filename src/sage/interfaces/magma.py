@@ -2071,6 +2071,11 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             ...
             NameError: name 'K' is not defined
 
+        Finite quotients of ZZ::
+
+            sage: R = Zmod(137)
+            sage: magma(R).sage()  # optional - magma
+            Ring of integers modulo 137
         """
         z, preparse = self.Sage(nvals=2)
         s = str(z)

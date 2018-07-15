@@ -57,9 +57,9 @@ class GroupAlgebras(AlgebrasCategory):
     and an example of computation::
 
         sage: g = G.an_element(); g
-        (1,2,3,4,5)
+        (1,4)(2,3)
         sage: (QG.term(g) + 1)**3
-        () + 3*(1,2,3,4,5) + 3*(1,3,5,2,4) + (1,4,2,5,3)
+        4*() + 4*(1,4)(2,3)
 
     .. TODO::
 

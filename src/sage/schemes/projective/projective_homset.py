@@ -48,6 +48,7 @@ from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from copy import copy
 
 #*******************************************************************
@@ -268,8 +269,12 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-            return enum_projective_rational_field(self,B)
+            if isinstance(X, AlgebraicScheme_subscheme): # sieve should only be called for subschemes
+                from sage.schemes.projective.projective_rational_point import sieve
+                return sieve(X, B)
+            else:
+                from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
+                return enum_projective_rational_field(self, B)
         elif R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)

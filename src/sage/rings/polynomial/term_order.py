@@ -716,14 +716,14 @@ class TermOrder(SageObject):
                 self._macaulay2_str = macaulay2_name_mapping.get(name,name)
                 self._magma_str = magma_name_mapping.get(name,name)
             else:
-                split_pattern = "([^(),]+(?:\([^()]*\)[^(),]*)*)" # split by outermost commas
+                split_pattern = r"([^(),]+(?:\([^()]*\)[^(),]*)*)" # split by outermost commas
                 block_names = re.findall(split_pattern,name)
 
                 if len(block_names) == 0:
                     raise ValueError("no term order specified")
                 elif len(block_names) == 1:
                     name = block_names[0]
-                    match = re.match('m\(([-+0-9,]+)\)$',name)
+                    match = re.match(r'm\(([-+0-9,]+)\)$',name)
                     if match: # matrix term order
                         m = [int(_) for _ in match.groups()[0].split(',')] # replace match.groups()[0]  with match.group(1) later
                         self.__copy(TermOrder(m))
@@ -741,7 +741,7 @@ class TermOrder(SageObject):
                     singular_str = []
                     macaulay2_str = []
 
-                    length_pattern  = re.compile("\(([0-9]+)\)$") # match with parenthesized block length at end
+                    length_pattern  = re.compile(r"\(([0-9]+)\)$") # match with parenthesized block length at end
                     for block in block_names:
                         try:
                             block_name, block_length, _ = re.split(length_pattern,block.strip())

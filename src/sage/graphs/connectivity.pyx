@@ -2351,6 +2351,21 @@ def spqr_tree_to_graph(T):
 
 from sage.graphs.base.sparse_graph cimport SparseGraph
 
+class Component:
+    edge_list = []
+    component_type = 0  #bond = 0, polygon = 1, triconnected = 2
+    def __init__(self, edges, type_c):
+        self.edge_list = edges
+        self.component_type = type_c
+        print "creating new component ", edges
+    def add_edge(self, e):
+        self.edge_list.append(e)
+    def finish_tric_or_poly(self, e):
+        self.edge_list.append(e)
+        if len(self.edge_list) >= 4:
+            self.component_type = 2
+        else:
+            self.component_type = 1
 
 class Triconnectivity:
     """
@@ -2370,20 +2385,7 @@ class Triconnectivity:
         sage: tric.components_list
         []
     """
-    class Component:
-        edge_list = []
-        component_type = 0  #bond = 0, polygon = 1, triconnected = 2
-        def __init__(self, edges, type_c=0):
-            self.edge_list = edges
-            component_type = type_c
-        def add_edge(self, e):
-            self.edge_list.append(e)
-        def finish_tric_or_poly(self, e):
-            self.edge_list.append(e)
-            if len(self.edge_list) >= 4:
-                component_type = 2
-            else:
-                component_type = 1
+    
 
     graph_copy = None #type SparseGraph
     vertex_to_int = {} # mapping of vertices to integers in c_graph
@@ -2457,7 +2459,7 @@ class Triconnectivity:
         # Triconnectivity algorithm
         self.split_multi_egdes()
         self.dfs_counter = 0 # Initialisation for dfs1()
-        self.start_vertex = 7 # Initialisation for dfs1()
+        self.start_vertex = 0 # Initialisation for dfs1()
         self.cut_vertex = self.dfs1(self.start_vertex, check=check)
 
         if check:
@@ -2491,6 +2493,16 @@ class Triconnectivity:
 
         self.path_search(self.start_vertex)
 
+        # last split component
+        print "last split component ", self.e_stack
+        c = Component([],0)
+        print "new component edge list ", c.edge_list
+        while self.e_stack:
+            c.add_edge(self.estack_pop())
+        c.component_type = 2 if len(c.edge_list) > 4 else 1
+        self.components_list.append(c)
+        c = None
+
     # Push a triple on Tstack
     def tstack_push(self, h, a, b):
         self.t_stack_top += 1
@@ -2513,7 +2525,7 @@ class Triconnectivity:
         return e
 
     def new_component(self, edges=[], type_c=0):
-        c = self.Component(edges, type_c)
+        c = Component(edges, type_c)
         self.components_list.append(c)
         # Remove the edges from graph
         for e in edges:
@@ -2539,6 +2551,7 @@ class Triconnectivity:
             else:
                 v = e[1]
             self.highpt[v].remove(it)
+            print "delhigh test ", e, self.highpt[v], it
 
     def split_multi_egdes(self):
         """
@@ -2581,6 +2594,7 @@ class Triconnectivity:
                 # It will add k - 1 multiple edges to comp
                 if sorted_edges[i] == sorted_edges[i + 1]:
                     self.edge_status[sorted_edges[i]] = 3 # edge removed
+                    print "edge removed: ", sorted_edges[i], self.edge_status[sorted_edges[i]]
                     comp.append(sorted_edges[i])
                 else:
                     if comp:
@@ -2592,6 +2606,9 @@ class Triconnectivity:
                 comp.append(sorted_edges[i-1])
                 comp.append(sorted_edges[i-1])
                 self.new_component(comp)
+        print "Edge status after split_multi_edges():"
+        for e in self.graph_copy.edges():
+            print e, self.edge_status[e]
 
 
     def dfs1(self, v, u=None, check=True):
@@ -2811,10 +2828,18 @@ class Triconnectivity:
         """
         y = 0
         vnum = self.newnum[v]
-        adj = self.adj[v]
-        outv = len(adj)
-        for e in adj:
+        outv = len(self.adj[v])
+        #print "path_search(v) with parameter ", v, " with vnum ", vnum
+        #print "PRINTING ADJ IN PATHSEARCH ", v
+        #print self.adj
+        #for e in adj:
+        # ERROR fixed
+        for i in range(len(self.adj[v])):
+            #it = e
+            e = self.adj[v][i]
             it = e
+
+            print "going through edges of ", v, ": edge ", e
             if e in self.reverse_edges:
                 w = e[0] # target
             else:
@@ -2843,13 +2868,22 @@ class Triconnectivity:
                     temp_target = temp[0]
                 else:
                     temp_target = temp[1]
+                #print "w and its adjacency: ", w, "  " , temp
                 # while vnum is not the start_vertex
-                while vnum != 0 and ((self.t_stack_a[self.t_stack_top] == vnum) or \
+                #print "checking the while nvum!=1 test ", vnum
+                #print "stack_top_num=", self.t_stack_top, " :stack_top=",self.t_stack_a[self.t_stack_top]
+                #print "degree[w]=", self.degree[w], "  target=", temp_target, "   last val=", self.newnum[temp_target]
+                #print "WHILECHECK:", self.adj[w]
+                while vnum != 1 and ((self.t_stack_a[self.t_stack_top] == vnum) or \
                         (self.degree[w] == 2 and self.newnum[temp_target] > wnum)):
+                    #print "entered the nvum!=1 while loop ", vnum
                     a = self.t_stack_a[self.t_stack_top]
                     b = self.t_stack_b[self.t_stack_top]
                     e_virt = None
 
+                    print "list indices NONE?? ", a, b
+                    print self.node_at[a]
+                    print self.node_at[b]
                     if a == vnum and self.parent[self.node_at[b]] == self.node_at[a]:
                         self.t_stack_top -= 1
 
@@ -2880,7 +2914,10 @@ class Triconnectivity:
                             if e2_source != w: # OGDF_ASSERT
                                 raise ValueError("graph is not biconnected?")
 
-                            self.new_component([e1, e2, e_virt], 1)
+                            print "before creating new component ", [e1, e2, e_virt]
+                            comp = Component([e1, e2, e_virt], 1)
+                            self.components_list.append(comp)
+                            comp = None
 
                             if self.e_stack:
                                 e1 = self.e_stack[-1]
@@ -2900,7 +2937,8 @@ class Triconnectivity:
                             h = self.t_stack_h[self.t_stack_top]
                             self.t_stack_top -= 1
 
-                            comp = self.new_component()
+                            print "before creating new component - empty edge_list"
+                            comp = Component([],0)
                             while True:
                                 xy = self.e_stack[-1]
                                 if xy in self.reverse_edges:
@@ -2939,18 +2977,27 @@ class Triconnectivity:
                             self.graph_copy.add_edge(self.node_at[a], self.node_at[b])
                             e_virt = (self.node_at[a], self.node_at[b], None)
                             comp.finish_tric_or_poly(e_virt)
+                            self.components_list.append(comp)
+                            comp = None
                             x = self.node_at[b]
 
                         if e_ab is not None:
-                            comp = self.new_component([e_ab, e_virt], type_c=0)
+                            print "before creating new component ", [e_ab, e_virt]
+                            comp = Component([e_ab, e_virt], type_c=0)
                             self.graph_copy.add_edge(v,x)
                             e_virt = (v,x,None)
                             comp.add_edge(e_virt)
                             self.degree[x] -= 1
                             self.degree[v] -= 1
+                            self.components_list.append(comp)
+                            comp = None
 
                         self.e_stack.append(e_virt)
+                        #it = e_virt
+                        # ERROR fixed
+                        self.adj[v][i] = e_virt
                         it = e_virt
+
                         self.in_adj[e_virt] = it
                         self.degree[x] += 1
                         self.degree[v] += 1
@@ -2960,12 +3007,14 @@ class Triconnectivity:
                         w = x
                         wnum = self.newnum[w]
 
+                print "going to start type-1 check"
                 # start type-1 check
                 if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair
                     print "Found type-1 separation pair (", self.node_at[self.lowpt1[w]], ", ", v, ")"
-                    comp = self.new_component()
+                    print "before creating new component  - empty edgelist"
+                    comp = Component([],0)
                     if not self.e_stack: # OGDF_ASSERT
                         raise ValueError("stack is empty")
                     while self.e_stack:
@@ -2986,13 +3035,18 @@ class Triconnectivity:
                         self.degree[self.node_at[xx]] -= 1
                         self.degree[self.node_at[y]] -= 1
 
+                    #print "TYPE1: xx and y,, and vnum and wnum" , xx, y, vnum, self.lowpt1[w]
                     self.graph_copy.add_edge(v, self.node_at[self.lowpt1[w]])
                     e_virt = (v, self.node_at[self.lowpt1[w]], None)
-                    comp.finish_tric_or_poly(e_virt);
+                    comp.finish_tric_or_poly(e_virt)
+                    self.components_list.append(comp)
+                    comp = None
 
                     if (xx == vnum and y == self.lowpt1[w]) or \
                         (y == vnum and xx == self.lowpt1[w]):
-                        comp_bond = self.new_component(type_c = 0)
+                        #print "TYPE1:firstIFcondition"
+                        print "before creating new component - empty edgelist "
+                        comp_bond = Component([],type_c = 0)
                         eh = self.estack_pop()
                         if self.in_adj[eh] != it:
                             if eh in self.reverse_edges:
@@ -3009,11 +3063,22 @@ class Triconnectivity:
                         self.degree[v] -= 1
                         self.degree[self.node_at[self.lowpt1[w]]] -= 1
 
+                        self.components_list.append(comp_bond)
+                        comp_bond = None
+
                     if self.node_at[self.lowpt1[w]] != self.parent[v]:
                         self.e_stack.append(e_virt)
+
+                        #it = e_virt
+                        # ERROR fixed
+                        self.adj[v][i] = e_virt
                         it = e_virt
+
                         self.in_adj[e_virt] = it
-                        if not self.in_high[e_virt] and self.high(self.node_at[self.lowpt1[w]]) < vnum:
+                        #print "TYPE1:secondIFcondition ", it, self.in_adj[e_virt]
+                        # ERROR1 fixed:
+                        #if not self.in_high[e_virt] and self.high(self.node_at[self.lowpt1[w]]) < vnum:
+                        if not e_virt in self.in_high and self.high(self.node_at[self.lowpt1[w]]) < vnum:
                             self.highpt[self.node_at[self.lowpt1[w]]] = [vnum] + self.highpt[self.node_at[self.lowpt1[w]]]
                             self.in_high[e_virt] = vnum
 
@@ -3021,14 +3086,18 @@ class Triconnectivity:
                         self.degree[self.node_at[self.lowpt1[w]]] += 1
 
                     else:
-                        adj.remove(it)
-                        comp_bond = self.new_component([e_virt], type_c=0)
+                        self.adj[v].remove(it)
+                        print "before creating new component ", [e_virt]
+                        comp_bond = Component([e_virt], type_c=0)
                         self.graph_copy.add_edge(self.node_at[self.lowpt1[w]], v)
                         e_virt = (self.node_at[self.lowpt1[w]], v, None)
                         comp_bond.add_edge(e_virt)
 
                         eh = self.tree_arc[v];
                         comp_bond.add_edge(eh)
+
+                        self.components_list.append(comp_bond)
+                        comp_bond = None
 
                         self.tree_arc[v] = e_virt
                         self.egde_status[e_virt] = 1

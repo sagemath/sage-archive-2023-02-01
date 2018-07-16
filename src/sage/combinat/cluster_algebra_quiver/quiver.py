@@ -377,12 +377,11 @@ class ClusterQuiver(SageObject):
                     raise ValueError("the optional list of frozen elements"
                                      " must be vertices of the digraph")
                 else:
-                    frozen = list(frozen)
-                    mlist = self._mlist = frozen
-                    nlist = self._nlist = sorted(x for x in data.vertex_iterator() if x not in mlist)
-                    labelDict = {(nlist + mlist)[i]: range(len(nlist) + len(mlist))[i] for i in range(data.order())}
+                    nlist = self._nlist = sorted(x for x in data.vertex_iterator() if x not in frozen)
+                    mlist = self._mlist = list(frozen)
                     m = self._m = len(frozen)
                     n = self._n = data.order() - m
+                    labelDict = {x: i for i, x in enumerate(nlist + mlist)}
 
             else:
                   raise ValueError("the optional parameter 'frozen' must be"

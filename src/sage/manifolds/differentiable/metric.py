@@ -2224,6 +2224,17 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         r"""
         Return the inverse metric.
 
+        INPUT:
+
+        - ``symbol`` -- (default: ``None``) If not ``None``, the inverse will be
+          expanded with respect to this symbol. The zeroth order metric be
+          invertible. The following calls to this method will return a cached
+          value, even when called with the default value (to enable computation
+          of derived quantities). To reset, call ``_del_derived``
+        - ``order`` -- (default: 2) Order of the big oh in the previous
+          development. Currently only first order inverse is supported, any
+          value other than 2 will thus raise an exception.
+
         OUTPUT:
 
         - instance of

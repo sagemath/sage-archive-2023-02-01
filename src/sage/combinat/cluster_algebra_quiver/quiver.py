@@ -371,13 +371,15 @@ class ClusterQuiver(SageObject):
                 n = self._n = data.order() - m
                 mlist = self._mlist = []
 
-            elif isinstance(frozen,list):
-                if not set(frozen).issubset(set(data.vertices())):
+            elif isinstance(frozen, list):
+                frozen = set(frozen)
+                if not frozen.issubset(data.vertex_iterator()):
                     raise ValueError("the optional list of frozen elements"
                                      " must be vertices of the digraph")
                 else:
-                    mlist = self._mlist = list(frozen)
-                    nlist = self._nlist = [x for x in data.vertices() if x not in mlist]
+                    frozen = list(frozen)
+                    mlist = self._mlist = frozen
+                    nlist = self._nlist = sorted(x for x in data.vertex_iterator() if x not in mlist)
                     labelDict = {(nlist + mlist)[i]: range(len(nlist) + len(mlist))[i] for i in range(data.order())}
                     m = self._m = len(frozen)
                     n = self._n = data.order() - m
@@ -388,13 +390,14 @@ class ClusterQuiver(SageObject):
 
             dg = copy( data )
             dg_labelling = False
-            edges = data.edges(labels=False)
-            if any((a,a) in edges for a in data.vertices()):
+            if data.has_loops():
                 raise ValueError("the input DiGraph contains a loop")
-            if any((b,a) in edges for (a,b) in edges):
+
+            edges = set(data.edge_iterator(labels=False))
+            if any((b, a) in edges for (a, b) in edges):
                 raise ValueError("the input DiGraph contains two-cycles")
 
-            if not set(dg.vertices()) == set(range(n+m)):
+            if not set(dg.vertex_iterator()) == set(range(n + m)):
                 # frozen vertices must be preserved
                 if m != 0:
                     dg_labelling = nlist + mlist
@@ -402,18 +405,21 @@ class ClusterQuiver(SageObject):
                 else:
                     dg_labelling = dg.vertices()
                     dg.relabel()
-            if dg.has_multiple_edges():
+
+            multiple_edges = dg.multiple_edges()
+            if multiple_edges:
                 multi_edges = {}
-                for v1,v2,label in dg.multiple_edges():
+                for v1, v2, label in multiple_edges:
                     if label not in ZZ:
                         raise ValueError("the input DiGraph contains multiple"
                                          " edges labeled by non-integers")
-                    elif (v1,v2) in multi_edges:
-                        multi_edges[(v1,v2)] += label
+                    elif (v1, v2) in multi_edges:
+                        multi_edges[(v1, v2)] += label
                     else:
-                        multi_edges[(v1,v2)] = label
-                    dg.delete_edge(v1,v2)
-                dg.add_edges( [ (v1,v2,multi_edges[(v1,v2)]) for v1,v2 in multi_edges ] )
+                        multi_edges[(v1, v2)] = label
+                    dg.delete_edge(v1, v2)
+                dg.add_edges([(v1, v2, multi_edges[(v1,v2)])
+                              for v1, v2 in multi_edges])
 
             for edge in dg.edge_iterator():
                 if edge[0] >= n and edge[1] >= n:

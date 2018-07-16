@@ -1443,7 +1443,7 @@ class TemperleyLiebDiagrams(AbstractPartitionDiagrams):
         if self.order in ZZ:
             return catalan_number(self.order)
         else:
-            return catalan_number(self.order - QQ.one() / 2)
+            return catalan_number(self.order - ZZ.one() / 2)
 
     def __contains__(self, obj):
         r"""

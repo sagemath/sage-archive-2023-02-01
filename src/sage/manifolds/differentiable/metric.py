@@ -2279,6 +2279,41 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             [ (x - 1)/(x**2*y**2 + x**2 - 1)      x*y/(x**2*y**2 + x**2 - 1)]
             [     x*y/(x**2*y**2 + x**2 - 1) -(x + 1)/(x**2*y**2 + x**2 - 1)]
 
+        Demonstration the development capabilities::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h[0, 1], h[1, 2], h[2, 3] = 1, 1, 1
+            sage: g.set_comp()[:] = (g+e*h)[:]
+            sage: g[:]
+            [ 1  e  0  0]
+            [ e -1  e  0]
+            [ 0  e -1  e]
+            [ 0  0  e -1]
+
+        g is now a tridiagonal metric approximation of the Minkowski metric.
+        The inverse, truncated to first order in ``e`` is::
+
+            sage: g.inverse(e)[:]
+            [ 1  e  0  0]
+            [ e -1 -e  0]
+            [ 0 -e -1 -e]
+            [ 0  0 -e -1]
+
+        If another method then calls ``inverse()``, the result will be the
+        same. This allows whole computations to be made in the first order::
+
+            sage: g.inverse()[:]
+            [ 1  e  0  0]
+            [ e -1 -e  0]
+            [ 0 -e -1 -e]
+            [ 0  0 -e -1]
+
+
         """
 
         if symbol is not None:

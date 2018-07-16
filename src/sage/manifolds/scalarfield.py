@@ -3253,6 +3253,18 @@ class ScalarField(CommutativeAlgebraElement):
         - ``truncate`` -- (default: ``False``) perform one step of
           simplification. False by default.
 
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='Lorentzian')
+            sage: C.<t,x> = M.chart()
+            sage: tau = var('tau')
+            sage: s = M.scalar_field(exp(-tau*t))
+            sage: s.expr()
+            e^(-t*tau)
+            sage: s.set_calc_order(tau, 3, True)
+            sage: s.expr()
+            1/2*t^2*tau^2 - t*tau + 1
+
         """
         for expr in self._express.values():
             expr._symbol = symbol

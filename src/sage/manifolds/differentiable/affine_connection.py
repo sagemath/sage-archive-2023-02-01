@@ -2287,6 +2287,28 @@ class AffineConnection(SageObject):
         - ``truncate`` -- (default: ``False``) perform one step of
           simplification. False by default.
 
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h[0, 1] = x
+            sage: g.set_comp()[:] = (g+e*h)[:]
+            sage: g[:]
+            [  1 e*x   0   0]
+            [e*x  -1   0   0]
+            [  0   0  -1   0]
+            [  0   0   0  -1]
+            sage: nab = g.connection()
+            sage: nab[0, 1, 1]
+            e/(e^2*x^2 + 1)
+            sage: nab.set_calc_order(e, 2, truncate=True)
+            sage: nab[0, 1, 1]
+            e
+
         """
         for coef in self._coefficients.values():
             for ind in coef.non_redundant_index_generator():

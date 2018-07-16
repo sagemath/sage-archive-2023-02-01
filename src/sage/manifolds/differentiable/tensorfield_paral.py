@@ -2057,6 +2057,34 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         - list of pair ``(tensor, order)``
 
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h1 = M.tensor_field(0,2,sym=(0,1))
+            sage: h2 = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
+            sage: h2[0, 2], h2[1, 3] = 1, 1
+            sage: g.set_comp()[:] = (g+e*h1+e**2*h2)[:]
+            sage: g.series(e, 3)[0][0][:]
+            [ 1  0  0  0]
+            [ 0 -1  0  0]
+            [ 0  0 -1  0]
+            [ 0  0  0 -1]
+            sage: g.series(e, 3)[1][0][:]
+            [0 1 0 0]
+            [1 0 1 0]
+            [0 1 0 1]
+            [0 0 1 0]
+            sage: g.series(e, 3)[2][0][:]
+            [0 0 1 0]
+            [0 0 0 1]
+            [1 0 0 0]
+            [0 1 0 0]
+
         """
         from sage.tensor.modules.comp import Components
         if order is None:
@@ -2099,6 +2127,29 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
         - tensorfield approximating ``self``.
 
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h1 = M.tensor_field(0,2,sym=(0,1))
+            sage: h2 = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
+            sage: h2[0, 2], h2[1, 3] = 1, 1
+            sage: g.set_comp()[:] = (g+e*h1+e**2*h2)[:]
+            sage: g[:]
+            [  1   e e^2   0]
+            [  e  -1   e e^2]
+            [e^2   e  -1   e]
+            [  0 e^2   e  -1]
+            sage: g.truncate(e, 2)[:]
+            [ 1  e  0  0]
+            [ e -1  e  0]
+            [ 0  e -1  e]
+            [ 0  0  e -1]
+
         """
         s = self.series(symbol, order)
         return sum(symbol**i*s[i][0] for i in range(order))
@@ -2118,6 +2169,31 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
           first order, set to 2.
         - ``truncate`` -- (default: ``False``) perform one step of
           simplification. False by default.
+
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', structure='Lorentzian')
+            sage: C.<t,x,y,z> = M.chart()
+            sage: e = var('e')
+            sage: g = M.metric('g')
+            sage: h1 = M.tensor_field(0,2,sym=(0,1))
+            sage: h2 = M.tensor_field(0,2,sym=(0,1))
+            sage: g[0, 0], g[1, 1], g[2, 2], g[3, 3] = 1, -1, -1, -1
+            sage: h1[0, 1], h1[1, 2], h1[2, 3] = 1, 1, 1
+            sage: h2[0, 2], h2[1, 3] = 1, 1
+            sage: g.set_comp()[:] = (g+e*h1+e**2*h2)[:]
+            sage: g.set_calc_order(e, 2)
+            sage: g[:]
+            [  1   e e^2   0]
+            [  e  -1   e e^2]
+            [e^2   e  -1   e]
+            [  0 e^2   e  -1]
+            sage: g.set_calc_order(e, 2, truncate=True)
+            sage: g[:]
+            [ 1  e  0  0]
+            [ e -1  e  0]
+            [ 0  e -1  e]
+            [ 0  0  e -1]
 
         """
         for frame in self._components:

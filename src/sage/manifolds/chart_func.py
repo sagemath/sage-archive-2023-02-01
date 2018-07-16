@@ -336,6 +336,28 @@ class ChartFunction(AlgebraElement):
         self._order = order
 
     def _simplify(self, expr):
+        """
+        Simplify the expression `expr` using `self._calc_method.simplify`.
+
+        If needed, truncate the expression to the predefinite order.
+
+        INPUT:
+
+        - ``epr`` -- expression to simplify
+
+        OUTPUT:
+
+        - simplified expression
+
+        EXAMPLES:
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: fc = c_xy.function(x+2*y^3)
+            sage: fc._simplify(x+x)
+            2*x
+
+        """
         res = self._calc_method.simplify(expr)
         if self._calc_method._current == 'SR' and self._symbol is not None:
             res = res.series(self._symbol, self._order).truncate()

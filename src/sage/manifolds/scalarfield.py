@@ -3238,9 +3238,25 @@ class ScalarField(CommutativeAlgebraElement):
         return resu
 
     def set_calc_order(self, symbol, order, truncate = False):
+        """
+        Tell the components to develop their expression in series with respect
+        to parameter ``symbol`` at order ``order``.
+
+        This property is propagated by usual operations. Internal representation
+        must be `SR` for this to take effect.
+
+        INPUT:
+
+        - ``symbol`` -- symbol used to develop the components around zero.
+        - ``order`` -- order of the big oh in the development. To keep only the
+          first order, set to 2.
+        - ``truncate`` -- (default: ``False``) perform one step of
+          simplification. False by default.
+
+        """
         for expr in self._express.values():
-            expr._symbol = self._symbol
-            expr._order = self._order
+            expr._symbol = symbol
+            expr._order = order
             if truncate:
                 expr.simplify()
         self._del_derived()

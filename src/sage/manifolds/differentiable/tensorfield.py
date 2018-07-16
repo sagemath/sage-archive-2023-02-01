@@ -2159,7 +2159,6 @@ class TensorField(ModuleElement):
             True
 
         """
-        from sage.manifolds.scalarfield import ScalarField
         resu = self._new_instance()
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = scalar.restrict(dom) * rst
@@ -2278,8 +2277,7 @@ class TensorField(ModuleElement):
         other_r = other.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
             # call of the FreeModuleTensor version:
-            resu = FreeModuleTensor.__mul__(self_r, other_r)
-            return resu
+            return FreeModuleTensor.__mul__(self_r, other_r)
         dest_map = self._vmodule._dest_map
         dest_map_resu = dest_map.restrict(dom_resu, subcodomain=ambient_dom_resu)
         vmodule = dom_resu.vector_field_module(dest_map=dest_map_resu)
@@ -3979,6 +3977,22 @@ class TensorField(ModuleElement):
         return resu
 
     def set_calc_order(self, symbol, order, truncate = False):
+        """
+        Tell the components to develop their expression in series with respect
+        to parameter ``symbol`` at order ``order``.
+
+        This property is propagated by usual operations. Internal representation
+        must be `SR` for this to take effect.
+
+        INPUT:
+
+        - ``symbol`` -- symbol used to develop the components around zero.
+        - ``order`` -- order of the big oh in the development. To keep only the
+          first order, set to 2.
+        - ``truncate`` -- (default: ``False``) perform one step of
+          simplification. False by default.
+
+        """
         for rst in self._restrictions.values():
             rst.set_calc_order(symbol, order, truncate)
         self._del_derived()

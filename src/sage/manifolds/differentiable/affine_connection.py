@@ -2272,10 +2272,26 @@ class AffineConnection(SageObject):
         return  self._curvature_forms[frame][(i,j)]
 
     def set_calc_order(self, symbol, order, truncate = False):
+        """
+        Tell the components to develop their expression in series with respect
+        to parameter ``symbol`` at order ``order``.
+
+        This property is propagated by usual operations. Internal representation
+        must be `SR` for this to take effect.
+
+        INPUT:
+
+        - ``symbol`` -- symbol used to develop the components around zero.
+        - ``order`` -- order of the big oh in the development. To keep only the
+          first order, set to 2.
+        - ``truncate`` -- (default: ``False``) perform one step of
+          simplification. False by default.
+
+        """
         for coef in self._coefficients.values():
             for ind in coef.non_redundant_index_generator():
-                coef[ind]._symbol = self._symbol
-                coef[ind]._order = self._order
+                coef[ind]._symbol = symbol
+                coef[ind]._order = order
                 if truncate:
                     coef[ind].simplify()
         self._del_derived()

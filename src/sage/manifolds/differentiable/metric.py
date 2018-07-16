@@ -2287,7 +2287,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
             g0m.set_comp()[:]=g0[:]    # an "inverse" method.
 
             self._inverse = g0m.inverse()-g1.contract(0,g0m.inverse(),0)\
-                .contract(1,g0m.inverse(),0)*symbol
+                .contract(1,g0m.inverse(),1)*symbol
             self._inverse.set_calc_order(symbol, 2)
             return self._inverse
 

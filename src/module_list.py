@@ -375,6 +375,9 @@ ext_modules = [
 
     Extension('sage.graphs.strongly_regular_db',
               sources = ['sage/graphs/strongly_regular_db.pyx']),
+    
+    Extension('sage.graphs.generators.hamming_graphs',
+			  sources = ['sage/graphs/generators/hammings.pyx']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
               sources = ['sage/graphs/graph_decompositions/rankwidth.pyx'],

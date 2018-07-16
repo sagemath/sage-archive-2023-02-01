@@ -2023,6 +2023,7 @@ class GraphGenerators():
 # Families
 ###########################################################################
     import sage.graphs.generators.families
+    import sage.graphs.generators.hamming_graphs
     AztecDiamondGraph      = staticmethod(sage.graphs.generators.families.AztecDiamondGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
@@ -2038,9 +2039,11 @@ class GraphGenerators():
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(sage.graphs.generators.families.GoethalsSeidelGraph)
+    HammingGraph		   = staticmethod(sage.graphs.generators.hamming_graphs.HammingGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
+    IGraph				   = staticmethod(sage.graphs.generators.hamming_graphs.IGraph) 	
     JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)

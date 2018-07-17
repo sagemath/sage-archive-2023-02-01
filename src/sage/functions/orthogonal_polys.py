@@ -1352,7 +1352,7 @@ class Func_legendre_Q(BuiltinFunction):
 
         REFERENCE:
 
-        - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E2
+        - T. M. Dunster, Legendre and Related Functions, https://dlmf.nist.gov/14.7#E2
 
         EXAMPLES::
 
@@ -1538,7 +1538,7 @@ class Func_assoc_legendre_P(BuiltinFunction):
 
         REFERENCE:
 
-        - T. M. Dunster, Legendre and Related Functions, http://dlmf.nist.gov/14.7#E10
+        - T. M. Dunster, Legendre and Related Functions, https://dlmf.nist.gov/14.7#E10
         """
         from sage.functions.other import factorial
         if n < 0 or m < 0:

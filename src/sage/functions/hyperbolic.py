@@ -23,7 +23,7 @@ REFERENCES:
 
 - :wikipedia:`Inverse hyperbolic functions`
 
-- R. Roy, F. W. J. Olver, Elementary Functions, http://dlmf.nist.gov/4
+- R. Roy, F. W. J. Olver, Elementary Functions, https://dlmf.nist.gov/4
 """
 from __future__ import division
 

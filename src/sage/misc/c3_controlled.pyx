@@ -225,10 +225,9 @@ default linear extension for `P`::
     sage: list(P)
     [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
-Now, we play with the fifth linear extension of `P`::
+Now we play with a specific linear extension of `P`::
 
-    sage: L = P.linear_extensions()
-    sage: Q = L[5].to_poset()
+    sage: Q = P.linear_extension([10, 9, 8, 7, 6, 5, 4, 1, 2, 3]).to_poset()
     sage: Q.cover_relations()
     [[10, 9], [10, 8], [10, 7], [9, 6], [9, 3], [8, 5], [8, 2], [7, 4], [7, 1], [6, 2], [6, 1], [5, 3], [5, 1], [4, 3], [4, 2]]
     sage: x = HierarchyElement(10, Q)
@@ -274,6 +273,7 @@ We now check that the ``C3`` algorithm fails for all linear extensions
 `l` of this poset, whereas both the instrumented and controlled ``C3``
 algorithms succeed; along the way, we collect some statistics::
 
+    sage: L = P.linear_extensions()
     sage: stats = []
     sage: for l in L:
     ....:     x = HierarchyElement(10, l.to_poset())

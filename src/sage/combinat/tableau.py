@@ -7724,8 +7724,7 @@ class StandardTableaux_shape(StandardTableaux):
 
         t = [[None]*n for n in p]
 
-
-        #Get the cells in the
+        #Get the cells in the Young diagram
         cells = []
         for i in range(len(p)):
             for j in range(p[i]):
@@ -7737,19 +7736,17 @@ class StandardTableaux_shape(StandardTableaux):
             #Choose a cell at random
             cell = random.choice(cells)
 
-
             #Find a corner
             inner_corners = p.corners()
             while cell not in inner_corners:
                 hooks = []
-                for k in range(cell[1], p[cell[0]]):
+                for k in range(cell[1]+1, p[cell[0]]):
                     hooks.append((cell[0], k))
-                for k in range(cell[0], len(p)):
+                for k in range(cell[0]+1, len(p)):
                     if p[k] > cell[1]:
                         hooks.append((k, cell[1]))
 
                 cell = random.choice(hooks)
-
 
             #Assign m to cell
             t[cell[0]][cell[1]] = m

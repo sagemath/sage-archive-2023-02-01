@@ -7,6 +7,8 @@
 #
 #  Options can be:
 #   -s: do not delete temporary build directory
+#   -k: do not uninstall existing installation of this package before
+#       installing; instead simply overwrite existing files.
 #   -c: after installing, run the test suite for the spkg. This should
 #       override the settings of SAGE_CHECK and SAGE_CHECK_PACKAGES.
 #   -d: only download the package
@@ -210,6 +212,7 @@ fi
 # Parse options
 INFO=0
 YES=0
+KEEP_EXISTING=0
 while true; do
     case "$1" in
         --info)
@@ -225,6 +228,8 @@ while true; do
         -c|--check)
             SAGE_CHECK_PACKAGES=x  # nonempty, so not set to default later
             export SAGE_CHECK=yes;;
+        -k|--keep-existing)
+            KEEP_EXISTING=yes;;
         -*)
             echo >&2 "Error: unknown option '$1'"
             exit 2;;
@@ -847,7 +852,9 @@ export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
 
 # First uninstall the previous version of this package, if any
-sage-spkg-uninstall "$PKG_BASE"
+if [ "$KEEP_EXISTING" != "yes" ]; then
+    sage-spkg-uninstall "$PKG_BASE"
+fi
 
 
 if [ -f spkg-build ]; then

@@ -329,7 +329,7 @@ dnl In the latter case, a warning is given.
 AC_DEFUN([SAGE_SHOULD_INSTALL_GCC], [
     if test x$SAGE_INSTALL_GCC = xexists; then
         # Already installed in Sage, but it should remain selected
-        need_to_install_gcc=yes
+        true
     elif test x$SAGE_INSTALL_GCC = xno; then
         AC_MSG_WARN([$1])
     else
@@ -345,7 +345,7 @@ dnl In this case, it is an error if SAGE_INSTALL_GCC=no.
 AC_DEFUN([SAGE_MUST_INSTALL_GCC], [
     if test x$SAGE_INSTALL_GCC = xexists; then
         # Already installed in Sage, but it should remain selected
-        need_to_install_gcc=yes
+        true
     elif test x$SAGE_INSTALL_GCC = xno; then
         AC_MSG_ERROR([SAGE_INSTALL_GCC is set to 'no', but $1])
     else
@@ -363,6 +363,9 @@ need_to_install_gfortran=no
 if test -f "$SAGE_LOCAL/bin/gcc"; then
     # Special value for SAGE_INSTALL_GCC if GCC is already installed
     SAGE_INSTALL_GCC=exists
+    # Set yes since this implies we have already installed GCC and want to keep
+    # it selected
+    need_to_install_gcc=yes
 
     # Check whether it actually works...
     # See https://trac.sagemath.org/ticket/24599

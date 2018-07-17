@@ -215,9 +215,6 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: R.<x> = QQ[]
         sage: ProjectiveSpace(R)
         Projective Space of dimension 0 over Rational Field
-    
-    Note that we need atleast 2 generators for any projective space, since a projective
-    space of dimension 0 does not make sense.
     """
     if is_MPolynomialRing(n) or is_PolynomialRing(n) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())

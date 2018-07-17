@@ -78,12 +78,11 @@ toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
 # Note: This list is determined from the dependencies of the TOOLCHAIN
 # packages which include gcc, and optionally ccache; in principle this
 # list is redundant.
+TOOLCHAIN_DEPS = zlib xz $(MP_LIBRARY) mpfr mpc
 toolchain-deps:
-	$(MAKE) $(inst_zlib)
-	$(MAKE) $(inst_xz)
-	$(MAKE) $(MP_LIBRARY)
-	$(MAKE) $(inst_mpfr)
-	$(MAKE) $(inst_mpc)
+	for pkg in $(TOOLCHAIN_DEPS); do \
+	    $(MAKE) $$pkg; \
+	done
 
 all-toolchain: base-toolchain
 	$(MAKE) toolchain-deps

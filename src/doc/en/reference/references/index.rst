@@ -2707,6 +2707,9 @@ REFERENCES:
                  \B. Preenel, *Finding Optimal Bitsliced Implementations of 4 x 4-bit
                  S-boxes*; in SKEW, (2011).
 
+.. [Ukko1995] \E. Ukkonen, *On-line construction of suffix trees*,
+              Algorithmica, 1995, volume **14**, number 3, pages 249--260.
+
 .. [UNITTEST] unittest -- Unit testing framework --
               http://docs.python.org/library/unittest.html
 

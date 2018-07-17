@@ -112,7 +112,7 @@ def scale(c,v,p):
     return [flag,c,v]
 
 
-def blift(LF, Li, p, k, S=None, all_orbits=0):
+def blift(LF, Li, p, k, S=None, all_orbits=False):
     r"""
     Search for a solution to the given list of inequalities.
 
@@ -131,7 +131,7 @@ def blift(LF, Li, p, k, S=None, all_orbits=0):
 
     - ``S`` -- polynomial ring to use
 
-    - ``all_orbits`` -- integer 0 or 1, whether or not to use <= in the inequalities
+    - ``all_orbits`` -- boolean, whether or not to use <= in the inequalities
       to find all orbits
 
     OUTPUT:
@@ -291,7 +291,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
                 min = True
             else:
                 #The model may not be minimal at p.
-                newvp,conj = Min(vp, p, ubRes, conj, all_orbits=0)
+                newvp,conj = Min(vp, p, ubRes, conj, all_orbits=False)
                 if newvp == vp:
                     min = True
                 else:
@@ -320,7 +320,7 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     return vp
 
 
-def Min(Fun, p, ubRes, conj, all_orbits=0):
+def Min(Fun, p, ubRes, conj, all_orbits=False):
     r"""
     Local loop for Affine_minimal, where we check minimality at the prime p.
 
@@ -337,7 +337,7 @@ def Min(Fun, p, ubRes, conj, all_orbits=0):
 
     - ``conj`` -- a 2x2 matrix keeping track of the conjugation
 
-    - ``all_orbits`` -- integer 0 or 1, whether or not to use == in the inequalities
+    - ``all_orbits`` -- boolean, whether or not to use == in the inequalities
       to find all orbits
 
     OUTPUT:
@@ -372,10 +372,10 @@ def Min(Fun, p, ubRes, conj, all_orbits=0):
     dG = G.degree()
     #all_orbits scales bounds for >= and <= if searching for orbits instead of min model
     if dG > (d+1)/2:
-        lowerBound = (-2*(G[dG]).valuation(p)/(2*dG - d + 1) + 1).floor() - all_orbits
+        lowerBound = (-2*(G[dG]).valuation(p)/(2*dG - d + 1) + 1).floor() - int(all_orbits)
     else:
-        lowerBound = (-2*(F[d]).valuation(p)/(d-1) + 1).floor() - all_orbits
-    upperBound = 2*(ubRes.valuation(p)) + all_orbits
+        lowerBound = (-2*(F[d]).valuation(p)/(d-1) + 1).floor() - int(all_orbits)
+    upperBound = 2*(ubRes.valuation(p)) + int(all_orbits)
 
     if upperBound < lowerBound:
         #There are no possible transformations to reduce the resultant.
@@ -401,10 +401,10 @@ def Min(Fun, p, ubRes, conj, all_orbits=0):
         #If there is some b such that Res(phi^A) < Res(phi), we must have ord_p(c) >
         #RHS for each c in coeffs.
         #Make sure constant coefficients in coeffs satisfy the inequality.
-        if all( QQ(c).valuation(p) > (RHS - all_orbits) for c in coeffs if c.degree() ==0 ):
+        if all( QQ(c).valuation(p) > (RHS - int(all_orbits)) for c in coeffs if c.degree() ==0 ):
             #Constant coefficients in coeffs have large enough valuation, so check
             #the rest. We start by checking if simply picking b=0 works
-            if all(c(0).valuation(p) > (RHS - all_orbits) for c in coeffs):
+            if all(c(0).valuation(p) > (RHS - int(all_orbits)) for c in coeffs):
                 #A = z*p^k satisfies the inequalities, and F/G is not minimal
                 #"Conjugating by", p,"^", k, "*z +", 0
                 newconj = matrix(QQ,2,2, [p**k, 0, 0, 1])
@@ -431,7 +431,7 @@ def Min(Fun, p, ubRes, conj, all_orbits=0):
 
             #We now search for integers that satisfy the inequality ord_p(coeff) >
             #RHS. See Lemma 3.3.6 in [Molnar, M.Sc. thesis].
-            bound = (scaleRHS+1-all_orbits).floor()
+            bound = (scaleRHS+1-int(all_orbits)).floor()
             all_blift = blift(normalizedCoeffs, bound, p, k, all_orbits=all_orbits)
 
             #If bool is true after lifting, we have a solution b, and F/G is not
@@ -517,7 +517,7 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     all_pM = []
     for p in D:
         #all_orbits used to scale inequalities to equalities
-        all_pM.append(Min(map, p, res, M_Id, all_orbits=1))
+        all_pM.append(Min(map, p, res, M_Id, all_orbits=True))
         #need the identity for each prime
         if [p, 0, 0] not in all_pM[-1]:
             all_pM[-1].append([p, 0, 0])

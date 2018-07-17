@@ -249,7 +249,8 @@ ARG SAGE_ROOT=/home/sage/sage
 # ARTIFACT_BASE to the image size. As of mid 2018 this is notably the case with
 # the docker instances provided by setup_remote_docker on CircleCI. As a
 # result, the sagemath-dev images that are "build-from-latest" are twice as big
-# as the ones that are build on GitLab.
+# as the ones that are build on GitLab:
+# https://github.com/moby/moby/issues/6119#issuecomment-268870519
 COPY --chown=sage:sage --from=sagemath-dev-patch $SAGE_ROOT $SAGE_ROOT
 ARG ARTIFACT_BASE=source-clean
 # Apply the patch from sagemath-dev-patch if we created one.

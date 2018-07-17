@@ -214,16 +214,12 @@ def ProjectiveSpace(n, R=None, names='x'):
 
         sage: R.<x> = QQ[]
         sage: ProjectiveSpace(R)
-        Traceback (most recent call last):
-        ...
-        TypeError: Polynomial ring must be multivariate to construct a projective space
+        Projective Space of dimension 0 over Rational Field
     
     Note that we need atleast 2 generators for any projective space, since a projective
     space of dimension 0 does not make sense.
     """
-    if is_PolynomialRing(n) and R is None:
-        raise TypeError('Polynomial ring must be multivariate to construct a projective space')
-    if is_MPolynomialRing(n) and R is None:
+    if is_MPolynomialRing(n) or is_PolynomialRing(n) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A

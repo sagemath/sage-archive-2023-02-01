@@ -22,7 +22,7 @@ acyclic graph::
     sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
     sage: D.is_directed_acyclic()
     True
-    sage: LinearExtensions(D).list()
+    sage: sorted(LinearExtensions(D))
     [[0, 1, 2, 3, 4],
      [0, 1, 2, 4, 3],
      [0, 2, 1, 3, 4],
@@ -35,7 +35,7 @@ induced from the graph.
 We can also get at the linear extensions directly from the graph.  From
 the graph, the linear extensions are known as topological sorts ::
 
-    sage: D.topological_sort_generator()
+    sage: sorted(D.topological_sort_generator())
     [[0, 1, 2, 3, 4],
      [0, 1, 2, 4, 3],
      [0, 2, 1, 3, 4],
@@ -80,10 +80,14 @@ class LinearExtensions(CombinatorialClass):
             True
 
         """
+        self.dag = dag
+        self._name = "Linear extensions of %s"%dag
+
+    def _prepare(self):
         ################
         #Precomputation#
         ################
-        dag_copy = copy(dag)
+        dag_copy = copy(self.dag)
         le = []
         a  = []
         b  = []
@@ -114,13 +118,9 @@ class LinearExtensions(CombinatorialClass):
         self.le = le
         self.a  = a
         self.b  = b
-        self.dag = dag
         self.mrb = 0
         self.mra = 0
         self.is_plus = True
-        self.linear_extensions = None
-        self._name = "Linear extensions of %s"%dag
-
 
     def switch(self, i):
         """
@@ -353,13 +353,14 @@ class LinearExtensions(CombinatorialClass):
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
-            sage: LinearExtensions(D).list()
+            sage: sorted(LinearExtensions(D))
             [[0, 1, 2, 3, 4],
              [0, 1, 2, 4, 3],
              [0, 2, 1, 3, 4],
              [0, 2, 1, 4, 3],
              [0, 2, 4, 1, 3]]
         """
+        self._prepare()
         yield self.le[:]
         for e in self.generate_linear_extensions(self.max_pair):
             yield e

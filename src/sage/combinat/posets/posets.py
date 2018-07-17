@@ -6061,8 +6061,8 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: N = Poset({1: [3, 4], 2: [4]})
             sage: G = N.linear_extensions_graph(); G
             Graph on 5 vertices
-            sage: G.neighbors(N.linear_extension([1,2,3,4]))
-            [[2, 1, 3, 4], [1, 2, 4, 3], [1, 3, 2, 4]]
+            sage: sorted(G.neighbors(N.linear_extension([1,2,3,4])))
+            [[1, 2, 4, 3], [1, 3, 2, 4], [2, 1, 3, 4]]
 
             sage: chevron = Poset({1: [2, 6], 2: [3], 4: [3, 5], 6: [5]})
             sage: G = chevron.linear_extensions_graph(); G
@@ -6082,7 +6082,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.graphs.graph import Graph
         # Direct implementation, no optimizations
-        L = self.linear_extensions()
+        L = sorted(self.linear_extensions())
         G = Graph()
         G.add_vertices(L)
         for i in range(len(L)):

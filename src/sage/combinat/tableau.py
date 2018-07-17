@@ -6689,7 +6689,7 @@ class RowStandardTableaux(Tableaux):
     - with a partition argument, the class of all standard tableaux of that
       shape
 
-    A row standard tableau is a tableaux that contains each of the
+    A row standard tableau is a tableau that contains each of the
     entries from `1` to `n` exactly once and is increasing along rows.
 
     All classes of row standard tableaux are iterable.
@@ -6701,20 +6701,20 @@ class RowStandardTableaux(Tableaux):
         sage: ST.first()
         [[1, 2, 3]]
         sage: ST.last()
-        [[1], [2], [3]]
+        [[3], [1], [2]]
         sage: ST.cardinality()
         10
-        sage: ST.list()
+        sage: sorted(ST, key=lambda t: t.shape(), reverse=True)
         [[[1, 2, 3]],
          [[2, 3], [1]],
-         [[1, 3], [2]],
          [[1, 2], [3]],
+         [[1, 3], [2]],
          [[3], [2], [1]],
          [[2], [3], [1]],
-         [[3], [1], [2]],
-         [[2], [1], [3]],
          [[1], [3], [2]],
-         [[1], [2], [3]]]
+         [[1], [2], [3]],
+         [[2], [1], [3]],
+         [[3], [1], [2]]]
 
     .. SEEALSO::
 
@@ -6732,18 +6732,18 @@ class RowStandardTableaux(Tableaux):
         sage: ST = RowStandardTableaux([2,2]); ST
         Row standard tableaux of shape [2, 2]
         sage: ST.first()
-        [[3, 4], [1, 2]]
+        [[2, 4], [1, 3]]
         sage: ST.last()
-        [[1, 2], [3, 4]]
+        [[2, 3], [1, 4]]
         sage: ST.cardinality()
         6
-        sage: ST.list()
-        [[[3, 4], [1, 2]],
-         [[2, 4], [1, 3]],
-         [[2, 3], [1, 4]],
-         [[1, 4], [2, 3]],
+        sage: sorted(ST)
+        [[[1, 2], [3, 4]],
          [[1, 3], [2, 4]],
-         [[1, 2], [3, 4]]]
+         [[1, 4], [2, 3]],
+         [[2, 3], [1, 4]],
+         [[2, 4], [1, 3]],
+         [[3, 4], [1, 2]]]
         sage: RowStandardTableau([[3,4,5],[1,2]]).residue_sequence(3).standard_tableaux()
         Standard tableaux with 3-residue sequence (2,0,0,1,2) and multicharge (0)
     """
@@ -6874,17 +6874,17 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
         [[[1]]]
         sage: [ t for t in RowStandardTableaux(2) ]
         [[[1, 2]], [[2], [1]], [[1], [2]]]
-        sage: RowStandardTableaux(3)[:]
+        sage: list(RowStandardTableaux(3))
         [[[1, 2, 3]],
          [[2, 3], [1]],
-         [[1, 3], [2]],
          [[1, 2], [3]],
+         [[1, 3], [2]],
          [[3], [2], [1]],
          [[2], [3], [1]],
-         [[3], [1], [2]],
-         [[2], [1], [3]],
          [[1], [3], [2]],
-         [[1], [2], [3]]]
+         [[1], [2], [3]],
+         [[2], [1], [3]],
+         [[3], [1], [2]]]
 
     TESTS::
 
@@ -7013,24 +7013,24 @@ class RowStandardTableaux_shape(RowStandardTableaux):
 
         EXAMPLES::
 
-            sage: [t for t in RowStandardTableaux([2,2])]
-            [[[3, 4], [1, 2]],
-             [[2, 4], [1, 3]],
-             [[2, 3], [1, 4]],
-             [[1, 4], [2, 3]],
+            sage: sorted(RowStandardTableaux([2,2]))
+            [[[1, 2], [3, 4]],
              [[1, 3], [2, 4]],
-             [[1, 2], [3, 4]]]
-            sage: [t for t in RowStandardTableaux([3,2])]
-            [[[3, 4, 5], [1, 2]],
-             [[2, 4, 5], [1, 3]],
-             [[2, 3, 5], [1, 4]],
-             [[2, 3, 4], [1, 5]],
-             [[1, 4, 5], [2, 3]],
-             [[1, 3, 5], [2, 4]],
-             [[1, 3, 4], [2, 5]],
-             [[1, 2, 5], [3, 4]],
+             [[1, 4], [2, 3]],
+             [[2, 3], [1, 4]],
+             [[2, 4], [1, 3]],
+             [[3, 4], [1, 2]]]
+            sage: sorted(RowStandardTableaux([3,2]))
+            [[[1, 2, 3], [4, 5]],
              [[1, 2, 4], [3, 5]],
-             [[1, 2, 3], [4, 5]]]
+             [[1, 2, 5], [3, 4]],
+             [[1, 3, 4], [2, 5]],
+             [[1, 3, 5], [2, 4]],
+             [[1, 4, 5], [2, 3]],
+             [[2, 3, 4], [1, 5]],
+             [[2, 3, 5], [1, 4]],
+             [[2, 4, 5], [1, 3]],
+             [[3, 4, 5], [1, 2]]]
             sage: st = RowStandardTableaux([2,1])
             sage: st[0].parent() is st
             True
@@ -7043,9 +7043,15 @@ class RowStandardTableaux_shape(RowStandardTableaux):
         for row in self.shape:
             relations += [(m+i,m+i+1) for i in range(row-1)]
             m += row
-
+#        print("iterating through %s"%self.shape)
+        P = Poset((range(1,self.shape.size()+1), relations))
+        L = P.linear_extensions()
+#        print("covers: %s"%P.cover_relations())
+#        print("exts: %s"%[e for e in L])
+#        print("ext2: %s"%[e for e in L])
         # now run through the linear extensions and return the corresponding tableau
-        for lin in Poset((range(1,self.shape.size()+1), relations)).linear_extensions():
+        for lin in L:
+#            print("l-ext %s"%lin)
             linear_tab = list(permutation.Permutation(lin).inverse())
             tab = [linear_tab[partial_sums[i]:partial_sums[i+1]]
                    for i in range(len(self.shape))]

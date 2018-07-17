@@ -3889,8 +3889,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if len(A) == 1:
             for a in A[0]:
                 if len(a) > 1:
-                    return (False, (self._vertex_to_element(a[0]),
-                                    self._vertex_to_element(a[1])))
+                    x, y = min(a), max(a)
+                    return (False, (self._vertex_to_element(x),
+                                    self._vertex_to_element(y)))
 
         H_closure = H.transitive_closure()
         a0 = [min(v) for v in A[0]]
@@ -4531,7 +4532,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             ....:                   6: [8], 3: [9], 7: [10], 8: [10], 9:[10]})
             sage: cong = L.congruence([[1, 2]])
             sage: cong[0]
-            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+            frozenset({1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
 
         .. SEEALSO:: :meth:`quotient`
 

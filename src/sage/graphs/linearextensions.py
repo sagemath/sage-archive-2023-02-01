@@ -22,7 +22,7 @@ acyclic graph::
     sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
     sage: D.is_directed_acyclic()
     True
-    sage: LinearExtensions(D).list()
+    sage: sorted(LinearExtensions(D))
     [[0, 1, 2, 3, 4],
      [0, 1, 2, 4, 3],
      [0, 2, 1, 3, 4],
@@ -35,7 +35,7 @@ induced from the graph.
 We can also get at the linear extensions directly from the graph.  From
 the graph, the linear extensions are known as topological sorts ::
 
-    sage: D.topological_sort_generator()
+    sage: sorted(D.topological_sort_generator())
     [[0, 1, 2, 3, 4],
      [0, 1, 2, 4, 3],
      [0, 2, 1, 3, 4],
@@ -80,10 +80,14 @@ class LinearExtensions(CombinatorialClass):
             True
 
         """
+        self.dag = dag
+        self._name = "Linear extensions of %s"%dag
+
+    def _prepare(self):
         ################
         #Precomputation#
         ################
-        dag_copy = copy(dag)
+        dag_copy = copy(self.dag)
         le = []
         a  = []
         b  = []
@@ -114,13 +118,9 @@ class LinearExtensions(CombinatorialClass):
         self.le = le
         self.a  = a
         self.b  = b
-        self.dag = dag
         self.mrb = 0
         self.mra = 0
         self.is_plus = True
-        self.linear_extensions = None
-        self._name = "Linear extensions of %s"%dag
-
 
     def switch(self, i):
         """
@@ -157,7 +157,6 @@ class LinearExtensions(CombinatorialClass):
             sage: l.b
             [1, 3]
 
-
         """
         if i == -1:
             self.is_plus = not self.is_plus
@@ -170,7 +169,7 @@ class LinearExtensions(CombinatorialClass):
             self.b[i], self.a[i] = self.a[i], self.b[i]
 
         if self.is_plus:
-            self.linear_extensions.append(self.le[:])
+            yield self.le[:]
 
 
     def move(self, element, direction):
@@ -211,7 +210,7 @@ class LinearExtensions(CombinatorialClass):
             print("Bad direction!")
             sys.exit()
         if self.is_plus:
-            self.linear_extensions.append(self.le[:])
+            yield self.le[:]
 
 
     def right(self, i, letter):
@@ -293,43 +292,57 @@ class LinearExtensions(CombinatorialClass):
 
         """
         if i >= 0:
-            self.generate_linear_extensions(i-1)
+            for e in self.generate_linear_extensions(i-1):
+                yield e
             mrb = 0
             typical = False
             while self.right(i, "b"):
                 mrb += 1
-                self.move(self.b[i], "right")
-                self.generate_linear_extensions(i-1)
+                for e in self.move(self.b[i], "right"):
+                    yield e
+                for e in self.generate_linear_extensions(i-1):
+                    yield e
                 mra = 0
                 if self.right(i, "a"):
                     typical = True
                     cont = True
                     while cont:
                         mra += 1
-                        self.move(self.a[i], "right")
-                        self.generate_linear_extensions(i-1)
+                        for e in self.move(self.a[i], "right"):
+                            yield e
+                        for e in self.generate_linear_extensions(i-1):
+                            yield e
                         cont = self.right(i, "a")
                 if typical:
-                    self.switch(i-1)
-                    self.generate_linear_extensions(i-1)
+                    for e in self.switch(i-1):
+                        yield e
+                    for e in self.generate_linear_extensions(i-1):
+                        yield e
                     if mrb % 2 == 1:
                         mla = mra -1
                     else:
                         mla = mra + 1
                     for x in range(mla):
-                        self.move(self.a[i], "left")
-                        self.generate_linear_extensions(i-1)
+                        for e in self.move(self.a[i], "left"):
+                            yield e
+                        for e in self.generate_linear_extensions(i-1):
+                            yield e
 
             if typical and (mrb % 2 == 1):
-                self.move(self.a[i], "left")
+                for e in self.move(self.a[i], "left"):
+                    yield e
             else:
-                self.switch(i-1)
-            self.generate_linear_extensions(i-1)
+                for e in self.switch(i-1):
+                    yield e
+            for e in self.generate_linear_extensions(i-1):
+                yield e
             for x in range(mrb):
-                self.move(self.b[i], "left")
-                self.generate_linear_extensions(i-1)
+                for e in self.move(self.b[i], "left"):
+                    yield e
+                for e in self.generate_linear_extensions(i-1):
+                    yield e
 
-    def list(self):
+    def __iter__(self):
         """
         Returns a list of the linear extensions of the directed acyclic graph.
 
@@ -340,23 +353,21 @@ class LinearExtensions(CombinatorialClass):
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
-            sage: LinearExtensions(D).list()
+            sage: sorted(LinearExtensions(D))
             [[0, 1, 2, 3, 4],
              [0, 1, 2, 4, 3],
              [0, 2, 1, 3, 4],
              [0, 2, 1, 4, 3],
              [0, 2, 4, 1, 3]]
         """
-        if self.linear_extensions is not None:
-            return self.linear_extensions[:]
-
-        self.linear_extensions = []
-        self.linear_extensions.append(self.le[:])
-        self.generate_linear_extensions(self.max_pair)
-        self.switch(self.max_pair)
-        self.generate_linear_extensions(self.max_pair)
-        self.linear_extensions.sort()
-        return self.linear_extensions[:]
+        self._prepare()
+        yield self.le[:]
+        for e in self.generate_linear_extensions(self.max_pair):
+            yield e
+        for e in self.switch(self.max_pair):
+            yield e
+        for e in self.generate_linear_extensions(self.max_pair):
+            yield e
 
 
     def incomparable(self, x, y):

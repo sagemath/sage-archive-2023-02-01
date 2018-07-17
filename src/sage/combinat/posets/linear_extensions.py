@@ -268,7 +268,7 @@ class LinearExtensionOfPoset(ClonableArray):
             [1, 2, 3, 4]
             sage: l.tau(1)
             [2, 1, 3, 4]
-            sage: for p in L:
+            sage: for p in sorted(L):
             ....:     for i in range(1,4):
             ....:         print("{} {} {}".format(i, p, p.tau(i)))
             1 [1, 2, 3, 4] [2, 1, 3, 4]
@@ -423,7 +423,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         The set of all linear extensions of Finite poset containing 4 elements with distinguished linear extension
         sage: L.cardinality()
         5
-        sage: L.list()
+        sage: sorted(L)
         [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [2, 1, 3, 4], [2, 1, 4, 3]]
         sage: L.an_element()
         [1, 2, 3, 4]
@@ -601,7 +601,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: rels = [[1,3],[1,4],[2,3]]
             sage: P = Poset((elms, rels), linear_extension=True)
             sage: L = P.linear_extensions()
-            sage: list(L)
+            sage: sorted(L)
             [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [2, 1, 3, 4], [2, 1, 4, 3]]
         """
         vertex_to_element = self._poset._vertex_to_element
@@ -717,18 +717,19 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: G = L.markov_chain_digraph(labeling = 'source'); G
             Looped multi-digraph on 5 vertices
         """
-        d = dict([x,dict([y,[]] for y in self)] for x in self)
+        L = sorted(self.list())
+        d = dict([x,dict([y,[]] for y in L)] for x in L)
         if action == 'promotion':
             R = list(range(self.poset().cardinality()))
         else:
             R = list(range(self.poset().cardinality() - 1))
         if labeling == 'source':
-            for x in self:
+            for x in L:
                 for i in R:
                     child = getattr(x, action)(i+1)
                     d[x][child]+=[self.poset().unwrap(x[i])]
         else:
-            for x in self:
+            for x in L:
                 for i in R:
                     child = getattr(x, action)(i+1)
                     d[x][child]+=[i+1]
@@ -789,7 +790,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.matrix.constructor import matrix
-        L = self.list()
+        L = sorted(self.list())
         n = self.poset().cardinality()
         R = PolynomialRing(QQ, 'x', n)
         x = [R.gen(i) for i in range(n)]

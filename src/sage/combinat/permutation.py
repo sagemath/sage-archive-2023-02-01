@@ -3972,7 +3972,7 @@ class Permutation(CombinatorialElement):
             ValueError: len([2, 4, 1, 3]) and len([2, 1, 4, 5, 3]) must be equal
         """
         P = Permutations()
-        return [P(p) for p in self.right_permutohedron_interval_iterator(other)]
+        return sorted(P(p) for p in self.right_permutohedron_interval_iterator(other))
 
     def permutohedron_join(self, other, side="right"):
         r"""
@@ -5185,7 +5185,7 @@ class Permutations(UniqueRepresentation, Parent):
 
         sage: p = Permutations(descents=([1], 4)); p
         Standard permutations of 4 with descents [1]
-        sage: p.list()
+        sage: sorted(p)
         [[1, 3, 2, 4], [1, 4, 2, 3], [2, 3, 1, 4], [2, 4, 1, 3], [3, 4, 1, 2]]
 
     ::
@@ -5206,14 +5206,14 @@ class Permutations(UniqueRepresentation, Parent):
 
         sage: p = Permutations(recoils_finer=[2,1]); p
         Standard permutations whose recoils composition is finer than [2, 1]
-        sage: p.list()
+        sage: sorted(p)
         [[1, 2, 3], [1, 3, 2], [3, 1, 2]]
 
     ::
 
         sage: p = Permutations(recoils_fatter=[2,1]); p
         Standard permutations whose recoils composition is fatter than [2, 1]
-        sage: p.list()
+        sage: sorted(p)
         [[1, 3, 2], [3, 1, 2], [3, 2, 1]]
 
     ::
@@ -7364,22 +7364,22 @@ class StandardPermutations_descents(StandardPermutations_n_abstract):
 
         EXAMPLES::
 
-            sage: Permutations(descents=([2,0],5)).list()
+            sage: sorted(Permutations(descents=([2,0],5)))
             [[2, 1, 4, 3, 5],
              [2, 1, 5, 3, 4],
              [3, 1, 4, 2, 5],
              [3, 1, 5, 2, 4],
-             [4, 1, 3, 2, 5],
-             [5, 1, 3, 2, 4],
-             [4, 1, 5, 2, 3],
-             [5, 1, 4, 2, 3],
              [3, 2, 4, 1, 5],
              [3, 2, 5, 1, 4],
+             [4, 1, 3, 2, 5],
+             [4, 1, 5, 2, 3],
              [4, 2, 3, 1, 5],
-             [5, 2, 3, 1, 4],
              [4, 2, 5, 1, 3],
-             [5, 2, 4, 1, 3],
              [4, 3, 5, 1, 2],
+             [5, 1, 3, 2, 4],
+             [5, 1, 4, 2, 3],
+             [5, 2, 3, 1, 4],
+             [5, 2, 4, 1, 3],
              [5, 3, 4, 1, 2]]
         """
         return iter( descents_composition_list(Composition(descents=(self.d,self.n))) )
@@ -7392,23 +7392,24 @@ def descents_composition_list(dc):
     EXAMPLES::
 
         sage: import sage.combinat.permutation as permutation
-        sage: permutation.descents_composition_list([1,2,2])
+        sage: sorted(permutation.descents_composition_list([1,2,2]))
         [[2, 1, 4, 3, 5],
          [2, 1, 5, 3, 4],
          [3, 1, 4, 2, 5],
          [3, 1, 5, 2, 4],
-         [4, 1, 3, 2, 5],
-         [5, 1, 3, 2, 4],
-         [4, 1, 5, 2, 3],
-         [5, 1, 4, 2, 3],
          [3, 2, 4, 1, 5],
          [3, 2, 5, 1, 4],
+         [4, 1, 3, 2, 5],
+         [4, 1, 5, 2, 3],
          [4, 2, 3, 1, 5],
-         [5, 2, 3, 1, 4],
          [4, 2, 5, 1, 3],
-         [5, 2, 4, 1, 3],
          [4, 3, 5, 1, 2],
+         [5, 1, 3, 2, 4],
+         [5, 1, 4, 2, 3],
+         [5, 2, 3, 1, 4],
+         [5, 2, 4, 1, 3],
          [5, 3, 4, 1, 2]]
+
     """
     return [p.inverse() for p in StandardPermutations_recoils(dc)]
 
@@ -7503,7 +7504,7 @@ class StandardPermutations_recoilsfiner(Permutations):
 
         EXAMPLES::
 
-            sage: Permutations(recoils_finer=[2,2]).list()
+            sage: sorted(Permutations(recoils_finer=[2,2]))
             [[1, 2, 3, 4],
              [1, 3, 2, 4],
              [1, 3, 4, 2],
@@ -7570,7 +7571,7 @@ class StandardPermutations_recoilsfatter(Permutations):
 
         EXAMPLES::
 
-            sage: Permutations(recoils_fatter=[2,2]).list()
+            sage: sorted(Permutations(recoils_fatter=[2,2]))
             [[1, 3, 2, 4],
              [1, 3, 4, 2],
              [1, 4, 3, 2],
@@ -7644,7 +7645,7 @@ class StandardPermutations_recoils(Permutations):
 
         EXAMPLES::
 
-            sage: Permutations(recoils=[2,2]).list()
+            sage: sorted(Permutations(recoils=[2,2]))
             [[1, 3, 2, 4], [1, 3, 4, 2], [3, 1, 2, 4], [3, 1, 4, 2], [3, 4, 1, 2]]
         """
         recoils = self.recoils

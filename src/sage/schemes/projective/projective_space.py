@@ -216,7 +216,7 @@ def ProjectiveSpace(n, R=None, names='x'):
         sage: ProjectiveSpace(R)
         Projective Space of dimension 0 over Rational Field
     """
-    if is_MPolynomialRing(n) or is_PolynomialRing(n) and R is None:
+    if (is_MPolynomialRing(n) or is_PolynomialRing(n)) and R is None:
         A = ProjectiveSpace(n.ngens()-1, n.base_ring(), names=n.variable_names())
         A._coordinate_ring = n
         return A

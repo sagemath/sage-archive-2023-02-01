@@ -67,7 +67,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     INPUT:
 
-    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`.
+    -  ``X`` -- a homset of a subscheme of an ambient projective space over a ring `K`.
 
     - ``v`` -- a list or tuple of coordinates in `K`.
 

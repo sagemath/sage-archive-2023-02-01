@@ -2125,7 +2125,7 @@ class Graphics(WithEqualityById, SageObject):
         return self._limit_output_aspect_ratio(xmin, xmax, ymin, ymax)
 
     def _limit_output_aspect_ratio(self, xmin, xmax, ymin, ymax):
-        """
+        r"""
         Private helper function for :meth:`get_minmax_data`
 
         INPUT:

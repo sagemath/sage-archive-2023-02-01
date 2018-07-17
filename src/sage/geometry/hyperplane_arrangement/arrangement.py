@@ -2634,7 +2634,7 @@ class HyperplaneArrangementElement(Element):
 
     @cached_method(key=lambda self,a: None)
     def is_free(self, algorithm="singular"):
-        """
+        r"""
         Return if ``self`` is free.
 
         A hyperplane arrangement `A` is free if the module

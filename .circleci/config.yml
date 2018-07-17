@@ -21,7 +21,8 @@ jobs:
     steps:
       - run: apk --update add git openssh
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 18.05.0-ce
       - run: &build
           # The docker commands sometimes take a while to produce output
           no_output_timeout: 30m

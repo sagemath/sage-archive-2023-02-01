@@ -133,7 +133,7 @@ class LinearExtensions(CombinatorialClass):
         Note that this meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
@@ -142,14 +142,16 @@ class LinearExtensions(CombinatorialClass):
             sage: l.le = [0, 1, 2, 3, 4]
             sage: l.is_plus
             True
-            sage: l.switch(-1)
+            sage: [e for e in l.switch(-1)]
+            []
             sage: l.is_plus
             False
             sage: l.a
             [1, 4]
             sage: l.b
             [2, 3]
-            sage: l.switch(0)
+            sage: [e for e in l.switch(0)]
+            []
             sage: l.le
             [0, 2, 1, 3, 4]
             sage: l.a
@@ -184,17 +186,19 @@ class LinearExtensions(CombinatorialClass):
         Note that this is meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
             sage: _ = l.list()
             sage: l.le = [0, 1, 2, 3, 4]
-            sage: l.move(1, "left")
+            sage: [e for e in l.move(1, "left")]
+            [[1, 0, 2, 3, 4]]
             sage: l.le
             [1, 0, 2, 3, 4]
-            sage: l.move(1, "right")
+            sage: [e for e in l.move(1, "right")]
+            [[0, 1, 2, 3, 4]]
             sage: l.le
             [0, 1, 2, 3, 4]
 
@@ -228,7 +232,7 @@ class LinearExtensions(CombinatorialClass):
         Note that this is meant to be called by the generate_linear_extensions
         method and is not meant to be used directly.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
@@ -279,16 +283,14 @@ class LinearExtensions(CombinatorialClass):
         Note that this is meant to be called by the list
         method and is not meant to be used directly.
 
-        EXAMPLES::
+        TESTS::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
             sage: D = DiGraph({ 0:[1,2], 1:[3], 2:[3,4] })
             sage: l = LinearExtensions(D)
-            sage: l.linear_extensions = []
-            sage: l.linear_extensions.append(l.le[:])
-            sage: l.generate_linear_extensions(l.max_pair)
-            sage: l.linear_extensions
-            [[0, 1, 2, 3, 4], [0, 2, 1, 3, 4]]
+            sage: l._prepare()
+            sage: [e for e in l.generate_linear_extensions(l.max_pair)]
+            [[0, 2, 1, 3, 4]]
 
         """
         if i >= 0:
@@ -385,6 +387,4 @@ class LinearExtensions(CombinatorialClass):
             sage: l.incomparable(1,2)
             True
         """
-        if (not self.dag.shortest_path(x, y)) and (not self.dag.shortest_path(y, x)):
-            return True
-        return False
+        return (not self.dag.shortest_path(x, y)) and (not self.dag.shortest_path(y, x))

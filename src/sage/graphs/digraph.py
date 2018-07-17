@@ -2969,7 +2969,7 @@ class DiGraph(GenericGraph):
         """
         from sage.graphs.linearextensions import LinearExtensions
         try:
-            return LinearExtensions(self).list()
+            return sorted(LinearExtensions(self))
         except TypeError:
             raise TypeError('Digraph is not acyclic; there is no topological sort (or there was an error in sage/graphs/linearextensions.py).')
 

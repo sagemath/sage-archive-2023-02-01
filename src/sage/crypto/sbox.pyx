@@ -373,12 +373,12 @@ cdef class SBox(SageObject):
             sage: S([1]*10^6)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply SBox to provided element.
+            TypeError: Cannot apply SBox to provided element
 
             sage: S(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot apply SBox to 1/2.
+            TypeError: Cannot apply SBox to 1/2
 
             sage: S = SBox(3, 0, 1, 3, 1, 0, 2, 2)
             sage: S(0)
@@ -1094,7 +1094,7 @@ cdef class SBox(SageObject):
             sage: S.cnf([1000,1001,1002], [2000,2001,2002])
             Traceback (most recent call last):
             ...
-            TypeError: first arg required to have length 2, got 3 instead.
+            TypeError: first arg required to have length 2, got 3 instead
         """
         m, n = self.input_size(), self.output_size()
 

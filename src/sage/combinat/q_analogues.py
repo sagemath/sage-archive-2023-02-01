@@ -20,7 +20,7 @@ from sage.misc.all import prod
 from sage.structure.element import parent
 from sage.rings.all import ZZ
 from sage.combinat.dyck_word import DyckWords
-from sage.combinat.partition import Partition
+from sage.combinat.partition import _Partitions
 
 
 def q_int(n, q=None):
@@ -571,7 +571,7 @@ def q_pochhammer(n, a, q=None):
     return R.prod((one - a*q**k) for k in range(n))
 
 
-@cached_function(key=lambda t, q: (Partition(t), q))
+@cached_function(key=lambda t, q: (_Partitions(t), q))
 def q_jordan(t, q=None):
     r"""
     Return the `q`-Jordan number of `t`.
@@ -632,7 +632,7 @@ def q_jordan(t, q=None):
     if q is None:
         q = ZZ['q'].gen()
 
-    if len(t) == 0:
+    if all(part == 0 for part in t):
         return parent(q)(1)
     tj = 0
     res = parent(q)(0)
@@ -641,7 +641,7 @@ def q_jordan(t, q=None):
         if ti > tj:
             tp = list(t)
             tp[i] -= 1
-            res += q_jordan(Partition(tp), q) * q**tj * q_int(ti - tj, q)
+            res += q_jordan(tp, q) * q**tj * q_int(ti - tj, q)
             tj = ti
     return res
 
@@ -772,8 +772,8 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
     """
     if q is None:
         q = ZZ['q'].gen()
-    la_c = Partition(la).conjugate()
-    mu_c = Partition(mu).conjugate()
+    la_c = _Partitions(la).conjugate()
+    mu_c = _Partitions(mu).conjugate()
     k = mu_c.length()
     if not la_c.contains(mu_c):
         return q.parent().zero()

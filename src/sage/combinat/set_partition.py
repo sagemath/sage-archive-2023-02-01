@@ -2149,7 +2149,7 @@ class SetPartitions_setparts(SetPartitions_set):
         """
         # Ruskey, Combinatorial Generation, sec. 5.10.1 and Knuth TAOCP 4A 7.2.1.5, Exercise 6
         k = len(self.parts)
-        P = self._set_partition_poset2()
+        P = self._set_partition_poset()
 
         sums = [0]
         for b in sorted(self.parts):

@@ -1998,7 +1998,7 @@ cdef class TimeSeries:
         kwds.setdefault('aspect_ratio','automatic')
         for i, (x0,x1) in enumerate(intervals):
             s += polygon([(x0,0), (x0,counts[i]), (x1,counts[i]), (x1,0)], **kwds)
-        if len(intervals) > 0:
+        if intervals:
             s.axes_range(ymin=0, ymax=max(counts), xmin=intervals[0][0], xmax=intervals[-1][1])
         return s
 

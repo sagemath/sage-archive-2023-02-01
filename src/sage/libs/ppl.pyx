@@ -7100,7 +7100,7 @@ cdef class Poly_Con_Relation(object):
         if self.implies(Poly_Con_Relation.saturates()):
             rel.append('saturates')
 
-        if len(rel)>0:
+        if rel:
             return ', '.join(rel)
         else:
             return 'nothing'

@@ -316,12 +316,12 @@ class ResidueFieldFactory(UniqueFactory):
             elif not (is_NumberFieldIdeal(p) or p.ring() is ZZ):
                 raise NotImplementedError
         if isinstance(names, tuple):
-            if len(names) > 0:
+            if names:
                 names = str(names[0])
             else:
                 names = None
         if names is None and p.ring() is not ZZ:
-            names = '%sbar'%(p.ring().fraction_field().variable_name())
+            names = '%sbar' % p.ring().fraction_field().variable_name()
         key = (p, names, impl)
         return key, kwds
 

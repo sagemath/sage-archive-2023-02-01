@@ -717,7 +717,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: G = L.markov_chain_digraph(labeling = 'source'); G
             Looped multi-digraph on 5 vertices
         """
-        L = sorted(self.list())
+        L = sorted(self)
         d = dict([x,dict([y,[]] for y in L)] for x in L)
         if action == 'promotion':
             R = list(range(self.poset().cardinality()))

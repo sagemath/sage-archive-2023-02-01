@@ -290,7 +290,7 @@ class StandardRibbonShapedTableaux(StandardSkewTableaux):
              [[None, 1], [2, 3]],
              [[1], [2], [3]],
              [[1, 2, 3, 4]],
-             [[None, None, 2], [1, 3, 4]]]
+             [[None, None, 3], [1, 2, 4]]]
         """
         from sage.combinat.partition import _Partitions
         for p in _Partitions:

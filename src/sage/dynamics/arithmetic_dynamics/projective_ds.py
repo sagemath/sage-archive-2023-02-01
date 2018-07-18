@@ -2074,7 +2074,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y> = ProjectiveSpace(CC,1)
             sage: f = DynamicalSystem_projective([x^3 - 25*x*y^2 + 12*y^3, 12*y^3])
             sage: f.multiplier(P(1,1), 5)
-            [0.389017489711935]
+            [0.389017489711934]
 
         ::
 

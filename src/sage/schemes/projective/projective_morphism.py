@@ -925,6 +925,18 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             sage: f = H([x^2 - 2*x*y, y^2])
             sage: f.dehomogenize(0).homogenize(0) == f
             True
+
+        ::
+
+            sage: K.<w> = QuadraticField(3)
+            sage: O = K.ring_of_integers()
+            sage: P.<x,y> = ProjectiveSpace(O,1)
+            sage: H = End(P)
+            sage: f = H([x^2 - O(w)*y^2,y^2])
+            sage: f.dehomogenize(1)
+            Scheme endomorphism of Affine Space of dimension 1 over Maximal Order in Number Field in w with defining polynomial x^2 - 3
+              Defn: Defined on coordinates by sending (x) to
+                    (x^2 - w)
         """
         #the dehomogenizations are stored for future use.
         try:
@@ -945,9 +957,10 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             Aff_domain = PS_domain.affine_patch(ind[0])
             S = Aff_domain.ambient_space().coordinate_ring()
+            FS = FractionField(S)
             N = A_domain.dimension_relative()
             R = A_domain.coordinate_ring()
-            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], S)
+            phi = R.hom([S.gen(j) for j in range(0, ind[0])] + [1] + [S.gen(j) for j in range(ind[0], N)], FS)
             F = []
             G = phi(self._polys[ind[1]])
             for i in range(0, N + 1):

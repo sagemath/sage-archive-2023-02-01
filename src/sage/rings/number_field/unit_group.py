@@ -279,7 +279,19 @@ class UnitGroup(AbelianGroupWithValues_class):
             sage: K.unit_group()
             Unit group with structure C2 x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123
             sage: UnitGroup(K, S=tuple(K.primes_above(7)))
-            S-unit group with structure C2 x Z x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*x^2 - 56*x + 123 with S = (Fractional ideal (7/225*a^2 - 7/75*a - 42/25),)
+            S-unit group with structure C2 x Z x Z x Z of Number Field in a with defining polynomial 7/9*x^3 + 7/3*px^2 - 56*x + 123 with S = (Fractional ideal (7/225*a^2 - 7/75*a - 42/25),)
+
+        Conversion from unit group to a number field and back
+        gives the right results (:trac:`25874`)::
+
+            sage: K = QuadraticField(-3).composite_fields(QuadraticField(2))[0]
+            sage: U = K.unit_group()
+            sage: [U(K(u)) for u in U.gens()] == U.gens()
+            True
+            sage: US = K.S_unit_group(3)
+            sage: [US(K(u)) for u in US.gens()] == US.gens()
+            True
+
         """
         proof = get_flag(proof, "number_field")
         K = number_field
@@ -322,7 +334,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         self.__rank = self.__nfu + self.__nsu
 
         # compute a torsion generator and pick the 'simplest' one:
-        n, z = pK.nfrootsof1()
+        n, z = pK[7][3] # number of roots of unity and bnf.tu as in pari documentation
         n = ZZ(n)
         self.__ntu = n
         z = K(z, check=False)

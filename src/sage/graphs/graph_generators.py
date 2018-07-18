@@ -2024,10 +2024,12 @@ class GraphGenerators():
 ###########################################################################
     import sage.graphs.generators.families
     import sage.graphs.generators.hamming_graphs
+    import sage.graphs.generators.cai_furer_immerman
     AztecDiamondGraph      = staticmethod(sage.graphs.generators.families.AztecDiamondGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
+    CaiFurerImmermanGraph  = staticmethod(sage.graphs.generators.cai_furer_immerman.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)

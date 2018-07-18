@@ -7,7 +7,7 @@ This module manages a database associating to a set of four integers
 exists.
 
 Using Andries Brouwer's `database of strongly regular graphs
-<http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__, it can also return
+<https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__, it can also return
 non-existence results. Note that some constructions are missing, and that some
 strongly regular graphs that exist in the database cannot be automatically built
 by Sage. Help us if you know any.
@@ -16,7 +16,7 @@ An outline of the implementation can be found in [CP16]_.
 .. NOTE::
 
     Any missing/incorrect information in the database must be reported to
-    `Andries E. Brouwer <http://www.win.tue.nl/~aeb/>`__ directly, in order to
+    `Andries E. Brouwer <https://www.win.tue.nl/~aeb/>`__ directly, in order to
     have a unique and updated source of information.
 
 REFERENCES:
@@ -232,7 +232,7 @@ def is_orthogonal_array_block_graph(int v,int k,int l,int mu):
       Acta Applicandaie Math. 29(1992), 129-138
     """
     # notations from
-    # http://www.win.tue.nl/~aeb/graphs/OA.html
+    # https://www.win.tue.nl/~aeb/graphs/OA.html
     from sage.combinat.matrices.hadamard_matrix import skew_hadamard_matrix
     try:
         m, n = latin_squares_graph_parameters(v,k,l,mu)
@@ -277,7 +277,7 @@ def is_johnson(int v,int k,int l,int mu):
 
         sage: t = is_johnson(5,5,5,5); t
     """
-    # Using notations of http://www.win.tue.nl/~aeb/graphs/Johnson.html
+    # Using notations of https://www.win.tue.nl/~aeb/graphs/Johnson.html
     #
     # J(n,m) has parameters v = m(m – 1)/2, k = 2(m – 2), λ = m – 2, μ = 4.
     m = l + 2
@@ -293,7 +293,7 @@ def is_steiner(int v,int k,int l,int mu):
     Test whether some Steiner graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     A Steiner graph is the intersection graph of a Steiner set system. For more
-    information, see http://www.win.tue.nl/~aeb/graphs/S.html.
+    information, see https://www.win.tue.nl/~aeb/graphs/S.html.
 
     INPUT:
 
@@ -316,7 +316,7 @@ def is_steiner(int v,int k,int l,int mu):
 
         sage: t = is_steiner(5,5,5,5); t
     """
-    # Using notations from http://www.win.tue.nl/~aeb/graphs/S.html
+    # Using notations from https://www.win.tue.nl/~aeb/graphs/S.html
     #
     # The block graph of a Steiner 2-design S(2,m,n) has parameters:
     # v = n(n-1)/m(m-1), k = m(n-m)/(m-1), λ = (m-1)^2 + (n-1)/(m–1)–2, μ = m^2.
@@ -336,7 +336,7 @@ def is_affine_polar(int v,int k,int l,int mu):
     r"""
     Test whether some Affine Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/VO.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/VO.html.
 
     INPUT:
 
@@ -359,7 +359,7 @@ def is_affine_polar(int v,int k,int l,int mu):
 
         sage: t = is_affine_polar(5,5,5,5); t
     """
-    # Using notations from http://www.win.tue.nl/~aeb/graphs/VO.html
+    # Using notations from https://www.win.tue.nl/~aeb/graphs/VO.html
     #
     # VO+(2e,q) has parameters: v = q^(2e), k = (q^(e−1) + 1)(q^e − 1), λ =
     # q(q^(e−2) + 1)(q^(e−1) − 1) + q − 2, μ = q^(e−1)(q^(e−1) + 1)
@@ -391,7 +391,7 @@ def is_orthogonal_polar(int v,int k,int l,int mu):
     r"""
     Test whether some Orthogonal Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/srghub.html.
 
     INPUT:
 
@@ -1241,7 +1241,7 @@ def is_unitary_polar(int v,int k,int l,int mu):
     r"""
     Test whether some Unitary Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/srghub.html.
 
     INPUT:
 
@@ -1316,7 +1316,7 @@ def is_unitary_dual_polar(int v,int k,int l,int mu):
     Test whether some Unitary Dual Polar graph is `(v,k,\lambda,\mu)`-strongly regular.
 
     This must be the U_5(q) on totally isotropic lines.
-    For more information, see http://www.win.tue.nl/~aeb/graphs/srghub.html.
+    For more information, see https://www.win.tue.nl/~aeb/graphs/srghub.html.
 
     INPUT:
 
@@ -1455,7 +1455,7 @@ def is_twograph_descendant_of_srg(int v, int k0, int l, int mu):
 
     If we can construct such `G` then we return a function to build a
     `(v,k_0,\lambda,\mu)`-s.r.g.  For more information,
-    see 10.3 in http://www.win.tue.nl/~aeb/2WF02/spectra.pdf
+    see 10.3 in https://www.win.tue.nl/~aeb/2WF02/spectra.pdf
 
     INPUT:
 
@@ -1554,7 +1554,7 @@ def is_switch_skewhad(int v, int k, int l, int mu):
     Test whether some ``switch skewhad^2+*`` is `(v,k,\lambda,\mu)`-strongly regular.
 
     The ``switch skewhad^2+*`` graphs appear on `Andries Brouwer's database
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
     adding an isolated vertex to the complement of
     :func:`~sage.graphs.graph_generators.GraphGenerators.SquaredSkewHadamardMatrixGraph`,
     and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
@@ -1600,7 +1600,7 @@ def is_switch_OA_srg(int v, int k, int l, int mu):
     Test whether some *switch* `OA(k,n)+*` is `(v,k,\lambda,\mu)`-strongly regular.
 
     The "switch* `OA(k,n)+*` graphs appear on `Andries Brouwer's database
-    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
+    <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__ and are built by
     adding an isolated vertex to a
     :meth:`~sage.graphs.graph_generators.GraphGenerators.OrthogonalArrayBlockGraph`,
     and a :meth:`Seidel switching <Graph.seidel_switching>` a set of disjoint
@@ -2584,7 +2584,7 @@ def SRG_175_72_20_36():
     :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`. Setting
     two vertices to be adjacent if their distance in the line graph is exactly
     2 yields the graph. For more information, see 10.B.(iv) in [BvL84]_ and
-    http://www.win.tue.nl/~aeb/graphs/McL.html.
+    https://www.win.tue.nl/~aeb/graphs/McL.html.
 
     EXAMPLES::
 
@@ -2811,7 +2811,7 @@ def strongly_regular_graph(int v,int k,int l,int mu=-1,bint existence=False,bint
     Return a `(v,k,\lambda,\mu)`-strongly regular graph.
 
     This function relies partly on Andries Brouwer's `database of strongly
-    regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__. See
+    regular graphs <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__. See
     the documentation of :mod:`sage.graphs.strongly_regular_db` for more
     information.
 

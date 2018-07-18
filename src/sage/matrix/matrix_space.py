@@ -67,7 +67,7 @@ import sage.rings.integer as integer
 import sage.rings.number_field.all
 import sage.rings.finite_rings.integer_mod_ring
 import sage.rings.finite_rings.finite_field_constructor
-import sage.rings.polynomial.multi_polynomial_ring_generic
+import sage.rings.polynomial.multi_polynomial_ring_base
 import sage.misc.latex as latex
 import sage.modules.free_module
 
@@ -282,7 +282,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
             if implementation is None:
                 return matrix_polynomial_dense.Matrix_polynomial_dense
 
-        elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
+        elif sage.rings.polynomial.multi_polynomial_ring_base.is_MPolynomialRing(R) and R.base_ring() in _Fields:
             if implementation is None:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense
 
@@ -403,11 +403,11 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: M1(M2.an_element())
-        [1 0]
-        [0 0]
+        [ 0  1]
+        [-1  2]
         sage: M2(M1.an_element())
-        [1 0]
-        [0 0]
+        [ 0  1]
+        [-1  2]
 
         sage: M1.has_coerce_map_from(M1), M1.has_coerce_map_from(M2)
         (True, False)
@@ -432,7 +432,6 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         True
     """
     _no_generic_basering_coercion = True
-
 
     @staticmethod
     def __classcall__(cls, base_ring, nrows, ncols=None, sparse=False, implementation=None):
@@ -464,18 +463,26 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if base_ring not in _Rings:
             raise TypeError("base_ring (=%s) must be a ring"%base_ring)
-        if ncols is None: ncols = nrows
-        nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
+        nrows = int(nrows)
+        if ncols is None:
+            ncols = nrows
+        else:
+            ncols = int(ncols)
+        sparse = bool(sparse)
+
+        if nrows < 0:
+            raise ArithmeticError("nrows must be nonnegative")
+        if ncols < 0:
+            raise ArithmeticError("ncols must be nonnegative")
+        if nrows > sys.maxsize or ncols > sys.maxsize:
+            raise OverflowError("number of rows and columns may be at most %s" % sys.maxsize)
+
         matrix_cls = get_matrix_class(base_ring, nrows, ncols, sparse, implementation)
         return super(MatrixSpace, cls).__classcall__(
                 cls, base_ring, nrows, ncols, sparse, matrix_cls)
 
-    def __init__(self,  base_ring,
-                        nrows,
-                        ncols=None,
-                        sparse=False,
-                        implementation=None):
-        """
+    def __init__(self, base_ring, nrows, ncols, sparse, implementation):
+        r"""
         INPUT:
 
         - ``base_ring`
@@ -1432,8 +1439,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         """
         if isinstance(x, integer_types + (integer.Integer,)):
             return self.list()[x]
-        return Rings.ParentMethods.__getitem__.__func__(self, x)
-
+        return super(MatrixSpace, self).__getitem__(x)
 
     def basis(self):
         """
@@ -1484,7 +1490,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                       hidden_function=old_index)
 
     def dimension(self):
-        """
+        r"""
         Returns (m rows) \* (n cols) of self as Integer
 
         EXAMPLES::
@@ -1935,6 +1941,68 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 *args, **kwds)
         return Z
 
+    def _an_element_(self):
+        """
+        Create a typical element of this matrix space.
+
+        This uses ``some_elements`` of the base ring.
+
+        EXAMPLES::
+
+            sage: MatrixSpace(QQ, 3, 3).an_element()  # indirect doctest
+            [ 1/2 -1/2    2]
+            [  -2    0    1]
+            [  -1   42  2/3]
+
+        TESTS::
+
+            sage: MatrixSpace(ZZ, 0, 0).an_element()
+            []
+
+        Check that this works for large matrices and that it returns a
+        matrix which is not too trivial::
+
+            sage: M = MatrixSpace(GF(2), 100, 100).an_element()
+            sage: M.rank() >= 2
+            True
+
+        Check that this works for sparse matrices::
+
+            sage: M = MatrixSpace(ZZ, 1000, 1000, sparse=True).an_element()
+            sage: M.density()
+            99/1000000
+        """
+        from .args import MatrixArgs
+        dim = self.dimension()
+        if dim > 100 and self.is_sparse():
+            # Sparse case: add 100 elements
+            D = {}
+            nr = self.nrows()
+            nc = self.ncols()
+            from random import randrange
+            n = 0
+            while True:
+                for el in self.base().some_elements():
+                    if n == 100:
+                        ma = MatrixArgs(D, space=self)
+                        del D
+                        return ma.matrix()
+                    D[randrange(nr), randrange(nc)] = el
+                    n += 1
+                assert D
+        else:
+            # Dense case
+            # Keep appending to L until we have enough elements
+            L = []
+            while True:
+                for el in self.base().some_elements():
+                    if len(L) == dim:
+                        ma = MatrixArgs(L, space=self)
+                        del L  # for efficiency: this may avoid a copy of L
+                        return ma.matrix()
+                    L.append(el)
+                assert L
+
     def some_elements(self):
         r"""
         Return some elements of this matrix space.
@@ -1950,67 +2018,25 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
             sage: M = MatrixSpace(ZZ, 2, 2)
             sage: tuple(M.some_elements())
             (
-            [1 0]  [1 1]  [ 0  1]  [-2  3]  [-4  5]  [-6  7]  [-8  9]  [-10  11]
-            [0 0], [1 1], [-1  2], [-3  4], [-5  6], [-7  8], [-9 10], [-11  12],
-            <BLANKLINE>
-            [-12  13]  [-14  15]  [-16  17]  [-18  19]  [-20  21]  [-22  23]
-            [-13  14], [-15  16], [-17  18], [-19  20], [-21  22], [-23  24],
-            <BLANKLINE>
-            [-24  25]  [-26  27]  [-28  29]  [-30  31]  [-32  33]  [-34  35]
-            [-25  26], [-27  28], [-29  30], [-31  32], [-33  34], [-35  36],
-            <BLANKLINE>
-            [-36  37]  [-38  39]  [-40  41]  [-42  43]  [-44  45]  [-46  47]
-            [-37  38], [-39  40], [-41  42], [-43  44], [-45  46], [-47  48],
-            <BLANKLINE>
-            [-48  49]
-            [-49  50]
+            [ 0  1]  [1 0]  [0 1]  [0 0]  [0 0]
+            [-1  2], [0 0], [0 0], [1 0], [0 1]
             )
-
             sage: M = MatrixSpace(QQ, 2, 3)
             sage: tuple(M.some_elements())
             (
-            [1 0 0]  [1/2 1/2 1/2]  [ 1/2 -1/2    2]  [  -1   42  2/3]
-            [0 0 0], [1/2 1/2 1/2], [  -2    0    1], [-2/3  3/2 -3/2],
-            <BLANKLINE>
-            [ 4/5 -4/5  5/4]  [ 7/6 -7/6  8/9]  [ 10/11 -10/11  11/10]
-            [-5/4  6/7 -6/7], [-8/9  9/8 -9/8], [-11/10  12/13 -12/13],
-            <BLANKLINE>
-            [ 13/12 -13/12  14/15]  [ 16/17 -16/17  17/16]
-            [-14/15  15/14 -15/14], [-17/16  18/19 -18/19],
-            <BLANKLINE>
-            [  19/18  -19/18  20/441]  [ 22/529 -22/529  529/22]
-            [-20/441  441/20 -441/20], [-529/22  24/625 -24/625],
-            <BLANKLINE>
-            [ 625/24 -625/24  26/729]  [ 28/841 -28/841  841/28]
-            [-26/729  729/26 -729/26], [-841/28  30/961 -30/961],
-            <BLANKLINE>
-            [  961/30  -961/30  32/1089]  [ 34/1225 -34/1225  1225/34]
-            [-32/1089  1089/32 -1089/32], [-1225/34  36/1369 -36/1369],
-            <BLANKLINE>
-            [ 1369/36 -1369/36  38/1521]  [ 40/68921 -40/68921  68921/40]
-            [-38/1521  1521/38 -1521/38], [-68921/40  42/79507 -42/79507],
-            <BLANKLINE>
-            [ 79507/42 -79507/42  44/91125]
-            [-44/91125  91125/44 -91125/44]
+            [ 1/2 -1/2    2]  [1 0 0]  [0 1 0]  [0 0 1]  [0 0 0]  [0 0 0]  [0 0 0]
+            [  -2    0    1], [0 0 0], [0 0 0], [0 0 0], [1 0 0], [0 1 0], [0 0 1]
             )
-
             sage: M = MatrixSpace(SR, 2, 2)
             sage: tuple(M.some_elements())
             (
-            [1 0]  [some_variable some_variable]
-            [0 0], [some_variable some_variable]
+            [some_variable some_variable]  [1 0]  [0 1]  [0 0]  [0 0]
+            [some_variable some_variable], [0 0], [0 0], [1 0], [0 1]
             )
         """
-        from itertools import islice
         yield self.an_element()
-        yield self.base().an_element() * sum(self.gens())
-        some_elements_base = iter(self.base().some_elements())
-        n = self.dimension()
-        while True:
-            L = list(islice(some_elements_base, n))
-            if len(L) != n:
-                return
-            yield self(L)
+        for g in self.gens():
+            yield g
 
     def _magma_init_(self, magma):
         r"""
@@ -2048,8 +2074,9 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
         K = polymake(self.base_ring())
         return '"Matrix<{}>"'.format(K)
 
+
 def dict_to_list(entries, nrows, ncols):
-    """
+    r"""
     Given a dictionary of coordinate tuples, return the list given by
     reading off the nrows\*ncols matrix in row order.
 
@@ -2069,34 +2096,6 @@ def dict_to_list(entries, nrows, ncols):
         i, j = ij
         v[i * ncols + j] = y
     return v
-
-def list_to_dict(entries, nrows, ncols, rows=True):
-    """
-    Given a list of entries, create a dictionary whose keys are
-    coordinate tuples and values are the entries.
-
-    EXAMPLES::
-
-        sage: from sage.matrix.matrix_space import list_to_dict
-        sage: d = list_to_dict([1,2,3,4],2,2)
-        sage: d[(0,1)]
-        2
-        sage: d = list_to_dict([1,2,3,4],2,2,rows=False)
-        sage: d[(0,1)]
-        3
-    """
-    d = {}
-    if ncols == 0 or nrows == 0:
-        return d
-    for i, x in enumerate(entries):
-        if x != 0:
-            col = i % ncols
-            row = i // ncols
-            if rows:
-                d[(row,col)] = x
-            else:
-                d[(col,row)] = x
-    return d
 
 
 def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkrank=True):
@@ -2218,7 +2217,7 @@ def test_trivial_matrices_inverse(ring, sparse=True, implementation=None, checkr
 # Fix unpickling Matrix_modn_dense and Matrix_integer_2x2
 from sage.matrix.matrix_modn_dense_double import Matrix_modn_dense_double
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 def _MatrixSpace_ZZ_2x2():
     from sage.rings.integer_ring import ZZ
     return MatrixSpace(ZZ,2)

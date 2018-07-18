@@ -148,7 +148,7 @@ interface::
     20
     sage: e = magma.DirichletGroup(40)(G.1)                               # optional - magma
     sage: print(e)                                                        # optional - magma
-    $.1
+    Kronecker character -4 in modulus 40
     sage: print(e.Modulus())                                              # optional - magma
     40
 
@@ -1708,20 +1708,20 @@ class MagmaFunctionElement(FunctionElement):
             sage: n = magma(-15)             # optional - magma
             sage: f = n.Factorisation        # optional - magma
             sage: print(f.__doc__)           # optional - magma
-            (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
+            (n::RngIntElt) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
             sage: print(n.Factorisation.__doc__)    # optional - magma
-            (<RngIntElt> n) -> RngIntEltFact, RngIntElt, SeqEnum
+            (n::RngIntElt) -> RngIntEltFact, RngIntElt, SeqEnum
             ...
         """
         M = self._obj.parent()
         t = str(self._obj.Type())
         s = M.eval(self._name)
-        Z = s.split('(<')[1:]
+        Z = s.split('\n(')[1:]
         W = []
-        tt = '(<%s' % t
+        tt = '::%s' % t
         for X in Z:
-            X = '(<' + X
+            X = '(' + X
             if '(<All>' in X or tt in X:
                 W.append(X)
         s = '\n'.join(W)
@@ -2071,6 +2071,11 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             ...
             NameError: name 'K' is not defined
 
+        Finite quotients of ZZ::
+
+            sage: R = Zmod(137)
+            sage: magma(R).sage()  # optional - magma
+            Ring of integers modulo 137
         """
         z, preparse = self.Sage(nvals=2)
         s = str(z)
@@ -2081,20 +2086,12 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         EXAMPLES::
 
-            sage: G = magma.DirichletGroup(20)   # optional - magma
-            sage: G.AssignNames(['a','b'])       # optional - magma
-            sage: G.1                            # optional - magma
+            sage: S = magma.PolynomialRing(magma.Integers(), 2)   # optional - magma
+            sage: S.AssignNames(['a', 'b'])       # optional - magma
+            sage: S.1                             # optional - magma
             a
-
-        ::
-
-            sage: G.Elements()                   # optional - magma
-            [
-            1,
-            a,
-            b,
-            a*b
-            ]
+            sage: S.1^2 + S.2 # optional - magma
+            a^2 + b
         """
         P = self._check_valid()
         cmd = 'AssignNames(~%s, [%s])' % (self.name(),
@@ -2146,7 +2143,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         Return generators for self.
 
-        If self is named X is Magma, this function evaluates X.1, X.2,
+        If self is named X in Magma, this function evaluates X.1, X.2,
         etc., in Magma until an error occurs. It then returns a Sage list
         of the resulting X.i. Note - I don't think there is a Magma command
         that returns the list of valid X.i. There are numerous ad hoc
@@ -2213,9 +2210,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
 
         INPUT:
 
-
-        -  ``*args`` - import arguments
-
+        -  ``*args`` -- import arguments
 
         OUTPUT: self(\*args)
 
@@ -2229,10 +2224,14 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: f = magma('GCD')                      # optional - magma
             sage: f.evaluate(15,20)                     # optional - magma
             5
+
+            sage: m = matrix(QQ, 2, 2, [2,3,5,7])      # optional - magma
+            sage: f = magma('ElementaryDivisors')      # optional - magma
+            sage: f.evaluate(m)                        # optional - magma
+            [ 1, 1 ]
         """
         P = self._check_valid()
-        v = [P(a) for a in args]
-        names = ','.join([str(x) for x in v])
+        names = ','.join(a._magma_init_(P) for a in args)
         return P('%s(%s)' % (self.name(), names))
 
     eval = evaluate
@@ -2532,7 +2531,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: R.<x> = ZZ[]                        # optional - magma
             sage: v = magma(R)._tab_completion()          # optional - magma
             sage: v                                   # optional - magma
-            ["'*'", "'+'", "'.'", "'/'", "'eq'", "'in'", "'meet'", "'subset'", ...]
+            ["'*'", "'+'", "'.'", "'/'", "'eq'", "'meet'", "'subset'", ...]
         """
         M = self.methods()
         N = []
@@ -2549,10 +2548,8 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
 
         INPUT:
 
-
-        -  ``any`` - (bool: default is False) if True, also
-           include signatures with Any as first argument.
-
+        - ``any`` -- (bool: default is False) if True, also
+          include signatures with Any as first argument.
 
         OUTPUT: list of strings
 
@@ -2564,12 +2561,17 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         t = str(self.Type())
         X = self.parent().eval('ListSignatures(%s)' % self.Type()).split('\n')
-        tt = "(<" + t
-        if any:
-            Y = [x for x in X if tt in x or "(<Any>" in x]
-        else:
-            Y = [x for x in X if tt in x]
-        return Y
+        X = X[2:]  # because the first 2 lines are not relevant
+        t0 = t + ','  # t as first argument among several
+        t1 = t + ')'  # t as only argument
+        result = []
+        for x in X:
+            x1 = x.split('::')[1]  # typical line starts (f::Elt, g::Elt)
+            if x1.startswith(t0) or x1.startswith(t1):
+                result.append(x)
+            elif any and x1.startswith("Any"):
+                result.append(x)
+        return result
 
     def __floordiv__(self, x):
         """

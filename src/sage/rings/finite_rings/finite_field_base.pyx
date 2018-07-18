@@ -33,9 +33,10 @@ from __future__ import absolute_import
 
 from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
+from sage.rings.integer cimport Integer
 
 
 # Copied from sage.misc.fast_methods, used in __hash__() below.
@@ -555,9 +556,14 @@ cdef class FiniteField(Field):
 
     def zeta(self, n=None):
         """
-        Returns an element of multiplicative order ``n`` in this
-        finite field, if there is one.  Raises a ``ValueError`` if there
-        is not.
+        Return an element of multiplicative order ``n`` in this finite
+        field. If there is no such element, raise ``ValueError``.
+
+        .. WARNING::
+
+            In general, this returns an arbitrary element of the correct
+            order. There are no compatibility guarantees:
+            ``F.zeta(9)^3`` may not be equal to ``F.zeta(3)``.
 
         EXAMPLES::
 
@@ -575,6 +581,10 @@ cdef class FiniteField(Field):
             48
             sage: k.zeta(6)
             3
+            sage: k.zeta(5)
+            Traceback (most recent call last):
+            ...
+            ValueError: no 5th root of unity in Finite Field in a of size 7^2
 
         Even more examples::
 
@@ -586,22 +596,39 @@ cdef class FiniteField(Field):
             a + 1
             sage: GF(9,'a').zeta()^2
             a + 1
-        """
-        z = self.multiplicative_generator()
-        if n is None:
-            return z
-        else:
-            import sage.rings.integer
-            n = sage.rings.integer.Integer(n)
-            m = z.multiplicative_order()
-            if m % n != 0:
-                raise ValueError("No %sth root of unity in self" % n)
-            return z**(m // n)
 
+        This works even in very large finite fields, provided that ``n``
+        can be factored (see :trac:`25203`)::
+
+            sage: k.<a> = GF(2^2000)
+            sage: p = 8877945148742945001146041439025147034098690503591013177336356694416517527310181938001
+            sage: z = k.zeta(p)
+            sage: z
+            a^1999 + a^1996 + a^1995 + a^1994 + ... + a^7 + a^5 + a^4 + 1
+            sage: z ^ p
+            1
+        """
+        if n is None:
+            return self.multiplicative_generator()
+
+        n = Integer(n)
+        grouporder = self.order() - 1
+        co_order = grouporder // n
+        if co_order * n != grouporder:
+            raise ValueError("no {}th root of unity in {}".format(n, self))
+
+        # If the co_order is small or we know a multiplicative
+        # generator, use a multiplicative generator
+        mg = self.multiplicative_generator
+        if mg.cache is not None or co_order <= 500000:
+            return mg() ** co_order
+        return self._element_of_factored_order(n.factor())
+
+    @cached_method
     def multiplicative_generator(self):
         """
-        Return a primitive element of this finite field, i.e. a generator
-        of the multiplicative group.
+        Return a primitive element of this finite field, i.e. a
+        generator of the multiplicative group.
 
         You can use :meth:`multiplicative_generator()` or
         :meth:`primitive_element()`, these mean the same thing.
@@ -632,28 +659,63 @@ cdef class FiniteField(Field):
             sage: K.multiplicative_generator()
             a + 12
         """
-        from sage.arith.all import primitive_root
-
-        if self.__multiplicative_generator is not None:
-            return self.__multiplicative_generator
         if self.degree() == 1:
-            self.__multiplicative_generator = self(primitive_root(self.order()))
-            return self.__multiplicative_generator
-        n = self.order() - 1
-        g = self.gen(0)
-        # We check whether x+g is a multiplicative generator, where
-        # x runs through the finite field.
-        # This has the advantage that g is the first element we try,
-        # so we always get g as generator if possible.  Second, the
-        # PARI finite field iterator gives all the constant elements
-        # first, so we try g+(constant) before anything else.
-        for x in self:
-            a = g+x
-            if a != 0 and a.multiplicative_order() == n:
-                self.__multiplicative_generator = a
-                return a
+            from sage.arith.all import primitive_root
+            return self(primitive_root(self.order()))
+        F, = self.factored_unit_order()
+        return self._element_of_factored_order(F)
 
     primitive_element = multiplicative_generator
+
+    def _element_of_factored_order(self, F):
+        """
+        Return an element of ``self`` of order ``n`` where ``n`` is
+        given in factored form.
+
+        INPUT:
+
+        - ``F`` -- the factorization of the required order. The order
+          must be a divisor of ``self.order() - 1`` but this is not
+          checked.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(16, modulus=cyclotomic_polynomial(5))
+            sage: k._element_of_factored_order(factor(15))
+            a^2 + a + 1
+            sage: k._element_of_factored_order(factor(5))
+            a^3
+            sage: k._element_of_factored_order(factor(3))
+            a^3 + a^2 + 1
+            sage: k._element_of_factored_order(factor(30))
+            Traceback (most recent call last):
+            ...
+            AssertionError: no element found
+        """
+        n = Integer(1)
+        cdef list primes = []
+        for p, e in F:
+            primes.append(p)
+            n *= p ** e
+
+        N = self.order() - 1
+        c = N // n
+
+        # We check whether (x + g)^c has the required order, where
+        # x runs through the finite field.
+        # This has the advantage that g is the first element we try,
+        # so if that was a chosen to be a multiplicative generator,
+        # we are done immediately. Second, the PARI finite field
+        # iterator gives all the constant elements first, so we try
+        # (g+(constant))^c before anything else.
+        g = self.gen(0)
+        for x in self:
+            a = (g + x) ** c
+            if not a:
+                continue
+            if all(a ** (n // p) != 1 for p in primes):
+                return a
+        raise AssertionError("no element found")
 
     def ngens(self):
         """
@@ -718,9 +780,10 @@ cdef class FiniteField(Field):
         from sage.structure.factorization import Factorization
         return Factorization([(self.characteristic(), self.degree())])
 
+    @cached_method
     def factored_unit_order(self):
         """
-        Returns the factorization of ``self.order()-1``, as a 1-element list.
+        Returns the factorization of ``self.order()-1``, as a 1-tuple.
 
         The format is for compatibility with
         :mod:`~sage.rings.finite_rings.integer_mod_ring`.
@@ -728,11 +791,10 @@ cdef class FiniteField(Field):
         EXAMPLES::
 
             sage: GF(7^2,'a').factored_unit_order()
-            [2^4 * 3]
+            (2^4 * 3,)
         """
-        if self.__factored_unit_order is None:
-            self.__factored_unit_order = [(self.order()-1).factor()]
-        return self.__factored_unit_order
+        F = (self.order() - 1).factor()
+        return (F,)
 
     def cardinality(self):
         """
@@ -1039,7 +1101,7 @@ cdef class FiniteField(Field):
             True
             sage: all(to_W(c * e) == c * to_W(e) for e in E for c in F)
             True
-            sage: all(to_W(e1 + e2) == to_W(e1) + to_W(e2) for e1 in E for e2 in E)
+            sage: all(to_W(e1 + e2) == to_W(e1) + to_W(e2) for e1 in E for e2 in E)  # long time
             True
             sage: to_W(basis[0]); to_W(basis[1])
             (1, 0)
@@ -1174,7 +1236,6 @@ cdef class FiniteField(Field):
             False
         """
         from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.finite_field_base import is_FiniteField
         from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         if R is int or R is long or R is ZZ:
             return True
@@ -1716,6 +1777,7 @@ def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):
     doctest), but kept around for backward compatibility.
     """
     return _type(order, variable_name, modulus, **kwargs)
+
 
 def unpickle_FiniteField_prm(_type, order, variable_name, kwargs):
     r"""

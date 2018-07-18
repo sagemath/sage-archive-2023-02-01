@@ -221,8 +221,8 @@ class SBox(SageObject):
             sage: S( S.to_bits( 6 ) )
             [0, 0, 1]
         """
-        if n is None and self.m == self.n:
-            n = self.n
+        if n is None and self.input_size() == self.output_size():
+            n = self.output_size()
 
         if self._big_endian:
             swp = lambda x: list(reversed(x))
@@ -252,8 +252,8 @@ class SBox(SageObject):
             sage: S.from_bits( S( [1,1,0] ) )
             1
         """
-        if n is None and self.m == self.n:
-            n = self.m
+        if n is None and self.input_size() == self.output_size():
+            n = self.input_size()
 
         if self._big_endian:
             swp = lambda x: list(reversed(x))
@@ -273,12 +273,12 @@ class SBox(SageObject):
             sage: S._rpad([1,1])
             [1, 1, 0]
         """
-        if n is None and self.m == self.n:
-            n = self.n
+        if n is None and self.input_size() == self.output_size():
+            n = self.output_size()
         return  x + [self._F(0)]*(n-len(x))
 
     def __call__(self, X):
-        """
+        r"""
         Apply substitution to ``X``.
 
         If ``X`` is a list, it is interpreted as a sequence of bits
@@ -336,7 +336,7 @@ class SBox(SageObject):
         try:
             from sage.modules.free_module_element import vector
             K = X.parent()
-            if K.order() == 2**self.n:
+            if K.order() == 2**self.output_size():
                 X = vector(X)
             else:
                 raise TypeError
@@ -345,7 +345,7 @@ class SBox(SageObject):
             else:
                 X = list(X)
             X = ZZ([ZZ(_) for _ in X], 2)
-            out =  self.to_bits(self._S[X], self.n)
+            out =  self.to_bits(self._S[X], self.output_size())
             if self._big_endian:
                 out = list(reversed(out))
             return K(vector(GF(2),out))
@@ -353,12 +353,12 @@ class SBox(SageObject):
             pass
 
         try:
-            if len(X) == self.m:
+            if len(X) == self.input_size():
                 if self._big_endian:
                     X = list(reversed(X))
                 X = ZZ([ZZ(_) for _ in X], 2)
                 out =  self._S[X]
-                return self.to_bits(out,self.n)
+                return self.to_bits(out,self.output_size())
         except TypeError:
             pass
 
@@ -385,6 +385,32 @@ class SBox(SageObject):
         """
         return self(X)
 
+    def input_size(self):
+        """
+        Return the input size of this S-Box.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox([0, 3, 2, 1, 1, 3, 2, 0])
+            sage: S.input_size()
+            3
+        """
+        return self.m
+
+    def output_size(self):
+        """
+        Return the output size of this S-Box.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sbox import SBox
+            sage: S = SBox([0, 3, 2, 1, 1, 3, 2, 0])
+            sage: S.output_size()
+            2
+        """
+        return self.n
+
     def is_permutation(self):
         r"""
         Return ``True`` if this S-Box is a permutation.
@@ -400,9 +426,10 @@ class SBox(SageObject):
             sage: S.is_permutation()
             False
         """
-        if self.m != self.n:
+        if self.input_size() != self.output_size():
             return False
-        return len(set([self(i) for i in range(2**self.m)])) == 2**self.m
+        m = self.input_size()
+        return len(set([self(i) for i in range(2**m)])) == 2**m
 
     def __iter__(self):
         """
@@ -413,7 +440,7 @@ class SBox(SageObject):
             sage: [e for e in S]
             [7, 6, 0, 4, 2, 5, 1, 3]
         """
-        for i in range(2**self.m):
+        for i in range(2**self.input_size()):
             yield self(i)
 
     def difference_distribution_matrix(self):
@@ -444,8 +471,8 @@ class SBox(SageObject):
             [0 2 2 0 0 2 2 0]
             [0 0 0 0 2 2 2 2]
         """
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
 
         nrows = 1<<m
         ncols = 1<<n
@@ -497,7 +524,7 @@ class SBox(SageObject):
             sage: S.maximal_difference_probability()
             0.25
         """
-        return self.maximal_difference_probability_absolute()/(2.0**self.n)
+        return self.maximal_difference_probability_absolute()/(2.0**self.output_size())
 
     @cached_method
     def linear_approximation_matrix(self, scale="absolute_bias"):
@@ -564,8 +591,8 @@ class SBox(SageObject):
             True
             True
         """
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
 
         nrows = 1<<m
         ncols = 1<<n
@@ -619,7 +646,7 @@ class SBox(SageObject):
             sage: S.maximal_linear_bias_relative()
             0.25
         """
-        return self.maximal_linear_bias_absolute()/(2.0**self.m)
+        return self.maximal_linear_bias_absolute()/(2.0**self.input_size())
 
     def ring(self):
         """
@@ -638,8 +665,8 @@ class SBox(SageObject):
         except AttributeError:
             pass
 
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
 
         X = range(m)
         Y = range(n)
@@ -672,13 +699,13 @@ class SBox(SageObject):
             P = X[0].parent()
             gens = X + Y
 
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
 
         solutions = []
         for i in range(1<<m):
-            solution = self.to_bits(i,m) + self( self.to_bits(i,m) )
-            solutions.append( dict(zip(gens, solution)) )
+            solution = self.to_bits(i, m) + self(self.to_bits(i, m))
+            solutions.append(dict(zip(gens, solution)))
 
         return solutions
 
@@ -737,6 +764,20 @@ class SBox(SageObject):
             [y0 + x0*x1 + x0*x2 + x0 + x1*x2 + x1 + 1,
              y1 + x0*x2 + x1 + 1,
              y2 + x0 + x1*x2 + x1 + x2 + 1]
+
+        TESTS:
+
+        Check that :trac:`22453` is fixed::
+
+            sage: from sage.crypto.sboxes import AES
+            sage: aes_polys = AES.polynomials()
+            sage: p = aes_polys[0].parent("x3*y0 + x5*y0 + x7*y0 + x6*y1 + x2*y2"
+            ....:                         " + x3*y2 + x4*y2 + x2*y3 + x3*y3 +"
+            ....:                         " x5*y4 + x6*y4 + x3*y5 + x4*y5 + x4*y7"
+            ....:                         " + x2 + x3 + y2 + y3 + y4 + 1")
+            sage: p in aes_polys
+            True
+
         """
         def nterms(nvars, deg):
             """
@@ -765,8 +806,8 @@ class SBox(SageObject):
                 total += var_choices/divisor
             return total
 
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
         F = self._F
 
         if X is None and Y is None:
@@ -776,15 +817,15 @@ class SBox(SageObject):
         else:
             P = X[0].parent()
 
-        gens = X+Y
+        gens = X + Y
 
         bits = []
         for i in range(1<<m):
-            bits.append( self.to_bits(i,m) + self(self.to_bits(i,m)) )
+            bits.append(self.to_bits(i, m) + self(self.to_bits(i, m)))
 
-        ncols = (1<<m)+1
+        ncols = (1<<m) + 1
 
-        A = Matrix(P, nterms(m+n, degree), ncols)
+        A = Matrix(P, nterms(m + n, degree), ncols)
 
         exponents = []
         for d in range(degree+1):
@@ -797,13 +838,15 @@ class SBox(SageObject):
                 A[row,col] = mul([bits[col][i] for i in range(len(exponent)) if exponent[i]])
             row +=1
 
+        rankSize = A.rank() - 1
+
         for c in range(ncols):
             A[0,c] = 1
 
         RR = A.echelon_form(algorithm='row_reduction')
 
         # extract spanning stet
-        gens = (RR.column(ncols-1)[1<<m:]).list()
+        gens = (RR.column(ncols-1)[rankSize:]).list()
 
         if not groebner:
             return gens
@@ -850,14 +893,15 @@ class SBox(SageObject):
             sage: f(a^2 + 1), S(5)
             (a^2 + 1, 5)
         """
-        if self.m != self.n:
-            raise TypeError("Lagrange interpolation only supported if self.m == self.n.")
+        if self.input_size() != self.output_size():
+            raise TypeError("Lagrange interpolation only supported if self.input_size() == self.output_size().")
 
         if k is None:
-            k = GF(2**self.m,'a')
+            k = GF(2**self.input_size(),'a')
         l = []
-        for i in range(2**self.m):
-            i = self.to_bits(i, self.m)
+        m = self.input_size()
+        for i in range(2**m):
+            i = self.to_bits(i, self.input_size())
             o = self(i)
             if self._big_endian:
                 i = reversed(i)
@@ -1012,7 +1056,7 @@ class SBox(SageObject):
             ...
             TypeError: first arg required to have length 2, got 3 instead.
         """
-        m, n = self.m, self.n
+        m, n = self.input_size(), self.output_size()
 
         if xi is None:
             xi = [i+1 for i in range(m)]
@@ -1069,8 +1113,8 @@ class SBox(SageObject):
 
         INPUT:
 
-        - ``b`` -- either an integer or a tuple of `\GF{2}` elements of
-          length ``self.n``
+        - ``b`` -- either an integer or a list/tuple/vector of `\GF{2}`
+          elements of length ``self.output_size()``
 
         EXAMPLES::
 
@@ -1084,19 +1128,22 @@ class SBox(SageObject):
             sage: f5.algebraic_normal_form()
             x0*x2 + x0 + x1*x2
         """
-        m = self.m
-        n = self.n
-        ret = BooleanFunction(m)
+        m = self.input_size()
+        n = self.output_size()
 
-        if isinstance(b, integer_types + (Integer,)):
-            b = vector(GF(2), self.to_bits(b, n))
-        elif len(b) == n:
-            b = vector(GF(2), b)
-        else:
-            raise TypeError("cannot compute component function using parameter %s"%(b,))
+        try:
+            b = list(b)
+            if len(b) > n:
+                raise ValueError("Input (%s) is too long and would be truncated." % (b,))
+            b = self.from_bits(b)
+        except TypeError:
+            try:
+                b = ZZ(b)
+            except TypeError:
+                raise TypeError("Cannot handle input argument %s" % (b,))
 
-        for x in range(1<<m):
-            ret[x] = bool(b.dot_product(vector(GF(2), self.to_bits(self(x), n))))
+        ret = BooleanFunction([ZZ(b & self(x)).popcount() & 1 for x in range(1 << m)])
+
         return ret
 
     def nonlinearity(self):
@@ -1113,7 +1160,7 @@ class SBox(SageObject):
             sage: S.nonlinearity()
             112
         """
-        m = self.m
+        m = self.input_size()
         return (1 << (m-1)) - self.maximal_linear_bias_absolute()
 
     def linearity(self):
@@ -1149,8 +1196,8 @@ class SBox(SageObject):
             sage: S.differential_uniformity()
             2
         """
-        if self.m != self.n:
-            raise TypeError("APN function is only defined for self.m == self.n")
+        if self.input_size() != self.output_size():
+            raise TypeError("APN function is only defined for self.input_size() == self.output_size()")
         return self.differential_uniformity() == 2
 
     def differential_branch_number(self):
@@ -1172,8 +1219,8 @@ class SBox(SageObject):
             sage: S.differential_branch_number()
             3
         """
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
         ret = (1<<m) + (1<<n)
 
         for a in range(1<<m):
@@ -1208,8 +1255,8 @@ class SBox(SageObject):
             sage: S.linear_branch_number()
             2
         """
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
         ret = (1<<m) + (1<<n)
         lat = self.linear_approximation_matrix()
 
@@ -1253,7 +1300,7 @@ class SBox(SageObject):
         """
         from sage.combinat.matrices.hadamard_matrix import hadamard_matrix
 
-        n = self.n
+        n = self.output_size()
         A = self.difference_distribution_matrix() * hadamard_matrix(1<<n)
         A.set_immutable()
 
@@ -1299,8 +1346,8 @@ class SBox(SageObject):
         """
         Si = self.inverse()
 
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
 
         nrows = 1 << m
         ncols = 1 << n
@@ -1348,15 +1395,15 @@ class SBox(SageObject):
             sage: S.linear_structures()
             [(1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1)]
         """
-        n = self.n
-        m = self.m
+        n = self.output_size()
+        m = self.input_size()
         act = self.autocorrelation_matrix()
         ret = []
 
         for j in range(1, 1<<n):
             for i in range(1, 1<<m):
                 if (abs(act[i,j]) == (1<<m)):
-                    c = ((1 - (act[i][j] >> self.m)) >> 1)
+                    c = ((1 - (act[i][j] >> m)) >> 1)
                     ret.append((j, i, c))
         return ret
 
@@ -1377,7 +1424,7 @@ class SBox(SageObject):
             sage: S.has_linear_structure()
             True
         """
-        return any(self.component_function(i).has_linear_structure() for i in range(1, 1<<self.n))
+        return any(self.component_function(i).has_linear_structure() for i in range(1, 1<<self.output_size()))
 
     def is_linear_structure(self, a, b):
         r"""
@@ -1422,11 +1469,11 @@ class SBox(SageObject):
             sage: S.max_degree()
             3
         """
-        n = self.n
+        n = self.output_size()
         ret = 0
 
         for i in range(n):
-            deg_Si = self.component_function(1<<i).algebraic_normal_form().degree()
+            deg_Si = self.component_function(1<<i).algebraic_degree()
             if deg_Si > ret:
                 ret = deg_Si
         return ret
@@ -1442,11 +1489,11 @@ class SBox(SageObject):
             sage: S.min_degree()
             2
         """
-        n = self.n
-        ret = self.m
+        n = self.output_size()
+        ret = self.input_size()
 
         for b in range(1, 1<<n):
-            deg_bS = self.component_function(b).algebraic_normal_form().degree()
+            deg_bS = self.component_function(b).algebraic_degree()
             if deg_bS < ret:
                 ret = deg_bS
         return ret
@@ -1464,7 +1511,7 @@ class SBox(SageObject):
             sage: S.is_balanced()
             True
         """
-        n = self.n
+        n = self.output_size()
 
         for b in range(1, 1<<n):
             bS = self.component_function(b)
@@ -1486,10 +1533,10 @@ class SBox(SageObject):
             sage: S.is_almost_bent()
             True
         """
-        if self.m != self.n:
-            raise TypeError("almost bent function only exists for self.m == self.n")
+        if self.input_size() != self.output_size():
+            raise TypeError("almost bent function only exists for self.input_size() == self.output_size()")
 
-        m = self.m
+        m = self.input_size()
 
         if is_even(m):
             return False
@@ -1507,7 +1554,7 @@ class SBox(SageObject):
             sage: S.fixed_points()
             [0, 1]
         """
-        m = self.m
+        m = self.input_size()
         return [i for i in range(1<<m) if i == self(i)]
 
     def inverse(self):
@@ -1528,7 +1575,7 @@ class SBox(SageObject):
         if not self.is_permutation():
             raise TypeError("S-Box must be a permutation")
 
-        m = self.m
+        m = self.input_size()
         L = [self(i) for i in range(1<<m)]
         return SBox([L.index(i) for i in range(1<<m)], big_endian=self._big_endian)
 
@@ -1566,7 +1613,7 @@ class SBox(SageObject):
             sage: S.is_plateaued()
             True
         """
-        n = self.n
+        n = self.output_size()
 
         for b in range(1, 1<<n):
             bS = self.component_function(b)
@@ -1610,8 +1657,8 @@ class SBox(SageObject):
             [ 0  2 -2 -2]
             [ 0 -2 -2  2]
         """
-        m = self.m
-        n = self.n
+        m = self.input_size()
+        n = self.output_size()
 
         if not is_even(m) or n > m//2:
             return False

@@ -100,10 +100,10 @@ A ``LinearCode`` is instantiated by providing a generator matrix::
 Further references
 ------------------
 
-If you want to get started on Sage's linear codes library, see http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
+If you want to get started on Sage's linear codes library, see https://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
 If you want to learn more on the design of this library, see
-http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
+https://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
 
 REFERENCES:
 
@@ -3339,7 +3339,7 @@ class AbstractLinearCode(Module):
         return E.unencode(c, nocheck)
 
     def weight_enumerator(self, names=None, bivariate=True):
-        """
+        r"""
         Return the weight enumerator polynomial of ``self``.
 
         This is the bivariate, homogeneous polynomial in `x` and `y` whose
@@ -3701,7 +3701,7 @@ class LinearCode(AbstractLinearCode):
             return "[%s, %s] linear code over %s"%(self.length(), self.dimension(), R)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::

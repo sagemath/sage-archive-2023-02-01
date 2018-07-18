@@ -349,7 +349,6 @@ class RootSystem(UniqueRepresentation, SageObject):
 
         .. SEEALSO:: :class:`TestSuite`.
         """
-        tester = self._tester(**options)
         options.pop('tester', None)
         from sage.misc.sage_unittest import TestSuite
         TestSuite(self.root_lattice()).run(**options)
@@ -812,9 +811,9 @@ def WeylDim(ct, coeffs):
         8
         sage: WeylDim(['B',3],[1,0,1]) # sum of the first and third fundamental weights
         48
-        sage: [WeylDim(['F',4],x) for x in [1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]
+        sage: [WeylDim(['F',4],x) for x in ([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])]
         [52, 1274, 273, 26]
-        sage: [WeylDim(['E', 6], x) for x in [0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1], [2, 0, 0, 0, 0, 0]]
+        sage: [WeylDim(['E', 6], x) for x in ([0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 1], [2, 0, 0, 0, 0, 0])]
         [1, 78, 27, 351, 351, 351, 27, 650, 351]
     """
     ct = CartanType(ct)

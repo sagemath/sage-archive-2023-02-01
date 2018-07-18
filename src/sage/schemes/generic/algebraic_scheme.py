@@ -138,16 +138,19 @@ from sage.combinat.tuple import UnorderedTuples
 from sage.categories.number_fields import NumberFields
 from sage.categories.morphism import Morphism
 
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, QQbar
 from sage.rings.ideal import is_Ideal
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.number_field.order import is_NumberFieldOrder
 
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.calculus.functions import jacobian
+
+from sage.arith.all import gcd, lcm
 
 import sage.schemes.affine
 from . import ambient_space
@@ -1089,6 +1092,46 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         """
         return self.__polys
 
+    def normalize_defining_polynomials(self):
+        r"""
+        Function to normalize the coefficients of defining polynomials
+        of given subscheme.
+
+        Normalization as in removing denominator from all the coefficients,
+        and then removing any common factor between the coefficients.
+        It takes LCM of denominators and then removes common factor among
+        coefficients, if any.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(2, QQ)
+            sage: S = A.subscheme([2*x^2 + 4*x*y, 1/8*x + 1/3*y])
+            sage: S.normalize_defining_polynomials()
+            sage: S.defining_polynomials()
+            (x^2 + 2*x*y, 3*x + 8*y)
+
+        """
+        BR = self.base_ring()
+        if BR == QQbar or BR in NumberFields() or is_NumberFieldOrder(BR):
+            normalized_polys = []
+            initial_polys = list(self.__polys)
+
+            for P in initial_polys:
+                # stores value which need to be mutliplied to make all coefficient integers
+                mult = lcm([c.denominator() for c in P.coefficients()])
+                P = mult*P
+                # stores the common factor from all coefficients
+                div = gcd([_ for _ in P.coefficients()])
+                poly_ring = P.parent() # need to coerce, since division might change base ring
+                P = poly_ring((BR.one()/div)*P)
+                normalized_polys.append(P)
+
+            self.__polys = tuple(normalized_polys)
+
+        else:
+                raise NotImplementedError("currently normalization is implemented "
+                    "only for QQbar, number fields and number field orders")
+
     def defining_ideal(self):
         """
         Return the ideal that defines this scheme as a subscheme
@@ -1571,7 +1614,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             ...
             TypeError: Affine Space of dimension 3 over Integer Ring must be a projective space, product of projective spaces, or subscheme
         """
-        #This will catch any ambient space mistmatches
+        #This will catch any ambient space mismatches
         AS = self.ambient_space()*right.ambient_space()
         CR = AS.coordinate_ring()
         n = self.ambient_space().coordinate_ring().ngens()
@@ -1702,20 +1745,16 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         .. TODO::
 
-            1. The above algorithms enumerate all projective points and
-               test whether they lie on the scheme; Implement a more naive
-               sieve at least for covers of the projective line.
-
-            2. Implement Stoll's model in weighted projective space to
-               resolve singularities and find two points (1 : 1 : 0) and
-               (-1 : 1 : 0) at infinity.
+            Implement Stoll's model in weighted projective space to
+            resolve singularities and find two points (1 : 1 : 0) and
+            (-1 : 1 : 0) at infinity.
         """
         if F is None:
             F = self.base_ring()
         X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
             try:
-                return X.points(bound) # checks for proper bound done in points functions
+                return X.points(bound=bound) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
         try:
@@ -1832,11 +1871,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
               (-0.561231024154687 - 0.972080648619833*I)*x^2,
               y^2
         """
-        K = self.base_ring()
         AS = self.ambient_space()
         new_AS = AS.change_ring(R)
         I = [f.change_ring(R) for f in self.defining_polynomials()]
-        return(new_AS.subscheme(I))
+        return new_AS.subscheme(I)
 
     def weil_restriction(self):
         r"""

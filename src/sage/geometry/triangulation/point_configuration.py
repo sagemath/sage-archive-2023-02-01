@@ -626,8 +626,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         """
         timeout = 600
         proc = pexpect.spawn(executable, timeout=timeout)
-        proc.expect('Evaluating Commandline Options \.\.\.')
-        proc.expect('\.\.\. done\.')
+        proc.expect(r'Evaluating Commandline Options \.\.\.')
+        proc.expect(r'\.\.\. done\.')
         proc.setecho(0)
         assert proc.readline().strip() == ''
 
@@ -1152,12 +1152,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         EXAMPLES::
 
             sage: pyramid = PointConfiguration([[1,0,0],[0,1,1],[0,1,-1],[0,-1,-1],[0,-1,1]])
-            sage: pyramid.restricted_automorphism_group()
-            Permutation Group with generators [(3,5), (2,3)(4,5), (2,4)]
-            sage: DihedralGroup(4).is_isomorphic(_)
+            sage: G = pyramid.restricted_automorphism_group()
+            sage: G == PermutationGroup([[(3,5)], [(2,3),(4,5)], [(2,4)]])
+            True
+            sage: DihedralGroup(4).is_isomorphic(G)
             True
 
-        The square with an off-center point in the middle. Note thath
+        The square with an off-center point in the middle. Note that
         the middle point breaks the restricted automorphism group
         `D_4` of the convex hull::
 

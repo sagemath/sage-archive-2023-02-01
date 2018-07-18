@@ -198,7 +198,6 @@ from .generic_nodes import pAdicFieldBaseGeneric, \
                           pAdicCappedAbsoluteRingGeneric, \
                           pAdicFloatingPointRingGeneric, \
                           pAdicFloatingPointFieldGeneric, \
-                          pAdicGeneric, \
                           pAdicLatticeGeneric
 from .padic_capped_relative_element import pAdicCappedRelativeElement
 from .padic_capped_absolute_element import pAdicCappedAbsoluteElement
@@ -206,7 +205,6 @@ from .padic_fixed_mod_element import pAdicFixedModElement
 from .padic_floating_point_element import pAdicFloatingPointElement
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 
 
 class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
@@ -876,7 +874,7 @@ class pAdicRingLattice(pAdicLatticeGeneric, pAdicRingBaseGeneric):
         TESTS:
 
             sage: R = ZpLC(7, label='init')
-            sage: TestSuite(R).run(skip='_test_teichmuller')
+            sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
         """
         # We need to set the subtype first, so that
         # pAdicRingBaseGeneric.__init__ can work
@@ -1004,8 +1002,8 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
 
         TESTS::
 
-            sage: R = ZpLC(7, label='init')
-            sage: TestSuite(R).run(skip='_test_teichmuller')
+            sage: R = QpLC(7, label='init')
+            sage: TestSuite(R).run(skip=['_test_teichmuller', '_test_matrix_smith']) # long time
         """
         # We need to set the subtype first, so that
         # pAdicFieldBaseGeneric.__init__ can work

@@ -6,6 +6,8 @@ Algebras
 
    sage/algebras/catalog
 
+   quantum_groups
+
 Free associative algebras and quotients
 ---------------------------------------
 

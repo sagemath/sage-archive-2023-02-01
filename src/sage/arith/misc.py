@@ -25,7 +25,7 @@ from sage.misc.misc_c import prod
 from sage.libs.pari.all import pari
 import sage.libs.flint.arith as flint_arith
 
-from sage.structure.element import parent, Element
+from sage.structure.element import parent
 from sage.structure.coerce import py_scalar_to_element
 
 from sage.rings.rational_field import QQ
@@ -1204,20 +1204,20 @@ def random_prime(n, proof=None, lbound=2):
     EXAMPLES::
 
         sage: random_prime(100000)
-        88237
+        30029
         sage: random_prime(2)
         2
 
     Here we generate a random prime between 100 and 200::
 
         sage: random_prime(200, lbound=100)
-        149
+        167
 
     If all we care about is finding a pseudo prime, then we can pass
     in ``proof=False`` ::
 
         sage: random_prime(200, proof=False, lbound=100)
-        149
+        197
 
     TESTS::
 
@@ -1243,7 +1243,6 @@ def random_prime(n, proof=None, lbound=2):
     """
     # since we don't want current_randstate to get
     # pulled when you say "from sage.arith.misc import *".
-    from sage.misc.randstate import current_randstate
     from sage.structure.proof.proof import get_flag
     proof = get_flag(proof, "arithmetic")
     n = ZZ(n)
@@ -1272,7 +1271,7 @@ def random_prime(n, proof=None, lbound=2):
         prime_test = is_prime
     else:
         prime_test = is_pseudoprime
-    randint = current_randstate().python_random().randint
+    randint = ZZ.random_element
     while True:
         # In order to ensure that the returned prime is chosen
         # uniformly from the set of primes it is necessary to
@@ -1282,7 +1281,7 @@ def random_prime(n, proof=None, lbound=2):
         # for example, return the first of a pair of twin primes.
         p = randint(lbound, n)
         if prime_test(p):
-            return ZZ(p)
+            return p
 
 
 def divisors(n):
@@ -2330,9 +2329,7 @@ def radical(n, *args, **kwds):
     """
     Return the product of the prime divisors of n.
 
-    This calls ``n.radical(*args, **kwds)``.  If that doesn't work, it
-    does ``n.factor(*args, **kwds)`` and returns the product of the prime
-    factors in the resulting factorization.
+    This calls ``n.radical(*args, **kwds)``.
 
     EXAMPLES::
 
@@ -2345,12 +2342,6 @@ def radical(n, *args, **kwds):
         sage: K.<i> = QuadraticField(-1)
         sage: radical(K(2))
         i + 1
-
-    The next example shows how to compute the radical of a number,
-    assuming no prime > 100000 has exponent > 1 in the factorization::
-
-        sage: n = 2^1000-1; n / radical(n, limit=100000)
-        125
     """
     try:
         return n.radical(*args, **kwds)
@@ -2432,15 +2423,19 @@ def prime_to_m_part(n,m):
 
     EXAMPLES::
 
+        sage: prime_to_m_part(240,2)
+        15
+        sage: prime_to_m_part(240,3)
+        80
+        sage: prime_to_m_part(240,5)
+        48
+        sage: prime_to_m_part(43434,20)
+        21717
+
+    Note that integers also have a method with the same name::
+
         sage: 240.prime_to_m_part(2)
         15
-        sage: 240.prime_to_m_part(3)
-        80
-        sage: 240.prime_to_m_part(5)
-        48
-
-        sage: 43434.prime_to_m_part(20)
-        21717
     """
     return ZZ(n).prime_to_m_part(m)
 
@@ -4050,8 +4045,9 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
 
 def hilbert_conductor(a, b):
-    """
+    r"""
     This is the product of all (finite) primes where the Hilbert symbol is -1.
+
     What is the same, this is the (reduced) discriminant of the quaternion
     algebra `(a,b)` over `\QQ`.
 
@@ -4085,8 +4081,9 @@ def hilbert_conductor(a, b):
             d *= p
     return d
 
+
 def hilbert_conductor_inverse(d):
-    """
+    r"""
     Finds a pair of integers `(a,b)` such that ``hilbert_conductor(a,b) == d``.
 
     The quaternion algebra `(a,b)` over `\QQ` will then have (reduced)

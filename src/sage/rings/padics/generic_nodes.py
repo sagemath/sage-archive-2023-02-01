@@ -624,7 +624,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
             sage: R2.precision().diffused_digits([x2,y2])
             0
 
-        On the other hand, this issue dissapears when we use multiple
+        On the other hand, this issue disappears when we use multiple
         conversion::
 
             sage: x2,y2 = R2.convert_multiple(x,y)
@@ -641,8 +641,9 @@ class pAdicLatticeGeneric(pAdicGeneric):
         elt_other = [ ]
         indices = { }
         for i in range(len(elts)):
-            x = elts[i]; idx = id(x)
-            if indices.has_key(idx):
+            x = elts[i]
+            idx = id(x)
+            if idx in indices:
                 indices[idx].append(i)
             else:
                 indices[idx] = [i]
@@ -650,7 +651,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
                 prec = x.parent().precision()
                 if prec.prime() != p:
                     raise TypeError("conversion between different p-adic rings not supported")
-                if elt_by_prec.has_key(prec):
+                if prec in elt_by_prec:
                     elt_by_prec[prec].append(x)
                 else:
                     elt_by_prec[prec] = [x]

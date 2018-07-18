@@ -20,7 +20,6 @@ import sage.misc.misc as misc
 import sage.modules.module
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
-from sage.structure.parent import Parent
 
 import sage.misc.prandom as random
 
@@ -606,7 +605,6 @@ class HeckeModule_free_module(HeckeModule_generic):
             return self.__eigen_nonzero
         except AttributeError:
             pass
-        A = self.ambient_hecke_module()
         V = self.dual_free_module()
         B = V.basis()
         for i in range(V.degree()):
@@ -755,10 +753,37 @@ class HeckeModule_free_module(HeckeModule_generic):
         raise NotImplementedError
 
     def atkin_lehner_operator(self, d=None):
-        """
-        Return the Atkin-Lehner operator `W_d` on this space, if
-        defined, where `d` is a divisor of the level `N`
-        such that `N/d` and `d` are coprime.
+        r"""
+        Return the Atkin-Lehner operator `W_d` on this space, if defined, where
+        `d` is a divisor of the level `N` such that `N/d` and `d` are coprime.
+        If `d` is not given, we take `d = N`.  If `N/d` is not coprime to `d`,
+        then we replace `d` with the unique integer having this property which
+        has the same prime factors as `d`.
+
+        .. NOTE::
+
+            The operator `W_d` is given by the action of any matrix of the form
+
+            .. math::
+
+                W_d = \begin{pmatrix} dx & y \\ Nz & dw \end{pmatrix}
+
+            with `\det W_d = d` and such that `x = 1 \bmod N/d`, `y = 1 \bmod
+            d`, as in [AL1978]_. However, our definition of the weight `k`
+            action differs from theirs by a power of the determinant, so our
+            operator `W_d` is `d^{k/2 - 1}` times the operator of Atkin-Li. In
+            particular, if `k = 2` our conventions are identical to Atkin and
+            Li's.
+
+            With Sage's conventions, the operator `W_d` satisfies
+            
+            .. math::
+
+                W_d^2 = d^{k - 2} \langle x^{-1} \rangle
+
+            where `x` is congruent to `d` modulo `N/d` and to `-1` modulo `d`.
+            In particular, the operator is an involution in weight 2 and
+            trivial character (but not in most other situations).
 
         EXAMPLES::
 

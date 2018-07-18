@@ -1,5 +1,5 @@
 r"""
-Computation of Riemann matrices and endomorphism rings of algebraic Riemann surfaces.
+Riemann matrices and endomorphism rings of algebraic Riemann surfaces
 
 This module provides a class, RiemannSurface, to model the Riemann surface
 determined by a plane algebraic curve over a subfield of the complex numbers.
@@ -64,35 +64,27 @@ In fact it is an order in a number field::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from scipy.spatial import Voronoi, voronoi_plot_2d
+from scipy.spatial import Voronoi
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.complex_field import ComplexField, CDF
 from sage.rings.real_mpfr import RealField
-from sage.rings.real_double import RDF
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.arith.srange import srange
 from sage.ext.fast_callable import fast_callable
 from sage.graphs.graph import Graph
-from sage.matrix.constructor import Matrix
+from sage.matrix.constructor import Matrix, matrix
 from sage.modules.free_module import VectorSpace
 from sage.numerical.gauss_legendre import integrate_vector
 from sage.misc.misc_c import prod
 from sage.arith.misc import algdep
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
-from sage.matrix.constructor import Matrix, matrix
-from sage.modules.free_module_element import vector
 from sage.rings.qqbar import number_field_elements_from_algebraics
-from sage.sets.all import Set
-from sage.misc.flatten import flatten
-from sage.interfaces.gp import gp
 from sage.matrix.special import block_matrix
 import sage.libs.mpmath.all as mpall
-import operator
 from sage.arith.misc import GCD
-
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
@@ -233,6 +225,7 @@ def numerical_inverse(C):
     P,L,U=[ R([mpall.mpmath_to_sage(c,prec) for c in M]) for M in PLU]
     return U.inverse()*L.inverse()*P
 
+
 class ConvergenceError(ValueError):
     r"""
     Error object suitable for raising and catching when Newton iteration fails.
@@ -296,6 +289,7 @@ def differential_basis_baker(f):
     P = Polyhedron(f.dict().keys())
     x,y = f.parent().gens()
     return [x**(a[0]-1)*y**(a[1]-1) for a in P.integral_points() if P.interior_contains(a)]
+
 
 class RiemannSurface(object):
     r"""
@@ -1013,7 +1007,7 @@ class RiemannSurface(object):
     @cached_method
     def monodromy_group(self):
         r"""
-        Compute local monodromy generators of the riemann surface.
+        Compute local monodromy generators of the Riemann surface.
 
         For each branch point, the local monodromy is encoded by a permutation.
         The permutations returned correspond to positively oriented loops around
@@ -1091,19 +1085,14 @@ class RiemannSurface(object):
         P0 = loops[0][0]
         monodromy_gens = []
         edge_perms = self.edge_permutations()
+        SG = self._Sn
         for c in loops:
-            to_loop = G.shortest_path(P0,c[0])
-            to_loop_perm = reduce(
-                operator.mul,
-                (edge_perms[(to_loop[i],to_loop[i+1])]
-                    for i in range(len(to_loop)-1)),
-                self._Sn(()))
-            c_perm = reduce(
-                operator.mul,
-                (edge_perms[(c[i],c[i+1])]
-                    for i in range(len(c)-1)),
-                self._Sn(()))
-            monodromy_gens.append(to_loop_perm*c_perm*to_loop_perm**(-1))
+            to_loop = G.shortest_path(P0, c[0])
+            to_loop_perm = SG.prod(edge_perms[(to_loop[i], to_loop[i + 1])]
+                                   for i in range(len(to_loop) - 1))
+            c_perm = SG.prod(edge_perms[(c[i], c[i + 1])]
+                             for i in range(len(c) - 1))
+            monodromy_gens.append(to_loop_perm * c_perm * ~to_loop_perm)
         return monodromy_gens
 
     @cached_method
@@ -1841,17 +1830,18 @@ class RiemannSurface(object):
                 if (alpha - CC(rt)).abs() < epscomp:
                     return rt
             raise AssertionError('No close root found while algebraizing')
+
         def algebraize_matrices(Ts):
-            nr = len(Ts[0].rows())
-            nc = len(Ts[0].columns())
+            nr = Ts[0].nrows()
+            nc = Ts[0].ncols()
             rr = range(nr)
             rc = range(nc)
-            TsAlg = [ ]
+            TsAlg = []
             for T in Ts:
-                rows = T.rows()
-                TAlg = Matrix([ [ algebraize_element(T[i,j]) for j in rc ] for i in rr ])
+                TAlg = Matrix([[algebraize_element(T[i, j]) for j in rc]
+                               for i in rr])
                 TsAlg.append(TAlg)
-            elts = reduce(lambda x,y : x + y, [ TAlg.list() for TAlg in TsAlg ])
+            elts = [x for TAl in TsAlg for x in TAl.list()]
             eltsAlg = number_field_elements_from_algebraics(elts)[1]
             L = eltsAlg[0].parent()
             TsAlgL = [ ]

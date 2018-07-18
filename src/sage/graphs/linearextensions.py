@@ -63,14 +63,6 @@ class LinearExtensions(CombinatorialClass):
         Creates an object representing the class of all linear extensions
         of the directed acyclic graph \code{dag}.
 
-        Note that upon construction of this object some pre-computation is
-        done.  This is the "preprocessing routine" found in Figure 7 of
-        "Generating Linear Extensions Fast" by Preusse and Ruskey.
-
-        This is an in-place algorithm and the list self.le keeps track
-        of the current linear extensions.  The boolean variable self.is_plus
-        keeps track of the "sign".
-
         EXAMPLES::
 
             sage: from sage.graphs.linearextensions import LinearExtensions
@@ -79,14 +71,33 @@ class LinearExtensions(CombinatorialClass):
             sage: l == loads(dumps(l))
             True
 
+        TESTS::
+
+            sage: list(LinearExtensions(DiGraph({ })))
+            [[]]
+
         """
         self.dag = dag
         self._name = "Linear extensions of %s"%dag
 
     def _prepare(self):
-        ################
-        #Precomputation#
-        ################
+        r"""
+        The preprocessing routine in Figure 7 of "Generating Linear
+        Extensions Fast" by Preusse and Ruskey.
+
+        This is an in-place algorithm and the list self.le keeps track
+        of the current linear extensions.  The boolean variable self.is_plus
+        keeps track of the "sign".
+
+        TESTS::
+
+            sage: from sage.graphs.linearextensions import LinearExtensions
+            sage: list(LinearExtensions(DiGraph({ 0:[1], 1:[0] }))) # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: The digraph must be acyclic to have linear extensions.
+
+        """
         dag_copy = copy(self.dag)
         le = []
         a  = []
@@ -101,7 +112,9 @@ class LinearExtensions(CombinatorialClass):
             for node in dag_copy.vertices():
                 if len(dag_copy.incoming_edges(node)) == 0:
                     minimal_elements.append(node)
-            if len(minimal_elements) == 1:
+            if not minimal_elements:
+                raise ValueError("The digraph must be acyclic to have linear extensions.")
+            elif len(minimal_elements) == 1:
                 le.append(minimal_elements[0])
                 dag_copy.delete_vertex(minimal_elements[0])
             else:
@@ -260,18 +273,15 @@ class LinearExtensions(CombinatorialClass):
             if yindex >= len(self.le):
                 return False
             y = self.le[ yindex ]
-            if self.incomparable(x,y) and y != self.b[i]:
-                return True
-            return False
+            return self.incomparable(x,y) and y != self.b[i]
+
         elif letter == "b":
             x = self.b[i]
             yindex = self.le.index(x) + 1
             if yindex >= len(self.le):
                 return False
             y = self.le[ yindex ]
-            if self.incomparable(x,y):
-                return True
-            return False
+            return self.incomparable(x,y)
         else:
             raise ValueError("Bad letter!")
 

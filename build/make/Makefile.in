@@ -252,6 +252,7 @@ $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
 		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
+
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\

@@ -1605,6 +1605,20 @@ class GenusSymbol_global_ring(object):
       the gram matrix of a representative of this genus
 
     - ``check`` -- (default: ``True``) a boolean; checks the input
+
+    EXAMPLES::
+
+        sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring, LocalGenusSymbol
+        sage: A = matrix.diagonal(ZZ, [2,4,6,8])
+        sage: local_symbols = [LocalGenusSymbol(A, p) for p in (2*A.det()).prime_divisors()]
+        sage: G = GenusSymbol_global_ring((4,0),local_symbols, representative=A);G
+        Genus of
+        [2 0 0 0]
+        [0 4 0 0]
+        [0 0 6 0]
+        [0 0 0 8]
+        Genus symbol at 2:    [2^-2 4^1 8^1]_6
+        Genus symbol at 3:     1^3 3^-1
     """
 
     def __init__(self, signature_pair, local_symbols, representative=None, check=True):
@@ -1616,21 +1630,12 @@ class GenusSymbol_global_ring(object):
 
         EXAMPLES::
 
-            sage: from sage.quadratic_forms.genera.genus import GenusSymbol_global_ring, LocalGenusSymbol
+            sage: from sage.quadratic_forms.genera.genus import Genus
 
-            sage: A = matrix.diagonal(ZZ, [2,4,6,8])
-            sage: local_symbols = [LocalGenusSymbol(A, p) for p in (2*A.det()).prime_divisors()]
-            sage: G = GenusSymbol_global_ring((4,0),local_symbols, representative=A);G
-            Genus of
-            [2 0 0 0]
-            [0 4 0 0]
-            [0 0 6 0]
-            [0 0 0 8]
-            Genus symbol at 2:    [2^-2 4^1 8^1]_6
-            Genus symbol at 3:     1^3 3^-1
+            sage: A = DiagonalQuadraticForm(ZZ, [1,2,3,4]).Hessian_matrix()
+            sage: G = Genus(A)
             sage: G == loads(dumps(G))
             True
-
         """
         if check:
             if not all([type(sym)==Genus_Symbol_p_adic_ring for sym in local_symbols]):

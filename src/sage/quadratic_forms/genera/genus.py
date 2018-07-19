@@ -18,10 +18,10 @@ from sage.rings.integer_ring import IntegerRing, ZZ
 from sage.rings.rational_field import RationalField, QQ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-from copy import deepcopy, copy
+from copy import copy, deepcopy
 from sage.misc.misc import verbose
 
-def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
+def all_genera_by_det(sig_pair, determinant, max_level=None, even=True):
     r"""
     Return a list of all global genera with the given conditions.
 
@@ -29,7 +29,7 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
 
     INPUT:
 
-    - ``sig_vec`` -- a pair of non-negative integers giving the signature
+    - ``sig_pair`` -- a pair of non-negative integers giving the signature
 
     - ``determinant`` -- an integer the sign is ignored
 
@@ -46,26 +46,25 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
         sage: from sage.quadratic_forms.genera.genus import all_genera_by_det
         sage: all_genera_by_det((4,0), 125, even=True)
         [Genus of
-         None
-         Genus symbol at 2:    1^-4
-         Genus symbol at 5:     1^2 5^1 25^1, Genus of
-         None
-         Genus symbol at 2:    1^-4
-         Genus symbol at 5:     1^1 5^3, Genus of
-         None
-         Genus symbol at 2:    1^-4
-         Genus symbol at 5:     1^3 125^1, Genus of
-         None
-         Genus symbol at 2:    1^-4
-         Genus symbol at 5:     1^-2 5^1 25^-1]
+        None
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^1 5^3, Genus of
+        None
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^-2 5^1 25^-1, Genus of
+        None
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^2 5^1 25^1, Genus of
+        None
+        Genus symbol at 2:    1^-4
+        Genus symbol at 5:     1^3 125^1]
     """
     from sage.misc.mrange import mrange_iter
-    from sage.matrix.constructor import matrix
     # input checks
     ZZ = IntegerRing()
     determinant = ZZ(determinant)
-    sig_vec = (ZZ(sig_vec[0]), ZZ(sig_vec[1]))
-    if not all([s >= 0 for s in sig_vec]):
+    sig_pair = (ZZ(sig_pair[0]), ZZ(sig_pair[1]))
+    if not all([s >= 0 for s in sig_pair]):
         raise ValueError("the signature vector must be a pair of non negative integers.")
     if max_level == None:
         max_level = determinant
@@ -74,7 +73,7 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     if type(even) != bool:
         raise ValueError("not a boolean")
 
-    rank = sig_vec[0] + sig_vec[1]
+    rank = sig_pair[0] + sig_pair[1]
     genera = []
     local_symbols = []
     # every global genus has a 2-adic symbol
@@ -95,14 +94,12 @@ def all_genera_by_det(sig_vec, determinant, max_level=None, even=True):
     # clever way to directly match the symbols for different primes.
     for g in mrange_iter(local_symbols):
         # create a Genus from a list of local symbols
-        G = GenusSymbol_global_ring(matrix.identity(1))
-        G._signature = sig_vec
-        G._representative = None
-        G._local_symbols = deepcopy(g)
+        G = GenusSymbol_global_ring(sig_pair, g)
         # discard the empty genera
         if is_GlobalGenus(G):
             genera.append(G)
-    genera.sort()
+    # for testing
+    genera.sort(key=lambda x: [s.symbol_tuple_list() for s in x.local_symbols()])
     return(genera)
 
 def _all_p_adic_genera(p, rank, det_val, max_level, even):
@@ -155,7 +152,6 @@ def _all_p_adic_genera(p, rank, det_val, max_level, even):
     """
     from sage.misc.mrange import cantor_product
     from sage.combinat.integer_lists.invlex import IntegerListsLex
-    from copy import deepcopy
     levels_rks = [] # contains possibilities for levels and ranks
     for rkseq in IntegerListsLex(rank, length=max_level+1):   # rank sequences
         # sum(rkseq) = rank
@@ -1639,7 +1635,7 @@ class Genus_Symbol_p_adic_ring(object):
             <... 'list'>
 
         """
-        return copy.deepcopy(self._symbol)
+        return deepcopy(self._symbol)
 
     def number_of_blocks(self):
         """
@@ -2200,7 +2196,7 @@ class GenusSymbol_global_ring(object):
             [Genus symbol at 2:    [2^-2 4^1 8^1]_4,
              Genus symbol at 3:     1^-3 3^-1]
         """
-        return copy.deepcopy(self._local_symbols)
+        return deepcopy(self._local_symbols)
 
 
 def _gram_from_jordan_block(p, block, discr_form=False):

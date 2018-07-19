@@ -499,7 +499,7 @@ class TamariIntervalPoset(Element):
         EXAMPLES::
 
             sage: ip = TamariIntervalPoset(4,[(2,4),(3,4),(2,1),(3,1)])
-            sage: print(ip._latex_())
+            sage: latex(ip)
             \begin{tikzpicture}[scale=1]
             \node(T1) at (1,0) {1};
             \node(T2) at (0,-1) {2};
@@ -514,7 +514,7 @@ class TamariIntervalPoset(Element):
         TESTS::
 
             sage: ip = TamariIntervalPoset(0,[])
-            sage: print(ip._latex_())
+            sage: latex(ip)
             \begin{tikzpicture}[scale=1]
             \node(T0) at (0,0){$\emptyset$};\end{tikzpicture}
         """

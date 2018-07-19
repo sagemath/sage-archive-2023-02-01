@@ -12998,7 +12998,7 @@ cdef class Matrix(Matrix1):
             [             zeta5^3]
             [-zeta5^3 - zeta5 - 1]
 
-        Furthermore this method can be aplied to matrices over quadratic extensions of finte fields::
+        Furthermore, this method can be applied to matrices over quadratic extensions of finite fields::
 
             sage: F.<a> = GF(9,'a')
             sage: N = matrix(F, 2, [0,a,-a,1]); N

@@ -4,7 +4,7 @@ Base class for finite field elements
 AUTHORS::
 
 - David Roe (2010-1-14) -- factored out of sage.structure.element
-- Sebastian Oehms (2018-7-19) -- add :meth:`conjugate` (see :trac:`25716`)
+- Sebastian Oehms (2018-7-19) -- add :meth:`conjugate` (see :trac:`26761`)
 """
 
 from sage.structure.element cimport Element
@@ -818,7 +818,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             ...
             TypeError: cardinality of the field must be a square number!
 
-        TESTS: # check that :trac:`25716` is fixed
+        TESTS: # check that :trac:`26761` is fixed
 
             sage: G32 = GU(3,2)
             sage: g1, g2 = G32.gens()

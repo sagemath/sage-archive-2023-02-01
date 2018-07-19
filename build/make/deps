@@ -47,7 +47,7 @@ all-build: toolchain-deps
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
 # as prerequisite of GCC.
-base-toolchain: base
+base-toolchain: _clean-broken-gcc base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
 
 # All targets except for the base packages

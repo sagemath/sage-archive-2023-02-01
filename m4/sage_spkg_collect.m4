@@ -58,10 +58,6 @@ AC_DEFUN_ONCE([SAGE_SPKG_COLLECT], [
 # See https://trac.sagemath.org/ticket/24703
 if test x$SAGE_INSTALL_GCC = xexists; then
     SAGE_GCC_DEP='$(SAGE_LOCAL)/bin/gcc'
-elif test x$SAGE_INSTALL_GCC = xyes; then
-    # GCC should be installed *or* there as in existing installation that
-    # is broken and should be removed.
-    SAGE_GCC_DEP='_clean-broken-gcc'
 else
     SAGE_GCC_DEP=''
 fi

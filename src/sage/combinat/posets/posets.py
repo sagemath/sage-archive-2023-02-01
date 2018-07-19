@@ -2753,8 +2753,8 @@ class FinitePoset(UniqueRepresentation, Parent):
           of the poset
 
         - ``ordered`` -- a Boolean. If ``True``, then return ``True``
-          only if elements in `elms` are strictly increasing in the
-          poset; this makes no sense if `elms` is a set. If ``False``
+          only if elements in ``elms`` are strictly increasing in the
+          poset; this makes no sense if ``elms`` is a set. If ``False``
           (the default), then elements can be repeated and be in any
           order.
 
@@ -3978,8 +3978,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def isomorphic_subposets_iterator(self, other):
         """
-        Return an iterator over the subposets of `self` isomorphic to
-        `other`.
+        Return an iterator over the subposets of ``self`` isomorphic to
+        ``other``.
 
         By subposet we mean ``self.subposet(X)`` which is isomorphic
         to ``other`` and where ``X`` is a subset of elements of
@@ -4019,7 +4019,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def isomorphic_subposets(self, other):
         """
-        Return a list of subposets of `self` isomorphic to `other`.
+        Return a list of subposets of ``self`` isomorphic to ``other``.
 
         By subposet we mean ``self.subposet(X)`` which is isomorphic to
         ``other`` and where ``X`` is a subset of elements of ``self``.
@@ -4030,8 +4030,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C2=Poset({0:[1]})
-            sage: C3=Poset({'a':['b'], 'b':['c']})
+            sage: C2 = Poset({0:[1]})
+            sage: C3 = Poset({'a':['b'], 'b':['c']})
             sage: for x in C3.isomorphic_subposets(C2):
             ....:     print(x.cover_relations())
             [['b', 'c']]

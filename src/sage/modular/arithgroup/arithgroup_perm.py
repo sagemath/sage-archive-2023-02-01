@@ -568,10 +568,11 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
             sage: G1 = ArithmeticSubgroup_Permutation(S2='(1,2)(3,4)(5,6)',S3='(1,2,3)(4,5,6)')
             sage: G2 = ArithmeticSubgroup_Permutation(S2='(1,2)(3,4)(5,6)',S3='(1,5,6)(4,2,3)')
-            sage: G1.__hash__() == G2.__hash__()
+            sage: hash(G1) == hash(G2)
             False
         """
-        return hash((tuple(self.relabel(inplace=False)._S2),tuple(self.relabel(inplace=False)._S3)))
+        return hash((tuple(self.relabel(inplace=False)._S2),
+                     tuple(self.relabel(inplace=False)._S3)))
 
     def _repr_(self):
         r"""

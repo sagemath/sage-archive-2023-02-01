@@ -40,8 +40,8 @@ from sage.rings.rational_field import QQ
 from sage.rings.all import RR, Infinity
 from sage.functions.other import ceil
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.structure.proof.all import number_field
 from sage.libs.pari.all import pari
+
 
 def bdd_norm_pr_gens_iq(K, norm_list):
     r"""
@@ -101,12 +101,8 @@ def bdd_norm_pr_gens_iq(K, norm_list):
         Traceback (most recent call last):
         ...
         KeyError: 100
-
     """
-    gens = dict()
-    for n in norm_list:
-        gens[n] = K.elements_of_norm(n)
-    return gens
+    return {n: K.elements_of_norm(n) for n in norm_list}
 
 
 def bdd_height_iq(K, height_bound):

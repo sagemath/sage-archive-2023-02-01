@@ -846,6 +846,9 @@ export SAGE_DESTDIR="${SAGE_BUILD_DIR}/${PKG_NAME}/inst"
 # end of spkg-install.
 export SAGE_DESTDIR_LOCAL="${SAGE_DESTDIR}${SAGE_LOCAL}"
 
+# First uninstall the previous version of this package, if any
+sage-spkg-uninstall "$PKG_BASE"
+
 
 if [ -f spkg-build ]; then
     # Package has both spkg-build and spkg-install; execute the latter with SAGE_SUDO
@@ -867,10 +870,6 @@ else
         exit 1
     fi
 fi
-
-# We are now ready to install the new package files into $SAGE_LOCAL, so first
-# uninstall the previous version of this package, if any
-sage-spkg-uninstall "$PKG_BASE"
 
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used

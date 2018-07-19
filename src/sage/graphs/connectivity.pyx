@@ -2533,7 +2533,7 @@ class Triconnectivity:
         # Add all the vertices first
         # there is a possibility of isolated vertices
         for v in G.vertex_iterator():
-            graph_copy.append(v)
+            self.graph_copy.add_vertex(v)
 
         edges = G.edges()
         # dict to map new edges with the old edges
@@ -2566,13 +2566,14 @@ class Triconnectivity:
         self.components_list = [] #list of components
         self.graph_copy_adjacency = [[] for i in range(self.n)]
 
+        # Triconnectivity algorithm
+        self.split_multi_egdes()
+
         # Build adjacency list
         for e in self.graph_copy.edges():
             self.graph_copy_adjacency[e[0]].append(e)
             self.graph_copy_adjacency[e[1]].append(e)
 
-        # Triconnectivity algorithm
-        self.split_multi_egdes()
         self.dfs_counter = 0 # Initialisation for dfs1()
         self.start_vertex = 0 # Initialisation for dfs1()
         self.cut_vertex = self.dfs1(self.start_vertex, check=check)

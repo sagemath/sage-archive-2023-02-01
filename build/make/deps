@@ -268,8 +268,9 @@ build-clean: clean doc-clean sagelib-clean
 _clean-broken-gcc:
 	@if [ -f "$(SAGE_ROOT)/build/make/.clean-broken-gcc" ]; then \
 	   rm -f "$(SAGE_LOCAL)/bin/gcc"; \
+	   rm -f "$(SAGE_LOCAL)/gcc-"*; \
 	   rm -f "$(SAGE_LOCAL)/bin/g++"; \
-	   rm -f "$(SAGE_SPKG_INST)/gcc-*"; \
+	   rm -f "$(SAGE_SPKG_INST)/gcc-"*; \
 	   rm -f "$(SAGE_ROOT)/build/make/.clean-broken-gcc"; \
 	   echo "Cleaned up old broken GCC install"; \
 	fi

@@ -129,18 +129,17 @@ class SBox(SageObject):
             sage: S.n
             3
         """
-        from sage.rings.polynomial.polynomial_element import Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
 
         if "S" in kwargs:
             args = kwargs["S"]
 
-        if len(args) == 1 and isinstance(args[0], Polynomial):
+        if len(args) == 1 and is_Polynomial(args[0]):
             # SBox defined via Univariate Polynomial, compute lookup table
             # by evaluating the polynomial on every base_ring element
             poly = args[0]
             R = poly.parent().base_ring()
-            n = R.degree()
-            S = [poly(R(v)) for v in GF(2)**n]
+            S = [poly(v) for v in sorted(R)]
         elif len(args) == 1 and isinstance(args[0], (list, tuple)):
             S = args[0]
         elif len(args) > 1:
@@ -151,7 +150,7 @@ class SBox(SageObject):
         _S = []
         for e in S:
             if is_FiniteFieldElement(e):
-                e = e.polynomial().change_ring(ZZ).subs( e.parent().characteristic() )
+                e = e.polynomial().change_ring(ZZ).subs(e.parent().characteristic())
             _S.append(e)
         S = _S
 
@@ -162,7 +161,7 @@ class SBox(SageObject):
         self.m = ZZ(len(S)).exact_log(2)
         self.n = ZZ(max(S)).nbits()
         self._F = GF(2)
-        self._big_endian = kwargs.get("big_endian",True)
+        self._big_endian = kwargs.get("big_endian", True)
 
         self.differential_uniformity = self.maximal_difference_probability_absolute
 

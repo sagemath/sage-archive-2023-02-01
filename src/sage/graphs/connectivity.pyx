@@ -2051,6 +2051,12 @@ class Triconnectivity:
     def __init__(self, G, check=True):
         from sage.graphs.graph import Graph
         self.graph_copy = Graph(multiedges=True)
+
+        # Add all the vertices first
+        # there is a possibility of isolated vertices
+        for v in G.vertex_iterator():
+            graph_copy.append(v)
+
         edges = G.edges()
         # dict to map new edges with the old edges
         self.edge_label_dict = {}
@@ -2156,9 +2162,6 @@ class Triconnectivity:
     def new_component(self, edges=[], type_c=0):
         c = Component(edges, type_c)
         self.components_list.append(c)
-        # Remove the edges from graph
-        for e in edges:
-            self.edge_status[e] = 3
         self.num_components += 1
         return c
 
@@ -2192,9 +2195,10 @@ class Triconnectivity:
         graph_copy, which will become simple graph.
 
         """
+
         comp = []
         if self.graph_copy.has_multiple_edges():
-            sorted_edges = sorted(self.graph_copy.multiple_edges(labels=True))
+            sorted_edges = sorted(self.graph_copy.edges())
             for i in range(len(sorted_edges) - 1):
 
                 # It will add k - 1 multiple edges to comp
@@ -2204,15 +2208,30 @@ class Triconnectivity:
                     comp.append(sorted_edges[i])
                 else:
                     if comp:
-                        comp.append(sorted_edges[i-1])
-                        comp.append(sorted_edges[i-1])
+                        comp.append(sorted_edges[i])
+                        self.edge_status[sorted_edges[i]] = 3 # edge removed
+
+                        # Add virtual edge to graph_copy
+                        newVEdge = tuple([sorted_edges[i][0], sorted_edges[i][1], "newVEdge"])
+                        self.graph_copy.add_edge(newVEdge)
+
+                        # mark unseen for newVEdge
+                        self.edge_status[newVEdge] = 0
+
+                        comp.append(newVEdge)
                         self.new_component(comp)
                     comp = []
             if comp:
-                comp.append(sorted_edges[i-1])
-                comp.append(sorted_edges[i-1])
-                self.new_component(comp)
+                comp.append(sorted_edges[i+1])
+                self.edge_status[sorted_edges[i+1]] = 3 # edge removed
 
+                # Add virtual edge to graph_copy
+                newVEdge = tuple([sorted_edges[i+1][0], sorted_edges[i+1][1], "newVEdge"])
+                self.graph_copy.add_edge(newVEdge)
+                self.edge_status[newVEdge] = 0
+
+                comp.append(newVEdge)
+                self.new_component(comp)
 
     def dfs1(self, v, u=None, check=True):
         """

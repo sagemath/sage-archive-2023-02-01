@@ -6,12 +6,12 @@ AUTHORS:
 - Travis Scrimshaw (2015-09): initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2015 Travis Scrimshaw <tscrimsh at umn.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.magmatic_algebras import MagmaticAlgebras
@@ -20,6 +20,7 @@ from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.words.words import Words
 from sage.combinat.words.alphabet import Alphabet
 from sage.sets.family import Family
+
 
 class FreeZinbielAlgebra(CombinatorialFreeModule):
     r"""
@@ -150,8 +151,13 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             sage: Z4.<x,y,z> = algebras.FreeZinbiel(QQ, 'x,y,z')
             sage: Z1 is Z2 and Z1 is Z3 and Z1 is Z4
             True
+
+            sage: algebras.FreeZinbiel(QQ, ['x', 'y'])
+            Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
+            sage: algebras.FreeZinbiel(QQ, ('x', 'y'))
+            Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
         """
-        if isinstance(n, (list,tuple)):
+        if isinstance(n, (list, tuple)):
             names = n
             n = len(names)
         elif isinstance(n, str):
@@ -161,7 +167,8 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             names = names.split(',')
         elif n is None:
             n = len(names)
-        return super(FreeZinbielAlgebra, cls).__classcall__(cls, R, n, tuple(names))
+        return super(FreeZinbielAlgebra, cls).__classcall__(cls, R, n,
+                                                            tuple(names))
 
     def __init__(self, R, n, names):
         """
@@ -171,6 +178,13 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
             sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
             sage: TestSuite(Z).run()
+
+        TESTS::
+
+            sage: Z.<x,y,z> = algebras.FreeZinbiel(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: argument R must be a ring
         """
         if R not in Rings:
             raise TypeError("argument R must be a ring")
@@ -199,9 +213,9 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
+            sage: Z.<x,y> = algebras.FreeZinbiel(QQ)
             sage: Z
-            Free Zinbiel algebra on generators (Z[x], Z[y], Z[z]) over Rational Field
+            Free Zinbiel algebra on generators (Z[x], Z[y]) over Rational Field
         """
         return "Free Zinbiel algebra on generators {} over {}".format(
             self.gens(), self.base_ring())
@@ -218,7 +232,7 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
             [Z[x], Z[y], Z[z]]
         """
         A = self.variable_names()
-        return Family( A, lambda g: self.monomial(self._indices(g)) )
+        return Family(A, lambda g: self.monomial(self._indices(g)))
 
     @cached_method
     def gens(self):
@@ -237,14 +251,23 @@ class FreeZinbielAlgebra(CombinatorialFreeModule):
         """
         Return the product of the basis elements indexed by ``x`` and ``y``.
 
+        INPUT:
+
+        - ``x`` and ``y`` -- two words
+
         EXAMPLES::
 
             sage: Z.<x,y,z> = algebras.FreeZinbiel(QQ)
             sage: (x*y)*z  # indirect doctest
             Z[xyz] + Z[xzy]
+
+        TESTS::
+
+            sage: Z.<x,y> = algebras.FreeZinbiel(QQ)
+            sage: Z.product_on_basis(Word(), Word('y'))
+            Z[y]
         """
         if not x:
             return self.monomial(y)
         x0 = self._indices(x[0])
         return self.sum_of_monomials(x0 + sh for sh in x[1:].shuffle(y))
-

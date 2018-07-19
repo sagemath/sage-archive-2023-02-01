@@ -1888,6 +1888,108 @@ class Component:
         else:
             self.component_type = 1
 
+class AdjNode:
+    prev = None
+    next = None
+    edge = None
+    def set_edge(self, e):
+        self.edge = e
+    def get_edge(self):
+        return self.edge
+
+class AdjList:
+    head = None
+    curr = None
+    length = 0
+    def remove(self, node):
+        if node.prev == None and node.next == None:
+            self.head = None
+        elif node.prev == None: # node is head
+            self.head = node.next
+            node.next.prev = None
+        elif node.next == None: #node is tail
+            node.prev.next = None
+        else:
+            node.prev.next = node.next
+            node.next.prev = node.prev
+        self.length -= 1
+    def set_head(self, h):
+        self.head = h
+        self.curr = h
+        self.length = 1
+    def append(self, node):
+        if self.head == None:
+            self.set_head(node)
+        else:
+            self.curr.next = node
+            node.prev = self.curr
+            self.curr = node
+            self.length += 1
+    def get_head(self):
+        return self.head
+    def get_length(self):
+        return self.length
+    def replace(self, node1, node2):
+        if node1.prev == None and node1.next == None:
+            self.head = node2
+        elif node1.prev == None: # head has to be replaced
+            node1.next.prev = node2
+            node2.next = node1.next
+        elif node1.next == None:
+            node1.prev.next = node2
+            node2.prev = node1.prev
+        else:
+            node1.prev.next = node2
+            node1.next.prev = node2
+            node2.prev = node1.prev
+            node2.next = node1.next
+
+class HighPtNode:
+    prev = None
+    next = None
+    front = None #integer
+    def set_frond(self, f):
+        self.frond = f
+    def get_frond(self):
+        return self.frond
+
+class HighPtList:
+    head = None
+    curr = None
+    length = 0
+    def remove(self, node):
+        if node.prev == None and node.next == None:
+            self.head = None
+        elif node.prev == None: # node is head
+            self.head = node.next
+            node.next.prev = None
+        elif node.next == None: #node is tail
+            node.prev.next = None
+        else:
+            node.prev.next = node.next
+            node.next.prev = node.prev
+        self.length -= 1
+    def set_head(self, h):
+        self.head = h
+        self.curr = h
+        self.length = 1
+    def append(self, node):
+        if self.head == None:
+            self.set_head(node)
+        else:
+            self.curr.next = node
+            node.prev = self.curr
+            self.curr = node
+            self.length += 1
+    def push_front(self, node):
+        if self.head == None:
+            self.head = node
+        else:
+            self.head.prev = node
+            node.next = self.head
+            self.head = node
+
+
 class Triconnectivity:
     """
     This module is not yet complete, it has work to be done.
@@ -1906,8 +2008,6 @@ class Triconnectivity:
         sage: tric.components_list
         []
     """
-    
- 
     graph_copy = None #type SparseGraph
     vertex_to_int = {} # mapping of vertices to integers in c_graph
     int_to_vertex = {} # mapping of integers to original vertices
@@ -1925,7 +2025,7 @@ class Triconnectivity:
     lowpt2 = [] # lowpt2 number of vertex i
     nd = [] # number of descendants of vertex i
     edge_phi = {} # (key, value) = (edge, corresponding phi value)
-    adj = [] # i^th value contains a list of incident edges of vertex i
+    adj = [] # i^th value contains a AdjList of incident edges of vertex i
     in_adj = {} # this variable is used in the PathSearch() function
     newnum = [] # new DFS number of vertex i
     starts_path = {} # dict of (edge, T/F) to denote if a path starts at edge
@@ -1967,12 +2067,12 @@ class Triconnectivity:
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
         self.reverse_edges = set()
         self.dfs_number = [0 for i in range(self.n)]
-        self.highpt = [[] for i in range(self.n)]
+        self.highpt = [HighPtList() for i in range(self.n)]
         self.old_to_new = [0 for i in range(self.n + 1)]
         self.node_at = [0 for i in range(self.n + 1)]
         self.lowpt1 = [None for i in range(self.n)]
         self.lowpt2 = [None for i in range(self.n)]
-        self.adj = [[] for i in range(self.n)]
+        self.adj = [AdjList() for i in range(self.n)]
         self.nd = [None for i in range(self.n)]
         self.parent = [None for i in range(self.n)]
         self.degree = [None for i in range(self.n)]
@@ -2062,24 +2162,22 @@ class Triconnectivity:
         self.num_components += 1
         return c
 
-    def add_edge_to_component(self, comp, e):
-        comp.add_edge(e)
-        self.edge_status[e] = 3
-
     def high(self, v):
-        if self.highpt[v]:
-            return self.highpt[v][0]
-        else:
+        head = self.highpt[v].head
+        if head == None:
             return 0
+        else:
+            return head.frond
 
     def del_high(self, e):
-        it = self.in_high[e]
-        if it:
-            if e in self.reverse_edges:
-                v = e[0]
-            else:
-                v = e[1]
-            self.highpt[v].remove(it)
+        if e in self.in_high:
+            it = self.in_high[e]
+            if it:
+                if e in self.reverse_edges:
+                    v = e[0]
+                else:
+                    v = e[1]
+                self.highpt[v].remove(it)
 
     def split_multi_egdes(self):
         """
@@ -2094,7 +2192,6 @@ class Triconnectivity:
         graph_copy, which will become simple graph.
 
         """
-
         comp = []
         if self.graph_copy.has_multiple_edges():
             sorted_edges = sorted(self.graph_copy.multiple_edges(labels=True))
@@ -2276,19 +2373,25 @@ class Triconnectivity:
 
         for i in range(1,max+1):
             for e in bucket[i]:
+                node = AdjNode()
+                node.set_edge(e)
                 if e in self.reverse_edges:
-                    self.adj[e[1]].append(e)
-                    self.in_adj[e] = e
+                    self.adj[e[1]].append(node)
+                    self.in_adj[e] = node
                 else:
-                    self.adj[e[0]].append(e)
-                    self.in_adj[e] = e
+                    self.adj[e[0]].append(node)
+                    self.in_adj[e] = node
 
     def path_finder(self, v):
         """
         This function is a helper function for `dfs2` function.
         """
         self.newnum[v] = self.dfs_counter - self.nd[v] + 1
-        for e in self.adj[v]:
+        #for e in self.adj[v]:
+        e_node = self.adj[v].get_head()
+        while e_node:
+            e = e_node.get_edge()
+            e_node = e_node.next
             w = e[1] if e[0] == v else e[0] # opposite vertex of e
             if self.new_path:
                 self.new_path = False
@@ -2297,8 +2400,10 @@ class Triconnectivity:
                 self.path_finder(w)
                 self.dfs_counter -= 1
             else:
-                self.highpt[w].append(self.newnum[v])
-                self.in_high[e] = self.newnum[v]
+                highpt_node = HighPtNode()
+                highpt_node.set_frond(self.newnum[v])
+                self.highpt[w].append(highpt_node)
+                self.in_high[e] = highpt_node
                 self.new_path = True
 
 
@@ -2308,8 +2413,7 @@ class Triconnectivity:
         new numbering obtained from `Path Finder` funciton.
         Populate `highpt` values.
         """
-        self.highpt = [[] for i in range(self.n)]
-        self.in_high = dict((e, []) for e in self.graph_copy.edges())
+        self.in_high = dict((e, None) for e in self.graph_copy.edges())
         self.dfs_counter = self.n
         self.newnum = [0 for i in range(self.n)]
         self.starts_path = dict((e, False) for e in self.graph_copy.edges())
@@ -2334,13 +2438,11 @@ class Triconnectivity:
         """
         y = 0
         vnum = self.newnum[v]
-        outv = len(self.adj[v])
-        # ERROR fixed
-        #for e in adj:
-        for i in range(len(self.adj[v])):
-            #it = e
-            e = self.adj[v][i]
-            it = e
+        outv = self.adj[v].get_length()
+        e_node = self.adj[v].get_head()
+        while e_node:
+            e = e_node.get_edge()
+            it = e_node
 
             if e in self.reverse_edges:
                 w = e[0] # target
@@ -2365,7 +2467,8 @@ class Triconnectivity:
 
                 self.e_stack.append(self.tree_arc[w])
 
-                temp = self.adj[w][0]
+                temp_node = self.adj[w].get_head()
+                temp = temp_node.get_edge()
                 if temp in self.reverse_edges:
                     temp_target = temp[0]
                 else:
@@ -2377,8 +2480,6 @@ class Triconnectivity:
                     b = self.t_stack_b[self.t_stack_top]
                     e_virt = None
 
-                    print self.node_at[a]
-                    print self.node_at[b]
                     if a == vnum and self.parent[self.node_at[b]] == self.node_at[a]:
                         self.t_stack_top -= 1
 
@@ -2386,17 +2487,16 @@ class Triconnectivity:
                         e_ab = None
                         if self.degree[w] == 2 and self.newnum[temp_target] > wnum:
                             # found type-2 separation pair
-                            print "found type-2 separation pair (",v,", ", temp_target, ")"
+                            # print "Found type-2 separation pair (",v,", ", temp_target, ")"
                             e1 = self.estack_pop()
                             e2 = self.estack_pop()
-                            self.adj[w].remove(self.in_adj[e2]) # check run time
+                            self.adj[w].remove(self.in_adj[e2])
 
                             if e2 in self.reverse_edges:
                                 x = e2[0]
                             else:
                                 x = e2[1]
 
-                            #e_virt = self.graph_copy.add_edge(v, x) # but edge is not returned ?
                             self.graph_copy.add_edge(v, x)
                             e_virt = (v, x, None)
                             self.degree[v] -= 1
@@ -2407,7 +2507,7 @@ class Triconnectivity:
                             else:
                                 e2_source = e2[0]
                             if e2_source != w: # OGDF_ASSERT
-                                raise ValueError("graph is not biconnected?")
+                                raise ValueError("graph is not biconnected")
 
                             comp = Component([e1, e2, e_virt], 1)
                             self.components_list.append(comp)
@@ -2427,7 +2527,7 @@ class Triconnectivity:
                                         self.del_high(e_ab)
 
                         else: # found type-2 separation pair
-                            print "found type-2 separation pair (",a,", ", b, ")"
+                            # print "Found type-2 separation pair (",a,", ", b, ")"
                             h = self.t_stack_h[self.t_stack_top]
                             self.t_stack_top -= 1
 
@@ -2463,7 +2563,7 @@ class Triconnectivity:
                                         self.adj[eh_source].remove(self.in_adj[eh])
                                         self.del_high(eh)
 
-                                    comp.add_edge(eh) # check
+                                    comp.add_edge(eh)
                                     self.degree[x] -= 1
                                     self.degree[xy_target] -= 1
 
@@ -2485,10 +2585,10 @@ class Triconnectivity:
                             comp = None
 
                         self.e_stack.append(e_virt)
-                        # ERROR fixed
-                        #it = e_virt
-                        self.adj[v][i] = e_virt
-                        it = e_virt
+                        e_virt_node = AdjNode()
+                        e_virt_node.set_edge(e_virt)
+                        self.adj[v].replace(e_node, e_virt_node)
+                        it = e_virt_node
 
                         self.in_adj[e_virt] = it
                         self.degree[x] += 1
@@ -2503,7 +2603,7 @@ class Triconnectivity:
                 if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair
-                    print "Found type-1 separation pair (", self.node_at[self.lowpt1[w]], ", ", v, ")"
+                    #print "Found type-1 separation pair (", self.node_at[self.lowpt1[w]], ", ", v, ")"
                     comp = Component([],0)
                     if not self.e_stack: # OGDF_ASSERT
                         raise ValueError("stack is empty")
@@ -2542,7 +2642,7 @@ class Triconnectivity:
                                 self.adj[eh[0]].remove(self.in_adj[eh])
 
                         comp_bond.add_edge(eh)
-                        comp_bond.add_edge(e_virt) # TODO combine them
+                        comp_bond.add_edge(e_virt)
                         self.graph_copy.add_edge(v, self.node_at[self.lowpt1[w]])
                         e_virt = (v, self.node_at[self.lowpt1[w]], None)
                         comp_bond.add_edge(e_virt)
@@ -2556,17 +2656,17 @@ class Triconnectivity:
                     if self.node_at[self.lowpt1[w]] != self.parent[v]:
                         self.e_stack.append(e_virt)
 
-                        #it = e_virt
-                        # ERROR fixed
-                        self.adj[v][i] = e_virt
-                        it = e_virt
+                        e_virt_node = AdjNode()
+                        e_virt_node.set_edge(e_virt)
+                        self.adj[v].replace(e_node, e_virt_node)
+                        it = e_virt_node
 
                         self.in_adj[e_virt] = it
-                        # ERROR fixed:
-                        #if not self.in_high[e_virt] and self.high(self.node_at[self.lowpt1[w]]) < vnum:
                         if not e_virt in self.in_high and self.high(self.node_at[self.lowpt1[w]]) < vnum:
-                            self.highpt[self.node_at[self.lowpt1[w]]] = [vnum] + self.highpt[self.node_at[self.lowpt1[w]]]
-                            self.in_high[e_virt] = vnum
+                            vnum_node = HighPtNode()
+                            vnum_node.set_frond(vnum)
+                            self.highpt[self.node_at[self.lowpt1[w]]].push_front(vnum_node)
+                            self.in_high[e_virt] = vnum_node
 
                         self.degree[v] += 1
                         self.degree[self.node_at[self.lowpt1[w]]] += 1
@@ -2585,9 +2685,11 @@ class Triconnectivity:
                         comp_bond = None
 
                         self.tree_arc[v] = e_virt
-                        self.egde_status[e_virt] = 1
+                        self.edge_status[e_virt] = 1
                         self.in_adj[e_virt] = self.in_adj[eh]
-                        self.in_adj[eh] = e_virt
+                        e_virt_node = AdjNode()
+                        e_virt_node.set_edge(e_virt)
+                        self.in_adj[eh] = e_virt_node
 
                 # end type-1 search
                 if self.starts_path[e]:
@@ -2615,5 +2717,6 @@ class Triconnectivity:
                         self.tstack_push(vnum, wnum, vnum)
                 self.e_stack.append(e) # add (v,w) to ESTACK
 
-
+            # Go to next node in adjacency list
+            e_node = e_node.next
 

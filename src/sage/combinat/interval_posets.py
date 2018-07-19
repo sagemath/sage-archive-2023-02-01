@@ -461,6 +461,12 @@ class TamariIntervalPoset(Element):
             sage: ti = TamariIntervalPosets(4)[2]
             sage: ti.plot()
             Graphics object consisting of 6 graphics primitives
+
+        TESTS::
+
+            sage: ti = TamariIntervalPoset(3, [[2,1], [2,3]])
+            sage: ti.plot()
+            Graphics object consisting of 6 graphics primitives
         """
         c0 = 'blue'   # self.latex_options()["color_increasing"]
         c1 = 'red'    # self.latex_options()["color_decreasing"]
@@ -504,6 +510,13 @@ class TamariIntervalPoset(Element):
             \draw[line width = 0.5, color=blue] (T2) -- (T4);
             \draw[line width = 0.5, color=blue] (T3) -- (T4);
             \end{tikzpicture}
+
+        TESTS::
+
+            sage: ip = TamariIntervalPoset(0,[])
+            sage: print(ip._latex_())
+            \begin{tikzpicture}[scale=1]
+            \node(T0) at (0,0){$\emptyset$};\end{tikzpicture}
         """
         latex.add_package_to_preamble_if_available("tikz")
         latex_options = self.latex_options()
@@ -635,6 +648,11 @@ class TamariIntervalPoset(Element):
             [6, 5, 2]
             sage: ip.initial_forest().increasing_roots()
             [6, 5, 2]
+
+        TESTS::
+
+            sage: TamariIntervalPoset(0,[]).increasing_roots()
+            []
         """
         size = self.size()
         if size == 0:
@@ -1120,6 +1138,12 @@ class TamariIntervalPoset(Element):
             ....:     return True
             sage: test_equivalence(3)
             True
+
+            sage: ti = TamariIntervalPosets(3).an_element()
+            sage: ti.insertion(6)
+            Traceback (most recent call last):
+            ...
+            ValueError: integer to be inserted not in the appropriate interval
         """
         n = self._size
         if not 0 < i <= n + 1:
@@ -1343,6 +1367,9 @@ class TamariIntervalPoset(Element):
             True
             sage: ip2 <= ip1
             False
+
+            sage: ip1 != 33
+            True
         """
         if not isinstance(other, TamariIntervalPoset):
             return op == op_NE
@@ -1420,7 +1447,7 @@ class TamariIntervalPoset(Element):
 
         EXAMPLES::
 
-            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)]);
+            sage: ip1 = TamariIntervalPoset(4,[(1,2),(2,3),(4,3)])
             sage: ip2 = TamariIntervalPoset(4,[(4,3)])
             sage: ip2.lower_contains_interval(ip1)
             True
@@ -1432,6 +1459,13 @@ class TamariIntervalPoset(Element):
             sage: ip2.lower_binary_tree() == ip3.lower_binary_tree()
             False
             sage: ip2.lower_contains_interval(ip3)
+            False
+
+        TESTS::
+
+            sage: ip1 = TamariIntervalPoset(3,[(1,2),(2,3)])
+            sage: ip2 = TamariIntervalPoset(3,[(2,1),(3,2)])
+            sage: ip2.lower_contains_interval(ip1)
             False
         """
         if not self.contains_interval(other):
@@ -1468,6 +1502,13 @@ class TamariIntervalPoset(Element):
             sage: ip2.contains_interval(ip3)
             True
             sage: ip2.upper_binary_tree() == ip3.upper_binary_tree()
+            False
+
+        TESTS::
+
+            sage: ip1 = TamariIntervalPoset(3,[(1,2),(2,3)])
+            sage: ip2 = TamariIntervalPoset(3,[(2,1),(3,2)])
+            sage: ip2.lower_contains_interval(ip1)
             False
         """
         if not self.contains_interval(other):
@@ -1797,9 +1838,17 @@ class TamariIntervalPoset(Element):
             True
             sage: ip.sub_poset(1,1)
             The Tamari interval of size 0 induced by relations []
+
+        TESTS::
+
+            sage: ip = TamariIntervalPosets(4).an_element()
+            sage: ip.sub_poset(2,9)
+            Traceback (most recent call last):
+            ...
+            ValueError: invalid starting or ending value
         """
         if start < 1 or start > end or end > self.size() + 1:
-            raise ValueError("Invalid starting or ending value, accepted: 1 <= start <= end <= size+1")
+            raise ValueError("invalid starting or ending value")
         if start == end:
             return TamariIntervalPoset(0, [])
         relations = [(i - start + 1, j - start + 1) for (i, j) in self.increasing_cover_relations() if i >= start and j < end]
@@ -2402,6 +2451,11 @@ class TamariIntervalPoset(Element):
             sage: tip == TamariIntervalPosets.recomposition_from_triple(*tip.decomposition_to_triple())
             True
 
+        TESTS::
+
+            sage: tip = TamariIntervalPoset(0, [])
+            sage: tip.decomposition_to_triple()
+
         REFERENCES:
 
         - [ChP2015]_
@@ -2672,12 +2726,17 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             True
             sage: TamariIntervalPosets() is TamariIntervalPosets_all()
             True
+
+            sage: TamariIntervalPosets(-2)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a nonnegative integer
         """
         if n is None:
             return TamariIntervalPosets_all()
 
         if n not in NN:
-            raise ValueError("n must be a non negative integer")
+            raise ValueError("n must be a nonnegative integer")
         return TamariIntervalPosets_size(Integer(n))
 
     # add options to class
@@ -2839,6 +2898,13 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: dw = DyckWord([1,1,0,1,0,0,1,1,0,0])
             sage: TamariIntervalPosets.final_forest(dw)
             The Tamari interval of size 5 induced by relations [(5, 4), (3, 1), (2, 1)]
+
+        TESTS::
+
+            sage: TamariIntervalPosets.final_forest('mont')
+            Traceback (most recent call last):
+            ...
+            ValueError: do not know how to construct the final forest of mont
         """
         if isinstance(element, TamariIntervalPoset):
             return element.initial_forest()
@@ -2847,7 +2913,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         elif element in BinaryTrees() or element in LabelledBinaryTrees():
             binary_tree = element
         else:
-            raise ValueError("Do not know how to construct the initial forest of {}".format(element))
+            raise ValueError("do not know how to construct the final forest of {}".format(element))
 
         def get_relations(bt, start=1):
             r"""
@@ -2859,7 +2925,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - the indexes of the nodes on the left border of the tree
+            - the indices of the nodes on the left border of the tree
               (these become the roots of the forest)
             - the relations of the final forest (as a list of tuples)
             - the next available index for a node (size of tree +
@@ -2937,6 +3003,14 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
             sage: dw = DyckWord([1,1,0,1,0,0,1,1,0,0])
             sage: TamariIntervalPosets.initial_forest(dw)
             The Tamari interval of size 5 induced by relations [(1, 4), (2, 3), (3, 4)]
+
+        TESTS::
+
+            sage: TamariIntervalPosets.initial_forest('mont')
+            Traceback (most recent call last):
+            ...
+            ValueError: do not know how to construct the initial forest of mont
+
         """
         if isinstance(element, TamariIntervalPoset):
             return element.initial_forest()
@@ -2945,7 +3019,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
         elif element in BinaryTrees() or element in LabelledBinaryTrees():
             binary_tree = element
         else:
-            raise ValueError("Do not know how to construct the initial forest of {}".format(element))
+            raise ValueError("do not know how to construct the initial forest of {}".format(element))
 
         def get_relations(bt, start=1):
             r"""
@@ -2957,7 +3031,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
             OUTPUT:
 
-            - the indexes of the nodes on the right border of the tree
+            - the indices of the nodes on the right border of the tree
               (these become the roots of the forest)
             - the relations of the initial forest (as a list of tuples)
             - the next available index for a node (size of tree +

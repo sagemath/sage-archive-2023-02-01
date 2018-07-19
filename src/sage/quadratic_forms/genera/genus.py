@@ -21,7 +21,7 @@ from sage.rings.finite_rings.finite_field_constructor import FiniteField
 from sage.misc.misc import verbose
 import copy
 
-def Genus(A, max_elem_divisors=None):
+def Genus(A, factored_determinant=None):
     r"""
     Given a nonsingular symmetric matrix `A`, return the genus of `A`.
 
@@ -29,8 +29,8 @@ def Genus(A, max_elem_divisors=None):
 
     - ``A`` -- a symmetric matrix with integer coefficients
 
-    - ``max_elem_divisors`` -- the input precision for the valuation of a
-      maximal p-elementary divisor. (OPTIONAL)
+    - ``factored_determinant`` -- (default: ``None``) a factorization object
+                                  the factored determinant of ``A``
 
     OUTPUT:
 
@@ -46,15 +46,26 @@ def Genus(A, max_elem_divisors=None):
         [1 1]
         [1 2]
         Genus symbol at 2:    [1^2]_2
+
+        sage: A = Matrix(ZZ, 2, 2, [2,1,1,2])
+        sage: Genus(A, A.det().factor())
+        Genus of
+        [2 1]
+        [1 2]
+        Genus symbol at 2:    1^-2
+        Genus symbol at 3:     1^-1 3^-1
     """
-    D = A.determinant()
-    D = 2*D
-    prms = [p[0] for p in D.factor()]
+    if factored_determinant is None:
+        D = A.determinant()
+        D = 2*D
+        D = D.factor()
+    else:
+        D = factored_determinant * 2
     signature_pair = signature_pair_of_matrix(A)
     local_symbols = []
-    for p in prms:
-        if max_elem_divisors is None:
-            val = D.valuation(p)
+    for f in D:
+        p = f[0]
+        val = f[1]
         symbol = p_adic_symbol(A, p, val = val)
         G = Genus_Symbol_p_adic_ring(p, symbol)
         local_symbols.append(G)

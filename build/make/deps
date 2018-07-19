@@ -79,9 +79,12 @@ toolchain: $(foreach pkgname,$(TOOLCHAIN),$(inst_$(pkgname)))
 # packages which include gcc, and optionally ccache; in principle this
 # list is redundant.
 TOOLCHAIN_DEPS = zlib $(MP_LIBRARY) mpfr mpc
+TOOLCHAIN_DEP_INSTS = \
+	$(foreach pkgname,$(TOOLCHAIN_DEPS),$(inst_$(pkgname)))
+
 toolchain-deps:
-	for pkg in $(TOOLCHAIN_DEPS); do \
-	    $(MAKE) $$pkg; \
+	for target in $(TOOLCHAIN_DEP_INSTS); do \
+	    $(MAKE) $$target; \
 	done
 
 all-toolchain: base-toolchain

@@ -90,8 +90,7 @@ def Sphere(dim=2, radius=1, names=None):
 
         sage: S.<th, ph> = manifolds.Sphere()
         sage: S.plot({},srange(-pi,pi*21/20,pi/20),
-        ....:   srange(-pi/2,pi/2*21/20,pi/20), viewer = 'threejs')
-        Graphics3d Object
+        ....:   srange(-pi/2,pi/2*21/20,pi/20), viewer = 'threejs').show()
 
     """
     from sage.manifolds.manifold import Manifold
@@ -106,7 +105,7 @@ def Sphere(dim=2, radius=1, names=None):
         dim = len(names)
 
     xnames = tuple(["x_{}".format(i) for i in range(dim+1)])
-    E = Euclidean(xnames)
+    E = Euclidean(names=xnames)
     M = Manifold(dim, 'S', ambient=E, structure='Riemannian')
     if names is None:
         names = tuple(
@@ -191,39 +190,23 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
     raise NotImplementedError("Coordinates system not implemented, see help"
                               " for details")
 
-def Euclidean(names):
+def Euclidean(*args, **kwargs):
     """
     Generate a Euclidean space.
 
-    The shortcut operator ``.<,>`` can be used to specify the coordinates.
-
-    The function
-    :func:`~sage.manifolds.differentiable.euclidean.EuclideanSpace` should
-    be preferred in most cases.
-
-    INPUT:
-
-    - ``names`` -- (default: ``None``) name of the coordinates,
-      automatically set by the shortcut operator.
+    Alias of :func:`~sage.manifolds.differentiable.euclidean.EuclideanSpace`.
 
     OUTPUT:
 
     - Riemannian manifold.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: E.<x, y, z> = manifolds.Euclidean()
 
     """
-    from sage.manifolds.manifold import Manifold
-    n = len(names)
-    M = Manifold(n, 'M', structure="Riemannian")
-    C = M.chart(names=names)
-    M._first_ngens = C._first_ngens
-    g = M.metric('g')
-    for i in range(n):
-        g[i,i] = 1
-    return M
+    from sage.manifolds.differentiable.euclidean import EuclideanSpace
+    return EuclideanSpace(*args, **kwargs)
 
 def Torus(R=2, r=1, names=None):
     """
@@ -247,14 +230,13 @@ def Torus(R=2, r=1, names=None):
 
         sage: T.<theta, phi> = manifolds.Torus(3,1)
         sage: T.plot({},srange(-pi,pi*21/20,pi/20),
-        ....:   srange(-pi,pi*21/20,pi/20), viewer = 'threejs')
-        Graphics3d Object
+        ....:   srange(-pi,pi*21/20,pi/20), viewer = 'threejs').show()
 
     """
     from sage.manifolds.manifold import Manifold
     from sage.functions.all import cos, sin
     xnames = tuple(["x_{}".format(i) for i in range(3)])
-    E = Euclidean(xnames)
+    E = Euclidean(names=xnames)
     M = Manifold(2, 'M', ambient=E, structure="Riemannian")
     if names is None:
         names = ("th", "ph")

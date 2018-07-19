@@ -1344,17 +1344,16 @@ class SBox(SageObject):
             for x in range(nrows):
                 table[x ^ self(Si(x) ^ delta_in)].append(x)
 
-            row = [0 for _ in range(ncols)]
+            row = [0]*ncols
             for l in table:
                 for i, j in product(l, l):
-                    row[i^j] += 1
+                    row[i ^ j] += 1
             A += row
 
         A = Matrix(ZZ, nrows, ncols, A)
         A.set_immutable()
 
         return A
-
 
     def linear_structures(self):
         r"""

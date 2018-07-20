@@ -114,6 +114,11 @@ class SBox(SageObject):
             sage: inv.differential_uniformity()
             2
 
+            sage: SBox(PolynomialRing(GF(3**3), 'x').gen())
+            Traceback (most recent call last):
+            ...
+            TypeError: Only polynomials over rings with characteristic 2 allowed
+
         TESTS::
 
             sage: from sage.crypto.sbox import SBox
@@ -124,7 +129,7 @@ class SBox(SageObject):
             sage: S = SBox(1, 2, 3)
             Traceback (most recent call last):
             ...
-            TypeError: Lookup table length is not a power of 2.
+            TypeError: Lookup table length is not a power of 2
             sage: S = SBox(5, 6, 0, 3, 4, 2, 1, 2)
             sage: S.n
             3
@@ -139,6 +144,8 @@ class SBox(SageObject):
             # by evaluating the polynomial on every base_ring element
             poly = args[0]
             R = poly.parent().base_ring()
+            if R.characteristic() != 2:
+                raise TypeError("Only polynomials over rings with characteristic 2 allowed")
             S = [poly(v) for v in sorted(R)]
         elif len(args) == 1 and isinstance(args[0], (list, tuple)):
             S = args[0]
@@ -155,7 +162,7 @@ class SBox(SageObject):
         S = _S
 
         if not ZZ(len(S)).is_power_of(2):
-            raise TypeError("Lookup table length is not a power of 2.")
+            raise TypeError("Lookup table length is not a power of 2")
         self._S = S
 
         self.m = ZZ(len(S)).exact_log(2)

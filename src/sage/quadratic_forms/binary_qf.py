@@ -1158,25 +1158,6 @@ class BinaryQF(SageObject):
         b1 = self(v + w) - a1 - c1
         return BinaryQF([a1, b1, c1])
 
-    def is_ambiguous(self):
-        r"""
-        Return if this form has an automorphism of determinant `-1`.
-
-        See _[BUVO2007] def 2.8.1
-
-        EXAMPLES::
-
-            sage: q = BinaryQF(1,9,-6)
-            sage: q.is_ambiguous()
-            True
-        """
-        if self.is_indefinite():
-            q1 = self.reduced_form()
-            q2 = BinaryQF(self._c, -self._b, self._a).reduced_form()
-            return q2 in q1.cycle()
-        raise NotImplementedError
-
-
     def small_prime_value(self, Bmax=1000):
         r"""
         Returns a prime represented by this (primitive positive definite) binary form.

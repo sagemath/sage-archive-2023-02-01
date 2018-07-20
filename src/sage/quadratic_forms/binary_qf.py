@@ -833,6 +833,46 @@ class BinaryQF(SageObject):
         Q = BinaryQF(-c, -b + 2*s*c, -(a - b*s + c*s*s))
         return Q
 
+    def _Rho(self):
+        """
+        Apply the Rho operator to this form, returning a new form `Q`.
+
+        EXAMPLES::
+
+            sage: f = BinaryQF(1, 8, -3)
+            sage: f._Rho()
+            -3*x^2 + 4*x*y + 5*y^2
+        """
+        d = self.discriminant().sqrt(prec=53)
+        a = self._a
+        b = self._b
+        c = self._c
+        cabs = c.abs()
+        sign = c.sign()
+        if cabs >= d:
+            s = sign * ((cabs+b) / (2*cabs)).floor()
+        else:
+            s = sign * ((d+b) / (2*cabs)).floor()
+        Q = BinaryQF(c, -b + 2*s*c, a - b*s + c*s*s)
+        return Q
+
+    def _Tau(self):
+        """
+        Apply the Tau operator to this form, returning a new form `Q`.
+
+        EXAMPLES::
+
+            sage: f = BinaryQF(1, 8, -3)
+            sage: f._Tau()
+            -x^2 + 8*x*y + 3*y^2
+        """
+        a = self._a
+        b = self._b
+        c = self._c
+        Q = BinaryQF(-a, b, -c)
+        return Q
+
+
     def cycle(self, proper=False):
         """
         Return the cycle of reduced forms to which ``self`` belongs.
@@ -847,7 +887,7 @@ class BinaryQF(SageObject):
           proper cycle (not implemented)
 
         This is used to test for equivalence between indefinite forms.
-        The cycle of a form `f` consists of all equivalent forms `g`
+        The cycle of a form `f` consists of all reduced, equivalent forms `g`
         such that the `a`-coefficients of `f` and `g` have the same
         sign.  The proper cycle consists of all equivalent forms, and
         is either the same as, or twice the size of, the cycle.  In
@@ -884,20 +924,25 @@ class BinaryQF(SageObject):
         """
         if not (self.is_indef() and self.is_reduced()):
             raise ValueError("%s must be indefinite and reduced" % self)
-        if proper:
-            raise NotImplementedError('computation of the proper cycle '
-                                      ' is not implemented')
         if self.discriminant().is_square():
             # Buchmann/Vollmer assume the discriminant to be non-square
             raise NotImplementedError('computation of cycles is only '
                     'implemented for non-square discrimiants')
-        C = [self]
-        Q1 = self._RhoTau()
-        while not self == Q1:
-            C.append(Q1)
-            Q1 = Q1._RhoTau()
-        self._cycle_list = C
-        return C
+        if proper:
+            # Prop 6.10.5 in Buchmann Vollmer
+            C = self.cycle(proper=False)
+            if len(C) % 2 == 1:
+                return C
+            else:
+                return C[:1] + [q._Tau() for q in C[1:]]
+        if not hasattr(self, '_cycle_list'):
+            C = [self]
+            Q1 = self._RhoTau()
+            while not self == Q1:
+                C.append(Q1)
+                Q1 = Q1._RhoTau()
+            self._cycle_list = C
+        return self._cycle_list
 
     def is_positive_definite(self):
         """
@@ -1001,21 +1046,74 @@ class BinaryQF(SageObject):
             True
             sage: a.is_equivalent(BinaryQF((3,4,5)))
             False
+
+        Some indefinite examples::
+
+            sage: Q1 = BinaryQF(3,  4, -2)
+            sage: Q2 = BinaryQF(-2, 4, 3)
+            sage: Q1.is_equivalent(Q2)
+            False
+            sage: Q1.is_equivalent(Q2,proper=False)
+            True
+
+        TESTS:
+
+        We check that :trac:`25888` is fixed::
+
+            sage: Q1 = BinaryQF(3,  4, -2)
+            sage: Q2 = BinaryQF(-2, 4, 3)
+            sage: Q1.is_equivalent(Q2, proper=False)
+            True
+            sage: Q2.is_equivalent(Q1, proper=True)
+            False
+
+        A test for rational forms::
+
+            sage: Q1 = BinaryQF(0, 4, 2)
+            sage: Q2 = BinaryQF(2, 4, 0)
+            sage: Q1.is_equivalent(Q2, proper=False)
+            True
         """
         if type(other) != type(self):
             raise TypeError("%s is not a BinaryQF" % other)
         if self.discriminant() != other.discriminant():
             return False
         if self.is_indef():
-            if proper:
-                raise NotImplementedError("proper equivalence of "
-                    "definite forms is not supported")
-            # First, reduce self and get a positive lead coefficient
-            RedSelf = self.reduced_form()
-            if RedSelf._a < 0:
-                RedSelf = BinaryQF(-RedSelf._a, RedSelf._b, -RedSelf._c)
-            _ = other.cycle()                 # This caches the list
-            return RedSelf in other._cycle_list
+            # First, reduce self and other
+            selfred = self.reduced_form()
+            otherred = other.reduced_form()
+            if self.discriminant().is_square():
+                # make sure we terminate in a form
+                # with c = 0
+                while selfred[2] != 0:
+                    selfred = selfred._Rho()
+                while otherred[2] != 0:
+                    otherred = otherred._Rho()
+                b = selfred._b
+                a = selfred._a
+                ao = otherred._a
+                # Conway Sloane p. 359
+                if proper:
+                    return (a-ao) % (2*b) == 0
+                else:
+                    g = gcd(a,b)
+                    return (a*ao - g**2) % (2*b*g) == 0
+
+            proper_cycle = otherred.cycle(proper=True)
+
+            is_prop = selfred in proper_cycle
+            if proper or is_prop:
+                return is_prop
+            # note that our definition of improper equivalence
+            # differs from that of Buchmann and Vollmer
+            # their action is det f * q(f(x,y))
+            # ours is q(f(x,y))
+
+            # an improper equivalence in our convention
+            selfred = BinaryQF(self._c, self._b, self._a)
+
+            return selfred in proper_cycle
+
         # Else we're dealing with definite forms.
         if not proper:
             raise NotImplementedError("improper equivalence of "

@@ -204,11 +204,13 @@ __append_to_doc(
     ["BalancedTree",
      "BarbellGraph",
      "BubbleSortGraph",
+     "CaiFurerImmermanGraph",
      "chang_graphs",
      "CirculantGraph",
      "cospectral_graphs",
      "CubeGraph",
      "DorogovtsevGoltsevMendesGraph",
+     "EgawaGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
      "FriendshipGraph",
@@ -217,6 +219,7 @@ __append_to_doc(
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
      "GoethalsSeidelGraph",
+     "HammingGraph",
      "HanoiTowerGraph",
      "HararyGraph",
      "HyperStarGraph",
@@ -2035,6 +2038,7 @@ class GraphGenerators():
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DipoleGraph            = staticmethod(sage.graphs.generators.families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
+    EgawaGraph			   = staticmethod(sage.graphs.generators.hamming_graphs.EgawaGraph) 	
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
@@ -2045,8 +2049,7 @@ class GraphGenerators():
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
-    IGraph				   = staticmethod(sage.graphs.generators.hamming_graphs.IGraph) 	
-    JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
+	JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)

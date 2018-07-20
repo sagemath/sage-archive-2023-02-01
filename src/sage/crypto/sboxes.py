@@ -144,12 +144,13 @@ AUTHOR:
 
 from sage.crypto.sbox import SBox
 
+
 def bracken_leander(n):
     """
     Return the Bracken-Leander construction
 
-    For n = 4*k and odd k, the construction is `x \mapsto x^(2^(2k) + 2^k + 1)`
-    over `\GF(2^n)`
+    For n = 4*k and odd k, the construction is `x \mapsto x^{2^{2k} + 2^k + 1}`
+    over `\GF{2^n}`
 
     EXAMPLES::
 
@@ -161,7 +162,8 @@ def bracken_leander(n):
     from sage.rings.finite_rings.finite_field_constructor import GF
 
     if n % 4 == 1 or (n / 4) % 2 == 0:
-        raise TypeError("Welch functions are only defined for n = 4k, with k odd")
+        raise TypeError("Bracken-Leander functions are only defined for n = 4k, "
+        	            "with k odd")
 
     k = n / 4
     R = PolynomialRing(GF(2**n, name='x'), 'X')
@@ -178,9 +180,9 @@ def carlet_tang_tang_liao(n, c=None, bf=None):
     INPUT:
 
     - ``n`` - integer, the bit length of inputs and outputs, has to be even and >= 6
-    - ``c`` - element of `\GF(2^(n-1)` used in the construction
+    - ``c`` - element of `\GF{2^{n-1}}` used in the construction
         (default: random element)
-    - ``f`` - Function from `\GF(2^n) \to \GF(2)` or BooleanFunction on `n-1` bits
+    - ``f`` - Function from `\GF{2^n} \to \GF{2}` or BooleanFunction on `n-1` bits
         (default: ``x -> (1/(x+1)).trace())``
 
     EXAMPLES::
@@ -238,7 +240,7 @@ def carlet_tang_tang_liao(n, c=None, bf=None):
 
 def gold(n, i):
     """
-    Return the Gold function defined by `x \mapsto x^(2^i + 1)` over `\GF(2^n)`
+    Return the Gold function defined by `x \mapsto x^{2^i + 1}` over `\GF{2^n}`
 
     EXAMPLES::
 
@@ -262,7 +264,7 @@ def gold(n, i):
 
 def kasami(n, i):
     """
-    Return the Kasami function defined by `x \mapsto x^(2^2i - 2^i + 1)` over `\GF(2^n)`
+    Return the Kasami function defined by `x \mapsto x^{2^{2i} - 2^i + 1}` over `\GF{2^n}`
 
     EXAMPLES::
 
@@ -290,9 +292,9 @@ def kasami(n, i):
 
 def niho(n):
     """
-    Return the Niho function over `\GF(2^n)`
+    Return the Niho function over `\GF{2^n}`
 
-    It is defined by `x \mapsto x^(2^t + 2^s - 1)` with `s = t/2` if t is even
+    It is defined by `x \mapsto x^{2^t + 2^s - 1}` with `s = t/2` if t is even
     or `s = (3t+1)/2` if t is odd.
 
     EXAMPLES::
@@ -322,7 +324,7 @@ def niho(n):
 
 def welch(n):
     """
-    Return the Welch function defined by `x \mapsto x^(2^((n-1)/2) + 3)` over `\GF(2^n)`
+    Return the Welch function defined by `x \mapsto x^{2^{(n-1)/2} + 3}` over `\GF{2^n}`
 
     EXAMPLES::
 

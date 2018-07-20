@@ -425,6 +425,10 @@ REFERENCES:
             (:arxiv:`0710.5614`) to appear in Ergodic Theory and
             Dynamical Systems.
 
+.. [BraLea2008] \C. Bracken and Gregor Leander: *New families of functions
+             with differential uniformity of 4*, Proceedings of the Conference
+             BFCA, Copenhagen, 2008.
+
 .. [BLV1999] Bernhard Beckermann, George Labahn, and Gilles Villard. "Shifted
              normal forms of polynomial matrices". In ISSAC'99, pages 189-196.
              ACM, 1999. https://doi.org/10.1145/309831.309929 .
@@ -579,6 +583,9 @@ REFERENCES:
 .. _ref-C:
 
 **C**
+
+.. [dCa2007] \C. de Canniere: *Analysis and Design of Symmetric Encryption
+             Algorithms*, PhD Thesis, 2007.
 
 .. [Car1972] \R. W. Carter. *Simple groups of Lie type*, volume 28 of
              Pure and Applied Mathematics. John Wiley and Sons, 1972.
@@ -919,6 +926,14 @@ REFERENCES:
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
+.. [Dob1999a] \H. Dobbertin: *Almost perfect nonlinear power functions
+            on GF(2^n): the Niho case*. Information and Computation, 151 (1-2),
+            pp. 57-72, 1999.
+
+.. [Dob1999b] \H. Dobbertin: *Almost perfect nonlinear power functions
+            on GF(2^n): the Welch case*. IEEE Transactions on Information
+            Theory, 45 (4), pp. 1271-1275, 1999.
+
 .. [DPV2001] \J. Daemen, M. Peeters, and G. Van Assche,
              *Bitslice ciphers and power analysis attacks*; in FSE, (2000), pp. 134-149.
 
@@ -1218,6 +1233,10 @@ REFERENCES:
 
 .. [God1968] \R. Godement: *Algebra*, Hermann (Paris) / Houghton Mifflin
              (Boston) (1968)
+
+.. [Gol1968] \R. Gold: *Maximal recursive sequences with 3-valued recursive
+             crosscorrelation functions*. IEEE Transactions on Information
+             Theory, 14, pp. 154-156, 1968.
 
 .. [Gor1980] Daniel Gorenstein, Finite Groups (New York: Chelsea
              Publishing, 1980)
@@ -1523,6 +1542,10 @@ REFERENCES:
 
 .. [Kan1958] \D. M. Kan, *A combinatorial definition of homotopy
              groups*, Ann. Math. (2) 67 (1958), 282-312.
+
+.. [Kas1971] \T. Kasami: *The weight enumerators for several classes of
+             subcodes of the second order binary Reed-Muller codes*.
+             Information and Control, 18, pp. 369-394, 1971.
 
 .. [Kat1991] Nicholas M. Katz, *Exponential sums and differential equations*,
              Princeton University Press, Princeton NJ, 1991.

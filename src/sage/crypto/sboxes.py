@@ -4,12 +4,12 @@ S-Boxes used in cryptographic schemes
 This module provides the following SBoxes:
 
 constructions
-    - BrackenLeander
-    - CarletTangTangLiao
-    - Gold
-    - Kasami
-    - Niho
-    - Welch
+    - BrackenLeander ([BraLea2008]_)
+    - CarletTangTangLiao ([CTTL2014]_)
+    - Gold ([Gol1968]_)
+    - Kasami ([Kas1971]_)
+    - Niho ([Dob1999a]_)
+    - Welch ([Dob1999b]_)
 
 8 bit to 8 bit
     - AES ([DR2002]_)
@@ -113,7 +113,7 @@ constructions
     - Serpent_type_S0, ..., Serpent_type_S19 ([LP2007]_)
     - Golden_S0, ..., Golden_S3 ([Saa2011]_)
 
-    - representatives for all 302 affine equivalence classes
+    - representatives for all 302 affine equivalence classes ([dCa2007]_)
 
 3 bit to 3 bit
     - SEA ([SPGQ2006]_)
@@ -1534,6 +1534,7 @@ SEA = SBox([0x0,0x5,0x6,0x7,0x4,0x3,0x1,0x2])
 PRINTcipher = SBox([0x0, 0x1, 0x3, 0x6, 0x7, 0x4, 0x5, 0x2])
 
 affine_equiv_classes = {}
+# affine equivalent classes for 4 bit
 affine_equiv_classes[4] = [
     SBox([0x4, 0x0, 0x1, 0xF, 0x2, 0xB, 0x6, 0x7, 0x3, 0x9, 0xA, 0x5, 0xC, 0xD, 0xE, 0x8]),
     SBox([0x8, 0x0, 0x1, 0xC, 0x2, 0x5, 0x6, 0x9, 0x4, 0x3, 0xA, 0xB, 0x7, 0xD, 0xE, 0xF]),

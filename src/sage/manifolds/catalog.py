@@ -163,7 +163,7 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
     if coordinates == "ADM":
         if names is None:
             names = r't:(-oo,+oo) r:(0,+oo) th:(0,pi):\theta ph:(-pi,pi):\phi'
-        C = M.chart(names)
+        C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
         t, r, th, ph = C[:]
@@ -177,7 +177,7 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
     if coordinates == "BL":
         if names is None:
             names = r't:(-oo,+oo) r:(0,+oo) th:(0,pi):\theta ph:(-pi,pi):\phi'
-        C = M.chart(names)
+        C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
         t, r, th, ph = C[:]

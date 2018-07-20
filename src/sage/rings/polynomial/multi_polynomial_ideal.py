@@ -2199,6 +2199,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety()
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: computations in the complex field are inexact; variety may be computed partially or incorrectly.
             verbose 0 (...: multi_polynomial_ideal.py, variety) Warning: falling back to very slow toy implementation.
+            ...
             [{y: -0.86602540378443... - 0.500000000000000*I},
              {y: -0.86602540378443... + 0.500000000000000*I},
              {y: 0.86602540378443... - 0.500000000000000*I},

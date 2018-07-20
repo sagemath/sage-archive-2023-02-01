@@ -4869,7 +4869,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f.quo_rem(y)
             (2*x^2, x + 1)
             sage: f.quo_rem(3*x)
-            (2*x*y + 1, -4*x^2*y - 2*x + 1)
+            (0, 2*x^2*y + x + 1)
 
         TESTS::
 

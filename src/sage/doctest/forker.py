@@ -1471,7 +1471,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             sage: DTR.update_results(D)
             0
             sage: sorted(list(D.items()))
-            [('cputime', [...]), ('err', None), ('failures', 0), ('walltime', [...])]
+            [('cputime', [...]), ('err', None), ('failures', 0), ('tests', 4), ('walltime', [...]), ('walltime_skips', 0)]
         """
         for key in ["cputime","walltime"]:
             if key not in D:
@@ -2156,7 +2156,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: W.join()
             sage: W.save_result_output()
             sage: sorted(W.result[1].keys())
-            ['cputime', 'err', 'failures', 'optionals', 'walltime']
+            ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
             sage: len(W.output) > 0
             True
 
@@ -2280,7 +2280,7 @@ class DocTestTask(object):
         sage: ntests >= 300 or ntests
         True
         sage: sorted(results.keys())
-        ['cputime', 'err', 'failures', 'optionals', 'walltime']
+        ['cputime', 'err', 'failures', 'optionals', 'tests', 'walltime', 'walltime_skips']
     """
 
     if six.PY2:

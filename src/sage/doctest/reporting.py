@@ -325,7 +325,7 @@ class DocTestReporter(SageObject):
                 1 unlabeled test not run
                 4 long tests not run
                 5 magma tests not run
-                2 other tests skipped
+                2 not tested tests not run
                 0 tests not run because we ran out of time
                 [... tests, ... s]
 

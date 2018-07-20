@@ -95,6 +95,7 @@ from sage.calculus.interpolation import Spline
 from sage.misc.decorators import options
 from sage.misc.functional import numerical_approx
 from sage.arith.srange import srange
+from sage.ext.fast_callable import fast_callable
 
 class IntegratedCurve(DifferentiableCurve):
     r"""
@@ -1085,7 +1086,10 @@ class IntegratedCurve(DifferentiableCurve):
                               "rk2imp", "rk4imp", "gear1", "gear2", "bsimp"]
 
         if method == 'rk4_maxima':
-            des = self._velocities + eqns_num
+            des = [fast_callable(eq, vars=tuple(
+                list(self._chart[:]) + self._velocities), domain=float) for eq
+                   in (self._velocities + eqns_num)]
+
             dvars = list(chart[:]) + self._velocities
             ics = [t_min] + initial_pt_coords + initial_tgt_vec_comps
 

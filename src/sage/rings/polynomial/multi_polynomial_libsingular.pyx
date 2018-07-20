@@ -4023,16 +4023,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
             Traceback (most recent call last):
             ...
             NotImplementedError: Division of multivariate polynomials over non fields by non-monomials not implemented.
-
-        TESTS::
-
-            sage: P.<x,y> = ZZ[]
-            sage: p = 3*(-x^8*y^2 - x*y^9 + 6*x^8*y + 17*x^2*y^6 - x^3*y^2)
-            sage: q = 7*(x^2 + x*y + y^2 + 1)
-            sage: p*q//q == p
-            True
-            sage: p*q//p == q
-            True
         """
         cdef MPolynomialRing_libsingular parent = self._parent
         cdef ring *r = self._parent_ring
@@ -4052,6 +4042,11 @@ cdef class MPolynomial_libsingular(MPolynomial):
         _right = <MPolynomial_libsingular>right
 
         if r.cf.type != n_unknown:
+            if r.cf.type == n_Z:
+                P = parent.change_ring(RationalField())
+                f = P(self)//P(right)
+                CM = list(f)
+                return parent(sum([c.floor()*m for c,m in CM]))
             if _right.is_monomial():
                 p = _self._poly
                 quo = p_ISet(0,r)

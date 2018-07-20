@@ -162,7 +162,7 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
     M = Manifold(4, 'M', structure="Lorentzian")
     if coordinates == "ADM":
         if names is None:
-            names = r't:(-oo,+oo) r:(0,+oo) th:(0,pi):\theta ph:(-pi,pi):\phi'
+            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
         C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')
@@ -176,7 +176,7 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
         return M
     if coordinates == "BL":
         if names is None:
-            names = r't:(-oo,+oo) r:(0,+oo) th:(0,pi):\theta ph:(-pi,pi):\phi'
+            names = (r't:(-oo,+oo)', r'r:(0,+oo)', r'th:(0,pi):\theta', r'ph:(-pi,pi):\phi')
         C = M.chart(names=names)
         M._first_ngens = C._first_ngens
         g = M.metric('g')

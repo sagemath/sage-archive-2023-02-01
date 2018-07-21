@@ -56,6 +56,7 @@ from . import padic_printing
 ######################################################
 
 from .padic_extension_leaves import *
+from .relative_extension_leaves import *
 from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
@@ -76,6 +77,12 @@ ext_table['u', pAdicRingCappedRelative] = UnramifiedExtensionRingCappedRelative
 ext_table['u', pAdicRingFixedMod] = UnramifiedExtensionRingFixedMod
 ext_table['u', pAdicRingFloatingPoint] = UnramifiedExtensionRingFloatingPoint
 ext_table['u', pAdicFieldFloatingPoint] = UnramifiedExtensionFieldFloatingPoint
+ext_table['re', pAdicRingFixedMod] = RelativeRamifiedExtensionRingFixedMod
+ext_table['re', pAdicRingCappedAbsolute] = RelativeRamifiedExtensionRingCappedAbsolute
+ext_table['re', pAdicRingCappedRelative] = RelativeRamifiedExtensionRingCappedRelative
+ext_table['re', pAdicFieldCappedRelative] = RelativeRamifiedExtensionFieldCappedRelative
+ext_table['re', pAdicRingFloatingPoint] = RelativeRamifiedExtensionRingFloatingPoint
+ext_table['re', pAdicFieldFloatingPoint] = RelativeRamifiedExtensionFieldFloatingPoint
 
 def _default_show_prec(type, print_mode):
     r"""
@@ -2879,7 +2886,10 @@ class pAdicExtension_class(UniqueFactory):
             if ram_name is None:
                 ram_name = base._printer._uniformizer_name()
             names = (names, res_name, unram_name, ram_name)
-            polytype = 'u'
+            if base.degree() == 1:
+                polytype = 'u'
+            else:
+                polytype = 'ru'
             if prec is None:
                 prec = min([c.precision_absolute() for c in approx_modulus.list()] + [base.precision_cap()])
             elif prec > base.precision_cap():
@@ -2891,8 +2901,13 @@ class pAdicExtension_class(UniqueFactory):
             res_name = None
             if ram_name is None:
                 ram_name = names
+            if base.degree() == 1:
+                unram_name = None
+                polytype = 'e'
+            else:
+                unram_name = base.variable_name()
+                polytype = 're'
             names = (names, res_name, unram_name, ram_name)
-            polytype = 'e'
             e = approx_modulus.degree()
             if prec is None:
                 prec = min([c.precision_absolute() for c in approx_modulus.list() if not c._is_exact_zero()] + [base.precision_cap()]) * e
@@ -2945,7 +2960,7 @@ class pAdicExtension_class(UniqueFactory):
             (polytype, base, exact_modulus, names, prec, print_mode, print_pos,
              print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms,
              print_max_terse_terms, show_prec, implementation) = key
-            if polytype == 'e':
+            if polytype in ('e', 're'):
                 unif = exact_modulus.base_ring()(base.uniformizer())
                 shift_seed = (-exact_modulus[:exact_modulus.degree()] / unif).change_ring(base)
             if not krasner_check(exact_modulus, prec):

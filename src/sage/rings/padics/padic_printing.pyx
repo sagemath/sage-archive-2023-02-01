@@ -1078,6 +1078,40 @@ cdef class pAdicPrinter_class(SageObject):
                     poly, k = elt._flint_rep_abs()
                     L = [repr(a) for a in poly.coefficients(sparse=False)]
                     ZZ_pEX = 1
+                elif elt.parent()._implementation == 'Polynomial':
+                    poly = elt._poly_rep()
+                    if do_latex:
+                        L = [a._latex_() for a in poly.coefficients(sparse=False)]
+                    else:
+                        L = [repr(a) for a in poly.coefficients(sparse=False)]
+                    L, ellipsis = self._truncate_list(L, self.max_terse_terms, '0')
+                    s = ''
+                    for i, a in enumerate(L):
+                        if a == '0':
+                            continue
+                        if (i > 0) and ('+' in a or '-' in a[1:]):
+                            a = '(' + a + ')'
+                        if a[0] == '-':
+                            if s:
+                                s += ' - '
+                            else:
+                                s = '-'
+                            if a[1:] == '1':
+                                s += self._var(self.var_name, i, do_latex)
+                            else:
+                                s += a[1:] + self._dot_var(self.var_name, i, do_latex)
+                        else:
+                            if s:
+                                s += ' + '
+                            if a == '1':
+                                s += self._var(self.var_name, i, do_latex)
+                            else:
+                                s += a + self._dot_var(self.var_name, i, do_latex)
+                    if ellipsis:
+                        s += self._plus_ellipsis(do_latex)
+                    if paren and ' ' in s:
+                        s = '(' + s + ')'
+                    return s
                 else:
                     if elt.parent().is_capped_relative():
                         poly, k = elt._ntl_rep_abs()
@@ -1150,7 +1184,12 @@ cdef class pAdicPrinter_class(SageObject):
                 # since elt was not supposed to be zero, this should give a non-empty list.
                 if len(L) == 0:
                     raise RuntimeError("repr_spec called on zero")
-                if elt.parent().f() > 1: # unramified part to the extension
+                R = elt.parent()
+                f = R.f()
+                while R.degree() != 1:
+                    R = R.base_ring()
+                    f *= R.f()
+                if f > 1: # unramified part to the extension
                     if self.unram_name is None:
                         raise RuntimeError("need to have specified a name for the unramified variable")
                     L, ellipsis = self._truncate_list(L, self.max_ram_terms, [])

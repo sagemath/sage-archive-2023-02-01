@@ -124,7 +124,15 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 x = Rational(x)
         elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
-                raise NotImplementedError("conversion between padic extensions not implemented")
+                if x.parent().modulus().change_ring(self.base_ring()) == self.parent().modulus():
+                    x = x.polynomial().change_ring(self.base_ring()).list()
+                else:
+                    x = self.base_ring()(x)
+                    if x.is_zero():
+                        absprec = min(absprec, x.precision_absolute()*self.prime_pow.e)
+                        x = []
+                    else:
+                        x = [x]
         elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             if not Integer(self.prime_pow.prime).divides(x.parent().order()):
                 raise TypeError("p does not divide modulus %s"%x.parent().order())
@@ -903,43 +911,36 @@ cdef long padic_pow_helper(celement result, celement base, long base_val, long b
     if base_val != 0:
         raise ValueError("in order to raise to a p-adic exponent, base must be a unit")
     ####### NOTE:  this function needs to be updated for extension elements. #######
-    cdef celement oneunit, teichdiff
     cdef long loga_val, loga_aprec, bloga_val, bloga_aprec
     cdef Integer expcheck, right
+    cteichmuller(prime_pow.powhelper_oneunit, base, base_relprec, prime_pow)
+    cdivunit(prime_pow.powhelper_oneunit, base, prime_pow.powhelper_oneunit, base_relprec, prime_pow)
+    csetone(prime_pow.powhelper_teichdiff, prime_pow)
+    csub(prime_pow.powhelper_teichdiff, prime_pow.powhelper_oneunit, prime_pow.powhelper_teichdiff, base_relprec, prime_pow)
+    ## For extension elements in ramified extensions, the computation of the
+    ## valuation and precision of log(a) is more complicated)
+    loga_val = cvaluation(prime_pow.powhelper_teichdiff, base_relprec, prime_pow)
+    loga_aprec = base_relprec
+    # valuation of b*log(a)
+    bloga_val = loga_val + right_val
+    bloga_aprec = bloga_val + min(right_relprec, loga_aprec - loga_val)
+    if bloga_aprec > prime_pow.ram_prec_cap:
+        bloga_aprec = prime_pow.ram_prec_cap
+    expcheck = PY_NEW(Integer)
+    mpz_sub_ui(expcheck.value, prime_pow.prime.value, 1)
+    mpz_mul_si(expcheck.value, expcheck.value, bloga_val)
+    if mpz_cmp_ui(expcheck.value, prime_pow.e) <= 0:
+        raise ValueError("exponential does not converge")
+    right = PY_NEW(Integer)
     try:
-        cconstruct(oneunit, prime_pow)
-        cconstruct(teichdiff, prime_pow)
-        cteichmuller(oneunit, base, base_relprec, prime_pow)
-        cdivunit(oneunit, base, oneunit, base_relprec, prime_pow)
-        csetone(teichdiff, prime_pow)
-        csub(teichdiff, oneunit, teichdiff, base_relprec, prime_pow)
-        ## For extension elements in ramified extensions, the computation of the
-        ## valuation and precision of log(a) is more complicated)
-        loga_val = cvaluation(teichdiff, base_relprec, prime_pow)
-        loga_aprec = base_relprec
-        # valuation of b*log(a)
-        bloga_val = loga_val + right_val
-        bloga_aprec = bloga_val + min(right_relprec, loga_aprec - loga_val)
-        if bloga_aprec > prime_pow.ram_prec_cap:
-            bloga_aprec = prime_pow.ram_prec_cap
-        expcheck = PY_NEW(Integer)
-        mpz_sub_ui(expcheck.value, prime_pow.prime.value, 1)
-        mpz_mul_si(expcheck.value, expcheck.value, bloga_val)
-        if mpz_cmp_ui(expcheck.value, prime_pow.e) <= 0:
-            raise ValueError("exponential does not converge")
-        right = PY_NEW(Integer)
-        try:
-            cconv_mpz_t_out(right.value, right_unit, right_val, right_relprec, prime_pow)
-        except ValueError:
-            # Here we need to use the exp(b log(a)) definition,
-            # since we can't convert the exponent to an integer
-            raise NotImplementedError("exponents with negative valuation not yet supported")
-        ## For extension elements in ramified extensions
-        ## the following precision might need to be changed.
-        cpow(result, oneunit, right.value, bloga_aprec, prime_pow)
-    finally:
-        cdestruct(oneunit, prime_pow)
-        cdestruct(teichdiff, prime_pow)
+        cconv_mpz_t_out(right.value, right_unit, right_val, right_relprec, prime_pow)
+    except ValueError:
+        # Here we need to use the exp(b log(a)) definition,
+        # since we can't convert the exponent to an integer
+        raise NotImplementedError("exponents with negative valuation not yet supported")
+    ## For extension elements in ramified extensions
+    ## the following precision might need to be changed.
+    cpow(result, prime_pow.powhelper_oneunit, right.value, bloga_aprec, prime_pow)
     return bloga_aprec
 
 cdef _zero(expansion_mode mode, teich_ring):
@@ -1002,6 +1003,10 @@ cdef class ExpansionIter(object):
             R = elt.parent()
             self.tracks_prec = R.is_capped_relative() or R.is_capped_absolute()
             self.teich_ring = R.maximal_unramified_subextension().integer_ring()
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(elt.prime_pow.modulus)
+            self.tmp = <celement>polyt.__new__(polyt)
+            self.curvalue = <celement>polyt.__new__(polyt)
         cconstruct(self.tmp, elt.prime_pow)
         cconstruct(self.curvalue, elt.prime_pow)
         elt._get_unit(self.curvalue)
@@ -1119,6 +1124,9 @@ cdef class ExpansionIterable(object):
             5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4)
         """
         self.elt = elt
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(elt.prime_pow.modulus)
+            self.tmp = <celement>polyt.__new__(polyt)
         cconstruct(self.tmp, elt.prime_pow)
         self.prec = prec
         self.val_shift = val_shift

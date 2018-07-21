@@ -654,7 +654,7 @@ class Singular(ExtraTabCompletion, Expect):
 
         s = Expect.eval(self, x, **kwds)
 
-        if s.find("error") != -1 or s.find("Segment fault") != -1:
+        if s.find("error occurred") != -1 or s.find("Segment fault") != -1:
             raise SingularError('Singular error:\n%s'%s)
 
         if get_verbose() > 0:

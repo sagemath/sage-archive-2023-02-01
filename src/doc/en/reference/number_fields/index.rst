@@ -43,7 +43,7 @@ Orders, Ideals, Ideal Classes
 
 .. SEEALSO::
 
-    :ref:`sage.rings.finite_rings.residue_field`
+    :mod:`sage.rings.finite_rings.residue_field`
 
 Totally Real Fields
 -------------------
@@ -67,6 +67,6 @@ Algebraic Numbers
 
 .. SEEALSO::
 
-    :ref:`sage.rings.algebraic_closure_finite_field`
+    :mod:`sage.rings.algebraic_closure_finite_field`
 
 .. include:: ../footer.txt

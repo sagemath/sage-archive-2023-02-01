@@ -490,6 +490,41 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
 
     - list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
       `2 \times 2` matrix
+
+    EXAMPLES::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^3 - 13^2*y^3, x*y^2])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import BM_all_minimal
+        sage: BM_all_minimal(f)
+        [Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (x^3 - 169*y^3 : x*y^2),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (13*x^3 - y^3 : x*y^2)]
+
+    ::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^3 - 6^2*y^3, x*y^2])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import BM_all_minimal
+        sage: BM_all_minimal(f, D=[3])
+        [Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (x^3 - 36*y^3 : x*y^2),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (3*x^3 - 4*y^3 : x*y^2)]
+
+    ::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^3 - 4^2*y^3, x*y^2])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import BM_all_minimal
+        sage: cl = BM_all_minimal(f, return_transformation=True)
+        sage: all([f.conjugate(m) == g for g,m in cl])
+        True
     """
     map = copy(vp)
     map.normalize_coordinates()
@@ -567,7 +602,10 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
             if found is False:
                 classes.append([funct, mat])
 
-    return classes
+    if return_transformation:
+        return classes
+    else:
+        return [funct for funct, matr in classes]
 
 ###################################################
 #enumerative algorithms from Hutz-Stoll
@@ -597,6 +635,24 @@ def HS_minimal(f, return_transformation=False, D=None):
     - a dynamical system
 
     - (optional) a `2 \times 2` matrix
+
+    EXAMPLES::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^3 - 6^2*y^3, x^2*y])
+        sage: m = matrix(QQ,2,2,[5,1,0,1])
+        sage: g = f.conjugate(m)
+        sage: g.normalize_coordinates()
+        sage: g.resultant().factor()
+        2^4 * 3^4 * 5^12
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import HS_minimal
+        sage: HS_minimal(g).resultant().factor()
+        2^4 * 3^4
+        sage: HS_minimal(g, D=[2]).resultant().factor()
+        2^4 * 3^4 * 5^12
+        sage: F,m = HS_minimal(g, return_transformation=True)
+        sage: g.conjugate(m) == F
+        True
     """
     F = copy(f)
     d = F.degree()
@@ -646,7 +702,7 @@ def HS_minimal(f, return_transformation=False, D=None):
     return F
 
 #find all representatives of orbits for one prime
-def HS_all_minimal_p(p, f, m=None, return_transformation=True):
+def HS_all_minimal_p(p, f, m=None, return_transformation=False):
     r"""
     Find a representative in each distinct `SL(2,\ZZ)` orbit with minimal `p`-resultant
 
@@ -668,6 +724,22 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=True):
 
     OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
       `2 \times 2` matrix.
+
+    EXAMPLES::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^5 - 6^4*y^5, x^2*y^3])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import HS_all_minimal_p
+        sage: HS_all_minimal_p(2, f)
+        [Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (x^5 - 1296*y^5 : x^2*y^3),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (4*x^5 - 162*y^5 : x^2*y^3)]
+        sage: cl = HS_all_minimal_p(2, f, return_transformation=True)
+        sage: all([f.conjugate(m) == g for g,m in cl])
+        True
     """
     count = 0
     prev = 0 #no exclusions
@@ -715,10 +787,14 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=True):
                     to_do.append([F1, m*t, 2])
             if count>=2: #at most two neighbors
                 break
-    return reps
+
+    if return_transformation:
+        return reps
+    else:
+        return [funct for funct, matr in reps]
 
 #find all representatives of orbits
-def HS_all_minimal(f, return_transformation=True, D=None):
+def HS_all_minimal(f, return_transformation=False, D=None):
     r"""
     Determine a representative in each `SL(2,\ZZ)` orbit with minimal resultant.
 
@@ -739,21 +815,61 @@ def HS_all_minimal(f, return_transformation=True, D=None):
 
     OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
       `2 \times 2` matrix.
+
+    EXAMPLES::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^3 - 6^2*y^3, x^2*y])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import HS_all_minimal
+        sage: HS_all_minimal(f)
+        [Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (x^3 - 36*y^3 : x^2*y),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (9*x^3 - 12*y^3 : 9*x^2*y),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (4*x^3 - 18*y^3 : 4*x^2*y),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (36*x^3 - 6*y^3 : 36*x^2*y)]
+        sage: HS_all_minimal(f, D=[3])
+        [Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (x^3 - 36*y^3 : x^2*y),
+         Dynamical System of Projective Space of dimension 1 over Rational Field
+           Defn: Defined on coordinates by sending (x : y) to
+                 (9*x^3 - 12*y^3 : 9*x^2*y)]
+
+    ::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([x^3 - 6^2*y^3, x*y^2])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import HS_all_minimal
+        sage: cl = HS_all_minimal(f, return_transformation=True)
+        sage: all([f.conjugate(m) == g for g,m in cl])
+        True
     """
     m = matrix(ZZ,2,2,[1, 0, 0, 1])
     F = copy(f)
     F.normalize_coordinates()
     if F.degree() == 1:
         raise ValueError("function must be degree at least 2")
-    #if f.degree() %2 == 0:
-    #    return f,m
+    if f.degree() %2 == 0:
+        #there is only one orbit for even degree
+        return [[f, m]]
     if D is None:
         res = ZZ(F.resultant())
         D = res.prime_divisors()
     M = [[F, m]]
     for p in D:
         #get p-orbits
-        Mp = HS_all_minimal_p(p, F, m, return_transformation=return_transformation)
+        Mp = HS_all_minimal_p(p, F, m, return_transformation=True)
         #combine with previous orbits representatives
         M = [[g.conjugate(t), t*s] for g,s in M for G,t in Mp]
-    return M
+
+    if return_transformation:
+        return M
+    else:
+        return [funct for funct, matr in M]

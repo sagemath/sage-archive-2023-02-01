@@ -748,9 +748,13 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
     vp = res.valuation(p)
     if m is None:
         m = matrix(ZZ,2,2,[1, 0, 0, 1])
-    #nothing to do if the prime doesn't divide the resultant
-    if vp == 0:
-        return [[F,m]]
+    if f.degree() %2 == 0 or vp == 0:
+        #there is only one orbit for even degree
+        #nothing to do if the prime doesn't divide the resultant
+        if return_transformation:
+            return [[f, m]]
+        else:
+            return [f]
     to_do = [[F,m,prev]] #repns left to check
     reps = [[F,m]] #orbit representatives for f
     while to_do != []:
@@ -858,7 +862,10 @@ def HS_all_minimal(f, return_transformation=False, D=None):
         raise ValueError("function must be degree at least 2")
     if f.degree() %2 == 0:
         #there is only one orbit for even degree
-        return [[f, m]]
+        if return_transformation:
+            return [[f, m]]
+        else:
+            return [f]
     if D is None:
         res = ZZ(F.resultant())
         D = res.prime_divisors()

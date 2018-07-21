@@ -4794,6 +4794,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: p = -x*y + x*z + 54*x - 2
             sage: (5*p^2).lcm(3*p) == 15*p^2
             True
+            sage: lcm(2*x,2*x*y)
+            2*x*y
         """
         cdef ring *_ring = self._parent_ring
         cdef poly *ret
@@ -4805,6 +4807,12 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring.cf.type != n_unknown:
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise TypeError("LCM over non-integral domains not available.")
+            if _ring.cf.type == n_Z:
+                f_content = self.content()
+                g_content = g.content()
+                f_primitivepart = self / f_content
+                g_primitivepart = g / g_content
+                return f_primitivepart.change_ring(RationalField()).lcm(g_primitivepart.change_ring(RationalField())) * f_content.lcm(g_content)
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)

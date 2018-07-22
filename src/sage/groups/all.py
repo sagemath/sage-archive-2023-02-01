@@ -17,9 +17,7 @@ lazy_import('sage.groups.generic',
             deprecation=(25785, "this is being removed from the global namespace"))
 
 # deprecation(24256)
-lazy_import('sage.structure.element',
-            'generic_power', 'power',
-            deprecation=(24256, "use sage.structure.element.generic_power instead"))
+from sage.structure.element import generic_power as power
 
 lazy_import('sage.groups.class_function', 'ClassFunction')
 

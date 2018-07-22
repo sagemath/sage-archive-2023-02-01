@@ -222,7 +222,7 @@ class MatrixGroup_base(Group):
                 raise ValueError("Generator %s is not in the group"%(g))
 
         from sage.groups.matrix_gps.finitely_generated import MatrixGroup
-        SubGroup =  MatrixGroup(generators, check=check, ambient_group=self)
+        SubGroup =  MatrixGroup(generators, check=check)
         SubGroup._ambient = self
         return SubGroup
 

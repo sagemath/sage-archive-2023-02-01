@@ -2143,6 +2143,55 @@ class HasseDiagram(DiGraph):
                                          self.are_comparable,
                                          element_class = element_class)
 
+    def _trivial_nonregular_congruence(self):
+        """
+        Return a pair of elements giving "trivial" non-regular congruence.
+
+        This returns a pair `a, b` such that `b` covers only `a` and
+        `a` is covered by only `b`, and either `a` has one lower cover
+        or `b` has one upper cover.  If no such pair exists, return
+        ``None``.
+
+        This pair gives a trivial non-regular congruence.
+
+        The Hasse diagram is expected to be bounded.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram({0: [1, 2], 1: [4], 2: [3], 3: [4]})
+            sage: H._trivial_nonregular_congruence()
+            (2, 3)
+
+        TESTS::
+
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [3]})
+            sage: H._trivial_nonregular_congruence() is None
+            True
+            sage: H = HasseDiagram({0: [1, 2], 1: [3], 2: [3], 3: [4]})
+            sage: H._trivial_nonregular_congruence()
+            (3, 4)
+            sage: H = HasseDiagram({0: [1], 1: [2, 3], 2: [4], 3: [4]})
+            sage: H._trivial_nonregular_congruence()
+            (0, 1)
+            sage: H = HasseDiagram({0: [1]})
+            sage: H._trivial_nonregular_congruence() is None
+            True
+        """
+        n = self.order()
+        if n == 2:
+            return None
+        if self.out_degree(0) == 1:
+            return (0, 1)
+        if self.in_degree(n-1) == 1:
+            return (n-2, n-1)
+        for v in range(1, n-1):
+            if self.in_degree(v) == 1 and self.out_degree(v) == 1:
+                v_ = next(self.neighbor_out_iterator(v))
+                if self.in_degree(v_) == 1 and self.out_degree(v_) == 1:
+                    return (v, v_)
+        return None
+
     def sublattices_iterator(self, elms, min_e):
         """
         Return an iterator over sublattices of the Hasse diagram.

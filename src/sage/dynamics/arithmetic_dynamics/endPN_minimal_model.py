@@ -213,9 +213,9 @@ def affine_minimal(vp, return_transformation=False, D=None, quick=False):
     - ``D`` -- a list of primes, in case one only wants to check minimality
       at those specific primes
 
-  - ``return_transformation`` -- (default: ``False``) boolean; this
-    signals a return of the `PGL_2` transformation to conjugate
-    this map to the calculated models
+    - ``return_transformation`` -- (default: ``False``) boolean; this
+      signals a return of the `PGL_2` transformation to conjugate
+      this map to the calculated models
 
     - ``quick`` -- a boolean value. If true the algorithm terminates once
       algorithm determines F/G is not minimal, otherwise algorithm only
@@ -479,7 +479,7 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
 
     - ``vp`` -- a minimal model of a dynamical system on the projective line
 
-    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
+    - ``return_transformation`` -- (default: False) a boolean value. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
       the calculated minimal model
 
@@ -488,8 +488,8 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
 
     OUTPUT:
 
-    - list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      `2 \times 2` matrix
+    List of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
+    2 \times 2` matrix.
 
     EXAMPLES::
 
@@ -718,12 +718,14 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
 
     - ``m`` -- (optional) 2x2 matrix associated with ``f``
 
-    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
+    - ``return_transformation`` -- (default: False) a boolean value. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
       the calculated minimal model
 
-    OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      `2 \times 2` matrix.
+    OUTPUT:
+
+    List of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
+    `2 \times 2` matrix.
 
     EXAMPLES::
 
@@ -810,7 +812,7 @@ def HS_all_minimal(f, return_transformation=False, D=None):
 
     - ``f`` -- dynamical system on the projective line with minimal resultant
 
-    - ``return_transformation`` -- (default: False) a boolean value, default value True. This
+    - ``return_transformation`` -- (default: False) a boolean value. This
       signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
       the calculated minimal model
 

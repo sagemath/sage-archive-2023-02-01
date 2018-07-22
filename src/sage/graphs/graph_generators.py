@@ -2032,24 +2032,24 @@ class GraphGenerators():
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
-    CaiFurerImmermanGraph  = staticmethod(sage.graphs.generators.cai_furer_immerman.CaiFurerImmermanGraph)
+    CaiFurerImmermanGraph  = staticmethod(sage.graphs.generators.families.CaiFurerImmermanGraph)
     chang_graphs           = staticmethod(sage.graphs.generators.families.chang_graphs)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
     DipoleGraph            = staticmethod(sage.graphs.generators.families.DipoleGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
-    EgawaGraph			   = staticmethod(sage.graphs.generators.hamming_graphs.EgawaGraph) 	
+    EgawaGraph			   = staticmethod(sage.graphs.generators.families.EgawaGraph) 	
     FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
     GoethalsSeidelGraph    = staticmethod(sage.graphs.generators.families.GoethalsSeidelGraph)
-    HammingGraph		   = staticmethod(sage.graphs.generators.hamming_graphs.HammingGraph)
+    HammingGraph		   = staticmethod(sage.graphs.generators.families.HammingGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
     HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
-	JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
+    JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
     KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
@@ -2076,9 +2076,9 @@ class GraphGenerators():
     WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
     WindmillGraph          = staticmethod(sage.graphs.generators.families.WindmillGraph)
 
-###########################################################################
-# Graphs from classical geometries over `F_q`
-###########################################################################
+    ###########################################################################
+    # Graphs from classical geometries over `F_q`
+    ###########################################################################
     import sage.graphs.generators.classical_geometries
     AffineOrthogonalPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.AffineOrthogonalPolarGraph)
     AhrensSzekeresGeneralizedQuadrangleGraph = staticmethod(sage.graphs.generators.classical_geometries.AhrensSzekeresGeneralizedQuadrangleGraph)
@@ -2088,7 +2088,7 @@ class GraphGenerators():
     SymplecticDualPolarGraph = staticmethod(sage.graphs.generators.classical_geometries.SymplecticDualPolarGraph)
     SymplecticPolarGraph   = staticmethod(sage.graphs.generators.classical_geometries.SymplecticPolarGraph)
     TaylorTwographDescendantSRG = \
-             staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
+    staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographDescendantSRG)
     TaylorTwographSRG      = staticmethod(sage.graphs.generators.classical_geometries.TaylorTwographSRG)
     T2starGeneralizedQuadrangleGraph      = staticmethod(sage.graphs.generators.classical_geometries.T2starGeneralizedQuadrangleGraph)
     Nowhere0WordsTwoWeightCodeGraph = staticmethod(sage.graphs.generators.classical_geometries.Nowhere0WordsTwoWeightCodeGraph)
@@ -2097,9 +2097,9 @@ class GraphGenerators():
     UnitaryDualPolarGraph  = staticmethod(sage.graphs.generators.classical_geometries.UnitaryDualPolarGraph)
     UnitaryPolarGraph      = staticmethod(sage.graphs.generators.classical_geometries.UnitaryPolarGraph)
 
-###########################################################################
-# Chessboard Graphs
-###########################################################################
+    ###########################################################################
+    # Chessboard Graphs
+    ###########################################################################
     import sage.graphs.generators.chessboard
     ChessboardGraphGenerator = staticmethod(sage.graphs.generators.chessboard.ChessboardGraphGenerator)
     BishopGraph              = staticmethod(sage.graphs.generators.chessboard.BishopGraph)
@@ -2108,9 +2108,9 @@ class GraphGenerators():
     QueenGraph               = staticmethod(sage.graphs.generators.chessboard.QueenGraph)
     RookGraph                = staticmethod(sage.graphs.generators.chessboard.RookGraph)
 
-###########################################################################
-# Intersection graphs
-###########################################################################
+    ###########################################################################
+    # Intersection graphs
+    ###########################################################################
     import sage.graphs.generators.intersection
     IntervalGraph            = staticmethod(sage.graphs.generators.intersection.IntervalGraph)
     IntersectionGraph        = staticmethod(sage.graphs.generators.intersection.IntersectionGraph)
@@ -2118,9 +2118,9 @@ class GraphGenerators():
     OrthogonalArrayBlockGraph  = staticmethod(sage.graphs.generators.intersection.OrthogonalArrayBlockGraph)
     ToleranceGraph           = staticmethod(sage.graphs.generators.intersection.ToleranceGraph)
 
-###########################################################################
-# Random Graphs
-###########################################################################
+    ###########################################################################
+    # Random Graphs
+    ###########################################################################
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
@@ -2140,18 +2140,18 @@ class GraphGenerators():
     RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
     RandomTriangulation      = staticmethod(sage.graphs.generators.random.RandomTriangulation)
 
-###########################################################################
-# Maps
-###########################################################################
+    ###########################################################################
+    # Maps
+    ###########################################################################
     import sage.graphs.generators.world_map
     WorldMap = staticmethod(sage.graphs.generators.world_map.WorldMap)
     EuropeMap = staticmethod(sage.graphs.generators.world_map.EuropeMap)
     AfricaMap = staticmethod(sage.graphs.generators.world_map.AfricaMap)
     USAMap = staticmethod(sage.graphs.generators.world_map.USAMap)
 
-###########################################################################
-# Degree Sequence
-###########################################################################
+    ###########################################################################
+    # Degree Sequence
+    ###########################################################################
     import sage.graphs.generators.degree_sequence
     DegreeSequence           = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequence)
     DegreeSequenceBipartite  = staticmethod(sage.graphs.generators.degree_sequence.DegreeSequenceBipartite)
@@ -2218,7 +2218,6 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
         Digraph on 2 vertices
     """
     from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
-
     if not property(g):
         return
     yield g

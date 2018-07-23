@@ -184,7 +184,7 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
         rho = sqrt(r**2+a**2*cos(th)**2)
         g[0, 0], g[1, 1], g[2, 2], g[3, 3] = -(1-2*m*r/rho**2), \
             rho**2/(r**2-2*m*r+a**2), rho**2, \
-            (r**2+a**2+2*m*r/rho**2*sin(th)**2)*sin(th)**2
+            (r**2+a**2+2*m*r*a**2/rho**2*sin(th)**2)*sin(th)**2
         g[0, 3] = 2*m*r*a*sin(th)**2/rho**2
         return M
     raise NotImplementedError("Coordinates system not implemented, see help"

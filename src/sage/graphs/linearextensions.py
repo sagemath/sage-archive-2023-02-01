@@ -356,10 +356,7 @@ class LinearExtensions(CombinatorialClass):
 
     def __iter__(self):
         """
-        Returns a list of the linear extensions of the directed acyclic graph.
-
-        Note that once they are computed, the linear extensions are
-        cached in this object.
+        Iterate over the linear extensions of the directed acyclic graph.
 
         EXAMPLES::
 

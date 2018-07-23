@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 r"""
 Word morphisms/substitutions
 
@@ -1000,7 +999,7 @@ class WordMorphism(SageObject):
             return self
 
         else:
-            nexp = int(exp / 2)
+            nexp = int(exp // 2)
             over = exp % 2
             res = (self * self) ** nexp
             if over == 1:
@@ -1261,7 +1260,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('6->ab,y->5,0->asd').images()
             [word: 5, word: asd, word: ab]
         """
-        return self._morph.values()
+        return list(six.itervalues(self._morph))
 
     def reversal(self):
         r"""

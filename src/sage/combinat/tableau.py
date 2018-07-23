@@ -74,7 +74,7 @@ For display options, see :meth:`Tableaux.options`.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from __future__ import print_function, absolute_import
-from six.moves import range, zip
+from six.moves import range, zip, map
 from six import add_metaclass, text_type
 
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
@@ -84,6 +84,7 @@ from sage.structure.global_options import GlobalOptions
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableList
 from sage.structure.parent import Parent
+from sage.structure.richcmp import richcmp, richcmp_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
@@ -103,7 +104,7 @@ from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.posets.posets import Poset
 
-
+@richcmp_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class Tableau(ClonableList):
     """
@@ -246,21 +247,21 @@ class Tableau(ClonableList):
         # This dispatches the input verification to the :meth:`check`
         # method.
 
-    def __eq__(self, other):
+    def __richcmp__(self, other, op):
         r"""
-        Check whether ``self`` is equal to ``other``.
+        Compare ``self`` to ``other``.
 
         .. TODO::
 
-            This overwrites the equality check of
+            This overwrites the comparison check of
             :class:`~sage.structure.list_clone.ClonableList`
             in order to circumvent the coercion framework.
             Eventually this should be solved more elegantly,
             for example along the lines of what was done for
             `k`-tableaux.
 
-            For now, two elements are equal if their underlying
-            defining lists compare equal.
+            For now, this compares two elements by their underlying
+            defining lists.
 
         INPUT:
 
@@ -277,36 +278,22 @@ class Tableau(ClonableList):
             False
             sage: t == Tableaux(2)([[1,2]])
             True
-        """
-        if isinstance(other, Tableau):
-            return list(self) == list(other)
-        else:
-            return list(self) == other
 
-    def __ne__(self, other):
-        r"""
-        Check whether ``self`` is unequal to ``other``.
+            sage: s = Tableau([[2,3],[1]])
+            sage: s != []
+            True
 
-        See the documentation of :meth:`__eq__`.
-
-        INPUT:
-
-        ``other`` -- the element that ``self`` is compared to
-
-        OUTPUT:
-
-        A Boolean.
-
-        TESTS::
-
-            sage: t = Tableau([[2,3],[1]])
-            sage: t != []
+            sage: t < s
+            True
+            sage: s < t
+            False
+            sage: s > t
             True
         """
         if isinstance(other, Tableau):
-            return list(self) != list(other)
+            return richcmp(list(self), list(other), op)
         else:
-            return list(self) != other
+            return richcmp(list(self), other, op)
 
     def __hash__(self):
         """
@@ -2066,7 +2053,7 @@ class Tableau(ClonableList):
         return Partition(res)
 
     def to_chain(self, max_entry=None):
-        """
+        r"""
         Return the chain of partitions corresponding to the (semi)standard
         tableau ``self``.
 
@@ -2599,7 +2586,7 @@ class Tableau(ClonableList):
         return Tableau(new_st)
 
     def promotion_inverse(self, n):
-        """
+        r"""
         Return the image of ``self`` under the inverse promotion operator.
 
         .. WARNING::
@@ -3269,7 +3256,7 @@ class Tableau(ClonableList):
             return Tableau([])
 
     def promotion_operator(self, i):
-        """
+        r"""
         Return a list of semistandard tableaux obtained by the `i`-th
         Lapointe-Lascoux-Morse promotion operator from the
         semistandard tableau ``self``.
@@ -3511,7 +3498,7 @@ class Tableau(ClonableList):
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
     def is_key_tableau(self):
-        """
+        r"""
         Return ``True`` if ``self`` is a key tableau or ``False`` otherwise.
 
         A tableau is a *key tableau* if the set of entries in the `j`-th
@@ -3885,7 +3872,7 @@ class Tableau(ClonableList):
         return ResidueSequence(e, multicharge, res, check=False)
 
     def degree(self, e, multicharge=(0,)):
-        """
+        r"""
         Return the Brundan-Kleshchev-Wang [BKW2011]_ degree of ``self``.
 
         The *degree* is an integer that is defined recursively by successively
@@ -3912,7 +3899,6 @@ class Tableau(ClonableList):
             0
             sage: StandardTableau([[1,2,5],[3,4]]).degree(4)
             1
-
         """
         n = self.size()
         if n == 0:
@@ -3929,7 +3915,7 @@ class Tableau(ClonableList):
         return deg
 
     def codegree(self, e, multicharge=(0,)):
-        """
+        r"""
         Return the Brundan-Kleshchev-Wang [BKW2011]_ codegree of the
         standard tableau ``self``.
 
@@ -3960,7 +3946,6 @@ class Tableau(ClonableList):
             1
             sage: StandardTableau([[1,2,5],[3,4]]).codegree(4)
             0
-
         """
         if not self:  # the trivial case
             return 0
@@ -6139,7 +6124,7 @@ class SemistandardTableaux_size(SemistandardTableaux):
             return x == []
 
         return (SemistandardTableaux.__contains__(self, x)
-            and sum(map(len,x)) == self.size
+            and sum(map(len, x)) == self.size
             and max(max(row) for row in x) <= self.max_entry)
 
     def random_element(self):
@@ -6353,7 +6338,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             sage: SST = SemistandardTableaux([2,1])
             sage: all(sst in SST for sst in SST)
             True
-            sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
+            sage: len([x for x in SemistandardTableaux(3) if x in SST])
             8
             sage: SST.cardinality()
             8
@@ -6394,7 +6379,6 @@ class SemistandardTableaux_shape(SemistandardTableaux):
 
         """
         from sage.misc.prandom import randint
-        from sage.combinat.partition import _Partitions
         with_sentinels = [max(i,j) for i,j in zip([0]+list(self.shape), [k+1 for k in self.shape]+[0])]
         t = [[self.max_entry+1]*i for i in with_sentinels]
         for i,l in enumerate(self.shape):
@@ -6521,7 +6505,7 @@ class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
             sage: SST = SemistandardTableaux([2,1], [2,1])
             sage: all(sst in SST for sst in SST)
             True
-            sage: len(filter(lambda x: x in SST, SemistandardTableaux(3)))
+            sage: len([x for x in SemistandardTableaux(3) if x in SST])
             1
             sage: SST.cardinality()
             1
@@ -6953,7 +6937,7 @@ class RowStandardTableaux_size(RowStandardTableaux, DisjointUnionEnumeratedSets)
             sage: all([st in ST3 for st in ST3])
             True
             sage: ST4 = RowStandardTableaux(4)
-            sage: filter(lambda x: x in ST3, ST4)
+            sage: [x for x in ST4 if x in ST3]
             []
 
         Check that :trac:`14145` is fixed::
@@ -7006,7 +6990,7 @@ class RowStandardTableaux_shape(RowStandardTableaux):
             sage: ST = RowStandardTableaux([2,1,1])
             sage: all([st in ST for st in ST])
             True
-            sage: len(filter(lambda x: x in ST, RowStandardTableaux(4)))
+            sage: len([x for x in RowStandardTableaux(4) if x in ST])
             12
             sage: ST.cardinality()
             12
@@ -7338,7 +7322,7 @@ class StandardTableaux_size(StandardTableaux, DisjointUnionEnumeratedSets):
             sage: all(st in ST3 for st in ST3)
             True
             sage: ST4 = StandardTableaux(4)
-            sage: filter(lambda x: x in ST3, ST4)
+            sage: [x for x in ST4 if x in ST3]
             []
 
         Check that :trac:`14145` is fixed::
@@ -7502,7 +7486,7 @@ class StandardTableaux_shape(StandardTableaux):
             sage: ST = StandardTableaux([2,1,1])
             sage: all(st in ST for st in ST)
             True
-            sage: len(filter(lambda x: x in ST, StandardTableaux(4)))
+            sage: len([x for x in StandardTableaux(4) if x in ST])
             3
             sage: ST.cardinality()
             3
@@ -7877,7 +7861,7 @@ class Tableau_class(Tableau):
         self.__init__(Tableaux(), state['_list'])
 
 # October 2012: fixing outdated pickles which use classed being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.tableau', 'Tableau_class',  Tableau_class)
 register_unpickle_override('sage.combinat.tableau', 'Tableaux_n',  Tableaux_size)
 register_unpickle_override('sage.combinat.tableau', 'StandardTableaux_n',  StandardTableaux_size)

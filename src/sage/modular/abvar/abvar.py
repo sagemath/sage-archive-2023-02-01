@@ -4659,7 +4659,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
 
         # 2. Compute the map alpha: X --> Hom(X[I],Z) over ZZ
         # todo -- this could be done more quickly with a clever matrix multiply
-        B = [XI(v) for v in XI_ZZ.basis()]
+        B = [XI(vv) for vv in XI_ZZ.basis()]
         mat = []
         for v in M.basis():
             w = Y(v)
@@ -4830,13 +4830,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety_modsym_abstract):
                 else:
                     raise NotImplementedError("Atkin-Lehner at p must act as a scalar")
         else:
-            mul_primes = list(sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)])))
+            mul_primes = sorted(set([p] + [q for q in prime_range(2,2*self.dimension()+2)]))
         div = Integer(div)
         mul = Integer(mul)
         mul_primes = tuple(mul_primes)
         self.__tamagawa_number_bounds[p] = (div, mul, mul_primes)
         return (div, mul, mul_primes)
-
 
     def brandt_module(self, p):
         """

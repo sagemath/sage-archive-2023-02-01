@@ -121,7 +121,7 @@ from .power_series_pari import PowerSeries_pari
 from . import power_series_ring_element
 
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from .polynomial.polynomial_ring_constructor import PolynomialRing
 from . import laurent_series_ring
 from . import laurent_series_ring_element
@@ -134,9 +134,11 @@ from sage.structure.nonexact import Nonexact
 from sage.interfaces.magma import MagmaElement
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.misc.sage_eval import sage_eval
-
+from sage.misc.superseded import deprecation
+    
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import normalize_names
+from sage.structure.element import parent
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
@@ -360,7 +362,7 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     ## too many things (padics, elliptic curves) depend on this behavior,
     ## so no warning for now.
     ##
-    # from sage.misc.superseded import deprecation
+
     # if isinstance(name, (int,integer.Integer)) or isinstance(arg2,(int,integer.Integer)):
     #     deprecation(trac_number, "This behavior of PowerSeriesRing is being deprecated in favor of constructing multivariate power series rings. (See Trac ticket #1956.)")
 
@@ -1151,13 +1153,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             sage: s in R
             False
         """
-        if x.parent() == self:
-            return True
-        try:
-            self._coerce_(x)
-        except TypeError:
-            return False
-        return True
+        return self.has_coerce_map_from(parent(x))
 
     def is_field(self, proof = True):
         """

@@ -1021,6 +1021,18 @@ class IntegerListsLex(Parent):
         """
         return not self.__eq__(other)
 
+    def __hash__(self):
+        """
+        Compute a hash for ``self``.
+
+        EXAMPLES::
+
+            sage: import sage.combinat.integer_list_old as integer_list
+            sage: C = integer_list.IntegerListsLex(2, length=3)
+            sage: h = hash(C)
+        """
+        return hash(repr(self)) ^ 53397379531
+
     def _repr_(self):
         """
         Returns the name of this combinatorial class.

@@ -279,7 +279,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             sage: latex(QQ) # indirect doctest
             \Bold{Q}
         """
-        return "\Bold{Q}"
+        return r"\Bold{Q}"
 
     def __reduce__(self):
         r"""
@@ -336,7 +336,7 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         from sage.rings.infinity import Infinity
         if p == Infinity:
-            from sage.rings.real_mpfr import create_RealField
+            from sage.rings.real_field import create_RealField
             return create_RealField(prec, **extras)
         else:
             from sage.rings.padics.factory import Qp
@@ -1002,7 +1002,7 @@ class RationalField(Singleton, number_field_base.NumberField):
             yield Rational((-b, a))
 
     def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
-        """
+        r"""
         Return an random element of `\QQ`.
 
         Elements are constructed by randomly choosing integers
@@ -1043,7 +1043,6 @@ class RationalField(Singleton, number_field_base.NumberField):
             0
             sage: QQ.random_element(distribution='1/n')
             -1
-
         """
         global ZZ
         if ZZ is None:
@@ -1189,14 +1188,15 @@ class RationalField(Singleton, number_field_base.NumberField):
             yield prod((p**e for p,e in zip(KSgens, ev)), one)
 
 
-    def quadratic_defect(self, a, p):
+    def quadratic_defect(self, a, p, check=True):
         r"""
         Return the valuation of the quadratic defect of `a` at `p`.
 
         INPUT:
 
-        - ``a`` an element of ``self``
-        - ``p`` a prime ideal or a prime number
+        - ``a`` -- an element of ``self``
+        - ``p`` -- a prime ideal or a prime number
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         REFERENCE:
 
@@ -1219,25 +1219,24 @@ class RationalField(Singleton, number_field_base.NumberField):
             raise TypeError(str(a) + " must be an element of " + str(self))
         if p.parent() == ZZ.ideal_monoid():
             p = p.gen()
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError(str(p) + " must be prime")
         if a.is_zero():
             return Infinity
-        v = self(a).valuation(p)
+        v, u = self(a).val_unit(p)
         if v % 2 == 1:
             return v
-        a = a / (p**v)
         if p != 2:
-            if legendre_symbol(a, p) == 1:
+            if legendre_symbol(u, p) == 1:
                 return Infinity
             else:
                 return v
         if p == 2:
-            if a % 8 == 1:
+            if u % 8 == 1:
                 return Infinity
-            if a % 8 == 5:
+            if u % 8 == 5:
                 return v + 2
-            if a % 8 in [3, 7]:
+            if u % 8 in [3, 7]:
                 return v + 1
 
     #################################

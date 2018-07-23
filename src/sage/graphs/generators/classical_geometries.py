@@ -18,12 +18,10 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 from __future__ import absolute_import, division
 from six.moves import range
 
-from copy import copy
-from math import sin, cos, pi
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from sage.arith.all import is_prime_power
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
+
 
 def SymplecticPolarGraph(d, q, algorithm=None):
     r"""
@@ -184,7 +182,6 @@ def AffineOrthogonalPolarGraph(d,q,sign="+"):
             raise ValueError("d must be odd when sign==None")
         s = 0
 
-    from sage.interfaces.gap import gap
     from sage.modules.free_module import VectorSpace
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
@@ -287,7 +284,6 @@ def _orthogonal_polar_graph(m, q, sign="+", point_type=[0]):
     from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import Matrix
     from sage.libs.gap.libgap import libgap
-    from itertools import combinations
 
     if m % 2 == 0:
         if sign != "+" and sign != "-":
@@ -520,14 +516,13 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
         deg = (q**n-e)*(q**(n-1)+e)   # k
         S=map(lambda x: libgap.Elements(libgap.Basis(x))[0], \
             libgap.Elements(libgap.Subspaces(W,1)))
-        V = filter(lambda x: len(x)==nvert, libgap.Orbits(g,S,libgap.OnLines))
-        assert len(V)==1
-        V = V[0]
+        (V,) = [x for x in libgap.Orbits(g, S, libgap.OnLines)
+                if len(x) == nvert]
         gp = libgap.Action(g,V,libgap.OnLines)  # make a permutation group
         h = libgap.Stabilizer(gp,1)
-        Vh = filter(lambda x: len(x)==deg, libgap.Orbits(h,libgap.Orbit(gp,1)))
-        assert len(Vh)==1
-        Vh = Vh[0][0]
+        (Vh,) = [x for x in libgap.Orbits(h, libgap.Orbit(gp, 1))
+                 if len(x) == deg]
+        Vh = Vh[0]
         L = libgap.Orbit(gp, [1, Vh], libgap.OnSets)
         G = Graph()
         G.add_edges(L)
@@ -637,7 +632,7 @@ def UnitaryPolarGraph(m, q, algorithm="gap"):
         def P(x, y):
             return sum(x[j] * y[m - 1 - j] ** q for j in range(m)) == 0
 
-        V = filter(lambda x: P(x,x), PG)
+        V = [x for x in PG if P(x,x)]
         G = Graph([V,lambda x,y:  # bottleneck is here, of course:
                      P(x,y)], loops=False)
     else:
@@ -877,7 +872,6 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     if k==0 or p==2:
        raise ValueError('q must be an odd prime power')
     from sage.schemes.projective.projective_space import ProjectiveSpace
-    from sage.modules.free_module_element import free_module_element as vector
     from sage.rings.finite_rings.integer_mod import mod
     from six.moves.builtins import sum
     Fq = FiniteField(q**2, 'a')
@@ -886,7 +880,7 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
     def S(x, y):
         return sum(x[j] * y[2 - j] ** q for j in range(3))
 
-    V = filter(lambda x: S(x,x)==0, PG) # the points of the unital
+    V = [x for x in PG if S(x,x) == 0] # the points of the unital
     v0 = V[0]
     V.remove(v0)
     if mod(q,4)==1:
@@ -895,11 +889,12 @@ def TaylorTwographDescendantSRG(q, clique_partition=None):
         G = Graph([V,lambda y,z:     (S(v0,y)*S(y,z)*S(z,v0)).is_square()], loops=False)
     G.name("Taylor two-graph descendant SRG")
     if clique_partition:
-        lines = map(lambda x: filter(lambda t: t[0]+x*t[1]==0, V),
-                     filter(lambda z: z != 0, Fq))
+        lines = [[t for t in V if t[0] + z * t[1] == 0]
+                 for z in Fq if z]
         return (G, lines, v0)
     else:
         return G
+
 
 def TaylorTwographSRG(q):
     r"""
@@ -1066,7 +1061,6 @@ def T2starGeneralizedQuadrangleGraph(q, dual=False, hyperoval=None, field=None, 
     """
     from sage.combinat.designs.incidence_structures import IncidenceStructure
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
-    from sage.modules.free_module_element import free_module_element as vector
 
     p, k = is_prime_power(q,get_data=True)
     if k==0 or p!=2:
@@ -1187,7 +1181,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
         raise ValueError('q must be a power of 2')
 
     if hyperoval_matching is None:
-        hyperoval_matching = [(2 * k + 1, 2 * k) for k in range(1 + q // 2)]
+        hyperoval_matching = [(2 * K + 1, 2 * K) for K in range(1 + q // 2)]
     if field is None:
         F = GF(q, 'a')
     else:
@@ -1204,8 +1198,8 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
     O = list(set(map(tuple,P)))
     I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
-    for i in range(len(P)):
-        I_ks[O.index(tuple(P[i]))].append(i)
+    for i, Pi in enumerate(P):
+        I_ks[O.index(tuple(Pi))].append(i)
 
     # perform the adjustment of the edges, as described.
     G.relabel()
@@ -1218,6 +1212,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     G.add_edges(e for c in cliques for e in combinations(c,2))
     G.name('Haemers('+str(q)+')')
     return G
+
 
 def CossidentePenttilaGraph(q):
     r"""
@@ -1409,7 +1404,6 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 
     """
     from sage.combinat.designs.block_design import ProjectiveGeometryDesign as PG
-    from sage.modules.free_module_element import free_module_element as vector
     from sage.matrix.constructor import matrix
 
     p, k = is_prime_power(q,get_data=True)

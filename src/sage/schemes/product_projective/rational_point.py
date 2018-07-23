@@ -113,8 +113,6 @@ def enum_product_projective_rational_field(X, B):
          (0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 1), (0 : 1 : 0 , 0 : 1),
          (0 : 1 : 0 , 1 : 1), (1 : -1/2 : 1 , 0 : 1), (1 : -1/2 : 1 , 1 : 1)]
     """
-    from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-
     if(is_Scheme(X)):
         if (not is_ProductProjectiveSpaces(X.ambient_space())):
             raise TypeError("ambient space must be product of projective space over the rational field")

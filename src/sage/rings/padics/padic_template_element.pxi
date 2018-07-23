@@ -852,7 +852,6 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     an Integer congruent to the given exponent
 
     """
-    ####### NOTE:  this function needs to be updated for extension elements. #######
     cdef Integer right, p = prime_pow.prime
     cdef long exp_val
     cdef bint isbase
@@ -860,11 +859,13 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
         _right = Integer(_right)
     if isinstance(_right, Integer):
         right = <Integer> _right
-        exp_val = mpz_get_si((<Integer>right.valuation(p)).value)
+        # Be careful: prime_pow.e is assumed to be the absolute index of ramification!
+        exp_val = mpz_get_si((<Integer>(right.valuation(p) * prime_pow.e)).value)
     elif isinstance(_right, Rational):
         raise NotImplementedError
     ansrelprec[0] = relprec + exp_val
-    if exp_val > 0 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:
+    # Over Z_2 or Q_2, the square of an odd number is congruent to 1 mod 8
+    if exp_val > 0 and prime_pow.deg == 1 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:
         ansrelprec[0] += 1
 
     return right

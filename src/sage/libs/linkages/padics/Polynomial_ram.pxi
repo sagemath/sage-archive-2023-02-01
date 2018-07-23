@@ -238,8 +238,8 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    cinvert(out, b, prec, prime_pow)
-    cmul(out, out, a, prec, prime_pow)
+    binv = prime_pow.invert(b, prec)
+    cmul(out, a, binv, prec, prime_pow)
 
 cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ prime_pow) except -1:
     r"""

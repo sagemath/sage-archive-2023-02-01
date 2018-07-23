@@ -687,6 +687,16 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: A.<x,y> = AffineSpace(ZZ, 2)
             sage: A.projective_embedding(2).codomain().affine_patch(2) == A
             True
+
+        TESTS:
+
+        Check that :trac:`25897` is fixed::
+
+            sage: A.<x,y> = AffineSpace(ZZ, 2)
+            sage: A.projective_embedding(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: argument i (=4) must be between 0 and 2, inclusive
         """
         n = self.dimension_relative()
         if i is None:

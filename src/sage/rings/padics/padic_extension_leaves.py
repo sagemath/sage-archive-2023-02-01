@@ -119,7 +119,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         EXAMPLES::
 
             sage: R.<a> = ZqCR(27,10000); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 10000 over 3-adic Ring
+            3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
 
             sage: R.<a> = ZqCR(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
@@ -177,7 +177,7 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         EXAMPLES::
 
             sage: R.<a> = Qq(27,10000); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 10000 over 3-adic Field
+            3-adic unramified extension Field in a defined by x^3 + 2*x + 1
 
             sage: R.<a> = Qq(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
@@ -262,7 +262,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         EXAMPLES::
 
             sage: R.<a> = ZqCA(27,10000); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 10000 over 3-adic Ring
+            3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
 
             sage: R.<a> = ZqCA(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
@@ -320,7 +320,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
         EXAMPLES::
 
             sage: R.<a> = ZqFM(27,10000); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 2*x + 1 of fixed modulus 3^10000 over 3-adic Ring
+            3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
 
             sage: R.<a> = ZqFM(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
@@ -382,7 +382,7 @@ class UnramifiedExtensionRingFloatingPoint(UnramifiedExtensionGeneric, pAdicFloa
         EXAMPLES::
 
             sage: R.<a> = ZqFP(27,10000); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 10000 over 3-adic Ring
+            3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
             sage: R.<a> = ZqFP(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
 
@@ -439,7 +439,7 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
         EXAMPLES::
 
             sage: R.<a> = QqFP(27,10000); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 10000 over 3-adic Field
+            3-adic unramified extension Field in a defined by x^3 + 2*x + 1
             sage: R.<a> = Qq(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
         """
@@ -509,7 +509,7 @@ class EisensteinExtensionRingCappedRelative(EisensteinExtensionGeneric, pAdicCap
 
             sage: R = Zp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
             sage: W.<w> = R.ext(f); W #indirect doctest
-            Eisenstein Extension in w defined by x^3 + 9*x - 3 with capped relative precision 30000 over 3-adic Ring
+            3-adic Eisenstein extension Ring in w defined by x^3 + 9*x - 3
             sage: W.precision_cap()
             30000
 
@@ -564,7 +564,7 @@ class EisensteinExtensionFieldCappedRelative(EisensteinExtensionGeneric, pAdicCa
 
             sage: R = Qp(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
             sage: W.<w> = R.ext(f); W #indirect doctest
-            Eisenstein Extension in w defined by x^3 + 9*x - 3 with capped relative precision 30000 over 3-adic Field
+            3-adic Eisenstein extension Field in w defined by x^3 + 9*x - 3
             sage: W.precision_cap()
             30000
 
@@ -620,7 +620,7 @@ class EisensteinExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pAdicCap
 
             sage: R = ZpCA(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
             sage: W.<w> = R.ext(f); W
-            Eisenstein Extension in w defined by x^3 + 9*x - 3 with capped absolute precision 30000 over 3-adic Ring
+            3-adic Eisenstein extension Ring in w defined by x^3 + 9*x - 3
             sage: W.precision_cap()
             30000
 
@@ -675,7 +675,7 @@ class EisensteinExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFixedModR
 
             sage: R = ZpFM(3, 10000, print_pos=False); S.<x> = ZZ[]; f = x^3 + 9*x - 3
             sage: W.<w> = R.ext(f); W #indirect doctest
-            Eisenstein Extension in w defined by x^3 + 9*x - 3 of fixed modulus w^30000 over 3-adic Ring
+            3-adic Eisenstein extension Ring in w defined by x^3 + 9*x - 3
             sage: W.precision_cap()
             30000
 

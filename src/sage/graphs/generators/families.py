@@ -2880,15 +2880,22 @@ def RingedTree(k, vertex_labels = True):
     return g
 
 def CaiFurerImmermanGraph(k):
-	from itertools import repeat as rep, chain, combinations
-	G = DiGraph()
-	G.add_vertices(enumerate(rep('a', k)))
-	G.add_vertices(enumerate(rep('b', k)))
-	powerset = list(chain.from_iterable(combinations(range(k), r) for r in range(k+1) if r % 2 == 0))
-	G.add_vertices(powerset)
-	G.add_edges(chain.from_iterable([(s,(i,'a')) for i in s] for s in powerset))
-	G.add_edges(chain.from_iterable([(s,(i,'b')) for i in range(k) if i not in s] for s in powerset))
-	return G
+    from itertools import repeat as rep, chain, combinations
+    from sage.graphs.graph import DiGraph
+    G = DiGraph()
+    V_a = list(enumerate(rep('a', k)))
+    V_b = list(enumerate(rep('b', k)))
+    G.add_vertices(V_a)
+    G.add_vertices(V_b)
+    powerset = list(chain.from_iterable(combinations(range(k), r) for r in range(k+1) if r % 2 == 0))
+    G.add_vertices(powerset)
+    G.add_edges(chain.from_iterable([(s,(i,'a')) for i in s] for s in powerset))
+    G.add_edges(chain.from_iterable([(s,(i,'b')) for i in range(k) if i not in s] for s in powerset))
+    partition = []
+    for i in range(k):
+        partition.append([V_a[i], V_b[i]])
+    partition.append(powerset)
+    return G, partition
 
 def MathonPseudocyclicMergingGraph(M, t):
     r"""

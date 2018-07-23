@@ -537,5 +537,5 @@ class SymmetricFunctionAlgebra_schur(classical.SymmetricFunctionAlgebra_classica
             return self._expand(condition, n, alphabet)
 
 # Backward compatibility for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.sf.schur', 'SymmetricFunctionAlgebraElement_schur',  SymmetricFunctionAlgebra_schur.Element)

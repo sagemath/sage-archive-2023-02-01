@@ -1089,7 +1089,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         if self.element == cache.objectptr.one:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
         elif self.element % 2 == 0:
-            return make_FiniteField_givaroElement(cache, self.element/2)
+            return make_FiniteField_givaroElement(cache, self.element // 2)
         elif cache.objectptr.characteristic() == 2:
             return make_FiniteField_givaroElement(cache, (cache.objectptr.cardinality() - 1 + self.element)/2)
         elif extend:
@@ -1746,7 +1746,7 @@ def unpickle_FiniteField_givaroElement(parent, int x):
     """
     return make_FiniteField_givaroElement(parent._cache, x)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.finite_field_givaro', 'unpickle_FiniteField_givaroElement', unpickle_FiniteField_givaroElement)
 
 cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(Cache_givaro cache, int x):

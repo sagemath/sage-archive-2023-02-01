@@ -83,7 +83,7 @@ overview can also be found in Section 4.6 of [Rüt2014]_.
 from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method
-from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation, DiscreteValuation
+from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation
 from sage.structure.factory import UniqueFactory
 
 
@@ -96,7 +96,7 @@ class LimitValuationFactory(UniqueFactory):
 
     - ``base_valuation`` -- a discrete (pseudo-)valuation on a polynomial ring
       which is a discrete valuation on the coefficient ring which can be
-      unqiuely augmented (possibly only in the limit) to a pseudo-valuation
+      uniquely augmented (possibly only in the limit) to a pseudo-valuation
       that sends ``G`` to infinity.
 
     - ``G`` -- a squarefree polynomial in the domain of ``base_valuation``.

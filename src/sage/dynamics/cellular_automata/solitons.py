@@ -385,7 +385,7 @@ class SolitonCellularAutomata(SageObject):
     # -------------------
 
     def evolve(self, carrier_capacity=None, carrier_index=None, number=None):
-        """
+        r"""
         Evolve ``self``.
 
         Time evolution `T_s` of a SCA state `p` is determined by
@@ -1160,7 +1160,7 @@ class SolitonCellularAutomata(SageObject):
             \end{tikzpicture}
         """
         from sage.graphs.graph_latex import setup_latex_preamble
-        from sage.misc.latex import latex, LatexExpr
+        from sage.misc.latex import LatexExpr
         setup_latex_preamble()
         u = self.state_evolution(num) # Also evolves as necessary
         final = self._states[num+1]

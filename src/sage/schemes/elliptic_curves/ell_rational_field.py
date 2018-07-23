@@ -3126,7 +3126,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__tamagawa_number[p]
 
     def tamagawa_exponent(self, p):
-        """
+        r"""
         The Tamagawa index of the elliptic curve at `p`.
 
         This is the index of the component group
@@ -3363,7 +3363,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__lseries
 
     def lseries_gross_zagier(self, A):
-        """
+        r"""
         Return the Gross-Zagier L-series attached to ``self``
         and an ideal class `A`.
 
@@ -4230,7 +4230,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return Integer(e.ellrootno(p))
 
     def has_cm(self):
-        """
+        r"""
         Return whether or not this curve has a CM `j`-invariant.
 
         OUTPUT:
@@ -4295,7 +4295,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError("%s does not have CM"%self)
 
     def has_rational_cm(self, field=None):
-        """
+        r"""
         Return whether or not this curve has CM defined over `\QQ`
         or the given field.
 
@@ -6474,7 +6474,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             log_ab = R(abs_bound.log())
             alpha = [(log_ab/R(log(p,e))).floor() for p in S]
             if all([alpha_i <= 1 for alpha_i in alpha]): # so alpha_i must be 0 to satisfy that denominator is a square
-                return set([x for x  in range(-abs_bound,abs_bound) if E.is_x_coord(x)])
+                int_abs_bound = abs_bound.floor()
+                return set([x for x  in range(-int_abs_bound, int_abs_bound) if E.is_x_coord(x)])
             else:
                 xs = []
                 alpha_max_even = [y-y%2 for y in alpha]

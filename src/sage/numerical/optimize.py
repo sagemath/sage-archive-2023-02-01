@@ -11,12 +11,12 @@ Functions and Methods
 ----------------------
 """
 from six.moves import range
-from six import iteritems
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
 from sage.misc.decorators import rename_keyword
+
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     """

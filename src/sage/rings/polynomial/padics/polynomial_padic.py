@@ -77,7 +77,7 @@ class Polynomial_padic(Polynomial):
         return s or "0"
 
     def content(self):
-        """
+        r"""
         Compute the content of this polynomial.
 
         OUTPUT:
@@ -139,7 +139,7 @@ class Polynomial_padic(Polynomial):
             return self.base_ring()(self.base_ring().prime_pow(min([x.valuation() for x in self.coefficients(sparse=False)])))
 
     def factor(self):
-        """
+        r"""
         Return the factorization of this polynomial.
 
         EXAMPLES::

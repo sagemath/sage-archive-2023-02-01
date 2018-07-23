@@ -918,8 +918,12 @@ class Set_object_enumerated(Set_object):
             False
             sage: Set(QQ) == Set(ZZ)
             False
+            sage: Set([1]) == set([1])
+            True
         """
         if not isinstance(other, Set_object_enumerated):
+            if isinstance(other, (set, frozenset)):
+                return self.set() == other
             return NotImplemented
         if self.set() == other.set():
             return rich_to_bool(op, 0)

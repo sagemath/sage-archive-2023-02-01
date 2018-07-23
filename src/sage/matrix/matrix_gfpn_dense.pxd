@@ -13,6 +13,8 @@ cdef class FieldConverter_class:
     cpdef object int_to_field(self, int x)
     cpdef int field_to_int(self, x)
 
+cdef FieldConverter_class FieldConverter(field)
+
 from sage.matrix.matrix_dense cimport Matrix_dense
 from sage.structure.element cimport Matrix
 from sage.libs.meataxe cimport *
@@ -20,7 +22,6 @@ from sage.libs.meataxe cimport *
 cdef class Matrix_gfpn_dense(Matrix_dense):
     cdef Matrix_t *Data
     cdef FieldConverter_class _converter
-    cdef Matrix_gfpn_dense _new(self, Py_ssize_t nrows, Py_ssize_t ncols)
     cdef set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value)
     cdef set_slice_unsafe(self, Py_ssize_t i, Matrix_gfpn_dense S)
     cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j)
@@ -28,3 +29,5 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
     cpdef list _rowlist_(self, i, j=*)
     cpdef Matrix_gfpn_dense _multiply_classical(Matrix_gfpn_dense self, Matrix_gfpn_dense right)
     cpdef Matrix_gfpn_dense _multiply_strassen(Matrix_gfpn_dense self, Matrix_gfpn_dense right, cutoff=*)
+
+cdef Matrix_gfpn_dense new_mtx(Matrix_t* mat, Matrix_gfpn_dense template)

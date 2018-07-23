@@ -1608,7 +1608,7 @@ def vertex_separation_BAB(G,
         sig_free(positions)
         binary_matrix_free(H)
         binary_matrix_free(bm_pool)
-        raise MemoryError("Unable to allocate data strutures.")
+        raise MemoryError("Unable to allocate data structures.")
 
     cdef list best_seq = list(range(n))
     for i in xrange(n):

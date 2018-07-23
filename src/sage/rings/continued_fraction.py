@@ -523,7 +523,7 @@ class ContinuedFraction_base(SageObject):
         s = str(v[0]) + '\n'
         for i in range(1, min(len(v) - 1, nterms)):
             s += '+ \\frac{\\displaystyle 1}{\\displaystyle %s\n' % v[i]
-        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \dots'
+        s += '+ \\frac{\\displaystyle 1}{\\displaystyle \\dots'
         s += '}' * (len(v) - 1)
         return s
 
@@ -2507,7 +2507,7 @@ def continued_fraction(x, value=None):
     except AttributeError:
         pass
 
-    from .real_mpfi import RealIntervalField, RealIntervalFieldElement
+    from .real_mpfi import RealIntervalField
     if is_real is False:
         # we can not rely on the answer of .is_real() for elements of the
         # symbolic ring. The thing below is a dirty temporary hack.
@@ -2519,7 +2519,7 @@ def continued_fraction(x, value=None):
             pass
 
     if is_real is False:
-        raise ValueError("the number %s does not seem to be a real number"%x)
+        raise ValueError("the number %s does not seem to be a real number" % x)
 
     if x.parent().is_exact():
         return ContinuedFraction_real(x)

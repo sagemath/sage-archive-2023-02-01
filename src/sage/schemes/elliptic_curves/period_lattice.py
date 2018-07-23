@@ -245,13 +245,13 @@ class PeriodLattice_ell(PeriodLattice):
             self._ei.sort()  # e1 < e2 < e3
             e1, e2, e3 = self._ei
         elif self.real_flag == -1: # negative discriminant
-            self._ei = self.f2.roots(QQbar,multiplicities=False)
-            self._ei = list(sorted(self._ei,key=lambda z: z.imag()))
+            self._ei = self.f2.roots(QQbar, multiplicities=False)
+            self._ei = sorted(self._ei, key=lambda z: z.imag())
             e1, e3, e2 = self._ei # so e3 is real
             e3 = AA(e3)
             self._ei = [e1, e2, e3]
         else:
-            self._ei = self.f2.roots(QQbar,multiplicities=False)
+            self._ei = self.f2.roots(QQbar, multiplicities=False)
             e1, e2, e3 = self._ei
 
         # The quantities sqrt(e_i-e_j) are cached (as elements of

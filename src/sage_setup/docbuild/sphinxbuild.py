@@ -272,7 +272,7 @@ def runsphinx():
     try:
         sys.stdout = SageSphinxLogger(sys.stdout, os.path.basename(output_dir))
         sys.stderr = SageSphinxLogger(sys.stderr, os.path.basename(output_dir))
-        sphinx.cmdline.main(sys.argv)
+        sphinx.cmdline.main(sys.argv[1:])
         sys.stderr.raise_errors()
         sys.stdout.raise_errors()
     finally:

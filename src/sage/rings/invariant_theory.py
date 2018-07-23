@@ -105,7 +105,6 @@ REFERENCES:
 #*****************************************************************************
 
 
-from sage.rings.all import QQ
 from sage.misc.functional import is_odd
 from sage.matrix.constructor import matrix
 from sage.structure.sage_object import SageObject
@@ -455,7 +454,7 @@ class AlgebraicForm(FormsBase):
 
 
     def _check_covariant(self, method_name, g=None, invariant=False):
-        """
+        r"""
         Test whether ``method_name`` actually returns a covariant.
 
         INPUT:
@@ -720,7 +719,7 @@ class AlgebraicForm(FormsBase):
 
     
     def transformed(self, g):
-        """
+        r"""
         Return the image under a linear transformation of the variables.
 
         INPUT:
@@ -752,16 +751,16 @@ class AlgebraicForm(FormsBase):
             sage: cubic.transformed(g).transformed(g.inverse()) == cubic
             True
         """
-        form = self.homogenized()
         if isinstance(g, dict):
             transform = g
         else:
             from sage.modules.all import vector
             v = vector(self._ring, self._variables)
-            g_v = g*v
+            g_v = g * v
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
         # The covariant of the transformed polynomial
-        return self.__class__(self._n, self._d, self.form().subs(transform), self.variables())
+        return self.__class__(self._n, self._d,
+                              self.form().subs(transform), self.variables())
 
 
 ######################################################################
@@ -888,7 +887,7 @@ class QuadraticForm(AlgebraicForm):
 
 
     def scaled_coeffs(self):
-        """
+        r"""
         The scaled coefficients of a quadratic form.
 
         Given
@@ -919,7 +918,7 @@ class QuadraticForm(AlgebraicForm):
 
     @cached_method
     def matrix(self):
-        """
+        r"""
         Return the quadratic form as a symmetric matrix
 
         OUTPUT:
@@ -1149,14 +1148,12 @@ class BinaryQuartic(AlgebraicForm):
             sage: quartic.monomials()
             (y^4, x*y^3, x^2*y^2, x^3*y, x^4)
         """
-        quartic = self._polynomial
         x0 = self._x
         x1 = self._y
         if self._homogeneous:
             return (x1**4, x1**3*x0, x1**2*x0**2, x1*x0**3, x0**4)
         else:
             return (self._ring.one(), x0, x0**2, x0**3, x0**4)
-
 
     @cached_method
     def coeffs(self):
@@ -1500,7 +1497,7 @@ class TernaryQuadratic(QuadraticForm):
 
     @cached_method
     def coeffs(self):
-        """
+        r"""
         Return the coefficients of a quadratic.
 
         Given
@@ -1528,7 +1525,7 @@ class TernaryQuadratic(QuadraticForm):
 
 
     def scaled_coeffs(self):
-        """
+        r"""
         Return the scaled coefficients of a quadratic.
 
         Given
@@ -1826,7 +1823,7 @@ class TernaryCubic(AlgebraicForm):
 
     @cached_method
     def polar_conic(self):
-        """
+        r"""
         Return the polar conic of the cubic.
 
         OUTPUT:
@@ -1909,7 +1906,7 @@ class TernaryCubic(AlgebraicForm):
 
 
     def Theta_covariant(self):
-        """
+        r"""
         Return the `\Theta` covariant.
 
         EXAMPLES::
@@ -1966,7 +1963,7 @@ class TernaryCubic(AlgebraicForm):
             [self.Theta_covariant(), 6])
 
     def syzygy(self, U, S, T, H, Theta, J):
-        """
+        r"""
         Return the syzygy of the cubic evaluated on the invariants
         and covariants.
 
@@ -2188,7 +2185,7 @@ class SeveralAlgebraicForms(FormsBase):
 
 
     def _check_covariant(self, method_name, g=None, invariant=False):
-        """
+        r"""
         Test whether ``method_name`` actually returns a covariant.
 
         INPUT:
@@ -2332,7 +2329,7 @@ class TwoTernaryQuadratics(TwoAlgebraicForms):
     """
 
     def Delta_invariant(self):
-        """
+        r"""
         Return the `\Delta` invariant.
 
         EXAMPLES::
@@ -2549,7 +2546,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
     """
 
     def Delta_invariant(self):
-        """
+        r"""
         Return the `\Delta` invariant.
 
         EXAMPLES::
@@ -2654,7 +2651,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
 
     def Phi_invariant(self):
-        """
+        r"""
         Return the `\Phi'` invariant.
 
         EXAMPLES::

@@ -69,7 +69,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic):
     """
 
     def quadratic_twist(self, D=None):
-        """
+        r"""
         Return the quadratic twist of this curve by ``D``.
 
         INPUT:

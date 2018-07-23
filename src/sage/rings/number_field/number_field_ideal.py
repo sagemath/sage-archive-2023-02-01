@@ -40,9 +40,6 @@ from six.moves import range
 
 SMALL_DISC = 1000000
 
-
-import sage.libs.all
-
 import sage.misc.latex as latex
 
 import sage.rings.rational_field as rational_field
@@ -52,8 +49,7 @@ import sage.misc.misc as misc
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
 
 
-
-from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
+from sage.rings.ideal import Ideal_generic
 from sage.misc.all import prod
 from sage.misc.mrange import xmrange_iter
 from sage.misc.cachefunc import cached_method
@@ -141,6 +137,34 @@ class NumberFieldIdeal(Ideal_generic):
         Ideal_generic.__init__(self, field, gens, coerce)
         if field.absolute_degree() == 2:
             self.quadratic_form = self._quadratic_form
+
+    def _magma_init_(self, magma):
+        """
+        Return Magma version of this ideal.
+
+        INPUT:
+
+
+        -  ``magma`` - a Magma interpreter
+
+
+        OUTPUT: MagmaElement corresponding to this ideal.
+
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
+            sage: I = K.ideal(5) # optional - magma
+            sage: I._magma_init_(magma)            # optional - magma
+            '(_sage_[...]![5, 0, 0]) * _sage_[...]'
+        """
+        O = magma(self.number_field().maximal_order())
+        g = self.gens()[0]
+        ans = magma(g) * O
+        for g in self.gens()[1:]:
+            ans += magma(g) * O
+        v = '+'.join(['%s * %s'%(g._magma_init_(magma),O.name()) for g in self.gens()])
+        return v
 
     def __hash__(self):
         """
@@ -687,7 +711,7 @@ class NumberFieldIdeal(Ideal_generic):
         not always) if self is principal then this function returns
         the unit ideal.
 
-        ALGORITHM: Calls pari's idealred function.
+        ALGORITHM: Calls :pari:`idealred` function.
 
         EXAMPLES::
 
@@ -1435,7 +1459,7 @@ class NumberFieldIdeal(Ideal_generic):
         return self.ramification_group(0)
 
     def random_element(self, *args, **kwds):
-        """
+        r"""
         Return a random element of this order.
 
         INPUT:
@@ -1941,7 +1965,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         return ZZ(self.pari_prime().pr_get_e())
 
     def reduce(self, f):
-        """
+        r"""
         Return the canonical reduction of the element of `f` modulo the ideal
         `I` (=self). This is an element of `R` (the ring of integers of the
         number field) that is equivalent modulo `I` to `f`.
@@ -2040,8 +2064,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         return sum([v[i]*Rbasis[i] for i in range(n)])
 
     def residues(self):
-        """
-        Returns a iterator through a complete list of residues modulo this integral ideal.
+        r"""
+        Return a iterator through a complete list of residues modulo this integral ideal.
 
         An error is raised if this fractional ideal is not integral.
 
@@ -2119,7 +2143,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
           `I`, i.e. a list of elements in the ring of integers `R` representing
           the elements of `(R/I)^*`.
 
-        ALGORITHM: Use pari's ``idealstar`` to find the group structure and
+        ALGORITHM: Use :pari:`idealstar` to find the group structure and
         generators of the multiplicative group modulo the ideal.
 
         EXAMPLES::
@@ -2216,11 +2240,9 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
 
         AUTHOR: Maite Aranes.
         """
-
         if self.norm() == 1:
             return xmrange_iter([[1]], lambda l: l[0])
 
-        k = self.number_field()
         G = self.idealstar(2)
 
         invs = G.invariants()
@@ -2642,8 +2664,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         # otherwise translate answer in terms of given gens
         G = self.idealstar(2)
         invs = G.invariants()
-        g = G.gens()
-        n = G.ngens()
 
         from sage.matrix.all import matrix, identity_matrix, zero_matrix, diagonal_matrix, block_matrix
 
@@ -3305,7 +3325,6 @@ def quotient_char_p(I, p):
     # Step 1. Write each basis vector for I (as a ZZ-module)
     # in terms of the basis for OK.
 
-    B_I = M_I.basis()
     M_OK_mat = M_OK.basis_matrix()
     M_OK_change = M_OK_mat**(-1)
     B_I_in_terms_of_M = M_I.basis_matrix() * M_OK_change

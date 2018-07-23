@@ -1250,7 +1250,7 @@ def szekeres_difference_set_pair(m, check=True):
     B = filter(lambda b: b+F.one() in sG, G)
     if check:
         from itertools import product, chain
-        assert(len(A)==len(B)==m)
+        assert(len(list(A)) == len(list(B)) == m)
         if m>1:
             assert(sG==set([xy[0]/xy[1] for xy in chain(product(A,A), product(B,B))]))
         assert(all(F.one()/b+F.one() in sG for b in B))

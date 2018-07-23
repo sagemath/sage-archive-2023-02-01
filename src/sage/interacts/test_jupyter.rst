@@ -121,8 +121,8 @@ Test all interacts from the Sage interact library::
       d: IntSlider(value=3, description=u'10^-d precision', max=16, min=1)
       maxn: IntSlider(value=10, description=u'max iterations', max=15)
     <script type="math/tex">\text{Precision }h = 10^{-d}=10^{-3}=0.00100</script>
-    <script type="math/tex">{c = }1.41440380977</script>
-    <script type="math/tex">{f(c) = }0.000538137094544</script>
+    <script type="math/tex">{c = }1.4144038097709382</script>
+    <script type="math/tex">{f(c) = }0.0005381370945443109</script>
     <script type="math/tex">6 \text{ iterations}</script>
 
     sage: test(interacts.calculus.newton_method)
@@ -136,7 +136,7 @@ Test all interacts from the Sage interact library::
       list_steps: Checkbox(value=False, description=u'List steps')
     <script type="math/tex">\text{Precision } 2h = 0.001</script>
     <script type="math/tex">{c = }1.4142141576301823</script>
-    <script type="math/tex">{f(c) = }1.6836416461 \times 10^{-06}</script>
+    <script type="math/tex">{f(c) = }1.6836416460996873 \times 10^{-06}</script>
     <script type="math/tex">6 \text{ iterations}</script>
 
     sage: test(interacts.calculus.trapezoid_integration)
@@ -210,7 +210,9 @@ Test all interacts from the Sage interact library::
       list_table: Checkbox(value=False, description=u'List table')
     <small>Adjust your data and click Update button. Click repeatedly for another random values.</small>
     Riemann sum: <script type="math/tex">\displaystyle\sum_{i=1}^{5} f(\eta_i)(x_i-x_{i-1})=...</script>
-    Exact value of the integral <script type="math/tex">\displaystyle\int_{0}^{2}x^{2} + 1\,\mathrm{d}x=4.66666666667</script>
+    Exact value of the integral <script
+    type="math/tex">\displaystyle\int_{0}^{2}x^{2} +
+    1\,\mathrm{d}x=4.666666666666668</script>
 
     sage: test(interacts.calculus.function_tool)
     Interactive function <function function_tool at ...> with 7 widgets

@@ -5,17 +5,17 @@ Graphs with a given degree sequence
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
-###########################################################################
+# ****************************************************************************
+#       Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#                          Emily A. Kirkman
+#                     2009 Michael C. Yurko <myurko@gmail.com>
 #
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
-#                              and Emily A. Kirkman
-#           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-###########################################################################
-
-# import from Sage library
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.graphs.graph import Graph
 from sage.misc.randstate import current_randstate
 
@@ -162,12 +162,8 @@ def DegreeSequenceConfigurationModel(deg_sequence, seed=None):
     ::
 
         sage: G = graphs.DegreeSequenceConfigurationModel([3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3])
-        sage: sorted(G.edges(labels=False))
-        [(0, 2), (0, 10), (0, 15), (1, 6), (1, 16), (1, 17), (2, 5), (2, 19),
-        (3, 7), (3, 14), (3, 14), (4, 9), (4, 13), (4, 19), (5, 6),
-        (5, 15), (6, 11), (7, 11), (7, 17), (8, 11), (8, 18), (8, 19),
-        (9, 12), (9, 13), (10, 15), (10, 18), (12, 13), (12, 16), (14, 17),
-        (16, 18)]
+        sage: len(G.edges())
+        30
         sage: G.show()  # long time
 
     REFERENCE:

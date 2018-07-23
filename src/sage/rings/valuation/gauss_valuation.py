@@ -49,7 +49,6 @@ from __future__ import absolute_import
 from .inductive_valuation import NonFinalInductiveValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.factory import UniqueFactory
 
 
@@ -232,7 +231,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         return self.domain()(self._base_valuation.uniformizer())
 
     def valuations(self, f, coefficients=None, call_error=False):
-        """
+        r"""
         Return the valuations of the `f_i\phi^i` in the expansion `f=\sum f_i\phi^i`.
 
         INPUT:
@@ -260,7 +259,6 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             sage: f = x^2 + 2*x + 16
             sage: list(v.valuations(f))
             [4, 1, 0]
-
         """
         f = self.domain().coerce(f)
 
@@ -718,7 +716,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             6
 
         For performance reasons, only the constant coefficient is considered.
-        (In common appplications, the constant coefficient shows the most
+        (In common applications, the constant coefficient shows the most
         critical coefficient growth)::
 
             sage: v._relative_size(1024*x + 1)
@@ -799,7 +797,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import infinity, QQ
+        from sage.rings.all import infinity
         coefficients = f.coefficients(sparse=True)
         coefficients.reverse()
         ret = infinity

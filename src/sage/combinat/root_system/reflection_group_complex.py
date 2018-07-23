@@ -890,19 +890,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         return self.is_real() and all(t.to_matrix().base_ring() is QQ for t in self.simple_reflections())
 
-    def _element_class(self):
-        r"""
-        A temporary workaround for compatibility with Sage's
-        permutation groups.
-
-        TESTS::
-
-            sage: W = ReflectionGroup(23)                               # optional - gap3
-            sage: W._element_class() is W.element_class                 # optional - gap3
-            True
-        """
-        return self.element_class
-
     def number_of_irreducible_components(self):
         r"""
         Return the number of irreducible components of ``self``.
@@ -1122,7 +1109,8 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
                 h = self.coxeter_number()
                 return tuple([h-d for d in self.degrees()])
             else:
-                return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(), reverse=True))
+                return tuple(sorted(self._gap_group.ReflectionCoDegrees().sage(),
+                                    reverse=True))
         else:
             return sum([comp.codegrees() for comp in self.irreducible_components()],tuple())
 
@@ -1404,8 +1392,12 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             sage: W.braid_relations()                                   # optional - gap3
             [[[2, 1, 2], [1, 2, 1]], [[3, 1], [1, 3]], [[3, 2, 3], [2, 3, 2]]]
         """
-        return self._gap_group.BraidRelations().sage()
+        if self.is_real():
+            return super(ComplexReflectionGroup,self).braid_relations()
+        else:
+            return self._gap_group.BraidRelations().sage()
 
+    @cached_method
     def fundamental_invariants(self):
         r"""
         Return the fundamental invariants of ``self``.
@@ -1439,6 +1431,82 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         # sage_eval is used since eval kills the rational entries!
         I = [sage_eval(p, locals={'x': x}) for p in I]
         return tuple(sorted(I, key=lambda f: f.degree()))
+
+    @cached_method
+    def jacobian_of_fundamental_invariants(self, invs=None):
+        r"""
+        Return the matrix `[ \partial_{x_i} F_j ]`, where ``invs`` are
+        are any polynomials `F_1,\ldots,F_n` in `x_1,\ldots,x_n`.
+
+        INPUT:
+
+        - ``invs`` -- (default: the fundamental invariants) the polynomials
+          `F_1, \ldots, F_n`
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.fundamental_invariants()                 # optional - gap3
+            (-2*x0^2 + 2*x0*x1 - 2*x1^2, 6*x0^2*x1 - 6*x0*x1^2)
+
+            sage: W.jacobian_of_fundamental_invariants()     # optional - gap3
+            [     -4*x0 + 2*x1       2*x0 - 4*x1]
+            [12*x0*x1 - 6*x1^2 6*x0^2 - 12*x0*x1]
+        """
+        if invs is None:
+            invs = self.fundamental_invariants()
+        P = invs[0].parent()
+        X = P.gens()
+        return Matrix(P, [[ P(g).derivative(x) for x in X ] for g in invs ])
+
+    @cached_method
+    def primitive_vector_field(self, invs=None):
+        r"""
+        Return the primitive vector field of ``self`` is irreducible and
+        well-generated.
+
+        The primitive vector field is given as the coefficients (being rational
+        functions) in the basis `\partial_{x_1}, \ldots, \partial_{x_n}`.
+
+        This is the partial derivation along the unique invariant of
+        degree given by the Coxeter number. It can be computed as the
+        row of the inverse of the Jacobian given by the highest degree.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: W.primitive_vector_field()                 # optional - gap3
+            (3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2), 1/(6*x0^2 - 6*x0*x1 - 12*x1^2))
+        """
+        if not self.is_irreducible():
+            raise ValueError("only possible for irreducible complex reflection groups")
+        if not self.is_well_generated():
+            raise ValueError("only possible for well-generated complex reflection groups")
+        h = self.coxeter_number()
+        if invs is None:
+            invs = self.fundamental_invariants()
+        degs = [ f.degree() for f in invs ]
+        J = self.jacobian_of_fundamental_invariants(invs)
+        return J.inverse().row(degs.index(h))
+
+    def apply_vector_field(self, f, vf=None):
+        r"""
+        Returns a rational function obtained by applying the vector
+        field ``vf`` to the rational function ``f``.
+
+        If ``vf`` is not given, the primitive vector field is used.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(['A',2])               # optional - gap3
+            sage: for x in W.primitive_vector_field()[0].parent().gens():  # optional - gap3
+            ....:     print(W.apply_vector_field(x))
+            3*x1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
+            1/(6*x0^2 - 6*x0*x1 - 12*x1^2)
+        """
+        if vf is None:
+            vf = self.primitive_vector_field()
+        return sum( vf[i]*f.derivative(gen) for i,gen in enumerate(f.parent().gens()) )
 
     def cartan_matrix(self):
         r"""
@@ -1639,8 +1707,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             [1 0]
             [0 1]
         """
-        from sage.misc.cachefunc import cached_function
-
         base_change = self.base_change_matrix()
         Delta = tuple(self.independent_roots())
         basis_is_Delta = base_change.is_one()
@@ -1779,6 +1845,88 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
             self._reflection_representation = refl_repr
         else:
             raise ValueError("the reflection representation must be defined for the complete index set")
+
+    def fake_degrees(self):
+        r"""
+        Return the list of the fake degrees associated to ``self``.
+
+        The fake degrees are `q`-versions of the degree of the character.
+        In particular, they sum to Hilbert series of the coinvariant
+        algebra of ``self``.
+
+        ..NOTE::
+
+            The ordering follows the one in Chevie and is not compatible with
+            the current implementation of :meth:`irredubile_characters()`.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(12)                              # optional - gap3
+            sage: W.fake_degrees()                                     # optional - gap3
+            [1, q^12, q^11 + q, q^8 + q^4, q^7 + q^5, q^6 + q^4 + q^2,
+             q^10 + q^8 + q^6, q^9 + q^7 + q^5 + q^3]
+
+            sage: W = ReflectionGroup(["H",4])                         # optional - gap3
+            sage: W.cardinality()                                      # optional - gap3
+            14400
+            sage: sum(fdeg.subs(q=1)**2 for fdeg in W.fake_degrees())  # optional - gap3
+            14400
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        R = PolynomialRing(ZZ, 'q')
+        fake_deg_list = []
+        gap_fak_deg = gap3.FakeDegrees(self._gap_group, 'X(Rationals)')
+
+        for fake_poly in gap_fak_deg:
+            fake_coef = fake_poly.coefficients.sage()
+            coeffs = [ZZ.zero()] * (fake_poly.Degree().sage()-len(fake_coef)+1)
+            coeffs.extend(fake_coef)
+            fake_deg_list.append(R(coeffs))
+
+        return fake_deg_list
+
+    def coxeter_number(self, chi=None):
+        r"""
+        Return the Coxeter number associated to the irreducible character
+        chi of the reflection group ``self``.
+
+        The *Coxeter number* of a complex reflection group `W` is the trace
+        in a character `\chi` of `\sum_t (Id - t)`, where `t` runs over all
+        reflections. The result is always an integer.
+
+        When `\chi` is the reflection representation, the Coxeter number
+        is equal to `\frac{N + N^*}{n}` where `N` is the number of
+        reflections, `N^*` is the number of reflection hyperplanes, and
+        `n` is the rank of `W`. If `W` is further well-generated, the
+        Coxeter number is equal to the highest degree d_n and to the
+        order of a Coxeter element `c` of `W`.
+
+        EXAMPLES::
+
+            sage: W = ReflectionGroup(["H",4])               # optional - gap3
+            sage: W.coxeter_number()                         # optional - gap3
+            30
+            sage: all([W.coxeter_number(chi).is_integer()    # optional - gap3
+            ....:     for chi in W.irreducible_characters()])
+            True
+            sage: W = ReflectionGroup(14)                    # optional - gap3
+            sage: W.coxeter_number()                         # optional - gap3
+            24
+        """
+        if chi is None:
+            return super(ComplexReflectionGroup, self).coxeter_number()
+
+        G = self.gens()
+        cox_chi = 0
+        gap_hyp_rec = self._gap_group.HyperplaneOrbits()
+        # We access gap3:
+        # rec is a record of a hyperplane orbit;
+        # rec.s is the first generator in that orbit and rec.e_s its order;
+        # rec.N_s is the size of the orbit
+        for rec in gap_hyp_rec:
+            for k in range(1, int(rec.e_s)):
+                cox_chi += chi( G[int(rec.s)-1]**k ) * rec.N_s.sage()
+        return self.number_of_reflections() - cox_chi // chi.degree()
 
     class Element(ComplexReflectionGroupElement):
         #@cached_in_parent_method
@@ -2121,4 +2269,3 @@ def power(f, k):
             return power(f,2**b.index(1)/2)**2
     else:
         return prod(power(f,2**i) for i,a in enumerate(b) if a)
-

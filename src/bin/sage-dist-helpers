@@ -92,7 +92,7 @@ _sdh_cols() {
 }
 
 
-# Utility function to print a terminal-width horizonal rule using the given
+# Utility function to print a terminal-width horizontal rule using the given
 # character (or '-' by default)
 _sdh_hr() {
     local char="${1:--}"
@@ -212,7 +212,7 @@ sdh_install() {
     # Prefix SAGE_DESTDIR to the destination for DESTDIR installs
     dest="${SAGE_DESTDIR}$dest"
 
-    if [ -e "$dest" -a ! -d "$dest" ]; then
+    if [ $T -eq 0 -a -e "$dest" -a ! -d "$dest" ]; then
         sdh_die "Error: destination $dest for sdh_install exists and is not a directory"
     fi
 

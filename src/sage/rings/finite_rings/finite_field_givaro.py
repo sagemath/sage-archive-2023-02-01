@@ -20,12 +20,11 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.finite_rings.finite_field_base import FiniteField, is_FiniteField
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.element_givaro import Cache_givaro
-from sage.rings.integer_ring import ZZ
-from sage.databases.conway import ConwayPolynomials
 from sage.libs.pari.all import pari
+
 
 class FiniteField_givaro(FiniteField):
     """

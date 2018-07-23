@@ -272,7 +272,8 @@ class DocTestSource(object):
             tab_okay = isinstance(self,TexSource)
         self._init()
         self.line_shift = 0
-        self.parser = SageDocTestParser(self.options.long, self.options.optional)
+        self.parser = SageDocTestParser(self.options.optional,
+                                        self.options.long)
         self.linking = False
         doctests = []
         in_docstring = False
@@ -1509,7 +1510,7 @@ class RestSource(SourceLanguage):
             sage: from sage.doctest.util import NestedName
             sage: filename = "sage_doc.rst"
             sage: FDS = FileDocTestSource(filename,DocTestDefaults())
-            sage: FDS.parser = SageDocTestParser(False, set(['sage']))
+            sage: FDS.parser = SageDocTestParser(set(['sage']))
             sage: FDS.qualified_name = NestedName('sage_doc')
             sage: s = "Some text::\n\n    def example_python_function(a, \
             ....:      b):\n        '''\n        Brief description \

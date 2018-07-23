@@ -52,6 +52,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: B #indirect doctest
             Eisenstein Extension in t defined by x^2 + 7 with capped relative precision 20 over 7-adic Ring
         """
+        # Move to padic_extension_generic
         if do_latex:
             return "Eisenstein Extension in %s defined by %s over %s"%(self.latex_name(), latex(self.defining_polynomial(exact=True)), latex(self.ground_ring()))
         else:

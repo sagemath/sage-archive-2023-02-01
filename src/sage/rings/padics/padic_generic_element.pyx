@@ -2959,6 +2959,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # We will need 1/a at higher precision
             ainv = ~(a.add_bigoh(2*e+1))
 
+            # If x^2 is not correct modulo pi^2, there is no solution
+            if (ainv - x**2).valuation() < 2:
+                return None
+
             # We lift modulo 2
             k = ring.residue_field()
             while curprec < e:   # curprec is the number of correct digits of x
@@ -2967,24 +2971,29 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 # (which is theoretically a bit faster)
                 b = (ainv - x**2) >> (2*curprec)
                 if b == 0: break
+                E = list(b.expansion())
                 for i in range(e - curprec):
+                    print i, E[i]
                     if i % 2 == 0:
                         try:
-                            cbar = k(b.expansion(i)).sqrt(extend=False)
+                            cbar = k(E[i]).sqrt(extend=False)
                         except ValueError:
                             return None
                         c = ring(cbar).lift_to_precision()
                         x += c << (curprec + i//2)
                     else:
-                        if b.expansion(i) != 0:
+                        if k(E[i]) != 0:
                             return None
                 curprec = (curprec + e + 1) // 2
 
             # We lift one step further
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             S = PolynomialRing(k, name='x')
-            b = (ainv - x**2) >> (2*e)
-            AS = S([ b.residue(), xbar*k(ring(2,e+1).expansion(e)), 1 ])
+            b = ainv - x**2
+            if b.valuation() < 2*e:
+                return None
+            b >>= (2*e)
+            AS = S([ b.residue(), xbar*k(ring(2).expansion(e)), 1 ])
             roots = AS.roots()
             if len(roots) == 0:
                 return None

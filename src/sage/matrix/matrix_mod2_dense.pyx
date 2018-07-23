@@ -162,13 +162,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         Large matrices fail gracefully::
 
-            sage: import resource
-            sage: if resource.RLIMIT_AS == getattr(resource, 'RLIMIT_RSS', None):
-            ....:     # Skip this test if RLIMIT_AS is not properly
-            ....:     # supported like on OS X, see Trac #24190
-            ....:     raise RuntimeError("matrix allocation failed")
-            ....: else:  # Real test
-            ....:     MatrixSpace(GF(2), 2^30)(1)
+            sage: MatrixSpace(GF(2), 2^30)(1)  # high mem
             Traceback (most recent call last):
             ...
             RuntimeError: matrix allocation failed

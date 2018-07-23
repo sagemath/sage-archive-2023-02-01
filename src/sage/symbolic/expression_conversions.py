@@ -879,7 +879,7 @@ class FriCASConverter(InterfaceInit):
         EXAMPLES::
 
             sage: var('x,y,z')
-            (x, y)
+            (x, y, z)
             sage: f = function("F")
             sage: f(x)._fricas_()                                               # optional - fricas
             F(x)

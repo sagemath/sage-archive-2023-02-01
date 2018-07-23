@@ -1170,11 +1170,23 @@ class FriCASElement(ExpectElement):
             sage: dilog(1.0)
             1.64493406684823
 
+
+        Check that :trac:`25838` is fixed::
+
+            sage: F = function('f'); f = SR.var('f')
+            sage: FF = fricas(F(f)); FF                                         # optional - fricas
+            f(f)
+            sage: FF.D(f).sage()                                                # optional - fricas
+            diff(f(f), f)
+            sage: bool(FF.D(f).integrate(f).sage() == F(f))                     # optional - fricas
+            True
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol
         from sage.symbolic.all import I
         from sage.functions.log import dilog
+        from sage.calculus.functional import diff
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
         register_symbol(lambda f,x: diff(f, x), {'fricas':'D'})

@@ -300,13 +300,16 @@ from sage.combinat.subset import Subsets
 
 class ElementWithLabel:
     """
-    Auxiliary class for showing Posets with non-ijective relabeling. 
-    For hashing and equality testing the resulting object behaves like a tuple `(element, label)`.
-    For any presentation purposes it appears just as `label` would.
+    Auxiliary class for showing/viewing :class:`Poset`s with
+    non-injective labelings.
+    For hashing and equality testing the resulting object behaves
+    like a tuple ``(element, label)``.
+    For any presentation purposes it appears just as ``label`` would.
     """
     def __init__(self, element, label):
         """
-        Construct an object from `element` that presents itself as `label`.
+        Construct an object that wraps ``element`` but presents itself
+        as ``label``.
 
         TESTS::
 
@@ -318,10 +321,11 @@ class ElementWithLabel:
         """
         self.element = element
         self.label = label
-        
+
     def _latex_(self):
         """
-        Returns the latex representation of `self` which is just the latex representation of the label.
+        Return the latex representation of ``self``,
+        which is just the latex representation of the label.
 
         TESTS::
 
@@ -335,7 +339,8 @@ class ElementWithLabel:
 
     def __str__(self):
         """
-        Returns the representation of `self` which is just the representation of the label.
+        Return the string representation of ``self``, which is just
+        the string representation of the label.
 
         TESTS::
 
@@ -349,7 +354,8 @@ class ElementWithLabel:
 
     def __repr__(self):
         """
-        Returns the representation of `self` which is just the representation of the label.
+        Return the representation of ``self``, which is just
+        the representation of the label.
 
         TESTS::
 
@@ -363,7 +369,8 @@ class ElementWithLabel:
 
     def __hash__(self):
         """
-        Returns the hash of labeled element which is constructed from hashes of both constituents.
+        Return the hash of the labeled element ``self``,
+        which is constructed from hashes of both constituents.
 
         TESTS::
 
@@ -374,14 +381,22 @@ class ElementWithLabel:
             sage: d[b] = 'element 2'
             sage: d
             {'a': 'element 1', 'b': 'element 2'}
+            sage: a = sage.combinat.posets.posets.ElementWithLabel("a", [2,3])
+            sage: hash(a)
+            1853891946828512984
         """
-        return hash((hash(self.element), hash(self.label)))
+        try:
+            return hash((hash(self.element), hash(self.label)))
+        except TypeError:
+            return hash((repr(self.element), repr(self.label)))
 
     def __eq__(self, other):
         """
-        Two labeled elements are equal if and only if both of their constituents are equal.
+        Two labeled elements are equal if and only if both of their
+        constituents are equal.
 
         TESTS::
+
             sage: from sage.combinat.posets.posets import ElementWithLabel
             sage: a = ElementWithLabel(1, 'a')
             sage: b = ElementWithLabel(1, 'b')
@@ -395,9 +410,11 @@ class ElementWithLabel:
 
     def __ne__(self, other):
         """
-        Two labeled elements are not equal if and only if first or second constituents are not equal.
+        Two labeled elements are not equal if and only if first or second
+        constituents are not equal.
 
         TESTS::
+
             sage: from sage.combinat.posets.posets import ElementWithLabel
             sage: a = ElementWithLabel(1, 'a')
             sage: b = ElementWithLabel(1, 'b')

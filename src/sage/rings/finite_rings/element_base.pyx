@@ -799,26 +799,33 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
     def conjugate(self):
         """
-        This methods returns the result of the Frobenius morphism in the case where the field is a quadratic extension, say `GF(q^2)` 
-        where `q=p^k` is a prime power and p the characteristic of the field.
+        This methods returns the result of the Frobenius morphism
+        in the case where the field is a quadratic extension, say
+        `GF(q^2)`, where `q=p^k` is a prime power and `p` the
+        characteristic of the field.
 
-        OUTPUT: instance of this class representing the image under the Frobenius morhisms
+        OUTPUT:
+
+        Instance of this class representing the image under
+        the Frobenius morhisms.
 
         EXAMPLES::
 
-            sage: F.<a> = GF(16,'a')
-            sage: b=a.conjugate(); b
+            sage: F.<a> = GF(16)
+            sage: b = a.conjugate(); b
             a + 1
             sage: a == b.conjugate()
             True
 
-            sage: F.<a> = GF(27,'a')
+            sage: F.<a> = GF(27)
             sage: a.conjugate()
             Traceback (most recent call last):
             ...
-            TypeError: cardinality of the field must be a square number!
+            TypeError: cardinality of the field must be a square number
 
-        TESTS: # check that :trac:`26761` is fixed
+        TESTS:
+
+        Check that :trac:`26761` is fixed::
 
             sage: G32 = GU(3,2)
             sage: g1, g2 = G32.gens()
@@ -828,9 +835,10 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: G32(m1) == g1
             True
         """
-        [(p, k2)] = list(self.parent().cardinality().factor()) 
+        [(p, k2)] = list(self.parent().cardinality().factor())
         if k2 % 2 != 0:
-            raise TypeError("cardinality of the field must be a square number!")
-        k = k2/2
+            raise TypeError("cardinality of the field must be a square number")
+        k = k2 / 2
 
         return self.pth_power(k=k)
+

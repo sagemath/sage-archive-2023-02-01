@@ -12937,9 +12937,11 @@ cdef class Matrix(Matrix1):
 
     def conjugate_transpose(self):
         r"""
-        Returns the transpose of ``self`` after each entry has been converted to its complex conjugate.
+        Return the transpose of ``self`` after each entry has been
+        converted to its complex conjugate.
 
         .. NOTE::
+
             This function is sometimes known as the "adjoint" of a matrix,
             though there is substantial variation and some confusion with
             the use of that term.
@@ -12998,7 +13000,8 @@ cdef class Matrix(Matrix1):
             [             zeta5^3]
             [-zeta5^3 - zeta5 - 1]
 
-        Furthermore, this method can be applied to matrices over quadratic extensions of finite fields::
+        Furthermore, this method can be applied to matrices over
+        quadratic extensions of finite fields::
 
             sage: F.<a> = GF(9,'a')
             sage: N = matrix(F, 2, [0,a,-a,1]); N
@@ -13008,7 +13011,8 @@ cdef class Matrix(Matrix1):
             [      0   a + 2]
             [2*a + 1       1]
 
-        Conjugation does not make sense over rings not containing complex numbers or finite fields which are not a qadratic extension. ::
+        Conjugation does not make sense over rings not containing complex
+        numbers or finite fields which are not a qadratic extension::
 
             sage: N = matrix(GF(5), 2, [0,1,2,3])
             sage: N.conjugate_transpose()

@@ -125,7 +125,7 @@ def enum_product_projective_rational_field(X, B):
 
     R = X.codomain().ambient_space()
     m = R.num_components()
-    iters = [ iter(enum_projective_rational_field(R[i], B)) for i in range(m) ]
+    iters = [ R[i].points_of_bounded_height(bound=B) for i in range(m) ]
     dim = [R[i].dimension() + 1 for i in range(m)]
     
     dim_prefix = [0,dim[0]] # prefixes dim list
@@ -156,7 +156,7 @@ def enum_product_projective_rational_field(X, B):
                 pass
             i = 0
         except StopIteration:
-            iters[i] = iter(enum_projective_rational_field(R[i], B))
+            iters[i] = R[i].points_of_bounded_height(bound=B)
             pt = next(iters[i]) # reset
             for j in range(dim[i]):
                 P[dim_prefix[i] + j] = pt[j]

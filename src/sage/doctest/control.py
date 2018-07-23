@@ -82,6 +82,7 @@ class DocTestDefaults(SageObject):
         self.nthreads = 1
         self.serial = False
         self.timeout = -1
+        self.memlimit = 0
         self.all = False
         self.logfile = None
         self.sagenb = False
@@ -1001,7 +1002,7 @@ class DocTestController(SageObject):
         for o in ("all", "sagenb", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o
-        for o in ("timeout", "randorder", "stats_path"):
+        for o in ("timeout", "memlimit", "randorder", "stats_path"):
             if o in opt:
                 cmd += "--%s=%s "%(o, opt[o])
         if "optional" in opt:

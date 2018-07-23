@@ -39,7 +39,7 @@ from functools import reduce
 from .external import available_software
 
 float_regex = re.compile('\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(py2|py3|long time|high mem|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -267,6 +267,7 @@ def parse_optional_tags(string):
     set that occur in a comment on the first line of the input string.
 
     - 'long time'
+    - 'high mem'
     - 'not implemented'
     - 'not tested'
     - 'known bug'
@@ -611,12 +612,15 @@ class SageDocTestParser(doctest.DocTestParser):
     A version of the standard doctest parser which handles Sage's
     custom options and tolerances in floating point arithmetic.
     """
-    def __init__(self, optional_tags=(), long=False):
+    def __init__(self, optional_tags=(), long=False, highmem=False):
         r"""
         INPUT:
 
         - ``optional_tags`` -- a list or tuple of strings.
-        - ``long`` -- boolean, whether to run doctests marked as taking a long time.
+        - ``long`` -- boolean, whether to run doctests marked as taking a
+          long time.
+        - ``highmem`` -- boolean, whether to run doctests marked as using a
+          lot of memory.
 
         EXAMPLES::
 
@@ -634,6 +638,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: TestSuite(DTP).run()
         """
         self.long = long
+        self.highmem = highmem
         self.optionals = collections.defaultdict(int) # record skipped optional tests
         if optional_tags is True: # run all optional tests
             self.optional_tags = True
@@ -785,6 +790,12 @@ class SageDocTestParser(doctest.DocTestParser):
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')
+                        else:
+                            continue
+
+                    if 'high mem' in optional_tags:
+                        if self.highmem:
+                            optional_tags.remove('high mem')
                         else:
                             continue
 

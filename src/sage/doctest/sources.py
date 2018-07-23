@@ -273,7 +273,8 @@ class DocTestSource(object):
         self._init()
         self.line_shift = 0
         self.parser = SageDocTestParser(self.options.optional,
-                                        self.options.long)
+                                        self.options.long,
+                                        self.options.memlimit > 0)
         self.linking = False
         doctests = []
         in_docstring = False

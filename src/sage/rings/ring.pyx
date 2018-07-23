@@ -104,6 +104,7 @@ cdef class Ring(ParentWithGens):
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
+        running ._test_divides() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -912,7 +913,7 @@ cdef class Ring(ParentWithGens):
         """
         if self.is_zero():
             return True
-        raise NotImplementedError
+        return super(Ring, self).is_finite()
 
     def cardinality(self):
         """

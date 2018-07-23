@@ -130,18 +130,9 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         sage: matrix(CBF, 1, 3, [1, 2, -3])
         [ 1.000000000000000  2.000000000000000 -3.000000000000000]
     """
-    def __cinit__(self,
-                  parent,
-                  entries,
-                  coerce,
-                  copy):
+    def __cinit__(self):
         """
         Create and allocate memory for the matrix.
-
-        INPUT:
-
-        -  ``parent, entries, coerce, copy`` - as for
-           ``__init__``.
 
         EXAMPLES::
 
@@ -151,10 +142,6 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
             sage: type(a)
             <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         """
-        self._parent = parent
-        self._base_ring = parent.base_ring()
-        self._nrows = parent.nrows()
-        self._ncols = parent.ncols()
         sig_str("Arb exception")
         acb_mat_init(self.value, self._nrows, self._ncols)
         sig_off()
@@ -635,8 +622,8 @@ cdef class Matrix_complex_ball_dense(Matrix_dense):
         TESTS::
 
             sage: mat.charpoly(algorithm="hessenberg")
-            x^5 + ([-1.8 +/- 0.0445])*x^4 + ([0.3 +/- 0.0833])*x^3
-            + ([+/- 0.0164])*x^2 + ([+/- 6.01e-4])*x + [+/- 6.97e-6]
+            x^5 + ([-1.8 +/- 0.0445])*x^4 + ([0.3 +/- 0.0828])*x^3
+            + ([+/- 0.0163])*x^2 + ([+/- 5.95e-4])*x + [+/- 6.83e-6]
             sage: mat.charpoly('y')
             y^5 + ([-1.8 +/- 0.0258])*y^4 + ([0.3 +/- 0.0567])*y^3 +
             ([+/- 0.0212])*y^2 + ([+/- 0.0266])*y + [+/- 0.0285]

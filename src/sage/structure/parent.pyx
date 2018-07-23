@@ -1175,22 +1175,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         """
         return True
 
-    cpdef int _cmp_(left, right) except -2:
-        """
-        Check for Python class defining ``__cmp__``
-        """
-        try:
-            return left.__cmp__(right)
-        except AttributeError:
-            pass
-        # Default: compare by id
-        if left is right:
-            return 0
-        if (<PyObject*>left) < (<PyObject*>right):
-            return -1
-        else:
-            return 1
-
     # Should be moved and merged into the EnumeratedSets() category (#12955)
     def __getitem__(self, n):
         """
@@ -1921,7 +1905,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
 
         TESTS:
 
-        We check that `trac`:23184 has been resolved::
+        We check that :trac:`23184` has been resolved::
 
             sage: QQ[['x']].coerce_map_from(QQ).category_for()
             Category of euclidean domains

@@ -278,7 +278,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [self._element_class()(g, self, check=False)
+        self._gens = [self.element_class(g, self, check=False)
                       for g in gens]
 
     def _gap_init_(self, gap=None):
@@ -591,9 +591,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: A = S3.algebra(QQ); A
             Symmetric group algebra of order 3 over Rational Field
             sage: a = S3.an_element(); a
-            (1,2,3)
+            (2,3)
             sage: A(a)
-            (1,2,3)
+            (2,3)
 
         We illustrate the choice of the category::
 
@@ -613,9 +613,9 @@ class SymmetricGroup(PermutationGroup_symalt):
             sage: S.algebra(QQ)
             Algebra of Symmetric group of order 3! as a permutation group over Rational Field
             sage: a = S.an_element(); a
-            (2,3,5)
+            (3,5)
             sage: S.algebra(QQ)(a)
-            (2,3,5)
+            (3,5)
         """
         from sage.combinat.symmetric_group_algebra import SymmetricGroupAlgebra
         domain = self.domain()
@@ -624,16 +624,7 @@ class SymmetricGroup(PermutationGroup_symalt):
         else:
             return super(SymmetricGroup, self).algebra(base_ring)
 
-    def _element_class(self):
-        r"""
-        Return the class to be used for creating elements of this group.
-
-        EXAMPLES::
-
-            sage: SymmetricGroup(17)._element_class()
-            <type 'sage.groups.perm_gps.permgroup_element.SymmetricGroupElement'>
-        """
-        return SymmetricGroupElement
+    Element = SymmetricGroupElement
 
 class AlternatingGroup(PermutationGroup_symalt):
     def __init__(self, domain=None):
@@ -1716,9 +1707,9 @@ class SemidihedralGroup(PermutationGroup_unique):
         EXAMPLES::
 
             sage: G = SemidihedralGroup(6); G
-            The semidiheral group of order 64
+            The semidihedral group of order 64
         """
-        return 'The semidiheral group of order %s'%(2**self.m)
+        return 'The semidihedral group of order %s' % (2**self.m)
 
 class MathieuGroup(PermutationGroup_unique):
     def __init__(self, n):

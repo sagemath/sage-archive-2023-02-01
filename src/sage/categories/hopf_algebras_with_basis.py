@@ -176,7 +176,7 @@ class HopfAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: A = HopfAlgebrasWithBasis(QQ).example()
                 sage: W = A.basis().keys(); W
                 Dihedral group of order 6 as a permutation group
-                sage: w = W.an_element(); w
+                sage: w = W.gen(0); w
                 (1,2,3)
                 sage: A.antipode_on_basis(w)
                 B[(1,3,2)]

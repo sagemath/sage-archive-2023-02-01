@@ -115,16 +115,14 @@ defined Cython code, and with rather tricky argument lines::
 from __future__ import print_function, absolute_import
 
 import six
-from six import iteritems, string_types, class_types, text_type
+from six import iteritems, string_types, class_types
 from six.moves import range
-from sage.misc.six import u
 
 import ast
 import inspect
 import functools
 import os
 import tokenize
-import types
 import re
 EMBEDDED_MODE = False
 from sage.env import SAGE_SRC
@@ -177,7 +175,6 @@ def isclassinstance(obj):
             obj.__class__.__module__ not in builtin_mods)
 
 
-import re
 # Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
 # "\ " protects a space in re.VERBOSE mode.
 __embedded_position_re = re.compile(r'''
@@ -506,7 +503,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             return node.value
 
         def visit_arg(self, node):
-            """
+            r"""
             Visit a Python AST :class:`ast.arg` node.
 
             This node type is only on Python 3, where function arguments are
@@ -517,11 +514,11 @@ class SageArgSpecVisitor(ast.NodeVisitor):
 
             INPUT:
 
-            - ``node`` - the node instance to visit
+            - ``node`` -- the node instance to visit
 
             OUTPUT:
 
-            - the argument name
+            the argument name
 
             EXAMPLES::
 
@@ -532,7 +529,6 @@ class SageArgSpecVisitor(ast.NodeVisitor):
                 sage: [visitor.visit_arg(n) for n in args]  # py3
                 ['a', 'b', 'c', 'd']
             """
-
             return node.arg
 
     def visit_Num(self, node):
@@ -2155,7 +2151,7 @@ def sage_getsourcelines(obj):
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]
         sage: sage_getsourcelines(P)
-        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):\n',
+        (['cdef class MPolynomialRing_libsingular(MPolynomialRing_base):\n',
           '\n',
           '    def __cinit__(self):\n',
         ...)

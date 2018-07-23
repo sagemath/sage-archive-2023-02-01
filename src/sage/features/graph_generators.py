@@ -18,7 +18,7 @@ class Plantri(Executable):
 
         sage: from sage.features.graph_generators import Plantri
         sage: Plantri().is_present()  # optional: plantri
-        FeatureTestResult('plantri', False)
+        FeatureTestResult('plantri', True)
     """
     def __init__(self):
         r"""
@@ -38,7 +38,7 @@ class Plantri(Executable):
 
             sage: from sage.features.graph_generators import Plantri
             sage: Plantri().is_functional()  # optional: plantri
-            FeatureTestResult('plantri', False)
+            FeatureTestResult('plantri', True)
         """
         command = ["plantri", "4"]
         try:
@@ -47,7 +47,7 @@ class Plantri(Executable):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
-        expected = "1 triangulation written"
+        expected = "1 triangulations written"
         if lines.find(expected) == -1:
             return FeatureTestResult(self, False,
                     reason = "Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
@@ -110,7 +110,7 @@ class Benzene(Executable):
 
         sage: from sage.features.graph_generators import Benzene
         sage: Benzene().is_present()  # optional: benzene
-        True
+        FeatureTestResult('Benzene', True)
     """
     def __init__(self):
         r"""
@@ -130,7 +130,7 @@ class Benzene(Executable):
 
             sage: from sage.features.graph_generators import Benzene
             sage: Benzene().is_functional()  # optional: benzene
-            True
+            FeatureTestResult('Benzene', True)
         """
         devnull = open(os.devnull, 'wb')
         command = ["benzene", "2", "p"]
@@ -140,7 +140,7 @@ class Benzene(Executable):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
-        expected = ">>planar_graph<<"
+        expected = ">>planar_code<<"
         if not lines.startswith(expected):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` did not produce output that started with `{expected}`.".format(command=" ".join(command), expected=expected))

@@ -45,7 +45,7 @@ from sage.rings.infinity import Infinity
 
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.positive_integers import PositiveIntegers
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 
 
 set_of_letters = {

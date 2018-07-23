@@ -154,7 +154,9 @@ class Polyhedron_cdd(Polyhedron_base):
             ....:    [0.62, -1.38, 0.38],[0.144, -1.04, 0.04],
             ....:    [0.1309090909, -1.0290909091, 0.04]]
             sage: Polyhedron(point_list)
-            A 3-dimensional polyhedron in RDF^3 defined as the convex hull of 14 vertices
+            Traceback (most recent call last):
+            ...
+            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
             sage: Polyhedron(point_list, base_ring=QQ)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
@@ -286,7 +288,9 @@ class Polyhedron_cdd(Polyhedron_base):
             else:
                 n_cdd=n;
             self._V_adjacency_matrix = matrix(ZZ, n, n, 0)
-            expect_in_cddout('begin')
+            if not find_in_cddout('begin'):
+                raise ValueError('Error while parsing cdd output: could not '
+                                 'find "begin" after "Vertex graph"')
             l = cddout.pop(0).split()
             assert int(l[0]) == n_cdd, "Not enough V-adjacencies in cdd output?"
             for i in range(n_cdd):
@@ -309,7 +313,9 @@ class Polyhedron_cdd(Polyhedron_base):
         if find_in_cddout('Facet graph'):
             n = len(self._Hrepresentation);
             self._H_adjacency_matrix = matrix(ZZ, n, n, 0)
-            expect_in_cddout('begin')
+            if not find_in_cddout('begin'):
+                raise ValueError('Error while parsing cdd output: could not '
+                                 'find "begin" after "Facet graph"')
             l = cddout.pop(0).split()
             assert int(l[0]) == n, "Not enough H-adjacencies in cdd output?"
             for i in range(n):

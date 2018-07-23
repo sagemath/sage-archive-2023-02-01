@@ -41,7 +41,6 @@ TACHYON_PIXEL = 1/200.0
 
 from .shapes import Text, Sphere
 
-from sage.structure.element import is_Vector
 
 @rename_keyword(alpha='opacity')
 def line3d(points, thickness=1, radius=None, arrow_head=False, **kwds):
@@ -975,23 +974,24 @@ class Line(PrimitiveObject):
         corners = set(corners)
         cmds = []
         cmd = None
+        name = ''
         for P in self.points:
             TP = P if T is None else T(P)
             if P in corners:
                 if cmd:
                     cmds.append(cmd + " {%s %s %s} " % TP)
-                    cmds.append(self.texture.jmol_str('$'+name))
+                    cmds.append(self.texture.jmol_str('$' + name))
                 type = 'arrow' if self.arrow_head and P is last_corner else 'curve'
                 name = render_params.unique_name('line')
                 cmd = "draw %s diameter %s %s {%s %s %s} " % (name, int(self.thickness), type, TP[0], TP[1], TP[2])
             else:
                 cmd += " {%s %s %s} " % TP
         cmds.append(cmd)
-        cmds.append(self.texture.jmol_str('$'+name))
+        cmds.append(self.texture.jmol_str('$' + name))
         return cmds
 
     def corners(self, corner_cutoff=None, max_len=None):
-        """
+        r"""
         Figure out where the curve turns too sharply to pretend it is
         smooth.
 
@@ -1160,7 +1160,7 @@ def point3d(v, size=5, **kwds):
     if l == 3:
         try:
             # check if the first element can be changed to a float
-            tmp = RDF(v[0])
+            RDF(v[0])
             return Point(v, size, **kwds)
         except TypeError:
             pass

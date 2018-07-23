@@ -77,12 +77,12 @@ faces.
 EXAMPLES::
 
     sage: SimplicialComplex([[1], [3, 7]])
-    Simplicial complex with vertex set (1, 3, 7) and facets {(3, 7), (1,)}
+    Simplicial complex with vertex set (1, 3, 7) and facets {(1,), (3, 7)}
     sage: SimplicialComplex()   # the empty simplicial complex
     Simplicial complex with vertex set () and facets {()}
     sage: X = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
     sage: X
-    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (2, 3), (0, 3), (0, 1)}
+    Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 3), (1, 2), (2, 3)}
     sage: X.stanley_reisner_ring()
     Quotient of Multivariate Polynomial Ring in x0, x1, x2, x3 over Integer Ring by the ideal (x1*x3, x0*x2)
     sage: X.is_pure()
@@ -116,7 +116,7 @@ Mutability (see :trac:`12587`)::
     sage: S = SimplicialComplex([[1,4], [2,4]])
     sage: S.add_face([1,3])
     sage: S.remove_face([1,3]); S
-    Simplicial complex with vertex set (1, 2, 3, 4) and facets {(2, 4), (1, 4), (3,)}
+    Simplicial complex with vertex set (1, 2, 3, 4) and facets {(3,), (1, 4), (2, 4)}
     sage: hash(S)
     Traceback (most recent call last):
     ...
@@ -184,8 +184,9 @@ lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import rename_keyword
 
+
 def lattice_paths(t1, t2, length=None):
-    """
+    r"""
     Given lists (or tuples or ...) ``t1`` and ``t2``, think of them as
     labelings for vertices: ``t1`` labeling points on the x-axis,
     ``t2`` labeling points on the y-axis, both increasing.  Return the
@@ -518,7 +519,7 @@ class Simplex(SageObject):
         if n >= 0 and n <= self.dimension():
             return Simplex(self.__tuple[:n] + self.__tuple[n+1:])
         else:
-            raise IndexError("{} does not have an nth face for n={}.".format(self, n))
+            raise IndexError("{} does not have an nth face for n={}".format(self, n))
 
     def faces(self):
         """
@@ -871,10 +872,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         sage: SimplicialComplex([[0,2], [0,3], [0]])
         Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2), (0, 3)}
         sage: SimplicialComplex([[0,2], [0,3], [0]], maximality_check=False)
-        Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2), (0, 3), (0,)}
+        Simplicial complex with vertex set (0, 2, 3) and facets {(0,), (0, 2), (0, 3)}
         sage: S = SimplicialComplex((('a', 'b'), ['a', 'c'], ('b', 'c')))
         sage: S
-        Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
+        Simplicial complex with vertex set ('a', 'b', 'c') and facets {('a', 'b'), ('a', 'c'), ('b', 'c')}
 
     Finally, if there is only one argument and it is a
     simplicial complex, return that complex.  If it is an object with
@@ -947,7 +948,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SimplicialComplex([[0,2], [0,3], [0]])
             Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2), (0, 3)}
             sage: SimplicialComplex((('a', 'b'), ('a', 'c'), ('b', 'c')))
-            Simplicial complex with vertex set ('a', 'b', 'c') and facets {('b', 'c'), ('a', 'c'), ('a', 'b')}
+            Simplicial complex with vertex set ('a', 'b', 'c') and facets {('a', 'b'), ('a', 'c'), ('b', 'c')}
 
         TESTS::
 
@@ -1022,12 +1023,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if name_check:
                 try:
                     if int(v) < 0:
-                        raise ValueError("The vertex %s does not have an appropriate name."%v)
+                        raise ValueError("the vertex %s does not have an appropriate name"%v)
                 except ValueError:  # v is not an integer
                     try:
                         normalize_names(1, v)
                     except ValueError:
-                        raise ValueError("The vertex %s does not have an appropriate name."%v)
+                        raise ValueError("the vertex %s does not have an appropriate name"%v)
             # build dictionary of generator names
             try:
                 gen_dict[v] = 'x%s'%int(v)
@@ -1834,7 +1835,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S.join(T)
             Simplicial complex with vertex set ('L0', 'L1', 'R2', 'R3') and 4 facets
             sage: S.join(T, rename_vertices=False)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 3), (1, 2), (0, 2), (0, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2), (0, 3), (1, 2), (1, 3)}
 
         The notation '*' may be used, as well::
 
@@ -2269,7 +2270,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: sphere = SimplicialComplex([[0,1,2,3]])
             sage: sphere.remove_face([0,1,2,3])
             sage: sphere
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)}
             sage: sphere._homology_()
             {0: 0, 1: 0, 2: Z}
             sage: sphere._homology_(reduced=False)
@@ -2477,12 +2478,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Y.add_face([0,1])
             sage: Y.add_face([1,2,3])
             sage: Y
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (1, 2, 3)}
 
         If you add a face which is already present, there is no effect::
 
             sage: Y.add_face([1,3]); Y
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (1, 2, 3)}
 
         TESTS:
 
@@ -2603,10 +2604,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: S = SimplicialComplex([[0,1,2],[2,3]])
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (2, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(2, 3), (0, 1, 2)}
             sage: S.remove_face([0,1,2])
             sage: S
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2), (2, 3), (0, 2), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2), (1, 2), (2, 3)}
 
         TESTS:
 
@@ -2668,7 +2669,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         # Update self._faces.
         # Note: can't iterate over self._faces, because the dictionary
         # size may change during iteration.
-        for L in self._faces.keys():
+        for L in list(self._faces):
             del self._faces[L]
             if L is None or Simplex(face) not in L:
                 self.faces(L)
@@ -2728,7 +2729,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         if not (self.is_pure() and other.is_pure() and
                 self.dimension() == other.dimension()):
-            raise ValueError("Complexes are not pure of the same dimension.")
+            raise ValueError("complexes are not pure of the same dimension")
         # first find a top-dimensional simplex to remove from each surface
         keep_left = self._facets[0]
         keep_right = other._facets[0]
@@ -2748,7 +2749,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
     __add__ = connected_sum
 
     def link(self, simplex, is_mutable=True):
-        """
+        r"""
         The link of a simplex in this simplicial complex.
 
         The link of a simplex `F` is the simplicial complex formed by
@@ -2765,7 +2766,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X.link(Simplex([0]))
             Simplicial complex with vertex set (1, 2) and facets {(1, 2)}
             sage: X.link([1,2])
-            Simplicial complex with vertex set (0, 3) and facets {(3,), (0,)}
+            Simplicial complex with vertex set (0, 3) and facets {(0,), (3,)}
             sage: Y = SimplicialComplex([[0,1,2,3]])
             sage: Y.link([1])
             Simplicial complex with vertex set (0, 2, 3) and facets {(0, 2, 3)}
@@ -3374,12 +3375,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: Y = SimplicialComplex([[i] for i in range(5)]); Y
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(4,), (2,), (3,), (0,), (1,)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0,), (1,), (2,), (3,), (4,)}
             sage: Y.alexander_dual()
             Simplicial complex with vertex set (0, 1, 2, 3, 4) and 10 facets
             sage: X = SimplicialComplex([[0,1], [1,2], [2,3], [3,0]])
             sage: X.alexander_dual()
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 3), (0, 2)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2), (1, 3)}
         """
         nonfaces = self.minimal_nonfaces()
         return SimplicialComplex([self._complement(f) for f in nonfaces], is_mutable=is_mutable)
@@ -3440,13 +3441,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: F2 = Simplex([1,3])
             sage: F3 = Simplex([1,2,3])
             sage: SC.stellar_subdivision(F1)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (1, 3, 4), (2, 3, 4), (0, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 4), (0, 2, 4), (1, 3, 4), (2, 3, 4)}
             sage: SC.stellar_subdivision(F2)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (1, 2, 4), (2, 3, 4)}
             sage: SC.stellar_subdivision(F3)
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (1, 2, 4), (1, 3, 4), (2, 3, 4)}
             sage: SC.stellar_subdivision(F3, inplace=True);SC
-            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(1, 3, 4), (0, 1, 2), (2, 3, 4), (1, 2, 4)}
+            Simplicial complex with vertex set (0, 1, 2, 3, 4) and facets {(0, 1, 2), (1, 2, 4), (1, 3, 4), (2, 3, 4)}
 
         The simplex to subdivide should be a face of self::
 
@@ -3604,12 +3605,12 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: X = SimplicialComplex([[0,1], [1,2,3], [0,2,3]])
             sage: X.n_skeleton(1)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(2, 3), (0, 2), (1, 3), (1, 2), (0, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)}
             sage: X.set_immutable()
             sage: X.n_skeleton(2)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2, 3), (1, 2, 3)}
             sage: X.n_skeleton(4)
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1), (0, 2, 3), (1, 2, 3)}
         """
         if n >= self.dimension():
             return self
@@ -3649,9 +3650,9 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: sphere = SimplicialComplex([[0,1,2,3]])
             sage: sphere.remove_face([0,1,2,3])
             sage: sphere
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (0, 1, 2), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (0, 1, 3), (0, 2, 3), (1, 2, 3)}
             sage: L = sphere._contractible_subcomplex(); L
-            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 2, 3), (1, 2, 3), (0, 1, 3)}
+            Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 3), (0, 2, 3), (1, 2, 3)}
             sage: L.homology()
             {0: 0, 1: 0, 2: 0}
         """
@@ -3837,10 +3838,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SimplicialComplex([[]]).connected_component()
             Traceback (most recent call last):
             ...
-            ValueError: the empty simplicial complex has no connected components.
+            ValueError: the empty simplicial complex has no connected components
         """
         if self.dimension() == -1:
-            raise ValueError("the empty simplicial complex has no connected components.")
+            raise ValueError("the empty simplicial complex has no connected components")
         if simplex is None:
             v = self.vertices()[0]
         else:
@@ -3905,7 +3906,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: K.fundamental_group()
             Traceback (most recent call last):
             ...
-            ValueError: this complex is not connected, so you must specify a base point.
+            ValueError: this complex is not connected, so you must specify a base point
             sage: v0 = list(K.vertices())[0]
             sage: K.fundamental_group(base_point=v0)
             Finitely presented group < e |  >
@@ -3924,7 +3925,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         if not self.is_connected():
             if base_point is None:
-                raise ValueError("this complex is not connected, so you must specify a base point.")
+                raise ValueError("this complex is not connected, so you must specify a base point")
             return self.connected_component(Simplex([base_point])).fundamental_group(simplify=simplify)
 
         from sage.groups.free_group import FreeGroup
@@ -4281,22 +4282,30 @@ class SimplicialComplex(Parent, GenericCellComplex):
         If there are only a few vertices or faces, they are listed. If
         there are lots, the number is given.
 
+        Facets are sorted in increasing order of dimension, and within
+        each dimension, they are sorted using the underlying tuple.
+
         EXAMPLES::
 
             sage: X = SimplicialComplex([[0,1], [1,2]])
             sage: X._repr_()
-            'Simplicial complex with vertex set (0, 1, 2) and facets {(1, 2), (0, 1)}'
+            'Simplicial complex with vertex set (0, 1, 2) and facets {(0, 1), (1, 2)}'
             sage: SimplicialComplex([[i for i in range(16)]])
             Simplicial complex with 16 vertices and 1 facets
         """
         vertex_limit = 45
         facet_limit = 55
         vertices = self.vertices()
-        facets = Set(self._facets)
+        try:
+            facets = sorted(self._facets, key=lambda f: (f.dimension(), f.tuple()))
+        except TypeError:
+            # Sorting failed.
+            facets = self._facets
+
         vertex_string = "with vertex set {}".format( tuple(sorted(vertices)) )
         if len(vertex_string) > vertex_limit:
             vertex_string = "with %s vertices" % len(vertices)
-        facet_string = "facets %s" % facets
+        facet_string = 'facets {' + repr(facets)[1:-1] + '}'
         if len(facet_string) > facet_limit:
             facet_string = "%s facets" % len(facets)
         return "Simplicial complex " + vertex_string + " and " + facet_string
@@ -4385,7 +4394,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: SimplicialComplex([[1,2,3]]).decone()
             Simplicial complex with vertex set () and facets {()}
             sage: SimplicialComplex([[1,2,3], [1,3,4], [1,5,6]]).decone()
-            Simplicial complex with vertex set (2, 3, 4, 5, 6) and facets {(3, 4), (2, 3), (5, 6)}
+            Simplicial complex with vertex set (2, 3, 4, 5, 6) and facets {(2, 3), (3, 4), (5, 6)}
             sage: X = SimplicialComplex([[1,2,3], [1,3,4], [2,5,6]])
             sage: X.decone() == X
             True

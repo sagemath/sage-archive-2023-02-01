@@ -155,6 +155,7 @@ _add_variable_or_fallback('SAGE_REPO_AUTHENTICATED', 'ssh://git@trac.sagemath.or
 _add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'git://trac.sagemath.org/sage.git')
 _add_variable_or_fallback('SAGE_VERSION',            version.version)
 _add_variable_or_fallback('SAGE_DATE',               version.date)
+_add_variable_or_fallback('SAGE_VERSION_BANNER',     version.banner)
 _add_variable_or_fallback('SAGE_BANNER',             '')
 _add_variable_or_fallback('SAGE_IMPORTALL',          'yes')
 

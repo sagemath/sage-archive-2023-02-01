@@ -703,7 +703,6 @@ class DiscreteValuation(DiscretePseudoValuation):
         from sage.misc.misc import verbose
         verbose("Approximants of %r on %r towards %r"%(self, self.domain(), G), level=3)
 
-        from sage.rings.all import infinity
         from sage.rings.valuation.gauss_valuation import GaussValuation
 
         if not all([self(c) >= 0 for c in G.coefficients()]):

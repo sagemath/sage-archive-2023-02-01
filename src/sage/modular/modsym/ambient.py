@@ -85,7 +85,7 @@ import sage.modular.arithgroup.all as arithgroup
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 from sage.rings.all import Integer, QQ, ZZ, Ring
-from sage.arith.all import is_prime, xgcd, gcd, divisors, number_of_divisors
+from sage.arith.all import is_prime, gcd, divisors, number_of_divisors, crt
 import sage.rings.polynomial.multi_polynomial_element
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
@@ -651,7 +651,6 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         v = list(cf)
         c = [(cf.p(k),cf.q(k)) for k in range(len(cf))]
         a = self(0)
-        zero = ZZ.zero()
         one = ZZ.one()
         two = ZZ(2)
         if self.weight() > two:
@@ -1017,13 +1016,11 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
         B = self.manin_basis()
         if not rows is None:
             B = [B[i] for i in rows]
-        cols = []
         mod2term = self._mod2term
         R = self.manin_gens_to_basis()
         K = self.base_ring()
         W = R.new_matrix(nrows=len(B), ncols = R.nrows())
         syms = self.manin_symbols()
-        n = len(syms)
         j = 0
         for i in B:
             for h in H:
@@ -1234,15 +1231,15 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
     def _compute_atkin_lehner_matrix(self, d):
         r"""
-        Return the matrix of the Atkin-Lehner involution `W_d`.
+        Return the matrix of the Atkin-Lehner operator `W_d`.
 
         INPUT:
 
-        -  ``d`` (int) -- an integer that divides the level.
+        - ``d`` (int) -- an integer that divides the level.
 
         OUTPUT:
 
-        (matrix) The matrix of the involution `W_d` with respect to
+        (matrix) The matrix of the operator `W_d` with respect to
         the standard basis.
 
         EXAMPLES: An example at level 29::
@@ -1255,14 +1252,14 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: w.fcp()
             (x - 1)^2 * (x + 1)^2
 
-        This doesn't work since the character has order 2::
+        This doesn't work since the character is not trivial or quadratic::
 
             sage: M = ModularSymbols((DirichletGroup(13).0), 2,1); M
             Modular Symbols space of dimension 0 and level 13, weight 2, character [zeta12], sign 1, over Cyclotomic Field of order 12 and degree 4
             sage: M._compute_atkin_lehner_matrix(13)
             Traceback (most recent call last):
             ...
-            ValueError: Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)
+            ValueError: Atkin-Lehner W_d only defined when d-primary part of character is trivial or quadratic
 
         Note that Atkin-Lehner does make sense on `\Gamma_1(13)`,
         but doesn't commute with the Hecke operators::
@@ -1272,25 +1269,67 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: t = M.T(2).matrix()
             sage: t*w == w*t
             False
+            sage: t * w * ~t * ~w == M.diamond_bracket_matrix(2)
+            True
             sage: w^2 == 1
             True
+
+        For `\Gamma_1(N)` levels, when `d` is a proper factor of `N`, the
+        square of the operator `W_d` is not a scalar any more::
+
+            sage: M = ModularSymbols(Gamma1(10), 2)
+            sage: w = M.atkin_lehner_operator(2).matrix()
+            sage: w^2
+            [ 0  1  0  0  0  0  0]
+            [ 1  0  0  0  0  0  0]
+            [ 0  0  0  0  1  0  0]
+            [ 0  0  0  0  0  1 -1]
+            [ 0  0  1  0  0  0  0]
+            [ 0  0  0  1  0  0 -1]
+            [ 0  0  0  0  0  0 -1]
+            sage: w^2 == M.diamond_bracket_matrix(7)
+            True
+
+        In higher weights, the operator is defined, but its eigenvalues are no longer roots of unity::
+
+            sage: M = ModularSymbols(Gamma1(13), 3)
+            sage: w = M.atkin_lehner_operator(13).matrix()
+            sage: w**2 == -13
+            True
+
+        TESTS:
+
+        Check that signed spaces are handled gracefully::
+
+            sage: M = ModularSymbols(Gamma1(18), 3, sign=1)
+            sage: M.atkin_lehner_operator(2).matrix().fcp()
+            (x^2 + 2)^3 * (x^4 - 2*x^2 + 4)^3
+            sage: M.atkin_lehner_operator(9)
+            Traceback (most recent call last):
+            ...
+            ValueError: Atkin-Lehner operator not defined on signed space (use sign=0)
+
+        GammaH spaces work::
+
+            sage: G = GammaH(25, [6])
+            sage: ModularSymbols(G, sign=0).atkin_lehner_operator().fcp()
+            (x - 1)^5 * (x + 1)^6
         """
-        chi = self.character()
-        if chi is not None and chi.order() > 2:
-            raise ValueError("Atkin-Lehner only leaves space invariant when character is trivial or quadratic.  In general it sends M_k(chi) to M_k(1/chi)")
-
         N = self.level()
-        k = self.weight()
-        R = self.base_ring()
-        if N%d != 0:
-            raise ValueError("d must divide N")
 
-        g, x, y = xgcd(d, -N//d)
-        g = [d*x, y, N, d]
-        A = self._action_on_modular_symbols(g)
-        scale = R(d)**(1 - k//2)
-        Wmat = scale * A
-        return Wmat
+        chi = self.character()
+        if chi is not None:
+            dec = [u for u in chi.decomposition() if chi.modulus().divides(d)]
+            if not all([(u**2).is_trivial() for u in dec]):
+                raise ValueError("Atkin-Lehner W_d only defined when d-primary part of character is trivial or quadratic")
+
+        if self.sign() != 0:
+            # AL operator problematic on signed spaces
+            if self.diamond_bracket_matrix(crt(-1, 1, d, N/d)) != 1:
+                raise ValueError("Atkin-Lehner operator not defined on signed space (use sign=0)")
+
+        W = self.group().atkin_lehner_matrix(d).list()
+        return self._action_on_modular_symbols(W)
 
     def boundary_map(self):
         r"""
@@ -1753,7 +1792,6 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
 
         # In the special case of weight 2 we have to do a bunch of
         # annoying extra work below to deal with the Eisenstein series E_2.
-        k = self.weight()
 
         ## If the characteristic of the base ring is 2,
         ## the star involution is the identity, so we
@@ -2502,7 +2540,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             32
         """
         if self.base_ring().characteristic() == 0:
-            N, k, sign = self.level(), self.weight(), self.sign()
+            k, sign = self.weight(), self.sign()
             if sign != 0: return None
             if k%2 == 1:
                 return 0
@@ -2540,7 +2578,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             18
         """
         if self.base_ring().characteristic() == 0:
-            N, k, sign = self.level(), self.weight(), self.sign()
+            k, sign = self.weight(), self.sign()
             if sign == 0:
                 m = 2
             else:
@@ -2596,7 +2634,6 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         rows = []
         B = self.manin_basis()
         syms = self.manin_symbols()
-        k = self.weight()
         H = [M2Z(h) for h in H]
         for n in B:
             z = M(0)
@@ -2626,7 +2663,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
             2
         """
         if self.base_ring().characteristic() == 0:
-            N, k, sign = self.level(), self.weight(), self.sign()
+            k, sign = self.weight(), self.sign()
             if sign == 0:
                 m = 2
             else:
@@ -2788,8 +2825,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             32
         """
         if self.base_ring().characteristic() == 0:
-            N, sign = self.level(), self.sign()
-            if sign != 0: return None
+            if self.sign() != 0: return None
             return 2*self.group().dimension_cusp_forms(2) + self.group().ncusps() - 1
         else:
             raise NotImplementedError
@@ -2864,7 +2900,6 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         if not rows is None:
             B = [B[i] for i in rows]
 
-        cols = []
         N = self.level()
         P1 = self.p1list()
         mod2term = self._mod2term
@@ -3179,7 +3214,6 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
             sage: N.dimension()
             64
         """
-        level = int(M.level())
         N = self.level()
 
         # 1. Find coset representatives H for Gamma_1(M.level()) \ Gamma_1(self.level())
@@ -3193,7 +3227,6 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         rows = []
         B = self.manin_basis()
         syms = self.manin_symbols()
-        k = self.weight()
         G = matrix_space.MatrixSpace(ZZ, 2)
         H = [G(h) for h in H]
         for n in B:
@@ -3595,7 +3628,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             [ 1  0  0  0 -1 -1  3  1  0  2 -3  0]
             [ 0  5  1 -2 -3  3  0  4 -1  5 -7 -1]
         """
-        level = int(M.level())
         N = self.level()
 
         # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
@@ -3609,7 +3641,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         rows = []
         B = self.manin_basis()
         syms = self.manin_symbols()
-        k = self.weight()
         G = matrix_space.MatrixSpace(ZZ, 2)
         H = [G(h) for h in H]
         eps = self.character()  # note: in my thesis I twisted by eps^(-1), which is definitely a mistake

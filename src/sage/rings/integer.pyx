@@ -4309,8 +4309,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r"""
         Return the factorial `n! = 1 \cdot 2 \cdot 3 \cdots n`.
 
-        If the input does not fit in an ``unsigned long int`` a symbolic
-        expression is returned.
+        If the input does not fit in an ``unsigned long int`` an ``OverflowError``
+        is raised.
 
         EXAMPLES::
 
@@ -4323,15 +4323,26 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             4 24
             5 120
             6 720
-            sage: 234234209384023842034.factorial()
-            factorial(234234209384023842034)
+
+        Large integers raise an ``OverflowError``::
+
+            sage: (2**64).factorial()
+            Traceback (most recent call last):
+            ...
+            OverflowError: argument too large for factorial
+
+        And negative ones a ``ValueError``::
+
+            sage: (-1).factorial()
+            Traceback (most recent call last):
+            ...
+            ValueError: factorial only defined for non-negative integers
         """
         if mpz_sgn(self.value) < 0:
-            raise ValueError("factorial -- self = (%s) must be nonnegative"%self)
+            raise ValueError("factorial only defined for non-negative integers")
 
-        if not mpz_fits_uint_p(self.value):
-            from sage.functions.all import factorial
-            return factorial(self, hold=True)
+        if not mpz_fits_ulong_p(self.value):
+            raise OverflowError("argument too large for factorial")
 
         cdef Integer z = PY_NEW(Integer)
 
@@ -4341,15 +4352,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return z
 
-    @cython.cdivision(True)
-    def multifactorial(self, int k):
+    def multifactorial(self, long k):
         r"""
         Compute the k-th factorial `n!^{(k)}` of self.
 
-        For k=1 this is the standard factorial, and for k greater than
-        one it is the product of every k-th terms down from self to
-        k. The recursive definition is used to extend this function to
-        the negative integers.
+        The multifactorial number `n!^{(k)}` is defined for non-negative
+        integers `n` as follows. For `k=1` this is the standard factorial,
+        and for `k` greater than `1` it is the product of every `k`-th
+        terms down from `n` to `1`. The recursive definition is used to
+        extend this function to the negative integers `n`.
+
+        This function uses direct call to GMP if `k` and `n` are non-negative
+        and uses simple transformation for other cases.
 
         EXAMPLES::
 
@@ -4359,41 +4373,56 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             15
             sage: 5.multifactorial(3)
             10
+
             sage: 23.multifactorial(2)
             316234143225
             sage: prod([1..23, step=2])
             316234143225
+
             sage: (-29).multifactorial(7)
             1/2640
+            sage: (-3).multifactorial(5)
+            1/2
+            sage: (-9).multifactorial(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: multifactorial undefined
 
-        TESTS::
+        When entries are too large an ``OverflowError`` is raised::
 
-            sage: for a in range(1,20):
-            ....:     for b in range(1,20):
-            ....:         assert ZZ(a).multifactorial(b) == prod(range(a,0,-b))
+            sage: (2**64).multifactorial(2)
+            Traceback (most recent call last):
+            ...
+            OverflowError: argument too large for multifactorial
         """
         if k <= 0:
-            raise ValueError("multifactorial only defined for positive values of k")
+            raise ValueError("multifactorial only defined for non-positive k")
 
-        if not mpz_fits_sint_p(self.value):
-            raise ValueError("multifactorial not implemented for n >= 2^32.\nThis is probably OK, since the answer would have billions of digits.")
+        if not mpz_fits_slong_p(self.value):
+            raise OverflowError("argument too large for multifactorial")
 
-        cdef int n = mpz_get_si(self.value)
+        cdef long n = mpz_get_si(self.value)
 
-        # base case
-        if 0 < n <= k:
-            return n
+        cdef Integer z
 
-        # easy to calculate
-        elif n % k == 0:
-            factorial = Integer(n/k).factorial()
-            if k == 2:
-                return factorial << (n/k)
+        if n >= 0:
+            # non-negative n: call native GMP functions
+            z = PY_NEW(Integer)
+            if k == 1:
+                mpz_fac_ui(z.value, n)
+            elif k == 2:
+                mpz_2fac_ui(z.value, n)
             else:
-                return factorial * Integer(k)**(n/k)
+                mpz_mfac_uiui(z.value, n, k)
 
-        # negative base case
+            return z
+
+        elif n % k == 0:
+            # undefined negative case
+            raise ValueError("multifactorial undefined")
+
         elif -k < n < 0:
+            # negative base case
             return one / (self+k)
 
         # reflection case
@@ -4403,46 +4432,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             else:
                 sign = one
             return sign / Integer(-k-n).multifactorial(k)
-
-        # compute the actual product, optimizing the number of large
-        # multiplications
-        cdef int i,j
-
-        # we need (at most) log_2(#factors) concurrent sub-products
-        cdef int prod_count = <int>ceil_c(log_c(n/k+1)/log_c(2)) + 1
-        cdef mpz_t* sub_prods = <mpz_t*>check_allocarray(prod_count, sizeof(mpz_t))
-        for i from 0 <= i < prod_count:
-            mpz_init(sub_prods[i])
-
-        sig_on()
-
-        cdef residue = n % k
-        mpz_set_ui(sub_prods[0], residue)
-        cdef int tip = 1
-        for i from 1 <= i <= n//k:
-            mpz_set_ui(sub_prods[tip], k*i + residue)
-            # for the i-th terms we use the bits of i to calculate how many
-            # times we need to multiply "up" the stack of sub-products
-            for j from 0 <= j < 32:
-                if not (i & (1 << j)):
-                    break
-                tip -= 1
-                mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
-            tip += 1
-        cdef int last = tip-1
-        for tip from last > tip >= 0:
-            mpz_mul(sub_prods[tip], sub_prods[tip], sub_prods[tip+1])
-
-        sig_off()
-
-        cdef Integer z = PY_NEW(Integer)
-        mpz_swap(z.value, sub_prods[0])
-
-        for i from 0 <= i < prod_count:
-            mpz_clear(sub_prods[i])
-        sig_free(sub_prods)
-
-        return z
 
     def gamma(self):
         r"""
@@ -5378,7 +5367,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def class_number(self, proof=True):
         r"""
-        Returns the class number of the quadratic order with this discriminant.
+        Return the class number of the quadratic order with this discriminant.
 
         INPUT:
 
@@ -5386,7 +5375,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           not a square
 
         - ``proof`` (boolean, default ``True``) -- if ``False`` then
-          for negative disscriminants a faster algorithm is used by
+          for negative discriminants a faster algorithm is used by
           the PARI library which is known to give incorrect results
           when the class group has many cyclic factors.
 
@@ -5450,28 +5439,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("class_number only defined for integers congruent to 0 or 1 modulo 4")
         flag =  self < 0 and proof
         return objtogen(self).qfbclassno(flag).sage()
-
-    def radical(self, *args, **kwds):
-        r"""
-        Return the product of the prime divisors of self. Computing
-        the radical of zero gives an error.
-
-        EXAMPLES::
-
-            sage: Integer(10).radical()
-            10
-            sage: Integer(20).radical()
-            10
-            sage: Integer(-100).radical()
-            10
-            sage: Integer(0).radical()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: Radical of 0 not defined.
-        """
-        if self.is_zero():
-            raise ArithmeticError("Radical of 0 not defined.")
-        return self.factor(*args, **kwds).radical_value()
 
     def squarefree_part(self, long bound=-1):
         r"""

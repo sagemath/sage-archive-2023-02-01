@@ -498,7 +498,7 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
         weak_lattice = weak_poset
 
         def inversion_sequence(self, word):
-            """
+            r"""
             Return the inversion sequence corresponding to the ``word``
             in indices of simple generators of ``self``.
 

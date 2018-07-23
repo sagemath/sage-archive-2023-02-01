@@ -3469,7 +3469,7 @@ class FileCache(object):
             [((), ()), ((1,), (('a', 1),)), ((1, 2), ())]
         """
         cdef list K = []
-        from sage.structure.sage_object import load
+        from sage.misc.persist import load
         for f in self.file_list():
             if f[-9:] == '.key.sobj':
                 K.append(load(f))
@@ -3569,7 +3569,7 @@ class FileCache(object):
             KeyError: ((1, 2), (('a', 4), ('b', 2)))
 
         """
-        from sage.structure.sage_object import load
+        from sage.misc.persist import load
 
         cache = self._cache
         if cache is not None:
@@ -3608,7 +3608,7 @@ class FileCache(object):
             sage: FC2[k]!= t
             True
         """
-        from sage.structure.sage_object import save
+        from sage.misc.persist import save
 
         f = self._filename(key)
 

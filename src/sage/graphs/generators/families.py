@@ -5,18 +5,18 @@ Families of graphs
 The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
-###########################################################################
+# ****************************************************************************
+#       Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#                          Emily A. Kirkman
+#                     2009 Michael C. Yurko <myurko@gmail.com>
+#                     2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
 #
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
-#                              and Emily A. Kirkman
-#           Copyright (C) 2009 Michael C. Yurko <myurko@gmail.com>
-#
-#           Copyright (C) 2016 Rowan Schrecker <rowan.schrecker@hertford.ox.ac.uk>
-#            (Rowan Schrecker supported by UK EPSRC grant EP/K040251/2)
-#
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-###########################################################################
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, division
 import six
 from six.moves import range
@@ -197,22 +197,13 @@ def BalancedTree(r, h):
     gracefully::
 
         sage: graphs.BalancedTree(1, 10)
-        Balanced tree: Graph on 2 vertices
-
-        sage: graphs.BalancedTree(-1, 10)
-        Balanced tree: Graph on 1 vertex
+        Balanced tree: Graph on 11 vertices
 
     Similarly, we usually want the tree must have height `h \geq 1`
     but the algorithm also degenerates gracefully here::
 
         sage: graphs.BalancedTree(3, 0)
         Balanced tree: Graph on 1 vertex
-
-        sage: graphs.BalancedTree(5, -2)
-        Balanced tree: Graph on 0 vertices
-
-        sage: graphs.BalancedTree(-2,-2)
-        Balanced tree: Graph on 0 vertices
     """
     import networkx
     return Graph(networkx.balanced_tree(r, h), name="Balanced tree")
@@ -689,7 +680,7 @@ def chang_graphs():
     Three of the four strongly regular graphs of parameters `(28,12,6,4)` are
     called the Chang graphs. The fourth is the line graph of `K_8`. For more
     information about the Chang graphs, see :wikipedia:`Chang_graphs` or
-    http://www.win.tue.nl/~aeb/graphs/Chang.html.
+    https://www.win.tue.nl/~aeb/graphs/Chang.html.
 
     EXAMPLES: check that we get 4 non-isomorphic s.r.g.'s with the
     same parameters::
@@ -724,7 +715,7 @@ def chang_graphs():
                loops=False, multiedges=False)
     g2 = Graph("[~z^UipkkZPr_~Y_LOIiATOLBBxPR@`acoojBBSoWXTaabN?Yts?Yji_QyioClXZ",
                loops=False, multiedges=False)
-    g3 = Graph("[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
+    g3 = Graph(r"[~~vVMWdKFpV`^UGIaIERQ`\DBxpA@g`CbGRI`AxICNaFM[?fM\?Ytj@CxrGGlYt",
                loops=False, multiedges=False)
     return [g1,g2,g3]
 
@@ -933,7 +924,7 @@ def GoethalsSeidelGraph(k,r):
     vertices with degree `k=(n+r-1)/2`.
 
     It appears under this name in Andries Brouwer's `database of strongly
-    regular graphs <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
+    regular graphs <https://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`__.
 
     INPUT:
 
@@ -1454,9 +1445,10 @@ def HyperStarGraph(n,k):
 
     return g
 
+
 def LCFGraph(n, shift_list, repeats):
-    """
-    Returns the cubic graph specified in LCF notation.
+    r"""
+    Return the cubic graph specified in LCF notation.
 
     LCF (Lederberg-Coxeter-Fruchte) notation is a concise way of
     describing cubic Hamiltonian graphs. The way a graph is constructed

@@ -560,7 +560,6 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
         # this valuation nicely, dropping any unnecessary information
         self._approximants = approximants
 
-        from .valuation_space import DiscretePseudoValuationSpace
         from .limit_valuation import LimitValuation
         limit = LimitValuation(approximant, G)
         FiniteExtensionFromInfiniteValuation.__init__(self, parent, limit)
@@ -594,4 +593,3 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
             from .augmented_valuation import AugmentedValuation_base
             return "[ %s ]-adic valuation"%(", ".join("v(%r) = %r"%(v._phi, v._mu) if (isinstance(v, AugmentedValuation_base) and v.domain() == self._base_valuation.domain()) else repr(v) for v in unique_approximant))
         return "%s-adic valuation"%(self._base_valuation)
-

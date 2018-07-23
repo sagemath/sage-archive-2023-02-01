@@ -717,7 +717,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         R = self.coordinate_ring()
         v = list(R.gens())
-        if n < 0 or n >self.dimension_relative():
+        if i < 0 or i > n:
             raise ValueError("argument i (=%s) must be between 0 and %s, inclusive"%(i,n))
         v.insert(i, R(1))
         phi = self.hom(v, PP)

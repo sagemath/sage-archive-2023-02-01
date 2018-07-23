@@ -40,23 +40,8 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         #self._precompute()
 
-    def _repr_(self, do_latex = False):
-        """
-        Returns a print representation of this extension.
-
-        EXAMPLES::
-
-            sage: A = Zp(7,10)
-            sage: S.<x> = A[]
-            sage: B.<t> = A.ext(x^2+7)
-            sage: B #indirect doctest
-            Eisenstein Extension in t defined by x^2 + 7 with capped relative precision 20 over 7-adic Ring
-        """
-        # Move to padic_extension_generic
-        if do_latex:
-            return "Eisenstein Extension in %s defined by %s over %s"%(self.latex_name(), latex(self.defining_polynomial(exact=True)), latex(self.ground_ring()))
-        else:
-            return "Eisenstein Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.variable_name()), self.prime(), "Field" if self.is_field() else "Ring")
+    def _extension_type(self):
+        return "Eisenstein"
 
     def ramification_index(self, K = None):
         """

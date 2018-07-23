@@ -423,7 +423,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             '3132'
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
+            17-adic unramified extension Field in a defined by x^4 + 7*x^2 + 10*x + 3
             sage: U.fraction_field({"pos":False}) == U.fraction_field()
             False
 
@@ -483,7 +483,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             '3132'
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
-            Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring
+            17-adic unramified extension Ring in a defined by x^4 + 7*x^2 + 10*x + 3
             sage: U.fraction_field({"print_mode":"terse"}) == U.fraction_field()
             doctest:warning
             ...
@@ -645,12 +645,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: k = Qp(5)
             sage: R.<x> = k[]
             sage: l.<w> = k.extension(x^2-5); l
-            Eisenstein Extension in w defined by x^2 - 5 with capped relative precision 40 over 5-adic Field
+            5-adic Eisenstein extension Field in w defined by x^2 - 5
 
             sage: F = list(Qp(19)['x'](cyclotomic_polynomial(5)).factor())[0][0]
             sage: L = Qp(19).extension(F, names='a')
             sage: L
-            Unramified Extension in a defined by x^2 + 8751674996211859573806383*x + 1 with capped relative precision 20 over 19-adic Field
+            19-adic unramified extension Field in a defined by x^2 + 8751674996211859573806383*x + 1
         """
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
@@ -1040,21 +1040,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
             sage: K.<a> = Qq(3^5)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on 3-adic unramified extension ... lifting a |--> a^3 on the residue field
             sage: Frob(a) == a.frobenius()
             True
 
         We can specify a power::
 
             sage: K.frobenius_endomorphism(2)
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(3^2) on the residue field
+            Frobenius endomorphism on 3-adic unramified extension ... lifting a |--> a^(3^2) on the residue field
 
         The result is simplified if possible::
 
             sage: K.frobenius_endomorphism(6)
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^3 on the residue field
+            Frobenius endomorphism on 3-adic unramified extension ... lifting a |--> a^3 on the residue field
             sage: K.frobenius_endomorphism(5)
-            Identity endomorphism of Unramified Extension ...
+            Identity endomorphism of 3-adic unramified extension ...
 
         Comparisons work::
 
@@ -1134,7 +1134,7 @@ class ResidueReductionMap(Morphism):
         sage: R.<a> = Zq(125); k = R.residue_field()
         sage: f = ResidueReductionMap._create_(R, k); f
         Reduction morphism:
-          From: Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+          From: 5-adic unramified extension Ring in a defined by x^3 + 3*x + 3
           To:   Finite Field in a0 of size 5^3
     """
     @staticmethod
@@ -1278,7 +1278,7 @@ class ResidueLiftingMap(Morphism):
         sage: f = ResidueLiftingMap._create_(k, R); f
         Lifting morphism:
           From: Finite Field in a0 of size 5^3
-          To:   Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+          To:   5-adic unramified extension Ring in a defined by x^3 + 3*x + 3
     """
     @staticmethod
     def _create_(k, R):
@@ -1319,7 +1319,7 @@ class ResidueLiftingMap(Morphism):
             sage: f = R.convert_map_from(k); f
             Lifting morphism:
               From: Finite Field in a0 of size 3^3
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Ring
+              To:   3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
             sage: f(a0 + 1)
             (a + 1) + O(3)
 

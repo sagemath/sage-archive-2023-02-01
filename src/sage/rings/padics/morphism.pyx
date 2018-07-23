@@ -54,9 +54,9 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
             sage: from sage.rings.padics.morphism import FrobeniusEndomorphism_padics
             sage: K.<a> = Qq(5^3)
             sage: FrobeniusEndomorphism_padics(K)
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^5 on the residue field
             sage: FrobeniusEndomorphism_padics(K,2)
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^2) on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^(5^2) on the residue field
 
             sage: FrobeniusEndomorphism_padics(K,a)
             Traceback (most recent call last):
@@ -98,10 +98,10 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
             sage: K.<a> = Qq(5^3)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^5 on the residue field
 
             sage: Frob._repr_()
-            'Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field'
+            'Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^5 on the residue field'
         """
         name = self.domain().variable_name()
         if self._power == 0:
@@ -120,7 +120,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
             sage: K.<a> = Qq(5^3)
             sage: Frob = K.frobenius_endomorphism(); Frob
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^5 on the residue field
 
             sage: Frob._repr_short()
             'Frob'
@@ -198,14 +198,14 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
             sage: K.<a> = Qq(5^12)
             sage: Frob = K.frobenius_endomorphism()
             sage: Frob^2
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^2) on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^(5^2) on the residue field
 
         The result is simplified if possible::
 
             sage: Frob^15
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^3) on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^(5^3) on the residue field
             sage: Frob^36
-            Identity endomorphism of Unramified Extension ...
+            Identity endomorphism of 5-adic unramified extension ...
         """
         return self.__class__(self.domain(), self.power()*n)
 
@@ -218,18 +218,18 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
             sage: K.<a> = Qq(5^12)
             sage: f = K.frobenius_endomorphism(); f
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^5 on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^5 on the residue field
             sage: g = K.frobenius_endomorphism(2); g
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^2) on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^(5^2) on the residue field
             sage: f * g
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^3) on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^(5^3) on the residue field
 
         The result is simplified if possible::
 
             sage: f = K.frobenius_endomorphism(9)
             sage: g = K.frobenius_endomorphism(10)
             sage: f * g
-            Frobenius endomorphism on Unramified Extension ... lifting a |--> a^(5^7) on the residue field
+            Frobenius endomorphism on 5-adic unramified extension ... lifting a |--> a^(5^7) on the residue field
         """
         if isinstance(right,FrobeniusEndomorphism_padics):
             return self.__class__(self.domain(), self._power+right.power())

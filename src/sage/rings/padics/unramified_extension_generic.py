@@ -55,23 +55,8 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         self._res_field = GF(self.prime_pow.pow_Integer_Integer(poly.degree()), name = names[1], modulus = poly.change_ring(poly.base_ring().residue_field()))
 
-    def _repr_(self, do_latex = False):
-        r"""
-        Representation.
-
-        EXAMPLES::
-
-            sage: R.<a> = Zq(125); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
-            sage: latex(R) #indirect doctest
-            \mathbf{Z}_{5^{3}}
-        """
-        if do_latex:
-            if self.is_field():
-                return "\\mathbf{Q}_{%s^{%s}}" % (self.prime(), self.degree())
-            else:
-                return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
-        return "Unramified Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.prime()), self.prime(), "Field" if self.is_field() else "Ring")
+    def _extension_type(self):
+        return "unramified"
 
     def ramification_index(self, K = None):
         """

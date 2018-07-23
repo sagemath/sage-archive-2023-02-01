@@ -56,6 +56,22 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         self._res_field = GF(self.prime_pow.pow_Integer_Integer(poly.degree()), name = names[1], modulus = poly.change_ring(poly.base_ring().residue_field()))
 
     def _extension_type(self):
+        """
+        Return the type (``unramified``, ``Eisenstein``) of this 
+        extension as a string, if any.
+
+        Used for printing.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(5^3)
+            sage: K._extension_type()
+            'unramified'
+
+            sage: L.<pi> = Qp(5).extension(x^2 - 5)
+            sage: L._extension_type()
+            'Eisenstein'
+        """
         return "unramified"
 
     def ramification_index(self, K = None):

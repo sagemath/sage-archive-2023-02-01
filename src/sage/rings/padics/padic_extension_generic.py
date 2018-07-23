@@ -88,6 +88,22 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
 
     def _extension_type(self):
+        """
+        Return the type (``unramified``, ``Eisenstein``) of this 
+        extension as a string, if any. 
+
+        Used for printing.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(5^3)
+            sage: K._extension_type()
+            'unramified'
+
+            sage: L.<pi> = Qp(5).extension(x^2 - 5)
+            sage: L._extension_type()
+            'Eisenstein'
+        """
         return ""
 
     def _repr_(self, do_latex = False):

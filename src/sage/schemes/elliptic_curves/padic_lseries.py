@@ -1135,7 +1135,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L.series(4)         # takes a long time (several seconds)
             O(alpha) + (alpha^-2 + O(alpha^0))*T + (alpha^-2 + O(alpha^0))*T^2 + O(T^5)
             sage: L.alpha(2).parent()
-            Eisenstein Extension in alpha defined by x^2 + 3*x + 3 with capped relative precision 4 over 3-adic Field
+            3-adic Eisenstein extension Field in alpha defined by x^2 + 3*x + 3
 
         An example where we only compute the leading term (:trac:`15737`)::
 

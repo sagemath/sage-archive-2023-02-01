@@ -190,7 +190,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         n = AA.dimension_relative()
         if i is None:
             try:
-                i = self._default_embedding_index
+                return self._embedding_morphism
             except AttributeError:
                 i = int(n)
         else:

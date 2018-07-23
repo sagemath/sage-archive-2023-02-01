@@ -106,7 +106,7 @@ def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
     names = normalize_names(n, names)
     i = default_embedding_index
     if i is not None:
-        i = Integer(i)
+        i = int(i)
     if R in _Fields:
         if is_FiniteField(R):
             return AffineSpace_finite_field(n, R, names,
@@ -698,9 +698,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         n = self.dimension_relative()
         if i is None:
-            try:
+            if self._default_embedding_index is not None:
                 i = self._default_embedding_index
-            except AttributeError:
+            else:
                 i = int(n)
         else:
             i = int(i)

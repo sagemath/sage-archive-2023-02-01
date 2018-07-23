@@ -5367,7 +5367,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def class_number(self, proof=True):
         r"""
-        Returns the class number of the quadratic order with this discriminant.
+        Return the class number of the quadratic order with this discriminant.
 
         INPUT:
 
@@ -5375,7 +5375,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
           not a square
 
         - ``proof`` (boolean, default ``True``) -- if ``False`` then
-          for negative disscriminants a faster algorithm is used by
+          for negative discriminants a faster algorithm is used by
           the PARI library which is known to give incorrect results
           when the class group has many cyclic factors.
 

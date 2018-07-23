@@ -531,7 +531,7 @@ class TamariIntervalPoset(Element):
             return "\\draw[line width = " + str(latex_options["line_width"]) + ", color=" + latex_options["color_decreasing"] + "] (T" + str(i) + ") -- (T" + str(j) + ");\n"
 
         if self.size() == 0:
-            nodes = "\\node(T0) at (0,0){$\emptyset$};"
+            nodes = "\\node(T0) at (0,0){$\\emptyset$};"
             relations = ""
         else:
             positions = self._find_node_positions(hspace, vspace)

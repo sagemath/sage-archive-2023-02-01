@@ -649,7 +649,7 @@ class BinaryRecurrenceSequence(SageObject):
         #Thus, given such an `\\ell`, we get a set of necessary congruences for the index modulo the
         #the period of the sequence mod `\\ell`.  Then we intersect these congruences for many primes
         #to get a tight list modulo a growing modulus.  In order to keep this step manageable, we
-        #only use primes `\\ell` that are have particularly smooth periods.
+        #only use primes `\\ell` that have particularly smooth periods.
 
         #Some congruences in the list will remain as the modulus grows.  If a congruence remains through
         #7 rounds of increasing the modulus, then we check if this corresponds to a perfect power (if

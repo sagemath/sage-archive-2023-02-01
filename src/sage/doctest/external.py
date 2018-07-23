@@ -172,6 +172,19 @@ def has_octave():
     except Exception:
         return False
 
+def has_pandoc():
+    """
+    Test if pandoc is available.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.external import has_pandoc
+        sage: has_pandoc()      # optional -- pandoc
+        FeatureTestResult('Pandoc', True)
+    """
+    from sage.features.pandoc import Pandoc
+    return Pandoc().is_present()
+
 def has_scilab():
     """
     Test if Scilab is available.
@@ -231,7 +244,7 @@ def has_graphviz():
 
         sage: from sage.doctest.external import has_graphviz
         sage: has_graphviz()   # optional -- graphviz
-        True
+        FeatureTestResult('Graphviz', True)
     """
     from sage.features.graphviz import Graphviz
     return Graphviz().is_present()
@@ -244,7 +257,7 @@ def has_ffmpeg():
 
         sage: from sage.doctest.external import has_ffmpeg
         sage: has_ffmpeg()      # optional -- ffmpeg
-        True
+        FeatureTestResult('FFmpeg', True)
     """
     from sage.features.ffmpeg import FFmpeg
     return FFmpeg().is_present()
@@ -257,7 +270,7 @@ def has_imagemagick():
 
         sage: from sage.doctest.external import has_imagemagick
         sage: has_imagemagick() # optional -- imagemagick
-        True
+        FeatureTestResult('convert', True)
     """
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()
@@ -317,6 +330,7 @@ class AvailableSoftware(object):
          'mathematica',
          'matlab',
          'octave',
+         'pandoc',
          'scilab']
         sage: 'internet' in available_software # random
         True

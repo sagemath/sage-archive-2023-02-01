@@ -1134,19 +1134,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         return codomain(self) # since 1 |--> 1
 
-    def __str__(self):
-        """
-        Return the string representation of ``self``, see :meth:`str`.
-
-        EXAMPLES::
-
-            sage: print(RDF(-2/3))
-            -0.666666666667
-            sage: print(RDF(oo))
-            +infinity
-        """
-        return double_str(self._value)
-
     def str(self):
         """
         Return the informal string representation of ``self``.
@@ -1156,7 +1143,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF('4.5'); a.str()
             '4.5'
             sage: a = RDF('49203480923840.2923904823048'); a.str()
-            '4.92034809238e+13'
+            '49203480923840.29'
             sage: a = RDF(1)/RDF(0); a.str()
             '+infinity'
             sage: a = -RDF(1)/RDF(0); a.str()
@@ -1173,7 +1160,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: str(RR(RDF(0)/RDF(0))) == str(RDF(0)/RDF(0))
             True
         """
-        return double_str(self._value)
+        return double_repr(self._value)
 
     def __copy__(self):
         """
@@ -2904,11 +2891,3 @@ cdef double_repr(double x):
     if v < 0:
         return "-infinity"
     return "NaN"
-
-cdef double_str(double x):
-    """
-    Convert a double to an informal string.
-    """
-    if gsl_finite(x):
-        return str(x)
-    return double_repr(x)

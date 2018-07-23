@@ -1388,7 +1388,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
 
     @cached_method
     def fiber_generic(self):
-        """
+        r"""
         Return the generic fiber.
 
         OUTPUT:

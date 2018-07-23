@@ -581,7 +581,7 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
     .. PLOT::
 
-        P = sum([arrow2d((0,0), (cos(x*0.1),sin(x*0.1)), hue=x/(20*pi)) for x in range(0,20*pi+1)])
+        P = sum([arrow2d((0,0), (cos(x*0.1),sin(x*0.1)), hue=x/(20*pi)) for x in range(floor(20*pi)+1)])
         sphinx_plot(P)
 
     If we want to draw the arrow between objects, for example, the

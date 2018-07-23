@@ -48,7 +48,8 @@ Test deprecations::
 
 from __future__ import absolute_import, print_function
 
-from sage.misc.persist import _base_dumps, _base_save
+from sage.misc.persist import (_base_dumps, _base_save,
+                               register_unpickle_override, make_None)
 
 from sage.misc.lazy_import import LazyImport
 richcmp = LazyImport('sage.structure.richcmp', 'richcmp', deprecation=23103)
@@ -65,18 +66,24 @@ op_GE = LazyImport('sage.structure.richcmp', 'op_GE', deprecation=23103)
 
 
 # NOTE: These imports are just for backwards-compatibility
-# TODO: Add a deprecation on them once we have a ticket #
-loads = LazyImport('sage.misc.persist', 'loads')
-dumps = LazyImport('sage.misc.persist', 'dumps')
-save = LazyImport('sage.misc.persist', 'save')
-load = LazyImport('sage.misc.persist', 'load')
-unpickle_all = LazyImport('sage.misc.persist', 'unpickle_all')
-make_None = LazyImport('sage.misc.persist', 'make_None')
-unpickle_global = LazyImport('sage.misc.persist', 'unpickle_global')
-unpickle_override = LazyImport('sage.misc.persist', 'unpickle_override')
-register_unpickle_override = LazyImport('sage.misc.persist',
-                                        'register_unpickle_override',
-                                        at_startup=True)
+loads = LazyImport('sage.misc.persist', 'loads', deprecation=25153)
+dumps = LazyImport('sage.misc.persist', 'dumps', deprecation=25153)
+save = LazyImport('sage.misc.persist', 'save', deprecation=25153)
+load = LazyImport('sage.misc.persist', 'load', deprecation=25153)
+unpickle_all = LazyImport('sage.misc.persist', 'unpickle_all',
+                          deprecation=25153)
+unpickle_global = LazyImport('sage.misc.persist', 'unpickle_global',
+                             deprecation=25153)
+unpickle_override = LazyImport('sage.misc.persist', 'unpickle_override',
+                               deprecation=25153)
+
+
+# Generators is no longer used (#21382)
+register_unpickle_override('sage.structure.generators', 'make_list_gens',
+                           make_None)
+
+
+__all__ = ['SageObject']
 
 
 cdef class SageObject:
@@ -492,10 +499,22 @@ cdef class SageObject:
 
         EXAMPLES::
 
-            sage: O=SageObject(); O.dumps()
-            'x\x9ck`J.NLO\xd5+.)*M.)-\x02\xb2\x80\xdc\xf8\xfc\xa4\xac\xd4\xe4\x12\xae` \xdb\x1f\xc2,d\xd4l,d\xd2\x03\x00\xb7X\x10\xf1'
-            sage: O.dumps(compress=False)
-            '\x80\x02csage.structure.sage_object\nSageObject\nq\x01)\x81q\x02.'
+            sage: from sage.misc.persist import comp
+            sage: O = SageObject()
+            sage: p_comp = O.dumps()
+            sage: p_uncomp = O.dumps(compress=False)
+            sage: comp.decompress(p_comp) == p_uncomp
+            True
+            sage: import pickletools
+            sage: pickletools.dis(p_uncomp)
+                0: \x80 PROTO      2
+                2: c    GLOBAL     'sage.structure.sage_object SageObject'
+               41: q    BINPUT     ...
+               43: )    EMPTY_TUPLE
+               44: \x81 NEWOBJ
+               45: q    BINPUT     ...
+               47: .    STOP
+            highest protocol among opcodes = 2
         """
 
         return _base_dumps(self, compress=compress)
@@ -576,7 +595,7 @@ cdef class SageObject:
             sage: tester.assertTrue(1 == 0, "this is expected to fail")
             Traceback (most recent call last):
             ...
-            AssertionError: this is expected to fail
+            AssertionError:... this is expected to fail
 
             sage: tester.assertEqual(1, 1)
             sage: tester.assertEqual(1, 0)
@@ -631,7 +650,7 @@ cdef class SageObject:
                     tester.fail("Not implemented method: %s"%name)
                 except Exception:
                     pass
-        finally: 
+        finally:
             # Restore warnings
             warnings.filters.pop(0)
 
@@ -653,7 +672,8 @@ cdef class SageObject:
             sage: Bla()._test_pickling()
             Traceback (most recent call last):
             ...
-            PicklingError: Can't pickle <class '__main__.Bla'>: attribute lookup __main__.Bla failed
+            PicklingError: Can't pickle <class '__main__.Bla'>: attribute
+            lookup ... failed
 
         TODO: for a stronger test, this could send the object to a
         remote Sage session, and get it back.

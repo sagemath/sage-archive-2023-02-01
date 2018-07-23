@@ -518,17 +518,17 @@ class Function_polylog(GinacFunction):
 
             sage: BF = RealBallField(100)
             sage: polylog(2, BF(1/3))
-            [0.36621322997706348761674629766 +/- 4.51e-30]
+            [0.36621322997706348761674629766... +/- ...]
             sage: polylog(2, BF(4/3))
-            nan
+            [2.27001825336107090380391448586 +/- 5.64e-30] + [-0.90377988538400159956755721265 +/- 8.39e-30]*I
             sage: parent(_)
-            Real ball field with 100 bits of precision
+            Complex ball field with 100 bits of precision
             sage: polylog(2, CBF(1/3))
-            [0.366213229977063 +/- 5.85e-16]
+            [0.366213229977063 +/- ...]
             sage: parent(_)
             Complex ball field with 53 bits of precision
             sage: polylog(2, CBF(1))
-            [1.644934066848226 +/- 6.59e-16]
+            [1.644934066848226 +/- ...]
             sage: parent(_)
             Complex ball field with 53 bits of precision
         """

@@ -63,7 +63,6 @@ OPTIONAL_INSTALLED_PACKAGE_INSTS = \
 
 # All packages which should be downloaded
 SDIST_PACKAGES = @SAGE_SDIST_PACKAGES@
-SDIST_PACKAGE_INSTS = $(foreach pkgname,$(SDIST_PACKAGES),$(inst_$(pkgname)))
 
 SCRIPTS = @SAGE_SCRIPTS@
 

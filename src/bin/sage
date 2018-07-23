@@ -232,6 +232,8 @@ usage_advanced() {
     echo "File conversion:"
     echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
+    echo "  -ipynb2rst [...]    -- Generates a reStructuredText source file from"
+    echo "                         a Jupyter notebook (.ipynb)."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
@@ -775,6 +777,11 @@ if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     exec rst2ipynb --kernel=sagemath "$@"
 fi
 
+if [ "$1" = '-ipynb2rst' -o "$1" = '--ipynb2rst' ]; then
+    shift
+    exec sage-ipynb2rst "$@"
+fi
+
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then
     shift
     exec sage-rst2txt "$@"
@@ -998,8 +1005,11 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
+    # Redirect stdin from /dev/null. This helps with running TeX which
+    # tends to ask interactive questions if something goes wrong. These
+    # cause the build to hang. If stdin is /dev/null, TeX just aborts.
     shift
-    exec sage-python23 -m "sage_setup.docbuild" "$@"
+    exec sage-python23 -m sage_setup.docbuild "$@" </dev/null
 fi
 
 if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then

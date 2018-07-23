@@ -41,7 +41,8 @@ from sage.misc.all import tmp_filename
 from sage.rings.real_mpfr import RR
 from sage.rings.all import CC
 from sage.rings.integer import Integer
-from sage.plot.plot import line, point
+from sage.plot.line import line
+from sage.plot.point import point
 
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures = True):

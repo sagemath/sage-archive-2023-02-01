@@ -294,9 +294,10 @@ class HeisenbergAlgebra_fd(object):
             return None # Otherwise no coercion
         return super(HeisenbergAlgebra_fd, self)._coerce_map_from_(H)
 
+
 class HeisenbergAlgebra(HeisenbergAlgebra_fd, HeisenbergAlgebra_abstract,
                         LieAlgebraWithGenerators):
-    """
+    r"""
     A Heisenberg algebra defined using structure coefficients.
 
     The `n`-th Heisenberg algebra (where `n` is a nonnegative

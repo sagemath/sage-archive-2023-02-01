@@ -178,7 +178,7 @@ def hyperbolic_polygon(pts, **options):
 
 
 def hyperbolic_triangle(a, b, c, **options):
-    """
+    r"""
     Return a hyperbolic triangle in the hyperbolic plane with vertices ``(a,b,c)``.
 
     Type ``?hyperbolic_polygon`` to see all options.

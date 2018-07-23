@@ -329,7 +329,7 @@ class Ear(object):
         subgraph = g.subgraph(degree_two_vertices)
         for component in subgraph.connected_components():
             edges = g.edges_incident(vertices=component, labels=True)
-            all_vertices = list(sorted(set(sum([e[:2] for e in edges], ()))))
+            all_vertices = sorted(set(sum([e[:2] for e in edges], ())))
             if len(all_vertices) < 3:
                 continue
             end_points = [v for v in all_vertices if v not in component]

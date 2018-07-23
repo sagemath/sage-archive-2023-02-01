@@ -626,7 +626,7 @@ class AbelianStrata_gd(CombinatorialClass):
         if self._marked_separatrix == 'no':
             return "Abelian strata of genus %d surfaces and %d intervals" % (self._genus, self._nintervals)
         elif self._marked_separatrix == 'in':
-            return "Abelian strata of genus %d surfaces and %d intervals and a marked incoming ihorizontal separatrix" % (self._genus, self._nintervals)
+            return "Abelian strata of genus %d surfaces and %d intervals and a marked incoming horizontal separatrix" % (self._genus, self._nintervals)
         else:
             return "Abelian strata of genus %d surfaces and %d intervals and a marked outgoing horizontal separatrix" % (self._genus, self._nintervals)
 

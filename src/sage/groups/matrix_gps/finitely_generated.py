@@ -1201,7 +1201,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         for g in self:
             F += L(chi(g)) * poly(*g.matrix().change_ring(L)*poly_gens)
         F /= self.order()
-        try: # attempt to move F to base_ring of polyomial
+        try:  # attempt to move F to base_ring of polynomial
             F = F.change_ring(R)
         except (TypeError, ValueError):
             pass

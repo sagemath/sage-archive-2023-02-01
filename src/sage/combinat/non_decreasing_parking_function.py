@@ -196,7 +196,7 @@ class NonDecreasingParkingFunctions_all(InfiniteAbstractCombinatorialClass):
 
 
 class NonDecreasingParkingFunctions_n(CombinatorialClass):
-    """
+    r"""
     The combinatorial class of non-decreasing parking functions of
     size `n`.
 
@@ -225,7 +225,7 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
 
     AUTHORS:
 
-        - Florent Hivert
+    - Florent Hivert
     """
     def __init__(self, n):
         """
@@ -352,8 +352,9 @@ class NonDecreasingParkingFunctions_n(CombinatorialClass):
             yield NonDecreasingParkingFunction(res)
         return
 
+
 class NonDecreasingParkingFunction(CombinatorialObject):
-    """
+    r"""
     A *non decreasing parking function* of size `n` is a non-decreasing
     function `f` from `\{1,\dots,n\}` to itself such that for all `i`,
     one has `f(i) \leq i`.

@@ -317,6 +317,98 @@ can be applied on both. Here is what it can do:
 Methods
 -------
 """
+
+# ****************************************************************************
+#
+#       Copyright (C) 2010      Alexandre Blondin Masse <alexandre.blondin.masse at gmail.com>
+#                               Ben Edwards <bedwards@cs.unm.edu>
+#                               Carl Witty <cwitty@newtonlabs.com>
+#                               Gregory McWhirter <gmcwhirt@uci.edu>
+#                               Johan Sebastian Rosenkilde Nielsen <j.s.r.nielsen@mat.dtu.dk>
+#                               Minh Van Nguyen <nguyenminh2@gmail.com>
+#                               Mitesh Patel <qed777@gmail.com>
+#                               Sebastian Pancratz <sage@pancratz.org>
+#                               Tom Boothby <boothby@u.washington.edu>
+#                     2010-2011 Robert L. Miller <rlm@rlmiller.org>
+#                               Fidel Barrera-Cruz <fidel.barrera@gmail.com>
+#                               Leif Leonhardy <not.really@online.de>
+#                               Rob Beezer <beezer@ups.edu>
+#                     2010-2012 Dmitrii Pasechnik <dimpase@gmail.com>
+#                               Jason Grout <jason-sage@creativetrax.com>
+#                     2010-2013 Burcin Erocal <burcin@erocal.org>
+#                     2010-2014 Mike Hansen <mhansen@gmail.com>
+#                     2010-2015 Nicolas M. Thiery <nthiery@users.sf.net>
+#                     2010-2016 Nathann Cohen <nathann.cohen@gmail.com>
+#                     2010-2017 J. H. Palmieri <palmieri@math.washington.edu>
+#                     2010-2018 Christian Stump <christian.stump@univie.ac.at>
+#                               Vincent Delecroix <20100.delecroix at gmail.com>
+#                     2011      Anne Schilling <anne@math.ucdavis.edu>
+#                               Diego de Estrada <destrada@dc.uba.ar>
+#                               Eviatar Bach <eviatarbach@gmail.com>
+#                               Geoffrey Ehrman <gehrman@gmail.com>
+#                               Ivan Andrus <darthandrus@gmail.com>
+#                               Michael Orlitzky <michael@orlitzky.com>
+#                     2011-2012 Lukas Lansky <lansky@kam.mff.cuni.cz>
+#                     2011-2013 Robert Miller <rlm@rlmiller.org>
+#                     2011-2015 André Apitzsch <andre.apitzsch@st.ovgu.de>
+#                               Andrey Novoseltsev <novoselt@gmail.com>
+#                     2011-2018 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2012      Dan Drake <drake@kaist.edu>
+#                               Javier López Peña <vengoroso@gmail.com>
+#                               Karl-Dieter Crisman <kcrisman@gmail.com>
+#                               Keshav Kini <keshav.kini@gmail.com>
+#                               Lauren Keough <s-lkeough1@math.unl.edu>
+#                               Nathan Carter <ncarter@bentley.edu>
+#                               Punarbasu Purkayastha <ppurka@gmail.com>
+#                               Stefano Leucci <leucci.stefano@gmail.com>
+#                     2012-2013 Frederic Chapoton <chapoton at math.univ-lyon1.fr>
+#                     2012-2015 Jernej Azarija <jernej.azarija@gmail.com>
+#                                Volker Braun <vbraun.name@gmail.com>
+#                     2012-2018 Julian Rueth <julian.rueth@gmail.com>
+#                     2013      Alexandre Prusch Züge <alexandrezuge@gmail.com>
+#                               Austin Roberts <austinis@math.washington.edu>
+#                               Birk Eisermann <eisermbi@fastmail.fm>
+#                               Uros Slana <urossla@gmail.com>
+#                     2013-2014 R. Andrew Ohana <andrew.ohana@gmail.com>
+#                               Simon King <simon.king@uni-jena.de>
+#                     2013-2018 Darij Grinberg <darijgrinberg@gmail.com>
+#                               Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2014      Emmanuel Charpentier <emm.charpentier@free.fr>
+#                               Erick Matsen <matsen@fhcrc.org>
+#                               Erik Massop <e.massop@hccnet.nl>
+#                               Florian Oosterhof <f.m.oosterhof@student.tue.nl>
+#                               Jean-Pierre Flori <jean-pierre.flori@ssi.gouv.fr>
+#                               Ralf Stephan <ralf@ark.in-berlin.de>
+#                               Robert Lipshitz <lipshitz@math.columbia.edu>
+#                               Thierry Monteil <sage@lma.metelu.net>
+#                     2014-2015 Wilfried Luebbe <wluebbe@gmail.com>
+#                     2014-2017 Travis Scrimshaw <tscrim at ucdavis.edu>
+#                     2014-2018 David Coudert <david.coudert@inria.fr>
+#                               Jori Mäntysalo <jori.mantysalo@uta.fi>
+#                     2015      David Einstein <deinst@gmail.com>
+#                               François Bissey <francois.bissey@canterbury.ac.nz>
+#                               Michele Borassi <michele.borassi@imtlucca.it>
+#                               Sergios Lenis <sergioslenis@gmail.com>
+#                     2015-2016 Janoš Vidali <janos.vidali@fmf.uni-lj.si>
+#                     2015-2018 Dima Pasechnik <dimpase@gmail.com>
+#                     2016      Jeremias Epperlein <jeremias.epperlein@gmail.com>
+#                               Marco Cognetta <cognetta.marco@gmail.com>
+#                               Peleg Michaeli <freepeleg@gmail.com>
+#                     2016-2018 Sébastien Labbé <slabqc@gmail.com>
+#                     2017      Emile Nadeau <nadeau.emile@gmail.com>
+#                               John Cremona <john.cremona@gmail.com>
+#                               Lokesh Jain <lokeshj1703@gmail.com>
+#                               Zachary Gershkoff <zgershkoff@gmail.com>
+#                     2017-2018 Moritz Firsching <moritz@math.fu-berlin.de>
+#                     2018      Erik M. Bray <erik.bray@lri.fr>
+#                               Meghana M Reddy <mreddymeghana@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function, absolute_import, division
 from six.moves import range, zip
 from six import itervalues, iteritems, integer_types
@@ -376,18 +468,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         for k,v in iteritems(state):
             self.__dict__[k] = v
-        from sage.graphs.base.graph_backends import NetworkXGraphBackend
-        if isinstance(self._backend, NetworkXGraphBackend):
-            from sage.misc.superseded import deprecation
-            deprecation(1000,"You unpickled an object which relies on an old "
-                        "data structure. Save it again to update it, for it "
-                        "may break in the future.")
-            g = self._backend._nxg
-            if g.is_directed():
-                from sage.graphs.digraph import DiGraph as constructor
-            else:
-                from sage.graphs.graph   import Graph   as constructor
-            self._backend = constructor(g)._backend
 
     def __add__(self, other):
         """
@@ -1793,7 +1873,7 @@ class GenericGraph(GenericGraph_pyx):
     am = adjacency_matrix # shorter call makes life easier
 
     def incidence_matrix(self, oriented=None, sparse=True):
-        """
+        r"""
         Return the incidence matrix of the (di)graph.
 
         Each row is a vertex, and each column is an edge. The vertices as
@@ -4609,7 +4689,7 @@ class GenericGraph(GenericGraph_pyx):
         #        raise ValueError('modified graph %s is not planar.  Try specifying an external face'%self)
 
         # Triangulate the graph
-        extra_edges = _triangulate( G, G._embedding)
+        _triangulate(G, G._embedding)
 
         # Optional error-checking
         if test:
@@ -7413,7 +7493,7 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(p.sum( weight(l)*E(u,v) for u,v,l in g.edge_iterator()) )
 
         try:
-            obj = p.solve(log=verbose)
+            p.solve(log=verbose)
             f = p.get_values(f)
             tsp.add_vertices(g.vertices())
             tsp.set_pos(g.get_pos())
@@ -7949,7 +8029,6 @@ class GenericGraph(GenericGraph_pyx):
         if (algorithm == "FF"):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
         elif (algorithm == 'igraph'):
-            import igraph
             vertices = self.vertices()
             x_int = vertices.index(x)
             y_int = vertices.index(y)
@@ -7964,7 +8043,6 @@ class GenericGraph(GenericGraph_pyx):
                 return maxflow.value
             else:
                 from sage.graphs.digraph import DiGraph
-                igraph_flow = iter(maxflow.flow)
                 flow_digraph = DiGraph()
                 if self.is_directed():
                     for e in g_igraph.es():
@@ -8612,7 +8690,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MIPSolverException
 
         try:
-            obj=p.solve(log = verbose)
+            p.solve(log=verbose)
         except MIPSolverException:
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("The multiflow problem has no solution")
@@ -12506,11 +12584,10 @@ class GenericGraph(GenericGraph_pyx):
 
             # We build the list of integers defining the circulant graph, and
             # add it to the list.
-            parameters = []
             cycle = cycles[0]
             u = cycle[0]
-            integers = [i for i,v in enumerate(cycle) if self.has_edge(u,v)]
-            certif_list.append((self.order(),integers))
+            integers = [i for i, v in enumerate(cycle) if self.has_edge(u, v)]
+            certif_list.append((self.order(), integers))
 
         if not certificate:
             return False
@@ -12674,7 +12751,7 @@ class GenericGraph(GenericGraph_pyx):
 
     def is_gallai_tree(self):
         r"""
-        Returns whether the current graph is a Gallai tree.
+        Return whether the current graph is a Gallai tree.
 
         A graph is a Gallai tree if and only if it is
         connected and its `2`-connected components are all
@@ -12712,6 +12789,15 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.add_edges([(-1,c[0]) for c in g.connected_components()])
             sage: g.is_gallai_tree()
             True
+
+        TESTS:
+
+        Check that :trac:`25613` is fixed::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.add_edge(0,5)
+            sage: g.is_gallai_tree()
+            True
         """
         self._scream_if_not_simple()
         if not self.is_connected():
@@ -12719,8 +12805,8 @@ class GenericGraph(GenericGraph_pyx):
 
         for c in self.blocks_and_cut_vertices()[0]:
             gg = self.subgraph(c)
-            #                    is it an odd cycle ?              a complete graph ?
-            if not ( (len(c)%2 == 1 and gg.size() == len(c)+1) or gg.is_clique() ):
+            #       is it an odd cycle ?              a complete graph ?
+            if not ((len(c) % 2 and gg.size() == len(c)) or gg.is_clique()):
                 return False
 
         return True
@@ -13124,18 +13210,18 @@ class GenericGraph(GenericGraph_pyx):
              6: 1/3, 7: 1/3, 8: 0, 9: 1/3, 10: 1/3, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(weight=True)
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0,
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0,
             3: 0.3333333333333333, 4: 0.3333333333333333,
             5: 0.3333333333333333, 6: 0.3333333333333333,
-            7: 0.3333333333333333, 8: 0.0, 9: 0.3333333333333333,
-            10: 0.3333333333333333, 11: 0.0}
+            7: 0.3333333333333333, 8: 0, 9: 0.3333333333333333,
+            10: 0.3333333333333333, 11: 0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2])
             {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
 
             sage: (graphs.FruchtGraph()).clustering_coeff(nodes=[0,1,2],
             ....:   weight=True)
-            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0.0}
+            {0: 0.3333333333333333, 1: 0.3333333333333333, 2: 0}
 
             sage: (graphs.GridGraph([5,5])).clustering_coeff(nodes=[(0,0),(0,1),(2,2)])
             {(0, 0): 0.0, (0, 1): 0.0, (2, 2): 0.0}
@@ -14586,20 +14672,14 @@ class GenericGraph(GenericGraph_pyx):
                 G = self.networkx_graph(copy=False)
             G.add_nodes_from(self.vertices())
 
+            degree = self.out_degree if self.is_directed() else self.degree
             if vert is None:
-                closeness = networkx.closeness_centrality(G,vert,
-                                                          distance = 'weight'
-                                                          if by_weight
-                                                          else None)
-                return {v:c for v,c in iteritems(closeness) if c != 0}
+                closeness = networkx.closeness_centrality(G, vert, reverse=True, distance = 'weight' if by_weight else None)
+                return {v:c for v,c in iteritems(closeness) if degree(v) != 0}
             closeness = {}
-            degree = self.out_degree if self.is_directed else self.degree
             for x in v_iter:
                 if degree(x) != 0:
-                    closeness[x] = networkx.closeness_centrality(G, x,
-                                                             distance = 'weight'
-                                                             if by_weight
-                                                             else None)
+                    closeness[x] = networkx.closeness_centrality(G, x, reverse=True, distance='weight' if by_weight else None)
             if onlyone:
                 return closeness.get(vert, None)
             else:
@@ -17874,7 +17954,7 @@ class GenericGraph(GenericGraph_pyx):
         Here is the list of all the available layout options::
 
             sage: from sage.graphs.graph_plot import layout_options
-            sage: for key, value in list(sorted(layout_options.items())):
+            sage: for key, value in sorted(layout_options.items()):
             ....:     print("option {} : {}".format(key, value))
             option by_component : Whether to do the spring layout by connected component -- a boolean.
             option dim : The dimension of the layout -- 2 or 3.
@@ -18187,9 +18267,6 @@ class GenericGraph(GenericGraph_pyx):
             use_embedding = True
         except ValueError:
             use_embedding = False
-
-        n = self.order()
-        vertices = self.vertices()
 
         if tree_root is None:
             root = self.center()[0]
@@ -18605,7 +18682,7 @@ class GenericGraph(GenericGraph_pyx):
         EXAMPLES::
 
             sage: from sage.graphs.graph_plot import graphplot_options
-            sage: list(sorted(graphplot_options.items()))
+            sage: sorted(graphplot_options.items())
             [...]
 
             sage: from math import sin, cos, pi
@@ -19443,7 +19520,8 @@ class GenericGraph(GenericGraph_pyx):
         graph should be laid out so that edges starting from ``1`` are
         going backward (e.g. going up instead of down)::
 
-            sage: def edge_options((u,v,label)):
+            sage: def edge_options(data):
+            ....:     u, v, label = data
             ....:     return { "backward": u == 1 }
             sage: print(G.graphviz_string(edge_options = edge_options))  # random
             digraph {
@@ -19472,7 +19550,8 @@ class GenericGraph(GenericGraph_pyx):
 
         We now test all options::
 
-            sage: def edge_options((u,v,label)):
+            sage: def edge_options(data):
+            ....:     u, v, label = data
             ....:     options = { "color": { f: "red", g: "blue" }[label] }
             ....:     if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
             ....:     if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"
@@ -21034,7 +21113,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`16210`::
 
-            sage: g=graphs.CycleGraph(10)
+            sage: g = graphs.CycleGraph(10)
             sage: g.allow_loops(True)
             sage: g.add_edge(0,0)
             sage: g.is_hamiltonian()
@@ -21042,9 +21121,8 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            tsp = self.traveling_salesman_problem(use_edge_labels = False)
+            self.traveling_salesman_problem(use_edge_labels=False)
             return True
-
         except EmptySetError:
             return False
 

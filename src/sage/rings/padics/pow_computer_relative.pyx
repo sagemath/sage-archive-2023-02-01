@@ -47,12 +47,14 @@ cdef class PowComputer_relative(PowComputer_class):
         sage: R.<a> = ZqFM(25)
         sage: S.<x> = R[]
         sage: f = x^3 - 5*x - 5*a
-        sage: PC = PowComputer_relative_maker(3, 20, 20, 60, False, f, 'fixed-mod')
+        sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+        sage: PC = PowComputer_relative_maker(3, 20, 20, 60, False, f, shift_seed, 'fixed-mod')
 
     TESTS::
 
         sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative
         sage: isinstance(PC, PowComputer_relative)
+        True
 
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed):
@@ -60,7 +62,11 @@ cdef class PowComputer_relative(PowComputer_class):
         TESTS::
 
             sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
-            sage: PC = PowComputer_relative_maker(3, 20, 20, 60, False, f, 'fixed-mod')
+            sage: R.<a> = ZqFM(25)
+            sage: S.<x> = R[]
+            sage: f = x^3 - 5*x - 5*a
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(3, 20, 20, 60, False, f, shift_seed, 'fixed-mod')
 
         """
         self.__allocated = 4
@@ -72,7 +78,8 @@ cdef class PowComputer_relative(PowComputer_class):
             sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
             sage: R.<a> = ZqFM(25)
             sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
-            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, 'fixed-mod') # indirect doctest
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod') # indirect doctest
             sage: TestSuite(PC).run()
 
         """
@@ -89,6 +96,7 @@ cdef class PowComputer_relative(PowComputer_class):
 
         self.base_ring = poly.base_ring()
         self.poly_ring = poly.parent()
+        self._shift_seed = shift_seed
 
     def __dealloc__(self):
         r"""
@@ -98,7 +106,8 @@ cdef class PowComputer_relative(PowComputer_class):
             sage: R.<a> = ZqFM(25)
             sage: S.<x> = R[]
             sage: f = x^3 - 5*x - 5*a
-            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, 'fixed-mod')
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod')
             sage: del PC
 
         """
@@ -113,11 +122,12 @@ cdef class PowComputer_relative(PowComputer_class):
             sage: R.<a> = ZqFM(25)
             sage: S.<x> = R[]
             sage: f = x^3 - 5*x - 5*a
-            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, 'fixed-mod') # indirect doctest
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod') # indirect doctest
             sage: loads(dumps(PC)) == PC
-
+            True
         """
-        return PowComputer_relative_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec_cap, self.in_field, self.polynomial(), self._prec_type)
+        return PowComputer_relative_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec_cap, self.in_field, self.polynomial(), self._shift_seed, self._prec_type)
 
     def _repr_(self):
         r"""
@@ -126,11 +136,12 @@ cdef class PowComputer_relative(PowComputer_class):
         EXAMPLES::
 
             sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
-            sage: R.<a> = ZqFM(25)
+            sage: R.<a> = ZqFM(25,print_pos=False,show_prec=False)
             sage: S.<x> = R[]
-            sage: f = x^3 - 5*x - 5*a
-            sage: PowComputer_relative_maker(5, 20, 20, 60, False, f, 'fixed-mod') # indirect doctest
-            Relative PowComputer for modulus x^3 - 5*x - 5*a
+            sage: f = x^3 + 5*x + 5*a
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod') # indirect doctest
+            Relative PowComputer for modulus x^3 + 5*x + 5*a
 
         """
         return "Relative PowComputer for modulus %s"%(self.modulus,)
@@ -153,7 +164,8 @@ cdef class PowComputer_relative(PowComputer_class):
             sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
             sage: R.<a> = ZqFM(25)
             sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
-            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, 'fixed-mod') # indirect doctest
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod') # indirect doctest
             sage: PC.polynomial() is f
             True
 
@@ -169,33 +181,34 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_eis
-        sage: R.<x> = ZZ[]
-        sage: f = x^3 - 25*x + 5
-        sage: PC = PowComputer_relative_eis(5, 20, 20, 60, False, f)
+        sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_eis, PowComputer_relative_maker
+        sage: R.<a> = ZqFM(25)
+        sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
+        sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+        sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod')
 
     TESTS::
 
-        sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_eis
         sage: isinstance(PC, PowComputer_relative_eis)
+        True
 
     """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed):
         r"""
         TESTS::
 
-            sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_eis
-            sage: R.<x> = ZZ[]
-            sage: f = x^3 - 25*x + 5
-            sage: A = PowComputer_relative_eis(5, 20, 20, 60, False, f)
-            sage: TestSuite(A).run()
+            sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
+            sage: R.<a> = ZqFM(25)
+            sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod')
+            sage: TestSuite(PC).run()
 
         """
         PowComputer_relative.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
 
         self.e = self.modulus.degree()
         self.f = 1
-        self._shift_seed = shift_seed
 
     cdef Polynomial_generic_dense invert(self, Polynomial_generic_dense a, long prec):
         r"""
@@ -214,14 +227,24 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         EXAMPLES::
 
-            sage: TODO: invert something
+            sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
+            sage: R.<a> = ZqFM(25)
+            sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
+            sage: W.<w> = R.ext(f)
+            sage: g = 1 + 2*w; ginv = ~g
+            sage: ginv
+            sage: shift_seed = (-f[:3] // 5).change_ring(R.exact_ring())
+            sage: PC = PowComputer_relative_maker(5, 20, 20, 60, False, f, shift_seed, 'fixed-mod')
+            sage: g = 1 + 2*x
+            sage: ginv = PC.invert(g, 5); ginv
+           
 
         """
         # TODO: At the moment, we use an xgcd. We should use Newton iterations
         # instead to make this faster.
-        K = self.base_ring.fraction_field()
+        K = self.base_ring.change(field=True)
         Qpmodulus = self.modulus.change_ring(K)
-        one, _, b = Qpmodulus.xgcd(a)
+        one, _, b = Qpmodulus.xgcd(a.change_ring(K))
         if not one.is_one():
             raise ValueError("element has no inverse")
         return b.change_ring(self.base_ring)
@@ -365,5 +388,6 @@ def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_fi
 
     """
     PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
+    # We have to set this here because the signature of __cinit__ in PowComputer_base doesn't allow for prec_type to be passed.
     PC._prec_type = prec_type
     return PC

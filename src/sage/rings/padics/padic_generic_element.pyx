@@ -2973,7 +2973,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 if b == 0: break
                 E = list(b.expansion())
                 for i in range(e - curprec):
-                    print i, E[i]
                     if i % 2 == 0:
                         try:
                             cbar = k(E[i]).sqrt(extend=False)

@@ -271,7 +271,7 @@ REFERENCES:
                  A. Schilling, M. Yip. *A minimaj-preserving crystal on ordered
                  multiset partitions*.
                  Advances in Applied Math. 95 (2018) 96-115,
-                 :doi:`10.1016/j.aam.2017.11.006`
+                 :doi:`10.1016/j.aam.2017.11.006`. :arXiv:`1707.08709v2`.
 
 .. [BCM15] Michele Borassi, Pierluigi Crescenzi, and Andrea Marino,
            Fast and Simple Computation of Top-k Closeness Centralities.
@@ -1411,7 +1411,7 @@ REFERENCES:
 
 .. [HRS2016] \J. Haglund, B. Rhoades, M. Shimozono. *Ordered set partitions,
              generalized coinvariant algebras, and the Delta Conjecture*.
-             Preprint, :arxiv:`1609.07575`.of an ordered multiset partition
+             Preprint, :arxiv:`1609.07575`.
 
 .. [HRT2000] \R.B. Howlett, L.J. Rylands, and D.E. Taylor.
              *Matrix generators for exceptional groups of Lie type*.

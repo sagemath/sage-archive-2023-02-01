@@ -105,7 +105,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def _extension_type(self):
         """
-        Return the type (``unramified``, ``Eisenstein``) of this 
+        Return the type (``Unramified``, ``Eisenstein``) of this 
         extension as a string, if any. 
 
         Used for printing.

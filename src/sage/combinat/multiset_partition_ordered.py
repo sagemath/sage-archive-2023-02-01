@@ -83,12 +83,9 @@ from sage.rings.integer_ring import ZZ
 from sage.functions.other import binomial
 from sage.calculus.var import var
 
-from sage.combinat.words.word import Word
 from sage.combinat.subset import Subsets_sk
-from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.permutation import Permutations_mset
-from sage.combinat.partition import RegularPartitions_n
 from sage.combinat.integer_lists.invlex import IntegerListsLex
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -101,9 +98,9 @@ class OrderedMultisetPartition(ClonableArray):
     r"""
     Ordered Multiset Partition
 
-    An ordered multiset partition `c` of a multiset `X` is a list
+    An *ordered multiset partition* `c` of a multiset `X` is a list
     `[c_1, \ldots, c_r]` of nonempty subsets of `X` (note: not
-    sub-multisets), called the blocks of `c`, whose multi-union is `X`.
+    sub-multisets), called the *blocks* of `c`, whose multi-union is `X`.
 
     EXAMPLES:
 
@@ -119,7 +116,7 @@ class OrderedMultisetPartition(ClonableArray):
 
     You can also create an ordered multiset partition `c` from a list of positive
     integers and from a list of nonnegative integers, using the parent's
-    `.from_list` method. In the former case, each integer is given its own block
+    ``.from_list`` method. In the former case, each integer is given its own block
     of `c`. In the latter case, zeros separate the blocks of `c`::
 
         sage: OrderedMultisetPartitions().from_list([i for i in range(2,5)])
@@ -282,7 +279,7 @@ class OrderedMultisetPartition(ClonableArray):
         r"""
         Starting from the standard Sage string representation of ``self``
         as a list `[A_1, \ldots, A_r]` of sets, return the shorter string
-        gotten by deleting spaces within ``rpr(A_i)``.
+        gotten by deleting spaces within ``repr(A_i)``.
 
         EXAMPLES::
 
@@ -479,6 +476,8 @@ class OrderedMultisetPartition(ClonableArray):
             sage: D = OrderedMultisetPartitions().from_list('abc0ab0a0bcf0cd')
             sage: D.max_letter()
             'f'
+            sage: C = OrderedMultisetPartition([])
+            sage: C.max_letter()
         """
         if not self.letters():
             return None
@@ -576,7 +575,7 @@ class OrderedMultisetPartition(ClonableArray):
         w = self._weight
         if as_weak_comp:
             if all(v in ZZ for v in w):
-                w = [w.get(i, 0) for i in range(1,self.max_letter()+1)]
+                w = [w.get(i, 0) for i in range(1, self.max_letter()+1)]
             else:
                 raise ValueError("%s is not a numeric multiset"%w)
         return w
@@ -614,7 +613,7 @@ class OrderedMultisetPartition(ClonableArray):
             ....:      for k in range(1, 5) )
             True
         """
-        P = OrderedMultisetPartitions(alphabet=self.letters(),max_length=self.length())
+        P = OrderedMultisetPartitions(alphabet=self.letters(), max_length=self.length())
         out = []
         for c in IntegerListsLex(self.length(), length=k):
             ps = [sum(c[:i]) for i in range(k+1)]
@@ -626,14 +625,14 @@ class OrderedMultisetPartition(ClonableArray):
         Return a dictionary representing the `k`-splittings of ``self``.
 
         A `k`-tuple `(A^1, \ldots, A^k)` of ordered multiset partitions represents
-        a `k`-splitting of an ordered multiset partition `A=[b_1, \ldots, b_r]` if
-        one can express each block `b_i` as an (ordered) disjoint union of sets
+        a `k`-splitting of an ordered multiset partition `A = [b_1, \ldots, b_r]`
+        if one can express each block `b_i` as an (ordered) disjoint union of sets
         `b_i = b^1_i \sqcup \cdots \sqcup b^k_i` (some possibly empty) so that
         each `A^j` is the ordered multiset partition corresponding to the list
         `[b^j_1, b^j_2, \ldots, b^j_r]`, excising empty sets appearing therein.
 
         This operation represents the coproduct in Hopf algebra of ordered multiset
-        partitions in its natural basis [LM]_.
+        partitions in its natural basis [LM2018]_.
 
         EXAMPLES::
 
@@ -660,7 +659,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C.split(3) == {(C, C, C): 1}
             True
         """
-        P = OrderedMultisetPartitions(alphabet=self.letters(),max_length=self.length())
+        P = OrderedMultisetPartitions(alphabet=self.letters(), max_length=self.length())
 
         # corner case
         if not self:
@@ -669,7 +668,7 @@ class OrderedMultisetPartition(ClonableArray):
             out = {}
             tmp = cartesian_product([_split_block(block, k) for block in self])
             for t in tmp:
-                tt = tuple([P([k for k in c if len(k)>0]) for c in zip(*t)])
+                tt = tuple([P([l for l in c if len(k)>0]) for c in zip(*t)])
                 out[tt] = out.get(tt,0) + 1
             return out
 

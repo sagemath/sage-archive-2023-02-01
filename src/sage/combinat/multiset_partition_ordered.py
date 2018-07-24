@@ -673,7 +673,6 @@ class OrderedMultisetPartition(ClonableArray):
         `A` whose blocks are deconcatenations of blocks of `B`. (Here, we view
         blocks of `B` as sorted lists instead of sets.)
 
-
         EXAMPLES::
 
             sage: C = OrderedMultisetPartition([[3,2]]).finer()
@@ -1072,12 +1071,12 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     r"""
     Ordered Multiset Partitions
 
-    An ordered multiset partition `c` of a multiset `X` is a list of nonempty subsets
+    An *ordered multiset partition* `c` of a multiset `X` is a list of nonempty subsets
     (not multisets), called the *blocks* of `c`, whose multi-union is `X`.
 
     The number of blocks of `c` is called its *length*. The *order* of `c` is the
     cardinality of the multiset `X`. If, additionally, `X` is a multiset of positive
-    integers, then the *size* of `c` represents the sum of all elements of `X`.
+    integers, then the *size* of `c` is the sum of all elements of `X`.
 
     The user may wish to focus on ordered multiset partitions of a given size, or
     over a given alphabet. Hence, this class allows a variety of arguments as input.
@@ -1086,7 +1085,8 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
     Expects one or two arguments, with different behaviors resulting:
     - One Argument:
-        + `X` -- a dictionary (representing a multiset for `c`),
+        + `X` -- a dictionary or list or tuple
+                 (representing a multiset for `c`),
                  or an integer (representing the size of `c`)
     - Two Arguments:
         + `alph` -- a list (representing allowable letters within blocks of `c`),
@@ -2178,7 +2178,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         # construct "an element" by breaking the first fat block of `co` in two
         elt = []
         for i in range(len(co)):
-            if len(co[i])==1:
+            if len(co[i]) == 1:
                 elt.append(co[i])
             else:
                 break
@@ -2226,8 +2226,11 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             sage: O = OrderedMultisetPartitions([1, 1, 'a'])
             sage: it = O.__iter__()
             sage: sorted([next(it) for _ in range(O.cardinality())], key=str)
-            [[{1,'a'}, {1}], [{1}, {'a'}, {1}], [{1}, {1,'a'}],
-             [{1}, {1}, {'a'}], [{1}, {1}, {'a'}]]
+            [[{'a'}, {1}, {1}],
+             [{1,'a'}, {1}],
+             [{1}, {'a'}, {1}],
+             [{1}, {1,'a'}],
+             [{1}, {1}, {'a'}]]
             sage: O = OrderedMultisetPartitions([1, 1, 2])
             sage: it = O.__iter__()
             sage: [next(it) for _ in range(O.cardinality())]
@@ -2720,11 +2723,11 @@ def _iterator_size(size, length=None, alphabet=None):
     r"""
     An iterator for the ordered multiset partitions of integer `n`.
 
-    The degree `n` part of ordered multiset partition contains all sequences of
+    The degree `n` part of ordered multiset partitions contains all sequences of
     subsets of `\NN_+` whose total sum adds up to `n`.
 
     If optional argument ``alphabet`` is given, it should be a ``Set`` object.
-    Then only yield those `c` with all letters taken from ``alphabet``
+    Then only yield those `c` with all letters taken from ``alphabet``.
 
     TESTS::
 

@@ -2237,8 +2237,11 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             sage: O = OrderedMultisetPartitions([1, 1, 'a'])
             sage: it = O.__iter__()
             sage: [next(it) for _ in range(O.cardinality())]
-            [[{1}, {'a'}, {1}], [{1,'a'}, {1}], [{1}, {1}, {'a'}],
-             [{1}, {1,'a'}], [{1}, {1}, {'a'}]]
+            [[{1}, {1}, {'a'}],
+             [{1}, {1,'a'}],
+             [{1}, {'a'}, {1}],
+             [{1,'a'}, {1}],
+             [{'a'}, {1}, {1}]]
 
             sage: O = OrderedMultisetPartitions([1, 1, 2])
             sage: it = O.__iter__()

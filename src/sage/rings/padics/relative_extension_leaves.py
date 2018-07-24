@@ -25,7 +25,7 @@ from .pow_computer_relative import PowComputer_relative_maker
 class pAdicRelativeBaseringInjection(Morphism):
     def __init__(self, R, S):
         if not R.is_field() or S.is_field():
-            Morphism.__init__(self, Hom(R, S, R.category()))
+            Morphism.__init__(self, Hom(R, S))
         else:
             from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
             Morphism.__init__(self, Hom(R, S, SetsWithPartialMaps()))
@@ -106,6 +106,8 @@ class RelativeRamifiedExtensionFieldCappedRelative(EisensteinExtensionGeneric, p
         from .relative_ramified_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
         self.register_coercion(pAdicCoercion_ZZ_CR(self))
         self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        # We also want to convert down to the ring of integers: this is used in teichmuller expansion
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring().integer_ring(), self))
         self.register_coercion(pAdicCoercion_QQ_CR(self))
 
 class RelativeRamifiedExtensionRingFloatingPoint(EisensteinExtensionGeneric, pAdicFloatingPointRingGeneric):
@@ -132,5 +134,7 @@ class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pA
         from .relative_ramified_FP import pAdicCoercion_ZZ_FP, pAdicCoercion_QQ_FP
         self.register_coercion(pAdicCoercion_ZZ_FP(self))
         self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring(), self))
+        # We also want to convert down to the ring of integers: this is used in teichmuller expansion
+        self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring().integer_ring(), self))
         self.register_coercion(pAdicCoercion_QQ_FP(self))
 

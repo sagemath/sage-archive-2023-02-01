@@ -20,6 +20,24 @@ class ElementWithLabel:
     For hashing and equality testing the resulting object behaves
     like a tuple ``(element, label)``.
     For any presentation purposes it appears just as ``label`` would.
+
+    EXAMPLES::
+
+        sage: P = Poset({1: [2,3]})
+        sage: labs = {i: P.rank(i) for i in range(1, 4)}
+        sage: print(labs)
+        {1: 0, 2: 1, 3: 1}
+        sage: print(P.plot(element_labels=labs))
+        Graphics object consisting of 6 graphics primitives
+
+        sage: from sage.misc.element_with_label import ElementWithLabel
+        sage: W = WeylGroup("A2")
+        sage: P = W.bruhat_poset(facade=True)
+        sage: D = W.domain()
+        sage: v = D.rho() - D.fundamental_weight(2)
+        sage: nP = P.relabel(lambda w: ElementWithLabel(w, w.action(v)))
+        sage: list(nP)
+        [(1, 0, 0), (0, 1, 0), (1, 0, 0), (0, 0, 1), (0, 1, 0), (0, 0, 1)]
     """
     def __init__(self, element, label):
         """
@@ -99,7 +117,7 @@ class ElementWithLabel:
             sage: d = {}
             sage: d[a] = 'element 1'
             sage: d[b] = 'element 2'
-            sage: d
+            sage: print(d)
             {'a': 'element 1', 'b': 'element 2'}
             sage: a = ElementWithLabel("a", [2,3])
             sage: hash(a)

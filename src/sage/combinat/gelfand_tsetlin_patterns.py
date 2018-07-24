@@ -53,8 +53,10 @@ from sage.combinat.partition import Partitions
 from sage.combinat.tableau import Tableau, SemistandardTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.misc.all import prod
+from sage.structure.richcmp import richcmp, richcmp_method
 
 
+@richcmp_method
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class GelfandTsetlinPattern(ClonableArray):
     r"""
@@ -183,6 +185,54 @@ class GelfandTsetlinPattern(ClonableArray):
             False
         """
         return hash(tuple(map(tuple, self)))
+
+    def __richcmp__(self, other, op):
+        r"""
+        Compare ``self`` to ``other``.
+
+        .. TODO::
+
+            This overwrites the comparison check of
+            :class:`~sage.structure.list_clone.ClonableList`
+            in order to circumvent the coercion framework.
+            This is the same fix as currently used in
+            :class:`~sage.combinat.tableau.Tableau`.
+
+            For now, this compares two elements by their underlying
+            data by comparing them to tuples of tuples.
+
+        INPUT:
+
+        ``other`` -- the element that ``self`` is compared to
+
+        OUTPUT:
+
+        A Boolean.
+
+        TESTS::
+
+            sage: t = GelfandTsetlinPattern([[1]])
+            sage: t == 0
+            False
+            sage: t == GelfandTsetlinPattern([[1]])
+            True
+
+        Check that :trac:`25919` is fixed::
+
+            sage: t = GelfandTsetlinPattern([[1]])
+            sage: u = GelfandTsetlinPatterns()[1]
+            sage: v = GelfandTsetlinPatterns(top_row=(1,))[0]
+            sage: t == u
+            True
+            sage: t == v
+            True
+            sage: u == v
+            True
+        """
+        if isinstance(other, GelfandTsetlinPattern):
+            other = tuple(map(tuple, other))
+
+        return richcmp(tuple(map(tuple, self)), other, op)
 
     def _repr_diagram(self):
         """

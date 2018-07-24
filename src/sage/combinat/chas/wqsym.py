@@ -6,6 +6,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2018-04-09): initial implementation
 - Darij Grinberg and Amy Pang (2018-04-12): further bases and methods
+- Aaron Lauve (2018-07-24): allowed for indexing by (packed) words
 
 TESTS:
 
@@ -71,6 +72,8 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
                                          OrderedSetPartitions(),
                                          category=WQSymBases(alg, graded),
                                          bracket="", prefix=self._prefix)
+        self.options = alg.options
+        self.indexed_by_words = alg.indexed_by_words
 
     def _repr_term(self, osp):
         r"""
@@ -298,8 +301,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
-    The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and
-    is implemented as
+    (While ordered set partitions are used internally to index this
+    Hopf algebra, input as packed words is available using the optional
+    ``indexed_by_words`` argument; see examples below.)
+    The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and is
+    implemented as
     :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Monomial`.
 
     Other bases are the cone basis (aka C basis), the characteristic
@@ -379,6 +385,37 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
          - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
 
+    Implementation as packed words::
+
+        sage: wWQSym = algebras.WQSym(ZZ, indexed_by_words=True)
+        setting display options to words, (self).options.objects = 'words'
+        sage: wWQSym
+        Word Quasi-symmetric functions indexed by packed words over Integer Ring
+        sage: wM = wWQSym.M()
+        sage: wx = wM[1,2,3] + 3*wM[2,1]  # this is ``x`` in ``M`` above
+        sage: wx.antipode()
+        3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
+         - M[2, 2, 1] - M[3, 2, 1]
+
+    The display options are global, and hence have been modified for
+    all instances of ``WordQuasiSymmetricFunctions``. These can be reset
+    using the method ``.options._reset()``::
+
+        sage: x
+        3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
+         - M[2, 2, 1] - M[3, 2, 1]
+        sage: M.options._reset() # also resets display options for ``wM``
+        sage: x
+        3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
+         - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
+        sage: wx
+        3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
+         - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
+        sage: wx == x
+        False
+        sage: wx in M
+        False
+
     TESTS::
 
         sage: M = WordQuasiSymmetricFunctions(QQ).M()
@@ -392,7 +429,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
         - Dendriform structure.
     """
-    def __init__(self, R):
+    def __init__(self, R, indexed_by_words=False):
         """
         Initialize ``self``.
 
@@ -400,9 +437,23 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: A = algebras.WQSym(QQ)
             sage: TestSuite(A).run()  # long time
+
+            sage: M = algebras.WQSym(ZZ).M()
+            sage: M[1,1], M[1,1] == M[[1,1]] == M[1] == M[[1]]
+            (M[{1}], True)
+            sage: wM = algebras.WQSym(ZZ, indexed_by_words=True).M()
+            setting display options to words, (self).options.objects = 'words'
+            sage: wM[1,1], wM[1,1] == wM[[1,1]]
+            (M[1, 1], True)
+            sage: M[[1,2]].leading_support() == wM[1,1].leading_support()
+            True
         """
         category = HopfAlgebras(R).Graded().Connected()
         Parent.__init__(self, base=R, category=category.WithRealizations())
+        self.indexed_by_words = indexed_by_words
+        if indexed_by_words:
+            print("setting display options to words, (self).options.objects = 'words'")
+            self.options.objects = "words"
 
     def _repr_(self):
         """
@@ -413,7 +464,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: algebras.WQSym(QQ)  # indirect doctest
             Word Quasi-symmetric functions over Rational Field
         """
-        return "Word Quasi-symmetric functions over {}".format(self.base_ring())
+        if self.indexed_by_words:
+            pw = "indexed by packed words "
+        else:
+            pw = ""
+        return "Word Quasi-symmetric functions {}over {}".format(pw, self.base_ring())
 
     def a_realization(self):
         r"""
@@ -535,9 +590,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                  + M[{4, 5}, {6}, {1}, {2, 3}]
                 sage: A.product_on_basis(y, y)
                 M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}] + M[{3, 4}, {1, 2}]
+                sage: B = algebras.WQSym(QQ, indexed_by_words=True).M()
+                setting display options to words, (self).options.objects = 'words'
+                sage: B.product_on_basis(y, y)
+                ???
 
             TESTS::
 
+                sage: A.product_on_basis(y, y)
+                M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}] + M[{3, 4}, {1, 2}]
                 sage: one = OrderedSetPartition([])
                 sage: all(A.product_on_basis(one, z) == A(z) == A.basis()[z] for z in OrderedSetPartitions(3))
                 True
@@ -1792,8 +1853,6 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     Phi = StronglyFiner
 
-WQSymBasis_abstract.options = WordQuasiSymmetricFunctions.options
-
 class WQSymBases(Category_realization_of_parent):
     r"""
     The category of bases of `WQSym`.
@@ -1891,21 +1950,44 @@ class WQSymBases(Category_realization_of_parent):
 
             - ``p`` -- an ordered set partition
 
-            EXAMPLES::
+            EXAMPLES:
+
+            Using ordered set partitions::
 
                 sage: M = algebras.WQSym(QQ).M()
-                sage: M[[1, 3, 2]]
+                sage: x = M[[1, 3, 2]]; x
                 M[{1, 2, 3}]
+                sage: x.leading_support()
+                [{1, 2, 3}]
                 sage: M[[1,3],[2]]
                 M[{1, 3}, {2}]
                 sage: M[OrderedSetPartition([[2],[1,4],[3,5]])]
                 M[{2}, {1, 4}, {3, 5}]
+
+            Using packed words::
+
+                sage: wM = algebras.WQSym(QQ, indexed_by_words=True).M()
+                setting display options to words, (self).options.objects = 'words'
+                sage: wx = wM[[1, 3, 2]]; wx
+                M[1, 3, 2]
+                sage: wx.leading_support()
+                [{1}, {3}, {2}]
+                sage: wM[Word([2, 1, 3, 2, 3])]
+                M[2, 1, 3, 2, 3]
+                sage: _.leading_support()
+                [{2}, {1, 4}, {3, 5}]
             """
-            try:
-                indx = OrderedSetPartition(p)
-            except TypeError:
-                indx = OrderedSetPartition([p])
-            return self.monomial(self._indices(indx))
+            if self.indexed_by_words: # set within ``WQSymBasis_abstract``
+                try:
+                    indx = OrderedSetPartitions().from_finite_word(p)
+                except (TypeError, ValueError):
+                    indx = OrderedSetPartitions().from_finite_word([p])
+            else:
+                try:
+                    indx = self._indices(p)
+                except (TypeError, ValueError):
+                    indx = self._indices([p])
+            return self.monomial(indx)
 
         def is_field(self, proof=True):
             """

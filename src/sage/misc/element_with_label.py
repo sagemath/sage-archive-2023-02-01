@@ -18,17 +18,8 @@ class ElementWithLabel:
     Auxiliary class for showing/viewing :class:`Poset`s with
     non-injective labelings.
     For hashing and equality testing the resulting object behaves
-    like ``element``.
+    like a tuple ``(element, label)``.
     For any presentation purposes it appears just as ``label`` would.
-
-    TESTS::
-
-    sage: P = Poset({1: [2,3]})
-    sage: labs = {i: P.rank(i) for i in range(1, 4)}
-    sage: print(labs)
-    {1: 0, 2: 1, 3: 1}
-    sage: print(P.plot(element_labels=labs))
-    Graphics object consisting of 6 graphics primitives
     """
     def __init__(self, element, label):
         """
@@ -98,7 +89,7 @@ class ElementWithLabel:
     def __hash__(self):
         """
         Return the hash of the labeled element ``self``,
-        which is just the hash of ``self.element``
+        which is constructed from hashes of both constituents.
 
         TESTS::
 
@@ -109,48 +100,49 @@ class ElementWithLabel:
             sage: d[a] = 'element 1'
             sage: d[b] = 'element 2'
             sage: d
-            {'a': 'element 2'}
+            {'a': 'element 1', 'b': 'element 2'}
             sage: a = ElementWithLabel("a", [2,3])
             sage: hash(a)
-            12416037344
-            sage: hash("a")
-            12416037344
+            1853891946828512984
         """
-        return hash(self.element)
+        try:
+            return hash((hash(self.element), hash(self.label)))
+        except TypeError:
+            return hash((repr(self.element), repr(self.label)))
 
     def __eq__(self, other):
         """
-        Two labeled elements are equal if and only if their
-        elements are equal.
+        Two labeled elements are equal if and only if both of their
+        constituents are equal.
 
         TESTS::
 
             sage: from sage.misc.element_with_label import ElementWithLabel
             sage: a = ElementWithLabel(1, 'a')
             sage: b = ElementWithLabel(1, 'b')
-            sage: x = ElementWithLabel(2, 'a')
+            sage: x = ElementWithLabel(1, 'a')
             sage: a == b
-            True
-            sage: a == x
             False
+            sage: a == x
+            True
         """
-        return self.element == other.element
+        return self.element == other.element and self.label == other.label
 
     def __ne__(self, other):
         """
-        Two labeled elements are not equal if and only if 
-        the elements they are wrapping are not equal.
+        Two labeled elements are not equal if and only if first or second
+        constituents are not equal.
 
         TESTS::
 
             sage: from sage.misc.element_with_label import ElementWithLabel
             sage: a = ElementWithLabel(1, 'a')
             sage: b = ElementWithLabel(1, 'b')
-            sage: x = ElementWithLabel(2, 'a')
+            sage: x = ElementWithLabel(1, 'a')
             sage: a != b
-            False
-            sage: a != x
             True
+            sage: a != x
+            False        
         """
         return not(self == other)
 

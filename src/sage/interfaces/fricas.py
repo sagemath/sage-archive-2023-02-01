@@ -1007,7 +1007,7 @@ class FriCASElement(ExpectElement):
             {{\log \left( {{e+1}} \right)} \  {\sin \left( {{y+x}} \right)}} \over {{e} ^{z}}
 
             sage: latex(fricas("matrix([[1,2],[3,4]])"))                        # optional - fricas
-            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4 \end{array}  \right]
+            \left[ \begin{array}{cc} 1 & 2 \\ 3 & 4\end{array} \right]
 
             sage: latex(fricas("integrate(sin(x+1/x),x)"))                      # optional - fricas
             \int ^{\displaystyle x} {{\sin \left( {{{{{ \%O} ^{2}}+1} \over  \%O}} \right)} \  {d \%O}}
@@ -1017,7 +1017,7 @@ class FriCASElement(ExpectElement):
                         ('\sb ', '_'),
                         ('\sb{', '_{')]
         P = self._check_valid()
-        s = P.get_string("first tex(%s)" %self._name)
+        s = P.get_string("latex(%s)" %self._name)
         for old, new in replacements:
             s = s.replace(old, new)
         return s
@@ -1181,13 +1181,51 @@ class FriCASElement(ExpectElement):
             sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
             193.020947266268 - 8.73114913702011e-11*I
 
+        Check conversions of sums and products::
+
+            sage: var("k, m, n")                                                # optional - fricas
+            (k, m, n)
+            sage: fricas("sum(1/factorial(k), k=1..n)").sage()                  # optional - fricas
+            sum(1/factorial(_BZ), _BZ, 1, n)
+            sage: fricas("eval(sum(x/k, k=1..n), x=k)").sage()                  # optional - fricas
+            k*harmonic_number(n)
+            sage: fricas("product(1/factorial(k), k=1..n)").sage()              # optional - fricas
+            1/product(factorial(_CH), _CH, 1, n)
+
+            sage: f = fricas.guess([sum(1/k, k,1,n) for n in range(10)])[0]; f  # optional - fricas
+             n - 1
+              --+       1
+              >      -------
+              --+    s   + 1
+            s   = 0   10
+             10
+
+            sage: f.sage()                                                      # optional - fricas
+            harmonic_number(n)
+
+            sage: f = fricas.guess([0, 1, 3, 9, 33])[0]; f                      # optional - fricas
+                    s  - 1
+            n - 1    5
+             --+    ++-++
+             >       | |    p  + 2
+             --+     | |     4
+            s  = 0  p  = 0
+             5       4
+
+            sage: f.sage()                                                      # optional - fricas
+            sum(factorial(_CK + 1), _CK, 0, n - 1)
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol
         from sage.symbolic.all import I
         from sage.functions.log import dilog
+        from sage.misc.functional import symbolic_sum, symbolic_prod
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+        # in the following two, seg is "equation(var, lo, high)"
+        register_symbol(lambda f,seg: symbolic_sum(f, *(seg.operands())), {'fricas':'sum'})
+        register_symbol(lambda f,seg: symbolic_prod(f, *(seg.operands())), {'fricas':'product'})
 
         def explicitely_not_implemented(*args):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %args)
@@ -1207,7 +1245,8 @@ class FriCASElement(ExpectElement):
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
                         ('::Symbol', ' '),
-                        ('%', '_')] # this last one is a workaround - python does not allow % in variable names
+                        ('..', ','), # .. is a FriCAS infix function for creating segments
+                        ('%', '_')] # python does not allow % in variable names (note that FriCAS allows _)
         for old, new in replacements:
             s = s.replace(old, new)
 

@@ -277,6 +277,7 @@ cdef class CRElement(pAdicTemplateElement):
                 self.ordp += diff
                 check_ordp(self.ordp)
                 self.relprec -= diff
+                creduce(self.unit, self.unit, self.relprec, self.prime_pow)
 
     def __dealloc__(self):
         """

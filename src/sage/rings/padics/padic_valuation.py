@@ -927,7 +927,7 @@ class pAdicValuation_padic(pAdicValuation_base):
         v = QQ(v)
         if v not in self.value_semigroup():
             raise ValueError("%r is not in the value semigroup of %r"%(v, self))
-        v = ZZ(v * self.domain().ramification_index())
+        v = ZZ(v * self.domain().absolute_e())
         return self.domain().one() << v
 
     def _repr_(self):

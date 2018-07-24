@@ -209,8 +209,9 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         self.e = self.modulus.degree()
         self.f = 1
+        self._inv_shift_seed = self.invert(shift_seed, self.ram_prec_cap)
 
-    cdef Polynomial_generic_dense invert(self, Polynomial_generic_dense a, long prec):
+    cpdef Polynomial_generic_dense invert(self, Polynomial_generic_dense a, long prec):
         r"""
         Return the inverse of ``a``.
 
@@ -242,12 +243,21 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         """
         # TODO: At the moment, we use an xgcd. We should use Newton iterations
         # instead to make this faster.
+        k = self.base_ring.residue_field()
+        a0 = k(a[0])
+        if a0.is_zero():
+            raise ValueError("element has no inverse")
         K = self.base_ring.change(field=True)
         Qpmodulus = self.modulus.change_ring(K)
-        one, _, b = Qpmodulus.xgcd(a.change_ring(K))
-        if not one.is_one():
-            raise ValueError("element has no inverse")
-        return b.change_ring(self.base_ring)
+        Qpa = a.change_ring(K)
+        R = Qpa.parent()
+        inv = R([~a0])
+        curprec = 1
+        while curprec < prec:
+            inv = 2*inv - inv**2 * Qpa
+            curprec *= 2
+            inv = inv % Qpmodulus
+        return inv.change_ring(self.base_ring)
 
     @cached_method
     def px_pow(self, r):
@@ -257,7 +267,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         INPUT:
 
-        - ``r`` -- a non-negative integer
+        - ``r`` -- an integer with 0 <= r < e
 
         OUTPUT:
 
@@ -272,19 +282,10 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
             raise ValueError("r must be non-negative")
         elif r == 0:
             return self.poly_ring(self.base_ring.uniformizer())
-        elif r < self.e:
-            # Split modulus in half:
-            # modulus = -p*c + π^r*d, where c and d are integral polynomials, and c has unit const term.
-            # Then p/π^r = d/c.
-            R = self.modulus.parent()
-            c = R(self._shift_seed.list()[:r])
-            d = R(self.modulus.list()[r:])
-            c_inverse = self.invert(c, self.ram_prec_cap)
-            return (d*c_inverse) % self.modulus
-        elif r == self.e:
-            return self.invert(self._shift_seed, self.ram_prec_cap)
-        else:
+        elif r >= self.e:
             raise NotImplementedError
+        else:
+            return (self._inv_shift_seed << (self.e-r)) % self.modulus
 
     @cached_method
     def pxe_pow(self, r):
@@ -310,7 +311,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
         elif r == 0:
             return self.poly_ring.one()
         elif r == 1:
-            return self.px_pow(self.e)
+            return self._inv_shift_seed
         elif r%2:
             return (self.pxe_pow(r-1) * self.pxe_pow(1)) % self.modulus
         else:

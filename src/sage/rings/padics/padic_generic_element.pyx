@@ -1612,7 +1612,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R(1/2).ordp()
             0
         """
-        return self.valuation(p) / self.parent().ramification_index()
+        return self.valuation(p) / self.parent().absolute_e()
 
     def rational_reconstruction(self):
         r"""
@@ -1753,7 +1753,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if alpha<=0:
             raise ValueError('Input value (=%s) must be 1 in the residue field' % self)
 
-        e=R.ramification_index()
+        e=R.absolute_e()
         p=R.prime()
 
         # we sum all terms of the power series of log into total
@@ -2356,7 +2356,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         R=self.parent()
         p=self.parent().prime()
-        e=self.parent().ramification_index()
+        e=self.parent().absolute_e()
         x_unit=self.unit_part()
         p_unit=R(p).unit_part().lift_to_precision()
         x_val=self.valuation()
@@ -2708,7 +2708,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         p = self.parent().prime()
 
-        if (p-1)*self.valuation() <= self.parent().ramification_index():
+        if (p-1)*self.valuation() <= self.parent().absolute_e():
             raise ValueError('Exponential does not converge for that input.')
 
         # The optimal absolute precision on exp(self)

@@ -397,7 +397,7 @@ cdef class pAdicPrinter_class(SageObject):
         elif mode == 'terse':
             self.mode = terse
         elif mode == 'digits':
-            if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.inertia_degree() != 1):
+            if len(self.alphabet) < self.prime_pow.prime or (not self.base and ring.absolute_f() != 1):
                 raise ValueError("digits printing mode only usable for totally ramified extensions with p at most the length of the alphabet (default 62).  Try using print_mode = 'bars' instead.")
             else:
                 self.mode = digits

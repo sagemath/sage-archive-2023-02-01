@@ -7,7 +7,7 @@ cdef class RelativeRamifiedCappedRelativeElement(CRElement):
         Return the underlying polynomial representation of the element
         (which is used for computations).
 
-        For debug purpose.
+        For debugging and printing purpose.
 
         EXAMPLES::
 

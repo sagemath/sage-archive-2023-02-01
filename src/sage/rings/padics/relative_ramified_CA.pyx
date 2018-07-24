@@ -7,7 +7,7 @@ cdef class RelativeRamifiedCappedAbsoluteElement(CAElement):
         Return the underlying polynomial representation of this element 
         (which is used for computations).
 
-        For debug purpose.
+        For debugging and printing purpose.
 
         EXAMPLES::
 

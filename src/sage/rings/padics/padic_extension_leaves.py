@@ -214,12 +214,12 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
             sage: R.<a> = QqCR(27)
             sage: R.coerce_map_from(ZqCR(27,names='a')) # indirect doctest
             Ring morphism:
-              From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Ring
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+              From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
             sage: R.coerce_map_from(ZqCA(27,names='a')) # indirect doctest
             Ring morphism:
-              From: Unramified Extension in a defined by x^3 + 2*x + 1 with capped absolute precision 20 over 3-adic Ring
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with capped relative precision 20 over 3-adic Field
+              From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
         """
         if isinstance(R, UnramifiedExtensionRingCappedRelative) and R.fraction_field() is self:
            from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field
@@ -467,8 +467,8 @@ class UnramifiedExtensionFieldFloatingPoint(UnramifiedExtensionGeneric, pAdicFlo
             sage: R.<a> = QqFP(27)
             sage: R.coerce_map_from(ZqFP(27,names='a')) # indirect doctest
             Ring morphism:
-              From: Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Ring
-              To:   Unramified Extension in a defined by x^3 + 2*x + 1 with floating precision 20 over 3-adic Field
+              From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
         """
         if isinstance(R, UnramifiedExtensionRingFloatingPoint) and R.fraction_field() is self:
             from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field

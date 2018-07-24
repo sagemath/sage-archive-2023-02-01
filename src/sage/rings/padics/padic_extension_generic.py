@@ -287,15 +287,16 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def is_normal(self):
     #    raise NotImplementedError
 
-
-    def defining_polynomial(self, exact=False):
+    def defining_polynomial(self, var=None, exact=False):
         """
         Returns the polynomial defining this extension.
 
         INPUT:
 
+        - ``var`` -- string (default: ``'x'``), the name of the variable
+
         - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
-                       defining polynomial rather than the one with coefficients in the base ring.
+        defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -308,15 +309,22 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.defining_polynomial(exact=True)
             x^5 + 75*x^3 - 15*x^2 + 125*x - 5
 
+            sage: W.defining_polynomial(var='y', exact=True)
+            y^5 + 75*y^3 - 15*y^2 + 125*y - 5
+
         .. SEEALSO::
 
             :meth:`modulus`
             :meth:`exact_field`
         """
         if exact:
-            return self._exact_modulus
+            ans = self._exact_modulus
         else:
-            return self._given_poly
+            ans = self._given_poly
+        if var is None:
+            return ans
+        else:
+            return ans.change_variable_name(var)
 
     def exact_field(self):
         r"""
@@ -392,7 +400,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             :meth:`defining_polynomial`
             :meth:`exact_field`
         """
-        return self.defining_polynomial(exact)
+        return self.defining_polynomial(exact=exact)
 
     def ground_ring(self):
         """

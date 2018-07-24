@@ -915,7 +915,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertIs(l.parent(), self)
             tester.assertGreater(l.valuation(), 0)
             if self.is_capped_absolute() or self.is_capped_relative():
-                tester.assertEqual(x.precision_relative(), l.precision_absolute())
+                if self.absolute_e() == 1:
+                    tester.assertEqual(l.precision_absolute(), x.precision_relative())
+                else:
+                    tester.assertLessEqual(l.precision_absolute(), x.precision_relative())
 
         if self.is_capped_absolute() or self.is_capped_relative():
             # In the fixed modulus setting, rounding errors may occur
@@ -1331,7 +1334,7 @@ class ResidueLiftingMap(Morphism):
             #unram_n = (self._n - 1) // R.absolute_e() + 1
             unram_n = self._n
             if K.absolute_degree() == 1:
-                lift = K.element_class(R, x, unram_n)
+                lift = K._element_constructor_(x, unram_n)
             else:
                 lift = K(x.polynomial().list(), unram_n)
             return R(lift, self._n)

@@ -668,7 +668,7 @@ class OrderedMultisetPartition(ClonableArray):
             out = {}
             tmp = cartesian_product([_split_block(block, k) for block in self])
             for t in tmp:
-                tt = tuple([P([l for l in c if len(k)>0]) for c in zip(*t)])
+                tt = tuple([P([l for l in c if len(l)>0]) for c in zip(*t)])
                 out[tt] = out.get(tt,0) + 1
             return out
 

@@ -114,22 +114,6 @@ class OrderedMultisetPartition(ClonableArray):
         sage: OrderedMultisetPartition([set([i]) for i in range(2,5)])
         [{2}, {3}, {4}]
 
-    You can also create an ordered multiset partition `c` from a list of positive
-    integers and from a list of nonnegative integers, using the parent's
-    ``.from_list`` method. In the former case, each integer is given its own block
-    of `c`. In the latter case, zeros separate the blocks of `c`::
-
-        sage: OrderedMultisetPartitions().from_list([i for i in range(2,5)])
-        [{2}, {3}, {4}]
-        sage: OrderedMultisetPartitions().from_list([1, 0, 1, 3, 5, 0, 2, 1])
-        [{1}, {1,3,5}, {1,2}]
-        sage: OrderedMultisetPartitions().from_list([1, 1, 0, 3, 5, 0, 2, 1])
-        Traceback (most recent call last):
-        ...
-        ValueError: ordered multiset partitions do not have repeated entries
-        within blocks ([[1, 1], [3, 5], [2, 1]] received)
-
-
     REFERENCES:
 
     - [HRW2015]_
@@ -146,9 +130,9 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: OrderedMultisetPartition([[3], [2,1]])
             [{3}, {1,2}]
-            sage: c = OrderedMultisetPartitions().from_list([2, 3, 4, 5]); c
+            sage: c = OrderedMultisetPartitions()([{2}, {3}, {4}, {5}]); c
             [{2}, {3}, {4}, {5}]
-            sage: d = OrderedMultisetPartition([{1}, {5, 1, 3}, {2, 1}]); d
+            sage: d = OrderedMultisetPartitions((1,1,1,2,3,5))([{1}, {5, 1, 3}, {2, 1}]); d
             [{1}, {1,3,5}, {1,2}]
 
         TESTS::
@@ -192,16 +176,12 @@ class OrderedMultisetPartition(ClonableArray):
             sage: TestSuite(d).run()
 
             sage: OMPs = OrderedMultisetPartitions()
-            sage: d = OMPs.from_list('abc0ab0a')
+            sage: d = OMPs([['a','b','c'],['a','b'],['a']])
             sage: TestSuite(d).run()
 
             sage: c.size() == 7
             True
             sage: d.size() == None
-            True
-            sage: OMPs.from_list([1,2,3,1]) == OMP([[1],[2],[3],[1]])
-            True
-            sage: OMPs.from_list([1,2,3,0,1]) == OMP([[1,2,3],[1]])
             True
         """
         if len(args) == 1:
@@ -210,14 +190,18 @@ class OrderedMultisetPartition(ClonableArray):
             parent = args[0]
         # Delte empty blocks
         co = [block for block in args[-1] if block]
-        ClonableArray.__init__(self, parent, [frozenset(list(k)) for k in co])
-        self._multiset = _get_multiset(co)
-        self._weight = _get_weight(self._multiset)
-        self._order = sum([len(block) for block in self])
-        if all((a in ZZ and a > 0) for a in self._multiset):
-            self._n = ZZ(sum(self._multiset))
+        if _has_nonempty_sets(co):
+            ClonableArray.__init__(self, parent, [frozenset(list(k)) for k in co])
+            self._multiset = _get_multiset(co)
+            self._weight = _get_weight(self._multiset)
+            self._order = sum([len(block) for block in self])
+            if all((a in ZZ and a > 0) for a in self._multiset):
+                self._n = ZZ(sum(self._multiset))
+            else:
+                self._n = None
         else:
-            self._n = None
+            raise ValueError("cannot view %s as an ordered partition of %s"%(co, parent._Xtup))
+
 
     def check(self):
         """
@@ -249,7 +233,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: A = OrderedMultisetPartitions().from_list([4,0,1,2,4,0,2,3,0,1])
+            sage: A = OrderedMultisetPartition([[4],[1,2,4],[2,3], [1]])
             sage: A._repr_()
             '[{4}, {1,2,4}, {2,3}, {1}]'
         """
@@ -283,7 +267,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: A = OrderedMultisetPartitions().from_list([4,0,1,2,4,0,2,3,0,1])
+            sage: A = OrderedMultisetPartition([[4], [1,2,4], [2,3], [1]])
             sage: A._repr_normal()
             '[{4}, {1, 2, 4}, {2, 3}, {1}]'
             sage: A._repr_tight()
@@ -327,7 +311,7 @@ class OrderedMultisetPartition(ClonableArray):
             False
             sage: OMP_n(mu) == OMP_n([{1}, {3}])
             False
-            sage: OMP_n(mu) == OMP_X.from_list([1,0,1,2])
+            sage: OMP_n(mu) == OMP_X([[1], [1,2]])
             True
         """
         if not isinstance(y, OrderedMultisetPartition):
@@ -386,7 +370,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: C = OrderedMultisetPartitions().from_list([1, 0, 1, 3, 0, 2, 3, 4]); C
+            sage: C = OrderedMultisetPartition([[1], [1, 3], [2, 3, 4]]); C
             [{1}, {1,3}, {2,3,4}]
             sage: C.reversal()
             [{2,3,4}, {1,3}, {1}]
@@ -399,7 +383,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: C = OrderedMultisetPartitions().from_list([3, 4, 1, 0, 2, 0, 1, 2, 3, 7]); C
+            sage: C = OrderedMultisetPartition([[3, 4, 1], [2], [1, 2, 3, 7]]); C
             [{1,3,4}, {2}, {1,2,3,7}]
             sage: C.shape_from_cardinality()
             [3, 1, 4]
@@ -473,7 +457,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: C = OrderedMultisetPartition([[3, 4, 1], [2], [1, 2, 3, 7]])
             sage: C.max_letter()
             7
-            sage: D = OrderedMultisetPartitions().from_list('abc0ab0a0bcf0cd')
+            sage: D = OrderedMultisetPartition([['a','b','c'],['a','b'],['a'],['b','c','f'],['c','d']])
             sage: D.max_letter()
             'f'
             sage: C = OrderedMultisetPartition([])
@@ -506,7 +490,7 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: OrderedMultisetPartition([]).size() == 0
             True
-            sage: OrderedMultisetPartitions().from_list('ab0abc').size() is None
+            sage: OrderedMultisetPartition([['a','b'],['a','b','c']]).size() is None
             True
         """
         return self._n
@@ -564,7 +548,7 @@ class OrderedMultisetPartition(ClonableArray):
             sage: OrderedMultisetPartition([]).weight() == {}
             True
 
-            sage: c = OrderedMultisetPartitions().from_list('ab0abc0b0b0c')
+            sage: c = OrderedMultisetPartition([['a','b'],['a','b','c'],['b'],['b'],['c']])
             sage: c.weight()
             {'a': 2, 'b': 4, 'c': 2}
             sage: c.weight(as_weak_comp=True)
@@ -590,23 +574,23 @@ class OrderedMultisetPartition(ClonableArray):
 
         .. NOTE::
 
-            This is not to be confused with ``self.split()``, which splits each block
+            This is not to be confused with ``self.split_blocks()``, which splits each block
             of ``self`` before making `k`-tuples of ordered multiset partitions.
 
         EXAMPLES::
 
-            sage: OrderedMultisetPartition([[7,1],[3]]).deconcatenate()
-            {([{1,7}], [{3}]), ([], [{1,7}, {3}]), ([{1,7}, {3}], [])}
-            sage: OrderedMultisetPartitions().from_list('bc0a').deconcatenate()
+            sage: sorted(OrderedMultisetPartition([[7,1],[3,4,5]]).deconcatenate())
+            [([], [{1,7}, {3,4,5}]), ([{1,7}], [{3,4,5}]), ([{1,7}, {3,4,5}], [])]
+            sage: OrderedMultisetPartition([['b','c'],['a']]).deconcatenate()
             {([], [{'b','c'}, {'a'}]), ([{'b','c'}, {'a'}], []), ([{'b','c'}], [{'a'}])}
-            sage: OrderedMultisetPartitions().from_list('abc0').deconcatenate(3)
+            sage: OrderedMultisetPartition([['a','b','c']]).deconcatenate(3)
             {([{'a','b','c'}], [], []),
              ([], [{'a','b','c'}], []),
              ([], [], [{'a','b','c'}])}
 
         TESTS::
 
-            sage: C = OrderedMultisetPartitions().from_list('abcde'); C
+            sage: C = OrderedMultisetPartition([['a'],['b'],['c'],['d'],['e']]); C
             [{'a'}, {'b'}, {'c'}, {'d'}, {'e'}]
             sage: all( C.deconcatenate(k).cardinality()
             ....:      == binomial(C.length() + k-1, k-1)
@@ -620,7 +604,7 @@ class OrderedMultisetPartition(ClonableArray):
             out.append(tuple([P(self[ps[i]:ps[i+1]]) for i in range(len(ps)-1)]))
         return Set(out)
 
-    def split(self, k=2):
+    def split_blocks(self, k=2):
         r"""
         Return a dictionary representing the `k`-splittings of ``self``.
 
@@ -636,10 +620,13 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: sorted(OrderedMultisetPartition([[1,2],[4]]).split())
-            [([], [{1,2}, {4}]), ([{2}], [{1}, {4}]), ([{1}], [{2}, {4}]),
+            sage: sorted(OrderedMultisetPartition([[1,2],[3,4]]).split())
+            [([], [{1,2}, {3,4}]), ([{2}], [{1}, {3,4}]), ([{1}], [{2}, {4}]),
              ([{1}, {4}], [{2}]), ([{1,2}, {4}], []), ([{4}], [{1,2}]),
-             ([{2}, {4}], [{1}]), ([{1,2}], [{4}])]
+             ([{2}, {4}], [{1}]), ([{1,2}], [{4}]), ([], [{1,2}, {4}]),
+             ([{2}], [{1}, {4}]), ([{1}], [{2}, {4}]),
+             ([{1}, {4}], [{2}]), ([{1,2}, {3,4}], []), ([{4}], [{1,2}]),
+             ([{2}, {4}], [{1}]), ([{1,2}], [{3,4}])]
             sage: OrderedMultisetPartition([[1,2]]).split(3)
             {([], [], [{1,2}]): 1, ([], [{1}], [{2}]): 1, ([], [{2}], [{1}]): 1,
              ([], [{1,2}], []): 1, ([{2}], [], [{1}]): 1, ([{1}], [], [{2}]): 1,
@@ -649,7 +636,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         TESTS::
 
-            sage: C = OrderedMultisetPartitions().from_list([1,2,0,4,5,6]); C
+            sage: C = OrderedMultisetPartition([[1,2],[4,5,6]]); C
             [{1,2}, {4,5,6}]
             sage: sum(C.split().values()) == 2**len(C[0]) * 2**len(C[1])
             True
@@ -820,7 +807,7 @@ class OrderedMultisetPartition(ClonableArray):
 
         Some extreme cases::
 
-            sage: list(OrderedMultisetPartitions().from_list('abc0').fatter())
+            sage: list(OrderedMultisetPartition([['a','b','c']]).fatter())
             [[{'a','b','c'}]]
             sage: list(OrderedMultisetPartition([]).fatter())
             [[]]
@@ -874,7 +861,7 @@ class OrderedMultisetPartition(ClonableArray):
             9
             sage: OrderedMultisetPartition([]).minimaj()
             0
-            sage: C = OrderedMultisetPartitions().from_list('bd0abc0b')
+            sage: C = OrderedMultisetPartition([['b','d'],['a','b','c'],['b']])
             sage: C, C.minimaj_word()
             ([{'b','d'}, {'a','b','c'}, {'b'}], ('d', 'b', 'c', 'a', 'b', 'b'))
             sage: C.minimaj()
@@ -1650,7 +1637,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
         return all(pass_test(x, key, tst) for (key, tst) in self.full_constraints.iteritems() if tst)
 
-    def from_list(self, lst):
+    def _from_list(self, lst):
         """
         Return an ordered multiset partition of singleton blocks, whose singletons
         are the elements ``lst``.
@@ -1662,28 +1649,28 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: OMPs = OrderedMultisetPartitions()
-            sage: OMPs.from_list([1,4,0,8])
+            sage: OMPs._from_list([1,4,0,8])
             [{1,4}, {8}]
-            sage: OMPs.from_list([1,4,8])
+            sage: OMPs._from_list([1,4,8])
             [{1}, {4}, {8}]
-            sage: OMPs.from_list([1,4,8,0]) == OrderedMultisetPartition([[1,4,8]])
+            sage: OMPs._from_list([1,4,8,0]) == OrderedMultisetPartition([[1,4,8]])
             True
-            sage: OMPs.from_list('abaa')
+            sage: OMPs._from_list('abaa')
             [{'a'}, {'b'}, {'a'}, {'a'}]
-            sage: OMPs.from_list('ab0a0a')
+            sage: OMPs._from_list('ab0a0a')
             [{'a','b'}, {'a'}, {'a'}]
 
         TESTS::
 
-            sage: OMPs.from_list([1,0,2,3,1]) == OrderedMultisetPartition([[1], [2,3,1]])
+            sage: OMPs._from_list([1,0,2,3,1]) == OrderedMultisetPartition([[1], [2,3,1]])
             True
-            sage: OMPs.from_list([1,2,'3',0,1]) == OrderedMultisetPartition([{1,2,'3'}, [1]])
+            sage: OMPs._from_list([1,2,'3',0,1]) == OrderedMultisetPartition([{1,2,'3'}, [1]])
             True
         """
         if all(a in ZZ for a in lst) and any(a < 0 for a in lst):
-            raise ValueError("Something is wrong: `from_list` does not expect to see negative integers; received {}.".format(str(lst)))
+            raise ValueError("Something is wrong: `_from_list` does not expect to see negative integers; received {}.".format(str(lst)))
         if 0 in list(lst) or '0' in list(lst):
-            return self._from_zero_list(lst)
+            return self._from_list_with_zeros(lst)
         else:
             d = [frozenset([x]) for x in lst]
             c = self.element_class(self, d)
@@ -1694,20 +1681,20 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             else:
                 return self.element_class(self, c)
 
-    def _from_zero_list(self, lst_with_zeros):
+    def _from_list_with_zeros(self, lst_with_zeros):
         r"""
         Return an ordered multiset partition from a list of nonnegative integers.
         Blocks are separated by zeros. Consecutive zeros are ignored.
 
         EXAMPLES::
 
-            sage: OrderedMultisetPartitions().from_list([1,2,4])
+            sage: OrderedMultisetPartitions()._from_list([1,2,4])
             [{1}, {2}, {4}]
-            sage: OrderedMultisetPartitions()._from_zero_list([1,2,4])
+            sage: OrderedMultisetPartitions()._from_list_with_zeros([1,2,4])
             [{1,2,4}]
-            sage: OrderedMultisetPartitions()._from_zero_list([1,0,2,0,0,4])
+            sage: OrderedMultisetPartitions()._from_list_with_zeros([1,0,2,0,0,4])
             [{1}, {2}, {4}]
-            sage: OrderedMultisetPartitions()._from_zero_list('abc00a0b')
+            sage: OrderedMultisetPartitions()._from_list_with_zeros('abc00a0b')
             [{'a','b','c'}, {'a'}, {'b'}]
         """
         from_zero_lst = list(lst_with_zeros)
@@ -2730,7 +2717,6 @@ def _iterator_weight(weight):
             co = _break_at_descents(alpha, weak=True)
             for A in P(co).finer(strong=True):
                 yield A
-
 
 def _iterator_size(size, length=None, alphabet=None):
     r"""

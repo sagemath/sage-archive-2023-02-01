@@ -1,6 +1,14 @@
 r"""
 Catalog Of Crystals
 
+An abstract crystal `B` is a set together with maps
+
+.. MATH::
+
+    e_i,f_i \colon B \to B \cup \{0\}, \qquad
+    \varepsilon_i,\varphi_i\colon B \to \ZZ, \qquad
+    \mathrm{wt}\colon B \to P.
+
 .. SEEALSO::
 
     - :mod:`sage.categories.crystals`

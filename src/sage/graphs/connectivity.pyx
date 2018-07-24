@@ -2045,6 +2045,16 @@ class Component:
         else:
             type_str = "Triconnected: "
         return type_str + self.edge_list.to_string()
+    def get_edge_list(self):
+        """
+        Return a list of edges belonging to the component.
+        """
+        e_list = []
+        e_node = self.edge_list.get_head()
+        while e_node:
+            e_list.append(e_node.get_data())
+            e_node = e_node.next
+        return e_list
 
 class Triconnectivity:
     """
@@ -2095,12 +2105,6 @@ class Triconnectivity:
         self.n = self.graph_copy.order() # number of vertices
         self.m = self.graph_copy.size() # number of edges
 
-        print "vertices"
-        print self.graph_copy.vertices()
-        print self.vertex_to_int
-        print self.int_to_vertex
-        print "edges", self.graph_copy.edges()
-
         # status of each edge: unseen=0, tree=1, frond=2, removed=3
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
 
@@ -2136,7 +2140,7 @@ class Triconnectivity:
         self.tree_arc = [None for i in range(self.n)] # Tree arc entering the vertex i
         self.vertex_at = [1 for i in range(self.n)] # vertex with DFS number of i
         self.dfs_counter = 0
-        self.components_list = [] #list of components
+        self.components_list = [] # list of components of `graph_copy`
         self.graph_copy_adjacency = [[] for i in range(self.n)] # Stores adjacency list
 
         # Dictionary of (e, True/False) to denote if a path starts at edge e
@@ -2157,6 +2161,10 @@ class Triconnectivity:
         self.t_stack_b = [None for i in range(2*self.m + 1)]
         self.t_stack_top = 0
         self.t_stack_a[self.t_stack_top] = -1
+
+        # The final triconnected components are stored
+        self.comp_list_new = [] # i^th entry is list of edges in i^th component
+        self.comp_type = [] # i^th entry is type of i^th component
 
 
         # Trivial cases
@@ -2184,7 +2192,7 @@ class Triconnectivity:
         self.cut_vertex = self.dfs1(self.start_vertex, check=check)
 
         if check:
-            # if graph is disconnected
+            # If graph is disconnected
             if self.dfs_counter < self.n:
                 self.is_biconnected = False
                 raise ValueError("Graph is disconnected")
@@ -2843,6 +2851,9 @@ class Triconnectivity:
         Iterates through all the components built by `path_finder` and merges
         the components wherever possible for contructing the final
         triconnected components.
+        Formats the triconnected components into original vertices and edges.
+        The triconnected components are stored in `self.comp_list_new` and
+        `self.comp_type`.
         """
         comp1 = {} # The index of first component that an edge belongs to
         comp2 = {} # The index of second component that an edge belongs to
@@ -2912,11 +2923,37 @@ class Triconnectivity:
 
                     e_node = e_node_next
 
+        # Convert connected components into original graph vertices and edges
+        self.comp_list_new = []
+        self.comp_type = []
+        for i in range(len(self.components_list)):
+            if self.components_list[i].edge_list.get_length() > 0:
+                e_list = self.components_list[i].get_edge_list()
+                e_list_new = []
+                # For each edge, get the original source, target and label
+                for e in e_list:
+                    source = self.int_to_vertex[e[0]]
+                    target = self.int_to_vertex[e[1]]
+                    if isinstance(e[2], str):
+                        label = e[2]
+                    else:
+                        label = self.edge_label_dict[(source, target,e[2])][2]
+                    e_list_new.append(tuple([source, target, label]))
+                # Add the component data to `comp_list_new` and `comp_type`
+                self.comp_type.append(self.components_list[i].component_type)
+                self.comp_list_new.append(e_list_new)
+
     def print_triconnected_components(self):
         """
         Print all the triconnected components along with the type of
         each component.
         """
-        for i in range(len(self.components_list)):
-            if self.components_list[i].edge_list.get_length() > 0:
-                print self.components_list[i]
+        for i in range(len(self.comp_list_new)):
+            if self.comp_type[i] == 0:
+                print "Bond: ",
+            elif self.comp_type[i] == 1:
+                print "Polygon: ",
+            else:
+                print "Triconnected: ",
+            print self.comp_list_new[i]
+

@@ -408,9 +408,10 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
         out.__coeffs = xx.__coeffs[:]
     else:
         out.__coeffs = xx.__coeffs
-    creduce(out, out, prec, prime_pow)
     if valshift > 0:
         cshift(out, out, -valshift, prec, prime_pow, True)
+    elif valshift == 0:
+        creduce(out, out, prec, prime_pow)
     elif valshift < 0:
         cdivunit(out, out, shift, prec, prime_pow)
         creduce(out, out, prec, prime_pow)

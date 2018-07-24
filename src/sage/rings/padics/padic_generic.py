@@ -1331,7 +1331,7 @@ class ResidueLiftingMap(Morphism):
             #unram_n = (self._n - 1) // R.absolute_e() + 1
             unram_n = self._n
             if K.absolute_degree() == 1:
-                lift = K.element_class(R, x, unram_n)
+                lift = K.element_class(K, x, unram_n)
             else:
                 lift = K(x.polynomial().list(), unram_n)
             return R(lift, self._n)

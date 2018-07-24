@@ -2264,6 +2264,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 if p_branch is None:
                     raise ValueError("You must specify a branch of the logarithm for non-units")
                 pi_branch = (p_branch - R._log_unit_part_p()) / e
+                # Be careful: in ramified extensions, R._log_unit_part_p() is theoretically known at higher precision than the cap
+                # In some cases, this may result in a loss of precision on pi_branch, and then on the final result
             total = self.valuation() * pi_branch
         y = self.unit_part()
         x = 1 - y
@@ -2971,17 +2973,17 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 # (which is theoretically a bit faster)
                 b = (ainv - x**2) >> (2*curprec)
                 if b == 0: break
-                E = list(b.expansion())
                 for i in range(e - curprec):
                     if i % 2 == 0:
                         try:
-                            cbar = k(E[i]).sqrt(extend=False)
+                            # We shouldn't recompute the expansion of b at the iteration
+                            cbar = k(b.expansion(i)).sqrt(extend=False)
                         except ValueError:
                             return None
                         c = ring(cbar).lift_to_precision()
                         x += c << (curprec + i//2)
                     else:
-                        if k(E[i]) != 0:
+                        if k(b.expansion(i)) != 0:
                             return None
                 curprec = (curprec + e + 1) // 2
 

@@ -204,30 +204,9 @@ class pAdicBaseGeneric(pAdicGeneric):
         EXAMPLES::
 
             sage: Zp(5).modulus(exact=True)
-            x - 1
+            x
         """
-        return self.defining_polynomial(exact)
-
-    def defining_polynomial(self, exact=False):
-        r"""
-        Returns the polynomial defining this extension.
-
-        For compatibility with extension fields; we define the modulus to be x-1.
-
-        INPUT:
-
-        - ``exact`` -- boolean (default ``False``), whether to return a polynomial with integer entries.
-
-        EXAMPLES::
-
-            sage: Zp(5).defining_polynomial(exact=True)
-            x - 1
-        """
-        if exact:
-            from sage.rings.integer_ring import ZZ
-            return ZZ['x']([-1,1])
-        else:
-            return self['x']([-1,1])
+        return self.defining_polynomial(exact=exact)
 
     def absolute_discriminant(self):
         """

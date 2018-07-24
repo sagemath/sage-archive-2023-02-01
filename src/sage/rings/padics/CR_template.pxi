@@ -1281,7 +1281,7 @@ cdef class CRElement(pAdicTemplateElement):
             return S([])
         else:
             prec = self.precision_absolute()
-            e = self.parent().e()
+            e = self.parent().relative_e()
             L = ccoefficients(self.unit, self.ordp, self.relprec, self.prime_pow)
             if e == 1:
                 L = [R(c, prec) for c in L]

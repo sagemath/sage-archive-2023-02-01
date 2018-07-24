@@ -1327,19 +1327,13 @@ class ResidueLiftingMap(Morphism):
             O(3^4)
         """
         R = self.codomain()
-        A = R.base_ring()
-        if A is R:
-            return R.element_class(R, x, self._n)
-        elif A.degree() != 1: # two step extension
-            if self._n > 1:
-                raise NotImplementedError
-            return R(A(x), self._n)
-        elif R.f() == 1:
-            return R([x], self._n)
-        elif R.e() == 1:
-            return R(x.polynomial().list(), self._n)
+        K = R.maximal_unramified_subextension()
+        unram_n = (self._n - 1) // R.absolute_e() + 1
+        if K.absolute_degree() == 1:
+            lift = K.element_class(R, x, unram_n)
         else:
-            raise NotImplementedError
+            lift = K(x.polynomial().list(), unram_n)
+        return R(lift, self._n)
 
     def _call_with_args(self, x, args=(), kwds={}):
         """
@@ -1351,20 +1345,27 @@ class ResidueLiftingMap(Morphism):
             sage: f(7, 5) # indirect doctest
             1 + 2 + 2^2 + O(2^5)
         """
+        R = self.codomain()
+        e = R.absolute_e()
+        kwds = dict(kwds) # we're changing it
+        ukwds = dict(kwds)
         if args:
             args = (min(args[0], self._n),) + args[1:]
+            uargs = list(args)
+            uargs[0] = (args[0] - 1) // e + 1
+            if len(uargs) > 1:
+                uargs[1] = (args[1] - 1) // e + 1
         else:
             kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
-        R = self.codomain()
-        A = R.base_ring()
-        if R is A:
-            return R._element_constructor_(x, *args, **kwds) # fall back on common_conversion code
-        elif R.f() == 1:
-            return R([A(x)])
-        elif R.e() == 1:
-            return R(x.polynomial().list(), *args, **kwds)
+            ukwds['absprec'] = (kwds['absprec'] - 1) // e + 1
+        if 'relprec' in kwds:
+            ukwds['relprec'] = (kwds['relprec'] - 1) // e + 1
+        K = R.maximal_unramified_subextension()
+        if K.absolute_degree() == 1:
+            lift = K._element_constructor_(x, *uargs, **ukwds)
         else:
-            raise NotImplementedError
+            lift = K(x.polynomial().list(), *uargs, **ukwds)
+        return R(lift, *args, **kwds)
 
     def _repr_type(self):
         """

@@ -116,12 +116,14 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     higher.
 
     """
-    cdef long ret = prec
+    C = a.__coeffs
+    if not C:
+        return prec
+    cdef long ret = C[0].valuation()*prime_pow.e
 
-    for i,c in enumerate(a.__coeffs):
-        if i >= prec:
-            break
-        ret = min(ret, c.valuation()*prime_pow.e + i)
+    for i,c in enumerate(C):
+        if i:
+            ret = min(ret, c.valuation()*prime_pow.e + i)
 
     return ret
 
@@ -286,9 +288,9 @@ cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, 
     # extensions, convert to the absolute field).
     R = value.base_ring()
     p = R.prime()
-    if R.degree() == 1:
+    if R.absolute_degree() == 1:
         raise NotImplementedError("Absolute extensions using Sage polynomials not completely supported")
-    if R.base_ring().degree() != 1:
+    if R.base_ring().absolute_degree() != 1:
         raise TypeError("cexpansion only allowed on towers of height 2")
     ans = []
     p2 = (p-1)//2

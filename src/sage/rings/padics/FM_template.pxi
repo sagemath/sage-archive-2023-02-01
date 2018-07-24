@@ -680,7 +680,7 @@ cdef class FMElement(pAdicTemplateElement):
         R = self.base_ring()
         S = R[var]
         prec = self.precision_absolute()
-        e = self.parent().e()
+        e = self.parent().relative_e()
         L = ccoefficients(self.value, 0, self.prime_pow.prec_cap, self.prime_pow)
         if e == 1:
             L = [R(c, prec) for c in L]

@@ -73,7 +73,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
             sage: L.absolute_e()
             2
         """
-        return self.modulus().degree()
+        return self.modulus().degree() * self.base_ring().absolute_e()
 
     def inertia_subring(self):
         """

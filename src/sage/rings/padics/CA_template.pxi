@@ -844,7 +844,7 @@ cdef class CAElement(pAdicTemplateElement):
         R = self.base_ring()
         S = R[var]
         prec = self.precision_absolute()
-        e = self.parent().e()
+        e = self.parent().relative_e()
         L = ccoefficients(self.value, 0, self.absprec, self.prime_pow)
         if e == 1:
             L = [R(c, prec) for c in L]

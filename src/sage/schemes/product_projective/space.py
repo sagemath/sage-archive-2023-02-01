@@ -623,11 +623,11 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             ValueError: polynomial is not multi-homogeneous
         """
         E = polynomial.exponents()
-        if len(E) == 0:
+        if not E:
             return []
         d = [sum(t) for t in self._factors(E[0])]
         for k in range(len(E)):
-            if not all([d == [sum(t) for t in self._factors(E[k])]]):
+            if d != [sum(t) for t in self._factors(E[k])]
                 raise ValueError("polynomial is not multi-homogeneous")
         return d
 

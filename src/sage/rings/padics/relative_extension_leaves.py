@@ -137,4 +137,3 @@ class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pA
         # We also want to convert down to the ring of integers: this is used in teichmuller expansion
         self.register_coercion(pAdicRelativeBaseringInjection(approx_modulus.base_ring().integer_ring(), self))
         self.register_coercion(pAdicCoercion_QQ_FP(self))
-

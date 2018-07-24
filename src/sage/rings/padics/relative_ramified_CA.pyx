@@ -16,11 +16,12 @@ cdef class RelativeRamifiedCappedAbsoluteElement(CAElement):
             sage: W.<w> = K.extension(x^3 - 25*x^2 - 5*a*x + 5)
             sage: w._poly_rep()
             x
-            sage: P = W(5)._poly_rep(); P
+            sage: W(5)._poly_rep()
             5
 
         The coefficients of P are floating point p-adics::
 
+            sage: P = W.random_element()._poly_rep()
             sage: ring = P.parent().base_ring() 
             sage: ring
             5-adic Unramified Extension Ring in a defined by x^3 + 3*x + 3

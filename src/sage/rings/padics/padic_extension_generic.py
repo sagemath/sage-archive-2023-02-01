@@ -296,7 +296,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
         - ``var`` -- string (default: ``'x'``), the name of the variable
 
         - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
-        defining polynomial rather than the one with coefficients in the base ring.
+            defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 

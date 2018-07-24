@@ -147,8 +147,12 @@ def Sphere(dim=2, radius=1, names=None, stereo2d=False, stereo_lim=None):
         stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
         stereoS_to_spher = spher_to_stereoN.inverse() * stereoS_to_N_A
 
-        coordfunc = [cos(th)*cos(ph), cos(th)*sin(ph), cos(ph)]
-        imm = S2.diff_map(E, coordfunc)
+        coordfunc1 = [sin(th)*cos(ph), sin(th)*sin(ph), cos(th)]
+        coordfunc2 = [2*x/(1+x**2+y**2), 2*y/(1+x**2+y**2), (x**2+y**2-1)/(1+x**2+y**2)]
+        coordfunc3 = [2*xp/(1+xp**2+yp**2), 2*yp/(1+xp**2+yp**2),(1-xp**2-yp**2)/(1+xp**2+yp**2)]
+        imm = S2.diff_map(E, {(spher, E.default_chart()): coordfunc1,
+                              (stereoN, E.default_chart()): coordfunc2,
+                              (stereoS, E.default_chart()): coordfunc3})
         S2.set_embedding(imm)
         S2.induced_metric()
 

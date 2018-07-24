@@ -1187,10 +1187,10 @@ class ProductProjectiveSpaces_field(ProductProjectiveSpaces_ring):
         prec = kwds.pop('precision', 53)
         m = self.num_components()
         iters = [ self[i].points_of_bounded_height(bound=B, tolerance=tol, precision=prec) for i in range(m) ]
-        dim = [self[i].dimension() + 1 for i in range(m)]
+        dim = [self[i].dimension_relative() + 1 for i in range(m)]
         
-        dim_prefix = [0,dim[0]] # prefixes dim list
-        for i in range(1,len(dim)):
+        dim_prefix = [0, dim[0]] # prefixes dim list
+        for i in range(1, len(dim)):
             dim_prefix.append(dim_prefix[i] + dim[i])
 
         pts = []

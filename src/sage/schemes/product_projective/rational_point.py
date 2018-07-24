@@ -2,7 +2,7 @@ r"""
 Enumeration of rational points on product projective schemes
 
 Naive algorithms for enumerating rational points over `\QQ`, number fields or
-finite fields over for general schemes.
+finite fields over general schemes.
 
 .. WARNING::
 
@@ -124,10 +124,10 @@ def enum_product_projective_rational_field(X, B):
     R = X.codomain().ambient_space()
     m = R.num_components()
     iters = [ R[i].points_of_bounded_height(bound=B) for i in range(m) ]
-    dim = [R[i].dimension() + 1 for i in range(m)]
+    dim = [R[i].dimension_relative() + 1 for i in range(m)]
     
-    dim_prefix = [0,dim[0]] # prefixes dim list
-    for i in range(1,len(dim)):
+    dim_prefix = [0, dim[0]] # prefixes dim list
+    for i in range(1, len(dim)):
         dim_prefix.append(dim_prefix[i] + dim[i])
 
     pts = []
@@ -137,7 +137,7 @@ def enum_product_projective_rational_field(X, B):
         for j in range(dim[i]):
             P.append(pt[j]) # initial value of P
 
-    try: # add the intial point
+    try: # add the initial point
         pts.append(X(P))
     except TypeError:
         pass
@@ -204,7 +204,7 @@ def enum_product_projective_number_field(X, **kwds):
         sage: X = PP.subscheme([x^2 + 2*y^2])
         sage: from sage.schemes.product_projective.rational_point import \
                 enum_product_projective_number_field
-        sage: enum_product_projective_number_field(X,bound=1.5)
+        sage: enum_product_projective_number_field(X, bound=1.5)
         [(-v : 1 , -1 : 1), (-v : 1 , -v : 1), (-v : 1 , -1/2*v : 1),
          (-v : 1 , 0 : 1), (-v : 1 , 1/2*v : 1), (-v : 1 , v : 1),
          (-v : 1 , 1 : 0), (-v : 1 , 1 : 1), (v : 1 , -1 : 1),
@@ -252,7 +252,7 @@ def enum_product_projective_finite_field(X):
 
     EXAMPLES::
 
-        sage: PP.<x,y,z,w> = ProductProjectiveSpaces([1, 1],GF(3))
+        sage: PP.<x,y,z,w> = ProductProjectiveSpaces([1, 1], GF(3))
         sage: from sage.schemes.product_projective.rational_point import \
                 enum_product_projective_finite_field
         sage: enum_product_projective_finite_field(PP)
@@ -265,10 +265,10 @@ def enum_product_projective_finite_field(X):
 
     ::
 
-        sage: PP.<x0,x1,x2,x3> = ProductProjectiveSpaces([1, 1],GF(17))
+        sage: PP.<x0,x1,x2,x3> = ProductProjectiveSpaces([1, 1], GF(17))
         sage: X = PP.subscheme([x0^2 + 2*x1^2])
         sage: from sage.schemes.product_projective.rational_point import \
-        enum_product_projective_finite_field
+                enum_product_projective_finite_field
         sage: len(enum_product_projective_finite_field(X))
         36
     """

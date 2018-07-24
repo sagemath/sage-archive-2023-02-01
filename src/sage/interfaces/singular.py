@@ -1562,7 +1562,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         elif charstr[0] in ['0', 'QQ']:
             from sage.all import QQ
             br = QQ
-        elif charstr[0]=='real':
+        elif charstr[0].startswith('Float'):
             from sage.all import RealField, ceil, log
             prec = singular.eval('ringlist(basering)[1][2][1]')
             br = RealField(ceil((ZZ(prec)+1)/log(2,10)))

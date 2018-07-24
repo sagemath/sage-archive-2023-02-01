@@ -1328,13 +1328,17 @@ class ResidueLiftingMap(Morphism):
         """
         R = self.codomain()
         K = R.maximal_unramified_subextension()
-        unram_n = (self._n - 1) // R.absolute_e() + 1
-        if K.absolute_degree() == 1:
-            lift = K.element_class(R, x, unram_n)
+        if self._n == 1 or K is R:
+            #unram_n = (self._n - 1) // R.absolute_e() + 1
+            unram_n = self._n
+            if K.absolute_degree() == 1:
+                lift = K.element_class(R, x, unram_n)
+            else:
+                lift = K(x.polynomial().list(), unram_n)
+            return R(lift, self._n)
         else:
-            lift = K(x.polynomial().list(), unram_n)
-        return R(lift, self._n)
-
+            raise NotImplementedError
+ 
     def _call_with_args(self, x, args=(), kwds={}):
         """
         Evaluate this morphism with extra arguments.
@@ -1348,24 +1352,20 @@ class ResidueLiftingMap(Morphism):
         R = self.codomain()
         e = R.absolute_e()
         kwds = dict(kwds) # we're changing it
-        ukwds = dict(kwds)
         if args:
             args = (min(args[0], self._n),) + args[1:]
-            uargs = list(args)
-            uargs[0] = (args[0] - 1) // e + 1
-            if len(uargs) > 1:
-                uargs[1] = (args[1] - 1) // e + 1
+            absprec = args[0]
         else:
-            kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
-            ukwds['absprec'] = (kwds['absprec'] - 1) // e + 1
-        if 'relprec' in kwds:
-            ukwds['relprec'] = (kwds['relprec'] - 1) // e + 1
+            absprec = kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
         K = R.maximal_unramified_subextension()
-        if K.absolute_degree() == 1:
-            lift = K._element_constructor_(x, *uargs, **ukwds)
+        if absprec == 1 or K is R:
+            if K.absolute_degree() == 1:
+                lift = K._element_constructor_(x, *args, **kwds)
+            else:
+                lift = K(x.polynomial().list(), *args, **kwds)
+            return R(lift, *args, **kwds)
         else:
-            lift = K(x.polynomial().list(), *uargs, **ukwds)
-        return R(lift, *args, **kwds)
+            raise NotImplementedError
 
     def _repr_type(self):
         """

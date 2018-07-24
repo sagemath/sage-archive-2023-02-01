@@ -1750,7 +1750,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         # Singular 4 puts parentheses around floats and sign outside them
         charstr = self.parent().eval('charstr(basering)').split(',',1)
-        if charstr[0] in ['real', 'complex']:
+        if charstr[0]=='complex' or charstr[0].startswith('Float'):
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 

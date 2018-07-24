@@ -2907,6 +2907,7 @@ class pAdicExtension_class(UniqueFactory):
             else:
                 unram_name = base.variable_name()
                 polytype = 're'
+                implementation = 'Polynomial'
             names = (names, res_name, unram_name, ram_name)
             e = approx_modulus.degree()
             if prec is None:

@@ -86,7 +86,7 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
         self._degree = domain.absolute_f()
         self._power = n % self._degree
-        self._order = self._degree / self._degree.gcd(self._power)
+        self._order = self._degree / domain.absolute_f().gcd(self._power)
         RingHomomorphism.__init__(self, Hom(domain, domain))
 
 

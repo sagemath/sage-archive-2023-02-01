@@ -102,6 +102,7 @@ from sage.categories.map import Map
 from sage.misc.all import (latex,
                            prod)
 from sage.structure.category_object import normalize_names
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
@@ -227,7 +228,7 @@ def ProjectiveSpace(n, R=None, names='x'):
     else:
         raise TypeError("R (=%s) must be a commutative ring"%R)
 
-class ProjectiveSpace_ring(AmbientSpace):
+class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
     """
     Projective space of dimension `n` over the ring
     `R`.
@@ -252,6 +253,11 @@ class ProjectiveSpace_ring(AmbientSpace):
         sage: loads(X.dumps()) == X
         True
     """
+    @staticmethod    
+    def __classcall__(self, n, RR=ZZ, names=None):
+        normalized_names = normalize_names(n+1, names)
+        return super(ProjectiveSpace_ring, self).__classcall__(self, n, RR, tuple(normalized_names))
+
     def __init__(self, n, R=ZZ, names=None):
         """
         Initialization function.
@@ -405,42 +411,6 @@ class ProjectiveSpace_ring(AmbientSpace):
             if not f.is_homogeneous():
                 raise TypeError("%s is not a homogeneous polynomial" % f)
         return polynomials
-
-    def __eq__(self, right):
-        """
-        Check equality of two projective spaces.
-
-        EXAMPLES::
-
-            sage: ProjectiveSpace(QQ, 3, 'a') == ProjectiveSpace(ZZ, 3, 'a')
-            False
-            sage: ProjectiveSpace(ZZ, 1, 'a') == ProjectiveSpace(ZZ, 0, 'a')
-            False
-            sage: ProjectiveSpace(ZZ, 2, 'a') == AffineSpace(ZZ, 2, 'a')
-            False
-            sage: P = ProjectiveSpace(ZZ, 1, 'x')
-            sage: loads(P.dumps()) == P
-            True
-        """
-        if not isinstance(right, ProjectiveSpace_ring):
-            return False
-        return (self.dimension_relative() == right.dimension_relative() and
-                self.coordinate_ring() == right.coordinate_ring())
-
-    def __ne__(self, other):
-        """
-        Check non-equality of two projective spaces.
-
-        EXAMPLES::
-
-            sage: ProjectiveSpace(QQ, 3, 'a') != ProjectiveSpace(ZZ, 3, 'a')
-            True
-            sage: ProjectiveSpace(ZZ, 1, 'a') != ProjectiveSpace(ZZ, 0, 'a')
-            True
-            sage: ProjectiveSpace(ZZ, 2, 'a') != AffineSpace(ZZ, 2, 'a')
-            True
-        """
-        return not (self == other)
 
     def __pow__(self, m):
         """

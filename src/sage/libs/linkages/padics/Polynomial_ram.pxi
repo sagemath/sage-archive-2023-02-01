@@ -119,11 +119,10 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     C = a.__coeffs
     if not C:
         return prec
-    cdef long ret = C[0].valuation()*prime_pow.e
+    cdef long ret = maxordp
 
     for i,c in enumerate(C):
-        if i:
-            ret = min(ret, c.valuation()*prime_pow.e + i)
+        ret = min(ret, c.valuation()*prime_pow.e + i)
 
     return ret
 

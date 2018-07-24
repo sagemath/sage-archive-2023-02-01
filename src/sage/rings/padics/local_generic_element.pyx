@@ -786,7 +786,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             1/3
         """
         F = self.parent()
-        return self.valuation()/F.ramification_index()
+        return self.valuation()/F.absolute_e()
 
     def _min_valuation(self):
         r"""

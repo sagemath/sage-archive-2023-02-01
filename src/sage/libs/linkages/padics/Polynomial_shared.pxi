@@ -452,6 +452,7 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
         out.__coeffs = [prime_pow.base_ring(n)]
         if not absolute:
             valuation = cremove(out, out, prec, prime_pow)
+        creduce(out, out, prec, prime_pow)
     else:
         out.__coeffs = []
 
@@ -524,10 +525,9 @@ cdef inline long cconv_mpq_t(celement out, mpq_t x, long prec, bint absolute, Po
     mpq_set(r.value, x)
     out.__coeffs = [prime_pow.base_ring(r)]
 
-    if absolute:
-        creduce(out, out, prec, prime_pow)
-    else:
+    if not absolute:
         return cremove(out, out, prec, prime_pow)
+    creduce(out, out, prec, prime_pow)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     r"""

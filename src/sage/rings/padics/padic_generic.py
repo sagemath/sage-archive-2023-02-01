@@ -919,8 +919,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         if self.is_capped_absolute() or self.is_capped_relative():
             # In the fixed modulus setting, rounding errors may occur
-            elements = list(tester.some_elements())
-            for x, y, b in some_tuples(elements, 3, tester._max_runs):
+            for x, y, b in tester.some_elements(repeat=3):
                 if x.is_zero() or y.is_zero(): continue
                 r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
                 r2 = (x*y).log(pi_branch=b)

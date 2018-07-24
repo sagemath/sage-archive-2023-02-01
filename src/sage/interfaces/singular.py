@@ -1183,7 +1183,7 @@ class Singular(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: singular.version()
-            "Singular ... version 4.1.1 ...
+            "Singular ... version 4...
         """
         return singular_version()
 
@@ -2358,7 +2358,7 @@ def singular_version():
     EXAMPLES::
 
         sage: singular.version()
-        "Singular ... version 4.1.1 ...
+        "Singular ... version 4...
     """
     return singular.eval('system("--version");')
 

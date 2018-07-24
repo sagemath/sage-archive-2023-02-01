@@ -77,6 +77,7 @@ from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.all import prod
+from sage.misc.latex import latex
 from sage.sets.set import Set, Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
@@ -3274,6 +3275,19 @@ class MinimajCrystal(UniqueRepresentation, Parent):
                 [(4, 1, 3), (3,), (3,)]
             """
             return self._minimaj_blocks_from_word_pair().__iter__()
+
+        def _latex_(self):
+            r"""
+            Return the latex representation of ``self``.
+
+            EXAMPLES::
+
+                sage: b = crystals.Minimaj(4,5,3).an_element(); b
+                ((4, 1, 3), (3,), (3,))
+                sage: latex(b)
+                \left(\left(4, 1, 3\right), \left(3\right), \left(3\right)\right)
+            """
+            return latex(self._minimaj_blocks_from_word_pair())
 
         def _minimaj_blocks_from_word_pair(self):
             """

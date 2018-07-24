@@ -7875,3 +7875,1425 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu', 
 # Deprecations from trac:18555. July 2016
 from sage.misc.superseded import deprecated_function_alias
 Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
+
+
+class IncreasingTableau(Tableau):
+    """
+    A class to model a semistandard tableau.
+
+    INPUT:
+
+    - ``t`` -- a tableau, a list of iterables, or an empty list
+
+    OUTPUT:
+
+    - A SemistandardTableau object constructed from ``t``.
+
+    A semistandard tableau is a tableau whose entries are positive integers,
+    which are weakly increasing in rows and strictly increasing down columns.
+
+    EXAMPLES::
+
+        sage: t = SemistandardTableau([[1,2,3],[2,3]]); t
+        [[1, 2, 3], [2, 3]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.pp() # pretty printing
+        1 2 3
+        2 3
+        sage: t = Tableau([[1,2],[2]])
+        sage: s = SemistandardTableau(t); s
+        [[1, 2], [2]]
+        sage: SemistandardTableau([]) # The empty tableau
+        []
+
+    When using code that will generate a lot of tableaux, it is slightly more
+    efficient to construct a SemistandardTableau from the appropriate
+    :class:`Parent` object::
+
+        sage: SST = SemistandardTableaux()
+        sage: SST([[1, 2, 3], [4, 5]])
+        [[1, 2, 3], [4, 5]]
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableaux`
+        - :class:`StandardTableaux`
+        - :class:`StandardTableau`
+
+    TESTS::
+
+        sage: t = Tableaux()([[1,1],[2]])
+        sage: s = SemistandardTableaux(3)([[1,1],[2]])
+        sage: s == t
+        True
+        sage: s.parent()
+        Semistandard tableaux of size 3 and maximum entry 3
+        sage: r = SemistandardTableaux(3)(t); r.parent()
+        Semistandard tableaux of size 3 and maximum entry 3
+        sage: isinstance(r, Tableau)
+        True
+        sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
+        sage: s2 == s
+        True
+        sage: s2.parent()
+        Semistandard tableaux of size 3 and maximum entry 3
+    """
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        This ensures that a SemistandardTableau is only ever constructed as an
+        element_class call of an appropriate parent.
+
+        TESTS::
+
+            sage: t = SemistandardTableau([[1,1],[2]])
+            sage: TestSuite(t).run()
+
+            sage: t.parent()
+            Semistandard tableaux
+            sage: t.category()
+            Category of elements of Semistandard tableaux
+            sage: type(t)
+            <class 'sage.combinat.tableau.SemistandardTableaux_all_with_category.element_class'>
+        """
+        if isinstance(t, IncreasingTableau):
+            return t
+        elif t in IncreasingTableaux():
+            return IncreasingTableaux_all().element_class(IncreasingTableaux_all(), t)
+
+        # t is not a semistandard tableau so we give an appropriate error message
+        if t not in Tableaux():
+            raise ValueError('%s is not a tableau' % t)
+
+        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
+            raise ValueError("entries must be positive integers"%t)
+
+        if any(row[c] >= row[c+1] for row in t for c in range(len(row)-1)):
+            raise ValueError("The rows of %s are not strictly increasing"%t)
+        if any(row[c] >= row[c+1] for row in t.transpose() for c in range(len(row)-1)):
+            raise ValueError("The columns of %s are not strictly increasing"%t)
+        # If we're still here ``t`` cannot be column strict
+        raise ValueError('We do not know why %s is not an increasing tableau' % t)
+
+    def check(self):
+        """
+        Check that ``self`` is a valid semistandard tableau.
+
+        TESTS::
+
+            sage: SemistandardTableau([[1,2,3],[1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: [[1, 2, 3], [1]] is not a column strict tableau
+
+            sage: SemistandardTableau([[1,2,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: The rows of [[1, 2, 1]] are not weakly increasing
+
+            sage: SemistandardTableau([[0,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: entries must be positive integers
+        """
+        super(IncreasingTableau, self).check()
+
+        # Tableau() has checked that t is tableau, so it remains to check that
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+
+        for row in self:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of an increasing tableau must be non-negative integers")
+            if any(row[c] >= row[c+1] for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of an increasing tableau must be strictly increasing")
+
+        # and strictly increasing down columns
+        if self:
+            for row, next in zip(self, self[1:]):
+                if not all(row[c] < next[c] for c in range(len(next))):
+                    raise ValueError("the entries of each column of an increasing tableau must be strictly increasing")
+
+##########################
+# Increasing tableaux #
+##########################
+class IncreasingTableaux(Tableaux):
+    """
+    A factory class for the various classes of semistandard tableaux.
+
+    INPUT:
+
+    Keyword arguments:
+
+    - ``size`` -- The size of the tableaux
+    - ``shape`` -- The shape of the tableaux
+    - ``eval`` -- The weight (also called content or evaluation) of
+      the tableaux
+    - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
+      positive integer or infinity (``oo``). If ``size`` or ``shape`` are
+      specified, ``max_entry`` defaults to be ``size`` or the size of
+      ``shape``.
+
+    Positional arguments:
+
+    - The first argument is interpreted as either ``size`` or ``shape``
+      according to whether it is an integer or a partition
+    - The second keyword argument will always be interpreted as ``eval``
+
+    OUTPUT:
+
+    - The appropriate class, after checking basic consistency tests. (For
+      example, specifying ``eval`` implies a value for `max_entry`).
+
+    A semistandard tableau is a tableau whose entries are positive integers,
+    which are weakly increasing in rows and strictly increasing down columns.
+    Note that Sage uses the English convention for partitions and tableaux;
+    the longer rows are displayed on top.
+
+    Classes of semistandard tableaux can be iterated over if and only if there
+    is some restriction.
+
+    EXAMPLES::
+
+        sage: SST = SemistandardTableaux([2,1]); SST
+        Semistandard tableaux of shape [2, 1] and maximum entry 3
+        sage: SST.list()
+        [[[1, 1], [2]],
+         [[1, 1], [3]],
+         [[1, 2], [2]],
+         [[1, 2], [3]],
+         [[1, 3], [2]],
+         [[1, 3], [3]],
+         [[2, 2], [3]],
+         [[2, 3], [3]]]
+
+        sage: SST = SemistandardTableaux(3); SST
+        Semistandard tableaux of size 3 and maximum entry 3
+        sage: SST.list()
+        [[[1, 1, 1]],
+         [[1, 1, 2]],
+         [[1, 1, 3]],
+         [[1, 2, 2]],
+         [[1, 2, 3]],
+         [[1, 3, 3]],
+         [[2, 2, 2]],
+         [[2, 2, 3]],
+         [[2, 3, 3]],
+         [[3, 3, 3]],
+         [[1, 1], [2]],
+         [[1, 1], [3]],
+         [[1, 2], [2]],
+         [[1, 2], [3]],
+         [[1, 3], [2]],
+         [[1, 3], [3]],
+         [[2, 2], [3]],
+         [[2, 3], [3]],
+         [[1], [2], [3]]]
+
+        sage: SST = SemistandardTableaux(3, max_entry=2); SST
+        Semistandard tableaux of size 3 and maximum entry 2
+        sage: SST.list()
+        [[[1, 1, 1]],
+         [[1, 1, 2]],
+         [[1, 2, 2]],
+         [[2, 2, 2]],
+         [[1, 1], [2]],
+         [[1, 2], [2]]]
+
+        sage: SST = SemistandardTableaux(3, max_entry=oo); SST
+        Semistandard tableaux of size 3
+        sage: SST[123]
+        [[3, 4], [6]]
+
+        sage: SemistandardTableaux(max_entry=2)[11]
+        [[1, 1], [2]]
+
+        sage: SemistandardTableaux()[0]
+        []
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableau`
+        - :class:`StandardTableaux`
+        - :class:`StandardTableau`
+    """
+    @staticmethod
+    def __classcall_private__(cls, *args, **kwargs):
+        r"""
+        This is a factory class which returns the appropriate parent based on
+        arguments.  See the documentation for :class:`SemistandardTableaux`
+        for more information.
+
+        TESTS::
+
+            sage: SemistandardTableaux()
+            Semistandard tableaux
+            sage: SemistandardTableaux(3)
+            Semistandard tableaux of size 3 and maximum entry 3
+            sage: SemistandardTableaux(size=3)
+            Semistandard tableaux of size 3 and maximum entry 3
+            sage: SemistandardTableaux(0)
+            Semistandard tableaux of size 0 and maximum entry 0
+            sage: SemistandardTableaux([2,1])
+            Semistandard tableaux of shape [2, 1] and maximum entry 3
+            sage: SemistandardTableaux(shape=[2,1])
+            Semistandard tableaux of shape [2, 1] and maximum entry 3
+            sage: SemistandardTableaux([])
+            Semistandard tableaux of shape [] and maximum entry 0
+            sage: SemistandardTableaux(eval=[2,1])
+            Semistandard tableaux of size 3 and weight [2, 1]
+            sage: SemistandardTableaux(max_entry=3)
+            Semistandard tableaux with maximum entry 3
+            sage: SemistandardTableaux(3, [2,1])
+            Semistandard tableaux of size 3 and weight [2, 1]
+            sage: SemistandardTableaux(3, shape=[2,1])
+            Semistandard tableaux of shape [2, 1] and maximum entry 3
+            sage: SemistandardTableaux(3, [2,1], shape=[2,1])
+            Semistandard tableaux of shape [2, 1] and weight [2, 1]
+            sage: SemistandardTableaux(3, max_entry=4)
+            Semistandard tableaux of size 3 and maximum entry 4
+            sage: SemistandardTableaux(3, max_entry=oo)
+            Semistandard tableaux of size 3
+            sage: SemistandardTableaux([2, 1], max_entry=oo)
+            Semistandard tableaux of shape [2, 1]
+            sage: SemistandardTableaux([2, 1], [2, 1])
+            Semistandard tableaux of shape [2, 1] and weight [2, 1]
+            sage: mu = Partition([2,1]); SemistandardTableaux(mu, mu)
+            Semistandard tableaux of shape [2, 1] and weight [2, 1]
+            sage: SemistandardTableaux(3, [2, 1], max_entry=2)
+            Semistandard tableaux of size 3 and weight [2, 1]
+
+            sage: SemistandardTableaux(3, shape=[2])
+            Traceback (most recent call last):
+            ...
+            ValueError: size and shape are different sizes
+
+            sage: SemistandardTableaux(3, [2])
+            Traceback (most recent call last):
+            ...
+            ValueError: size and eval are different sizes
+
+            sage: SemistandardTableaux([2],[3])
+            Traceback (most recent call last):
+            ...
+            ValueError: shape and eval are different sizes
+
+            sage: SemistandardTableaux(2,[2], max_entry=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: SemistandardTableaux(eval=[2], max_entry=oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: SemistandardTableaux([[1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: shape must be a (skew) partition
+        """
+        from sage.combinat.partition import Partition, _Partitions
+        # Process the keyword arguments -- allow for original syntax where
+        #   n == size,  p== shape and mu == eval
+        n = kwargs.get('n', None)
+        size = kwargs.get('size', n)
+
+        p = kwargs.get('p', None)
+        shape = kwargs.get('shape', p)
+
+        mu = kwargs.get('eval', None)
+        mu = kwargs.get("mu", mu)
+
+        max_entry = kwargs.get('max_entry', None)
+
+        # Process the positional arguments
+        if args:
+            # The first arg could be either a size or a shape
+            if isinstance(args[0], (int, Integer)):
+                if size is not None:
+                    raise ValueError( "size was specified more than once" )
+                else:
+                    size = args[0]
+            else:
+                if shape is not None:
+                    raise ValueError( "the shape was specified more than once" )
+                shape = args[0] # we check it's a partition later
+
+        if len(args) == 2:
+            # The second non-keyword argument is the weight
+            if mu is not None:
+                raise ValueError( "the weight was specified more than once" )
+            else:
+                mu = args[1]
+
+        # Consistency checks
+        if size is not None:
+            if not isinstance(size, (int, Integer)):
+                raise ValueError( "size must be an integer" )
+            elif size < 0:
+                raise ValueError( "size must be non-negative" )
+
+        if shape is not None:
+            from sage.combinat.skew_partition import SkewPartitions
+            # use in (and not isinstance) below so that lists can be used as
+            # shorthand
+            if shape in _Partitions:
+                shape = Partition(shape)
+            elif shape in SkewPartitions():
+                from sage.combinat.skew_tableau import IncreasingSkewTableaux
+                return IncreasingSkewTableaux(shape, mu)
+            else:
+                raise ValueError( "shape must be a (skew) partition" )
+
+        if mu is not None:
+            if (not mu in Compositions()) and\
+                    (not mu in _Partitions):
+                raise ValueError( "mu must be a composition" )
+            mu = Composition(mu)
+
+        is_inf = max_entry is PlusInfinity()
+
+        if max_entry is not None:
+            if not is_inf and not isinstance(max_entry, (int, Integer)):
+                raise ValueError( "max_entry must be an integer or PlusInfinity" )
+            elif max_entry <= 0:
+                raise ValueError( "max_entry must be positive" )
+
+        if (mu is not None) and (max_entry is not None):
+            if max_entry != len(mu):
+                raise ValueError( "the maximum entry must match the weight" )
+
+        if (size is not None) and (shape is not None):
+            if sum(shape) != size:
+                # This could return an empty class instead of an error
+                raise ValueError( "size and shape are different sizes" )
+
+        if (size is not None) and (mu is not None):
+            if sum(mu) != size:
+                # This could return an empty class instead of an error
+                raise ValueError( "size and eval are different sizes" )
+
+        # Dispatch appropriately
+        if (shape is not None) and (mu is not None):
+            if sum(shape) != sum(mu):
+                # This could return an empty class instead of an error
+                raise ValueError( "shape and eval are different sizes" )
+            else:
+                return IncreasingTableaux_shape_weight(shape, mu)
+
+        if (shape is not None):
+            if is_inf:
+                return IncreasingTableaux_shape_inf(shape)
+            return IncreasingTableaux_shape(shape, max_entry)
+
+        if (mu is not None):
+            return IncreasingTableaux_size_weight(sum(mu), mu)
+
+        if (size is not None):
+            if is_inf:
+                return IncreasingTableaux_size_inf(size)
+            return IncreasingTableaux_size(size, max_entry)
+
+        return IncreasingTableaux_all(max_entry)
+
+    Element = IncreasingTableau
+
+    def __init__(self, **kwds):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = SemistandardTableaux()
+            sage: TestSuite(S).run()
+        """
+        if 'max_entry' in kwds:
+            self.max_entry = kwds['max_entry']
+            kwds.pop('max_entry')
+        else:
+            self.max_entry = None
+        Tableaux.__init__(self, **kwds)
+
+    def __getitem__(self, r):
+        r"""
+        The default implementation of ``__getitem__`` for enumerated sets
+        does not allow slices so we override it.
+
+        EXAMPLES::
+
+            sage: StandardTableaux([4,3,3,2])[10:20]     # indirect doctest
+            [[[1, 3, 9, 12], [2, 5, 10], [4, 6, 11], [7, 8]],
+             [[1, 2, 9, 12], [3, 5, 10], [4, 6, 11], [7, 8]],
+             [[1, 3, 9, 12], [2, 4, 10], [5, 6, 11], [7, 8]],
+             [[1, 2, 9, 12], [3, 4, 10], [5, 6, 11], [7, 8]],
+             [[1, 5, 8, 12], [2, 6, 10], [3, 7, 11], [4, 9]],
+             [[1, 4, 8, 12], [2, 6, 10], [3, 7, 11], [5, 9]],
+             [[1, 3, 8, 12], [2, 6, 10], [4, 7, 11], [5, 9]],
+             [[1, 2, 8, 12], [3, 6, 10], [4, 7, 11], [5, 9]],
+             [[1, 4, 8, 12], [2, 5, 10], [3, 7, 11], [6, 9]],
+             [[1, 3, 8, 12], [2, 5, 10], [4, 7, 11], [6, 9]]]
+
+            sage: SemistandardTableaux(size=2, max_entry=oo)[5]
+            [[2, 3]]
+
+            sage: SemistandardTableaux([2,1], max_entry=oo)[3]
+            [[1, 2], [3]]
+
+            sage: SemistandardTableaux(3, max_entry=2)[0:5]    # indirect doctest
+            [[[1, 1, 1]],
+            [[1, 1, 2]],
+            [[1, 2, 2]],
+            [[2, 2, 2]],
+            [[1, 1], [2]]]
+
+            sage: SemistandardTableaux([2,2], [2, 1, 1])[0]    # indirect doctest
+            [[1, 1], [2, 3]]
+
+            sage: SemistandardTableaux([1,1,1], max_entry=4)[0:4]
+            [[[1], [2], [3]],
+             [[1], [2], [4]],
+             [[1], [3], [4]],
+             [[2], [3], [4]]]
+
+            sage: SemistandardTableaux(3, [2,1])[1]    # indirect doctest
+            [[1, 1], [2]]
+
+            sage: StandardTableaux(3)[:]  # indirect doctest
+            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+
+            sage: StandardTableaux([2,2])[1]   # indirect doctest
+            [[1, 2], [3, 4]]
+
+        TESTS::
+
+            sage: SemistandardTableaux()[5]
+            [[1], [2]]
+
+            sage: SemistandardTableaux(max_entry=2)[5]
+            [[2, 2]]
+
+            sage: SemistandardTableaux()[:]
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite set
+
+            sage: SemistandardTableaux(size=2, max_entry=oo)[:]
+            Traceback (most recent call last):
+            ...
+            ValueError: infinite set
+        """
+        if isinstance(r,(int,Integer)):
+            return self.unrank(r)
+        elif isinstance(r,slice):
+            start=0 if r.start is None else r.start
+            stop=r.stop
+            if stop is None and not self.is_finite():
+                raise ValueError( 'infinite set' )
+        else:
+            raise ValueError( 'r must be an integer or a slice' )
+        count=0
+        tabs=[]
+        for t in self:
+            if count==stop:
+                break
+            if count>=start:
+                tabs.append(t)
+            count+=1
+
+        # this is to cope with empty slices endpoints like [:6] or [:}
+        if count==stop or stop is None:
+            return tabs
+        raise IndexError('value out of range')
+
+    def __contains__(self, t):
+        """
+        Return ``True`` if ``t`` can be interpreted as a
+        :class:`SemistandardTableau`.
+
+        TESTS::
+
+            sage: T = sage.combinat.tableau.SemistandardTableaux_all()
+            sage: [[1,2],[2]] in T
+            True
+            sage: [] in T
+            True
+            sage: Tableau([[1]]) in T
+            True
+            sage: StandardTableau([[1]]) in T
+            True
+
+            sage: [[1,2],[1]] in T
+            False
+            sage: [[1,1],[5]] in T
+            True
+            sage: [[1,3,2]] in T
+            False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in sage.combinat.tableau.SemistandardTableaux()
+            False
+        """
+        if isinstance(t, IncreasingTableau):
+            return self.max_entry is None or \
+                    len(t) == 0 or \
+                    max(max(row) for row in t) <= self.max_entry
+        elif not t:
+            return True
+        elif Tableaux.__contains__(self, t):
+            for row in t:
+                if not all(c > 0 for c in row):
+                    return False
+                if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
+                    return False
+            for row, next in zip(t, t[1:]):
+                if not all(row[c] < next[c] for c in range(len(next))):
+                    return False
+            return self.max_entry is None or max(max(row) for row in t) <= self.max_entry
+        else:
+            return False
+
+class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
+    """
+    All semistandard tableaux.
+    """
+    def __init__(self, max_entry=None):
+        r"""
+        Initializes the class of all semistandard tableaux.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: T = sage.combinat.tableau.SemistandardTableaux_all()
+            sage: TestSuite(T).run()
+
+            sage: T=sage.combinat.tableau.SemistandardTableaux_all(max_entry=3)
+            sage: TestSuite(T).run() # long time
+        """
+        if max_entry is not PlusInfinity():
+            self.max_entry = max_entry
+            SST_n = lambda n: IncreasingTableaux_size(n, max_entry)
+            DisjointUnionEnumeratedSets.__init__( self,
+                    Family(NonNegativeIntegers(), SST_n),
+                    facade=True, keepkey = False)
+
+        else:
+            self.max_entry = None
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SemistandardTableaux()    # indirect doctest
+            Semistandard tableaux
+
+            sage: SemistandardTableaux(max_entry=3)
+            Semistandard tableaux with maximum entry 3
+        """
+        if self.max_entry is not None:
+            return "Increasing tableaux with maximum entry %s"%str(self.max_entry)
+        return "Increasing tableaux"
+
+
+    def list(self):
+        """
+        TESTS::
+
+            sage: SemistandardTableaux().list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
+class IncreasingTableaux_size_inf(IncreasingTableaux):
+    """
+    Semistandard tableaux of fixed size `n` with no maximum entry.
+    """
+    def __init__(self, n):
+        r"""
+        Initializes the class of semistandard tableaux of size ``n`` with no
+        maximum entry.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: T = sage.combinat.tableau.SemistandardTableaux_size_inf(3)
+            sage: TestSuite(T).run()
+        """
+        super(IncreasingTableaux_size_inf, self).__init__(
+              category = InfiniteEnumeratedSets())
+        self.size = n
+
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SemistandardTableaux(3, max_entry=oo))    # indirect doctest
+            'Semistandard tableaux of size 3'
+        """
+        return "Increasing tableaux of size %s"%str(self.size)
+
+    def __contains__(self, t):
+        """
+        Return ``True`` if ``t`` can be interpreted as an element of this
+        class.
+
+        TESTS::
+
+            sage: T = SemistandardTableaux(3, max_entry=oo)
+            sage: [[1,2],[5]] in T
+            True
+            sage: StandardTableau([[1, 2], [3]]) in T
+            True
+
+            sage: [] in T
+            False
+            sage: Tableau([[1]]) in T
+            False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in SemistandardTableaux(3, max_entry=oo)
+            False
+        """
+        return IncreasingTableaux.__contains__(self, t) and sum(map(len, t)) == self.size
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: sst = SemistandardTableaux(3, max_entry=oo)
+            sage: [sst[t] for t in range(0,5)]
+            [[[1, 1, 1]],
+             [[1, 1, 2]],
+             [[1, 2, 2]],
+             [[2, 2, 2]],
+             [[1, 1], [2]]]
+            sage: sst[1000]
+            [[2, 12], [7]]
+            sage: sst[0].parent() is sst
+            True
+        """
+        from sage.combinat.partition import Partitions
+        # Iterates through with maximum entry as order
+        i = 1
+        while(True):
+            for part in Partitions(self.size):
+                if i != 1:
+                    for k in range(1, self.size+1):
+                        for c in integer_vectors_nk_fast_iter(self.size - k, i-1):
+                            c.append(k)
+                            for sst in IncreasingTableaux_shape_weight(part, Composition(c)):
+                                yield self.element_class(self, sst)
+                else:
+                    for sst in IncreasingTableaux_shape_weight(part, Composition([self.size])):
+                        yield self.element_class(self, sst)
+            i += 1
+
+
+    def list(self):
+        """
+        TESTS::
+
+            sage: SemistandardTableaux(3, max_entry=oo).list()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+
+class IncreasingTableaux_shape_inf(IncreasingTableaux):
+    """
+    Semistandard tableaux of fixed shape `p` and no maximum entry.
+    """
+    def __init__(self, p):
+        r"""
+        Initializes the class of semistandard tableaux of shape ``p`` and no
+        maximum entry.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux([2,1], max_entry=oo)
+            sage: type(SST)
+            <class 'sage.combinat.tableau.SemistandardTableaux_shape_inf_with_category'>
+            sage: TestSuite(SST).run()
+        """
+        super(IncreasingTableaux_shape_inf, self).__init__(
+              category=InfiniteEnumeratedSets())
+        self.shape = p
+
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: SST = SemistandardTableaux([2,1], max_entry=oo)
+            sage: [[13, 67], [1467]] in SST
+            True
+            sage: SST = SemistandardTableaux([3,1], max_entry=oo)
+            sage: [[13, 67], [1467]] in SST
+            False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: SST = SemistandardTableaux([3,1], max_entry=oo)
+            sage: 1 in SST
+            False
+        """
+        return IncreasingTableaux.__contains__(self, x) and [len(_) for _ in x]==self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SemistandardTableaux([2,1], max_entry=oo))    # indirect doctest
+            'Semistandard tableaux of shape [2, 1]'
+        """
+        return "Semistandard tableaux of shape %s" %str(self.shape)
+
+
+    def __iter__(self):
+        """
+        An iterator for the semistandard partitions of shape ``p`` and no
+        maximum entry. Iterates through with maximum entry as order.
+
+        EXAMPLES::
+
+            sage: SST = SemistandardTableaux([3, 1], max_entry=oo)
+            sage: SST[1000]
+            [[1, 1, 10], [6]]
+            sage: [ SST[t] for t in range(0, 5) ]
+            [[[1, 1, 1], [2]],
+             [[1, 1, 2], [2]],
+             [[1, 2, 2], [2]],
+             [[1, 1, 1], [3]],
+             [[1, 1, 2], [3]]]
+            sage: SST[0].parent() is SST
+            True
+        """
+        # Iterates through with maximum entry as order
+        i = 1
+        n = sum(self.shape)
+        while(True):
+            if i != 1:
+                for k in range(1, n+1):
+                    for c in integer_vectors_nk_fast_iter(n - k, i-1):
+                        c.append(k)
+                        for sst in IncreasingTableaux_shape_weight(self.shape, Composition(c)):
+                            yield self.element_class(self, sst)
+            else:
+                for sst in IncreasingTableaux_shape_weight(self.shape, Composition([n])):
+                    yield self.element_class(self, sst)
+            i += 1
+
+
+class IncreasingTableaux_size(IncreasingTableaux):
+    """
+    Semistandard tableaux of fixed size `n`.
+    """
+    def __init__(self, n, max_entry=None):
+        r"""
+        Initializes the class of semistandard tableaux of size ``n``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux`
+            to ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux(3); SST
+            Semistandard tableaux of size 3 and maximum entry 3
+            sage: type(SST)
+            <class 'sage.combinat.tableau.SemistandardTableaux_size_with_category'>
+            sage: TestSuite(SST).run()
+
+            sage: SST = SemistandardTableaux(3, max_entry=6)
+            sage: type(SST)
+            <class 'sage.combinat.tableau.SemistandardTableaux_size_with_category'>
+            sage: TestSuite(SST).run()
+        """
+
+        if max_entry is None:
+            max_entry = n
+        super(IncreasingTableaux_size, self).__init__(max_entry=max_entry,
+                  category=FiniteEnumeratedSets())
+        self.size = n
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SemistandardTableaux(3))    # indirect doctest
+            'Semistandard tableaux of size 3 and maximum entry 3'
+
+            sage: repr(SemistandardTableaux(3, max_entry=6))
+            'Semistandard tableaux of size 3 and maximum entry 6'
+        """
+        return "Increasing tableaux of size %s and maximum entry %s"%(str(self.size), str(self.max_entry))
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: [[1,2],[3,3]] in SemistandardTableaux(3)
+            False
+            sage: [[1,2],[3,3]] in SemistandardTableaux(4)
+            True
+            sage: [[1,2],[3,3]] in SemistandardTableaux(4, max_entry=2)
+            False
+            sage: SST = SemistandardTableaux(4)
+            sage: all(sst in SST for sst in SST)
+            True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: SST = SemistandardTableaux(4)
+            sage: 1 in SST
+            False
+        """
+        if self.size==0:
+            return x == []
+
+        return (IncreasingTableaux.__contains__(self, x)
+            and sum(map(len, x)) == self.size
+            and max(max(row) for row in x) <= self.max_entry)
+
+    def random_element(self):
+        r"""
+        Generate a random :class:`SemistandardTableau` with uniform probability.
+
+        The RSK algorithm gives a bijection between symmetric `k\times k` matrices
+        of nonnegative integers that sum to `n` and semistandard tableaux with size `n`
+        and maximum entry `k`.
+
+        The number of `k\times k` symmetric matrices of nonnegative integers
+        having sum of elements on the diagonal `i` and sum of elements above
+        the diagonal `j` is `\binom{k + i - 1}{k - 1}\binom{\binom{k}{2} + j - 1}{\binom{k}{2} - 1}`.
+        We first choose the sum of the elements on the diagonal randomly weighted by the
+        number of matrices having that trace.  We then create random integer vectors
+        of length `k` having that sum and use them to generate a `k\times k` diagonal matrix.
+        Then we take a random integer vector of length `\binom{k}{2}` summing to half the
+        remainder and distribute it symmetrically to the remainder of the matrix.
+
+        Applying RSK to the random symmetric matrix gives us a pair of identical
+        :class:`SemistandardTableau` of which we choose the first.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux(6).random_element() # random
+            [[1, 1, 2], [3, 5, 5]]
+            sage: SemistandardTableaux(6, max_entry=7).random_element() # random
+            [[2, 4, 4, 6, 6, 6]]
+        """
+        raise NotImplementedError
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux(3).cardinality()
+            19
+            sage: SemistandardTableaux(4).cardinality()
+            116
+            sage: SemistandardTableaux(4, max_entry=2).cardinality()
+            9
+            sage: SemistandardTableaux(4, max_entry=10).cardinality()
+            4225
+            sage: ns = list(range(1, 6))
+            sage: ssts = [ SemistandardTableaux(n) for n in ns ]
+            sage: all(sst.cardinality() == len(sst.list()) for sst in ssts)
+            True
+        """
+        from sage.combinat.partition import Partitions
+        c = 0
+        for part in Partitions(self.size):
+            c += IncreasingTableaux_shape(part, self.max_entry).cardinality()
+        return c
+
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: [ t for t in SemistandardTableaux(2) ]
+            [[[1, 1]], [[1, 2]], [[2, 2]], [[1], [2]]]
+            sage: [ t for t in SemistandardTableaux(3) ]
+            [[[1, 1, 1]],
+             [[1, 1, 2]],
+             [[1, 1, 3]],
+             [[1, 2, 2]],
+             [[1, 2, 3]],
+             [[1, 3, 3]],
+             [[2, 2, 2]],
+             [[2, 2, 3]],
+             [[2, 3, 3]],
+             [[3, 3, 3]],
+             [[1, 1], [2]],
+             [[1, 1], [3]],
+             [[1, 2], [2]],
+             [[1, 2], [3]],
+             [[1, 3], [2]],
+             [[1, 3], [3]],
+             [[2, 2], [3]],
+             [[2, 3], [3]],
+             [[1], [2], [3]]]
+
+            sage: [ t for t in SemistandardTableaux(3, max_entry=2) ]
+            [[[1, 1, 1]],
+             [[1, 1, 2]],
+             [[1, 2, 2]],
+             [[2, 2, 2]],
+             [[1, 1], [2]],
+             [[1, 2], [2]]]
+
+            sage: sst = SemistandardTableaux(3)
+            sage: sst[0].parent() is sst
+            True
+        """
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self.size):
+            for sst in IncreasingTableaux_shape(part, self.max_entry):
+                yield self.element_class(self, sst)
+
+class IncreasingTableaux_shape(IncreasingTableaux):
+    """
+    Semistandard tableaux of fixed shape `p` with a given max entry.
+
+    A semistandard tableau with max entry `i` is required to have all
+    its entries less or equal to `i`. It is not required to actually
+    contain an entry `i`.
+
+    INPUT:
+
+    - ``p`` -- a partition
+    - ``max_entry`` -- the max entry; defaults to the size of ``p``
+    """
+    def __init__(self, p, max_entry=None):
+        r"""
+        Initializes the class of semistandard tableaux of shape ``p``, with a
+        given ``max_entry``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux([2,1])
+            sage: TestSuite(SST).run()
+
+            sage: SST = SemistandardTableaux([2,1], max_entry=5)
+            sage: TestSuite(SST).run()
+        """
+        if max_entry is None:
+            max_entry = sum(p)
+        super(IncreasingTableaux_shape, self).__init__(max_entry=max_entry,
+              category=FiniteEnumeratedSets())
+        self.shape = p
+
+    def __iter__(self):
+        """
+        An iterator for the semistandard tableaux of the specified shape
+        with the specified max entry.
+
+        EXAMPLES::
+
+            sage: [ t for t in SemistandardTableaux([3]) ]
+            [[[1, 1, 1]],
+             [[1, 1, 2]],
+             [[1, 1, 3]],
+             [[1, 2, 2]],
+             [[1, 2, 3]],
+             [[1, 3, 3]],
+             [[2, 2, 2]],
+             [[2, 2, 3]],
+             [[2, 3, 3]],
+             [[3, 3, 3]]]
+            sage: [ t for t in SemistandardTableaux([2,1]) ]
+            [[[1, 1], [2]],
+             [[1, 1], [3]],
+             [[1, 2], [2]],
+             [[1, 2], [3]],
+             [[1, 3], [2]],
+             [[1, 3], [3]],
+             [[2, 2], [3]],
+             [[2, 3], [3]]]
+            sage: [ t for t in SemistandardTableaux([1,1,1]) ]
+            [[[1], [2], [3]]]
+
+            sage: [ t for t in SemistandardTableaux([1,1,1], max_entry=4) ]
+            [[[1], [2], [3]],
+             [[1], [2], [4]],
+             [[1], [3], [4]],
+             [[2], [3], [4]]]
+
+            sage: sst = SemistandardTableaux([3])
+            sage: sst[0].parent() is sst
+            True
+        """
+        for c in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
+            for sst in IncreasingTableaux_shape_weight(self.shape, Composition(c)):
+                yield self.element_class(self, sst)
+
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: SST = SemistandardTableaux([2,1])
+            sage: all(sst in SST for sst in SST)
+            True
+            sage: len([x for x in SemistandardTableaux(3) if x in SST])
+            8
+            sage: SST.cardinality()
+            8
+
+            sage: SST = SemistandardTableaux([2,1], max_entry=4)
+            sage: all(sst in SST for sst in SST)
+            True
+            sage: SST.cardinality()
+            20
+        """
+        return IncreasingTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SemistandardTableaux([2,1]))    # indirect doctest
+            'Semistandard tableaux of shape [2, 1] and maximum entry 3'
+
+            sage: repr(SemistandardTableaux([2,1], max_entry=5))
+            'Semistandard tableaux of shape [2, 1] and maximum entry 5'
+        """
+        return "Increasing tableaux of shape %s and maximum entry %s" %(str(self.shape), str(self.max_entry))
+
+    def random_element(self):
+        """
+        Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
+
+        Uses the algorithm from [Kra1999]_ based on the Novelli-Pak-Stoyanovskii bijection
+
+        EXAMPLES::
+
+           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
+            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
+            [[1, 1], [2, 3], [3], [5]]
+            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
+            [[1, 4], [5, 5], [6], [7]]
+
+        """
+        raise NotImplementedError
+
+    def cardinality(self):
+        r"""
+        Return the cardinality of ``self``.
+
+        INPUT:
+
+        - ``algorithm`` -- (default: ``'hook'``) any one of the following:
+
+          - ``'hook'`` -- use Stanley's hook length formula
+
+          - ``'sum'`` -- sum over the compositions of ``max_entry`` the
+            number of semistandard tableau with ``shape`` and given
+            weight vector
+
+        This is computed using *Stanley's hook length formula*:
+
+        .. MATH::
+
+           f_{\lambda} = \prod_{u\in\lambda} \frac{n+c(u)}{h(u)}.
+
+        where `n` is the ``max_entry``, `c(u)` is the content of `u`,
+        and `h(u)` is the hook length of `u`.
+        See [Sta-EC2]_ Corollary 7.21.4.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux([2,1]).cardinality()
+            8
+            sage: SemistandardTableaux([2,2,1]).cardinality()
+            75
+            sage: SymmetricFunctions(QQ).schur()([2,2,1]).expand(5)(1,1,1,1,1) # cross check
+            75
+            sage: SemistandardTableaux([5]).cardinality()
+            126
+            sage: SemistandardTableaux([3,2,1]).cardinality()
+            896
+            sage: SemistandardTableaux([3,2,1], max_entry=7).cardinality()
+            2352
+            sage: SemistandardTableaux([6,5,4,3,2,1], max_entry=30).cardinality()
+            208361017592001331200
+            sage: ssts = [SemistandardTableaux(p, max_entry=6) for p in Partitions(5)]
+            sage: all(sst.cardinality() == sst.cardinality(algorithm='sum')
+            ....:     for sst in ssts)
+            True
+        """
+        c = 0
+        for comp in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
+            c += IncreasingTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
+        return c
+
+class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
+    r"""
+    Semistandard tableaux of fixed shape `p` and binary weight `wt`.
+    """
+    def __init__(self, p, wt):
+        r"""
+        Initializes the class of all semistandard tableaux of shape ``p`` and
+        weight ``mu``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux([2,1], [2,1])
+            sage: TestSuite(SST).run()
+        """
+        super(IncreasingTableaux_shape_weight, self).__init__(p, len(wt))
+        self.weight = wt
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SemistandardTableaux([2,1],[2,1]))    # indirect doctest
+            'Semistandard tableaux of shape [2, 1] and weight [2, 1]'
+        """
+        return "Increasing tableaux of shape %s and weight %s"%(self.shape, self.weight)
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: SST = SemistandardTableaux([2,1], [2,1])
+            sage: all(sst in SST for sst in SST)
+            True
+            sage: len([x for x in SemistandardTableaux(3) if x in SST])
+            1
+            sage: SST.cardinality()
+            1
+        """
+        if x not in IncreasingTableaux_shape(self.shape, self.max_entry):
+            return False
+        n = sum(self.shape)
+
+        if n == 0 and len(x) == 0:
+            return True
+
+        content = {}
+        for row in x:
+            for i in row:
+                content[i] = content.get(i, 0) + 1
+        content_list = [0]*int(max(content))
+
+        for key in content:
+            content_list[key-1] = content[key]
+
+        if content_list != self.weight:
+            return False
+
+        return True
+
+    def __iter__(self):
+        """
+        TESTS::
+
+            sage: sst = SemistandardTableaux([3,1],[2,1,1])
+            sage: [sst[i] for i in range(2)]
+            [[[1, 1, 2], [3]], [[1, 1, 3], [2]]]
+            sage: sst[0].parent() is sst
+            True
+        """
+        tab = [[0] * k for k in self.shape]
+        list_of_partial_inc_tabs = [tab]
+        list_of_inc_tabs = []
+        while list_of_partial_inc_tabs != []:
+            active_tab = list_of_partial_inc_tabs.pop()
+    #        print active_tab##
+            unfilled_spots = []
+            for node in Tableau(active_tab).cells():
+                if active_tab[node] == 0:
+                    unfilled_spots.append(node)
+            if unfilled_spots == []:
+                list_of_inc_tabs.append(IncreasingTableau(active_tab))
+                continue
+            growth_spots = [] 
+            for (r,c) in growth_spots:
+                if (r-1,c) in active_tab.cells() and active_tab[r-1][c] != 0:
+                    if (r,c-1) in active_tab.cells() and active_tab[r][c-1] != 0:
+                        growth_spots.append((r,c))
+            growth_choices = list(powerset(growth_spots))
+            top_value = max(active_tab.values())
+            wt = self.weight
+            try:
+                growth_num = wt[top_value:].index(1) + top_value + 1
+            except ValueError:
+                continue
+            for growth_choice in growth_choices[1:]:
+                new_tab = deepcopy(active_tab)
+                for node in growth_choice:
+                    new_tab[node] = growth_num
+                list_of_partial_inc_tabs.append(new_tab)
+        for inctab in list_of_inc_tabs:
+            yield inctab
+
+
+    def cardinality(self):
+        """
+        Returns the number of semistandard tableaux of the given shape and
+        weight, as computed by ``kostka_number`` function of symmetrica.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux([2,2], [2, 1, 1]).cardinality()
+            1
+            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).cardinality()
+            1
+            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).cardinality()
+            1
+            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).cardinality()
+            2
+        """
+        counter = 0
+        for tab in self:
+            counter += 1
+        return counter
+
+
+
+    def list(self):
+        """
+        Return a list of all semistandard tableaux in ``self`` generated
+        by symmetrica.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux([2,2], [2, 1, 1]).list()
+            [[[1, 1], [2, 3]]]
+            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).list()
+            [[[1, 1], [2, 2], [3, 4]]]
+            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).list()
+            [[[1, 1], [2, 2], [3, 3]]]
+            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).list()
+            [[[1, 1, 2], [2, 3], [3]], [[1, 1, 3], [2, 2], [3]]]
+        """
+        return [tab for tab in self]
+
+
+class IncreasingTableaux_size_weight(IncreasingTableaux):
+    r"""
+    Semistandard tableaux of fixed size `n` and weight `wt`.
+    """
+    def __init__(self, n, wt):
+        r"""
+        Initializes the class of semistandard tableaux of size ``n`` and
+        weight ``mu``.
+
+        .. WARNING::
+
+            Input is not checked; please use :class:`SemistandardTableaux` to
+            ensure the options are properly parsed.
+
+        TESTS::
+
+            sage: SST = SemistandardTableaux(3, [2,1])
+            sage: TestSuite(SST).run()
+        """
+        super(IncreasingTableaux_size_weight, self).__init__(max_entry=len(wt),
+              category=FiniteEnumeratedSets())
+        self.size = n
+        self.weight = wt
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: repr(SemistandardTableaux(3, [2,1]))    # indirect doctest
+            'Semistandard tableaux of size 3 and weight [2, 1]'
+        """
+        return "Increasing tableaux of size %s and weight %s"%(self.size, self.weight)
+
+    def __iter__(self):
+        """
+        EXAMPLES::
+
+            sage: [ t for t in SemistandardTableaux(3, [2,1]) ]
+            [[[1, 1, 2]], [[1, 1], [2]]]
+            sage: [ t for t in SemistandardTableaux(4, [2,2]) ]
+            [[[1, 1, 2, 2]], [[1, 1, 2], [2]], [[1, 1], [2, 2]]]
+            sage: sst = SemistandardTableaux(4, [2,2])
+            sage: sst[0].parent() is sst
+            True
+        """
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
+            for sst in IncreasingTableaux_shape_weight(p, self.weight):
+                yield self.element_class(self, sst)
+
+
+    def cardinality(self):
+        """
+        Return the cardinality of ``self``.
+
+        EXAMPLES::
+
+            sage: SemistandardTableaux(3, [2,1]).cardinality()
+            2
+            sage: SemistandardTableaux(4, [2,2]).cardinality()
+            3
+        """
+        from sage.combinat.partition import Partitions
+        c = 0
+        for p in Partitions(self.size):
+            c += IncreasingTableaux_shape_weight(p, self.weight).cardinality()
+        return c
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: SST = SemistandardTableaux(6, [2,2,2])
+            sage: all(sst in SST for sst in SST)
+            True
+            sage: all(sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2]))
+            True
+        """
+        from sage.combinat.partition import Partition
+        return x in IncreasingTableaux_shape_weight(Partition(
+            [len(_) for _ in x]), self.weight)
+
+

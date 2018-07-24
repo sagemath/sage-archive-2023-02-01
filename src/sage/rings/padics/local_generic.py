@@ -217,7 +217,7 @@ class LocalGeneric(CommutativeRing):
         EXAMPLES::
 
             sage: latex(Zq(27,names='a')) #indirect doctest
-            \mathbf{Z}_{3^{3}}
+            \ZZ_{3^{3}}
         """
         return self._repr_(do_latex = True)
 
@@ -309,27 +309,29 @@ class LocalGeneric(CommutativeRing):
 
             sage: K.<a> = QqFP(125, prec=4)
             sage: K.change(q=64)
-            Unramified Extension in a defined by x^6 + x^4 + x^3 + x + 1 with floating precision 4 over 2-adic Field
+            2-adic unramified extension Field in a defined by x^6 + x^4 + x^3 + x + 1
             sage: R.<x> = QQ[]
             sage: K.change(modulus = x^2 - x + 2, print_pos=False)
-            Unramified Extension in a defined by x^2 - x + 2 with floating precision 4 over 5-adic Field
+            5-adic unramified extension Field in a defined by x^2 - x + 2
 
         and variable names::
 
             sage: K.change(names='b')
-            Unramified Extension in b defined by x^3 + 3*x + 3 with floating precision 4 over 5-adic Field
+            5-adic unramified extension Field in b defined by x^3 + 3*x + 3
 
         and precision::
 
             sage: Kup = K.change(prec=8); Kup
-            Unramified Extension in a defined by x^3 + 3*x + 3 with floating precision 8 over 5-adic Field
+            5-adic unramified extension Field in a defined by x^3 + 3*x + 3
+            sage: Kup.precision_cap()
+            8
             sage: Kup.base_ring()
             5-adic Field with floating precision 8
 
         If you decrease the precision, the precision of the base stays the same::
 
             sage: Kdown = K.change(prec=2); Kdown
-            Unramified Extension in a defined by x^3 + 3*x + 3 with floating precision 2 over 5-adic Field
+            5-adic unramified extension Field in a defined by x^3 + 3*x + 3
             sage: Kdown.precision_cap()
             2
             sage: Kdown.base_ring()

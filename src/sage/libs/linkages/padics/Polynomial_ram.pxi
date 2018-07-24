@@ -319,19 +319,17 @@ cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
     """
     R = value.base_ring()
     p = R.prime()
-    if m == 0:
-        tmp = value
-    else:
-        tmp = value.parent()(0)
     while m >= 0:
-        const_term = tmp[0]
+        const_term = value[0]
         if const_term._is_exact_zero():
             term = []
         else:
             flint_rep = const_term._flint_rep_abs()[0]
             term = [c % p for c in flint_rep.list()]
-            if m: tmp.__coeffs[0] -= R(term)
-        if m: cshift(tmp, tmp, -1, 1, prime_pow, False)
+            while term and not term[-1]:
+                del term[-1]
+            if m: value.__coeffs[0] -= R(term)
+        if m: cshift(value, value, -1, 1, prime_pow, False)
         m -= 1
     return term
     # The following would be nice, but shifting doesn't behave the right way currently....

@@ -267,6 +267,58 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         s = self.base_ring().an_element()
         return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
 
+class WordQuasiSymmetricFunctionsAsWords(WordQuasiSymmetricFunctions, Parent):
+    r"""
+    The word quasi-symmetric functions, with user-input as packed words.
+
+    .. TODO:
+
+        Refactor things so that we don't need this second class?
+        In its present state, the class ``WordQuasiSymmetricFunctionsAsWords``
+        has the undesirable feature that their display options are linked, even
+        though bases are distinct::
+
+            sage: M = WordQuasiSymmetricFunctionsAsWords(ZZ).M()
+            setting display options to words, (self).options.objects = 'words'
+            sage: wM = WordQuasiSymmetricFunctionsAsWords(ZZ, indexded_by_words=True).M()
+            sage: wM == M
+            False
+            sage: M[[2,4],[1,3]] # looking for M[{2, 4}, {1, 3}]
+            M[2, 1, 2, 1]
+
+    .. SEEALSO::
+
+        :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctionsAsWords
+        sage: wM = WordQuasiSymmetricFunctionsAsWords(ZZ).M()
+        sage: y = wM[1,2,1,1]; y
+        M[1, 2, 1, 1]
+
+    TESTS::
+
+        sage: M = algebras.WQSym(ZZ)
+        sage: wM == M
+        False
+        sage: x = M[[1,3,4],[2]]; x
+        M[{1, 3, 4}, {2}]
+        sage: M.options.objects = "words"
+        sage: x
+        M[1, 2, 1, 1]
+        sage: y
+        M[1, 2, 1, 1]
+        sage: x == y
+        False
+    """
+    def __init__(self, R):
+        WordQuasiSymmetricFunctions.__init__(WordQuasiSymmetricFunctions(R), R)
+        category = HopfAlgebras(R).Graded().Connected()
+        Parent.__init__(self, base=R, category=category.WithRealizations())
+        self.indexed_by_words = True
+        self.options.objects = "words"
+
 class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The word quasi-symmetric functions.
@@ -303,7 +355,8 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     in this situation and is implemented using the latter indexing.
     (While ordered set partitions are used internally to index this
     Hopf algebra, input as packed words is available using the optional
-    ``indexed_by_words`` argument; see examples below.)
+    ``indexed_by_words`` argument or by using
+    :class:`~sage.combinat.chas.wqsym; see examples below.)
     The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and is
     implemented as
     :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Monomial`.
@@ -451,6 +504,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         category = HopfAlgebras(R).Graded().Connected()
         Parent.__init__(self, base=R, category=category.WithRealizations())
         self.indexed_by_words = indexed_by_words
+        self.options = self.Options()
         if indexed_by_words:
             print("setting display options to words, (self).options.objects = 'words'")
             self.options.objects = "words"
@@ -485,7 +539,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
 
     # add options to class
-    class options(GlobalOptions):
+    class Options(GlobalOptions):
         r"""
         Set and display the global options for bases of WordQuasiSymmetricFunctions.
         If no parameters are set, then the function returns a copy of the options

@@ -290,6 +290,13 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         where ``power`` is the smalles integer `n` such that
         this morphism acts by `x \mapsto x^(p^n)` on the
         residue field
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(5^3)
+            sage: Frob = K.frobenius_endomorphism()
+            sage: hash(Frob)  # indirect doctest, random
+            2818440606874670810
         """
         domain = self.domain()
         codomain = self.codomain()
@@ -297,7 +304,17 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
 
     cpdef _richcmp_(left, right, int op):
         """
-        Compare left and right
+        Compare ``left'' and ``right''
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(5^3)
+            sage: F = K.frobenius_endomorphism()
+            sage: G = K.frobenius_endomorphism(4)
+
+            sage: F == G
+            True
+
         """
         if left is right:
             return rich_to_bool(op, 0)

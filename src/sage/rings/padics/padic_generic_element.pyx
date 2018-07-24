@@ -1443,7 +1443,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return order
 
         # Compute multiplicative order at p
-        e = parent.e()
+        e = parent.absolute_e()
         if not (p-1).divides(e):
             return infinity
         n = e.valuation(p)
@@ -1687,8 +1687,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # Might convert to K's base ring.
             return Kbase(self)
         L = [Kbase(c) for c in self.polynomial().list()]
-        if len(L) < K.degree():
-            L += [Kbase(0)] * (K.degree() - len(L))
+        if len(L) < K.relative_degree():
+            L += [Kbase(0)] * (K.relative_degree() - len(L))
         return K(L)
 
     def _log_generic(self, aprec, mina=0):
@@ -2254,7 +2254,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             raise ValueError("You may only specify a branch of the logarithm in one way")
         R = self.parent()
         p = R.prime()
-        q = p**R.f()
+        q = p**R.absolute_f()
+        e = R.absolute_e()
 
         if self.is_padic_unit():
             total = R.zero()
@@ -2262,7 +2263,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if pi_branch is None:
                 if p_branch is None:
                     raise ValueError("You must specify a branch of the logarithm for non-units")
-                pi_branch = (p_branch - R._log_unit_part_p()) / R.e()
+                pi_branch = (p_branch - R._log_unit_part_p()) / e
             total = self.valuation() * pi_branch
         y = self.unit_part()
         x = 1 - y
@@ -2276,7 +2277,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         minaprec = y.precision_absolute()
         minn = 0
-        e = R.e()
         if e != 1:
             xval = x.valuation()
             lamb = minaprec - xval
@@ -2492,7 +2492,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             1 + w*7 + (4*w + 2)*7^2 + (w + 6)*7^3 + 5*7^4 + O(7^5)
         """
         R = self.parent()
-        e = R.e()
+        e = R.absolute_e()
         a = R(1,aprec)
         l = R(0,aprec)
         if R.prime() == 2:
@@ -2844,11 +2844,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self._is_exact_zero():
             return self
         parent = self.parent()
-        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.e()):
+        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.absolute_e()):
             raise PrecisionError("not enough precision to be sure that this element has a square root")
 
         if algorithm is None:
-            if parent.degree() == 1:
+            if parent.absolute_degree() == 1:
                 algorithm = "pari"
             else:
                 algorithm = "sage"
@@ -2934,7 +2934,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         ring = self.parent()
         p = ring.prime()
-        e = ring.e()
+        e = ring.absolute_e()
 
         # First, we check valuation and renormalize if needed
         val = self.valuation()
@@ -3089,7 +3089,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             0.000000000000000
         """
         K = self.parent()
-        if not prec and K.e() > 1:
+        if not prec and K.absolute_e() > 1:
             prec = 53
         if prec:
             from sage.rings.real_mpfr import RealField
@@ -3282,7 +3282,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         from sage.functions.other import ceil,floor
         from sage.rings.infinity import PlusInfinity
 
-        if self.parent().degree() != 1:
+        if self.parent().absolute_degree() != 1:
             raise NotImplementedError("Polylogarithms are not currently implemented for elements of extensions")
             # TODO implement this (possibly after the change method for padic generic elements is added).
 

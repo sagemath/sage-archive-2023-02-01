@@ -549,7 +549,7 @@ cdef class pAdicPrinter_class(SageObject):
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
-        f = max(self.ring.f(), other.ring.f())
+        f = max(self.ring.absolute_f(), other.ring.absolute_f())
 
         if f > 1 and (self.mode == series or self.mode == bars):
             lx = self.unram_name
@@ -562,7 +562,7 @@ cdef class pAdicPrinter_class(SageObject):
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
 
-        f = max(self.ring.degree(), other.ring.degree())
+        f = max(self.ring.relative_degree(), other.ring.relative_degree())
 
         if f > 1 and self.mode == terse:
             lx = self.var_name
@@ -904,7 +904,7 @@ cdef class pAdicPrinter_class(SageObject):
                 else:
                     s = "...?." + ("?" * (-prec)) + self.alphabet[0]
             elif mode == bars:
-                if self.base or self._ring().f() == 1:
+                if self.base or self._ring().absolute_f() == 1:
                     zero = '0'
                 else:
                     zero = '[]'
@@ -971,14 +971,14 @@ cdef class pAdicPrinter_class(SageObject):
             else:
                 lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
             if len(L) < lenL:
-                if self.base or self._ring().f() == 1:
+                if self.base or self._ring().absolute_f() == 1:
                     L += [0]*(lenL - len(L))
                 else:
                     L += [[]]*(lenL - len(L))
             elif len(L) > lenL:
                 L = L[:lenL]
             L.reverse()
-            if self.base or self._ring().f() == 1 or self.max_unram_terms == -1:
+            if self.base or self._ring().absolute_f() == 1 or self.max_unram_terms == -1:
                 L = [str(a) for a in L]
             else:
                 if self.max_unram_terms == 0:
@@ -988,7 +988,7 @@ cdef class pAdicPrinter_class(SageObject):
                 else:
                     L = ["[%s,..., "%(a[0]) + ", ".join([str(b) for b in a[1-self.max_unram_terms:]]) + "]" if len(a) > 2 else str(a) for a in L]
             if n > 0:
-                if self.base or self._ring().f() == 1:
+                if self.base or self._ring().absolute_f() == 1:
                     L += ['0']*n
                 else:
                     L += ['[]']*n
@@ -1185,10 +1185,7 @@ cdef class pAdicPrinter_class(SageObject):
                 if len(L) == 0:
                     raise RuntimeError("repr_spec called on zero")
                 R = elt.parent()
-                f = R.f()
-                while R.degree() != 1:
-                    R = R.base_ring()
-                    f *= R.f()
+                f = R.absolute_f()
                 if f > 1: # unramified part to the extension
                     if self.unram_name is None:
                         raise RuntimeError("need to have specified a name for the unramified variable")

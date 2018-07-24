@@ -474,7 +474,7 @@ class LocalGeneric(CommutativeRing):
             if 'prec' in kwds:
                 # This will need to be modified once lattice precision supports extensions
                 prec = kwds.pop('prec')
-                baseprec = (prec - 1) // self.e() + 1
+                baseprec = (prec - 1) // self.relative_e() + 1
                 if baseprec > self.base_ring().precision_cap():
                     kwds['prec'] = baseprec
                 functor.kwds['prec'] = prec
@@ -486,9 +486,12 @@ class LocalGeneric(CommutativeRing):
                 modulus = kwds.pop('modulus')
                 if n is not None and modulus.degree() != n:
                     raise ValueError("modulus must have degree matching q")
-            elif q is not None and self.f() != 1:
-                # If q is specified, replace the modulus with one from q.
-                modulus = get_unramified_modulus(q, functor.kwds.get('res_name', functor.names[0] + '0'))
+            elif q is not None:
+                if self.relative_e() == 1:
+                    # If q is specified, replace the modulus with one from q.
+                    modulus = get_unramified_modulus(q, functor.kwds.get('res_name', functor.names[0] + '0'))
+                elif self.relative_f() != 1:
+                    raise ValueError("Cannot change q in mixed extensions")
             for atr in ('var_name', 'res_name', 'unram_name', 'ram_name'):
                 if atr in kwds:
                     functor.kwds[atr] = kwds.pop(atr)
@@ -500,7 +503,7 @@ class LocalGeneric(CommutativeRing):
             if 'base' in kwds:
                 ring = kwds['base']
             else:
-                if q is not None and self.f() == 1:
+                if q is not None and self.relative_f() == 1:
                     kwds['q'] = q
                 ring = ring.change(**kwds)
             if modulus is None:
@@ -731,7 +734,10 @@ class LocalGeneric(CommutativeRing):
             2
         """
         # Override this in subclasses (if appropriate)
-        return ZZ(1)
+        if self is self.base_ring():
+            return ZZ(1)
+        else:
+            return self.base_ring().absolute_e()
 
     def absolute_ramification_index(self):
         """
@@ -837,7 +843,10 @@ class LocalGeneric(CommutativeRing):
             1
         """
         # Override this in subclasses (if appropriate)
-        return ZZ(1)
+        if self is self.base_ring():
+            return ZZ(1)
+        else:
+            return self.base_ring().absolute_f()
 
     def absolute_inertia_degree(self):
         """
@@ -907,7 +916,7 @@ class LocalGeneric(CommutativeRing):
         if self.base_ring().absolute_degree() == 1:
             return self.absolute_f()
         else:
-            raise NotImplementedError("For a relative p-adic ring or field you must use relative_e or absolute_e as appropriate")
+            raise NotImplementedError("For a relative p-adic ring or field you must use relative_f or absolute_f as appropriate")
 
     def inertia_degree(self):
         """

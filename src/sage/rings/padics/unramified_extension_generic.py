@@ -89,7 +89,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             sage: L.absolute_f()
             1
         """
-        return self.modulus().degree()
+        return self.modulus().degree() * self.base_ring().absolute_f()
 
     #def extension(self, *args, **kwds):
     #    raise NotImplementedError
@@ -224,7 +224,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         exp = p
         a = self.gen()
         if not arithmetic:
-            exp = p**(self.degree()-1)
+            exp = p**(self.absolute_degree()-1)
         approx = (self(a.residue()**exp)).lift_to_precision(self.precision_cap()) #first approximation
         f = self.defining_polynomial()
         g = f.derivative()

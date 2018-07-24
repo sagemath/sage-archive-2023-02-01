@@ -77,16 +77,16 @@ cdef class FrobeniusEndomorphism_padics(RingHomomorphism):
         """
         if not isinstance(domain, pAdicGeneric):
             raise TypeError("The domain must be an instance of pAdicGeneric")
-        if domain.e() != 1:
+        if domain.absolute_e() != 1:
             raise TypeError("The domain must be unramified")
         try:
             n = Integer(n)
         except (ValueError, TypeError):
             raise TypeError("n (=%s) is not an integer" % n)
 
-        self._degree = domain.f()
+        self._degree = domain.absolute_f()
         self._power = n % self._degree
-        self._order = self._degree / domain.degree().gcd(self._power)
+        self._order = self._degree / self._degree.gcd(self._power)
         RingHomomorphism.__init__(self, Hom(domain, domain))
 
 

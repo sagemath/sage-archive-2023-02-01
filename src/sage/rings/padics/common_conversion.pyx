@@ -294,10 +294,10 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
     else:
         absprec = kwds.get("absprec",infinity)
     if absolute:
-        aprec[0] = comb_prec(absprec, prime_pow.prec_cap)
+        aprec[0] = comb_prec(absprec, prime_pow.ram_prec_cap)
         rprec[0] = comb_prec(relprec, maxordp)
     else:
-        rprec[0] = comb_prec(relprec, prime_pow.prec_cap)
+        rprec[0] = comb_prec(relprec, prime_pow.ram_prec_cap)
         aprec[0] = comb_prec(absprec, maxordp)
 
 cdef inline long cconv_mpq_t_shared(mpz_t out, mpq_t x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:

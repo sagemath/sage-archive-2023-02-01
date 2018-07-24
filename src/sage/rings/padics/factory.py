@@ -2886,7 +2886,7 @@ class pAdicExtension_class(UniqueFactory):
             if ram_name is None:
                 ram_name = base._printer._uniformizer_name()
             names = (names, res_name, unram_name, ram_name)
-            if base.degree() == 1:
+            if base.absolute_degree() == 1:
                 polytype = 'u'
             else:
                 polytype = 'ru'
@@ -2901,7 +2901,7 @@ class pAdicExtension_class(UniqueFactory):
             res_name = None
             if ram_name is None:
                 ram_name = names
-            if base.degree() == 1:
+            if base.absolute_degree() == 1:
                 unram_name = None
                 polytype = 'e'
             else:

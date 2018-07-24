@@ -105,7 +105,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     def _extension_type(self):
         """
-        Return the type (``unramified``, ``Eisenstein``) of this 
+        Return the type (``Unramified``, ``Eisenstein``) of this 
         extension as a string, if any. 
 
         Used for printing.
@@ -148,7 +148,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: K1.<a> = Qq(7^3)
             sage: K1
             7-adic Unramified Extension Field in a defined by x^3 + 6*x^2 + 4
-            sage: R1._latex_()
+            sage: K1._latex_()
             '\\QQ_{7^{3}}'
             sage: K2.<t> = K.ext(x^2+7)
             sage: K2 #indirect doctest

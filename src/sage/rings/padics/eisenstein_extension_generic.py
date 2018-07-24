@@ -42,7 +42,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
     def _extension_type(self):
         """
-        Return the type (``unramified``, ``Eisenstein``) of this 
+        Return the type (``Unramified``, ``Eisenstein``) of this 
         extension as a string, if any.
 
         Used for printing.
@@ -60,6 +60,19 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         return "Eisenstein"
 
     def absolute_e(self):
+        """
+        Return the absolute ramification index of this ring or field
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_e()
+            1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_e()
+            2
+        """
         return self.modulus().degree()
 
     def inertia_subring(self):

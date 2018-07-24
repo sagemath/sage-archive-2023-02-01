@@ -1157,7 +1157,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: unhashable type: 'sage.rings.padics.qadic_flint_CR.qAdicCappedRelativeElement'
             sage: f._cache_key()
-            (Univariate Polynomial Ring in x over 2-adic unramified extension Field in u defined by x^2 + x + 1,
+            (Univariate Polynomial Ring in x over 2-adic Unramified Extension Field in u defined by x^2 + x + 1,
              0,
              1 + O(2^20))
             sage: @cached_function

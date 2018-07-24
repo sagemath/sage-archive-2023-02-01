@@ -309,20 +309,20 @@ class LocalGeneric(CommutativeRing):
 
             sage: K.<a> = QqFP(125, prec=4)
             sage: K.change(q=64)
-            2-adic unramified extension Field in a defined by x^6 + x^4 + x^3 + x + 1
+            2-adic Unramified Extension Field in a defined by x^6 + x^4 + x^3 + x + 1
             sage: R.<x> = QQ[]
             sage: K.change(modulus = x^2 - x + 2, print_pos=False)
-            5-adic unramified extension Field in a defined by x^2 - x + 2
+            5-adic Unramified Extension Field in a defined by x^2 - x + 2
 
         and variable names::
 
             sage: K.change(names='b')
-            5-adic unramified extension Field in b defined by x^3 + 3*x + 3
+            5-adic Unramified Extension Field in b defined by x^3 + 3*x + 3
 
         and precision::
 
             sage: Kup = K.change(prec=8); Kup
-            5-adic unramified extension Field in a defined by x^3 + 3*x + 3
+            5-adic Unramified Extension Field in a defined by x^3 + 3*x + 3
             sage: Kup.precision_cap()
             8
             sage: Kup.base_ring()
@@ -331,7 +331,7 @@ class LocalGeneric(CommutativeRing):
         If you decrease the precision, the precision of the base stays the same::
 
             sage: Kdown = K.change(prec=2); Kdown
-            5-adic unramified extension Field in a defined by x^3 + 3*x + 3
+            5-adic Unramified Extension Field in a defined by x^3 + 3*x + 3
             sage: Kdown.precision_cap()
             2
             sage: Kdown.base_ring()
@@ -661,126 +661,271 @@ class LocalGeneric(CommutativeRing):
         """
         return self
 
+
+    def absolute_degree(self):
+        """
+        Return the degree of this extension over the prime p-adic field/ring
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_degree()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_degree()
+            2
+        """
+        return self.absolute_e() * self.absolute_f()
+
+    def relative_degree(self):
+        """
+        Return the degree of this extension over its base field/ring
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.relative_degree()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.relative_degree()
+            2
+        """
+        return self.absolute_degree() // self.base_ring().absolute_degree()
+
     def degree(self):
-        r"""
-        Returns the degree of ``self`` over the ground ring, i.e. 1.
+        """
+        Return the degree of this extension.
 
-        INPUT:
-
-        - ``self`` -- a local ring
-
-        OUTPUT:
-
-        - integer -- the degree of this ring, i.e., 1
+        Raise an error if the base ring/field is itself an extension.
 
         EXAMPLES::
 
-            sage: R = Zp(3, 10, 'capped-rel'); R.degree()
-            1
+            sage: K.<a> = Qq(3^5)
+            sage: K.degree()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.degree()
+            2
         """
-        return Integer(1)
-
-    def ramification_index(self, K = None):
-        r"""
-        Returns the ramification index over the ground ring: 1 unless overridden.
-
-        INPUT:
-
-        - ``self`` -- a local ring
-
-        OUTPUT:
-
-        - integer -- the ramification index of this ring: 1 unless overridden.
-
-        EXAMPLES::
-
-            sage: R = Zp(3, 5, 'capped-rel'); R.ramification_index()
-            1
-        """
-        if K is None or K is self:
-            return Integer(1)
+        if self.base_ring().absolute_degree() == 1:
+            return self.absolute_degree()
         else:
-            raise ValueError("K should be a subring of self")
+            raise NotImplementedError("For a relative number field you must use relative_degree or absolute_degree as appropriate")
 
-    def e(self, K = None):
-        r"""
-        Returns the ramification index over the ground ring: 1 unless overridden.
 
-        INPUT:
-
-        - ``self`` -- a local ring
-        - ``K`` -- a subring of ``self`` (default ``None``)
-
-        OUTPUT:
-
-        - integer -- the ramification index of this ring: 1 unless overridden.
+    def absolute_e(self):
+        """
+        Return the absolute ramification index of this ring/field
 
         EXAMPLES::
 
-            sage: R = Zp(3, 5, 'capped-rel'); R.e()
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_e()
             1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_e()
+            2
         """
-        return self.ramification_index(K)
+        # Override this in subclasses (if appropriate)
+        return ZZ(1)
 
-    def inertia_degree(self, K=None):
-        r"""
-        Returns the inertia degree over ``K`` (defaults to the ground ring): 1 unless overridden.
-
-        INPUT:
-
-        - ``self`` -- a local ring
-        - ``K`` -- a subring of ``self`` (default None)
-
-        OUTPUT:
-
-        - integer -- the inertia degree of this ring: 1 unless overridden.
+    def absolute_ramification_index(self):
+        """
+        Return the absolute ramification index of this ring/field
 
         EXAMPLES::
 
-            sage: R = Zp(3, 5, 'capped-rel'); R.inertia_degree()
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_ramification_index()
             1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_ramification_index()
+            2
         """
-        return Integer(1)
+        return self.absolute_e()
 
-    def residue_class_degree(self, K=None):
-        r"""
-        Returns the inertia degree over the ground ring: 1 unless overridden.
-
-        INPUT:
-
-        - ``self`` -- a local ring
-        - ``K`` -- a subring (default ``None``)
-
-        OUTPUT:
-
-        - integer -- the inertia degree of this ring: 1 unless overridden.
+    def relative_e(self):
+        """
+        Return the ramification index of this extension over its base ring/field
 
         EXAMPLES::
 
-            sage: R = Zp(3, 5, 'capped-rel'); R.residue_class_degree()
+            sage: K.<a> = Qq(3^5)
+            sage: K.relative_e()
             1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.relative_e()
+            2
         """
-        return self.inertia_degree(K)
+        return self.absolute_e() // self.base_ring().absolute_e()
 
-    def f(self, K=None):
-        r"""
-        Returns the inertia degree over the ground ring: 1 unless overridden.
-
-        INPUT:
-
-        - ``self`` -- a local ring
-        - ``K`` -- a subring (default ``None``)
-
-        OUTPUT:
-
-        - integer -- the inertia degree of this ring: 1 unless overridden.
+    def relative_ramification_index(self):
+        """
+        Return the ramification index of this extension over its base ring/field
 
         EXAMPLES::
 
-            sage: R = Zp(3, 5, 'capped-rel'); R.f()
+            sage: K.<a> = Qq(3^5)
+            sage: K.relative_ramification_index()
+            1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.relative_ramification_index()
+            2
+        """
+        return self.relative_e()
+
+    def e(self):
+        """
+        Return the degree of this extension.
+
+        Raise an error if the base ring/field is itself an extension.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.e()
+            1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.e()
+            2
+        """
+        if self.base_ring().absolute_degree() == 1:
+            return self.absolute_e()
+        else:
+            raise NotImplementedError("For a relative number field you must use relative_e or absolute_e as appropriate")
+
+    def ramification_index(self):
+        """
+        Return the degree of this extension.
+
+        Raise an error if the base ring/field is itself an extension.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.ramification_index()
+            1
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.ramification_index()
+            2
+        """
+        return self.e()
+
+
+    def absolute_f(self):
+        """
+        Return the degree of the residue field of this ring/field
+        over its prime subfield
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_f()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_f()
             1
         """
-        return self.inertia_degree(K)
+        # Override this in subclasses (if appropriate)
+        return ZZ(1)
+
+    def absolute_inertia_degree(self):
+        """
+        Return the degree of the residue field of this ring/field
+        over its prime subfield
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_inertia_degree()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_inertia_degree()
+            1
+        """
+        return self.absolute_f()
+
+    def relative_f(self):
+        """
+        Return the degree of the residual extension over its base ring/field
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.relative_f()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.relative_f()
+            1
+        """
+        return self.absolute_f() // self.base_ring().absolute_f()
+
+    def relative_inertia_degree(self):
+        """
+        Return the degree of the residual extension over its base ring/field
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.relative_inertia_degree()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.relative_inertia_degree()
+            1
+        """
+        return self.relative_f()
+
+    def f(self):
+        """
+        Return the degree of the residual extension.
+
+        Raise an error if the base ring/field is itself an extension.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.f()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.f()
+            1
+        """
+        if self.base_ring().absolute_degree() == 1:
+            return self.absolute_f()
+        else:
+            raise NotImplementedError("For a relative number field you must use relative_e or absolute_e as appropriate")
+
+    def inertia_degree(self):
+        """
+        Return the degree of the residual extension.
+
+        Raise an error if the base ring/field is itself an extension.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.inertia_degree()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.inertia_degree()
+            1
+        """
+        return self.f()
 
     def inertia_subring(self):
         r"""

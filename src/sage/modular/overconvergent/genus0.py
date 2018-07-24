@@ -356,7 +356,7 @@ class OverconvergentModularFormsSpace(Module):
             sage: OverconvergentModularForms(3, 2, 1/40, base_ring=L)
             Traceback (most recent call last):
             ...
-            ValueError: no element of base ring (=3-adic Eisenstein extension ...) has normalised valuation 3/20
+            ValueError: no element of base ring (=3-adic Eisenstein Extension ...) has normalised valuation 3/20
         """
 
         p = ZZ(self.prime())
@@ -418,7 +418,7 @@ class OverconvergentModularFormsSpace(Module):
 
             sage: M = OverconvergentModularForms(2, 0, 1/2, base_ring = Qp(2))
             sage: M.base_extend(Qp(2).extension(x^2 - 2, names="w"))
-            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over 2-adic Eisenstein extension ...
+            Space of 2-adic 1/2-overconvergent modular forms of weight-character 0 over 2-adic Eisenstein Extension ...
             sage: M.base_extend(QQ)
             Traceback (most recent call last):
             ...
@@ -552,7 +552,7 @@ class OverconvergentModularFormsSpace(Module):
             (7,
              0,
              1/4,
-             7-adic Eisenstein extension Field in w defined by x^2 - 7,
+             7-adic Eisenstein Extension Field in w defined by x^2 - 7,
              20,
              Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1)
 
@@ -571,7 +571,7 @@ class OverconvergentModularFormsSpace(Module):
              (7,
               0,
               1/4,
-              7-adic Eisenstein extension Field in w defined by x^2 - 7,
+              7-adic Eisenstein Extension Field in w defined by x^2 - 7,
               20,
               Dirichlet character modulo 7 of conductor 1 mapping 3 |--> 1))
 

@@ -310,7 +310,7 @@ In addition to requiring a prime power as the first argument,
 One can specify this name as follows::
 
     sage: R.<c> = Zq(125, prec = 20); R
-    5-adic unramified extension Ring in c defined by x^3 + 3*x + 3
+    5-adic Unramified Extension Ring in c defined by x^3 + 3*x + 3
 
 Eisenstein Extensions
 ---------------------

@@ -1313,7 +1313,7 @@ cdef class pAdicConvert_FP_ZZ(RingMap):
             sage: f.category()
             Category of homsets of sets
         """
-        if R.degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
+        if R.absolute_degree() > 1 or R.characteristic() != 0 or R.residue_characteristic() == 0:
             RingMap.__init__(self, Hom(R, ZZ, SetsWithPartialMaps()))
         else:
             RingMap.__init__(self, Hom(R, ZZ, Sets()))
@@ -1696,8 +1696,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
         sage: K = R.fraction_field()
         sage: f = K.coerce_map_from(R); f
         Ring morphism:
-          From: 3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
-          To:   3-adic unramified extension Field in a defined by x^3 + 2*x + 1
+          From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+          To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
 
     TESTS::
 
@@ -1816,8 +1816,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: 3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
-              To:   3-adic unramified extension Field in a defined by x^3 + 2*x + 1
+              From: 3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
             sage: g == f
             True
             sage: g is f
@@ -1844,8 +1844,8 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Ring morphism:
-              From: 3-adic unramified extension Ring in a defined by x^2 + 2*x + 2
-              To:   3-adic unramified extension Field in a defined by x^2 + 2*x + 2
+              From: 3-adic Unramified Extension Ring in a defined by x^2 + 2*x + 2
+              To:   3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
             sage: g == f
             True
             sage: g is f
@@ -1870,8 +1870,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         sage: K = R.fraction_field()
         sage: f = R.convert_map_from(K); f
         Generic morphism:
-          From: 3-adic unramified extension Field in a defined by x^3 + 2*x + 1
-          To:   3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
+          From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+          To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
     """
     def __init__(self, K, R):
         r"""
@@ -1970,8 +1970,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: 3-adic unramified extension Field in a defined by x^3 + 2*x + 1
-              To:   3-adic unramified extension Ring in a defined by x^3 + 2*x + 1
+              From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
             sage: g == f
             True
             sage: g is f
@@ -1998,8 +1998,8 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
             sage: g = copy(f)   # indirect doctest
             sage: g
             Generic morphism:
-              From: 3-adic unramified extension Field in a defined by x^2 + 2*x + 2
-              To:   3-adic unramified extension Ring in a defined by x^2 + 2*x + 2
+              From: 3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
+              To:   3-adic Unramified Extension Ring in a defined by x^2 + 2*x + 2
             sage: g == f
             True
             sage: g is f

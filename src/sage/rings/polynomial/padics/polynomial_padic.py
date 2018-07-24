@@ -247,14 +247,14 @@ class Polynomial_padic(Polynomial):
             sage: R.<x> = Qp(3,5,print_mode='digits')[]
             sage: f = x^2 - 3
             sage: f.root_field('x')
-            3-adic Eisenstein extension Field in x defined by x^2 - 3
+            3-adic Eisenstein Extension Field in x defined by x^2 - 3
 
         ::
 
             sage: R.<x> = Qp(5,5,print_mode='digits')[]
             sage: f = x^2 - 3
             sage: f.root_field('x', print_mode='bars')
-            5-adic unramified extension Field in x defined by x^2 - 3
+            5-adic Unramified Extension Field in x defined by x^2 - 3
 
         ::
 

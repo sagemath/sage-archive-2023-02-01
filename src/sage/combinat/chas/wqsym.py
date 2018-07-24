@@ -267,57 +267,13 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         s = self.base_ring().an_element()
         return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
 
-class WordQuasiSymmetricFunctionsAsWords(WordQuasiSymmetricFunctions, Parent):
+def WordQuasiSymmetricFunctionsAsWords(R):
     r"""
     The word quasi-symmetric functions, with user-input as packed words.
 
-    .. TODO:
-
-        Refactor things so that we don't need this second class?
-        In its present state, the class ``WordQuasiSymmetricFunctionsAsWords``
-        has the undesirable feature that their display options are linked, even
-        though bases are distinct::
-
-            sage: M = WordQuasiSymmetricFunctionsAsWords(ZZ).M()
-            setting display options to words, (self).options.objects = 'words'
-            sage: wM = WordQuasiSymmetricFunctionsAsWords(ZZ, indexded_by_words=True).M()
-            sage: wM == M
-            False
-            sage: M[[2,4],[1,3]] # looking for M[{2, 4}, {1, 3}]
-            M[2, 1, 2, 1]
-
     .. SEEALSO::
-
-        :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions`
-
-    EXAMPLES::
-
-        sage: from sage.combinat.chas.wqsym import WordQuasiSymmetricFunctionsAsWords
-        sage: wM = WordQuasiSymmetricFunctionsAsWords(ZZ).M()
-        sage: y = wM[1,2,1,1]; y
-        M[1, 2, 1, 1]
-
-    TESTS::
-
-        sage: M = algebras.WQSym(ZZ)
-        sage: wM == M
-        False
-        sage: x = M[[1,3,4],[2]]; x
-        M[{1, 3, 4}, {2}]
-        sage: M.options.objects = "words"
-        sage: x
-        M[1, 2, 1, 1]
-        sage: y
-        M[1, 2, 1, 1]
-        sage: x == y
-        False
     """
-    def __init__(self, R):
-        WordQuasiSymmetricFunctions.__init__(WordQuasiSymmetricFunctions(R), R)
-        category = HopfAlgebras(R).Graded().Connected()
-        Parent.__init__(self, base=R, category=category.WithRealizations())
-        self.indexed_by_words = True
-        self.options.objects = "words"
+    return WordQuasiSymmetricFunctions(R, indexed_by_words=True)
 
 class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
@@ -441,7 +397,6 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     Implementation as packed words::
 
         sage: wWQSym = algebras.WQSym(ZZ, indexed_by_words=True)
-        setting display options to words, (self).options.objects = 'words'
         sage: wWQSym
         Word Quasi-symmetric functions indexed by packed words over Integer Ring
         sage: wM = wWQSym.M()
@@ -450,24 +405,22 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
          - M[2, 2, 1] - M[3, 2, 1]
 
-    The display options are global, and hence have been modified for
-    all instances of ``WordQuasiSymmetricFunctions``. These can be reset
-    using the method ``.options._reset()``::
+    The display options are shared by all bases, but not between
+    `algebras.WQSym(ZZ)` and `algebras.WQSym(ZZ, indexed_by_words=True)`::
 
-        sage: x
+        sage: M.options.objects = "words"
+        sage: x.antipode()
         3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
          - M[2, 2, 1] - M[3, 2, 1]
-        sage: M.options._reset() # also resets display options for ``wM``
-        sage: x
+        sage: WQSym.X()(x)
+        -X[1, 2, 3] + 3*X[2, 1]
+        sage: M.options._reset()
+        sage: x.antipode()
         3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
          - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
-        sage: wx
-        3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
-         - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
-        sage: wx == x
-        False
-        sage: wx in M
-        False
+        sage: wx.antipode()
+        3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
+         - M[2, 2, 1] - M[3, 2, 1]
 
     TESTS::
 
@@ -484,70 +437,11 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     """
     def __init__(self, R, indexed_by_words=False):
         """
-        Initialize ``self``.
+        Initialize ``self`` and set global options.
 
-        TESTS::
-
-            sage: A = algebras.WQSym(QQ)
-            sage: TestSuite(A).run()  # long time
-
-            sage: M = algebras.WQSym(ZZ).M()
-            sage: M[1,1], M[1,1] == M[[1,1]] == M[1] == M[[1]]
-            (M[{1}], True)
-            sage: wM = algebras.WQSym(ZZ, indexed_by_words=True).M()
-            setting display options to words, (self).options.objects = 'words'
-            sage: wM[1,1], wM[1,1] == wM[[1,1]]
-            (M[1, 1], True)
-            sage: M[[1,2]].leading_support() == wM[1,1].leading_support()
-            True
-        """
-        category = HopfAlgebras(R).Graded().Connected()
-        Parent.__init__(self, base=R, category=category.WithRealizations())
-        self.indexed_by_words = indexed_by_words
-        self.options = self.Options()
-        if indexed_by_words:
-            print("setting display options to words, (self).options.objects = 'words'")
-            self.options.objects = "words"
-
-    def _repr_(self):
-        """
-        Return the string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: algebras.WQSym(QQ)  # indirect doctest
-            Word Quasi-symmetric functions over Rational Field
-        """
-        if self.indexed_by_words:
-            pw = "indexed by packed words "
-        else:
-            pw = ""
-        return "Word Quasi-symmetric functions {}over {}".format(pw, self.base_ring())
-
-    def a_realization(self):
-        r"""
-        Return a particular realization of ``self`` (the `M`-basis).
-
-        EXAMPLES::
-
-            sage: WQSym = algebras.WQSym(QQ)
-            sage: WQSym.a_realization()
-            Word Quasi-symmetric functions over Rational Field in the Monomial basis
-        """
-        return self.M()
-
-    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
-
-    # add options to class
-    class Options(GlobalOptions):
-        r"""
-        Set and display the global options for bases of WordQuasiSymmetricFunctions.
-        If no parameters are set, then the function returns a copy of the options
-        dictionary.
-
-        The ``options`` can be accessed as the method
-        :obj:`WordQuasiSymmetricFunctions.options` of
-        :class:`WordQuasiSymmetricFunctions` or of any associated basis.
+        These global options can be modified by accessing the
+        attribute `.options` of :class:`WordQuasiSymmetricFunctions`
+        or of any associated basis.
 
         @OPTIONS@
 
@@ -581,21 +475,87 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: M.options._reset()
             sage: elt
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+
+        TESTS::
+
+            sage: A = algebras.WQSym(QQ)
+            sage: TestSuite(A).run()  # long time
+
+            sage: A = WordQuasiSymmetricFunctions(QQ)
+            sage: B = WordQuasiSymmetricFunctions(QQ, indexed_by_words=True)
+            sage: A.options.objects, B.options.objects
+            (compositions, words)
+            sage: A.options.objects = "words"
+            sage: A.options
+            Current options for WordQuasiSymmetricFunctions element
+              - display: normal
+              - objects: words
+            sage: str(A.options) == str(B.options)
+            True
+            sage: A.options is B.options
+            False
+            sage: A.options._reset()
+            sage: M = A.M()
+            sage: M[1,1], M[1,1] == M[[1,1]] == M[[1]]
+            (M[{1}], True)
+            sage: wM = B.M()
+            sage: wM[1,1], wM[1,1] == wM[[1,1]]
+            (M[1, 1], True)
+            sage: M[[1,2]].leading_support() == wM[1,1].leading_support()
+            True
         """
-        NAME = 'WordQuasiSymmetricFunctions element'
-        module = 'sage.combinat.chas.wqsym'
-        option_class='WordQuasiSymmetricFunctions'
-        objects = dict(default="compositions",
+        category = HopfAlgebras(R).Graded().Connected()
+        Parent.__init__(self, base=R, category=category.WithRealizations())
+        self.indexed_by_words = indexed_by_words
+        if indexed_by_words:
+            default_objects = "words"
+        else:
+            default_objects = "compositions"
+        self.options = GlobalOptions(
+            NAME = 'WordQuasiSymmetricFunctions element',
+            module = 'sage.combinat.chas.wqsym',
+            option_class='WordQuasiSymmetricFunctions',
+            objects = dict(default=default_objects,
                        description='Specifies how basis elements of WordQuasiSymmetricFunctions should be indexed',
                        values=dict(compositions="Indexing the basis by ordered set partitions",
                                    words="Indexing the basis by packed words"),
-                                   case_sensitive=False)
-        display = dict(default="normal",
+                                   case_sensitive=False),
+            display = dict(default="normal",
                        description='Specifies how basis elements of WordQuasiSymmetricFunctions should be printed',
                        values=dict(normal="Using the normal representation",
                                    tight="Dropping spaces after commas",
                                    compact="Using a severely compacted representation"),
                                    case_sensitive=False)
+        )
+
+    def _repr_(self):
+        """
+        Return the string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: algebras.WQSym(QQ)  # indirect doctest
+            Word Quasi-symmetric functions over Rational Field
+        """
+        if self.indexed_by_words:
+            pw = "indexed by packed words "
+        else:
+            pw = ""
+        return "Word Quasi-symmetric functions {}over {}".format(pw, self.base_ring())
+
+    def a_realization(self):
+        r"""
+        Return a particular realization of ``self`` (the `M`-basis).
+
+        EXAMPLES::
+
+            sage: WQSym = algebras.WQSym(QQ)
+            sage: WQSym.a_realization()
+            Word Quasi-symmetric functions over Rational Field in the Monomial basis
+        """
+        return self.M()
+
+    _shorthands = tuple(['M', 'X', 'C', 'Q', 'Phi'])
 
     class Monomial(WQSymBasis_abstract):
         r"""
@@ -645,9 +605,8 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: A.product_on_basis(y, y)
                 M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}] + M[{3, 4}, {1, 2}]
                 sage: B = algebras.WQSym(QQ, indexed_by_words=True).M()
-                setting display options to words, (self).options.objects = 'words'
                 sage: B.product_on_basis(y, y)
-                ???
+                M[1, 1, 2, 2] + M[1, 1, 1, 1] + M[2, 2, 1, 1]
 
             TESTS::
 
@@ -2021,7 +1980,6 @@ class WQSymBases(Category_realization_of_parent):
             Using packed words::
 
                 sage: wM = algebras.WQSym(QQ, indexed_by_words=True).M()
-                setting display options to words, (self).options.objects = 'words'
                 sage: wx = wM[[1, 3, 2]]; wx
                 M[1, 3, 2]
                 sage: wx.leading_support()

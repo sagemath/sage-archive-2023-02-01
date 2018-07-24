@@ -69,7 +69,7 @@ def Minkowski(names=None, sgn=1):
         g[1,1], g[2,2], g[3,3] = sgn, sgn, sgn
     return M
 
-def Sphere(dim=2, radius=1, names=None):
+def Sphere(dim=2, radius=1, names=None, stereo2d=False, stereo_lim=None):
     """
     Generate a sphere embedded in Euclidean space.
 
@@ -81,6 +81,11 @@ def Sphere(dim=2, radius=1, names=None):
     - ``radius`` -- (default: ``1``) radius of the sphere
     - ``names`` -- (default: ``None``) name of the coordinates,
       automatically set by the shortcut operator.
+    - ``stereo2d`` -- (default: ``False``) if True, defines only the
+      stereographic charts, only implemented in 2d.
+    - ``stereo_lim`` -- (default: ``None``) Parameter used to restrict the span
+      of the stereographic charts, so that they don't cover the whole sphere.
+
 
     OUTPUT:
 
@@ -95,11 +100,55 @@ def Sphere(dim=2, radius=1, names=None):
     """
     from sage.manifolds.manifold import Manifold
     from functools import reduce
-    from sage.functions.trig import cos, sin
+    from sage.functions.trig import cos, sin, atan, atan2
+    from sage.functions.other import sqrt
+    from sage.symbolic.constants import pi
     import operator
 
     def prod(iterable):
         return reduce(operator.mul, iterable, 1)
+
+    if stereo2d:
+        dim = 2
+        xnames = ("X","Y","Z")
+        E = Euclidean(names=xnames)
+        S2 = Manifold(dim, 'S', ambient=E, structure='Riemannian')
+        U = S2.open_subset('U')
+        V = S2.open_subset('V')
+        stereoN = U.chart(names=("x", "y"))
+        x, y = stereoN[:]
+        stereoS = V.chart(names=("xp", "yp"))
+        xp, yp = stereoS[:]
+        if stereo_lim is not None:
+            stereoN.add_restrictions(x**2+y**2<stereo_lim**2)
+            stereoS.add_restrictions(xp**2+yp**2<stereo_lim**2)
+
+        stereoN_to_S = stereoN.transition_map(stereoS,
+          (x / (x**2 + y**2), y / (x**2 + y**2)), intersection_name='W',
+          restrictions1=x**2 + y**2 != 0, restrictions2=xp**2+yp**2!=0)
+        stereoS_to_N = stereoS.transition_map(stereoN,
+          (xp / (xp**2 + yp**2), yp / (xp**2 + yp**2)), intersection_name='W',
+          restrictions1=x**2 + y**2 != 0, restrictions2=xp**2+yp**2!=0)
+        stereoN_to_S.set_inverse(xp / (xp**2 + yp**2), yp / (xp**2 + yp**2))
+        stereoS_to_N.set_inverse(x / (x**2 + y**2), y / (x**2 + y**2))
+        W = U.intersection(V)
+        stereoN_W = stereoN.restrict(W)
+        stereoS_W = stereoS.restrict(W)
+        A = W.open_subset('A', coord_def={stereoN_W: (y != 0, x < 0),
+                                          stereoS_W: (yp != 0, xp < 0)})
+        stereoN_A = stereoN_W.restrict(A)
+        spher = A.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+        th, ph = spher[:]
+        spher_to_stereoN = spher.transition_map(stereoN_A, (sin(th)*cos(ph)
+                /(1-cos(th)), sin(th)*sin(ph)/(1-cos(th))))
+        spher_to_stereoN.set_inverse(2*atan(1/sqrt(x**2+y**2)), atan2(-y, -x)+pi)
+        stereoN_to_S_A = stereoN_to_S.restrict(A)
+        spher_to_stereoS = stereoN_to_S_A * spher_to_stereoN
+        stereoS_to_N_A = stereoN_to_S.inverse().restrict(A)
+        stereoS_to_spher = spher_to_stereoN.inverse() * stereoS_to_N_A
+
+        return S2
+
 
     if names is not None:
         dim = len(names)
@@ -158,7 +207,8 @@ def Kerr(m=1, a=0, names=None, coordinates="BL"):
 
     """
     from sage.manifolds.manifold import Manifold
-    from sage.functions.all import sqrt, cos, sin
+    from sage.functions.other import sqrt
+    from sage.functions.trig import cos, sin
     M = Manifold(4, 'M', structure="Lorentzian")
     if coordinates == "ADM":
         if names is None:

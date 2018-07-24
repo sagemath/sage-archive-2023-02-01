@@ -138,7 +138,7 @@ class OrderedMultisetPartition(ClonableArray):
         TESTS::
 
             sage: c.parent() == OrderedMultisetPartitions([2,3,4,5])
-            True
+            False
             sage: d.parent() == OrderedMultisetPartitions([1,1,1,2,3,5])
             True
             sage: repr(OrderedMultisetPartition([]).parent())
@@ -620,30 +620,32 @@ class OrderedMultisetPartition(ClonableArray):
 
         EXAMPLES::
 
-            sage: sorted(OrderedMultisetPartition([[1,2],[3,4]]).split())
-            [([], [{1,2}, {3,4}]), ([{2}], [{1}, {3,4}]), ([{1}], [{2}, {4}]),
-             ([{1}, {4}], [{2}]), ([{1,2}, {4}], []), ([{4}], [{1,2}]),
-             ([{2}, {4}], [{1}]), ([{1,2}], [{4}]), ([], [{1,2}, {4}]),
-             ([{2}], [{1}, {4}]), ([{1}], [{2}, {4}]),
-             ([{1}, {4}], [{2}]), ([{1,2}, {3,4}], []), ([{4}], [{1,2}]),
-             ([{2}, {4}], [{1}]), ([{1,2}], [{3,4}])]
-            sage: OrderedMultisetPartition([[1,2]]).split(3)
+            sage: sorted(OrderedMultisetPartition([[1,2],[3,4]]).split_blocks())
+            [([], [{1,2}, {3,4}]), ([{3,4}], [{1,2}]),
+             ([{2}, {4}], [{1}, {3}]), ([{2}, {3,4}], [{1}]),
+             ([{1}, {4}], [{2}, {3}]), ([{3}], [{1,2}, {4}]),
+             ([{2}], [{1}, {3,4}]), ([{1}], [{2}, {3,4}]),
+             ([{1}, {3}], [{2}, {4}]), ([{1}, {3,4}], [{2}]),
+             ([{2}, {3}], [{1}, {4}]), ([{1,2}], [{3,4}]),
+             ([{1,2}, {4}], [{3}]), ([{1,2}, {3,4}], []),
+             ([{4}], [{1,2}, {3}]), ([{1,2}, {3}], [{4}])]
+            sage: OrderedMultisetPartition([[1,2]]).split_blocks(3)
             {([], [], [{1,2}]): 1, ([], [{1}], [{2}]): 1, ([], [{2}], [{1}]): 1,
              ([], [{1,2}], []): 1, ([{2}], [], [{1}]): 1, ([{1}], [], [{2}]): 1,
              ([{1}], [{2}], []): 1, ([{2}], [{1}], []): 1, ([{1,2}], [], []): 1}
-            sage: OrderedMultisetPartition([[4],[4]]).split()
+            sage: OrderedMultisetPartition([[4],[4]]).split_blocks()
             {([], [{4}, {4}]): 1, ([{4}], [{4}]): 2, ([{4}, {4}], []): 1}
 
         TESTS::
 
             sage: C = OrderedMultisetPartition([[1,2],[4,5,6]]); C
             [{1,2}, {4,5,6}]
-            sage: sum(C.split().values()) == 2**len(C[0]) * 2**len(C[1])
+            sage: sum(C.split_blocks().values()) == 2**len(C[0]) * 2**len(C[1])
             True
-            sage: sum(C.split(3).values()) == (1+2)**len(C[0]) * (1+2)**len(C[1])
+            sage: sum(C.split_blocks(3).values()) == (1+2)**len(C[0]) * (1+2)**len(C[1])
             True
             sage: C = OrderedMultisetPartition([])
-            sage: C.split(3) == {(C, C, C): 1}
+            sage: C.split_blocks(3) == {(C, C, C): 1}
             True
         """
         P = OrderedMultisetPartitions(alphabet=self.letters(), max_length=self.length())
@@ -2223,13 +2225,9 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
 
             sage: O = OrderedMultisetPartitions([1, 1, 'a'])
             sage: it = O.__iter__()
-            sage: [next(it) for _ in range(O.cardinality())]
-            [[{1}, {1}, {'a'}],
-             [{1}, {1,'a'}],
-             [{1}, {'a'}, {1}],
-             [{1,'a'}, {1}],
-             [{'a'}, {1}, {1}]]
-
+            sage: sorted([next(it) for _ in range(O.cardinality())], key=str)
+            [[{1,'a'}, {1}], [{1}, {'a'}, {1}], [{1}, {1,'a'}],
+             [{1}, {1}, {'a'}], [{1}, {1}, {'a'}]]
             sage: O = OrderedMultisetPartitions([1, 1, 2])
             sage: it = O.__iter__()
             sage: [next(it) for _ in range(O.cardinality())]

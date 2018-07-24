@@ -57,7 +57,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     def _extension_type(self):
         """
-        Return the type (``unramified``, ``Eisenstein``) of this 
+        Return the type (``Unramified``, ``Eisenstein``) of this 
         extension as a string, if any.
 
         Used for printing.
@@ -75,6 +75,20 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         return "Unramified"
 
     def absolute_f(self):
+        """
+        Return the degree of the residue field of this ring/field
+        over its prime subfield
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_f()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_f()
+            1
+        """
         return self.modulus().degree()
 
     #def extension(self, *args, **kwds):

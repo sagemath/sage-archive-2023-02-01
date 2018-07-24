@@ -66,55 +66,16 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
             sage: K.<a> = Qq(5^3)
             sage: K._extension_type()
-            'unramified'
+            'Unramified'
 
             sage: L.<pi> = Qp(5).extension(x^2 - 5)
             sage: L._extension_type()
             'Eisenstein'
         """
-        return "unramified"
+        return "Unramified"
 
-    def ramification_index(self, K = None):
-        """
-        Returns the ramification index of self over the subring K.
-
-        INPUT:
-
-            - K -- a subring (or subfield) of self.  Defaults to the
-              base.
-
-        EXAMPLES::
-
-            sage: R.<a> = Zq(125); R.ramification_index()
-            1
-        """
-        if K is None:
-            return 1
-        elif K is self:
-            return 1
-        else:
-            raise NotImplementedError
-
-    def inertia_degree(self, K = None):
-        """
-        Returns the inertia degree of self over the subring K.
-
-        INPUT:
-
-            - K -- a subring (or subfield) of self.  Defaults to the
-              base.
-
-        EXAMPLES::
-
-            sage: R.<a> = Zq(125); R.inertia_degree()
-            3
-        """
-        if K is None:
-            return self.modulus().degree()
-        elif K is self:
-            return 1
-        else:
-            raise NotImplementedError
+    def absolute_f(self):
+        return self.modulus().degree()
 
     #def extension(self, *args, **kwds):
     #    raise NotImplementedError

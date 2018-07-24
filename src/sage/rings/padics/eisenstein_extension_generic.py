@@ -51,7 +51,7 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
 
             sage: K.<a> = Qq(5^3)
             sage: K._extension_type()
-            'unramified'
+            'Unramified'
 
             sage: L.<pi> = Qp(5).extension(x^2 - 5)
             sage: L._extension_type()
@@ -59,71 +59,8 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
         """
         return "Eisenstein"
 
-    def ramification_index(self, K = None):
-        """
-        Returns the ramification index of self over K, or over the
-        ground ring if K is None.
-
-        The ramification index is the index of the image of the
-        valuation map on K in the image of the valuation map on self
-        (both normalized so that the valuation of p is 1).
-
-        INPUT:
-
-        - self -- an Eisenstein extension
-        - K -- a subring of self (default None -> self.ground_ring())
-
-        OUTPUT:
-
-        - The ramification index of the extension self/K
-
-        EXAMPLES::
-
-            sage: A = Zp(7,10)
-            sage: S.<x> = A[]
-            sage: B.<t> = A.ext(x^2+7)
-            sage: B.ramification_index()
-            2
-        """
-        if K is None or K is self.ground_ring():
-            return self.modulus().degree()
-        elif K is self:
-            return 1
-        else:
-            raise NotImplementedError
-
-    def inertia_degree(self, K = None):
-        """
-        Returns the inertia degree of self over K, or the ground ring
-        if K is None.
-
-        The inertia degree is the degree of the extension of residue
-        fields induced by this extensions.  Since Eisenstein
-        extensions are totally ramified, this will be 1 for K=None.
-
-        INPUT:
-
-        - self -- an Eisenstein extension
-        - K -- a subring of self (default None -> self.ground_ring())
-
-        OUTPUT:
-
-        - The degree of the induced extensions of residue fields.
-
-        EXAMPLES::
-
-            sage: A = Zp(7,10)
-            sage: S.<x> = A[]
-            sage: B.<t> = A.ext(x^2+7)
-            sage: B.inertia_degree()
-            1
-        """
-        if K is None or K is self.ground_ring():
-            return Integer(1)
-        elif K is self:
-            return Integer(1)
-        else:
-            raise NotImplementedError
+    def absolute_e(self):
+        return self.modulus().degree()
 
     def inertia_subring(self):
         """

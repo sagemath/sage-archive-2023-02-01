@@ -114,7 +114,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: K.<a> = Qq(5^3)
             sage: K._extension_type()
-            'unramified'
+            'Unramified'
 
             sage: L.<pi> = Qp(5).extension(x^2 - 5)
             sage: L._extension_type()
@@ -133,20 +133,28 @@ class pAdicExtensionGeneric(pAdicGeneric):
             7-adic Ring with capped relative precision 10
             sage: R1.<a> = Zq(7^3)
             sage: R1
-            7-adic unramified extension Ring in a defined by x^3 + 6*x^2 + 4
+            7-adic Unramified Extension Ring in a defined by x^3 + 6*x^2 + 4
+            sage: R1._latex_()
+            '\\ZZ_{7^{3}}'
             sage: R2.<t> = R.ext(x^2+7)
             sage: R2 #indirect doctest
-            7-adic Eisenstein extension Ring in t defined by x^2 + 7
+            7-adic Eisenstein Extension Ring in t defined by x^2 + 7
+            sage: R2._latex_()
+            '\\ZZ_{7}[t]'
 
             sage: K = Qp(7,10)
             sage: K
             7-adic Field with capped relative precision 10
             sage: K1.<a> = Qq(7^3)
             sage: K1
-            7-adic unramified extension Field in a defined by x^3 + 6*x^2 + 4
+            7-adic Unramified Extension Field in a defined by x^3 + 6*x^2 + 4
+            sage: R1._latex_()
+            '\\QQ_{7^{3}}'
             sage: K2.<t> = K.ext(x^2+7)
             sage: K2 #indirect doctest
-            7-adic Eisenstein extension Field in t defined by x^2 + 7
+            7-adic Eisenstein Extension Field in t defined by x^2 + 7
+            sage: K2._latex_()
+            '\\QQ_{7}[t]'
         """
         type = self._extension_type()
         base = self.base_ring()
@@ -169,8 +177,8 @@ class pAdicExtensionGeneric(pAdicGeneric):
         else:
             if type != "":
                 type += " "
-            s = "%s-adic %sextension %s in %s defined by %s" % (p, type, "Field" if self.is_field() else "Ring", self.variable_name(), self.defining_polynomial(exact=True))
-            if isinstance(base, pAdicExtensionGeneric):
+            s = "%s-adic %sExtension %s in %s defined by %s" % (p, type, "Field" if self.is_field() else "Ring", self.variable_name(), self.defining_polynomial(exact=True))
+            if base.absolute_degree() > 1:
                 s += " over its base field"
             return s
 
@@ -278,81 +286,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
     #def is_normal(self):
     #    raise NotImplementedError
-
-    def degree(self):
-        """
-        Returns the degree of this extension.
-
-        EXAMPLES::
-
-            sage: R.<a> = Zq(125); R.degree()
-            3
-            sage: R = Zp(5); S.<x> = ZZ[]; f = x^5 - 25*x^3 + 5; W.<w> = R.ext(f)
-            sage: W.degree()
-            5
-        """
-        return self._given_poly.degree()
-
-    def absolute_degree(self):
-        """
-        Return the degree of this extension over the prime p-adic field/ring
-
-        EXAMPLES::
-
-            sage: K.<a> = Qq(3^5)
-            sage: K.absolute_degree()
-            5
-
-            sage: L.<pi> = Qp(3).extension(x^2 - 3)
-            sage: L.absolute_degree()
-            2
-        """
-        base = self.base_ring()
-        if isinstance(base, pAdicExtensionGeneric):
-            return self.degree() * self.base_ring().absolute_degree()
-        else:
-            return self.degree()
-
-    def absolute_e(self):
-        """
-        Return the absolute index of ramification of this ring/field
-
-        EXAMPLES::
-
-            sage: K.<a> = Qq(3^5)
-            sage: K.absolute_e()
-            1
-
-            sage: L.<pi> = Qp(3).extension(x^2 - 3)
-            sage: L.absolute_e()
-            2
-        """
-        base = self.base_ring()
-        if isinstance(base, pAdicExtensionGeneric):
-            return self.e() * self.base_ring().absolute_e()
-        else:
-            return self.e()
-
-    def absolute_f(self):
-        """
-        Return the degree of the residue field of this ring/field
-        over its prime subfield
-
-        EXAMPLES::
-
-            sage: K.<a> = Qq(3^5)
-            sage: K.absolute_f()
-            5
-
-            sage: L.<pi> = Qp(3).extension(x^2 - 3)
-            sage: L.absolute_f()
-            1
-        """
-        base = self.base_ring()
-        if isinstance(base, pAdicExtensionGeneric):
-            return self.f() * self.base_ring().absolute_f()
-        else:
-            return self.f()
 
 
     def defining_polynomial(self, exact=False):
@@ -539,7 +472,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: c, R0 = R.construction(); R0
             5-adic Ring with capped relative precision 8
             sage: c(R0)
-            5-adic unramified extension Ring in a defined by x^2 + 4*x + 2
+            5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
             sage: c(R0) == R
             True
         """

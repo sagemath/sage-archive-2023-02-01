@@ -1145,7 +1145,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     Check that :trac:`8162` is resolved::
 
         sage: R = Qq([(5,3)], names="alpha", check=False); R
-        5-adic unramified extension Field in alpha defined by x^3 + 3*x + 3
+        5-adic Unramified Extension Field in alpha defined by x^3 + 3*x + 3
         sage: Qq((5, 3), names="alpha") is R
         True
         sage: Qq(125.factor(), names="alpha") is R
@@ -1262,7 +1262,7 @@ def QqCR(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = QqCR(25, 40); R
-        5-adic unramified extension Field in a defined by x^2 + 4*x + 2
+        5-adic Unramified Extension Field in a defined by x^2 + 4*x + 2
     """
     return Qq(q, prec, 'capped-rel', *args, **kwds)
 
@@ -1277,7 +1277,7 @@ def QqFP(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = QqFP(25, 40); R
-        5-adic unramified extension Field in a defined by x^2 + 4*x + 2
+        5-adic Unramified Extension Field in a defined by x^2 + 4*x + 2
     """
     return Qq(q, prec, 'floating-point', *args, **kwds)
 
@@ -1941,7 +1941,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: d = ~(3*b+c); d
         2*3^-1 + (a + 1) + (a + 1)*3 + a*3^3 + O(3^4)
         sage: d.parent()
-        3-adic unramified extension Field in a defined by x^2 + 2*x + 2
+        3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
 
     The capped absolute case is the same as the capped relative case,
     except that the cap is on the absolute precision rather than the
@@ -2307,7 +2307,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     TESTS::
 
         sage: R = Zq([(5,3)], names="alpha"); R
-        5-adic unramified extension Ring in alpha defined by x^3 + 3*x + 3
+        5-adic Unramified Extension Ring in alpha defined by x^3 + 3*x + 3
         sage: Zq((5, 3), names="alpha") is R
         True
         sage: Zq(125.factor(), names="alpha") is R
@@ -2438,7 +2438,7 @@ def ZqCR(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqCR(25, 40); R
-        5-adic unramified extension Ring in a defined by x^2 + 4*x + 2
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'capped-rel', *args, **kwds)
 
@@ -2451,7 +2451,7 @@ def ZqCA(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqCA(25, 40); R
-        5-adic unramified extension Ring in a defined by x^2 + 4*x + 2
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'capped-abs', *args, **kwds)
 
@@ -2464,7 +2464,7 @@ def ZqFM(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqFM(25, 40); R
-        5-adic unramified extension Ring in a defined by x^2 + 4*x + 2
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'fixed-mod', *args, **kwds)
 
@@ -2478,7 +2478,7 @@ def ZqFP(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqFP(25, 40); R
-        5-adic unramified extension Ring in a defined by x^2 + 4*x + 2
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'floating-point', *args, **kwds)
 
@@ -2787,7 +2787,7 @@ class pAdicExtension_class(UniqueFactory):
         sage: S.<x> = ZZ[]
         sage: W.<w> = pAdicExtension(R, x^4-15)
         sage: W
-        5-adic Eisenstein extension Ring in w defined by x^4 - 15
+        5-adic Eisenstein Extension Ring in w defined by x^4 - 15
         sage: W.precision_cap()
         12
     """
@@ -2941,7 +2941,7 @@ class pAdicExtension_class(UniqueFactory):
             sage: R = Zp(5,3)
             sage: S.<x> = R[]
             sage: pAdicExtension.create_object(version = (6,4,2), key = ('e', R, x^4 - 15, x^4 - 15, ('w', None, None, 'w'), 12, None, 'series', True, '|', (),-1,-1,-1,'NTL'), shift_seed = S(3 + O(5^3)))
-            5-adic Eisenstein extension Ring in w defined by x^4 - 15
+            5-adic Eisenstein Extension Ring in w defined by x^4 - 15
         """
         polytype = key[0]
         if version[0] < 6 or version[0] == 6 and version[1] < 1:

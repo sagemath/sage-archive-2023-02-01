@@ -4,6 +4,10 @@ Quantum Groups Using GAP's QuaGroup Package
 AUTHORS:
 
 - Travis Scrimshaw (03-2017): initial version
+
+The documentation for GAP's QuaGroup package, originally authored by
+Willem Adriaan de Graaf, can be found at
+https://www.gap-system.org/Packages/quagroup.html.
 """
 
 #*****************************************************************************
@@ -272,7 +276,7 @@ class QuaGroupModuleElement(Element):
     def f_tilde(self, i):
         r"""
         Return the action of the Kashiwara operator
-        `\widetilde{f}_i on ``self``.
+        `\widetilde{f}_i` on ``self``.
 
         INPUT:
 
@@ -726,6 +730,17 @@ class QuantumGroup(UniqueRepresentation, Parent):
         r"""
         Return the coproduct of ``elt`` (iterated ``n`` times).
 
+        The comultiplication `\Delta \colon U_q(\mathfrak{g}) \to
+        U_q(\mathfrak{g}) \otimes U_q(\mathfrak{g})` is defined by
+
+        .. MATH::
+
+            \begin{aligned}
+            \Delta(E_i) &= E_i \otimes 1 + K_i \otimes E_i, \\
+            \Delta(F_i) &= F_i \otimes K_i^{-1} + 1 \otimes F_i, \\
+            \Delta(K_i) &= K_i \otimes K_i.
+            \end{aligned}
+
         EXAMPLES::
 
             sage: Q = QuantumGroup(['B',2])         # optional - gap_packages
@@ -755,6 +770,15 @@ class QuantumGroup(UniqueRepresentation, Parent):
         r"""
         Return the antipode of ``elt``.
 
+        The antipode `S \colon U_q(\mathfrak{g}) \to U_q(\mathfrak{g})`
+        is the anti-automorphism defined by
+
+        .. MATH::
+
+            S(E_i) = -K_i^{-1}E_i, \qquad
+            S(F_i) = -F_iK_i, \qquad
+            S(K_i) = K_i^{-1}.
+
         EXAMPLES::
 
             sage: Q = QuantumGroup(['B',2])         # optional - gap_packages
@@ -774,6 +798,14 @@ class QuantumGroup(UniqueRepresentation, Parent):
     def counit(self, elt):
         r"""
         Return the counit of ``elt``.
+
+        The counit `\varepsilon \colon U_q(\mathfrak{g}) \to \QQ(q)` is
+        defined by
+
+        .. MATH::
+
+            \varepsilon(E_i) = \varepsilon(F_i) = 0, \qquad
+            \varepsilon(K_i) = 1.
 
         EXAMPLES::
 
@@ -825,6 +857,14 @@ class QuantumGroup(UniqueRepresentation, Parent):
             """
             Return the bar involution on ``self``.
 
+            The bar involution is defined by
+
+            .. MATH::
+
+                \overline{E_i} = E_i, \qquad\qquad
+                \overline{F_i} = F_i, \qquad\qquad
+                \overline{K_i} = K_i^{-1}.
+
             EXMAPLES::
 
                 sage: Q = QuantumGroup(['A',2])        # optional - gap_packages
@@ -845,7 +885,13 @@ class QuantumGroup(UniqueRepresentation, Parent):
             r"""
             Return the action of the `\omega` automorphism on ``self``.
 
-            `\omega(E_i) = F_i`, `\omega(F_i) = E_i`, `\omega(K_i) = K_i^{-1}`.
+            The `\omega` automorphism is defined by
+
+            .. MATH::
+
+                \omega(E_i) = F_i, \qquad\qquad
+                \omega(F_i) = E_i, \qquad\qquad
+                \omega(K_i) = K_i^{-1}.
 
             EXMAPLES::
 
@@ -869,7 +915,13 @@ class QuantumGroup(UniqueRepresentation, Parent):
             r"""
             Return the action of the `\tau` anti-automorphism on ``self``.
 
-            `\tau(E_i) = E_i`, `\tau(F_i) = F_i`, `\tau(K_i) = K_i^{-1}`.
+            The `\tau` anti-automorphism is defined by
+
+            .. MATH::
+
+                \tau(E_i) = E_i, \qquad\qquad
+                \tau(F_i) = F_i, \qquad\qquad
+                \tau(K_i) = K_i^{-1}.
 
             EXMAPLES::
 
@@ -890,8 +942,24 @@ class QuantumGroup(UniqueRepresentation, Parent):
             return self.__class__(self.parent(), libgap.Image(tau, self._libgap))
 
         def braid_group_action(self, braid):
-            """
+            r"""
             Return the action of the braid group element ``braid``.
+
+            The braid group operator `T_i \colon U_q(\mathfrak{g}) \to
+            U_q(\mathfrak{g})` is defined by
+
+            .. MATH::
+
+                \begin{aligned}
+                T_i(E_i) &= -F_iK_i, \\
+                T_i(E_j) &= \sum_{k=0}^{-a_{ij}} (-1)^k q_i^{-k} E_i^{(-a_{ij}-k)} E_j E_i^{(k)} \text{ if } i \neq j,\\
+                T_i(K_j) &= K_jK_i^{a_{ij}}, \\
+                T_i(F_i) &= -K_i^{-1}E_i, \\
+                T_i(F_j) &= \sum_{k=0}^{-a_{ij}} (-1)^k q_i^{-k} F_i^{(k)} F_j F_i^{(-a_{ij}-k)} \text{ if } i \neq j,
+                \end{aligned}
+
+            where `a_{ij} = \langle \alpha_j, \alpha_i^\vee \rangle` is the
+            `(i,j)`-entry of the Cartan matrix associated to `\mathfrak{g}`.
 
             INPUT:
 
@@ -2432,14 +2500,6 @@ class LowerHalfQuantumGroup(Parent, UniqueRepresentation):
         def tau(self):
             r"""
             Return the action of the `\tau` anti-automorphism on ``self``.
-
-            The `\tau` anti-automorphism is defined by
-
-            .. MATH::
-
-                \tau(E_i) = E_i, \qquad\qquad
-                \tau(F_i) = F_i, \qquad\qquad
-                \tau(K_i) = K_i^{-1}.
 
             EXAMPLES::
 

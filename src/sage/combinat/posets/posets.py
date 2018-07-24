@@ -274,7 +274,6 @@ from six import iteritems
 
 import copy
 from sage.misc.cachefunc import cached_method
-from sage.misc.latex import latex
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.functions.other import floor

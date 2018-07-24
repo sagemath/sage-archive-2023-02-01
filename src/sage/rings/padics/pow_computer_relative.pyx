@@ -243,7 +243,7 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
             sage: W.<w> = R.ext(f)
             sage: g = 1 + 2*w; ginv = ~g
             sage: ginv
-            1 + 3*w + 4*w^2 + 2*w^3 + (3*a + 3)*w^4 + (a + 4)*w^5 + (4*a + 4)*w^6 + (a + 4)*w^7 + (3*a + 2)*w^8 + O(w^9)
+            1 + 3*w + 4*w^2 + 2*w^3 + (3*a + 3)*w^4 + ... + O(w^9)
             sage: RFP = R.change(field=False, show_prec=False, type='floating-point')
             sage: shift_seed = (-f[:3] // 5).change_ring(RFP)
             sage: PC = PowComputer_relative_maker(5, 3, 3, 9, False, f, shift_seed, 'fixed-mod')
@@ -284,7 +284,11 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: R.<a> = Zq(25, prec=3)
+            sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
+            sage: W.<w> = R.ext(f)
+            sage: elt = W.prime_pow.px_pow(2); elt
+            ((4*a + 4) + (4*a + 1)*5 + (4*a + 2)*5^2)*x^2 + ((2*a + 3) + (2*a + 4)*5 + (2*a + 4)*5^2)*x + (a + 1)*5 + 3*5^2 + 2*5^3
 
         """
         if r < 0:
@@ -312,7 +316,11 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: R.<a> = Zq(25, prec=3)
+            sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
+            sage: W.<w> = R.ext(f)
+            sage: elt = W.prime_pow.pxe_pow(2); elt
+            ((4*a + 2) + (a + 4)*5 + 2*a*5^2)*x^2 + ((a + 2) + (a + 2)*5 + (2*a + 4)*5^2)*x + (a + 1) + (3*a + 2)*5 + (2*a + 2)*5^2
 
         """
         if r < 0:
@@ -341,7 +349,11 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         EXAMPLES::
 
-            sage: TODO
+            sage: R.<a> = Zq(25, prec=3)
+            sage: S.<x> = R[]; f = x^3 - 5*x - 5*a
+            sage: W.<w> = R.ext(f)
+            sage: W.prime_pow.uniformizer_pow(2)
+            x^2
 
         """
         if r < 0:
@@ -394,7 +406,14 @@ def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_fi
 
     EXAMPLES::
 
-        sage: TODO
+        sage: from sage.rings.padics.pow_computer_relative import PowComputer_relative_maker
+        sage: R.<a> = ZqFM(25, prec=2)
+        sage: S.<x> = R[]
+        sage: f = x^3 - 5*x - 5*a
+        sage: W.<w> = R.extension(f)
+        sage: PC = W.prime_pow  # indirect doctest
+        sage: PC
+        Relative PowComputer for modulus x^3 + (4*5 + 4*5^2)*x + 4*a*5 + 4*a*5^2
 
     """
     PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)

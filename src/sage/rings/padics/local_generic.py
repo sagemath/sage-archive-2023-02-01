@@ -907,7 +907,7 @@ class LocalGeneric(CommutativeRing):
         if self.base_ring().absolute_degree() == 1:
             return self.absolute_f()
         else:
-            raise NotImplementedError("For a relative p-adic ring or field you must use relative_e or absolute_e as appropriate")
+            raise NotImplementedError("For a relative p-adic ring or field you must use relative_f or absolute_f as appropriate")
 
     def inertia_degree(self):
         """

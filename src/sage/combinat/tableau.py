@@ -7191,7 +7191,7 @@ class StandardTableaux(SemistandardTableaux):
             return StandardSkewTableaux(n)
 
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError("the argument must be a non-negative integer or a partition")
+            raise ValueError("the argument must be a non-negative integer or a potato")
 
         return StandardTableaux_size(n)
 
@@ -7876,7 +7876,6 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu', 
 from sage.misc.superseded import deprecated_function_alias
 Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
 
-
 class IncreasingTableau(Tableau):
     """
     A class to model a semistandard tableau.
@@ -8209,8 +8208,8 @@ class IncreasingTableaux(Tableaux):
         p = kwargs.get('p', None)
         shape = kwargs.get('shape', p)
 
-        mu = kwargs.get('eval', None)
-        mu = kwargs.get("mu", mu)
+        wt = kwargs.get('eval', None)
+        wt = kwargs.get("wt", wt)
 
         max_entry = kwargs.get('max_entry', None)
 
@@ -8229,10 +8228,10 @@ class IncreasingTableaux(Tableaux):
 
         if len(args) == 2:
             # The second non-keyword argument is the weight
-            if mu is not None:
+            if wt is not None:
                 raise ValueError( "the weight was specified more than once" )
             else:
-                mu = args[1]
+                wt = args[1]
 
         # Consistency checks
         if size is not None:
@@ -8253,11 +8252,14 @@ class IncreasingTableaux(Tableaux):
             else:
                 raise ValueError( "shape must be a (skew) partition" )
 
-        if mu is not None:
-            if (not mu in Compositions()) and\
-                    (not mu in _Partitions):
-                raise ValueError( "mu must be a composition" )
-            mu = Composition(mu)
+        if wt is not None:
+            if (not wt in IntegerVectors()):
+                try:
+                    wt = IntegerVector(wt)
+                else:
+                    raise ValueError( "wt must be an integer vector" )
+            if not all([k in [0,1] for k in wt]):
+                raise ValueError( "wt must be a binary vector" )
 
         is_inf = max_entry is PlusInfinity()
 
@@ -8267,8 +8269,8 @@ class IncreasingTableaux(Tableaux):
             elif max_entry <= 0:
                 raise ValueError( "max_entry must be positive" )
 
-        if (mu is not None) and (max_entry is not None):
-            if max_entry != len(mu):
+        if (wt is not None) and (max_entry is not None):
+            if max_entry != len(wt):
                 raise ValueError( "the maximum entry must match the weight" )
 
         if (size is not None) and (shape is not None):
@@ -8276,26 +8278,26 @@ class IncreasingTableaux(Tableaux):
                 # This could return an empty class instead of an error
                 raise ValueError( "size and shape are different sizes" )
 
-        if (size is not None) and (mu is not None):
-            if sum(mu) != size:
+        if (size is not None) and (wt is not None):
+            if sum(wt) != size:
                 # This could return an empty class instead of an error
                 raise ValueError( "size and eval are different sizes" )
 
         # Dispatch appropriately
-        if (shape is not None) and (mu is not None):
-            if sum(shape) != sum(mu):
+        if (shape is not None) and (wt is not None):
+            if sum(shape) != sum(wt):
                 # This could return an empty class instead of an error
                 raise ValueError( "shape and eval are different sizes" )
             else:
-                return IncreasingTableaux_shape_weight(shape, mu)
+                return IncreasingTableaux_shape_weight(shape, wt)
 
         if (shape is not None):
             if is_inf:
                 return IncreasingTableaux_shape_inf(shape)
             return IncreasingTableaux_shape(shape, max_entry)
 
-        if (mu is not None):
-            return IncreasingTableaux_size_weight(sum(mu), mu)
+        if (wt is not None):
+            return IncreasingTableaux_size_weight(sum(wt), wt)
 
         if (size is not None):
             if is_inf:
@@ -9295,5 +9297,6 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         from sage.combinat.partition import Partition
         return x in IncreasingTableaux_shape_weight(Partition(
             [len(_) for _ in x]), self.weight)
+
 
 

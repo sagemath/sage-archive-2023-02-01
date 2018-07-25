@@ -60,7 +60,7 @@ divided into 2 blocks::
 # ****************************************************************************
 from __future__ import absolute_import, division
 from six.moves import range
-from six import add_metaclass
+from six import add_metaclass, iteritems
 
 from functools import reduce
 from itertools import chain
@@ -1324,7 +1324,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             # Should be a 'dictionary' of letter-frequencies, but accept a weak composition
             w = constraints["weight"]
             if not isinstance(w, dict):
-                # make sure we didn't receive ``some_dict.iteritems()``
+                # make sure we didn't receive ``iteritems(some_dict)``
                 if len(w) > 0 and isinstance(w[0], (list, tuple)):
                     w = dict(w)
                 else:
@@ -1332,7 +1332,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             if not all((a in ZZ and a > 0) for a in w.values()):
                 raise ValueError("%s must be a dictionary of letter-frequencies or a weak composition"%w)
             else:
-                constraints["weight"] = tuple(w.iteritems())
+                constraints["weight"] = tuple(iteritems(w))
 
         if "alphabet" in constraints:
             A = constraints["alphabet"]
@@ -1368,7 +1368,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
                 constraints.pop("weight", None)
                 constraints.pop("alphabet", None)
                 constraints.pop("order", None)
-                X_items = tuple(X.iteritems())
+                X_items = tuple(iteritems(X))
                 if constraints == {}:
                     return OrderedMultisetPartitions_X(X_items)
                 else:
@@ -1457,7 +1457,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
 
         # pop keys with empty values, with the exception of 'size' or 'order'
         self.constraints = {}
-        for (key,val) in constraints.iteritems():
+        for (key,val) in iteritems(constraints):
             if val:
                 self.constraints[key] = val
             elif key in ("size", "order", "length") and val is not None:
@@ -1514,7 +1514,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if "alphabet" in cdict:
             cdict["alphabet"] = Set(cdict["alphabet"])
         constr = ""
-        ss = ['%s=%s'%(key, val) for (key,val) in cdict.iteritems()]
+        ss = ['%s=%s'%(key, val) for (key,val) in iteritems(cdict)]
         if len(ss) > 1:
             constr = " with constraints: " + ", ".join(ss)
         elif len(ss) == 1:
@@ -1613,7 +1613,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             False
         """
         X = _concatenate(x)
-        P = OrderedMultisetPartitions_X(tuple(_get_weight(X).iteritems()))
+        P = OrderedMultisetPartitions_X(tuple(iteritems(_get_weight(X))))
         x = P.element_class(P, [frozenset(block) for block in x])
         def pass_test(co, key, tst):
             # define simple tests for each possible constraint
@@ -1636,7 +1636,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             if key == 'max_order':
                 return co.order() <= tst
 
-        return all(pass_test(x, key, tst) for (key, tst) in self.full_constraints.iteritems() if tst)
+        return all(pass_test(x, key, tst) for (key, tst) in iteritems(self.full_constraints) if tst)
 
     def _from_list(self, lst):
         """
@@ -2708,7 +2708,7 @@ def _iterator_weight(weight):
         weight = {k+1: val for k,val in enumerate(weight) if val > 0}
     if isinstance(weight, dict):
         multiset = tuple([k for k in sorted(weight) for _ in range(weight[k])])
-    P = OrderedMultisetPartitions_X(tuple(weight.iteritems()))
+    P = OrderedMultisetPartitions_X(tuple(iteritems(weight)))
 
     if not multiset:
         yield P([])

@@ -627,7 +627,7 @@ class ProductProjectiveSpaces_ring(AmbientSpace):
             return []
         d = [sum(t) for t in self._factors(E[0])]
         for k in range(len(E)):
-            if d != [sum(t) for t in self._factors(E[k])]
+            if d != [sum(t) for t in self._factors(E[k])]:
                 raise ValueError("polynomial is not multi-homogeneous")
         return d
 

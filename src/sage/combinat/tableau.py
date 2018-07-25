@@ -9158,6 +9158,7 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             True
         """
         tab = Tableau([[0] * k for k in self.shape])
+        wt = self.weight
         list_of_partial_inc_tabs = [tab]
         list_of_inc_tabs = []
         while list_of_partial_inc_tabs != []:
@@ -9167,7 +9168,9 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
                 if active_tab[r][c] == 0:
                     unfilled_spots.append((r,c))
             if unfilled_spots == []:
-                list_of_inc_tabs.append(IncreasingTableau(active_tab))
+                top_value = max(active_tab.entries())
+                if top_value == len(wt) - 1 - wt[::-1].index(1):
+                    list_of_inc_tabs.append(IncreasingTableau(active_tab))
                 continue
             growth_spots = []
             for (r,c) in unfilled_spots:
@@ -9176,7 +9179,6 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
                         growth_spots.append((r,c))
             growth_choices = list(powerset(growth_spots))
             top_value = max(active_tab.entries())
-            wt = self.weight
             try:
                 growth_num = wt[top_value:].index(1) + top_value + 1
             except ValueError:

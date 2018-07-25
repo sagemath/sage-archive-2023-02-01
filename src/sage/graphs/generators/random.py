@@ -212,6 +212,15 @@ def RandomBipartite(n1, n2, p):
 
         sage: graphs.RandomBipartite(5,6,.2).complement()
         complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
+
+    Test assigned positions::
+
+        sage: graphs.RandomBipartite(1, 2, .1).get_pos()
+        {(0, 0): (0, 0.5), (1, 0): (1, 0.0), (1, 1): (1, 1.0)}
+        sage: graphs.RandomBipartite(2, 1, .1).get_pos()
+        {(0, 0): (0, 0.0), (0, 1): (0, 1.0), (1, 2): (1, 0.5)}
+        sage: graphs.RandomBipartite(2, 2, .1).get_pos()
+        {(0, 0): (0, 0.0), (0, 1): (0, 1.0), (1, 0): (1, 0.0), (1, 1): (1, 1.0)}
     """
     if not (p>=0 and p<=1):
         raise ValueError("Parameter p is a probability, and so should be a real value between 0 and 1")
@@ -257,6 +266,9 @@ def RandomRegularBipartite(n1, n2, d1):
     vertex in the set of cardinality `n2` has degree `(n1 * d1) / n2`. The
     bipartite graph has no multiple edges.
 
+    This generator does not ensure that graphs are generated uniformly at
+    random.
+
     INPUT:
 
     - ``n1, n2`` -- number of vertices in each side
@@ -271,7 +283,9 @@ def RandomRegularBipartite(n1, n2, d1):
         sage: set(g.degree())
         {2, 3}
 
-    TESTS::
+    TESTS:
+
+    Giving invalid parameters::
 
         sage: graphs.RandomRegularBipartite(0, 2, 1)
         Traceback (most recent call last):
@@ -281,6 +295,15 @@ def RandomRegularBipartite(n1, n2, d1):
         Traceback (most recent call last):
         ...
         ValueError: the product n1 * d1 must be a multiple of n2
+
+    Test assigned positions::
+
+        sage: graphs.RandomRegularBipartite(1, 2, 2).get_pos()
+        {0: (0, 0.5), 1: (1, 1.0), 2: (1, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 1, 1).get_pos()
+        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 0.5)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3).get_pos()
+        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 1.0), 3: (1, 0.5), 4: (1, 0.0)}
     """
     if n1 < 1 or n2 < 1:
         raise ValueError("n1 and n2 must be integers greater than 0")
@@ -320,6 +343,9 @@ def RandomRegularBipartite(n1, n2, d1):
                 E.add((f[0], e[1]))
                 break
 
+    # We now assign positions to vertices:
+    # - vertex i in L at position (0, 1 - i/(n1 - 1)
+    # - vertex i + n1 in R at position (1, 1 - i/(n2 - 1)
     pos = {}
     if n1 == 1:
         pos[0] = (0, 0.5)
@@ -332,7 +358,8 @@ def RandomRegularBipartite(n1, n2, d1):
         for i in range(n2):
             pos[i + n1] = (1, 1 - i/(n2-1.0))
 
-    return Graph(list(E), name="Random regular bipartite graph", pos=pos)
+    name = "Random regular bipartite graph of order {} + {} and degrees {} and {}".format(n1, n2, d1, d2)
+    return Graph(list(E), name=name, pos=pos)
 
 
 def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):

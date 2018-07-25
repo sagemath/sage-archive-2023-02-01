@@ -914,7 +914,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             try:
                 l = x.log(p_branch=0)
                 tester.assertIs(l.parent(), self)
-                tester.assertGreater(l.valuation(), 0)
             except ValueError:
                 l = x.log(p_branch=0, change_frac=True)
             if self.is_capped_absolute() or self.is_capped_relative():

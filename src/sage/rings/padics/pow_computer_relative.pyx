@@ -413,7 +413,7 @@ def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_fi
         sage: W.<w> = R.extension(f)
         sage: PC = W.prime_pow  # indirect doctest
         sage: PC
-        Relative PowComputer for modulus x^3 + (4*5 + 4*5^2)*x + 4*a*5 + 4*a*5^2
+        Relative PowComputer for modulus (1 + O(5^3))*x^3 + (4*5 + 4*5^2 + O(5^3))*x + 4*a*5 + 4*a*5^2 + O(5^3)
 
     """
     PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)

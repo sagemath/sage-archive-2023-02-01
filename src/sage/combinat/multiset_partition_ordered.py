@@ -2225,18 +2225,15 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         TESTS::
 
             sage: O = OrderedMultisetPartitions([1, 1, 'a'])
-            sage: it = O.__iter__()
-            sage: sorted([next(it) for _ in range(O.cardinality())], key=str)
-            [[{'a'}, {1}, {1}],
+            sage: list(O)
+            [[{1}, {'a'}, {1}],
              [{1,'a'}, {1}],
-             [{1}, {'a'}, {1}],
+             [{1}, {1}, {'a'}],
              [{1}, {1,'a'}],
              [{1}, {1}, {'a'}]]
             sage: O = OrderedMultisetPartitions([1, 1, 2])
-            sage: it = O.__iter__()
-            sage: [next(it) for _ in range(O.cardinality())]
-            [[{1}, {1,2}], [{1}, {1}, {2}], [{1,2}, {1}],
-             [{1}, {2}, {1}], [{2}, {1}, {1}]]
+            sage: list(O)
+            [[{1}, {1,2}], [{1}, {1}, {2}], [{1,2}, {1}], [{1}, {2}, {1}], [{2}, {1}, {1}]]
         """
         return _iterator_weight(weight=dict(self._X))
 

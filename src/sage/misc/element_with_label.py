@@ -32,13 +32,13 @@ class ElementWithLabel:
         Graphics object consisting of 6 graphics primitives
 
         sage: from sage.misc.element_with_label import ElementWithLabel
-        sage: W = WeylGroup("A2")
+        sage: W = WeylGroup("A1")
         sage: P = W.bruhat_poset(facade=True)
         sage: D = W.domain()
-        sage: v = D.rho() - D.fundamental_weight(2)
+        sage: v = D.rho() - D.fundamental_weight(1)
         sage: nP = P.relabel(lambda w: ElementWithLabel(w, w.action(v)))
         sage: list(nP)
-        [(1, 0, 0), (0, 1, 0), (1, 0, 0), (0, 0, 1), (0, 1, 0), (0, 0, 1)]
+        [(0, 0), (0, 0)]
     """
     def __init__(self, element, label):
         """

@@ -8019,6 +8019,16 @@ class IncreasingTableau(Tableau):
                 if not all(row[c] < next[c] for c in range(len(next))):
                     raise ValueError("the entries of each column of an increasing tableau must be strictly increasing")
 
+    def descent_set(self):
+        ans = []
+        for i in self.entries():
+            for (r1,c1) in self.cells():
+                for (r2,c2) in self.cells():
+                    if r2 > r1 and self[r1][c1] == i and self[r2][c2] == i+1:
+                        if i not in ans:
+                            ans.append(i)
+        return ans
+
 ##########################
 # Increasing tableaux #
 ##########################

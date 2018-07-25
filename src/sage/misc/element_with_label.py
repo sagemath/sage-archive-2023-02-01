@@ -8,7 +8,8 @@ For representation purposes (``repr``, ``str``, ``latex``), this pair
 behaves like its label, while the element is "silent".
 However, these pairs compare like usual pairs (i.e., both element and
 label have to be equal for two such pairs to be equal).
-This is used for visual representations of graphs and posets.
+This is used for visual representations of graphs and posets
+with vertex labels.
 """
 
 from sage.misc.latex import latex
@@ -160,7 +161,7 @@ class ElementWithLabel:
             sage: a != b
             True
             sage: a != x
-            False        
+            False
         """
         return not(self == other)
 

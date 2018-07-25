@@ -9141,14 +9141,13 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             sage: sst[0].parent() is sst
             True
         """
-        tab = [[0] * k for k in self.shape]
+        tab = Tableau([[0] * k for k in self.shape])
         list_of_partial_inc_tabs = [tab]
         list_of_inc_tabs = []
         while list_of_partial_inc_tabs != []:
             active_tab = list_of_partial_inc_tabs.pop()
-    #        print active_tab##
             unfilled_spots = []
-            for (r,c) in Tableau(active_tab).cells():
+            for (r,c) in active_tab.cells():
                 if active_tab[r][c] == 0:
                     unfilled_spots.append((r,c))
             if unfilled_spots == []:
@@ -9167,10 +9166,12 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             except ValueError:
                 continue
             for growth_choice in growth_choices[1:]:
-                new_tab = deepcopy(active_tab)
-                for node in growth_choice:
-                    new_tab[node] = growth_num
-                list_of_partial_inc_tabs.append(new_tab)
+                new_tab = [[0] * k for k in self.shape]
+                for (r,c) in active_tab.cells():
+                    new_tab[r][c] = active_tab[r][c]
+                for (r,c) in growth_choice:
+                    new_tab[r][c] = growth_num
+                list_of_partial_inc_tabs.append(Tableau(new_tab))
         for inctab in list_of_inc_tabs:
             yield inctab
 

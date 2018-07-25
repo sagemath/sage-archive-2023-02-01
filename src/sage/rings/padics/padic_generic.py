@@ -892,6 +892,49 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_shift(self, **options):
+        """
+        Test the shift operator on elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_shift()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+        cap = self.precision_cap()
+        k = self.residue_field()
+        for v in range(min(cap,10)):
+            if self.is_capped_absolute() or self.is_fixed_mod():
+                prec = cap - v
+            else:
+                prec = cap
+            b = self.uniformizer_pow(v)
+            for x in tester.some_elements():
+                y = (x << v) >> v
+                if x._is_exact_zero() or self.is_field():
+                    tester.assertEqual(x, y)
+                else:
+                    tester.assertTrue(x.is_equal_to(y, prec))
+                y = (x >> v) << v
+                if x._is_exact_zero() or self.is_field():
+                    tester.assertEqual(x, y)
+                else:
+                    for i in range(min(v,prec)):
+                        tester.assertEqual(k(y.expansion(i)), 0)
+                    for i in range(v,prec):
+                        tester.assertEqual(y.expansion(i), x.expansion(i))
+                    xx = y + (x % b)
+                    tester.assertTrue(xx.is_equal_to(x,prec))
+
+
     def _test_log(self, **options):
         """
         Test the log operator on elements of this ring.

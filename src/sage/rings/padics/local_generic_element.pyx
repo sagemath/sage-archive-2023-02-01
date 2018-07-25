@@ -792,7 +792,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             1/3
         """
         F = self.parent()
-        return self.valuation()/F.ramification_index()
+        return self.valuation()/F.absolute_e()
 
     def _min_valuation(self):
         r"""
@@ -887,10 +887,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
         from sage.categories.fields import Fields
         if self.parent() in Fields():
             return (self / other, self.parent().zero())
-        if self.valuation() < other.valuation():
-            return (self.parent().zero(), self)
-        return ( (self>>other.valuation())*other.unit_part().inverse_of_unit(),
-                 self.parent().zero() )
+        q = self // other
+        return q, (self - q*other)
 
     def _test_trivial_powers(self, **options):
         r"""

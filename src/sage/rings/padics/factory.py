@@ -56,6 +56,7 @@ from . import padic_printing
 ######################################################
 
 from .padic_extension_leaves import *
+from .relative_extension_leaves import *
 from functools import reduce
 #This imports all of the classes used in the ext_table below.
 
@@ -76,6 +77,12 @@ ext_table['u', pAdicRingCappedRelative] = UnramifiedExtensionRingCappedRelative
 ext_table['u', pAdicRingFixedMod] = UnramifiedExtensionRingFixedMod
 ext_table['u', pAdicRingFloatingPoint] = UnramifiedExtensionRingFloatingPoint
 ext_table['u', pAdicFieldFloatingPoint] = UnramifiedExtensionFieldFloatingPoint
+ext_table['re', pAdicRingFixedMod] = RelativeRamifiedExtensionRingFixedMod
+ext_table['re', pAdicRingCappedAbsolute] = RelativeRamifiedExtensionRingCappedAbsolute
+ext_table['re', pAdicRingCappedRelative] = RelativeRamifiedExtensionRingCappedRelative
+ext_table['re', pAdicFieldCappedRelative] = RelativeRamifiedExtensionFieldCappedRelative
+ext_table['re', pAdicRingFloatingPoint] = RelativeRamifiedExtensionRingFloatingPoint
+ext_table['re', pAdicFieldFloatingPoint] = RelativeRamifiedExtensionFieldFloatingPoint
 
 def _canonicalize_show_prec(type, print_mode, show_prec=None):
     r"""
@@ -1207,7 +1214,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     Check that :trac:`8162` is resolved::
 
         sage: R = Qq([(5,3)], names="alpha", check=False); R
-        Unramified Extension in alpha defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Field
+        5-adic Unramified Extension Field in alpha defined by x^3 + 3*x + 3
         sage: Qq((5, 3), names="alpha") is R
         True
         sage: Qq(125.factor(), names="alpha") is R
@@ -1324,7 +1331,7 @@ def QqCR(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = QqCR(25, 40); R
-        Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 40 over 5-adic Field
+        5-adic Unramified Extension Field in a defined by x^2 + 4*x + 2
     """
     return Qq(q, prec, 'capped-rel', *args, **kwds)
 
@@ -1339,7 +1346,7 @@ def QqFP(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = QqFP(25, 40); R
-        Unramified Extension in a defined by x^2 + 4*x + 2 with floating precision 40 over 5-adic Field
+        5-adic Unramified Extension Field in a defined by x^2 + 4*x + 2
     """
     return Qq(q, prec, 'floating-point', *args, **kwds)
 
@@ -2027,7 +2034,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: d = ~(3*b+c); d
         2*3^-1 + (a + 1) + (a + 1)*3 + a*3^3 + O(3^4)
         sage: d.parent()
-        Unramified Extension in a defined by x^2 + 2*x + 2 with capped relative precision 5 over 3-adic Field
+        3-adic Unramified Extension Field in a defined by x^2 + 2*x + 2
 
     The capped absolute case is the same as the capped relative case,
     except that the cap is on the absolute precision rather than the
@@ -2405,7 +2412,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
     TESTS::
 
         sage: R = Zq([(5,3)], names="alpha"); R
-        Unramified Extension in alpha defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
+        5-adic Unramified Extension Ring in alpha defined by x^3 + 3*x + 3
         sage: Zq((5, 3), names="alpha") is R
         True
         sage: Zq(125.factor(), names="alpha") is R
@@ -2536,7 +2543,7 @@ def ZqCR(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqCR(25, 40); R
-        Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 40 over 5-adic Ring
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'capped-rel', *args, **kwds)
 
@@ -2549,7 +2556,7 @@ def ZqCA(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqCA(25, 40); R
-        Unramified Extension in a defined by x^2 + 4*x + 2 with capped absolute precision 40 over 5-adic Ring
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'capped-abs', *args, **kwds)
 
@@ -2562,7 +2569,7 @@ def ZqFM(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqFM(25, 40); R
-        Unramified Extension in a defined by x^2 + 4*x + 2 of fixed modulus 5^40 over 5-adic Ring
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'fixed-mod', *args, **kwds)
 
@@ -2576,7 +2583,7 @@ def ZqFP(q, prec = None, *args, **kwds):
     EXAMPLES::
 
         sage: R.<a> = ZqFP(25, 40); R
-        Unramified Extension in a defined by x^2 + 4*x + 2 with floating precision 40 over 5-adic Ring
+        5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
     """
     return Zq(q, prec, 'floating-point', *args, **kwds)
 
@@ -2885,7 +2892,7 @@ class pAdicExtension_class(UniqueFactory):
         sage: S.<x> = ZZ[]
         sage: W.<w> = pAdicExtension(R, x^4-15)
         sage: W
-        Eisenstein Extension in w defined by x^4 - 15 with capped relative precision 12 over 5-adic Ring
+        5-adic Eisenstein Extension Ring in w defined by x^4 - 15
         sage: W.precision_cap()
         12
     """
@@ -2994,7 +3001,10 @@ class pAdicExtension_class(UniqueFactory):
             if ram_name is None:
                 ram_name = base._printer._uniformizer_name()
             names = (names, res_name, unram_name, ram_name)
-            polytype = 'u'
+            if base.absolute_degree() == 1:
+                polytype = 'u'
+            else:
+                polytype = 'ru'
             if prec is None:
                 prec = min([c.precision_absolute() for c in approx_modulus.list()] + [base.precision_cap()])
             elif prec > base.precision_cap():
@@ -3006,8 +3016,14 @@ class pAdicExtension_class(UniqueFactory):
             res_name = None
             if ram_name is None:
                 ram_name = names
+            if base.absolute_degree() == 1:
+                unram_name = None
+                polytype = 'e'
+            else:
+                unram_name = base.variable_name()
+                polytype = 're'
+                implementation = 'Polynomial'
             names = (names, res_name, unram_name, ram_name)
-            polytype = 'e'
             e = approx_modulus.degree()
             if prec is None:
                 prec = min([c.precision_absolute() for c in approx_modulus.list() if not c._is_exact_zero()] + [base.precision_cap()]) * e
@@ -3041,7 +3057,7 @@ class pAdicExtension_class(UniqueFactory):
             sage: R = Zp(5,3)
             sage: S.<x> = R[]
             sage: pAdicExtension.create_object(version = (6,4,2), key = ('e', R, x^4 - 15, x^4 - 15, ('w', None, None, 'w'), 12, None, 'series', True, '|', (),-1,-1,-1,'NTL'), shift_seed = S(3 + O(5^3)))
-            Eisenstein Extension in w defined by x^4 - 15 with capped relative precision 12 over 5-adic Ring
+            5-adic Eisenstein Extension Ring in w defined by x^4 - 15
         """
         polytype = key[0]
         if version[0] < 6 or version[0] == 6 and version[1] < 1:
@@ -3060,7 +3076,7 @@ class pAdicExtension_class(UniqueFactory):
             (polytype, base, exact_modulus, names, prec, print_mode, print_pos,
              print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms,
              print_max_terse_terms, show_prec, implementation) = key
-            if polytype == 'e':
+            if polytype in ('e', 're'):
                 unif = exact_modulus.base_ring()(base.uniformizer())
                 shift_seed = (-exact_modulus[:exact_modulus.degree()] / unif).change_ring(base)
             if not krasner_check(exact_modulus, prec):

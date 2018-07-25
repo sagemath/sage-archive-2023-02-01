@@ -129,7 +129,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     elif isinstance(x, pAdicGenericElement):
         k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            k //= x.parent().ramification_index()
+            return (k*e) // x.parent().absolute_e()
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:
@@ -202,7 +202,7 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         k = mpz_get_si(prec.value)
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
             # since x lives in a subfield, the ramification index of x's parent will divide e.
-            return k * (e // x.parent().ramification_index())
+            return (k * e) // x.parent().absolute_e()
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         # since get_ordp has been called typ(x.g) == t_PADIC
@@ -294,10 +294,10 @@ cdef int _process_args_and_kwds(long *aprec, long *rprec, args, kwds, bint absol
     else:
         absprec = kwds.get("absprec",infinity)
     if absolute:
-        aprec[0] = comb_prec(absprec, prime_pow.prec_cap)
+        aprec[0] = comb_prec(absprec, prime_pow.ram_prec_cap)
         rprec[0] = comb_prec(relprec, maxordp)
     else:
-        rprec[0] = comb_prec(relprec, prime_pow.prec_cap)
+        rprec[0] = comb_prec(relprec, prime_pow.ram_prec_cap)
         aprec[0] = comb_prec(absprec, maxordp)
 
 cdef inline long cconv_mpq_t_shared(mpz_t out, mpq_t x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:

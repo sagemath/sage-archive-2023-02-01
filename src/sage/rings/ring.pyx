@@ -579,7 +579,7 @@ cdef class Ring(ParentWithGens):
             sage: R.<a> = K[]
             sage: L.<a> = K.extension(a^2-3)
             sage: L.ideal(a)
-            Principal ideal (1 + O(a^40)) of Eisenstein Extension in a defined by a^2 - 3 with capped relative precision 40 over 3-adic Field
+            Principal ideal (1 + O(a^40)) of 3-adic Eisenstein Extension Field in a defined by a^2 - 3
 
         """
         if self._zero_ideal is None:

@@ -233,14 +233,107 @@ def RandomBipartite(n1, n2, p):
                 g.add_edge((0,v),(1,w))
 
     pos = {}
-    for i in range(n1):
-        pos[(0,i)] = (0, i/(n1-1.0))
-    for i in range(n2):
-        pos[(1,i)] = (1, i/(n2-1.0))
+    if n1 == 1:
+        pos[(0, 0)] = (0, 0.5)
+    else:
+        for i in range(n1):
+            pos[(0,i)] = (0, i/(n1-1.0))
+    if n2 == 1:
+        pos[(1, n1)] = (1, 0.5)
+    else:
+        for i in range(n2):
+            pos[(1,i)] = (1, i/(n2-1.0))
 
     g.set_pos(pos)
 
     return g
+
+def RandomRegularBipartite(n1, n2, d1):
+    r"""
+    Return a random regular bipartite graph on `n1 + n2` vertices.
+
+    The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 *
+    d1`. Each vertex of the set of cardinality `n1` has degree `d1` and each
+    vertex in the set of cardinality `n2` has degree `(n1 * d1) / n2`. The
+    bipartite graph has no multiple edges.
+
+    INPUT:
+
+    - ``n1, n2`` -- number of vertices in each side
+
+    - ``d1`` -- degree of the vertices in the set of cardinality `n1`.
+
+    EXAMPLES::
+
+        sage: g = graphs.RandomRegularBipartite(4, 6, 3)
+        sage: g.order(), g.size()
+        (10, 12)
+        sage: set(g.degree())
+        {2, 3}
+
+    TESTS::
+
+        sage: graphs.RandomRegularBipartite(0, 2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n1 and n2 must be integers greater than 0
+        sage: graphs.RandomRegularBipartite(2, 3, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the product n1 * d1 must be a multiple of n2
+    """
+    if n1 < 1 or n2 < 1:
+        raise ValueError("n1 and n2 must be integers greater than 0")
+    d2 = (n1 * d1) // n2
+    if n1 * d1 != n2 * d2:
+        raise ValueError("the product n1 * d1 must be a multiple of n2")
+
+    from sage.misc.prandom import shuffle
+    from sage.misc.prandom import choice
+
+    # We create a set of n1 * d1 random edges with possible
+    # repetitions using a configuration model
+    L = [u for u in range(n1) for i in range(d1)]
+    R = [u for u in range(n1, n1 + n2) for i in range(d2)]
+    shuffle(R)
+    E = set()
+    F = list()
+    for e in zip(L, R):
+        if e in E:
+            F.append(e)
+        else:
+            E.add(e)
+
+    # We exchange semi-edges to remove multiple edges
+    for f in F:
+        while True:
+            # We select a random edge of the graph
+            TE = tuple(E)
+            e = choice(TE)
+            while e == f:
+                e = choice(TE)
+
+            # We exchange extremities unless it might create a multiple edge
+            if (e[0], f[1]) not in E and (f[0], e[1]) not in E:
+                E.discard(e)
+                E.add((e[0], f[1]))
+                E.add((f[0], e[1]))
+                break
+
+    pos = {}
+    if n1 == 1:
+        pos[0] = (0, 0.5)
+    else:
+        for i in range(n1):
+            pos[i] = (0, 1 - i/(n1-1.0))
+    if n2 == 1:
+        pos[n1] = (1, 0.5)
+    else:
+        for i in range(n2):
+            pos[i + n1] = (1, 1 - i/(n2-1.0))
+
+    return Graph(list(E), name="Random regular bipartite graph", pos=pos)
+
 
 def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
     r"""

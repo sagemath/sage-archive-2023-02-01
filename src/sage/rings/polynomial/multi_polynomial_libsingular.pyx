@@ -190,7 +190,7 @@ from sage.libs.singular.decl cimport (
     n_IsUnit, n_Invers,
     p_ISet, rChangeCurrRing, p_Copy, p_Init, p_SetCoeff, p_Setm, p_SetExp, p_Add_q,
     p_NSet, p_GetCoeff, p_Delete, p_GetExp, pNext, rRingVar, omAlloc0, omStrDup,
-    omFree, pMDivide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
+    omFree, pMDivide, p_Divide, p_SetCoeff0, n_Init, p_DivisibleBy, pLcm, p_LmDivisibleBy,
     pMDivide, p_IsConstant, p_ExpVectorEqual, p_String, p_LmInit, n_Copy,
     p_IsUnit, p_Series, p_Head, idInit, fast_map_common_subexp, id_Delete,
     p_IsHomogeneous, p_Homogen, p_Totaldegree,pLDeg1_Totaldegree, singclap_pdivide, singclap_factorize,
@@ -4802,12 +4802,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring.cf.type != n_unknown:
             if _ring.cf.type == n_Znm or _ring.cf.type == n_Zn or _ring.cf.type == n_Z2m :
                 raise TypeError("LCM over non-integral domains not available.")
-            if _ring.cf.type == n_Z:
-                f_content = self.content()
-                g_content = g.content()
-                f_primitivepart = self / f_content
-                g_primitivepart = g / g_content
-                return f_primitivepart.change_ring(RationalField()).lcm(g_primitivepart.change_ring(RationalField())) * f_content.lcm(g_content)
 
         if self._parent is not g._parent:
             _g = self._parent._coerce_c(g)
@@ -4824,9 +4818,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         if _ring!=currRing: rChangeCurrRing(_ring)  # singclap_gcd
         gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy(_g._poly, _ring), _ring )
         prod = pp_Mult_qq(self._poly, _g._poly, _ring)
-        ret = singclap_pdivide(prod , gcd , _ring)
-        p_Delete(&prod, _ring)
-        p_Delete(&gcd, _ring)
+        ret = p_Divide(prod, gcd, _ring)
         if count >= 20:
             sig_off()
         return new_MP(self._parent, ret)

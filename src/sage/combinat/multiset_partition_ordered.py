@@ -2615,7 +2615,6 @@ def _base_iterator(constraints):
 
     If key ``weight`` is present, ignore all other constraints
     (passes to ``_iterator_weight``)::
-    ::
 
         sage: from sage.combinat.multiset_partition_ordered import _base_iterator
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}

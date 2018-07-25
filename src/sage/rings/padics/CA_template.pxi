@@ -483,7 +483,7 @@ cdef class CAElement(pAdicTemplateElement):
             ans.absprec = self.prime_pow.ram_prec_cap
         else:
             ans.absprec = min(self.absprec + shift, self.prime_pow.ram_prec_cap)
-            cshift(ans.value, self.value, shift, ans.absprec, ans.prime_pow, False)
+            cshift(ans.value, self.value, shift, ans.absprec, ans.prime_pow, self.prime_pow.e > 1)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
@@ -515,7 +515,7 @@ cdef class CAElement(pAdicTemplateElement):
             ans.absprec = 0
         else:
             ans.absprec = self.absprec - shift
-            cshift(ans.value, self.value, -shift, ans.absprec, ans.prime_pow, False)
+            cshift(ans.value, self.value, -shift, ans.absprec, ans.prime_pow, self.prime_pow.e > 1)
         return ans
 
     def add_bigoh(self, absprec):
@@ -1553,7 +1553,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         cdef CRElement x = _x
         if x.ordp < 0: raise ValueError("negative valuation")
         cdef CAElement ans = self._zero._new_c()
-        cdef bint reduce = False
+        cdef bint reduce = (x.prime_pow.e > 1)
         ans.absprec = x.relprec + x.ordp
         if ans.absprec > ans.prime_pow.ram_prec_cap:
             ans.absprec = ans.prime_pow.ram_prec_cap

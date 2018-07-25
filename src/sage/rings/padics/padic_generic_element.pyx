@@ -2293,7 +2293,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
                 # deriv0 is within 1 of the n yielding the minimal
                 # absolute precision
-                deriv0 = (e / (minaprec * p.log(prec=53))).floor().exact_log(p)
+                tmp = (e / (minaprec * p.log(prec=53))).floor()
+                if tmp > 0:
+                    deriv0 = tmp.exact_log(p)
+                else:
+                    deriv0 = 0
 
                 # These are the absolute precisions of x^(p^n) at potential minimum points
                 L = [(minaprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
@@ -2321,7 +2325,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if not change_frac:
             if retval.valuation() < 0 and not R.is_field():
                 raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")
-            retval=R(retval)
+            retval = R(retval)
         return retval.add_bigoh(aprec)
 
 

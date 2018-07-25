@@ -911,9 +911,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         tester = self._tester(**options)
         for x in tester.some_elements():
             if x.is_zero(): continue
-            l = x.log(p_branch=0)
-            tester.assertIs(l.parent(), self)
-            tester.assertGreater(l.valuation(), 0)
+            try:
+                l = x.log(p_branch=0)
+                tester.assertIs(l.parent(), self)
+                tester.assertGreater(l.valuation(), 0)
+            except ValueError:
+                l = x.log(p_branch=0, change_frac=True)
             if self.is_capped_absolute() or self.is_capped_relative():
                 if self.absolute_e() == 1:
                     tester.assertEqual(l.precision_absolute(), x.precision_relative())

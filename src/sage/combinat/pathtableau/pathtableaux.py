@@ -32,33 +32,12 @@ from sage.misc.abstract_method import abstract_method
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.combinat.partition import Partition
-#from sage.modules.free_module_element import vector
-
+from sage.combinat.partition import Partition, _Partitions
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
-
-    @staticmethod
-    def __classcall_private__(cls, t):
-
-        if isinstance(t, cls):
-            return t
-
-        raise NotImplementedError("This needs to be overwritten.")
-
     @abstract_method(optional=False)
-    def check(self):
-        """
-        This is an abstract method. It must be overwritten
-        Typically an instance of
-        an Element class is a sequence of partitions with conditions
-        on adjacent partitions in the sequence. This function checks
-        that these conditions are met.
-        """
-
-    @abstract_method(optional=False)
-    def _rule(self,p):
+    def _rule_(self,p):
         """
         This is an abstract method. It must be overwritten.
         This rule provides the functionality. It is called in local_rule.
@@ -99,10 +78,10 @@ class PathTableau(ClonableList):
         the $i$-th object  by the object returned by the rule.
         """
         if not (i > 0 and i < len(self) ):
-            raise ValueError("%d is not a valid integer." % i)
+            raise ValueError("%d is not a valid integer" % i)
 
         result = list(self)
-        result[i] = self._rule(self[i-1:i+2])
+        result[i] = self._rule_(self[i-1:i+2])
 
         return self.parent()(result)
 
@@ -112,12 +91,26 @@ class PathTableau(ClonableList):
         """
         result = list(self)
         for i in range(1,len(result)-1):
-            result[i] = self._rule(result[i-1:i+2])
+            result[i] = self._rule_(result[i-1:i+2])
         return self.parent()(result)
 
     def evacuation(self):
         """
         The evacuation operator. This is given by a triangular diagram.
+
+        INPUT: A pathtableau
+
+        OUTPUT: A pathtableau
+
+        The output will have the same length, initial shape, and final shape as the input.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.evacuation()
+            [0, 1, 2, 3, 2, 1, 0]
+
+
         """
         if self.size() < 3:
             return self
@@ -134,7 +127,7 @@ class PathTableau(ClonableList):
 
     def path_rule(self,other,display=False):
         """
-        This constructs the commutor of a pair of tableau.
+        This constructs the commutor of a pair of tableaux.
         This is given by a rectangular diagram.
 
         If display=True then the function will print
@@ -143,14 +136,14 @@ class PathTableau(ClonableList):
         n = len(self)
         m = len(other)
         if n == 0 or m == 0:
-            raise ValueError("This requires nonempty lists.")
+            raise ValueError("this requires nonempty lists")
         if n == 1 or m == 1:
             return (other,self)
 
         row = list(other)
         col = list(self)
         if col[-1] != row[0]:
-            raise ValueError("%s,%s is not a composable pair." % (self,other))
+            raise ValueError("%s,%s is not a composable pair" % (self,other))
 
         path = self.parent()(col + row[1:])
 
@@ -170,9 +163,31 @@ class PathTableau(ClonableList):
         This constructs the action of the generators of the cactus group.
         These generators are involutions and are usually denoted by
         $s_{i,\,j$}$.
+
+        INPUT: A pathtableau, i >0, j >i
+
+        OUTPUT: A pathtableau
+
+        The output will have the same length, initial shape, and final shape as the input.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.cactus(1,5)
+            [0, 1, 0, 1, 2, 1, 0]
+
+            sage: t.cactus(1,6)
+            [0, 1, 2, 1, 0, 1, 0]
+
+            sage: t.cactus(1,7) == t.evacuation()
+            True
+
+            sage: t.cactus(1,7).cactus(1,6) == t.promotion()
+            True
+
         """
         if not 0 < i < j <= self.size():
-            raise ValueError("Integers out of bounds.")
+            raise ValueError("integers out of bounds")
 
         if i == j:
             return self
@@ -196,6 +211,18 @@ class PathTableau(ClonableList):
         are the powers of the promotion operator (which form the rows)
         and the cactus group operators $s_{1,\,j$}$ (which form the
         first half of the columns).
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: SkewTableau(t.cylindrical_diagram()).pp()
+            0  1  2  3  2  1  0
+            .  0  1  2  1  0  1  0
+            .  .  0  1  0  1  2  1  0
+            .  .  .  0  1  2  3  2  1  0
+            .  .  .  .  0  1  2  1  0  1  0
+            .  .  .  .  .  0  1  0  1  2  1  0
+            .  .  .  .  .  .  0  1  2  3  2  1  0
         """
         n = len(self)
         result = [[None]*(2*n-1)]*n
@@ -206,37 +233,57 @@ class PathTableau(ClonableList):
 
         return result
 
-    def check_involution_rule(self):
+    def _test_involution_rule(self, **options):
         """
         This is to check that the local rule gives an involution.
         This is crucial.
-        """
-        for i in range(self.size()-2):
-            if self.local_rule(i+1).local_rule(i+1) != self:
-                return False
-        return True
 
-    def check_involution_cactus(self):
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_involution_rule()
+
+        """
+        tester = self._tester(**options)
+        tester.assertTrue(all( self.local_rule(i+1).local_rule(i+1) == self
+                               for i in range(self.size()-2) ))
+
+    def _test_involution_cactus(self, **options):
         """
         This is to check that the cactus group generators are
-        involutions..
-        """
-        return all([ self.cactus(1,i).cactus(1,i) == self for i in range(2,self.size()+1 ) ])
+        involutions.
 
-    def check_promotion(self):
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_involution_cactus()
+        """
+        tester = self._tester(**options)
+        tester.assertTrue(all( self.cactus(1,i).cactus(1,i) == self
+                               for i in range(2,self.size()+1) ))
+
+    def _test_promotion(self, **options):
         """
         Promotion can be expressed in terms of the cactus generators.
         Here we check this relation.
-        """
-        n = self.size()-1
-        return self == self.cactus(1,n-1).cactus(1,n).promotion()
 
-    def check_commutation(self):
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_promotion()
+
+        """
+        tester = self._tester(**options)
+        n = self.size()-1
+        tester.assertTrue( self.cactus(1,n-1).cactus(1,n).promotion() == self )
+
+    def _test_commutation(self, **options):
         """
         This is to check the commutation relations in the presentation
         of the cactus group.
         """
         from itertools import combinations
+        tester = self._tester(**options)
 
         n = self.size()
         if n < 5:
@@ -248,12 +295,17 @@ class PathTableau(ClonableList):
                 return False
         return True
 
-    def check_coboundary(self):
+    def _test_coboundary(self, **options):
         """
         This is to check the coboundary relations in the presentation
         of the cactus group.
+
+        EXAMPLES::
+
+            t =
         """
         from itertools import combinations
+        tester = self._tester(**options)
 
         n = self.size()
         if n < 4:
@@ -268,6 +320,16 @@ class PathTableau(ClonableList):
     def orbit(self):
         """
         Constructs the orbit under the action of the cactus group.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.orbit()
+            {[0, 1, 0, 1, 0, 1, 0],
+             [0, 1, 0, 1, 2, 1, 0],
+             [0, 1, 2, 1, 0, 1, 0],
+             [0, 1, 2, 1, 2, 1, 0],
+             [0, 1, 2, 3, 2, 1, 0]}
         """
         n = self.size()
         orb = set([])
@@ -283,7 +345,7 @@ class PathTableau(ClonableList):
             rec = new.copy()
             new = set([])
 
-        return orb
+        return orbit
 
     def dual_equivalence_graph(self):
         """
@@ -295,13 +357,25 @@ class PathTableau(ClonableList):
         are given by replacing the label $i,i+2$ by $i$ and removing
         edges with other labels.
 
-        PLOT::
+        EXAMPLES::
 
-            sage: t = SkewTableau([[None,1,1],[2,2]])
-            sage: s = DualSemistandardTableau(t)
-            sage: s.dual_equivalence_graph().show()
-            Launched png viewer for Graphics object consisting of 4 graphics primitives
-
+            sage: s = CatalanTableau([0,1,2,3,2,3,2,1,0])
+            sage: s.dual_equivalence_graph().adjacency_matrix()
+            [0 1 1 1 0 1 0 1 1 0 0 0 0 0]
+            [1 0 1 1 1 1 1 0 1 0 0 1 1 0]
+            [1 1 0 1 1 1 0 1 0 1 1 1 0 0]
+            [1 1 1 0 1 0 1 1 1 1 0 1 1 0]
+            [0 1 1 1 0 0 1 0 0 1 1 0 1 1]
+            [1 1 1 0 0 0 1 1 1 1 1 0 1 0]
+            [0 1 0 1 1 1 0 1 0 1 1 1 0 1]
+            [1 0 1 1 0 1 1 0 1 1 1 1 1 0]
+            [1 1 0 1 0 1 0 1 0 1 0 1 1 0]
+            [0 0 1 1 1 1 1 1 1 0 0 1 1 1]
+            [0 0 1 0 1 1 1 1 0 0 0 1 1 1]
+            [0 1 1 1 0 0 1 1 1 1 1 0 1 1]
+            [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
+            [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
+            
         """
         from sage.graphs.graph import Graph
         from itertools import combinations
@@ -316,173 +390,3 @@ class PathTableau(ClonableList):
                     G.add_edge(a,b,"%d,%d" % (i,j))
         return G
 
-    def csp(self):
-        import sage.combinat.cyclic_sieving_phenomenon
-
-#### These functions don't belong here but I don't have a home for them. ####
-
-
-
-class PathTableaux(UniqueRepresentation,Parent):
-#
-#    def __init__(self):
-#        Parent.__init__(self, category = Sets())
-#
-    def _element_constructor_(self, *args, **keywords):
-        return self.element_class(self, *args, **keywords)
-#
-#    Element = PathTableau
-
-class PathTableau_partitions(PathTableau):
-    """
-    This is an abstract base class. This class assumes that we have
-    a sequence of partitions. The main examples are the minuscule
-    representations of classical groups.
-    """
-
-    @staticmethod
-    def _rule(x):
-        y = map(list,x)
-        m = max([ len(u) for u in y ])
-        z = map( lambda u: u + [0]*(m-len(u)), y )
-        result = [ abs(a-b+c) for a,b,c in zip(z[0],z[1],z[2]) ]
-        result.sort(reverse=True)
-        return Partition(result)
-
-    def _plotL(self):
-        """
-        This draws a plot of the sequence of partitions.
-        This plot assumes we do not have a chain of partitions
-        and plots the partitions in a line.
-
-        PLOT::
-
-            sage: t = SkewTableau([[None,1,1],[2,2]])
-            sage: s = DualSemistandardTableau(t)
-            sage: s._plotL()
-            Launched png viewer for Graphics object consisting of 11 graphics primitives
-
-        """
-        from sage.plot.graphics import Graphics
-        from sage.plot.line import line
-        from copy import copy
-
-        global gap
-        gap = 1
-
-        def draw_partition(p,origin):
-
-            global gap
-
-            if p == Partition([]):
-                return point(origin,axes=False,size=60)
-
-            r = origin[0]
-            s = origin[1]
-
-            u = p.to_dyck_word()
-            u = u[u.index(0):]
-            u.reverse()
-            u = u[u.index(1):]
-            u.reverse()
-            x = u.count(0)
-            y = u.count(1)
-
-            gap = max(x,gap)
-            n = len(u)
-
-            edge = []
-            edge.append([r,-y+s])
-            for i in range(n):
-                v = copy(edge[i])
-                if u[i] == 1:
-                    v[1] += 1
-                else:
-                    v[0] += 1
-                edge.append(v)
-
-            G = Graphics()
-            G += line([(r,-y+s),(r,s),(r+x,s)],axes=False,thickness=2)
-            G += line(edge,color='red',axes=False,thickness=3)
-
-            for i, a in enumerate(p[1:]):
-                G += line([(r,s-i-1),(r+a,s-i-1)],color='green')
-
-            for i, a in enumerate(p.conjugate()[1:]):
-                G += line([(r+i+1,s),(r+i+1,s-a)],color='green')
-
-            return G
-
-        G = Graphics()
-
-        for i, x in enumerate(self):
-            G += draw_partition(x, (i*gap+1.5*i,0))
-
-        G.set_aspect_ratio(1)
-
-        return G
-
-    def _plotC(self):
-        """
-        This draws a plot of the sequence of partitions.
-        This plot assumes the sequence is not a chain and so
-        plots the sequence.
-
-        PLOT::
-
-            sage: t = SkewTableau([[None,1,1],[2,2]])
-            sage: s = DualSemistandardTableau(t)
-            sage: s._plotC()
-            Launched png viewer for Graphics object consisting of 10 graphics primitives
-
-        """
-        from sage.plot.graphics import Graphics
-        from sage.plot.line import line
-        from copy import copy
-
-        def draw_partition(p):
-
-            if p == Partition([]):
-                return point((0,0),axes=False,size=60)
-
-            u = p.to_dyck_word()
-            u = u[u.index(0):]
-            u.reverse()
-            u = u[u.index(1):]
-            u.reverse()
-            x = u.count(0)
-            y = u.count(1)
-
-            n = len(u)
-
-            edge = []
-            edge.append([0,-y])
-            for i in range(n):
-                v = copy(edge[i])
-                if u[i] == 1:
-                    v[1] += 1
-                else:
-                    v[0] += 1
-                edge.append(v)
-
-            return line(edge,color='red',axes=False,thickness=3)
-
-        p = self.final_shape()
-
-        G = line([(0,-len(p)),(0,0),(p[0],0)],axes=False)
-
-        for i, a in enumerate(p[1:]):
-            G += line([(0,-i-1),(a,-i-1)],color='green')
-
-        for i, a in enumerate(p.conjugate()[1:]):
-            G += line([(i+1,0),(i+1,-a)],color='green')
-
-        for i, x in enumerate(self):
-            G += draw_partition(x)
-
-        for p in self:
-            G += draw_partition(p)
-
-        G.set_aspect_ratio(1)
-
-        return G

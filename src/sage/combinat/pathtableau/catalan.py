@@ -1,5 +1,5 @@
 r"""
-This is an implementation of the Category PathTableaux.
+This is an implementation of the abstract base class PathTableaux.
 This is the simplest implementation of PathTableaux and is included to
 provide a convenient test case and for pedagogical purposes.
 
@@ -26,16 +26,11 @@ AUTHORS:
 
 from six import add_metaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-from sage.misc.abstract_method import abstract_method
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.parent import Parent
-from sage.categories.sets_cat import Sets
-
 from sage.combinat.pathtableau.pathtableaux import PathTableau, PathTableaux
 from sage.combinat.dyck_word import DyckWord
 from sage.combinat.perfect_matching import PerfectMatching
 from sage.combinat.skew_tableau import SkewTableau
-from sage.combinat.tableau import Tableau, Tableaux
+from sage.combinat.tableau import Tableau
 from sage.rings.integer import Integer
 
 ###############################################################################
@@ -44,7 +39,7 @@ from sage.rings.integer import Integer
 
 Here we illustrate the slogan that promotion = rotation.
 
-EXAMPLE::
+EXAMPLES::
 
     sage: t = CatalanTableau([0,1,2,3,2,1,0])
     sage: t.to_perfect_matching()
@@ -62,7 +57,7 @@ EXAMPLE::
     sage: t.to_perfect_matching()
     [(0, 5), (1, 4), (2, 3)]
 
-EXAMPLE::
+EXAMPLES::
 
     sage: t = CatalanTableau([0,1,2,3,2,1,0])
     sage: SkewTableau(t.cylindrical_diagram()).pp()
@@ -74,48 +69,7 @@ EXAMPLE::
       .  .  .  .  .  0  1  0  1  2  1  0
       .  .  .  .  .  .  0  1  2  3  2  1  0
 
-
-    sage: t = CatalanTableau([0,1,2,3,2,1,0])
-    sage: t.evacuation()
-    [0, 1, 2, 3, 2, 1, 0]
-
-    sage: t.cactus(1,5)
-    [0, 1, 0, 1, 2, 1, 0]
-
-    sage: t.cactus(1,6)
-    [0, 1, 2, 1, 0, 1, 0]
-
-    sage: t.cactus(1,7) == t.evacuation()
-    True
-
-    sage: t.cactus(1,7).cactus(1,6) == t.promotion()
-    True
-
-    sage: t.check_involution_rule()
-    True
-
-    sage: t.check_involution_cactus()
-    True
-
-    sage: t.check_promotion()
-    True
-
-    sage: t.check_involution_cactus()
-    True
-
-    sage: t.check_commutation()
-    True
-
-    sage: t.check_coboundary()
-    True
-
-    sage: t.orbit()
-    {[0, 1, 0, 1, 0, 1, 0],
-     [0, 1, 0, 1, 2, 1, 0],
-     [0, 1, 2, 1, 0, 1, 0],
-     [0, 1, 2, 1, 2, 1, 0],
-     [0, 1, 2, 3, 2, 1, 0]}
-
+    sage: TestSuite(t).run()
 """
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -124,10 +78,11 @@ class CatalanTableau(PathTableau):
     An instance is the sequence of nonnegative
     integers given by the heights of a Dyck word. The acceptable inputs
     are:
-        - a sequence of nonnegative integers
-        - a two row standard skew tableau
-        - a Dyck word
-        - a noncrossing perfect matching
+
+    - a sequence of nonnegative integers
+    - a two row standard skew tableau
+    - a Dyck word
+    - a noncrossing perfect matching
 
     EXAMPLES::
 
@@ -154,37 +109,37 @@ class CatalanTableau(PathTableau):
 
         w = None
 
-        if isinstance(ot,DyckWord):
+        if isinstance(ot, DyckWord):
             w = ot.heights()
 
-        if isinstance(ot,PerfectMatching):
+        if isinstance(ot, PerfectMatching):
             if ot.is_noncrossing():
                 w = [1]*ot.size()
                 for a in ot.arcs():
                     w[a[1]-1] = 0
             else:
-                raise ValueError("The perfect matching must be non crossing.")
+                raise ValueError("the perfect matching must be non crossing")
 
-        if isinstance(ot,Tableau):
+        if isinstance(ot, Tableau):
             if len(ot) == 2:
                 if ot.is_standard():
-                    u = [1]*ot.size()
+                    u = [1] * ot.size()
                     for i in ot[1]:
                         u[i-1] = 0
                     w = DyckWord(u).heights()
                 else:
-                    raise ValueError("The tableau must be standard.")
+                    raise ValueError("the tableau must be standard")
             else:
-                raise ValueError("The tableau must have two rows.")
+                raise ValueError("the tableau must have two rows")
 
-        if isinstance(ot,(list,tuple)):
+        if isinstance(ot, (list,tuple)):
             try:
-                w = tuple([ Integer(a) for a in ot ])
+                w = tuple([Integer(a) for a in ot])
             except TypeError:
-                raise ValueError("%s is not a sequence of integers." % str(ot) )
+                raise ValueError("%s is not a sequence of integers" % ot)
 
-        if w == None:
-            raise NotImplementedError( "Sorry; I don't know what to do with %s." % str(ot) )
+        if w is None:
+            raise ValueError("invalid input %s" % ot)
 
         return CatalanTableaux()(w)
 
@@ -203,23 +158,23 @@ class CatalanTableau(PathTableau):
             sage: CatalanTableau([0,1,0,-1,0])
             Traceback (most recent call last):
             ...
-            ValueError: [0, 1, 0, -1, 0] has a negative entry.
+            ValueError: [0, 1, 0, -1, 0] has a negative entry
 
             sage: CatalanTableau([0,1,3,3,2,3])
             Traceback (most recent call last):
             ...
-            ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path.
+            ValueError: [0, 1, 3, 3, 2, 3] is not a Dyck path
 
         """
         n = len(self)
         if any(a < 0 for a in self):
-           raise ValueError( "%s has a negative entry." % (str(self)) )
+           raise ValueError( "%s has a negative entry" % (str(self)) )
         for i in range(n-1):
             if abs(self[i+1]-self[i]) != 1:
-                raise ValueError( "%s is not a Dyck path." % (str(self)) )
+                raise ValueError( "%s is not a Dyck path" % (str(self)) )
 
     @staticmethod
-    def _rule(x):
+    def _rule_(x):
         """
         This overwrites the abstract method.
         """
@@ -244,7 +199,7 @@ class CatalanTableau(PathTableau):
         """
         Returns the descent set.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).descents()
             {3, 6}
@@ -262,7 +217,7 @@ class CatalanTableau(PathTableau):
         """
         Converts to a word in the alphabet 0,1
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CatalanTableau([1,0,1,2,1]).to_word()
             [0, 1, 1, 0]
@@ -274,11 +229,10 @@ class CatalanTableau(PathTableau):
         """
         This converts to a perfect matching.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).to_perfect_matching()
             [(0, 5), (1, 2), (3, 4), (6, 7)]
-
         """
         w = self.to_word()
         y = DyckWord(w)

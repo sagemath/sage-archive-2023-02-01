@@ -36,7 +36,7 @@ from sage.combinat.partition import Partition
 
 """
 This implementation is on dual semistandard tableaux. This is the standard
-context for jeu-de-taquin operations. Here we show that the constructions 
+context for jeu-de-taquin operations. Here we show that the constructions
 here agree with the jeu-de-taquin constructions. Even in this standard context
 our operations extend the standard definitions in the sense that the
 constructions here are naturally defined for skew semistandard tableaux.
@@ -323,3 +323,178 @@ class DualSemistandardTableau(PathTableau_partitions):
 class DualSemistandardTableaux(PathTableaux):
 
     Element = DualSemistandardTableau
+
+#### These functions don't belong here but I don't have a home for them. ####
+
+#############################################################################
+
+
+
+class PathTableaux(UniqueRepresentation,Parent):
+#
+#    def __init__(self):
+#        Parent.__init__(self, category = Sets())
+#
+    def _element_constructor_(self, *args, **keywords):
+        return self.element_class(self, *args, **keywords)
+#
+#    Element = PathTableau
+
+class PathTableau_partitions(PathTableau):
+    """
+    This is an abstract base class. This class assumes that we have
+    a sequence of partitions. The main examples are the minuscule
+    representations of classical groups.
+
+    TESTS::
+
+        sage: F = Foo()
+        sage: TestSuite(F).run()
+    """
+
+    @staticmethod
+    def _rule_(x):
+        y = map(list, x)
+        m = max(len(u) for u in y) # FIXME?: This will fail if y is empty
+        z = [u + [0]*(m-len(u)) for u in y]
+        result = [ abs(a-b+c) for a,b,c in zip(z[0],z[1],z[2]) ]
+        result.sort(reverse=True)
+        return _Partitions(result)
+
+    def _plotL(self):
+        """
+        This draws a plot of the sequence of partitions.
+        This plot assumes we do not have a chain of partitions
+        and plots the partitions in a line.
+
+        PLOT::
+
+            sage: t = SkewTableau([[None,1,1],[2,2]])
+            sage: s = DualSemistandardTableau(t)
+            sage: s._plotL()
+            Launched png viewer for Graphics object consisting of 11 graphics primitives
+
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from copy import copy
+
+        global gap
+        gap = 1
+
+        def draw_partition(p,origin):
+
+            global gap
+
+            if p == _Partitions([]):
+                return point(origin,axes=False,size=60)
+
+            r = origin[0]
+            s = origin[1]
+
+            u = p.to_dyck_word()
+            u = u[u.index(0):]
+            u.reverse()
+            u = u[u.index(1):]
+            u.reverse()
+            x = u.count(0)
+            y = u.count(1)
+
+            gap = max(x,gap)
+            n = len(u)
+
+            edge = []
+            edge.append([r,-y+s])
+            for i in range(n):
+                v = copy(edge[i])
+                if u[i] == 1:
+                    v[1] += 1
+                else:
+                    v[0] += 1
+                edge.append(v)
+
+            G = Graphics()
+            G += line([(r,-y+s),(r,s),(r+x,s)],axes=False,thickness=2)
+            G += line(edge,color='red',axes=False,thickness=3)
+
+            for i, a in enumerate(p[1:]):
+                G += line([(r,s-i-1),(r+a,s-i-1)],color='green')
+
+            for i, a in enumerate(p.conjugate()[1:]):
+                G += line([(r+i+1,s),(r+i+1,s-a)],color='green')
+
+            return G
+
+        G = Graphics()
+
+        for i, x in enumerate(self):
+            G += draw_partition(x, (i*gap+1.5*i,0))
+
+        G.set_aspect_ratio(1)
+
+        return G
+
+    def _plotC_(self):
+        """
+        This draws a plot of the sequence of partitions.
+        This plot assumes the sequence is not a chain and so
+        plots the sequence.
+
+        PLOT::
+
+            sage: t = SkewTableau([[None,1,1],[2,2]])
+            sage: s = DualSemistandardTableau(t)
+            sage: s._plotC_()
+            Launched png viewer for Graphics object consisting of 10 graphics primitives
+
+        """
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from copy import copy
+
+        def draw_partition(p):
+
+            if p == _Partitions([]):
+                return point((0,0),axes=False,size=60)
+
+            u = p.to_dyck_word()
+            u = u[u.index(0):]
+            u.reverse()
+            u = u[u.index(1):]
+            u.reverse()
+            x = u.count(0)
+            y = u.count(1)
+
+            n = len(u)
+
+            edge = []
+            edge.append([0,-y])
+            for i in range(n):
+                v = copy(edge[i])
+                if u[i] == 1:
+                    v[1] += 1
+                else:
+                    v[0] += 1
+                edge.append(v)
+
+            return line(edge,color='red',axes=False,thickness=3)
+
+        p = self.final_shape()
+
+        G = line([(0,-len(p)),(0,0),(p[0],0)],axes=False)
+
+        for i, a in enumerate(p[1:]):
+            G += line([(0,-i-1),(a,-i-1)],color='green')
+
+        for i, a in enumerate(p.conjugate()[1:]):
+            G += line([(i+1,0),(i+1,-a)],color='green')
+
+        for i, x in enumerate(self):
+            G += draw_partition(x)
+
+        for p in self:
+            G += draw_partition(p)
+
+        G.set_aspect_ratio(1)
+
+        return G

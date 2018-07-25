@@ -9169,7 +9169,7 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
                     unfilled_spots.append((r,c))
             if unfilled_spots == []:
                 top_value = max(active_tab.entries())
-                if top_value == len(wt) - 1 - wt[::-1].index(1):
+                if top_value == len(wt) - wt[::-1].index(1): #oops was -1
                     list_of_inc_tabs.append(IncreasingTableau(active_tab))
                 continue
             growth_spots = []

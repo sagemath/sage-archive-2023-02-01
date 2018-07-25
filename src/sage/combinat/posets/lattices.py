@@ -4217,6 +4217,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             return ok
         for c in H.congruences_iterator():
             cong = list(c)
+            if len(cong) in [1, H.order()]:
+                continue
+            if not certificate:
+                if any(len(x) != len(cong[0]) for x in cong):
+                    return False
             d = H.subgraph(cong[0])
             for part in cong:
                 if not H.subgraph(part).is_isomorphic(d):
@@ -4342,6 +4347,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         H = self._hasse_diagram
         for cong in H.congruences_iterator():
+            x = cong.root_to_elements_dict().values()
+            if all(len(p) == len(x[0]) for p in x):
+                continue
             for part in cong:
                 if H.congruence([part]) != cong:
                     if certificate:

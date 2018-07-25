@@ -9152,8 +9152,8 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
                 continue
             growth_spots = []
             for (r,c) in unfilled_spots:
-                if (r-1,c) in active_tab.cells() and active_tab[r-1][c] != 0:
-                    if (r,c-1) in active_tab.cells() and active_tab[r][c-1] != 0:
+                if (r-1,c) not in active_tab.cells() or active_tab[r-1][c] != 0:
+                    if (r,c-1) not in active_tab.cells() or active_tab[r][c-1] != 0:
                         growth_spots.append((r,c))
             growth_choices = list(powerset(growth_spots))
             top_value = max(active_tab.entries())

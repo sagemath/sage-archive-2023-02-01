@@ -97,6 +97,7 @@ import sage.misc.prandom as random
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.all import uniq, prod
+from sage.misc.misc import powerset
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -8256,7 +8257,7 @@ class IncreasingTableaux(Tableaux):
             if (not wt in IntegerVectors()):
                 try:
                     wt = IntegerVector(wt)
-                else:
+                except:
                     raise ValueError( "wt must be an integer vector" )
             if not all([k in [0,1] for k in wt]):
                 raise ValueError( "wt must be a binary vector" )
@@ -9147,19 +9148,19 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             active_tab = list_of_partial_inc_tabs.pop()
     #        print active_tab##
             unfilled_spots = []
-            for node in Tableau(active_tab).cells():
-                if active_tab[node] == 0:
-                    unfilled_spots.append(node)
+            for (r,c) in Tableau(active_tab).cells():
+                if active_tab[r][c] == 0:
+                    unfilled_spots.append((r,c))
             if unfilled_spots == []:
                 list_of_inc_tabs.append(IncreasingTableau(active_tab))
                 continue
-            growth_spots = [] 
-            for (r,c) in growth_spots:
+            growth_spots = []
+            for (r,c) in unfilled_spots:
                 if (r-1,c) in active_tab.cells() and active_tab[r-1][c] != 0:
                     if (r,c-1) in active_tab.cells() and active_tab[r][c-1] != 0:
                         growth_spots.append((r,c))
             growth_choices = list(powerset(growth_spots))
-            top_value = max(active_tab.values())
+            top_value = max(active_tab.entries())
             wt = self.weight
             try:
                 growth_num = wt[top_value:].index(1) + top_value + 1

@@ -322,14 +322,15 @@ cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
     p = R.prime()
     while m >= 0:
         const_term = value[0]
-        if const_term._is_exact_zero():
+        if const_term.is_zero():
             term = []
         else:
             flint_rep = const_term._flint_rep_abs()[0]
             term = [c % p for c in flint_rep.list()]
             while term and not term[-1]:
                 del term[-1]
-            if m: value.__coeffs[0] -= R(term)
+            if m:
+                value.__coeffs[0] -= R(term)
         if m: cshift(value, value, -1, 1, prime_pow, False)
         m -= 1
     return term

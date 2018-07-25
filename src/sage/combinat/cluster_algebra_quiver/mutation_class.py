@@ -22,12 +22,13 @@ from __future__ import print_function
 from six.moves import range
 
 import time
-from sage.groups.perm_gps.partn_ref.refinement_graphs import *
+from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree, get_orbits
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
 
-def _principal_part( mat ):
+
+def _principal_part(mat):
     """
     Returns the principal part of a matrix.
 
@@ -160,7 +161,7 @@ def _dg_canonical_form( dg, n, m ):
         ({0: 0, 1: 3, 2: 1, 3: 2}, [[0], [3], [1], [2]])
         [(0, 3, (1, -1)), (1, 2, (1, -2)), (1, 3, (1, -1))]
     """
-    vertices = [ v for v in dg ]
+    vertices = list(dg)
     if m > 0:
         partition = [ vertices[:n], vertices[n:] ]
     else:
@@ -170,9 +171,11 @@ def _dg_canonical_form( dg, n, m ):
     automorphism_group, obsolete, iso = search_tree(dg, partition=partition, lab=True, dig=True, certificate=True)
     orbits = get_orbits( automorphism_group, n+m )
     orbits = [ [ iso[i] for i in orbit] for orbit in orbits ]
-    for v in iso.keys():
-        if v >= n+m:
-            del iso[v]
+
+    removed = []
+    for v in iso:
+        if v >= n + m:
+            removed.append(v)
             v1,v2,label1 = next(dg._backend.iterator_in_edges([v],True))
             w1,w2,label2 = next(dg._backend.iterator_out_edges([v],True))
             dg._backend.del_edge(v1,v2,label1,True)
@@ -186,7 +189,9 @@ def _dg_canonical_form( dg, n, m ):
                     dg._backend.add_edge(v1,w2,edges[index],True)
                     add_index = False
                 index += 1
-    dg._backend.relabel( iso, True )
+    for v in removed:
+        del iso[v]
+    dg._backend.relabel(iso, True)
     return iso, orbits
 
 def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_depth=False, up_to_equivalence=True, sink_source=False ):
@@ -242,8 +247,7 @@ def _mutation_class_iter( dg, n, m, depth=infinity, return_dig6=False, show_dept
 
     while gets_bigger and depth_counter < depth:
         gets_bigger = False
-        keys = dig6s.keys()
-        for key in keys:
+        for key in list(dig6s):
             mutation_indices = [ i for i in dig6s[key][0] if i < n ]
             if mutation_indices:
                 dg = _dig6_to_digraph( key )

@@ -61,7 +61,7 @@ def is_gale_ryser(r,s):
     If, given a binary matrix, these two vectors are easy to compute,
     the Gale-Ryser theorem lets us decide whether, given two
     non-negative vectors `r,s`, there exists a binary matrix
-    whose row/colum sums vectors are `r` and `s`.
+    whose row/column sums vectors are `r` and `s`.
 
     This functions answers accordingly.
 
@@ -1204,7 +1204,7 @@ class IntegerVectorsConstraints(IntegerVectors):
         """
         self.n = n
         self.k = k
-        if self.k >= 0:
+        if k is not None and self.k >= 0:
             constraints['length'] = self.k
         if 'outer' in constraints:
             constraints['ceiling'] = constraints['outer']
@@ -1525,6 +1525,6 @@ def IntegerVectors_nkconstraints(n=None, k=None, **constraints):
     return IntegerVectorsConstraints(n, k, **constraints)
 
 # October 2012: fixing outdated pickles which use classes being deprecated
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nconstraints', IntegerVectorsConstraints)
 register_unpickle_override('sage.combinat.integer_vector', 'IntegerVectors_nkconstraints', IntegerVectorsConstraints)

@@ -100,10 +100,10 @@ A ``LinearCode`` is instantiated by providing a generator matrix::
 Further references
 ------------------
 
-If you want to get started on Sage's linear codes library, see http://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
+If you want to get started on Sage's linear codes library, see https://doc.sagemath.org/html/en/thematic_tutorials/coding_theory.html
 
 If you want to learn more on the design of this library, see
-http://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
+https://doc.sagemath.org/html/en/thematic_tutorials/structures_in_coding_theory.html
 
 REFERENCES:
 
@@ -287,24 +287,6 @@ def _dump_code_in_leon_format(C):
     f.close()
 
     return file_loc
-
-code2leon = deprecated_function_alias(21165, _dump_code_in_leon_format)
-
-def wtdist_gap(Gmat, n, F):
-    from sage.misc.superseded import deprecation
-    deprecation(20565, "wtdist_gap is now deprecated. You should simply call AbstractLinearCode.weight_distribution instead.")
-    G_gap = gap(Gmat)
-    G = G_gap._matrix_(F)
-    C = LinearCode(G)
-    return C._spectrum_from_gap()
-
-def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
-    from sage.misc.superseded import deprecation
-    deprecation(20953, "min_wt_vec_gap is now deprecated. Please use AbstractLinearCode._minimum_weight_codeword instead.")
-    G_gap = gap(Gmat)
-    G = G_gap._matrix_(F)
-    C = LinearCode(G)
-    return C._minimum_weight_codeword(algorithm)
 
 def _explain_constructor(cl):
     r"""
@@ -764,19 +746,19 @@ class AbstractLinearCode(Module):
 
             sage: C.add_encoder("MyEncoder", MyEncoder)
             sage: sorted(C.encoders_available())
-            ['MyEncoder', 'ParityCheck', 'Systematic']
+            ['MyEncoder', 'Systematic']
 
         We can verify that any new code will not know MyEncoder::
 
             sage: C2 = codes.HammingCode(GF(2), 3)
             sage: sorted(C2.encoders_available())
-            ['ParityCheck', 'Systematic']
+            ['Systematic']
 
         TESTS:
 
         It is impossible to use a name which is in the dictionary of available encoders::
 
-            sage: C.add_encoder("ParityCheck", MyEncoder)
+            sage: C.add_encoder("Systematic", MyEncoder)
             Traceback (most recent call last):
             ...
             ValueError: There is already a registered encoder with this name
@@ -1470,7 +1452,7 @@ class AbstractLinearCode(Module):
             sage: C.decoder('Try')
             Traceback (most recent call last):
             ...
-            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'Syndrome', 'NearestNeighbor']
+            ValueError: There is no Decoder named 'Try'. The known Decoders are: ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
         Some decoders take extra arguments. If the user forgets to supply these,
         the error message attempts to be helpful::
@@ -1492,10 +1474,14 @@ class AbstractLinearCode(Module):
             try:
                 return decClass(self, *args, **kwargs)
             except TypeError:
-                raise ValueError("Constructing the {0} decoder failed, possibly due to missing or incorrect parameters.\n{1}"\
-                                     .format(decoder_name, _explain_constructor(decClass)))
+                raise ValueError(
+                        "Constructing the {0} decoder failed, possibly due "
+                        "to missing or incorrect parameters.\n{1}".format(
+                            decoder_name, _explain_constructor(decClass)))
         else:
-            raise ValueError("There is no Decoder named '%s'. The known Decoders are: %s" % (decoder_name, self.decoders_available()))
+            raise ValueError(
+                    "There is no Decoder named '{0}'. The known Decoders are: "
+                    "{1}".format(decoder_name, self.decoders_available()))
 
     def decoders_available(self, classes=False):
         r"""
@@ -1513,7 +1499,7 @@ class AbstractLinearCode(Module):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: sorted(C.decoders_available())
+            sage: C.decoders_available()
             ['InformationSet', 'NearestNeighbor', 'Syndrome']
 
             sage: dictionary = C.decoders_available(True)
@@ -1524,7 +1510,8 @@ class AbstractLinearCode(Module):
         """
         if classes:
             return copy(self._registered_decoders)
-        return self._registered_decoders.keys()
+
+        return sorted(self._registered_decoders)
 
     def divisor(self):
         r"""
@@ -1902,10 +1889,14 @@ class AbstractLinearCode(Module):
             try:
                 return encClass(self, *args, **kwargs)
             except TypeError:
-                raise ValueError("Constructing the {0} encoder failed, possibly due to missing or incorrect parameters.\n{1}"\
-                                     .format(encoder_name, _explain_constructor(encClass)))
+                raise ValueError(
+                        "Constructing the {0} encoder failed, possibly due "
+                        "to missing or incorrect parameters.\n{1}".format(
+                            encoder_name, _explain_constructor(encClass)))
         else:
-            raise ValueError("There is no Encoder named '%s'. The known Encoders are: %s" % (encoder_name, self.encoders_available()))
+            raise ValueError(
+                    "There is no Encoder named '{0}'. The known Encoders are: "
+                    "{1}".format(encoder_name, self.encoders_available()))
 
     def encoders_available(self, classes=False):
         r"""
@@ -1923,7 +1914,7 @@ class AbstractLinearCode(Module):
 
             sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
             sage: C = LinearCode(G)
-            sage: sorted(C.encoders_available())
+            sage: C.encoders_available()
             ['GeneratorMatrix', 'Systematic']
             sage: dictionary = C.encoders_available(True)
             sage: sorted(dictionary.items())
@@ -1932,7 +1923,8 @@ class AbstractLinearCode(Module):
         """
         if classes:
             return copy(self._registered_encoders)
-        return self._registered_encoders.keys()
+
+        return sorted(self._registered_encoders)
 
     def extended_code(self):
         r"""
@@ -2154,9 +2146,6 @@ class AbstractLinearCode(Module):
         """
         systematic_positions = tuple(systematic_positions) if systematic_positions else None
         return self.encoder("Systematic", systematic_positions=systematic_positions).generator_matrix()
-
-    generator_matrix_systematic = deprecated_function_alias(20835,
-            systematic_generator_matrix)
 
     @cached_method
     def gens(self):
@@ -3049,175 +3038,6 @@ class AbstractLinearCode(Module):
         G = E.generator_matrix()
         return G.delete_columns(E.systematic_positions())
 
-    def sd_duursma_data(self, i, warn=True):
-        r"""
-        Compute two integers pertaining to the computation of the self-dual
-        Duursma zeta function for ``self``, if ``self`` is a self-dual code.
-
-        INPUT:
-
-        - ``i`` - Type number
-
-        OUTPUT:
-
-        - Pair ``(v, m)`` as in Duursma [Du2003]_
-
-        EXAMPLES::
-
-            sage: MS = MatrixSpace(GF(2),2,4)
-            sage: G = MS([1,1,0,0,0,0,1,1])
-            sage: C = LinearCode(G)
-            sage: C == C.dual_code()  # checks that C is self dual
-            True
-            sage: for i in [1,2,3,4]: print(C.sd_duursma_data(i))
-            doctest:...: DeprecationWarning: AbstractLinearCode.sd_duursma_data will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial
-            See http://trac.sagemath.org/21165 for details.
-            (2, -1)
-            (2, -3)
-            (2, -2)
-            (2, -1)
-        """
-        if warn:
-            deprecation(21165, "AbstractLinearCode.sd_duursma_data will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial")
-        n = self.length()
-        d = self.minimum_distance()
-        if i == 1:
-            v = (n-4*d)//2 + 4
-            m = d-3
-        elif i == 2:
-            v = (n-6*d)//8 + 3
-            m = d-5
-        elif i == 3:
-            v = (n-4*d)//4 + 3
-            m = d-4
-        elif i == 4:
-            v = (n-3*d)//2 + 3
-            m = d-3
-        else:
-            raise ValueError("the type i should be 1,2,3 or 4")
-        return (ZZ(v),m)
-
-    def sd_duursma_q(self, i, d0, warn=True):
-        r"""
-        Compute a polynomial pertaining to the computation of the self-dual
-        Duursma zeta function for ``self``, if ``self`` is a self-dual code.
-
-        INPUT:
-
-        -  ``i`` - Type number, one of 1,2,3,4
-        -  ``d0`` - Divisor, the smallest integer such that each `A_i > 0` iff
-           `i` is divisible by `d0`
-
-        OUTPUT:
-
-        - The polynomial `Q(T)` as in Duursma [Du2003]_
-
-        EXAMPLES::
-
-            sage: C1 = codes.HammingCode(GF(2), 3)
-            sage: C2 = C1.extended_code(); C2
-            Extension of [7, 4] Hamming Code over GF(2)
-            sage: C2.sd_duursma_q(1,1)
-            doctest:...: DeprecationWarning: AbstractLinearCode.sd_duursma_q will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial
-            See http://trac.sagemath.org/21165 for details.
-            2/5*T^2 + 2/5*T + 1/5
-            sage: C2.sd_duursma_q(3,1)
-            3/5*T^4 + 1/5*T^3 + 1/15*T^2 + 1/15*T + 1/15
-        """
-        if warn:
-            deprecation(21165, "AbstractLinearCode.sd_duursma_q will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() to compute the Duursma zeta polynomial")
-        q = (self.base_ring()).order()
-        n = self.length()
-        d = self.minimum_distance()
-        d0 = self.divisor()
-        if i==1 or i==2:
-            if d>d0:
-                c0 = QQ((n-d)*rising_factorial(d-d0,d0+1)*self.weight_distribution()[d])/rising_factorial(n-d0-1,d0+2)
-            else:
-                c0 = QQ((n-d)*self.weight_distribution()[d])/rising_factorial(n-d0-1,d0+2)
-        if i==3 or i==4:
-            if d>d0:
-                c0 = rising_factorial(d-d0,d0+1)*self.weight_distribution()[d]/((q-1)*rising_factorial(n-d0,d0+1))
-            else:
-                c0 = self.weight_distribution()[d]/((q-1)*rising_factorial(n-d0,d0+1))
-        v, m = self.sd_duursma_data(i, warn=False)
-        if m<0 or v<0:
-            raise NotImplementedError("This combination of length and minimum distance is not supported.")
-        PR = PolynomialRing(QQ,"T")
-        T = PR.gen()
-        if i == 1:
-            coefs = PR(c0*(1+3*T+2*T**2)**m*(2*T**2+2*T+1)**v).list()
-            qc = [coefs[j]/binomial(4*m+2*v,m+j) for j in range(2*m+2*v+1)]
-        if i == 2:
-            F = ((T+1)**8+14*T**4*(T+1)**4+T**8)**v
-            coefs = (c0*(1+T)**m*(1+4*T+6*T**2+4*T**3)**m*F).coefficients(sparse=False)
-            qc = [coefs[j]/binomial(6*m+8*v,m+j) for j in range(4*m+8*v+1)]
-        if i == 3:
-            F = (3*T**2+4*T+1)**v*(1+3*T**2)**v
-            # Note that: (3*T**2+4*T+1)(1+3*T**2)=(T+1)**4+8*T**3*(T+1)
-            coefs = (c0*(1+3*T+3*T**2)**m*F).coefficients(sparse=False)
-            qc = [coefs[j]/binomial(4*m+4*v,m+j) for j in range(2*m+4*v+1)]
-        if i == 4:
-            coefs = (c0*(1+2*T)**m*(4*T**2+2*T+1)**v).coefficients(sparse=False)
-            qc = [coefs[j]/binomial(3*m+2*v,m+j) for j in range(m+2*v+1)]
-        Q = PR(qc)
-        return Q/Q(1)
-
-    def sd_zeta_polynomial(self, typ=1):
-        r"""
-        Return the Duursma zeta polynomial, computed in a fashion that only
-        works if ``self`` is self-dual.
-
-        .. WARNING::
-
-            This function does not check that ``self`` is self-dual. Indeed, it
-            is not even clear which notion of self-dual is supported ([Du2003]_ seems
-            to indicate formal self-dual, but the example below is a hexacode
-            which is Hermitian self-dual).
-
-        INPUT:
-
-        -  ``typ`` - Integer, type of this s.d. code; one of 1,2,3, or
-           4 (default: 1)
-
-        OUTPUT:
-
-        -  Polynomial in a variable "T": the Duursma zeta function as in [Du2003]_
-
-        EXAMPLES::
-
-            sage: C1 = codes.HammingCode(GF(2), 3)
-            sage: C2 = C1.extended_code(); C2
-            Extension of [7, 4] Hamming Code over GF(2)
-            sage: P = C2.sd_zeta_polynomial(); P
-            doctest:...: DeprecationWarning: AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead
-            See http://trac.sagemath.org/21165 for details.
-            2/5*T^2 + 2/5*T + 1/5
-            sage: P(1)
-            1
-            sage: F.<z> = GF(4,"z")
-            sage: MS = MatrixSpace(F, 3, 6)
-            sage: G = MS([[1,0,0,1,z,z],[0,1,0,z,1,z],[0,0,1,z,z,1]])
-            sage: C = LinearCode(G)  # the "hexacode"
-            sage: C.sd_zeta_polynomial(4)
-            1
-        """
-        deprecation(21165, "AbstractLinearCode.sd_zeta_polynomial() will be removed in a future release of Sage. Please use AbstractLinearCode.zeta_polynomial() instead")
-        if not self.base_field().cardinality() <= 4:
-            raise ValueError("the Duursma zeta polynomial is only defined for codes over GF(2), GF(3) or GF(4).")
-        d0 = self.divisor()
-        Q = self.sd_duursma_q(typ,d0, warn=False)
-        PR = Q.parent()
-        T = PR.fraction_field().gen()
-        if typ == 1:
-            P0 = Q
-        if typ == 2:
-            P0 = Q/(1-2*T+2*T**2)
-        if typ == 3:
-            P0 = Q/(1+3*T**2)
-        if typ == 4:
-            P0 = Q/(1+2*T)
-        return PR(P0/P0(1))
 
     def shortened(self, L):
         r"""
@@ -3518,8 +3338,8 @@ class AbstractLinearCode(Module):
         E = self.encoder(encoder_name, **kwargs)
         return E.unencode(c, nocheck)
 
-    def weight_enumerator(self, names=None, name2=None, bivariate=True):
-        """
+    def weight_enumerator(self, names=None, bivariate=True):
+        r"""
         Return the weight enumerator polynomial of ``self``.
 
         This is the bivariate, homogeneous polynomial in `x` and `y` whose
@@ -3531,9 +3351,6 @@ class AbstractLinearCode(Module):
         - ``names`` - (default: ``"xy"``) The names of the variables in the
           homogeneous polynomial. Can be given as a single string of length 2,
           or a single string with a comma, or as a tuple or list of two strings.
-
-        - ``name2`` - Deprecated, (default: ``None``) The string name of the
-          second variable.
 
         - ``bivariate`` - (default: `True`) Whether to return a bivariate,
           homogeneous polynomial or just a univariate polynomial. If set to
@@ -3569,11 +3386,6 @@ class AbstractLinearCode(Module):
                 names = "xy"
             else:
                 names = "x"
-        else:
-            if name2 is not None:
-                from sage.misc.superseded import deprecation
-                deprecation(21576, "Optional argument name2 is deprecated. You should just give a tuple to `names`.")
-                names = (names, name2)
         spec = self.weight_distribution()
         n = self.length()
         if bivariate:
@@ -3695,50 +3507,6 @@ class AbstractLinearCode(Module):
         T = RT.gen()
         return P/((1-T)*(1-q*T))
 
-def LinearCodeFromVectorSpace(V, d=None):
-    """
-    Simply converts a vector subspace `V` of `GF(q)^n` into a `LinearCode`.
-
-    INPUT:
-
-    - ``V`` -- The vector space
-
-    - ``d`` -- (Optional, default: ``None``) the minimum distance of the
-      code, if known. This is an optional parameter.
-
-    .. note::
-
-        The veracity of the minimum distance ``d``, if provided, is not
-        checked.
-
-    EXAMPLES::
-
-        sage: V = VectorSpace(GF(2), 8)
-        sage: L = V.subspace([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
-        sage: C = LinearCodeFromVectorSpace(L)
-        doctest:...: DeprecationWarning: LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.
-        See http://trac.sagemath.org/21165 for details.
-        sage: C.generator_matrix()
-        [1 1 1 1 0 0 0 0]
-        [0 0 0 0 1 1 1 1]
-        sage: C.minimum_distance()
-        4
-
-    Here, we provide the minimum distance of the code.::
-
-        sage: C = LinearCodeFromVectorSpace(L, d=4)
-        sage: C.minimum_distance()
-        4
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(21165, "LinearCodeFromVectorSpace is deprecated. Simply call LinearCode with your vector space instead.")
-    F = V.base_ring()
-    B = V.basis()
-    n = len(B[0].list())
-    k = len(B)
-    MS = MatrixSpace(F,k,n)
-    G = MS([B[i].list() for i in range(k)])
-    return LinearCode(G, d=d)
 
 
 
@@ -3933,7 +3701,7 @@ class LinearCode(AbstractLinearCode):
             return "[%s, %s] linear code over %s"%(self.length(), self.dimension(), R)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -4104,89 +3872,6 @@ class LinearCodeGeneratorMatrixEncoder(Encoder):
 
 
 
-
-
-
-class LinearCodeParityCheckEncoder(Encoder):
-    r"""
-    Encoder based on :meth:`parity_check_matrix` for Linear codes.
-
-    It constructs the generator matrix through the parity check matrix.
-
-    INPUT:
-
-    - ``code`` -- The associated code of this encoder.
-    """
-
-    def __init__(self, code):
-        r"""
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: E
-            Parity check matrix-based encoder for [7, 4] linear code over GF(2)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(20835, "LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.")
-        super(LinearCodeParityCheckEncoder, self).__init__(code)
-
-    def _repr_(self):
-        r"""
-        Return a string representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: E
-            Parity check matrix-based encoder for [7, 4] linear code over GF(2)
-        """
-        return "Parity check matrix-based encoder for %s" % self.code()
-
-    def _latex_(self):
-        r"""
-        Return a latex representation of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: latex(E)
-            \textnormal{Parity check matrix-based encoder for }[7, 4]\textnormal{ Linear code over }\Bold{F}_{2}
-        """
-        return "\\textnormal{Parity check matrix-based encoder for }%s" % self.code()._latex_()
-
-    @cached_method
-    def generator_matrix(self):
-        r"""
-        Returns a generator matrix of the associated code of ``self``.
-
-        EXAMPLES::
-
-            sage: G = Matrix(GF(2), [[1,1,1,0,0,0,0],[1,0,0,1,1,0,0],[0,1,0,1,0,1,0],[1,1,0,1,0,0,1]])
-            sage: C = LinearCode(G)
-            sage: E = codes.encoders.LinearCodeParityCheckEncoder(C)
-            doctest:...: DeprecationWarning: LinearCodeParityCheckEncoder is now deprecated. Please use LinearCodeSystematicEncoder instead.
-            See http://trac.sagemath.org/20835 for details.
-            sage: E.generator_matrix()
-            [1 0 0 0 0 1 1]
-            [0 1 0 0 1 0 1]
-            [0 0 1 0 1 1 0]
-            [0 0 0 1 1 1 1]
-        """
-        g = self.code().parity_check_matrix().right_kernel_matrix()
-        g.set_immutable()
-        return g
 
 
 

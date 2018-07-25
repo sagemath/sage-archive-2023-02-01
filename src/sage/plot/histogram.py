@@ -16,7 +16,8 @@ Histograms
 #*****************************************************************************
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.plot import minmax_data, Graphics
-from sage.plot.misc import options, rename_keyword
+from sage.misc.decorators import options
+
 
 class Histogram(GraphicPrimitive):
     """

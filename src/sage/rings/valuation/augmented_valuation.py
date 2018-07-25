@@ -151,13 +151,15 @@ overview can also be found in Chapter 4 of [Rüt2014]_.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from inductive_valuation import _lift_to_maximal_precision
-from inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
-from valuation import InfiniteDiscretePseudoValuation, DiscreteValuation
+from __future__ import absolute_import
+
+from .inductive_valuation import _lift_to_maximal_precision
+from .inductive_valuation import FinalInductiveValuation, NonFinalInductiveValuation, FiniteInductiveValuation, InfiniteInductiveValuation, InductiveValuation
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import infinity, QQ, ZZ
+from sage.rings.all import infinity, QQ
 from sage.structure.factory import UniqueFactory
+
 
 class AugmentedValuationFactory(UniqueFactory):
     r"""
@@ -238,7 +240,7 @@ class AugmentedValuationFactory(UniqueFactory):
         """
         base_valuation, phi, mu = key
 
-        from valuation_space import DiscretePseudoValuationSpace
+        from .valuation_space import DiscretePseudoValuationSpace
         parent = DiscretePseudoValuationSpace(base_valuation.domain())
         if mu is not infinity:
             if base_valuation.is_trivial():
@@ -562,8 +564,7 @@ class AugmentedValuation_base(InductiveValuation):
                     ret.append(AugmentedValuation(v, phi, self._mu))
                 else:
                     F = v.equivalence_decomposition(phi)
-                    mu0 = v(phi)
-                    for f,e in F:
+                    for f, e in F:
                         # We construct a valuation with [v, w(phi) = mu] which should be such that
                         # self(phi) = self._mu, i.e., w(phi) = w(unit) + sum e_i * w(f_i) where
                         # the sum runs over all the factors in the equivalence decomposition of phi
@@ -675,7 +676,7 @@ class AugmentedValuation_base(InductiveValuation):
             False
 
         """
-        from gauss_valuation import GaussValuation_generic
+        from .gauss_valuation import GaussValuation_generic
         if other.is_trivial():
             return other.is_discrete_valuation()
         if isinstance(other, GaussValuation_generic):

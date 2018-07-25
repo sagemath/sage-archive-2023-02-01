@@ -53,16 +53,6 @@ if [ -n "$system_gmp_h" ]; then
 fi
 
 
-if [ "$SAGE64" = yes ]; then
-    echo "Building a 64-bit version of GMP-ECM."
-    if [ -z "$CFLAG64" ]; then
-        CFLAG64=-m64
-    fi
-    CFLAGS="$CFLAGS $CFLAG64"
-    LDFLAGS="$LDFLAGS $CFLAG64"; export LDFLAGS
-fi
-
-
 # libtool should add the proper flags, but doesn't use "-fPIC"
 # for the *static* library (which the Sage library links to unless
 # we also build the shared one). The following only handles the

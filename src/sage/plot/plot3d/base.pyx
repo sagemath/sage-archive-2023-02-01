@@ -9,7 +9,7 @@ AUTHORS:
 
 - William Stein (2008)
 
-- Paul Masson (2016): Three.js support 
+- Paul Masson (2016): Three.js support
 
 .. TODO::
 
@@ -36,9 +36,11 @@ from cpython.list cimport *
 from cpython.object cimport PyObject
 
 import os
+import sys
+import zipfile
+
 from functools import reduce
 from random import randint
-import zipfile
 from six.moves import cStringIO as StringIO
 
 from sage.misc.misc import sage_makedirs
@@ -264,11 +266,11 @@ cdef class Graphics3d(SageObject):
             # Java needs absolute paths
             # On cygwin, they should be native ones
             scene_native = scene_zip
-            import sys
+
             if sys.platform == 'cygwin':
-                from subprocess import check_output, STDOUT
-                scene_native = check_output(['cygpath', '-w', scene_native],
-                                            stderr=STDOUT).rstrip()
+                import cygwin
+                scene_native = cygwin.cygpath(scene_native, 'w')
+
             script = '''set defaultdirectory "{0}"\nscript SCRIPT\n'''.format(scene_native)
             jdata.export_image(targetfile=preview_png, datafile=script,
                                image_type="PNG",
@@ -299,7 +301,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneWavefront container
             sage: out.obj.get()
-            'mtllib ... 6 2 7 11\nf 7 8 12\nf 8 9 12\nf 9 10 12\nf 10 11 12\nf 11 7 12\n'
+            'mtllib ... 6 3 8 11\nf 8 7 12\nf 7 9 12\nf 9 10 12\nf 10 11 12\nf 11 8 12\n'
             sage: out.mtl.get()
             'newmtl texture...\nKd 0.4 0.4 1.0\nKs 0.0 0.0 0.0\nillum 1\nNs 1.0\nd 1.0\n'
         """
@@ -327,7 +329,7 @@ cdef class Graphics3d(SageObject):
             sage: out
             OutputSceneCanvas3d container
             sage: out.canvas3d.get()
-            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1}]'
+            '[{"vertices":[{"x":0,"y":0,"z":-1},..., "color":"#6666ff", "opacity":1.0}]'
         """
         opts = self._process_viewing_options(kwds)
         aspect_ratio = opts['aspect_ratio'] # this necessarily has a value now
@@ -390,12 +392,12 @@ cdef class Graphics3d(SageObject):
         for p in self.flatten().all:
             if hasattr(p, 'loc'):
                 color = p._extra_kwds.get('color', 'blue')
-                opacity = p._extra_kwds.get('opacity', 1)
+                opacity = float(p._extra_kwds.get('opacity', 1))
                 points.append('{{"point":{}, "size":{}, "color":"{}", "opacity":{}}}'.format(
                               json.dumps(p.loc), p.size, color, opacity))
             if hasattr(p, 'points'):
                 color = p._extra_kwds.get('color', 'blue')
-                opacity = p._extra_kwds.get('opacity', 1)
+                opacity = float(p._extra_kwds.get('opacity', 1))
                 thickness = p._extra_kwds.get('thickness', 1)
                 lines.append('{{"points":{}, "color":"{}", "opacity":{}, "linewidth":{}}}'.format(
                              json.dumps(p.points), color, opacity, thickness))
@@ -1735,9 +1737,9 @@ end_scene""" % (render_params.antialiasing,
             sage: x,y,z = var('x,y,z')
             sage: a = implicit_plot3d(x^2+y^2+z^2-9,[x,-5,5],[y,-5,5],[z,-5,5])
             sage: astl = a.stl_ascii_string()
-            sage: astl.splitlines()[:7]
+            sage: astl.splitlines()[:7]  # abs tol 1e-10
             ['solid surface',
-            'facet normal 0.973328526785 -0.162221421131 -0.162221421131',
+            'facet normal 0.9733285267845754 -0.16222142113076257 -0.16222142113076257',
             '    outer loop',
             '        vertex 2.94871794872 -0.384615384615 -0.39358974359',
             '        vertex 2.95021367521 -0.384615384615 -0.384615384615',
@@ -1747,7 +1749,7 @@ end_scene""" % (render_params.antialiasing,
             sage: p = polygon3d([[0,0,0], [1,2,3], [3,0,0]])
             sage: print(p.stl_ascii_string(name='triangle'))
             solid triangle
-            facet normal 0.0 0.832050294338 -0.554700196225
+            facet normal 0.0 0.8320502943378436 -0.5547001962252291
                 outer loop
                     vertex 0.0 0.0 0.0
                     vertex 1.0 2.0 3.0
@@ -1762,7 +1764,7 @@ end_scene""" % (render_params.antialiasing,
             sage: Q = P.plot().all[-1]
             sage: Q.stl_ascii_string().splitlines()[:6]
             ['solid surface',
-            'facet normal 0.850650808352 -0.0 0.525731112119',
+            'facet normal 0.8506508083520398 -0.0 0.5257311121191338',
             '    outer loop',
             '        vertex 1.2360679775 -0.472135955 0.0',
             '        vertex 1.2360679775 0.472135955 0.0',
@@ -2609,7 +2611,7 @@ class BoundingSphere(SageObject):
             sage: BoundingSphere((0,0,0), 1) + BoundingSphere((0,0,100), 1)
             Center (0.0, 0.0, 50.0) radius 51.0
             sage: BoundingSphere((0,0,0), 1) + BoundingSphere((1,1,1), 2)
-            Center (0.7886751345948128, 0.7886751345948128, 0.7886751345948128) radius 2.36602540378
+            Center (0.7886751345948128, 0.7886751345948128, 0.7886751345948128) radius 2.3660254037844384
 
         Treat None and 0 as the identity::
 

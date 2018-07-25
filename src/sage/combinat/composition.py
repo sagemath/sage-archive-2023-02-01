@@ -197,7 +197,7 @@ class Composition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: loads("x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\x011\n\xf2\x8b3K2\xf3\xf3\xb8\x9c\x11\xec\xf8\xe4\x9c\xc4\xe2b\xaeBF\xcd\xc6B\xa6\xdaBf\x8dP\xd6\xf8\x8c\xc4\xe2\x8cB\x16? +'\xb3\xb8\xa4\x905\xb6\x90M\x03bZQf^z\xb1^f^Ijzj\x11Wnbvj<\x8cS\xc8\x1e\xcah\xd8\x1aT\xc8\x91\x01d\x18\x01\x19\x9c\x19P\x11\xae\xd4\xd2$=\x00eW0g")
+            sage: loads(b"x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\x011\n\xf2\x8b3K2\xf3\xf3\xb8\x9c\x11\xec\xf8\xe4\x9c\xc4\xe2b\xaeBF\xcd\xc6B\xa6\xdaBf\x8dP\xd6\xf8\x8c\xc4\xe2\x8cB\x16? +'\xb3\xb8\xa4\x905\xb6\x90M\x03bZQf^z\xb1^f^Ijzj\x11Wnbvj<\x8cS\xc8\x1e\xcah\xd8\x1aT\xc8\x91\x01d\x18\x01\x19\x9c\x19P\x11\xae\xd4\xd2$=\x00eW0g")
             [1, 2, 1]
             sage: loads(dumps( Composition([1,2,1]) ))  # indirect doctest
             [1, 2, 1]
@@ -1267,8 +1267,8 @@ class Composition(CombinatorialElement):
             [[]]
         """
         if overlap:
-            from sage.combinat.words.shuffle_product import ShuffleProduct_overlapping
-            return ShuffleProduct_overlapping(self, other)
+            from sage.combinat.shuffle import ShuffleProduct_overlapping
+            return ShuffleProduct_overlapping(self, other, Compositions())
         else:
             from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2
             return ShuffleProduct_w1w2(self, other)
@@ -2018,6 +2018,6 @@ def composition_iterator_fast(n):
         else:
             cur.append(Integer(0))
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
 

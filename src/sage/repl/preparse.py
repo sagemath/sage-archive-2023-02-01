@@ -759,9 +759,14 @@ def preparse_numeric_literals(code, extract=False):
         postfix = m.groups()[-1].upper()
 
         if 'R' in postfix:
+            if not six.PY2:
+                postfix = postfix.replace('L', '')
             num_name = num_make = num + postfix.replace('R', '')
         elif 'L' in postfix:
-            continue
+            if six.PY2:
+                continue
+            else:
+                num_name = num_make = num + postfix.replace('L', '')
         else:
 
             # The Sage preparser does extra things with numbers, which we need to handle here.
@@ -1157,9 +1162,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: 9^^1
         8
 
-        sage: preparse("A \ B")
+        sage: preparse("A \\ B")
         'A  * BackslashOperator() * B'
-        sage: preparse("A^2 \ B + C")
+        sage: preparse("A^2 \\ B + C")
         'A**Integer(2)  * BackslashOperator() * B + C'
         sage: preparse("a \\ b \\") # There is really only one backslash here, it's just being escaped.
         'a  * BackslashOperator() * b \\'
@@ -1341,7 +1346,7 @@ def preparse_file(contents, globals=None, numeric_literals=True):
     return '\n'.join(F)
 
 def implicit_mul(code, level=5):
-    """
+    r"""
     Inserts \*'s to make implicit multiplication explicit.
 
     INPUT:

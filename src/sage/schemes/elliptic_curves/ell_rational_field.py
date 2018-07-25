@@ -62,11 +62,8 @@ from . import ell_point
 from . import ell_tate_curve
 from . import ell_torsion
 from . import heegner
-from   .gp_simon import simon_two_descent
-from   .lseries_ell import Lseries_ell
 from . import mod5family
 from   .modular_parametrization import ModularParameterization
-from . import padic_lseries
 from . import padics
 
 from sage.modular.modsym.modsym import ModularSymbols
@@ -90,12 +87,11 @@ from sage.rings.all import (
     ComplexField, RationalField)
 
 import sage.misc.all as misc
-from sage.misc.all import verbose
 
 from sage.functions.log import log
 
 import sage.matrix.all as matrix
-from   sage.libs.pari.all import pari, PariError
+from sage.libs.pari.all import pari
 from sage.functions.gamma import gamma_inc
 from math import sqrt
 from sage.interfaces.all import gp
@@ -406,7 +402,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         try:
             return self.__is_integral
         except AttributeError:
-            one = Integer(1)
             self.__is_integral = bool(misc.mul([x.denominator() == 1 for x in self.ainvs()]))
             return self.__is_integral
 
@@ -2612,7 +2607,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             minimal = False
             Emin = self.minimal_model()
             phi = self.isomorphism_to(Emin)
-            points = [phi(P) for P in points]
+            points = [phi(_P) for _P in points]
         else:
             Emin = self
 
@@ -2771,14 +2766,13 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         -  ``verbose (bool)`` - (default: ``False``)
 
-           If ``True``, report on each point as found together with linear
-           relations between the points found and the saturation process.
+           If ``True``, report on the saturation process.
 
            If ``False``, just return the result.
 
         -  ``rank_bound (bool)`` - (default: ``None``)
 
-           If provided, stop searching for points once we find this many
+           If provided, stop saturating once we find this many
            independent nontorsion points.
 
         OUTPUT: points (list) - list of independent points which generate
@@ -2791,19 +2785,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            the running time to increase by a factor of approximately
            4.5 (=exp(1.5)).
 
-        IMPLEMENTATION: Uses Michael Stoll's ratpoints library.
+        IMPLEMENTATION: Uses Michael Stoll's ratpoints module in PARI/GP.
 
         EXAMPLES::
 
             sage: E = EllipticCurve('389a1')
             sage: E.point_search(5, verbose=False)
-            [(-1 : 1 : 1), (-3/4 : 7/8 : 1)]
+            [(-1 : 1 : 1), (0 : 0 : 1)]
 
         Increasing the height_limit takes longer, but finds no more
         points::
 
             sage: E.point_search(10, verbose=False)
-            [(-1 : 1 : 1), (-3/4 : 7/8 : 1)]
+            [(-1 : 1 : 1), (0 : 0 : 1)]
 
         In fact this curve has rank 2 so no more than 2 points will ever be
         output, but we are not using this fact.
@@ -2811,7 +2805,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ::
 
             sage: E.saturation(_)
-            ([(-1 : 1 : 1), (-3/4 : 7/8 : 1)], 1, 0.152460177943144)
+            ([(-1 : 1 : 1), (0 : 0 : 1)], 1, 0.152460177943144)
 
         What this shows is that if the rank is 2 then the points listed do
         generate the Mordell-Weil group (mod torsion). Finally,
@@ -2825,32 +2819,19 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E.point_search(5, verbose=False, rank_bound=1)
             [(-2 : 0 : 1)]
-
         """
-        from sage.libs.ratpoints import ratpoints
-        from sage.functions.all import exp
-        from sage.arith.all import GCD
-        H = exp(float(height_limit)) # max(|p|,|q|) <= H, if x = p/q coprime
-        coeffs = [16*self.b6(), 8*self.b4(), self.b2(), 1]
+        # Convert logarithmic height to height
+        # max(|p|,|q|) <= H, if x = p/q coprime
+        H = pari.exp(height_limit).floor()
+
         points = []
-        a1 = self.a1()
-        a3 = self.a3()
-        new_H = H*2 # since we change the x-coord by 2 below
-        for X,Y,Z in ratpoints(coeffs, new_H, verbose):
-            if Z == 0: continue
-            z = 2*Z
-            x = X/2
-            y = (Y/z - a1*x - a3*z)/2
-            d = GCD((x,y,z))
-            x = x/d
-            if max(x.numerator().abs(), x.denominator().abs()) <= H:
-                y = y/d
-                z = z/d
-                points.append(self((x,y,z)))
-                if rank_bound is not None:
-                    points = self.saturation(points, verbose=verbose)[0]
-                    if len(points) == rank_bound:
-                        break
+        for x, y in self.pari_curve().ellratpoints(H):
+            P = self((x, y, 1))
+            points.append(P)
+            if rank_bound is not None:
+                points = self.saturation(points, verbose=verbose)[0]
+                if len(points) >= rank_bound:
+                    return points
         if rank_bound is None:
             points = self.saturation(points, verbose=verbose)[0]
         return points
@@ -2963,29 +2944,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if not arith.is_prime(p):
             raise ArithmeticError("p must be prime")
         return Integer(self.pari_mincurve().ellap(p))
-
-    def quadratic_twist(self, D):
-        """
-       Return the quadratic twist of this elliptic curve by D.
-
-       D must be a nonzero rational number.
-
-       .. note::
-
-          This function overrides the generic ``quadratic_twist()``
-          function for elliptic curves, returning a minimal model.
-
-       EXAMPLES::
-
-           sage: E = EllipticCurve('37a1')
-           sage: E2=E.quadratic_twist(2); E2
-           Elliptic Curve defined by y^2  = x^3 - 4*x + 2 over Rational Field
-           sage: E2.conductor()
-           2368
-           sage: E2.quadratic_twist(2) == E
-           True
-       """
-        return EllipticCurve_number_field.quadratic_twist(self, D).minimal_model()
 
     def minimal_model(self):
         r"""
@@ -3168,7 +3126,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__tamagawa_number[p]
 
     def tamagawa_exponent(self, p):
-        """
+        r"""
         The Tamagawa index of the elliptic curve at `p`.
 
         This is the index of the component group
@@ -3405,7 +3363,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return self.__lseries
 
     def lseries_gross_zagier(self, A):
-        """
+        r"""
         Return the Gross-Zagier L-series attached to ``self``
         and an ideal class `A`.
 
@@ -4272,7 +4230,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             return Integer(e.ellrootno(p))
 
     def has_cm(self):
-        """
+        r"""
         Return whether or not this curve has a CM `j`-invariant.
 
         OUTPUT:
@@ -4337,7 +4295,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError("%s does not have CM"%self)
 
     def has_rational_cm(self, field=None):
-        """
+        r"""
         Return whether or not this curve has CM defined over `\QQ`
         or the given field.
 
@@ -5190,7 +5148,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
              {0: 0, 1: 5, 2: 25})
         """
         from sage.graphs.graph import Graph
-        from sage.rings.real_mpfr import RR
         isocls = self.isogeny_class()
         M = isocls.matrix(fill=True).change_ring(rings.RR)
         # see trac #4889 for nebulous M.list() --> M.entries() change...
@@ -5760,8 +5717,11 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
             sage: E = EllipticCurve([0, 0, 1, -7, 6])
             sage: xset = E.integral_x_coords_in_interval(-100,100)
-            sage: xlist = list(xset); xlist.sort(); xlist
+            sage: sorted(xset)
             [-3, -2, -1, 0, 1, 2, 3, 4, 8, 11, 14, 21, 37, 52, 93]
+            sage: xset = E.integral_x_coords_in_interval(-100, 0)
+            sage: sorted(xset)
+            [-3, -2, -1, 0]
 
         TESTS:
 
@@ -5771,12 +5731,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E.integral_points()
             [(0 : 0 : 1), (2 : 1 : 1)]
         """
-        from sage.libs.ratpoints import ratpoints
-        xmin=Integer(xmin)
-        xmax=Integer(xmax)
-        coeffs = self.division_polynomial(2).coefficients(sparse=False)
-        H = max(1, xmin.abs(), xmax.abs())
-        return set([x for x,y,z in ratpoints(coeffs, H, max_x_denom=1, intervals=[[xmin,xmax]]) if z])
+        xmin = pari(xmin)
+        xmax = pari(xmax)
+        H = max(1, abs(xmin), abs(xmax))
+        S = set()
+        for pt in self.pari_curve().ellratpoints([H, 1]):
+            x = pt[0]
+            if xmin <= x <= xmax:
+                S.add(ZZ(x))
+        return S
 
     prove_BSD = BSD.prove_BSD
 
@@ -5969,8 +5932,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if verbose:
             import sys  # so we can flush stdout for debugging
 
-        g2 = self.c4()/12
-        g3 = self.c6()/216
         disc = self.discriminant()
         j = self.j_invariant()
         b2 = self.b2()
@@ -6042,7 +6003,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             mw_base_log.append(mw_base[i].elliptic_logarithm().abs())
             mod_h_list.append(max(mw_base[i].height(),h_E,c7*mw_base_log[i]**2))
             c9_help_list.append((mod_h_list[i]).sqrt()/mw_base_log[i])
-        c8 = max(e*h_E,max(mod_h_list))
         c9 = e/c7.sqrt() * min(c9_help_list)
         n=r+1
         c10 = R(2 * 10**(8+7*n) * R((2/e)**(2 * n**2)) * (n+1)**(4 * n**2 + 10 * n) * log(c9)**(-2*n - 1) * misc.prod(mod_h_list))
@@ -6514,7 +6474,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             log_ab = R(abs_bound.log())
             alpha = [(log_ab/R(log(p,e))).floor() for p in S]
             if all([alpha_i <= 1 for alpha_i in alpha]): # so alpha_i must be 0 to satisfy that denominator is a square
-                return set([x for x  in range(-abs_bound,abs_bound) if E.is_x_coord(x)])
+                int_abs_bound = abs_bound.floor()
+                return set([x for x  in range(-int_abs_bound, int_abs_bound) if E.is_x_coord(x)])
             else:
                 xs = []
                 alpha_max_even = [y-y%2 for y in alpha]
@@ -7038,7 +6999,7 @@ def elliptic_curve_congruence_graph(curves):
         Graph on 12 vertices
     """
     from sage.graphs.graph import Graph
-    from sage.arith.all import lcm, prime_divisors
+    from sage.arith.all import lcm
     from sage.rings.fast_arith import prime_range
     from sage.misc.all import prod
     G = Graph()

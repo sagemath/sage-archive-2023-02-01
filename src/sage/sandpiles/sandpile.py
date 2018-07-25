@@ -329,7 +329,7 @@ from sage.env import SAGE_LOCAL
 from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.graphs.all import DiGraph, Graph, graphs, digraphs
+from sage.graphs.all import DiGraph, Graph
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
@@ -1438,7 +1438,6 @@ class Sandpile(DiGraph):
         if verbose:
             return deepcopy(self._superstables)
         else:
-            verts = self.nonsink_vertices()
             return [s.values() for s in self._superstables]
 
     def _set_group_gens(self):
@@ -2408,7 +2407,7 @@ class Sandpile(DiGraph):
             sage: S = Sandpile({0:{},1:{0: 1, 2: 1, 3: 4},2:{3: 5},3:{1: 1, 2: 1}},0)
             sage: p = S.betti_complexes()
             sage: p[0]
-            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(1, 2), (3,)}]
+            [{0: -8, 1: 5, 2: 4, 3: 1}, Simplicial complex with vertex set (1, 2, 3) and facets {(3,), (1, 2)}]
             sage: S.resolution()
             'R^1 <-- R^5 <-- R^5 <-- R^1'
             sage: S.betti()
@@ -3795,7 +3794,6 @@ class SandpileConfig(dict):
             1 and that its length is equal to the number of sink vertices or the number of nonsink vertices.
         """
         c = deepcopy(self)
-        ind = self._sandpile._sink_ind
         n = self._sandpile.num_verts()
         if distrib is None:  # default = uniform distribution on nonsink vertices
             distrib = [QQ.one() / (n - 1)] * (n - 1)
@@ -4236,7 +4234,7 @@ class SandpileDivisor(dict):
             is_q_reduced           -- Is the divisor q-reduced?
             is_symmetric           -- Is the divisor symmetric?
             is_weierstrass_pt      -- Is the given vertex a Weierstrass point?
-            polytope               -- The polytope determinining the complete linear system.
+            polytope               -- The polytope determining the complete linear system.
             polytope_integer_pts   -- The integer points inside divisor's polytope.
             q_reduced              -- The linearly equivalent q-reduced divisor.
             rank                   -- The rank of the divisor.
@@ -5245,7 +5243,7 @@ class SandpileDivisor(dict):
 
     def polytope(self):
         r"""
-        The polytope determinining the complete linear system.
+        The polytope determining the complete linear system.
 
         OUTPUT:
 
@@ -5332,9 +5330,9 @@ class SandpileDivisor(dict):
         """
         S = self.sandpile()
         myL = S.laplacian().transpose().delete_columns([S._sink_ind])
-        P = self.polytope()
-        dv = vector(ZZ,self.values())
-        self._effective_div = [SandpileDivisor(S,list(dv - myL*i)) for i in self._polytope_integer_pts]
+        dv = vector(ZZ, self.values())
+        self._effective_div = [SandpileDivisor(S,list(dv - myL*i))
+                               for i in self._polytope_integer_pts]
 
     def effective_div(self, verbose=True, with_firing_vectors=False):
         r"""
@@ -6095,11 +6093,10 @@ class SandpileDivisor(dict):
         else:
             T = Graph(self.sandpile())
 
-        max_height = max(self.sandpile().out_degree_sequence())
         if heights:
             a = {}
             for i in T.vertices():
-                a[i] = str(i)+":"+str(T[i])
+                a[i] = str(i) + ":" + str(T[i])
             T.relabel(a)
         T.show(**kwds)
 

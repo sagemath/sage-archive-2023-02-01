@@ -56,7 +56,7 @@ from sage.schemes.generic.morphism import (SchemeMorphism,
                                            SchemeMorphism_point)
 from sage.structure.element import AdditiveGroupElement
 from sage.structure.sequence import Sequence
-from sage.structure.richcmp import rich_to_bool, richcmp, op_EQ, op_NE
+from sage.structure.richcmp import richcmp, op_EQ, op_NE
 
 #*******************************************************************
 # Projective varieties
@@ -67,7 +67,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     INPUT:
 
-    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`.
+    -  ``X`` -- a homset of a subscheme of an ambient projective space over a ring `K`.
 
     - ``v`` -- a list or tuple of coordinates in `K`.
 
@@ -1144,7 +1144,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         """
         K = FractionField(self.domain().base_ring())
         if K not in _NumberFields:
-            raise("must be over a number field or a number field order")
+            raise TypeError("must be over a number field or a number field order")
         return max([K(c).local_height(v, prec=prec) for c in self])
 
     def local_height_arch(self, i, prec=None):
@@ -1178,11 +1178,11 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         """
         K = FractionField(self.domain().base_ring())
         if K not in _NumberFields:
-            raise("must be over a number field or a number field order")
+            raise TypeError("must be over a number field or a number field order")
         if K == QQ:
-            return max([K(c).local_height_arch(prec=prec) for c in self])
+            return max(K(c).local_height_arch(prec=prec) for c in self)
         else:
-            return max([K(c).local_height_arch(i, prec=prec) for c in self])
+            return max(K(c).local_height_arch(i, prec=prec) for c in self)
 
     def multiplier(self, f, n, check=True):
         r"""

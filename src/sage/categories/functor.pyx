@@ -210,9 +210,10 @@ cdef class Functor(SageObject):
             True
             sage: F.codomain()
             Category of rings
-
         """
-        return _Functor_unpickle, (self.__class__, self.__dict__.items(), self.__domain, self.__codomain)
+        return (_Functor_unpickle,
+                (self.__class__, list(self.__dict__.items()),
+                 self.__domain, self.__codomain))
 
     def _apply_functor(self, x):
         """
@@ -483,10 +484,10 @@ class ForgetfulFunctor_generic(Functor):
             The forgetful functor from Category of finite enumerated fields to Category of fields
 
         """
-        return "The forgetful functor from %s to %s"%(
-            self.domain(), self.codomain())
+        return "The forgetful functor from %s to %s" % (self.domain(),
+                                                        self.codomain())
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         """
         NOTE:
 
@@ -512,15 +513,27 @@ class ForgetfulFunctor_generic(Functor):
             sage: F2 = QQ.construction()[0]
             sage: F1 == F2 #indirect doctest
             False
-
         """
         from sage.categories.pushout import IdentityConstructionFunctor
-        if not isinstance(other, (self.__class__,IdentityConstructionFunctor)):
-            return -1
-        if self.domain() == other.domain() and \
-           self.codomain() == other.codomain():
-            return 0
-        return -1
+        if not isinstance(other, (self.__class__, IdentityConstructionFunctor)):
+            return False
+        return (self.domain() == other.domain() and
+                self.codomain() == other.codomain())
+
+    def __ne__(self, other):
+        """
+        Return whether ``self`` is not equal to ``other``.
+
+        EXAMPLES:
+
+            sage: F1 = ForgetfulFunctor(FiniteFields(),Fields())
+            sage: F1 != F1
+            False
+            sage: F1 != QQ
+            True
+        """
+        return not self ==  other
+
 
 class IdentityFunctor_generic(ForgetfulFunctor_generic):
     """

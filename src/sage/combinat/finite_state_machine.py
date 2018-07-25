@@ -179,7 +179,7 @@ Conversion
     :widths: 30, 70
     :delim: |
 
-    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :class:`matrix <sage.matrix.constructor.MatrixFactory>`
+    :meth:`~FiniteStateMachine.adjacency_matrix` | (Weighted) adjacency :func:`matrix`
     :meth:`~FiniteStateMachine.graph` | Underlying :class:`DiGraph`
     :meth:`~FiniteStateMachine.plot` | Plot
 
@@ -965,14 +965,14 @@ def full_group_by(l, key=lambda x: x):
     - that the keys are sortable (in contrast to the
       approach via ``sorted`` and ``itertools.groupby``) and
     - that the keys are hashable (in contrast to the
-      implementation proposed in `<http://stackoverflow.com/a/15250161>`_).
+      implementation proposed in `<https://stackoverflow.com/a/15250161>`_).
 
     However, it is required
 
     - that distinct keys have distinct ``str``-representations.
 
     The implementation is inspired by
-    `<http://stackoverflow.com/a/15250161>`_, but non-hashable keys are
+    `<https://stackoverflow.com/a/15250161>`_, but non-hashable keys are
     allowed.
 
     EXAMPLES::
@@ -1024,7 +1024,7 @@ def equal(iterator):
 
     ``True`` or ``False``.
 
-    This implements `<http://stackoverflow.com/a/3844832/1052778>`_.
+    This implements `<https://stackoverflow.com/a/3844832/1052778>`_.
 
     EXAMPLES::
 
@@ -4930,7 +4930,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
                 if hasattr(vertex, "accepting_where"):
                     angle = tikz_automata_where.get(vertex.accepting_where,
                                                     vertex.accepting_where)
-                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \mid %s$} ++(%.2f:%s);\n" % (
+                result += "\\path[->] (v%d.%.2f) edge node[%s] {$%s \\mid %s$} ++(%.2f:%s);\n" % (
                     j, angle,
                     label_rotation(angle, False),
                     EndOfWordLaTeX,
@@ -7445,7 +7445,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
 
 
     def concatenation(self, other):
-        """
+        r"""
         Concatenate this finite state machine with another finite
         state machine.
 
@@ -8176,7 +8176,7 @@ class FiniteStateMachine(sage.structure.sage_object.SageObject):
             ....:                final_states=['A'])
             sage: F.transitions()[0].word_out is F.transitions()[1].word_out
             False
-            sage: G = Transducer([('C','C',0,1)],)
+            sage: G = Transducer([('C','C',0,1)],
             ....:                initial_states=['C'],
             ....:                final_states=['C'])
             sage: H = G.composition(F)
@@ -12604,9 +12604,8 @@ class Transducer(FiniteStateMachine):
 
         return new
 
-
     def cartesian_product(self, other, only_accessible_components=True):
-        """
+        r"""
         Return a new transducer which can simultaneously process an
         input with the machines ``self`` and ``other`` where the
         output labels are `d`-tuples of the original output labels.

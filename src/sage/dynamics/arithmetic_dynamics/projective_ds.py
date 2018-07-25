@@ -80,7 +80,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism_im_gens
 from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
 from sage.rings.padics.all import Qp
-from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.qqbar import QQbar
@@ -3232,7 +3232,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
             sage: f.multiplier_spectra(2, formal=False, embedding=K.embeddings(QQbar)[0], type='cycle')
             [0,
-             5.931851652578137? + 0.?e-47*I,
+             5.931851652578137? + 0.?e-49*I,
              0.0681483474218635? - 1.930649271699173?*I,
              0.0681483474218635? + 1.930649271699173?*I]
 
@@ -3331,7 +3331,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
         r"""
         Computes the values of the elementary symmetric polynomials of
-        the ``n`` multilpier spectra of this dynamical system.
+        the ``n`` multiplier spectra of this dynamical system.
 
         Can specify to instead compute the values corresponding to the
         elementary symmetric polynomials of the formal ``n`` multiplier
@@ -3675,7 +3675,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.reduced_form(prec=30)
             Traceback (most recent call last):
             ...
-            ValueError: accuracy of Newton's root not within tolerance(1.2519607 > 1e-06), increase precision
+            ValueError: accuracy of Newton's root not within tolerance(1.2519612 > 1e-06), increase precision
             sage: f.reduced_form()
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
@@ -4841,7 +4841,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Conj = []
         for i in Arrangements(K,(n+2)):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf)# finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     Conj.append(s)
@@ -4961,7 +4961,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                         break
         for i in Arrangements(K, n+2):
             # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independenet
+            try: # need all n+1 subsets linearly independent
                 s = f.domain().point_transformation_matrix(i,Tf) # finds elements of PGL that maps one map to another
                 if self.conjugate(s) == other:
                     return True
@@ -5021,6 +5021,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([6*x^2+12*x*y+7*y^2, 12*x*y + 42*y^2])
             sage: f.is_polynomial()
             False
+
+        TESTS:
+
+        See :trac:`25242`::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: F = DynamicalSystem([x^2+ y^2, x*y])
+            sage: F2 = F.conjugate(matrix(QQ,2,2, [1,2,3,5]))
+            sage: F2.is_polynomial()
+            False
         """
         if self.codomain().dimension_relative() != 1:
             raise NotImplementedError("space must have dimension equal to 1")
@@ -5054,7 +5064,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 if p.degree() == 1:
                     if len((g[0]*p[1] + g[1]*p[0]).factor()) == 1:
                         return True
-                    G = R(G/p) # we already checked this root
+                    G = R(G/(p**e)) # we already checked this root
                 else:
                     u = p #need to extend to get these roots
             if G.degree() != 0:
@@ -5343,7 +5353,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
 
     def cyclegraph(self):
         r"""
-        Return the digraph of all orbits of this dyanmical system.
+        Return the digraph of all orbits of this dynamical system.
 
         Over a finite field this is a finite graph. For subscheme domains, only points
         on the subscheme whose image are also on the subscheme are in the digraph.

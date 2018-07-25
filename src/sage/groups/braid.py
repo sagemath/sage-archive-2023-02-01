@@ -527,10 +527,10 @@ class Braid(FiniteTypeArtinGroupElement):
         return sum(b)
 
     def LKB_matrix(self, variables='x,y'):
-        """
+        r"""
         Return the Lawrence-Krammer-Bigelow representation matrix.
 
-        The matrix is expressed in the basis $\{e_{i, j} \mid 1\\leq i
+        The matrix is expressed in the basis $\{e_{i, j} \mid 1\leq i
         < j \leq n\}$, where the indices are ordered
         lexicographically.  It is a matrix whose entries are in the
         ring of Laurent polynomials on the given variables.  By
@@ -712,7 +712,7 @@ class Braid(FiniteTypeArtinGroupElement):
         return [T(_) for _ in coord]
 
     def markov_trace(self, variab=None, normalized=True):
-        """
+        r"""
         Return the Markov trace of the braid.
 
         The normalization is so that in the underlying braid group
@@ -905,7 +905,7 @@ class Braid(FiniteTypeArtinGroupElement):
             return self._jones_polynomial(SR(variab)**(ZZ(1)/ZZ(4))).expand()
 
     def _left_normal_form_coxeter(self):
-        """
+        r"""
         Return the left normal form of the braid, in permutation form.
 
         OUTPUT:

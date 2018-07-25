@@ -1562,43 +1562,6 @@ class RElement(ExtraTabCompletion, ExpectElement):
         """
         return self._comparison(other, "!=")
 
-    def __cmp__(self, other):
-        r"""
-        Return 0, 1, or -1 depending on how self and other compare.
-
-        This is *not* called by the comparison operators, which
-        do term-by-term comparison and return R elements.
-
-        INPUT:
-
-        - self, other -- R elements
-
-        OUTPUT: 0, 1, or -1
-
-        EXAMPLES::
-
-            sage: one = r(1)
-            sage: two = r(2)
-            sage: one.__cmp__(one)
-            0
-            sage: one.__cmp__(two)
-            -1
-            sage: two.__cmp__(one)
-            1
-        """
-        P = self.parent()
-        if P.eval("%s %s %s" % (self.name(), P._equality_symbol(),
-                                 other.name())) == P._true_symbol():
-            return 0
-        elif P.eval("%s %s %s" % (self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
-            return -1
-        elif P.eval("%s %s %s" % (self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
-            return 1
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
-
-
     def dot_product(self, other):
         """
         Implements the notation self . other.
@@ -1630,7 +1593,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return P('%s %%*%% %s'%(self.name(), Q.name()))
 
     def _subs_dots(self, x):
-        """
+        r"""
         Replace dots by underscores; used internally to implement
         conversation from R expression to Sage objects.
 
@@ -1644,14 +1607,14 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_param = re.compile('\s([\w\.]+)\s=')
+            sage: rel_re_param = re.compile(r'\s([\w\.]+)\s=')
             sage: rel_re_param.sub(a._subs_dots, ' test.test =')
              ' test_test ='
         """
         return x.group().replace('.','_')
 
     def _subs_range(self, x):
-        """
+        r"""
         Change endpoints of ranges.  This is used internally in the
         code for converting R expressions to Sage objects.
 
@@ -1665,7 +1628,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_range = re.compile('([\d]+):([\d]+)')
+            sage: rel_re_range = re.compile(r'([\d]+):([\d]+)')
             sage: rel_re_range.sub(a._subs_range, ' 1:10')
             ' range(1,11)'
         """
@@ -1674,7 +1637,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
         return 'range(%s,%s)' % (g[0],  g1)
 
     def _subs_integer(self, x):
-        """
+        r"""
         Replaces strings like 'dL' with 'Integer(d)' where d is some
         integer.  This is used internally in the code for converting R
         expressions to Sage objects.
@@ -1683,7 +1646,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: import re
             sage: a = r([1,2,3])
-            sage: rel_re_integer = re.compile('([^\d])([\d]+)L')
+            sage: rel_re_integer = re.compile(r'([^\d])([\d]+)L')
             sage: rel_re_integer.sub(a._subs_integer, ' 1L 2L')
             ' Integer(1) Integer(2)'
             sage: rel_re_integer.sub(a._subs_integer, '1L 2L')
@@ -1736,7 +1699,6 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
         return ''.join(ret)
 
-
     def _r_list(self, *args, **kwds):
         """
         This is used internally in the code for converting R
@@ -1745,13 +1707,13 @@ class RElement(ExtraTabCompletion, ExpectElement):
         EXAMPLES::
 
             sage: a = r([1,2,3])
-            sage: list(sorted(a._r_list(1,2,3,k=5).items()))
+            sage: sorted(a._r_list(1,2,3,k=5).items())
             [('#0', 1), ('#1', 2), ('#2', 3), ('k', 5)]
         """
         ret = dict(kwds)
         i = 0
         for k in args:
-            ret['#%s'%i] = k
+            ret['#%s' % i] = k
             i += 1
         return ret
 
@@ -1764,7 +1726,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: a = r([1,2,3])
             sage: d = a._r_structure('data', a=1, b=2)
-            sage: list(sorted(d.items()))
+            sage: sorted(d.items())
             [('DATA', 'data'), ('a', 1), ('b', 2)]
             sage: a._r_structure([1,2,3,4], _Dim=(2,2))
             [1 3]
@@ -1806,7 +1768,7 @@ class RElement(ExtraTabCompletion, ExpectElement):
 
             sage: rs = r.summary(r.c(1,4,3,4,3,2,5,1))
             sage: d = rs._sage_()
-            sage: list(sorted(d.items()))
+            sage: sorted(d.items())
             [('DATA', [1, 1.75, 3, 2.875, 4, 5]),
              ('_Names', ['Min.', '1st Qu.', 'Median', 'Mean', '3rd Qu.', 'Max.']),
              ('_r_class', ['summaryDefault', 'table'])]
@@ -2033,7 +1995,7 @@ class RFunction(ExpectFunction):
             False
             sage: r.mean != r.lr
             True
-        """        
+        """
         return not (self == other)
 
     def _instancedoc_(self):

@@ -23,8 +23,7 @@ lazy_import('sage.functions.gamma',
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression
-from sage.libs.pynac.pynac import (register_symbol, symbol_table,
-        py_factorial_py, I)
+from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
 from sage.symbolic.all import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.rings.complex_number import is_ComplexNumber
@@ -1260,7 +1259,7 @@ class Function_factorial(GinacFunction):
 
         INPUT:
 
-        -  ``n`` - any complex argument (except negative
+        -  ``n`` - a non-negative integer, a complex number (except negative
            integers) or any symbolic expression
 
 
@@ -1268,7 +1267,6 @@ class Function_factorial(GinacFunction):
 
         EXAMPLES::
 
-            sage: x = var('x')
             sage: factorial(0)
             1
             sage: factorial(4)
@@ -1277,6 +1275,8 @@ class Function_factorial(GinacFunction):
             3628800
             sage: factorial(6) == 6*5*4*3*2
             True
+
+            sage: x = SR.var('x')
             sage: f = factorial(x + factorial(x)); f
             factorial(x + factorial(x))
             sage: f(x=3)
@@ -1286,13 +1286,13 @@ class Function_factorial(GinacFunction):
 
         To prevent automatic evaluation use the ``hold`` argument::
 
-            sage: factorial(5,hold=True)
+            sage: factorial(5, hold=True)
             factorial(5)
 
         To then evaluate again, we currently must use Maxima via
         :meth:`sage.symbolic.expression.Expression.simplify`::
 
-            sage: factorial(5,hold=True).simplify()
+            sage: factorial(5, hold=True).simplify()
             120
 
         We can also give input other than nonnegative integers.  For
@@ -1311,7 +1311,14 @@ class Function_factorial(GinacFunction):
             sage: factorial(-32)
             Traceback (most recent call last):
             ...
-            ValueError: factorial -- self = (-32) must be nonnegative
+            ValueError: factorial only defined for non-negative integers
+
+        And very large integers remain unevaluated::
+
+            sage: factorial(2**64)
+            factorial(18446744073709551616)
+            sage: SR(2**64).factorial()
+            factorial(18446744073709551616)
 
         TESTS:
 
@@ -1364,7 +1371,7 @@ class Function_factorial(GinacFunction):
 
         Check that :trac:`16166` is fixed::
 
-            sage: RBF=RealBallField(53)
+            sage: RBF = RealBallField(53)
             sage: factorial(RBF(4.2))
             [32.5780960503313 +/- 6.72e-14]
 
@@ -1403,14 +1410,24 @@ class Function_factorial(GinacFunction):
             factorial(3245908723049857203948572398475)
             sage: SR(3245908723049857203948572398475).factorial()
             factorial(3245908723049857203948572398475)
-        """
-        from sage.functions.gamma import gamma
-        if isinstance(x, Rational):
-            return gamma(x+1)
-        elif isinstance(x, (Integer, int)) or self._is_numerical(x):
-            return py_factorial_py(x)
 
-        return None
+        TESTS:
+
+        Check that :trac:`25421` is fixed::
+
+            sage: factorial(RBF(2)**64)
+            [+/- 2.30e+347382171326740403407]
+        """
+        if isinstance(x, Integer):
+            try:
+                return x.factorial()
+            except OverflowError:
+                return
+        elif isinstance(x, Rational):
+            from sage.functions.gamma import gamma
+            return gamma(x + 1)
+        elif self._is_numerical(x):
+            return (x + 1).gamma()
 
 factorial = Function_factorial()
 
@@ -1501,6 +1518,13 @@ class Function_binomial(GinacFunction):
             sage: y = polygen(QQ, 'y')
             sage: binomial(y, 2).parent()
             Univariate Polynomial Ring in y over Rational Field
+
+        :trac:`16726`::
+
+            sage: binomial(CIF(1), 2)
+            0
+            sage: binomial(CIF(3), 2)
+            3
 
         Test pickling::
 
@@ -1856,7 +1880,7 @@ class Function_cases(GinacFunction):
             Traceback (most recent call last):
             ...
             TypeError: __call__() takes exactly 2 arguments (1 given)
-            
+
             sage: cases(x)
             Traceback (most recent call last):
             ...

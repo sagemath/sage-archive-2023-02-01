@@ -15,7 +15,8 @@ size of the modulus.
 -  ``IntegerMod_int64`` stores its value in a
    ``int_fast64_t`` (typically a ``long
    long``); this is used if the modulus is less than
-   `2^{31}-1`.
+   `2^{31}-1`. In many places, we assume that the values and the modulus
+   actually fit inside an ``unsigned long``.
 
 -  ``IntegerMod_gmp`` stores its value in a
    ``mpz_t``; this can be used for an arbitrarily large
@@ -84,6 +85,8 @@ import operator
 cdef bint use_32bit_type(int_fast64_t modulus):
     return modulus <= INTEGER_MOD_INT32_LIMIT
 
+from sage.arith.long cimport integer_check_long, integer_check_long_py, ERR_OVERFLOW
+
 import sage.rings.rational as rational
 from sage.libs.pari.all import pari, PariError
 import sage.rings.integer_ring as integer_ring
@@ -102,7 +105,7 @@ from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
@@ -143,12 +146,10 @@ def Mod(n, m, parent=None):
 
     # m is non-zero, so return n mod m
     cdef IntegerMod_abstract x
-    from .integer_mod_ring import IntegerModRing
-    x = IntegerMod(IntegerModRing(m), n)
     if parent is None:
-        return x
-    x._parent = parent
-    return x
+        from .integer_mod_ring import IntegerModRing
+        parent = IntegerModRing(m)
+    return IntegerMod(parent, n)
 
 
 mod = Mod
@@ -161,25 +162,40 @@ def IntegerMod(parent, value):
     Create an integer modulo `n` with the given parent.
 
     This is mainly for internal use.
+
+    EXAMPLES::
+
+        sage: from sage.rings.finite_rings.integer_mod import IntegerMod
+        sage: R = IntegerModRing(100)
+        sage: type(R._pyx_order.table)
+        <type 'list'>
+        sage: IntegerMod(R, 42)
+        42
+        sage: IntegerMod(R, 142)
+        42
+        sage: IntegerMod(R, 10^100 + 42)
+        42
+        sage: IntegerMod(R, -9158)
+        42
     """
-    cdef NativeIntStruct modulus
-    cdef Py_ssize_t res
-    modulus = parent._pyx_order
+    cdef NativeIntStruct modulus = parent._pyx_order
+
+    cdef long val = 0
+    cdef int err
+
     if modulus.table is not None:
-        if isinstance(value, sage.rings.integer.Integer) or isinstance(value, int) or isinstance(value, long):
-            res = value % modulus.int64
-            if res < 0:
-                res = res + modulus.int64
-            a = modulus.lookup(res)
-            if (<Element>a)._parent is not parent:
-               (<Element>a)._parent = parent
+        # Try to return an element from the precomputed table
+        integer_check_long(value, &val, &err)
+        if not err:
+            val = (<int_fast64_t>val) % modulus.int64
+            if val < 0:
+                val += modulus.int64
+            a = <Element>modulus.table[val]
+            assert a._parent is parent
             return a
-    if modulus.int32 != -1:
-        return IntegerMod_int(parent, value)
-    elif modulus.int64 != -1:
-        return IntegerMod_int64(parent, value)
-    else:
-        return IntegerMod_gmp(parent, value)
+    t = modulus.element_class()
+    return t(parent, value)
+
 
 def is_IntegerMod(x):
     """
@@ -196,17 +212,13 @@ def is_IntegerMod(x):
     """
     return isinstance(x, IntegerMod_abstract)
 
-def makeNativeIntStruct(sage.rings.integer.Integer z):
-    """
-    Function to convert a Sage Integer into class NativeIntStruct.
 
-    .. NOTE::
+cdef inline inverse_or_None(x):
+    try:
+        return ~x
+    except ArithmeticError:
+        return None
 
-       This function is only used for the unpickle override below.
-    """
-    return NativeIntStruct(z)
-
-register_unpickle_override('sage.rings.integer_mod', 'makeNativeIntStruct', makeNativeIntStruct)
 
 cdef class NativeIntStruct:
     """
@@ -216,27 +228,50 @@ cdef class NativeIntStruct:
     We may also store a cached table of all elements of a given ring in
     this class.
     """
-    def __init__(NativeIntStruct self, sage.rings.integer.Integer z):
-        self.int64 = -1
+    def __cinit__(self):
         self.int32 = -1
-        self.table = None # NULL
-        self.sageInteger = z
-        if mpz_cmp_si(z.value, INTEGER_MOD_INT64_LIMIT) <= 0:
-            self.int64 = mpz_get_si(z.value)
+        self.int64 = -1
+
+    def __init__(self, m):
+        self.sageInteger = Integer(m)
+        cdef mpz_srcptr z = self.sageInteger.value
+        if mpz_cmp_si(z, INTEGER_MOD_INT64_LIMIT) <= 0:
+            self.int64 = mpz_get_si(z)
             if use_32bit_type(self.int64):
                 self.int32 = self.int64
 
-    def __reduce__(NativeIntStruct self):
-        return sage.rings.finite_rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
+    def __repr__(self):
+        return f"{type(self).__name__}({self.sageInteger})"
 
-    def precompute_table(NativeIntStruct self, parent, inverses=True):
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: from sage.rings.finite_rings.integer_mod import NativeIntStruct
+            sage: M = NativeIntStruct(12345); M
+            NativeIntStruct(12345)
+            sage: loads(dumps(M))
+            NativeIntStruct(12345)
+        """
+        return type(self), (self.sageInteger, )
+
+    def precompute_table(self, parent):
         """
         Function to compute and cache all elements of this class.
 
         If ``inverses == True``, also computes and caches the inverses
         of the invertible elements.
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: from sage.rings.finite_rings.integer_mod import NativeIntStruct
+            sage: R = IntegerModRing(10)
+            sage: M = NativeIntStruct(R.order())
+            sage: M.precompute_table(R)
+            sage: M.table
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: M.inverses
+            [None, 1, None, 7, None, None, None, 3, None, 9]
 
         This is used by the :class:`sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic` constructor::
 
@@ -255,68 +290,110 @@ cdef class NativeIntStruct:
             sage: R = IntegerModRing_generic(1, cache=True)  # indirect doctest
             sage: R(0)^-1 is R(0)
             True
+
+        TESTS::
+
+            sage: R = IntegerModRing(10^50)
+            sage: M = NativeIntStruct(R.order())
+            sage: M.precompute_table(R)
+            Traceback (most recent call last):
+            ...
+            OverflowError: precompute_table() is only supported for small moduli
         """
-        self.table = PyList_New(self.int64)
-        cdef Py_ssize_t i
-        if self.int32 != -1:
-            for i from 0 <= i < self.int32:
-                z = IntegerMod_int(parent, i)
-                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+        cdef Py_ssize_t i, m = self.int64
+
+        # Verify that the modulus m fits in a Py_ssize_t
+        if m <= 0 or (<int_fast64_t>m != self.int64):
+            raise OverflowError("precompute_table() is only supported for small moduli")
+
+        t = self.element_class()
+        self.table = [t(parent, i) for i in range(m)]
+
+        if m == 1:
+            # Special case for integers modulo 1
+            self.inverses = self.table
         else:
-            for i from 0 <= i < self.int64:
-                z = IntegerMod_int64(parent, i)
-                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+            self.inverses = [inverse_or_None(x) for x in self.table]
 
-        if inverses:
-            if self.int64 == 1:
-                # Special case for integers modulo 1
-                self.inverses = self.table
-            else:
-                tmp = [None] * self.int64
-                for i from 1 <= i < self.int64:
-                    try:
-                        tmp[i] = ~self.table[i]
-                    except ZeroDivisionError:
-                        pass
-                self.inverses = tmp
 
-    def _get_table(self):
-        return self.table
-
-    cdef lookup(NativeIntStruct self, Py_ssize_t value):
-        return <object>PyList_GET_ITEM(self.table, value)
+# For unpickling
+makeNativeIntStruct = NativeIntStruct
+register_unpickle_override('sage.rings.integer_mod', 'makeNativeIntStruct', NativeIntStruct)
 
 
 cdef class IntegerMod_abstract(FiniteRingElement):
 
-    def __init__(self, parent):
+    def __init__(self, parent, value=None):
         """
         EXAMPLES::
 
-            sage: a = Mod(10,30^10); a
+            sage: a = Mod(10, 30^10); a
             10
+            sage: type(a)
+            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
             sage: loads(a.dumps()) == a
             True
+
+        TESTS::
+
+            sage: TestSuite(Zmod(1)).run()
+            sage: TestSuite(Zmod(2)).run()
+            sage: TestSuite(Zmod(3)).run()
+            sage: TestSuite(Zmod(4)).run()
+            sage: TestSuite(Zmod(5)).run()
+            sage: TestSuite(Zmod(6)).run()
+            sage: TestSuite(Zmod(2^10 * 3^5)).run()
+            sage: TestSuite(Zmod(2^30 * 3^50 * 5^20)).run()
         """
         self._parent = parent
         self.__modulus = parent._pyx_order
 
+        if value is None:
+            return
+
+        cdef long longval = 0
+        cdef int err = 0
+        cdef Integer z
+
+        if isinstance(value, Integer):
+            z = <Integer>value
+        elif isinstance(value, rational.Rational):
+            z = value % self.__modulus.sageInteger
+        elif integer_check_long_py(value, &longval, &err) and not err:
+            self.set_from_long(longval)
+            return
+        else:
+            z = sage.rings.integer_ring.Z(value)
+        self.set_from_mpz(z.value)
+
+    cdef IntegerMod_abstract _new_c_fast(self, unsigned long value):
+        cdef type t = type(self)
+        x = <IntegerMod_abstract>t.__new__(t)
+        x._parent = self._parent
+        x.__modulus = self.__modulus
+        x.set_from_ulong_fast(value)
+        return x
 
     cdef _new_c_from_long(self, long value):
         cdef type t = type(self)
         cdef IntegerMod_abstract x = <IntegerMod_abstract>t.__new__(t)
-        if isinstance(x, IntegerMod_gmp):
-            mpz_init((<IntegerMod_gmp>x).value) # should be done by the new method
         x._parent = self._parent
         x.__modulus = self.__modulus
         x.set_from_long(value)
         return x
 
     cdef void set_from_mpz(self, mpz_t value):
-        raise NotImplementedError("Must be defined in child class.")
+        raise NotImplementedError("must be defined in child class")
 
     cdef void set_from_long(self, long value):
-        raise NotImplementedError("Must be defined in child class.")
+        raise NotImplementedError("must be defined in child class")
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        """
+        Set ``self`` to the value in ``value`` where ``value`` is
+        assumed to be less than the modulus
+        """
+        raise NotImplementedError("must be defined in child class")
 
     def __abs__(self):
         """
@@ -847,6 +924,31 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     cpdef bint is_unit(self):
         raise NotImplementedError
+
+    @coerce_binop
+    def divides(self, other):
+        r"""
+        Test wheter ``self`` divides ``other``.
+
+        EXAMPLES::
+
+            sage: R = Zmod(6)
+            sage: R(2).divides(R(4))
+            True
+            sage: R(4).divides(R(2))
+            True
+            sage: R(2).divides(R(3))
+            False
+        """
+        if not other:
+            return True
+        elif not self:
+            return False
+        mod = self.modulus()
+        sl = self.lift().gcd(mod)
+        if sl.is_one():
+            return True
+        return sl.divides(other.lift().gcd(mod))
 
     def is_square(self):
         r"""
@@ -1782,36 +1884,12 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     - Robert Bradshaw (2006-08-24)
     """
 
-    def __init__(IntegerMod_gmp self, parent, value, empty=False):
-        """
-        EXAMPLES::
-
-            sage: a = mod(5,14^20)
-            sage: type(a)
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
-            sage: loads(dumps(a)) == a
-            True
-        """
+    def __cinit__(self):
         mpz_init(self.value)
-        IntegerMod_abstract.__init__(self, parent)
-        if empty:
-            return
-        cdef sage.rings.integer.Integer z
-        if isinstance(value, sage.rings.integer.Integer):
-            z = value
-        elif isinstance(value, rational.Rational):
-            z = value % self.__modulus.sageInteger
-        elif isinstance(value, int):
-            self.set_from_long(value)
-            return
-        else:
-            z = sage.rings.integer_ring.Z(value)
-        self.set_from_mpz(z.value)
 
     cdef IntegerMod_gmp _new_c(self):
         cdef IntegerMod_gmp x
         x = IntegerMod_gmp.__new__(IntegerMod_gmp)
-        mpz_init(x.value)
         x.__modulus = self.__modulus
         x._parent = self._parent
         return x
@@ -1822,10 +1900,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef void set_from_mpz(self, mpz_t value):
         cdef sage.rings.integer.Integer modulus
         modulus = self.__modulus.sageInteger
-        if mpz_sgn(value) == -1 or mpz_cmp(value, modulus.value) >= 0:
-            mpz_mod(self.value, value, modulus.value)
-        else:
-            mpz_set(self.value, value)
+        mpz_mod(self.value, value, modulus.value)
 
     cdef void set_from_long(self, long value):
         r"""
@@ -1835,10 +1910,11 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: GF(p)(int(p+1))
             1
         """
-        cdef sage.rings.integer.Integer modulus
         mpz_set_si(self.value, value)
-        if value < 0 or mpz_cmp_si(self.__modulus.sageInteger.value, value) <= 0:
-            mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
+        mpz_mod(self.value, self.value, self.__modulus.sageInteger.value)
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        mpz_set_ui(self.value, value)
 
     def __lshift__(IntegerMod_gmp self, k):
         r"""
@@ -1978,7 +2054,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         modulus = self.__modulus.sageInteger
         other_modulus = other.__modulus.sageInteger
         from .integer_mod_ring import IntegerModRing
-        lift = IntegerMod_gmp(IntegerModRing(modulus*other_modulus), None, empty=True)
+        lift = IntegerMod_gmp(IntegerModRing(modulus*other_modulus))
         try:
             if mpz_cmp(self.value, other.value) > 0:
                 x = (other - IntegerMod_gmp(other._parent, self.lift())) / IntegerMod_gmp(other._parent, modulus)
@@ -2237,45 +2313,18 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     AUTHORS:
 
     - Robert Bradshaw (2006-08-24)
+
+    EXAMPLES::
+
+        sage: a = Mod(10,30); a
+        10
+        sage: loads(a.dumps()) == a
+        True
     """
-
-    def __init__(self, parent, value, empty=False):
-        """
-        EXAMPLES::
-
-            sage: a = Mod(10,30); a
-            10
-            sage: loads(a.dumps()) == a
-            True
-        """
-        IntegerMod_abstract.__init__(self, parent)
-        if empty:
-            return
-        if self.__modulus.int32 == 1:
-            self.ivalue = 0
-            return
-        cdef long x
-        if isinstance(value, int):
-            x = value
-            self.ivalue = x % self.__modulus.int32
-            if self.ivalue < 0:
-                self.ivalue = self.ivalue + self.__modulus.int32
-            return
-        elif isinstance(value, IntegerMod_int):
-            self.ivalue = (<IntegerMod_int>value).ivalue % self.__modulus.int32
-            return
-        cdef sage.rings.integer.Integer z
-        if isinstance(value, sage.rings.integer.Integer):
-            z = value
-        elif isinstance(value, rational.Rational):
-            z = value % self.__modulus.sageInteger
-        else:
-            z = sage.rings.integer_ring.Z(value)
-        self.set_from_mpz(z.value)
 
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
-            return self.__modulus.lookup(value)
+            return self.__modulus.table[value]
         cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
         x._parent = self._parent
         x.__modulus = self.__modulus
@@ -2283,13 +2332,15 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return x
 
     cdef void set_from_mpz(self, mpz_t value):
-        if mpz_sgn(value) == -1 or mpz_cmp_si(value, self.__modulus.int32) >= 0:
-            self.ivalue = mpz_fdiv_ui(value, self.__modulus.int32)
-        else:
-            self.ivalue = mpz_get_si(value)
+        self.ivalue = mpz_fdiv_ui(value, self.__modulus.int32)
 
     cdef void set_from_long(self, long value):
         self.ivalue = value % self.__modulus.int32
+        if self.ivalue < 0:
+            self.ivalue += self.__modulus.int32
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        self.ivalue = value
 
     cdef void set_from_int(IntegerMod_int self, int_fast32_t ivalue):
         if ivalue < 0:
@@ -2395,7 +2446,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         cdef int_fast32_t x
 
         from .integer_mod_ring import IntegerModRing
-        lift = IntegerMod_int(IntegerModRing(self.__modulus.int32 * other.__modulus.int32), None, empty=True)
+        lift = IntegerMod_int(IntegerModRing(self.__modulus.int32 * other.__modulus.int32))
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int32) * mod_inverse_int(self.__modulus.int32, other.__modulus.int32)
@@ -3067,42 +3118,21 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     Elements of `\ZZ/n\ZZ` for n small enough to
     be operated on in 64 bits
 
+    EXAMPLES::
+
+        sage: a = Mod(10,3^10); a
+        10
+        sage: type(a)
+        <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
+        sage: loads(a.dumps()) == a
+        True
+        sage: Mod(5, 2^31)
+        5
+
     AUTHORS:
 
     - Robert Bradshaw (2006-09-14)
     """
-
-    def __init__(self, parent, value, empty=False):
-        """
-        EXAMPLES::
-
-            sage: a = Mod(10,3^10); a
-            10
-            sage: type(a)
-            <type 'sage.rings.finite_rings.integer_mod.IntegerMod_int64'>
-            sage: loads(a.dumps()) == a
-            True
-            sage: Mod(5, 2^31)
-            5
-        """
-        IntegerMod_abstract.__init__(self, parent)
-        if empty:
-            return
-        cdef int_fast64_t x
-        if isinstance(value, int):
-            x = value
-            self.ivalue = x % self.__modulus.int64
-            if self.ivalue < 0:
-                self.ivalue = self.ivalue + self.__modulus.int64
-            return
-        cdef sage.rings.integer.Integer z
-        if isinstance(value, sage.rings.integer.Integer):
-            z = value
-        elif isinstance(value, rational.Rational):
-            z = value % self.__modulus.sageInteger
-        else:
-            z = sage.rings.integer_ring.Z(value)
-        self.set_from_mpz(z.value)
 
     cdef IntegerMod_int64 _new_c(self, int_fast64_t value):
         cdef IntegerMod_int64 x
@@ -3113,13 +3143,15 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return x
 
     cdef void set_from_mpz(self, mpz_t value):
-        if mpz_sgn(value) == -1 or mpz_cmp_si(value, self.__modulus.int64) >= 0:
-            self.ivalue = mpz_fdiv_ui(value, self.__modulus.int64)
-        else:
-            self.ivalue = mpz_get_si(value)
+        self.ivalue = mpz_fdiv_ui(value, self.__modulus.int64)
 
     cdef void set_from_long(self, long value):
         self.ivalue = value % self.__modulus.int64
+        if self.ivalue < 0:
+            self.ivalue += self.__modulus.int64
+
+    cdef void set_from_ulong_fast(self, unsigned long value):
+        self.ivalue = value
 
     cdef void set_from_int(IntegerMod_int64 self, int_fast64_t ivalue):
         if ivalue < 0:
@@ -3226,7 +3258,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         cdef int_fast64_t x
 
         from .integer_mod_ring import IntegerModRing
-        lift = IntegerMod_int64(IntegerModRing(self.__modulus.int64 * other.__modulus.int64), None, empty=True)
+        lift = IntegerMod_int64(IntegerModRing(self.__modulus.int64 * other.__modulus.int64))
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int64) * mod_inverse_int64(self.__modulus.int64, other.__modulus.int64)
@@ -3969,40 +4001,6 @@ def lucas_q1(mm, IntegerMod_abstract P):
     else:
         return d1*d1 - two
 
-from sage.misc.superseded import deprecated_function_alias
-fast_lucas = deprecated_function_alias(11802, lucas_q1)
-
-def slow_lucas(k, P, Q=1):
-    """
-    Lucas function defined using the standard definition, for
-    consistency testing. This is deprecated in :trac:`11802`. Use
-    ``BinaryRecurrenceSequence(P, -Q, 2, P)(k)`` instead.
-
-    .. SEEALSO::
-
-        :class:`~sage.combinat.binary_recurrence_sequences.BinaryRecurrenceSequence`
-
-    REFERENCES:
-
-    - :wikipedia:`Lucas_sequence`
-
-    TESTS::
-
-        sage: from sage.rings.finite_rings.integer_mod import slow_lucas
-        sage: [slow_lucas(k, 1, -1) for k in range(10)]
-        doctest:...: DeprecationWarning: slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.
-        See http://trac.sagemath.org/11802 for details.
-        [2, 1, 3, 4, 7, 11, 18, 29, 47, 76]
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(11802, 'slow_lucas() is deprecated. Use BinaryRecurrenceSequence instead.')
-    if k == 0:
-        return 2
-    elif k == 1:
-        return P
-    from sage.combinat.binary_recurrence_sequences import BinaryRecurrenceSequence
-    B = BinaryRecurrenceSequence(P, -Q, 2, P)
-    return B(k)
 
 def lucas(k, P, Q=1, n=None):
     r"""
@@ -4204,14 +4202,19 @@ cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
 
     cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
+        zero = <IntegerMod_abstract>self.zero
+        cdef unsigned long value
         if isinstance(x, IntegerMod_int):
-            return (<IntegerMod_int>self.zero)._new_c((<IntegerMod_int>x).ivalue % self.modulus.int32)
+            value = (<IntegerMod_int>x).ivalue
+            value %= <unsigned long>self.modulus.int32
+            return zero._new_c_fast(value)
         elif isinstance(x, IntegerMod_int64):
-            return self.zero._new_c_from_long((<IntegerMod_int64>x).ivalue  % self.modulus.int64)
-        else: # isinstance(x, IntegerMod_gmp)
-            a = self.zero._new_c_from_long(0)
-            a.set_from_mpz((<IntegerMod_gmp>x).value)
-            return a
+            value = (<IntegerMod_int64>x).ivalue
+            value %= <unsigned long>self.modulus.int64
+            return zero._new_c_fast(value)
+        a = zero._new_c_fast(0)
+        a.set_from_mpz((<IntegerMod_gmp?>x).value)
+        return a
 
     def _repr_type(self):
         return "Natural"
@@ -4270,7 +4273,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             res = x % self.modulus.int64
             if res < 0:
                 res += self.modulus.int64
-            a = self.modulus.lookup(res)
+            a = self.modulus.table[res]
 #            if a._parent is not self._codomain:
             a._parent = self._codomain
             return a
@@ -4309,6 +4312,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         """
         return False
 
+
 cdef class IntegerMod_to_Integer(Map):
     """
     Map to lift elements to :class:`~sage.rings.integer.Integer`.
@@ -4339,13 +4343,14 @@ cdef class IntegerMod_to_Integer(Map):
         if isinstance(x, IntegerMod_gmp):
             mpz_set(ans.value, (<IntegerMod_gmp>x).value)
         elif isinstance(x, IntegerMod_int):
-            mpz_set_si(ans.value, (<IntegerMod_int>x).ivalue)
+            mpz_set_ui(ans.value, (<IntegerMod_int>x).ivalue)
         elif isinstance(x, IntegerMod_int64):
-            mpz_set_si(ans.value, (<IntegerMod_int64>x).ivalue)
+            mpz_set_ui(ans.value, (<IntegerMod_int64>x).ivalue)
         return ans
 
     def _repr_type(self):
         return "Lifting"
+
 
 cdef class Int_to_IntegerMod(IntegerMod_hom):
     """
@@ -4370,22 +4375,21 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
 
     cpdef Element _call_(self, x):
         cdef IntegerMod_abstract a
-        cdef long res = PyInt_AS_LONG(x)
-        if isinstance(self.zero, IntegerMod_gmp):
-            if 0 <= res < INTEGER_MOD_INT64_LIMIT:
-                return self.zero._new_c_from_long(res)
-            else:
-                return IntegerMod_gmp(self.zero._parent, x)
-        else:
-            res %= self.modulus.int64
-            if res < 0:
-                res += self.modulus.int64
-            if self.modulus.table is not None:
-                a = self.modulus.lookup(res)
-                a._parent = self._codomain
-                return a
-            else:
-                return self.zero._new_c_from_long(res)
+        zero = <IntegerMod_abstract>self.zero
+
+        cdef long res
+        cdef int err
+
+        if not integer_check_long_py(x, &res, &err):
+            raise TypeError(f"{x} is not an integer")
+
+        if not err:
+            return zero._new_c_from_long(res)
+
+        cdef Integer z = Integer(x)
+        a = zero._new_c_fast(0)
+        a.set_from_mpz(z.value)
+        return a
 
     def _repr_type(self):
         return "Native"

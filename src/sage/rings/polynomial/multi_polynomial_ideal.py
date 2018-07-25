@@ -1453,7 +1453,7 @@ class MPolynomialIdeal_singular_repr(
 
     @require_field
     def genus(self):
-        """
+        r"""
         Return the genus of the projective curve defined by this ideal,
         which must be 1 dimensional.
 
@@ -2227,7 +2227,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = ideal([x^2+2*y-5,x+y+3])
             sage: v = I.variety(AA)[0]; v
             {x: 4.464101615137755?, y: -7.464101615137755?}
-            sage: v.keys()[0].parent()
+            sage: list(v)[0].parent()
             Multivariate Polynomial Ring in x, y over Algebraic Real Field
             sage: v[x]
             4.464101615137755?
@@ -3837,7 +3837,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.subs(a=x, b=y)
             Ideal (x^2 + y^2 + x - y + 2) of Multivariate Polynomial Ring in x, y over Rational Field
 
-        The resulting ring need not be a mulitvariate polynomial ring::
+        The resulting ring need not be a multivariate polynomial ring::
 
             sage: T.<t> = PolynomialRing(QQ)
             sage: I.subs(a=t, b=t)
@@ -4185,16 +4185,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
-
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
 
         if not self.is_principal():
-            raise TypeError("Ideal must be principal.")
-
+            raise TypeError("ideal must be principal")
 
         f = self.gens()[0]
 
@@ -4245,7 +4241,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             raise TypeError("Ideal generator may not have either 2 or 3 variables.")
 
     def random_element(self, degree, compute_gb=False, *args, **kwds):
-        """
+        r"""
         Return a random element in this ideal as `r = \sum h_i·f_i`.
 
         INPUT:
@@ -4333,7 +4329,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     @require_field
     def weil_restriction(self):
-        """
+        r"""
         Compute the Weil restriction of this ideal over some extension
         field. If the field is a finite field, then this computes
         the Weil restriction to the prime subfield.

@@ -198,6 +198,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: number of columns of self must equal number of columns of B
         """
+
         if is_Vector(B):
             try:
                 return self.transpose().solve_right(B, check=check)
@@ -354,6 +355,11 @@ cdef class Matrix(Matrix1):
             sage: B = B.column(0)
             sage: A.solve_right(B)
             (1, 124, 1)
+            sage: A = Matrix(Zmod(15), 3,4, range(12))
+            sage: B = Matrix(Zmod(15), 3,3, range(3,12))
+            sage: X = A.solve_right(B)
+            sage: A*X == B
+            True
 
         Solving a system over the p-adics::
 
@@ -403,16 +409,21 @@ cdef class Matrix(Matrix1):
                 A = pari(self.lift())
                 b = pari(B).lift()
                 if b.type() == "t_MAT":
-                    b = b[0]
+                    X = []
+                    for n in range(B.ncols()):
+                        ret = A.matsolvemod(K.cardinality(), b[n])
+                        if ret.type() == 't_INT':
+                            raise ValueError("matrix equation has no solutions")
+                        X.append(ret.sage())
+                    X = self.matrix_space(B.ncols(), self.ncols())(X)
+                    return X.T
                 elif b.type() == "t_VEC":
                     b = b.Col()
-                ret = A.matsolvemod(K.cardinality(), b)
-                if ret.type() == 't_INT':
-                    raise ValueError("matrix equation has no solutions")
-                ret = ret.Vec().sage()
-                if is_Vector(B):
+                    ret = A.matsolvemod(K.cardinality(), b)
+                    if ret.type() == 't_INT':
+                        raise ValueError("matrix equation has no solutions")
+                    ret = ret.Vec().sage()
                     return (K ** self.ncols())(ret)
-                return self.matrix_space(self.ncols(), 1)(ret)
             raise TypeError("base ring must be an integral domain or a ring of integers mod n")
         if not K.is_field():
             K = K.fraction_field()
@@ -678,7 +689,13 @@ cdef class Matrix(Matrix1):
             sage: A.elementwise_product(vector(ZZ, [1,2,3,4]))
             Traceback (most recent call last):
             ...
-            TypeError: operand must be a matrix, not an element of Ambient free module of rank 4 over the principal ideal domain Integer Ring
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 5 by 10 dense matrices over Integer Ring' and 'Ambient free module of rank 4 over the principal ideal domain Integer Ring'
+
+            sage: A = matrix(2, 2, range(4))
+            sage: A.elementwise_product(polygen(parent(A)))
+            Traceback (most recent call last):
+            ...
+            TypeError: elementwise_product() argument should be a matrix or coercible to a matrix
 
         Matrices of different sizes for operands will raise an error. ::
 
@@ -687,7 +704,7 @@ cdef class Matrix(Matrix1):
             sage: A.elementwise_product(B)
             Traceback (most recent call last):
             ...
-            TypeError: incompatible sizes for matrices from: Full MatrixSpace of 5 by 10 dense matrices over Integer Ring and Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+            TypeError: no common canonical parent for objects with parents: 'Full MatrixSpace of 5 by 10 dense matrices over Integer Ring' and 'Full MatrixSpace of 10 by 5 dense matrices over Integer Ring'
 
         Some pairs of rings do not have a common parent where
         multiplication makes sense.  This will raise an error. ::
@@ -747,14 +764,13 @@ cdef class Matrix(Matrix1):
         """
         # Optimized routines for specialized classes would likely be faster
         # See the "pairwise_product" of vectors for some guidance on doing this
-        from sage.structure.element import canonical_coercion
-        if not isinstance(right, Matrix):
-            raise TypeError('operand must be a matrix, not an element of %s' % right.parent())
-        if (self.nrows() != right.nrows()) or (self.ncols() != right.ncols()):
-            raise TypeError('incompatible sizes for matrices from: %s and %s'%(self.parent(), right.parent()))
-        if self._parent is not (<Matrix>right)._parent:
-            self, right = canonical_coercion(self, right)
-        return self._elementwise_product(right)
+        if have_same_parent(self, right):
+            return self._elementwise_product(right)
+        A, B = coercion_model.canonical_coercion(self, right)
+        if not isinstance(A, Matrix):
+            # Canonical coercion is not a matrix?!
+            raise TypeError("elementwise_product() argument should be a matrix or coercible to a matrix")
+        return (<Matrix>A)._elementwise_product(B)
 
     def permanent(self, algorithm="Ryser"):
         r"""
@@ -2589,7 +2605,7 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: A = MatrixSpace(QQ,2)(['1/2', '1/3', '1/5', '1/7'])
+            sage: A = MatrixSpace(QQ,2)([1/2, 1/3, 1/5, 1/7])
             sage: A.denominator()
             210
 
@@ -4470,7 +4486,7 @@ cdef class Matrix(Matrix1):
         The integer kernel even makes sense for matrices with fractional
         entries::
 
-            sage: A = MatrixSpace(QQ, 2)(['1/2',0,  0, 0])
+            sage: A = MatrixSpace(QQ, 2)([1/2, 0, 0, 0])
             sage: A.integer_kernel()
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
@@ -6577,6 +6593,12 @@ cdef class Matrix(Matrix1):
 
           - ``'classical'``: Gauss elimination.
 
+          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting
+            (if base ring has absolute value)
+
+          - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
+            partial pivoting (if base ring has absolute value)
+
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
 
@@ -6644,6 +6666,21 @@ cdef class Matrix(Matrix1):
             [  1 y/x]
             [  0   0]
 
+        We check that the echelon form works for matrices over p-adics.
+        See :trac:`17272`::
+
+            sage: R = ZpCA(5,5,print_mode='val-unit')
+            sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
+            sage: A
+            [5^3 * 2 + O(5^5)    2369 + O(5^5)    1147 + O(5^5)]
+            [    106 + O(5^5)     927 + O(5^5)     362 + O(5^5)]
+            [ 5 * 18 + O(5^5)     398 + O(5^5)    2483 + O(5^5)]
+            sage: K = R.fraction_field()
+            sage: A.change_ring(K).augment(identity_matrix(K,3)).echelon_form()
+            [      1 + O(5^5)           O(5^5)           O(5^5) 5 * 212 + O(5^5)    3031 + O(5^5)    2201 + O(5^5)]
+            [          O(5^5)       1 + O(5^5)           O(5^5)    1348 + O(5^5) 5 * 306 + O(5^5)    2648 + O(5^5)]
+            [          O(5^5)           O(5^5)       1 + O(5^5)    1987 + O(5^5) 5 * 263 + O(5^5)     154 + O(5^5)]
+
         Echelon form is not defined over arbitrary rings::
 
             sage: a = matrix(Integers(9),3,3,range(9))
@@ -6677,14 +6714,21 @@ cdef class Matrix(Matrix1):
         self.check_mutability()
 
         if algorithm == 'default':
+            from sage.categories.discrete_valuation import DiscreteValuationFields
             if self._will_use_strassen_echelon():
                 algorithm = 'strassen'
+            # Currently we only use scaled partial pivoting in discrete valuation fields
+            # In general, we would like to do so in any rank one valuation ring,
+            # but this should be done by introducing a category of general valuation rings and fields,
+            # which we don't have at the moment
+            elif self.base_ring() in DiscreteValuationFields():
+                algorithm = 'scaled_partial_pivoting'
             else:
                 algorithm = 'classical'
         try:
             if self.base_ring().is_field():
-                if algorithm == 'classical':
-                    self._echelon_in_place_classical()
+                if algorithm in ['classical', 'partial_pivoting', 'scaled_partial_pivoting']:
+                    self._echelon_in_place(algorithm)
                 elif algorithm == 'strassen':
                     self._echelon_strassen(cutoff)
                 else:
@@ -6716,6 +6760,12 @@ cdef class Matrix(Matrix1):
           - ``'default'``: Let Sage choose an algorithm (default).
 
           - ``'classical'``: Gauss elimination.
+
+          - ``'partial_pivoting'``: Gauss elimination, using partial pivoting
+            (if base ring has absolute value)
+
+          - ``'scaled_partial_pivoting'``: Gauss elimination, using scaled
+            partial pivoting (if base ring has absolute value)
 
           - ``'strassen'``: use a Strassen divide and conquer
             algorithm (if available)
@@ -6791,21 +6841,223 @@ cdef class Matrix(Matrix1):
         else:
             return E
 
-    def _echelon_classical(self):
+    cpdef _echelon(self, str algorithm):
         """
-        Return the echelon form of self.
+        Return the echelon form of ``self`` using ``algorithm``.
+
+        EXAMPLES::
+
+            sage: t = matrix(QQ, 3, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: t._echelon('classical')
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+            sage: a = matrix(QQ,2,[1..6])
+            sage: a._echelon('classical')
+            [ 1  0 -1]
+            [ 0  1  2]
+            sage: R = ZpCA(5,5,print_mode='val-unit')
+            sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
+            sage: A
+            [5^3 * 2 + O(5^5)    2369 + O(5^5)    1147 + O(5^5)]
+            [    106 + O(5^5)     927 + O(5^5)     362 + O(5^5)]
+            [ 5 * 18 + O(5^5)     398 + O(5^5)    2483 + O(5^5)]
+            sage: A._echelon('partial_pivoting')
+            [1 + O(5^5)     O(5^5)     O(5^5)]
+            [    O(5^5) 1 + O(5^5)     O(5^5)]
+            [    O(5^5)     O(5^5) 1 + O(5^5)]
+
+        The following example is an example where partial pivoting fails,
+        but scaled partial pivoting succeeds, taken from 'Numerical Analysis (9th edition)'
+        by R.L. Burden and J.D. Faires (with minor adjustments)::
+
+            sage: RR13 = RealField(prec=13)
+            sage: A = Matrix(RR13, 2, 3, [30, 591400, 591700, 5.291, -6.130, 46.78])
+            sage: A
+            [   30.0 591000. 592000.]
+            [   5.29   -6.13    46.8]
+            sage: A._echelon('classical')
+            [ 1.00 0.000  12.0]
+            [0.000  1.00  1.00]
+            sage: A._echelon('partial_pivoting')
+            [ 1.00 0.000  12.0]
+            [0.000  1.00  1.00]
+            sage: A._echelon('scaled_partial_pivoting')
+            [ 1.00 0.000  10.0]
+            [0.000  1.00  1.00]
         """
-        E = self.fetch('echelon_classical')
+        E = self.fetch('echelon_' + algorithm)
         if not E is None:
             return E
         E = self.__copy__()
-        E._echelon_in_place_classical()
-        self.cache('echelon_classical', E)
+        E._echelon_in_place(algorithm)
+        self.cache('echelon_' + algorithm, E)
         return E
+
+    # This is for backward compatibility
+
+    def _echelon_classical(self):
+        """
+        Return the echelon form of ``self`` using the classical algorithm.
+
+        EXAMPLES::
+
+            sage: t = matrix(QQ, 3, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: t._echelon_classical()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+            sage: a = matrix(QQ,2,[1..6])
+            sage: a._echelon_classical()
+            [ 1  0 -1]
+            [ 0  1  2]
+        """
+        return self._echelon('classical')
+
+    cpdef _echelon_in_place(self, str algorithm):
+        """
+        Transform ``self`` into echelon form and return the pivots of ``self``.
+
+        EXAMPLES::
+
+            sage: t = matrix(QQ, 3, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: E = t._echelon_in_place('classical'); t
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+            sage: a = matrix(QQ,2,[1..6])
+            sage: P = a._echelon_in_place('classical'); a
+            [ 1  0 -1]
+            [ 0  1  2]
+            sage: R = ZpCA(5,5,print_mode='val-unit')
+            sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
+            sage: A
+            [5^3 * 2 + O(5^5)    2369 + O(5^5)    1147 + O(5^5)]
+            [    106 + O(5^5)     927 + O(5^5)     362 + O(5^5)]
+            [ 5 * 18 + O(5^5)     398 + O(5^5)    2483 + O(5^5)]
+            sage: P = A._echelon_in_place('partial_pivoting'); A
+            [1 + O(5^5)     O(5^5)     O(5^5)]
+            [    O(5^5) 1 + O(5^5)     O(5^5)]
+            [    O(5^5)     O(5^5) 1 + O(5^5)]
+
+        The following example is an example where partial pivoting fails,
+        but scaled partial pivoting succeeds, taken from 'Numerical Analysis (9th edition)'
+        by R.L. Burden and J.D. Faires (with minor adjustments)::
+
+            sage: RR13 = RealField(prec=13)
+            sage: A = Matrix(RR13, 2, 3, [30, 591400, 591700, 5.291, -6.130, 46.78])
+            sage: A
+            [   30.0 591000. 592000.]
+            [   5.29   -6.13    46.8]
+            sage: P = A._echelon_in_place('classical'); A
+            [ 1.00 0.000  12.0]
+            [0.000  1.00  1.00]
+            sage: A = Matrix(RR13, 2, 3, [30, 591400, 591700, 5.291, -6.130, 46.78])
+            sage: P = A._echelon_in_place('partial_pivoting'); A
+            [ 1.00 0.000  12.0]
+            [0.000  1.00  1.00]
+            sage: A = Matrix(RR13, 2, 3, [30, 591400, 591700, 5.291, -6.130, 46.78])
+            sage: P = A._echelon_in_place('scaled_partial_pivoting'); A
+            [ 1.00 0.000  10.0]
+            [0.000  1.00  1.00]
+        """
+        tm = verbose('generic in-place Gauss elimination on %s x %s matrix using %s algorithm'%(self._nrows, self._ncols, algorithm))
+        cdef Py_ssize_t start_row, c, r, nr, nc, i, best_r
+        if self.fetch('in_echelon_form'):
+            return self.fetch('pivots')
+
+        self.check_mutability()
+        cdef Matrix A
+
+        nr = self._nrows
+        nc = self._ncols
+        A = self
+
+        start_row = 0
+        pivots = []
+        cdef list scale_factors = []
+
+        if algorithm == "classical":
+            for c in range(nc):
+                sig_check()
+                for r in range(start_row, nr):
+                    if A.get_unsafe(r, c):
+                        pivots.append(c)
+                        a_inverse = ~A.get_unsafe(r, c)
+                        A.rescale_row(r, a_inverse, c)
+                        A.swap_rows(r, start_row)
+                        for i in range(nr):
+                            if i != start_row:
+                                if A.get_unsafe(i, c):
+                                    minus_b = -A.get_unsafe(i, c)
+                                    A.add_multiple_of_row(i, start_row, minus_b, c)
+                        start_row = start_row + 1
+                        break
+        else:
+            if algorithm == 'scaled_partial_pivoting':
+                for r in range(nr):
+                    scale_factor = 0
+                    for c in range(nc):
+                        abs_val = A.get_unsafe(r, c).abs()
+                        if abs_val > scale_factor:
+                            scale_factor = abs_val
+                    scale_factors.append(scale_factor)
+
+            for c in range(nc):
+                sig_check()
+                max_abs_val = 0
+                best_r = start_row - 1
+
+                if algorithm == 'partial_pivoting':
+                    for r in range(start_row, nr):
+                        abs_val = A.get_unsafe(r,c).abs()
+                        if abs_val > max_abs_val:
+                            max_abs_val = abs_val
+                            best_r = r
+                else: # algorithm == 'scaled_partial_pivoting':
+                    for r in range(start_row, nr):
+                        if scale_factors[r]:
+                            abs_val = A.get_unsafe(r,c).abs() / scale_factors[r]
+                            if abs_val > max_abs_val:
+                                max_abs_val = abs_val
+                                best_r = r
+
+                if max_abs_val:
+                    pivots.append(c)
+                    a_inverse = ~A.get_unsafe(best_r, c)
+                    A.rescale_row(best_r, a_inverse, c)
+                    A.swap_rows(best_r, start_row)
+
+                    if algorithm == 'scaled_partial_pivoting':
+                        scale_factors[best_r], scale_factors[start_row] = scale_factors[start_row], scale_factors[best_r]
+
+                    for i in range(nr):
+                        if i != start_row:
+                            if A.get_unsafe(i, c):
+                                minus_b = -A.get_unsafe(i, c)
+                                A.add_multiple_of_row(i, start_row, minus_b, c)
+                    start_row = start_row + 1
+
+        pivots = tuple(pivots)
+        self.cache('pivots', pivots)
+        self.cache('in_echelon_form', True)
+        self.cache('echelon_form', self)
+        return pivots
+
+    # for backward compatibility
 
     def _echelon_in_place_classical(self):
         """
-        Transform self into echelon form and set the pivots of self.
+        Transform self into echelon form and return the pivots of self.
 
         EXAMPLES::
 
@@ -6822,41 +7074,7 @@ cdef class Matrix(Matrix1):
             [ 1  0 -1]
             [ 0  1  2]
         """
-        tm = verbose('generic in-place Gauss elimination on %s x %s matrix'%(self._nrows, self._ncols))
-        cdef Py_ssize_t start_row, c, r, nr, nc, i
-        if self.fetch('in_echelon_form'):
-            return self.fetch('pivots')
-
-        self.check_mutability()
-        cdef Matrix A
-
-        nr = self._nrows
-        nc = self._ncols
-        A = self
-
-        start_row = 0
-        pivots = []
-
-        for c in range(nc):
-            sig_check()
-            for r in range(start_row, nr):
-                if A.get_unsafe(r, c):
-                    pivots.append(c)
-                    a_inverse = ~A.get_unsafe(r,c)
-                    A.rescale_row(r, a_inverse, c)
-                    A.swap_rows(r, start_row)
-                    for i in range(nr):
-                        if i != start_row:
-                            if A.get_unsafe(i,c):
-                                minus_b = -A.get_unsafe(i, c)
-                                A.add_multiple_of_row(i, start_row, minus_b, c)
-                    start_row = start_row + 1
-                    break
-        pivots = tuple(pivots)
-        self.cache('pivots', pivots)
-        self.cache('in_echelon_form', True)
-        self.cache('echelon_form', self)
-        return pivots
+        return self._echelon_in_place('classical')
 
     def extended_echelon_form(self, subdivide=False, **kwds):
         r"""
@@ -6902,7 +7120,7 @@ cdef class Matrix(Matrix1):
         .. NOTE::
 
             This method returns an echelon form.  If the base ring
-            is not a field, no atttempt is made to move to the fraction field.
+            is not a field, no attempt is made to move to the fraction field.
             See an example below where the base ring is changed manually.
 
         EXAMPLES:
@@ -7053,164 +7271,6 @@ cdef class Matrix(Matrix1):
             extended.subdivide(rank, self.ncols())
             extended.set_immutable()
         return extended
-
-    def row_reduced_form(self, transformation=None):
-        r"""
-        This function computes a row reduced form of a matrix over a rational
-        function field `k(x)`, where `k` is a field.
-
-        A matrix `M` over `k(x)` is row reduced if the (row-wise) leading term
-        matrix of `dM` has the same rank as `M`, where `d \in k[x]` is a minimal
-        degree polynomial such that `dM` is in `k[x]`. The (row-wise) leading
-        term matrix of a polynomial matrix `M_0` is matrix over `k` whose
-        `(i,j)`'th entry is the `x^{d_i}` coefficient of `M_0[i,j]`, where `d_i`
-        is the greatest degree among polynomials in the `i`'th row of `M_0`.
-
-        INPUT:
-
-        - ``transformation`` -- A boolean (default: ``False``). If this is set to
-          ``True``, the transformation matrix `U` will be returned as well: this
-          is an invertible matrix over `k(x)` such that ``self`` equals `UW`,
-          where `W` is the output matrix.
-
-        OUTPUT:
-
-        - `W` - a matrix over the same ring as `self` (i.e. either `k(x)` or
-          `k[x]` for a field `k`) giving a row reduced form of ``self``.
-
-        EXAMPLES:
-
-        The routine expects matrices over the rational function field. One can
-        also provide matrices over the ring of polynomials (whose quotient field
-        is the rational function field).
-
-        ::
-
-            sage: R.<t> = GF(3)['t']
-            sage: K = FractionField(R)
-            sage: M = matrix([[(t-1)^2/t],[(t-1)]])
-            sage: M.row_reduced_form()
-            doctest:...: DeprecationWarning: Row reduced form will soon be supported only for matrices of polynomials.
-            See http://trac.sagemath.org/21024 for details.
-            [        0]
-            [(t + 2)/t]
-
-        If ``self`` is an `n \times 1` matrix with at least one non-zero entry,
-        `W` has a single non-zero entry and that entry is a scalar multiple of
-        the greatest-common-divisor of the entries of ``self``.
-
-        ::
-
-            sage: M1 = matrix([[t*(t-1)*(t+1)],[t*(t-2)*(t+2)],[t]])
-            sage: output1 = M1.row_reduced_form()
-            sage: output1
-            [0]
-            [0]
-            [t]
-
-        We check that the output is the same for a matrix `M` if its entries are
-        rational functions instead of polynomials. We also check that the type of
-        the output follows the documentation. See :trac:`9063`
-
-        ::
-
-            sage: M2 = M1.change_ring(K)
-            sage: output2 = M2.row_reduced_form()
-            sage: output1 == output2
-            True
-            sage: output1.base_ring() is R
-            True
-            sage: output2.base_ring() is K
-            True
-
-        The following is the first half of example 5 in [Hes2002]_ *except* that we
-        have transposed ``self``; [Hes2002]_ uses column operations and we use row.
-
-        ::
-
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[t^3 - t,t^2 - 2],[0,t]]).transpose()
-            sage: M.row_reduced_form(transformation=False)
-            [      t    -t^2]
-            [t^2 - 2       t]
-
-        The next example demonstrates what happens when ``self`` is a zero matrix.
-
-        ::
-
-            sage: R.<t> = GF(5)['t']
-            sage: K = FractionField(R)
-            sage: M = matrix([[K(0),K(0)],[K(0),K(0)]])
-            sage: M.row_reduced_form()
-            [0 0]
-            [0 0]
-
-        In the following example, ``self`` has more rows than columns.
-
-        ::
-
-            sage: R.<t> = QQ['t']
-            sage: M = matrix([[t,t,t],[0,0,t]])
-            sage: M.row_reduced_form()
-            [ t  t  t]
-            [-t -t  0]
-
-        The next example shows that `M` must be a matrix with coefficients in
-        `k(t)` or in `k[t]` for some field `k`.
-
-        ::
-
-            sage: M = matrix([[1,0],[1,1]])
-            sage: M.row_reduced_form()
-            Traceback (most recent call last):
-            ...
-            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
-
-            sage: PZ.<y> = ZZ[]
-            sage: M = matrix([[y,0],[1,y]])
-            sage: M.row_reduced_form()
-            Traceback (most recent call last):
-            ...
-            TypeError: the coefficients of M must lie in a univariate polynomial ring over a field
-
-        The last example shows the usage of the transformation parameter.
-
-        ::
-
-            sage: Fq.<a> = GF(2^3)
-            sage: Fx.<x> = Fq[]
-            sage: A = matrix(Fx,[[x^2+a,x^4+a],[x^3,a*x^4]])
-            sage: W,U = A.row_reduced_form(transformation=True);
-            sage: W,U
-            (
-            [          x^2 + a           x^4 + a]  [1 0]
-            [x^3 + a*x^2 + a^2               a^2], [a 1]
-            )
-            sage: U*W == A
-            True
-            sage: U.is_invertible()
-            True
-
-        NOTES:
-
-         - For consistency with LLL and other algorithms in Sage, we have opted
-           for row operations; however, some references e.g. [Hes2002]_ transpose and use
-           column operations.
-
-        REFERENCES:
-
-        - [Hes2002]_
-        - [Kal1980]_
-
-        """
-        from sage.misc.superseded import deprecation
-        # When deprecation period runs out, this method should simply be removed from this class.
-        # matrix_polynomial_dense already has the replacement row_reduced_form method.
-        # The function matrix_misc.row_reduced_form should then probably just be removed.
-        deprecation(21024, "Row reduced form will soon be supported only for matrices of univariate polynomials.")
-
-        from sage.matrix.matrix_misc import row_reduced_form
-        return row_reduced_form(self, transformation)
 
     ##########################################################################
     # Functions for symmetries of a matrix under row and column permutations #
@@ -8447,8 +8507,8 @@ cdef class Matrix(Matrix1):
             False
         """
 
-        row_sums = map(sum, self.rows())
-        col_sums = map(sum, self.columns())
+        row_sums = [sum(r) for r in self.rows()]
+        col_sums = [sum(c) for c in self.columns()]
 
         return self.is_square() and\
                 col_sums[0] == row_sums[0] and\
@@ -8672,7 +8732,8 @@ cdef class Matrix(Matrix1):
 
             sage: filename = tmp_filename(ext='.png')
             sage: img.save(filename)
-            sage: open(filename).read().startswith('\x89PNG')
+            sage: with open(filename, 'rb') as fobj:
+            ....:     fobj.read().startswith(b'\x89PNG')
             True
 
         TESTS:
@@ -12462,7 +12523,7 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
-    def is_positive_definite(self):
+    def is_positive_definite(self, certificate=False):
         r"""
         Determines if a real or symmetric matrix is positive definite.
 
@@ -12472,7 +12533,7 @@ cdef class Matrix(Matrix1):
 
         .. MATH::
 
-            \vec{x}^\ast A\vec{x} > 0
+            \vec{x}^\ast A\vec{x} > 0.
 
         Here `\vec{x}^\ast` is the conjugate-transpose, which can be
         simplified to just the transpose in the real case.
@@ -12489,6 +12550,9 @@ cdef class Matrix(Matrix1):
         INPUT:
 
         Any square matrix.
+
+        - ``certificate`` -- (default: ``False``) return the
+          decomposition from the indefinite factorization if possible
 
         OUTPUT:
 
@@ -12657,9 +12721,42 @@ cdef class Matrix(Matrix1):
         # positive definite iff all entries of d are positive
         zero = R.fraction_field().zero()
         if real:
-            return all(x > zero for x in d)
+            is_pos = all(x > zero for x in d)
         else:
-            return all(x.real() > zero for x in d)
+            is_pos = all(x.real() > zero for x in d)
+
+        if certificate:
+            if is_pos:
+                return is_pos, L, d
+            else:
+                return is_pos, None, None
+        else:
+            return is_pos
+
+    def principal_square_root(self, check_positivity=True):
+        r"""
+        Return the principal square root of a positive definte matrix.
+
+        A positive definite matrix `A` has a unique positive definite
+        matrix `M` such that `M^2 = A`.
+
+        See :wikipedia:`Square_root_of_a_matrix`.
+
+        EXAMPLES::
+
+            sage: A = Matrix([[1,-1/2,0],[-1/2,1,-1/2],[0,-1/2,1]])
+            sage: B = A.principal_square_root()
+            sage: A == B^2
+            True
+        """
+        from sage.matrix.special import diagonal_matrix
+        from sage.functions.other import sqrt
+
+        if check_positivity and not self.is_positive_definite():
+            return False
+
+        d, L = self.eigenmatrix_left()
+        return L.inverse() * diagonal_matrix([sqrt(a) for a in d.diagonal()]) * L
 
     def hadamard_bound(self):
         r"""
@@ -13136,7 +13233,7 @@ cdef class Matrix(Matrix1):
             sage: A.plot(cmap='Oranges')
             Graphics object consisting of 1 graphics primitive
         """
-        from sage.plot.plot import matrix_plot
+        from sage.plot.matrix_plot import matrix_plot
         return matrix_plot(self, *args, **kwds)
 
     def derivative(self, *args):
@@ -15090,28 +15187,6 @@ def decomp_seq(v):
     list.sort(v, key=lambda x: x[0].dimension())
     return Sequence(v, universe=tuple, check=False, cr=True)
 
-def cmp_pivots(x,y):
-    """
-    Compare two sequences of pivot columns.
-
-    - If x is shorter than y, return -1, i.e., x < y, "not as good".
-
-    - If x is longer than y, x > y, "better".
-
-    - If the length is the same then x is better, i.e., x > y if the
-      entries of x are correspondingly >= those of y with one being
-      greater.
-    """
-    if len(x) < len(y):
-        return -1
-    if len(x) > len(y):
-        return 1
-    if x < y:
-        return 1
-    elif x == y:
-        return 0
-    else:
-        return -1
 
 def _choose(Py_ssize_t n, Py_ssize_t t):
     """
@@ -15239,39 +15314,80 @@ def _jordan_form_vector_in_difference(V, W):
 
 def _matrix_power_symbolic(A, n):
     r"""
-    Symbolic matrix power.
+    Return the symbolic `n`-th power `A^n` of the matrix `A`
 
-    This function implements `f(A) = A^n` and relies in the Jordan normal form
-    of `A`, available for exact rings as ``jordan_form()``.
-    See Sec. 1.2 of [Hig2008]_ for further details.
+    This function implements the computation of `A^n` for symbolic `n`,
+    relying on the Jordan normal form of `A`, available for exact rings
+    as :meth:`jordan_form`. See [Hig2008]_, §1.2, for further details.
 
     INPUT:
 
     - ``A`` -- a square matrix over an exact field
 
-    - ``n`` -- the symbolic exponent
+    - ``n`` -- a symbolic exponent
 
     OUTPUT:
 
-    Matrix `A^n` (symbolic).
+    The matrix `A^n` (with symbolic entries involving the exponent).
 
-    EXAMPLES::
+    EXAMPLES:
 
+    General power of a two by two matrix::
+
+        sage: n = SR.var('n')
         sage: A = matrix(QQ, [[2, -1], [1,  0]])
-        sage: n = var('n')
-        sage: A^n
+        sage: B = A^n; B
         [ n + 1     -n]
         [     n -n + 1]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
 
-    TESTS::
+    General power of a three by three matrix in Jordan form::
+
+        sage: n = SR.var('n')
+        sage: A = matrix(QQ, 3, [[2, 1, 0], [0, 2, 0], [0, 0, 3]])
+        sage: A
+        [2 1 0]
+        [0 2 0]
+        [0 0 3]
+        sage: B = A^n; B
+        [        2^n 2^(n - 1)*n           0]
+        [          0         2^n           0]
+        [          0           0         3^n]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    General power of a three by three matrix not in Jordan form::
+
+        sage: A = matrix([[4, 1, 2], [0, 2, -4], [0, 1, 6]])
+        sage: A
+        [ 4  1  2]
+        [ 0  2 -4]
+        [ 0  1  6]
+        sage: B = A^n; B
+        [                 4^n          4^(n - 1)*n        2*4^(n - 1)*n]
+        [                   0 -2*4^(n - 1)*n + 4^n       -4*4^(n - 1)*n]
+        [                   0          4^(n - 1)*n  2*4^(n - 1)*n + 4^n]
+        sage: [B.subs({n: k}) for k in range(4)]
+        [
+        [1 0 0]  [ 4  1  2]  [ 16   8  16]  [  64   48   96]
+        [0 1 0]  [ 0  2 -4]  [  0   0 -32]  [   0  -32 -192]
+        [0 0 1], [ 0  1  6], [  0   8  32], [   0   48  160]
+        ]
+        sage: all(A^k == B.subs({n: k}) for k in range(8))
+        True
+
+    TESTS:
 
     Testing exponentiation in the symbolic ring::
 
         sage: n = var('n')
         sage: A = matrix([[pi, e],[0, -2*I]])
-        sage: A^n
-        [                                                              pi^n -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1))]
-        [                                                                 0                                                           (-2*I)^n]
+        sage: (A^n).list()
+        [pi^n,
+         -(-2*I)^n/(pi*e^(-1) + 2*I*e^(-1)) + pi^n/(pi*e^(-1) + 2*I*e^(-1)),
+         0,
+         (-2*I)^n]
 
     If the base ring is inexact, the Jordan normal form is not available::
 
@@ -15291,9 +15407,11 @@ def _matrix_power_symbolic(A, n):
     Check if :trac:`23215` is fixed::
 
         sage: a, b, k = var('a, b, k')
-        sage: matrix(2, [a, b, -b, a])^k
-        [     1/2*(a + I*b)^k + 1/2*(a - I*b)^k -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k]
-        [ 1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k      1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
+        sage: (matrix(2, [a, b, -b, a])^k).list()
+        [1/2*(a + I*b)^k + 1/2*(a - I*b)^k,
+         -1/2*I*(a + I*b)^k + 1/2*I*(a - I*b)^k,
+         1/2*I*(a + I*b)^k - 1/2*I*(a - I*b)^k,
+         1/2*(a + I*b)^k + 1/2*(a - I*b)^k]
     """
     from sage.rings.qqbar import AlgebraicNumber
     from sage.matrix.constructor import matrix
@@ -15301,50 +15419,49 @@ def _matrix_power_symbolic(A, n):
     from sage.symbolic.ring import SR
     from sage.rings.qqbar import QQbar
 
-    got_SR = True if A.base_ring() == SR else False
+    got_SR = A.base_ring() == SR
 
-    # transform to QQbar if possible
+    # Change to QQbar if possible
     try:
         A = A.change_ring(QQbar)
     except (TypeError, NotImplementedError):
         pass
 
-    # returns jordan matrix J and invertible matrix P such that A = P*J*~P
-    [J, P] = A.jordan_form(transformation=True)
+    # Get Jordan matrix J and invertible matrix P such that A = P*J*~P
+    # From that, we will compute M = J^n, and obtain A^n = P*J^n*~P
+    J, P = A.jordan_form(transformation=True)
 
-    # the number of Jordan blocks
-    num_jordan_blocks = 1+len(J.subdivisions()[0])
+    # Where each Jordan block starts, and number of blocks
+    block_start = [0] + J.subdivisions()[0]
+    num_blocks = len(block_start)
 
-    # FJ stores the application of f = x^n to the Jordan blocks
-    FJ = matrix(SR, J.ncols())
-    FJ.subdivide(J.subdivisions())
+    # Prepare matrix M to store `J^n`, computed by Jordan block
+    M = matrix(SR, J.ncols())
+    M.subdivide(J.subdivisions())
 
-    for k in range(num_jordan_blocks):
+    for k in range(num_blocks):
 
-        # get Jordan block Jk
+        # Jordan block Jk, its dimension nk, the eigenvalue m
         Jk = J.subdivision(k, k)
+        nk = Jk.ncols()
+        mk = Jk[0,0]
 
-        # dimension of Jordan block Jk
-        mk = Jk.ncols()
+        # First row of block Mk; its entries are of the form
+        # D^i(f) / i! with f = x^n and D = differentiation wrt x
+        if hasattr(mk, 'radical_expression'):
+            mk = mk.radical_expression()
+        vk = [(binomial(n, i) * mk**(n-i)).simplify_full()
+              for i in range(nk)]
 
-        # compute the first row of f(Jk)
-        vk = []
-        for i in range(mk):
-            Jk_ii = Jk[i, i]
-            if hasattr(Jk_ii, 'radical_expression'):
-                Jk_ii = Jk_ii.radical_expression()
+        # Form block Mk and insert it in M
+        Mk = matrix(SR, [[SR.zero()]*i + vk[:nk-i] for i in range(nk)])
+        M.set_block(block_start[k], block_start[k], Mk)
 
-            # corresponds to \frac{D^i(f)}{i!}, with f = x^n and D the differential operator wrt x
-            vk += [(binomial(n, i) * Jk_ii**(n-i)).simplify_full()]
-
-        # insert vk into each row (above the main diagonal)
-        FJ.set_block(k, k, matrix(SR, [[SR.zero()]*i + vk[0:mk-i] for i in range(mk)]))
-
-    # we change the entries of P and P^-1 into symbolic expressions
+    # Change entries of P and P^-1 into symbolic expressions
     if not got_SR:
         Pinv = (~P).apply_map(AlgebraicNumber.radical_expression)
         P = P.apply_map(AlgebraicNumber.radical_expression)
     else:
         Pinv = ~P
 
-    return P * FJ * Pinv
+    return P * M * Pinv

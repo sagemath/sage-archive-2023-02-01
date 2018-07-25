@@ -104,8 +104,8 @@ from __future__ import absolute_import
 from cysignals.memory cimport check_malloc, sig_free
 from cysignals.signals cimport sig_check, sig_on, sig_str, sig_off
 
-from collections import Iterator, Sequence
 cimport sage.matrix.matrix_dense as matrix_dense
+from .args cimport SparseEntry, MatrixArgs_init
 from libc.stdio cimport *
 from sage.structure.element cimport (Matrix, Vector,
                                      ModuleElement, Element)
@@ -115,6 +115,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.misc import verbose, get_verbose, cputime
 from sage.modules.free_module import VectorSpace
 from sage.modules.vector_mod2_dense cimport Vector_mod2_dense
+from sage.cpython.string cimport bytes_to_str, char_to_str, str_to_bytes
+from sage.cpython.string import FS_ENCODING
 
 cdef extern from "gd.h":
     ctypedef struct gdImagePtr "gdImagePtr":
@@ -149,27 +151,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
     """
     Dense matrix over GF(2).
     """
-    def __cinit__(self, parent, entries, copy, coerce, alloc=True):
+    def __cinit__(self):
         """
-        Dense matrix over GF(2) constructor.
-
-        INPUT:
-
-        - ``parent`` - MatrixSpace.
-        - ``entries`` - may be list or 0 or 1
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced to ints % 2
-
-        EXAMPLES::
-
-            sage: type(random_matrix(GF(2),2,2))
-            <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
-
-            sage: Matrix(GF(2),3,3,1) # indirect doctest
-            [1 0 0]
-            [0 1 0]
-            [0 0 1]
-
         TESTS:
 
         See :trac:`10858`::
@@ -198,16 +181,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             ...
             OverflowError: ...
         """
-        matrix_dense.Matrix_dense.__init__(self, parent)
-
         # m4ri assumes that nrows and ncols are of type rci_t:
         # check for overflow
         cdef rci_t rci_nrows = self._nrows
         cdef rci_t rci_ncols = self._ncols
         if <Py_ssize_t>(rci_nrows) != self._nrows:
-            raise OverflowError(f"matrices with {self._nrows} rows over {parent.base()} are not supported")
+            raise OverflowError(f"matrices with {self._nrows} rows over {self._base_ring} are not supported")
         if <Py_ssize_t>(rci_ncols) != self._ncols:
-            raise OverflowError(f"matrices with {self._ncols} columns over {parent.base()} are not supported")
+            raise OverflowError(f"matrices with {self._ncols} columns over {self._base_ring} are not supported")
 
         sig_str("matrix allocation failed")
         self._entries = mzd_init(self._nrows, self._ncols)
@@ -222,16 +203,20 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mzd_free(self._entries)
             self._entries = NULL
 
-    def __init__(self, parent, entries, copy, coerce):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         """
-        Dense matrix over GF(2) constructor.
+        Construct a dense matrix over GF(2).
 
         INPUT:
 
-        - ``parent`` - MatrixSpace.
-        - ``entries`` - may be list or 0 or 1
-        - ``copy`` - ignored, elements are always copied
-        - ``coerce`` - ignored, elements are always coerced to ints % 2
+        - ``parent`` -- a matrix space over ``GF(2)``
+
+        - ``entries`` -- see :func:`matrix`
+
+        - ``copy`` -- ignored (for backwards compatibility)
+
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         EXAMPLES::
 
@@ -265,32 +250,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: Matrix(GF(2),0,2)
             []
         """
-        cdef int i,j,e
-
-        if entries is None:
-            return
-
-        R = self.base_ring()
-
-        # scalar ?
-        if not isinstance(entries, (Iterator, Sequence)):
-            if self._nrows and self._ncols and R(entries) == 1:
-                mzd_set_ui(self._entries, 1)
-            return
-
-        # all entries are given as a long iterable
-        if not isinstance(entries, (list, tuple)):
-            entries = list(entries)
-        if len(entries) != self._nrows * self._ncols:
-            raise IndexError("The vector of entries has the wrong length.")
-
-        k = 0
-
-        for i from 0 <= i < self._nrows:
-            sig_check()
-            for j from 0 <= j < self._ncols:
-                mzd_write_bit(self._entries,i,j, R(entries[k]))
-                k = k + 1
+        ma = MatrixArgs_init(parent, entries)
+        for t in ma.iter(coerce, True):
+            se = <SparseEntry>t
+            mzd_write_bit(self._entries, se.i, se.j, se.entry)
 
     cdef long _hash_(self) except -1:
         r"""
@@ -416,12 +379,12 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: B.str(zero='.')
             '[. 1 .]\n[. 1 1]\n[. . .]'
         """
-        if self._nrows ==0 or self._ncols == 0:
+        if self._nrows == 0 or self._ncols == 0:
             return "[]"
 
         cdef int i,j, last_i
         cdef list s = []
-        empty_row = " "*(self._ncols*2-1)
+        empty_row = b' '*(self._ncols*2-1)
         cdef char *row_s
         cdef char *div_s
 
@@ -434,19 +397,19 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef list row_div, col_div
         if self._subdivisions is not None:
             row_s = empty_row
-            div_s = row_divider = b"[%s]" % ("-" * (self._ncols*2-1))
+            div_s = row_divider = b'[' + (b'-' * (self._ncols*2-1)) + b']'
             row_div, col_div = self.subdivisions()
             last_i = 0
             for i in col_div:
                 if i == last_i or i == self._ncols:
                     # Adjacent column divisions messy, use generic code
                     return matrix_dense.Matrix_dense.str(self, rep_mapping)
-                row_s[2*i-1] = '|'
-                div_s[2*i] = '+'
+                row_s[2*i-1] = c'|'
+                div_s[2*i] = c'+'
                 last_i = i
 
         for i from 0 <= i < self._nrows:
-            row_s = row = b"[%s]" % empty_row
+            row_s = row = b'[' + empty_row + b']'
             for j from 0 <= j < self._ncols:
                 row_s[1+2*j] = c'0' + mzd_read_bit(self._entries,i,j)
             s.append(row)
@@ -455,7 +418,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i in reversed(row_div):
                 s.insert(i, row_divider)
 
-        return "\n".join(s)
+        return bytes_to_str(b"\n".join(s))
 
     def row(self, Py_ssize_t i, from_list=False):
         """
@@ -1775,8 +1738,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     k += 1
             sig_off()
             s[k-1] = <char>0
-            data = str(s)
+            data = char_to_str(s)
             sig_free(s)
+
         return data
 
     def density(self, approx=False):
@@ -2059,6 +2023,9 @@ def from_png(filename):
     fn = open(filename,"r") # check filename
     fn.close()
 
+    if type(filename) is not bytes:
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+
     cdef FILE *f = fopen(filename, "rb")
     sig_on()
     cdef gdImagePtr im = gdImageCreateFromPng(f)
@@ -2098,8 +2065,13 @@ def to_png(Matrix_mod2_dense A, filename):
     r, c = A.nrows(), A.ncols()
     if r == 0 or c == 0:
         raise TypeError("Cannot write image with dimensions %d x %d"%(c,r))
-    fn = open(filename,"w") # check filename
+
+    fn = open(filename, "w") # check filename
     fn.close()
+
+    if type(filename) is not bytes:
+        filename = str_to_bytes(filename, FS_ENCODING, 'surrogateescape')
+
     cdef gdImagePtr im = gdImageCreate(c, r)
     cdef FILE * out = fopen(filename, "wb")
     cdef int black = gdImageColorAllocate(im, 0, 0, 0)

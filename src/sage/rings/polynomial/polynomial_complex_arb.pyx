@@ -2,7 +2,7 @@
 r"""
 Univariate polynomials over `\CC` with interval coefficients using Arb.
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+This is a binding to the `Arb library <http://arblib.org>`_; it
 may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -30,7 +30,6 @@ from sage.rings.integer cimport Integer, smallInteger
 from sage.rings.complex_arb cimport ComplexBall
 from sage.structure.element cimport Element
 
-from sage.rings.complex_arb import ComplexBallField
 from sage.structure.element import coerce_binop
 
 cdef inline long prec(Polynomial_complex_arb pol):
@@ -38,7 +37,7 @@ cdef inline long prec(Polynomial_complex_arb pol):
 
 cdef class Polynomial_complex_arb(Polynomial):
     r"""
-    Wrapper for `Arb <http://fredrikj.net/arb/>`_ polynomials of type
+    Wrapper for `Arb <http://arblib.org>`_ polynomials of type
     ``acb_poly_t``
 
     EXAMPLES::
@@ -543,7 +542,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (1 - x/3).inverse_series_trunc(3)
             ([0.1111111111111111 +/- 5.99e-17])*x^2 + ([0.3333333333333333 +/- 7.04e-17])*x + 1.000000000000000
             sage: x.inverse_series_trunc(1)
-            [+/- inf]
+            nan
             sage: Pol(0).inverse_series_trunc(2)
             (nan + nan*I)*x + nan + nan*I
 
@@ -577,7 +576,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: (x^2 + 1)._power_trunc(10^20, 0)
             Traceback (most recent call last):
                 ...
-            OverflowError: long int too large to convert
+            OverflowError: ... int too large to convert...
 
         TESTS::
 
@@ -671,7 +670,7 @@ cdef class Polynomial_complex_arb(Polynomial):
             sage: pol._sqrt_series(2)
             ([+/- 7.51e-3] + [+/- 0.501]*I)*x + [+/- 5.01e-3] + [+/- 1.01]*I
             sage: x._sqrt_series(2)
-            ([+/- inf] + [+/- inf]*I)*x
+            (nan + nan*I)*x
         """
         cdef Polynomial_complex_arb res = self._new()
         if n < 0:

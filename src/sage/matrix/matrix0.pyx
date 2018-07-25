@@ -34,6 +34,7 @@ import sage.rings.integer
 from sage.arith.power cimport generic_power
 from sage.misc.misc import verbose, get_verbose
 from sage.structure.sequence import Sequence
+from sage.structure.parent cimport Parent
 
 cimport sage.structure.element
 from sage.structure.element cimport ModuleElement, Element, RingElement, Vector
@@ -93,20 +94,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         [1]
         [2]
     """
-    def __cinit__(self):
-        self.hash = -1
-
-    def __init__(self, parent):
+    def __cinit__(self, parent, *args, **kwds):
         """
         The initialization routine of the ``Matrix`` base class ensures
         that it sets the attributes ``self._parent``, ``self._base_ring``,
-        ``self._nrows``, ``self._ncols``. It sets the latter ones by
-        accessing the relevant information on ``parent``, which is often
-        slower than what a more specific subclass can do.
-
-        Subclasses of ``Matrix`` can safely skip calling
-        ``Matrix.__init__`` provided they take care of initializing these
-        attributes themselves.
+        ``self._nrows``, ``self._ncols``.
 
         The private attributes ``self._is_immutable`` and ``self._cache``
         are implicitly initialized to valid values upon memory allocation.
@@ -118,10 +110,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: type(A)
             <type 'sage.matrix.matrix0.Matrix'>
         """
-        self._parent = parent
-        self._base_ring = parent.base_ring()
-        self._nrows = parent.nrows()
-        self._ncols = parent.ncols()
+        P = <Parent?>parent
+        self._parent = P
+        self._base_ring = P._base
+        self._nrows = P.nrows()
+        self._ncols = P.ncols()
+        self.hash = -1
 
     def list(self):
         """
@@ -3488,7 +3482,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         cdef Py_ssize_t i,j,_
         cdef list pairs, k0_pairs, k1_pairs
@@ -3594,7 +3589,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         cdef dict d = {}
         cdef list queue = list(xrange(self._ncols))
@@ -4048,7 +4044,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4099,7 +4096,8 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. Cluster Algebras 1: Foundations, arXiv:math/0104151 (2001).
+        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
+          :arxiv:`math/0104151` (2001).
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -5254,6 +5252,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             [                              1  422550200076076467165567735125]
             [1267650600228229401496703205375  422550200076076467165567735126]
 
+        Matrices over p-adics. See :trac:`17272` ::
+        
+            sage: R = ZpCA(5,5,print_mode='val-unit')
+            sage: A = matrix(R,3,3,[250,2369,1147,106,927,362,90,398,2483])
+            sage: A
+            [5^3 * 2 + O(5^5)    2369 + O(5^5)    1147 + O(5^5)]
+            [    106 + O(5^5)     927 + O(5^5)     362 + O(5^5)]
+            [ 5 * 18 + O(5^5)     398 + O(5^5)    2483 + O(5^5)]
+            sage: ~A
+            [5 * 212 + O(5^5)    3031 + O(5^5)    2201 + O(5^5)]
+            [   1348 + O(5^5) 5 * 306 + O(5^5)    2648 + O(5^5)]
+            [   1987 + O(5^5) 5 * 263 + O(5^5)     154 + O(5^5)]
+            
         This matrix isn't invertible::
 
             sage: m = matrix(Zmod(9),2,[2,1,3,3])

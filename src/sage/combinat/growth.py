@@ -484,6 +484,7 @@ from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.skew_tableau import SkewTableau
 from sage.combinat.core import Core, Cores
 from sage.combinat.k_tableau import WeakTableau, StrongTableau
+from sage.combinat.shifted_primed_tableau import ShiftedPrimedTableau
 from copy import copy
 from sage.graphs.digraph import DiGraph
 
@@ -887,13 +888,24 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagram(BinaryWord, [4, 1, 2, 3])
             sage: G.P_chain()
             [word: , word: 1, word: 11, word: 111, word: 1011]
+
+        Check that :trac:`25631` is fixed::
+
+            sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinaryWord(filling = {}).P_chain()
+            [word: ]
+
         """
         if not self.is_rectangular():
             raise ValueError("the P symbol is only defined for rectangular shapes")
-        if self.rule.has_multiple_edges:
-            return self._out_labels[(2*self._lambda[0]):][::-1]
+        if self._lambda:
+            if self.rule.has_multiple_edges:
+                r = 2*self._lambda[0]
+            else:
+                r = self._lambda[0]
         else:
-            return self._out_labels[self._lambda[0]:][::-1]
+            r = 0
+        return self._out_labels[r:][::-1]
 
     def Q_chain(self):
         r"""
@@ -906,13 +918,24 @@ class GrowthDiagram(SageObject):
             sage: G = GrowthDiagram(BinaryWord, [[0,1,0,0], [0,0,1,0], [0,0,0,1], [1,0,0,0]])
             sage: G.Q_chain()
             [word: , word: 1, word: 10, word: 101, word: 1011]
+
+        Check that :trac:`25631` is fixed::
+
+            sage: BinaryWord = GrowthDiagram.rules.BinaryWord()
+            sage: BinaryWord(filling = {}).Q_chain()
+            [word: ]
+
         """
         if not self.is_rectangular():
             raise ValueError("the Q symbol is only defined for rectangular shapes")
-        if self.rule.has_multiple_edges:
-            return self._out_labels[:(2*self._lambda[0]+1)]
+        if self._lambda:
+            if self.rule.has_multiple_edges:
+                r = 2*self._lambda[0]+1
+            else:
+                r = self._lambda[0]+1
         else:
-            return self._out_labels[:self._lambda[0]+1]
+            r = 1
+        return self._out_labels[:r]
 
     def is_rectangular(self):
         r"""
@@ -1821,8 +1844,11 @@ class Rule(UniqueRepresentation):
 class RuleShiftedShapes(Rule):
     r"""
     A class modelling the Schensted correspondence for shifted
-    shapes, which agrees with Sagan and Worley's and Haiman's
-    insertion algorithms.
+    shapes.
+
+    This agrees with Sagan [Sag1987]_ and Worley's [Wor1984]_, and
+    Haiman's [Hai1989]_ insertion algorithms, see Proposition 4.5.2
+    of [Fom1995]_.
 
     EXAMPLES::
 
@@ -1954,6 +1980,114 @@ class RuleShiftedShapes(Rule):
         if self.rank(v) + 1 != self.rank(w):
             return []
         return [0] if w.contains(v) else []
+
+    def P_symbol(self, P_chain):
+        r"""
+        Return the labels along the vertical boundary of a rectangular
+        growth diagram as a shifted tableau.
+
+        EXAMPLES:
+
+        Check the example just before Corollary 3.2 in [Sag1987]_::
+
+            sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
+            sage: G = Shifted([2,6,5,1,7,4,3])
+            sage: G.P_symbol().pp()
+            1  2  3  6  7
+               4  5
+
+        Check the example just before Corollary 8.2 in [SS1990]_::
+
+            sage: T = ShiftedPrimedTableau([[4],[1],[5]], skew=[3,1])
+            sage: T.pp()
+             .  .  .  4
+                .  1
+                   5
+            sage: U = ShiftedPrimedTableau([[1],[3.5],[5]], skew=[3,1])
+            sage: U.pp()
+             .  .  .  1
+                .  4'
+                   5
+            sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
+            sage: labels = [mu if is_even(i) else 0 for i, mu in enumerate(T.to_chain()[::-1])] + U.to_chain()[1:]
+            sage: G = Shifted({(1,2):1, (2,1):1}, shape=[5,5,5,5,5], labels=labels)
+            sage: G.P_symbol().pp()
+             .  .  .  .  2
+                .  .  1  3
+                   .  4  5
+
+        """
+        chain = P_chain[::2]
+        shape = chain[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,len(chain)):
+            la = chain[i]
+            mu = chain[i-1]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i
+
+        skew = _Partitions([row.count(None) for row in T])
+        T = [[e for e in row if e is not None] for row in T]
+        return ShiftedPrimedTableau(T, skew=skew)
+
+    def Q_symbol(self, Q_chain):
+        r"""
+        Return the labels along the horizontal boundary of a rectangular
+        growth diagram as a skew tableau.
+
+        EXAMPLES:
+
+        Check the example just before Corollary 3.2 in [Sag1987]_::
+
+            sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
+            sage: G = Shifted([2,6,5,1,7,4,3])
+            sage: G.Q_symbol().pp()
+            1  2  4' 5  7'
+               3  6'
+
+        Check the example just before Corollary 8.2 in [SS1990]_::
+
+            sage: T = ShiftedPrimedTableau([[4],[1],[5]], skew=[3,1])
+            sage: T.pp()
+             .  .  .  4
+                .  1
+                   5
+            sage: U = ShiftedPrimedTableau([[1],[3.5],[5]], skew=[3,1])
+            sage: U.pp()
+             .  .  .  1
+                .  4'
+                   5
+            sage: Shifted = GrowthDiagram.rules.ShiftedShapes()
+            sage: labels = [mu if is_even(i) else 0 for i, mu in enumerate(T.to_chain()[::-1])] + U.to_chain()[1:]
+            sage: G = Shifted({(1,2):1, (2,1):1}, shape=[5,5,5,5,5], labels=labels)
+            sage: G.Q_symbol().pp()
+             .  .  .  .  2
+                .  .  1  4'
+                   .  3' 5'
+
+        """
+        chain = Q_chain
+        shape = chain[-1]
+        T = [[None for _ in range(r)] for r in shape]
+        for i in range(1,(len(chain)+1)//2):
+            la = chain[2*i]
+            if chain[2*i-1] == 3:
+                prime = 0.5
+            else:
+                prime = 0
+            mu = chain[2*(i-1)]
+            mu += [0]*(len(la) - len(mu))
+
+            for r in range(len(la)):
+                for c in range(mu[r], la[r]):
+                    T[r][c] = i - prime
+
+        skew = _Partitions([row.count(None) for row in T])
+        T = [[e for e in row if e is not None] for row in T]
+        return ShiftedPrimedTableau(T, skew=skew)
 
     def forward_rule(self, y, e, t, f, x, content):
         r"""
@@ -3888,7 +4022,7 @@ class RuleDomino(Rule):
 
         sage: pi = [3,-1,2,4,-5]
         sage: G = Domino(pi)
-        sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
@@ -3919,7 +4053,7 @@ class RuleDomino(Rule):
 
     Check the color-to-spin property for all permutations of size 4::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: all(list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         ....:     for G in l.values())
         True
 

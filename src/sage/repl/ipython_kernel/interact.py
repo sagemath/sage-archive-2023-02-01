@@ -33,8 +33,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ipywidgets.widgets import SelectionSlider, ValueWidget
-from ipywidgets.widgets.interaction import interactive, signature, ValueWidget
+from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
+from ipywidgets.widgets.interaction import interactive, signature
 from copy import copy
 from collections import Iterable, Iterator
 from .widgets import EvalText, SageColorPicker
@@ -101,6 +101,12 @@ class sage_interactive(interactive):
         if self.manual:
             # In Sage, manual interacts are always run once
             self.on_displayed(self.update)
+        else:
+            # In automatic mode, clicking on a ToggleButtons button
+            # should also run the interact
+            for widget in self.kwargs_widgets:
+                if isinstance(widget, ToggleButtons):
+                    widget.on_msg(self.update)
 
     def __repr__(self):
         """
@@ -131,8 +137,10 @@ class sage_interactive(interactive):
 
             sage: from sage.repl.ipython_kernel.interact import sage_interactive
             sage: def myfunc(x=[1,2,3], auto_update=False): pass
-            sage: sage_interactive(myfunc).signature().parameters
+            sage: sage_interactive(myfunc).signature().parameters  # py2
             OrderedDict([('x', <Parameter ... 'x'>)])
+            sage: sage_interactive(myfunc).signature().parameters  # py3
+            mappingproxy({'x': <Parameter "x=[1, 2, 3]">})
         """
         return self.__signature
 

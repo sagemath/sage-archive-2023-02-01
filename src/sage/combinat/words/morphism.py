@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 r"""
 Word morphisms/substitutions
 
@@ -1000,7 +999,7 @@ class WordMorphism(SageObject):
             return self
 
         else:
-            nexp = int(exp / 2)
+            nexp = int(exp // 2)
             over = exp % 2
             res = (self * self) ** nexp
             if over == 1:
@@ -1261,7 +1260,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('6->ab,y->5,0->asd').images()
             [word: 5, word: asd, word: ab]
         """
-        return self._morph.values()
+        return list(six.itervalues(self._morph))
 
     def reversal(self):
         r"""
@@ -1604,23 +1603,7 @@ class WordMorphism(SageObject):
         """
         if not self.is_endomorphism():
             raise TypeError("self (=%s) is not an endomorphism"%self)
-        m = self.incidence_matrix()
-        power = m
-        order = 1
-        dim = self.domain().alphabet().cardinality()
-        max_order = (dim-1)**2 + 1
-        while True:
-            l = power.list()
-            if len(l) == 0:
-                return False
-            try:
-                l.index(0)
-            except ValueError:
-                return True
-            if order > max_order:
-                return False
-            power *= power
-            order += order
+        return self.incidence_matrix().is_primitive()
 
     def is_prolongable(self, letter):
         r"""

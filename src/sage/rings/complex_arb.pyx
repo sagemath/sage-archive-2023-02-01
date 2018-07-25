@@ -2,7 +2,7 @@
 r"""
 Arbitrary precision complex balls using Arb
 
-This is a binding to the `Arb library <http://fredrikj.net/arb/>`_; it
+This is a binding to the `Arb library <http://arblib.org>`_; it
 may be useful to refer to its documentation for more details.
 
 Parts of the documentation for this module are copied or adapted from
@@ -49,15 +49,20 @@ Comparison
     x*x`` sets `z` to a ball enclosing the set `\{t^2 : t \in x\}` and not the
     (generally larger) set `\{tu : t \in x, u \in x\}`.
 
-Two elements are equal if and only if they are the same object
-or if both are exact and equal::
+Two elements are equal if and only if they are exact and equal (in spite of the
+above warning, inexact balls are not considered equal to themselves)::
 
     sage: a = CBF(1, 2)
     sage: b = CBF(1, 2)
     sage: a is b
     False
+    sage: a == a
+    True
     sage: a == b
     True
+
+::
+
     sage: a = CBF(1/3, 1/5)
     sage: b = CBF(1/3, 1/5)
     sage: a.is_exact()
@@ -65,6 +70,8 @@ or if both are exact and equal::
     sage: b.is_exact()
     False
     sage: a is b
+    False
+    sage: a == a
     False
     sage: a == b
     False
@@ -136,13 +143,12 @@ Classes and Methods
 #*****************************************************************************
 from __future__ import absolute_import
 
-import operator
+import operator, sys, warnings
 from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
 import sage.rings.number_field.number_field as number_field
 
-cimport sage.rings.integer
 cimport sage.rings.rational
 
 from cpython.float cimport PyFloat_AS_DOUBLE
@@ -152,24 +158,27 @@ from cpython.complex cimport PyComplex_FromDoubles
 
 from sage.ext.stdsage cimport PY_NEW
 
-from sage.libs.mpfr cimport MPFR_RNDU
+from sage.libs.mpfr cimport MPFR_RNDU, MPFR_RNDD, MPFR_PREC_MIN, mpfr_get_d_2exp
 from sage.libs.arb.types cimport ARF_RND_NEAR
 from sage.libs.arb.arb cimport *
 from sage.libs.arb.acb cimport *
+from sage.libs.arb.acb_calc cimport *
 from sage.libs.arb.acb_hypgeom cimport *
+from sage.libs.arb.acb_elliptic cimport *
 from sage.libs.arb.acb_modular cimport *
+from sage.libs.arb.acb_poly cimport *
 from sage.libs.arb.arf cimport arf_init, arf_get_d, arf_get_mpfr, arf_set_mpfr, arf_clear, arf_set_mag, arf_set, arf_is_nan
-from sage.libs.arb.mag cimport mag_init, mag_clear, mag_add, mag_set_d, MAG_BITS, mag_is_inf, mag_is_finite, mag_zero
+from sage.libs.arb.mag cimport (mag_init, mag_clear, mag_add, mag_set_d,
+        MAG_BITS, mag_is_inf, mag_is_finite, mag_zero, mag_set_ui_2exp_si,
+        mag_mul_2exp_si)
 from sage.libs.flint.fmpz cimport fmpz_t, fmpz_init, fmpz_get_mpz, fmpz_set_mpz, fmpz_clear, fmpz_abs
 from sage.libs.flint.fmpq cimport fmpq_t, fmpq_init, fmpq_set_mpq, fmpq_clear
 from sage.libs.gmp.mpz cimport mpz_fits_ulong_p, mpz_fits_slong_p, mpz_get_ui, mpz_get_si, mpz_sgn
 from sage.libs.gsl.complex cimport gsl_complex_rect
-
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.complex_double cimport ComplexDoubleElement
-from sage.rings.complex_field import ComplexField
-from sage.rings.complex_interval_field import ComplexIntervalField
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer cimport Integer
+from sage.rings.polynomial.polynomial_complex_arb cimport Polynomial_complex_arb
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
@@ -177,6 +186,10 @@ from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
 from sage.structure.parent cimport Parent
 from sage.structure.unique_representation import UniqueRepresentation
+
+from sage.rings.complex_field import ComplexField
+from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.integer_ring import ZZ
 
 cdef void ComplexIntervalFieldElement_to_acb(
     acb_t target,
@@ -221,6 +234,72 @@ cdef int acb_to_ComplexIntervalFieldElement(
     arb_to_mpfi(target.__im, acb_imagref(source), precision)
     return 0
 
+cdef class IntegrationContext:
+    r"""
+    Used to wrap the integrand and hold some context information during
+    numerical integration.
+    """
+    cdef object f
+    cdef object parent
+    cdef object exn_type
+    cdef object exn_obj
+    cdef object exn_tb
+
+cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param,
+        long order, long prec):
+    r"""
+    Callback used for numerical integration
+
+    TESTS::
+
+        sage: CBF.integral(lambda x, flag: 24, 0, 2)
+        48.00000000000000
+
+        sage: CBF.integral(lambda x, flag: "a", 0, 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: no canonical coercion ... to Complex ball field with 53 bits
+        of precision
+
+        sage: def foo(*args):
+        ....:     raise RuntimeError
+        sage: CBF.integral(foo, 0, 2)
+        Traceback (most recent call last):
+        ...
+        RuntimeError
+
+        sage: points = []
+        sage: def foo(x, flag):
+        ....:     points.append(x)
+        ....:     return x
+        sage: CBF.integral(foo, 0, 1)
+        [0.50000000000000...]
+        sage: points
+        [[+/- 1.01], ..., [0.788...], [0.211...]]
+    """
+    cdef IntegrationContext ctx
+    cdef ComplexBall x
+    sig_off()
+    try:
+        ctx = <IntegrationContext>param
+        if ctx.exn_type is not None or order >= 2:
+            acb_indeterminate(out)
+            return 0
+        x = ComplexBall.__new__(ComplexBall)
+        assert prec == ctx.parent._prec
+        x._parent = ctx.parent
+        acb_set(x.value, inp)
+        try:
+            y = ctx.f(x, (order == 1))
+            if not isinstance(y, ComplexBall):
+                y = ctx.parent.coerce(y)
+            acb_set(out, (<ComplexBall> y).value)
+        except:
+            ctx.exn_type, ctx.exn_obj, ctx.exn_tb = sys.exc_info()
+            acb_indeterminate(out)
+        return 0
+    finally:
+        sig_on()
 
 class ComplexBallField(UniqueRepresentation, Field):
     r"""
@@ -641,9 +720,209 @@ class ComplexBallField(UniqueRepresentation, Field):
              [+/- inf] + nan*I]
         """
         return [self(1), self(0, -1./2), self(1, 1./3), self(-1./3, 1./4),
-                -self(1, 1)**(sage.rings.integer.Integer(2)**80),
+                -self(1, 1)**(Integer(2)**80),
                 self('inf'), self(1./3, 'inf'), self('inf', 'inf'),
                 self('nan'), self('nan', 'nan'), self('inf', 'nan')]
+
+    def _roots_univariate_polynomial(self, pol, ring, multiplicities,
+                                     algorithm, proof=True):
+        r"""
+        Compute the roots of ``pol``.
+
+        This method is used internally by the
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.roots`
+        method of polynomials with complex ball coefficients. See its
+        documentation for details.
+
+        EXAMPLES::
+
+            sage: import warnings
+            sage: warnings.simplefilter("always")
+
+            sage: Pol.<x> = CBF[]
+            sage: i = CBF.gen(0)
+
+            sage: (x^4 - 1/3).roots()
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial with interval coefficients, use multiplicities=False
+
+            sage: (x^4 - 1/3).roots(multiplicities=False) # indirect doctest
+            [[-0.759835685651593 +/- 5.90e-16] + [+/- 1.27e-16]*I,
+             [0.759835685651593 +/- 5.90e-16] + [+/- 1.27e-16]*I,
+             [+/- 1.27e-16] + [0.759835685651593 +/- 5.90e-16]*I,
+             [+/- 1.27e-16] + [-0.759835685651593 +/- 5.90e-16]*I]
+
+            sage: (x^4 - 1/3).roots(RBF, multiplicities=False)
+            [[-0.759835685651593 +/- 5.90e-16], [0.759835685651593 +/- 5.90e-16]]
+
+            sage: (x^4 - 3).roots(RealBallField(100), multiplicities=False)
+            [[-1.316074012952492460819218901797 +/- 9.7e-34],
+             [1.316074012952492460819218901797 +/- 9.7e-34]]
+
+            sage: (x^4 - 3).roots(ComplexIntervalField(100), multiplicities=False)
+            [-1.31607401295249246081921890180? + 0.?e-37*I,
+             1.31607401295249246081921890180? + 0.?e-37*I,
+             0.?e-37 + 1.31607401295249246081921890180?*I,
+             0.?e-37 - 1.31607401295249246081921890180?*I]
+
+            sage: (x^2 - i/3).roots(ComplexBallField(2), multiplicities=False)
+            [[+/- 0.409] + [+/- 0.409]*I, [+/- 0.409] + [+/- 0.409]*I]
+
+            sage: ((x - 1)^2).roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to isolate the roots (try using proof=False or
+            increasing the precision)
+            sage: ((x - 1)^2).roots(multiplicities=False, proof=False)
+            doctest:...
+            UserWarning: roots may have been lost...
+            [[1.00000000000 +/- 8.43e-12] + [+/- 1.01e-11]*I,
+             [1.0000000000 +/- 5.22e-12] + [+/- 6.20e-12]*I]
+
+            sage: pol = x^7 - 2*(1000*x - 1)^2 # Mignotte polynomial
+            sage: pol.roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to isolate the roots (try using proof=False or
+            increasing the precision)
+            sage: sorted(pol.roots(multiplicities=False, proof=False), key=str)
+            doctest:...
+            UserWarning: roots may have been lost...
+            [[-14.72907378354557 +/- 4.63e-15] + [-10.70100790294238 +/- 2.16e-15]*I,
+             [-14.72907378354557 +/- 4.63e-15] + [10.70100790294238 +/- 2.16e-15]*I,
+             [0.00100000 +/- 1.56e-10] + [+/- 1.27e-10]*I,
+             [0.001000000 +/- 2.52e-10] + [+/- 2.05e-10]*I,
+             [18.20524201487994 +/- 1.22e-15] + [+/- 5.75e-37]*I,
+             [5.625452776105595 +/- 2.29e-16] + [-17.31459450084417 +/- 4.09e-15]*I,
+             [5.625452776105595 +/- 2.29e-16] + [17.31459450084417 +/- 4.09e-15]*I]
+            sage: pol.roots(ComplexBallField(100), multiplicities=False)
+            [[0.00099999999997763932022675...] + [+/- ...]*I,
+             ...]
+
+            sage: ((x - 1)^2 + 2^(-70)*i/3).roots(RBF, multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to determine which roots are real
+        """
+        if algorithm is not None:
+            raise NotImplementedError
+        if multiplicities:
+            raise ValueError("polynomial with interval coefficients, "
+                             "use multiplicities=False")
+
+        cdef bint real = False
+        if ring is None:
+            ring = self
+        elif isinstance(ring, ComplexBallField):
+            pass
+        elif isinstance(ring, RealBallField):
+            real = True
+        elif ring.has_coerce_map_from(self):
+            pass
+        elif (ring.has_coerce_map_from(self._base)
+                and RealField(MPFR_PREC_MIN).has_coerce_map_from(ring)):
+            real = True
+        else:
+            raise NotImplementedError
+
+        cdef Polynomial_complex_arb poly = <Polynomial_complex_arb?> pol
+        cdef acb_poly_t rounded_poly
+        cdef long tgtprec = ring.precision()
+        cdef long maxprec = 3*max(poly._parent._base._prec, tgtprec)
+        cdef long initial_prec = min(32, maxprec)
+        cdef long prec = initial_prec
+        cdef long isolated = 0
+        cdef RealBall rb
+        cdef ComplexBall cb
+        acb_poly_init(rounded_poly)
+        cdef long deg = acb_poly_degree(poly.__poly)
+        cdef acb_ptr roots = _acb_vec_init(deg)
+        try:
+            sig_on()
+            while ((isolated < deg or any(acb_rel_accuracy_bits(&roots[i]) < tgtprec
+                                        for i in range(deg)))
+                and prec < maxprec):
+                acb_poly_set_round(rounded_poly, poly.__poly, prec)
+                maxiter = min(max(deg, 32), prec)
+                if (prec == initial_prec):
+                    isolated = acb_poly_find_roots(roots, rounded_poly, NULL, maxiter, prec)
+                else:
+                    isolated = acb_poly_find_roots(roots, rounded_poly, roots, maxiter, prec)
+                prec *= 2
+            sig_off()
+
+            if isolated < deg:
+                if proof:
+                    raise ValueError("unable to isolate the roots (try using "
+                            "proof=False or increasing the precision)")
+                else:
+                    warnings.warn("roots may have been lost")
+
+            _acb_vec_sort_pretty(roots, deg)
+
+            res = []
+            if real:
+                if not acb_poly_validate_real_roots(roots, rounded_poly, prec):
+                    raise ValueError("unable to determine which roots are real")
+                for i in range(deg):
+                    if arb_contains_zero(acb_imagref(&roots[i])):
+                        rb = RealBall.__new__(RealBall)
+                        rb._parent = self._base
+                        arb_set(rb.value, acb_realref(&roots[i]))
+                        res.append(ring(rb))
+            else:
+                for i in range(deg):
+                    cb = ComplexBall.__new__(ComplexBall)
+                    cb._parent = self
+                    acb_set(cb.value, &roots[i])
+                    res.append(ring(cb))
+        finally:
+            _acb_vec_clear(roots, deg)
+            acb_poly_clear(rounded_poly)
+        return res
+
+    def _sum_of_products(self, terms):
+        r"""
+        Compute a sum of product of complex balls without creating temporary
+        Python objects
+
+        The input objects should be complex balls, but need not belong to this
+        parent. The computation is performed at the precision of this parent.
+
+        EXAMPLES::
+
+            sage: Pol.<x> = ComplexBallField(1000)[]
+            sage: pol = (x + 1/3)^100
+            sage: CBF._sum_of_products((c, c) for c in pol)
+            [6.3308767660842e+23 +/- 4.59e+9]
+
+        TESTS::
+
+            sage: CBF._sum_of_products([])
+            0
+            sage: CBF._sum_of_products([[]])
+            1.000000000000000
+            sage: CBF._sum_of_products([["a"]])
+            Traceback (most recent call last):
+            ...
+            TypeError: Cannot convert str to sage.rings.complex_arb.ComplexBall
+        """
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        cdef ComplexBall factor
+        cdef acb_t tmp
+        res._parent = self
+        acb_zero(res.value)
+        acb_init(tmp)
+        try:
+            for term in terms:
+                acb_one(tmp)
+                for factor in term:
+                    acb_mul(tmp, tmp, factor.value, self._prec)
+                acb_add(res.value, res.value, tmp, self._prec)
+        finally:
+            acb_clear(tmp)
+        return res
 
     # Constants
 
@@ -669,6 +948,262 @@ class ComplexBallField(UniqueRepresentation, Field):
         if _do_sig(self._prec): sig_off()
         return res
 
+    def integral(self, func, a, b, params=None,
+            rel_tol=None, abs_tol=None,
+            deg_limit=None, eval_limit=None, depth_limit=None,
+            use_heap=None, verbose=None):
+        r"""
+        Compute a rigorous enclosure of the integral of ``func`` on the
+        interval [``a``, ``b``].
+
+        INPUT:
+
+        - ``func`` -- a callable object accepting two parameters, a complex
+          ball ``x`` and a boolean flag ``analytic``, and returning an element
+          of this ball field (or some value that coerces into this ball field),
+          such that:
+
+          - ``func(x, False)`` evaluates the integrand `f` on the ball ``x``.
+            There are no restrictions on the behavior of `f` on ``x``; in
+            particular, it can be discontinuous.
+
+          - ``func(x, True)`` evaluates `f(x)` if  `f` is analytic on the
+            whole ``x``, and returns some non-finite ball (e.g., ``self(NaN)``)
+            otherwise.
+
+          (The ``analytic`` flag only needs to be checked for integrands that
+          are non-analytic but bounded in some regions, typically complex
+          functions with branch cuts, like `\sqrt{z}`. In particular, it can be
+          ignored for meromorphic functions.)
+
+        - ``a``, ``b`` -- integration bounds. The bounds can be real or complex
+          balls, or elements of any parent that coerces into this ball field,
+          e.g. rational or algebraic numbers.
+
+        - ``rel_tol`` (optional, default `2^{-p}` where `p` is the precision of
+          the ball field) -- relative accuracy goal
+
+        - ``abs_tol`` (optional, default `2^{-p}` where `p` is the precision of
+          the ball field) -- absolute accuracy goal
+
+        Additionally, the following optional parameters can be used to control
+        the integration algorithm. See the `Arb documentation <http://arblib.org/acb_calc.html>`_
+        for more information.
+
+        - ``deg_limit`` -- maximum quadrature degree for each
+          subinterval
+
+        - ``eval_limit`` -- maximum number of function
+          evaluations
+
+        - ``depth_limit`` -- maximum search depth for
+          adaptive subdivision
+
+        - ``use_heap`` (boolean, default ``False``) -- if ``True``, use a
+          priority queue instead of a stack to manage subintervals. This
+          sometimes gives better results for integrals with slow convergence but
+          may require more memory and increasing ``depth_limit``.
+
+        - ``verbose`` (integer, default 0) -- If set to 1, some information
+          about the overall integration process is printed to standard
+          output. If set to 2, information about each subinterval is printed.
+
+        EXAMPLES:
+
+        Some analytic integrands::
+
+            sage: CBF.integral(lambda x, _: x, 0, 1)
+            [0.500000000000000 +/- 2.09e-16]
+
+            sage: CBF.integral(lambda x, _: x.gamma(), 1 - CBF(i), 1 + CBF(i))
+            [+/- 4...e-15] + [1.5723926694981 +/- 4...e-14]*I
+
+            sage: C = ComplexBallField(100)
+            sage: C.integral(lambda x, _: x.cos() * x.sin(), 0, 1)
+            [0.35403670913678559674939205737 +/- 8.89e-30]
+
+            sage: CBF.integral(lambda x, _: (x + x.exp()).sin(), 0, 8)
+            [0.34740017266 +/- 6...e-12]
+
+            sage: C = ComplexBallField(2000)
+            sage: C.integral(lambda x, _: (x + x.exp()).sin(), 0, 8) # long time
+            [0.34740017...55347713 +/- 6.72e-598]
+
+        Here the integration path crosses the branch cut of the square root::
+
+            sage: def my_sqrt(z, analytic):
+            ....:     if (analytic and not z.real() > 0
+            ....:                  and z.imag().contains_zero()):
+            ....:         return CBF(NaN)
+            ....:     else:
+            ....:         return z.sqrt()
+            sage: CBF.integral(my_sqrt, -1 + CBF(i), -1 - CBF(i))
+            [+/- 1.14e-14] + [-0.4752076627926 +/- 5...e-14]*I
+
+        Note, though, that proper handling of the ``analytic`` flag is required
+        even when the path does not touch the branch cut::
+
+            sage: correct = CBF.integral(my_sqrt, 1, 2); correct
+            [1.21895141649746 +/- 3.73e-15]
+            sage: RBF(integral(sqrt(x), x, 1, 2))  # long time
+            [1.21895141649746 +/- 1.79e-15]
+            sage: wrong = CBF.integral(lambda z, _: z.sqrt(), 1, 2) # WRONG!
+            sage: correct - wrong
+            [-5.640636259e-5 +/- 6.80e-15]
+
+        We can integrate the real absolute value function by defining a
+        piecewise holomorphic extension::
+
+            sage: def real_abs(z, analytic):
+            ....:     if z.real().contains_zero():
+            ....:         if analytic:
+            ....:             return z.parent()(NaN)
+            ....:         else:
+            ....:             return z.union(-z)
+            ....:     elif z.real() > 0:
+            ....:         return z
+            ....:     else:
+            ....:         return -z
+            sage: CBF.integral(real_abs, -1, 1)
+            [1.00000000000...]
+            sage: CBF.integral(lambda z, analytic: real_abs(z.sin(), analytic), 0, 2*CBF.pi())
+            [4.00000000000...]
+
+        Some methods of complex balls natively support the ``analytic`` flag::
+
+            sage: CBF.integral(lambda z, analytic: z.log(analytic=analytic),
+            ....:              -1-CBF(i), -1+CBF(i))
+            [+/- 4...e-14] + [0.26394350735484 +/- 4...e-15]*I
+            sage: from sage.rings.complex_arb import ComplexBall
+            sage: CBF.integral(ComplexBall.sqrt, -1+CBF(i), -1-CBF(i))
+            [+/- 1.14e-14] + [-0.4752076627926 +/- 5...e-14]*I
+
+        Here the integrand has a pole on or very close to the integration path,
+        but there is no need to explicitly handle the ``analytic`` flag since
+        the integrand is unbounded::
+
+            sage: CBF.integral(lambda x, _: 1/x, -1, 1)
+            nan + nan*I
+            sage: CBF.integral(lambda x, _: 1/x, 10^-1000, 1)
+            nan + nan*I
+            sage: CBF.integral(lambda x, _: 1/x, 10^-1000, 1, abs_tol=1e-10)
+            [2302.5850930 +/- 1.26e-8]
+
+        Tolerances::
+
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010)
+            [+/- 2.31e-438]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=1e-450)
+            [2.304377150950e-439 +/- 9.74e-452]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, abs_tol=0)
+            [2.304377150950e-439 +/- 7...e-452]
+            sage: CBF.integral(lambda x, _: x.exp(), -1020, -1010, rel_tol=1e-2, abs_tol=0)
+            [2.30438e-439 +/- 5.94e-445]
+
+            sage: epsi = CBF(1e-10)
+            sage: CBF.integral(lambda x, _: x*(1/x).sin(), epsi, 1)
+            [0.38 +/- 8.54e-3]
+            sage: CBF.integral(lambda x, _: x*(1/x).sin(), epsi, 1, use_heap=True)
+            [0.37853002 +/- 8.73e-9]
+
+        ALGORITHM:
+
+        Uses the `acb_calc <http://arblib.org/acb_calc.html>`_ module of the Arb
+        library.
+
+        TESTS::
+
+            sage: CBF.integral(lambda x, _: x, 0, 10, rel_tol=1e-10,
+            ....:     abs_tol=1e-10, deg_limit=1, eval_limit=20, depth_limit=4,
+            ....:     use_heap=False)
+            [50.00000000 +/- 2.20e-9]
+
+            sage: i = QuadraticField(-1).gen()
+            sage: CBF.integral(lambda x, _: (1 + i*x).gamma(), -1, 1)
+            [1.5723926694981 +/- 4...e-14] + [+/- 4...e-15]*I
+
+            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, rel_tol=1e-300)
+            [0.459... +/- ...e-3...]
+            sage: CBF.integral(lambda x, _: x.sin(), 0, 100, rel_tol=10)
+            [0.138 +/- 5.53e-4]
+
+            sage: ComplexBallField(10000).integral(lambda x, _: x.sin(), 0, 1, abs_tol=1e-400)
+            [0.459697... +/- ...e-4...]
+            sage: CBF.integral(lambda x, _: x.sin(), 0, 1, abs_tol=10)
+            [+/- 0.980]
+
+            sage: ComplexBallField(100).integral(lambda x, _: sin(x), RBF(0), RBF(1))
+            [0.4596976941318602825990633926 +/- 5.09e-29]
+        """
+        cdef IntegrationContext ctx = IntegrationContext()
+        cdef acb_calc_integrate_opt_t arb_opts
+        cdef long cgoal, expo
+        cdef mag_t ctol
+        cdef RealNumber tmp
+        cdef ComplexBall ca, cb
+
+        if isinstance(a, (RealBall, ComplexBall)):
+            ca = <ComplexBall> self(a)
+        else:
+            ca = <ComplexBall> self.coerce(a)
+        if isinstance(b, (RealBall, ComplexBall)):
+            cb = <ComplexBall> self(b)
+        else:
+            cb = <ComplexBall> self.coerce(b)
+
+        mag_init(ctol)
+
+        ctx.f = func
+        ctx.parent = self
+        ctx.exn_type = None
+
+        acb_calc_integrate_opt_init(arb_opts)
+        if deg_limit is not None:
+            arb_opts.deg_limit = deg_limit
+        if eval_limit is not None:
+            arb_opts.eval_limit = eval_limit
+        if depth_limit is not None:
+            arb_opts.depth_limit = depth_limit
+        if use_heap is not None:
+            arb_opts.use_heap = use_heap
+        if verbose is not None:
+            arb_opts.verbose = verbose
+
+        RR = RealField()
+        if rel_tol is None:
+            cgoal = self._prec
+        else:
+            tmp = <RealNumber> RR(rel_tol)
+            mpfr_get_d_2exp(&cgoal, tmp.value, MPFR_RNDD)
+            cgoal = -cgoal
+
+        if abs_tol is None:
+            mag_set_ui_2exp_si(ctol, 1, -self._prec)
+        else:
+            tmp = <RealNumber> RR(abs_tol)
+            mag_set_d(ctol, mpfr_get_d_2exp(&expo, tmp.value, MPFR_RNDD))
+            mag_mul_2exp_si(ctol, ctol, expo)
+
+        cdef ComplexBall res = ComplexBall.__new__(ComplexBall)
+        res._parent = self
+
+        try:
+            sig_on()
+            acb_calc_integrate(
+                    res.value,
+                    <acb_calc_func_t> acb_calc_func_callback,
+                    <void *> ctx,
+                    ca.value, cb.value,
+                    cgoal, ctol, arb_opts, self._prec)
+            sig_off()
+        finally:
+            mag_clear(ctol)
+
+        if ctx.exn_type is not None:
+            raise ctx.exn_type, ctx.exn_obj, ctx.exn_tb
+
+        return res
+
 cdef inline bint _do_sig(long prec):
     """
     Whether signal handlers should be installed for calls to arb.
@@ -678,13 +1213,43 @@ cdef inline bint _do_sig(long prec):
 cdef inline long prec(ComplexBall ball):
     return ball._parent._prec
 
+cdef bint arb_contained_unit_interval(arb_t b):
+    r"""
+    Test if a real ball is contained in [-1,1]. Useful for dealing with branch
+    cuts of inverse trigonometric functions.
+    """
+    cdef arb_t u
+    arb_init(u)
+    try:
+        arb_one(u)
+        if not arb_lt(b, u):
+            return False
+        arb_neg(u, u)
+        if not arb_gt(b, u):
+            return False
+        return True
+    finally:
+        arb_clear(u)
+
+cdef bint arb_gt_neg_one(arb_t b):
+    r"""
+    Test if a real ball is contained in [-1,∞). Useful for dealing with branch
+    cuts.
+    """
+    cdef arb_t neg_one
+    arb_init(neg_one)
+    arb_set_si(neg_one, -1)
+    cdef bint res = arb_gt(b, neg_one)
+    arb_clear(neg_one)
+    return res
+
 cdef inline real_ball_field(ComplexBall ball):
     return ball._parent._base
 
 cdef class ComplexBall(RingElement):
     """
     Hold one ``acb_t`` of the `Arb library
-    <http://fredrikj.net/arb/>`_
+    <http://arblib.org>`_
 
     EXAMPLES::
 
@@ -751,10 +1316,6 @@ cdef class ComplexBall(RingElement):
             1.000000000000000000000000000000 + 2.000000000000000000000000000000*I
             sage: ComplexBall(CBF100, RBF(1/3), RBF(1))
             [0.3333333333333333 +/- 7.04e-17] + 1.000000000000000000000000000000*I
-            sage: ComplexBall(CBF100, 1, 2)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported initializer
             sage: NF.<a> = QuadraticField(-1, embedding=CC(0, -1))
             sage: CBF(a)
             -1.000000000000000*I
@@ -770,42 +1331,82 @@ cdef class ComplexBall(RingElement):
             sage: NF.<a> = QuadraticField(-2)
             sage: CBF(1/3 + a).real()
             [0.3333333333333333 +/- 7.04e-17]
+
+            sage: ComplexBall(CBF, 1, 1/2)
+            1.000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1, 1)
+            1.000000000000000 + 1.000000000000000*I
+            sage: ComplexBall(CBF, 1, 1/2)
+            1.000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 1)
+            0.5000000000000000 + 1.000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 1/2)
+            0.5000000000000000 + 0.5000000000000000*I
+            sage: ComplexBall(CBF, 1/2, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported initializer
+            sage: ComplexBall(CBF, 'a')
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported initializer
+
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq
         cdef long myprec
+        cdef bint cplx = False
 
         Element.__init__(self, parent)
 
         if x is None:
             return
-        elif y is None:
-            if isinstance(x, ComplexBall):
-                acb_set(self.value, (<ComplexBall> x).value)
-            elif isinstance(x, RealBall):
-                acb_set_arb(self.value, (<RealBall> x).value)
-            elif isinstance(x, sage.rings.integer.Integer):
-                if _do_sig(prec(self)): sig_on()
-                fmpz_init(tmpz)
-                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
-                acb_set_fmpz(self.value, tmpz)
-                fmpz_clear(tmpz)
-                if _do_sig(prec(self)): sig_off()
-            elif isinstance(x, sage.rings.rational.Rational):
-                if _do_sig(prec(self)): sig_on()
-                fmpq_init(tmpq)
-                fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
-                acb_set_fmpq(self.value, tmpq, prec(self))
-                fmpq_clear(tmpq)
-                if _do_sig(prec(self)): sig_off()
-            elif isinstance(x, ComplexIntervalFieldElement):
-                ComplexIntervalFieldElement_to_acb(self.value,
-                                                   <ComplexIntervalFieldElement> x)
-            else:
-                raise TypeError("unsupported initializer")
-        elif isinstance(x, RealBall) and isinstance(y, RealBall):
+        elif isinstance(x, ComplexBall):
+            acb_set(self.value, (<ComplexBall> x).value)
+            cplx = True
+        elif isinstance(x, RealBall):
             arb_set(acb_realref(self.value), (<RealBall> x).value)
+        elif isinstance(x, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> x).value)
+            arb_set_fmpz(acb_realref(self.value), tmpz)
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(x, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> x).value)
+            arb_set_fmpq(acb_realref(self.value), tmpq, prec(self))
+            fmpq_clear(tmpq)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(x, ComplexIntervalFieldElement):
+            ComplexIntervalFieldElement_to_acb(self.value,
+                                               <ComplexIntervalFieldElement> x)
+            cplx = True
+        else:
+            raise TypeError("unsupported initializer")
+
+        if y is None:
+            return
+        elif cplx:
+            raise TypeError("unsupported initializer")
+        elif isinstance(y, RealBall):
             arb_set(acb_imagref(self.value), (<RealBall> y).value)
+        elif isinstance(y, sage.rings.integer.Integer):
+            if _do_sig(prec(self)): sig_on()
+            fmpz_init(tmpz)
+            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> y).value)
+            arb_set_fmpz(acb_imagref(self.value), tmpz)
+            fmpz_clear(tmpz)
+            if _do_sig(prec(self)): sig_off()
+        elif isinstance(y, sage.rings.rational.Rational):
+            if _do_sig(prec(self)): sig_on()
+            fmpq_init(tmpq)
+            fmpq_set_mpq(tmpq, (<sage.rings.rational.Rational> y).value)
+            arb_set_fmpq(acb_imagref(self.value), tmpq, prec(self))
+            fmpq_clear(tmpq)
+            if _do_sig(prec(self)): sig_off()
         else:
             raise TypeError("unsupported initializer")
 
@@ -910,12 +1511,12 @@ cdef class ComplexBall(RingElement):
             ...
             ValueError: 1.000000000000000*I does not contain a unique integer
         """
-        cdef sage.rings.integer.Integer res
+        cdef Integer res
         cdef fmpz_t tmp
         fmpz_init(tmp)
         try:
             if acb_get_unique_fmpz(tmp, self.value):
-                res = sage.rings.integer.Integer.__new__(sage.rings.integer.Integer)
+                res = PY_NEW(Integer)
                 fmpz_get_mpz(res.value, tmp)
             else:
                 raise ValueError("{} does not contain a unique integer".format(self))
@@ -1413,6 +2014,23 @@ cdef class ComplexBall(RingElement):
         """
         return 2 * self.rad()
 
+    def union(self, other):
+        r"""
+        Return a ball containing the convex hull of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: b = CBF(1 + i).union(0)
+            sage: b.real().endpoints()
+            (-9.31322574615479e-10, 1.00000000093133)
+        """
+        cdef ComplexBall my_other = self._parent.coerce(other)
+        cdef ComplexBall res = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_union(res.value, self.value, my_other.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return res
+
     # Precision and accuracy
 
     def round(self):
@@ -1735,13 +2353,9 @@ cdef class ComplexBall(RingElement):
         rt = right
 
         if op == Py_EQ:
-            return lt is rt or (
-                acb_is_exact(lt.value) and acb_is_exact(rt.value)
-                and acb_equal(lt.value, rt.value))
-
-        if op == Py_NE:
-            return not acb_overlaps(lt.value, rt.value)
-
+            return acb_eq(lt.value, rt.value)
+        elif op == Py_NE:
+            return acb_ne(lt.value, rt.value)
         elif op == Py_GT or op == Py_GE or op == Py_LT or op == Py_LE:
             raise TypeError("No order is defined for ComplexBalls.")
 
@@ -1826,9 +2440,9 @@ cdef class ComplexBall(RingElement):
         try:
             if isinstance(other, ComplexBall):
                 res = acb_contains(self.value, (<ComplexBall> other).value)
-            elif isinstance(other, sage.rings.integer.Integer):
+            elif isinstance(other, Integer):
                 fmpz_init(tmpz)
-                fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> other).value)
+                fmpz_set_mpz(tmpz, (<Integer> other).value)
                 res = acb_contains_fmpz(self.value, tmpz)
                 fmpz_clear(tmpz)
             elif isinstance(other, sage.rings.rational.Rational):
@@ -1864,7 +2478,7 @@ cdef class ComplexBall(RingElement):
         """
         if not isinstance(other, (
                 ComplexBall,
-                sage.rings.integer.Integer,
+                Integer,
                 sage.rings.rational.Rational)):
             other = self._parent(other)
         return self.contains_exact(other)
@@ -1974,9 +2588,9 @@ cdef class ComplexBall(RingElement):
             sage: ~CBF(i/3)
             [-3.00000000000000 +/- 9.44e-16]*I
             sage: ~CBF(0)
-            [+/- inf]
+            nan
             sage: ~CBF(RIF(10,11))
-            [0.1 +/- 9.53e-3]
+            [0.1 +/- 9.10e-3]
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2043,10 +2657,10 @@ cdef class ComplexBall(RingElement):
         cdef ComplexBall res = self._new()
         if isinstance(shift, int):
              acb_mul_2exp_si(res.value, self.value, PyInt_AS_LONG(shift))
-        elif isinstance(shift, sage.rings.integer.Integer):
+        elif isinstance(shift, Integer):
             sig_on()
             fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> shift).value)
+            fmpz_set_mpz(tmpz, (<Integer> shift).value)
             acb_mul_2exp_fmpz(res.value, self.value, tmpz)
             fmpz_clear(tmpz)
             sig_off()
@@ -2097,9 +2711,9 @@ cdef class ComplexBall(RingElement):
             sage: CBF(-2, 1)/CBF(1, 1/3)
             [-1.500000000000000 +/- 8.83e-16] + [1.500000000000000 +/- 5.64e-16]*I
             sage: CBF(2+I)/CBF(0)
-            [+/- inf] + [+/- inf]*I
+            nan + nan*I
             sage: CBF(1)/CBF(0)
-            [+/- inf]
+            nan
             sage: CBF(1)/CBF(RBF(0, 1.))
             nan
         """
@@ -2128,9 +2742,9 @@ cdef class ComplexBall(RingElement):
             sage: CBF(0)^(1/3)
             0
             sage: CBF(0)^(-1)
-            [+/- inf]
+            nan
             sage: CBF(0)^(-2)
-            [+/- inf] + [+/- inf]*I
+            nan + nan*I
 
         TESTS::
 
@@ -2140,74 +2754,143 @@ cdef class ComplexBall(RingElement):
             -1024.000000000000
             sage: CBF(1,1) ^ -1r
             0.5000000000000000 - 0.5000000000000000*I
+            sage: CBF(2)**SR.var('x')
+            2.000000000000000^x
+        """
+        if (isinstance(base, ComplexBall)
+                # explicit whitelist due to difference in semantics:
+                # ball**non_ball may need to coerce both its arguments
+                and isinstance(expo, (int, Integer, RealBall, ComplexBall))):
+            return (<ComplexBall> base).pow(expo)
+        else:
+            return sage.structure.element.bin_op(base, expo, operator.pow)
 
+    cpdef pow(self, expo, analytic=False):
+        r"""
+        Raise this ball to the power of ``expo``.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the exponent is not an
+          integer and the base ball touches the branch cut of the logarithm
+
+        EXAMPLES::
+
+            sage: CBF(-1).pow(CBF(i))
+            [0.0432139182637723 +/- 7.52e-17]
+            sage: CBF(-1).pow(CBF(i), analytic=True)
+            nan + nan*I
+            sage: CBF(-10).pow(-2)
+            [0.0100000000000000 +/- 7.78e-18]
+            sage: CBF(-10).pow(-2, analytic=True)
+            [0.0100000000000000 +/- 7.78e-18]
+
+        TESTS::
+
+            sage: CBF(2).pow(SR.var('x'))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Symbolic Ring to Complex ball
+            field with 53 bits of precision
         """
         cdef fmpz_t tmpz
-        if not isinstance(base, ComplexBall):
-            return sage.structure.element.bin_op(base, expo, operator.pow)
-        cdef ComplexBall self = base
         cdef ComplexBall res = self._new()
         if isinstance(expo, int):
             if _do_sig(prec(self)): sig_on()
             acb_pow_si(res.value, self.value, PyInt_AS_LONG(expo), prec(self))
             if _do_sig(prec(self)): sig_off()
-        elif isinstance(expo, sage.rings.integer.Integer):
+        elif isinstance(expo, Integer):
             if _do_sig(prec(self)): sig_on()
             fmpz_init(tmpz)
-            fmpz_set_mpz(tmpz, (<sage.rings.integer.Integer> expo).value)
+            fmpz_set_mpz(tmpz, (<Integer> expo).value)
             acb_pow_fmpz(res.value, self.value, tmpz, prec(self))
             fmpz_clear(tmpz)
             if _do_sig(prec(self)): sig_off()
-        elif isinstance(expo, ComplexBall):
-            if _do_sig(prec(self)): sig_on()
-            acb_pow(res.value, self.value, (<ComplexBall> expo).value, prec(self))
-            if _do_sig(prec(self)): sig_off()
         elif isinstance(expo, RealBall):
-            if _do_sig(prec(self)): sig_on()
-            acb_pow_arb(res.value, self.value, (<RealBall> expo).value, prec(self))
-            if _do_sig(prec(self)): sig_off()
+            if (analytic and not arb_is_int((<RealBall> expo).value)
+                    and arb_contains_zero(acb_imagref(self.value))
+                    and arb_contains_nonpositive(acb_realref(self.value))):
+                acb_indeterminate(res.value)
+            else:
+                if _do_sig(prec(self)): sig_on()
+                acb_pow_arb(res.value, self.value, (<RealBall> expo).value, prec(self))
+                if _do_sig(prec(self)): sig_off()
         else:
-            return sage.structure.element.bin_op(base, expo, operator.pow)
+            if not isinstance(expo, ComplexBall):
+                expo = self._parent.coerce(expo)
+            if (analytic and not acb_is_int((<ComplexBall> expo).value)
+                    and arb_contains_zero(acb_imagref(self.value))
+                    and arb_contains_nonpositive(acb_realref(self.value))):
+                acb_indeterminate(res.value)
+            else:
+                if _do_sig(prec(self)): sig_on()
+                acb_pow(res.value, self.value, (<ComplexBall> expo).value, prec(self))
+                if _do_sig(prec(self)): sig_off()
         return res
 
-    def sqrt(self):
+    def sqrt(self, analytic=False):
         """
         Return the square root of this ball.
 
         If either the real or imaginary part is exactly zero, only a single
         real square root is needed.
 
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
+
         EXAMPLES::
 
             sage: CBF(-2).sqrt()
             [1.414213562373095 +/- 2.99e-16]*I
+            sage: CBF(-2).sqrt(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_sqrt(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and arb_contains_nonpositive(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_sqrt(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
-    def rsqrt(self):
+    def rsqrt(self, analytic=False):
         """
         Return the reciprocal square root of ``self``.
 
         If either the real or imaginary part is exactly zero, only a single
         real reciprocal square root is needed.
 
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
+
         EXAMPLES::
 
             sage: CBF(-2).rsqrt()
             [-0.707106781186547 +/- 5.73e-16]*I
+            sage: CBF(-2).rsqrt(analytic=True)
+            nan + nan*I
             sage: CBF(0, 1/2).rsqrt()
             1.000000000000000 - 1.000000000000000*I
             sage: CBF(0).rsqrt()
             nan
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_rsqrt(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and arb_contains_nonpositive(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_rsqrt(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def cube(self):
@@ -2241,12 +2924,12 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1).rising_factorial(5)
             120.0000000000000
             sage: CBF(1/3, 1/2).rising_factorial(300)
-            [-3.87949484514e+612 +/- 5.23e+600] + [-3.52042209763e+612 +/- 5.55e+600]*I
+            [-3.87949484514e+612 +/- 5...e+600] + [-3.52042209763e+612 +/- 5...e+600]*I
 
             sage: CBF(1).rising_factorial(-1)
             nan
             sage: CBF(1).rising_factorial(2**64)
-            [+/- 2.30e+347382171305201370464]
+            [+/- 2.30e+347382171326740403407]
             sage: ComplexBallField(128)(1).rising_factorial(2**64)
             [2.343691126796861348e+347382171305201285713 +/- 4.71e+347382171305201285694]
             sage: CBF(1/2).rising_factorial(CBF(2,3))
@@ -2262,7 +2945,7 @@ cdef class ComplexBall(RingElement):
 
     # Elementary functions
 
-    def log(self, base=None):
+    def log(self, base=None, analytic=False):
         """
         General logarithm (principal branch).
 
@@ -2271,6 +2954,10 @@ cdef class ComplexBall(RingElement):
         - ``base`` (optional, complex ball or number) -- if ``None``, return
           the principal branch of the natural logarithm ``ln(self)``,
           otherwise, return the general logarithm ``ln(self)/ln(base)``
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut (with respect to ``self``)
 
         EXAMPLES::
 
@@ -2285,26 +2972,43 @@ cdef class ComplexBall(RingElement):
             [1.000000000000000 +/- 2.83e-16] + [-0.441271200305303 +/- 2.82e-16]*I
 
             sage: CBF('inf').log()
-            nan + nan*I
+            [+/- inf]
             sage: CBF(2).log(0)
             nan + nan*I
+
+            sage: CBF(-1).log(2)
+            [4.53236014182719 +/- 4.98e-15]*I
+            sage: CBF(-1).log(2, analytic=True)
+            nan + nan*I
+            sage: CBF(-1, RBF(0, rad=.1r)).log(analytic=False)
+            [+/- 5.03e-3] + [+/- 3.15]*I
         """
         cdef ComplexBall cst
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_log(res.value, self.value, prec(self))
-        if base is not None:
-            cst = self._parent.coerce(base).log()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and arb_contains_nonpositive(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
             if _do_sig(prec(self)): sig_on()
-            acb_div(res.value, res.value, cst.value, prec(self))
+            acb_log(res.value, self.value, prec(self))
             if _do_sig(prec(self)): sig_off()
-        if _do_sig(prec(self)): sig_off()
+            if base is not None:
+                cst = self._parent.coerce(base).log()
+                if _do_sig(prec(self)): sig_on()
+                acb_div(res.value, res.value, cst.value, prec(self))
+                if _do_sig(prec(self)): sig_off()
         return res
 
-    def log1p(self):
+    def log1p(self, analytic=False):
         """
         Return ``log(1 + self)``, computed accurately when ``self`` is close to
         zero.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
@@ -2313,11 +3017,22 @@ cdef class ComplexBall(RingElement):
             [+/- 2.23e-16] + [1.000000000000000e-50 +/- 2.30e-66]*I
             sage: CBF(eps, eps).log1p()
             [1.000000000000000e-50 +/- 7.63e-68] + [1.00000000000000e-50 +/- 2.30e-66]*I
+            sage: CBF(-3/2).log1p(analytic=True)
+            nan + nan*I
+
+        TESTS::
+
+            sage: CBF(-1/2).log1p(analytic=True)
+            [-0.6931471805599453 +/- 4.16e-17]
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_log1p(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and not arb_gt_neg_one(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_log1p(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def exp(self):
@@ -2393,7 +3108,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(pi/2, 1/10).tan()
             [+/- 2.87e-14] + [10.0333111322540 +/- 2.36e-14]*I
             sage: CBF(pi/2).tan()
-            [+/- inf]
+            nan
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2410,7 +3125,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(pi, 1/10).cot()
             [+/- 5.74e-14] + [-10.0333111322540 +/- 2.81e-14]*I
             sage: CBF(pi).cot()
-            [+/- inf]
+            nan
         """
         cdef ComplexBall res = self._new()
         if _do_sig(prec(self)): sig_on()
@@ -2418,39 +3133,73 @@ cdef class ComplexBall(RingElement):
         if _do_sig(prec(self)): sig_off()
         return res
 
-    def arcsin(self):
+    def arcsin(self, analytic=False):
         """
         Return the arcsine of this ball.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
             sage: CBF(1+i).arcsin()
             [0.66623943249252 +/- 5.40e-15] + [1.06127506190504 +/- 5.04e-15]*I
+            sage: CBF(1, RIF(0,1/1000)).arcsin()
+            [1.6 +/- 0.0619] + [+/- 0.0322]*I
+            sage: CBF(1, RIF(0,1/1000)).arcsin(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_asin(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and not arb_contained_unit_interval(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_asin(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
-    def arccos(self):
+    def arccos(self, analytic=False):
         """
         Return the arccosine of this ball.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
             sage: CBF(1+i).arccos()
             [0.90455689430238 +/- 2.18e-15] + [-1.06127506190504 +/- 5.04e-15]*I
+            sage: CBF(-1).arccos()
+            [3.141592653589793 +/- 5.61e-16]
+            sage: CBF(-1).arccos(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_acos(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and not arb_contained_unit_interval(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_acos(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
-    def arctan(self):
+    def arctan(self, analytic=False):
         """
         Return the arctangent of this ball.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
@@ -2458,56 +3207,106 @@ cdef class ComplexBall(RingElement):
             [1.017221967897851 +/- 4.93e-16] + [0.4023594781085251 +/- 8.52e-17]*I
             sage: CBF(i).arctan()
             nan + nan*I
+            sage: CBF(2*i).arctan()
+            [1.570796326794897 +/- 6.65e-16] + [0.549306144334055 +/- 3.32e-16]*I
+            sage: CBF(2*i).arctan(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_atan(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_realref(self.value))
+                     and not arb_contained_unit_interval(acb_imagref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_atan(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
-    def arcsinh(self):
+    def arcsinh(self, analytic=False):
         """
         Return the hyperbolic arcsine of this ball.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
             sage: CBF(1+i).arcsinh()
             [1.06127506190504 +/- 5.04e-15] + [0.66623943249252 +/- 5.40e-15]*I
+            sage: CBF(2*i).arcsinh()
+            [1.31695789692482 +/- 4.93e-15] + [1.570796326794897 +/- 6.65e-16]*I
+            sage: CBF(2*i).arcsinh(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_asinh(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_realref(self.value))
+                     and not arb_contained_unit_interval(acb_imagref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_asinh(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
-    def arccosh(self):
+    def arccosh(self, analytic=False):
         """
         Return the hyperbolic arccosine of this ball.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
             sage: CBF(1+i).arccosh()
             [1.061275061905035 +/- 8.44e-16] + [0.904556894302381 +/- 8.22e-16]*I
+            sage: CBF(-2).arccosh()
+            [1.316957896924817 +/- 7.09e-16] + [3.141592653589793 +/- 5.61e-16]*I
+            sage: CBF(-2).arccosh(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_acosh(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and not arb_gt_neg_one(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_acosh(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
-    def arctanh(self):
+    def arctanh(self, analytic=False):
         """
         Return the hyperbolic arctangent of this ball.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
             sage: CBF(1+i).arctanh()
             [0.4023594781085251 +/- 8.52e-17] + [1.017221967897851 +/- 4.93e-16]*I
+            sage: CBF(-2).arctanh()
+            [-0.549306144334055 +/- 3.32e-16] + [1.570796326794897 +/- 6.65e-16]*I
+            sage: CBF(-2).arctanh(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_atanh(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and not arb_contained_unit_interval(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_atanh(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     # Special functions
@@ -2543,7 +3342,7 @@ cdef class ComplexBall(RingElement):
             if _do_sig(prec(self)): sig_off()
         return res
 
-    def log_gamma(self):
+    def log_gamma(self, analytic=False):
         r"""
         Return the image of this ball by the logarithmic Gamma function.
 
@@ -2551,6 +3350,12 @@ cdef class ComplexBall(RingElement):
         negative half-axis, which means that
         ``log_gamma(z) + log z = log_gamma(z+1)`` holds for all `z`,
         whereas ``log_gamma(z) != log(gamma(z))`` in general.
+
+        INPUT:
+
+        - ``analytic`` (optional, boolean) -- if ``True``, return an
+          indeterminate (not-a-number) value when the input ball touches
+          the branch cut
 
         EXAMPLES::
 
@@ -2560,11 +3365,19 @@ cdef class ComplexBall(RingElement):
             [1.265512123484645 +/- 8.82e-16] + [-3.141592653589793 +/- 5.68e-16]*I
             sage: CBF(-1).log_gamma()
             nan + [-3.141592653589793 +/- 5.68e-16]*I
+            sage: CBF(-3/2).log_gamma()
+            [0.860047015376481 +/- 4.78e-16] + [-6.28318530717959 +/- 4.68e-15]*I
+            sage: CBF(-3/2).log_gamma(analytic=True)
+            nan + nan*I
         """
         cdef ComplexBall res = self._new()
-        if _do_sig(prec(self)): sig_on()
-        acb_lgamma(res.value, self.value, prec(self))
-        if _do_sig(prec(self)): sig_off()
+        if (analytic and arb_contains_zero(acb_imagref(self.value))
+                     and arb_contains_nonpositive(acb_realref(self.value))):
+            acb_indeterminate(res.value)
+        else:
+            if _do_sig(prec(self)): sig_on()
+            acb_lgamma(res.value, self.value, prec(self))
+            if _do_sig(prec(self)): sig_off()
         return res
 
     def rgamma(self):
@@ -2663,7 +3476,7 @@ cdef class ComplexBall(RingElement):
             [+/- 4.65e-15] + [-3.14159265358979 +/- 8.15e-15]*I
         """
         cdef ComplexBall s_as_ball
-        cdef sage.rings.integer.Integer s_as_Integer
+        cdef Integer s_as_Integer
         cdef ComplexBall res = self._new()
         try:
             s_as_Integer = ZZ.coerce(s)
@@ -2796,9 +3609,9 @@ cdef class ComplexBall(RingElement):
             1.000000000000000*I
 
             sage: CBF(2+3*I).hypergeometric([1/4,1/3],[1/2])
-            [0.7871684267473 +/- 7.34e-14] + [0.2749254173721 +/- 9.23e-14]*I
+            [0.7871684267473 +/- 7...e-14] + [0.2749254173721 +/- 9...e-14]*I
             sage: CBF(2+3*I).hypergeometric([1/4,1/3],[1/2],regularized=True)
-            [0.4441122268685 +/- 3.96e-14] + [0.1551100567338 +/- 5.75e-14]*I
+            [0.4441122268685 +/- 3...e-14] + [0.1551100567338 +/- 5...e-14]*I
 
             sage: CBF(5).hypergeometric([2,3], [-5])
             nan + nan*I
@@ -3456,7 +4269,7 @@ cdef class ComplexBall(RingElement):
         if n is None:
             result = self._new()
             if _do_sig(prec(self)): sig_on()
-            acb_modular_elliptic_p(result.value, self.value,
+            acb_elliptic_p(result.value, self.value,
                 my_tau.value, prec(self))
             if _do_sig(prec(self)): sig_off()
             return result
@@ -3474,6 +4287,48 @@ cdef class ComplexBall(RingElement):
             _acb_vec_clear(vec_r, nn)
             return result_list
 
+    def elliptic_invariants(self):
+        r"""
+        Return the lattice invariants ``(g2, g3)``.
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_invariants()
+            ([189.07272012923 +/- 4.43e-12], [+/- 6.48e-12])
+            sage: CBF(sqrt(2)/2, sqrt(2)/2).elliptic_invariants()
+            ([+/- 5.32e-12] + [-332.5338031465 +/- 5.03e-11]*I,
+             [1254.4684215774 +/- 9.65e-11] + [1254.468421577 +/- 4.96e-10]*I)
+        """
+        cdef ComplexBall g2 = self._new()
+        cdef ComplexBall g3 = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_invariants(g2.value, g3.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return (g2, g3)
+
+    def elliptic_roots(self):
+        r"""
+        Return the lattice roots ``(e1, e2, e3)`` of `4 z^3 - g_2 z - g_3`.
+
+        EXAMPLES::
+
+            sage: e1, e2, e3 = CBF(0,1).elliptic_roots()
+            sage: e1, e2, e3
+            ([6.8751858180204 +/- 6.18e-14],
+             [+/- 1.20e-14],
+             [-6.8751858180204 +/- 6.24e-14])
+            sage: g2, g3 = CBF(0,1).elliptic_invariants()
+            sage: 4 * e1^3 - g2 * e1 - g3
+            [+/- 3.36e-11]
+        """
+        cdef ComplexBall e1 = self._new()
+        cdef ComplexBall e2 = self._new()
+        cdef ComplexBall e3 = self._new()
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_roots(e1.value, e2.value, e3.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return (e1, e2, e3)
+
     def elliptic_k(self):
         """
         Return the complete elliptic integral of the first kind evaluated
@@ -3487,7 +4342,7 @@ cdef class ComplexBall(RingElement):
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
-        acb_modular_elliptic_k(result.value, self.value, prec(self))
+        acb_elliptic_k(result.value, self.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
@@ -3504,7 +4359,261 @@ cdef class ComplexBall(RingElement):
         """
         cdef ComplexBall result = self._new()
         if _do_sig(prec(self)): sig_on()
-        acb_modular_elliptic_e(result.value, self.value, prec(self))
+        acb_elliptic_e(result.value, self.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_pi(self, m):
+        """
+        Return the complete elliptic integral of the third kind evaluated
+        at *m* given by ``self``.
+
+        EXAMPLES::
+
+            sage: CBF(2,3).elliptic_pi(CBF(1,1))
+            [0.27029997361983 +/- 1.31e-15] + [0.715676058329095 +/- 5.66e-16]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_pi(result.value, self.value, my_m.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_f(self, m):
+        r"""
+        Return the incomplete elliptic integral of the first kind evaluated
+        at *m*.
+
+        See :meth:`elliptic_k` for the corresponding complete integral
+
+        INPUT:
+
+        - ``m`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(1,2).elliptic_f(CBF(0,1))
+            [0.6821522911854 +/- 2.96e-14] + [1.2482780628143 +/- 4.63e-14]*I
+
+        At parameter `\pi/2` it is a complete integral::
+
+            sage: phi = CBF(1,1)
+            sage: (CBF.pi()/2).elliptic_f(phi)
+            [1.5092369540513 +/- 6.62e-14] + [0.6251464152027 +/- 2.11e-14]*I
+            sage: phi.elliptic_k()
+            [1.50923695405127 +/- 5.07e-15] + [0.62514641520270 +/- 4.41e-15]*I
+
+            sage: phi = CBF(2, 3/7)
+            sage: (CBF.pi()/2).elliptic_f(phi)
+            [1.339358963909 +/- 5.02e-13] + [1.110436969072 +/- 1.37e-13]*I
+            sage: phi.elliptic_k()
+            [1.33935896390938 +/- 6.73e-15] + [1.11043696907194 +/- 6.41e-15]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_f(result.value, self.value, my_m.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_e_inc(self, m):
+        r"""
+        Return the incomplete elliptic integral of the second kind evaluated
+        at *m*.
+
+        See :meth:`elliptic_e` for the corresponding complete integral
+
+        INPUT:
+
+        - ``m`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(1,2).elliptic_e_inc(CBF(0,1))
+            [1.906576998914 +/- 5.01e-13] + [3.6896645289411 +/- 6.93e-14]*I
+
+        At parameter `\pi/2` it is a complete integral::
+
+            sage: phi = CBF(1,1)
+            sage: (CBF.pi()/2).elliptic_e_inc(phi)
+            [1.283840957898 +/- 3...e-13] + [-0.5317843366915 +/- 7...e-14]*I
+            sage: phi.elliptic_e()
+            [1.2838409578982 +/- 5...e-14] + [-0.5317843366915 +/- 3...e-14]*I
+
+            sage: phi = CBF(2, 3/7)
+            sage: (CBF.pi()/2).elliptic_e_inc(phi)
+            [0.787564350925 +/- 6.56e-13] + [-0.686896129145 +/- 4.60e-13]*I
+            sage: phi.elliptic_e()
+            [0.7875643509254 +/- 6.97e-14] + [-0.686896129145 +/- 3.11e-13]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_e_inc(result.value, self.value, my_m.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_pi_inc(self, phi, m):
+        r"""
+        Return the Legendre incomplete elliptic integral of the third kind.
+
+        See: :meth:`elliptic_pi` for the complete integral.
+
+        INPUT:
+
+        - ``phi`` - complex ball
+
+        - ``m`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(1,2).elliptic_pi_inc(CBF(0,1), CBF(2,-3))
+            [0.05738864021418 +/- 4.27e-15] + [0.55557494549951 +/- 5.71e-15]*I
+
+        At parameter `\pi/2` it is a complete integral::
+
+            sage: n = CBF(1,1)
+            sage: m = CBF(-2/3, 3/5)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            [0.8934793755173 +/- 5.65e-14] + [0.9570786871075 +/- 1.98e-14]*I
+            sage: n.elliptic_pi(m)
+            [0.89347937551733 +/- 4.07e-15] + [0.95707868710750 +/- 1.23e-15]*I
+
+            sage: n = CBF(2, 3/7)
+            sage: m = CBF(-1/3, 2/9)
+            sage: n.elliptic_pi_inc(CBF.pi()/2, m)
+            [0.296958874642 +/- 2.58e-13] + [1.318879533274 +/- 3.87e-13]*I
+            sage: n.elliptic_pi(m)
+            [0.29695887464189 +/- 4.98e-15] + [1.31887953327376 +/- 5.95e-15]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_phi = self._parent.coerce(phi)
+        cdef ComplexBall my_m = self._parent.coerce(m)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_pi_inc(result.value, self.value, my_phi.value, my_m.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_rf(self, y, z):
+        r"""
+        Return the Carlson symmetric elliptic integral of the first kind evaluated
+        at ``(self, y, z)``.
+
+        INPUT:
+
+        - ``y`` - complex ball
+
+        - ``z`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_rf(CBF(-1/2,1), CBF(-1,-1))
+            [1.469800396738515 +/- 3.70e-16] + [-0.2358791199824196 +/- 4.40e-17]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_y = self._parent.coerce(y)
+        cdef ComplexBall my_z = self._parent.coerce(z)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_rf(result.value, self.value, my_y.value, my_z.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_rg(self, y, z):
+        r"""
+        Return the Carlson symmetric elliptic integral of the second kind evaluated
+        at ``(self, y, z)``.
+
+        INPUT:
+
+        - ``y`` - complex ball
+
+        - ``z`` - complex ball
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_rg(CBF(-1/2,1), CBF(-1,-1))
+            [0.1586786770922370 +/- 4.31e-17] + [0.2239733128130531 +/- 3.35e-17]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_y = self._parent.coerce(y)
+        cdef ComplexBall my_z = self._parent.coerce(z)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_rg(result.value, self.value, my_y.value, my_z.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_rj(self, y, z, p):
+        r"""
+        Return the Carlson symmetric elliptic integral of the third kind evaluated
+        at ``(self, y, z)``.
+
+        INPUT:
+
+        - ``y`` - complex ball
+
+        - ``z`` - complex ball
+
+        - ``p`` - complex bamm
+
+        EXAMPLES::
+
+            sage: CBF(0,1).elliptic_rj(CBF(-1/2,1), CBF(-1,-1), CBF(2))
+            [1.004386756285733 +/- 5.21e-16] + [-0.2451626834391645 +/- 3.50e-17]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_y = self._parent.coerce(y)
+        cdef ComplexBall my_z = self._parent.coerce(z)
+        cdef ComplexBall my_p = self._parent.coerce(p)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_rj(result.value, self.value, my_y.value, my_z.value, my_p.value, 0, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_zeta(self, tau):
+        r"""
+        Return the value of the Weierstrass zeta function at ``(self, tau)``
+
+        EXAMPLES::
+
+        - ``tau`` - a complex ball with positive imaginary part
+
+        EXAMPLES::
+
+            sage: CBF(1,1).elliptic_zeta(CBF(1,3))
+            [3.2898676194970 +/- 5.93e-14] + [0.1365414361782 +/- 7.27e-14]*I
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_zeta(result.value, self.value, my_tau.value, prec(self))
+        if _do_sig(prec(self)): sig_off()
+        return result
+
+    def elliptic_sigma(self, tau):
+        r"""
+        Return the value of the Weierstrass sigma function at ``(self, tau)``
+
+        EXAMPLES::
+
+        - ``tau`` - a complex ball with positive imaginary part
+
+        EXAMPLES::
+
+            sage: CBF(1,1).elliptic_sigma(CBF(1,3))
+            [-0.543073363596 +/- 3.39e-13] + [3.635729118624 +/- 5.08e-13]*I
+
+        """
+        cdef ComplexBall result = self._new()
+        cdef ComplexBall my_tau = self._parent.coerce(tau)
+        if _do_sig(prec(self)): sig_on()
+        acb_elliptic_sigma(result.value, self.value, my_tau.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
 
@@ -3601,8 +4710,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(10).laguerre_L(3, 2)
             [-6.666666666667 +/- 4.15e-13]
             sage: CBF(5,7).laguerre_L(CBF(2,3), CBF(1,-2))
-            [5515.315030271 +/- 4.37e-10] + [-12386.942845271 +/- 5.47e-10]*I
-
+            [5515.315030271 +/- 4...e-10] + [-12386.942845271 +/- 5...e-10]*I
         """
         cdef ComplexBall my_n = self._parent.coerce(n)
         cdef ComplexBall my_m = self._parent.coerce(m)
@@ -3646,9 +4754,9 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(1/2).legendre_P(5)
-            [0.08984375000000000 +/- 4.5...e-18]
+            [0.0898437500000000 +/- 7...e-17]
             sage: CBF(1,2).legendre_P(CBF(2,3), CBF(0,1))
-            [0.10996180744364 +/- 7.45e-15] + [0.14312767804055 +/- 8.38e-15]*I
+            [0.10996180744364 +/- 7.12e-15] + [0.14312767804055 +/- 8.07e-15]*I
             sage: CBF(-10).legendre_P(5, 325/100)
             [-22104403.487377 +/- 6.81e-7] + [53364750.687392 +/- 7.25e-7]*I
             sage: CBF(-10).legendre_P(5, 325/100, type=3)
@@ -3682,9 +4790,9 @@ cdef class ComplexBall(RingElement):
             sage: CBF(1/2).legendre_Q(5)
             [0.55508089057168 +/- 2.79e-15]
             sage: CBF(1,2).legendre_Q(CBF(2,3), CBF(0,1))
-            [0.167678710 +/- 4.60e-10] + [-0.161558598 +/- 7.47e-10]*I
+            [0.167678710 +/- 3.91e-10] + [-0.161558598 +/- 6.77e-10]*I
             sage: CBF(-10).legendre_Q(5, 325/100)
-            [-83825154.36008 +/- 4.94e-6] + [-34721515.80396 +/- 5.40e-6]*I
+            [-83825154.36008 +/- 5.02e-6] + [-34721515.80396 +/- 5.42e-6]*I
             sage: CBF(-10).legendre_Q(5, 325/100, type=3)
             [-4.797306921692e-6 +/- 6.82e-19] + [-4.797306921692e-6 +/- 6.57e-19]*I
 
@@ -3721,5 +4829,6 @@ cdef class ComplexBall(RingElement):
             self.value, my_phi.value, prec(self))
         if _do_sig(prec(self)): sig_off()
         return result
+
 
 CBF = ComplexBallField()

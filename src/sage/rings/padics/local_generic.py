@@ -165,6 +165,35 @@ class LocalGeneric(CommutativeRing):
         """
         return False
 
+    def is_lattice_prec(self):
+        """
+        Returns whether this `p`-adic ring bounds precision using
+        a lattice model.
+
+        In lattice precision, relationships between elements
+        are stored in a precision object of the parent, which
+        allows for optimal precision tracking at the cost of
+        increased memory usage and runtime.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5, 15)
+            sage: R.is_lattice_prec()
+            False
+            sage: x = R(25, 8)
+            sage: x - x
+            O(5^8)
+            sage: S = ZpLC(5, 15)
+            doctest:...: FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+            See http://trac.sagemath.org/23505 for details.
+            sage: S.is_lattice_prec()
+            True
+            sage: x = S(25, 8)
+            sage: x - x
+            O(5^30)
+        """
+        return False
+
     def is_lazy(self):
         """
         Returns whether this `p`-adic ring bounds precision in a lazy
@@ -209,6 +238,7 @@ class LocalGeneric(CommutativeRing):
         - ``print_alphabet`` -- dict
         - ``show_prec`` -- bool
         - ``check`` -- bool
+        - ``label`` -- string (only for lattice precision)
 
         The following arguments are only applied to the top ring in the tower:
 
@@ -324,6 +354,14 @@ class LocalGeneric(CommutativeRing):
             sage: S = R.change(prec=50)
             sage: S.defining_polynomial(exact=True)
             x^3 + 3*x + 3
+
+        Changing label for lattice precision (the precision lattice is not copied)::
+
+            sage: R = ZpLC(37, (8,11))
+            sage: S = R.change(label = "change"); S
+            37-adic Ring with lattice-cap precision (label: change)
+            sage: S.change(label = "new")
+            37-adic Ring with lattice-cap precision (label: new)
         """
         # We support both print_* and * for *=mode, pos, sep, alphabet
         for atr in ('print_mode', 'print_pos', 'print_sep', 'print_alphabet'):
@@ -405,6 +443,11 @@ class LocalGeneric(CommutativeRing):
                 functor.extras['names'] = kwds.pop('names')
             elif functor.extras['names'][0] == curpstr:
                 functor.extras['names'] = (str(p),)
+            # labels for lattice precision
+            if 'label' in kwds:
+                functor.extras['label'] = kwds.pop('label')
+            elif 'label' in functor.extras and functor.type not in ['lattice-cap','lattice-float']:
+                del functor.extras['label']
             for atr in ('ram_name', 'var_name'):
                 if atr in kwds:
                     functor.extras['print_mode'][atr] = kwds.pop(atr)
@@ -427,6 +470,7 @@ class LocalGeneric(CommutativeRing):
             functor.kwds = copy(functor.kwds)
             functor.kwds['print_mode'] = copy(functor.kwds['print_mode'])
             if 'prec' in kwds:
+                # This will need to be modified once lattice precision supports extensions
                 prec = kwds.pop('prec')
                 baseprec = (prec - 1) // self.e() + 1
                 if baseprec > self.base_ring().precision_cap():
@@ -468,15 +512,7 @@ class LocalGeneric(CommutativeRing):
 
     def precision_cap(self):
         r"""
-        Returns the precision cap for ``self``.
-
-        INPUT:
-
-        - ``self`` -- a local ring
-
-        OUTPUT:
-
-        - integer -- ``self``'s precision cap
+        Returns the precision cap for this ring.
 
         EXAMPLES::
 
@@ -498,8 +534,22 @@ class LocalGeneric(CommutativeRing):
             ``self.precision_cap()``.  Rings with relative caps
             (e.g. the class ``pAdicRingCappedRelative``) are the same
             except that the precision is the precision of the unit
-            part of each element.  For lazy rings, this gives the
-            initial precision to which elements are computed.
+            part of each element.
+        """
+        return self._prec
+
+    def _precision_cap(self):
+        r"""
+        Returns the precision cap for this ring, in the format
+        used by the factory methods to create the ring.
+
+        For most `p`-adic types, this is the same as :meth:`precision_cap`,
+        but there is a difference for lattice precision.
+
+        EXAMPLES::
+
+            sage: Zp(17,34)._precision_cap()
+            34
         """
         return self._prec
 
@@ -860,7 +910,7 @@ class LocalGeneric(CommutativeRing):
             if self.is_capped_absolute():
                 tester.assertEqual(y.precision_absolute(), 0)
                 tester.assertEqual(y, self.zero())
-            elif self.is_capped_relative():
+            elif self.is_capped_relative() or self.is_lattice_prec():
                 tester.assertLessEqual(y.precision_absolute(), 0)
             elif self.is_fixed_mod() or self.is_floating_point():
                 tester.assertGreaterEqual((x-y).valuation(), 0)
@@ -874,8 +924,9 @@ class LocalGeneric(CommutativeRing):
                 tester.assertLessEqual(y.precision_absolute(), -1)
 
             # make sure that we handle very large values correctly
-            absprec = Integer(2)**1000
-            tester.assertEqual(x.add_bigoh(absprec), x)
+            if self._prec_type() != 'lattice-float':   # in the lattice-float model, there is no cap
+                absprec = Integer(2)**1000
+                tester.assertEqual(x.add_bigoh(absprec), x)
 
     def _test_residue(self, **options):
         r"""
@@ -918,7 +969,7 @@ class LocalGeneric(CommutativeRing):
 
     def _matrix_smith_form(self, M, transformation, integral, exact):
         r"""
-        Return the Smith normal form of the matrix ``M``.
+        Return the Smith normal form of the matrix `M`.
 
         This method gets called by
         :meth:`sage.matrix.matrix2.Matrix.smith_form` to compute the Smith
@@ -1003,6 +1054,22 @@ class LocalGeneric(CommutativeRing):
             ...
             PrecisionError: not enough precision to compute Smith normal form
 
+        TESTS::
+
+            sage: A = ZpCR(5, prec=10)
+            sage: M = zero_matrix(A, 2)
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            [0 0]
+            [0 0]
+
+            sage: M = matrix(2, 2, [ A(0,10), 0, 0, 0] )
+            sage: M.smith_form(transformation=False)  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            PrecisionError: some elementary divisors indistinguishable from zero (try exact=False)
+            sage: M.smith_form(transformation=False, exact=False)  # indirect doctest
+            [O(5^10) O(5^10)]
+            [O(5^10) O(5^10)]
         """
         from sage.rings.all import infinity
         from sage.matrix.constructor import matrix
@@ -1038,8 +1105,7 @@ class LocalGeneric(CommutativeRing):
         ## the difference between ball_prec and inexact_ring is just for lattice precision.
         ball_prec = R._prec_type() in ['capped-rel','capped-abs']
         inexact_ring = R._prec_type() not in ['fixed-mod','floating-point']
-        if ball_prec:
-            precM = min(x.precision_absolute() for x in M.list())
+        precM = min(x.precision_absolute() for x in M.list())
 
         if transformation:
             from sage.matrix.special import identity_matrix
@@ -1079,7 +1145,11 @@ class LocalGeneric(CommutativeRing):
             val = curval
 
             if inexact_ring and not allzero and val >= precM:
-                raise PrecisionError("not enough precision to compute Smith normal form")
+                if ball_prec:
+                    raise PrecisionError("not enough precision to compute Smith normal form")
+                precM = min([ S[i,j].precision_absolute() for i in range(piv,n) for j in range(piv,m) ])
+                if val >= precM:
+                    raise PrecisionError("not enough precision to compute Smith normal form")
 
             if allzero:
                 if exact:
@@ -1106,6 +1176,8 @@ class LocalGeneric(CommutativeRing):
             # will deal with precision later, thus the call to lift_to_precision
             smith[piv,piv] = self(1) << val
             inv = (S[piv,piv] >> val).inverse_of_unit()
+            if ball_prec:
+                inv = inv.lift_to_precision()
             for i in range(piv+1,n):
                 scalar = -inv * Z(S[i,piv] >> val)
                 if ball_prec:

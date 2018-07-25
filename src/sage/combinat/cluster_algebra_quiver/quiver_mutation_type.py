@@ -637,23 +637,18 @@ Reducible types::
 """
 
 
-class QuiverMutationType_abstract(UniqueRepresentation,SageObject):
-    def __eq__(self,other):
-        """
-        Return ``True`` iff ``self`` and ``other`` represent the same quiver
-        mutation type.
+class QuiverMutationType_abstract(UniqueRepresentation, SageObject):
+    """
+    EXAMPLES::
 
-        EXAMPLES::
-
-            sage: mut_type1 = QuiverMutationType('A',5)
-            sage: mut_type2 = QuiverMutationType('A',5)
-            sage: mut_type3 = QuiverMutationType('A',6)
-            sage: mut_type1.__eq__( mut_type2 )
-            True
-            sage: mut_type1.__eq__( mut_type3 )
-            False
-        """
-        return self is other
+        sage: mut_type1 = QuiverMutationType('A',5)
+        sage: mut_type2 = QuiverMutationType('A',5)
+        sage: mut_type3 = QuiverMutationType('A',6)
+        sage: mut_type1 == mut_type2
+        True
+        sage: mut_type1 == mut_type3
+        False
+    """
 
     def _repr_(self):
         """
@@ -2436,7 +2431,8 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         [-1  0]
         [ 0 -1]
     """
-    n = len(nlist); m = len(mlist)
+    n = len(nlist)
+    m = len(mlist)
     nmlist = nlist + mlist
     M = matrix(ZZ, n + m, n, sparse=True)
     for edge in edges:
@@ -2450,4 +2446,3 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         if v2 in nlist:
             M[nmlist.index(v1), nmlist.index(v2)] = a
     return M
-

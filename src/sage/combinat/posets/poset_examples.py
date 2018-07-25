@@ -38,6 +38,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~posets.PowerPoset` | Return a power poset.
+    :meth:`~posets.ProductOfChains` | Return a product of chain posets.
     :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
     :meth:`~posets.RestrictedIntegerPartitions` | Return the poset of integer partitions of `n`, ordered by restricted refinement.
@@ -614,6 +615,57 @@ class Posets(object):
         return MeetSemilattice((all_pos_n,
                                 lambda A, B: all(B.is_lequal(x, y) for x,y in A.cover_relations_iterator())
                                ))
+
+
+    @staticmethod
+    def ProductOfChains(chain_lengths, facade=None):
+        """
+        Return a product of chains.
+
+        - ``chain_lengths`` (a list of nonnegative integers) -- number of
+          elements in each chain.
+
+        - ``facade`` (boolean) -- whether to make the returned poset a
+          facade poset (see :mod:`sage.categories.facade_sets`); the
+          default behaviour is the same as the default behaviour of
+          the :func:`~sage.combinat.posets.posets.Poset` constructor
+
+        EXAMPLES::
+
+            sage: P = posets.ProductOfChains([2, 2]); P
+            Finite lattice containing 4 elements
+            sage: P.linear_extension()
+            [(0, 0), (1, 0), (0, 1), (1, 1)]
+            sage: P.upper_covers((0,0))
+            [(1, 0), (0, 1)]
+            sage: P.lower_covers((1,1))
+            [(1, 0), (0, 1)]
+
+        TESTS::
+
+            sage: P = posets.ProductOfChains([]); P
+            Finite lattice containing 0 elements
+            sage: P = posets.ProductOfChains([3, 0, 1]); P
+            Finite lattice containing 0 elements
+            sage: P = posets.ProductOfChains([1,1,1,1]); P
+            Finite lattice containing 1 elements
+        """
+        try:
+            l = [Integer(x) for x in chain_lengths]
+        except TypeError:
+            raise TypeError("parameter chain_lengths must be a list of integers, not {0}".format(chain_lengths))
+        if any(x < 0 for x in l):
+            raise TypeError("parameter chain_lengths must be a list of nonnegative integers, not {0}".format(l))
+
+        # given the empty list, we expect the empty poset.
+        if len(chain_lengths) == 0:
+            return FiniteLatticePoset(Poset(facade=facade))
+        from sage.categories.cartesian_product import cartesian_product
+        elements = cartesian_product([range(i) for i in l])
+        compare = lambda a,b : a != b and all(x <= y for x, y in zip(a ,b))
+        p = Poset([elements, compare], facade=facade)
+        return FiniteLatticePoset(p)
+
 
     @staticmethod
     def RandomPoset(n, p):

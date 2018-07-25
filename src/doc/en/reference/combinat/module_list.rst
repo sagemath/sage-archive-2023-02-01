@@ -154,6 +154,7 @@ Comprehensive Module list
     sage/combinat/matrices/latin
     sage/combinat/misc
     sage/combinat/multichoose_nk
+    sage/combinat/multiset_partition_ordered
     sage/combinat/ncsf_qsym/__init__
     sage/combinat/ncsf_qsym/all
     sage/combinat/ncsf_qsym/combinatorics

@@ -1085,14 +1085,16 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     INPUT:
 
     Expects one or two arguments, with different behaviors resulting:
-    - One Argument:
-        + `X` -- a dictionary or list or tuple
-                 (representing a multiset for `c`),
-                 or an integer (representing the size of `c`)
-    - Two Arguments:
-        + `alph` -- a list (representing allowable letters within blocks of `c`),
+
+        - One Argument:
+            + `X` -- a dictionary or list or tuple
+                     (representing a multiset for `c`),
+                     or an integer (representing the size of `c`)
+
+        - Two Arguments:
+            + `alph` -- a list (representing allowable letters within blocks of `c`),
                     or a positive integer (representing the maximal allowable letter)
-        + `ord`  -- a nonnegative integer (the total number of letters within `c`)
+            + `ord`  -- a nonnegative integer (the total number of letters within `c`)
 
     Optional keyword arguments are as follows:
     (See corresponding methods in see :class:`OrderedMultisetPartition` for more details.)
@@ -1140,7 +1142,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions([1, 4], 2).cardinality()
         5
 
-    Here is the list of them:
+    Here is the list of them::
 
         sage: OrderedMultisetPartitions([1, 4], 2).list()
         [[{1,4}], [{1}, {1}], [{1}, {4}], [{4}, {1}], [{4}, {4}]]
@@ -1586,7 +1588,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         Check whether or not ``x`` satisfies all of the constraints
         appearing within ``self.full_constraints`` (Boolean output).
 
-        NOTES::
+        .. NOTE::
 
             This test will cause an infinite recursion with
             ``self._element_constructor()`` if the ``__contains__``

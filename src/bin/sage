@@ -232,6 +232,8 @@ usage_advanced() {
     echo "File conversion:"
     echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
+    command -v rst2ipynb &>/dev/null || \
+    echo "                         (not installed currently, run sage -i rst2ipynb)"
     echo "  -ipynb2rst [...]    -- Generates a reStructuredText source file from"
     echo "                         a Jupyter notebook (.ipynb)."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"

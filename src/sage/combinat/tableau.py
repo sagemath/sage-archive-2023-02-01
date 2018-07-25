@@ -8255,10 +8255,7 @@ class IncreasingTableaux(Tableaux):
 
         if wt is not None:
             if (not wt in IntegerVectors()):
-                try:
-                    wt = IntegerVector(wt)
-                except:
-                    raise ValueError( "wt must be an integer vector" )
+                raise ValueError( "wt must be an integer vector" )
             if not all([k in [0,1] for k in wt]):
                 raise ValueError( "wt must be a binary vector" )
 

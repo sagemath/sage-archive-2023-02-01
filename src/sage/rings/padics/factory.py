@@ -147,7 +147,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
 
         sage: from sage.rings.padics.factory import get_key_base
         sage: get_key_base(11, 5, 'capped-rel', None, None, None, None, ':', None, None, False, True, ['capped-rel'])
-        (11, 5, 'capped-rel', 'series', '11', True, '|', (), -1, False, None)
+        (11, 5, 'capped-rel', 'series', '11', True, '|', (), -1, 'none', None)
         sage: get_key_base(12, 5, 'capped-rel', 'digits', None, None, None, None, None, None, True, False, ['capped-rel'])
         (12,
          5,
@@ -158,7 +158,7 @@ def get_key_base(p, prec, type, print_mode, names, ram_name, print_pos, print_se
          '|',
          ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B'),
          -1,
-         True,
+         'dots',
          None)
     """
     if check:
@@ -663,7 +663,7 @@ class Qp_class(UniqueFactory):
         TESTS::
 
             sage: Qp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True, None)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, 'bigoh', None)
         """
         if isinstance(names, (int, Integer)):
             # old pickle; names is what used to be halt.
@@ -1826,7 +1826,7 @@ class Zp_class(UniqueFactory):
         TESTS::
 
             sage: Zp.create_key(5,40)
-            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, True, None)
+            (5, 40, 'capped-rel', 'series', '5', True, '|', (), -1, 'bigoh', None)
             sage: Zp.create_key(5,40,print_mode='digits')
             (5,
              40,
@@ -1837,7 +1837,7 @@ class Zp_class(UniqueFactory):
              '|',
              ('0', '1', '2', '3', '4'),
              -1,
-             False,
+             'dots',
              None)
         """
         if isinstance(names, (int, Integer)):
@@ -2631,7 +2631,7 @@ def ZpLC(p, prec=None, *args, **kwds):
         sage: z = x+y; z
         2 + O(2^5)
         sage: t = x-y; t
-        0 + O(2^5)
+        O(2^5)
         sage: z+t  # observe that z+t = 2*x
         2 + O(2^11)
         sage: z-t  # observe that z-t = 2*y

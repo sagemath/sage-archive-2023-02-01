@@ -412,15 +412,15 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: R = Zp(5, print_mode='digits')
-            sage: K = R.fraction_field(); repr(K(1/3))[3:]
-            '31313131313131313132'
-            sage: L = R.fraction_field({'max_ram_terms':4}); repr(L(1/3))[3:]
+            sage: R = Zp(5, print_mode='digits', show_prec=False)
+            sage: K = R.fraction_field(); K(1/3)
+            31313131313131313132
+            sage: L = R.fraction_field({'max_ram_terms':4}); L(1/3)
             doctest:warning
             ...
             DeprecationWarning: Use the change method if you want to change print options in fraction_field()
             See http://trac.sagemath.org/23227 for details.
-            '3132'
+            3132
             sage: U.<a> = Zq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.fraction_field()
             Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Field
@@ -472,15 +472,15 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         EXAMPLES::
 
-            sage: K = Qp(5, print_mode='digits')
-            sage: R = K.integer_ring(); repr(R(1/3))[3:]
-            '31313131313131313132'
-            sage: S = K.integer_ring({'max_ram_terms':4}); repr(S(1/3))[3:]
+            sage: K = Qp(5, print_mode='digits', show_prec=False)
+            sage: R = K.integer_ring(); R(1/3)
+            31313131313131313132
+            sage: S = K.integer_ring({'max_ram_terms':4}); S(1/3)
             doctest:warning
             ...
             DeprecationWarning: Use the change method if you want to change print options in integer_ring()
             See http://trac.sagemath.org/23227 for details.
-            '3132'
+            3132
             sage: U.<a> = Qq(17^4, 6, print_mode='val-unit', print_max_terse_terms=3)
             sage: U.integer_ring()
             Unramified Extension in a defined by x^4 + 7*x^2 + 10*x + 3 with capped relative precision 6 over 17-adic Ring

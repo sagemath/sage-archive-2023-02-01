@@ -1595,6 +1595,12 @@ REFERENCES:
               *PRINTcipher: A block cipher for IC-printing*; in
               CHES, (2010), pp. 16-32.
 
+.. [KLRS2016] \S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+              *A combinatorial description of the affine Gindikin-Karpelevich
+              formula of type* `A_n^{(1)}`. Lie Algebras, Lie Superalgebras,
+              Vertex Algebras and Related Topics, Proc. Sympos. Pure Math.,
+              vol. 92, Amer. Math. Soc., Providence, RI, 2016, pp. 145–165.
+
 .. [KLS2013] Allen Knutson, Thomas Lam, and David Speyer.
              *Positroid Varieties: Juggling and Geometry*
              Compositio Mathematica, **149** (2013), no. 10.
@@ -1694,6 +1700,11 @@ REFERENCES:
             *The Bethe ansatz in a periodic box-ball system and the
             ultradiscrete Riemann theta function*, J. Stat. Mech.,
             P09005 (2006).
+
+.. [KS2010] \J.-A. Kim and D.-U. Shin.
+            *Generalized Young walls and crystal bases for quantum affine
+            algebra of type* `A`. Proc. Amer. Math. Soc. **138** (2010), no. 11,
+            3877--3889.
 
 .. [KSV2011] Ian Kiming, Matthias Schuett and Helena Verrill, "Lifts
              of projective congruence groups", J. London

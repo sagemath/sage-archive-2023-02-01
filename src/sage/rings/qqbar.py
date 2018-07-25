@@ -1449,7 +1449,7 @@ class AlgebraicField(Singleton, AlgebraicField_common):
             ....:   x = QQbar.random_element(poly_degree=3)
             ....:   if x in AA:
             ....:     r.append(x)
-            sage: (len(r) == 3) and all([z in AA for z in r])
+            sage: (len(r) == 3) and all(z in AA for z in r)
             True
 
         TESTS:
@@ -2114,7 +2114,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         numbers = [numbers]
         single_number = True
 
-    if any([isinstance(_, AlgebraicNumber) for _ in numbers]):
+    if any(isinstance(nb, AlgebraicNumber) for nb in numbers):
         algebraic_field = QQbar
     else:
         algebraic_field = AA

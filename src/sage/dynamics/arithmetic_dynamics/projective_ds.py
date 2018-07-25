@@ -4816,9 +4816,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             for i in Subsets(L, n+2):
                 # make sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
-                if not any([j == 0 for j in Ml.minors(n+1)]):
+                if not any(j == 0 for j in Ml.minors(n + 1)):
                     Tf = list(i)
-                    more= False
+                    more = False
                     break
         while more:
             #  finds preimages of fixed points
@@ -4834,7 +4834,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             if d >= n + 2: # makes sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2):
                     Ml = matrix(r, [list(s) for s in i])
-                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                    if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
                         Tf = list(i)
                         break
@@ -4936,7 +4936,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         if d >= n+2: # need at least n+2 points
             for i in Subsets(L, n+2): # makes sure all n+1 subsets are linearly independent
                 Ml = matrix(r, [list(s) for s in i])
-                if not any([j == 0 for j in Ml.minors(n+1)]):
+                if not any(j == 0 for j in Ml.minors(n + 1)):
                     Tf = list(i)
                     more = False
                     break
@@ -4955,7 +4955,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 # make sure all n+1 subsets are linearly independent
                 for i in Subsets(L, n+2): # checks at least n+1 are linearly independent
                     Ml = matrix(r, [list(s) for s in i])
-                    if not any([j == 0 for j in Ml.minors(n+1)]):
+                    if not any(j == 0 for j in Ml.minors(n + 1)):
                         more = False
                         Tf = list(i)
                         break

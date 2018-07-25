@@ -477,12 +477,12 @@ class DifferentialForm(AlgebraElement):
             subscript = tuple(subscript)
 
         dim = self.parent().base_space().dim()
-        if any([s >= dim for s in subscript]):
+        if any(s >= dim for s in subscript):
             raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError("%s is not a subscript of degree %s" %\
-                (subscript, self._degree))
+            raise TypeError("%s is not a subscript of degree %s" %
+                            (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
 
@@ -522,12 +522,12 @@ class DifferentialForm(AlgebraElement):
             subscript = tuple(subscript)
 
         dim = self.parent().base_space().dim()
-        if any([s >= dim for s in subscript]):
+        if any(s >= dim for s in subscript):
             raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError("%s is not a subscript of degree %s" %\
-                (subscript, self._degree))
+            raise TypeError("%s is not a subscript of degree %s" %
+                            (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
         self._components[subscript] = sign*SR(fun)

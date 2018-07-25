@@ -2606,7 +2606,6 @@ def _base_iterator(constraints):
 
     If key ``weight`` is present, ignore all other constraints
     (passes to ``_iterator_weight``)::
-    ::
 
         sage: from sage.combinat.multiset_partition_ordered import _base_iterator
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}
@@ -2684,12 +2683,20 @@ def _iterator_weight(weight):
     An iterator for the ordered multiset partitions with weight given by
     the dictionary (or weak composition) ``weight``.
 
+    The dictionary ``weight`` may contain values equal to `0`;
+    the corresponding keys are ignored.
+
     EXAMPLES::
 
         sage: from sage.combinat.multiset_partition_ordered import _iterator_weight
-        sage: list(_iterator_weight({'a':2, 'b':1}))
-        [[{'a'}, {'a'}, {'b'}], [{'a'}, {'a','b'}], [{'a'}, {'b'}, {'a'}],
-         [{'a','b'}, {'a'}], [{'b'}, {'a'}, {'a'}]]
+        sage: weight = {1:2, 'b':1}
+        sage: OSP = OrderedMultisetPartitions(weight)
+        sage: l = list(_iterator_weight(weight))
+
+        sage: sorted(l) == sorted(map(OSP, \
+        [[{1}, {1}, {'b'}], [{1}, {1,'b'}], [{1}, {'b'}, {1}], \
+         [{1,'b'}, {1}], [{'b'}, {1}, {1}]]))
+        True
         sage: list(_iterator_weight([3,0,1]))
         [[{1}, {1}, {1}, {3}], [{1}, {1}, {1,3}], [{1}, {1}, {3}, {1}],
          [{1}, {1,3}, {1}], [{1}, {3}, {1}, {1}],
@@ -2705,7 +2712,7 @@ def _iterator_weight(weight):
         yield P([])
     else:
         # We build ordered multiset partitions of `X` by permutation + deconcatenation
-        # We first standardize the multiset to combat strange sorting behavior.
+        # We first standardize the multiset to combat unreliable sorting behavior.
         em = enumerate(Set(multiset))
         key_to_indx = {}
         indx_to_key = {}
@@ -2812,7 +2819,8 @@ def _iterator_order(A, d, lengths=None):
 
 def _partial_sum(lst):
     """
-    Return partial sums of elements in ``lst``.
+    Return partial sums of elements in ``lst``,
+    including the empty and the full sum.
 
     EXAMPLES::
 
@@ -2822,8 +2830,8 @@ def _partial_sum(lst):
         [0, 1, 4, 9]
     """
     result = [0]
-    for i in range(len(lst)):
-        result.append(result[-1]+lst[i])
+    for i in lst:
+        result.append(result[-1] + i)
     return result
 
 def _descents(w):

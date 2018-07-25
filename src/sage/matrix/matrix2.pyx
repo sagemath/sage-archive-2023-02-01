@@ -12667,7 +12667,7 @@ cdef class Matrix(Matrix1):
             sage: a.conjugate()
             Traceback (most recent call last):
             ...
-            TypeError: cardinality of the field must be a square number!
+            TypeError: cardinality of the field must be a square number
             sage: A = matrix(F,
             ....:     [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
             ....:      [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],

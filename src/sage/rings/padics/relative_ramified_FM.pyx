@@ -19,13 +19,13 @@ cdef class RelativeRamifiedFixedModElement(FMElement):
             sage: W(5)._poly_rep()
             5
 
-        The coefficients of P are floating point p-adics::
+        The coefficients of P are fixed-mod p-adics::
 
             sage: P = W.random_element()._poly_rep()
             sage: ring = P.parent().base_ring()
             sage: ring
             5-adic Unramified Extension Ring in a defined by x^3 + 3*x + 3
             sage: ring._prec_type()
-            'floating-point'
+            'fixed-mod'
         """
         return self.value

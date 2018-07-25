@@ -114,7 +114,7 @@ class pAdicRelativeBaseringInjection(Morphism):
             sage: f = W.coerce_map_from(K)
             sage: g = f.section()
             sage: g(a + w - w)
-            sage: a + O(5^2)
+            a + O(5^2)
         """
         return pAdicRelativeBaseringSection(self.codomain(), self.domain())
 
@@ -210,7 +210,7 @@ class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFix
         """
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(field=False, show_prec=False, type='floating-point')
+        KFP = approx_modulus.base_ring().change(prec = unram_prec+1)
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'fixed-mod')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedFixedModElement)
@@ -245,7 +245,7 @@ class RelativeRamifiedExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pA
         """
         self._exact_modulus = exact_modulus
         unram_prec = (prec + approx_modulus.degree() - 1) // approx_modulus.degree()
-        KFP = approx_modulus.base_ring().change(field=False, show_prec=False, type='floating-point')
+        KFP = approx_modulus.base_ring().change(show_prec=False, type='floating-point')
         self.prime_pow = PowComputer_relative_maker(approx_modulus.base_ring().prime(), max(min(unram_prec - 1, 30), 1), unram_prec, prec, False, exact_modulus.change_ring(KFP), shift_seed.change_ring(KFP), 'capped-abs')
         self._implementation = 'Polynomial'
         EisensteinExtensionGeneric.__init__(self, approx_modulus, prec, print_mode, names, RelativeRamifiedCappedAbsoluteElement)
@@ -298,7 +298,7 @@ class RelativeRamifiedExtensionFieldCappedRelative(EisensteinExtensionGeneric, p
         sage: A.<a> = QqCR(2^10)
         sage: R.<x> = A[]
         sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
-        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        2-adic Eisenstein Extension Field in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
         sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
         True
     """
@@ -370,7 +370,7 @@ class RelativeRamifiedExtensionFieldFloatingPoint(EisensteinExtensionGeneric, pA
         sage: A.<a> = QqFP(2^10)
         sage: R.<x> = A[]
         sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
-        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        2-adic Eisenstein Extension Field in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
         sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
         True
     """

@@ -381,7 +381,7 @@ cdef class FMElement(pAdicTemplateElement):
         if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, self.value, shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+            cshift(ans.value, self.value, shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
@@ -415,7 +415,7 @@ cdef class FMElement(pAdicTemplateElement):
         if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, self.value, -shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+            cshift(ans.value, self.value, -shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
         return ans
 
     def add_bigoh(self, absprec):

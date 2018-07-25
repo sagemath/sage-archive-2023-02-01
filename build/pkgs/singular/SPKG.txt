@@ -34,3 +34,8 @@ Other notes:
    omalloc will be replaced by xalloc. The resulting Singular executable
    and libsingular library will be slower than with omalloc, but allow
    for easier debugging of memory corruptions.
+
+== Patches ==
+
+singular-ntl-error-handler.patch: move NTL error handling out of libsingular so it doesn't conflict with Sage's
+    Backported from https://github.com/Singular/Sources/commit/502cf86d0bb2a96715be6764774b64a69c1ca34c

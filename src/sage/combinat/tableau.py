@@ -7192,7 +7192,7 @@ class StandardTableaux(SemistandardTableaux):
             return StandardSkewTableaux(n)
 
         if not isinstance(n, (int, Integer)) or n < 0:
-            raise ValueError("the argument must be a non-negative integer or a potato")
+            raise ValueError("the argument must be a non-negative integer or a partition")
 
         return StandardTableaux_size(n)
 
@@ -8076,7 +8076,7 @@ class IncreasingTableau(Tableau):
                     newtab[r][c] = i
         return IncreasingTableau(newtab)
     
-    def promotion(self,ceiling=None):
+    def K_promotion(self,ceiling=None):
         if ceiling == None:
             ceiling = max(self.entries())
         part = self.shape()
@@ -8084,11 +8084,11 @@ class IncreasingTableau(Tableau):
         for (r,c) in self.cells():
             ans[r][c] = self[r][c]
         ans = IncreasingTableau(ans)
-        for i in range(1,ceiling-1):
+        for i in range(1,ceiling):
             ans = ans.K_BenderKnuth(i)
         return ans
     
-    def promotion_inverse(self,ceiling=None):
+    def K_promotion_inverse(self,ceiling=None):
         if ceiling == None:
             ceiling = max(self.entries())
         part = self.shape()
@@ -8096,8 +8096,21 @@ class IncreasingTableau(Tableau):
         for (r,c) in self.cells():
             ans[r][c] = self[r][c]
         ans = IncreasingTableau(ans)
-        for i in reversed(range(1,ceiling-1)):
+        for i in reversed(range(1,ceiling)):
             ans = ans.K_BenderKnuth(i)
+        return ans
+    
+    def K_evacuation(self,ceiling=None):
+        if ceiling == None:
+            ceiling = max(self.entries())
+        part = self.shape()
+        ans = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            ans[r][c] = self[r][c]
+        ans = IncreasingTableau(ans)
+        for j in reversed(range(1,ceiling)):
+            for i in range(1,j+1):
+                ans = ans.K_BenderKnuth(i)
         return ans
         
 
@@ -8865,35 +8878,6 @@ class IncreasingTableaux_size(IncreasingTableaux):
         return (IncreasingTableaux.__contains__(self, x)
             and sum(map(len, x)) == self.size
             and max(max(row) for row in x) <= self.max_entry)
-
-    def random_element(self):
-        r"""
-        Generate a random :class:`SemistandardTableau` with uniform probability.
-
-        The RSK algorithm gives a bijection between symmetric `k\times k` matrices
-        of nonnegative integers that sum to `n` and semistandard tableaux with size `n`
-        and maximum entry `k`.
-
-        The number of `k\times k` symmetric matrices of nonnegative integers
-        having sum of elements on the diagonal `i` and sum of elements above
-        the diagonal `j` is `\binom{k + i - 1}{k - 1}\binom{\binom{k}{2} + j - 1}{\binom{k}{2} - 1}`.
-        We first choose the sum of the elements on the diagonal randomly weighted by the
-        number of matrices having that trace.  We then create random integer vectors
-        of length `k` having that sum and use them to generate a `k\times k` diagonal matrix.
-        Then we take a random integer vector of length `\binom{k}{2}` summing to half the
-        remainder and distribute it symmetrically to the remainder of the matrix.
-
-        Applying RSK to the random symmetric matrix gives us a pair of identical
-        :class:`SemistandardTableau` of which we choose the first.
-
-        EXAMPLES::
-
-            sage: SemistandardTableaux(6).random_element() # random
-            [[1, 1, 2], [3, 5, 5]]
-            sage: SemistandardTableaux(6, max_entry=7).random_element() # random
-            [[2, 4, 4, 6, 6, 6]]
-        """
-        raise NotImplementedError
 
     def cardinality(self):
         """

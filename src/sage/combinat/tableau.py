@@ -7879,7 +7879,7 @@ Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
 
 class IncreasingTableau(Tableau):
     """
-    A class to model a semistandard tableau.
+    A class to model an increasing tableau.
 
     INPUT:
 
@@ -7887,14 +7887,14 @@ class IncreasingTableau(Tableau):
 
     OUTPUT:
 
-    - A SemistandardTableau object constructed from ``t``.
+    - An IncreasingTableau object constructed from ``t``.
 
-    A semistandard tableau is a tableau whose entries are positive integers,
-    which are weakly increasing in rows and strictly increasing down columns.
+    An increasing tableau is a tableau whose entries are positive integers,
+    which are strictly increasing across rows and strictly increasing down columns.
 
     EXAMPLES::
 
-        sage: t = SemistandardTableau([[1,2,3],[2,3]]); t
+        sage: t = IncreasingTableau([[1,2,3],[2,3]]); t
         [[1, 2, 3], [2, 3]]
         sage: t.shape()
         [3, 2]
@@ -7902,17 +7902,16 @@ class IncreasingTableau(Tableau):
         1 2 3
         2 3
         sage: t = Tableau([[1,2],[2]])
-        sage: s = SemistandardTableau(t); s
+        sage: s = IncreasingTableau(t); s
         [[1, 2], [2]]
-        sage: SemistandardTableau([]) # The empty tableau
+        sage: IncreasingTableau([]) # The empty tableau
         []
 
-    When using code that will generate a lot of tableaux, it is slightly more
-    efficient to construct a SemistandardTableau from the appropriate
+    You can also construct an IncreasingTableau from the appropriate
     :class:`Parent` object::
 
-        sage: SST = SemistandardTableaux()
-        sage: SST([[1, 2, 3], [4, 5]])
+        sage: IT = IncreasingTableaux()
+        sage: IT([[1, 2, 3], [4, 5]])
         [[1, 2, 3], [4, 5]]
 
     .. SEEALSO::
@@ -7920,26 +7919,28 @@ class IncreasingTableau(Tableau):
         - :class:`Tableaux`
         - :class:`Tableau`
         - :class:`SemistandardTableaux`
+        - :class:`SemistandardTableau`
         - :class:`StandardTableaux`
         - :class:`StandardTableau`
+        - :class:`IncreasingTableaux`
 
     TESTS::
 
-        sage: t = Tableaux()([[1,1],[2]])
-        sage: s = SemistandardTableaux(3)([[1,1],[2]])
+        sage: t = Tableaux()([[1,2],[2]])
+        sage: s = IncreasingTableaux(3)([[1,2],[2]])
         sage: s == t
         True
         sage: s.parent()
-        Semistandard tableaux of size 3 and maximum entry 3
-        sage: r = SemistandardTableaux(3)(t); r.parent()
-        Semistandard tableaux of size 3 and maximum entry 3
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: r = IncreasingTableaux(3)(t); r.parent()
+        Increasing tableaux of size 3 and maximum entry 3
         sage: isinstance(r, Tableau)
         True
-        sage: s2 = SemistandardTableaux(3)([(1,1),(2,)])
+        sage: s2 = IncreasingTableaux(3)([(1,2),(2,)])
         sage: s2 == s
         True
         sage: s2.parent()
-        Semistandard tableaux of size 3 and maximum entry 3
+        Increasing tableaux of size 3 and maximum entry 3
     """
     @staticmethod
     def __classcall_private__(self, t):

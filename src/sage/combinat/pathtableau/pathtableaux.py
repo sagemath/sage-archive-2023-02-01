@@ -390,3 +390,12 @@ class PathTableau(ClonableList):
                     G.add_edge(a,b,"%d,%d" % (i,j))
         return G
 
+class PathTableaux(UniqueRepresentation,Parent):
+#
+#    def __init__(self):
+#        Parent.__init__(self, category = Sets())
+#
+    def _element_constructor_(self, *args, **keywords):
+        return self.element_class(self, *args, **keywords)
+#
+#    Element = PathTableau

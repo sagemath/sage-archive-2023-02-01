@@ -8020,6 +8020,19 @@ class IncreasingTableau(Tableau):
                     raise ValueError("the entries of each column of an increasing tableau must be strictly increasing")
 
     def descent_set(self):
+        """
+        Compute the descents of the increasing tableau ``self``
+        as defined in Dilks-Pechenik-Striker.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,2,4],[3,5,6]])
+            sage: T.descent_set()
+            [2, 4]
+            sage: U = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: U.descent_set()
+            [1, 3, 4]
+        """
         ans = []
         for i in self.entries():
             for (r1,c1) in self.cells():

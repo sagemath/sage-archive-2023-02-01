@@ -27,6 +27,7 @@ from sage.structure.category_object import check_default_category
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import Infinity
 
 class LocalGeneric(CommutativeRing):
     def __init__(self, base, prec, names, element_class, category=None):
@@ -990,7 +991,7 @@ class LocalGeneric(CommutativeRing):
         entries are in the ring of integers of the base ring.
 
         - ``exact`` -- boolean.  If ``True``, the diagonal smith form will
-          be exact, or raise a ``PrecisionError`` if this is not posssible.
+          be exact, or raise a ``PrecisionError`` if this is not possible.
           If ``False``, the diagonal entries will be inexact, but the
           transformation matrices will be exact.
 
@@ -1267,3 +1268,118 @@ class LocalGeneric(CommutativeRing):
 
                 for (d,dd) in zip(S.diagonal(), S.diagonal()[1:]):
                     tester.assertTrue(d.divides(dd))
+
+    def _matrix_determinant(self, M):
+        r"""
+        Return the determinant of the matrix `M`.
+
+        This method gets called by
+        :meth:`sage.matrix.matrix2.Matrix.determinant`.
+
+        INPUT:
+
+        - ``M`` -- a matrix over this ring
+
+        ALGORITHM:
+
+        We row-echenolize the matrix by always choosing the
+        pivot of smallest valuation and allowing permutations
+        of columns.
+
+        Then we compute separately the value of the determinant
+        (as the product of the diagonal entries of the row-echelon
+        form) and a bound on the precision on it.
+
+        EXAMPLES::
+
+            sage: R = Qp(5,10)
+            sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
+            sage: M.determinant()  # indirect doctest
+            4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+
+            sage: (5*M).determinant()  # indirect doctest
+            4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
+
+        Sometimes, we gain precision on the determinant::
+
+            sage: M = matrix(R, 3, 3,
+            ....:             [R(16820,7), R(73642,7), R( 3281,7),
+            ....:              R(67830,7), R(63768,7), R(76424,7),
+            ....:              R(37790,7), R(38784,7), R(69287,7)])
+            sage: M.determinant()  # indirect doctest
+            4*5^5 + 4*5^6 + 3*5^7 + 2*5^8 + O(5^9)
+
+        TESTS:
+
+        We check the stability of our algorithm::
+
+            sage: for dim in range(3,10):
+            ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
+            ....:     print(M.determinant())
+            O(5^20)
+            O(5^30)
+            O(5^40)
+            O(5^50)
+            O(5^60)
+            O(5^70)
+            O(5^80)
+
+        """
+        n = M.nrows()
+    
+        # For 2x2 matrices, we use the formula
+        if n == 2:
+            return M[0,0]*M[1,1] - M[0,1]*M[1,0]
+    
+        S = M.parent()(M.list())
+        R = M.base_ring()
+        track_precision = R._prec_type() in ['capped-rel','capped-abs']
+    
+        sign = 1; det = R(1)
+        valdet = 0; val = -Infinity
+        for piv in range(n):
+            curval = Infinity
+            for i in range(piv,n):
+                for j in range(piv,n):
+                    v = S[i,j].valuation()
+                    if v < curval:
+                        pivi = i; pivj = j
+                        curval = v
+                        if v == val: break
+                else: continue
+                break
+            val = curval
+            if S[pivi,pivj] == 0:
+                if track_precision:
+                    return R(0, valdet + (n-piv)*val)
+                else:
+                    return R(0)
+    
+            valdet += val
+            S.swap_rows(pivi,piv)
+            if pivi > piv: sign = -sign
+            S.swap_columns(pivj,piv)
+            if pivj > piv: sign = -sign
+    
+            det *= S[piv,piv]
+            inv = ~(S[piv,piv] >> val)
+            for i in range(piv+1,n):
+                scalar = -inv * (S[i,piv] >> val)
+                if track_precision:
+                    scalar = scalar.lift_to_precision()
+                S.add_multiple_of_row(i,piv,scalar)
+    
+        if track_precision:
+            relprec = +Infinity
+            relprec_neg = 0
+            for i in range(n):
+                prec = Infinity
+                for j in range(n):
+                    prec = min(prec, S[i,j].precision_absolute())
+                prec -= S[i,i].valuation()
+                if prec < relprec: relprec = prec
+                if prec < 0: relprec_neg += prec
+            if relprec_neg < 0: relprec = relprec_neg
+            return (sign*det).add_bigoh(valdet+relprec)
+        else:
+            return sign*det

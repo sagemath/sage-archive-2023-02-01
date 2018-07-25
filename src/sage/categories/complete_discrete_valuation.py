@@ -89,55 +89,6 @@ class CompleteDiscreteValuationRings(Category_singleton):
             """
             return self.parent()(1)
 
-        def _matrix_determinant(self,M):
-            """
-            Return the determinant of this matrix
-
-            ALGORITHM:
-
-            We row-echenolize the matrix by always choosing the
-            pivot of smallest valuation and allowing permutations
-            of columns.
-
-            We then compute separatedly the value of the determinant
-            (as the product of the diagonal entries of the row-echelon
-            form) and a bound on the precision on it.
-
-            EXAMPLES::
-
-                sage: R = Zp(5, 10)
-                sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
-                sage: M.determinant()  # indirect doctest
-                4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
-
-                sage: (5*M).determinant()  # indirect doctest
-                4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
-
-            TESTS:
-
-            We check the stability of our algorithm::
-
-                sage: R = Zp(5,10)
-                sage: M = random_matrix(R,3) * diagonal_matrix([1,25,125]) * random_matrix(R,3)
-                sage: d = M.determinant()
-                sage: d.precision_absolute() >= 12
-                True
-
-                sage: for dim in range(3,10):
-                ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
-                ....:     print M.determinant()
-                O(5^20)
-                O(5^30)
-                O(5^40)
-                O(5^50)
-                O(5^60)
-                O(5^70)
-                O(5^80)
-            """
-            from sage.matrix.matrix_cdv_dense import determinant
-            return determinant(M)
-
-
         @abstract_method
         def lift_to_precision(self, absprec=None):
             """
@@ -203,49 +154,6 @@ class CompleteDiscreteValuationFields(Category_singleton):
             [Category of discrete valuation fields]
         """
         return [DiscreteValuationFields()]
-
-    class ParentMethods:
-        def _matrix_determinant(self,M):
-            """
-            Return the determinant of this matrix
-
-            ALGORITHM:
-
-            We row-echenolize the matrix by always choosing the
-            pivot of smallest valuation and allowing permutations
-            of columns.
-
-            We then compute separatedly the value of the determinant
-            (as the product of the diagonal entries of the row-echelon
-            form) and a bound on the precision on it.
-
-            EXAMPLES::
-
-                sage: R = Qp(5, 10)
-                sage: M = matrix(R, 2, 2, [1, 6, 2, 7])
-                sage: M.determinant()  # indirect doctest
-                4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
-
-                sage: (5*M).determinant()  # indirect doctest
-                4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
-
-            TESTS:
-
-            We check the stability of our algorithm::
-
-                sage: for dim in range(3,10):
-                ....:     M = matrix(dim, dim, [ R(1) for _ in range(dim^2) ])
-                ....:     print M.determinant()
-                O(5^20)
-                O(5^30)
-                O(5^40)
-                O(5^50)
-                O(5^60)
-                O(5^70)
-                O(5^80)
-            """
-            from sage.matrix.matrix_cdv_dense import determinant
-            return determinant(M)
 
     class ElementMethods:
         @abstract_method

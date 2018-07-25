@@ -1348,6 +1348,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
         cdef CRElement ans = self._zero._new_c()
         ans.ordp = cremove(ans.unit, x.value, x.absprec, x.prime_pow)
         ans.relprec = x.absprec - ans.ordp
+        creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):

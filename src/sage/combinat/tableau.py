@@ -8087,6 +8087,18 @@ class IncreasingTableau(Tableau):
         for i in range(1,ceiling-1):
             ans = ans.K_BenderKnuth(i)
         return ans
+    
+    def promotion_inverse(self,ceiling=None):
+        if ceiling == None:
+            ceiling = max(self.entries())
+        part = self.shape()
+        ans = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            ans[r][c] = self[r][c]
+        ans = IncreasingTableau(ans)
+        for i in reversed(range(1,ceiling-1)):
+            ans = ans.K_BenderKnuth(i)
+        return ans
         
 
 ##########################

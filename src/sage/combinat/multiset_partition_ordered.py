@@ -26,7 +26,7 @@ An ordered multiset partition of the multiset `\{\{1, 3, 3, 5\}\}`::
 Ordered multiset partitions of the multiset `\{\{1, 3, 3\}\}`::
 
     sage: OrderedMultisetPartitions([1,1,3]).list()
-    [[{1}, {1}, {3}], [{1}, {3}, {1}], [{1}, {1,3}], [{3}, {1}, {1}], [{1,3}, {1}]]
+    [[{1}, {1}, {3}], [{1}, {1,3}], [{1}, {3}, {1}], [{1,3}, {1}], [{3}, {1}, {1}]]
 
 Ordered multiset partitions of the integer 4::
 
@@ -63,7 +63,7 @@ from six.moves import range
 from six import add_metaclass
 
 from functools import reduce
-from itertools import chain, combinations
+from itertools import chain
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -1119,7 +1119,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     Here is the list of them::
 
         sage: OrderedMultisetPartitions([1,1,4]).list()
-        [[{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {1,4}], [{4}, {1}, {1}], [{1,4}, {1}]]
+        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
 
     By chance, there are also 5 ordered multiset partitions of the integer 3::
 
@@ -1220,13 +1220,13 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         sage: OrderedMultisetPartitions(4, weight=[0,0,0,1]).list()
         [[{4}]]
         sage: OrderedMultisetPartitions(4, weight=[1,0,1]).list()
-        [[{1}, {3}], [{3}, {1}], [{1,3}]]
+        [[{1}, {3}], [{1,3}], [{3}, {1}]]
         sage: OrderedMultisetPartitions(4, weight=[0,2]).list()
         [[{2}, {2}]]
         sage: OrderedMultisetPartitions(4, weight=[0,1,1]).list()
         []
         sage: OrderedMultisetPartitions(4, weight=[2,1]).list()
-        [[{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}], [{2}, {1}, {1}], [{1,2}, {1}]]
+        [[{1}, {1}, {2}], [{1}, {1,2}], [{1}, {2}, {1}], [{1,2}, {1}], [{2}, {1}, {1}]]
         sage: O1 = OrderedMultisetPartitions(weight=[2,0,1])
         sage: O2 = OrderedMultisetPartitions(weight={1:2, 3:1})
         sage: O1 == O2
@@ -1237,7 +1237,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
       This option is ignored if a multiset `X` is passed as a required argument::
 
         sage: OrderedMultisetPartitions([1,4], weight={1:3, 2:1}).list()
-        [[{1}, {4}], [{4}, {1}], [{1,4}]]
+        [[{1}, {4}], [{1,4}], [{4}, {1}]]
 
     - The (max/min) ``order`` options place constraints on ordered multiset partitions
       when the multiset `X` is not given as required argument or via the ``weight``
@@ -1263,13 +1263,13 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
       each example below, the order must be 3, so the call ``order=2`` is ignored::
 
         sage: OrderedMultisetPartitions([1,1,4], order=2).list()
-        [[{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {1,4}], [{4}, {1}, {1}], [{1,4}, {1}]]
+        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
         sage: OrderedMultisetPartitions([1,4], 3, order=2).list()
         [[{1,4}, {1}], [{1,4}, {4}], [{1}, {1,4}], [{4}, {1,4}], [{1}, {1}, {1}],
          [{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {4}, {4}], [{4}, {1}, {1}],
          [{4}, {1}, {4}], [{4}, {4}, {1}], [{4}, {4}, {4}]]
         sage: OrderedMultisetPartitions(6, weight=[2,0,0,1], order=2).list()
-        [[{1}, {1}, {4}], [{1}, {4}, {1}], [{1}, {1,4}], [{4}, {1}, {1}], [{1,4}, {1}]]
+        [[{1}, {1}, {4}], [{1}, {1,4}], [{1}, {4}, {1}], [{1,4}, {1}], [{4}, {1}, {1}]]
 
     TESTS::
 
@@ -1388,10 +1388,6 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
     def __init__(self, is_finite=None, **constraints):
         """
         Initialize ``self``.
-
-        .. TODO::
-
-            Fix code to yield outputs indicated below.
 
         TESTS::
 
@@ -2152,8 +2148,6 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
             return ZZ(0)
 
         # We build ordered multiset partitions of `X` by permutation + deconcatenation
-        # Is there a balls-and-boxes formula for this?
-
         deg = 0
         for alpha in Permutations_mset(self._Xtup):
             fattest = _break_at_descents(alpha)
@@ -2224,16 +2218,15 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
 
         TESTS::
 
-            sage: O = OrderedMultisetPartitions([1, 1, 'a'])
+            sage: O = OrderedMultisetPartitions(['a', 'b', 'a'])
             sage: list(O)
-            [[{1}, {1}, {'a'}],
-             [{1}, {'a'}, {1}],
-             [{1}, {1,'a'}],
-             [{'a'}, {1}, {1}],
-             [{1,'a'}, {1}]]
+            [[{'a'}, {'a'}, {'b'}], [{'a'}, {'a','b'}],
+             [{'a'}, {'b'}, {'a'}], [{'a','b'}, {'a'}],
+             [{'b'}, {'a'}, {'a'}]]
             sage: O = OrderedMultisetPartitions([1, 1, 2])
             sage: list(O)
-            [[{1}, {1}, {2}], [{1}, {2}, {1}], [{1}, {1,2}], [{2}, {1}, {1}], [{1,2}, {1}]]
+            [[{1}, {1}, {2}], [{1}, {1,2}], [{1}, {2}, {1}],
+            [{1,2}, {1}], [{2}, {1}, {1}]]
         """
         return _iterator_weight(weight=dict(self._X))
 
@@ -2368,13 +2361,14 @@ class OrderedMultisetPartitions_A(OrderedMultisetPartitions):
 
         TESTS::
 
-            sage: O = OrderedMultisetPartitions([1, 'a'], 3)
+            sage: O = OrderedMultisetPartitions(['a', 'b'], 3)
             sage: it = O.__iter__()
             sage: [next(it) for _ in range(O.cardinality())]
-            [[{1,'a'}, {'a'}], [{1,'a'}, {1}], [{'a'}, {1,'a'}],
-             [{1}, {1,'a'}], [{'a'}, {'a'}, {'a'}], [{'a'}, {'a'}, {1}],
-             [{'a'}, {1}, {'a'}], [{'a'}, {1}, {1}], [{1}, {'a'}, {'a'}],
-             [{1}, {'a'}, {1}], [{1}, {1}, {'a'}], [{1}, {1}, {1}]]
+            [[{'a','b'}, {'a'}], [{'a','b'}, {'b'}], [{'a'}, {'a','b'}],
+             [{'b'}, {'a','b'}], [{'a'}, {'a'}, {'a'}], [{'a'}, {'a'}, {'b'}],
+             [{'a'}, {'b'}, {'a'}], [{'a'}, {'b'}, {'b'}],
+             [{'b'}, {'a'}, {'a'}], [{'b'}, {'a'}, {'b'}],
+             [{'b'}, {'b'}, {'a'}], [{'b'}, {'b'}, {'b'}]]
         """
         return _iterator_order(self._alphabet, self._order)
 
@@ -2569,9 +2563,6 @@ def _concatenate(list_of_iters):
         sage: _concatenate(L)
         (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
     """
-    #if not list_of_iters:
-    #    return []
-    #return reduce(lambda a,b: a+b, list_of_iters)
     return tuple(_ for block in list_of_iters for _ in block)
 
 def _is_finite(constraints):
@@ -2615,15 +2606,16 @@ def _base_iterator(constraints):
 
     If key ``weight`` is present, ignore all other constraints
     (passes to ``_iterator_weight``)::
+    ::
 
         sage: from sage.combinat.multiset_partition_ordered import _base_iterator
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}
         sage: it = _base_iterator(constraints)
         sage: [next(it) for _ in range(4)] # note the partitions of length 6 and 7
-        [[{1}, {1}, {1}, {2}, {2}, {2}, {4}],
-         [{1}, {1}, {1}, {2}, {2}, {4}, {2}],
-         [{1}, {1}, {1}, {2}, {2}, {2,4}],
-         [{1}, {1}, {1}, {2}, {4}, {2}, {2}]]
+        [[{1}, {1}, {1}, {2}, {2}, {2,4}],
+         [{1}, {1}, {1}, {2}, {2}, {2}, {4}],
+         [{1}, {1}, {1,2}, {2}, {2,4}],
+         [{1}, {1}, {1,2}, {2}, {2}, {4}]]
 
     If key ``size`` is present, pass to ``_iterator_size``, which then
     takes into account whether or not keys ``length`` and ``alphabet``
@@ -2692,32 +2684,16 @@ def _iterator_weight(weight):
     An iterator for the ordered multiset partitions with weight given by
     the dictionary (or weak composition) ``weight``.
 
-    The iterator yields these partitions in a lexicographic order,
-    where the `i`-th blocks are compared first by their sizes and
-    then themselves lexicographically.
-
-    The dictionary ``weight`` may contain values equal to `0`;
-    the corresponding keys are ignored.
-
     EXAMPLES::
 
         sage: from sage.combinat.multiset_partition_ordered import _iterator_weight
         sage: list(_iterator_weight({'a':2, 'b':1}))
-        [[{'a'}, {'a'}, {'b'}],
-         [{'a'}, {'b'}, {'a'}],
-         [{'a'}, {'a','b'}],
-         [{'b'}, {'a'}, {'a'}],
-         [{'a','b'}, {'a'}]]
-        sage: list(_iterator_weight({'a':2, 'b':0}))
-        [[{'a'}, {'a'}]]
+        [[{'a'}, {'a'}, {'b'}], [{'a'}, {'a','b'}], [{'a'}, {'b'}, {'a'}],
+         [{'a','b'}, {'a'}], [{'b'}, {'a'}, {'a'}]]
         sage: list(_iterator_weight([3,0,1]))
-        [[{1}, {1}, {1}, {3}],
-         [{1}, {1}, {3}, {1}],
-         [{1}, {1}, {1,3}],
-         [{1}, {3}, {1}, {1}],
-         [{1}, {1,3}, {1}],
-         [{3}, {1}, {1}, {1}],
-         [{1,3}, {1}, {1}]]
+        [[{1}, {1}, {1}, {3}], [{1}, {1}, {1,3}], [{1}, {1}, {3}, {1}],
+         [{1}, {1,3}, {1}], [{1}, {3}, {1}, {1}],
+         [{1,3}, {1}, {1}], [{3}, {1}, {1}, {1}]]
     """
     if isinstance(weight, (list, tuple)):
         weight = {k+1: val for k,val in enumerate(weight) if val > 0}
@@ -2728,15 +2704,24 @@ def _iterator_weight(weight):
     if not multiset:
         yield P([])
     else:
-        # Recursive algorithm, first deciding what the first block will be.
-        support = sorted(set(multiset))
-        N = len(support)
-        for size in range(1, N+1):
-            for first_block in combinations(support, size):
-                rest_weight = {k: (mult - 1 if (k in first_block) else mult)
-                               for k, mult in weight.iteritems()}
-                for A in _iterator_weight(rest_weight):
-                    yield P([first_block] + list(A))
+        # We build ordered multiset partitions of `X` by permutation + deconcatenation
+        # We first standardize the multiset to combat strange sorting behavior.
+        em = enumerate(Set(multiset))
+        key_to_indx = {}
+        indx_to_key = {}
+        for (i,key) in em:
+            key_to_indx[key] = i
+            indx_to_key[i] = key
+        std_multiset = []
+        for a in multiset:
+            std_multiset.append(key_to_indx[a])
+        std_multiset = sorted(std_multiset)
+
+        for alpha in Permutations_mset(std_multiset):
+            co = _break_at_descents(alpha, weak=True)
+            for A in OrderedMultisetPartition(co).finer(strong=True):
+                B = tuple([Set([indx_to_key[i] for i in block]) for block in A])
+                yield P(B)
 
 def _iterator_size(size, length=None, alphabet=None):
     r"""
@@ -2827,8 +2812,7 @@ def _iterator_order(A, d, lengths=None):
 
 def _partial_sum(lst):
     """
-    Return partial sums of elements in ``lst``,
-    including the empty and the full sum.
+    Return partial sums of elements in ``lst``.
 
     EXAMPLES::
 
@@ -2838,8 +2822,8 @@ def _partial_sum(lst):
         [0, 1, 4, 9]
     """
     result = [0]
-    for i in lst:
-        result.append(result[-1] + i)
+    for i in range(len(lst)):
+        result.append(result[-1]+lst[i])
     return result
 
 def _descents(w):

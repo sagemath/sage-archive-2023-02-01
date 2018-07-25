@@ -324,6 +324,14 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
 from sage.rings.all import QQ, NN, ZZ, IntegerModRing
 
+# HELPERS
+def is_sequence(obj):
+    # Check if something is one of our allowed 'compositions'.
+    return isinstance(obj, (list, Composition, Partition))
+
+def k_rectangle_dimension_list(k):
+    return [(k-i+1, i) for i in range(1, k+1)]
+
 class Partition(CombinatorialElement):
     r"""
     A partition `p` of a nonnegative integer `n` is a
@@ -2209,7 +2217,7 @@ class Partition(CombinatorialElement):
         r"""
         Return the initial column tableau of shape ``self``.
 
-        The initial column taleau of shape self is the standard tableau 
+        The initial column taleau of shape self is the standard tableau
         that has the numbers `1` to `n`, where `n` is the :meth:`size` of ``self``,
         entered in order from top to bottom and then left to right down the
         columns of ``self``.
@@ -2510,7 +2518,7 @@ class Partition(CombinatorialElement):
 
         OUTPUT:
 
-        A non-negative integer 
+        A non-negative integer
 
         The degree of a partition `\lambda` is the sum of the
         `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
@@ -2529,7 +2537,7 @@ class Partition(CombinatorialElement):
             sage: Partition([4,3]).prime_degree(7)
             0
 
-        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is 
+        THerefore, the Gram determinant of `S(5,3)` when `q = 1` is
         `2^{36} 3^{15} 5^{13}`.  Compare with :meth:`degree`.
         """
         ps = [p]
@@ -3326,7 +3334,7 @@ class Partition(CombinatorialElement):
         a element of the positive root lattice of the corresponding
         Kac-Moody algebra. See [DJM1998]_ and [BK2009]_ for more details.
 
-        This is a useful statistics because two Specht modules for a 
+        This is a useful statistics because two Specht modules for a
         Hecke algebra of type `A` belong to the same block if and only if they
         correspond to same element `\beta` of the root lattice, given above.
 
@@ -3361,14 +3369,14 @@ class Partition(CombinatorialElement):
         The `e`-defect is the number of (connected) `e`-rim hooks that
         can be removed from the partition.
 
-        The defect of a partition is given by 
+        The defect of a partition is given by
 
         .. MATH::
 
             \text{defect}(\beta) = (\Lambda, \beta) - \tfrac12(\beta, \beta),
 
         where `\Lambda = \sum_r \Lambda_{\kappa_r}` for the multicharge
-        `(\kappa_1, \ldots, \kappa_{\ell})` and 
+        `(\kappa_1, \ldots, \kappa_{\ell})` and
         `\beta = \sum_{(r,c)} \alpha_{(c-r) \pmod e}`, with the sum
         being over the cells in the partition.
 

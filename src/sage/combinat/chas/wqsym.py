@@ -63,7 +63,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         r"""
         Initialize ``self``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: M = algebras.WQSym(QQ).M()
             sage: TestSuite(M).run()  # long time
@@ -85,6 +85,8 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M = WordQuasiSymmetricFunctions(QQ).M()
             sage: elt = M[[1,2]]*M[[1]]; elt
             M[{1, 2}, {3}] + M[{1, 2, 3}] + M[{3}, {1, 2}]
+            sage: M._repr_term(elt.leading_support())
+            'M[{3}, {1, 2}]'
             sage: M.options.objects = "words"
             sage: elt
             M[1, 1, 2] + M[1, 1, 1] + M[2, 2, 1]
@@ -267,14 +269,6 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
         s = self.base_ring().an_element()
         return [u, o, self([[1,2]]), o + self([[1],[2]]), u + s*o]
 
-def WordQuasiSymmetricFunctionsAsWords(R):
-    r"""
-    The word quasi-symmetric functions, with user-input as packed words.
-
-    .. SEEALSO::
-    """
-    return WordQuasiSymmetricFunctions(R, indexed_by_words=True)
-
 class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     The word quasi-symmetric functions.
@@ -309,10 +303,12 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     The basis element `\mathbf{M}_u` is also denoted as `\mathbf{M}_P`
     in this situation and is implemented using the latter indexing.
+
     (While ordered set partitions are used internally to index this
     Hopf algebra, input as packed words is available using the optional
     ``indexed_by_words`` argument or by using
     :class:`~sage.combinat.chas.wqsym; see examples below.)
+
     The basis `(\mathbf{M}_P)_P` is called the *Monomial basis* and is
     implemented as
     :class:`~sage.combinat.chas.wqsym.WordQuasiSymmetricFunctions.Monomial`.
@@ -361,7 +357,10 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
     - [NoThWi08]_
     - [BerZab05]_
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Illustration of Hopf structure for this algebra in the *Monomial basis*,
+    using the default implementation as ordered set partitions::
 
         sage: WQSym = algebras.WQSym(ZZ)
         sage: WQSym
@@ -400,27 +399,48 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: wWQSym
         Word Quasi-symmetric functions indexed by packed words over Integer Ring
         sage: wM = wWQSym.M()
-        sage: wx = wM[1,2,3] + 3*wM[2,1]  # this is ``x`` in ``M`` above
+        sage: wx = wM[1,2,3] + 3*wM[2,1]  # this is ``x`` defined above
         sage: wx.antipode()
-        3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
-         - M[2, 2, 1] - M[3, 2, 1]
+        3*M[1,2] + 3*M[1,1] - M[1,1,1] - M[2,1,1]
+         - M[2,2,1] - M[3,2,1]
 
-    The display options are shared by all bases, but not between
-    `algebras.WQSym(ZZ)` and `algebras.WQSym(ZZ, indexed_by_words=True)`::
+    Display options are the same for either implementation, but options
+    are not shared between the two implementations and their default
+    values are different::
 
-        sage: M.options.objects = "words"
-        sage: x.antipode()
-        3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
-         - M[2, 2, 1] - M[3, 2, 1]
-        sage: WQSym.X()(x)
-        -X[1, 2, 3] + 3*X[2, 1]
-        sage: M.options._reset()
-        sage: x.antipode()
+        sage: wM.options.__dict__['_legal_values']
+        {'display': ['compact', 'tight', 'normal'],
+         'objects': ['compositions', 'words']}
+        sage: M.options
+        Current options for WordQuasiSymmetricFunctions element
+          - display: normal
+          - objects: compositions
+        sage: wM.options
+        Current options for WordQuasiSymmetricFunctions element
+          - display: tight
+          - objects: words
+
+        sage: wM.options.objects = "compositions"
+        sage: wM.options.display = "normal"
+        sage: wx.antipode()
         3*M[{1}, {2}] + 3*M[{1, 2}] - M[{1, 2, 3}] - M[{2, 3}, {1}]
          - M[{3}, {1, 2}] - M[{3}, {2}, {1}]
+
+    .. NOTE:
+
+    Changing display options is not the same as changing input options::
+
+        sage: wM[[1,3], [2]]
+        Traceback (most recent call last):
+        ...
+        TypeError: unhashable type: 'list'
+        sage: M.options.objects = "words"
+        sage: M[1,1,3,2,3,1] # speculatively equivalent to M[{1,2,6},{4},{3,5}]
+        M[1, 1, 1]
+        sage: M.options._reset(); wM.options._reset()
         sage: wx.antipode()
-        3*M[1, 2] + 3*M[1, 1] - M[1, 1, 1] - M[2, 1, 1]
-         - M[2, 2, 1] - M[3, 2, 1]
+        3*M[1,2] + 3*M[1,1] - M[1,1,1] - M[2,1,1]
+         - M[2,2,1] - M[3,2,1]
 
     TESTS::
 
@@ -483,36 +503,29 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             sage: A = WordQuasiSymmetricFunctions(QQ)
             sage: B = WordQuasiSymmetricFunctions(QQ, indexed_by_words=True)
-            sage: A.options.objects, B.options.objects
-            (compositions, words)
             sage: A.options.objects = "words"
+            sage: A.options.display = "tight"
             sage: A.options
             Current options for WordQuasiSymmetricFunctions element
-              - display: normal
+              - display: tight
               - objects: words
             sage: str(A.options) == str(B.options)
             True
             sage: A.options is B.options
             False
             sage: A.options._reset()
-            sage: M = A.M()
-            sage: M[1,1], M[1,1] == M[[1,1]] == M[[1]]
-            (M[{1}], True)
-            sage: wM = B.M()
-            sage: wM[1,1], wM[1,1] == wM[[1,1]]
-            (M[1, 1], True)
-            sage: M[[1,2]].leading_support() == wM[1,1].leading_support()
-            True
         """
         category = HopfAlgebras(R).Graded().Connected()
         Parent.__init__(self, base=R, category=category.WithRealizations())
         self.indexed_by_words = indexed_by_words
         if indexed_by_words:
             default_objects = "words"
+            default_display = "tight"
         else:
             default_objects = "compositions"
+            default_display = "normal"
         self.options = GlobalOptions(
-            NAME = 'WordQuasiSymmetricFunctions element',
+            NAME ='WordQuasiSymmetricFunctions element',
             module = 'sage.combinat.chas.wqsym',
             option_class='WordQuasiSymmetricFunctions',
             objects = dict(default=default_objects,
@@ -520,7 +533,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                        values=dict(compositions="Indexing the basis by ordered set partitions",
                                    words="Indexing the basis by packed words"),
                                    case_sensitive=False),
-            display = dict(default="normal",
+            display = dict(default=default_display,
                        description='Specifies how basis elements of WordQuasiSymmetricFunctions should be printed',
                        values=dict(normal="Using the normal representation",
                                    tight="Dropping spaces after commas",
@@ -606,7 +619,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 M[{1, 2}, {3, 4}] + M[{1, 2, 3, 4}] + M[{3, 4}, {1, 2}]
                 sage: B = algebras.WQSym(QQ, indexed_by_words=True).M()
                 sage: B.product_on_basis(y, y)
-                M[1, 1, 2, 2] + M[1, 1, 1, 1] + M[2, 2, 1, 1]
+                M[1,1,2,2] + M[1,1,1,1] + M[2,2,1,1]
 
             TESTS::
 
@@ -1981,11 +1994,11 @@ class WQSymBases(Category_realization_of_parent):
 
                 sage: wM = algebras.WQSym(QQ, indexed_by_words=True).M()
                 sage: wx = wM[[1, 3, 2]]; wx
-                M[1, 3, 2]
+                M[1,3,2]
                 sage: wx.leading_support()
                 [{1}, {3}, {2}]
                 sage: wM[Word([2, 1, 3, 2, 3])]
-                M[2, 1, 3, 2, 3]
+                M[2,1,3,2,3]
                 sage: _.leading_support()
                 [{2}, {1, 4}, {3, 5}]
             """

@@ -1282,7 +1282,7 @@ class LocalGeneric(CommutativeRing):
 
         ALGORITHM:
 
-        We row-echenolize the matrix by always choosing the
+        We row-echelonize the matrix by always choosing the
         pivot of smallest valuation and allowing permutations
         of columns.
 

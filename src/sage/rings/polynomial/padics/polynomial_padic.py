@@ -152,7 +152,7 @@ class Polynomial_padic(Polynomial):
             1 (1 + O(3^3))*t + (-1 + O(3^3))
             1 (1 + O(3^3))*t^2 + (5 + O(3^3))*t + (-1 + O(3^3))
             1 (1 + O(3^3))*t^2 + (-5 + O(3^3))*t + (-1 + O(3^3))
-            1 (1 + O(3^3))*t^2 + (0 + O(3^3))*t + (1 + O(3^3))
+            1 (1 + O(3^3))*t^2 + (O(3^3))*t + (1 + O(3^3))
             sage: R.<t> = PolynomialRing(Qp(5,6,print_mode='terse',print_pos=False))
             sage: pol = 100 * (5*t - 1) * (t - 5)
             sage: pol

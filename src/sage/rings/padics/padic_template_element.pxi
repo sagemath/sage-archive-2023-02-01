@@ -345,9 +345,9 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         Fixed modulus elements don't raise errors::
 
             sage: R = ZpFM(5); a = R(5); a.lift_to_precision(7)
-            5 + O(5^20)
+            5
             sage: a.lift_to_precision(10000)
-            5 + O(5^20)
+            5
 
         """
         if absprec is None:

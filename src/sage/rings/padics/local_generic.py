@@ -131,7 +131,7 @@ class LocalGeneric(CommutativeRing):
             sage: R.is_fixed_mod()
             True
             sage: R(5^7,absprec=9)
-            5^7 + O(5^15)
+            5^7
             sage: S = ZpCA(5, 15)
             sage: S.is_fixed_mod()
             False
@@ -390,9 +390,9 @@ class LocalGeneric(CommutativeRing):
             cur_type = self._prec_type()
             cur_mode = self._printer._print_mode()
             cur_show_prec = self._printer._show_prec()
-            from .factory import _default_show_prec
-            if cur_show_prec == _default_show_prec(cur_type, cur_mode):
-                kwds['show_prec'] = _default_show_prec(new_type, kwds['mode'])
+            from .factory import _canonicalize_show_prec
+            if cur_show_prec == _canonicalize_show_prec(cur_type, cur_mode):
+                kwds['show_prec'] = _canonicalize_show_prec(new_type, kwds['mode'])
             else:
                 raise RuntimeError
         p = kwds.get('p', functor.p if hasattr(functor, 'p') else self.prime())
@@ -607,7 +607,7 @@ class LocalGeneric(CommutativeRing):
         EXAMPLES::
 
             sage: R = Zp(3, 3, 'fixed-mod'); R.defining_polynomial('foo')
-            (1 + O(3^3))*foo + (O(3^3))
+            (1)*foo + (0)
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         return PolynomialRing(self, var).gen()

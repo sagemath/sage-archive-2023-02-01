@@ -124,7 +124,7 @@ class FixedModGeneric(LocalGeneric):
             sage: R.is_fixed_mod()
             True
             sage: R(5^7,absprec=9)
-            5^7 + O(5^15)
+            5^7
             sage: S = ZpCA(5, 15)
             sage: S.is_fixed_mod()
             False
@@ -852,7 +852,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
             sage: ZpCA(5,6).random_element()
             4*5^2 + 5^3 + O(5^6)
             sage: ZpFM(5,6).random_element()
-            2 + 4*5^2 + 2*5^4 + 5^5 + O(5^6)
+            2 + 4*5^2 + 2*5^4 + 5^5
         """
         if (algorithm == 'default'):
             if self.is_capped_relative():

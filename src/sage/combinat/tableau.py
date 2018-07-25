@@ -8970,8 +8970,17 @@ class IncreasingTableaux_shape(IncreasingTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for c in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
-            for sst in IncreasingTableaux_shape_weight(self.shape, Composition(c)):
+        list_of_partial_binary_vecs = [[]]
+        list_of_binary_vecs = []
+        while list_of_partial_binary_vecs != []:
+            active_vec = list_of_partial_binary_vecs.pop()
+            if len(active_vec) < self.max_entry:
+                list_of_partial_binary_vecs.append(active_vec + [0])
+                list_of_partial_binary_vecs.append(active_vec + [1])
+            else:
+                list_of_binary_vecs.append(tuple(active_vec))
+        for wt in list_of_binary_vecs:
+            for sst in IncreasingTableaux_shape_weight(self.shape, wt):
                 yield self.element_class(self, sst)
 
 

@@ -8271,7 +8271,7 @@ class IncreasingTableaux(Tableaux):
                 raise ValueError( "max_entry must be positive" )
 
         if (wt is not None) and (max_entry is not None):
-            if max_entry != len(wt):
+            if max_entry != len(wt) - 1 - wt[::-1].index(1):
                 raise ValueError( "the maximum entry must match the weight" )
 
         if (size is not None) and (shape is not None):
@@ -8280,15 +8280,15 @@ class IncreasingTableaux(Tableaux):
                 raise ValueError( "size and shape are different sizes" )
 
         if (size is not None) and (wt is not None):
-            if sum(wt) != size:
+            if sum(wt) > size:
                 # This could return an empty class instead of an error
-                raise ValueError( "size and eval are different sizes" )
+                raise ValueError( "size is smaller than the number of labels" )
 
         # Dispatch appropriately
         if (shape is not None) and (wt is not None):
-            if sum(shape) != sum(wt):
+            if sum(shape) < sum(wt):
                 # This could return an empty class instead of an error
-                raise ValueError( "shape and eval are different sizes" )
+                raise ValueError( "number of boxes is smaller than the number of labels" )
             else:
                 return IncreasingTableaux_shape_weight(shape, wt)
 

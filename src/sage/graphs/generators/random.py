@@ -241,6 +241,9 @@ def RandomBipartite(n1, n2, p):
             if uniform()<=p :
                 g.add_edge((0,v),(1,w))
 
+    # We now assign positions to vertices:
+    # - vertex (0, i) in S1 at position (0, 1 - i/(n1 - 1)
+    # - vertex (1, i) in S2 at position (1, 1 - i/(n2 - 1)
     pos = {}
     if n1 == 1:
         pos[(0, 0)] = (0, 0.5)

@@ -8041,6 +8041,40 @@ class IncreasingTableau(Tableau):
                         if i not in ans:
                             ans.append(i)
         return ans
+    
+    def K_BenderKnuth(self,i):
+        part = list(self.shape())
+        newtab = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            if self[r][c] not in [i,i+1]:
+                newtab[r][c] = self[r][c]
+            if self[r][c] == i:
+                try:
+                    rneigh = self[r][c+1]
+                except IndexError:
+                    rneigh = i+2
+                try:
+                    bneigh = self[r+1][c]
+                except IndexError:
+                    bneigh = i+2
+                if i+1 in [rneigh, bneigh]:
+                    newtab[r][c] = i
+                else:
+                    newtab[r][c] = i+1
+            if self[r][c] == i+1:
+                try:
+                    lneigh = self[r][c-1]
+                except IndexError:
+                    lneigh = i-1
+                try:
+                    tneigh = self[r-1][c]
+                except IndexError:
+                    tneigh = i-1
+                if i in [lneigh, tneigh]:
+                    newtab[r][c] = i+1
+                else:
+                    newtab[r][c] = i
+        return IncreasingTableau(newtab)
 
 ##########################
 # Increasing tableaux #
@@ -9182,7 +9216,7 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
                     unfilled_spots.append((r,c))
             if unfilled_spots == []:
                 top_value = max(active_tab.entries())
-                if top_value == len(wt) - wt[::-1].index(1): #oops was -1
+                if top_value == len(wt) - wt[::-1].index(1):
                     list_of_inc_tabs.append(IncreasingTableau(active_tab))
                 continue
             growth_spots = []

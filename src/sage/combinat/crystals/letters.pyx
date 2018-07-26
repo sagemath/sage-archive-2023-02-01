@@ -91,9 +91,6 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
         sage: C.list()
         [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
     """
-    if cartan_type[0] == 'Q':
-       ct = CartanType(['A',cartan_type[1]])
-       return CrystalOfQueerLetters(ct)
     ct = CartanType(cartan_type)
     if ct.letter == 'A':
         from sage.combinat.root_system.cartan_type import SuperCartanType_standard
@@ -122,7 +119,7 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     elif ct.letter == 'G':
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_G_element)
     elif ct.letter == 'Q':
-         return ClassicalCrystalOfLetters(ct, QueerLetter_element)
+        return CrystalOfQueerLetters(ct)
     else:
         raise NotImplementedError
 

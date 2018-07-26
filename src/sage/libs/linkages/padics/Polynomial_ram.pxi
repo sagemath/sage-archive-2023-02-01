@@ -181,7 +181,7 @@ cdef inline int cshift(celement shifted, celement rem, celement a, long n, long 
         a *= prime_pow.px_pow(1)
         a %= prime_pow.modulus()
         a = a.map_coefficients(lambda c: c>>1)
-    creduce(rem, _rem, prime_pow.ram_prec_cap, prime_pow)
+    cshift_notrunc(rem, _rem, v, prime_pow.ram_prec_cap, prime_pow, True)
     if reduce_afterward:
         creduce(shifted, a, prec, prime_pow)
     else:
@@ -353,8 +353,11 @@ cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
     while m >= 0:
         modp_rep, term = value[0]._modp_rep()
         if m:
-            value.__coeffs[0] -= modp_rep
-        if m: cshift_notrunc(value, value, -1, 1, prime_pow, False)
+            if len(value.__coeffs):
+                value.__coeffs[0] -= modp_rep
+            else:
+                value.__coeffs.append(-modp_rep)
+            cshift_notrunc(value, value, -1, 1, prime_pow, False)
         m -= 1
     return term
 

@@ -905,22 +905,14 @@ class Crystals(Category_singleton):
             if index_set is None:
                 index_set = self.index_set()
 
-            G = DiGraph(multiedges=True)
-            G.add_vertices(subset)
-            #for x in subset:
-            #    d[x] = {}
-            #    for i in index_set:
-            #        child = x.f(i)
-            #        if child is None or child not in subset:
-            #            continue
-            #        d[x][child]=i
-            #G = DiGraph(d)
-            for x in G:
+            for x in subset:
+                d[x] = {}
                 for i in index_set:
-                    y = x.f(i)
-                    if y is not None:
-                        G.add_edge(x, y, i)
-
+                    child = x.f(i)
+                    if child is None or child not in subset:
+                        continue
+                    d[x][child]=i
+            G = DiGraph(d)
             if have_dot2tex():
                 G.set_latex_options(format="dot2tex",
                                     edge_labels=True,

@@ -84,7 +84,7 @@ cdef class CAElement(pAdicTemplateElement):
         else:
             self.absprec = min(aprec, val + rprec)
             if isinstance(x,CAElement) and x.parent() is self.parent():
-                cshift(self.value, (<CAElement>x).value, 0, self.absprec, self.prime_pow, True)
+                cshift_notrunc(self.value, (<CAElement>x).value, 0, self.absprec, self.prime_pow, True)
             else:
                 cconv(self.value, x, self.absprec, 0, self.prime_pow)
 
@@ -313,6 +313,57 @@ cdef class CAElement(pAdicTemplateElement):
         K = self.parent().fraction_field()
         return K(self) / K(right)
 
+    @coerce_binop
+    def _quo_rem(self, _right):
+        """
+        Quotient with remainder.
+
+        EXAMPLES::
+
+            sage: R = ZpCA(3, 5)
+            sage: R(12).quo_rem(R(2))
+            (2*3 + O(3^5), O(3^5))
+            sage: R(2).quo_rem(R(12))
+            (O(3^4), 2 + O(3^5))
+            sage: q, r = R(4).quo_rem(R(12)); q, r
+            (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
+            sage: 12*q + r == 4
+            True
+        """
+        cdef CAElement right = _right
+        if right._is_inexact_zero():
+            raise ZeroDivisionError
+        cdef CAElement q = self._new_c()
+        cdef CAElement r = self._new_c()
+        cdef long sval, srprec, rval, rrprec, diff
+        sval = self.valuation_c()
+        srprec = self.absprec - sval
+        rval = right.valuation_c()
+        rrprec = right.absprec - rval
+        diff = sval - rval
+        rprec = min(srprec, rrprec)
+        r.absprec = r.prime_pow.ram_prec_cap
+        if ciszero(self.value, self.prime_pow):
+            q.absprec = diff + rprec
+            csetzero(q.value, q.prime_pow)
+            csetzero(r.value, r.prime_pow)
+        elif diff >= 0:
+            q.absprec = diff + rprec
+            # shift right and self by the same power of the uniformizer
+            cshift_notrunc(r.value, right.value, -rval, q.absprec, r.prime_pow, False)
+            # We use shift_rem as a temp variable
+            cshift_notrunc(self.prime_pow.shift_rem, self.value, -rval, q.absprec, q.prime_pow, False)
+            # divide
+            cdivunit(q.value, self.prime_pow.shift_rem, r.value, q.absprec, q.prime_pow)
+            csetzero(r.value, r.prime_pow)
+        else:
+            q.absprec = rprec
+            cshift(q.value, r.value, self.value, -rval, q.absprec, q.prime_pow, False)
+            cshift_notrunc(q.prime_pow.shift_rem, right.value, -rval, q.absprec, q.prime_pow, False)
+            cdivunit(q.value, q.value, q.prime_pow.shift_rem, q.absprec, q.prime_pow)
+        creduce(q.value, q.value, q.absprec, q.prime_pow)
+        return q, r
+
     def __pow__(CAElement self, _right, dummy):
         """
         Exponentiation.
@@ -470,13 +521,13 @@ cdef class CAElement(pAdicTemplateElement):
             csetzero(ans.value, ans.prime_pow)
             ans.absprec = self.prime_pow.prec_cap
         else:
-            ans.absprec = min(self.absprec + shift, self.prime_pow.prec_cap)
-            cshift(ans.value, self.value, shift, ans.absprec, ans.prime_pow, False)
+            ans.absprec = min(self.absprec + shift, self.prime_pow.ram_prec_cap)
+            cshift_notrunc(ans.value, self.value, shift, ans.absprec, ans.prime_pow, self.prime_pow.e > 1)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
         """
-        Divides by ``\pi^{\mbox{shift}}``.
+        Divides by ``π^{\mbox{shift}}``.
 
         Positive shifts may truncate the result.
 
@@ -503,7 +554,7 @@ cdef class CAElement(pAdicTemplateElement):
             ans.absprec = 0
         else:
             ans.absprec = self.absprec - shift
-            cshift(ans.value, self.value, -shift, ans.absprec, ans.prime_pow, False)
+            cshift(ans.value, ans.prime_pow.shift_rem, self.value, -shift, ans.absprec, ans.prime_pow, self.prime_pow.e > 1)
         return ans
 
     def add_bigoh(self, absprec):
@@ -1547,7 +1598,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         if x.ordp >= ans.absprec:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
+            cshift_notrunc(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1598,7 +1649,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             csetzero(ans.value, ans.prime_pow)
         else:
             sig_on()
-            cshift(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
+            cshift_notrunc(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
             sig_off()
         return ans
 

@@ -241,41 +241,35 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a // b = ((a - a % b) >> b.valuation()) / b.unit_part()
 
 
-        In Sage we choose option (3), mainly because it is more easily
-        defined in terms of shifting and thus generalizes more easily
-        to extension rings.
+        In Sage we choose option (4) since it has better precision behavior.
 
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
             sage: a // b #indirect doctest
-            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
+            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
             sage: a / b
             4*5^-4 + 3*5^-3 + 2*5^-2 + 5^-1 + 3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
             sage: a % b
-            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
+            3 + O(5^20)
+            sage: a
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
             sage: (a // b) * b + a % b
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
 
         The alternative definition::
 
-            sage: a
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
-            sage: c = ((a - 3)>>4)/b.unit_part(); c
-            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
-            sage: c*b + 3
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
+            sage: c = (a // b.unit_part()) >> b.valuation(); c
+            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
+            sage: othermod = a - c*b; othermod
+            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
         """
-        P = self.parent()
-        if P.is_field():
-            return self / right
-        else:
-            right = P(right)
-            if right._is_inexact_zero():
-                raise PrecisionError("cannot divide by something indistinguishable from zero")
-            elif right._is_exact_zero():
-                raise ZeroDivisionError("cannot divide by zero")
-            return self._floordiv_(right)
+        right = self.parent()(right)
+        if right._is_inexact_zero():
+            raise PrecisionError("cannot divide by something indistinguishable from zero")
+        elif right._is_exact_zero():
+            raise ZeroDivisionError("cannot divide by zero")
+        return self._floordiv_(right)
 
     cpdef _floordiv_(self, right):
         """
@@ -285,10 +279,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(5, 5); a = R(77)
             sage: a // 15 # indirect doctest
-            1 + 4*5 + 5^2 + 3*5^3 + O(5^4)
+            5 + O(5^5)
         """
-        v, u = right.val_unit()
-        return self.parent()(self / u) >> v
+        return self._quo_rem(right)[0]
 
     def __getitem__(self, n):
         r"""
@@ -438,22 +431,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a // b = ((a - a % b) >> b.valuation()) / b.unit_part()
 
 
-        In Sage we choose option (3), mainly because it is more easily
-        defined in terms of shifting and thus generalizes more easily
-        to extension rings.
+        In Sage we choose option (4) because it has better precision behavior.
 
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
             sage: a % b
-            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
+            3 + O(5^20)
         """
-        if right == 0:
-            raise ZeroDivisionError
-        if self.parent().is_field():
-            return self.parent()(0)
-        else:
-            return self - (self // right) * right
+        return self._quo_rem(right)[1]
 
     #def _is_exact_zero(self):
     #    return False

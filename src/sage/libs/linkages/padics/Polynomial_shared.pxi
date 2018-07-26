@@ -102,6 +102,9 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
+    IF CELEMENT_IS_PY_OBJECT:
+        print "a = ", a
+        print "b = ", b
     if not (reduce_a or reduce_b):
         return 0 if a == b else 1
     csub(prime_pow.tmp_ccmp_a, a, b, prec, prime_pow)
@@ -143,7 +146,7 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     if a == 0:
         return prec
     cdef long v = cvaluation(a, prec, prime_pow)
-    cshift_notrunc(out, a, -v, prec, prime_pow, False)
+    cshift_notrunc(out, a, -v, prec, prime_pow, True)
     return v
 
 cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:

@@ -1457,26 +1457,23 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
         cdef long aprec, rprec
         cdef CAElement x = _x
         cdef CRElement ans = self._zero._new_c()
-        cdef bint reduce = False
         _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
         if x.absprec < aprec:
             aprec = x.absprec
-            reduce = True
         ans.ordp = cremove(ans.unit, x.value, aprec, x.prime_pow)
         ans.relprec = aprec - ans.ordp
         if rprec < ans.relprec:
             ans.relprec = rprec
-            reduce = True
         if ans.relprec < 0:
             ans.relprec = 0
             ans.ordp = aprec
             csetzero(ans.unit, x.prime_pow)
-        elif reduce:
-            creduce(ans.unit, ans.unit, ans.relprec, x.prime_pow)
+        else:
             IF CELEMENT_IS_PY_OBJECT:
                 # The base ring is wrong, so we fix it.
                 K = ans.unit.base_ring()
                 ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
+            pass
         return ans
 
     def section(self):

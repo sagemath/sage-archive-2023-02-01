@@ -96,6 +96,8 @@ cdef class PowComputer_relative(PowComputer_class):
         self.tmp_ccoeffs = poly.parent()()
         self.tmp_ccmp_a = poly.parent()()
         self.tmp_ccmp_b = poly.parent()()
+        self.shift_rem = poly.parent()()
+        self.aliasing = poly.parent()()
 
         self.base_ring = poly.base_ring()
         self.poly_ring = poly.parent()

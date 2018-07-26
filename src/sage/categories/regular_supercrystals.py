@@ -297,7 +297,7 @@ class RegularSuperCrystals(Category_singleton):
             if any(c.cartan_type() != cartan_type for c in crystals):
                 raise ValueError("all crystals must be of the same Cartan type")
 
-            if cartan_type == 'Q':
+            if cartan_type[0] == 'Q':
                 from sage.combinat.crystals.tensor_product import FullTensorProductOfQueerSuperCrystals
                 return FullTensorProductOfQueerSuperCrystals((self,) + tuple(crystals), **options)
             else:

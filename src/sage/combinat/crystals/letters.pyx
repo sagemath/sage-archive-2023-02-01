@@ -92,9 +92,6 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
         [-, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
     """
     ct = CartanType(cartan_type)
-    if cartan_type[0] == 'Q':
-        ct = CartanType(['A',cartan_type[1]])
-        return CrystalOfQueerLetters(ct)
     if ct.letter == 'A':
         from sage.combinat.root_system.cartan_type import SuperCartanType_standard
         if isinstance(ct, SuperCartanType_standard):
@@ -122,7 +119,8 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
     elif ct.letter == 'G':
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_G_element)
     elif ct.letter == 'Q':
-        return ClassicalCrystalOfLetters(ct,QueerLetter_element)
+        return CrystalOfQueerLetters(ct)
+        #return ClassicalCrystalOfLetters(ct,QueerLetter_element)
     else:
         raise NotImplementedError
 
@@ -2592,7 +2590,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
 
     TESTS::
 
-        sage: Q = crystals.Letters(['Q',3])
+        sage: Q = crystals.Letters(['Q',4])
         sage: Q.list()
         [1, 2, 3, 4]
         sage: [ [x < y for y in Q] for x in Q ]
@@ -2609,8 +2607,8 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         """
         TESTS::
 
-            sage: crystals.Letters(['Q',2])
-            The queer crystal of letters for 2
+            sage: crystals.Letters(['Q',3])
+            The queer crystal of letters for q(3)
         """
         ct = CartanType(ct)
         return super(CrystalOfQueerLetters, cls).__classcall__(cls, ct)
@@ -2621,18 +2619,18 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2]); Q
-            The queer crystal of letters for 2
+            sage: Q = crystals.Letters(['Q',3]); Q
+            The queer crystal of letters for q(3)
             sage: Q.module_generators
             (1,)
             sage: Q._index_set
-            [-1, 1, 2]
+            (1, 2, -2, -1)
             sage: Q._list
             [1, 2, 3]
         """
         self._cartan_type = ct
-        self._index_set = [-1]+[i for i in ct.index_set()]
         Parent.__init__(self, category= RegularSuperCrystals())
+        self._index_set = ct.index_set()
         self.module_generators = (self._element_constructor_(1),)
         self._list = list(self.__iter__())
 
@@ -2642,7 +2640,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2])
+            sage: Q = crystals.Letters(['Q',3])
             sage: [x for x in Q]
             [1, 2, 3]
         """
@@ -2653,10 +2651,10 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         """
         TESTS::
 
-            sage: crystals.Letters(['Q',2])
-            The queer crystal of letters for 2
+            sage: crystals.Letters(['Q',3])
+            The queer crystal of letters for q(3)
         """
-        ret = "The queer crystal of letters for %s"%self._cartan_type.n
+        ret = "The queer crystal of letters for q(%s)"%(self._cartan_type.n+1)
         return ret
 
     def index_set(self):
@@ -2665,9 +2663,9 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2])
+            sage: Q = crystals.Letters(['Q',3])
             sage: Q.index_set()
-            [-1, 1, 2]
+            (1, 2, -2, -1)
         """
         return self._index_set
 
@@ -2683,7 +2681,7 @@ cdef class QueerLetter_element(Letter):
 
     TESTS::
 
-        sage: Q = crystals.Letters(['Q',2])
+        sage: Q = crystals.Letters(['Q',3])
         sage: Q.list()
         [1, 2, 3]
         sage: [ [x < y for y in Q] for x in Q ]
@@ -2691,7 +2689,7 @@ cdef class QueerLetter_element(Letter):
 
     ::
 
-        sage: Q = crystals.Letters(['Q',2])
+        sage: Q = crystals.Letters(['Q',3])
         sage: Q(1) < Q(1), Q(1) < Q(2), Q(2)< Q(1)
         (False, True, False)
 
@@ -2705,7 +2703,7 @@ cdef class QueerLetter_element(Letter):
 
         EXAMPLES::
 
-            sage: [v.weight() for v in crystals.Letters(['Q',3])]
+            sage: [v.weight() for v in crystals.Letters(['Q',4])]
             [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
         """
         return self._parent.weight_lattice_realization().monomial(self.value-1)
@@ -2716,12 +2714,12 @@ cdef class QueerLetter_element(Letter):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2])
+            sage: Q = crystals.Letters(['Q',3])
             sage: [(c,i,c.e(i)) for i in Q.index_set() for c in Q if c.e(i) is not None]
-            [(2, -1, 1), (2, 1, 1), (3, 2, 2)]
+            [(2, 1, 1), (3, 2, 2), (3, -2, 2), (2, -1, 1)]
         """
-        if i == -1 and self.value == 2:
-           return self._parent._element_constructor_(1)
+        if self.value == -i+1:
+           return self._parent._element_constructor_(self.value-1)
         if self.value == i+1:
             return self._parent._element_constructor_(self.value-1)
         else:
@@ -2733,12 +2731,12 @@ cdef class QueerLetter_element(Letter):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2])
+            sage: Q = crystals.Letters(['Q',3])
             sage: [(c,i,c.f(i)) for i in Q.index_set() for c in Q if c.f(i) is not None]
-            [(1, -1, 2), (1, 1, 2), (2, 2, 3)]
+            [(1, 1, 2), (2, 2, 3), (2, -2, 3), (1, -1, 2)]
         """
-        if i == -1 and self.value == 1:
-           return self._parent._element_constructor_(2)
+        if self.value == -i:
+           return self._parent._element_constructor_(-i+1)
         if self.value == i:
             return self._parent._element_constructor_(self.value+1)
         else:
@@ -2750,14 +2748,12 @@ cdef class QueerLetter_element(Letter):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2])
+            sage: Q = crystals.Letters(['Q',3])
             sage: [(c,i) for i in Q.index_set() for c in Q if c.epsilon(i) != 0]
-            [(2, -1), (2, 1), (3, 2)]
+            [(2, 1), (3, 2), (3, -2), (2, -1)]
         """
-        if self.value == i+1:
+        if self.value == i+1 or self.value == -i+1:
             return 1
-        if i == -1 and self.value == 2:
-           return 1
         return 0
 
     cpdef int phi(self, int i):
@@ -2766,14 +2762,12 @@ cdef class QueerLetter_element(Letter):
 
         EXAMPLES::
 
-            sage: Q = crystals.Letters(['Q',2])
+            sage: Q = crystals.Letters(['Q',3])
             sage: [(c,i) for i in Q.index_set() for c in Q if c.phi(i) != 0]
-            [(1, -1), (1, 1), (2, 2)]
+            [(1, 1), (2, 2), (2, -2), (1, -1)]
         """
-        if self.value == i:
+        if self.value == i or self.value == -i:
             return 1
-        if i == -1 and self.value == 1:
-           return 1
         return 0
 
 #########################

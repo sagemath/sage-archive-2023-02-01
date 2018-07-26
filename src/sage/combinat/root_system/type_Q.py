@@ -21,7 +21,7 @@ class CartanType(CartanType_standard_finite):
 
     .. SEEALSO:: :func:`~sage.combinat.root_systems.cartan_type.CartanType`
     """
-    def __init__(self, n):
+    def __init__(self, m):
         """
         EXAMPLES::
 
@@ -50,8 +50,21 @@ class CartanType(CartanType_standard_finite):
 
             sage: TestSuite(ct).run()
         """
-        assert n >= 0
-        CartanType_standard_finite.__init__(self, "Q", n)
+        assert m >= 2
+        CartanType_standard_finite.__init__(self, "Q", m-1)
+
+    def _repr_(self, compact = False):
+        """
+        TESTS::
+
+            sage: ct = CartanType(['Q',4])
+            sage: repr(ct)
+            "['Q', 4]"
+            sage: ct._repr_(compact=True)
+            'Q4'
+        """
+        format = '%s%s' if compact else "['%s', %s]"
+        return format%(self.letter, self.n+1)
 
     def index_set(self):
         """
@@ -62,7 +75,7 @@ class CartanType(CartanType_standard_finite):
 
         EXAMPLES::
 
-            sage: CartanType(['Q', 2]).index_set()
+            sage: CartanType(['Q', 3]).index_set()
             (1, 2, -2, -1)
         """
         return tuple(range(1,self.n+1)+range(-self.n,0))
@@ -76,7 +89,7 @@ class CartanType(CartanType_standard_finite):
             sage: latex(CartanType(['Q',4]))
             Q_{4}
         """
-        return "Q_{%s}"%self.n
+        return "Q_{%s}"%(self.n+1)
 
     def root_system(self):
         """
@@ -86,7 +99,7 @@ class CartanType(CartanType_standard_finite):
 
             sage: Q = CartanType(['Q',3])
             sage: Q.root_system()
-            Root system of type ['A', 3]
+            Root system of type ['A', 2]
         """
         return RootSystem(['A',self.n])
 

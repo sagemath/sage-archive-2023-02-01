@@ -1046,6 +1046,25 @@ class ChainComplex_class(Parent):
             rank = self.free_module_rank(degree)
         return FreeModule(self.base_ring(), rank)
 
+    def __hash__(self):
+        """
+        The hash is formed by combining the hashes of
+
+        - the base ring
+        - the differentials -- the matrices and their degrees
+        - the degree of the differential of the chain complex
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: D = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: hash(C) == hash(D)
+            True
+        """
+        return (hash(self.base_ring())
+                ^ hash(tuple(self.differential().items()))
+                ^ hash(self.degree_of_differential()))
+
     def __eq__(self, other):
         """
         Return ``True`` iff this chain complex is the same as other: that
@@ -1841,7 +1860,7 @@ class ChainComplex_class(Parent):
             sage: m = matrix([0])
             sage: C = ChainComplex(grading_group=G, degree=G(vector([1,2])), data={G.zero(): m})
             sage: C._latex_()
-            '\\dots \\xrightarrow{d_{\\text{\\texttt{(0,{ }0)}}}} \\Bold{Z}^{1} \\xrightarrow{d_{\\text{\\texttt{(1,{ }2)}}}} \\dots'
+            '\\Bold{Z}^{1} \\xrightarrow{d_{\\text{\\texttt{(0,{ }0)}}}} \\Bold{Z}^{1}'
         """
 #         Warning: this is likely to screw up if, for example, the
 #         degree of the differential is 2 and there are nonzero terms
@@ -1857,32 +1876,25 @@ class ChainComplex_class(Parent):
             return "0"
         deg = self.degree_of_differential()
         ring = self.base_ring()
-        if self.grading_group() != ZZ:
-            guess = next(iter(diffs))
-            if guess - deg in diffs:
-                string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
-            string += _latex_module(ring, diffs[guess].ncols())
-            string += " \\xrightarrow{d_{%s}} \\dots" % latex(guess)
+        backwards = (deg < 0)
+        sorted_list = sorted(diffs.keys(), reverse=backwards)
+        if len(diffs) <= 6:
+            for n in sorted_list[1:-1]:
+                mat = diffs[n]
+                string += _latex_module(ring, mat.ncols())
+                string += " \\xrightarrow{d_{%s}} " % latex(n)
+            mat = diffs[sorted_list[-1]]
+            string += _latex_module(ring, mat.ncols())
         else:
-            backwards = (deg < 0)
-            sorted_list = sorted(diffs.keys(), reverse=backwards)
-            if len(diffs) <= 6:
-                for n in sorted_list[1:-1]:
-                    mat = diffs[n]
-                    string += _latex_module(ring, mat.ncols())
-                    string += " \\xrightarrow{d_{%s}} " % latex(n)
-                mat = diffs[sorted_list[-1]]
+            for n in sorted_list[:2]:
+                mat = diffs[n]
                 string += _latex_module(ring, mat.ncols())
-            else:
-                for n in sorted_list[:2]:
-                    mat = diffs[n]
-                    string += _latex_module(ring, mat.ncols())
-                    string += " \\xrightarrow{d_{%s}} " % latex(n)
-                string += "\\dots "
-                n = sorted_list[-2]
-                string += "\\xrightarrow{d_{%s}} " % latex(n)
-                mat = diffs[sorted_list[-1]]
-                string += _latex_module(ring, mat.ncols())
+                string += " \\xrightarrow{d_{%s}} " % latex(n)
+            string += "\\dots "
+            n = sorted_list[-2]
+            string += "\\xrightarrow{d_{%s}} " % latex(n)
+            mat = diffs[sorted_list[-1]]
+            string += _latex_module(ring, mat.ncols())
         return string
 
     def cartesian_product(self, *factors, **kwds):

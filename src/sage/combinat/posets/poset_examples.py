@@ -662,7 +662,7 @@ class Posets(object):
             return LatticePoset(facade=facade)
         from sage.categories.cartesian_product import cartesian_product
         elements = cartesian_product([range(i) for i in l])
-        compare = lambda a,b : a != b and all(x <= y for x, y in zip(a ,b))
+        compare = lambda a,b : all(x <= y for x, y in zip(a ,b))
         return LatticePoset([elements, compare], facade=facade)
 
 

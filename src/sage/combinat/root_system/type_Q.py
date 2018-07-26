@@ -2,9 +2,8 @@
 Root system data for type Q
 """
 #*****************************************************************************
-#       Copyright (C) 2008-2009 Daniel Bump
-#       Copyright (C) 2008-2009 Justin Walker
-#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#       Copyright (C) 2018 Wencin Poh
+#       Copyright (C) 2018 Anne Schilling
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -13,10 +12,10 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 
-from .type_A import CartanType
 from .cartan_type import CartanType_standard_finite
+from sage.combinat.root_system.root_system import RootSystem
 
-class CartanType(CartanType):
+class CartanType(CartanType_standard_finite):
     """
     Cartan Type `Q_n`
 
@@ -58,13 +57,13 @@ class CartanType(CartanType):
         """
         Returns index set for Cartan type Q.
 
-        The index set for type Q would be of the form
+        The index set for type Q is of the form
         `\{-n, \ldots, -1, 1, \ldots, n\}`.
 
         EXAMPLES::
 
             sage: CartanType(['Q', 2]).index_set()
-            (1, 2, -1, -2)
+            (1, 2, -2, -1)
         """
         return tuple(range(1,self.n+1)+range(-self.n,0))
 
@@ -79,7 +78,15 @@ class CartanType(CartanType):
         """
         return "Q_{%s}"%self.n
 
-
     def root_system(self):
-        return CartanType(['A',self.n]).root_system()
+        """
+        Return the root system of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = CartanType(['Q',3])
+            sage: Q.root_system()
+            Root system of type ['A', 3]
+        """
+        return RootSystem(['A',self.n])
 

@@ -12,7 +12,7 @@ Root system data for type Q
 from __future__ import print_function
 from __future__ import absolute_import
 
-from .type_A import AmbientSpace
+
 from .type_A import CartanType
 from .cartan_type import CartanType_standard_finite
 
@@ -54,6 +54,20 @@ class CartanType(CartanType):
         assert n >= 0
         CartanType_standard_finite.__init__(self, "Q", n)
 
+    def index_set(self):
+        """
+        Returns index set for Cartan type Q.
+
+        The index set for type Q would be of the form
+        `\{-n, \ldots, -1, 1, \ldots, n\}`.
+
+        EXAMPLES::
+
+            sage: CartanType(['Q', 2]).index_set()
+            (1, 2, -1, -2)
+        """
+        return tuple(range(1,self.n+1)+range(-self.n,0))
+
     def _latex_(self):
         r"""
         Return a latex representation of ``self``.
@@ -65,8 +79,7 @@ class CartanType(CartanType):
         """
         return "Q_{%s}"%self.n
 
-    AmbientSpace = AmbientSpace
 
-# For unpickling backward compatibility (Sage <= 4.1)
-from sage.misc.persist import register_unpickle_override
-register_unpickle_override('sage.combinat.root_system.type_Q', 'ambient_space',  AmbientSpace)
+    def root_system(self):
+        return CartanType(['A',self.n]).root_system()
+

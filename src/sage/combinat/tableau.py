@@ -7945,27 +7945,27 @@ class IncreasingTableau(Tableau):
     @staticmethod
     def __classcall_private__(self, t):
         r"""
-        This ensures that a SemistandardTableau is only ever constructed as an
+        This ensures that an IncreasingTableau is only ever constructed as an
         element_class call of an appropriate parent.
 
         TESTS::
 
-            sage: t = SemistandardTableau([[1,1],[2]])
+            sage: t = IncreasingTableau([[1,2],[2]])
             sage: TestSuite(t).run()
 
             sage: t.parent()
-            Semistandard tableaux
+            Increasing tableaux
             sage: t.category()
-            Category of elements of Semistandard tableaux
+            Category of elements of Increasing tableaux
             sage: type(t)
-            <class 'sage.combinat.tableau.SemistandardTableaux_all_with_category.element_class'>
+            <class 'sage.combinat.tableau.IncreasingTableaux_all_with_category.element_class'>
         """
         if isinstance(t, IncreasingTableau):
             return t
         elif t in IncreasingTableaux():
             return IncreasingTableaux_all().element_class(IncreasingTableaux_all(), t)
 
-        # t is not a semistandard tableau so we give an appropriate error message
+        # t is not an increasing tableau so we give an appropriate error message
         if t not in Tableaux():
             raise ValueError('%s is not a tableau' % t)
 
@@ -7974,28 +7974,26 @@ class IncreasingTableau(Tableau):
 
         if any(row[c] >= row[c+1] for row in t for c in range(len(row)-1)):
             raise ValueError("The rows of %s are not strictly increasing"%t)
-        if any(row[c] >= row[c+1] for row in t.transpose() for c in range(len(row)-1)):
-            raise ValueError("The columns of %s are not strictly increasing"%t)
-        # If we're still here ``t`` cannot be column strict
-        raise ValueError('We do not know why %s is not an increasing tableau' % t)
+        # If we're still here the columns must not be strictly increasing
+        raise ValueError("The columns of %s are not strictly increasing"%t)
 
     def check(self):
         """
-        Check that ``self`` is a valid semistandard tableau.
+        Check that ``self`` is a valid increasing tableau.
 
         TESTS::
 
-            sage: SemistandardTableau([[1,2,3],[1]])  # indirect doctest
+            sage: IncreasingTableau([[1,2,3],[1]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: [[1, 2, 3], [1]] is not a column strict tableau
+            ValueError: The columns of [[1, 2, 3], [1]] are not strictly increasing
 
-            sage: SemistandardTableau([[1,2,1]])  # indirect doctest
+            sage: IncreasingTableau([[1,2,2]])  # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: The rows of [[1, 2, 1]] are not weakly increasing
+            ValueError: the entries in each row of an increasing tableau must be strictly increasing
 
-            sage: SemistandardTableau([[0,1]])  # indirect doctest
+            sage: IncreasingTableau([[0,1]])  # indirect doctest
             Traceback (most recent call last):
             ...
             ValueError: entries must be positive integers

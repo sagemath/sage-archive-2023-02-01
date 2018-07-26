@@ -1123,7 +1123,6 @@ class LocalGeneric(CommutativeRing):
             [O(5^10) O(5^10)]
         """
         from sage.rings.all import infinity
-        from sage.matrix.constructor import matrix
         from .precision_error import PrecisionError
         from copy import copy
         n = M.nrows()

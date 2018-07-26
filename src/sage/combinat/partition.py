@@ -491,11 +491,11 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: boundary(Partition([1]))
-            [(1,0), (1,1), (0,1)]
+            sage: Partition([1]).boundary()
+            [(1, 0), (1, 1), (0, 1)]
 
-            sage: boundary(Partition([3, 1]))
-            [(3,0), (3,1), (2,1), (1,1), (1,2), (0,2)]
+            sage: Partition([3, 1]).boundary()
+            [(3, 0), (3, 1), (2, 1), (1, 1), (1, 2), (0, 2)]
 
         """
         def horizontal_piece(xy, bdy):
@@ -527,8 +527,8 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: k_rim(Partition([3, 1]), 1)
-            [(3,0), (2,0), (2,1), (1,1), (0,1), (0,2)])
+            sage: Partition([3, 1]).k_rim(1)
+            [(3, 0), (2, 0), (2, 1), (1, 1), (0, 1), (0, 2)]
 
         """
         interior_rim = ptn.k_interior(k).boundary()
@@ -551,10 +551,10 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: k_row_lengths(Partition([6, 1]), 2)
+            sage: Partition([6, 1]).k_row_lengths(2)
             [2, 1]
 
-            sage: k_row_lengths(Partition([4, 4, 4, 3, 2]), 2)
+            sage: Partition([4, 4, 4, 3, 2]).k_row_lengths(2)
             [0, 1, 1, 1, 2]
         """
         return ptn.k_boundary(k).row_lengths()
@@ -564,10 +564,10 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: k_column_lengths(Partition([6, 1]), 2)
+            sage: Partition([6, 1]).k_column_lengths(2)
             [1, 0, 0, 0, 1, 1]
 
-            sage: k_column_lengths(Partition([4, 4, 4, 3, 2]), 2)
+            sage: Partition([4, 4, 4, 3, 2]).k_column_lengths(2)
             [1, 1, 1, 2]
         """
         return ptn.k_boundary(k).column_lengths()
@@ -591,11 +591,11 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: is_k_bounded(Partition([4, 3, 1]), 4)
+            sage: Partition([4, 3, 1]).is_k_bounded(4)
             True
-            sage: is_k_bounded(Partition([4, 3, 1]), 7)
+            sage: Partition([4, 3, 1]).is_k_bounded(7)
             True
-            sage: is_k_bounded(Partition([4, 3, 1]), 3)
+            sage: Partition([4, 3, 1]).is_k_bounded(3)
             False
 
         """
@@ -613,10 +613,11 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             # The partition [1, 1, 1] has at least 2 rows of length 1.
-            sage: is_k_reducible(Partition([1, 1, 1]), 2)
+            sage: Partition([1, 1, 1]).is_k_reducible(2)
             True
+
             # The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of length 2, 2 rows of length 3, nor 1 row of length 4.
-            sage: is_k_reducible(Partition([1, 1, 1]), 4)
+            sage: Partition([1, 1, 1]).is_k_reducible(4)
             False
 
         """
@@ -632,10 +633,11 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             # The partition [1, 1, 1] has at least 2 rows of length 1.
-            sage: is_k_irreducible(Partition([1, 1, 1]), 2)
+            sage: Partition([1, 1, 1]).is_k_irreducible(2)
             False
+
             # The partition [1, 1, 1] does *not* have 4 rows of length 1, 3 rows of length 2, 2 rows of length 3, nor 1 row of length 4.
-            sage: is_k_irreducible(Partition([1, 1, 1]), 2)
+            sage: Partition([1, 1, 1]).is_k_irreducible(4)
             True
         """
         return not ptn.is_k_reducible(k)
@@ -645,18 +647,13 @@ class Partition(CombinatorialElement):
 
         EXAMPLES::
 
-            sage: is_symmetric(Partition([2, 1]))
+            sage: Partition([2, 1]).is_symmetric()
             True
 
-            sage: is_symmetric(Partition([3, 1]))
+            sage: Partition([3, 1]).is_symmetric()
             False
         """
-        # This function runs in LINEAR time of order length(λ).
-        for j in range(0, len(ptn)):
-            for k in range(ptn[-j], ptn[-j-1]):
-                if ptn[k] != len(ptn) - j:
-                    return False
-        return True
+        return ptn == ptn.conjugate()
 
     def next_within_bounds(p, min=[], max=None, type=None):
         # Get the next partition lexigraphically that contains min and is contained in max.
@@ -711,9 +708,9 @@ class Partition(CombinatorialElement):
         EXAMPLES::
 
             # a hook length of 2 does not occur, but a hook length of 3 does
-            sage: is_k_core(Partition([2, 1]), 2)
+            sage: Partition([2, 1]).is_k_core(2)
             True
-            sage: is_k_core(Partition([2, 1]), 3)
+            sage: Partition([2, 1]).is_k_core(3)
             False
 
         """

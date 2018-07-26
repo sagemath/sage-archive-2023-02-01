@@ -5,27 +5,27 @@ A place for things that may be useful in core sage (not specific to k-combinator
 
 
 def summands(poly):
-	r""" Iterate through the summands of a symmetric function.
+    r""" Iterate through the summands of a symmetric function.
 
-	For example, ``(s[2, 1] + s[3])`` has summands ``s[2, 1]`` and ``s[3]``.
-	"""
-	parent_basis = poly.parent()
-	return (coeff * parent_basis(index) for index, coeff in poly)
+    For example, ``(s[2, 1] + s[3])`` has summands ``s[2, 1]`` and ``s[3]``.
+    """
+    parent_basis = poly.parent()
+    return (coeff * parent_basis(index) for index, coeff in poly)
 
 def prod(lis):
-	return reduce(operator.mul, lis, 1)
+    return reduce(operator.mul, lis, 1)
 
 def is_k_schur(obj):
-	# checks if obj is a k-schur function (coming from the 'kSchur_with_category' class)
-	try:
-		classname = obj.parent().__class__.__name__
-		return classname == 'kSchur_with_category'
-	except:
-		return False
+    # checks if obj is a k-schur function (coming from the 'kSchur_with_category' class)
+    try:
+        classname = obj.parent().__class__.__name__
+        return classname == 'kSchur_with_category'
+    except:
+        return False
 
 
 # class InfiniteDimensionalFreeRing (CommutativeRing, InfiniteDimensionalFreeAlgebra):
-# 	pass
+#   pass
 
 # base_ring=IntegerRing()
 # algebras = Algebras(base_ring.category()).WithBasis()

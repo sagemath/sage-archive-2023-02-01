@@ -1,3 +1,7 @@
+Move NTL error handler out of libsingular, otherwise it takes over Sage's error handler and makes it quit on NTL errors.
+See https://www.singular.uni-kl.de/forum/viewtopic.php?f=10&t=2769 and https://trac.sagemath.org/ticket/24735#comment:29
+Rebased from upstream commit https://github.com/Singular/Sources/commit/502cf86d0bb2a96715be6764774b64a69c1ca34c
+
 From 502cf86d0bb2a96715be6764774b64a69c1ca34c Mon Sep 17 00:00:00 2001
 From: Hans Schoenemann <hannes@mathematik.uni-kl.de>
 Date: Wed, 25 Jul 2018 11:03:32 +0200

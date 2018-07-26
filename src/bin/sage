@@ -776,7 +776,10 @@ fi
 
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
-    exec rst2ipynb --kernel=sagemath "$@"
+    rst2ipynb --kernel=sagemath "$@"
+    status="${?}"
+    if [ "${status}" -eq "127" ] ; then echo 'rst2ipynb is not installed, please run "sage -i rst2ipynb"' ; fi
+    exit ${status}
 fi
 
 if [ "$1" = '-ipynb2rst' -o "$1" = '--ipynb2rst' ]; then

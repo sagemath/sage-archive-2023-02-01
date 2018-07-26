@@ -571,6 +571,7 @@ cdef class FPElement(pAdicTemplateElement):
         q._normalize()
         return q, r
 
+
     def __pow__(FPElement self, _right, dummy): # NOTE: dummy ignored, always use self.prime_pow.ram_prec_cap
         """
         Exponentiation by an integer

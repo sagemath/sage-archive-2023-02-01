@@ -622,10 +622,10 @@ class Posets(object):
         """
         Return a product of chains.
 
-        - ``chain_lengths`` (a list of nonnegative integers) -- number of
+        - ``chain_lengths`` -- A list of nonnegative integers; number of
           elements in each chain.
 
-        - ``facade`` (boolean) -- whether to make the returned poset a
+        - ``facade`` -- boolean; whether to make the returned poset a
           facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
           the :func:`~sage.combinat.posets.posets.Poset` constructor
@@ -658,8 +658,8 @@ class Posets(object):
             raise TypeError("parameter chain_lengths must be a list of nonnegative integers, not {0}".format(l))
 
         # given the empty list, we expect the empty poset.
-        if len(chain_lengths) == 0:
-            return FiniteLatticePoset(Poset(facade=facade))
+        if not chain_lengths:
+            return FiniteLatticePoset(DiGraph(), facade=facade)
         from sage.categories.cartesian_product import cartesian_product
         elements = cartesian_product([range(i) for i in l])
         compare = lambda a,b : a != b and all(x <= y for x, y in zip(a ,b))

@@ -45,6 +45,8 @@ from sage.misc.latex import latex
 from sage.misc.decorators import options
 from sage.manifolds.chart_func import ChartFunctionRing
 from sage.manifolds.calculus_method import CalculusMethod
+from sage.symbolic.expression import Expression
+from sage.ext.fast_callable import fast_callable
 
 class Chart(UniqueRepresentation, SageObject):
     r"""
@@ -1462,6 +1464,7 @@ class RealChart(Chart):
         """
         Chart.__init__(self, domain, coordinates=coordinates, names=names,
                        calc_method=calc_method)
+        self._fast_valid_coordinates = None
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -1803,6 +1806,7 @@ class RealChart(Chart):
                 new_restrictions.append(restrict)
         self._bounds = tuple(bounds)
         self._restrictions = new_restrictions
+        self._fast_valid_coordinates = None
 
 
     def restrict(self, subset, restrictions=None):
@@ -1994,6 +1998,131 @@ class RealChart(Chart):
                 substitutions.update(parameters)
             return self._check_restrictions(self._restrictions, substitutions)
         return True
+
+    def valid_coordinates_numerical(self, *coordinates):
+        r"""
+        Check whether a tuple of float coordinates can be the coordinates of a
+        point in the chart domain.
+
+        This version is optimized for float numbers, and cannot accept parameters
+        nor tolerance. The chart restriction must also be specified in CNF
+        (ie list of tuple).
+
+        INPUT:
+
+        - ``*coordinates`` -- coordinate values
+
+        OUTPUT:
+
+        - ``True`` if the coordinate values are admissible in the chart range
+          and ``False`` otherwise
+
+        EXAMPLES:
+
+        Cartesian coordinates on a square interior::
+
+            sage: forget()  # for doctest only
+            sage: M = Manifold(2, 'M', structure='topological')  # the square interior
+            sage: X.<x,y> = M.chart('x:(-2,2) y:(-2,2)')
+            sage: X.valid_coordinates_numerical(0,1)
+            True
+            sage: X.valid_coordinates_numerical(-3/2,5/4)
+            True
+            sage: X.valid_coordinates_numerical(0,3)
+            False
+
+        The unit open disk inside the square::
+
+            sage: D = M.open_subset('D', coord_def={X: x^2+y^2<1})
+            sage: XD = X.restrict(D)
+            sage: XD.valid_coordinates_numerical(0,1)
+            False
+            sage: XD.valid_coordinates_numerical(-3/2,5/4)
+            False
+            sage: XD.valid_coordinates_numerical(-1/2,1/2)
+            True
+            sage: XD.valid_coordinates_numerical(0,0)
+            True
+
+        Another open subset of the square, defined by `x^2+y^2<1` or
+        (`x>0` and `|y|<1`)::
+
+            sage: B = M.open_subset('B',coord_def={X: [(x^2+y^2<1, x>0),
+            ....:                   (x^2+y^2<1,  abs(y)<1)]})
+            sage: XB = X.restrict(B)
+            sage: XB.valid_coordinates_numerical(-1/2, 0)
+            True
+            sage: XB.valid_coordinates_numerical(-1/2, 3/2)
+            False
+            sage: XB.valid_coordinates_numerical(3/2, 1/2)
+            True
+
+        """
+        # case fast callable already computed
+        if self._fast_valid_coordinates is not None:
+            return self._fast_valid_coordinates(*coordinates)
+
+        # case fast callable has to be computed
+        from operator import lt, gt
+
+        if not isinstance(self._restrictions, list):
+            if isinstance(self._restrictions, tuple):
+                self._restrictions = [self._restrictions]
+            elif isinstance(self._restrictions, Expression):
+                self._restrictions = [(self._restrictions,)]
+            else:
+                raise ValueError("Restrictions must be in CNF (list of tuple)")
+
+        list_of_clause = []
+        for clause in self._restrictions:
+            if not isinstance(clause, tuple):
+                if isinstance(clause, Expression):
+                    clause = (clause,)
+                else:
+                    raise ValueError("Restrictions must be in CNF (list of tuple)")
+            list_of_fast_callable = []
+            for litteral in clause:
+                if not isinstance(litteral, Expression):
+                    raise ValueError("Restrictions must be in CNF (list of tuple)")
+                # End of checks
+
+                fl = fast_callable(litteral.lhs(), vars=self[:], domain=float)
+                fr = fast_callable(litteral.rhs(), vars=self[:], domain=float)
+                op = litteral.operator()
+                list_of_fast_callable.append((fl, fr, op))
+            list_of_clause.append(list_of_fast_callable)
+
+        # adding bounds as restrictions
+        for x, bounds in zip(self[:], self._bounds):
+            xmin = bounds[0][0]
+            xmax = bounds[1][0]
+
+            if x <= xmin:
+                return False
+            if x >= xmax:
+                return False
+
+            if xmin is not -Infinity:
+                fl = fast_callable(x, vars=self[:], domain=float)
+                fr = fast_callable(SR(xmin), vars=self[:], domain=float)
+                list_of_clause.append(((fl, fr, gt),))
+            if xmax is not Infinity:
+                fl = fast_callable(x, vars=self[:], domain=float)
+                fr = fast_callable(SR(xmax), vars=self[:], domain=float)
+                list_of_clause.append(((fl, fr, lt),))
+
+        # final call
+        def evaluate_fast_callable(*coordinates):
+            for clause in list_of_clause:
+                temp = False
+                for fl, fr, op in clause:
+                    temp = temp or op(fl(*coordinates), fr(*coordinates))
+                if not temp:
+                    return False
+            return True
+
+        self._fast_valid_coordinates = evaluate_fast_callable
+        return self._fast_valid_coordinates(*coordinates)
 
     @options(max_range=8, color='red',  style='-', thickness=1, plot_points=75,
              label_axes=True)

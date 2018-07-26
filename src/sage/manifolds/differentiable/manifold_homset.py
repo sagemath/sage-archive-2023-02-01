@@ -783,7 +783,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
     def _element_constructor_(self, equations_rhs, velocities,
                  curve_parameter, initial_tangent_vector, chart=None,
-                 name=None, latex_name=None, verbose=False):
+                 name=None, latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated curve
         `I \to M`, where `I` is a real interval and `M` some
@@ -815,7 +815,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         # Standard construction
         return self.element_class(self, equations_rhs, velocities,
                 curve_parameter, initial_tangent_vector, chart=chart,
-                name=name, latex_name=latex_name, verbose=verbose)
+                name=name, latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -1231,7 +1231,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
     def _element_constructor_(self, affine_connection, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, verbose=False):
+                    latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated
         autoparallel curve `I \to M`, where `I` is a real interval and
@@ -1265,7 +1265,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         # Standard construction
         return self.element_class(self, affine_connection,
                  curve_parameter, initial_tangent_vector, chart=chart,
-                 name=name,latex_name=latex_name, verbose=verbose)
+                 name=name,latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -1686,7 +1686,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
     def _element_constructor_(self, metric, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, verbose=False):
+                    latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated geodesic
         `I \to M`, where `I` is a real interval and
@@ -1718,7 +1718,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         # Standard construction
         return self.element_class(self, metric, curve_parameter,
                  initial_tangent_vector, chart=chart, name=name,
-                 latex_name=latex_name, verbose=verbose)
+                 latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""

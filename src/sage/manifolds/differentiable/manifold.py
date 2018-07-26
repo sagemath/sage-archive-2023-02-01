@@ -2749,7 +2749,7 @@ class DifferentiableManifold(TopologicalManifold):
 
     def integrated_curve(self, equations_rhs, velocities, curve_param,
                          initial_tangent_vector, chart=None, name=None,
-                         latex_name=None, verbose=False):
+                         latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct a curve defined by a system of second order
         differential equations in the coordinate functions.
@@ -2858,11 +2858,12 @@ class DifferentiableManifold(TopologicalManifold):
         return integrated_curve_set(equations_rhs, velocities, t,
                                     initial_tangent_vector, chart=chart,
                                     name=name, latex_name=latex_name,
-                                    verbose=verbose)
+                                    verbose=verbose, across_charts=across_charts)
 
     def integrated_autoparallel_curve(self, affine_connection,
                         curve_param, initial_tangent_vector, chart=None,
-                        name=None, latex_name=None, verbose=False):
+                        name=None, latex_name=None, verbose=False,
+                        across_charts=False):
         r"""
         Construct an autoparallel curve on the manifold with respect to
         a given affine connection.
@@ -2994,11 +2995,13 @@ class DifferentiableManifold(TopologicalManifold):
                                       initial_tangent_vector,
                                       chart=chart, name=name,
                                       latex_name=latex_name,
-                                      verbose=verbose)
+                                      verbose=verbose,
+                                      across_charts=across_charts)
 
     def integrated_geodesic(self, metric, curve_param,
                             initial_tangent_vector, chart=None,
-                            name=None, latex_name=None, verbose=False):
+                            name=None, latex_name=None, verbose=False,
+                            across_charts=False):
         r"""
         Construct a geodesic on the manifold with respect to a given metric.
 
@@ -3110,7 +3113,8 @@ class DifferentiableManifold(TopologicalManifold):
         return integrated_geodesic_set(metric, t, initial_tangent_vector,
                                        chart=chart, name=name,
                                        latex_name=latex_name,
-                                       verbose=verbose)
+                                       verbose=verbose,
+                                       across_charts=across_charts)
 
     def affine_connection(self, name, latex_name=None):
         r"""

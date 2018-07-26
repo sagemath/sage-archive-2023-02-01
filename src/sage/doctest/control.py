@@ -347,6 +347,11 @@ class DocTestController(SageObject):
                 options.optional |= auto_optional_tags
 
         self.options = options
+
+        if options.memlimit > 0:
+            # Allow tests that require a virtual memory limit to be set
+            options.optional.add('memlimit')
+
         self.files = args
         if options.logfile:
             try:

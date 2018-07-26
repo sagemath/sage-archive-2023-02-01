@@ -162,7 +162,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         Large matrices fail gracefully::
 
-            sage: MatrixSpace(GF(2), 2^30)(1)  # high mem
+            sage: MatrixSpace(GF(2), 2^30)(1)  # optional - memlimit
             Traceback (most recent call last):
             ...
             RuntimeError: matrix allocation failed

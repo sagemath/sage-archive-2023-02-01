@@ -1466,16 +1466,15 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
 
     TESTS::
 
-        sage: C = crystals.Letters(['A', [2, 1]])
-        sage: T = tensor([C,C])
-        sage: T
-        Full tensor product of the crystals [The crystal of letters for type ['A', [2, 1]], The crystal of letters for type ['A', [2, 1]]]
+        sage: Q = crystals.Letters(['Q', 3])
+        sage: T = tensor([Q,Q]); T
+        Full tensor product of the crystals [The queer crystal of letters for q(3), The queer crystal of letters for q(3)]
         sage: T.cardinality()
-        25
+        9
         sage: t = T.an_element(); t
-        [-3, -3]
+        [1, 1]
         sage: t.weight()
-        (2, 0, 0, 0, 0)
+        (2, 0, 0)
     """
  
     def e(self, i):
@@ -1484,11 +1483,18 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
 
         EXAMPLES::
 
-            sage: C = crystals.Letters(['A', [2, 1]])
-            sage: T = tensor([C,C])
-            sage: t = T(C(1),C(1))
-            sage: t.e(0)
-            [-1, 1]
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q])
+            sage: t = T(Q(1),Q(1))
+            sage: t.e(-1)
+            sage: t = T(Q(2),Q(1))
+            sage: t.e(-1)
+            [1, 1]
+
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: t = T(Q(1),Q(3),Q(2),Q(1))
+            sage: t.e(-2)
+            [2, 2, 1, 1]
         """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.e(self, i)
@@ -1538,12 +1544,11 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
 
         EXAMPLES::
 
-            sage: C = crystals.Letters(['A', [2, 1]])
-            sage: T = tensor([C,C])
-            sage: t = T(C(1),C(1))
-            sage: t.f(0)
-            sage: t.f(1)
-            [1, 2]
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q])
+            sage: t = T(Q(1),Q(1))
+            sage: t.f(-1)
+            [2, 1]
         """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.f(self, i)
@@ -1594,10 +1599,10 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
 
         EXAMPLES::
 
-            sage: C = crystals.Letters(['A', [2, 1]])
-            sage: T = tensor([C,C])
-            sage: t = T(C(1),C(1))
-            sage: t.epsilon(0)
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: t = T(Q(1),Q(3),Q(2),Q(1))
+            sage: t.epsilon(-2)
             1
         """
         string_length = 0
@@ -1615,11 +1620,13 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
 
         EXAMPLES::
 
-            sage: C = crystals.Letters(['A', [2, 1]])
-            sage: T = tensor([C,C])
-            sage: t = T(C(1),C(1))
-            sage: t.phi(0)
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: t = T(Q(1),Q(3),Q(2),Q(1))
+            sage: t.phi(-2)
             0
+            sage: t.phi(-1)
+            1
         """
         string_length = 0
         x = self

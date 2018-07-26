@@ -194,6 +194,70 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
+    @coerce_binop
+    def _quo_rem(self, right):
+        """
+        Quotient with remainder.
+
+        We choose the remainder to have the same p-adic expansion
+        as the numerator, but truncated at the valuation of the denominator.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 5)
+            sage: R(12).quo_rem(R(2))
+            (2*3 + O(3^6), 0)
+            sage: R(2).quo_rem(R(12))
+            (O(3^4), 2 + O(3^5))
+            sage: q, r = R(4).quo_rem(R(12)); q, r
+            (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
+            sage: 12*q + r == 4
+            True
+
+        In general, the remainder is returned with maximal precision.
+        However, it is not the case when the valuation of the divisor
+        is greater than the absolute precision on the numerator::
+
+            sage: R(1,2).quo_rem(R(81))
+            (O(3^0), 1 + O(3^2))
+
+        For fields the normal quotient always has remainder 0:
+
+            sage: K = Qp(3, 5)
+            sage: K(12).quo_rem(K(2))
+            (2*3 + O(3^6), 0)
+            sage: q, r = K(4).quo_rem(K(12)); q, r
+            (3^-1 + O(3^4), 0)
+            sage: 12*q + r == 4
+            True
+
+        You can get the same behavior for fields as for rings
+        by using this underscored method::
+
+            sage: K(12)._quo_rem(K(2))
+            (2*3 + O(3^6), 0)
+            sage: K(2)._quo_rem(K(12))
+            (O(3^4), 2 + O(3^5))
+        """
+        if right._is_exact_zero():
+            raise ZeroDivisionError("cannot divide by zero")
+        if right.is_zero():
+            raise PrecisionError("cannot divide by something indistinguishable from zero")
+        K = self.parent()
+        R = K.integer_ring()
+        sval = self.valuation()
+        diff = sval - right.valuation()
+        srelprec = self.precision_relative()
+        if diff + srelprec < 0:
+            return K(0,0), self
+        if srelprec == 0:
+            return K(0,diff), K(0)
+        if diff >= 0:  # remainder is 0
+            return K(self/right), K(0)
+        unit = R(self.unit_part())
+        high = (unit << diff) >> (diff - sval)
+        return K(high/right), K(self-high).lift_to_precision()
+
     def __floordiv__(self, right):
         """
         Divides self by right and throws away the nonintegral part if
@@ -279,7 +343,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(5, 5); a = R(77)
             sage: a // 15 # indirect doctest
-            5 + O(5^5)
+            5 + O(5^4)
         """
         return self._quo_rem(right)[0]
 

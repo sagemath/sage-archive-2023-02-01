@@ -126,17 +126,19 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
 
     return ret
 
-cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
+cdef inline int cshift(celement shifted, celement rem, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     r"""
-    Multiply ``a`` with an ``n``-th power of the uniformizer.
+    Multiply ``a`` by an ``n``-th power of the uniformizer.
 
-    This function shifts the `\pi`-adic expansion of ``a`` by ``n``, i.e., it
+    This function shifts the π-adic expansion of ``a`` by ``n``, i.e., it
     multiplies ``a`` by the `n`-th power of the uniformizer and drops any terms
-    with negative powers of the uniformizer in the `\pi`-adic expansion.
+    with negative powers of the uniformizer in the π-adic expansion.
 
     INPUT:
 
-    - ``out`` -- a ``celement`` to store the result
+    - ``shifted`` -- a ``celement`` to store the product with π^n
+
+    - ``rem`` -- a ``celement`` to store the remainder, when `n < 0`
 
     - ``a`` -- the ``celement`` to shift
 
@@ -147,37 +149,45 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
 
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
-    - ``reduce_afterward`` -- whether to :meth:`creduce` ``out`` before
-      returning
+    - ``reduce_afterward`` -- whether to :meth:`creduce` ``shifted`` before
+      returning.
 
     """
-    cdef long q, r
-
-    if n > 0:
-        a *= prime_pow.uniformizer_pow(n)
-    elif n < 0:
-        q = -n / prime_pow.e # ≥ 0
-        r = -n % prime_pow.e # ≥ 0
-        # As 0 > n = -q*e - r, π^n = p^-q * (p/π^e)^q * π^-r
-        if q:
-            # Multiply with p^-q: this kills the digits in the π-adic expansion
-            # that belong to terms below π^(q*e).
-            a = a.map_coefficients(lambda c: c>>q)
-            # Multiply with (p/π^e)^q.
-            a *= prime_pow.pxe_pow(q)
-        if r:
-            # Multiply with (p/x^r)
-            a *= prime_pow.px_pow(r)
-            a %= prime_pow.modulus()
-            # Divide by p
-            a = a.map_coefficients(lambda c: c>>1)
-
-    if reduce_afterward:
-        creduce(out, a, prec, prime_pow)
+    cdef long v
+    notrunc = False
+    if n >= 0:
+        notrunc = True
     else:
-        out.__coeffs = a.__coeffs[:]
+        v = cvaluation(a, prec, prime_pow)
+        notrunc = (v >= -n)
+    if notrunc:
+        rem.__coeffs = []
+        return cshift_notrunc(shifted, a, n, prec, prime_pow, reduce_afterward)
+    if v > 0:
+        b = prime_pow.poly_ring(0)
+        cshift_notrunc(b, a, -v, prec, prime_pow, False)
+        a = b
+        n += v
+    # Because the π-adic and p-adic expansions are different,
+    # there isn't an obvious way to translate shift-with-truncation
+    # in the π-adic expansion in terms of shifting by p in the base.
+    # We thus have to compute the first few terms of the π-adic expansion
+    # and subtract them.
+    _rem = prime_pow.poly_ring(0)
+    for i in range(-n):
+        rep = a[0]._modp_rep(return_list=False)
+        _rem += rep * prime_pow.uniformizer_pow(i)
+        a -= rep
+        a *= prime_pow.px_pow(1)
+        a %= prime_pow.modulus()
+        a = a.map_coefficients(lambda c: c>>1)
+    creduce(rem, _rem, prime_pow.ram_prec_cap, prime_pow)
+    if reduce_afterward:
+        creduce(shifted, a, prec, prime_pow)
+    else:
+        shifted.__coeffs = a.__coeffs[:]
 
-cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow) except -1:
+cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     r"""
     Multiply ``a`` with an ``n``-th power of the uniformizer.
 
@@ -197,8 +207,36 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
 
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
+    - ``reduce_afterward`` -- whether to :meth:`creduce` ``out`` before
+      returning.
     """
-    cshift(out, a, n, prec, prime_pow, True)
+    cdef long q, r
+
+    if n > 0:
+        a *= prime_pow.uniformizer_pow(n)
+    elif n < 0:
+        q = -n / prime_pow.e # ≥ 0
+        r = -n % prime_pow.e # ≥ 0
+        # As 0 > n = -q*e - r, π^n = p^-q * (p/π^e)^q * π^-r
+        if q:
+            # Multiply by p^-q.  Important to do first for fixed-mod.
+            a = a.map_coefficients(lambda c: c>>q)
+            # and adjust to the π-adic expansion by multiplying by (p/π^e)^q.
+            a *= prime_pow.pxe_pow(q)
+        if r:
+            # Note that in fixed mod this operation can cause errors in the last
+            # few digits, since we must divide by p afterward.
+            # Multiply by (p/π^r).
+            a *= prime_pow.px_pow(r)
+            a %= prime_pow.modulus()
+            # Divide by p.  This must happen afterward since not all
+            # coefficients were multiples of p before.
+            a = a.map_coefficients(lambda c: c>>1)
+
+    if reduce_afterward:
+        creduce(out, a, prec, prime_pow)
+    else:
+        out.__coeffs = a.__coeffs[:]
 
 cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -294,18 +332,10 @@ cdef inline cexpansion_next(celement value, expansion_mode mode, long curpower, 
     ans = []
     p2 = (p-1)//2
     # the following is specific to the ramified over unramified case.
-    const_term = value[0]
-    if const_term._is_exact_zero():
-        term = []
-    else:
-        flint_rep = const_term._flint_rep_abs()[0]
-        term = [c % p for c in flint_rep.list()]
-        while term and not term[-1]:
-            del term[-1]
-        if mode == smallest_mode:
-            term = [c - p if c > p2 else c for c in term]
-        value.__coeffs[0] -= R(term)
-    cshift(value, value, -1, curpower, prime_pow, False)
+    modp_rep, term = value[0]._modp_rep(mode == smallest_mode)
+    if term:
+        value.__coeffs[0] -= modp_rep
+    cshift_notrunc(value, value, -1, curpower, prime_pow, False)
     return term
 
 cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
@@ -321,35 +351,12 @@ cdef inline cexpansion_getitem(celement value, long m, PowComputer_ prime_pow):
     R = value.base_ring()
     p = R.prime()
     while m >= 0:
-        const_term = value[0]
-        if const_term.is_zero():
-            term = []
-        else:
-            flint_rep = const_term._flint_rep_abs()[0]
-            term = [c % p for c in flint_rep.list()]
-            while term and not term[-1]:
-                del term[-1]
-            if m:
-                value.__coeffs[0] -= R(term)
-        if m: cshift(value, value, -1, 1, prime_pow, False)
+        modp_rep, term = value[0]._modp_rep()
+        if m:
+            value.__coeffs[0] -= modp_rep
+        if m: cshift_notrunc(value, value, -1, 1, prime_pow, False)
         m -= 1
     return term
-    # The following would be nice, but shifting doesn't behave the right way currently....
-    #if m > 0:
-    #    tmp = value.parent()(0)
-    #    cshift(tmp, value, -m, 1, prime_pow, False)
-    #else:
-    #    tmp = value
-    #const_term = tmp[0]
-    #if const_term._is_exact_zero():
-    #    return []
-    #else:
-    #    flint_rep = const_term._flint_rep_abs()[0]
-    #    p = value.base_ring().prime()
-    #    term = [c % p for c in flint_rep.list()]
-    #    while term and not term[-1]:
-    #        del term[-1]
-    #    return term
 
 cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prime_pow) except -1:
     r"""
@@ -358,9 +365,9 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
     INPUT:
 
     - ``out`` -- a ``celement`` which is set to a `q-1`-th root of unity
-      congruent to ``value`` modulo `\pi`; or 0 if `a \equiv 0 \pmod{\pi}`.
+      congruent to ``value`` modulo π; or 0 if `a \equiv 0 \pmod{π}`.
 
-    - ``value`` -- n ``celement``, the element mod `\pi` to lift
+    - ``value`` -- n ``celement``, the element mod π to lift
 
     - ``prec`` -- a ``long``, the precision to which to lift
 
@@ -385,10 +392,6 @@ cdef list ccoefficients(celement x, long valshift, long prec, PowComputer_ prime
     """
     if valshift == 0:
         return x.list()
-    elif valshift > 0:
-        cshift(prime_pow.tmp_ccoeffs, x, valshift, valshift+prec, prime_pow, True)
-        return prime_pow.tmp_ccoeffs.list()
     else:
-        prime_pow.tmp_ccoeffs_frac = x.change_ring(x.base_ring().fraction_field())
-        cshift(prime_pow.tmp_ccoeffs_frac, prime_pow.tmp_ccoeffs_frac, valshift, valshift+prec, prime_pow, True)
-        return prime_pow.tmp_ccoeffs_frac.list()
+        cshift_notrunc(prime_pow.tmp_ccoeffs, x, valshift, valshift+prec, prime_pow, True)
+        return prime_pow.tmp_ccoeffs.list()

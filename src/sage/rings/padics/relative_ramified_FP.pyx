@@ -24,7 +24,7 @@ cdef class RelativeRamifiedFloatingPointElement(FPElement):
             sage: P = W.random_element()._poly_rep()
             sage: ring = P.parent().base_ring()
             sage: ring
-            5-adic Unramified Extension Ring in a defined by x^3 + 3*x + 3
+            5-adic Unramified Extension Field in a defined by x^3 + 3*x + 3
             sage: ring._prec_type()
             'floating-point'
         """

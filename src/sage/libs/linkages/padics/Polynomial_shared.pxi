@@ -143,7 +143,7 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     if a == 0:
         return prec
     cdef long v = cvaluation(a, prec, prime_pow)
-    cshift(out, a, -v, prec, prime_pow, False)
+    cshift_notrunc(out, a, -v, prec, prime_pow, False)
     return v
 
 cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:
@@ -401,7 +401,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
         R = prime_pow.poly_ring
         xx = R(shifted_x)
         shift = R([R.base_ring().uniformizer_pow(baseshift)])
-        cshift(shift, shift, valshift, prec, prime_pow, False)
+        cshift_notrunc(shift, shift, valshift, prec, prime_pow, False)
     else:
         xx = prime_pow.poly_ring(x)
     if xx is x:
@@ -409,7 +409,7 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
     else:
         out.__coeffs = xx.__coeffs
     if valshift > 0:
-        cshift(out, out, -valshift, prec, prime_pow, True)
+        cshift_notrunc(out, out, -valshift, prec, prime_pow, True)
     elif valshift == 0:
         creduce(out, out, prec, prime_pow)
     elif valshift < 0:
@@ -480,7 +480,7 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
     cdef Integer n
 
     if valshift:
-        cshift(prime_pow.powhelper_cconv_out, x, -valshift, prec, prime_pow, True)
+        cshift_notrunc(prime_pow.powhelper_cconv_out, x, -valshift, prec, prime_pow, True)
     else:
         prime_pow.powhelper_cconv_out = x
 
@@ -553,7 +553,7 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
     cdef Rational c
 
     if valshift:
-        cshift(prime_pow.powhelper_cconv_out, x, -valshift, prec, prime_pow, True)
+        cshift_notrunc(prime_pow.powhelper_cconv_out, x, -valshift, prec, prime_pow, True)
     else:
         prime_pow.powhelper_cconv_out = x
 

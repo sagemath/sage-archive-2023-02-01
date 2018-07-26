@@ -969,6 +969,35 @@ class LocalGeneric(CommutativeRing):
             tester.assertEqual(x, z)
 
     def _matrix_flatten_precision(self, M):
+        """
+        Rescale rows and columns of ``M`` so that the minimal
+        absolute precision of each row and column is equal to
+        the cap.
+
+        This method is useful for increasing the numerical
+        stability. It is called by :meth:`_matrix_smith_form`
+        and :meth:`_matrix_determinant` 
+
+        Only for internal use.
+
+        OUTPUT:
+
+        The lists of valuations by which rows and columns,
+        respectively, have been shifted.
+
+        EXAMPLES::
+
+            sage: K = Qp(2, print_mode='digits', prec=10)
+            sage: M = matrix(K, 2, 2, [K(1,5),K(2,7),K(3,3),K(5,8)])
+            sage: M
+            [   ...00001  ...0000010]
+            [     ...011 ...00000101]
+            sage: K._matrix_flatten_precision(M)
+            ([5, 7], [0, -2])
+            sage: M
+            [   ...0000100000    ...0000010000]
+            [   ...0110000000 ...0000010100000]
+        """
         parent = M.base_ring()
         cap = parent.precision_cap()
         n = M.nrows(); m = M.ncols()

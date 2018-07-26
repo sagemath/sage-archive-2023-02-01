@@ -578,7 +578,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - ``name`` -- string (default: ``x``): the name of the variable
 
         - ``ground`` -- a ring (default: the base ring of the parent): 
-        the ground ring over which the minimal polynomial is computed
+          the ground ring over which the minimal polynomial is computed
 
         EXAMPLES::
 

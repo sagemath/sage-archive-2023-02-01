@@ -1607,7 +1607,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
             sage: R = Zp(5,4)
             sage: type(R(10,2))
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: R(10,2)
+            sage: R(10,2) # indirect doctest
             2*5 + O(5^2)
             sage: R(10,3,1)
             2*5 + O(5^2)
@@ -1827,7 +1827,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
             sage: R = Qp(5,4)
             sage: type(R(10/3,2))
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: R(10/3,2)
+            sage: R(10/3,2) # indirect doctest
             4*5 + O(5^2)
             sage: R(10/3,3,1)
             4*5 + O(5^2)
@@ -2028,7 +2028,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             sage: R = Zp(5,4)
             sage: type(R(10/3,2))
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: R(10/3,2)
+            sage: R(10/3,2) # indirect doctest
             4*5 + O(5^2)
             sage: R(10/3,3,1)
             4*5 + O(5^2)
@@ -2157,7 +2157,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f(a, 3)
             a + O(3^3)
             sage: b = 9*a
-            sage: f(b, 3)
+            sage: f(b, 3) # indirect doctest
             a*3^2 + O(3^3)
             sage: f(b, 4, 1)
             a*3^2 + O(3^3)
@@ -2210,6 +2210,10 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: f(K.gen())
             a + O(3^20)
+            sage: f.section()
+            Generic morphism:
+              From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
         """
         from sage.misc.constant_function import ConstantFunction
         if not isinstance(self._section.domain, ConstantFunction):
@@ -2372,7 +2376,7 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
             sage: f(a, 3)
             a + O(3^3)
             sage: b = 9*a
-            sage: f(b, 3)
+            sage: f(b, 3) # indirect doctest
             a*3^2 + O(3^3)
             sage: f(b, 4, 1)
             a*3^2 + O(3^3)

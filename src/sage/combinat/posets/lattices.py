@@ -4345,10 +4345,15 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: [posets.ChainPoset(i).is_regular() for i in range(5)]
             [True, True, True, False, False]
         """
+        ok = (True, None) if certificate else True
+
         H = self._hasse_diagram
+        if H.order() < 3:
+            return ok
         for cong in H.congruences_iterator():
-            x = cong.root_to_elements_dict().values()
-            if all(len(p) == len(x[0]) for p in x):
+            x = iter(cong.root_to_elements_dict().values())
+            ell = len(next(x))
+            if all(len(p) == ell for p in x):
                 continue
             for part in cong:
                 if H.congruence([part]) != cong:
@@ -4358,9 +4363,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
                                 (SetPartition([[self._vertex_to_element(v) for v in p] for p in cong]),
                                  [self._vertex_to_element(v) for v in part]))
                     return False
-        if certificate:
-            return (True, None)
-        return True
+        return ok
 
     def is_simple(self, certificate=False):
         """

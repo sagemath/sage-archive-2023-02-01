@@ -2586,6 +2586,17 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
 class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
     r"""
     Queer crystal of letters elements.
+    
+    The index set is of the form '\{-n,\ldots,-1,1,\ldots,n\}'.
+    For '1<i\leq n', the operators e_{-i} and f_{-i} are defined as
+
+    .. MATH::
+
+    f_{-i} = s_{w^{-1}_i} f_{-1} s_{w_i}, \quad e_{-i} = s_{w^{-1}_i} e_{-1} s_{w_i},
+
+    where `w_i=s_2\ldots s_i s_1\ldots s_{i-1}` and `s_i` is the reflection along the `i`-string 
+    in the crystal. See [GJK+2014]_.
+
 
     TESTS::
 

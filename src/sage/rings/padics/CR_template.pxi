@@ -2105,10 +2105,6 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
         ans.ordp = x.ordp
         ans.relprec = x.relprec
         cshift_notrunc(ans.unit, x.unit, 0, ans.relprec, x.prime_pow, False)
-        IF CELEMENT_IS_PY_OBJECT:
-            # The base ring is wrong, so we fix it.
-            K = ans.unit.base_ring()
-            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -2162,10 +2158,6 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             ans.ordp = x.ordp
             ans.relprec = rprec
             cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
-            IF CELEMENT_IS_PY_OBJECT:
-                # The base ring is wrong, so we fix it.
-                K = ans.unit.base_ring()
-                ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     def section(self):
@@ -2320,10 +2312,6 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
         ans.relprec = x.relprec
         ans.ordp = x.ordp
         cshift_notrunc(ans.unit, x.unit, 0, ans.relprec, ans.prime_pow, False)
-        IF CELEMENT_IS_PY_OBJECT:
-            # The base ring is wrong, so we fix it.
-            K = ans.unit.base_ring()
-            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -2378,10 +2366,6 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
             ans.ordp = x.ordp
             ans.relprec = rprec
             cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
-            IF CELEMENT_IS_PY_OBJECT:
-                # The base ring is wrong, so we fix it.
-                K = ans.unit.base_ring()
-                ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cdef dict _extra_slots(self):

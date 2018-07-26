@@ -8041,7 +8041,22 @@ class IncreasingTableau(Tableau):
                             ans.append(i)
         return ans
     
+    @combinatorial_map(order=2,name='K-Bender-Knuth involution')
     def K_BenderKnuth(self,i):
+        """
+        Applies the ith K-Bender-Knuth operator to the
+        tableau ``self``. This swaps the letters i and
+        i+1 everywhere where doing so would not break
+        increasingness.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_BenderKnuth(2)
+            [[1, 2, 4], [3, 4, 5]]
+            sage: T.K_BenderKnuth(3)
+            [[1, 3, 4], [2, 4, 5]]
+        """
         part = list(self.shape())
         newtab = [[0] * k for k in part]
         for (r,c) in self.cells():
@@ -8075,6 +8090,7 @@ class IncreasingTableau(Tableau):
                     newtab[r][c] = i
         return IncreasingTableau(newtab)
     
+    @combinatorial_map(name='K-promotion inverse')
     def K_promotion(self,ceiling=None):
         if ceiling == None:
             ceiling = max(self.entries())
@@ -8087,6 +8103,7 @@ class IncreasingTableau(Tableau):
             ans = ans.K_BenderKnuth(i)
         return ans
     
+    @combinatorial_map(name='K-promotion inverse')
     def K_promotion_inverse(self,ceiling=None):
         if ceiling == None:
             ceiling = max(self.entries())
@@ -8099,6 +8116,7 @@ class IncreasingTableau(Tableau):
             ans = ans.K_BenderKnuth(i)
         return ans
     
+    @combinatorial_map(order=2,name='K-evacuation')
     def K_evacuation(self,ceiling=None):
         if ceiling == None:
             ceiling = max(self.entries())
@@ -8112,6 +8130,7 @@ class IncreasingTableau(Tableau):
                 ans = ans.K_BenderKnuth(i)
         return ans
     
+    @combinatorial_map(order=2,name='dual K-evacuation')
     def dual_K_evacuation(self,ceiling=None):
         if ceiling == None:
             ceiling = max(self.entries())

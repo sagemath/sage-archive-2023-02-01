@@ -179,7 +179,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
                 type += " "
             s = "%s-adic %sExtension %s in %s defined by %s" % (p, type, "Field" if self.is_field() else "Ring", self.variable_name(), self.defining_polynomial(exact=True))
             if base.absolute_degree() > 1:
-                s += " over its base field"
+                s += " over its base " + ("field" if base.is_field() else "ring")
             return s
 
     def _convert_map_from_(self, R):

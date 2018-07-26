@@ -15,6 +15,8 @@ cdef class PowComputer_relative(PowComputer_class):
     cdef Polynomial_generic_dense tmp_ccoeffs_frac
     cdef Polynomial_generic_dense tmp_ccmp_a
     cdef Polynomial_generic_dense tmp_ccmp_b
+    cdef Polynomial_generic_dense shift_rem
+    cdef Polynomial_generic_dense aliasing
     # allow cached methods
     cdef public dict __cached_methods
 

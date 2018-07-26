@@ -22,7 +22,6 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from .pow_computer_ext import PowComputer_ext_maker
 from .pow_computer_flint import PowComputer_flint_maker
@@ -294,7 +293,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
     TESTS::
 
         sage: R.<a> = ZqFM(27,10000)
-        sage: TestSuite(R).run(skip='_test_log',max_runs=4)
+        sage: TestSuite(R).run(skip='_test_log',max_runs=4) # long time
     """
     def __init__(self, exact_modulus, poly, prec, print_mode, shift_seed, names, implementation='FLINT'):
         """

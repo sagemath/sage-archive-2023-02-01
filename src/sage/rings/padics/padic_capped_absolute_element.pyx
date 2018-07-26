@@ -200,7 +200,7 @@ cdef class pAdicCappedAbsoluteElement(CAElement):
             sage: b.parent()
             Ring of integers modulo 49
             sage: c = a % 7^2; c
-            1 + 7 + O(7^8)
+            1 + 7 + O(7^10)
             sage: c.parent()
             7-adic Ring with capped absolute precision 10
 

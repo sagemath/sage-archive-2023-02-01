@@ -146,7 +146,7 @@ cdef class CRElement(pAdicTemplateElement):
             self.relprec = min(rprec, aprec - val)
             self.ordp = val
             if isinstance(x,CRElement) and x.parent() is self.parent():
-                cshift(self.unit, (<CRElement>x).unit, 0, self.relprec, self.prime_pow, True)
+                cshift_notrunc(self.unit, (<CRElement>x).unit, 0, self.relprec, self.prime_pow, True)
             else:
                 cconv(self.unit, x, self.relprec, val, self.prime_pow)
 
@@ -277,7 +277,6 @@ cdef class CRElement(pAdicTemplateElement):
                 self.ordp += diff
                 check_ordp(self.ordp)
                 self.relprec -= diff
-                creduce(self.unit, self.unit, self.relprec, self.prime_pow)
 
     def __dealloc__(self):
         """
@@ -367,7 +366,7 @@ cdef class CRElement(pAdicTemplateElement):
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, tmpL + right.relprec)
             if ans.relprec != 0:
-                cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                cshift_notrunc(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
                 cadd(ans.unit, ans.unit, self.unit, ans.relprec, ans.prime_pow)
                 creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
@@ -404,7 +403,7 @@ cdef class CRElement(pAdicTemplateElement):
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, tmpL + right.relprec)
             if ans.relprec != 0:
-                cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                cshift_notrunc(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
                 csub(ans.unit, self.unit, ans.unit, ans.relprec, ans.prime_pow)
                 creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         else:
@@ -415,7 +414,7 @@ cdef class CRElement(pAdicTemplateElement):
             ans.ordp = right.ordp
             ans.relprec = min(right.relprec, tmpL + self.relprec)
             if ans.relprec != 0:
-                cshift(ans.unit, self.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                cshift_notrunc(ans.unit, self.unit, tmpL, ans.relprec, ans.prime_pow, False)
                 csub(ans.unit, ans.unit, right.unit, ans.relprec, ans.prime_pow)
                 creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
@@ -785,64 +784,90 @@ cdef class CRElement(pAdicTemplateElement):
                 ans._set_inexact_zero(0)
             else:
                 ans.relprec = self.relprec - diff
-                cshift(ans.unit, self.unit, -diff, ans.relprec, ans.prime_pow, False)
+                cshift(ans.unit, ans.prime_pow.shift_rem, self.unit, -diff, ans.relprec, ans.prime_pow, False)
                 ans.ordp = 0
                 ans._normalize()
         return ans
 
-    cpdef _floordiv_(self, _right):
+    @coerce_binop
+    def _quo_rem(self, _right):
         """
-        Floor division.
+        Quotient with remainder.
 
-        TESTS::
+        We choose the remainder to have the same p-adic expansion
+        as the numerator, but truncated at the valuation of the denominator.
 
-            sage: r = Zp(19)
-            sage: a = r(1+19+17*19^3+5*19^4); b = r(19^3); a/b
-            19^-3 + 19^-2 + 17 + 5*19 + O(19^17)
-            sage: a//b     # indirect doctest
-            17 + 5*19 + O(19^17)
+        EXAMPLES::
 
-            sage: R = Zp(19, 5, 'capped-rel','series')
-            sage: a = R(-1); a
-            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
-            sage: b=R(-2*19^3); b
-            17*19^3 + 18*19^4 + 18*19^5 + 18*19^6 + 18*19^7 + O(19^8)
-            sage: a//b # indirect doctest
-            9 + 9*19 + O(19^2)
+            sage: R = Zp(3, 5)
+            sage: R(12).quo_rem(R(2))
+            (2*3 + O(3^6), 0)
+            sage: R(2).quo_rem(R(12))
+            (O(3^4), 2 + O(3^5))
+            sage: q, r = R(4).quo_rem(R(12)); q, r
+            (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
+            sage: 12*q + r == 4
+            True
 
-            sage: R = Zp(5,5)
-            sage: R(28937) // R(75) # indirect doctest
-            4 + 3*5 + 3*5^2 + O(5^3)
+        In general, the remainder is returned with maximal precision.
+        However, it is not the case when the valuation of the divisor
+        is greater than the absolute precision on the numerator::
 
-            sage: R(0,12) // R(175,3)
-            O(5^10)
+            sage: R(1,2).quo_rem(R(81))
+            (O(3^0), 1 + O(3^2))
+
+        For fields the normal quotient always has remainder 0:
+
+            sage: K = Qp(3, 5)
+            sage: K(12).quo_rem(K(2))
+            (2*3 + O(3^6), 0)
+            sage: q, r = K(4).quo_rem(K(12)); q, r
+            (3^-1 + O(3^4), 0)
+            sage: 12*q + r == 4
+            True
+
+        You can get the same behavior for fields as for rings
+        by using this underscored method::
+
+            sage: K(12)._quo_rem(K(2))
+            (2*3 + O(3^6), 0)
+            sage: K(2)._quo_rem(K(12))
+            (O(3^4), 2 + O(3^5))
         """
-        if exactzero(self.ordp):
-            return self
         cdef CRElement right = _right
         assert_nonzero(right)
-        cdef CRElement ans = self._new_c()
+        if exactzero(self.ordp):
+            return self, self
+        cdef CRElement q = self._new_c()
+        cdef CRElement r = self._new_c()
         cdef long diff = self.ordp - right.ordp
-        if self.relprec == 0:
-            ans.ordp = diff
-            ans.relprec = 0
-            csetzero(ans.unit, ans.prime_pow)
-        elif diff >= 0 or self.prime_pow.in_field:
-            ans.ordp = diff
-            ans.relprec = min(self.relprec, right.relprec)
-            cdivunit(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+        cdef long qrprec = diff + self.relprec
+        if qrprec < 0:
+            q._set_inexact_zero(0)
+            r = self
+        elif qrprec == 0:
+            q._set_inexact_zero(0)
+            r.ordp = self.ordp
+            r.relprec = self.prime_pow.ram_prec_cap
+            ccopy(r.unit, self.unit, r.prime_pow)
+        elif self.relprec == 0:
+            q._set_inexact_zero(diff)
+            r._set_exact_zero()
+        elif diff >= 0:
+            q.ordp = diff
+            q.relprec = min(self.relprec, right.relprec)
+            cdivunit(q.unit, self.unit, right.unit, q.relprec, q.prime_pow)
+            r._set_exact_zero()
         else:
-            ans.ordp = 0
-            ans.relprec = min(self.relprec, right.relprec) + diff
-            if ans.relprec < 0:
-                ans.relprec = 0
-                csetzero(ans.unit, ans.prime_pow)
-            else:
-                cdivunit(ans.unit, self.unit, right.unit, ans.relprec - diff, ans.prime_pow)
-                cshift(ans.unit, ans.unit, diff, ans.relprec, ans.prime_pow, False)
-                ans._normalize()
-        return ans
+            r.ordp = self.ordp
+            r.relprec = self.prime_pow.ram_prec_cap
+            q.ordp = 0
+            q.relprec = min(qrprec, right.relprec)
+            cshift(q.prime_pow.shift_rem, r.unit, self.unit, diff, q.relprec, q.prime_pow, False)
+            cdivunit(q.unit, q.prime_pow.shift_rem, right.unit, q.relprec, q.prime_pow)
+        q._normalize()
+        return q, r
+
 
     def add_bigoh(self, absprec):
         """
@@ -2109,7 +2134,11 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
         cdef CRElement ans = self._zero._new_c()
         ans.ordp = x.ordp
         ans.relprec = x.relprec
-        cshift(ans.unit, x.unit, 0, ans.relprec, x.prime_pow, False)
+        cshift_notrunc(ans.unit, x.unit, 0, ans.relprec, x.prime_pow, False)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            K = ans.unit.base_ring()
+            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -2162,7 +2191,11 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
                 reduce = True
             ans.ordp = x.ordp
             ans.relprec = rprec
-            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            IF CELEMENT_IS_PY_OBJECT:
+                # The base ring is wrong, so we fix it.
+                K = ans.unit.base_ring()
+                ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     def section(self):
@@ -2316,7 +2349,11 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
         cdef CRElement ans = self._zero._new_c()
         ans.relprec = x.relprec
         ans.ordp = x.ordp
-        cshift(ans.unit, x.unit, 0, ans.relprec, ans.prime_pow, False)
+        cshift_notrunc(ans.unit, x.unit, 0, ans.relprec, ans.prime_pow, False)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            K = ans.unit.base_ring()
+            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -2370,7 +2407,11 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
                 reduce = True
             ans.ordp = x.ordp
             ans.relprec = rprec
-            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            IF CELEMENT_IS_PY_OBJECT:
+                # The base ring is wrong, so we fix it.
+                K = ans.unit.base_ring()
+                ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cdef dict _extra_slots(self):

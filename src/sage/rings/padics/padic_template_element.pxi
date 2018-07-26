@@ -38,6 +38,7 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.misc import trim_zeros
 from sage.structure.element import canonical_coercion
 from sage.misc.superseded import deprecation
+from sage.structure.element import coerce_binop
 import itertools
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
@@ -1078,12 +1079,11 @@ cdef class ExpansionIter(object):
             prec = self.curpower+1 if self.tracks_prec else pp.ram_prec_cap
             cteichmuller(self.tmp, self.curvalue, prec, pp)
             if ciszero(self.tmp, pp):
-                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp)
+                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp, True)
                 return _zero(teichmuller_mode, self.teich_ring)
             else:
                 csub(self.curvalue, self.curvalue, self.tmp, prec, pp)
-                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp)
-                creduce(self.curvalue, self.curvalue, prec-1, pp)
+                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp, True)
                 return self.teich_ring(self.elt._new_with_value(self.tmp, prec))
         else:
             return cexpansion_next(self.curvalue, self.mode, self.curpower, pp)

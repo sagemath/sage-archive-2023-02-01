@@ -254,15 +254,17 @@ cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:
     fmpz_poly_scalar_mod_fmpz(prime_pow.poly_cisunit, a, prime_pow.fprime)
     return not ciszero(prime_pow.poly_cisunit, prime_pow)
 
-cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
+cdef inline int cshift(celement out, celement rem, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """
     Mulitplies by a power of the uniformizer.
 
     INPUT:
 
-    - ``out`` -- an ``celement`` to store the result.  If `n >= 0`
+    - ``out`` -- a ``celement`` to store the result.  If `n >= 0`
       then out will be set to `a * p^n`.
       If `n < 0`, out will be set to `a // p^-n`.
+    - ``rem`` -- a ``celement`` to store the remainder of the division.
+      Should not be aliased with `a`.
     - ``a`` -- the element to shift.
     - ``n`` -- long, the amount to shift by.
     - ``prec`` -- long, a precision modulo which to reduce.
@@ -270,17 +272,20 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     - ``reduce_afterward`` -- whether to reduce afterward.
     """
     if n > 0:
+        fmpz_poly_zero(rem)
         fmpz_poly_scalar_mul_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(n)[0])
     elif n < 0:
         sig_on()
+        fmpz_poly_scalar_mod_fmpz(rem, a, prime_pow.pow_fmpz_t_tmp(-n)[0])
         fmpz_poly_scalar_fdiv_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(-n)[0])
         sig_off()
     else:
+        fmpz_poly_zero(rem)
         fmpz_poly_set(out, a)
     if reduce_afterward:
         creduce(out, out, prec, prime_pow)
 
-cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow) except -1:
+cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """
     Mulitplies by a power of the uniformizer, assuming that the
     valuation of a is at least -n.
@@ -295,6 +300,7 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
     - ``n`` -- long, the amount to shift by.
     - ``prec`` -- long, a precision modulo which to reduce.
     - ``prime_pow`` -- the PowComputer for the ring.
+    - ``reduce_afterward`` -- whether to reduce afterward.
     """
     if n > 0:
         fmpz_poly_scalar_mul_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(n)[0])
@@ -304,6 +310,8 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
         sig_off()
     else:
         fmpz_poly_set(out, a)
+    if reduce_afterward:
+        creduce(out, out, prec, prime_pow)
 
 cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -384,8 +392,8 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    cinvert(out, b, prec, prime_pow)
-    cmul(out, a, out, prec, prime_pow)
+    cinvert(prime_pow.aliasing, b, prec, prime_pow)
+    cmul(out, a, prime_pow.aliasing, prec, prime_pow)
 
 cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     """
@@ -524,6 +532,26 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
     cdef Integer h = PY_NEW(Integer)
     fmpz_poly_get_coeff_mpz(h.value, a, 0)
     return hash(h)
+
+cdef inline cmodp_rep(fmpz_poly_t rep, fmpz_poly_t value, expansion_mode mode, bint return_list, PowComputer_ prime_pow):
+    cdef long i
+    cdef fmpz* c
+    cdef Integer digit
+    sig_on()
+    fmpz_poly_scalar_mod_fmpz(rep, value, prime_pow.fprime)
+    sig_off()
+    if return_list or mode == smallest_mode:
+        L = []
+        for i in range(fmpz_poly_length(rep)):
+            c = fmpz_poly_get_coeff_ptr(rep, i)
+            if mode == smallest_mode and fmpz_cmp(c, prime_pow.half_prime) > 0:
+                fmpz_sub(c, c, prime_pow.fprime)
+            if return_list:
+                digit = PY_NEW(Integer)
+                fmpz_get_mpz(digit.value, c)
+                L.append(digit)
+        if return_list:
+            return L
 
 # the expansion_mode enum is defined in padic_template_element_header.pxi
 cdef inline cexpansion_next(fmpz_poly_t value, expansion_mode mode, long curpower, PowComputer_ prime_pow):
@@ -808,7 +836,7 @@ cdef cmatrix_mod_pn(celement a, long aprec, long valshift, PowComputer_ prime_po
     cdef IntegerMod_abstract zero = R(0)
     cdef IntegerMod_abstract item
     L = []
-    cshift(prime_pow.poly_matmod, a, valshift, aprec, prime_pow, True)
+    cshift_notrunc(prime_pow.poly_matmod, a, valshift, aprec, prime_pow, True)
     for i in range(deg):
         L.append([])
         d = fmpz_poly_degree(prime_pow.poly_matmod)

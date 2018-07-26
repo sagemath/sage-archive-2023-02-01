@@ -192,7 +192,7 @@ If you want to divide by a non-unit, do it using the ``//``
 operator::
 
     sage: a // b
-    3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8
+    3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8 + 3*5^9
 
 Capped Absolute Rings
 ---------------------

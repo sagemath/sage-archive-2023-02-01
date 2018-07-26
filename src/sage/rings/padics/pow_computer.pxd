@@ -32,4 +32,6 @@ cdef class PowComputer_base(PowComputer_class):
     cdef mpz_t top_power
     cdef mpz_t powhelper_oneunit
     cdef mpz_t powhelper_teichdiff
+    cdef mpz_t shift_rem
+    cdef mpz_t aliasing
     cdef object __weakref__

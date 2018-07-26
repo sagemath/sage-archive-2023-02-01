@@ -294,7 +294,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: a.residue(2)
             8
             sage: a % 7^2
-            0
+            1 + 7 + O(7^4)
 
             sage: b = K(1/7)
             sage: b.residue()

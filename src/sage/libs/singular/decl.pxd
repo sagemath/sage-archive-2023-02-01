@@ -630,7 +630,7 @@ cdef extern from "singular/Singular/libsingular.h":
     # return p*q, destroys p and q
     poly *p_Mult_q(poly *p, poly *q, ring *r)
 
-    # polynomial division, ignoring the rest
+    # polynomial division, ignoring the remainder
     # via singclap_pdivide resp. idLift, destroys p,q
     poly *p_Divide(poly *p, poly *q, ring *r)
 

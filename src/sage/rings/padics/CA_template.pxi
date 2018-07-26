@@ -1674,9 +1674,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
         if x.ordp >= ans.absprec:
             csetzero(ans.value, ans.prime_pow)
         else:
-            sig_on()
             cshift_notrunc(ans.value, x.unit, x.ordp, ans.absprec, ans.prime_pow, reduce)
-            sig_off()
             IF CELEMENT_IS_PY_OBJECT:
                 # The base ring is wrong, so we fix it.
                 R = ans.value.base_ring()

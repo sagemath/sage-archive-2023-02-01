@@ -2636,7 +2636,6 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         """
         TESTS::
 
-
             sage: crystals.Letters(['Q',2]
             The queer crystal of letters for 2
         """
@@ -2659,7 +2658,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     Element = QueerLetter_element
-      
+
 
 cdef class QueerLetter_element(Letter):
     r"""

@@ -2584,6 +2584,23 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
 #################
 
 class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
+    r"""
+    Queer crystal of letters elements.
+
+    TESTS::
+
+        sage: Q = crystals.Letters(['Q',3])
+        sage: Q.list()
+        [1, 2, 3, 4]
+        sage: [ [x < y for y in Q] for x in Q ]
+        [[False, True, True, True],
+         [False, False, True, True],
+         [False, False, False, True],
+         [False, False, False, False]]
+        sage: Q.module_generators
+        (1,)
+        sage: TestSuite(Q).run()
+    """
     @staticmethod
     def __classcall_private__(cls, ct):
         """

@@ -37,12 +37,8 @@ class CartanType(CartanType_standard_finite):
             True
             sage: ct.is_affine()
             False
-            sage: ct.is_crystallographic()
-            True
             sage: ct.is_simply_laced()
             True
-            sage: ct.affine()
-            ['Q', 4, 1]
             sage: ct.dual()
             ['Q', 4]
 
@@ -116,3 +112,38 @@ class CartanType(CartanType_standard_finite):
         """
         return RootSystem(['A',self.n])
 
+    def is_irreducible(self):
+        """
+        Return whether this Cartan type is irreducible.
+
+        EXAMPLES::
+
+            sage: Q = CartanType(['Q',3])
+            sage: Q.is_irreducible()
+            True
+        """
+        return True
+
+    def is_simply_laced(self):
+        """
+        Return whether this Cartan type is simply-laced.
+
+        EXAMPLES::
+
+            sage: Q = CartanType(['Q',3])
+            sage: Q.is_simply_laced()
+            True
+        """
+        return True
+
+    def dual(self):
+        """
+        Return dual of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = CartanType(['Q',3])
+            sage: Q.dual()
+            ['Q', 3]
+        """
+        return self

@@ -113,7 +113,12 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Letters(['A', [1,3]])
                 sage: G = B.digraph(); G
-                Digraph on 6 vertices
+                Multi-digraph on 6 vertices
+                sage: Q = crystals.Letters(['Q',3])
+                sage: G = Q.digraph(); G
+                Multi-digraph on 4 vertices
+                sage: G.edges()
+                [(1, 2, -1), (1, 2, 1), (2, 3, 2), (3, 4, 3)]
 
             The edges of the crystal graph are by default colored using
             blue for edge 1, red for edge 2, green for edge 3, and dashed with
@@ -340,10 +345,9 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: B.highest_weight_vectors()
-                ([[-2, -2, -2], [-1, 2], [1]],
-                 [[-2, -2, -2], [-1, -1], [1]],
+                ([[-2, -2, -2], [-1, -1], [1]],
+                 [[-2, -2, -2], [-1, 2], [1]],
                  [[-2, -2, 2], [-1, -1], [1]])
-
                 sage: B.genuine_highest_weight_vectors()
                 ([[-2, -2, -2], [-1, -1], [1]],)
             """
@@ -369,10 +373,9 @@ class RegularSuperCrystals(Category_singleton):
 
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: B.lowest_weight_vectors()
-                ([[-2, 1, 2], [-1, 2], [1]],
-                 [[-1, 1, 2], [1, 2], [2]],
+                ([[-1, 1, 2], [1, 2], [2]],
+                 [[-2, 1, 2], [-1, 2], [1]],
                  [[-2, 1, 2], [-1, 2], [2]])
-
                 sage: B.genuine_lowest_weight_vectors()
                 ([[-1, 1, 2], [1, 2], [2]],)
             """
@@ -443,8 +446,8 @@ class RegularSuperCrystals(Category_singleton):
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: for b in B.highest_weight_vectors():
                 ....:     print("{} {}".format(b, b.is_genuine_highest_weight()))
-                [[-2, -2, -2], [-1, 2], [1]] False
                 [[-2, -2, -2], [-1, -1], [1]] True
+                [[-2, -2, -2], [-1, 2], [1]] False
                 [[-2, -2, 2], [-1, -1], [1]] False
                 sage: [b for b in B if b.is_genuine_highest_weight([-1,0])]
                 [[[-2, -2, -2], [-1, -1], [1]],
@@ -476,8 +479,8 @@ class RegularSuperCrystals(Category_singleton):
                 sage: B = crystals.Tableaux(['A', [1,1]], shape=[3,2,1])
                 sage: for b in B.lowest_weight_vectors():
                 ....:     print("{} {}".format(b, b.is_genuine_lowest_weight()))
-                [[-2, 1, 2], [-1, 2], [1]] False
                 [[-1, 1, 2], [1, 2], [2]] True
+                [[-2, 1, 2], [-1, 2], [1]] False
                 [[-2, 1, 2], [-1, 2], [2]] False
                 sage: [b for b in B if b.is_genuine_lowest_weight([-1,0])]
                 [[[-2, -1, 1], [-1, 1], [1]],

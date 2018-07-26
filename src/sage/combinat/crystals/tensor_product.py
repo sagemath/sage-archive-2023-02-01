@@ -651,8 +651,8 @@ class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
     """
     def index_set(self):
         n = max(self.crystals[0].index_set())
-        return range(-2*n,0)+range(1,n+1)
-    
+        return range(-n,0)+range(1,n+1)
+
     class Element(TensorProductOfQueerSuperCrystalsElement):
         pass
 

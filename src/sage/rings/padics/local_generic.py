@@ -1034,16 +1034,16 @@ class LocalGeneric(CommutativeRing):
         - ``M`` -- a matrix over this ring
 
         - ``transformation`` -- a boolean; whether the transformation matrices
-        are returned
+          are returned
 
         - ``integral`` -- a subring of the base ring or ``True``; the entries
-        of the transformation matrices are in this ring.  If ``True``, the
-        entries are in the ring of integers of the base ring.
+          of the transformation matrices are in this ring.  If ``True``, the
+          entries are in the ring of integers of the base ring.
 
         - ``exact`` -- boolean.  If ``True``, the diagonal smith form will
-        be exact, or raise a ``PrecisionError`` if this is not possible.
-        If ``False``, the diagonal entries will be inexact, but the
-        transformation matrices will be exact.
+          be exact, or raise a ``PrecisionError`` if this is not possible.
+          If ``False``, the diagonal entries will be inexact, but the
+          transformation matrices will be exact.
 
         EXAMPLES::
 
@@ -1386,6 +1386,12 @@ class LocalGeneric(CommutativeRing):
             O(5^70)
             O(5^80)
 
+            sage: A = random_matrix(Qp(5),4)
+            sage: B = random_matrix(Qp(5),4)
+            sage: (A*B).det() == A.det()*B.det()
+            True
+            sage: A.change_ring(QQ).det() == A.det()
+            True
         """
         n = M.nrows()
     
@@ -1417,16 +1423,16 @@ class LocalGeneric(CommutativeRing):
             val = curval
             if S[pivi,pivj] == 0:
                 if track_precision:
-                    return R(0, valdet + (n-piv)*val)
+                    return R(0, valdet + (n-piv)*val - shift)
                 else:
                     return R(0)
-    
+
             valdet += val
             S.swap_rows(pivi,piv)
             if pivi > piv: sign = -sign
             S.swap_columns(pivj,piv)
             if pivj > piv: sign = -sign
-    
+
             det *= S[piv,piv]
             inv = ~(S[piv,piv] >> val)
             for i in range(piv+1,n):
@@ -1434,7 +1440,7 @@ class LocalGeneric(CommutativeRing):
                 if track_precision:
                     scalar = scalar.lift_to_precision()
                 S.add_multiple_of_row(i,piv,scalar)
-    
+
         if track_precision:
             relprec = +Infinity
             relprec_neg = 0

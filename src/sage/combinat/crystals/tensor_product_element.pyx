@@ -10,6 +10,7 @@ AUTHORS:
   the regularity
 - Travis Scrimshaw (2017): Cythonized element classes
 - Franco Saliola (2017): Tensor products for crystal of super algebras
+- Anne Schilling (2018): Tensor products for crystals of queer super algebras
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>

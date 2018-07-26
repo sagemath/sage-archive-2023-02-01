@@ -1220,6 +1220,10 @@ cdef class RealBall(RingElement):
             [3e+0 +/- 0.126]
             sage: RBF(pi, 0.125r)
             [3e+0 +/- 0.267]
+            sage: RBF(3, 1/8)
+            [3e+0 +/- 0.126]
+            sage: RBF(13, 1)
+            [1e+1 +/- 4.01]
 
         ::
 
@@ -1332,6 +1336,7 @@ cdef class RealBall(RingElement):
         cdef fmpq_t tmpq
         cdef arf_t  tmpr
         cdef mag_t  tmpm
+        cdef Integer foo
 
         Element.__init__(self, parent)
 
@@ -1413,6 +1418,19 @@ cdef class RealBall(RingElement):
             if isinstance(rad, RealNumber):
                 arf_init(tmpr)
                 arf_set_mpfr(tmpr, (<RealNumber> rad).value)
+                arf_get_mag(tmpm, tmpr)
+                arf_clear(tmpr)
+            elif isinstance(rad, Integer):
+                arf_init(tmpr)
+                arf_set_mpz(tmpr, (<Integer> rad).value)
+                arf_get_mag(tmpm, tmpr)
+                arf_clear(tmpr)
+            elif isinstance(rad, Rational):
+                arf_init(tmpr)
+                arf_set_mpz(tmpr, (<Integer> rad.numerator()).value)
+                fmpz_init(tmpz)
+                fmpz_set_mpz(tmpz, (<Integer> rad.denominator()).value)
+                arf_div_fmpz(tmpr, tmpr, tmpz, 53, ARF_RND_UP)
                 arf_get_mag(tmpm, tmpr)
                 arf_clear(tmpr)
             elif isinstance(rad, float):

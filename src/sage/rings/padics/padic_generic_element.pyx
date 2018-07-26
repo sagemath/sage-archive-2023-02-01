@@ -343,7 +343,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(5, 5); a = R(77)
             sage: a // 15 # indirect doctest
-            5 + O(5^5)
+            5 + O(5^4)
         """
         return self._quo_rem(right)[0]
 

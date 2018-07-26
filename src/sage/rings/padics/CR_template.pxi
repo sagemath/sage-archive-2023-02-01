@@ -828,9 +828,15 @@ cdef class CRElement(pAdicTemplateElement):
         cdef CRElement q = self._new_c()
         cdef CRElement r = self._new_c()
         cdef long diff = self.ordp - right.ordp
-        if diff + self.relprec < 0:
+        cdef long qrprec = diff + self.relprec
+        if qrprec < 0:
             q._set_inexact_zero(0)
             r = self
+        elif qrprec == 0:
+            q._set_inexact_zero(0)
+            r.ordp = self.ordp
+            r.relprec = self.prime_pow.ram_prec_cap
+            ccopy(r.unit, self.unit, r.prime_pow)
         elif self.relprec == 0:
             q._set_inexact_zero(diff)
             r._set_exact_zero()
@@ -843,7 +849,7 @@ cdef class CRElement(pAdicTemplateElement):
             r.ordp = self.ordp
             r.relprec = self.prime_pow.ram_prec_cap
             q.ordp = 0
-            q.relprec = min(self.relprec + diff, right.relprec)
+            q.relprec = min(qrprec, right.relprec)
             cshift(q.prime_pow.shift_rem, r.unit, self.unit, diff, q.relprec, q.prime_pow, False)
             cdivunit(q.unit, q.prime_pow.shift_rem, right.unit, q.relprec, q.prime_pow)
         q._normalize()

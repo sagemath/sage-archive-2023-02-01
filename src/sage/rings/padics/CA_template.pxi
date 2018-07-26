@@ -342,7 +342,7 @@ cdef class CAElement(pAdicTemplateElement):
             raise ZeroDivisionError
         cdef CAElement q = self._new_c()
         cdef CAElement r = self._new_c()
-        cdef long sval, srprec, rval, rrprec, diff
+        cdef long sval, srprec, rval, rrprec, diff, qrprec
         sval = self.valuation_c()
         srprec = self.absprec - sval
         rval = right.valuation_c()
@@ -350,10 +350,14 @@ cdef class CAElement(pAdicTemplateElement):
         diff = sval - rval
         rprec = min(srprec, rrprec)
         r.absprec = r.prime_pow.ram_prec_cap
-        if diff + srprec < 0:
+        qrprec = diff + srprec
+        if qrprec < 0:
             csetzero(q.value, q.prime_pow)
             q.absprec = 0
             r = self
+        elif qrprec == 0:
+            q._set_inexact_zero(0)
+            ccopy(r.value, self.value, r.prime_pow)
         elif ciszero(self.value, self.prime_pow):
             q.absprec = diff + rprec
             csetzero(q.value, q.prime_pow)
@@ -368,7 +372,7 @@ cdef class CAElement(pAdicTemplateElement):
             cdivunit(q.value, self.prime_pow.shift_rem, r.value, q.absprec, q.prime_pow)
             csetzero(r.value, r.prime_pow)
         else:
-            q.absprec = min(diff + srprec, rrprec)
+            q.absprec = min(qrprec, rrprec)
             cshift(q.value, r.value, self.value, -rval, q.absprec, q.prime_pow, False)
             cshift_notrunc(q.prime_pow.shift_rem, right.value, -rval, q.absprec, q.prime_pow, False)
             cdivunit(q.value, q.value, q.prime_pow.shift_rem, q.absprec, q.prime_pow)

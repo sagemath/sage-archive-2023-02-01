@@ -66,6 +66,19 @@ class CartanType(CartanType_standard_finite):
         format = '%s%s' if compact else "['%s', %s]"
         return format%(self.letter, self.n+1)
 
+    def __reduce__(self):
+        """
+        TESTS::
+
+            sage: T = CartanType(['Q', 4])
+            sage: T.__reduce__()
+            (CartanType, ('Q', 4))
+            sage: T == loads(dumps(T))
+            True
+        """
+        from .cartan_type import CartanType
+        return (CartanType, (self.letter, self.n+1))
+
     def index_set(self):
         """
         Returns index set for Cartan type Q.

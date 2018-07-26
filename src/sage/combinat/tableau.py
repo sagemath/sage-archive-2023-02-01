@@ -8090,8 +8090,23 @@ class IncreasingTableau(Tableau):
                     newtab[r][c] = i
         return IncreasingTableau(newtab)
     
-    @combinatorial_map(name='K-promotion inverse')
+    @combinatorial_map(name='K-promotion')
     def K_promotion(self,ceiling=None):
+        """
+        Applies the K-promotion operator to the
+        tableau ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_promotion()
+            [[1, 2, 3], [3, 4, 5]]
+            sage: T.K_promotion(6)
+            [[1, 2, 3], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_promotion()
+            [[2, 3, 4], [3, 4, 5], [4]]
+        """
         if ceiling == None:
             ceiling = max(self.entries())
         part = self.shape()
@@ -8105,6 +8120,29 @@ class IncreasingTableau(Tableau):
     
     @combinatorial_map(name='K-promotion inverse')
     def K_promotion_inverse(self,ceiling=None):
+        """
+        Applies the inverse of K-promotion operator to the
+        tableau ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_promotion_inverse()
+            [[1, 2, 4], [3, 4, 5]]
+            sage: T.K_promotion_inverse(6)
+            [[2, 4, 5], [3, 5, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_promotion_inverse()
+            [[1, 2, 4], [2, 4, 5], [4]]
+            
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.K_promotion().K_promotion_inverse()
+            True
+            sage: V == V.K_promotion_inverse().K_promotion()
+            True
+        """
         if ceiling == None:
             ceiling = max(self.entries())
         part = self.shape()
@@ -8118,6 +8156,29 @@ class IncreasingTableau(Tableau):
     
     @combinatorial_map(order=2,name='K-evacuation')
     def K_evacuation(self,ceiling=None):
+        """
+        Applies the K-evacuation involution to the
+        tableau ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_evacuation()
+            [[1, 2, 4], [2, 3, 5]]
+            sage: T.K_evacuation(6)
+            [[2, 3, 5], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_evacuation()
+            [[1, 2, 3], [2, 3, 5], [3]]
+            
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.K_evacuation().K_evacuation()
+            True
+            sage: V.K_promotion().K_evacuation() == V.K_evacuation().K_promotion_inverse()
+            True
+        """
         if ceiling == None:
             ceiling = max(self.entries())
         part = self.shape()
@@ -8132,6 +8193,35 @@ class IncreasingTableau(Tableau):
     
     @combinatorial_map(order=2,name='dual K-evacuation')
     def dual_K_evacuation(self,ceiling=None):
+        """
+        Applies the dual K-evacuation involution to the
+        tableau ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.dual_K_evacuation()
+            [[1, 2, 4], [2, 3, 5]]
+            sage: T.dual_K_evacuation(6)
+            [[2, 3, 5], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.dual_K_evacuation()
+            [[1, 2, 3], [2, 3, 5], [3]]
+            
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.dual_K_evacuation().dual_K_evacuation()
+            True
+            sage: W = IncreasingTableau([[1,2,4],[2,3,5]])
+            sage: W.K_evacuation() == W.dual_K_evacuation()
+            True
+            sage: X = IncreasingTableau([[1,2,4,7],[3,5,6,8],[5,7,8,10],[7,9,10,11]])
+            sage: X.K_evacuation() == X.dual_K_evacuation()
+            False
+            sage: X.K_promotion().dual_K_evacuation() == X.dual_K_evacuation().K_promotion_inverse()
+            True
+        """
         if ceiling == None:
             ceiling = max(self.entries())
         part = self.shape()

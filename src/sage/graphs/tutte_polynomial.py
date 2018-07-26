@@ -39,6 +39,8 @@ Functions
 ---------
 """
 
+from six import itervalues
+
 from contextlib import contextmanager
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -327,7 +329,7 @@ class Ear(object):
         subgraph = g.subgraph(degree_two_vertices)
         for component in subgraph.connected_components():
             edges = g.edges_incident(vertices=component, labels=True)
-            all_vertices = list(sorted(set(sum([e[:2] for e in edges], ()))))
+            all_vertices = sorted(set(sum([e[:2] for e in edges], ())))
             if len(all_vertices) < 3:
                 continue
             end_points = [v for v in all_vertices if v not in component]
@@ -632,7 +634,7 @@ def _tutte_polynomial_internal(G, x, y, edge_selector, cache=None):
 
     uG = underlying_graph(G)
     em = edge_multiplicities(G)
-    d = em.values()
+    d = list(itervalues(em))
 
     def yy(start, end):
         return sum(y**i for i in range(start, end+1))

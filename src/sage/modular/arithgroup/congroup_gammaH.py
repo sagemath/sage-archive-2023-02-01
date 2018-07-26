@@ -22,7 +22,7 @@ from __future__ import absolute_import
 ################################################################################
 from six.moves import range
 
-from sage.arith.all import euler_phi, lcm, gcd, divisors, get_inverse_mod, get_gcd, factor
+from sage.arith.all import euler_phi, lcm, gcd, divisors, get_inverse_mod, get_gcd, factor, xgcd
 from sage.modular.modsym.p1list import lift_to_sl2z
 from .congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
@@ -89,6 +89,7 @@ def GammaH_constructor(level, H):
     except KeyError:
         _gammaH_cache[key] = GammaH_class(level, H, Hlist)
         return _gammaH_cache[key]
+
 
 def is_GammaH(x):
     """
@@ -1253,6 +1254,52 @@ class GammaH_class(CongruenceSubgroup):
         gens = [matrix(Zmod(N), 2, 2, [x, 0, 0, Zmod(N)(1)/x]) for x in self._generators_for_H()]
         gens += [matrix(Zmod(N),2,[1,1,0,1])]
         return MatrixGroup(gens)
+
+    def atkin_lehner_matrix(self, Q):
+        r"""
+        Return the matrix of the Atkin--Lehner--Li operator `W_Q` associated to
+        an exact divisor `Q` of `N`, where `N` is the level of this group; that
+        is, `gcd(Q, N/Q) = 1`.
+
+        .. note::
+
+            We follow the conventions of [AL1978]_ here, so `W_Q` is given by
+            the action of any matrix of the form `\begin{pmatrix} Qx & y \\ Nz
+            & Qw \end{pmatrix}` where `x,y,z,w` are integers such that `y = 1
+            \bmod Q`, `x = 1 \bmod N/Q`, and `det(W_Q) = Q`. For convenience,
+            we actually always choose `x = y = 1`.
+
+        INPUT:
+
+        - ``Q`` (integer): an integer dividing `N`, where `N` is the level of
+          this group. If this divisor does not satisfy `gcd(Q, N/Q) = 1`, it
+          will be replaced by the unique integer with this property having
+          the same prime factors as `Q`.
+
+        EXAMPLES::
+
+            sage: Gamma1(994).atkin_lehner_matrix(71)
+            [  71    1]
+            [4970   71]
+            sage: Gamma1(996).atkin_lehner_matrix(2)
+            [   4    1]
+            [-996 -248]
+            sage: Gamma1(15).atkin_lehner_matrix(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: Q must divide the level
+        """
+        # normalise Q
+        Q = ZZ(Q)
+        N = self.level()
+        if not Q.divides(N):
+            raise ValueError("Q must divide the level")
+        Q = N // N.prime_to_m_part(Q)
+
+        _, z, w = xgcd(-N//Q, Q)
+        # so w * Q - z*(N/Q) = 1
+        return matrix(ZZ, 2, 2, [Q, 1, N*z, Q*w])
+
 
 def _list_subgroup(N, gens):
     r"""

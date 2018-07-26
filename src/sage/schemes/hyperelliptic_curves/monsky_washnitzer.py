@@ -1363,7 +1363,7 @@ def adjusted_prec(p, prec):
 
 
 def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
-    """
+    r"""
     Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
     with respect to the basis `(dx/y, x dx/y)`.
 
@@ -1581,7 +1581,6 @@ def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
     only really makes sense when it is divisible by p anyway, perhaps
     this isn't a problem after all.
     """
-
     M = int(M)
     if M < 2:
         raise ValueError("M (=%s) must be at least 2" % M)
@@ -1746,7 +1745,7 @@ from sage.misc.misc import repr_lincomb
 
 
 def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
-    """
+    r"""
     Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
     with respect to the basis `(dx/2y, x dx/2y, ...x^{d-2} dx/2y)`, where
     `d` is the degree of `Q`.
@@ -2753,7 +2752,7 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
 
     @cached_method
     def frob_Q(self, p):
-        """
+        r"""
         Returns and caches `Q(x^p)`, which is used in computing the image of
         `y` under a `p`-power lift of Frobenius to `A^{\dagger}`.
 
@@ -2849,8 +2848,8 @@ class MonskyWashnitzerDifferentialRing(UniqueRepresentation, Module):
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
     def frob_basis_elements(self, prec, p):
-        """
-        Returns the action of a `p`-power lift of Frobenius on the basis
+        r"""
+        Return the action of a `p`-power lift of Frobenius on the basis
 
         .. MATH::
 

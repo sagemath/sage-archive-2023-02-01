@@ -118,6 +118,8 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
         return ClassicalCrystalOfLettersWrapped(ct)
     elif ct.letter == 'G':
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_G_element)
+    elif ct.letter == 'Q':
+        return CrystalOfQueerLetters(ct)
     else:
         raise NotImplementedError
 
@@ -2576,6 +2578,196 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     Element = BKKLetter
+
+#################
+# Type q(n) queer
+#################
+
+class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
+    r"""
+    Queer crystal of letters elements.
+
+    TESTS::
+
+        sage: Q = crystals.Letters(['Q',4])
+        sage: Q.list()
+        [1, 2, 3, 4]
+        sage: [ [x < y for y in Q] for x in Q ]
+        [[False, True, True, True],
+         [False, False, True, True],
+         [False, False, False, True],
+         [False, False, False, False]]
+        sage: Q.module_generators
+        (1,)
+        sage: TestSuite(Q).run()
+    """
+    @staticmethod
+    def __classcall_private__(cls, ct):
+        """
+        TESTS::
+
+            sage: crystals.Letters(['Q',3])
+            The queer crystal of letters for q(3)
+        """
+        ct = CartanType(ct)
+        return super(CrystalOfQueerLetters, cls).__classcall__(cls, ct)
+
+    def __init__(self, ct):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3]); Q
+            The queer crystal of letters for q(3)
+            sage: Q.module_generators
+            (1,)
+            sage: Q._index_set
+            (1, 2, -2, -1)
+            sage: Q._list
+            [1, 2, 3]
+        """
+        self._cartan_type = ct
+        Parent.__init__(self, category= RegularSuperCrystals())
+        self._index_set = ct.index_set()
+        self.module_generators = (self._element_constructor_(1),)
+        self._list = list(self.__iter__())
+
+    def __iter__(self):
+        """
+        Iterate through ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: [x for x in Q]
+            [1, 2, 3]
+        """
+        for t in range(1,self._cartan_type.n+2):
+            yield self(t)
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: crystals.Letters(['Q',3])
+            The queer crystal of letters for q(3)
+        """
+        ret = "The queer crystal of letters for q(%s)"%(self._cartan_type.n+1)
+        return ret
+
+    def index_set(self):
+        """
+        Return index set of crystal.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: Q.index_set()
+            (1, 2, -2, -1)
+        """
+        return self._index_set
+
+    # temporary workaround while an_element is overriden by Parent
+    _an_element_ = EnumeratedSets.ParentMethods._an_element_
+
+    Element = QueerLetter_element
+
+
+cdef class QueerLetter_element(Letter):
+    r"""
+    Queer supercrystal letters elements.
+
+    TESTS::
+
+        sage: Q = crystals.Letters(['Q',3])
+        sage: Q.list()
+        [1, 2, 3]
+        sage: [ [x < y for y in Q] for x in Q ]
+        [[False, True, True], [False, False, True], [False, False, False]]
+
+    ::
+
+        sage: Q = crystals.Letters(['Q',3])
+        sage: Q(1) < Q(1), Q(1) < Q(2), Q(2)< Q(1)
+        (False, True, False)
+
+    ::
+
+        sage: TestSuite(Q).run()
+    """
+    def weight(self):
+        """
+        Return the weight of ``self``.
+
+        EXAMPLES::
+
+            sage: [v.weight() for v in crystals.Letters(['Q',4])]
+            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+        """
+        return self._parent.weight_lattice_realization().monomial(self.value-1)
+
+    cpdef Letter e(self, int i):
+        r"""
+        Return the action of `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: [(c,i,c.e(i)) for i in Q.index_set() for c in Q if c.e(i) is not None]
+            [(2, 1, 1), (3, 2, 2), (3, -2, 2), (2, -1, 1)]
+        """
+        if self.value == -i+1:
+           return self._parent._element_constructor_(self.value-1)
+        if self.value == i+1:
+            return self._parent._element_constructor_(self.value-1)
+        else:
+            return None
+
+    cpdef Letter f(self, int i):
+        r"""
+        Return the action of `f_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: [(c,i,c.f(i)) for i in Q.index_set() for c in Q if c.f(i) is not None]
+            [(1, 1, 2), (2, 2, 3), (2, -2, 3), (1, -1, 2)]
+        """
+        if self.value == -i:
+           return self._parent._element_constructor_(-i+1)
+        if self.value == i:
+            return self._parent._element_constructor_(self.value+1)
+        else:
+            return None
+
+    cpdef int epsilon(self, int i):
+        r"""
+        Return `\varepsilon_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: [(c,i) for i in Q.index_set() for c in Q if c.epsilon(i) != 0]
+            [(2, 1), (3, 2), (3, -2), (2, -1)]
+        """
+        if self.value == i+1 or self.value == -i+1:
+            return 1
+        return 0
+
+    cpdef int phi(self, int i):
+        r"""
+        Return `\varphi_i` of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: [(c,i) for i in Q.index_set() for c in Q if c.phi(i) != 0]
+            [(1, 1), (2, 2), (2, -2), (1, -1)]
+        """
+        if self.value == i or self.value == -i:
+            return 1
+        return 0
 
 #########################
 # Wrapped letters

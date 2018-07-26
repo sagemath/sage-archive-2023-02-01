@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-p-adic L-functions of elliptic curves
+`p`-adic `L`-functions of elliptic curves
 
 To an elliptic curve `E` over the rational numbers and a prime `p`, one
 can associate a `p`-adic L-function; at least if `E` does not have additive
@@ -87,7 +87,7 @@ from sage.rings.infinity import infinity
 from sage.rings.all import LaurentSeriesRing, PowerSeriesRing, PolynomialRing, Integers
 
 from sage.rings.integer import Integer
-from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors, valuation
+from sage.arith.all import valuation, binomial, kronecker_symbol, gcd, prime_divisors
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
@@ -100,7 +100,7 @@ import sage.matrix.all as matrix
 import sage.schemes.hyperelliptic_curves.monsky_washnitzer
 # from sage.interfaces.all import gp
 from sage.functions.log import log
-
+from sage.functions.other import floor
 from sage.misc.decorators import rename_keyword
 
 
@@ -197,7 +197,7 @@ class pAdicLseries(SageObject):
             raise NotImplementedError("p (=%s) must be a prime of semi-stable reduction"%p)
 
         try :
-            crla = E.label()
+            E.label()
         except RuntimeError :
             print("Warning : Curve outside Cremona's table. Computations of modular symbol space might take very long !")
 
@@ -523,7 +523,7 @@ class pAdicLseries(SageObject):
                 if a.valuation() < 1:
                     self._alpha[prec] = K(a)
                     return K(a)
-            raise RunTimeError("bug in p-adic L-function alpha")
+            raise RuntimeError("bug in p-adic L-function alpha")
         else: # supersingular case
             f = f.change_ring(K)
             A = K.extension(f, names="alpha")
@@ -1566,6 +1566,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def bernardi_sigma_function(self, prec=20):
         r"""
         Return the  `p`-adic sigma function of Bernardi in terms of `z = log(t)`.
+
         This is the same as ``padic_sigma`` with ``E2 = 0``.
 
         EXAMPLES::
@@ -1576,7 +1577,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
             z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 + O(z^10)
         """
         E = self._E
-        p = self._p
 
         Eh = E.formal()
         lo = Eh.log(prec + 5)
@@ -1623,11 +1623,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # we will have to do it properly with David Harvey's _multiply_point()
         n = arith.LCM(E.tamagawa_numbers())
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
-
-        if p < 5:
-            phi = self.frobenius(min(6,prec),algorithm="approx")
-        else:
-            phi = self.frobenius(prec+2,algorithm="mw")
 
         def height(P,check=True):
             if P.is_finite_order():

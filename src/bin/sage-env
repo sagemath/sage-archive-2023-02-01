@@ -278,7 +278,6 @@ if [ 1 = 2 ]; then
     echo "MAKE        The make program (e.g. make, /usr/bin/make or /usr/local/bin/gmake)"
     echo "MAKEFLAGS   Flag(s) to make (e.g. -j4)."
     echo "RANLIB      Archiver ranlib (e.g. ranlib, /usr/ccs/bin/ranlib etc)"
-    echo "SAGE64      Set to \"yes\" to build a 64-bit binary (Solaris SPARC or Solaris x86 only)"
     echo "SHAREDFLAGS Flag(s) necessary for building a shared library (e.g. -fPIC or -xcode=pic32)"
     echo "We attempt to set this to sensible values, but check below to"
     echo "ensure they are OK. If you wish to override any then please use:"
@@ -295,6 +294,7 @@ export SAGE_ETC="$SAGE_LOCAL/etc"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_SPKG_SCRIPTS="$SAGE_LOCAL/var/lib/sage/scripts"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 export SAGE_SRC="$SAGE_ROOT/src"
 export SAGE_DOC_SRC="$SAGE_SRC/doc"
@@ -488,7 +488,9 @@ if [ -d "$DOT_SAGE" ] ; then
         fi
     fi
 fi
+
 export MAXIMA_PREFIX="$SAGE_LOCAL"
+export MAXIMA_USERDIR="$DOT_SAGE/maxima"
 
 PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 
@@ -496,15 +498,6 @@ PERL5LIB="$SAGE_LOCAL/lib/perl5:$PERL5LIB" && export PERL5LIB
 if [ -n "$SAGE_BROWSER" ]; then
     export BROWSER="$SAGE_BROWSER"
 fi
-
-############ architecture flags
-
-# Support flags to change the build architecture.  Currently, this is
-# only SAGE64.
-# Whenever a flag like SAGE64 has been set once, it needs to be
-# restored in every run of sage, as mixing 64-bit and 32-bit code is
-# bad idea at best.  This script takes care of that.
-. "$SAGE_SCRIPTS_DIR/sage-arch-env"
 
 ############ compilation flags
 

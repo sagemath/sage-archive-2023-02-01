@@ -107,7 +107,7 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.fraction_field import FractionField
-from sage.structure.element import FieldElement
+from sage.structure.element import FieldElement, parent
 from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.interfaces.gp import Gp
@@ -792,7 +792,7 @@ class CFiniteSequence(FieldElement):
         return R(self.ogf())
 
     def closed_form(self, n = 'n'):
-        """
+        r"""
         Return a symbolic expression in ``n``, which equals the n-th term of
         the sequence.
 
@@ -1053,14 +1053,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             sage: y in Cy
             True
         """
-        if x.parent() == self:
-            return True
-        try:
-            self._coerce_(x)
-        except TypeError:
-            return False
-        return True
-
+        return self.has_coerce_map_from(parent(x))
 
     def fraction_field(self):
         r"""
@@ -1107,7 +1100,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             return True
 
     def from_recurrence(self, coefficients, values):
-        """
+        r"""
         Create a C-finite sequence given the coefficients $c$ and
         starting values $a$ of a homogenous linear recurrence.
 
@@ -1265,7 +1258,7 @@ class CFiniteSequences_generic(CommutativeRing, UniqueRepresentation):
             else:
                 return CFiniteSequence(num / den)
 
-"""
+r"""
 .. TODO::
 
     sage: CFiniteSequence(x+x^2+x^3+x^4+x^5+O(x^6)) # not implemented

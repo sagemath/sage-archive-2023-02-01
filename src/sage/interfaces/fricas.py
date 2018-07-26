@@ -2,9 +2,8 @@ r"""
 Interface to FriCAS
 
 .. TODO::
-
-    - ``fricas(dilog(x))`` should be ``dilog(-(x-1))``, and some
-      more conversions in ``sage.functions`` are missing
+    - some conversions in ``sage.functions`` are still missing and
+      all should be checked and tested
 
 FriCAS is a free GPL-compatible (modified BSD license) general
 purpose computer algebra system based on Axiom.  The FriCAS
@@ -245,6 +244,20 @@ class FriCAS(ExtraTabCompletion, Expect):
 
             sage: fricas == loads(dumps(fricas))                                # optional - fricas
             True
+
+        Check that :trac:`25174` is fixed::
+
+            sage: fricas(I)                                                     # optional - fricas
+            %i
+
+            sage: integrate(sin(x)*exp(I*x), x, -pi, 0, algorithm="fricas")     # optional - fricas
+            1/2*I*pi
+
+            sage: fricas(I*sin(x)).sage()                                       # optional - fricas
+            I*sin(x)
+
+            sage: fricas(I*x).sage()                                            # optional - fricas
+            I*x
         """
         eval_using_file_cutoff = 4096-5 # magic number from Expect._eval_line (there might be a bug)
         assert max(len(c) for c in FRICAS_INIT_CODE) < eval_using_file_cutoff
@@ -584,8 +597,34 @@ class FriCAS(ExtraTabCompletion, Expect):
             sage: fricas.get_string('concat([string(1) for i in 1..10000])') == "1"*10000    # optional - fricas
             True
 
+        A problem with leading space::
+
+            sage: s = "unparse((-1234567890123456789012345678901234567890123456789012345678901234567890*n::EXPR INT)::INFORM)"
+            sage: fricas.get_string(s)                                                       # optional - fricas
+            '(-1234567890123456789012345678901234567890123456789012345678901234567890)*n'
+
+        Check that :trac:`25628` is fixed::
+
+            sage: var("a b"); f = 1/(1+a*cos(x))                                # optional - fricas
+            (a, b)
+            sage: lF = integrate(f, x, algorithm="fricas")                      # optional - fricas
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: f = 1/(b*x^2+a); lF = integrate(f, x, algorithm="fricas"); lF # optional - fricas
+            [1/2*log((2*a*b*x + (b*x^2 - a)*sqrt(-a*b))/(b*x^2 + a))/sqrt(-a*b),
+             arctan(sqrt(a*b)*x/a)/sqrt(a*b)]
+            sage: (diff(lF[0], x) - f).simplify_trig()                          # optional - fricas
+            0
+            sage: (diff(lF[1], x) - f).simplify_trig()                          # optional - fricas
+            0
+
         """
-        return self.get(str(var)).replace("\n", "")[1:-1]
+        # strip removes leading and trailing whitespace, after that
+        # we can assume that the first and the last character are
+        # double quotes
+        return self.get(str(var)).replace("\n", "").strip()[1:-1]
 
     def get_integer(self, var):
         """
@@ -1022,7 +1061,7 @@ class FriCASElement(ExpectElement):
             return QQbar
 
         # now implement "functorial" types
-        if head == "OrderedCompletion":
+        if head == "OrderedCompletion" or head == "Complex":
             # this is a workaround, I don't know how translate this
             return SR
 
@@ -1084,14 +1123,14 @@ class FriCASElement(ExpectElement):
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN,
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I,
              1.11976951499863,
              0.451026811796262,
              0.732815101786507,
              0.837981225008390,
-             NaN,
-             NaN]
+             1.57079632679490 - 0.467145308103262*I,
+             0.467145308103262*I]
             sage: l = [tanh, sinh, cosh, coth, sech, csch, asinh, acosh, atanh, acoth, asech, acsch, arcsinh, arccosh, arctanh, arccoth, arcsech, arccsch]
             sage: [f(x)._fricas_().sage().subs(x=0.9) for f in l]               # optional - fricas
             [0.716297870199024,
@@ -1119,9 +1158,26 @@ class FriCASElement(ExpectElement):
             sage: fricas(s).sage()                                              # optional - fricas
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
 
+
+        Check that :trac:`25224` is fixed::
+
+            sage: integrate(log(x)/(1-x),x,algorithm='fricas')                  # optional - fricas
+            dilog(-x + 1)
+            sage: fricas(dilog(-x + 1))                                         # optional - fricas
+            dilog(x)
+            sage: dilog._fricas_()(1.0)                                         # optional - fricas
+            1.6449340668_4822643647_24152
+            sage: dilog(1.0)
+            1.64493406684823
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
-        from sage.libs.pynac.pynac import symbol_table
+        from sage.libs.pynac.pynac import symbol_table, register_symbol
+        from sage.symbolic.all import I
+        from sage.functions.log import dilog
+        register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
+        register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
+
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
                         ('::Symbol', ' ')]
@@ -1277,6 +1333,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
+        from sage.symbolic.all import I
         from sage.matrix.constructor import matrix
         from sage.structure.factorization import Factorization
         from sage.misc.sage_eval import sage_eval
@@ -1310,6 +1367,10 @@ class FriCASElement(ExpectElement):
         if head == "Fraction":
             return P.new("numer(%s)" %self._name).sage()/P.new("denom(%s)" %self._name).sage()
 
+        if head == "Complex":
+            return (P.new("real(%s)" %self._name).sage() +
+                    P.new("imag(%s)" %self._name).sage()*I)
+
         if head == "Factored":
             l = P.new('[[f.factor, f.exponent] for f in factors(%s)]' %self._name).sage()
             return Factorization([(p, e) for p,e in l])
@@ -1319,7 +1380,6 @@ class FriCASElement(ExpectElement):
             unparsed_InputForm = P.get_unparsed_InputForm(self._name)
         except RuntimeError as error:
             raise NotImplementedError("The translation of the FriCAS object\n\n%s\n\nto sage is not yet implemented:\n%s" %(self, error))
-
         if head == "Boolean":
             return unparsed_InputForm == "true"
 
@@ -1354,6 +1414,10 @@ class FriCASElement(ExpectElement):
 
         if head == "Polynomial":
             base_ring = self._get_sage_type(domain[1])
+            # Polynomial Complex is translated into SR
+            if base_ring is SR:
+                return self._sage_expression(unparsed_InputForm)
+
             # the following is a bad hack, we should be getting a list here
             vars = P.get_unparsed_InputForm("variables(%s)" %self._name)[1:-1]
             if vars == "":
@@ -1368,9 +1432,9 @@ class FriCASElement(ExpectElement):
                 return self._sage_expression(unparsed_InputForm)
 
         if head == "Expression":
-            # TODO: we also have Expression Complex Integer and the like
-            if str(domain[1].car()) == "Integer":
-                return self._sage_expression(unparsed_InputForm)
+            # we treat Expression Integer and Expression Complex
+            # Integer just the same
+            return self._sage_expression(unparsed_InputForm)
 
         if head == 'DistributedMultivariatePolynomial':
             base_ring = self._get_sage_type(domain[2])

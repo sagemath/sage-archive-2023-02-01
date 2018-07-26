@@ -104,6 +104,7 @@ cdef class Ring(ParentWithGens):
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
         running ._test_distributivity() . . . pass
+        running ._test_divides() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -912,7 +913,7 @@ cdef class Ring(ParentWithGens):
         """
         if self.is_zero():
             return True
-        raise NotImplementedError
+        return super(Ring, self).is_finite()
 
     def cardinality(self):
         """
@@ -2293,7 +2294,7 @@ cdef class Algebra(Ring):
     def has_standard_involution(self):
         r"""
         Return ``True`` if the algebra has a standard involution and ``False`` otherwise.
-        This algorithm follows Algorithm 2.10 from John Voight's `Identifying the Matrix Ring`.
+        This algorithm follows Algorithm 2.10 from John Voight's *Identifying the Matrix Ring*.
         Currently the only type of algebra this will work for is a quaternion algebra.
         Though this function seems redundant, once algebras have more functionality, in particular
         have a method to construct a basis, this algorithm will have more general purpose.

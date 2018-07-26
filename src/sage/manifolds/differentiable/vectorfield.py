@@ -1009,20 +1009,16 @@ class VectorField(MultivectorField):
 
         EXAMPLES:
 
-        Curl of a rotation vector field in the Euclidean 3-space::
+        Curl of a vector field in the Euclidean 3-space::
 
-            sage: M = Manifold(3, 'M', structure='Riemannian')
-            sage: X.<x,y,z> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
-            sage: v = M.vector_field(name='v')
-            sage: v[0], v[1] = -y, x
+            sage: M.<x,y,z> = EuclideanSpace()
+            sage: v = M.vector_field(-y, x, 0, name='v')
             sage: v.display()
-            v = -y d/dx + x d/dy
+            v = -y e_x + x e_y
             sage: s = v.curl(); s
-            Vector field curl(v) on the 3-dimensional Riemannian manifold M
+            Vector field curl(v) on the Euclidean space E^3
             sage: s.display()
-            curl(v) = 2 d/dz
+            curl(v) = 2 e_z
 
         The function :func:`~sage.manifolds.operators.curl` from the
         :mod:`~sage.manifolds.operators` module can be used instead of the
@@ -1043,9 +1039,9 @@ class VectorField(MultivectorField):
             sage: f = M.scalar_field(function('F')(x,y,z))
             sage: gradf = f.gradient()
             sage: gradf.display()
-            d(F)/dx d/dx + d(F)/dy d/dy + d(F)/dz d/dz
+            d(F)/dx e_x + d(F)/dy e_y + d(F)/dz e_z
             sage: s = curl(gradf); s
-            Vector field on the 3-dimensional Riemannian manifold M
+            Vector field on the Euclidean space E^3
             sage: s.display()
             0
 
@@ -1106,18 +1102,13 @@ class VectorField(MultivectorField):
 
         Scalar product in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
-            sage: u = M.vector_field(name='u')
-            sage: u[:] = x, y
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = y, x
+            sage: M.<x,y> = EuclideanSpace()
+            sage: u = M.vector_field(x, y, name='u')
+            sage: v = M.vector_field(y, x, name='v')
             sage: s = u.dot_product(v); s
-            Scalar field u.v on the 2-dimensional Riemannian manifold M
+            Scalar field u.v on the Euclidean plane E^2
             sage: s.display()
-            u.v: M --> R
+            u.v: E^2 --> R
                (x, y) |--> 2*x*y
 
         A shortcut alias of ``dot_product`` is ``dot``::
@@ -1134,11 +1125,11 @@ class VectorField(MultivectorField):
         Scalar product with respect to a metric that is not the default one::
 
             sage: h = M.riemannian_metric('h')
-            sage: h[0,0], h[1,1] = 1/(1+y^2), 1/(1+x^2)
+            sage: h[1,1], h[2,2] = 1/(1+y^2), 1/(1+x^2)
             sage: s = u.dot_product(v, metric=h); s
-            Scalar field h(u,v) on the 2-dimensional Riemannian manifold M
+            Scalar field h(u,v) on the Euclidean plane E^2
             sage: s.display()
-            h(u,v): M --> R
+            h(u,v): E^2 --> R
                (x, y) |--> -(x^3*y - x*y^3)/((x^2 + 1)*y^2 + x^2 + 1)
 
         """
@@ -1197,16 +1188,12 @@ class VectorField(MultivectorField):
 
         Norm in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = -y, x
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(-y, x, name='v')
             sage: s = v.norm(); s
-            Scalar field |v| on the 2-dimensional Riemannian manifold M
+            Scalar field |v| on the Euclidean plane E^2
             sage: s.display()
-            |v|: M --> R
+            |v|: E^2 --> R
                (x, y) |--> sqrt(x^2 + y^2)
 
         The global function :func:`~sage.misc.functional.norm` can be used
@@ -1218,11 +1205,11 @@ class VectorField(MultivectorField):
         Norm with respect to a metric that is not the default one::
 
             sage: h = M.riemannian_metric('h')
-            sage: h[0,0], h[1,1] = 1/(1+y^2), 1/(1+x^2)
+            sage: h[1,1], h[2,2] = 1/(1+y^2), 1/(1+x^2)
             sage: s = v.norm(metric=h); s
-            Scalar field |v|_h on the 2-dimensional Riemannian manifold M
+            Scalar field |v|_h on the Euclidean plane E^2
             sage: s.display()
-            |v|_h: M --> R
+            |v|_h: E^2 --> R
                (x, y) |--> sqrt((2*x^2 + 1)*y^2 + x^2)/(sqrt(x^2 + 1)*sqrt(y^2 + 1))
 
         """
@@ -1289,18 +1276,13 @@ class VectorField(MultivectorField):
 
         Cross product in the Euclidean 3-space::
 
-            sage: M = Manifold(3, 'M', structure='Riemannian')
-            sage: X.<x,y,z> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1], g[2,2] = 1, 1, 1
-            sage: u = M.vector_field(name='u')
-            sage: u[:] = -y, x, 0
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = x, y, 0
+            sage: M.<x,y,z> = EuclideanSpace()
+            sage: u = M.vector_field(-y, x, 0, name='u')
+            sage: v = M.vector_field(x, y, 0, name='v')
             sage: w = u.cross_product(v); w
-            Vector field u x v on the 3-dimensional Riemannian manifold M
+            Vector field u x v on the Euclidean space E^3
             sage: w.display()
-            u x v = (-x^2 - y^2) d/dz
+            u x v = (-x^2 - y^2) e_z
 
         A shortcut alias of ``cross_product`` is ``cross``::
 
@@ -1315,11 +1297,11 @@ class VectorField(MultivectorField):
         Cross product with respect to a metric that is not the default one::
 
             sage: h = M.riemannian_metric('h')
-            sage: h[0,0], h[1,1], h[2,2] = 1/(1+y^2), 1/(1+z^2), 1/(1+x^2)
+            sage: h[1,1], h[2,2], h[3,3] = 1/(1+y^2), 1/(1+z^2), 1/(1+x^2)
             sage: w = u.cross_product(v, metric=h); w
-            Vector field on the 3-dimensional Riemannian manifold M
+            Vector field on the Euclidean space E^3
             sage: w.display()
-            -(x^2 + y^2)*sqrt(x^2 + 1)/(sqrt(y^2 + 1)*sqrt(z^2 + 1)) d/dz
+            -(x^2 + y^2)*sqrt(x^2 + 1)/(sqrt(y^2 + 1)*sqrt(z^2 + 1)) e_z
 
         """
         if self._domain.dim() != 3:
@@ -1561,6 +1543,8 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
         # MultivectorFieldParal attributes:
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
+        self._extensions_graph = {self._domain: self}
+        self._restrictions_graph = {self._domain: self}
         # VectorField attributes:
         self._vmodule = vector_field_module
         # Initialization of derived quantities:

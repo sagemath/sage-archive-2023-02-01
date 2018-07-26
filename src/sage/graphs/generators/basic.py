@@ -147,8 +147,9 @@ def ButterflyGraph():
         4: [0, 0]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Butterfly graph")
 
+
 def CircularLadderGraph(n):
-    """
+    r"""
     Returns a circular ladder graph with 2\*n nodes.
 
     A Circular ladder graph is a ladder graph that is connected at the
@@ -567,8 +568,6 @@ def CompleteMultipartiteGraph(l):
         sage: g.chromatic_number()
         3
     """
-    
-    n = sum(l) #getting the number of vertices
     r = len(l) #getting the number of partitions
     positions = {}
 
@@ -610,9 +609,8 @@ def CompleteMultipartiteGraph(l):
     g.set_pos(positions)
     g.name("Multipartite Graph with set sizes "+str(l))
 
-
-
     return g
+
 
 def DiamondGraph():
     """
@@ -1006,8 +1004,9 @@ def HouseXGraph():
     edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3), (2, 4), (3, 4)]
     return graph.Graph(edges, pos=pos_dict, name="House Graph")
 
+
 def LadderGraph(n):
-    """
+    r"""
     Returns a ladder graph with 2\*n nodes.
 
     A ladder graph is a basic structure that is typically displayed as

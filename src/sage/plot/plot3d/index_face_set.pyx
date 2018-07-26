@@ -257,15 +257,15 @@ cdef class IndexFaceSet(PrimitiveObject):
         sage: t_list = [Texture(col[i]) for i in range(10)]
         sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
         sage: S.show(viewer='tachyon')
-
     """
-    def __cinit__(self):
-        self.vs = <point_c *>NULL
-        self.face_indices = <int *>NULL
-        self._faces = <face_c *>NULL
+
     def __init__(self, faces, point_list=None,
                  enclosed=False, texture_list=None, **kwds):
+        if 'alpha' in kwds:
+            opacity = float(kwds.pop('alpha'))
+            kwds['opacity'] = opacity
         PrimitiveObject.__init__(self, **kwds)
+        self._set_extra_kwds(kwds)
 
         self.global_texture = (texture_list is None)
 
@@ -293,11 +293,7 @@ cdef class IndexFaceSet(PrimitiveObject):
         for i from 0 <= i < len(faces):
             index_len += len(faces[i])
 
-        self.vcount = len(point_list)
-        self.fcount = len(faces)
-        self.icount = index_len
-
-        self.realloc(self.vcount, self.fcount, index_len)
+        self.realloc(len(point_list), len(faces), index_len)
 
         for i from 0 <= i < self.vcount:
             self.vs[i].x, self.vs[i].y, self.vs[i].z = point_list[i]
@@ -314,7 +310,7 @@ cdef class IndexFaceSet(PrimitiveObject):
                 self.face_indices[cur_pt] = ix
                 cur_pt += 1
 
-    cdef realloc(self, vcount, fcount, icount):
+    cdef int realloc(self, Py_ssize_t vcount, Py_ssize_t fcount, Py_ssize_t icount) except -1:
         r"""
         Allocates memory for vertices, faces, and face indices.  Can
         only be called from Cython, so the doctests must be indirect.
@@ -336,9 +332,12 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: len(G.vertex_list())
             0
         """
-        self.vs = <point_c *>check_reallocarray(self.vs, vcount, sizeof(point_c))
-        self._faces = <face_c *>check_reallocarray(self._faces, fcount, sizeof(face_c))
-        self.face_indices = <int *>check_reallocarray(self.face_indices, icount, sizeof(int))
+        self.vs = <point_c*>check_reallocarray(self.vs, vcount, sizeof(point_c))
+        self.vcount = vcount
+        self._faces = <face_c*>check_reallocarray(self._faces, fcount, sizeof(face_c))
+        self.fcount = fcount
+        self.face_indices = <int*>check_reallocarray(self.face_indices, icount, sizeof(int))
+        self.icount = icount
 
     def _clean_point_list(self):
         """
@@ -869,9 +868,6 @@ cdef class IndexFaceSet(PrimitiveObject):
         for part, count in part_counts.iteritems():
             face_set = IndexFaceSet([])
             face_set.realloc(self.vcount, count[0], count[1])
-            face_set.vcount = self.vcount
-            face_set.fcount = count[0]
-            face_set.icount = count[1]
             memcpy(face_set.vs, self.vs, sizeof(point_c) * self.vcount)
             face_ix = 0
             ix = 0
@@ -962,7 +958,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
             sage: G = polygon([(0,0,1), (1,1,1), (2,0,1)])
             sage: G.json_repr(G.default_render_params())
-            ['{"vertices":[{"x":0,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":2,"y":0,"z":1}], "faces":[[0,1,2]], "color":"#0000ff", "opacity":1}']
+            ['{"vertices":[{"x":0,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":2,"y":0,"z":1}], "faces":[[0,1,2]], "color":"#0000ff", "opacity":1.0}']
 
         A simple colored one::
 
@@ -974,7 +970,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             sage: t_list=[Texture(col[i]) for i in range(10)]
             sage: S = IndexFaceSet(face_list, point_list, texture_list=t_list)
             sage: S.json_repr(S.default_render_params())
-            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1}']
+            ['{"vertices":[{"x":2,"y":0,"z":0},..., "face_colors":["#ff0000","#ff9900","#cbff00","#33ff00"], "opacity":1.0}']
         """
         cdef Transformation transform = render_params.transform
         cdef point_c res
@@ -994,7 +990,7 @@ cdef class IndexFaceSet(PrimitiveObject):
 
         faces_str = "[{}]".format(",".join([format_json_face(self._faces[i])
                                             for i from 0 <= i < self.fcount]))
-        opacity = self._extra_kwds.get('opacity', 1)
+        opacity = float(self._extra_kwds.get('opacity', 1))
 
         if self.global_texture:
             color_str = '"#{}"'.format(self.texture.hex_rgb())
@@ -1178,7 +1174,7 @@ cdef class IndexFaceSet(PrimitiveObject):
             if face.n == 0: # skip unused vertices
                 continue
             face.vertices = &dual.face_indices[ix]
-            ff, next_ = next(dd.itervalues())
+            ff, next_ = next(iter(dd.itervalues()))
             face.vertices[0] = ff
             for j from 1 <= j < face.n:
                 ff, next_ = dd[next_]

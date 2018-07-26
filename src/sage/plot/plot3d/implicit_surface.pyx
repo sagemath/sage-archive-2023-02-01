@@ -1210,9 +1210,6 @@ cdef class ImplicitSurface(IndexFaceSet):
                 dest_vertex.y = src_face[j]['y']
                 dest_vertex.z = src_face[j]['z']
 
-        self.vcount = fcount * 3
-        self.fcount = fcount
-        self.icount = fcount * 3
 
 # Data table (courtesy of MarchingCubes.java)
 triangle_table2 = ( None,

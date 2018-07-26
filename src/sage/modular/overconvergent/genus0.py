@@ -179,9 +179,9 @@ from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.misc         import verbose
 from sage.misc.cachefunc    import cached_method
 from sage.misc.superseded   import deprecated_function_alias
-from sage.modular.all       import (DirichletGroup, trivial_character, EtaProduct,
+from sage.modular.all       import (trivial_character, EtaProduct,
                                     j_invariant_qexp, hecke_operator_on_qexp)
-from sage.modular.arithgroup.all import (Gamma1, is_Gamma0, is_Gamma1)
+from sage.modular.arithgroup.all import is_Gamma0, is_Gamma1
 from sage.modular.modform.element import ModularFormElement
 from sage.modules.all       import vector
 from sage.modules.module    import Module
@@ -524,6 +524,20 @@ class OverconvergentModularFormsSpace(Module):
             False
         """
         return not (self == other)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h1 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h2 = hash(OverconvergentModularForms(3, 12, 1/2))
+            sage: h3 = hash(OverconvergentModularForms(3, 0, 1/2))
+            sage: h1 == h2 and h1 != h3
+            True
+        """
+        return hash(self._params())
 
     def _params(self):
         r"""

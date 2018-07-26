@@ -1,4 +1,4 @@
-"""
+r"""
 Axioms
 
 This documentation covers how to implement axioms and proceeds with an
@@ -1681,7 +1681,7 @@ all_axioms += ("Flying", "Blue",
                "Complete",
                "FiniteDimensional", "Connected", "WithBasis",
                "Irreducible",
-               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors",
+               "Commutative", "Associative", "Inverse", "Unital", "Division", "NoZeroDivisors", "Cellular",
                "AdditiveCommutative", "AdditiveAssociative", "AdditiveInverse", "AdditiveUnital",
                "Distributive",
                "Endset",

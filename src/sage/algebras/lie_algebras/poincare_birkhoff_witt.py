@@ -17,12 +17,11 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc_c import prod
 from sage.categories.algebras import Algebras
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.sets.family import Family
-from sage.rings.all import ZZ
+
 
 class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
     r"""
@@ -127,6 +126,8 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         if basis_key is not None:
             self._basis_key = basis_key
+        else:
+            self._basis_key_inverse = None
 
         R = g.base_ring()
         self._g = g
@@ -173,19 +174,22 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
             sage: Usl2._basis_key(3)
             Traceback (most recent call last):
             ...
-            ValueError: 3 is not in list
+            KeyError: 3
         """
-        K = self._g.basis().keys()
-        if isinstance(K, (list, tuple)):
-            return K.index(x)
-        if K.cardinality() == float('inf'):
+        if self._basis_key_inverse is None:
+            K = self._g.basis().keys()
+            if isinstance(K, (list, tuple)) or K.cardinality() < float('inf'):
+                self._basis_key_inverse = {k: i for i,k in enumerate(K)}
+            else:
+                self._basis_key_inverse = False
+        if self._basis_key_inverse is False:
             return x
-        lst = list(K)
-        return lst.index(x)
+        else:
+            return self._basis_key_inverse[x]
 
     def _monoid_key(self, x):
         """
-        Comparison function for the underlying monoid.
+        Comparison key for the underlying monoid.
 
         EXAMPLES::
 
@@ -353,6 +357,7 @@ class PoincareBirkhoffWittBasis(CombinatorialFreeModule):
         """
         return self._indices.one()
 
+    @cached_method
     def product_on_basis(self, lhs, rhs):
         """
         Return the product of the two basis elements ``lhs`` and ``rhs``.

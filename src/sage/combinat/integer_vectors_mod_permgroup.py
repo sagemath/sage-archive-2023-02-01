@@ -431,7 +431,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
             assert isinstance(v, (ClonableIntArray, list)), '%s should be a list or a integer vector'%v
             assert (self.n == len(v)), '%s should be of length %s'%(v, self.n)
             for p in v:
-                assert (p == NN(p)), 'Elements of %s should be integers'%s
+                assert (p == NN(p)), 'Elements of %s should be integers' % v
         return is_canonical(self._sgs, self.element_class(self, list(v), check=False))
 
     def __contains__(self, v):
@@ -781,10 +781,10 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
             True
         """
         if check:
-            assert isinstance(v, (ClonableIntArray, list)), '%s should be a list or a integer vector'%v
-            assert (self.n == len(v)), '%s should be of length %s'%(v, self.n)
+            assert isinstance(v, (ClonableIntArray, list)), '%s should be a list or a integer vector' % v
+            assert (self.n == len(v)), '%s should be of length %s' % (v, self.n)
             for p in v:
-                assert (p == NN(p)), 'Elements of %s should be integers'%s
+                assert (p == NN(p)), 'Elements of %s should be integers' % v
         return is_canonical(self._sgs, self.element_class(self, list(v), check=False))
 
     def ambient(self):

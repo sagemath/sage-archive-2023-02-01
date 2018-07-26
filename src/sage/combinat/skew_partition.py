@@ -459,10 +459,11 @@ class SkewPartition(CombinatorialElement):
             ┌┬┴┘
             └┘
         """
+        from sage.typeset.unicode_art import UnicodeArt
         out, inn = self
         inn = inn + [0] * (len(out) - len(inn))
         if not self._list:
-            return u'∅'
+            return UnicodeArt(u'∅')
         if self.parent().options.convention == "French":
             s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┴┬├┤┘└┐┌┼─')
         else:
@@ -504,7 +505,6 @@ class SkewPartition(CombinatorialElement):
 
         if self.parent().options.convention == "French":
             txt = list(reversed(txt))
-        from sage.typeset.unicode_art import UnicodeArt        
         return UnicodeArt(txt, baseline=0)
 
     def inner(self):
@@ -1932,7 +1932,7 @@ class SkewPartitions_rowlengths(SkewPartitions):
             for sp in self._from_row_lengths_aux(sskp, self.co[-2], self.co[-1], self.overlap):
                 yield self.element_class(self, sp)
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_partition', 'SkewPartition_class', SkewPartition)
 
 # Deprecations from trac:18555. July 2016

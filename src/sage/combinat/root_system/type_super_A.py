@@ -12,13 +12,13 @@ Root system data for super type A
 #*****************************************************************************
 from __future__ import print_function, absolute_import
 from six.moves import range
+from six import iteritems
 
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
-from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from . import ambient_space
 from .cartan_type import SuperCartanType_standard
-from six import iteritems
+
 
 class AmbientSpace(ambient_space.AmbientSpace):
     r"""

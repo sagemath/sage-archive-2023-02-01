@@ -428,10 +428,9 @@ from sage.matrix.constructor import matrix
 from sage.matrix.constructor import column_matrix
 from sage.structure.element import Matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField
-from sage.rings.integer import Integer
 from sage.structure.sage_object import SageObject
-from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.misc.sageinspect import sage_getargspec
 
 class RijndaelGF(SageObject):
 
@@ -713,7 +712,7 @@ class RijndaelGF(SageObject):
             raise TypeError("keyword 'H' must be a hex string")
 
         def hx_to_gf(h):
-            return self._F(map(int, bin(int(h, 16))[2:].zfill(8))[::-1])
+            return self._F([int(_) for _ in bin(int(h, 16))[2:].zfill(8)][::-1])
         hexes = [H[2 * i] + H[2 * i + 1] for i in range(len(H) // 2)]
         result = [hx_to_gf(h) for h in hexes]
         if matrix:
@@ -840,7 +839,8 @@ class RijndaelGF(SageObject):
             raise TypeError("keyword 'B' must be a binary string")
 
         def bn_to_gf(b):
-            return self._F(map(int, b)[::-1])
+            return self._F([int(_) for _ in b[::-1]])
+
         bins = [B[8 * i : 8 * (i + 1)] for i in range(len(B) // 8)]
         result = [bn_to_gf(b) for b in bins]
         if matrix:
@@ -1137,8 +1137,8 @@ class RijndaelGF(SageObject):
             ...
             TypeError: keyword 'state' must be a 4 x 4 matrix with entries from a multivariate PolynomialRing over Finite Field in x of size 2^8
         """
-        from sage.rings.polynomial.multi_polynomial_ring_generic import \
-            MPolynomialRing_generic
+        from sage.rings.polynomial.multi_polynomial_ring_base import \
+            MPolynomialRing_base
         msg = ("keyword '{0}' must be a {1} x {2} matrix with entries from a "
                "multivariate PolynomialRing over {3}")
         msg = msg.format(keyword, 4, self._Nb, self._F)
@@ -1148,7 +1148,7 @@ class RijndaelGF(SageObject):
                 PRm.base_ring().order() == 256 and \
                 PRm.dimensions() == (4, self._Nb))) and \
            (not isinstance(PRm, Matrix) or \
-            not isinstance(PRm.base_ring(), MPolynomialRing_generic) or \
+            not isinstance(PRm.base_ring(), MPolynomialRing_base) or \
             not (PRm.base_ring().base_ring().is_field() and \
                  PRm.base_ring().base_ring().is_finite() and \
                  PRm.base_ring().base_ring().order() == 256) or \
@@ -1204,14 +1204,14 @@ class RijndaelGF(SageObject):
         for j in range(self._Nk, self._Nb * (self._Nr + 1)):
             if j % self._Nk == 0:
                 # Apply non-linear function to k[j - 1]
-                add_key = map(self._srd, key_cols[j - 1])
+                add_key = [self._srd(c) for c in key_cols[j - 1]]
                 add_key = add_key[1:] + add_key[:1]
                 add_key[0] += self._F.gen() ** (int(j / self._Nk) - 1)
                 key_cols[j] = add_cols(key_cols[j - self._Nk], add_key)
             else:
                 add_key = key_cols[j - 1]
                 if self._Nk > 6 and j % self._Nk == 4:
-                    add_key = map(self._srd, add_key)
+                    add_key = [self._srd(k) for k in add_key]
                 key_cols[j] = add_cols(key_cols[j - self._Nk], add_key)
 
         # Copy the expanded columns into 4xNb blocks
@@ -2260,8 +2260,7 @@ class RijndaelGF(SageObject):
                 ...
                 ValueError: keyword 'algorithm' must be either 'encrypt' or 'decrypt'
             """
-            from inspect import getargspec
-            pc_args = getargspec(polynomial_constr)
+            pc_args = sage_getargspec(polynomial_constr)
             if pc_args[0][0] == 'self':
                 # Check number of defaulted arguments
                 if len(pc_args[3]) != len(pc_args[0]) - 3:

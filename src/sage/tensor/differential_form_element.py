@@ -307,7 +307,7 @@ class DifferentialForm(AlgebraElement):
         sage: form2[1] = exp(cos(x))
         sage: form2[2] = 1/ln(y)
         sage: form2
-        1/log(y)*dz + dx + e^cos(x)*dy
+        dx + e^cos(x)*dy + 1/log(y)*dz
 
     We may calculate the exterior derivative of a form, and observe that
     applying the exterior derivative twice always yields zero::
@@ -335,11 +335,11 @@ class DifferentialForm(AlgebraElement):
 
         sage: from sage.tensor.differential_form_element import d
         sage: form2
-        1/log(y)*dz + dx + e^cos(x)*dy
+        dx + e^cos(x)*dy + 1/log(y)*dz
         sage: d(form2)
-        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -e^cos(x)*sin(x)*dx/\dy + -1/(y*log(y)^2)*dy/\dz
         sage: form2.diff()
-        -1/(y*log(y)^2)*dy/\dz + -e^cos(x)*sin(x)*dx/\dy
+        -e^cos(x)*sin(x)*dx/\dy + -1/(y*log(y)^2)*dy/\dz
         sage: d(form1) == form1.diff()
         True
 
@@ -851,7 +851,7 @@ class DifferentialForm(AlgebraElement):
             sage: f[1] = exp(cos(x))
             sage: f[2] = sin(ln(y))
             sage: f
-            sin(log(y))*dz + e^cos(x)*dy
+            e^cos(x)*dy + sin(log(y))*dz
             sage: f._dump_all()
             {(2,): sin(log(y)), (1,): e^cos(x)}
             sage: g = DifferentialForm(F, 2)
@@ -1019,14 +1019,14 @@ class DifferentialForm(AlgebraElement):
             sage: g
             z^3*dz
             sage: f.wedge(g)
-            y*z^3*dy/\dz + x^2*z^3*dx/\dz
+            x^2*z^3*dx/\dz + y*z^3*dy/\dz
 
         The wedge product is graded commutative::
 
             sage: f.wedge(g)
-            y*z^3*dy/\dz + x^2*z^3*dx/\dz
+            x^2*z^3*dx/\dz + y*z^3*dy/\dz
             sage: g.wedge(f)
-            -y*z^3*dy/\dz + -x^2*z^3*dx/\dz
+            -x^2*z^3*dx/\dz + -y*z^3*dy/\dz
             sage: f.wedge(f)
             0
 
@@ -1135,7 +1135,7 @@ class DifferentialForm(AlgebraElement):
 
         format = DifferentialFormFormatter(self.parent().base_space())
         output = [format.latex(comp, fun) \
-                      for (comp, fun) in self._components.items()]
+                      for (comp, fun) in sorted(self._components.items())]
         return ' + '.join(output)
 
 
@@ -1167,7 +1167,7 @@ class DifferentialForm(AlgebraElement):
 
         format = DifferentialFormFormatter(self.parent().base_space())
         output = [format.repr(comp, fun) \
-                      for (comp, fun) in self._components.items()]
+                      for (comp, fun) in sorted(self._components.items())]
         return ' + '.join(output)
 
 

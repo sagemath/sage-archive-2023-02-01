@@ -10,6 +10,7 @@ AUTHORS:
   the regularity
 - Travis Scrimshaw (2017): Cythonized element classes
 - Franco Saliola (2017): Tensor products for crystal of super algebras
+- Anne Schilling (2018): Tensor products for crystals of queer super algebras
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Anne Schilling <anne at math.ucdavis.edu>
@@ -1454,7 +1455,189 @@ cdef class CrystalOfBKKTableauxElement(TensorProductOfSuperCrystalsElement):
                 cur += 1
         return Tableau(tab).conjugate()
 
+#####################################################################
+## Queer crystal elements
+
+cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrystalsElement):
+    r"""
+    Element class for a tensor product of crystals for queer Lie superalgebras.
+
+    This implements the tensor product rule for crystals of Gancharov et al.
+
+    TESTS::
+
+        sage: Q = crystals.Letters(['Q', 3])
+        sage: T = tensor([Q,Q]); T
+        Full tensor product of the crystals [The queer crystal of letters for q(3), The queer crystal of letters for q(3)]
+        sage: T.cardinality()
+        9
+        sage: t = T.an_element(); t
+        [1, 1]
+        sage: t.weight()
+        (2, 0, 0)
+    """
+ 
+    def e(self, i):
+        r"""
+        Return `e_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q])
+            sage: t = T(Q(1),Q(1))
+            sage: t.e(-1)
+            sage: t = T(Q(2),Q(1))
+            sage: t.e(-1)
+            [1, 1]
+
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: t = T(Q(1),Q(3),Q(2),Q(1))
+            sage: t.e(-2)
+            [2, 2, 1, 1]
+        """
+        if i > 0:
+            return TensorProductOfRegularCrystalsElement.e(self, i)
+        if i == -1:
+            k = 0
+            w = self[0].weight()[0] + self[0].weight()[1]
+            while w == 0 and k < len(self)-1:
+                  k += 1
+                  w += self[k].weight()[0] + self[k].weight()[1]
+            b = self[k].e(i)
+            if b is None:
+               return None
+            return self._set_index(k, b)
+        n = max(self.index_set())
+        if i < -1 and i >= -n:
+            j = -i
+            w = range(2,j+1) + range(1,j)
+            w.reverse()
+            b = self
+            for k in w:
+                b = b.s(k)
+            b = b.e(-1)
+            if b is None:
+               return None
+            w.reverse()
+            for k in w:
+                b = b.s(k)
+            return b
+        if i < -n:
+           j = -(i+n)
+           from sage.combinat.permutation import Permutations
+           w = Permutations(n+1).long_element().reduced_word()
+           b = self
+           for k in w:
+               b = b.s(k)
+           b = b.f(-(n+1-j))
+           if b is None:
+               return None
+           for k in w:
+               b = b.s(k)
+           return b
+        return None
+
+    def f(self, i):
+        r"""
+        Return `f_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q])
+            sage: t = T(Q(1),Q(1))
+            sage: t.f(-1)
+            [2, 1]
+        """
+        if i > 0:
+            return TensorProductOfRegularCrystalsElement.f(self, i)
+        if i == -1:
+            k = 0
+            w = self[0].weight()[0] + self[0].weight()[1]
+            while w == 0 and k < len(self)-1:
+                  k += 1
+                  w += self[k].weight()[0] + self[k].weight()[1]
+            b = self[k].f(i)
+            if b is None:
+               return None
+            return self._set_index(k, b)
+        n = max(self.index_set())
+        if i < -1 and i >= -n:
+            j = -i
+            w = range(2,j+1) + range(1,j)
+            w.reverse()
+            b = self
+            for k in w:
+                b = b.s(k)
+            b = b.f(-1)
+            if b is None:
+               return None
+            w.reverse()
+            for k in w:
+                b = b.s(k)
+            return b
+        if i < -n:
+           j = -(i+n)
+           from sage.combinat.permutation import Permutations
+           w = Permutations(n+1).long_element().reduced_word()
+           b = self
+           for k in w:
+               b = b.s(k)
+           b = b.e(-(n+1-j))
+           if b is None:
+               return None
+           for k in w:
+               b = b.s(k)
+           return b
+        return None
+
+    # Override epsilon/phi (for now)
+    def epsilon(self, i):
+        r"""
+        Return `\varepsilon_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: t = T(Q(1),Q(3),Q(2),Q(1))
+            sage: t.epsilon(-2)
+            1
+        """
+        string_length = 0
+        x = self
+        while True:
+            x = x.e(i)
+            if x is None:
+                return string_length
+            else:
+                string_length += 1
+
+    def phi(self, i):
+        r"""
+        Return `\varphi_i` on ``self``.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q', 3])
+            sage: T = tensor([Q,Q,Q,Q])
+            sage: t = T(Q(1),Q(3),Q(2),Q(1))
+            sage: t.phi(-2)
+            0
+            sage: t.phi(-1)
+            1
+        """
+        string_length = 0
+        x = self
+        while True:
+            x = x.f(i)
+            if x is None:
+                return string_length
+            else:
+                string_length += 1
+
 # for unpickling
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.crystals.tensor_product', 'ImmutableListWithParent',  ImmutableListWithParent)
 

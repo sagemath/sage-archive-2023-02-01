@@ -2431,7 +2431,8 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         [-1  0]
         [ 0 -1]
     """
-    n = len(nlist); m = len(mlist)
+    n = len(nlist)
+    m = len(mlist)
     nmlist = nlist + mlist
     M = matrix(ZZ, n + m, n, sparse=True)
     for edge in edges:
@@ -2445,4 +2446,3 @@ def _edge_list_to_matrix(edges, nlist, mlist):
         if v2 in nlist:
             M[nmlist.index(v1), nmlist.index(v2)] = a
     return M
-

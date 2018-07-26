@@ -122,7 +122,7 @@ def parent_to_repr_short(P):
     from sage.rings.rational_field import QQ
     from sage.symbolic.ring import SR
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
     from sage.rings.power_series_ring import is_PowerSeriesRing
     def abbreviate(P):
         if P is ZZ:
@@ -503,7 +503,7 @@ def merge_overlapping(A, B, key=None):
 
         Then ``A + B[i:]`` or ``A[:-i] + B`` are the merged tuples/lists.
 
-        Adapted from http://stackoverflow.com/a/30056066/1052778.
+        Adapted from https://stackoverflow.com/a/30056066/1052778.
         """
         matches = iter(i for i in range(min(len(A), len(B)), 0, -1)
                        if A[-i:] == B[:i])

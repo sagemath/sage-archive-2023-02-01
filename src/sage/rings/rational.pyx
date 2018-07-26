@@ -957,6 +957,19 @@ cdef class Rational(sage.structure.element.FieldElement):
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
 
+    def _symbolic_(self, sring):
+        """
+        Return this rational as symbolic expression.
+
+        EXAMPLES::
+
+            sage: ex = SR(QQ(7)/3); ex
+            7/3
+            sage: parent(ex)
+            Symbolic Ring
+        """
+        return sring._force_pyobject(self, force=True)
+
     def _sympy_(self):
         """
         Convert Sage ``Rational`` to SymPy ``Rational``.
@@ -1706,7 +1719,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self.numer().squarefree_part() * self.denom().squarefree_part()
 
-    def is_padic_square(self, p):
+    def is_padic_square(self, p, check=True):
         """
         Determines whether this rational number is a square in `\QQ_p` (or in
         `R` when ``p = infinity``).
@@ -1714,6 +1727,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         INPUT:
 
         -  ``p`` - a prime number, or ``infinity``
+
+        - ``check`` -- (default: ``True``); check if `p` is prime
 
         EXAMPLES::
 
@@ -1741,7 +1756,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         ## Check that p is prime
         from .integer_ring import ZZ
         p = ZZ(p)
-        if not p.is_prime():
+        if check and not p.is_prime():
             raise ValueError('p must be "infinity" or a positive prime number.')
 
         ## Deal with finite primes
@@ -3589,7 +3604,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return True
 
-    #Function alias for checking if the number is a integer.Added to solve ticket 15500    
+    #Function alias for checking if the number is a integer.Added to solve ticket 15500
     is_integer = is_integral
 
 

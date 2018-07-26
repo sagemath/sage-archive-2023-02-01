@@ -34,6 +34,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
+from copy import copy
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class DynamicalSystem(SchemeMorphism_polynomial):
@@ -302,4 +303,68 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         """
         F = self.as_scheme_morphism().specialization(D, phi, homset)
         return F.as_dynamical_system()
+
+    def field_of_definition_critical(self, n, names = 'a'):
+        ds = copy(self)
+        if n < 1: 
+            raise ValueError('`n` must be >= 1') 
+        space = ds.domain()
+        if space.dimension() != 1:
+            raise ValueError('Domain of `ds` must be a 1 dimensional space')
+        if space.is_projective():
+            ds = ds.dehomogenize(1)
+        fn = ds.nth_iterate_map(n)
+        f,g = fn[0].numerator(), fn[0].denominator()
+        CR = ds.coordinate_ring()
+        if CR.is_field():
+            #want the polynomial ring not the fraction field
+            CR = CR.ring()
+        x = CR.gen(0)
+        poly = (g*CR(f).derivative(x) - f*CR(g).derivative(x)).univariate_polynomial()
+        return poly.splitting_field(names)
+
+    def field_of_definition_periodic(self, n, formal = True, names = 'a'):
+        ds = copy(self)
+        if n < 1: 
+            raise ValueError('`n` must be >= 1')
+        space = ds.domain()
+        if space.dimension() != 1:
+            raise ValueError('Domain of `ds` must be a 1 dimensional space')
+        if space.is_projective():
+            ds = ds.dehomogenize(1)
+        CR = ds.coordinate_ring()
+        if CR.is_field():
+            #want the polynomial ring not the fraction field
+            CR = CR.ring() 
+        x = CR.gen(0)
+        if formal:
+            poly = ds.dynatomic_polynomial(n)
+            poly = CR(poly).univariate_polynomial()
+        else:
+            fn = ds.nth_iterate_map(n)
+            f,g = fn[0].numerator(), fn[0].denominator()
+            poly = (f - g*x).univariate_polynomial()        
+        return poly.splitting_field(names)
+
+    def field_of_definition_preimage(self, point, n, names = 'a'):
+        ds = copy(self)
+        if n < 1: 
+            raise ValueError('`n` must be >= 1')
+        space = ds.domain()
+        if space.dimension() != 1:
+            raise ValueError('Domain of `ds` must be a 1 dimensional space')
+        try:
+            point = space(point)
+        except TypeError:
+            raise TypeError('`point` must be in {}'.format(ds.domain()))
+        if space.is_projective():
+            ds = ds.dehomogenize(1)        
+        fn = ds.nth_iterate_map(n)
+        f, g = fn[0].numerator(), fn[0].denominator()
+        CR = ds.coordinate_ring()
+        if CR.is_field():
+            #want the polynomial ring not the fraction field
+            CR = CR.ring()
+        poly = CR(f - g*point[0]).univariate_polynomial()
+        return poly.splitting_field(names)
 

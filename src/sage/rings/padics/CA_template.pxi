@@ -341,13 +341,20 @@ cdef class CAElement(pAdicTemplateElement):
             (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
             sage: 12*q + r == 4
             True
+
+        In general, the remainder is returned with maximal precision.
+        However, it is not the case when the valuation of the divisor
+        is greater than the absolute precision on the numerator::
+
+            sage: R(1,2).quo_rem(R(81))
+            (O(3^0), 1 + O(3^2))
         """
         cdef CAElement right = _right
         if right._is_inexact_zero():
             raise ZeroDivisionError
         cdef CAElement q = self._new_c()
         cdef CAElement r = self._new_c()
-        cdef long sval, srprec, rval, rrprec, diff
+        cdef long sval, srprec, rval, rrprec, diff, qrprec
         sval = self.valuation_c()
         srprec = self.absprec - sval
         rval = right.valuation_c()
@@ -355,7 +362,15 @@ cdef class CAElement(pAdicTemplateElement):
         diff = sval - rval
         rprec = min(srprec, rrprec)
         r.absprec = r.prime_pow.ram_prec_cap
-        if ciszero(self.value, self.prime_pow):
+        qrprec = diff + srprec
+        if qrprec < 0:
+            csetzero(q.value, q.prime_pow)
+            q.absprec = 0
+            r = self
+        elif qrprec == 0:
+            q._set_inexact_zero(0)
+            ccopy(r.value, self.value, r.prime_pow)
+        elif ciszero(self.value, self.prime_pow):
             q.absprec = diff + rprec
             csetzero(q.value, q.prime_pow)
             csetzero(r.value, r.prime_pow)
@@ -369,12 +384,13 @@ cdef class CAElement(pAdicTemplateElement):
             cdivunit(q.value, self.prime_pow.shift_rem, r.value, q.absprec, q.prime_pow)
             csetzero(r.value, r.prime_pow)
         else:
-            q.absprec = rprec
+            q.absprec = min(qrprec, rrprec)
             cshift(q.value, r.value, self.value, -rval, q.absprec, q.prime_pow, False)
             cshift_notrunc(q.prime_pow.shift_rem, right.value, -rval, q.absprec, q.prime_pow, False)
             cdivunit(q.value, q.value, q.prime_pow.shift_rem, q.absprec, q.prime_pow)
         creduce(q.value, q.value, q.absprec, q.prime_pow)
         return q, r
+
 
     def __pow__(CAElement self, _right, dummy):
         """

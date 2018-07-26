@@ -347,6 +347,7 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(q.value, q.value, pcap, q.prime_pow)
         return q, r
 
+
     def __pow__(FMElement self, _right, dummy): # NOTE: dummy ignored, always use self.prime_pow.ram_prec_cap
         """
         Exponentiation by an integer

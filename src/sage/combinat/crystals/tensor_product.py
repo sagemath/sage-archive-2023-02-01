@@ -650,8 +650,18 @@ class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
     Tensor product of queer super crystals.
     """
     def index_set(self):
-        n = max(self.crystals[0].index_set())
-        return range(-n,0)+range(1,n+1)
+        """
+        Return enlarged index set.
+
+        EXAMPLES::
+
+            sage: Q = crystals.Letters(['Q',3])
+            sage: T = tensor([Q,Q])
+            sage: T.index_set()
+            [-4, -3, -2, -1, 1, 2]
+        """
+        n = self.cartan_type().n
+        return range(-2*n,0)+range(1,n+1)
 
     class Element(TensorProductOfQueerSuperCrystalsElement):
         pass

@@ -120,7 +120,6 @@ def CrystalOfLetters(cartan_type, element_print_style=None, dual=None):
         return ClassicalCrystalOfLetters(ct, Crystal_of_letters_type_G_element)
     elif ct.letter == 'Q':
         return CrystalOfQueerLetters(ct)
-        #return ClassicalCrystalOfLetters(ct,QueerLetter_element)
     else:
         raise NotImplementedError
 

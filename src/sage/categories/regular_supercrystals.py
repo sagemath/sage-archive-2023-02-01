@@ -116,9 +116,9 @@ class RegularSuperCrystals(Category_singleton):
                 Multi-digraph on 6 vertices
                 sage: Q = crystals.Letters(['Q',3])
                 sage: G = Q.digraph(); G
-                Multi-digraph on 4 vertices
+                Multi-digraph on 3 vertices
                 sage: G.edges()
-                [(1, 2, -1), (1, 2, 1), (2, 3, 2), (3, 4, 3)]
+                [(1, 2, -1), (1, 2, 1), (2, 3, -2), (2, 3, 2)]
 
             The edges of the crystal graph are by default colored using
             blue for edge 1, red for edge 2, green for edge 3, and dashed with
@@ -297,7 +297,7 @@ class RegularSuperCrystals(Category_singleton):
             if any(c.cartan_type() != cartan_type for c in crystals):
                 raise ValueError("all crystals must be of the same Cartan type")
 
-            if cartan_type[0] == 'Q':
+            if cartan_type.letter == 'Q':
                 from sage.combinat.crystals.tensor_product import FullTensorProductOfQueerSuperCrystals
                 return FullTensorProductOfQueerSuperCrystals((self,) + tuple(crystals), **options)
             else:

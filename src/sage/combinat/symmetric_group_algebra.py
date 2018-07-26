@@ -981,6 +981,8 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         """
         return [self.cpi(p) for p in partition.Partitions_n(self.n)]
 
+    central_orthogonal_idempotents = cpis
+
     def cpi(self, p):
         """
         Return the centrally primitive idempotent for the symmetric group
@@ -2658,7 +2660,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
                                distinct=True )
         v += q ** (k-1) * self.one()
         return v
-        
+
         #old algorithm:
         # left = 1
         # right = 1

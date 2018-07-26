@@ -32,7 +32,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.structure.list_clone import ClonableList
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
-from sage.combinat.partition import Partition, _Partitions
+#from sage.combinat.partition import Partition, _Partitions
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
 class PathTableau(ClonableList):
@@ -291,9 +291,7 @@ class PathTableau(ClonableList):
         for i,j,r,s in combinations(range(1,n+1),4):
             lhs = self.cactus(i,j).cactus(r,s)
             rhs = self.cactus(r,s).cactus(i,j)
-            if lhs != rhs:
-                return False
-        return True
+            tester.assertTrue(lhs == rhs)
 
     def _test_coboundary(self, **options):
         """
@@ -313,9 +311,7 @@ class PathTableau(ClonableList):
         for i,j,r,s in combinations(range(1,n+3),4):
             lhs = self.cactus(i,s-2).cactus(j-1,r-1)
             rhs = self.cactus(i+s-r-1,i+s-j-1).cactus(i,s-2)
-            if lhs != rhs:
-                return False
-        return True
+            tester.assertTrue(lhs == rhs)
 
     def orbit(self):
         """
@@ -331,7 +327,7 @@ class PathTableau(ClonableList):
              [0, 1, 2, 1, 2, 1, 0],
              [0, 1, 2, 3, 2, 1, 0]}
         """
-        n = self.size()
+
         orb = set([])
         rec = set([self])
         new = set([])
@@ -345,7 +341,7 @@ class PathTableau(ClonableList):
             rec = new.copy()
             new = set([])
 
-        return orbit
+        return orb
 
     def dual_equivalence_graph(self):
         """
@@ -375,7 +371,7 @@ class PathTableau(ClonableList):
             [0 1 1 1 0 0 1 1 1 1 1 0 1 1]
             [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
             [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
-            
+
         """
         from sage.graphs.graph import Graph
         from itertools import combinations

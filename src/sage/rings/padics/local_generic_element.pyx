@@ -867,7 +867,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(12).quo_rem(R(2))
             (2*3 + O(3^6), 0)
             sage: R(2).quo_rem(R(12))
-            (0, 2 + O(3^5))
+            (O(3^5), 2 + O(3^5))
 
             sage: K = Qp(3, 5)
             sage: K(12).quo_rem(K(2))
@@ -881,8 +881,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
         from sage.categories.fields import Fields
         if self.parent() in Fields():
             return (self / other, self.parent().zero())
-        q = self // other
-        return q, (self - q*other)
+        else:
+            return self._quo_rem(other)
 
     def _test_trivial_powers(self, **options):
         r"""

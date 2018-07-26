@@ -254,15 +254,17 @@ cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:
     fmpz_poly_scalar_mod_fmpz(prime_pow.poly_cisunit, a, prime_pow.fprime)
     return not ciszero(prime_pow.poly_cisunit, prime_pow)
 
-cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
+cdef inline int cshift(celement out, celement rem, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """
     Mulitplies by a power of the uniformizer.
 
     INPUT:
 
-    - ``out`` -- an ``celement`` to store the result.  If `n >= 0`
+    - ``out`` -- a ``celement`` to store the result.  If `n >= 0`
       then out will be set to `a * p^n`.
       If `n < 0`, out will be set to `a // p^-n`.
+    - ``rem`` -- a ``celement`` to store the remainder of the division.
+      Should not be aliased with `a`.
     - ``a`` -- the element to shift.
     - ``n`` -- long, the amount to shift by.
     - ``prec`` -- long, a precision modulo which to reduce.
@@ -270,17 +272,20 @@ cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_
     - ``reduce_afterward`` -- whether to reduce afterward.
     """
     if n > 0:
+        fmpz_poly_zero(rem)
         fmpz_poly_scalar_mul_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(n)[0])
     elif n < 0:
         sig_on()
+        fmpz_poly_scalar_mod_fmpz(rem, a, prime_pow.pow_fmpz_t_tmp(-n)[0])
         fmpz_poly_scalar_fdiv_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(-n)[0])
         sig_off()
     else:
+        fmpz_poly_zero(rem)
         fmpz_poly_set(out, a)
     if reduce_afterward:
         creduce(out, out, prec, prime_pow)
 
-cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow) except -1:
+cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """
     Mulitplies by a power of the uniformizer, assuming that the
     valuation of a is at least -n.
@@ -295,6 +300,7 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
     - ``n`` -- long, the amount to shift by.
     - ``prec`` -- long, a precision modulo which to reduce.
     - ``prime_pow`` -- the PowComputer for the ring.
+    - ``reduce_afterward`` -- whether to reduce afterward.
     """
     if n > 0:
         fmpz_poly_scalar_mul_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(n)[0])
@@ -304,6 +310,8 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
         sig_off()
     else:
         fmpz_poly_set(out, a)
+    if reduce_afterward:
+        creduce(out, out, prec, prime_pow)
 
 cdef inline int csub(celement out, celement a, celement b, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -384,8 +392,8 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    cinvert(out, b, prec, prime_pow)
-    cmul(out, a, out, prec, prime_pow)
+    cinvert(prime_pow.aliasing, b, prec, prime_pow)
+    cmul(out, a, prime_pow.aliasing, prec, prime_pow)
 
 cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     """
@@ -828,7 +836,7 @@ cdef cmatrix_mod_pn(celement a, long aprec, long valshift, PowComputer_ prime_po
     cdef IntegerMod_abstract zero = R(0)
     cdef IntegerMod_abstract item
     L = []
-    cshift(prime_pow.poly_matmod, a, valshift, aprec, prime_pow, True)
+    cshift_notrunc(prime_pow.poly_matmod, a, valshift, aprec, prime_pow, True)
     for i in range(deg):
         L.append([])
         d = fmpz_poly_degree(prime_pow.poly_matmod)

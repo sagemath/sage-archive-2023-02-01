@@ -368,7 +368,7 @@ cdef class FPElement(pAdicTemplateElement):
             if huge_val(ans.ordp):
                 ccopy(ans.unit, self.unit, ans.prime_pow)
             else:
-                cshift(ans.unit, right.unit, tmpL, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+                cshift_notrunc(ans.unit, right.unit, tmpL, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
                 cadd(ans.unit, ans.unit, self.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
                 creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
@@ -407,7 +407,7 @@ cdef class FPElement(pAdicTemplateElement):
             if huge_val(ans.ordp):
                 ccopy(ans.unit, self.unit, ans.prime_pow)
             else:
-                cshift(ans.unit, right.unit, tmpL, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+                cshift_notrunc(ans.unit, right.unit, tmpL, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
                 csub(ans.unit, self.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
                 creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         else:
@@ -419,7 +419,7 @@ cdef class FPElement(pAdicTemplateElement):
             if huge_val(ans.ordp):
                 ccopy(ans.unit, self.unit, ans.prime_pow)
             else:
-                cshift(ans.unit, self.unit, tmpL, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+                cshift_notrunc(ans.unit, self.unit, tmpL, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
                 csub(ans.unit, ans.unit, right.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
                 creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
@@ -522,6 +522,66 @@ cdef class FPElement(pAdicTemplateElement):
             cdivunit(ans.unit, self.unit, right.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
             creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
+
+    @coerce_binop
+    def _quo_rem(self, _right):
+        """
+        Quotient with remainder.
+
+        We choose the remainder to have the same p-adic expansion
+        as the numerator, but truncated at the valuation of the denominator.
+
+        EXAMPLES::
+
+            sage: R = ZpFP(3, 5)
+            sage: R(12).quo_rem(R(2))
+            (2*3, 0)
+            sage: R(2).quo_rem(R(12))
+            (0, 2)
+            sage: q, r = R(4).quo_rem(R(12)); q, r
+            (1 + 2*3 + 2*3^3, 1)
+            sage: 12*q + r == 4
+            True
+
+        For fields the normal quotient always has remainder 0:
+
+            sage: K = QpFP(3, 5)
+            sage: K(12).quo_rem(K(2))
+            (2*3, 0)
+            sage: q, r = K(4).quo_rem(K(12)); q, r
+            (3^-1, 0)
+            sage: 12*q + r == 4
+            True
+
+        You can get the same behavior for fields as for rings
+        by using this underscored method::
+
+            sage: K(12)._quo_rem(K(2))
+            (2*3, 0)
+            sage: K(2)._quo_rem(K(12))
+            (0, 2)
+        """
+        cdef FPElement right = _right
+        if very_pos_val(right.ordp):
+            raise ZeroDivisionError("Cannot find quo_rem by 0")
+        elif very_neg_val(right.ordp):
+            raise ZeroDivisionError("Cannot find quo_rem by infinity")
+        if huge_val(self.ordp):
+            return self, self
+        cdef FPElement q = self._new_c()
+        cdef FPElement r = self._new_c()
+        cdef long diff = self.ordp - right.ordp
+        if diff >= 0:
+            q.ordp = diff
+            cdivunit(q.unit, self.unit, right.unit, q.prime_pow.ram_prec_cap, q.prime_pow)
+            r._set_exact_zero()
+        else:
+            r.ordp = self.ordp
+            q.ordp = 0
+            cshift(q.prime_pow.shift_rem, r.unit, self.unit, diff, q.prime_pow.ram_prec_cap, q.prime_pow, False)
+            cdivunit(q.unit, q.prime_pow.shift_rem, right.unit, q.prime_pow.ram_prec_cap, q.prime_pow)
+        q._normalize()
+        return q, r
 
     def __pow__(FPElement self, _right, dummy): # NOTE: dummy ignored, always use self.prime_pow.ram_prec_cap
         """
@@ -694,7 +754,7 @@ cdef class FPElement(pAdicTemplateElement):
                 ans._set_exact_zero()
             else:
                 ans.ordp = 0
-                cshift(ans.unit, self.unit, -diff, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+                cshift(ans.unit, ans.prime_pow.shift_rem, self.unit, -diff, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
                 ans._normalize()
         return ans
 
@@ -1748,7 +1808,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
         cdef FPElement x = _x
         cdef FPElement ans = self._zero._new_c()
         ans.ordp = x.ordp
-        cshift(ans.unit, x.unit, 0, ans.prime_pow.ram_prec_cap, x.prime_pow, False)
+        cshift_notrunc(ans.unit, x.unit, 0, ans.prime_pow.ram_prec_cap, x.prime_pow, False)
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1798,7 +1858,7 @@ cdef class pAdicCoercion_FP_frac_field(RingHomomorphism):
                 rprec = aprec - x.ordp
                 reduce = True
             ans.ordp = x.ordp
-            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
         return ans
 
     def section(self):
@@ -1915,7 +1975,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
         if x.ordp < 0: raise ValueError("negative valuation")
         cdef FPElement ans = self._zero._new_c()
         ans.ordp = x.ordp
-        cshift(ans.unit, x.unit, 0, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
+        cshift_notrunc(ans.unit, x.unit, 0, ans.prime_pow.ram_prec_cap, ans.prime_pow, False)
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1966,7 +2026,7 @@ cdef class pAdicConvert_FP_frac_field(Morphism):
                 rprec = aprec - x.ordp
                 reduce = True
             ans.ordp = x.ordp
-            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
         return ans
 
     cdef dict _extra_slots(self):

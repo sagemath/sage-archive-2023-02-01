@@ -103,7 +103,7 @@ cdef class qAdicFloatingPointElement(FPElement):
             return self._flint_rep(var), Integer(self.ordp)
         if self._is_exact_zero():
             raise ValueError("Zero does not have a flint rep")
-        cshift(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.prime_pow.prec_cap, self.prime_pow, False)
+        cshift_notrunc(self.prime_pow.poly_flint_rep, self.unit, self.ordp, self.ordp + self.prime_pow.prec_cap, self.prime_pow, False)
         return self.prime_pow._new_fmpz_poly(self.prime_pow.poly_flint_rep, var), Integer(0)
 
 

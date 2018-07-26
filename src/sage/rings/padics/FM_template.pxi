@@ -85,7 +85,7 @@ cdef class FMElement(pAdicTemplateElement):
             self.value = <celement>polyt.__new__(polyt)
         cconstruct(self.value, self.prime_pow)
         if isinstance(x,FMElement) and x.parent() is self.parent():
-            cshift(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
+            cshift_notrunc(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
         else:
             cconv(self.value, x, self.prime_pow.ram_prec_cap, 0, self.prime_pow)
 
@@ -304,6 +304,49 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
+    @coerce_binop
+    def _quo_rem(self, _right):
+        """
+        Quotient with remainder.
+
+        EXAMPLES::
+
+            sage: R = ZpFM(3, 5)
+            sage: R(12).quo_rem(R(2))
+            (2*3 + O(3^5), O(3^5))
+            sage: R(2).quo_rem(R(12))
+            (O(3^5), 2 + O(3^5))
+            sage: q, r = R(4).quo_rem(R(12)); q, r
+            (1 + 2*3 + 2*3^3 + O(3^5), 1 + O(3^5))
+            sage: 12*q + r == 4
+            True
+        """
+        cdef FMElement right = _right
+        if ciszero(right.value, right.prime_pow):
+            raise ZeroDivisionError
+        cdef FMElement q = self._new_c()
+        cdef FMElement r = self._new_c()
+        cdef long sval, rval, diff, pcap = self.prime_pow.ram_prec_cap
+        sval = self.valuation_c()
+        rval = right.valuation_c()
+        diff = sval - rval
+        if ciszero(self.value, self.prime_pow):
+            csetzero(q.value, q.prime_pow)
+            csetzero(r.value, r.prime_pow)
+        elif diff >= 0:
+            # shift right and self by the same power of the uniformizer
+            cshift_notrunc(r.value, right.value, -rval, pcap, r.prime_pow, False)
+            cshift_notrunc(q.value, self.value, -rval, pcap, q.prime_pow, False)
+            # divide
+            cdivunit(q.value, q.value, r.value, pcap, q.prime_pow)
+            csetzero(r.value, r.prime_pow)
+        else:
+            cshift(q.value, r.value, self.value, -rval, pcap, q.prime_pow, False)
+            cshift_notrunc(q.prime_pow.shift_rem, right.value, -rval, pcap, q.prime_pow, False)
+            cdivunit(q.value, q.value, q.prime_pow.shift_rem, pcap, q.prime_pow)
+        creduce(q.value, q.value, pcap, q.prime_pow)
+        return q, r
+
     def __pow__(FMElement self, _right, dummy): # NOTE: dummy ignored, always use self.prime_pow.ram_prec_cap
         """
         Exponentiation by an integer
@@ -381,7 +424,7 @@ cdef class FMElement(pAdicTemplateElement):
         if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, self.value, shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
+            cshift_notrunc(ans.value, self.value, shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
         return ans
 
     cdef pAdicTemplateElement _rshift_c(self, long shift):
@@ -415,7 +458,7 @@ cdef class FMElement(pAdicTemplateElement):
         if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
-            cshift(ans.value, self.value, -shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
+            cshift(ans.value, ans.prime_pow.shift_rem, self.value, -shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
         return ans
 
     def add_bigoh(self, absprec):
@@ -1360,7 +1403,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
         if x.ordp >= self._zero.prime_pow.ram_prec_cap:
             return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cshift(ans.value, x.unit, x.ordp, ans.prime_pow.ram_prec_cap, ans.prime_pow, x.ordp > 0)
+        cshift_notrunc(ans.value, x.unit, x.ordp, ans.prime_pow.ram_prec_cap, ans.prime_pow, x.ordp > 0)
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1403,7 +1446,7 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
         _process_args_and_kwds(&aprec, &rprec, args, kwds, True, ans.prime_pow)
         if rprec < aprec - x.ordp:
             aprec = x.ordp + rprec
-        cshift(ans.value, x.unit, x.ordp, aprec, ans.prime_pow, x.ordp > 0)
+        cshift_notrunc(ans.value, x.unit, x.ordp, aprec, ans.prime_pow, x.ordp > 0)
         return ans
 
     cdef dict _extra_slots(self):

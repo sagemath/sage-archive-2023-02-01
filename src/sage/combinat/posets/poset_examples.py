@@ -1621,14 +1621,14 @@ class Posets(object):
         - ``pos`` -- a list of indices indicating a distinguished copy of
                      ``bottom`` inside ``top`` (indexed starting at 0)
 
-        A permutation 'u=u_1\ldots u_n' contains the pattern 'v=v_1\ldots v_m'
-        if there is a (not necessarily consecutive) subsequence of 'u' 
-        of length 'm' whose entries have the same relative order as 'v'.
+        For futher information (and picture illustrating included example),
+        see [ST2010]_ .
 
         See :wikipedia:`Permutation Pattern`.
 
         EXAMPLES::
-
+            sage: A = PermutationPatternOccurenceInterval(Permutation([3,2,1]),Permutation([6,3,4,5,2,1]),(0,2,4));A
+            Finite poset containing 8 elements.
 
 
         .. SEEALSO:: :meth:`~sage.combinat.posets.permutation.has_pattern`,
@@ -1639,8 +1639,9 @@ class Posets(object):
 
 
         """
+        from copy import copy
         import sage.combinat.permutation as permutation
-        if not permutation.to_standard([top[z] for z in pos]) == list(a): # check input
+        if not permutation.to_standard([top[z] for z in pos]) == list(bottom): # check input
             print("error, or empty")
         elem = [[(top,pos)]]
         level = 0
@@ -1661,7 +1662,7 @@ class Posets(object):
                                 lower_pos[f] = upper[1][f] - 1
                         rel += [[(Permutation(lower_perm),tuple(lower_pos)),(Permutation(upper[0]),upper[1])]]
                         if (Permutation(lower_perm),tuple(lower_pos)) not in elem[level+1]:
-                            elem[level+1].append((Permutation(d),tuple(lower_pos)))
+                            elem[level+1].append((Permutation(lower_perm),tuple(lower_pos)))
             level += 1
         elem = [item for sublist in elem for item in sublist]
         return(Poset([elem,rel]))

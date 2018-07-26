@@ -102,9 +102,6 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - ``prime_pow`` -- the ``PowComputer`` for the ring
 
     """
-    IF CELEMENT_IS_PY_OBJECT:
-        print "a = ", a
-        print "b = ", b
     if not (reduce_a or reduce_b):
         return 0 if a == b else 1
     csub(prime_pow.tmp_ccmp_a, a, b, prec, prime_pow)

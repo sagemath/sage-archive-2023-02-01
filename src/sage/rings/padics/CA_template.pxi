@@ -335,7 +335,7 @@ cdef class CAElement(pAdicTemplateElement):
             sage: R = ZpCA(3, 5)
             sage: R(12).quo_rem(R(2))
             (2*3 + O(3^5), O(3^5))
-            sage: R(2).quo_rem(R(12))
+            sage: R(2).quo_rem(R(12)) # indirect doctest
             (O(3^4), 2 + O(3^5))
             sage: q, r = R(4).quo_rem(R(12)); q, r
             (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
@@ -1139,7 +1139,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism):
             sage: R = ZpCA(5,4)
             sage: type(R(10,2))
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
-            sage: R(10,2)
+            sage: R(10,2) # indirect doctest
             2*5 + O(5^2)
             sage: R(10,3,1)
             2*5 + O(5^2)
@@ -1329,7 +1329,7 @@ cdef class pAdicConvert_QQ_CA(Morphism):
             sage: R = ZpCA(5,4)
             sage: type(R(10/3,2))
             <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
-            sage: R(10/3,2)
+            sage: R(10/3,2) # indirect doctest
             4*5 + O(5^2)
             sage: R(10/3,3,1)
             4*5 + O(5^2)
@@ -1436,7 +1436,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
             sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = K.coerce_map_from(R)
-            sage: f(a, 3)
+            sage: f(a, 3) # indirect doctest
             a + O(3^3)
             sage: b = 9*a
             sage: f(b, 3)
@@ -1488,6 +1488,10 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: f(K.gen())
             a + O(3^20)
+            sage: f.section()
+            Generic morphism:
+              From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
         """
         from sage.misc.constant_function import ConstantFunction
         if not isinstance(self._section.domain, ConstantFunction):
@@ -1619,7 +1623,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K)
-            sage: f(K.gen())
+            sage: f(K.gen()) # indirect doctest
             a + O(3^20)
         """
         cdef CRElement x = _x
@@ -1653,7 +1657,7 @@ cdef class pAdicConvert_CA_frac_field(Morphism):
             sage: R.<a> = ZqCA(27, implementation='FLINT')
             sage: K = R.fraction_field()
             sage: f = R.convert_map_from(K); a = K(a)
-            sage: f(a, 3)
+            sage: f(a, 3) # indirect doctest
             a + O(3^3)
             sage: b = 9*a
             sage: f(b, 3)

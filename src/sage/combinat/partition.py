@@ -330,6 +330,7 @@ def is_sequence(obj):
     return isinstance(obj, (list, Composition, Partition))
 
 def k_rectangle_dimension_list(k):
+    # non code change
     return [(k-i+1, i) for i in range(1, k+1)]
 
 class Partition(CombinatorialElement):

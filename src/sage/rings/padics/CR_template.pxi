@@ -790,11 +790,18 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(12).quo_rem(R(2))
             (2*3 + O(3^6), 0)
             sage: R(2).quo_rem(R(12))
-            (O(3^5), 2 + O(3^5))
+            (O(3^4), 2 + O(3^5))
             sage: q, r = R(4).quo_rem(R(12)); q, r
-            (1 + 2*3 + 2*3^3 + O(3^5), 1 + O(3^5))
+            (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
             sage: 12*q + r == 4
             True
+
+        In general, the remainder is returned with maximal precision.
+        However, it is not the case when the valuation of the divisor
+        is greater than the absolute precision on the numerator::
+
+            sage: R(1,2).quo_rem(R(81))
+            (O(3^0), 1 + O(3^2))
 
         For fields the normal quotient always has remainder 0:
 
@@ -812,7 +819,7 @@ cdef class CRElement(pAdicTemplateElement):
             sage: K(12)._quo_rem(K(2))
             (2*3 + O(3^6), 0)
             sage: K(2)._quo_rem(K(12))
-            (O(3^5), 2 + O(3^5))
+            (O(3^4), 2 + O(3^5))
         """
         cdef CRElement right = _right
         assert_nonzero(right)
@@ -821,10 +828,13 @@ cdef class CRElement(pAdicTemplateElement):
         cdef CRElement q = self._new_c()
         cdef CRElement r = self._new_c()
         cdef long diff = self.ordp - right.ordp
-        if self.relprec == 0:
+        if diff + self.relprec < 0:
+            q._set_inexact_zero(0)
+            r = self
+        elif self.relprec == 0:
             q._set_inexact_zero(diff)
             r._set_exact_zero()
-        elif self.ordp >= right.ordp:
+        elif diff >= 0:
             q.ordp = diff
             q.relprec = min(self.relprec, right.relprec)
             cdivunit(q.unit, self.unit, right.unit, q.relprec, q.prime_pow)
@@ -833,11 +843,12 @@ cdef class CRElement(pAdicTemplateElement):
             r.ordp = self.ordp
             r.relprec = self.prime_pow.ram_prec_cap
             q.ordp = 0
-            q.relprec = min(self.relprec, right.relprec)
+            q.relprec = min(self.relprec + diff, right.relprec)
             cshift(q.prime_pow.shift_rem, r.unit, self.unit, diff, q.relprec, q.prime_pow, False)
             cdivunit(q.unit, q.prime_pow.shift_rem, right.unit, q.relprec, q.prime_pow)
         q._normalize()
         return q, r
+
 
     def add_bigoh(self, absprec):
         """

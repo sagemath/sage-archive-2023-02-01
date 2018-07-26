@@ -968,6 +968,27 @@ class LocalGeneric(CommutativeRing):
             z = y.residue()
             tester.assertEqual(x, z)
 
+    def _matrix_flatten_precision(self, M):
+        parent = M.base_ring()
+        cap = parent.precision_cap()
+        n = M.nrows(); m = M.ncols()
+        shift_rows = n * [ ZZ(0) ]
+        shift_cols = m * [ ZZ(0) ]
+        for i in range(n):
+            prec = min(M[i,j].precision_absolute() for j in range(m))
+            if prec is Infinity or prec == cap: continue
+            shift_rows[i] = s = cap - prec
+            for j in range(m):
+                M[i,j] <<= s
+        for j in range(m):
+            prec = min(M[i,j].precision_absolute() for i in range(n))
+            if prec is Infinity or prec == cap: continue
+            shift_cols[j] = s = cap - prec
+            for i in range(n):
+                M[i,j] <<= s
+        return shift_rows, shift_cols
+
+
     def _matrix_smith_form(self, M, transformation, integral, exact):
         r"""
         Return the Smith normal form of the matrix `M`.
@@ -991,9 +1012,9 @@ class LocalGeneric(CommutativeRing):
         entries are in the ring of integers of the base ring.
 
         - ``exact`` -- boolean.  If ``True``, the diagonal smith form will
-          be exact, or raise a ``PrecisionError`` if this is not possible.
-          If ``False``, the diagonal entries will be inexact, but the
-          transformation matrices will be exact.
+        be exact, or raise a ``PrecisionError`` if this is not possible.
+        If ``False``, the diagonal entries will be inexact, but the
+        transformation matrices will be exact.
 
         EXAMPLES::
 
@@ -1106,14 +1127,17 @@ class LocalGeneric(CommutativeRing):
         ## the difference between ball_prec and inexact_ring is just for lattice precision.
         ball_prec = R._prec_type() in ['capped-rel','capped-abs']
         inexact_ring = R._prec_type() not in ['fixed-mod','floating-point']
-        precM = min(x.precision_absolute() for x in M.list())
 
+        if not integral:
+            shift_rows, shift_cols = self._matrix_flatten_precision(S)
+
+        precS = min(x.precision_absolute() for x in S.list())
         if transformation:
             from sage.matrix.special import identity_matrix
             left = identity_matrix(R,n)
             right = identity_matrix(R,m)
 
-        if ball_prec and precM is infinity: # capped-rel and M = 0 exactly
+        if ball_prec and precS is infinity: # capped-rel and M = 0 exactly
             return (smith, left, right) if transformation else smith
 
         val = -infinity
@@ -1145,11 +1169,11 @@ class LocalGeneric(CommutativeRing):
                 break
             val = curval
 
-            if inexact_ring and not allzero and val >= precM:
+            if inexact_ring and not allzero and val >= precS:
                 if ball_prec:
                     raise PrecisionError("not enough precision to compute Smith normal form")
-                precM = min([ S[i,j].precision_absolute() for i in range(piv,n) for j in range(piv,m) ])
-                if val >= precM:
+                precS = min([ S[i,j].precision_absolute() for i in range(piv,n) for j in range(piv,m) ])
+                if val >= precS:
                     raise PrecisionError("not enough precision to compute Smith normal form")
 
             if allzero:
@@ -1200,28 +1224,35 @@ class LocalGeneric(CommutativeRing):
         # We update the precision on left
         # The bigoh measures the effect of multiplying by row operations
         # on the left in order to clear out the digits in the smith form
-        # with valuation at least precM
+        # with valuation at least precS
         if ball_prec and exact and transformation:
             for j in range(n):
                 delta = min(left[i,j].valuation() - smith[i,i].valuation() for i in range(piv))
                 if delta is not infinity:
                     for i in range(n):
-                        left[i,j] = left[i,j].add_bigoh(precM + delta)
+                        left[i,j] = left[i,j].add_bigoh(precS + delta)
         ## Otherwise, we update the precision on smith
         if ball_prec and not exact:
-            smith = smith.apply_map(lambda x: x.add_bigoh(precM))
+            smith = smith.apply_map(lambda x: x.add_bigoh(precS))
         ## We now have to adjust the elementary divisors (and precision) in the non-integral case
         if not integral:
             for i in range(piv):
                 v = smith[i,i].valuation()
                 if transformation:
                     for j in range(n):
-                        left[i,j] = left[i,j] >> v
+                        left[i,j] >>= v
                 if exact:
                     smith[i,i] = self(1)
                 else:
                     for j in range(n):
                         smith[i,j] = smith[i,j] >> v
+            if transformation:
+                for i in range(n):
+                    for j in range(n):
+                        left[i,j] <<= shift_rows[j]
+                for i in range(m):
+                    for j in range(m):
+                        right[i,j] <<= shift_cols[i]
         if transformation:
             return smith, left, right
         else:
@@ -1282,6 +1313,9 @@ class LocalGeneric(CommutativeRing):
 
         ALGORITHM:
 
+        We flatten the absolute precision in order to increase
+        the numerical stability.
+
         We row-echelonize the matrix by always choosing the
         pivot of smallest valuation and allowing permutations
         of columns.
@@ -1331,11 +1365,15 @@ class LocalGeneric(CommutativeRing):
         if n == 2:
             return M[0,0]*M[1,1] - M[0,1]*M[1,0]
     
-        S = M.parent()(M.list())
         R = M.base_ring()
         track_precision = R._prec_type() in ['capped-rel','capped-abs']
-    
-        sign = 1; det = R(1)
+
+        S = copy(M)
+        shift_rows, shift_cols = self._matrix_flatten_precision(S)
+        shift = sum(shift_rows) + sum(shift_cols)
+        det = R(1)
+
+        sign = 1;
         valdet = 0; val = -Infinity
         for piv in range(n):
             curval = Infinity
@@ -1380,6 +1418,7 @@ class LocalGeneric(CommutativeRing):
                 if prec < relprec: relprec = prec
                 if prec < 0: relprec_neg += prec
             if relprec_neg < 0: relprec = relprec_neg
-            return (sign*det).add_bigoh(valdet+relprec)
+            det = (sign*det).add_bigoh(valdet+relprec)
         else:
-            return sign*det
+            det = sign*det
+        return det >> shift

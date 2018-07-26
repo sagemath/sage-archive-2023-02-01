@@ -1876,7 +1876,7 @@ class ChainComplex_class(Parent):
             return "0"
         deg = self.degree_of_differential()
         ring = self.base_ring()
-        backwards = (deg < 0)
+        backwards = bool(deg < 0)
         sorted_list = sorted(diffs.keys(), reverse=backwards)
         if len(diffs) <= 6:
             for n in sorted_list[1:-1]:

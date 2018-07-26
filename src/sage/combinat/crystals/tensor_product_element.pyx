@@ -1462,7 +1462,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
     r"""
     Element class for a tensor product of crystals for queer Lie superalgebras.
 
-    This implements the tensor product rule for crystals of Gancharov et al.
+    This implements the tensor product rule for crystals of Grantcharov et al. [GJK+2014]_.
 
     TESTS::
 

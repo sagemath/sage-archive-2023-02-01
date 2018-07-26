@@ -89,7 +89,7 @@ from .similarity_class_type import PrimarySimilarityClassType, PrimarySimilarity
 from .core import Core, Cores
 
 #Tableaux
-lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau", 
+lazy_import('sage.combinat.tableau',["Tableau", "SemistandardTableau", "StandardTableau", "RowStandardTableau",
                                      "Tableaux","SemistandardTableaux","StandardTableaux","RowStandardTableaux"])
 from .skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from .ribbon_shaped_tableau import RibbonShapedTableau, RibbonShapedTableaux, StandardRibbonShapedTableaux

@@ -23,6 +23,7 @@ REFERENCES: [BM2012]_, [Mol2015]_
 #*****************************************************************************
 
 from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -127,12 +128,12 @@ def blift(LF, Li, p, k, S=None, all_orbits=False):
 
     - ``p`` -- a prime
 
-    - ``k`` -- the scaling factor that makes the solution a p-adic integer
+    - ``k`` -- the scaling factor that makes the solution a ``p``-adic integer
 
     - ``S`` -- polynomial ring to use
 
-    - ``all_orbits`` -- boolean, whether or not to use <= in the inequalities
-      to find all orbits
+    - ``all_orbits`` -- boolean; whether or not to use ``==`` in the
+      inequalities to find all orbits
 
     OUTPUT:
 
@@ -167,14 +168,14 @@ def blift(LF, Li, p, k, S=None, all_orbits=False):
     #We need a solution for each polynomial on the left hand side of the inequalities,
     #so we need only find a solution for their gcd.
     g = gcd(keptScaledIneqs)
-    rts = g.roots(multiplicities = False)
+    rts = g.roots(multiplicities=False)
     good = []
     for r in rts:
         #Recursively try to lift each root
         r_initial = QQ(r)
         newInput = P([r_initial, p])
         LG = [F(newInput) for F in LF]
-        new_good = blift(LG,Li,p,k,S=S)
+        new_good = blift(LG, Li, p, k, S=S)
         for lift,lifted in new_good:
             if lift:
                 #Lift successful.
@@ -191,7 +192,7 @@ def blift(LF, Li, p, k, S=None, all_orbits=False):
                         new_r -= p**k
                     if [True, new_r] not in good:
                         good.append([True, new_r])
-    if len(good) > 0:
+    if good:
         return good
     #Lift non successful.
     return [[False,0]]
@@ -337,8 +338,8 @@ def Min(Fun, p, ubRes, conj, all_orbits=False):
 
     - ``conj`` -- a 2x2 matrix keeping track of the conjugation
 
-    - ``all_orbits`` -- boolean, whether or not to use == in the inequalities
-      to find all orbits
+    - ``all_orbits`` -- boolean; whether or not to use ``==`` in the
+      inequalities to find all orbits
 
     OUTPUT:
 
@@ -370,7 +371,7 @@ def Min(Fun, p, ubRes, conj, all_orbits=False):
     F = R(AffFun[0].numerator())
     G = R(AffFun[0].denominator())
     dG = G.degree()
-    #all_orbits scales bounds for >= and <= if searching for orbits instead of min model
+    # all_orbits scales bounds for >= and <= if searching for orbits instead of min model
     if dG > (d+1)/2:
         lowerBound = (-2*(G[dG]).valuation(p)/(2*dG - d + 1) + 1).floor() - int(all_orbits)
     else:
@@ -378,12 +379,12 @@ def Min(Fun, p, ubRes, conj, all_orbits=False):
     upperBound = 2*(ubRes.valuation(p)) + int(all_orbits)
 
     if upperBound < lowerBound:
-        #There are no possible transformations to reduce the resultant.
+        # There are no possible transformations to reduce the resultant.
         if not all_orbits:
             return [Fun, conj]
         return []
-    #Looping over each possible k, we search for transformations to reduce the
-    #resultant of F/G
+    # Looping over each possible k, we search for transformations to reduce
+    # the resultant of F/G
     all_found = []
     k = lowerBound
     Qb = PolynomialRing(QQ,'b')
@@ -397,49 +398,50 @@ def Min(Fun, p, ubRes, conj, all_orbits=False):
         Fcoeffs = Ft.coefficients(sparse=False)
         Gcoeffs = Gt.coefficients(sparse=False)
         coeffs = Fcoeffs + Gcoeffs
-        RHS = (d + 1)*k/2
-        #If there is some b such that Res(phi^A) < Res(phi), we must have ord_p(c) >
-        #RHS for each c in coeffs.
-        #Make sure constant coefficients in coeffs satisfy the inequality.
-        if all( QQ(c).valuation(p) > (RHS - int(all_orbits)) for c in coeffs if c.degree() ==0 ):
-            #Constant coefficients in coeffs have large enough valuation, so check
-            #the rest. We start by checking if simply picking b=0 works
-            if all(c(0).valuation(p) > (RHS - int(all_orbits)) for c in coeffs):
-                #A = z*p^k satisfies the inequalities, and F/G is not minimal
-                #"Conjugating by", p,"^", k, "*z +", 0
-                newconj = matrix(QQ,2,2, [p**k, 0, 0, 1])
+        RHS = (d + 1) * k / 2
+        # If there is some b such that Res(phi^A) < Res(phi), we must have
+        # ord_p(c) > RHS for each c in coeffs.
+        # Make sure constant coefficients in coeffs satisfy the inequality.
+        if all(QQ(c).valuation(p) > RHS - int(all_orbits)
+               for c in coeffs if c.degree() == 0):
+            # Constant coefficients in coeffs have large enough valuation, so
+            # check the rest. We start by checking if simply picking b=0 works.
+            if all(c(0).valuation(p) > RHS - int(all_orbits) for c in coeffs):
+                # A = z*p^k satisfies the inequalities, and F/G is not minimal
+                # "Conjugating by", p,"^", k, "*z +", 0
+                newconj = matrix(QQ, 2, 2, [p**k, 0, 0, 1])
                 minFun = Fun.conjugate(newconj)
                 minFun.normalize_coordinates()
                 if not all_orbits:
                     return [minFun, conj*newconj]
                 all_found.append([p, k, 0])
 
-            #Otherwise we search if any value of b will work. We start by finding a
-            #minimum bound on the valuation of b that is necessary. See Theorem 3.3.5
-            #in [Molnar, M.Sc. thesis].
-            bval = max([bCheck(coeff, RHS, p, b) for coeff in coeffs if coeff.degree() > 0])
+            # Otherwise we search if any value of b will work. We start by
+            # finding a minimum bound on the valuation of b that is necessary.
+            # See Theorem 3.3.5 in [Molnar, M.Sc. thesis].
+            bval = max(bCheck(coeff, RHS, p, b) for coeff in coeffs if coeff.degree() > 0)
 
-            #We scale the coefficients in coeffs, so that we may assume ord_p(b) is
-            #at least 0
+            # We scale the coefficients in coeffs, so that we may assume
+            # ord_p(b) is at least 0
             scaledCoeffs = [coeff(b*(p**bval)) for coeff in coeffs]
 
-            #We now scale the inequalities, ord_p(coeff) > RHS, so that coeff is in
-            #ZZ[b]
-            scale = QQ(max([coeff.denominator() for coeff in scaledCoeffs]))
-            normalizedCoeffs = [coeff*scale for coeff in scaledCoeffs]
+            # We now scale the inequalities, ord_p(coeff) > RHS, so that
+            # coeff is in ZZ[b]
+            scale = QQ(max(coeff.denominator() for coeff in scaledCoeffs))
+            normalizedCoeffs = [coeff * scale for coeff in scaledCoeffs]
             scaleRHS = RHS + scale.valuation(p)
 
-            #We now search for integers that satisfy the inequality ord_p(coeff) >
-            #RHS. See Lemma 3.3.6 in [Molnar, M.Sc. thesis].
-            bound = (scaleRHS+1-int(all_orbits)).floor()
+            # We now search for integers that satisfy the inequality
+            # ord_p(coeff) > RHS. See Lemma 3.3.6 in [Molnar, M.Sc. thesis].
+            bound = (scaleRHS + 1 - int(all_orbits)).floor()
             all_blift = blift(normalizedCoeffs, bound, p, k, all_orbits=all_orbits)
 
-            #If bool is true after lifting, we have a solution b, and F/G is not
-            #minimal.
-            for bool, sol in all_blift:
-                if bool:
+            # If bool is true after lifting, we have a solution b, and F/G
+            # is not minimal.
+            for boolval, sol in all_blift:
+                if boolval:
                     #Rescale, conjugate and return new map
-                    bsol = QQ(sol*(p**bval))
+                    bsol = QQ(sol * (p**bval))
                     #only add 'minimal orbit element'
                     while bsol.abs() >= p**k:
                         if bsol < 0:
@@ -447,7 +449,7 @@ def Min(Fun, p, ubRes, conj, all_orbits=False):
                         else:
                             bsol -= p**k
                     #"Conjugating by ", p,"^", k, "*z +", bsol
-                    newconj = matrix(QQ,2,2,[p**k, bsol, 0, 1])
+                    newconj = matrix(QQ, 2, 2, [p**k, bsol, 0, 1])
                     minFun = Fun.conjugate(newconj)
 
                     minFun.normalize_coordinates()
@@ -461,27 +463,29 @@ def Min(Fun, p, ubRes, conj, all_orbits=False):
     return all_found
 
 ###################################################
-#algorithms from Hutz-Stoll
+# algorithms from Hutz-Stoll
 ###################################################
 
 #modification of Bruin-Molnar for all representatives
 def BM_all_minimal(vp, return_transformation=False, D=None):
     r"""
-    Determine a representative in each `SL(2,\ZZ)` orbit with minimal resultant.
+    Determine a representative in each `SL(2,\ZZ)` orbit with minimal
+    resultant.
 
-    This function modifies the Bruin-Molnar algorithm ([BM2012]_) to solve in the inequalities
-    as ``<=`` instead of ``<``. Among the list of solutions is all conjugations
-    which preserve the resultant. From that list the `SL(2,\ZZ)` orbits
-    are identified and one representative from each orbit is returned. This function
-    assumes that the given model is a minimal model.
+    This function modifies the Bruin-Molnar algorithm ([BM2012]_) to solve
+    in the inequalities as ``<=`` instead of ``<``. Among the list of
+    solutions is all conjugations that preserve the resultant. From that
+    list the `SL(2,\ZZ)` orbits are identified and one representative from
+    each orbit is returned. This function assumes that the given model is
+    a minimal model.
 
     INPUT:
 
     - ``vp`` -- a minimal model of a dynamical system on the projective line
 
-    - ``return_transformation`` -- (default: False) a boolean value. This
-      signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model
+    - ``return_transformation`` -- (default: ``False``) boolean; this
+      signals a return of the ``PGL_2`` transformation to conjugate ``vp``
+      to the calculated minimal model
 
     - ``D`` -- a list of primes, in case one only wants to check minimality
       at those specific primes
@@ -489,7 +493,7 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     OUTPUT:
 
     List of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-    2 \times 2` matrix.
+    `2 \times 2` matrix.
 
     EXAMPLES::
 
@@ -526,19 +530,20 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
         sage: all([f.conjugate(m) == g for g,m in cl])
         True
     """
-    map = copy(vp)
-    map.normalize_coordinates()
-    BR = map.domain().base_ring()
-    M_Id = matrix(QQ,2,2,[1, 0, 0, 1])
-    d = map.degree()
-    F,G = list(map)  #coordinate polys
-    aff_map = map.dehomogenize(1)
-    f,g = aff_map[0].numerator(), aff_map[0].denominator()
+    mp = copy(vp)
+    mp.normalize_coordinates()
+    BR = mp.domain().base_ring()
+    MS = MatrixSpace(QQ, 2)
+    M_Id = MS.one()
+    d = mp.degree()
+    F, G = list(mp)  #coordinate polys
+    aff_map = mp.dehomogenize(1)
+    f, g = aff_map[0].numerator(), aff_map[0].denominator()
     z = aff_map.domain().gen(0)
     dg = f.parent()(g).degree()
-    Res = map.resultant()
+    Res = mp.resultant()
 
-    #####because of how the bound is compute in lemma 3.3
+    ##### because of how the bound is compute in lemma 3.3
     from sage.dynamics.arithmetic_dynamics.affine_ds import DynamicalSystem_affine
     h = f - z*g
     A = AffineSpace(BR, 1, h.parent().variable_name())
@@ -547,13 +552,13 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     if D is None:
         D = ZZ(Res).prime_divisors()
 
-    #get the conjugations for each prime independently
-    #these are returning (p,k,b) so that the matrix is [p^k,b,0,1]
+    # get the conjugations for each prime independently
+    # these are returning (p,k,b) so that the matrix is [p^k,b,0,1]
     all_pM = []
     for p in D:
-        #all_orbits used to scale inequalities to equalities
-        all_pM.append(Min(map, p, res, M_Id, all_orbits=True))
-        #need the identity for each prime
+        # all_orbits used to scale inequalities to equalities
+        all_pM.append(Min(mp, p, res, M_Id, all_orbits=True))
+        # need the identity for each prime
         if [p, 0, 0] not in all_pM[-1]:
             all_pM[-1].append([p, 0, 0])
 
@@ -562,22 +567,24 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     for prime_data in all_pM:
         #these are (p,k,b) so that the matrix is [p^k,b,0,1]
         new_M = []
-        if prime_data != []:
+        if prime_data:
             p = prime_data[0][0]
             for m in prime_data:
-                mat = matrix(QQ,2,2,[m[0]**m[1], m[2], 0, 1])
-                new_map = map.conjugate(mat)
+                mat = MS([m[0]**m[1], m[2], 0, 1])
+                new_map = mp.conjugate(mat)
                 new_map.normalize_coordinates()
-                #make sure the resultant didn't change and that it is a different SL(2,ZZ) orbit
-                if ((new_map.resultant().valuation(p) == Res.valuation(p)) and ((mat.det()**2) != 1)) or (mat == M_Id):
+                # make sure the resultant didn't change and that it is a different SL(2,ZZ) orbit
+                if (mat == M_Id) or (new_map.resultant().valuation(p) == Res.valuation(p)
+                                     and mat.det() not in [1,-1]):
                     new_M.append(m)
-        if new_M != []:
-            all_M = [m1*matrix(QQ,2,2,[m[0]**m[1], m[2], 0, 1])  for m1 in all_M for m in new_M]
+        if new_M:
+            all_M = [m1 * MS([m[0]**m[1], m[2], 0, 1])
+                     for m1 in all_M for m in new_M]
 
     #get all models with same resultant
-    all_maps  = []
+    all_maps = []
     for M in all_M:
-        new_map = map.conjugate(M)
+        new_map = mp.conjugate(M)
         new_map.normalize_coordinates()
         if not [new_map, M] in all_maps:
             all_maps.append([new_map, M])
@@ -586,16 +593,16 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
     #We just keep track of the two matrices that come from
     #the original to get the conjugation that goes between these!!
     classes = []
-    for funct,mat in all_maps:
-        if classes == []:
+    for funct, mat in all_maps:
+        if not classes:
             classes.append([funct, mat])
         else:
             found = False
             for Func, Mat in classes:
                 #get conjugation
-                M = mat.inverse()*Mat
-                assert(funct.conjugate(M) == Func)
-                if M.det() == 1 or M.det() == -1:
+                M = mat.inverse() * Mat
+                assert funct.conjugate(M) == Func
+                if M.det() in [1,-1]:
                     #same SL(2,Z) orbit
                     found = True
                     break
@@ -608,16 +615,17 @@ def BM_all_minimal(vp, return_transformation=False, D=None):
         return [funct for funct, matr in classes]
 
 ###################################################
-#enumerative algorithms from Hutz-Stoll
+# enumerative algorithms from Hutz-Stoll
 ###################################################
 
 #find minimal model
 def HS_minimal(f, return_transformation=False, D=None):
     r"""
-    Compute a minimal model for the given projective dynamical system
+    Compute a minimal model for the given projective dynamical system.
 
-    This function implements the algorithm in Hutz-Stoll [HS2018]_. A representative
-    with minimal resultant in the conjugacy class of ``f`` returned.
+    This function implements the algorithm in Hutz-Stoll [HS2018]_.
+    A representative with minimal resultant in the conjugacy class
+    of ``f`` returned.
 
     INPUT:
 
@@ -633,7 +641,6 @@ def HS_minimal(f, return_transformation=False, D=None):
     OUTPUT:
 
     - a dynamical system
-
     - (optional) a `2 \times 2` matrix
 
     EXAMPLES::
@@ -657,58 +664,61 @@ def HS_minimal(f, return_transformation=False, D=None):
     F = copy(f)
     d = F.degree()
     F.normalize_coordinates()
-    m = matrix(ZZ,2,2,[1, 0, 0, 1])
+    MS = MatrixSpace(ZZ, 2, 2)
+    m = MS.one()
     prev = copy(m)
     res = ZZ(F.resultant())
     if D is None:
         D = res.prime_divisors()
 
-    #minimize for each prime
+    # minimize for each prime
     for p in D:
         vp = res.valuation(p)
         minimal = False
         while not minimal:
-            if (d%2 == 0 and vp < d) or (d%2 == 1 and vp < 2*d):
-                #must be minimal
+            if (d % 2 == 0 and vp < d) or (d % 2 == 1 and vp < 2 * d):
+                # must be minimal
                 minimal = True
                 break
             minimal = True
-            t = matrix(ZZ,2,2,[1, 0, 0, p])
+            t = MS([1, 0, 0, p])
             F1 = F.conjugate(t)
             F1.normalize_coordinates()
             res1 = F1.resultant()
             vp1 = res1.valuation(p)
-            if vp1 < vp: #check if smaller
+            if vp1 < vp: # check if smaller
                 F = F1
                 vp = vp1
-                m = m*t #keep track of conjugation
+                m = m * t # keep track of conjugation
                 minimal = False
             else:
-                #still search for smaller
+                # still search for smaller
                 for b in range(p):
                     t = matrix(ZZ,2,2,[p, b, 0, 1])
                     F1 = F.conjugate(t)
                     F1.normalize_coordinates()
                     res1 = ZZ(F1.resultant())
                     vp1 = res1.valuation(p)
-                    if vp1 < vp: #check if smaller
+                    if vp1 < vp: # check if smaller
                         F = F1
-                        m = m*t #keep track of transformation
+                        m = m * t # keep track of transformation
                         minimal = False
                         vp = vp1
-                        break #exit for loop
+                        break # exit for loop
     if return_transformation:
-        return F,m
+        return F, m
     return F
 
 #find all representatives of orbits for one prime
 def HS_all_minimal_p(p, f, m=None, return_transformation=False):
     r"""
-    Find a representative in each distinct `SL(2,\ZZ)` orbit with minimal `p`-resultant
+    Find a representative in each distinct `SL(2,\ZZ)` orbit with
+    minimal `p`-resultant.
 
-    This function implements the algorithm in Hutz-Stoll [HS2018]_. A representatives in
-    each distinct `SL(2,\ZZ)` orbit with minimal valuation with respect to the prime ``p``
-    is returned. The input ``f`` must have minimal resultant in its conguacy class.
+    This function implements the algorithm in Hutz-Stoll [HS2018]_.
+    A representatives in each distinct `SL(2,\ZZ)` orbit with minimal
+    valuation with respect to the prime ``p`` is returned. The input
+    ``f`` must have minimal resultant in its conguacy class.
 
     INPUT:
 
@@ -716,11 +726,11 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
 
     - ``f`` -- dynamical system on the projective line with minimal resultant
 
-    - ``m`` -- (optional) 2x2 matrix associated with ``f``
+    - ``m`` -- (optional) `2 \times 2` matrix associated with ``f``
 
-    - ``return_transformation`` -- (default: False) a boolean value. This
-      signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model
+    - ``return_transformation`` -- (default: ``False``) boolean; this
+      signals a return of the ``PGL_2`` transformation to conjugate ``vp``
+      to the calculated minimal model
 
     OUTPUT:
 
@@ -744,30 +754,31 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
         True
     """
     count = 0
-    prev = 0 #no exclusions
+    prev = 0 # no exclusions
     F = copy(f)
     res = ZZ(F.resultant())
     vp = res.valuation(p)
+    MS = MatrixSpace(ZZ, 2)
     if m is None:
-        m = matrix(ZZ,2,2,[1, 0, 0, 1])
-    if f.degree() %2 == 0 or vp == 0:
-        #there is only one orbit for even degree
-        #nothing to do if the prime doesn't divide the resultant
+        m = MS.one()
+    if f.degree() % 2 == 0 or vp == 0:
+        # there is only one orbit for even degree
+        # nothing to do if the prime doesn't divide the resultant
         if return_transformation:
             return [[f, m]]
         else:
             return [f]
-    to_do = [[F,m,prev]] #repns left to check
-    reps = [[F,m]] #orbit representatives for f
-    while to_do != []:
-        F,m,prev = to_do.pop()
-        #there are at most two directions preserving the resultant
+    to_do = [[F, m, prev]] # repns left to check
+    reps = [[F, m]] # orbit representatives for f
+    while to_do:
+        F, m, prev = to_do.pop()
+        # there are at most two directions preserving the resultant
         if prev == 0:
             count = 0
         else:
             count = 1
-        if prev != 2: #[p,a,0,1]
-            t = matrix(ZZ,2,2,[1, 0, 0, p])
+        if prev != 2: # [p,a,0,1]
+            t = MS([1, 0, 0, p])
             F1 = F.conjugate(t)
             F1.normalize_coordinates()
             res1 = ZZ(F1.resultant())
@@ -776,22 +787,22 @@ def HS_all_minimal_p(p, f, m=None, return_transformation=False):
                 count += 1
                 # we have a new representative
                 reps.append([F1, m*t])
-                #need to check if it has any neighbors
+                # need to check if it has any neighbors
                 to_do.append([F1, m*t, 1])
-        for b in range(0,p):
+        for b in range(p):
             if not (b == 0 and prev == 1):
-                t = matrix(ZZ,2,2,[p, b, 0, 1])
+                t = MS([p, b, 0, 1])
                 F1 = F.conjugate(t)
                 F1.normalize_coordinates()
                 res1 = ZZ(F1.resultant())
                 vp1 = res1.valuation(p)
                 if vp1 == vp:
                     count += 1
-                    #we have a new representative
+                    # we have a new representative
                     reps.append([F1, m*t])
-                    #need to check if it has any neighbors
+                    # need to check if it has any neighbors
                     to_do.append([F1, m*t, 2])
-            if count>=2: #at most two neighbors
+            if count >= 2: # at most two neighbors
                 break
 
     if return_transformation:
@@ -804,23 +815,25 @@ def HS_all_minimal(f, return_transformation=False, D=None):
     r"""
     Determine a representative in each `SL(2,\ZZ)` orbit with minimal resultant.
 
-    This function implements the algorithm in Hutz-Stoll [HS2018]_. A representatives in
-    each distinct `SL(2,\ZZ)` orbit is returned. The input ``f`` must
-    have minimal resultant in its conguacy class.
+    This function implements the algorithm in Hutz-Stoll [HS2018]_.
+    A representative in each distinct `SL(2,\ZZ)` orbit is returned.
+    The input ``f`` must have minimal resultant in its conguacy class.
 
     INPUT:
 
     - ``f`` -- dynamical system on the projective line with minimal resultant
 
-    - ``return_transformation`` -- (default: False) a boolean value. This
-      signals a return of the ``PGL_2`` transformation to conjugate ``vp`` to
-      the calculated minimal model
+    - ``return_transformation`` -- (default: ``False``) boolean; this
+      signals a return of the ``PGL_2`` transformation to conjugate ``vp``
+      to the calculated minimal model
 
     - ``D`` -- a list of primes, in case one only wants to check minimality
       at those specific primes
 
-    OUTPUT: list of pairs ``[f, m]`` where ``f`` is a dynamical system and ``m`` is a
-      `2 \times 2` matrix.
+    OUTPUT:
+
+    List of pairs ``[f, m]``, where ``f`` is a dynamical system and ``m``
+    is a `2 \times 2` matrix.
 
     EXAMPLES::
 
@@ -857,12 +870,13 @@ def HS_all_minimal(f, return_transformation=False, D=None):
         sage: all([f.conjugate(m) == g for g,m in cl])
         True
     """
-    m = matrix(ZZ,2,2,[1, 0, 0, 1])
+    MS = MatrixSpace(ZZ, 2)
+    m = MS.one()
     F = copy(f)
     F.normalize_coordinates()
     if F.degree() == 1:
         raise ValueError("function must be degree at least 2")
-    if f.degree() %2 == 0:
+    if f.degree() % 2 == 0:
         #there is only one orbit for even degree
         if return_transformation:
             return [[f, m]]
@@ -873,12 +887,13 @@ def HS_all_minimal(f, return_transformation=False, D=None):
         D = res.prime_divisors()
     M = [[F, m]]
     for p in D:
-        #get p-orbits
+        # get p-orbits
         Mp = HS_all_minimal_p(p, F, m, return_transformation=True)
-        #combine with previous orbits representatives
+        # combine with previous orbits representatives
         M = [[g.conjugate(t), t*s] for g,s in M for G,t in Mp]
 
     if return_transformation:
         return M
     else:
         return [funct for funct, matr in M]
+

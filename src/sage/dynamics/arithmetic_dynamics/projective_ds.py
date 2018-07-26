@@ -2406,9 +2406,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             #can't use BM for polynomial
             from .endPN_minimal_model import HS_minimal
             g, m = HS_minimal(self, return_transformation=True, D=prime_list)
-            if m == m.parent().one():
-                return True
-            return False
+            return m == m.parent().one()
 
         from .endPN_minimal_model import affine_minimal
         return affine_minimal(self, return_transformation=False, D=prime_list, quick=True)
@@ -2422,12 +2420,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         minimal, which is enough to decide if it is minimal or not.
         See Proposition 2.10 in [BM2012]_.
 
-        REFERENCES:
-
-        - [BM2012]_
-        - [Mol2015]_
-        - [HS2018]_
-
         INPUT:
 
         - ``return_transformation`` -- (default: ``False``) boolean; this
@@ -2437,8 +2429,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``prime_list`` -- (optional) a list of primes, in case one
           only wants to determine minimality at those specific primes
 
-        - ``algorithm`` -- (optional) string; either BM for the Bruin-Molnar
-          algorithm or HS for the Hutz-Stoll algorithm
+        - ``algorithm`` -- (optional) string; can be one of the following:
+
+          * ``'BM'`` - the Bruin-Molnar algorithm [BM2012]_
+          * ``'HS'`` - the Hutz-Stoll algorithm [HS2018]_
 
         OUTPUT:
 
@@ -2539,6 +2533,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             TypeError: affine minimality is only considered for maps not of the form f or 1/f for a polynomial f
+
+        REFERENCES:
+
+        - [BM2012]_
+        - [Mol2015]_
+        - [HS2018]_
         """
         if self.base_ring() != ZZ and self.base_ring() != QQ:
             raise NotImplementedError("minimal models only implemented over ZZ or QQ")
@@ -2553,7 +2553,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if algorithm == 'HS':
             from .endPN_minimal_model import HS_minimal
             return HS_minimal(self, return_transformation=return_transformation, D=prime_list)
-        #algorithm not specified
+        # algorithm not specified
         f = copy(self)
         f.normalize_coordinates()
         R = f.domain().coordinate_ring()
@@ -2568,23 +2568,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             prime_list = ZZ(F.resultant().prime_divisors())
         if max(prime_list) > 500:
             from .endPN_minimal_model import affine_minimal
-            return affine_minimal(self, return_transformation=return_transformation, D=prime_list, quick=False)
+            return affine_minimal(self, return_transformation=return_transformation,
+                                  D=prime_list, quick=False)
 
-    def all_minimal_models(self, return_transformation=False, prime_list=None, algorithm=None, check_minimal=True):
+    def all_minimal_models(self, return_transformation=False, prime_list=None,
+                           algorithm=None, check_minimal=True):
         r"""
         Determine a representative in each `SL(2,\ZZ)`-orbit of this map.
 
-        This can be done either with the Bruin-Molnar algorithm or the Hutz-Stoll algorithm.
-        The Hutz-Stoll algorithm requires the map to have minimal resultant and then
-        finds representatives in orbits with minimal resultant. The Bruin-Molnar algorithm
-        finds representatives with the same resultant (up to sign) of the given map.
+        This can be done either with the Bruin-Molnar algorithm or the
+        Hutz-Stoll algorithm. The Hutz-Stoll algorithm requires the map
+        to have minimal resultant and then finds representatives in orbits
+        with minimal resultant. The Bruin-Molnar algorithm finds
+        representatives with the same resultant (up to sign) of the given map.
 
-        Bruin-Molnar does not work for polynomials and is more efficient for large primes.
-
-        REFERENCES:
-
-        - [BM2012]_
-        - [HS2018]_
+        Bruin-Molnar does not work for polynomials and is more efficient
+        for large primes.
 
         INPUT:
 
@@ -2595,18 +2594,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``prime_list`` -- (optional) a list of primes, in case one
           only wants to determine minimality at those specific primes
 
-        - ``algorithm`` -- (optional) string; either BM for the Bruin-Molnar
-          algorithm or HS for the Hutz-Stoll algorithm. If not specified,
-          properties of the map are utilized to choose
+        - ``algorithm`` -- (optional) string; can be one of the following:
 
-        - ``check_minimal`` -- (optional) boolean. To first check if the map is minimal
-          and if not, compute a minimal model before computing for orbit representatives
+          * ``'BM'`` - the Bruin-Molnar algorithm [BM2012]_
+          * ``'HS'`` - for the Hutz-Stoll algorithm [HS2018]_
+
+          if not specified, properties of the map are utilized to choose
+
+        - ``check_minimal`` -- (optional) boolean; to first check if the map
+          is minimal and if not, compute a minimal model before computing
+          for orbit representatives
 
         OUTPUT:
 
-        - a list of pairs (F,m) where F is dynamical system on the projective line
-          and m is the associated `PGL(2,\QQ)` element. Or just a list of dynamical
-          systems if not returning the conjugation
+        A list of pairs `(F,m)`, where `F` is dynamical system on the
+        projective line and `m` is the associated `PGL(2,\QQ)` element.
+        Or just a list of dynamical systems if not returning the conjugation.
 
         EXAMPLES::
 
@@ -2630,8 +2633,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: f = DynamicalSystem([237568*x^3 + 1204224*x^2*y + 2032560*x*y^2\
-            ....:     + 1142289*y^3, -131072*x^3 - 663552*x^2*y - 1118464*x*y^2\
+            sage: f = DynamicalSystem([237568*x^3 + 1204224*x^2*y + 2032560*x*y^2
+            ....:     + 1142289*y^3, -131072*x^3 - 663552*x^2*y - 1118464*x*y^2
             ....:     - 627664*y^3])
             sage: len(f.all_minimal_models(algorithm='BM'))
             2
@@ -2645,8 +2648,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: all([f.conjugate(m) == F for F,m in MM])
             True
             sage: MM = f.all_minimal_models(return_transformation=True, algorithm='HS')
-            sage: all([f.conjugate(m) == F for F,m in MM])
+            sage: all(f.conjugate(m) == F for F,m in MM)
             True
+
+        REFERENCES:
+
+        - [BM2012]_
+        - [HS2018]_
         """
         if self.base_ring() != ZZ and self.base_ring() != QQ:
             raise NotImplementedError("minimal models only implemented over ZZ or QQ")
@@ -2656,10 +2664,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise NotImplementedError("minimality is only for degree 2 or higher")
 
         if check_minimal:
-            f, m = self.minimal_model(return_transformation=True, prime_list=prime_list, algorithm=algorithm)
+            f, m = self.minimal_model(return_transformation=True,
+                                      prime_list=prime_list,
+                                      algorithm=algorithm)
         else:
             f = self
-            m = matrix(ZZ,2,2,[1,0,0,1])
+            m = matrix(ZZ, 2, 2, [1,0,0,1])
 
         if algorithm == 'BM':
             from .endPN_minimal_model import BM_all_minimal
@@ -2667,8 +2677,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         elif algorithm == 'HS':
             from .endPN_minimal_model import HS_all_minimal
             models = HS_all_minimal(f, return_transformation=True, D=prime_list)
-        #algorithm not specified
-        else:
+        else: # algorithm not specified
             f.normalize_coordinates()
             Aff_f = f.dehomogenize(1)
             R = Aff_f.domain().coordinate_ring()

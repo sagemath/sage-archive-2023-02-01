@@ -495,6 +495,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         sage: Z2xZ3 is Z6
         False
         sage: Z2xZ3 == Z6
+        False
+        sage: Z2xZ3.is_isomorphic(Z6)
         True
 
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
@@ -571,33 +573,10 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: G2 = AbelianGroup([2,3,4,5,1])
             sage: G1.is_isomorphic(G2)
             True
-            sage: G1 == G2    # syntactic sugar
-            True
         """
         if not is_AbelianGroup(right):
             return False
         return left.elementary_divisors() == right.elementary_divisors()
-
-    __eq__ = is_isomorphic
-
-    def __ne__(left, right):
-        """
-        Check whether ``left`` and ``right`` are not isomorphic
-
-        OUTPUT:
-
-        Boolean.
-
-        EXAMPLES::
-
-            sage: G1 = AbelianGroup([2,3,4,5])
-            sage: G2 = AbelianGroup([2,3,4,5,1])
-            sage: G1 != G2
-            False
-            sage: G1.__ne__(G2)
-            False
-        """
-        return not left.is_isomorphic(right)
 
     def is_subgroup(left, right):
         """

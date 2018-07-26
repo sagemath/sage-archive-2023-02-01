@@ -659,12 +659,11 @@ class Posets(object):
 
         # given the empty list, we expect the empty poset.
         if not chain_lengths:
-            return FiniteLatticePoset(DiGraph(), facade=facade)
+            return LatticePoset(facade=facade)
         from sage.categories.cartesian_product import cartesian_product
         elements = cartesian_product([range(i) for i in l])
         compare = lambda a,b : a != b and all(x <= y for x, y in zip(a ,b))
-        p = Poset([elements, compare], facade=facade)
-        return FiniteLatticePoset(p)
+        return LatticePoset([elements, compare], facade=facade)
 
 
     @staticmethod

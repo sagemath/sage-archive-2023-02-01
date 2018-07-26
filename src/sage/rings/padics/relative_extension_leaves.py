@@ -76,7 +76,7 @@ class pAdicRelativeBaseringInjection(Morphism):
             sage: R.<x> = K[]
             sage: W.<w> = K.extension(x^3 + 15*a*x - 5*(1+a^2))
             sage: f = W.coerce_map_from(K)
-            sage: f(a+5)
+            sage: f(a+5) # indirect doctest
             a + (4*a^2 + 4*a + 3)*w^3 + (a + 2)*w^4 + (2*a^2 + 4*a + 2)*w^5 + O(w^6)
         """
         if x.is_zero():
@@ -97,7 +97,7 @@ class pAdicRelativeBaseringInjection(Morphism):
             sage: f = W.coerce_map_from(K)
             sage: f(5*a,5)
             (4*a^2 + a + 3)*w^3 + (a^2 + 2*a)*w^4 + O(w^5)
-            sage: f(5*a,8,2)
+            sage: f(5*a,8,2) # indirect doctest
             (4*a^2 + a + 3)*w^3 + (a^2 + 2*a)*w^4 + O(w^5)
         """
         return self.codomain()([x], *args, **kwds)
@@ -157,7 +157,7 @@ class pAdicRelativeBaseringSection(Morphism):
             sage: R.<x> = K[]
             sage: W.<w> = K.extension(x^4 + 2*a*x^2 - 16*x - 6*a)
             sage: f = K.convert_map_from(W)
-            sage: f(a + w - w)
+            sage: f(a + w - w) # indirect doctest
             a + O(2^20)
             sage: f(w)
             Traceback (most recent call last):
@@ -179,7 +179,7 @@ class pAdicRelativeBaseringSection(Morphism):
             sage: R.<x> = K[]
             sage: W.<w> = K.extension(x^4 + 2*a*x^2 - 16*x - 6*a)
             sage: f = K.convert_map_from(W)
-            sage: f(a, 5)
+            sage: f(a, 5) # indirect doctest
             a + O(2^5)
         """
         return self.codomain()(self._call_(x), *args, **kwds)
@@ -193,7 +193,7 @@ class RelativeRamifiedExtensionRingFixedMod(EisensteinExtensionGeneric, pAdicFix
         sage: A.<a> = ZqFM(2^10)
         sage: R.<x> = A[]
         sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
-        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base ring
         sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
         True
     """
@@ -228,7 +228,7 @@ class RelativeRamifiedExtensionRingCappedAbsolute(EisensteinExtensionGeneric, pA
         sage: A.<a> = ZqCA(2^10)
         sage: R.<x> = A[]
         sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
-        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base ring
         sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
         True
     """
@@ -263,7 +263,7 @@ class RelativeRamifiedExtensionRingCappedRelative(EisensteinExtensionGeneric, pA
         sage: A.<a> = ZqCR(2^10)
         sage: R.<x> = A[]
         sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
-        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base ring
         sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
         True
     """
@@ -335,7 +335,7 @@ class RelativeRamifiedExtensionRingFloatingPoint(EisensteinExtensionGeneric, pAd
         sage: A.<a> = ZqFP(2^10)
         sage: R.<x> = A[]
         sage: W.<w> = A.extension(x^4 + 2*a*x^2 - 16*x - 6*a); W
-        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base field
+        2-adic Eisenstein Extension Ring in w defined by x^4 + 2*a*x^2 - 16*x - 6*a over its base ring
         sage: w^4 + 2*a*w^2 - 16*w - 6*a == 0
         True
     """

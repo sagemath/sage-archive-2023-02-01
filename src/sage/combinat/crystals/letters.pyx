@@ -2633,7 +2633,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
         """
         TESTS::
 
-            sage: crystals.Letters(['Q',2]
+            sage: crystals.Letters(['Q',2])
             The queer crystal of letters for 2
         """
         ret = "The queer crystal of letters for %s"%self._cartan_type.n

@@ -42,11 +42,8 @@ class CartanType(CartanType):
             True
             sage: ct.is_simply_laced()
             True
-
-            This gives an error:
             sage: ct.affine()
-            ValueError: ['Q', 2, 1] is not a valid Cartan type
-
+            ['Q', 4, 1]
             sage: ct.dual()
             ['Q', 4]
 

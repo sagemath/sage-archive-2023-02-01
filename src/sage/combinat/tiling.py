@@ -991,8 +991,8 @@ class Polyomino(SageObject):
         if not box._dimension == self._dimension:
             raise ValueError("Dimension of input box must match the "
                              "dimension of the polyomino")
-        min, max = self.bounding_box()
-        minxyz, maxxyz = vector(min), vector(max)
+        minxyz, maxxyz = self.bounding_box()
+        minxyz, maxxyz = vector(minxyz), vector(maxxyz)
         size = maxxyz - minxyz
         boxminxyz, boxmaxxyz = box.bounding_box()
         ranges = [range(a, b-c+1) for (a,b,c) in zip(boxminxyz,
@@ -1567,12 +1567,12 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([a,b], box=(2,1,3))
             sage: T.rows_for_piece(0)
             [[0, 2, 3, 5],
-             [0, 2, 3, 6],
-             [0, 2, 5, 6],
              [0, 3, 4, 6],
+             [0, 2, 3, 6],
              [0, 3, 4, 7],
-             [0, 3, 5, 6],
+             [0, 2, 5, 6],
              [0, 3, 6, 7],
+             [0, 3, 5, 6],
              [0, 4, 6, 7]]
             sage: T.rows_for_piece(0, mod_box_isometries=True)
             [[0, 2, 3, 5], [0, 3, 4, 6]]
@@ -1600,7 +1600,7 @@ class TilingSolver(SageObject):
             L = [] if self._reusable else [i]
             L.extend(coord_to_int[coord] for coord in q)
             rows.append(L)
-        return sorted(rows)
+        return rows
 
     @cached_method
     def rows(self):
@@ -1660,19 +1660,19 @@ class TilingSolver(SageObject):
             sage: T = TilingSolver([p], box=(3,4,2))
             sage: T._rows_mod_box_isometries(0)
             [[0, 1, 3, 4, 11, 13],
-             [0, 1, 9, 10, 11, 18],
-             [0, 2, 3, 4, 5, 11],
-             [0, 2, 9, 10, 12, 20],
              [0, 3, 5, 6, 13, 15],
-             [0, 3, 11, 12, 13, 20],
-             [0, 4, 5, 6, 7, 13],
-             [0, 4, 11, 12, 14, 22],
-             [0, 5, 13, 14, 15, 22],
-             [0, 6, 13, 14, 16, 24],
              [0, 9, 11, 12, 19, 21],
-             [0, 10, 11, 12, 13, 19],
              [0, 11, 13, 14, 21, 23],
-             [0, 12, 13, 14, 15, 21]]
+             [0, 1, 9, 10, 11, 18],
+             [0, 3, 11, 12, 13, 20],
+             [0, 5, 13, 14, 15, 22],
+             [0, 2, 3, 4, 5, 11],
+             [0, 4, 5, 6, 7, 13],
+             [0, 10, 11, 12, 13, 19],
+             [0, 12, 13, 14, 15, 21],
+             [0, 2, 9, 10, 12, 20],
+             [0, 4, 11, 12, 14, 22],
+             [0, 6, 13, 14, 16, 24]]
 
         We test that there are four times less rows for that polyomino::
 
@@ -1780,7 +1780,7 @@ class TilingSolver(SageObject):
         ::
 
             sage: T.row_to_polyomino(13)
-            Polyomino: [(0, 0, 1), (1, 0, 0), (1, 0, 1)], Color: red
+            Polyomino: [(0, 0, 1), (1, 0, 1), (1, 0, 2)], Color: red
         """
         row = self.rows()[row_number]
         if self._reusable:
@@ -1872,41 +1872,41 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: for a in T._dlx_common_prefix_solutions_iterator(): a
-            [0, 67, 164, 78, 166, 183, 62, 36, 30, 146]
-            [0, 67, 164]
-            [0, 67, 164, 131, 29, 35, 62, 183, 115, 169]
-            [0, 67, 164, 131, 29]
-            [0, 67, 164, 131, 29, 36, 62, 183, 110, 169]
-            [0, 67]
-            [0, 67, 167, 130, 29, 35, 62, 183, 115, 169]
-            [0, 67, 167, 130, 29]
-            [0, 67, 167, 130, 29, 36, 62, 183, 110, 169]
+            [0, 83, 114, 43, 158, 5, 128, 183, 168, 25]
+            [0, 83, 114, 43, 158]
+            [0, 83, 114, 43, 158, 33, 128, 183, 104, 25]
+            [0, 83, 114]
+            [0, 83, 114, 100, 52, 183, 128, 33, 95, 47]
+            [0, 83]
+            [0, 83, 178, 15, 158, 5, 128, 183, 168, 25]
+            [0, 83, 178, 15, 158]
+            [0, 83, 178, 15, 158, 33, 128, 183, 104, 25]
             []
-            [2, 4, 160, 85, 162, 180, 127, 44, 38, 146]
-            [2, 4, 160, 85, 162]
-            [2, 4, 160, 85, 162, 181, 127, 44, 38, 145]
-            [2, 4, 160]
-            [2, 4, 160, 130, 37, 44, 127, 181, 115, 165]
-            [2]
-            [2, 5, 160, 78, 162, 180, 127, 44, 38, 146]
-            [2, 5, 160, 78, 162]
-            [2, 5, 160, 78, 162, 181, 127, 44, 38, 145]
+            [56, 1, 113, 15, 159, 34, 155, 182, 168, 24]
+            [56, 1, 113]
+            [56, 1, 113, 164, 51, 118, 155, 34, 96, 47]
+            [56, 1, 113, 164, 51]
+            [56, 1, 113, 164, 51, 182, 155, 34, 96, 19]
+            [56]
+            [56, 29, 113, 100, 51, 118, 155, 34, 96, 47]
+            [56, 29, 113, 100, 51]
+            [56, 29, 113, 100, 51, 182, 155, 34, 96, 19]
         """
         it = self._dlx_solutions_iterator()
         B = next(it)
         while True:
+            yield B
             try:
-                yield B
                 A, B = B, next(it)
-                common_prefix = []
-                for a, b in zip(A, B):
-                    if a == b:
-                        common_prefix.append(a)
-                    else:
-                        break
-                yield common_prefix
             except StopIteration:
                 return
+            common_prefix = []
+            for a, b in zip(A, B):
+                if a == b:
+                    common_prefix.append(a)
+                else:
+                    break
+            yield common_prefix
 
     def _dlx_incremental_solutions_iterator(self):
         r"""
@@ -1940,37 +1940,37 @@ class TilingSolver(SageObject):
             sage: y = Polyomino([(0,0),(1,0),(2,0),(3,0),(2,1)], color='yellow')
             sage: T = TilingSolver([y], box=(5,10), reusable=True, reflection=True)
             sage: for a in T._dlx_solutions_iterator(): a
-            [0, 67, 164, 78, 166, 183, 62, 36, 30, 146]
-            [0, 67, 164, 131, 29, 35, 62, 183, 115, 169]
-            [0, 67, 164, 131, 29, 36, 62, 183, 110, 169]
-            [0, 67, 167, 130, 29, 35, 62, 183, 115, 169]
-            [0, 67, 167, 130, 29, 36, 62, 183, 110, 169]
-            [2, 4, 160, 85, 162, 180, 127, 44, 38, 146]
-            [2, 4, 160, 85, 162, 181, 127, 44, 38, 145]
-            [2, 4, 160, 130, 37, 44, 127, 181, 115, 165]
-            [2, 5, 160, 78, 162, 180, 127, 44, 38, 146]
-            [2, 5, 160, 78, 162, 181, 127, 44, 38, 145]
+            [0, 83, 114, 43, 158, 5, 128, 183, 168, 25]
+            [0, 83, 114, 43, 158, 33, 128, 183, 104, 25]
+            [0, 83, 114, 100, 52, 183, 128, 33, 95, 47]
+            [0, 83, 178, 15, 158, 5, 128, 183, 168, 25]
+            [0, 83, 178, 15, 158, 33, 128, 183, 104, 25]
+            [56, 1, 113, 15, 159, 34, 155, 182, 168, 24]
+            [56, 1, 113, 164, 51, 118, 155, 34, 96, 47]
+            [56, 1, 113, 164, 51, 182, 155, 34, 96, 19]
+            [56, 29, 113, 100, 51, 118, 155, 34, 96, 47]
+            [56, 29, 113, 100, 51, 182, 155, 34, 96, 19]
             sage: len(list(T._dlx_incremental_solutions_iterator()))
             123
         """
         it = self._dlx_solutions_iterator()
         B = next(it)
         while True:
+            yield B
             try:
-                yield B
                 A, B = B, next(it)
-                common_prefix = 0
-                for a, b in zip(A, B):
-                    if a == b:
-                        common_prefix += 1
-                    else:
-                        break
-                for i in range(1, len(A)-common_prefix):
-                    yield A[:-i]
-                for j in range(common_prefix, len(B)):
-                    yield B[:j]
             except StopIteration:
                 return
+            common_prefix = 0
+            for a, b in zip(A, B):
+                if a == b:
+                    common_prefix += 1
+                else:
+                    break
+            for i in range(1, len(A)-common_prefix):
+                yield A[:-i]
+            for j in range(common_prefix, len(B)):
+                yield B[:j]
 
     def solve(self, partial=None):
         r"""

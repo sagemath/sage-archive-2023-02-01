@@ -584,13 +584,55 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5,5)(1/3).minimal_polynomial('x')
             (1 + O(5^5))*x + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+
+            sage: Zp(5,5)(1/3).minimal_polynomial('foo')
+            (1 + O(5^5))*foo + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+
+        ::
+
+            sage: K.<a> = QqCR(2^3,5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^4 - 2*a)
+
+            sage: pi.minimal_polynomial()
+            (1 + O(2^5))*x^4 + a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
+            sage: (pi^2).minimal_polynomial()
+            (1 + O(2^5))*x^2 + a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
+            sage: (1/pi).minimal_polynomial()
+            (1 + O(2^5))*x^4 + (a^2 + 1)*2^-1 + O(2^4)
+
+            sage: elt = L.random_element()
+            sage: P = elt.minimal_polynomial()
+            sage: P(elt) == 0
+            True
         """
         parent = self.parent()
+        base = parent.base_ring()
         if ground is None:
             ground = parent.base_ring()
+        polring = ground[name]
         if ground is parent:
-            R = ground[name]
-            return R.gen() - R(self)
+            return polring([-self,1])
+        elif ground is base:
+            from sage.modules.free_module import VectorSpace
+            L = parent.fraction_field()
+            K = base.fraction_field()
+            deg = L.relative_degree()
+            V = VectorSpace(K, deg)
+            vector = [K(1)] + (deg-1)*[K(0)]
+            vectors = [vector]
+            W = V.span(vectors)
+            elt = self
+            while True:
+                poly = elt.polynomial()
+                vector = V([ poly[i] for i in range(deg) ])
+                if vector in W: break
+                vectors.append(vector)
+                W += V.span([vector])
+                elt *= self
+            W = V.span_of_basis(vectors)
+            coeffs = [ -c for c in W.coordinate_vector(vector) ] + [K(1)]
+            return polring(coeffs)
         else:
             raise NotImplementedError
 
@@ -617,6 +659,27 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5)(5).norm()
             5 + O(5^21)
+
+        ::
+
+            sage: K.<a> = QqCR(2^3,5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^4 - 2*a)
+
+            sage: pi.norm()  # norm over K
+            a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
+            sage: (pi^2).norm()
+            a^2*2^2 + O(2^7)
+            sage: pi.norm()^2
+            a^2*2^2 + O(2^7)
+
+        TESTS::
+
+            sage: x = L.random_element()
+            sage: y = L.random_element()
+            sage: (x*y).norm() == x.norm() * y.norm()
+            True
+
         """
         parent = self.parent()
         if ground is None:
@@ -643,6 +706,23 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Zp(5,5)(5).trace()
             5 + O(5^6)
+
+            sage: K.<a> = QqCR(2^3,5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^4 - 4*a*x^3 + 2*a)
+
+            sage: pi.trace()  # trace over K
+            a*2^2 + O(2^6)
+            sage: (pi+1).trace()
+            (a + 1)*2^2 + O(2^5)
+
+        TESTS::
+
+            sage: x = L.random_element()
+            sage: y = L.random_element()
+            sage: (x+y).trace() == x.trace() + y.trace()
+            True
+
         """
         parent = self.parent()
         if ground is None:

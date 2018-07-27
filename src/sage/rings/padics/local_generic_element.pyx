@@ -852,7 +852,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         return self.valuation()
 
     @coerce_binop
-    def quo_rem(self, other):
+    def quo_rem(self, other, integral=False):
         r"""
         Return the quotient with remainder of the division of this element by
         ``other``.
@@ -860,6 +860,9 @@ cdef class LocalGenericElement(CommutativeRingElement):
         INPUT:
 
         - ``other`` -- an element in the same ring
+        - ``integral`` -- if True, use integral-style remainders even when the parent is a field.
+          Namely, the remainder will have no terms in its p-adic expansion above
+          the valuation of ``other``.
 
         EXAMPLES::
 
@@ -879,7 +882,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             raise ZeroDivisionError
 
         from sage.categories.fields import Fields
-        if self.parent() in Fields():
+        if not integral and self.parent() in Fields():
             return (self / other, self.parent().zero())
         else:
             return self._quo_rem(other)

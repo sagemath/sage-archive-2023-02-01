@@ -291,6 +291,9 @@ from sage.misc.superseded import deprecated_function_alias
 #######################################
 # n-cube isometry group transformations
 #######################################
+from typing import List, Any
+
+
 def ncube_isometry_group(n, orientation_preserving=True):
     r"""
     Return the isometry group of the `n`-cube as a list of matrices.
@@ -458,15 +461,16 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
 
     # Construct the cosets
     cosets = []
-    while G:
-        g = G.pop()
+    G_todo = set(G)
+    for g in G:
+        if g not in G_todo:
+            continue
         left_coset = sorted(h*g for h in H)
         right_coset = sorted(g*h for h in H)
         assert left_coset == right_coset, "H must be a normal subgroup of G"
-        for c in left_coset: c.set_immutable()
-        for e in left_coset:
-            if e in G:
-                G.remove(e)
+        for c in left_coset:
+            c.set_immutable()
+        G_todo.difference_update(left_coset)
         cosets.append(left_coset)
     return cosets
 

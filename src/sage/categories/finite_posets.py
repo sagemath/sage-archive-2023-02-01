@@ -1356,20 +1356,23 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( {1: [2, 3], 2: [], 3: [], 4: [2]} )
                 sage: P.rowmotion_orbits_plots()
-                [[Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives], [Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives]]
+                Graphics Array of size 2 x 5
                 sage: P = Poset({})
                 sage: P.rowmotion_orbits_plots()
-                Graphics Array of size 1 x 1
+                Graphics Array of size 2 x 1
 
             """
-            plot_of_orb_plots=[]            
+            plot_of_orb_plots=[]
+            max_orbit_size = 0            
             for orb in self.rowmotion_orbits():
-                orb_plots=[]                
+                orb_plots=[]
+                if len(orb) > max_orbit_size:
+                    max_orbit_size = len(orb)                
                 for oi in orb:
                     oiplot = self.order_ideal_plot(oi)
                     orb_plots.append(oiplot)
                 plot_of_orb_plots.append(orb_plots)    
-            return graphics_array(plot_of_orb_plots)
+            return graphics_array(plot_of_orb_plots, ncols = max_orbit_size)
 
 
         def toggling_orbits(self, vs, element_constructor = set):
@@ -1438,20 +1441,23 @@ class FinitePosets(CategoryWithAxiom):
 
                 sage: P = Poset( {1: [2, 3], 2: [], 3: [], 4: [2]} )
                 sage: P.toggling_orbits_plots([1,2,3,4])
-                [[Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives], [Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives, Graphics object consisting of 8 graphics primitives]]
+                Graphics Array of size 2 x 5
                 sage: P = Poset({})
                 sage: P.toggling_orbits_plots([])
-                Graphics Array of size 1 x 1
+                Graphics Array of size 2 x 1
 
             """
-            plot_of_orb_plots=[]            
+            plot_of_orb_plots=[]  
+            max_orbit_size = 0             
             for orb in self.toggling_orbits(vs):
-                orb_plots=[]                
+                orb_plots=[]
+                if len(orb) > max_orbit_size:
+                    max_orbit_size = len(orb)                
                 for oi in orb:
                     oiplot = self.order_ideal_plot(oi)
                     orb_plots.append(oiplot)
                 plot_of_orb_plots.append(orb_plots)    
-            return graphics_array(plot_of_orb_plots)
+            return graphics_array(plot_of_orb_plots, ncols = max_orbit_size)
 
         def panyushev_orbit_iter(self, antichain, element_constructor=set, stop=True, check=True):
             r"""

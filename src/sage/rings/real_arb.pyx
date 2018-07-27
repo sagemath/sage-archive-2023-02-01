@@ -232,7 +232,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfi import RealIntervalField, RealIntervalField_class
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.cpython.string cimport char_to_str
+from sage.cpython.string cimport char_to_str, str_to_bytes
 
 cdef void mpfi_to_arb(arb_t target, const mpfi_t source, const long precision):
     """
@@ -1368,7 +1368,7 @@ cdef class RealBall(RingElement):
                 (<RealIntervalFieldElement> mid).value,
                 prec(self))
         elif isinstance(mid, str):
-            if arb_set_str(self.value, mid, prec(self)) != 0:
+            if arb_set_str(self.value, str_to_bytes(mid), prec(self)) != 0:
                 raise ValueError("unsupported string format")
         else:
             # the initializers that trigger imports

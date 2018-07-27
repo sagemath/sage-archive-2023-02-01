@@ -2587,8 +2587,8 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
     r"""
     Queer crystal of letters elements.
     
-    The index set is of the form '\{-n,\ldots,-1,1,\ldots,n\}'.
-    For '1<i\leq n', the operators `e_{-i}` and `f_{-i}` are defined as
+    The index set is of the form `\{-n,\ldots,-1,1,\ldots,n\}`.
+    For `1<i\leq n`, the operators `e_{-i}` and `f_{-i}` are defined as
 
     .. MATH::
 

@@ -929,14 +929,14 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
-                    (x0 : x1 : 1 : x2 : x3 : x4)
+              Defn: Defined on coordinates by sending (x0, x1, x3, x4, x5) to
+                    (x0 : x1 : 1 : x3 : x4 : x5)
             sage: AA.projective_embedding(0)
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
-                    (1 : x0 : x1 : x2 : x3 : x4)
+              Defn: Defined on coordinates by sending (x0, x1, x3, x4, x5) to
+                    (1 : x0 : x1 : x3 : x4 : x5)
 
         ::
 
@@ -961,7 +961,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         #if no ith patch exists, we may still be here with AA==None
         if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
-            AA = AffineSpace(n, self.base_ring(), names='x',
+            g = self.gens()
+            gens = [g[j] for j in range(i)] + [g[j] for j in range(i+1, n+1)]
+            AA = AffineSpace(n, self.base_ring(), names=gens,
                              ambient_projective_space=self,
                              default_embedding_index=i)
         elif AA.dimension_relative() != n:

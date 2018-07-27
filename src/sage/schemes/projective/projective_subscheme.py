@@ -224,15 +224,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: U = C.affine_patch(0)
             sage: U
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0^3*x1 + x1^3 + x0
+              Y^3*Z + Z^3 + Y
             sage: U.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0^3*x1 + x1^3 + x0
+              Y^3*Z + Z^3 + Y
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               X^3*Y + Y^3*Z + X*Z^3
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 : x1)
+              Defn: Defined on coordinates by sending (Y, Z) to
+                    (1 : Y : Z)
             sage: U.projective_embedding() is U.embedding_morphism()
             True
 
@@ -356,15 +356,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             (0 : -3/2 : 1)
             sage: patch = S.neighborhood(s); patch
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0 + 3*x1
+              x + 3*z
             sage: patch.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x0 + 3*x1
+              x + 3*z
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x + 2*y + 3*z
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (x0 : -3/2 : x1 + 1)
+              Defn: Defined on coordinates by sending (x, z) to
+                    (x : -3/2 : z + 1)
             sage: patch.embedding_center()
             (0, 0)
             sage: patch.embedding_morphism()([0,0])
@@ -1248,8 +1248,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             ...
             TypeError: the intersection of this subscheme and (=Closed subscheme of Affine Space of dimension 3
             over Rational Field defined by:
-              x1^2 + x2^2 - 2*x0,
-              x0^2 - x2^2) must be proper and finite
+              z^2 + w^2 - 2*y,
+              y^2 - w^2) must be proper and finite
         """
         try:
             self.ambient_space()(P)

@@ -124,6 +124,9 @@ Bibliography
 .. [L1995] \P. Littelmann. *Paths and root operators in representation theory*.
    Ann. of Math. (2) 142 (1995), no. 3, 499-525.
 
+.. [Macdonald2003] \I. Macdonald, Affine Hecke algebras and orthogonal polynomials,
+   Cambridge, 2003.
+
 .. [McKayPatera1981] \W. G. McKay and J. Patera. *Tables of Dimensions,
    Indices and Branching Rules for Representations of Simple Lie
    Algebras*. Marcel Dekker, 1981.

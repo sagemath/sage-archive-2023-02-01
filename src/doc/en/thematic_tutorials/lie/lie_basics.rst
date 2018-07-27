@@ -1,5 +1,7 @@
+.. _LieBasics:
+
 ----------------
-Lie Group Basics
+lie Group Basics
 ----------------
 
 

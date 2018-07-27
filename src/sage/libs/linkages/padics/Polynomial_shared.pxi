@@ -120,19 +120,23 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
                 return 1
     return 0
 
-cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
-    r"""
-    Extract the maximum power of the uniformizer dividing ``a``.
+cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow, bint reduce_relative=False) except -1:
+    """
+    Extract the maximum power of the uniformizer dividing this element.
 
     INPUT:
 
     - ``out`` -- a ``celement`` to store the unit part
-
+ 
     - ``a`` -- the ``celement`` whose valuation and unit are desired
-
+ 
     - ``prec`` -- a ``long``, the return value if ``a`` is zero
-
+ 
     - ``prime_pow`` -- the ``PowComputer`` for the ring
+
+    - ``reduce_relative`` -- a bint: whether the final result          
+      should be reduced at precision ``prec`` (case ``False``)
+      or ``prec - valuation`` (case ``True``)
 
     OUTPUT:
 
@@ -143,7 +147,10 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     if a == 0:
         return prec
     cdef long v = cvaluation(a, prec, prime_pow)
-    cshift_notrunc(out, a, -v, prec, prime_pow, True)
+    if reduce_relative:
+        cshift_notrunc(out, a, -v, prec-v, prime_pow, True)
+    else:
+        cshift_notrunc(out, a, -v, prec, prime_pow, True)
     return v
 
 cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:

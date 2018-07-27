@@ -132,7 +132,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         Sets ``value`` to the unit of this p-adic element.
         """
-        cremove(value, self.value, self.absprec, self.prime_pow)
+        cremove(value, self.value, self.absprec, self.prime_pow, True)
 
     cdef int check_preccap(self) except -1:
         """
@@ -966,7 +966,7 @@ cdef class CAElement(pAdicTemplateElement):
             O(17^0)
         """
         cdef CAElement ans = (<CAElement>self)._new_c()
-        cdef long val = cremove(ans.value, (<CAElement>self).value, (<CAElement>self).absprec, (<CAElement>self).prime_pow)
+        cdef long val = cremove(ans.value, (<CAElement>self).value, (<CAElement>self).absprec, (<CAElement>self).prime_pow, True)
         ans.absprec = (<CAElement>self).absprec - val
         return ans
 
@@ -1016,7 +1016,7 @@ cdef class CAElement(pAdicTemplateElement):
         """
         cdef CAElement unit = self._new_c()
         cdef Integer valuation = Integer.__new__(Integer)
-        cdef long val = cremove(unit.value, self.value, self.absprec, self.prime_pow)
+        cdef long val = cremove(unit.value, self.value, self.absprec, self.prime_pow, True)
         mpz_set_si(valuation.value, val)
         unit.absprec = self.absprec - val
         return valuation, unit
@@ -1459,7 +1459,7 @@ cdef class pAdicCoercion_CA_frac_field(RingHomomorphism):
         _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
         if x.absprec < aprec:
             aprec = x.absprec
-        ans.ordp = cremove(ans.unit, x.value, aprec, x.prime_pow)
+        ans.ordp = cremove(ans.unit, x.value, aprec, x.prime_pow, True)
         ans.relprec = aprec - ans.ordp
         if rprec < ans.relprec:
             ans.relprec = rprec

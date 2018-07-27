@@ -1540,18 +1540,21 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             return TensorProductOfRegularCrystalsElement.e(self, i)
         if i == -1:
             k = 0
-            w = self[0].weight()[0] + self[0].weight()[1]
+            wt = self[k].weight()
+            w = wt[0] + wt[1]
             while w == 0 and k < len(self)-1:
                   k += 1
-                  w += self[k].weight()[0] + self[k].weight()[1]
+                  wt = self[k].weight()
+                  w += wt[0] + wt[1]
             b = self[k].e(i)
             if b is None:
                return None
             return self._set_index(k, b)
-        n = max(self.index_set())
+        n = self.cartan_type().n
+        #n = max(self.index_set())
         if i < -1 and i >= -n:
             j = -i
-            w = range(2,j+1) + range(1,j)
+            w = list(range(2,j+1)) + list(range(1,j))
             w.reverse()
             b = self
             for k in w:
@@ -1594,18 +1597,20 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             return TensorProductOfRegularCrystalsElement.f(self, i)
         if i == -1:
             k = 0
-            w = self[0].weight()[0] + self[0].weight()[1]
+            wt = self[k].weight()
+            w = wt[0] + wt[1]
             while w == 0 and k < len(self)-1:
                   k += 1
-                  w += self[k].weight()[0] + self[k].weight()[1]
+                  wt = self[k].weight()
+                  w += wt[0] + wt[1]
             b = self[k].f(i)
             if b is None:
                return None
             return self._set_index(k, b)
-        n = max(self.index_set())
+        n = self.cartan_type().n
         if i < -1 and i >= -n:
             j = -i
-            w = range(2,j+1) + range(1,j)
+            w = list(range(2,j+1) + range(1,j))
             w.reverse()
             b = self
             for k in w:

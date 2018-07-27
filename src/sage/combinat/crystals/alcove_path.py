@@ -827,7 +827,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             {(alpha[2], 0): 1, (alpha[1] + alpha[2], 1): 1, 'infinity': 1}
             sage: fd['infinity']
             1
-            sage: fd.values()
+            sage: sorted(fd.values())
             [1, 1, 1]
         """
         Parent = self.parent()

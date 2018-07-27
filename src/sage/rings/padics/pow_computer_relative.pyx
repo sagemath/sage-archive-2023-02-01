@@ -87,8 +87,8 @@ cdef class PowComputer_relative(PowComputer_class):
 
         """
         PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
-        self.e = poly.degree()
-        self.f = 1
+        self.e = poly.degree() * poly.base_ring().absolute_e()
+        self.f = poly.base_ring().absolute_f()
 
         self.modulus = poly
 
@@ -217,9 +217,6 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         """
         PowComputer_relative.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
-
-        self.e = self.modulus.degree()
-        self.f = 1
         self._inv_shift_seed = self.invert(shift_seed, self.ram_prec_cap)
 
     cpdef Polynomial_generic_dense invert(self, Polynomial_generic_dense a, long prec):

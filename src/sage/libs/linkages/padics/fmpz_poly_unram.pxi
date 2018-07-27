@@ -521,7 +521,7 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
 
     INPUT:
 
-    - ``a`` -- an ``celement`` storing the underlying element to hash.
+    - ``a`` -- a ``celement`` storing the underlying element to hash.
     - ``ordp`` -- a long storing the valuation.
     - ``prec`` -- a long storing the precision.
     - ``prime_pow`` -- a PowComputer for the ring.
@@ -534,6 +534,18 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
     return hash(h)
 
 cdef inline cmodp_rep(fmpz_poly_t rep, fmpz_poly_t value, expansion_mode mode, bint return_list, PowComputer_ prime_pow):
+    """
+    Compute a polynomial that is reduced modulo p and equivalent to the given value.
+
+    INPUT:
+
+    - ``rep`` -- the reduction mod p.
+    - ``value`` -- the element to be reduced.
+    - ``mode`` -- if ``smallest_mode``, the coefficients of the reduction
+`     will be between -p/2 and p/2 instead of between 0 and p.
+    - ``return_list`` -- boolean, whether to return a list of integers giving the coefficients of the expansion.
+    - ``prime_pow`` -- a PowComputer for the ring.
+    """
     cdef long i
     cdef fmpz* c
     cdef Integer digit

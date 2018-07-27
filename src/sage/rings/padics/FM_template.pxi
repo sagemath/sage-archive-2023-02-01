@@ -304,7 +304,6 @@ cdef class FMElement(pAdicTemplateElement):
         creduce(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
-    @coerce_binop
     def _quo_rem(self, _right):
         """
         Quotient with remainder.
@@ -312,7 +311,7 @@ cdef class FMElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R = ZpFM(3, 5)
-            sage: R(12).quo_rem(R(2))
+            sage: R(12).quo_rem(R(2)) # indirect doctest
             (2*3 + O(3^5), O(3^5))
             sage: R(2).quo_rem(R(12))
             (O(3^5), 2 + O(3^5))

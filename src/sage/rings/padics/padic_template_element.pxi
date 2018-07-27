@@ -38,7 +38,6 @@ from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.misc import trim_zeros
 from sage.structure.element import canonical_coercion
 from sage.misc.superseded import deprecation
-from sage.structure.element import coerce_binop
 import itertools
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1

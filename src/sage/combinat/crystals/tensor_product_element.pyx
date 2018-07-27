@@ -1570,8 +1570,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             return b
         if i < -n:
            j = -(i+n)
-           from sage.combinat.permutation import Permutations
-           w = Permutations(n+1).long_element().reduced_word()
+           w = self.parent()._long_element()
            b = self
            for a in w:
                b = b.s(a)
@@ -1629,8 +1628,7 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             return b
         if i < -n:
            j = -(i+n)
-           from sage.combinat.permutation import Permutations
-           w = Permutations(n+1).long_element().reduced_word()
+           w = self.parent()._long_element()
            b = self
            for a in w:
                b = b.s(a)

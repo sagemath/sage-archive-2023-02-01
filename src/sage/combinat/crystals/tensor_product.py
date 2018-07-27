@@ -649,9 +649,10 @@ class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
     r"""
     Tensor product of queer super crystals.
     """
+    @cached_method
     def index_set(self):
         """
-        Return enlarged index set.
+        Return the enlarged index set.
 
         EXAMPLES::
 

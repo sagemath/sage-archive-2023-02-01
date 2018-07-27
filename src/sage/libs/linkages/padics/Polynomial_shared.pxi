@@ -109,14 +109,14 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     cdef long i, coeff_prec, break_pt
     if prime_pow.e == 1:
         for i in range(prime_pow.tmp_ccmp_a.degree()+1):
-            if coeffs[i].valuation() < prec:
+            if coeffs[i] and coeffs[i].valuation() < prec:
                 return 1
     else:
         coeff_prec = prec / prime_pow.e + 1
         break_pt = prec % prime_pow.e
         for i in range(len(coeffs)):
-            if (i < break_pt and coeffs[i].valuation() < coeff_prec or
-                i >= break_pt and coeffs[i].valuation() < coeff_prec - 1):
+            if coeffs[i] and (i < break_pt and coeffs[i].valuation() < coeff_prec or
+                              i >= break_pt and coeffs[i].valuation() < coeff_prec - 1):
                 return 1
     return 0
 

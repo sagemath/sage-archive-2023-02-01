@@ -877,7 +877,7 @@ class Ideal_generic(MonoidElement):
         emb = []
         for p in ass:
             try:
-                i = min_ass.index(p)
+                min_ass.index(p)
             except ValueError:
                 emb.append(p)
         emb.sort()

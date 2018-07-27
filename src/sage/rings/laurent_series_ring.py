@@ -39,11 +39,11 @@ from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 from .laurent_series_ring_element import LaurentSeries
-from . import polynomial
 from .ring import CommutativeRing
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
+
 
 def is_LaurentSeriesRing(x):
     """

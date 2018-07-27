@@ -184,7 +184,7 @@ class IncidenceAlgebra(CombinatorialFreeModule):
 
     @cached_method
     def one(self):
-        """
+        r"""
         Return the element `1` in ``self`` (which is the Kronecker
         delta `\delta(x, y)`).
 

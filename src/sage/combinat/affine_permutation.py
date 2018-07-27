@@ -1767,7 +1767,7 @@ class AffinePermutationTypeG(AffinePermutation):
 #-------------------------------------------------------------------------
 
 def AffinePermutationGroup(cartan_type):
-    """
+    r"""
     Wrapper function for specific affine permutation groups.
 
     These are combinatorial implementations of the affine Weyl groups of

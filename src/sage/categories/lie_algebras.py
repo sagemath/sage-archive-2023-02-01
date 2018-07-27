@@ -334,7 +334,7 @@ class LieAlgebras(Category_over_base_ring):
 
         @lazy_attribute
         def lift(self):
-            """
+            r"""
             Construct the lift morphism from ``self`` to the universal
             enveloping algebra of ``self`` (the latter is implemented
             as :meth:`universal_enveloping_algebra`).

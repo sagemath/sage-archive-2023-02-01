@@ -274,7 +274,7 @@ def local_normal_form(self, p):
 
 
 def jordan_blocks_by_scale_and_unimodular(self, p, safe_flag=True):
-    """
+    r"""
     Return a list of pairs `(s_i, L_i)` where `L_i` is a maximal
     `p^{s_i}`-unimodular Jordan component which is further decomposed into
     block diagonals of block size `\le 2`.

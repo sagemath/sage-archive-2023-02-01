@@ -104,8 +104,9 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         Secondly, there is no fast way to access non-zero elements in a given
         row/column.
     """
-    def __cinit__(self, parent, entries=0, coerce=True, copy=True):
+    def __cinit__(self):
         self._entries = {}  # crucial so that pickling works
+        self._zero = self._base_ring.zero()
 
     def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         r"""
@@ -166,8 +167,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             [0 0]
             [0 1]
         """
-        matrix.Matrix.__init__(self, parent)
-        self._zero = self.base_ring().zero()
         ma = MatrixArgs_init(parent, entries)
         self._entries = ma.dict(coerce)
 
@@ -357,8 +356,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef list v = self.fetch('nonzero_positions')
         if v is None:
-            v = self._entries.keys()
-            v.sort()
+            v = sorted(self._entries)
             self.cache('nonzero_positions', v)
         if copy:
             return v[:]
@@ -376,8 +374,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef list v = self.fetch('nonzero_positions_by_column')
         if v is None:
-            v = self._entries.keys()
-            v.sort(key=lambda x: (x[1], x[0]))
+            v = sorted(self._entries, key=lambda x: (x[1], x[0]))
             self.cache('nonzero_positions_by_column', v)
         if copy:
             return v[:]

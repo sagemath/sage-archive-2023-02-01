@@ -1056,7 +1056,7 @@ def get_orbits(list gens, int n):
     OP_dealloc(OP)
     sig_free(perm_ints)
 
-    return orbit_dict.values()
+    return list(orbit_dict.itervalues())
 
 
 

@@ -82,6 +82,10 @@ class EllipticCurveFactory(UniqueFactory):
       the polynomial coefficients, see
       :func:`EllipticCurve_from_Weierstrass_polynomial`.
 
+    - ``EllipticCurve(cubic, point)``: The elliptic curve defined by a
+      plane cubic (homogeneous polynomial in three variables), with a
+      rational point.
+
     Instead of giving the coefficients as a *list* of length 2 or 5,
     one can also give a *tuple*.
 
@@ -152,13 +156,21 @@ class EllipticCurveFactory(UniqueFactory):
 
     We can also create elliptic curves by giving the Weierstrass equation::
 
-        sage: x, y = var('x,y')
-        sage: EllipticCurve(y^2 + y ==  x^3 + x - 9)
+        sage: R2.<x,y> = PolynomialRing(QQ,2)
+        sage: EllipticCurve(y^2 + y - ( x^3 + x - 9 ))
         Elliptic Curve defined by y^2 + y = x^3 + x - 9 over Rational Field
 
         sage: R.<x,y> = GF(5)[]
         sage: EllipticCurve(x^3 + x^2 + 2 - y^2 - y*x)
         Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 + 2 over Finite Field of size 5
+
+    We can also create elliptic curves by giving a smooth plane cubic with a rational point::
+
+        sage: R3.<x,y,z> = PolynomialRing(QQ,3)
+        sage: F = x^3+y^3+30*z^3
+        sage: P = [1,-1,0]
+        sage: EllipticCurve(F,P)
+        Elliptic Curve defined by y^2 - 270*y = x^3 - 24300 over Rational Field
 
     We can explicitly specify the `j`-invariant::
 
@@ -400,8 +412,8 @@ class EllipticCurveFactory(UniqueFactory):
             if y is None:
                 x = coefficients_from_Weierstrass_polynomial(x)
             else:
-                # TODO:  This function coefficients_from_cubic() is not defined anywhere!
-                x = coefficients_from_cubic(x, y, morphism=False)
+                # x is a cubic, y a rational point
+                x = EllipticCurve_from_cubic(x, y, morphism=False).ainvs()
 
         if isinstance(x, string_types):
             # Interpret x as a Cremona or LMFDB label.
@@ -580,7 +592,7 @@ def EllipticCurve_from_c4c6(c4, c6):
 
 
 def EllipticCurve_from_j(j, minimal_twist=True):
-    """
+    r"""
     Return an elliptic curve with given `j`-invariant.
 
     INPUT:
@@ -630,9 +642,9 @@ def EllipticCurve_from_j(j, minimal_twist=True):
        sage: E = EllipticCurve_from_j(2^256+1,minimal_twist=False)
        sage: E.j_invariant() == 2^256+1
        True
-
     """
     return EllipticCurve(coefficients_from_j(j, minimal_twist))
+
 
 def coefficients_from_j(j, minimal_twist=True):
     """
@@ -1032,7 +1044,6 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
     """
     from sage.schemes.curves.constructor import Curve
     from sage.matrix.all import Matrix
-    from sage.modules.all import vector
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse
 

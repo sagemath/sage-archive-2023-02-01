@@ -36,7 +36,6 @@ from six.moves import range
 
 import itertools
 import time
-from operator import pos
 from itertools import islice
 from sage.structure.sage_object import SageObject
 from copy import copy
@@ -1594,13 +1593,6 @@ class ClusterSeed(SageObject):
 
         [NZ2012]_
         """
-        from sage.matrix.all import identity_matrix
-
-        if self._use_fpolys:
-            IE = self._init_exch.values()
-        else:
-            IE = []
-
         B = self.b_matrix()
         C = self.c_matrix()
 
@@ -1613,7 +1605,7 @@ class ClusterSeed(SageObject):
         for j in range(self._n):
             J[j,k] += max(0, -eps*B[j,k])
         J[k,k] = -1
-        self._G = self._G*J
+        self._G = self._G * J
 
     def c_vector(self,k):
         r"""
@@ -1793,11 +1785,6 @@ class ClusterSeed(SageObject):
             (1, 0, 0)
 
         """
-        if self._use_fpolys:
-            IE = self._init_exch.values()
-        else:
-            IE = []
-
         B = self.b_matrix()
         D = copy(self._D)
         dnew = copy(-D.column(k))
@@ -2482,8 +2469,6 @@ class ClusterSeed(SageObject):
 
         n, m = seed.n(), seed.m()
 
-        V = IE + list(range(n))
-
         if (sequence in range(n) or sequence in IE
             or isinstance(sequence, str) or sequence in seed._nlist):
             seqq = [sequence]
@@ -2502,7 +2487,7 @@ class ClusterSeed(SageObject):
 
         # Note - this does not guarantee that the sequence consists of
         # cluster variables, it only rules out some possibilities.
-        is_cluster_vars = reduce(lambda x, y: isinstance(y, str), seqq, 1) and seed._use_fpolys
+        is_cluster_vars = all(isinstance(y, str) for y in seqq) and seed._use_fpolys
 
         # Ensures the sequence has elements of type input_type.
         if input_type:
@@ -2697,11 +2682,11 @@ class ClusterSeed(SageObject):
         if show_sequence:
             self.quiver().mutation_sequence2(sequence=sequence, show_sequence=True, fig_size=fig_size )
 
-        if return_output=='seed':
+        if return_output == 'seed':
             return seed_sequence
-        elif return_output=='matrix':
-            return [ seed._M for seed in seed_sequence ]
-        elif return_output=='var':
+        elif return_output == 'matrix':
+            return [s._M for s in seed_sequence]
+        elif return_output == 'var':
             return new_clust_var
         else:
             raise ValueError('The parameter `return_output` can only be `seed`, `matrix`, or `var`.')
@@ -3344,7 +3329,7 @@ class ClusterSeed(SageObject):
                             only_sink_source=False):
         r"""
         Return an iterator for the mutation class of ``self`` with
-        respect to certain constrains.
+        respect to certain constraints.
 
         INPUT:
 
@@ -4491,15 +4476,16 @@ class ClusterSeed(SageObject):
         c=self._compute_compatible_vectors(v)
         return self._produce_upper_cluster_algebra_element(v,c)
 
-    def LLM_gen_set(self,size_limit=-1):
+    def LLM_gen_set(self, size_limit=-1):
         r"""
         Produce a list of upper cluster algebra elements corresponding to all
-        vectors in `\{0,1\}^n`. 
+        vectors in `\{0,1\}^n`.
 
         INPUT:
 
-        - `B` -- a skew-symmetric matrigitx.
-        - `size_limit` -- a limit on how many vectors you want the function to return. 
+        - `B` -- a skew-symmetric matrix.
+        - ``size_limit`` -- a limit on how many vectors you want
+          the function to return.
 
         OUTPUT:
 
@@ -4578,8 +4564,6 @@ class ClusterSeed(SageObject):
              [[0, 0, 0, 0], [0, 0, 1, 0], [1, 0, 1, 0]],
              [[0, 0, 0, 0], [0, 0, 1, 0]]]
         """
-        from sage.modules.free_module import VectorSpace
-        from sage.rings.finite_rings.finite_field_constructor import GF
         B = self.b_matrix()
         # E is the set of 'edges' in the quiver. It records the tuple
         # of indices `(i,j)` if `b_{ij} > 0`.

@@ -190,7 +190,7 @@ class ToricVarietyFactory(SageObject):
     _check = True
 
     def _make_ToricVariety(self, name, coordinate_names, base_ring):
-        """
+        r"""
         Construct a toric variety and cache the result.
 
         INPUT:
@@ -230,7 +230,7 @@ class ToricVarietyFactory(SageObject):
         return self.__dict__[dict_key]
 
     def _make_CPRFanoToricVariety(self, name, coordinate_names, base_ring):
-        """
+        r"""
         Construct a (crepant partially resolved) Fano toric variety
         and cache the result.
 
@@ -1299,7 +1299,7 @@ class ToricVarietyFactory(SageObject):
         return self._make_CPRFanoToricVariety('P4_11169_resolved', names, base_ring)
 
     def P4_11133(self, names='z+', base_ring=QQ):
-        """
+        r"""
         Construct the weighted projective space
         `\mathbb{P}^4(1,1,1,3,3)`.
 
@@ -1336,7 +1336,7 @@ class ToricVarietyFactory(SageObject):
         return self._make_CPRFanoToricVariety('P4_11133', names, base_ring)
 
     def P4_11133_resolved(self, names='z+', base_ring=QQ):
-        """
+        r"""
         Construct the weighted projective space
         `\mathbb{P}^4(1,1,1,3,3)`.
 

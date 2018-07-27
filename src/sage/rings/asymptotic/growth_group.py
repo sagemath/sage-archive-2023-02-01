@@ -3099,8 +3099,8 @@ class MonomialGrowthGroup(GenericGrowthGroup):
 
         from sage.symbolic.ring import SymbolicRing
         from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-        from sage.rings.polynomial.multi_polynomial_ring_generic import \
-            MPolynomialRing_generic
+        from sage.rings.polynomial.multi_polynomial_ring_base import \
+            MPolynomialRing_base
         from sage.rings.power_series_ring import PowerSeriesRing_generic
         import operator
         if isinstance(P, SymbolicRing):
@@ -3108,7 +3108,7 @@ class MonomialGrowthGroup(GenericGrowthGroup):
                 base, exponent = data.operands()
                 if str(base) == var:
                     return exponent
-        elif isinstance(P, (PolynomialRing_general, MPolynomialRing_generic)):
+        elif isinstance(P, (PolynomialRing_general, MPolynomialRing_base)):
             if data.is_monomial() and len(data.variables()) == 1:
                 if var == str(data.variables()[0]):
                     return data.degree()

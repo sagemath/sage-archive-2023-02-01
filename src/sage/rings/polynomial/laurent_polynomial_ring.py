@@ -1,4 +1,4 @@
-"""
+r"""
 Ring of Laurent Polynomials
 
 If `R` is a commutative ring, then the ring of Laurent polynomials in `n`
@@ -228,7 +228,7 @@ def LaurentPolynomialRing(base_ring, *args, **kwds):
            w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
     """
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.multi_polynomial_ring_generic import is_MPolynomialRing
+    from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
 
     R = PolynomialRing(base_ring, *args, **kwds)
     if R in _cache:
@@ -416,7 +416,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
     def ngens(self):
         """
-        Returns the number of generators of self.
+        Return the number of generators of ``self``.
 
         EXAMPLES::
 
@@ -524,7 +524,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
 
     def construction(self):
         """
-        Returns the construction of self.
+        Return the construction of ``self``.
 
         EXAMPLES::
 
@@ -672,14 +672,29 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         """
         return not (self == other)
 
-    def _latex_(self):
+    def __hash__(self):
         """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: h1 = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h2 = hash(LaurentPolynomialRing(ZZ,'x,y,z'))
+            sage: h3 = hash(LaurentPolynomialRing(QQ,'x,y,z'))
+            sage: h4 = hash(LaurentPolynomialRing(ZZ,'x,y'))
+            sage: h1 == h2 and h1 != h3 and h1 != h4
+            True
+        """
+        return hash(self._R) ^ 12059065606945654693
+
+    def _latex_(self):
+        r"""
         EXAMPLES::
 
             sage: latex(LaurentPolynomialRing(QQ,2,'x'))
             \Bold{Q}[x_{0}^{\pm 1}, x_{1}^{\pm 1}]
         """
-        vars = ', '.join([a + '^{\pm 1}' for a in self.latex_variable_names()])
+        vars = ', '.join([a + r'^{\pm 1}' for a in self.latex_variable_names()])
         return "%s[%s]"%(latex(self.base_ring()), vars)
 
     def _ideal_class_(self, n=0):

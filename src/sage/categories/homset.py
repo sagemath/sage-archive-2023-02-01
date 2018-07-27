@@ -788,7 +788,7 @@ class Homset(Set_generic):
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
               Defn:   (map internal to coercion system -- copy before use)
-                    Call morphism:
+                    Coercion map:
                       From: Symmetric group of order 4! as a permutation group
                       To:   Symmetric group of order 5! as a permutation group
                     then
@@ -797,7 +797,7 @@ class Homset(Set_generic):
                       To:   Symmetric group of order 6! as a permutation group
                     then
                       (map internal to coercion system -- copy before use)
-                    Call morphism:
+                    Coercion map:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
 
@@ -808,7 +808,7 @@ class Homset(Set_generic):
             Composite map:
               From: Symmetric group of order 4! as a permutation group
               To:   Symmetric group of order 7! as a permutation group
-              Defn:   Call morphism:
+              Defn:   Coercion map:
                       From: Symmetric group of order 4! as a permutation group
                       To:   Symmetric group of order 5! as a permutation group
                     then
@@ -816,7 +816,7 @@ class Homset(Set_generic):
                       From: Symmetric group of order 5! as a permutation group
                       To:   Symmetric group of order 6! as a permutation group
                     then
-                      Call morphism:
+                      Coercion map:
                       From: Symmetric group of order 6! as a permutation group
                       To:   Symmetric group of order 7! as a permutation group
             sage: H = Hom(ZZ, ZZ, Sets())
@@ -897,15 +897,21 @@ class Homset(Set_generic):
             sage: H()
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 0 to an element of Set of Morphisms from Free Group on generators {x, y, z} to Free Group on generators {x, y, z} in Category of groups
+            TypeError: unable to convert 0 to an element of
+             Set of Morphisms from Free Group on generators {x, y, z}
+             to Free Group on generators {x, y, z} in Category of groups
             sage: H("whatever")
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert 'whatever' to an element of Set of Morphisms from Free Group on generators {x, y, z} to Free Group on generators {x, y, z} in Category of groups
-            sage: H(H.identity(), foo="bar")
+            TypeError: unable to convert 'whatever' to an element of
+             Set of Morphisms from Free Group on generators {x, y, z}
+             to Free Group on generators {x, y, z} in Category of groups
+            sage: HH = Hom(H, H)
+            sage: HH(HH.identity(), foo="bar")
             Traceback (most recent call last):
             ...
-            NotImplementedError: no keywords are implemented for constructing elements of Set of Morphisms from Free Group on generators {x, y, z} to Free Group on generators {x, y, z} in Category of groups
+            NotImplementedError: no keywords are implemented for
+             constructing elements of ...
 
         AUTHORS:
 

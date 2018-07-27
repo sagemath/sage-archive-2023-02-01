@@ -12,13 +12,12 @@ Cell Modules
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.all import ModulesWithBasis
 from sage.structure.element import Element
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.data_structures.blas_dict import linear_combination
 from sage.modules.with_basis.subquotient import QuotientModuleWithBasis
-from sage.sets.family import Family
+
 
 class CellModule(CombinatorialFreeModule):
     r"""
@@ -288,7 +287,6 @@ class CellModule(CombinatorialFreeModule):
             sage: R.basis()
             Finite family {}
         """
-        from sage.modules.with_basis.subquotient import SubmoduleWithBasis
         radical = self.submodule(self.radical_basis(),
                                 category=self.category().Subobjects(),
                                 already_echelonized=True)

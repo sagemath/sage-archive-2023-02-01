@@ -29,6 +29,7 @@ from sage.groups.matrix_gps.finitely_generated import FinitelyGeneratedMatrixGro
 from sage.groups.matrix_gps.group_element import MatrixGroupElement_generic
 from sage.graphs.graph import Graph
 from sage.graphs.graph import DiGraph
+from sage.matrix.args import SparseEntry
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -278,7 +279,7 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
         n = coxeter_matrix.rank()
         # Compute the matrix with entries `2 \cos( \pi / m_{ij} )`.
         MS = MatrixSpace(base_ring, n, sparse=True)
-        MC = MS._matrix_class
+        one = MS.one()
         # FIXME: Hack because there is no ZZ \cup \{ \infty \}: -1 represents \infty
         E = UniversalCyclotomicField().gen
         if base_ring is UniversalCyclotomicField():
@@ -304,9 +305,8 @@ class CoxeterMatrixGroup(UniqueRepresentation, FinitelyGeneratedMatrixGroup_gene
                     return 2
                 else:
                     return base_ring(2 * cos(pi / x))
-        gens = [MS.one() + MC(MS, entries={(i, j): val(coxeter_matrix[index_set[i], index_set[j]])
-                                           for j in range(n)},
-                              coerce=True, copy=True)
+        gens = [one + MS([SparseEntry(i, j, val(coxeter_matrix[index_set[i], index_set[j]]))
+                          for j in range(n)])
                 for i in range(n)]
         # Make the generators dense matrices for consistency and speed
         gens = [g.dense_matrix() for g in gens]

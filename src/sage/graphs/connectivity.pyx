@@ -2349,10 +2349,9 @@ def spqr_tree_to_graph(T):
 
     return G
 
-from sage.graphs.base.sparse_graph cimport SparseGraph
-
 class LinkedListNode:
     """
+    Helper class for ``Triconnectivity``.
     Node in a linked list.
     Has pointers to its previous node and next node.
     If this node is the `head` of the linked list, reference to the linked list
@@ -2371,6 +2370,9 @@ class LinkedListNode:
     def clear_obj(self):
         self.listobj = None
     def replace(self, node):
+        """
+        Replace self node with ``node`` in the corresponding linked list.
+        """
         if self.prev == None and self.next == None:
             self.listobj.set_head(node)
         elif self.prev == None:
@@ -2388,12 +2390,16 @@ class LinkedListNode:
 
 class LinkedList:
     """
+    A helper class for ``Triconnectivity``.
     A linked list with a head and a tail pointer
     """
     head = None
     tail = None
     length = 0
     def remove(self, node):
+        """
+        Remove the node ``node`` from the linked list.
+        """
         if node.prev == None and node.next == None:
             self.head = None
             self.tail = None
@@ -2409,11 +2415,17 @@ class LinkedList:
             node.next.prev = node.prev
         self.length -= 1
     def set_head(self, h):
+        """
+        Set the node ``h`` as the head of the linked list.
+        """
         self.head = h
         self.tail = h
         self.length = 1
         h.set_obj(self)
     def append(self, node):
+        """
+        Append the node ``node`` to the linked list.
+        """
         if self.head == None:
             self.set_head(node)
         else:
@@ -2426,6 +2438,9 @@ class LinkedList:
     def get_length(self):
         return self.length
     def replace(self, node1, node2):
+        """
+        Replace the node ``node1`` with ``node2`` in the linked list.
+        """
         if node1.prev == None and node1.next == None:
             self.head = node2
             self.tail = node2
@@ -2443,6 +2458,9 @@ class LinkedList:
             node2.prev = node1.prev
             node2.next = node1.next
     def push_front(self, node):
+        """
+        Add node ``node`` to the beginning of the linked list.
+        """
         if self.head == None:
             self.head = node
             self.tail = node
@@ -2475,6 +2493,7 @@ class LinkedList:
 
 class Component:
     """
+    A helper class for ``Triconnectivity``.
     A connected component.
     `edge_list` contains the list of edges belonging to the component.
     `component_type` stores the type of the component.
@@ -2534,23 +2553,135 @@ class Component:
             e_node = e_node.next
         return e_list
 
+from sage.graphs.base.sparse_graph cimport SparseGraph
+
 class Triconnectivity:
     """
-    This module is not yet complete, it has work to be done.
-
     This module implements the algorithm for finding the triconnected
     components of a biconnected graph.
-    Refer to [Gut2001]_ and [Hopcroft1973]_ for the algorithm.
+    A biconnected graph is a graph where deletion of any one vertex does
+    not disconnect the graph.
+
+    INPUT:
+
+    - ``G`` -- The input graph.
+
+    - ``check`` (default: ``True``) -- Boolean to indicate whether ``G``
+        needs to be tested for biconnectivity.
+
+    OUTPUT:
+
+    No output, the triconnected components are printed.
+    The triconnected components are stored in `comp_list_new and `comp_type`.
+    `comp_list_new` is a list of components, with `comp_list_new[i]` contains
+    the list of edges in the $i^{th}$ component. `comp_type[i]` stores the type
+    of the $i^{th}$ component - 1 for bond, 2 for polygon, 3 for triconnected
+    component. The output can be accessed through these variables.
+
+    ALGORITHM:
+
+      We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
+      original version is recursive. We emulate the recursion using a stack.
+
+    ALGORITHM::
+    We implement the algorithm proposed by Hopcroft and Tarjan in
+    [Hopcroft1973]_ and later corrected by Gutwenger and Mutzel in
+    [Gut2001]_.
+
+    .. SEEALSO::
+
+        - :meth:`~Graph.is_biconnected`
 
     EXAMPLES::
 
-        An example to show how the triconnected components can be accessed:
+        An example from [Hopcroft1973]_:
 
         sage: from sage.graphs.connectivity import Triconnectivity
-        sage: g = Graph([['a','b',1],['a','c',1],['b','c',10]], weighted=True)
-        sage: tric = Triconnectivity(g)
-        sage: tric.components_list
-        []
+        sage: G = Graph()
+        sage: G.add_edges([(1,2),(1,4),(1,8),(1,12),(1,13),(2,3),(2,13),(3,4)])
+        sage: G.add_edges([(3,13),(4,5),(4,7),(5,6),(5,7),(5,8),(6,7),(8,9),(8,11)])
+        sage: G.add_edges([(8,12),(9,10),(9,11),(9,12),(10,11),(10,12)])
+        sage: tric = Triconnectivity(G)
+        Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
+        Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+        Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
+        Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
+        Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
+        Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
+        Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
+        Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
+        Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
+        Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
+        Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
+        Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
+
+        An example from [Gut2001]_
+
+        sage: G = Graph()
+        sage: G.add_edges([(1,2),(1,4),(2,3),(2,5),(3,4),(3,5),(4,5),(4,6),(5,7),(5,8)])
+        sage: G.add_edges([(5,14),(6,8),(7,14),(8,9),(8,10),(8,11),(8,12),(9,10),(10,13)])
+        sage: G.add_edges([(10,14),(10,15),(10,16),(11,12),(11,13),(12,13),(14,15),(14,16),(15,16)])
+        sage: tric = Triconnectivity(G)
+        Polygon:  [(6, 8, None), (4, 6, None), (5, 8, 'newVEdge12'), (5, 4, 'newVEdge13')]
+        Polygon:  [(8, 9, None), (9, 10, None), (8, 10, 'newVEdge1')]
+        Bond:  [(8, 10, 'newVEdge1'), (8, 10, None), (8, 10, 'newVEdge4'), (10, 8, 'newVEdge5')]
+        Triconnected:  [(8, 11, None), (11, 12, None), (8, 12, None), (12, 13, None), (11, 13, None), (8, 13, 'newVEdge3')]
+        Polygon:  [(8, 13, 'newVEdge3'), (10, 13, None), (8, 10, 'newVEdge4')]
+        Triconnected:  [(10, 15, None), (14, 15, None), (15, 16, None), (10, 16, None), (14, 16, None), (10, 14, 'newVEdge6')]
+        Bond:  [(10, 14, 'newVEdge6'), (14, 10, 'newVEdge7'), (10, 14, None)]
+        Polygon:  [(14, 10, 'newVEdge7'), (10, 8, 'newVEdge5'), (5, 14, 'newVEdge10'), (5, 8, 'newVEdge11')]
+        Polygon:  [(5, 7, None), (7, 14, None), (5, 14, 'newVEdge9')]
+        Bond:  [(5, 14, None), (5, 14, 'newVEdge9'), (5, 14, 'newVEdge10')]
+        Bond:  [(5, 8, None), (5, 8, 'newVEdge11'), (5, 8, 'newVEdge12')]
+        Bond:  [(5, 4, 'newVEdge13'), (4, 5, 'newVEdge14'), (4, 5, None)]
+        Triconnected:  [(2, 3, None), (3, 4, None), (4, 5, 'newVEdge14'), (3, 5, None), (2, 5, None), (2, 4, 'newVEdge15')]
+        Polygon:  [(1, 2, None), (2, 4, 'newVEdge15'), (1, 4, None)]
+
+        An example with multi-edges and accessing the triconnected components:
+
+        sage: G = Graph()
+        sage: G.allow_multiple_edges(True)
+        sage: G.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(1,5),(2,3)])
+        sage: tric = Triconnectivity(G)
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
+        Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2,
+        None), (2, 3, 'newVEdge1')]
+        sage: tric.comp_list_new
+        [[(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')],
+        [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')],
+        [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, 'newVEdge1')]]
+        sage: tric.comp_type
+        [0, 0, 1]
+
+        An example of a triconnected graph:
+
+        sage: G2 = Graph()
+        sage: G2.allow_multiple_edges(True)
+        sage: G2.add_edges([('a','b'),('a','c'),('a','d'),('b','c'),('b','d'),('c','d')])
+        sage: tric2 = Triconnectivity(G2)
+        Triconnected:  [('a', 'b', None), ('b', 'c', None), ('a', 'c', None), ('c', 'd', None), ('b', 'd', None), ('a', 'd', None)]
+
+    TESTS::
+
+        A disconnected graph:
+
+        sage: from sage.graphs.connectivity import Triconnectivity
+        sage: G = Graph([(1,2),(3,5)])
+        sage: tric = Triconnectivity(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph is disconnected
+
+        A graph with a cut vertex:
+
+        sage: from sage.graphs.connectivity import Triconnectivity
+        sage: G = Graph([(1,2),(1,3),(2,3),(3,4),(3,5),(4,5)])
+        sage: tric = Triconnectivity(G)
+        Traceback (most recent call last):
+        ...
+        ValueError: Graph has a cut vertex
+
     """
     def __init__(self, G, check=True):
         from sage.graphs.graph import Graph
@@ -2597,9 +2728,9 @@ class Triconnectivity:
         # self.highpt containing the edge e. Used in the `path_search` function.
         self.in_high = dict((e, None) for e in self.graph_copy.edges())
 
-        # New DFS number of the vertex with i as its old DFS number
+        # Translates DFS number of a vertex to its new number
         self.old_to_new = [0 for i in range(self.n+1)]
-        self.newnum = [0 for i in range(self.n)] # new DFS number of vertex i
+        self.newnum = [0 for i in range(self.n)] # new number of vertex i
         self.node_at = [0 for i in range(self.n+1)] # node at dfs number of i
         self.lowpt1 = [None for i in range(self.n)] # lowpt1 number of vertex i
         self.lowpt2 = [None for i in range(self.n)] # lowpt2 number of vertex i
@@ -2621,7 +2752,7 @@ class Triconnectivity:
         self.components_list = [] # list of components of `graph_copy`
         self.graph_copy_adjacency = [[] for i in range(self.n)] # Stores adjacency list
 
-        # Dictionary of (e, True/False) to denote if a path starts at edge e
+        # Dictionary of (e, True/False) to denote if edge e starts a path
         self.starts_path = dict((e, False) for e in self.graph_copy.edges())
 
         self.is_biconnected = True # Boolean to store if the graph is biconnected or not
@@ -2648,7 +2779,7 @@ class Triconnectivity:
         # Trivial cases
         if self.n < 2:
             raise ValueError("Graph is not biconnected")
-        if self.n <= 2:
+        if self.n == 2:
             if self.m < 3:
                 raise ValueError("Graph is not biconnected")
             comp = Component([], 0)
@@ -2658,7 +2789,7 @@ class Triconnectivity:
             return
 
         # Triconnectivity algorithm
-        self.split_multi_egdes()
+        self.__split_multi_egdes()
 
         # Build adjacency list
         for e in self.graph_copy.edges():
@@ -2667,7 +2798,7 @@ class Triconnectivity:
 
         self.dfs_counter = 0 # Initialisation for dfs1()
         self.start_vertex = 0 # Initialisation for dfs1()
-        self.cut_vertex = self.dfs1(self.start_vertex, check=check)
+        self.cut_vertex = self.__dfs1(self.start_vertex, check=check)
 
         if check:
             # If graph is disconnected
@@ -2688,23 +2819,23 @@ class Triconnectivity:
                 # Add edge to the set reverse_edges
                 self.reverse_edges.add(e)
 
-        self.build_acceptable_adj_struct()
-        self.dfs2()
+        self.__build_acceptable_adj_struct()
+        self.__dfs2()
 
-        self.path_search(self.start_vertex)
+        self.__path_search(self.start_vertex)
 
         # last split component
         c = Component([],0)
         while self.e_stack:
-            c.add_edge(self.estack_pop())
+            c.add_edge(self.__estack_pop())
         c.component_type = 2 if c.edge_list.get_length() > 4 else 1
         self.components_list.append(c)
         c = None
 
-        self.assemble_triconnected_components()
+        self.__assemble_triconnected_components()
         self.print_triconnected_components()
 
-    def tstack_push(self, h, a, b):
+    def __tstack_push(self, h, a, b):
         """
         Push `(h,a,b)` triple on Tstack
         """
@@ -2713,20 +2844,20 @@ class Triconnectivity:
         self.t_stack_a[self.t_stack_top] = a
         self.t_stack_b[self.t_stack_top] = b
 
-    def tstack_push_eos(self):
+    def __tstack_push_eos(self):
         """
         Push end-of-stack marker on Tstack
         """
         self.t_stack_top += 1
         self.t_stack_a[self.t_stack_top] = -1
 
-    def tstack_not_eos(self):
+    def __tstack_not_eos(self):
         """
         Return true iff end-of-stack marker is not on top of Tstack
         """
         return self.t_stack_a[self.t_stack_top] != -1
 
-    def estack_pop(self):
+    def __estack_pop(self):
         """
         Pop from estack and return the popped element
         """
@@ -2734,7 +2865,7 @@ class Triconnectivity:
         self.e_stack = self.e_stack[0:-1]
         return e
 
-    def new_component(self, edges=[], type_c=0):
+    def __new_component(self, edges=[], type_c=0):
         """
         Create a new component, add `edges` to it.
         type_c = 0 for bond, 1 for polygon, 2 for triconnected component
@@ -2743,7 +2874,7 @@ class Triconnectivity:
         self.components_list.append(c)
         return c
 
-    def high(self, v):
+    def __high(self, v):
         """
         Return the high(v) value, which is the first value in highpt list of `v`
         """
@@ -2753,7 +2884,7 @@ class Triconnectivity:
         else:
             return head.data
 
-    def del_high(self, e):
+    def __del_high(self, e):
         if e in self.in_high:
             it = self.in_high[e]
             if it:
@@ -2763,26 +2894,28 @@ class Triconnectivity:
                     v = e[1]
                 self.highpt[v].remove(it)
 
-    def split_multi_egdes(self):
+    def __split_multi_egdes(self):
         """
-        This function will mark all the multiple edges present in graph_copy
-        as removed and append the multiple edges in component list.
+        Iterate through all the edges, and constructs bonds wherever
+        multiedges are present.
 
-        If there are `k` multiple edges between `u` and `v` then `k+1`
-        edges will be added to a component and edge_status will have k-1 edges
-        marked a 3(i.e edge removed).
+        If there are `k` multiple edges between `u` and `v`, then `k+1`
+        edges will be added to a new component (one of them is a virtual edge),
+        all the `k` edges are removed from the graph and a virtual edge is
+        between `u` and `v` is added to the graph. Instead of deleting edges
+        from the graph, they are instead marked as removed, i.e., 3 in
+        the dictionary `edge_status`.
 
-        It won't return anything but update the components_list and
-        graph_copy, which will become simple graph.
+        No return value. Update the `components_list` and `graph_copy`.
+        `graph_copy` will become simple graph after this function.
 
         """
-
         comp = []
         if self.graph_copy.has_multiple_edges():
             sorted_edges = sorted(self.graph_copy.edges())
             for i in range(len(sorted_edges) - 1):
 
-                # It will add k - 1 multiple edges to comp
+                # Find multi edges and add to component and delete from graph
                 if (sorted_edges[i][0] == sorted_edges[i + 1][0]) and \
                    (sorted_edges[i][1] == sorted_edges[i + 1][1]):
                     self.edge_status[sorted_edges[i]] = 3 # edge removed
@@ -2801,7 +2934,7 @@ class Triconnectivity:
                         self.edge_status[newVEdge] = 0
 
                         comp.append(newVEdge)
-                        self.new_component(comp)
+                        self.__new_component(comp)
                     comp = []
             if comp:
                 comp.append(sorted_edges[i+1])
@@ -2814,13 +2947,13 @@ class Triconnectivity:
                 self.edge_status[newVEdge] = 0
 
                 comp.append(newVEdge)
-                self.new_component(comp)
+                self.__new_component(comp)
 
-    def dfs1(self, v, u=None, check=True):
+    def __dfs1(self, v, u=None, check=True):
         """
-        This function builds the palm tree of the graph.
+        This function builds the palm tree of the graph using a dfs traversal.
         Also populates the lists lowpt1, lowpt2, nd, parent, and dfs_number.
-        It updates the dict edge_status to reflect palm tree arcs and fronds.
+        It updates the dict `edge_status` to reflect palm tree arcs and fronds.
 
         Input::
 
@@ -2835,59 +2968,8 @@ class Triconnectivity:
         Output::
 
         - If ``check`` is set to True, and a cut vertex is found, the cut vertex
-          is returned. If no cut vertex is found, return value if None.
+          is returned. If no cut vertex is found, return value is None.
           If ``check`` is set to False, ``None`` is returned.
-
-        Example::
-
-            An example to build the palm tree:
-
-            sage: from sage.graphs.connectivity import Triconnectivity
-            sage: G = Graph()
-            sage: G.add_edges([(1,2),(1,13),(1,12),(1,8),(1,4),(2,13),(2,3),(3,13)])
-            sage: G.add_edges([(3,4),(4,5),(4,7),(5,6),(5,7),(5,8),(6,7),(8,9),(8,12)])
-            sage: G.add_edges([(8,11),(9,10),(9,12),(9,11),(10,11),(10,12)])
-            sage: tric = Triconnectivity(G, check=False)
-            sage: tric.edge_status
-             {(0, 1, None): 1,
-             (0, 3, None): 2,
-             (0, 7, None): 2,
-             (0, 11, None): 2,
-             (0, 12, None): 2,
-             (1, 2, None): 1,
-             (1, 12, None): 2,
-             (2, 3, None): 1,
-             (2, 12, None): 1,
-             (3, 4, None): 1,
-             (3, 6, None): 2,
-             (4, 5, None): 1,
-             (4, 6, None): 2,
-             (4, 7, None): 1,
-             (5, 6, None): 1,
-             (7, 8, None): 1,
-             (7, 10, None): 2,
-             (7, 11, None): 2,
-             (8, 9, None): 1,
-             (8, 10, None): 2,
-             (8, 11, None): 2,
-             (9, 10, None): 1,
-             (9, 11, None): 1}
-            sage: tric.lowpt1
-            [1, 1, 1, 1, 1, 4, 4, 1, 1, 1, 8, 1, 1]
-            sage: tric.lowpt2
-            [1, 2, 2, 4, 4, 5, 5, 8, 8, 8, 9, 8, 2]
-            sage: tric.parent
-            [None, 0, 1, 2, 3, 4, 5, 4, 7, 8, 9, 9, 2]
-
-            An example of a disconnected graph:
-
-            sage: G = Graph()
-            sage: G.add_edges([(1,2),(1,3),(2,3),(3,4),(3,5),(4,5)])
-            sage: tric = Triconnectivity(G, check=True)
-            sage: tric.is_biconnected
-            False
-            sage: tric.cut_vertex
-            3
         """
         first_son = None # For testing biconnectivity
         s1 = None # Storing the cut vertex, if there is one
@@ -2907,13 +2989,19 @@ class Triconnectivity:
                 if first_son is None:
                     first_son = w
                 self.tree_arc[w] = e
-                s1 = self.dfs1(w, v, check)
+                s1 = self.__dfs1(w, v, check)
 
                 if check:
-                    # check for cut vertex
+                    # Check for cut vertex.
+                    # The situation in which there is no path from w to an
+                    # ancestor of v : we have identified a cut vertex
                     if (self.lowpt1[w] >= self.dfs_number[v]) and (w != first_son or u != None):
                         s1 = v
 
+                # Calculate the `lowpt1` and `lowpt2` values.
+                # `lowpt1` is the smallest vertex (the vertex x with smallest
+                # dfs_number[x]) that can be reached from v.
+                # `lowpt2` is the next smallest vertex that can be reached from v.
                 if self.lowpt1[w] < self.lowpt1[v]:
                         self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
                         self.lowpt1[v] = self.lowpt1[w]
@@ -2934,22 +3022,26 @@ class Triconnectivity:
                 elif self.dfs_number[w] > self.lowpt1[v]:
                     self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
-        return s1
+        return s1 # s1 is None is graph does not have a cut vertex
 
 
-    def build_acceptable_adj_struct(self):
+    def __build_acceptable_adj_struct(self):
         """
         Builds the adjacency lists for each vertex with certain properties
         of the ordering, using the ``lowpt1`` and ``lowpt2`` values.
 
         The list ``adj`` and the dictionary ``in_adj`` are populated.
+
+        `phi` values of each edge are calculated using the `lowpt` values of
+        incident vertices. The edges are then sorted by the `phi` values and
+        added to adjacency list.
         """
         max = 3*self.n + 2
         bucket = [[] for i in range(max+1)]
 
         for e in self.graph_copy.edges():
             edge_type = self.edge_status[e]
-            if edge_type == 3:
+            if edge_type == 3: # If edge status is `removed`, go to next edge
                 continue
 
             # compute phi value
@@ -2973,6 +3065,7 @@ class Triconnectivity:
 
             bucket[phi].append(e)
 
+        # Populate `adj` and `in_adj` with the sorted edges
         for i in range(1,max+1):
             for e in bucket[i]:
                 node = LinkedListNode()
@@ -2984,9 +3077,10 @@ class Triconnectivity:
                     self.adj[e[0]].append(node)
                     self.in_adj[e] = node
 
-    def path_finder(self, v):
+    def __path_finder(self, v):
         """
         This function is a helper function for `dfs2` function.
+        Calculate `newnum[v]` and identify the edges which start a new path.
         """
         self.newnum[v] = self.dfs_counter - self.nd[v] + 1
         e_node = self.adj[v].get_head()
@@ -2998,9 +3092,10 @@ class Triconnectivity:
                 self.new_path = False
                 self.starts_path[e] = True
             if self.edge_status[e] == 1: # tree arc
-                self.path_finder(w)
+                self.__path_finder(w)
                 self.dfs_counter -= 1
             else:
+                # Identified a new frond that enters `w`. Add to `highpt[w]`.
                 highpt_node = LinkedListNode()
                 highpt_node.set_data(self.newnum[v])
                 self.highpt[w].append(highpt_node)
@@ -3008,7 +3103,7 @@ class Triconnectivity:
                 self.new_path = True
 
 
-    def dfs2(self):
+    def __dfs2(self):
         """
         Update the values of lowpt1 and lowpt2 lists with the help of
         new numbering obtained from `Path Finder` funciton.
@@ -3022,20 +3117,24 @@ class Triconnectivity:
         self.new_path = True
 
         # We call the pathFinder function with the start vertex
-        self.path_finder(self.start_vertex)
+        self.__path_finder(self.start_vertex)
 
+        # Update `old_to_new` values with the calculated `newnum` values
         for v in self.graph_copy.vertices():
             self.old_to_new[self.dfs_number[v]] = self.newnum[v]
 
-        # Update lowpt values.
+        # Update lowpt values according to `newnum` values.
         for v in self.graph_copy.vertices():
             self.node_at[self.newnum[v]] = v
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]
 
-    def path_search(self, v):
+    def __path_search(self, v):
         """
-        Function to find the separation pairs.
+        Find the separation pairs and construct the split components.
+        Check for type-1 and type-2 separation pairs, and construct
+        the split components while also creating new virtual edges wherever
+        required.
         """
         y = 0
         vnum = self.newnum[v]
@@ -3050,21 +3149,22 @@ class Triconnectivity:
             else:
                 w = e[1]
             wnum = self.newnum[w]
-            if self.edge_status[e] == 1: # tree arc
-                if self.starts_path[e]:
+            if self.edge_status[e] == 1: # e is a tree arc
+                if self.starts_path[e]: # if a new path starts at edge e
                     y = 0
+                    # Pop all (h,a,b) from tstack where a > lowpt1[w]
                     if self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
                         while self.t_stack_a[self.t_stack_top] > self.lowpt1[w]:
                             y = max(y, self.t_stack_h[self.t_stack_top])
                             b = self.t_stack_b[self.t_stack_top]
                             self.t_stack_top -= 1
-                        self.tstack_push(y, self.lowpt1[w], b)
+                        self.__tstack_push(y, self.lowpt1[w], b)
 
                     else:
-                        self.tstack_push(wnum + self.nd[w] - 1, self.lowpt1[w], vnum)
-                    self.tstack_push_eos()
+                        self.__tstack_push(wnum + self.nd[w] - 1, self.lowpt1[w], vnum)
+                    self.__tstack_push_eos()
 
-                self.path_search(w)
+                self.__path_search(w)
 
                 self.e_stack.append(self.tree_arc[w])
 
@@ -3074,7 +3174,9 @@ class Triconnectivity:
                     temp_target = temp[0]
                 else:
                     temp_target = temp[1]
-                # while vnum is not the start_vertex
+
+                # Type-2 separation pair check
+                # while v is not the start_vertex
                 while vnum != 1 and ((self.t_stack_a[self.t_stack_top] == vnum) or \
                         (self.degree[w] == 2 and self.newnum[temp_target] > wnum)):
 
@@ -3088,14 +3190,14 @@ class Triconnectivity:
                         e_ab = None
                         if self.degree[w] == 2 and self.newnum[temp_target] > wnum:
                             # found type-2 separation pair - (v, temp_target)
-                            e1 = self.estack_pop()
-                            e2 = self.estack_pop()
+                            e1 = self.__estack_pop()
+                            e2 = self.__estack_pop()
                             self.adj[w].remove(self.in_adj[e2])
 
                             if e2 in self.reverse_edges:
-                                x = e2[0]
+                                x = e2[0] # target
                             else:
-                                x = e2[1]
+                                x = e2[1] # target
 
                             e_virt = tuple([v, x, "newVEdge"+str(self.virtual_edge_num)])
                             self.graph_copy.add_edge(e_virt)
@@ -3104,10 +3206,10 @@ class Triconnectivity:
                             self.degree[x] -= 1
 
                             if e2 in self.reverse_edges:
-                                e2_source = e2[1]
+                                e2_source = e2[1] # target
                             else:
                                 e2_source = e2[0]
-                            if e2_source != w: # OGDF_ASSERT
+                            if e2_source != w:
                                 raise ValueError("Graph is not biconnected")
 
                             comp = Component([e1, e2, e_virt], 1)
@@ -3118,14 +3220,14 @@ class Triconnectivity:
                                 e1 = self.e_stack[-1]
                                 if e1 in self.reverse_edges:
                                     if e1[1] == x and e1[0] == v:
-                                        e_ab = self.estack_pop()
+                                        e_ab = self.__estack_pop()
                                         self.adj[x].remove(self.in_adj[e_ab])
-                                        self.del_high(e_ab)
+                                        self.__del_high(e_ab)
                                 else:
                                     if e1[0] == x and e1[1] == v:
-                                        e_ab = self.estack_pop()
+                                        e_ab = self.__estack_pop()
                                         self.adj[x].remove(self.in_adj[e_ab])
-                                        self.del_high(e_ab)
+                                        self.__del_high(e_ab)
 
                         else: # found type-2 separation pair - (self.node_at[a], self.node_at[b])
                             h = self.t_stack_h[self.t_stack_top]
@@ -3145,23 +3247,23 @@ class Triconnectivity:
                                     break
                                 if (self.newnum[x] == a and self.newnum[xy_target] == b) or \
                                     (self.newnum[xy_target] == a and self.newnum[x] == b):
-                                    e_ab = self.estack_pop()
+                                    e_ab = self.__estack_pop()
                                     if e_ab in self.reverse_edges:
-                                        e_ab_source = e_ab[1]
+                                        e_ab_source = e_ab[1] # source
                                     else:
-                                        e_ab_source = e_ab[0]
+                                        e_ab_source = e_ab[0] # source
                                     self.adj[e_ab_source].remove(self.in_adj[e_ab])
-                                    self.del_high(e_ab)
+                                    self.__del_high(e_ab)
 
                                 else:
-                                    eh = self.estack_pop()
+                                    eh = self.__estack_pop()
                                     if eh in self.reverse_edges:
                                         eh_source = eh[1]
                                     else:
                                         eh_source = eh[0]
                                     if it != self.in_adj[eh]:
                                         self.adj[eh_source].remove(self.in_adj[eh])
-                                        self.del_high(eh)
+                                        self.__del_high(eh)
 
                                     comp.add_edge(eh)
                                     self.degree[x] -= 1
@@ -3206,8 +3308,10 @@ class Triconnectivity:
                 if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair - (self.node_at[self.lowpt1[w]], v)
+
+                    # Create a new component and add edges to it
                     comp = Component([],0)
-                    if not self.e_stack: # OGDF_ASSERT
+                    if not self.e_stack:
                         raise ValueError("stack is empty")
                     while self.e_stack:
                         xy = self.e_stack[-1]
@@ -3222,22 +3326,22 @@ class Triconnectivity:
                             (wnum <= y and y < wnum + self.nd[w])):
                             break
 
-                        comp.add_edge(self.estack_pop())
-                        self.del_high(xy)
+                        comp.add_edge(self.__estack_pop())
+                        self.__del_high(xy)
                         self.degree[self.node_at[xx]] -= 1
                         self.degree[self.node_at[y]] -= 1
 
                     e_virt = tuple([v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num)])
-                    self.graph_copy.add_edge(e_virt)
+                    self.graph_copy.add_edge(e_virt) # Add virtual edge to graph
                     self.virtual_edge_num += 1
-                    comp.finish_tric_or_poly(e_virt)
+                    comp.finish_tric_or_poly(e_virt) # Add virtual edge to component
                     self.components_list.append(comp)
                     comp = None
 
                     if (xx == vnum and y == self.lowpt1[w]) or \
                         (y == vnum and xx == self.lowpt1[w]):
-                        comp_bond = Component([],type_c = 0)
-                        eh = self.estack_pop()
+                        comp_bond = Component([],type_c = 0) # new triple bond
+                        eh = self.__estack_pop()
                         if self.in_adj[eh] != it:
                             if eh in self.reverse_edges:
                                 self.adj[eh[1]].remove(self.in_adj[eh])
@@ -3266,7 +3370,7 @@ class Triconnectivity:
                         it = e_virt_node
 
                         self.in_adj[e_virt] = it
-                        if not e_virt in self.in_high and self.high(self.node_at[self.lowpt1[w]]) < vnum:
+                        if not e_virt in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
                             vnum_node = LinkedListNode()
                             vnum_node.set_data(vnum)
                             self.highpt[self.node_at[self.lowpt1[w]]].push_front(vnum_node)
@@ -3296,42 +3400,45 @@ class Triconnectivity:
                         e_virt_node.set_data(e_virt)
                         self.in_adj[eh] = e_virt_node
                         # end type-1 search
+
+                # if an path starts at edge e, empty the tstack.
                 if self.starts_path[e]:
-                    while self.tstack_not_eos():
+                    while self.__tstack_not_eos():
                         self.t_stack_top -= 1
                     self.t_stack_top -= 1
 
-                while self.tstack_not_eos() and self.t_stack_b[self.t_stack_top] != vnum \
-                    and self.high(v) > self.t_stack_h[self.t_stack_top]:
+                while self.__tstack_not_eos() and self.t_stack_b[self.t_stack_top] != vnum \
+                    and self.__high(v) > self.t_stack_h[self.t_stack_top]:
                     self.t_stack_top -= 1
 
                 outv -= 1
 
-            else: #frond
+            else: # e is a frond
                 if self.starts_path[e]:
                     y = 0
+                    # pop all (h,a,b) from tstack where a > w
                     if self.t_stack_a[self.t_stack_top] > wnum:
                         while self.t_stack_a[self.t_stack_top] > wnum:
                             y = max(y, self.t_stack_h[self.t_stack_top])
                             b = self.t_stack_b[self.t_stack_top]
                             self.t_stack_top -= 1
-                        self.tstack_push(y, wnum, b)
+                        self.__tstack_push(y, wnum, b)
 
                     else:
-                        self.tstack_push(vnum, wnum, vnum)
+                        self.__tstack_push(vnum, wnum, vnum)
                 self.e_stack.append(e) # add (v,w) to ESTACK
 
-            # Go to next node in adjacency list
+            # Go to next edge in adjacency list
             e_node = e_node.next
 
-    def assemble_triconnected_components(self):
+    def __assemble_triconnected_components(self):
         """
-        Iterates through all the components built by `path_finder` and merges
-        the components wherever possible for contructing the final
-        triconnected components.
-        Formats the triconnected components into original vertices and edges.
-        The triconnected components are stored in `self.comp_list_new` and
-        `self.comp_type`.
+        Iterate through all the split components built by `path_finder` and
+        merges two bonds or two polygons that share an edge for contructing the
+        final triconnected components.
+        Subsequently, convert the edges in triconnected components into original
+        vertices and edges. The triconnected components are stored in
+        `self.comp_list_new` and `self.comp_type`.
         """
         comp1 = {} # The index of first component that an edge belongs to
         comp2 = {} # The index of second component that an edge belongs to
@@ -3354,6 +3461,8 @@ class Triconnectivity:
 
                 e_node = e_node.next
 
+        # For each edge in a component, if the edge is a virtual edge, merge
+        # the two components the edge belongs to
         for i in range(num_components):
             c1 = self.components_list[i]
             c1_type = c1.component_type
@@ -3365,10 +3474,11 @@ class Triconnectivity:
 
             if c1_type == 0 or c1_type == 1:
                 e_node = self.components_list[i].edge_list.get_head()
+                # Iterate through each edge in the component
                 while e_node:
                     e = e_node.get_data()
                     e_node_next = e_node.next
-                    # the label of virtual edges is a string
+                    # The label of a virtual edge is a string
                     if not isinstance(e[2], str):
                         e_node = e_node_next
                         continue
@@ -3384,18 +3494,24 @@ class Triconnectivity:
                         e_node2 = item1[e]
 
                     c2 = self.components_list[j]
+
+                    # If the two components are not the same type, do not merge
                     if (c1_type != c2.component_type):
-                        e_node = e_node_next
+                        e_node = e_node_next # Go to next edge
                         continue
 
                     visited[j] = True
                     l2 = c2.edge_list
 
+                    # Remove the corresponding virtual edges in both the components
+                    # and merge the components
                     l2.remove(e_node2)
                     l1.concatenate(l2)
 
+                    # if `e_node_next` was empty, after merging two components,
+                    # more edges are added to the component.
                     if not e_node_next:
-                        e_node_next = e_node.next
+                        e_node_next = e_node.next # Go to next edge
 
                     l1.remove(e_node)
 

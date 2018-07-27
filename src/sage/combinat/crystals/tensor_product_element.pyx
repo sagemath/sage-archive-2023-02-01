@@ -1538,46 +1538,48 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.e(self, i)
+        cdef list w
+        cdef int k
+        l = len(self)
         if i == -1:
             k = 0
             wt = self[k].weight()
-            w = wt[0] + wt[1]
-            while w == 0 and k < len(self)-1:
+            v = wt[0] + wt[1]
+            while v == 0 and k < l-1:
                   k += 1
                   wt = self[k].weight()
-                  w += wt[0] + wt[1]
+                  v += wt[0] + wt[1]
             b = self[k].e(i)
             if b is None:
                return None
             return self._set_index(k, b)
         n = self.cartan_type().n
-        #n = max(self.index_set())
         if i < -1 and i >= -n:
             j = -i
             w = list(range(2,j+1)) + list(range(1,j))
             w.reverse()
             b = self
-            for k in w:
-                b = b.s(k)
+            for a in w:
+                b = b.s(a)
             b = b.e(-1)
             if b is None:
                return None
             w.reverse()
-            for k in w:
-                b = b.s(k)
+            for a in w:
+                b = b.s(a)
             return b
         if i < -n:
            j = -(i+n)
            from sage.combinat.permutation import Permutations
            w = Permutations(n+1).long_element().reduced_word()
            b = self
-           for k in w:
-               b = b.s(k)
+           for a in w:
+               b = b.s(a)
            b = b.f(-(n+1-j))
            if b is None:
                return None
-           for k in w:
-               b = b.s(k)
+           for a in w:
+               b = b.s(a)
            return b
         return None
 
@@ -1595,14 +1597,17 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
         """
         if i > 0:
             return TensorProductOfRegularCrystalsElement.f(self, i)
+        cdef list w
+        cdef int k
+        l = len(self)
         if i == -1:
             k = 0
             wt = self[k].weight()
-            w = wt[0] + wt[1]
-            while w == 0 and k < len(self)-1:
+            v = wt[0] + wt[1]
+            while v == 0 and k < l-1:
                   k += 1
                   wt = self[k].weight()
-                  w += wt[0] + wt[1]
+                  v += wt[0] + wt[1]
             b = self[k].f(i)
             if b is None:
                return None
@@ -1613,27 +1618,27 @@ cdef class TensorProductOfQueerSuperCrystalsElement(TensorProductOfRegularCrysta
             w = list(range(2,j+1) + range(1,j))
             w.reverse()
             b = self
-            for k in w:
-                b = b.s(k)
+            for a in w:
+                b = b.s(a)
             b = b.f(-1)
             if b is None:
                return None
             w.reverse()
-            for k in w:
-                b = b.s(k)
+            for a in w:
+                b = b.s(a)
             return b
         if i < -n:
            j = -(i+n)
            from sage.combinat.permutation import Permutations
            w = Permutations(n+1).long_element().reduced_word()
            b = self
-           for k in w:
-               b = b.s(k)
+           for a in w:
+               b = b.s(a)
            b = b.e(-(n+1-j))
            if b is None:
                return None
-           for k in w:
-               b = b.s(k)
+           for a in w:
+               b = b.s(a)
            return b
         return None
 

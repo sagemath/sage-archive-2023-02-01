@@ -707,14 +707,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Zp(5,5)(5).trace()
             5 + O(5^6)
 
-            sage: K.<a> = QqCR(2^3,5)
+            sage: K.<a> = QqCR(2^3,7)
             sage: S.<x> = K[]
             sage: L.<pi> = K.extension(x^4 - 4*a*x^3 + 2*a)
 
             sage: pi.trace()  # trace over K
-            a*2^2 + O(2^6)
+            a*2^2 + O(2^8)
             sage: (pi+1).trace()
-            (a + 1)*2^2 + O(2^5)
+            (a + 1)*2^2 + O(2^7)
 
         TESTS::
 

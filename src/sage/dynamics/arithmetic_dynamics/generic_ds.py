@@ -289,7 +289,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         - ``homset`` -- (optional) homset of specialized map
 
-        OUTPUT: :class:`DynamicalSystem`
+        OUTPUT: :class:`NumberField`
 
         EXAMPLES::
 
@@ -304,7 +304,39 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         F = self.as_scheme_morphism().specialization(D, phi, homset)
         return F.as_dynamical_system()
 
-    def field_of_definition_critical(self, n, names = 'a'):
+    def field_of_definition_critical(self, n, simplify_all = False, names = 'a'):
+        r"""
+        Return field extention of `\QQ` that contains the critical points of the ``n``-th
+        iterate of this dynamical system
+
+        Must be dimension 1.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
+          fields and also the resulting number field.
+
+        - ``names`` -- (optional) string to be used as generator for returned number field
+
+        OUTPUT: :class:`NumberField`
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([1/3*x^3 + x*y^2, y^3], domain = P)
+            sage: N.<a> = f.field_of_definition_critical(1); N
+            Number Field in a with defining polynomial x^2 + 1
+
+        ::
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem([z^2 + 1], domain = A)
+            sage: K.<a> = f.field_of_definition_critical(2); K
+            Number Field in a with defining polynomial z^2 + 1
+            sage: a^2
+            -1
+        """
         ds = copy(self)
         if n < 1: 
             raise ValueError('`n` must be >= 1') 
@@ -321,9 +353,46 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             CR = CR.ring()
         x = CR.gen(0)
         poly = (g*CR(f).derivative(x) - f*CR(g).derivative(x)).univariate_polynomial()
-        return poly.splitting_field(names)
+        return poly.splitting_field(names, simplify_all = simplify_all)
 
-    def field_of_definition_periodic(self, n, formal = True, names = 'a'):
+    def field_of_definition_periodic(self, n, formal = False, simplify_all = False, names = 'a'):
+        r"""
+        Return finite field extention of `\QQ` that contains the periodic points of the ``n``-th
+        iterate of this dynamical system.
+
+        Must be dimension 1.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        - ``formal`` -- (default: ``False``) boolean; ``True`` signals to return number field over which
+          the formal periodic points are defined, where a formal periodic point is a point of exact period ``n``,
+          or equivalently a root of the ``n``-th dynatomic polynomial. ``False`` specifies to find number field
+          over which all periodic points of the ``n``-th iterate are defined
+
+        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
+          fields and also the resulting number field
+
+        - ``names`` -- (optional) string to be used as generator for returned number field
+
+        OUTPUT: :class:`NumberField`
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([x^2, y^2], domain = P)
+            sage: N.<a> = f.field_of_definition_periodic(3); N
+            Number Field in a with defining polynomial x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+
+        ::
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem([(z^2 + 1)/(2*z + 1)], domain = A)
+            sage: K.<a> = f.field_of_definition_periodic(2); K
+            Number Field in a with defining polynomial z^4 + 12*z^3 + 39*z^2 + 18*z + 171
+            sage: F.<b> = f.field_of_definition_periodic(2, formal = True); F
+            Number Field in b with defining polynomial z^2 + 3*z + 6
+        """
         ds = copy(self)
         if n < 1: 
             raise ValueError('`n` must be >= 1')
@@ -344,9 +413,41 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             fn = ds.nth_iterate_map(n)
             f,g = fn[0].numerator(), fn[0].denominator()
             poly = (f - g*x).univariate_polynomial()        
-        return poly.splitting_field(names)
+        return poly.splitting_field(names, simplify_all = simplify_all)
 
-    def field_of_definition_preimage(self, point, n, names = 'a'):
+    def field_of_definition_preimage(self, n, point, simplify_all = False, names = 'a'):
+        r"""
+        Return field extention of `\QQ` that contains all of the ``n``-th preimage points
+        of a given ``point`` in the map's domain
+
+        Must be dimension 1.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        - ``point`` -- a point in this map's domain
+
+        - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
+          fields and also the resulting number field.
+
+        - ``names`` -- (optional) string to be used as generator for returned number field
+
+        OUTPUT: :class:`NumberField`
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([1/3*x^2 + 2/3*x*y, x^2 - 2*y^2], domain = P)
+            sage: N.<a> = f.field_of_definition_preimage(2, P(1,1), simplify_all = True); N
+            Number Field in a with defining polynomial x^8 - 4*x^7 - 128*x^6 + 398*x^5 + 3913*x^4 - 8494*x^3 - 26250*x^2 + 30564*x - 2916
+
+        ::
+            sage: A.<z> = AffineSpace(QQ, 1)
+            sage: f = DynamicalSystem([z^2], domain = A)
+            sage: K.<a> = f.field_of_definition_preimage(3, A(1)); K
+            Number Field in a with defining polynomial z^4 + 1
+        """
         ds = copy(self)
         if n < 1: 
             raise ValueError('`n` must be >= 1')
@@ -366,5 +467,5 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             #want the polynomial ring not the fraction field
             CR = CR.ring()
         poly = CR(f - g*point[0]).univariate_polynomial()
-        return poly.splitting_field(names)
+        return poly.splitting_field(names, simplify_all = simplify_all)
 

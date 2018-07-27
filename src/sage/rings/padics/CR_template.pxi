@@ -776,7 +776,6 @@ cdef class CRElement(pAdicTemplateElement):
                 ans._normalize()
         return ans
 
-    @coerce_binop
     def _quo_rem(self, _right):
         """
         Quotient with remainder.
@@ -787,7 +786,7 @@ cdef class CRElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R = Zp(3, 5)
-            sage: R(12).quo_rem(R(2))
+            sage: R(12).quo_rem(R(2)) # indirect doctest
             (2*3 + O(3^6), 0)
             sage: R(2).quo_rem(R(12))
             (O(3^5), 2 + O(3^5))
@@ -807,11 +806,11 @@ cdef class CRElement(pAdicTemplateElement):
             True
 
         You can get the same behavior for fields as for rings
-        by using this underscored method::
+        by using integral=True::
 
-            sage: K(12)._quo_rem(K(2))
+            sage: K(12).quo_rem(K(2), integral=True)
             (2*3 + O(3^6), 0)
-            sage: K(2)._quo_rem(K(12))
+            sage: K(2).quo_rem(K(12), integral=True)
             (O(3^5), 2 + O(3^5))
         """
         cdef CRElement right = _right

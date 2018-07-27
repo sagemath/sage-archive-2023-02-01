@@ -877,6 +877,14 @@ cdef class LocalGenericElement(CommutativeRingElement):
             (2*3 + O(3^6), 0)
             sage: K(2).quo_rem(K(12))
             (2*3^-1 + 1 + 3 + 3^2 + 3^3 + O(3^4), 0)
+
+        You can get the same behavior for fields as for rings
+        by using integral=True::
+
+            sage: K(12).quo_rem(K(2), integral=True)
+            (2*3 + O(3^6), 0)
+            sage: K(2).quo_rem(K(12), integral=True)
+            (O(3^5), 2 + O(3^5))
         """
         if other.is_zero():
             raise ZeroDivisionError

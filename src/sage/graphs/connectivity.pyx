@@ -2861,9 +2861,7 @@ class Triconnectivity:
         """
         Pop from estack and return the popped element
         """
-        e = self.e_stack[-1]
-        self.e_stack = self.e_stack[0:-1]
-        return e
+        return self.e_stack.pop()
 
     def __new_component(self, edges=[], type_c=0):
         """
@@ -3308,7 +3306,6 @@ class Triconnectivity:
                 if self.lowpt2[w] >= vnum and self.lowpt1[w] < vnum and \
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair - (self.node_at[self.lowpt1[w]], v)
-
                     # Create a new component and add edges to it
                     comp = Component([],0)
                     if not self.e_stack:
@@ -3354,7 +3351,8 @@ class Triconnectivity:
                         self.graph_copy.add_edge(e_virt)
                         self.virtual_edge_num += 1
                         comp_bond.add_edge(e_virt)
-                        self.in_high[e_virt] = self.in_high[eh]
+                        if eh in self.in_high:
+                            self.in_high[e_virt] = self.in_high[eh]
                         self.degree[v] -= 1
                         self.degree[self.node_at[self.lowpt1[w]]] -= 1
 
@@ -3395,7 +3393,8 @@ class Triconnectivity:
 
                         self.tree_arc[v] = e_virt
                         self.edge_status[e_virt] = 1
-                        self.in_adj[e_virt] = self.in_adj[eh]
+                        if eh in self.in_adj:
+                            self.in_adj[e_virt] = self.in_adj[eh]
                         e_virt_node = LinkedListNode()
                         e_virt_node.set_data(e_virt)
                         self.in_adj[eh] = e_virt_node

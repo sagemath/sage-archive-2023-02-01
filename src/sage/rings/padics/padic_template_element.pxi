@@ -714,6 +714,12 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         This is the `p`-adic element `u` in the same ring so that this
         element is `\pi^v u`, where `\pi` is a uniformizer and `v` is
         the valuation of this element.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: (5*a).unit_part()
+            a + O(5^20)
         """
         raise NotImplementedError
 

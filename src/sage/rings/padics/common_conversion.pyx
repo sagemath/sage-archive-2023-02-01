@@ -401,7 +401,8 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift))
             mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
         elif valshift < 0:
-            raise RuntimeError("Integer should not have negative valuation")
+            mpz_mul(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(-valshift))
+            mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec))
         else:
             mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec))
     elif isinstance(x, Rational):

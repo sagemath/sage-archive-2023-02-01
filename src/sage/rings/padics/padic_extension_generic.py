@@ -465,7 +465,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #        xnew = x - x*delta*(1-q*delta)
     #    return x
 
-    def construction(self):
+    def construction(self, forbid_frac_field=False):
         """
         Returns the functorial construction of this ring, namely,
         the algebraic extension of the base ring defined by the given
@@ -473,6 +473,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
         Also preserves other information that makes this ring unique
         (e.g. precision, rounding, print mode).
+
+        INPUT:
+
+        - ``forbid_frac_field`` -- require a completion functor rather
+          than a fraction field functor.  This is used in the
+          :meth:`sage.rings.padics.local_generic.LocalGeneric.change` method.
 
         EXAMPLES::
 
@@ -483,12 +489,31 @@ class pAdicExtensionGeneric(pAdicGeneric):
             5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
             sage: c(R0) == R
             True
+
+        For a field, by default we return a fraction field functor.
+
+            sage: K.<a> = Qq(25, 8)
+            sage: c, R = K.construction(); R
+            5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
+            sage: c
+            FractionField
+
+        If you prefer an extension functor, you can use the ``forbit_frac_field`` keyword::
+
+            sage: c, R = K.construction(forbid_frac_field=True); R
+            5-adic Field with capped relative precision 8
+            sage: c
+            AlgebraicExtensionFunctor
+            sage: c(R) is K
+            True
         """
-        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
+        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF, FractionField as FF
+        if not forbid_frac_field and self.is_field():
+            return (FF(), self.integer_ring())
         print_mode = self._printer.dict()
         return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
-                    prec=self.precision_cap(), print_mode=self._printer.dict(),
-                    implementation=self._implementation),
+                    precs=[self.precision_cap()], print_mode=self._printer.dict(),
+                    implementations=[self._implementation]),
                 self.base_ring())
 
     #def hasGNB(self):

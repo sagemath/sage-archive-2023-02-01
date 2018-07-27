@@ -1392,7 +1392,7 @@ cdef class FiniteField(Field):
                 if modulus.change_ring(self).is_irreducible():
                     E = GF(self.characteristic()**(modulus.degree()), name=name, modulus=modulus, **kwds)
                 else:
-                    E = Field.extension(self, modulus, name=name, embedding=embedding)
+                    E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
         elif isinstance(modulus, (int, Integer)):
             E = GF(self.order()**modulus, name=name, **kwds)
             if E is self:
@@ -1409,7 +1409,7 @@ cdef class FiniteField(Field):
                 except AssertionError: # coercion already exists
                     pass
         else:
-            E = Field.extension(self, modulus, name=name, embedding=embedding)
+            E = Field.extension(self, modulus, name=name, embedding=embedding, **kwds)
         if map:
             return (E, E.coerce_map_from(self))
         else:

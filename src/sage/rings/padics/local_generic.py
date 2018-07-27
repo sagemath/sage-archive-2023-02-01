@@ -385,7 +385,7 @@ class LocalGeneric(CommutativeRing):
             if 'p' in kwds and kwds['p'] != p:
                 raise ValueError("q does not match p")
             kwds['p'] = p
-        functor, ring = self.construction()
+        functor, ring = self.construction(forbid_frac_field=True)
         functor = copy(functor)
         if 'mode' in kwds and 'show_prec' not in kwds:
             new_type = kwds.get('type', self._prec_type())
@@ -477,7 +477,7 @@ class LocalGeneric(CommutativeRing):
                 baseprec = (prec - 1) // self.relative_e() + 1
                 if baseprec > self.base_ring().precision_cap():
                     kwds['prec'] = baseprec
-                functor.kwds['prec'] = prec
+                functor.precs = [prec]
             from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
             if 'names' in kwds:
                 functor.names = [kwds.pop('names')]

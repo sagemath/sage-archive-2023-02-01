@@ -390,6 +390,8 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
     - ``prime_pow`` -- a PowComputer for the ring.
 
     """
+    cdef mpz_t numer
+
     if PyInt_Check(x):
         x = Integer(x)
     elif isinstance(x, pari_gen):
@@ -410,9 +412,11 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
         elif valshift < 0:
-            mpz_divexact(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(-valshift))
-            mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec))
-            mpz_mul(out, out, mpq_numref((<Rational>x).value))
+            numer = mpq_numref((<Rational>x).value)
+            mpz_mul(numer, numer, prime_pow.pow_mpz_t_tmp(-valshift))
+            mpq_canonicalize((<Rational>x).value)
+            mpz_invert(out, numer, prime_pow.pow_mpz_t_tmp(prec))
+            mpz_mul(out, out, numer)
         else:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_divexact(temp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))

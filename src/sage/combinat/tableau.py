@@ -8289,12 +8289,12 @@ class IncreasingTableaux(Tableaux):
         Increasing tableaux of size 3 and maximum entry 3
         sage: IT.list()
         [[[1, 2, 3]],
-        [[1, 3], [2]],
-        [[1, 2], [3]],
-        [[1, 2], [2]],
-        [[1, 3], [3]],
-        [[2, 3], [3]],
-        [[1], [2], [3]]]
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[1, 2], [2]],
+         [[1, 3], [3]],
+         [[2, 3], [3]],
+         [[1], [2], [3]]]
 
         sage: IT = IncreasingTableaux(3, max_entry=2); IT
         Increasing tableaux of size 3 and maximum entry 2
@@ -8305,27 +8305,27 @@ class IncreasingTableaux(Tableaux):
         Increasing tableaux of size 3 and maximum entry 4
         sage: IT.list()
         [[[1, 2, 3]],
-        [[1, 2, 4]],
-        [[1, 3, 4]],
-        [[2, 3, 4]],
-        [[1, 3], [2]],
-        [[1, 2], [3]],
-        [[1, 4], [2]],
-        [[1, 2], [4]],
-        [[1, 2], [2]],
-        [[1, 4], [3]],
-        [[1, 3], [4]],
-        [[1, 3], [3]],
-        [[1, 4], [4]],
-        [[2, 4], [3]],
-        [[2, 3], [4]],
-        [[2, 3], [3]],
-        [[2, 4], [4]],
-        [[3, 4], [4]],
-        [[1], [2], [3]],
-        [[1], [2], [4]],
-        [[1], [3], [4]],
-        [[2], [3], [4]]]
+         [[1, 2, 4]],
+         [[1, 3, 4]],
+         [[2, 3, 4]],
+         [[1, 3], [2]],
+         [[1, 2], [3]],
+         [[1, 4], [2]],
+         [[1, 2], [4]],
+         [[1, 2], [2]],
+         [[1, 4], [3]],
+         [[1, 3], [4]],
+         [[1, 3], [3]],
+         [[1, 4], [4]],
+         [[2, 4], [3]],
+         [[2, 3], [4]],
+         [[2, 3], [3]],
+         [[2, 4], [4]],
+         [[3, 4], [4]],
+         [[1], [2], [3]],
+         [[1], [2], [4]],
+         [[1], [3], [4]],
+         [[2], [3], [4]]]
 
         sage: IT = IncreasingTableaux(3, max_entry=oo); IT
         Increasing tableaux of size 3
@@ -8539,7 +8539,7 @@ class IncreasingTableaux(Tableaux):
 
         EXAMPLES::
 
-            sage: S = SemistandardTableaux()
+            sage: S = IncreasingTableaux()
             sage: TestSuite(S).run()
         """
         if 'max_entry' in kwds:
@@ -8556,63 +8556,62 @@ class IncreasingTableaux(Tableaux):
 
         EXAMPLES::
 
-            sage: StandardTableaux([4,3,3,2])[10:20]     # indirect doctest
-            [[[1, 3, 9, 12], [2, 5, 10], [4, 6, 11], [7, 8]],
-             [[1, 2, 9, 12], [3, 5, 10], [4, 6, 11], [7, 8]],
-             [[1, 3, 9, 12], [2, 4, 10], [5, 6, 11], [7, 8]],
-             [[1, 2, 9, 12], [3, 4, 10], [5, 6, 11], [7, 8]],
-             [[1, 5, 8, 12], [2, 6, 10], [3, 7, 11], [4, 9]],
-             [[1, 4, 8, 12], [2, 6, 10], [3, 7, 11], [5, 9]],
-             [[1, 3, 8, 12], [2, 6, 10], [4, 7, 11], [5, 9]],
-             [[1, 2, 8, 12], [3, 6, 10], [4, 7, 11], [5, 9]],
-             [[1, 4, 8, 12], [2, 5, 10], [3, 7, 11], [6, 9]],
-             [[1, 3, 8, 12], [2, 5, 10], [4, 7, 11], [6, 9]]]
+            sage: IncreasingTableaux([4,3,3,2])[10:20]     # indirect doctest
+            [[[1, 5, 8, 10], [2, 6, 9], [3, 7, 12], [4, 11]],
+             [[1, 5, 8, 10], [2, 6, 9], [3, 7, 11], [4, 12]],
+             [[1, 5, 8, 9], [2, 6, 11], [3, 7, 12], [4, 10]],
+             [[1, 5, 8, 9], [2, 6, 10], [3, 7, 12], [4, 11]],
+             [[1, 5, 8, 9], [2, 6, 10], [3, 7, 11], [4, 12]],
+             [[1, 5, 7, 12], [2, 6, 10], [3, 8, 11], [4, 9]],
+             [[1, 5, 7, 11], [2, 6, 10], [3, 8, 12], [4, 9]],
+             [[1, 5, 7, 10], [2, 6, 11], [3, 8, 12], [4, 9]],
+             [[1, 5, 7, 12], [2, 6, 9], [3, 8, 11], [4, 10]],
+             [[1, 5, 7, 11], [2, 6, 9], [3, 8, 12], [4, 10]]]
 
-            sage: SemistandardTableaux(size=2, max_entry=oo)[5]
-            [[2, 3]]
+            sage: IncreasingTableaux(size=2, max_entry=oo)[5]
+            [[2], [3]]
 
-            sage: SemistandardTableaux([2,1], max_entry=oo)[3]
-            [[1, 2], [3]]
+            sage: IncreasingTableaux([2,1], max_entry=oo)[3]
+            [[1, 2], [4]]
 
-            sage: SemistandardTableaux(3, max_entry=2)[0:5]    # indirect doctest
-            [[[1, 1, 1]],
-            [[1, 1, 2]],
-            [[1, 2, 2]],
-            [[2, 2, 2]],
-            [[1, 1], [2]]]
+            sage: IncreasingTableaux(3, max_entry=4)[0:5]    # indirect doctest
+            [[[1, 2, 3]], [[1, 2, 4]], [[1, 3, 4]], [[2, 3, 4]], [[1, 3], [2]]]
 
-            sage: SemistandardTableaux([2,2], [2, 1, 1])[0]    # indirect doctest
-            [[1, 1], [2, 3]]
+            sage: IncreasingTableaux([2,2], (1,0,1,1,1))[0]    # indirect doctest
+            [[1, 4], [3, 5]]
 
-            sage: SemistandardTableaux([1,1,1], max_entry=4)[0:4]
-            [[[1], [2], [3]],
-             [[1], [2], [4]],
-             [[1], [3], [4]],
-             [[2], [3], [4]]]
+            sage: IncreasingTableaux([1,1,1], max_entry=4)[0:4]
+            [[[1], [2], [3]], [[1], [2], [4]], [[1], [3], [4]], [[2], [3], [4]]]
 
-            sage: SemistandardTableaux(3, [2,1])[1]    # indirect doctest
-            [[1, 1], [2]]
+            sage: IncreasingTableaux(3, (1,0,1,1))[1]    # indirect doctest
+            [[1, 4], [3]]
 
-            sage: StandardTableaux(3)[:]  # indirect doctest
-            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]]]
+            sage: IncreasingTableaux(3)[:]  # indirect doctest
+            [[[1, 2, 3]],
+             [[1, 3], [2]],
+             [[1, 2], [3]],
+             [[1, 2], [2]],
+             [[1, 3], [3]],
+             [[2, 3], [3]],
+             [[1], [2], [3]]]
 
-            sage: StandardTableaux([2,2])[1]   # indirect doctest
+            sage: IncreasingTableaux([2,2])[1]   # indirect doctest
             [[1, 2], [3, 4]]
 
         TESTS::
 
-            sage: SemistandardTableaux()[5]
-            [[1], [2]]
+            sage: IncreasingTableaux()[5]
+            [[1, 3], [2]]
 
-            sage: SemistandardTableaux(max_entry=2)[5]
-            [[2, 2]]
+            sage: IncreasingTableaux(max_entry=4)[5]
+            []
 
-            sage: SemistandardTableaux()[:]
+            sage: IncreasingTableaux()[:]
             Traceback (most recent call last):
             ...
             ValueError: infinite set
 
-            sage: SemistandardTableaux(size=2, max_entry=oo)[:]
+            sage: IncreasingTableaux(size=2, max_entry=oo)[:]
             Traceback (most recent call last):
             ...
             ValueError: infinite set

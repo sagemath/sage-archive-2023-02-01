@@ -33,7 +33,6 @@ REFERENCES:
 #*****************************************************************************
 from __future__ import print_function
 
-from six import itervalues
 from six.moves import range
 
 import itertools
@@ -1309,7 +1308,7 @@ class ClusterSeed(SageObject):
             (x0*x2 + x1 + 1)/(x0*x1)
         """
         if self._use_fpolys:
-            IE = list(itervalues(self._init_exch))
+            IE = list(self._init_exch.values())
             if (k in range(self._n)) or (k in IE):
                 if k in range(self._n):
                     pass
@@ -1382,7 +1381,7 @@ class ClusterSeed(SageObject):
             y0 + 1
         """
         if self._use_fpolys:
-            IE = list(itervalues(self._init_exch))
+            IE = list(self._init_exch.values())
         else:
             IE = []
 
@@ -1435,7 +1434,7 @@ class ClusterSeed(SageObject):
             [y0 + 1, 1]
         """
         if self._use_fpolys:
-            IE = list(itervalues(self._init_exch))
+            IE = list(self._init_exch.values())
             if k in range(self._n):
                 pass
             elif k in IE:

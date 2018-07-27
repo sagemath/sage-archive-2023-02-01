@@ -8044,7 +8044,7 @@ class IncreasingTableau(Tableau):
                         if i not in ans:
                             ans.append(i)
         return ans
-    
+
     @combinatorial_map(order=2,name='K-Bender-Knuth involution')
     def K_BenderKnuth(self,i):
         """
@@ -8093,7 +8093,7 @@ class IncreasingTableau(Tableau):
                 else:
                     newtab[r][c] = i
         return IncreasingTableau(newtab)
-    
+
     @combinatorial_map(name='K-promotion')
     def K_promotion(self,ceiling=None):
         """
@@ -8121,7 +8121,7 @@ class IncreasingTableau(Tableau):
         for i in range(1,ceiling):
             ans = ans.K_BenderKnuth(i)
         return ans
-    
+
     @combinatorial_map(name='K-promotion inverse')
     def K_promotion_inverse(self,ceiling=None):
         """
@@ -8138,7 +8138,7 @@ class IncreasingTableau(Tableau):
             sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
             sage: U.K_promotion_inverse()
             [[1, 2, 4], [2, 4, 5], [4]]
-            
+
         TESTS::
 
             sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
@@ -8157,7 +8157,7 @@ class IncreasingTableau(Tableau):
         for i in reversed(range(1,ceiling)):
             ans = ans.K_BenderKnuth(i)
         return ans
-    
+
     @combinatorial_map(order=2,name='K-evacuation')
     def K_evacuation(self,ceiling=None):
         """
@@ -8174,7 +8174,7 @@ class IncreasingTableau(Tableau):
             sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
             sage: U.K_evacuation()
             [[1, 2, 3], [2, 3, 5], [3]]
-            
+
         TESTS::
 
             sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
@@ -8194,7 +8194,7 @@ class IncreasingTableau(Tableau):
             for i in range(1,j+1):
                 ans = ans.K_BenderKnuth(i)
         return ans
-    
+
     @combinatorial_map(order=2,name='dual K-evacuation')
     def dual_K_evacuation(self,ceiling=None):
         """
@@ -8211,7 +8211,7 @@ class IncreasingTableau(Tableau):
             sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
             sage: U.dual_K_evacuation()
             [[1, 2, 3], [2, 3, 5], [3]]
-            
+
         TESTS::
 
             sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
@@ -8237,14 +8237,14 @@ class IncreasingTableau(Tableau):
             for i in reversed(range(j,ceiling)):
                 ans = ans.K_BenderKnuth(i)
         return ans
-        
+
 
 ##########################
 # Increasing tableaux #
 ##########################
 class IncreasingTableaux(Tableaux):
     """
-    A factory class for the various classes of semistandard tableaux.
+    A factory class for the various classes of increasing tableaux.
 
     INPUT:
 
@@ -8252,7 +8252,7 @@ class IncreasingTableaux(Tableaux):
 
     - ``size`` -- The size of the tableaux
     - ``shape`` -- The shape of the tableaux
-    - ``eval`` -- The weight (also called content or evaluation) of
+    - ``eval`` -- The weight (also called binary content) of
       the tableaux
     - ``max_entry`` -- A maximum entry for the tableaux.  This can be a
       positive integer or infinity (``oo``). If ``size`` or ``shape`` are
@@ -8270,152 +8270,156 @@ class IncreasingTableaux(Tableaux):
     - The appropriate class, after checking basic consistency tests. (For
       example, specifying ``eval`` implies a value for `max_entry`).
 
-    A semistandard tableau is a tableau whose entries are positive integers,
-    which are weakly increasing in rows and strictly increasing down columns.
+    An increasing tableau is a tableau whose entries are positive integers,
+    which are strictly increasing across rows and strictly increasing down columns.
     Note that Sage uses the English convention for partitions and tableaux;
     the longer rows are displayed on top.
 
-    Classes of semistandard tableaux can be iterated over if and only if there
+    Classes of increasing tableaux can be iterated over if and only if there
     is some restriction.
 
     EXAMPLES::
 
-        sage: SST = SemistandardTableaux([2,1]); SST
-        Semistandard tableaux of shape [2, 1] and maximum entry 3
-        sage: SST.list()
-        [[[1, 1], [2]],
-         [[1, 1], [3]],
-         [[1, 2], [2]],
-         [[1, 2], [3]],
-         [[1, 3], [2]],
-         [[1, 3], [3]],
-         [[2, 2], [3]],
-         [[2, 3], [3]]]
+        sage: IT = IncreasingTableaux([2,1]); IT
+        Increasing tableaux of shape [2, 1] and maximum entry 3
+        sage: IT.list()
+        [[[1, 3], [2]], [[1, 2], [3]], [[1, 2], [2]], [[1, 3], [3]], [[2, 3], [3]]]
 
-        sage: SST = SemistandardTableaux(3); SST
-        Semistandard tableaux of size 3 and maximum entry 3
-        sage: SST.list()
-        [[[1, 1, 1]],
-         [[1, 1, 2]],
-         [[1, 1, 3]],
-         [[1, 2, 2]],
-         [[1, 2, 3]],
-         [[1, 3, 3]],
-         [[2, 2, 2]],
-         [[2, 2, 3]],
-         [[2, 3, 3]],
-         [[3, 3, 3]],
-         [[1, 1], [2]],
-         [[1, 1], [3]],
-         [[1, 2], [2]],
-         [[1, 2], [3]],
-         [[1, 3], [2]],
-         [[1, 3], [3]],
-         [[2, 2], [3]],
-         [[2, 3], [3]],
-         [[1], [2], [3]]]
+        sage: IT = IncreasingTableaux(3); IT
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: IT.list()
+        [[[1, 2, 3]],
+        [[1, 3], [2]],
+        [[1, 2], [3]],
+        [[1, 2], [2]],
+        [[1, 3], [3]],
+        [[2, 3], [3]],
+        [[1], [2], [3]]]
 
-        sage: SST = SemistandardTableaux(3, max_entry=2); SST
-        Semistandard tableaux of size 3 and maximum entry 2
-        sage: SST.list()
-        [[[1, 1, 1]],
-         [[1, 1, 2]],
-         [[1, 2, 2]],
-         [[2, 2, 2]],
-         [[1, 1], [2]],
-         [[1, 2], [2]]]
+        sage: IT = IncreasingTableaux(3, max_entry=2); IT
+        Increasing tableaux of size 3 and maximum entry 2
+        sage: IT.list()
+        [[[1, 2], [2]]]
 
-        sage: SST = SemistandardTableaux(3, max_entry=oo); SST
-        Semistandard tableaux of size 3
-        sage: SST[123]
-        [[3, 4], [6]]
+        sage: IT = IncreasingTableaux(3, max_entry=4); IT
+        Increasing tableaux of size 3 and maximum entry 4
+        sage: IT.list()
+        [[[1, 2, 3]],
+        [[1, 2, 4]],
+        [[1, 3, 4]],
+        [[2, 3, 4]],
+        [[1, 3], [2]],
+        [[1, 2], [3]],
+        [[1, 4], [2]],
+        [[1, 2], [4]],
+        [[1, 2], [2]],
+        [[1, 4], [3]],
+        [[1, 3], [4]],
+        [[1, 3], [3]],
+        [[1, 4], [4]],
+        [[2, 4], [3]],
+        [[2, 3], [4]],
+        [[2, 3], [3]],
+        [[2, 4], [4]],
+        [[3, 4], [4]],
+        [[1], [2], [3]],
+        [[1], [2], [4]],
+        [[1], [3], [4]],
+        [[2], [3], [4]]]
 
-        sage: SemistandardTableaux(max_entry=2)[11]
-        [[1, 1], [2]]
+        sage: IT = IncreasingTableaux(3, max_entry=oo); IT
+        Increasing tableaux of size 3
+        sage: IT[123]
+        [[5, 7], [6]]
 
-        sage: SemistandardTableaux()[0]
+        sage: IncreasingTableaux(max_entry=2)[7]
+        [[1], [2]]
+
+        sage: IncreasingTableaux()[0]
         []
 
     .. SEEALSO::
 
         - :class:`Tableaux`
         - :class:`Tableau`
+        - :class:`SemistandardTableaux`
         - :class:`SemistandardTableau`
         - :class:`StandardTableaux`
         - :class:`StandardTableau`
+        - :class:`IncreasingTableau`
     """
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
         r"""
         This is a factory class which returns the appropriate parent based on
-        arguments.  See the documentation for :class:`SemistandardTableaux`
+        arguments.  See the documentation for :class:`IncreasingTableaux`
         for more information.
 
         TESTS::
 
-            sage: SemistandardTableaux()
-            Semistandard tableaux
-            sage: SemistandardTableaux(3)
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: SemistandardTableaux(size=3)
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: SemistandardTableaux(0)
-            Semistandard tableaux of size 0 and maximum entry 0
-            sage: SemistandardTableaux([2,1])
-            Semistandard tableaux of shape [2, 1] and maximum entry 3
-            sage: SemistandardTableaux(shape=[2,1])
-            Semistandard tableaux of shape [2, 1] and maximum entry 3
-            sage: SemistandardTableaux([])
-            Semistandard tableaux of shape [] and maximum entry 0
-            sage: SemistandardTableaux(eval=[2,1])
-            Semistandard tableaux of size 3 and weight [2, 1]
-            sage: SemistandardTableaux(max_entry=3)
-            Semistandard tableaux with maximum entry 3
-            sage: SemistandardTableaux(3, [2,1])
-            Semistandard tableaux of size 3 and weight [2, 1]
-            sage: SemistandardTableaux(3, shape=[2,1])
-            Semistandard tableaux of shape [2, 1] and maximum entry 3
-            sage: SemistandardTableaux(3, [2,1], shape=[2,1])
-            Semistandard tableaux of shape [2, 1] and weight [2, 1]
-            sage: SemistandardTableaux(3, max_entry=4)
-            Semistandard tableaux of size 3 and maximum entry 4
-            sage: SemistandardTableaux(3, max_entry=oo)
-            Semistandard tableaux of size 3
-            sage: SemistandardTableaux([2, 1], max_entry=oo)
-            Semistandard tableaux of shape [2, 1]
-            sage: SemistandardTableaux([2, 1], [2, 1])
-            Semistandard tableaux of shape [2, 1] and weight [2, 1]
-            sage: mu = Partition([2,1]); SemistandardTableaux(mu, mu)
-            Semistandard tableaux of shape [2, 1] and weight [2, 1]
-            sage: SemistandardTableaux(3, [2, 1], max_entry=2)
-            Semistandard tableaux of size 3 and weight [2, 1]
+            sage: IncreasingTableaux()
+            Increasing tableaux
+            sage: IncreasingTableaux(3)
+            Increasing tableaux of size 3 and maximum entry 3
+            sage: IncreasingTableaux(size=3)
+            Increasing tableaux of size 3 and maximum entry 3
+            sage: IncreasingTableaux(0)
+            Increasing tableaux of size 0 and maximum entry 0
+            sage: IncreasingTableaux([2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+            sage: IncreasingTableaux(shape=[2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+            sage: IncreasingTableaux([])
+            Increasing tableaux of shape [] and maximum entry 0
+            sage: IncreasingTableaux(eval=(1,0,1))
+            Increasing tableaux of size 2 and weight (1, 0, 1)
+            sage: IncreasingTableaux(max_entry=3)
+            Increasing tableaux with maximum entry 3
+            sage: IncreasingTableaux(3, (1,0,1))
+            Increasing tableaux of size 3 and weight (1, 0, 1)
+            sage: IncreasingTableaux(3, shape=[2,1])
+            Increasing tableaux of shape [2, 1] and maximum entry 3
+            sage: IncreasingTableaux(3, (1,0,1), shape=[2,1])
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+            sage: IncreasingTableaux(3, max_entry=4)
+            Increasing tableaux of size 3 and maximum entry 4
+            sage: IncreasingTableaux(3, max_entry=oo)
+            Increasing tableaux of size 3
+            sage: IncreasingTableaux([2, 1], max_entry=oo)
+            Increasing tableaux of shape [2, 1]
+            sage: IncreasingTableaux([2, 1], (1,0,1))
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+            sage: mu = Partition([2,1]); IncreasingTableaux(mu, (1,0,1))
+            Increasing tableaux of shape [2, 1] and weight (1, 0, 1)
+            sage: IncreasingTableaux(3, (1,0,1), max_entry=3)
+            Increasing tableaux of size 3 and weight (1, 0, 1)
 
-            sage: SemistandardTableaux(3, shape=[2])
+            sage: IncreasingTableaux(3, shape=[2])
             Traceback (most recent call last):
             ...
             ValueError: size and shape are different sizes
 
-            sage: SemistandardTableaux(3, [2])
+            sage: IncreasingTableaux(3, (1,0,1,1,1))
             Traceback (most recent call last):
             ...
-            ValueError: size and eval are different sizes
+            ValueError: size is smaller than the number of labels
 
-            sage: SemistandardTableaux([2],[3])
+            sage: IncreasingTableaux([2],(1,0,1,1))
             Traceback (most recent call last):
             ...
-            ValueError: shape and eval are different sizes
+            ValueError: number of boxes is smaller than the number of labels
 
-            sage: SemistandardTableaux(2,[2], max_entry=4)
-            Traceback (most recent call last):
-            ...
-            ValueError: the maximum entry must match the weight
-
-            sage: SemistandardTableaux(eval=[2], max_entry=oo)
+            sage: IncreasingTableaux(2,(1,0,1), max_entry=4)
             Traceback (most recent call last):
             ...
             ValueError: the maximum entry must match the weight
 
-            sage: SemistandardTableaux([[1]])
+            sage: IncreasingTableaux(eval=(1,0,1), max_entry=oo)
+            Traceback (most recent call last):
+            ...
+            ValueError: the maximum entry must match the weight
+
+            sage: IncreasingTableaux([[1]])
             Traceback (most recent call last):
             ...
             ValueError: shape must be a (skew) partition
@@ -8488,7 +8492,7 @@ class IncreasingTableaux(Tableaux):
                 raise ValueError( "max_entry must be positive" )
 
         if (wt is not None) and (max_entry is not None):
-            if max_entry != len(wt) - 1 - wt[::-1].index(1):
+            if max_entry != len(wt)  - wt[::-1].index(1): #oops
                 raise ValueError( "the maximum entry must match the weight" )
 
         if (size is not None) and (shape is not None):
@@ -8513,6 +8517,9 @@ class IncreasingTableaux(Tableaux):
             if is_inf:
                 return IncreasingTableaux_shape_inf(shape)
             return IncreasingTableaux_shape(shape, max_entry)
+
+        if (wt is not None) and (size is not None):
+            return IncreasingTableaux_size_weight(size, wt)
 
         if (wt is not None):
             return IncreasingTableaux_size_weight(sum(wt), wt)
@@ -9338,41 +9345,44 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             sage: sst[0].parent() is sst
             True
         """
-        tab = Tableau([[0] * k for k in self.shape])
-        wt = self.weight
-        list_of_partial_inc_tabs = [tab]
-        list_of_inc_tabs = []
-        while list_of_partial_inc_tabs != []:
-            active_tab = list_of_partial_inc_tabs.pop()
-            unfilled_spots = []
-            for (r,c) in active_tab.cells():
-                if active_tab[r][c] == 0:
-                    unfilled_spots.append((r,c))
-            if unfilled_spots == []:
-                top_value = max(active_tab.entries())
-                if top_value == len(wt) - wt[::-1].index(1):
-                    list_of_inc_tabs.append(IncreasingTableau(active_tab))
-                continue
-            growth_spots = []
-            for (r,c) in unfilled_spots:
-                if (r-1,c) not in active_tab.cells() or active_tab[r-1][c] != 0:
-                    if (r,c-1) not in active_tab.cells() or active_tab[r][c-1] != 0:
-                        growth_spots.append((r,c))
-            growth_choices = list(powerset(growth_spots))
-            top_value = max(active_tab.entries())
-            try:
-                growth_num = wt[top_value:].index(1) + top_value + 1
-            except ValueError:
-                continue
-            for growth_choice in growth_choices[1:]:
-                new_tab = [[0] * k for k in self.shape]
+        if self.shape != []:
+            tab = Tableau([[0] * k for k in self.shape])
+            wt = self.weight
+            list_of_partial_inc_tabs = [tab]
+            list_of_inc_tabs = []
+            while list_of_partial_inc_tabs != []:
+                active_tab = list_of_partial_inc_tabs.pop()
+                unfilled_spots = []
                 for (r,c) in active_tab.cells():
-                    new_tab[r][c] = active_tab[r][c]
-                for (r,c) in growth_choice:
-                    new_tab[r][c] = growth_num
-                list_of_partial_inc_tabs.append(Tableau(new_tab))
-        for inctab in list_of_inc_tabs:
-            yield inctab
+                    if active_tab[r][c] == 0:
+                        unfilled_spots.append((r,c))
+                if unfilled_spots == []:
+                    top_value = max(active_tab.entries())
+                    if top_value == len(wt) - wt[::-1].index(1):
+                        list_of_inc_tabs.append(IncreasingTableau(active_tab))
+                    continue
+                growth_spots = []
+                for (r,c) in unfilled_spots:
+                    if (r-1,c) not in active_tab.cells() or active_tab[r-1][c] != 0:
+                        if (r,c-1) not in active_tab.cells() or active_tab[r][c-1] != 0:
+                            growth_spots.append((r,c))
+                growth_choices = list(powerset(growth_spots))
+                top_value = max(active_tab.entries())
+                try:
+                    growth_num = wt[top_value:].index(1) + top_value + 1
+                except ValueError:
+                    continue
+                for growth_choice in growth_choices[1:]:
+                    new_tab = [[0] * k for k in self.shape]
+                    for (r,c) in active_tab.cells():
+                        new_tab[r][c] = active_tab[r][c]
+                    for (r,c) in growth_choice:
+                        new_tab[r][c] = growth_num
+                    list_of_partial_inc_tabs.append(Tableau(new_tab))
+            for inctab in list_of_inc_tabs:
+                yield inctab
+        else:
+            yield IncreasingTableau([])
 
 
     def cardinality(self):

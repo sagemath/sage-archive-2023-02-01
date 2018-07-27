@@ -171,6 +171,8 @@ Comprehensive Module list
     sage/combinat/ordered_tree
     sage/combinat/output
     sage/combinat/parking_functions
+    sage/combinat/pathtableau/catalan
+    sage/combinat/pathtableau/pathtableaux
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra

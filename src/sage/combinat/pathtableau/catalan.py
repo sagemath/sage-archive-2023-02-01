@@ -1,5 +1,8 @@
 r"""
-This is an implementation of the abstract base class PathTableaux.
+Catalan Tableaux
+
+This is an implementation of the abstract base class
+:class:`sage.combinat.pathtableau.pathtableaux`.
 This is the simplest implementation of PathTableaux and is included to
 provide a convenient test case and for pedagogical purposes.
 
@@ -76,13 +79,14 @@ EXAMPLES::
 class CatalanTableau(PathTableau):
     """
     An instance is the sequence of nonnegative
-    integers given by the heights of a Dyck word. The acceptable inputs
-    are:
+    integers given by the heights of a Dyck word.
 
-    - a sequence of nonnegative integers
-    - a two row standard skew tableau
-    - a Dyck word
-    - a noncrossing perfect matching
+    INPUT:
+
+        - a sequence of nonnegative integers
+        - a two row standard skew tableau
+        - a Dyck word
+        - a noncrossing perfect matching
 
     EXAMPLES::
 
@@ -145,10 +149,10 @@ class CatalanTableau(PathTableau):
 
     def check(self):
         """
-        This overwrites the abstract method.
+        Overwrites the abstract method.
 
         This checks that heights are nonnegative and that succesive heights
-        differ by +1 or -1.
+        differ by `+1` or `-1`.
 
         EXAMPLES::
 
@@ -176,13 +180,13 @@ class CatalanTableau(PathTableau):
     @staticmethod
     def _rule_(x):
         """
-        This overwrites the abstract method.
+        Overwrites the abstract method.
         """
         return abs(x[0]-x[1]+x[2])
 
     def is_skew(self):
         """
-        Returns True if Tableau is skew and False if not.
+        Return ``True`` if ``self`` is skew and ``False`` if not.
 
         EXAMPLES::
 
@@ -197,7 +201,7 @@ class CatalanTableau(PathTableau):
 
     def descents(self):
         """
-        Returns the descent set.
+        Return the descent set of ``self``.
 
         EXAMPLES::
 
@@ -215,7 +219,7 @@ class CatalanTableau(PathTableau):
 
     def to_word(self):
         """
-        Converts to a word in the alphabet 0,1
+        Return the word in the alphabet `\{0,1\}` associated to ``self``.
 
         EXAMPLES::
 
@@ -227,7 +231,7 @@ class CatalanTableau(PathTableau):
 
     def to_perfect_matching(self):
         """
-        This converts to a perfect matching.
+        Return the perfect matching associated to ``self``.
 
         EXAMPLES::
 
@@ -245,7 +249,7 @@ class CatalanTableau(PathTableau):
 
     def to_tableau(self):
         """
-        Converts to a skew tableau.
+        Return the skew tableau associated to ``self``.
         """
         w = self.to_word()
         top = [ i for i, a in enumerate(w) if a == 1 ]
@@ -254,7 +258,7 @@ class CatalanTableau(PathTableau):
 
     def draw(self):
         """
-        This draws the Dyck path.
+        Return the Dyck path associated to ``self``.
         """
         return line([ (i,a) for i, a in enumerate(self)])
 

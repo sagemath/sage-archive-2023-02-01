@@ -1,4 +1,6 @@
 r"""
+Path Tableaux
+
 This is an abstract base class for using local rules to construct rectification
 and the action of the cactus group. This is an effective version
 of the Henriques-Kamnitzer construction of the action of the cactus
@@ -51,19 +53,19 @@ class PathTableau(ClonableList):
 
     def size(self):
         """
-        Returns the size or length.
+        Return the size or length.
         """
         return len(self)
 
     def initial_shape(self):
         """
-        Returns the initial shape.
+        Return the initial shape.
         """
         return self[0]
 
     def final_shape(self):
         """
-        Returns the final shape.
+        Return the final shape.
         """
         return self[-1]
 
@@ -73,9 +75,9 @@ class PathTableau(ClonableList):
         """
         This is the local that is used for the remaining constructions.
         This has input a list of objects. This method first takes
-        the list of objects of length three consisting of the $(i-1)$-st,
-        $i$-th and $(i+1)$-term and applies the rule. It then replaces
-        the $i$-th object  by the object returned by the rule.
+        the list of objects of length three consisting of the `(i-1)`-st,
+        `i`-th and `(i+1)`-term and applies the rule. It then replaces
+        the `i`-th object  by the object returned by the rule.
         """
         if not (i > 0 and i < len(self) ):
             raise ValueError("%d is not a valid integer" % i)
@@ -87,7 +89,9 @@ class PathTableau(ClonableList):
 
     def promotion(self):
         """
-        The promotion operator. This is given by a two row diagram.
+        Return the promotion operator applied to ``self``.
+
+        This is given by a two row diagram.
         """
         result = list(self)
         for i in range(1,len(result)-1):
@@ -96,11 +100,17 @@ class PathTableau(ClonableList):
 
     def evacuation(self):
         """
-        The evacuation operator. This is given by a triangular diagram.
+        Return the evacuation operator applied to ``self``.
 
-        INPUT: A pathtableau
+        This is given by a triangular diagram.
 
-        OUTPUT: A pathtableau
+        INPUT:
+
+            - A pathtableau
+
+        OUTPUT:
+
+            - A pathtableau
 
         The output will have the same length, initial shape, and final shape as the input.
 
@@ -127,10 +137,10 @@ class PathTableau(ClonableList):
 
     def path_rule(self,other,display=False):
         """
-        This constructs the commutor of a pair of tableaux.
-        This is given by a rectangular diagram.
+        Return the commutor of ``self`` with ``other``
 
-        If display=True then the function will print
+        This is given by a rectangular diagram.
+        If ``display=True`` then the function will print
         the rectangle.
         """
         n = len(self)
@@ -160,15 +170,20 @@ class PathTableau(ClonableList):
 
     def cactus(self,i,j):
         """
-        This constructs the action of the generators of the cactus group.
+        Return the action of the generators of the cactus group on ``self``.
         These generators are involutions and are usually denoted by
-        $s_{i,\,j$}$.
+        `s_{i,j}`.
 
-        INPUT: A pathtableau, i >0, j >i
+        INPUT:
 
-        OUTPUT: A pathtableau
+            - A pathtableau, with `i >0` and `j >i`
 
-        The output will have the same length, initial shape, and final shape as the input.
+        OUTPUT:
+
+            - A pathtableau
+
+        The output will have the same length, initial shape, and final shape
+        as the input.
 
         EXAMPLES::
 
@@ -205,11 +220,12 @@ class PathTableau(ClonableList):
 
     def cylindrical_diagram(self):
         """
-        This constructs the cylindrical growth diagram. This provides
-        a visual summary of several operations simultaneously. The
-        operations which can be read off directly from this diagram
+        Return the cylindrical growth diagram associated to ``self``.
+
+        This provides a visual summary of several operations simultaneously.
+        The operations which can be read off directly from this diagram
         are the powers of the promotion operator (which form the rows)
-        and the cactus group operators $s_{1,\,j$}$ (which form the
+        and the cactus group operators `s_{1,j}` (which form the
         first half of the columns).
 
         EXAMPLES::
@@ -235,8 +251,7 @@ class PathTableau(ClonableList):
 
     def _test_involution_rule(self, **options):
         """
-        This is to check that the local rule gives an involution.
-        This is crucial.
+        Check that the local rule gives an involution.
 
         TESTS::
 
@@ -250,8 +265,7 @@ class PathTableau(ClonableList):
 
     def _test_involution_cactus(self, **options):
         """
-        This is to check that the cactus group generators are
-        involutions.
+        Check that the cactus group generators are involutions.
 
         TESTS::
 
@@ -264,8 +278,7 @@ class PathTableau(ClonableList):
 
     def _test_promotion(self, **options):
         """
-        Promotion can be expressed in terms of the cactus generators.
-        Here we check this relation.
+        Check that promotion can be expressed in terms of the cactus generators.
 
         TESTS::
 
@@ -279,8 +292,7 @@ class PathTableau(ClonableList):
 
     def _test_commutation(self, **options):
         """
-        This is to check the commutation relations in the presentation
-        of the cactus group.
+        Check the commutation relations in the presentation of the cactus group.
         """
         from itertools import combinations
         tester = self._tester(**options)
@@ -295,8 +307,7 @@ class PathTableau(ClonableList):
 
     def _test_coboundary(self, **options):
         """
-        This is to check the coboundary relations in the presentation
-        of the cactus group.
+        Check the coboundary relations in the presentation of the cactus group.
 
         EXAMPLES::
 
@@ -315,7 +326,7 @@ class PathTableau(ClonableList):
 
     def orbit(self):
         """
-        Constructs the orbit under the action of the cactus group.
+        Return the orbit under the action of the cactus group.
 
         EXAMPLES::
 
@@ -345,12 +356,12 @@ class PathTableau(ClonableList):
 
     def dual_equivalence_graph(self):
         """
-        This constructs the graph with vertices the orbit of self
+        Return the graph with vertices the orbit of ``self``
         and edges given by the action of the cactus group generators.
 
-        In most implementations the generators $s_{i,\,i+1}$ will act
+        In most implementations the generators `s_{i,i+1}` will act
         as the identity operators. The usual dual equivalence graphs
-        are given by replacing the label $i,i+2$ by $i$ and removing
+        are given by replacing the label `i,i+2` by `i` and removing
         edges with other labels.
 
         EXAMPLES::

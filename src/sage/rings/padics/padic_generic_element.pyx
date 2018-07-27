@@ -502,7 +502,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a % b
             3 + O(5^20)
         """
-        return self._quo_rem(right, integral=True)[1]
+        return self._quo_rem(right)[1]
 
     #def _is_exact_zero(self):
     #    return False

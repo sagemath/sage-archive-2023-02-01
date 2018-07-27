@@ -884,7 +884,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: K(12).quo_rem(K(2), integral=True)
             (2*3 + O(3^6), 0)
             sage: K(2).quo_rem(K(12), integral=True)
-            (O(3^5), 2 + O(3^5))
+            (O(3^4), 2 + O(3^5))
         """
         if other.is_zero():
             raise ZeroDivisionError

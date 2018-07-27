@@ -8021,7 +8021,11 @@ class IncreasingTableau(Tableau):
     def descent_set(self):
         """
         Compute the descents of the increasing tableau ``self``
-        as defined in Dilks-Pechenik-Striker.
+        as defined in Dilks-Pechenik-Striker. The number i is a 
+        descent of ``self'' if some instance of i+1 appears in a
+        lower row than some instance of i. (This notion is close
+        to the notion of descent for a standard tableau and is
+        unrelated to the notion for semistandard tableaux.)
 
         EXAMPLES::
 

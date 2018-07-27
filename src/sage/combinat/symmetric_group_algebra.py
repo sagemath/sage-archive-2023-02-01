@@ -999,11 +999,11 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         EXAMPLES::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
-            sage: QS3.cpi([2,1])
+            sage: QS3.cpi(Partition([2,1]))
             2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
-            sage: QS3.cpi([3])
+            sage: QS3.cpi(Partition([3]))
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
-            sage: QS3.cpi([1,1,1])
+            sage: QS3.cpi(Partition([1,1,1]))
             1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
 
             sage: QS0 = SymmetricGroupAlgebra(QQ, 0)
@@ -1012,10 +1012,25 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
         TESTS::
 
-            sage: QS3.cpi([2,2])
+            sage: QS3.cpi(Partition([2,2]))
             Traceback (most recent call last):
             ...
             TypeError: p (= [2, 2]) must be a partition of n (= 3)
+            sage: QS4_Z3 = SymmetricGroupAlgebra(GF(3), 4)
+            sage: QS4_Z3.cpi(Partition([1,3]))
+            Traceback (most recent call last):
+            ...
+            ValueError: [1, 3] is not an element of Partitions
+            sage: QS4_Z3.cpi([3,1])
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'list'
+
+            sage: QS4_Z3.cpi(Partition([2,2]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Symmetric group algebra of order 4
+             over Finite Field of size 3 is not a semisimple algebra
         """
         R = self.base_ring()
         if p not in partition.Partitions_n(self.n):
@@ -1032,11 +1047,13 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         character_row = character_table[p_index]
         P = Permutations(self.n)
         R = self.base_ring()
-        try:
-            dct = { self._indices(g): R(big_coeff * character_row[np.index(g.cycle_type())])
-                for g in P }
-        except ZeroDivisionError, AssertionError:
-            raise AssertionError("`self` is not a semisimple algebra over %s"%self.base_ring())
+        dct = {}
+        for g in P:
+            coeff = big_coeff * character_row[np.index(g.cycle_type())]
+            if not R(coeff.denominator()):
+                raise TypeError("%s is not a semisimple algebra"%self)
+            else:
+                dct[self._indices(g)] = R(coeff)
         return self._from_dict(dct)
 
     @cached_method

@@ -122,12 +122,12 @@ class ElementWithLabel(object):
             {'a': 'element 1', 'b': 'element 2'}
             sage: a = ElementWithLabel("a", [2,3])
             sage: hash(a)
-            1853891946828512984
+            8557659973429537476
         """
         try:
-            return hash((hash(self.element), hash(self.label)))
+            return hash((self.element, self.label))
         except TypeError:
-            return hash((repr(self.element), repr(self.label)))
+            return hash(repr((self.element, self.label)))
 
     def __eq__(self, other):
         """

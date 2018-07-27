@@ -37,9 +37,9 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.IntegerPartitionsDominanceOrder` | Return the lattice of integer partitions on the integer `n` ordered by dominance.
     :meth:`~posets.NoncrossingPartitions` | Return the poset of noncrossing partitions of a finite Coxeter group ``W``.
     :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
-    :meth:`~posets.PermutationPattern` | Return the Permutation Pattern poset.
-    :meth:`~posets.PermutationPatternInterval` | Return an interval in the Permutation Pattern poset.
-    :meth:`~posets.PermutationPatternOccurenceInterval` | Return the occurence poset for a pair of comparable elements in the Permutation Pattern poset.
+    :meth:`~posets.PermutationPattern` | Return the Permutation pattern poset.
+    :meth:`~posets.PermutationPatternInterval` | Return an interval in the Permutation pattern poset.
+    :meth:`~posets.PermutationPatternOccurenceInterval` | Return the occurence poset for a pair of comparable elements in the Permutation pattern poset.
     :meth:`~posets.PowerPoset` | Return a power poset.
     :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
@@ -1513,9 +1513,9 @@ class Posets(object):
 
         - ``n`` -- a positive integer
 
-        A permutation 'u=u_1\ldots u_n' contains the pattern 'v=v_1\ldots v_m'
-        if there is a (not necessarily consecutive) subsequence of 'u' 
-        of length 'm' whose entries have the same relative order as 'v'.
+        A permutation `u=u_1\ldots u_n` contains the pattern `v=v_1\ldots v_m`
+        if there is a (not necessarily consecutive) subsequence of `u` 
+        of length `m` whose entries have the same relative order as `v`.
 
         See :wikipedia:`Permutation Pattern`.
 
@@ -1526,7 +1526,7 @@ class Posets(object):
             sage: sorted(P4.lower_covers(Permutation([2,4,1,3])))
             [[1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
-        .. SEEALSO:: :class:`~sage.combinat.posets.permutation.has_pattern`, 
+        .. SEEALSO:: :meth:`~sage.combinat.permutation.Permutation.has_pattern` 
 
 
         TESTS::
@@ -1552,16 +1552,15 @@ class Posets(object):
     def PermutationPatternInterval(bottom,top):
         """
         Return the poset consisting of an interval in the poset of permutations
-        under pattern containment between 'bottom' and 'top'
+        under pattern containment between ``bottom`` and ``top``
 
         INPUT:
 
-        - ``bottom``, ``top`` -- permutations where ``top`` contains ``bottom``
-                                 as a pattern.
+        - ``bottom``, ``top`` -- permutations where ``top`` contains ``bottom`` as a pattern.
 
-        A permutation 'u=u_1\ldots u_n' contains the pattern 'v=v_1\ldots v_m'
-        if there is a (not necessarily consecutive) subsequence of 'u' 
-        of length 'm' whose entries have the same relative order as 'v'.
+        A permutation `u=u_1\ldots u_n` contains the pattern `v=v_1\ldots v_m`
+        if there is a (not necessarily consecutive) subsequence of `u` 
+        of length `m` whose entries have the same relative order as `v`.
 
         See :wikipedia:`Permutation Pattern`.
 
@@ -1572,8 +1571,8 @@ class Posets(object):
             sage: R.moebius_function(R.bottom(),R.top())
             -4
 
-        .. SEEALSO:: :meth:`~sage.combinat.posets.permutation.has_pattern`,
-                     :meth:`PermutationPattern`,
+        .. SEEALSO:: :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
+                     :meth:`PermutationPattern`
 
 
         TESTS::
@@ -1611,8 +1610,8 @@ class Posets(object):
     def PermutationPatternOccurenceInterval(bottom, top, pos):
         """
         Return the poset consisting of an interval in the poset of permutations
-        under pattern containment between 'bottom' and 'top', where a specified
-        instance of 'bottom' in 'top' must be maintained.
+        under pattern containment between ``bottom`` and ``top``, where a specified
+        instance of 'bottom' in ``top`` must be maintained.
 
         INPUT:
 
@@ -1627,12 +1626,13 @@ class Posets(object):
         See :wikipedia:`Permutation Pattern`.
 
         EXAMPLES::
-            sage: A = PermutationPatternOccurenceInterval(Permutation([3,2,1]),Permutation([6,3,4,5,2,1]),(0,2,4));A
-            Finite poset containing 8 elements.
+
+            sage: A = posets.PermutationPatternOccurenceInterval(Permutation([3,2,1]),Permutation([6,3,4,5,2,1]),(0,2,4));A
+            Finite poset containing 8 elements
 
 
-        .. SEEALSO:: :meth:`~sage.combinat.posets.permutation.has_pattern`,
-                     :meth:`PermutationPattern`, :meth:`PermutationPatternInterval`,
+        .. SEEALSO:: :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
+                     :meth:`PermutationPattern`, :meth:`PermutationPatternInterval`
 
 
         TESTS::
@@ -1641,6 +1641,8 @@ class Posets(object):
         """
         from copy import copy
         import sage.combinat.permutation as permutation
+        top = Permutation(top)
+        bottom = Permutation(bottom)
         if not permutation.to_standard([top[z] for z in pos]) == list(bottom): # check input
             print("error, or empty")
         elem = [[(top,pos)]]

@@ -659,28 +659,29 @@ class FullTensorProductOfQueerSuperCrystals(FullTensorProductOfCrystals):
             sage: Q = crystals.Letters(['Q',3])
             sage: T = tensor([Q,Q])
             sage: T.index_set()
-            [-4, -3, -2, -1, 1, 2]
+            (-4, -3, -2, -1, 1, 2)
         """
         n = self.cartan_type().n
-        return range(-2*n,0)+range(1,n+1)
+        return tuple(range(-2*n,0)) + tuple(range(1,n+1))
 
     @cached_method
     def _long_element(self):
-        """
+        r"""
         Return the long element in `S_n`.
 
-        This method is used in the construction of the crystal operators `e_i` and `f_i`.
+        This method is used in the construction of the crystal operators
+        `e_i` and `f_i`.
 
         EXAMPLES::
 
             sage: Q = crystals.Letters(['Q', 4])
             sage: T = tensor([Q,Q,Q,Q])
             sage: T._long_element()
-            [3, 2, 1, 3, 2, 3]
+            (3, 2, 1, 3, 2, 3)
         """
         from sage.combinat.permutation import Permutations
         n = self.cartan_type().n
-        return Permutations(n+1).long_element().reduced_word()
+        return tuple(Permutations(n+1).long_element().reduced_word())
 
     class Element(TensorProductOfQueerSuperCrystalsElement):
         pass

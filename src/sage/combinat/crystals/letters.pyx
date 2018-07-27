@@ -2558,9 +2558,10 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
             sage: [x for x in C]
             [-3, -2, -1, 1, 2]
         """
+        cdef int t
         for t in range(-self._cartan_type.m - 1, self._cartan_type.n + 2):
             if t != 0:
-                yield self(t)
+                yield self._element_constructor_(t)
 
     def _repr_(self):
         """
@@ -2586,17 +2587,17 @@ class CrystalOfBKKLetters(ClassicalCrystalOfLetters):
 class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
     r"""
     Queer crystal of letters elements.
-    
-    The index set is of the form `\{-n,\ldots,-1,1,\ldots,n\}`.
-    For `1<i\leq n`, the operators `e_{-i}` and `f_{-i}` are defined as
+
+    The index set is of the form `\{-n, \ldots, -1, 1, \ldots, n\}`.
+    For `1 < i \leq n`, the operators `e_{-i}` and `f_{-i}` are defined as
 
     .. MATH::
 
-        f_{-i} = s_{w^{-1}_i} f_{-1} s_{w_i}, \quad e_{-i} = s_{w^{-1}_i} e_{-1} s_{w_i},
+        f_{-i} = s_{w^{-1}_i} f_{-1} s_{w_i}, \quad
+        e_{-i} = s_{w^{-1}_i} e_{-1} s_{w_i},
 
-    where `w_i=s_2\cdots s_i s_1\cdots s_{i-1}` and `s_i` is the reflection along the `i`-string
-    in the crystal. See [GJK+2014]_.
-
+    where `w_i = s_2 \cdots s_i s_1 \cdots s_{i-1}` and `s_i` is the
+    reflection along the `i`-string in the crystal. See [GJK+2014]_.
 
     TESTS::
 
@@ -2615,6 +2616,8 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
     @staticmethod
     def __classcall_private__(cls, ct):
         """
+        Normalize input to ensure a unique representation.
+
         TESTS::
 
             sage: crystals.Letters(['Q',3])
@@ -2639,7 +2642,7 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             [1, 2, 3]
         """
         self._cartan_type = ct
-        Parent.__init__(self, category= RegularSuperCrystals())
+        Parent.__init__(self, category=RegularSuperCrystals())
         self._index_set = ct.index_set()
         self.module_generators = (self._element_constructor_(1),)
         self._list = list(self.__iter__())
@@ -2654,8 +2657,9 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             sage: [x for x in Q]
             [1, 2, 3]
         """
-        for t in range(1,self._cartan_type.n+2):
-            yield self(t)
+        cdef int t
+        for t in range(1, self._cartan_type.n + 2):
+            yield self._element_constructor_(t)
 
     def _repr_(self):
         """
@@ -2664,12 +2668,11 @@ class CrystalOfQueerLetters(ClassicalCrystalOfLetters):
             sage: crystals.Letters(['Q',3])
             The queer crystal of letters for q(3)
         """
-        ret = "The queer crystal of letters for q(%s)"%(self._cartan_type.n+1)
-        return ret
+        return "The queer crystal of letters for q(%s)"%(self._cartan_type.n+1)
 
     def index_set(self):
         """
-        Return index set of crystal.
+        Return index set of ``self``.
 
         EXAMPLES::
 

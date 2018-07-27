@@ -959,6 +959,10 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         Return a list of the centrally primitive idempotents of
         ``self``.
 
+        This method supercedes the default implementation of
+        central orthogonal idempotents found within
+        :class:`sage.categories.finite_dimensional_semisimple_algebras_with_basis.FiniteDimensionalSemisimpleAlgebrasWithBasis`.
+
         EXAMPLES::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ,3)
@@ -967,6 +971,8 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
             sage: a[1]  # [2, 1]
             2/3*[1, 2, 3] - 1/3*[2, 3, 1] - 1/3*[3, 1, 2]
+            sage: QS3.cpis == QS3.central_orthogonal_idempotents
+            True
 
         TESTS:
 
@@ -979,10 +985,11 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             sage: a[1]
             2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2)
         """
-        return [self.cpi(p) for p in partition.Partitions_n(self.n)]
+        return tuple(self.cpi(p) for p in partition.Partitions_n(self.n))
 
     central_orthogonal_idempotents = cpis
 
+    @cached_method
     def cpi(self, p):
         """
         Return the centrally primitive idempotent for the symmetric group
@@ -1010,6 +1017,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             ...
             TypeError: p (= [2, 2]) must be a partition of n (= 3)
         """
+        R = self.base_ring()
         if p not in partition.Partitions_n(self.n):
             raise TypeError("p (= {p}) must be a partition of n (= {n})".format(p=p, n=self.n))
 
@@ -1023,9 +1031,12 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
 
         character_row = character_table[p_index]
         P = Permutations(self.n)
-        dct = { self._indices(g): big_coeff * character_row[np.index(g.cycle_type())]
+        R = self.base_ring()
+        try:
+            dct = { self._indices(g): R(big_coeff * character_row[np.index(g.cycle_type())])
                 for g in P }
-
+        except ZeroDivisionError, AssertionError:
+            raise AssertionError("`self` is not a semisimple algebra over %s"%self.base_ring())
         return self._from_dict(dct)
 
     @cached_method

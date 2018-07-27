@@ -80,17 +80,21 @@ class FiniteDimensionalSemisimpleAlgebrasWithBasis(CategoryWithAxiom_over_base_r
 
             EXAMPLES:
 
-            For the algebra of the symmetric group `S_3`, we
-            recover the sum and alternating sum of all
-            permutations, together with a third idempotent::
+            For the algebra of the (abelian) alternating group `A_3`,
+            we recover three idempotents corresponding to the three
+            one-dimensional representations `V_i` on which `(1,2,3)`
+            acts on `V_i` as multiplication by the `i`th power of a
+            cube root of unity::
 
-                sage: A3 = SymmetricGroup(3).algebra(QQ)
+                sage: A3 = AlternatingGroup(3).algebra(QQ)
                 sage: idempotents = A3.central_orthogonal_idempotents()
                 sage: idempotents
-                (1/6*() + 1/6*(2,3) + 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) + 1/6*(1,3),
-                 2/3*() - 1/3*(1,2,3) - 1/3*(1,3,2),
-                 1/6*() - 1/6*(2,3) - 1/6*(1,2) + 1/6*(1,2,3) + 1/6*(1,3,2) - 1/6*(1,3))
-                sage: A3.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
+                [1/3*() + 1/3*(1,2,3) + 1/3*(1,3,2),
+                 1/3*() - (0.1666666666666667?+0.2886751345948129?*I)*(1,2,3)
+                 - (0.1666666666666667?-0.2886751345948129?*I)*(1,3,2),
+                 1/3*() - (0.1666666666666667?-0.2886751345948129?*I)*(1,2,3)
+                 - (0.1666666666666667?+0.2886751345948129?*I)*(1,3,2)]
+                sage: A4.is_identity_decomposition_into_orthogonal_idempotents(idempotents)
                 True
 
             For the semisimple quotient of a quiver algebra,

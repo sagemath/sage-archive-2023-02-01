@@ -42,8 +42,10 @@ from sage.structure.element cimport parent
 
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
-# The following Integer is used so that the functions here don't need to initialize an mpz_t.
+# The following Integer (resp. Rational) is used so that 
+# the functions here don't need to initialize an mpz_t (resp. mpq_t)
 cdef Integer temp = PY_NEW(Integer)
+cdef Rational rat_temp = PY_NEW(Rational)
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     """
@@ -390,8 +392,6 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
     - ``prime_pow`` -- a PowComputer for the ring.
 
     """
-    cdef mpz_t numer
-
     if PyInt_Check(x):
         x = Integer(x)
     elif isinstance(x, pari_gen):
@@ -412,11 +412,10 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
         elif valshift < 0:
-            numer = mpq_numref((<Rational>x).value)
-            mpz_mul(numer, numer, prime_pow.pow_mpz_t_tmp(-valshift))
-            mpq_canonicalize((<Rational>x).value)
-            mpz_invert(out, numer, prime_pow.pow_mpz_t_tmp(prec))
-            mpz_mul(out, out, numer)
+            mpq_set_z(rat_temp.value, prime_pow.pow_mpz_t_tmp(-valshift))
+            mpq_mul(rat_temp.value, rat_temp.value, (<Rational>x).value)
+            mpz_invert(out, mpq_denref(rat_temp.value), prime_pow.pow_mpz_t_tmp(prec))
+            mpz_mul(out, out, mpq_numref(rat_temp.value))
         else:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec))
             mpz_divexact(temp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift))

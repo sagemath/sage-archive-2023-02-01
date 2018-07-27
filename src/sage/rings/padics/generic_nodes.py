@@ -800,13 +800,17 @@ class pAdicFloatingPointFieldGeneric(pAdicFieldGeneric, FloatingPointFieldGeneri
     pass
 
 class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
-    def construction(self):
+    def construction(self, forbid_frac_field=False):
         """
         Returns the functorial construction of self, namely,
         completion of the rational numbers with respect a given prime.
 
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
+
+        INPUT:
+
+        - ``forbid_frac_field`` -- ignored, for compatibility with other p-adic types.
 
         EXAMPLES::
 
@@ -949,7 +953,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
                 raise TypeError("Members of the list of generators must be elements of self.")
         return self
 
-    def construction(self):
+    def construction(self, forbid_frac_field=False):
         """
         Returns the functorial construction of ``self``, namely,
         completion of the rational numbers with respect a given prime.
@@ -957,11 +961,30 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
+        INPUT:
+
+        - ``forbid_frac_field`` -- require a completion functor rather
+          than a fraction field functor.  This is used in the
+          :meth:`sage.rings.padics.local_generic.LocalGeneric.change` method.
+
         EXAMPLES::
 
             sage: K = Qp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L
+            17-adic Ring with capped relative precision 8
+            sage: c
+            FractionField
+            sage: c(L)
+            17-adic Field with capped relative precision 8
+            sage: K == c(L)
+            True
+
+        We can get a completion functor by forbidding the fraction field::
+
+            sage: c, L = K.construction(forbid_frac_field=True); L
             Rational Field
+            sage: c
+            Completion[17, prec=8]
             sage: c(L)
             17-adic Field with capped relative precision 8
             sage: K == c(L)
@@ -977,8 +1000,11 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             sage: S._precision_cap()
             (31, 41)
         """
-        from sage.categories.pushout import CompletionFunctor
-        extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
-        if hasattr(self, '_label'):
-            extras['label'] = self._label
-        return (CompletionFunctor(self.prime(), self._precision_cap(), extras), QQ)
+        from sage.categories.pushout import FractionField, CompletionFunctor
+        if forbid_frac_field:
+            extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
+            if hasattr(self, '_label'):
+                extras['label'] = self._label
+            return (CompletionFunctor(self.prime(), self._precision_cap(), extras), QQ)
+        else:
+            return FractionField(), self.integer_ring()

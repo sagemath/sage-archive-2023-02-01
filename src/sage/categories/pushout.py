@@ -2852,7 +2852,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
     rank = 3
 
     def __init__(self, polys, names, embeddings=None, structures=None,
-                 cyclotomic=None, **kwds):
+                 cyclotomic=None, precs=None, implementations=None, **kwds):
         """
         INPUT:
 
@@ -2874,6 +2874,13 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         - ``cyclotomic`` -- (optional) integer. If it is provided,
           application of the functor to the rational field yields a
           cyclotomic field, rather than just a number field.
+
+        - ``precs`` -- (optional) list of integers. If it is provided,
+          it is used to determine the precision of p-adic extensions.
+
+        - ``implementations`` -- (optional) list of strings.
+          If it is provided, it is used to determine an implementation in the
+          p-adic case.
 
         - ``**kwds`` -- further keywords; when the functor is applied
           to a ring `R`, these are passed to the ``extension()``
@@ -2958,6 +2965,10 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             embeddings = [None] * n
         if structures is None:
             structures = [None] * n
+        if precs is None:
+            precs = [None] * n
+        if implementations is None:
+            implementations = [None] * n
         if not (len(names) == len(embeddings) == len(structures) == n):
             raise ValueError("All arguments must be of the same length")
         self.polys = list(polys)
@@ -2965,6 +2976,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         self.embeddings = list(embeddings)
         self.structures = list(structures)
         self.cyclotomic = int(cyclotomic) if cyclotomic is not None else None
+        self.precs = list(precs)
+        self.implementations = list(implementations)
         self.kwds = kwds
 
     def _apply_functor(self, R):
@@ -2999,9 +3012,11 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 return CyclotomicField(self.cyclotomic).maximal_order()
         if len(self.polys) == 1:
             return R.extension(self.polys[0], names=self.names[0], embedding=self.embeddings[0],
-                               structure=self.structures[0], **self.kwds)
+                               structure=self.structures[0], prec=self.precs[0],
+                               implementation=self.implementations[0], **self.kwds)
         return R.extension(self.polys, names=self.names, embedding=self.embeddings,
-                           structure=self.structures, **self.kwds)
+                           structure=self.structures, prec=self.precs,
+                           implementation=self.implementations, **self.kwds)
 
     def __eq__(self, other):
         """
@@ -3017,7 +3032,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         return (self.polys == other.polys and
                 self.embeddings == other.embeddings and
-                self.structures == other.structures)
+                self.structures == other.structures and
+                self.precs == other.precs)
 
     def __ne__(self, other):
         """
@@ -3190,7 +3206,10 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
                 raise CoercionException("Overlapping names (%s,%s)" % (self.names, other.names))
             return AlgebraicExtensionFunctor(self.polys + other.polys, self.names + other.names,
                                              self.embeddings + other.embeddings,
-                                             self.structures + other.structures, **self.kwds)
+                                             self.structures + other.structures,
+                                             precs=self.precs + other.precs,
+                                             implementations=self.implementations + other.implementations,
+                                             **self.kwds)
         elif isinstance(other, CompositeConstructionFunctor) \
               and isinstance(other.all[-1], AlgebraicExtensionFunctor):
             return CompositeConstructionFunctor(other.all[:-1], self * other.all[-1])
@@ -3222,7 +3241,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         if n == 1:
             return [self]
         return [AlgebraicExtensionFunctor([self.polys[i]], [self.names[i]], [self.embeddings[i]],
-                                          [self.structures[i]], **self.kwds)
+                                          [self.structures[i]], precs=[self.precs[i]],
+                                          implementations=[self.implementations[i]], **self.kwds)
                 for i in range(n)]
 
 

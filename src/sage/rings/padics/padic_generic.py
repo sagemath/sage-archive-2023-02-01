@@ -652,6 +652,18 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: L
             19-adic Unramified Extension Field in a defined by x^2 + 8751674996211859573806383*x + 1
         """
+        if isinstance(modulus, list):
+            if len(modulus) == 0:
+                return self
+            else:
+                return self.extension(modulus[-1], prec=prec[-1],
+                                      names=names[-1],
+                                      implementation=implementation[-1],
+                                      print_mode=print_mode, **kwds).extension(
+                                          modulus[:-1], prec=prec[:-1],
+                                          names=names[:-1],
+                                          implementation=implementation[:-1],
+                                          print_mode=print_mode, **kwds)
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
             print_mode = {}

@@ -1506,7 +1506,7 @@ class Posets(object):
 
     @staticmethod
     def PermutationPattern(n):
-        """
+        r"""
         Return the poset of permutations under pattern containment up to rank `n`.
 
         INPUT:
@@ -1546,11 +1546,9 @@ class Posets(object):
         return(Poset((elem,lambda a,b : b.has_pattern(a))))
 
 
-
-
     @staticmethod
     def PermutationPatternInterval(bottom,top):
-        """
+        r"""
         Return the poset consisting of an interval in the poset of permutations
         under pattern containment between ``bottom`` and ``top``
 
@@ -1608,7 +1606,7 @@ class Posets(object):
 
     @staticmethod
     def PermutationPatternOccurenceInterval(bottom, top, pos):
-        """
+        r"""
         Return the poset consisting of an interval in the poset of permutations
         under pattern containment between ``bottom`` and ``top``, where a specified
         instance of 'bottom' in ``top`` must be maintained.
@@ -1633,11 +1631,6 @@ class Posets(object):
 
         .. SEEALSO:: :meth:`~sage.combinat.permutation.Permutation.has_pattern`,
                      :meth:`PermutationPattern`, :meth:`PermutationPatternInterval`
-
-
-        TESTS::
-
-
         """
         from copy import copy
         import sage.combinat.permutation as permutation

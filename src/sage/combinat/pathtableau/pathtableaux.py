@@ -42,7 +42,8 @@ class PathTableau(ClonableList):
     def _rule_(self,p):
         """
         This is an abstract method. It must be overwritten.
-        This rule provides the functionality. It is called in local_rule.
+        This rule provides the functionality. It is called in
+        :method:`_local_rule`.
 
         The key property is that the following operation on lists
         of length three is an involution: apply the rule to a list
@@ -53,31 +54,55 @@ class PathTableau(ClonableList):
 
     def size(self):
         """
-        Return the size or length.
+        Return the size or length of ``self``.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.size()
+            7
         """
         return len(self)
 
     def initial_shape(self):
         """
-        Return the initial shape.
+        Return the initial shape of ``self``.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.initial_shape()
+            0
         """
         return self[0]
 
     def final_shape(self):
         """
-        Return the final shape.
+        Return the final shape of ``self``.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.final_shape()
+            0
         """
         return self[-1]
 
 ############################# Jeu de taquin ###################################
 
-    def local_rule(self,i):
+    def _local_rule(self,i):
         """
         This is the local that is used for the remaining constructions.
         This has input a list of objects. This method first takes
         the list of objects of length three consisting of the `(i-1)`-st,
         `i`-th and `(i+1)`-term and applies the rule. It then replaces
         the `i`-th object  by the object returned by the rule.
+
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._local_rule(3)
+            [0, 1, 2, 1, 2, 1, 0]
         """
         if not (i > 0 and i < len(self) ):
             raise ValueError("%d is not a valid integer" % i)
@@ -91,7 +116,11 @@ class PathTableau(ClonableList):
         """
         Return the promotion operator applied to ``self``.
 
-        This is given by a two row diagram.
+        EXAMPLES::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t.promotion()
+            [0, 1, 2, 1, 0, 1, 0]
         """
         result = list(self)
         for i in range(1,len(result)-1):
@@ -102,25 +131,11 @@ class PathTableau(ClonableList):
         """
         Return the evacuation operator applied to ``self``.
 
-        This is given by a triangular diagram.
-
-        INPUT:
-
-            - A pathtableau
-
-        OUTPUT:
-
-            - A pathtableau
-
-        The output will have the same length, initial shape, and final shape as the input.
-
         EXAMPLES::
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t.evacuation()
             [0, 1, 2, 3, 2, 1, 0]
-
-
         """
         if self.size() < 3:
             return self
@@ -135,13 +150,28 @@ class PathTableau(ClonableList):
         result.reverse()
         return self.parent()(result)
 
-    def path_rule(self,other,display=False):
+    def commutor(self,other,display=False):
         """
         Return the commutor of ``self`` with ``other``
 
-        This is given by a rectangular diagram.
         If ``display=True`` then the function will print
         the rectangle.
+
+        EXAMPLES::
+
+            sage: t1 = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t2 = CatalanTableau([0,1,2,1,0])
+            sage: t1.commutor(t2)
+            ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
+            sage: t1.commutor(t2,display=True)
+            [0, 1, 2, 1, 0]
+            [1, 2, 3, 2, 1]
+            [2, 3, 4, 3, 2]
+            [3, 4, 5, 4, 3]
+            [2, 3, 4, 3, 2]
+            [1, 2, 3, 2, 1]
+            [0, 1, 2, 1, 0]
+            ([0, 1, 2, 1, 0], [0, 1, 2, 3, 2, 1, 0])
         """
         n = len(self)
         m = len(other)
@@ -161,7 +191,7 @@ class PathTableau(ClonableList):
             if display:
                 print path[n-i:n+m-i]
             for j in range(m-1):
-                path = path.local_rule(n+j-i)
+                path = path._local_rule(n+j-i)
         if display:
             print path[:m]
 
@@ -176,14 +206,10 @@ class PathTableau(ClonableList):
 
         INPUT:
 
-            - A pathtableau, with `i >0` and `j >i`
+        - ``i`` -- a positive integer
 
-        OUTPUT:
+        - ``j`` -- a positive integer strictly greater than ``i``
 
-            - A pathtableau
-
-        The output will have the same length, initial shape, and final shape
-        as the input.
 
         EXAMPLES::
 
@@ -260,7 +286,7 @@ class PathTableau(ClonableList):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(all( self.local_rule(i+1).local_rule(i+1) == self
+        tester.assertTrue(all( self._local_rule(i+1)._local_rule(i+1) == self
                                for i in range(self.size()-2) ))
 
     def _test_involution_cactus(self, **options):
@@ -284,7 +310,6 @@ class PathTableau(ClonableList):
 
             sage: t = CatalanTableau([0,1,2,3,2,1,0])
             sage: t._test_promotion()
-
         """
         tester = self._tester(**options)
         n = self.size()-1
@@ -293,6 +318,11 @@ class PathTableau(ClonableList):
     def _test_commutation(self, **options):
         """
         Check the commutation relations in the presentation of the cactus group.
+
+        TESTS::
+
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_commutation()
         """
         from itertools import combinations
         tester = self._tester(**options)
@@ -309,9 +339,10 @@ class PathTableau(ClonableList):
         """
         Check the coboundary relations in the presentation of the cactus group.
 
-        EXAMPLES::
+        TESTS::
 
-            t =
+            sage: t = CatalanTableau([0,1,2,3,2,1,0])
+            sage: t._test_coboundary()
         """
         from itertools import combinations
         tester = self._tester(**options)
@@ -326,7 +357,7 @@ class PathTableau(ClonableList):
 
     def orbit(self):
         """
-        Return the orbit under the action of the cactus group.
+        Return the orbit of ``self`` under the action of the cactus group.
 
         EXAMPLES::
 

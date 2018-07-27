@@ -99,7 +99,6 @@ class CatalanTableau(PathTableau):
 
         sage: p = PerfectMatching([(1,2),(3,4)])
         sage: CatalanTableau(p)
-        ...
         [1, 0, 1, 0]
 
         sage: t = Tableau([[1,2],[3,4]])
@@ -181,6 +180,14 @@ class CatalanTableau(PathTableau):
     def _rule_(x):
         """
         Overwrites the abstract method.
+
+        EXAMPLES::
+
+            sage: T = CatalanTableau([0,1,2,3,2,3])
+            sage: T._rule_([1,2,1])
+            0
+            sage: T._rule_([0,1,0])
+            1
         """
         return abs(x[0]-x[1]+x[2])
 
@@ -195,7 +202,6 @@ class CatalanTableau(PathTableau):
 
             sage: CatalanTableau([1,0,1,2,1]).is_skew()
             True
-
         """
         return self[0] != 0
 
@@ -207,7 +213,6 @@ class CatalanTableau(PathTableau):
 
             sage: CatalanTableau([0,1,2,1,2,1,0,1,0]).descents()
             {3, 6}
-
         """
         result = set()
 
@@ -225,7 +230,6 @@ class CatalanTableau(PathTableau):
 
             sage: CatalanTableau([1,0,1,2,1]).to_word()
             [0, 1, 1, 0]
-
         """
         return [ (self[i+1]-self[i]+1)/2 for i in range(self.size()-1) ]
 
@@ -250,16 +254,29 @@ class CatalanTableau(PathTableau):
     def to_tableau(self):
         """
         Return the skew tableau associated to ``self``.
+
+        EXAMPLES::
+
+           sage: T = CatalanTableau([0,1,2,3,2,3])
+           sage: T.to_tableau()
+           [[0, 1, 2, 4], [3]]
         """
         w = self.to_word()
         top = [ i for i, a in enumerate(w) if a == 1 ]
         bot = [ i for i, a in enumerate(w) if a == 0 ]
         return SkewTableau([[None]*self[0]+top,bot])
 
-    def draw(self):
+    def show(self):
         """
-        Return the Dyck path associated to ``self``.
+        Return the plot of the Dyck path associated to ``self``.
+
+        EXAMPLES::
+
+            sage: T = CatalanTableau([0,1,2,3,2,3])
+            sage: T.show()
+            Graphics object consisting of 1 graphics primitive
         """
+        from sage.plot.line import line
         return line([ (i,a) for i, a in enumerate(self)])
 
 #class PathTableaux(UniqueRepresentation,Parent):

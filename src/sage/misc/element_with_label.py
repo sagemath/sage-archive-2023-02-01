@@ -124,10 +124,7 @@ class ElementWithLabel(object):
             sage: hash(a)
             8557659973429537476
         """
-        try:
-            return hash((self.element, self.label))
-        except TypeError:
-            return hash(repr((self.element, self.label)))
+        return hash(self.element)
 
     def __eq__(self, other):
         """
@@ -144,7 +141,14 @@ class ElementWithLabel(object):
             False
             sage: a == x
             True
+            sage: 1 == a
+            False
+            sage: b == 1
+            False
         """
+        if not (isinstance(self, ElementWithLabel)
+                and isinstance(other, ElementWithLabel)):
+            return False
         return self.element == other.element and self.label == other.label
 
     def __ne__(self, other):

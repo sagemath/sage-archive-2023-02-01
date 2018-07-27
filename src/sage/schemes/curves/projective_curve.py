@@ -129,14 +129,14 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C = Curve([y*z - x^2, w^2 - x*y], P)
             sage: C.affine_patch(0)
             Affine Curve over Complex Field with 53 bits of precision defined by
-            x0*x1 - 1.00000000000000, x2^2 - x0
+            y*z - 1.00000000000000, w^2 - y
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: C = Curve(x^3 - x^2*y + y^3 - x^2*z, P)
             sage: C.affine_patch(1)
-            Affine Plane Curve over Rational Field defined by x0^3 - x0^2*x1 - x0^2 + 1
+            Affine Plane Curve over Rational Field defined by x^3 - x^2*z - x^2 + 1
 
         ::
 
@@ -1612,7 +1612,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
             sage: R.<x,y,z>=QQ[]
             sage: C=Curve(x^3+3*y^3+5*z^3)
             sage: C.riemann_surface()
-            Riemann surface defined by polynomial f = x0^3 + 3*x1^3 + 5 = 0, with 53 bits of precision
+            Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
 
         """
         return self.affine_patch(2).riemann_surface(**kwargs)

@@ -53,7 +53,8 @@ def is_AffineSpace(x):
     """
     return isinstance(x, AffineSpace_generic)
 
-def AffineSpace(n, R=None, names='x'):
+def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
+                default_embedding_index=None):
     r"""
     Return affine space of dimension ``n`` over the ring ``R``.
 
@@ -103,12 +104,17 @@ def AffineSpace(n, R=None, names='x'):
         else:
             raise TypeError("you must specify the variables names of the coordinate ring")
     names = normalize_names(n, names)
+    i = default_embedding_index
+    if i is not None:
+        i = int(i)
     if R in _Fields:
         if is_FiniteField(R):
-            return AffineSpace_finite_field(n, R, names)
+            return AffineSpace_finite_field(n, R, names,
+                                            ambient_projective_space, i)
         else:
-            return AffineSpace_field(n, R, names)
-    return AffineSpace_generic(n, R, names)
+            return AffineSpace_field(n, R, names,
+                                     ambient_projective_space, i)
+    return AffineSpace_generic(n, R, names, ambient_projective_space, i)
 
 
 class AffineSpace_generic(AmbientSpace, AffineScheme):
@@ -151,7 +157,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         sage: AffineSpace(0)
         Affine Space of dimension 0 over Integer Ring
     """
-    def __init__(self, n, R, names):
+    def __init__(self, n, R, names, ambient_projective_space, default_embedding_index):
         """
         EXAMPLES::
 
@@ -161,6 +167,8 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
         AffineScheme.__init__(self, self.coordinate_ring(), R)
+        self._ambient_projective_space = ambient_projective_space
+        self._default_embedding_index = default_embedding_index
 
     def __iter__(self):
         """
@@ -690,9 +698,9 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         n = self.dimension_relative()
         if i is None:
-            try:
+            if self._default_embedding_index is not None:
                 i = self._default_embedding_index
-            except AttributeError:
+            else:
                 i = int(n)
         else:
             i = int(i)
@@ -709,6 +717,8 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             pass
 
         #if no i-th embedding exists, we may still be here with PP==None
+        if PP is None:
+            PP = self._ambient_projective_space
         if PP is None:
             from sage.schemes.projective.projective_space import ProjectiveSpace
             PP = ProjectiveSpace(n, self.base_ring())

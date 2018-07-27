@@ -1499,7 +1499,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: g = H([x^2 + a*y^2,y^2])
             sage: G = g.specialization(phi=phi)
             sage: G.parent() is F.parent()
-            False
+            True
             sage: G = g.specialization(phi=phi, homset=F.parent())
             sage: G.parent() is F.parent()
             True
@@ -1948,7 +1948,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: Q2 = P([a,1])
             sage: T2 = Q2.specialization(phi=phi)
             sage: T2.codomain() is T.codomain()
-            False
+            True
             sage: T3 = Q2.specialization(phi=phi, ambient=T.codomain())
             sage: T3.codomain() is T.codomain()
             True

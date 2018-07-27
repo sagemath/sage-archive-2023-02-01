@@ -15,9 +15,9 @@ cdef class RelativeRamifiedFixedModElement(FMElement):
             sage: S.<x> = PolynomialRing(K)
             sage: W.<w> = K.extension(x^3 - 25*x^2 - 5*a*x + 5)
             sage: w._poly_rep()
-            (1 + O(5^21))*x
+            x
             sage: W(5)._poly_rep()
-            5 + O(5^21)
+            5
 
         The coefficients of P are fixed-mod p-adics::
 

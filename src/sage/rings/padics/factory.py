@@ -870,7 +870,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 
         sage: P.<x> = ZZ[]
         sage: R.<a> = Qq(27, modulus = x^3 + 2*x + 1); R.modulus()
-        (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+        (1 + O(3^20))*x^3 + O(3^20)*x^2 + (2 + O(3^20))*x + 1 + O(3^20)
         sage: P.<x> = QQ[]
         sage: S.<a> = Qq(27, modulus = x^3 + 2*x + 1)
         sage: P.<x> = Zp(3)[]
@@ -897,7 +897,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: P.<x> = Qp(3)[]
         sage: modulus = x^3 + (2 + O(3^7))*x + (1 + O(3^10))
         sage: modulus
-        (1 + O(3^20))*x^3 + (2 + O(3^7))*x + (1 + O(3^10))
+        (1 + O(3^20))*x^3 + (2 + O(3^7))*x + 1 + O(3^10)
         sage: W.<a> = Qq(27, modulus = modulus); W.precision_cap()
         7
 
@@ -905,7 +905,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 
         sage: x = var('x')
         sage: X.<a> = Qq(27, modulus = x^3 + 2*x + 1); X.modulus()
-        (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+        (1 + O(3^20))*x^3 + O(3^20)*x^2 + (2 + O(3^20))*x + 1 + O(3^20)
         sage: X == R
         True
 
@@ -915,14 +915,14 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: GF(125, 'a').modulus()
         x^3 + 3*x + 3
         sage: Y.<a> = Qq(125); Y.modulus()
-        (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
+        (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
 
     However, you can choose another polynomial if desired (as long as
     the reduction to `\mathbb{F}_p[x]` is irreducible).::
 
         sage: P.<x> = ZZ[]
         sage: Z.<a> = Qq(125, modulus = x^3 + 3*x^2 + x + 1); Z.modulus()
-        (1 + O(5^20))*x^3 + (3 + O(5^20))*x^2 + (1 + O(5^20))*x + (1 + O(5^20))
+        (1 + O(5^20))*x^3 + (3 + O(5^20))*x^2 + (1 + O(5^20))*x + 1 + O(5^20)
         sage: Y == Z
         False
 
@@ -2079,7 +2079,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 
         sage: P.<x> = ZZ[]
         sage: R.<a> = Zq(27, modulus = x^3 + 2*x + 1); R.modulus()
-        (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+        (1 + O(3^20))*x^3 + O(3^20)*x^2 + (2 + O(3^20))*x + 1 + O(3^20)
         sage: P.<x> = QQ[]
         sage: S.<a> = Zq(27, modulus = x^3 + 2/7*x + 1)
         sage: P.<x> = Zp(3)[]
@@ -2106,7 +2106,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: P.<x> = Zp(3)[]
         sage: modulus = x^3 + (2 + O(3^7))*x + (1 + O(3^10))
         sage: modulus
-        (1 + O(3^20))*x^3 + (2 + O(3^7))*x + (1 + O(3^10))
+        (1 + O(3^20))*x^3 + (2 + O(3^7))*x + 1 + O(3^10)
         sage: W.<a> = Zq(27, modulus = modulus); W.precision_cap()
         7
 
@@ -2114,7 +2114,7 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
 
         sage: x = var('x')
         sage: X.<a> = Zq(27, modulus = x^3 + 2*x + 1); X.modulus()
-        (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+        (1 + O(3^20))*x^3 + O(3^20)*x^2 + (2 + O(3^20))*x + 1 + O(3^20)
         sage: X == R
         True
 
@@ -2124,14 +2124,14 @@ def Zq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         sage: GF(125, 'a').modulus()
         x^3 + 3*x + 3
         sage: Y.<a> = Zq(125); Y.modulus()
-        (1 + O(5^20))*x^3 + (O(5^20))*x^2 + (3 + O(5^20))*x + (3 + O(5^20))
+        (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
 
     However, you can choose another polynomial if desired (as long as
     the reduction to `\mathbb{F}_p[x]` is irreducible).::
 
         sage: P.<x> = ZZ[]
         sage: Z.<a> = Zq(125, modulus = x^3 + 3*x^2 + x + 1); Z.modulus()
-        (1 + O(5^20))*x^3 + (3 + O(5^20))*x^2 + (1 + O(5^20))*x + (1 + O(5^20))
+        (1 + O(5^20))*x^3 + (3 + O(5^20))*x^2 + (1 + O(5^20))*x + 1 + O(5^20)
         sage: Y == Z
         False
 
@@ -2913,20 +2913,20 @@ class pAdicExtension_class(UniqueFactory):
             sage: S.<x> = ZZ[]
             sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w')
             (('e',
-             5-adic Ring with capped relative precision 3,
-             x^4 - 15,
-             ('w', None, None, 'w'),
-             12,
-             'series',
-             True,
-             '|',
-             (),
-             -1,
-             -1,
-             -1,
-             'bigoh',
-             'NTL'),
-             {'approx_modulus': (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4))})
+              5-adic Ring with capped relative precision 3,
+              x^4 - 15,
+              ('w', None, None, 'w'),
+              12,
+              'series',
+              True,
+              '|',
+              (),
+              -1,
+              -1,
+              -1,
+              'bigoh',
+              'NTL'),
+             {'approx_modulus': (1 + O(5^3))*x^4 + O(5^4)*x^3 + O(5^4)*x^2 + O(5^4)*x + 2*5 + 4*5^2 + 4*5^3 + O(5^4)})
 
             sage: A = Qp(3,5)
             sage: Po.<X> = A[]
@@ -3145,7 +3145,7 @@ def truncate_to_prec(poly, R, absprec):
         sage: from sage.rings.padics.factory import truncate_to_prec
         sage: f = x^4 + (3+O(5^6))*x^3 + O(5^4)
         sage: truncate_to_prec(f, R, 5)
-        (1 + O(5^5))*x^4 + (3 + O(5^5))*x^3 + (O(5^5))*x^2 + (O(5^5))*x + (O(5^4))
+        (1 + O(5^5))*x^4 + (3 + O(5^5))*x^3 + O(5^5)*x^2 + O(5^5)*x + O(5^4)
     """
     return R[poly.variable_name()]([R(a, absprec=absprec) for a in poly.list()]) # Is this quite right?  We don't want flat necessarily...
 

@@ -1148,7 +1148,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = ZpFM(5).extension(x^2 - 5)
             sage: (w + 5).polynomial()
-            (1)*x + (5)
+            x + 5
         """
         R = self.base_ring()
         S = R[var]

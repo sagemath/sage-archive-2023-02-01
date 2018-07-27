@@ -96,7 +96,7 @@ cdef class qAdicFixedModElement(FMElement):
             sage: R.<a> = ZqFM(27,4)
             sage: b = a^2 + 5*a - 3
             sage: b._modp_rep()
-            ((a^2 + 2*a) + O(3^4), [0, 2, 1])
+            ((a^2 + 2*a), [0, 2, 1])
             sage: b._modp_rep(use_smallest_mode=True)[1]
             [0, -1, 1]
         """

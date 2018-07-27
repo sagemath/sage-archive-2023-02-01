@@ -313,11 +313,11 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R = ZpFM(3, 5)
             sage: R(12).quo_rem(R(2))
-            (2*3 + O(3^5), O(3^5))
+            (2*3, 0)
             sage: R(2).quo_rem(R(12))
-            (O(3^5), 2 + O(3^5))
+            (0, 2)
             sage: q, r = R(4).quo_rem(R(12)); q, r
-            (1 + 2*3 + 2*3^3 + O(3^5), 1 + O(3^5))
+            (1 + 2*3 + 2*3^3, 1)
             sage: 12*q + r == 4
             True
         """
@@ -715,11 +715,11 @@ cdef class FMElement(pAdicTemplateElement):
 
             sage: R.<a> = ZqFM(5^3)
             sage: a.polynomial()
-            (1)*x + (0)
+            x
             sage: a.polynomial(var='y')
-            (1)*y + (0)
+            y
             sage: (5*a^2 + 25).polynomial()
-            (5)*x^2 + (0)*x + (5^2)
+            5*x^2 + 5^2
         """
         R = self.base_ring()
         S = R[var]

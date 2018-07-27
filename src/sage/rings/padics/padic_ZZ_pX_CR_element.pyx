@@ -2521,7 +2521,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = Zp(5).extension(x^2 - 5)
             sage: (w + W(5, 7)).polynomial()
-            (1 + O(5^3))*x + (5 + O(5^4))
+            (1 + O(5^3))*x + 5 + O(5^4)
         """
         R = self.base_ring()
         S = R[var]

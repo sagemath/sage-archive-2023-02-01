@@ -1295,11 +1295,11 @@ cdef class CRElement(pAdicTemplateElement):
 
             sage: K.<a> = Qq(5^3)
             sage: a.polynomial()
-            (1 + O(5^20))*x + (O(5^20))
+            (1 + O(5^20))*x + O(5^20)
             sage: a.polynomial(var='y')
-            (1 + O(5^20))*y + (O(5^20))
+            (1 + O(5^20))*y + O(5^20)
             sage: (5*a^2 + K(25, 4)).polynomial()
-            (5 + O(5^4))*x^2 + (O(5^4))*x + (5^2 + O(5^4))
+            (5 + O(5^4))*x^2 + O(5^4)*x + 5^2 + O(5^4)
         """
         R = self.base_ring()
         S = R[var]

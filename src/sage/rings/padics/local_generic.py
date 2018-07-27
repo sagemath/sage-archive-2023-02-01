@@ -616,13 +616,13 @@ class LocalGeneric(CommutativeRing):
 
             sage: R = Zp(3, 3, 'fixed-mod')
 
-            sage: R.defining_polynomial()
-            (1 + O(3^3))*x + (O(3^3))
+            sage: R.defining_polynomial().parent()
+            Univariate Polynomial Ring in x over 3-adic Ring of fixed modulus 3^3
             sage: R.defining_polynomial('foo')
-            (1 + O(3^3))*foo + (O(3^3))
+            foo
 
-            sage: R.defining_polynomial(exact=True)
-            x
+            sage: R.defining_polynomial(exact=True).parent()
+            Univariate Polynomial Ring in x over Integer Ring
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         if exact:

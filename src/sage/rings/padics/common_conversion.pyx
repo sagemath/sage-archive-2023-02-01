@@ -42,6 +42,7 @@ from sage.structure.element cimport parent
 
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
+cdef long minusmaxordp = -maxordp
 # The following Integer (resp. Rational) is used so that 
 # the functions here don't need to initialize an mpz_t (resp. mpq_t)
 cdef Integer temp = PY_NEW(Integer)
@@ -77,7 +78,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     - a long, giving the valuation of the resulting `p`-adic element.
       If the input is zero, returns ``maxordp``
     """
-    cdef long k, n, p, curterm, shift, f, e = prime_pow.e
+    cdef long k, n, p, curterm, shift, f, ratio, e = prime_pow.e
     cdef Integer value
     cdef GEN pari_tmp
     if isinstance(x, int):
@@ -121,17 +122,25 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
                     if isinstance(b, (list,tuple)):
                         raise ValueError("list nesting too deep")
                     curterm = get_ordp(b, prime_pow)
-                    k = min(k, curterm + shift)
+                    k = min(k, curterm + shift, maxordp)
             else:
                 curterm = get_ordp(a, prime_pow)
-                k = min(k, curterm + shift)
+                k = min(k, curterm + shift, maxordp)
             if e != 1: shift += 1
         # We don't want to multiply by e again.
         return k
     elif isinstance(x, pAdicGenericElement):
         k = (<pAdicGenericElement>x).valuation_c()
         if not (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
-            return (k*e) // x.parent().absolute_e()
+            # We have to be careful with overflow
+            ratio = e // x.parent().absolute_e()
+            if k >= maxordp // ratio:
+                return maxordp
+            elif k <= minusmaxordp // ratio:
+                return minusmaxordp
+            else:
+                return (k*e) // x.parent().absolute_e()
+        return k
     elif isinstance(x, pari_gen):
         pari_tmp = (<pari_gen>x).g
         if typ(pari_tmp) == t_PADIC:

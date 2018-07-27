@@ -2577,7 +2577,7 @@ class CompletionFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: F1 = Qp(5).construction()[0]
+            sage: F1 = Zp(5).construction()[0]
             sage: F2 = QQ.construction()[0]
             sage: F1.commutes(F2)
             True
@@ -2601,14 +2601,15 @@ class CompletionFunctor(ConstructionFunctor):
             True
 
         The following was fixed in :trac:`15329` (it used to result
-        in an infinite recursion)::
+        in an infinite recursion. In :trac:`23218` the construction
+        of `p`-adic fields changed, so there is no longer an
+        Ambiguous base extension error raised)::
 
             sage: from sage.categories.pushout import pushout
             sage: pushout(Qp(7),RLF)
             Traceback (most recent call last):
             ...
-            CoercionException: ('Ambiguous Base Extension', 7-adic Field with capped relative precision 20, Real Lazy Field)
-
+            CoercionException: Don't know how to apply Completion[+Infinity, prec=+Infinity] to 7-adic Ring with capped relative precision 20
         """
         return isinstance(other,FractionField)
 

@@ -1477,7 +1477,7 @@ cdef class CommutativeRing(Ring):
             self.__ideal_monoid = M
             return M
 
-    def extension(self, poly, name=None, names=None, embedding=None, structure=None):
+    def extension(self, poly, name=None, names=None, **kwds):
         """
         Algebraically extends self by taking the quotient ``self[x] / (f(x))``.
 
@@ -1521,10 +1521,11 @@ cdef class CommutativeRing(Ring):
             name = name[0]
         if name is None:
             name = str(poly.parent().gen(0))
-        if embedding is not None:
-            raise NotImplementedError("ring extension with prescripted embedding is not implemented")
-        if structure is not None:
-            raise NotImplementedError("ring extension with additional structure is not implemented")
+        for key, val in kwds.items():
+            if key not in ['structure', 'implementation', 'prec', 'embedding']:
+                raise TypeError("extension() got an unexpected keyword argument '%s'"%key)
+            if not (val is None or isinstance(val, list) and all(c is None for c in val)):
+                raise NotImplementedError("ring extension with prescripted %s is not implemented"%key)
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)

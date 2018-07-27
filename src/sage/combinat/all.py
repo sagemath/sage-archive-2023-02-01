@@ -220,6 +220,6 @@ lazy_import('sage.combinat.growth', ['GrowthDiagram',
                                      'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
 
 # Path tableaux
-lazy_import('sage.combinat.pathtableau.pathtableaux',['PathTableau','PathTableaux'])
-lazy_import('sage.combinat.pathtableau.catalan',['CatalanTableau','CatalanTableaux'])
-lazy_import('sage.combinat.pathtableau.semistandard',['DualSemistandardTableau','DualSemistandardTableaux'])
+lazy_import('sage.combinat.pathtableau.pathtableaux',['PathTableau', 'PathTableaux'])
+lazy_import('sage.combinat.pathtableau.catalan',['CatalanTableau', 'CatalanTableaux'])
+

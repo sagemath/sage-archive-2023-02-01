@@ -291,7 +291,6 @@ from sage.misc.superseded import deprecated_function_alias
 #######################################
 # n-cube isometry group transformations
 #######################################
-from typing import List, Any
 
 
 def ncube_isometry_group(n, orientation_preserving=True):
@@ -455,13 +454,13 @@ def ncube_isometry_group_cosets(n, orientation_preserving=True):
     else:
         H = [diagonal_matrix(L) for L in it]
 
+    G_todo = set(G)
     # Make sure that H is a subset of G
     for h in H: h.set_immutable()
-    assert all(h in G for h in H), "H must be a subset of G"
+    assert all(h in G_todo for h in H), "H must be a subset of G"
 
     # Construct the cosets
     cosets = []
-    G_todo = set(G)
     for g in G:
         if g not in G_todo:
             continue
@@ -849,7 +848,7 @@ class Polyomino(SageObject):
     def canonical_isometric_copies(self, orientation_preserving=True,
             mod_box_isometries=False):
         r"""
-        Return the set of image of self under isometries of the `n`-cube
+        Return the list of image of self under isometries of the `n`-cube
         where the coordinates are all nonnegative and minimal.
 
         INPUT:

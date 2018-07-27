@@ -83,6 +83,7 @@ Comprehensive Module list
     sage/combinat/crystals/spins
     sage/combinat/crystals/star_crystal
     sage/combinat/crystals/tensor_product
+    sage/combinat/crystals/tensor_product_element
     sage/combinat/cyclic_sieving_phenomenon
     sage/combinat/debruijn_sequence
     sage/combinat/degree_sequences

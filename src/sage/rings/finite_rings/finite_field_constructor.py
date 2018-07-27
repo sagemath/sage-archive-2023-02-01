@@ -470,7 +470,7 @@ class FiniteFieldFactory(UniqueFactory):
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True,
                                   prefix=None, repr=None, elem_cache=None,
-                                  structure=None):
+                                  **kwds):
         """
         EXAMPLES::
 
@@ -505,7 +505,7 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF(625, impl='givaro') is GF(625, impl='givaro', elem_cache=False)
             True
 
-        We explicitly take a ``structure`` attribute for compatibility
+        We explicitly take a ``kwds`` attribute for compatibility
         with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
         but we ignore it as it is not used, see :trac:`21433`::
 

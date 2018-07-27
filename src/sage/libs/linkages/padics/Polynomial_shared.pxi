@@ -143,7 +143,7 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     if a == 0:
         return prec
     cdef long v = cvaluation(a, prec, prime_pow)
-    cshift_notrunc(out, a, -v, prec, prime_pow, True)
+    cshift_notrunc(out, a, -v, prec-v, prime_pow, True)
     return v
 
 cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:

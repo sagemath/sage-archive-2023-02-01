@@ -516,7 +516,8 @@ class DocTestReporter(SageObject):
                         total = "%d%% of tests run"%(round(100*ntests_run/float(ntests_run + nskipped)))
                     else:
                         total = count_noun(ntests, "test")
-                    log("    [%s, %s%.2f s]" % (total, "%s, "%(count_noun(f, "failure")) if f else "", wall))
+                    if not (self.controller.options.only_errors and not f):
+                        log("    [%s, %s%.2f s]" % (total, "%s, "%(count_noun(f, "failure")) if f else "", wall))
 
             self.sources_completed += 1
 

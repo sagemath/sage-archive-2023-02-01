@@ -35,6 +35,7 @@ from sage.rings.padics.local_generic_element cimport LocalGenericElement
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.rational cimport Rational
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.structure.element import coerce_binop
 
@@ -2943,73 +2944,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: s == c or s == -c
             True
 
-        """
-        # We first check trivial cases and precision
-        if self._is_exact_zero():
-            return self
-        parent = self.parent()
-        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.absolute_e()):
-            raise PrecisionError("not enough precision to be sure that this element has a square root")
-
-        if algorithm is None:
-            if parent.absolute_degree() == 1:
-                algorithm = "pari"
-            else:
-                algorithm = "sage"
-
-        if algorithm == "pari":
-            from sage.libs.pari.all import PariError
-            ans = None
-            try:
-                # use pari
-                ans = parent(self.__pari__().sqrt())
-            except PariError:
-                # todo: should eventually change to return an element of
-                # an extension field
-                pass
-        elif algorithm == "sage":
-            ans = self._square_root()
-        if ans is not None:
-            if list(ans.expansion()) > list((-ans).expansion()):
-                ans = -ans
-            if all:
-                return [ans, -ans]
-            else:
-                return ans
-        if extend:
-            raise NotImplementedError("extending using the sqrt function not yet implemented")
-        elif all:
-            return []
-        else:
-            raise ValueError("element is not a square")
-
-    def _square_root(self):
-        """
-        Return the square root of this `p`-adic number
-        or ``None`` if this number does not have a square root
-
-        NOTE:
-
-        This is the Sage implementation used in :meth:`square_root`.
-
-        This method assumes that the input is given at relative precision
-        at least 1 if `p > 2` and relative precision at least `2e + 1` if
-        `p = 2` (where `e` is the absolute ramification index).
-        This is the minimal precision to be sure whether this number has
-        or has not a square root.
-
-        TESTS::
-
             sage: Q2 = Qp(2,20,'capped-rel')
-            sage: Q2(1)._square_root()
+            sage: Q2(1).square_root()
             1 + O(2^19)
-            sage: Q2(4)._square_root()
+            sage: Q2(4).square_root()
             2 + O(2^20)
 
             sage: Q5 = Qp(5,20,'capped-rel')
-            sage: Q5(1)._square_root()
+            sage: Q5(1).square_root()
             1 + O(5^20)
-            sage: Q5(-1)._square_root() == Q5.teichmuller(2) or Q5(-1).square_root() == Q5.teichmuller(3)
+            sage: Q5(-1).square_root() == Q5.teichmuller(2) or Q5(-1).square_root() == Q5.teichmuller(3)
             True
 
             sage: Z3 = Zp(3,20,'capped-abs')
@@ -3036,85 +2980,177 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: Z5(-1).square_root() == Z5.teichmuller(2) or Z5(-1).square_root() == Z5.teichmuller(3)
             True
         """
+        # We first check trivial cases and precision
+        if self._is_exact_zero():
+            return self
+        parent = self.parent()
+        if self.is_zero() or (parent.prime() == 2 and self.precision_relative() < 1 + 2*parent.absolute_e()):
+            raise PrecisionError("not enough precision to be sure that this element has a square root")
+
+        if algorithm is None:
+            if parent.absolute_degree() == 1:
+                algorithm = "pari"
+            else:
+                algorithm = "sage"
+
+        if algorithm == "pari":
+            from sage.libs.pari.all import PariError
+            ans = None
+            try:
+                # use pari
+                ans = parent(self.__pari__().sqrt())
+            except PariError:
+                # todo: should eventually change to return an element of
+                # an extension field
+                pass
+        elif algorithm == "sage":
+            ans = self.nth_root(2)
+        if ans is not None:
+            if list(ans.expansion()) > list((-ans).expansion()):
+                ans = -ans
+            if all:
+                return [ans, -ans]
+            else:
+                return ans
+        if extend:
+            raise NotImplementedError("extending using the sqrt function not yet implemented")
+        elif all:
+            return []
+        else:
+            raise ValueError("element is not a square")
+
+
+    def nth_root(self, n):
+        """
+        Return the nth root of this element.
+        """
+        n = ZZ(n)
+        if n == 0:
+            raise ValueError
+        elif n < 0:
+            return (~self).nth_root(-n)
+
+        R = self.parent()
+        p = R.prime()
+        val = self.valuation()
+        if val % n != 0:
+            raise ValueError("This element is not a nth power")
+        a = self >> val
+        abar = a.residue()
+        try:
+            xbar = abar.nth_root(n)
+        except ValueError:
+            raise ValueError("This element is not a nth power")
+
+        m = n
+        while True:
+            q, r = m.quo_rem(p)
+            if r > 0: break
+            a = a._pth_root()
+            if a is None:
+                raise ValueError("This element is not a nth power")
+            m = q
+
+        if m == 1: return a << (val // n)
+
+        x = R(~xbar)
+        invm = R(1/m)
+        prec = a.precision_absolute()
+        curprec = 1
+        while curprec < prec:
+            curprec *= 2
+            x = x.lift_to_precision(min(prec,curprec))
+            x += invm * x * (1 - a*(x**m))
+
+        return (~x) << (val // n)
+
+        
+    def _pth_root(self):
+        """
+        Return the pth root of this element or ``None`` 
+        if this number does not have a pth root.
+
+        This is an helper function for :meth:`square_root`
+        and :meth:`nth_root`.
+        """
         ring = self.parent()
         p = ring.prime()
         e = ring.absolute_e()
 
         # First, we check valuation and renormalize if needed
         val = self.valuation()
-        if val % 2 == 1:
+        if val % p == 1:
             return None
         a = self >> val
-        prec = a.precision_absolute()
 
-        # We compute the square root of 1/a in the residue field
+        prec = a.precision_absolute()
+        ep = e // (p-1)
+        if prec < e + ep + 1:
+            raise PrecisionError
+
+        # We compute the p-th root of 1/a in the residue field
         abar = a.residue()
-        try:
-            xbar = 1/abar.sqrt(extend=False)
-        except ValueError:
-            return None
+        xbar = 1/abar.nth_root(p)
         x = ring(xbar)
         curprec = 1
 
-        # When p is 2, we lift sqrt(1/a) modulo 2*pi (pi = uniformizer)
-        if p == 2:   # We assume here that the relative precision is at least 2*e + 1
-            x = x.lift_to_precision(e+1)
+        x = x.lift_to_precision(ep+1)
 
-            # We will need 1/a at higher precision
-            ainv = ~(a.add_bigoh(2*e+1))
+        # We will need 1/a at higher precision
+        ainv = ~(a.add_bigoh(e+ep+1))
 
-            # If x^2 is not correct modulo pi^2, there is no solution
-            if (ainv - x**2).valuation() < 2:
-                return None
+        # If x^p is not correct modulo pi^p, there is no solution
+        if (ainv - x**p).valuation() < min(e+1, p):
+            return None
 
-            # We lift modulo 2
-            k = ring.residue_field()
-            while curprec < e:   # curprec is the number of correct digits of x
-                # recomputing x^2 is not necessary:
-                # we can alternatively update it after each update of x
-                # (which is theoretically a bit faster)
-                b = (ainv - x**2) >> (2*curprec)
-                if b == 0: break
-                for i in range(e - curprec):
-                    if i % 2 == 0:
-                        try:
-                            # We shouldn't recompute the expansion of b at the iteration
-                            cbar = k(b.expansion(i)).sqrt(extend=False)
-                        except ValueError:
-                            return None
-                        c = ring(cbar).lift_to_precision()
-                        x += c << (curprec + i//2)
-                    else:
-                        if k(b.expansion(i)) != 0:
-                            return None
-                curprec = (curprec + e + 1) // 2
+        # We lift modulo p
+        k = ring.residue_field()
+        while curprec < e/(p-1):   # curprec is the number of correct digits of x
+            # recomputing x^p is not necessary:
+            # we can alternatively update it after each update of x
+            # (which is theoretically a bit faster)
+            b = (ainv - x**p) >> (p*curprec)
+            if b == 0: break
+            for i in range(e - (p-1)*curprec):
+                if i % p == 0:
+                    try:
+                        # We shouldn't recompute the expansion of b at the iteration
+                        cbar = k(b.expansion(i)).pth_root()
+                    except ValueError:
+                        return None
+                    c = ring(cbar).lift_to_precision()
+                    x += c << (curprec + i//p)
+                else:
+                    if k(b.expansion(i)) != 0:
+                         return None
+            curprec = (curprec + e + p-1) // p
 
-            # We lift one step further
+        # We lift one step further
+        if e % (p-1) == 0:
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             S = PolynomialRing(k, name='x')
-            b = ainv - x**2
-            if b.valuation() < 2*e:
+            b = ainv - x**p
+            if b.valuation() < e + ep:
                 return None
-            b >>= (2*e)
-            AS = S([ b.residue(), xbar*k(ring(2).expansion(e)), 1 ])
+            b >>= e + ep
+            AS = S([ -b.residue(), xbar**(p-1)*k(ring(p).expansion(e)) ] + (p-2)*[0] + [1])
             roots = AS.roots()
             if len(roots) == 0:
                 return None
-            x += ring(roots[0][0]) << e
+            x += ring(roots[0][0]) << ep
 
-            # For Newton iteration, we redefine curprec
-            # as (a lower bound on) valuation(a*x^2 - 1)
-            curprec = 2*e + 1
+        # For Newton iteration, we redefine curprec
+        # as (a lower bound on) valuation(a*x^2 - 1)
+        curprec = e + ep + 1
 
         # We perform Newton iteration
         while curprec < prec:
-            if p == 2:
-                curprec -= e
-            curprec <<= 1
+            curprec -= e
+            curprec = min(2*curprec + e, p*curprec)
             x = x.lift_to_precision(min(prec,curprec))
-            x += x * (1 - a*x*x) / 2
+            x += x * (1 - a*x**p) / p
 
-        return (a*x) << (val // 2)
+        return (~x) << (val // p)
 
 
     def __abs__(self):

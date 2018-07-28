@@ -1675,8 +1675,7 @@ class AbstractLinearCode(Module):
 
     def direct_sum(self, other):
         """
-        Returns the code given by the direct sum of the codes ``self`` and
-        ``other``, which must be linear codes defined over the same base ring.
+        Returns the code given by the direct sum of the codes ``self`` an ``other``, which must be linear codes defined over the same base ring.
 
         EXAMPLES::
 
@@ -1701,6 +1700,115 @@ class AbstractLinearCode(Module):
         top = G1.augment(Z2)
         bottom = Z1.augment(G2)
         G = top.stack(bottom)
+        return LinearCode(G)
+
+    def juxtapose(self, other):
+        """
+        Returns the code obtained by juxtaposing 'self' and 'other'. 
+
+        The two codes must have equal dimension.
+
+        EXAMPLES::
+
+           sage: C1 = codes.HammingCode(GF(2), 3)
+           sage: C2 = C1.juxtapose(C1)
+           sage: C2
+           [14, 4] linear code over GF(2)
+
+        """   
+        G1 = self.generator_matrix()
+        G2 = other.generator_matrix()
+        G = G1.augment(G2)
+        return LinearCode(G)
+
+    def u_u_plus_v_code(self, other):
+        """
+        Returns the code obtained through (u|u+v) construction with 'self' as u and 'other' as v.
+
+        u and v must have equal lengths. When u is a [n, k1, d1] code and v is a [n, k2, d2] code this returns a [2n, k1+k2, d] code, where d=min(2d1,d2)
+
+        EXAMPLES::
+
+            sage: C1 = codes.HammingCode(GF(2), 3)
+            sage: C2 = codes.HammingCode(GF(2), 3)
+            sage: D = C1.u_u_plus_v_code(C2)
+            sage: D
+            [14, 8] linear code over GF(2)    
+          
+        """
+        F = self.base_ring()
+        G1 = self.generator_matrix()
+        G2 = other.generator_matrix()
+        k2 = len(G2.rows())
+        n2 = len(G2.columns())
+        MS = MatrixSpace(F,k2,n2)
+        Z = MS(0)
+        top = G1.augment(G1)
+        bot = Z.augment(G2)
+        G = top.stack(bot)
+        return LinearCode(G)
+
+    def product_code(self, other):
+        """
+        Combines 'self' with 'other' to give the tensor product code.
+
+        If 'self' is a [n1, k1, d1] code and 'other' is a [n2, k2, d2] code, theproduct is a [n1*n2, k1*k2, d1*d2] code.
+        """
+        G1 = self.generator_matrix()
+        G2 = other.generator_matrix()
+        G = G1.tensor_product(G2)
+        return LinearCode(G)
+
+    def construction_x(self, other, aux):
+        """
+        Construction X applied to C1='self', C2='other' and Ca='aux'.
+
+        'Other' must be a subcode of 'self'. If C1 is a [n, k1, d1] linear code and C2 is a [n, k2, d2] linear code, then k1 > k2 and d1 < d2. Ca must be a [na, ka, da] linear code such that ka + k2 == k1 and da + d1 <= d2. The method will then return a [n+na, k1, da+d1] linear code.
+
+            EXAMPLES::
+
+                sage: C = codes.BCHCode(GF(2),15,7)
+                sage: C
+                [15, 5] BCH Code over GF(2) with designed distance 7
+                sage: D = codes.BCHCode(GF(2),15,5)
+                sage: D
+                [15, 7] BCH Code over GF(2) with designed distance 5
+                sage: C.is_subcode(D)
+                True
+                sage: C.minimum_distance()
+                7
+                sage: D.minimum_distance()
+                5
+                sage: aux = codes.HammingCode(GF(2),2)
+                sage: aux = aux.dual_code()
+                sage: aux.minimum_distance()
+                2
+                sage: Cx = D.construction_x(C,aux)
+                sage: Cx
+                [18, 7] linear code over GF(2)
+                sage: Cx.minimum_distance()
+                7
+        """
+        if other.is_subcode(self) == False:
+            raise ValueError("%s is not a subcode of %s"%(self,other))
+
+        G2 = self.generator_matrix()
+        left = G1 = other.generator_matrix()
+        k = self.dimension()
+
+        for r in G2.rows():
+            if r not in left.row_space():
+                left = left.stack(r)
+ 
+        Ga = aux.generator_matrix()
+        na = aux.length()
+        ka = aux.dimension()
+ 
+        F = self.base_field()
+        MS = MatrixSpace(F,k-ka,na)
+        Z = MS(0)
+        right = Z.stack(Ga)
+        G = left.augment(right)
         return LinearCode(G)
 
     def __eq__(self, right):

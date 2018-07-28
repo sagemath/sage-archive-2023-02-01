@@ -1,7 +1,12 @@
-/************* ComputeL v1.3.4, 2001-2016, (c) Tim Dokchitser ************/
+/************* ComputeL v1.3.8, 2001-2018, (c) Tim Dokchitser ************/
 /**************** computing special values of L-functions ****************/
 /* arXiv.org/abs/math.NT/0207280, Exper. Math. 13 (2004), no. 2, 137-150 */
 /****** Questions/comments welcome! -> tim.dokchitser@bristol.ac.uk ******/
+
+\\ ACKNOWLEDGEMENTS: I'd like to thank Mark Watkins, Steve Donnelly,
+\\ William Stein, Anton Mellit, Almasa Odzak, Karim Belabas, Myoungil Kim,
+\\ Chris King, F. Patrick Rabarison, Neil Dummigan, Maciej Radziejewski,
+\\ François Brunault and Alex Best, for examples, bug fixes and suggestions
 
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 \\ Distributed under the terms of the GNU General Public License (GPL)
@@ -698,8 +703,8 @@ Lseries_$i(ss,cutoff=1,der=0)=
 
   local(FGSeries,LGSeries,res);
 
-  FGSeries = fullgammaseries_$i(ss,der)*vA_$i^(ss+S);
   default(realprecision,lfundigits_$i);
+  FGSeries = fullgammaseries_$i(ss,der)*vA_$i^(ss+S);
   if (length(Lpoles_$i) && (vecmin(abs(vector(length(Lpoles_$i),k,Lpoles_$i[k]-ss)))<10^(-answerdigits_$i) ||
     vecmin(abs(vector(length(Lpoles_$i),k,weight_$i-Lpoles_$i[k]-ss)))<10^(-answerdigits_$i)),
     error("L*(s) has a pole at s=",ss));

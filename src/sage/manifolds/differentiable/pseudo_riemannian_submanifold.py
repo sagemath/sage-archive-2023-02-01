@@ -178,7 +178,8 @@ from sage.functions.other import factorial
 from sage.symbolic.ring import SR
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
-from Queue import Queue
+from queue import Queue
+
 
 class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                                   DifferentiableSubmanifold):
@@ -1583,7 +1584,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         return self._shape_operator
 
     def clear_cache(self):
-        """
+        r"""
         Reset all the cached functions and the derived quantities.
 
         Use this function if you modified the immersion (or embedding) of the
@@ -1614,7 +1615,6 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.clear_cache()
             sage: n is N.normal()
             False
-
         """
         self.difft.clear_cache()
         self.gradt.clear_cache()

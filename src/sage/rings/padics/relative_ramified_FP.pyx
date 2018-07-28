@@ -29,6 +29,3 @@ cdef class RelativeRamifiedFloatingPointElement(FPElement):
             'floating-point'
         """
         return self.unit.parent()(ccoefficients(self.unit, self.ordp, self.prime_pow.ram_prec_cap, self.prime_pow))
-
-    def _unit(self):
-        return self.unit

@@ -1365,8 +1365,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
             e = parent.absolute_e()
             if self.precision_relative() < 1 + 2*e:
                 raise PrecisionError("not enough precision to be sure that this element has a square root")
-            sq = self.add_bigoh(self.valuation() + 2*e + 1)._square_root()
-            return sq is not None
+            try:
+                self.add_bigoh(self.valuation() + 2*e + 1).nth_root(2)
+            except ValueError:
+                return False
+            return True
 
     def is_squarefree(self):
         r"""
@@ -2993,9 +2996,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             else:
                 algorithm = "sage"
 
+        ans = None
         if algorithm == "pari":
             from sage.libs.pari.all import PariError
-            ans = None
             try:
                 # use pari
                 ans = parent(self.__pari__().sqrt())
@@ -3004,7 +3007,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 # an extension field
                 pass
         elif algorithm == "sage":
-            ans = self.nth_root(2)
+            try:
+                ans = self.nth_root(2)
+            except ValueError:
+                pass
         if ans is not None:
             if list(ans.expansion()) > list((-ans).expansion()):
                 ans = -ans
@@ -3023,18 +3029,82 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def nth_root(self, n):
         """
         Return the nth root of this element.
+
+        INPUT:
+
+        - ``n`` -- an integer
+
+        EXAMPLES::
+
+            sage: A = Zp(3,10)
+            sage: x = A(10135); x
+            1 + 3^2 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 3^8 + O(3^10)
+            sage: y = x.nth_root(5); y
+            1 + 2*3^2 + 2*3^5 + 2*3^6 + 3^8 + 3^9 + O(3^10)
+            sage: y^5 == x
+            True
+
+        When `n` is divisible by the underlying prime `p`, we
+        are loosing precision (which is consistant with the fact
+        that raising to the pth power increases precision)::
+
+            sage: z = x.nth_root(3); z
+            1 + 3 + 3^2 + 2*3^3 + 3^4 + 3^5 + 2*3^6 + 3^8 + O(3^9)
+            sage: z^3
+            1 + 3^2 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 3^8 + O(3^10)
+
+        Everything works over extensions as well::
+
+            sage: W.<a> = Zq(5^3)
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^7 - 5)
+            sage: R(5).nth_root(7)
+            pi + O(pi^141)
+
+        An error is raised if the given element is not a nth power
+        in the ring::
+
+            sage: R(5).nth_root(11)
+            Traceback (most recent call last):
+            ...
+            ValueError: This element is not a nth power
+
+        Similarly, when precision on the input is too small, an error 
+        is raised:
+
+            sage: x = R(1,6); x
+            1 + O(pi^6)
+            sage: x.nth_root(5)
+            Traceback (most recent call last):
+            ...
+            PrecisionError: not enough precision to be sure that this element is a nth power
+
+        TESTS::
+
+            sage: elt = R.random_element()
+            sage: (elt^100).nth_root(100) == elt
+            True
+
         """
         n = ZZ(n)
         if n == 0:
-            raise ValueError
+            raise ValueError("n must a nonzero integer")
         elif n < 0:
             return (~self).nth_root(-n)
-
         R = self.parent()
         p = R.prime()
+
+        # We first check trivial cases
+        if self._is_exact_zero():
+            return self
+        if self.is_zero():
+            raise PrecisionError("not enough precision to be sure that this element is a nth power")
+
+        # We check the valuation
         val = self.valuation()
         if val % n != 0:
             raise ValueError("This element is not a nth power")
+        # and the fact that the nth root 
         a = self >> val
         abar = a.residue()
         try:
@@ -3046,7 +3116,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         while True:
             q, r = m.quo_rem(p)
             if r > 0: break
-            a = a._pth_root()
+            try:
+                a = a._pth_root()
+            except PrecisionError:
+                raise PrecisionError("not enough precision to be sure that this element is a nth power")
             if a is None:
                 raise ValueError("This element is not a nth power")
             m = q
@@ -3072,6 +3145,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         This is an helper function for :meth:`square_root`
         and :meth:`nth_root`.
+
+        TESTS::
+
+            sage: R = Zp(11)
+            sage: [ R.teichmuller(x).nth_root(11) == R.teichmuller(x) for x in range(1,11) ]
+            [True, True, True, True, True, True, True, True, True, True]
         """
         ring = self.parent()
         p = ring.prime()
@@ -3115,7 +3194,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 if i % p == 0:
                     try:
                         # We shouldn't recompute the expansion of b at the iteration
-                        cbar = k(b.expansion(i)).pth_root()
+                        cbar = k(b.expansion(i)).nth_root(p)
                     except ValueError:
                         return None
                     c = ring(cbar).lift_to_precision()

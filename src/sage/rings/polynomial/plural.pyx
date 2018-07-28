@@ -998,7 +998,7 @@ cdef class NCPolynomialRing_plural(Ring):
         if not g._poly:
             raise ZeroDivisionError
 
-        res = pMDivide(f._poly,g._poly)
+        res = pMDivide(f._poly, g._poly)
         if coeff:
             if (r.cf.type == n_unknown) or r.cf.cfDivBy(p_GetCoeff(f._poly, r), p_GetCoeff(g._poly, r), r.cf):
                 n = r.cf.cfDiv( p_GetCoeff(f._poly, r) , p_GetCoeff(g._poly, r), r.cf)
@@ -1187,17 +1187,16 @@ cdef class NCPolynomialRing_plural(Ring):
         cdef poly *flt
 
         if not m:
-            return f,f
+            return (f, f)
 
         for g in G:
-            if isinstance(g, NCPolynomial_plural) \
-                   and (<NCPolynomial_plural>g) \
-                   and p_LmDivisibleBy((<NCPolynomial_plural>g)._poly, m, r):
-                flt = pMDivide(f._poly, (<NCPolynomial_plural>g)._poly)
-                #p_SetCoeff(flt, n_Div( p_GetCoeff(f._poly, r) , p_GetCoeff((<NCPolynomial_plural>g)._poly, r), r), r)
-                p_SetCoeff(flt, n_Init(1, r), r)
-                return new_NCP(self,flt), g
-        return self._zero_element,self._zero_element
+            if isinstance(g, NCPolynomial_plural) and g:
+                h = <NCPolynomial_plural>g
+                if p_LmDivisibleBy(h._poly, m, r):
+                    flt = pMDivide(f._poly, h._poly)
+                    p_SetCoeff(flt, n_Init(1, r), r)
+                    return (new_NCP(self,flt), h)
+        return (self._zero_element, self._zero_element)
 
     def monomial_pairwise_prime(self, NCPolynomial_plural g, NCPolynomial_plural h):
         """

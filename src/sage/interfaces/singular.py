@@ -654,6 +654,8 @@ class Singular(ExtraTabCompletion, Expect):
 
         s = Expect.eval(self, x, **kwds)
 
+        # "Segment fault" is not a typo:
+        # Singular actually does use that string
         if s.find("error occurred") != -1 or s.find("Segment fault") != -1:
             raise SingularError('Singular error:\n%s'%s)
 
@@ -1750,7 +1752,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
 
         # Singular 4 puts parentheses around floats and sign outside them
         charstr = self.parent().eval('charstr(basering)').split(',',1)
-        if charstr[0]=='complex' or charstr[0].startswith('Float'):
+        if charstr[0].startswith('Float') or charstr[0] == 'complex':
               for i in range(coeff_start, 2 * coeff_start):
                   singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
 

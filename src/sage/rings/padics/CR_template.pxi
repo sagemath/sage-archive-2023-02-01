@@ -272,7 +272,7 @@ cdef class CRElement(pAdicTemplateElement):
             if is_zero:
                 self._set_inexact_zero(self.ordp + self.relprec)
             else:
-                diff = cremove(self.unit, self.unit, self.relprec, self.prime_pow)
+                diff = cremove(self.unit, self.unit, self.relprec, self.prime_pow, True)
                 # diff is less than self.relprec since the reduction didn't yield zero
                 self.ordp += diff
                 check_ordp(self.ordp)

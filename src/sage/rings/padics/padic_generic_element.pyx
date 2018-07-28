@@ -2399,7 +2399,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Performances::
 
-            sage: R = Zp(17, prec=10^6)
+            sage: R = Zp(17, prec=10^5)
             sage: a = R.random_element()
             sage: b = a.log(p_branch=0)   # should be rather fast
 
@@ -2875,7 +2875,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Performances::
 
-            sage: R = Zp(17,10^6)
+            sage: R = Zp(17,10^5)
             sage: a = 17 * R.random_element()
             sage: b = a.exp()    # should be rather fast
 

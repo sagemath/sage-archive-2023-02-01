@@ -1,8 +1,9 @@
------------------
-Infinity Crystals
------------------
+-----------------------------------------
+`\mathcal{B}(\infty)` crystals
+-----------------------------------------
 
-Infinity crystals are the crystal analogue of Verma modules with highest weight
+Infinity crystals, denoted `\mathcal{B}(\infty)` and depending only
+on the Cartan type are the crystal analogue of Verma modules with highest weight
 `0` associated to a symmetrizable Kac-Moody algebra.  As such, they are
 infinite-dimensional and any irreducible highest weight crystal may be obtained
 from an infinity crystal via some cutting procedure.  On the other hand, the

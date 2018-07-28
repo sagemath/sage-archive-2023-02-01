@@ -143,7 +143,7 @@ AUTHOR:
 """
 
 from sage.crypto.sbox import SBox
-
+from sage.misc.functional import is_odd, is_even
 
 def bracken_leander(n):
     """
@@ -152,23 +152,22 @@ def bracken_leander(n):
     For n = 4*k and odd k, the construction is `x \mapsto x^{2^{2k} + 2^k + 1}`
     over `\GF{2^n}`
 
+    INPUT:
+
+    - ``n`` - size of the S-Box
+
     EXAMPLES::
 
         sage: from sage.crypto.sboxes import bracken_leander
         sage: sbox = bracken_leander(12); [sbox(i) for i in range(8)]
         [0, 1, 2742, 4035, 1264, 408, 1473, 1327]
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    from sage.rings.finite_rings.finite_field_constructor import GF
-
-    if n % 4 == 1 or (n / 4) % 2 == 0:
-        raise TypeError("Bracken-Leander functions are only defined for n = 4k, "
-        	            "with k odd")
+    if n % 4 == 1 or is_even(n / 4):
+        raise TypeError("Bracken-Leander functions are only defined for n = 4k with k odd")
 
     k = n / 4
-    R = PolynomialRing(GF(2**n, name='x'), 'X')
-    poly = R.gen()**(2**(2*k) + 2**k + 1)
-    return SBox(poly)
+    e = 2**(2*k) + 2**k + 1
+    return monomial_function(n, e)
 
 
 def carlet_tang_tang_liao(n, c=None, bf=None):
@@ -242,52 +241,49 @@ def gold(n, i):
     """
     Return the Gold function defined by `x \mapsto x^{2^i + 1}` over `\GF{2^n}`
 
+    INPUT:
+
+    - ``n`` - size of the S-Box
+    - ``i`` - a positive integer
+
     EXAMPLES::
 
         sage: from sage.crypto.sboxes import gold
         sage: gold(3, 1)
         (0, 1, 3, 4, 5, 6, 7, 2)
-
         sage: gold(3, 1).differential_uniformity()
         2
-
         sage: gold(4, 2)
         (0, 1, 6, 6, 7, 7, 7, 6, 1, 7, 1, 6, 1, 6, 7, 1)
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    from sage.rings.finite_rings.finite_field_constructor import GF
-
-    R = PolynomialRing(GF(2**n, name='x'), 'X')
-    poly = R.gen()**(2**i + 1)
-    return SBox(poly)
+    e = 2**i + 1
+    return monomial_function(n, e)
 
 
 def kasami(n, i):
     """
     Return the Kasami function defined by `x \mapsto x^{2^{2i} - 2^i + 1}` over `\GF{2^n}`
 
+    INPUT:
+
+    - ``n`` - size of the S-Box
+    - ``i`` - a positive integer
+
     EXAMPLES::
 
         sage: from sage.crypto.sboxes import kasami
         sage: kasami(3, 1)
         (0, 1, 3, 4, 5, 6, 7, 2)
-
         sage: from sage.crypto.sboxes import gold
         sage: kasami(3, 1) == gold(3, 1)
         True
-
         sage: kasami(4, 2)
         (0, 1, 13, 11, 14, 9, 6, 7, 10, 4, 15, 2, 8, 3, 5, 12)
-
         sage: kasami(4, 2) != gold(4, 2)
         True
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    from sage.rings.finite_rings.finite_field_constructor import GF
-
-    R = PolynomialRing(GF(2**n, name='x'), 'X')
-    poly = R.gen()**(2**(2*i) - 2**i + 1)
-    return SBox(poly)
+    e = 2**(2*i) - 2**i + 1
+    return monomial_function(n, e)
 
 
 def niho(n):
@@ -296,6 +292,10 @@ def niho(n):
 
     It is defined by `x \mapsto x^{2^t + 2^s - 1}` with `s = t/2` if t is even
     or `s = (3t+1)/2` if t is odd.
+
+    INPUT:
+
+    - ``n`` - size of the S-Box
 
     EXAMPLES::
 
@@ -306,45 +306,71 @@ def niho(n):
         sage: niho(3).differential_uniformity()
         2
     """
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    from sage.rings.finite_rings.finite_field_constructor import GF
-
-    if n % 2 == 0:
+    if not is_odd(n):
         raise TypeError("Niho functions are only defined for n odd")
 
     t = (n - 1) / 2
 
-    R = PolynomialRing(GF(2**n, name='x'), 'X')
-    if t % 2 == 0:
-        poly = R.gen()**(2**t + 2**(t/2) - 1)
+    if is_even(t):
+        e = 2**t + 2**(t/2) - 1
     else:
-        poly = R.gen()**(2**t + 2**((3*t+1)/2) - 1)
-    return SBox(poly)
+        e = 2**t + 2**((3*t+1)/2) - 1
+
+    return monomial_function(n, e)
 
 
 def welch(n):
     """
     Return the Welch function defined by `x \mapsto x^{2^{(n-1)/2} + 3}` over `\GF{2^n}`
 
+    INPUT:
+
+    - ``n`` - size of the S-Box
+
     EXAMPLES::
 
         sage: from sage.crypto.sboxes import welch
         sage: welch(3)
         (0, 1, 7, 2, 3, 4, 5, 6)
-
         sage: welch(3).differential_uniformity()
         2
+    """
+    if not is_odd(n):
+        raise TypeError("Welch functions are only defined for odd n")
+
+    t = (n - 1) / 2
+    e = 2**t + 3
+    return monomial_function(n, e)
+
+
+def monomial_function(n, e):
+    """
+    Return an S-Box as a function `x^e` defined over `\GF{2^n}`.
+
+    INPUT:
+
+    - ``n`` - size of the S-Box (i.e. the degree of the finite field extension)
+    - ``e`` - exponent of the monomial function
+
+    EXAMPLES::
+
+        sage: from sage.crypto.sboxes import monomial_function
+        sage: S = monomial_function(7, 3)
+        sage: S.differential_uniformity()
+        2
+        sage: S.input_size()
+        7
+        sage: S.is_permutation()
+        True
     """
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
     from sage.rings.finite_rings.finite_field_constructor import GF
 
-    if n % 2 == 0:
-        raise TypeError("Welch functions are only defined for odd n")
+    base_ring = GF(2**n, name='x')
+    R = PolynomialRing(base_ring, name='X')
+    X = R.gen()
 
-    t = (n - 1) / 2
-    R = PolynomialRing(GF(2**n, name='x'), 'X')
-    poly = R.gen()**(2**t + 3)
-    return SBox(poly)
+    return SBox(X**e)
 
 
 AES = SBox([

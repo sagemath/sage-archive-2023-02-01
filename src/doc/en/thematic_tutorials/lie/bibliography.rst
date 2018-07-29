@@ -9,6 +9,9 @@ Bibliography
    Iwahori vectors and the Bruhat order*. :arxiv:`1002.2996`,
    :arxiv:`1002.2996`.
 
+.. [BumpSchilling2017] \D. Bump and A. Schilling, *Crystal bases:
+   representations and combinatorics, World Scientific, 2017.
+
 .. [Carrell1994] \J. B. Carrell. The Bruhat graph of a Coxeter group, a
    conjecture of Deodhar, and rational smoothness of Schubert varieties. In
    *Algebraic Groups and Their Generalizations: Classical Methods*,

@@ -29,10 +29,11 @@ of affine Lie algebras.
 One realization of affine Lie algebras, described in Chapter 7
 of [Kac]_ begins with a
 finite-dimensional isimple Lie algebra `\mathfrak{g}^\circ`,
-with Cartan type `['X',\ell]`. Tensoring with the Laurent polynomial ring gives
-the loop Lie algebra `\mathfrak{g}^\circ\otimes\CC[t,t^{-1}]`. This
-is the Lie algebra of vector fields in `\mathfrak{g}^\circ` on
-the circle. Then one may make a central extension:
+with Cartan type `X_\ell` (``['X',l]`` in Sage). Tensoring with the
+Laurent polynomial ring gives the loop Lie algebra
+`\mathfrak{g}^\circ\otimes\CC[t,t^{-1}]`. This is the Lie algebra of
+vector fields in `\mathfrak{g}^\circ` on the circle. Then one may make a
+central extension:
 
 .. MATH::
 
@@ -47,8 +48,9 @@ the central element `K`, and then a Cartan subalgebra `\mathfrak{h}`
 by further adjoining the derivation `d`.
 
 The resulting Lie algebra `{\mathfrak{g}}` is the *untwisted affine
-Lie algebra*.  The Cartan type is designated to be `['X',\ell,1]`, which
-we can abbreviate as ``"Xl~"``.The Dynkin diagram of this
+Lie algebra*.  The Cartan type is designated to be `X_\ell^{(1)}`
+in Kac' notation, which is rendered as ``['X',l,1]`` or ``"Xl~"``
+in Sage. The Dynkin diagram of this
 Cartan type is the extended Dykin-diagram of `\mathfrak{g}^\circ`::
 
     sage: CartanType("E6~").dynkin_diagram()
@@ -100,7 +102,8 @@ crystals. Thus for Kirillov-Reshetikhin crystals we prefer tue See
 Twisted Types
 -------------
 
-There are also *twisted* types `['X',\ell,r]` where `r` is the order of an
+There are also *twisted* types with Cartan type `X_\ell^{(m)}` or
+``['X',l,m]`` where `m` is the order of an
 automorphism of the Dynkin diagram of `\mathfrak{g}^\circ`. These are
 described in [Kac]_ Chapter 8.  Alternative descriptions of the twisted
 types may be found in [Macdonald2003]_. Examining the tables Aff1, Aff2
@@ -126,7 +129,7 @@ Dynkin node to the Cartan type "F4"::
     0   1   2   3   4
     F4~
 
-The Cartan types `['E',6,2]` and `['F',4,1]` (abbreviated `F4~`) are dual
+The Cartan types `['E',6,2]` and `['F',4,1]` (abbreviated ``F4~``) are dual
 in the sense that long roots of one correspond to short roots of the other.
 (Thus 0,1 and 2 are short roots of `['E',6,2]`, they are long roots of
 `['F',4,1]`.) More generally, every twisted affine type is dual to a
@@ -157,7 +160,7 @@ a *weight space decomposition*
     V = \bigoplus_{\lambda\in\mathfrak{h}^*} V_\lambda
 
 where `V_\lambda` is finite-dimensional, and where `\mathfrak{h}`
-acts by `Xv=\lambda(X)v` for `X\in\mathfrak{h}`, v\in `V_\lambda`.
+acts by `X\,v=\lambda(X)v` for `X\in\mathfrak{h}`, v\in `V_\lambda`.
 The space `V_\lambda` is called the *weight space* and its
 dimension is the *multiplicity* of the weight `\lambda`.
 
@@ -312,7 +315,7 @@ Integrable Highest Weight Representations
 -----------------------------------------
 
 In this section `\mathfrak{g}` can be an arbitrary
-Kac-Moody Lie 
+Kac-Moody Lie Algebra.
 
 Suppose that `V` is a representation with a weight
 decomposition as in :ref:`roots_and_weights`.
@@ -350,14 +353,11 @@ weight module if and only if `\lambda\in\Lambda^+`. See
 [Kac]_ Chapters 9 and 10 for the theory of integrable
 highest weight representations.
 
-There exists a basis `\Lambda_i`
-of the lattice `\Lambda` such that the dominant
-weights are the nonnegative linear combinations
-of the `\Lambda_i`. In the affine cases we
-label the weights `i=0,1,\cdots,r-1`. If
-`\mathfrak{g}` is a is an untwisted
-affine Lie algebra of Cartan type `['X',\ell,1]`
-then `r=\ell+1`. The labels correspond to the nodes
-in the Dynkin diagram.
+There exists a basis `\Lambda_i` of the lattice `\Lambda` such that the
+dominant weights are the nonnegative linear combinations of the
+`\Lambda_i`. In the affine cases we label the weights
+`i=0,1,\cdots,r-1`. If `\mathfrak{g}` is the untwisted affine Lie
+algebra of Cartan type `X_\ell^{(1)}`` then `r=\ell+1`. The labels correspond
+to the nodes in the Dynkin diagram.
 
 :class:`~sage.combinat.root_system.integrable_representations.IntegrableRepresentation`

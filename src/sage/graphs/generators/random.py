@@ -271,13 +271,15 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     r"""
     Return a random regular bipartite graph on `n1 + n2` vertices.
 
-    The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 *
-    d1`. Each vertex of the set of cardinality `n1` has degree `d1` and each
-    vertex in the set of cardinality `n2` has degree `(n1 * d1) / n2`. The
-    bipartite graph has no multiple edges.
+    The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 * d1`.
+    Each vertex of the set of cardinality `n1` has degree `d1` and each vertex
+    in the set of cardinality `n2` has degree `(n1 * d1) / n2`. The bipartite
+    graph has no multiple edges.
 
-    This generator does not ensure that graphs are generated uniformly at
-    random.
+    This generator implements the algorithm proposed in [MW1990]_ for the
+    uniform generation of random regular bipartite graphs. It performs well when
+    `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})). In other case, the running
+    time can be huge.
 
     INPUT:
 
@@ -296,6 +298,14 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         sage: set(g.degree())
         {2, 3}
 
+        sage: graphs.RandomRegularBipartite(1, 2, 2, set_position=True).get_pos()
+        {0: (0, 0.5), 1: (1, 1.0), 2: (1, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 1, 1, set_position=True).get_pos()
+        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 0.5)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=True).get_pos()
+        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 1.0), 3: (1, 0.5), 4: (1, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=False).get_pos()
+
     TESTS:
 
     Giving invalid parameters::
@@ -308,17 +318,6 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         Traceback (most recent call last):
         ...
         ValueError: the product n1 * d1 must be a multiple of n2
-
-    Test assigned positions::
-
-        sage: graphs.RandomRegularBipartite(1, 2, 2, set_position=True).get_pos()
-        {0: (0, 0.5), 1: (1, 1.0), 2: (1, 0.0)}
-        sage: graphs.RandomRegularBipartite(2, 1, 1, set_position=True).get_pos()
-        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 0.5)}
-        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=True).get_pos()
-        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 1.0), 3: (1, 0.5), 4: (1, 0.0)}
-        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=False).get_pos()
-
     """
     if n1 < 1 or n2 < 1:
         raise ValueError("n1 and n2 must be integers greater than 0")
@@ -326,37 +325,79 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     if n1 * d1 != n2 * d2:
         raise ValueError("the product n1 * d1 must be a multiple of n2")
 
-    from sage.misc.prandom import shuffle
-    from sage.misc.prandom import choice
+    complement = False
+    if d1 > n2/2 or d2 > n1/2:
+        # We build the complement graph instead
+        complement = True
+        d1 = n2 - d1
+        d2 = n1 - d2
 
-    # We create a set of n1 * d1 random edges with possible
-    # repetitions using a configuration model
-    L = [u for u in range(n1) for i in range(d1)]
-    R = [u for u in range(n1, n1 + n2) for i in range(d2)]
-    shuffle(R)
     E = set()
-    F = list()
-    for e in zip(L, R):
-        if e in E:
-            F.append(e)
-        else:
-            E.add(e)
+    F = set()
 
-    # We exchange semi-edges to remove multiple edges
-    for f in F:
+    if d1:
+        from sage.misc.prandom import shuffle
+        from sage.misc.prandom import choice
+
+        M1 = n1 * d1 * (d1 - 1)
+        M2 = n2 * d2 * (d2 - 1)
+        M = n1 * d1 + n2 * d2
+        UB_parallel = (M1 * M2) / M**2
+
+        # We create a set of n1 * d1 random edges with possible repetitions. We
+        # do so that the number of repeated edges is bounded and that an edge
+        # can be repeated only once.
+        L = [u for u in range(n1) for i in range(d1)]
+        R = [u for u in range(n1, n1 + n2) for i in range(d2)]
+        restart = True
+        while restart:
+            restart = False
+            shuffle(R)
+            E = set()
+            F = set()
+            for e in zip(L, R):
+                if e in E:
+                    if e in F:
+                        # We have more than 3 times e => restart
+                        retart = True
+                        break
+                    else:
+                        F.add(e)
+                    if len(F) >= UB_parallel:
+                        # We have too many parallel edges
+                        restart = True
+                        break
+                else:
+                    E.add(e)
+
+    # We remove multiple edges by applying random forward d-switching. That is,
+    # given edge e that is repeated twice, we select single edges f and g with
+    # no common end points, and then create 4 new edges. We forbid vreating new
+    # multiple edges.
+    while F:
+        # random forward d-switching
+        e = F.pop()
+        E.discard(e)
+        TE = tuple(E.difference(F))
+        # We select 2 vertex disjoint edges
         while True:
-            # We select a random edge of the graph
-            TE = tuple(E)
-            e = choice(TE)
-            while e == f:
-                e = choice(TE)
+            f = choice(TE)
+            if e[0] == f[0] or e[1] == f[1]:
+                continue
+            g = choice(TE)
+            if e[0] != g[0] and e[1] != g[1] and f[0] != g[0] and f[1] != g[1]:
+                new_edges = [(f[0], e[1]), (e[0], f[1]), (e[0], g[1]), (g[0], e[1])]
+                if not E.intersection(new_edges):
+                    # We are not creating new parallel eges
+                    break
+        E.discard(f)
+        E.discard(g)
+        E.update(new_edges)
 
-            # We exchange extremities unless it might create a multiple edge
-            if (e[0], f[1]) not in E and (f[0], e[1]) not in E:
-                E.discard(e)
-                E.add((e[0], f[1]))
-                E.add((f[0], e[1]))
-                break
+    if complement:
+        from sage.graphs.generators.basic import CompleteBipartiteGraph
+        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(labels=False))
+        d1, d2 = n2 - d1, n1 - d2
 
     name = "Random regular bipartite graph of order {} + {} and degrees {} and {}".format(n1, n2, d1, d2)
     G = Graph(list(E), name=name)

@@ -978,6 +978,14 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g = Graph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors(0)
             [1, 4, 5]
+
+        TESTS:
+
+        Ticket :trac:`25550` is fixed::
+
+            sage: g = DiGraph({0: [1]}, immutable=True)
+            sage: print(g.neighbors(1))
+            [0]
         """
         try:
             v = self._vertex_to_int[v]
@@ -986,9 +994,18 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         cdef StaticSparseCGraph cg = self._cg
         cdef int i
+        cdef set seen = set()
 
-        for i in range(out_degree(cg.g,v)):
-            yield self._vertex_to_labels[cg.g.neighbors[v][i]]
+        if cg._directed:
+            for i in range(out_degree(cg.g, v)):
+                yield self._vertex_to_labels[cg.g.neighbors[v][i]]
+                seen.add(cg.g.neighbors[v][i])
+            for i in range(out_degree(cg.g_rev, v)):
+                if not cg.g_rev.neighbors[v][i] in seen:
+                    yield self._vertex_to_labels[cg.g_rev.neighbors[v][i]]
+        else:
+            for i in range(out_degree(cg.g, v)):
+                yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
     def iterator_out_nbrs(self, v):
         r"""
@@ -1012,12 +1029,12 @@ cdef class StaticSparseBackend(CGraphBackend):
         cdef StaticSparseCGraph cg = self._cg
         cdef int i
 
-        for i in range(out_degree(cg.g,v)):
+        for i in range(out_degree(cg.g, v)):
             yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
     def iterator_in_nbrs(self, v):
         r"""
-        Returns the out-neighbors of a vertex
+        Returns the in-neighbors of a vertex
 
         INPUT:
 
@@ -1028,6 +1045,12 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g = DiGraph(graphs.PetersenGraph(), data_structure="static_sparse")
             sage: g.neighbors_in(0)
             [1, 4, 5]
+
+        TESTS::
+
+            sage: g = DiGraph({0: [1]}, immutable=True)
+            sage: print(g.neighbors_in(1))
+            [0]
         """
         try:
             v = self._vertex_to_int[v]
@@ -1035,13 +1058,13 @@ cdef class StaticSparseBackend(CGraphBackend):
             raise LookupError("The vertex does not belong to the graph")
 
         cdef StaticSparseCGraph cg = self._cg
-        cdef short_digraph g
+        cdef int i
 
         if cg._directed:
-            for i in range(out_degree(cg.g_rev,v)):
+            for i in range(out_degree(cg.g_rev, v)):
                 yield self._vertex_to_labels[cg.g_rev.neighbors[v][i]]
         else:
-            for i in range(out_degree(cg.g,v)):
+            for i in range(out_degree(cg.g, v)):
                 yield self._vertex_to_labels[cg.g.neighbors[v][i]]
 
     def add_vertex(self,v):

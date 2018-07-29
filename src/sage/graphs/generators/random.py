@@ -179,7 +179,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     import networkx
     return Graph(networkx.barabasi_albert_graph(n,m,seed=seed))
 
-def RandomBipartite(n1, n2, p):
+def RandomBipartite(n1, n2, p, set_position=False):
     r"""
     Returns a bipartite graph with `n1+n2` vertices
     such that any edge from `[n1]` to `[n2]` exists
@@ -187,8 +187,12 @@ def RandomBipartite(n1, n2, p):
 
     INPUT:
 
-        - ``n1, n2`` : Cardinalities of the two sets
-        - ``p``   : Probability for an edge to exist
+    - ``n1, n2`` : Cardinalities of the two sets
+
+    - ``p``   : Probability for an edge to exist
+
+    - ``set_position`` -- boolean (default ``False``) if set to ``True``, we
+      assign positions to the vertices.
 
 
     EXAMPLES::
@@ -212,6 +216,17 @@ def RandomBipartite(n1, n2, p):
 
         sage: graphs.RandomBipartite(5,6,.2).complement()
         complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
+
+    Test assigned positions::
+
+        sage: graphs.RandomBipartite(1, 2, .1, set_position=True).get_pos()
+        {(0, 0): (0, 0.5), (1, 0): (1, 0.0), (1, 1): (1, 1.0)}
+        sage: graphs.RandomBipartite(2, 1, .1, set_position=True).get_pos()
+        {(0, 0): (0, 0.0), (0, 1): (0, 1.0), (1, 2): (1, 0.5)}
+        sage: graphs.RandomBipartite(2, 2, .1, set_position=True).get_pos()
+        {(0, 0): (0, 0.0), (0, 1): (0, 1.0), (1, 0): (1, 0.0), (1, 1): (1, 1.0)}
+        sage: graphs.RandomBipartite(2, 2, .1, set_position=False).get_pos()
+
     """
     if not (p>=0 and p<=1):
         raise ValueError("Parameter p is a probability, and so should be a real value between 0 and 1")
@@ -232,15 +247,181 @@ def RandomBipartite(n1, n2, p):
             if uniform()<=p :
                 g.add_edge((0,v),(1,w))
 
-    pos = {}
-    for i in range(n1):
-        pos[(0,i)] = (0, i/(n1-1.0))
-    for i in range(n2):
-        pos[(1,i)] = (1, i/(n2-1.0))
+    # We now assign positions to vertices:
+    # - vertex (0, i) in S1 at position (0, 1 - i/(n1 - 1)
+    # - vertex (1, i) in S2 at position (1, 1 - i/(n2 - 1)
+    if set_position:
+        pos = {}
+        if n1 == 1:
+            pos[(0, 0)] = (0, 0.5)
+        else:
+            for i in range(n1):
+                pos[(0,i)] = (0, i/(n1-1.0))
+        if n2 == 1:
+            pos[(1, n1)] = (1, 0.5)
+        else:
+            for i in range(n2):
+                pos[(1,i)] = (1, i/(n2-1.0))
 
-    g.set_pos(pos)
+        g.set_pos(pos)
 
     return g
+
+def RandomRegularBipartite(n1, n2, d1, set_position=False):
+    r"""
+    Return a random regular bipartite graph on `n1 + n2` vertices.
+
+    The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 * d1`.
+    Each vertex of the set of cardinality `n1` has degree `d1` and each vertex
+    in the set of cardinality `n2` has degree `(n1 * d1) / n2`. The bipartite
+    graph has no multiple edges.
+
+    This generator implements the algorithm proposed in [MW1990]_ for the
+    uniform generation of random regular bipartite graphs. It performs well when
+    `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})). In other case, the running
+    time can be huge.
+
+    INPUT:
+
+    - ``n1, n2`` -- number of vertices in each side
+
+    - ``d1`` -- degree of the vertices in the set of cardinality `n1`.
+
+    - ``set_position`` -- boolean (default ``False``) if set to ``True``, we
+      assign positions to the vertices.
+
+    EXAMPLES::
+
+        sage: g = graphs.RandomRegularBipartite(4, 6, 3)
+        sage: g.order(), g.size()
+        (10, 12)
+        sage: set(g.degree())
+        {2, 3}
+
+        sage: graphs.RandomRegularBipartite(1, 2, 2, set_position=True).get_pos()
+        {0: (0, 0.5), 1: (1, 1.0), 2: (1, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 1, 1, set_position=True).get_pos()
+        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 0.5)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=True).get_pos()
+        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 1.0), 3: (1, 0.5), 4: (1, 0.0)}
+        sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=False).get_pos()
+
+    TESTS:
+
+    Giving invalid parameters::
+
+        sage: graphs.RandomRegularBipartite(0, 2, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n1 and n2 must be integers greater than 0
+        sage: graphs.RandomRegularBipartite(2, 3, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the product n1 * d1 must be a multiple of n2
+    """
+    if n1 < 1 or n2 < 1:
+        raise ValueError("n1 and n2 must be integers greater than 0")
+    d2 = (n1 * d1) // n2
+    if n1 * d1 != n2 * d2:
+        raise ValueError("the product n1 * d1 must be a multiple of n2")
+
+    complement = False
+    if d1 > n2/2 or d2 > n1/2:
+        # We build the complement graph instead
+        complement = True
+        d1 = n2 - d1
+        d2 = n1 - d2
+
+    E = set()
+    F = set()
+
+    if d1:
+        from sage.misc.prandom import shuffle
+        from sage.misc.prandom import choice
+
+        M1 = n1 * d1 * (d1 - 1)
+        M2 = n2 * d2 * (d2 - 1)
+        M = n1 * d1 + n2 * d2
+        UB_parallel = (M1 * M2) / M**2
+
+        # We create a set of n1 * d1 random edges with possible repetitions. We
+        # do so that the number of repeated edges is bounded and that an edge
+        # can be repeated only once.
+        L = [u for u in range(n1) for i in range(d1)]
+        R = [u for u in range(n1, n1 + n2) for i in range(d2)]
+        restart = True
+        while restart:
+            restart = False
+            shuffle(R)
+            E = set()
+            F = set()
+            for e in zip(L, R):
+                if e in E:
+                    if e in F:
+                        # We have more than 3 times e => restart
+                        retart = True
+                        break
+                    else:
+                        F.add(e)
+                    if len(F) >= UB_parallel:
+                        # We have too many parallel edges
+                        restart = True
+                        break
+                else:
+                    E.add(e)
+
+    # We remove multiple edges by applying random forward d-switching. That is,
+    # given edge e that is repeated twice, we select single edges f and g with
+    # no common end points, and then create 4 new edges. We forbid vreating new
+    # multiple edges.
+    while F:
+        # random forward d-switching
+        e = F.pop()
+        E.discard(e)
+        TE = tuple(E.difference(F))
+        # We select 2 vertex disjoint edges
+        while True:
+            f = choice(TE)
+            if e[0] == f[0] or e[1] == f[1]:
+                continue
+            g = choice(TE)
+            if e[0] != g[0] and e[1] != g[1] and f[0] != g[0] and f[1] != g[1]:
+                new_edges = [(f[0], e[1]), (e[0], f[1]), (e[0], g[1]), (g[0], e[1])]
+                if not E.intersection(new_edges):
+                    # We are not creating new parallel eges
+                    break
+        E.discard(f)
+        E.discard(g)
+        E.update(new_edges)
+
+    if complement:
+        from sage.graphs.generators.basic import CompleteBipartiteGraph
+        E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(labels=False))
+        d1, d2 = n2 - d1, n1 - d2
+
+    name = "Random regular bipartite graph of order {} + {} and degrees {} and {}".format(n1, n2, d1, d2)
+    G = Graph(list(E), name=name)
+
+    # We now assign positions to vertices:
+    # - vertex i in L at position (0, 1 - i/(n1 - 1)
+    # - vertex i + n1 in R at position (1, 1 - i/(n2 - 1)
+    if set_position:
+        pos = {}
+        if n1 == 1:
+            pos[0] = (0, 0.5)
+        else:
+            for i in range(n1):
+                pos[i] = (0, 1 - i/(n1-1.0))
+        if n2 == 1:
+            pos[n1] = (1, 0.5)
+        else:
+            for i in range(n2):
+                pos[i + n1] = (1, 1 - i/(n2-1.0))
+
+        G.set_pos(pos)
+
+    return G
+
 
 def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
     r"""

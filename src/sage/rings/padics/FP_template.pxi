@@ -523,7 +523,6 @@ cdef class FPElement(pAdicTemplateElement):
             creduce(ans.unit, ans.unit, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
-    @coerce_binop
     def _quo_rem(self, _right):
         """
         Quotient with remainder.
@@ -534,7 +533,7 @@ cdef class FPElement(pAdicTemplateElement):
         EXAMPLES::
 
             sage: R = ZpFP(3, 5)
-            sage: R(12).quo_rem(R(2))
+            sage: R(12).quo_rem(R(2)) # indirect doctest
             (2*3, 0)
             sage: R(2).quo_rem(R(12))
             (0, 2)
@@ -554,11 +553,11 @@ cdef class FPElement(pAdicTemplateElement):
             True
 
         You can get the same behavior for fields as for rings
-        by using this underscored method::
+        by using integral=True::
 
-            sage: K(12)._quo_rem(K(2))
+            sage: K(12).quo_rem(K(2), integral=True)
             (2*3, 0)
-            sage: K(2)._quo_rem(K(12))
+            sage: K(2).quo_rem(K(12), integral=True)
             (0, 2)
         """
         cdef FPElement right = _right

@@ -168,7 +168,7 @@ cdef inline bint creduce_small(mpz_t out, mpz_t a, long prec, PowComputer_ prime
         mpz_set(out, a)
     return mpz_sgn(out) == 0
 
-cdef inline long cremove(mpz_t out, mpz_t a, long prec, PowComputer_ prime_pow) except -1:
+cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow, bint reduce_relative=False) except -1:
     """
     Extract the maximum power of the uniformizer dividing this
     element.
@@ -179,6 +179,9 @@ cdef inline long cremove(mpz_t out, mpz_t a, long prec, PowComputer_ prime_pow) 
     - ``a`` -- the element whose valuation and unit are desired.
     - ``prec`` -- a long, used if `a = 0`.
     - ``prime_pow`` -- the PowComputer for the ring.
+    - ``reduce_relative`` -- a bint: whether the final result
+      should be reduced at precision ``prec`` (case ``False``)
+      or ``prec - valuation`` (case ``True``)
 
     OUTPUT:
 

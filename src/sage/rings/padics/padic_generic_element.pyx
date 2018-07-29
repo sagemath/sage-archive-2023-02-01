@@ -194,7 +194,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    @coerce_binop
     def _quo_rem(self, right):
         """
         Quotient with remainder.
@@ -345,7 +344,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a // 15 # indirect doctest
             5 + O(5^4)
         """
-        return self._quo_rem(right)[0]
+        return self.quo_rem(right, integral=True)[0]
 
     def __getitem__(self, n):
         r"""
@@ -2318,7 +2317,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Performances::
 
-            sage: R = Zp(17, prec=10^6)
+            sage: R = Zp(17, prec=10^5)
             sage: a = R.random_element()
             sage: b = a.log(p_branch=0)   # should be rather fast
 
@@ -2794,7 +2793,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         Performances::
 
-            sage: R = Zp(17,10^6)
+            sage: R = Zp(17,10^5)
             sage: a = 17 * R.random_element()
             sage: b = a.exp()    # should be rather fast
 

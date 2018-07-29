@@ -1388,7 +1388,6 @@ class ResidueLiftingMap(Morphism):
         R = self.codomain()
         K = R.maximal_unramified_subextension()
         if self._n == 1 or K is R:
-            #unram_n = (self._n - 1) // R.absolute_e() + 1
             unram_n = self._n
             if K.absolute_degree() == 1:
                 lift = K._element_constructor_(x, unram_n)
@@ -1396,8 +1395,9 @@ class ResidueLiftingMap(Morphism):
                 lift = K(x.polynomial().list(), unram_n)
             return R(lift, self._n)
         else:
+            #unram_n = (self._n - 1) // R.absolute_e() + 1
             raise NotImplementedError
- 
+
     def _call_with_args(self, x, args=(), kwds={}):
         """
         Evaluate this morphism with extra arguments.

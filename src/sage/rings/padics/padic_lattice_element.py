@@ -39,7 +39,6 @@ tests because they take a few minutes as of mid 2018, see :trac:`25431`::
 from sage.misc.abstract_method import abstract_method
 
 from sage.rings.integer import Integer
-from sage.structure.element import coerce_binop
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -694,7 +693,6 @@ class pAdicLatticeElement(pAdicGenericElement):
         dx = [  [self, self._parent._approx_minusone/(x_self*x_self)] ]
         return self.__class__(self._parent.fraction_field(), x, dx=dx, check=False)
 
-    @coerce_binop
     def _quo_rem(self, other):
         """
         Quotient with remainder.

@@ -582,7 +582,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES::
 
             sage: Zp(5,5)(1/3).minimal_polynomial('x')
-            (1 + O(5^5))*x + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+            (1 + O(5^5))*x + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
         """
         parent = self.parent()
         if ground is None:
@@ -3513,7 +3513,7 @@ def _compute_g(p, n, prec, terms):
     EXAMPLES::
 
         sage: sage.rings.padics.padic_generic_element._compute_g(7, 3, 3, 3)[0]
-        (O(7^3))*v^2 + (1 + O(7^3))*v + (O(7^3))
+        O(7^3)*v^2 + (1 + O(7^3))*v + O(7^3)
 
     """
     from sage.rings.power_series_ring import PowerSeriesRing

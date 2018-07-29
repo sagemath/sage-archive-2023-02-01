@@ -1,5 +1,5 @@
 -----------------------------------------
-`\mathcal{B}(\infty)` crystals
+infinity crystals
 -----------------------------------------
 
 Infinity crystals, denoted `\mathcal{B}(\infty)` and depending only

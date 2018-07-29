@@ -528,7 +528,6 @@ def RandomBlockGraph(m, k, kmax=None, incidence_structure=False):
         ...
         ValueError: the maximum number `kmax` of vertices in a block must be >= `k`
     """
-    import itertools
     from sage.misc.prandom import choice
     from sage.sets.disjoint_set import DisjointSet
 

@@ -2201,7 +2201,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x/0
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(0, 5) does not exist
 
             sage: P.<x> = GF(25, 'a')[]
             sage: x/5

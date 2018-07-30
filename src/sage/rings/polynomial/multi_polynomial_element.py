@@ -56,7 +56,7 @@ from __future__ import absolute_import
 from six.moves import range
 from six import iteritems, integer_types
 
-from sage.structure.element import CommutativeRingElement, canonical_coercion, coerce_binop
+from sage.structure.element import CommutativeRingElement, coerce_binop
 from sage.misc.all import prod
 import sage.rings.integer
 from . import polydict

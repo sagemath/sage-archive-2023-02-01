@@ -26,7 +26,7 @@ from math import sin, cos, pi
 from sage.graphs.graph import Graph
 from sage.graphs import graph
 
-        
+
 def JohnsonGraph(n, k):
     r"""
     Returns the Johnson graph with parameters `n, k`.
@@ -2879,24 +2879,62 @@ def RingedTree(k, vertex_labels = True):
 
     return g
 
-def CaiFurerImmermanGraph(k):
+def FurerGadget(k, prefix=None):
     from itertools import repeat as rep, chain, combinations
     from sage.graphs.graph import DiGraph
-    G = DiGraph()
+    G = Graph()
     V_a = list(enumerate(rep('a', k)))
     V_b = list(enumerate(rep('b', k)))
+    if prefix is not None:
+        V_a = zip(rep(prefix, len(V_a)), V_a)
+        V_b = zip(rep(prefix, len(V_b)), V_b)
     G.add_vertices(V_a)
     G.add_vertices(V_b)
     powerset = list(chain.from_iterable(combinations(range(k), r) for r in range(k+1) if r % 2 == 0))
+    if prefix is not None:
+        powerset = zip(rep(prefix, len(powerset)), powerset)
     G.add_vertices(powerset)
-    G.add_edges(chain.from_iterable([(s,(i,'a')) for i in s] for s in powerset))
-    G.add_edges(chain.from_iterable([(s,(i,'b')) for i in range(k) if i not in s] for s in powerset))
+    if prefix is not None:
+        G.add_edges(chain.from_iterable([(s,(prefix,(i,'a'))) for i in s[1]] for s in powerset))
+        G.add_edges(chain.from_iterable([(s,(prefix,(i,'b'))) for i in range(k) if i not in s[1]] for s in powerset))
+    else:
+        G.add_edges(chain.from_iterable([(s,(i,'a')) for i in s] for s in powerset))
+        G.add_edges(chain.from_iterable([(s,(i,'b')) for i in range(k) if i not in s] for s in powerset))
     partition = []
     for i in range(k):
         partition.append([V_a[i], V_b[i]])
     partition.append(powerset)
     return G, partition
 
+def CaiFurerImmermanGraph(G):
+    isConnected = G.is_connected()
+    newG = Graph()
+    total_partition = []
+    edge_index = {}
+    for v in G:
+        Fk, p = FurerGadget(G.degree(v), v)
+        total_partition += p
+        newG=newG.union(Fk)
+        edge_index[v] = 0
+    for v,u in G.edges(labels=False):
+        i = edge_index[v]
+        edge_index[v] += 1
+        j = edge_index[u]
+        edge_index[u] += 1
+        edge_va = (v, (i, 'a'))
+        edge_vb = (v, (i, 'b'))
+        edge_ua = (u, (j, 'a'))
+        edge_ub = (u, (j, 'b'))
+        if isConnected:
+            temp = edge_ua
+            edge_ua = edge_ub
+            edge_ua = temp
+            isConnected = False
+        newG.add_edge(edge_va, edge_ua)
+        newG.add_edge(edge_vb, edge_ub)
+    return newG, total_partition
+            
+            
 def MathonPseudocyclicMergingGraph(M, t):
     r"""
     Mathon's merging of classes in a pseudo-cyclic 3-class association scheme

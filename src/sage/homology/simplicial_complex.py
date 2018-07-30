@@ -775,9 +775,9 @@ class Simplex(SageObject):
         if not isinstance(other, Simplex):
             return False
         try:
-            return sorted(tuple(set(self))) < sorted(tuple(set(other)))
+            return sorted(self) < sorted(other)
         except TypeError:
-            return sorted([str(_) for _ in self]) < sorted([str(_) for _ in other])
+            return sorted(self, key=str) < sorted(other, key=str)
 
     def __hash__(self):
         """
@@ -1345,6 +1345,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: S1 = simplicial_complexes.Sphere(1)
             sage: [f for f in S1.face_iterator()] # random
             [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
+            sage: sorted(S1.face_iterator())
+            [(), (0,), (0, 1), (0, 2), (1,), (1, 2), (2,)]
         """
         Fs = self.faces()
         dim_index = range(-1, self.dimension() + 1)
@@ -1422,8 +1424,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Z.n_cells(2, subcomplex=K)
             [(1, 2, 4), (1, 3, 4)]
             sage: S = SimplicialComplex([[complex(i), complex(1)]], sort_facets=False)
-            sage: S.n_cells(0) # random
+            sage: S.n_cells(0) # random -- order may depend on the version of Python
             [(1j,), ((1+0j),)]
+            sage: sorted(S.n_cells(0), key=str)
+            [((1+0j),), (1j,)]
         """
         if sort is None:
             sort = self._sorted
@@ -4314,7 +4318,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         try:
             vertices = sorted(vertices)
         except TypeError:
-            pass
+            vertices = sorted(vertices, key=str)
         try:
             facets = sorted(self._facets, key=lambda f: (f.dimension(), f.tuple()))
         except TypeError:

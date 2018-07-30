@@ -446,9 +446,6 @@ cdef class StaticSparseBackend(CGraphBackend):
         self.vertex_labels = {i:v for i,v in enumerate(vertices)}
         self._multiple_edges = self._multiedges
 
-        # Defining a temporary bitset for neighbors iterators
-        bitset_init(self._seen, self._order + 1)
-
     def has_vertex(self, v):
         r"""
         Tests if the vertex belongs to the graph
@@ -992,6 +989,11 @@ cdef class StaticSparseBackend(CGraphBackend):
             sage: g = DiGraph({0: [0, 1, 1]}, loops=True, multiedges=True, immutable=True)
             sage: g.neighbors(0)
             [0, 1]
+            sage: g = DiGraph({0: [1, 1], 1:[0, 0]}, multiedges=True, immutable=True)
+            sage: g.neighbors(0)
+            [1]
+            sage: g.neighbors(1)
+            [0]
         """
         try:
             v = self._vertex_to_int[v]
@@ -1000,25 +1002,25 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         cdef StaticSparseCGraph cg = self._cg
         cdef int i, u
-        bitset_clear(self._seen)
+        cdef set seen = set()
 
         if cg._directed:
             for i in range(out_degree(cg.g, v)):
                 u = cg.g.neighbors[v][i]
-                if not bitset_in(self._seen, u):
+                if not u in seen:
                     yield self._vertex_to_labels[u]
-                    bitset_add(self._seen, u)
+                    seen.add(u)
             for i in range(out_degree(cg.g_rev, v)):
                 u = cg.g_rev.neighbors[v][i]
-                if not bitset_in(self._seen, u):
+                if not u in seen:
                     yield self._vertex_to_labels[u]
-                    bitset_add(self._seen, u)
+                    seen.add(u)
         else:
             for i in range(out_degree(cg.g, v)):
                 u = cg.g.neighbors[v][i]
-                if not bitset_in(self._seen, u):
+                if not u in seen:
                     yield self._vertex_to_labels[cg.g.neighbors[v][i]]
-                    bitset_add(self._seen, u)
+                    seen.add(u)
 
     def iterator_out_nbrs(self, v):
         r"""
@@ -1041,13 +1043,13 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         cdef StaticSparseCGraph cg = self._cg
         cdef int i, u
-        bitset_clear(self._seen)
+        cdef set seen = set()
 
         for i in range(out_degree(cg.g, v)):
             u = cg.g.neighbors[v][i]
-            if not bitset_in(self._seen, u):
+            if not u in seen:
                 yield self._vertex_to_labels[u]
-                bitset_add(self._seen, u)
+                seen.add(u)
 
     def iterator_in_nbrs(self, v):
         r"""
@@ -1076,20 +1078,20 @@ cdef class StaticSparseBackend(CGraphBackend):
 
         cdef StaticSparseCGraph cg = self._cg
         cdef int i, u
-        bitset_clear(self._seen)
+        cdef set seen = set()
 
         if cg._directed:
             for i in range(out_degree(cg.g_rev, v)):
                 u = cg.g_rev.neighbors[v][i]
-                if not bitset_in(self._seen, u):
+                if not u in seen:
                     yield self._vertex_to_labels[u]
-                    bitset_add(self._seen, u)
+                    seen.add(u)
         else:
             for i in range(out_degree(cg.g, v)):
                 u = cg.g.neighbors[v][i]
-                if not bitset_in(self._seen, u):
+                if not u in seen:
                     yield self._vertex_to_labels[u]
-                    bitset_add(self._seen, u)
+                    seen.add(u)
 
     def add_vertex(self,v):
         r"""

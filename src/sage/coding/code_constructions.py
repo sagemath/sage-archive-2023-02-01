@@ -40,33 +40,27 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.matrix.special import random_matrix
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
-from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.all import prod
 from .linear_code import LinearCode
-from sage.modules.free_module import span
-from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence, Sequence_generic
-from sage.arith.all import GCD, LCM, divisors, quadratic_residues, gcd
+from sage.arith.all import quadratic_residues, gcd
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
-from sage.sets.set import Set
 from sage.rings.finite_rings.integer_mod import Mod
 
-from sage.misc.superseded import deprecation, deprecated_function_alias
 
 ############### utility functions ################
 
 
 def _is_a_splitting(S1, S2, n, return_automorphism=False):
-    """
+    r"""
     Check wether ``(S1,S2)`` is a splitting of `\ZZ/n\ZZ`.
 
     A splitting of `R = \ZZ/n\ZZ` is a pair of subsets of `R` which is a
@@ -175,8 +169,8 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
 
     # now that we know that (S1,S2) is a partition, we look for an invertible
     # element b that maps S1 to S2 by multiplication
-    for b in range(2,n):
-        if GCD(b,n) == 1 and all(b*x in S2 for x in S1):
+    for b in Integer(n).coprime_integers(n):
+        if b != 1 and all(b * x in S2 for x in S1):
             if return_automorphism:
                 return True, b
             else:
@@ -185,6 +179,7 @@ def _is_a_splitting(S1, S2, n, return_automorphism=False):
         return False, None
     else:
         return False
+
 
 def _lift2smallest_field(a):
     """
@@ -223,7 +218,7 @@ def _lift2smallest_field(a):
 
 
 def permutation_action(g,v):
-    """
+    r"""
     Returns permutation of rows g\*v. Works on lists, matrices,
     sequences and vectors (by permuting coordinates). The code requires
     switching from i to i+1 (and back again) since the SymmetricGroup
@@ -295,6 +290,7 @@ def permutation_action(g,v):
         return gv
     return V(gv)
 
+
 def walsh_matrix(m0):
     """
     This is the generator matrix of a Walsh code. The matrix of
@@ -357,6 +353,9 @@ def DuadicCodeEvenPair(F,S1,S2):
         ([11, 5] Cyclic Code over GF(3),
          [11, 5] Cyclic Code over GF(3))
     """
+    from sage.misc.stopgap import stopgap
+    stopgap("The function DuadicCodeEvenPair has several issues which may cause wrong results", 25896)
+
     from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
@@ -404,6 +403,9 @@ def DuadicCodeOddPair(F,S1,S2):
 
     This is consistent with Theorem 6.1.3 in [HP2003]_.
     """
+    from sage.misc.stopgap import stopgap
+    stopgap("The function DuadicCodeOddPair has several issues which may cause wrong results", 25896)
+
     from .cyclic_code import CyclicCode
     n = len(S1) + len(S2) + 1
     if not _is_a_splitting(S1,S2,n):
@@ -557,13 +559,13 @@ def QuadraticResidueCodeEvenPair(n,F):
 
     EXAMPLES::
 
-        sage: codes.QuadraticResidueCodeEvenPair(17, GF(13))
+        sage: codes.QuadraticResidueCodeEvenPair(17, GF(13))  # known bug (#25896)
         ([17, 8] Cyclic Code over GF(13),
          [17, 8] Cyclic Code over GF(13))
         sage: codes.QuadraticResidueCodeEvenPair(17, GF(2))
         ([17, 8] Cyclic Code over GF(2),
          [17, 8] Cyclic Code over GF(2))
-        sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))
+        sage: codes.QuadraticResidueCodeEvenPair(13,GF(9,"z"))  # known bug (#25896)
         ([13, 6] Cyclic Code over GF(9),
          [13, 6] Cyclic Code over GF(9))
         sage: C1,C2 = codes.QuadraticResidueCodeEvenPair(7,GF(2))
@@ -621,13 +623,13 @@ def QuadraticResidueCodeOddPair(n,F):
 
     EXAMPLES::
 
-        sage: codes.QuadraticResidueCodeOddPair(17, GF(13))
+        sage: codes.QuadraticResidueCodeOddPair(17, GF(13))  # known bug (#25896)
         ([17, 9] Cyclic Code over GF(13),
          [17, 9] Cyclic Code over GF(13))
         sage: codes.QuadraticResidueCodeOddPair(17, GF(2))
         ([17, 9] Cyclic Code over GF(2),
          [17, 9] Cyclic Code over GF(2))
-        sage: codes.QuadraticResidueCodeOddPair(13, GF(9,"z"))
+        sage: codes.QuadraticResidueCodeOddPair(13, GF(9,"z"))  # known bug (#25896)
         ([13, 7] Cyclic Code over GF(9),
          [13, 7] Cyclic Code over GF(9))
         sage: C1 = codes.QuadraticResidueCodeOddPair(17, GF(2))[1]

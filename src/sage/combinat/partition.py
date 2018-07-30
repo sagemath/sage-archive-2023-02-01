@@ -1109,8 +1109,8 @@ class Partition(CombinatorialElement):
 
     def __next__(self):
         """
-        Return the partition that lexicographically follows ``self``. If
-        ``self`` is the last partition, then return ``False``.
+        Return the partition that lexicographically follows ``self``, of the
+        same size. If ``self`` is the last partition, then return ``False``.
 
         EXAMPLES::
 
@@ -2404,7 +2404,7 @@ class Partition(CombinatorialElement):
         return PermutationGroup( gens )
 
     def young_subgroup_generators(self):
-        """
+        r"""
         Return an indexing set for the generators of the corresponding Young
         subgroup. Here the generators correspond to the simple adjacent
         transpositions `s_i = (i \; i+1)`.
@@ -3282,7 +3282,7 @@ class Partition(CombinatorialElement):
         return c - r + multicharge[0]
 
     def residue(self, r, c, l):
-        """
+        r"""
         Return the ``l``-residue of the cell at row ``r`` and column ``c``.
 
         The `\ell`-residue of a cell is `c - r` modulo `\ell`.

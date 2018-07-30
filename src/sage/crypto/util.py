@@ -407,8 +407,9 @@ def carmichael_lambda(n):
     # finish the job
     return lcm(t)
 
+
 def has_blum_prime(lbound, ubound):
-    """
+    r"""
     Determine whether or not there is a Blum prime within the specified closed
     interval.
 

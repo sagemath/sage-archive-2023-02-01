@@ -24,26 +24,16 @@ AUTHORS:
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
-from sage.misc.misc import repr_lincomb
-from sage.structure.parent import Parent
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import RingElement
 from sage.structure.indexed_generators import IndexedGenerators
-from sage.categories.algebras import Algebras
 from sage.categories.lie_algebras import LieAlgebras
 from sage.categories.triangular_kac_moody_algebras import TriangularKacMoodyAlgebras
 
-from sage.algebras.algebra import Algebra
-from sage.algebras.free_algebra import FreeAlgebra
-from sage.algebras.lie_algebras.lie_algebra import FinitelyGeneratedLieAlgebra, LieAlgebraFromAssociative
-from sage.algebras.lie_algebras.lie_algebra_element import LieAlgebraElement
+from sage.algebras.lie_algebras.lie_algebra import LieAlgebraFromAssociative
 from sage.algebras.lie_algebras.structure_coefficients import LieAlgebraWithStructureCoefficients
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
-from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
 
 

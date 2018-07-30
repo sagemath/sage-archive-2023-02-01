@@ -890,19 +890,6 @@ class ComplexReflectionGroup(UniqueRepresentation, PermutationGroup_generic):
         """
         return self.is_real() and all(t.to_matrix().base_ring() is QQ for t in self.simple_reflections())
 
-    def _element_class(self):
-        r"""
-        A temporary workaround for compatibility with Sage's
-        permutation groups.
-
-        TESTS::
-
-            sage: W = ReflectionGroup(23)                               # optional - gap3
-            sage: W._element_class() is W.element_class                 # optional - gap3
-            True
-        """
-        return self.element_class
-
     def number_of_irreducible_components(self):
         r"""
         Return the number of irreducible components of ``self``.

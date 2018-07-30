@@ -45,9 +45,8 @@ from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Hom
 from sage.combinat.sf.sf import SymmetricFunctions
+
 
 class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
     r"""

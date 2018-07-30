@@ -239,7 +239,7 @@ class LWE(SageObject):
     .. automethod:: __call__
     """
     def __init__(self, n, q, D, secret_dist='uniform', m=None):
-        """
+        r"""
         Construct an LWE oracle in dimension ``n`` over a ring of order
         ``q`` with noise distribution ``D``.
 

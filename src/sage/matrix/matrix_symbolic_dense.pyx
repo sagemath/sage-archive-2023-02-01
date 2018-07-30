@@ -206,7 +206,7 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - evec*A
             sage: abs(abs(delta)) < 1e-10
-            sqrt(9/25*((2*sqrt(6) - 3)*(sqrt(6) - 2) + 7*sqrt(6) - 18)^2 + 9/25*((sqrt(6) - 2)*(sqrt(6) - 4) + 6*sqrt(6) - 14)^2) < (1.00000000000000e-10)
+            3/5*sqrt(((2*sqrt(6) - 3)*(sqrt(6) - 2) + 7*sqrt(6) - 18)^2 + ((sqrt(6) - 2)*(sqrt(6) - 4) + 6*sqrt(6) - 14)^2) < (1.00000000000000e-10)
             sage: abs(abs(delta)).n() < 1e-10
             True
 

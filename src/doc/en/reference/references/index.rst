@@ -288,6 +288,10 @@ REFERENCES:
               and Applications - FQ9, volume 518 of Contemporary Mathematics,
               pages 33–42. AMS, 2010.
 
+.. [Bec1992] Bernhard Beckermann. "A reliable method for computing M-Padé
+             approximants on arbitrary staircases". J. Comput. Appl. Math.,
+             40(1):19-42, 1992. https://doi.org/10.1016/0377-0427(92)90039-Z.
+
 .. [BeCoMe] Frits Beukers, Henri Cohen, Anton Mellit,
    *Finite hypergeometric functions*,
    :arxiv:`1505.02900`
@@ -395,6 +399,10 @@ REFERENCES:
             Adv. Math. **222** (2009), 1883–1942.
             :mathscinet:`MR2562768`
 
+.. [BK2017] Pascal Baseilhac and Stefan Kolb. *Braid group action
+            and root vectors for the* `q`-*Onsager algebra*.
+            Preprint, (2017) :arxiv:`1706.08747`.
+
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
               J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
@@ -420,6 +428,14 @@ REFERENCES:
             of the Rauzy-Veech induction for quadratic differentials*
             (:arxiv:`0710.5614`) to appear in Ergodic Theory and
             Dynamical Systems.
+
+.. [BLV1999] Bernhard Beckermann, George Labahn, and Gilles Villard. "Shifted
+             normal forms of polynomial matrices". In ISSAC'99, pages 189-196.
+             ACM, 1999. https://doi.org/10.1145/309831.309929 .
+
+.. [BLV2006] Bernhard Beckermann, George Labahn, and Gilles Villard. "Normal
+             forms for general polynomial matrices". J. Symbolic Comput.,
+             41(6):708-737, 2006. https://doi.org/10.1016/j.jsc.2006.02.001 .
 
 .. [BM1940] Becker, M. F., and Saunders MacLane. The minimum number of
             generators for inseparable algebraic extensions. Bulletin of the
@@ -844,6 +860,10 @@ REFERENCES:
 
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
+
+.. [DG1982] Louise Dolan and Michael Grady.
+            *Conserved charges from self-duality*,
+            Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
 
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
@@ -1497,6 +1517,8 @@ REFERENCES:
             refined Demazure character formula, Duke Math. J. 71
             (1993), no. 3, 839--858.
 
+.. [Kai1980] Thomas Kailath. "Linear Systems", Prentice-Hall, 1980.
+
 .. [Kal1980] \T. Kaliath, "Linear Systems", Prentice-Hall, 1980,
              383--386.
 
@@ -2143,6 +2165,10 @@ REFERENCES:
 .. [ONe1983] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
              (San Diego) (1983)
 
+.. [Onsager1944] Lars Onsager. *Crystal statistics. I. A two-dimensional
+                 model with an order-disorder transition*, Phys. Rev.
+                 (2) **65** (1944), pp. 117-149.
+
 .. [Or2016] \M. Orlitzky. The Lyapunov rank of an improper
             cone. Citation: Optimization Methods and Software
             (accepted
@@ -2207,6 +2233,10 @@ REFERENCES:
 
 .. [Pon2010] \S. Pon. *Types B and D affine Stanley symmetric
              functions*, unpublished PhD Thesis, UC Davis, 2010.
+
+.. [Pop1972] \V. M. Popov. "Invariant description of linear, time-invariant
+             controllable systems". SIAM Journal on Control, 10(2):252-264,
+             1972. https://doi.org/10.1137/0310020 .
 
 .. [Pos2005] \A. Postnikov, Affine approach to quantum Schubert
              calculus, Duke Math. J. 128 (2005) 473-509
@@ -2706,6 +2736,11 @@ REFERENCES:
             Lattice: The Diamond-Cutting Algorithm*. IEEE Transactions
             on Information Theory, 1996.
 
+.. [VBB1992] Marc Van Barel and Adhemar Bultheel. "A general module theoretic
+             framework for vector M-Padé and matrix rational interpolation."
+             Numer. Algorithms, 3:451-462, 1992.
+             https://doi.org/10.1007/BF02141952
+
 .. [Vee1978] William Veech, "Interval exchange
              transformations", J. Analyse Math. 33 (1978), 222-272
 
@@ -2790,6 +2825,10 @@ REFERENCES:
 .. [Wil2013] Harold Williams. *Q-systems, factorization dynamics, and the
              twist automorphism*. Int. Math. Res. Not. (2015) no. 22,
              12042--12069. :doi:`10.1093/imrn/rnv057`.
+
+.. [Wol1974] W. A. Wolovich. "Linear Multivariable Systems", Applied
+             Mathematical Sciences (volume 11). Springer-Verlag New-York, 1974.
+             doi.org/10.1007/978-1-4612-6392-0 .
 
 .. [Woo1998] \R. M. W. Wood, "Problems in the Steenrod algebra,"
              Bull. London Math. Soc. 30 (1998), no. 5, 449-517.

@@ -924,8 +924,20 @@ class Order(IntegralDomain):
         """
         return not (self == other)
 
-    def random_element(self, *args, **kwds):
+    def __hash__(self):
         """
+        Compute the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: O1 = K.order(a)
+            sage: h = hash(O1)
+        """
+        return hash((self._K, self._module_rep))
+
+    def random_element(self, *args, **kwds):
+        r"""
         Return a random element of this order.
 
         INPUT:
@@ -1308,7 +1320,7 @@ class AbsoluteOrder(Order):
 
         EXAMPLES::
 
-            sage: K.<a> = NumberField(x^3 + 2)
+            sage: K.<a> = NumberField(x^3 + 2) # optional - magma
             sage: magma(K.maximal_order())  # optional - magma
             Equation Order with defining polynomial x^3 + 2 over its ground order
 
@@ -1318,7 +1330,7 @@ class AbsoluteOrder(Order):
             'Order([(_sage_[...]![1, 0, 0]),(_sage_[...]![0, 1, 0]),(_sage_[...]![0, 0, 1])])'
         """
         K = self.number_field()
-        v = [K(a)._magma_init_(magma) for a in self.gens()]
+        v = [K(a)._magma_init_(magma) for a in self.basis()]
         return 'Order([%s])'%(','.join(v))
 
     def discriminant(self):
@@ -1683,7 +1695,7 @@ class RelativeOrder(Order):
         return (RelativeOrder, (self.number_field(), self.absolute_order(), self._is_maximal, False))
 
     def basis(self):
-        """
+        r"""
         Return a basis for this order as `\ZZ`-module.
 
         EXAMPLES::
@@ -1920,7 +1932,6 @@ def absolute_order_from_ring_generators(gens, check_is_integral=True,
     if check_is_integral and not each_is_integral(gens):
         raise ValueError("each generator must be integral")
     gens = Sequence(gens)
-    K = gens.universe()
     n = [x.absolute_minpoly().degree() for x in gens]
     module_gens = monomials(gens, n)
     return absolute_order_from_module_generators(module_gens,
@@ -2125,7 +2136,7 @@ def relative_order_from_ring_generators(gens,
 
 
 def GaussianIntegers(names="I"):
-    """
+    r"""
     Return the ring of Gaussian integers, that is all complex numbers
     of the form `a + b I` with `a` and `b` integers and `I = \sqrt{-1}`.
 
@@ -2150,7 +2161,7 @@ def GaussianIntegers(names="I"):
 
 
 def EisensteinIntegers(names="omega"):
-    """
+    r"""
     Return the ring of Eisenstein integers, that is all complex numbers
     of the form `a + b \omega` with `a` and `b` integers and
     `omega = (-1 + \sqrt{-3})/2`.

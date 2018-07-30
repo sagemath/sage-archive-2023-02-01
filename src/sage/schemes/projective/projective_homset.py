@@ -44,6 +44,7 @@ from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 from copy import copy
 
 #*******************************************************************
@@ -63,35 +64,40 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         sage: SchemeHomset_points_projective_field(Spec(QQ), ProjectiveSpace(QQ,2))
         Set of rational points of Projective Space of dimension 2 over Rational Field
     """
-    def points(self, B=0, prec=53):
+    def points(self, **kwds):
         """
         Return some or all rational points of a projective scheme.
 
+        Over a finite field, all points are returned. Over an infinite field, all points satisfying the bound
+        are returned. For a zero-dimensional subscheme, all points are returned regardless of whether the base
+        ring is a field or not.
+
+        For number fields, this uses the
+        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
+        computing algebraic numbers up to a given height [Doyle-Krumm]_.
+
+        The algorithm requires floating point arithmetic, so the user is
+        allowed to specify the precision for such calculations.
+        Additionally, due to floating point issues, points
+        slightly larger than the bound may be returned. This can be controlled
+        by lowering the tolerance.
+
         INPUT:
 
-        - ``B`` - integer (optional, default=0). The bound for the
-          coordinates.
+        - ``bound`` - a real number
 
-        - ``prec`` - he precision to use to compute the elements of bounded height for number fields.
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
 
         OUTPUT:
 
-        A list of points. Over a finite field, all points are
-        returned. Over an infinite field, all points satisfying the
-        bound are returned.
-
-        .. WARNING::
-
-           In the current implementation, the output of the [Doyle-Krumm] algorithm
-           cannot be guaranteed to be correct due to the necessity of floating point
-           computations. In some cases, the default 53-bit precision is
-           considerably lower than would be required for the algorithm to
-           generate correct output.
+        - a list of rational points of a projective scheme
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P(QQ).points(4)
+            sage: P(QQ).points(bound=4)
             [(-4 : 1), (-3 : 1), (-2 : 1), (-3/2 : 1), (-4/3 : 1), (-1 : 1),
             (-3/4 : 1), (-2/3 : 1), (-1/2 : 1), (-1/3 : 1), (-1/4 : 1), (0 : 1),
             (1/4 : 1), (1/3 : 1), (1/2 : 1), (2/3 : 1), (3/4 : 1), (1 : 0), (1 : 1),
@@ -102,7 +108,7 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             sage: u = QQ['u'].0
             sage: K.<v> = NumberField(u^2 + 3)
             sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: len(P(K).points(1.8))
+            sage: len(P(K).points(bound=1.8))
             381
 
         ::
@@ -120,6 +126,10 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
             [(-1 : -1 : 1), (-1 : 0 : 1), (-1 : 1 : 1), (0 : -1 : 1), (0 : 0 : 1), (0 : 1 : 1),
             (1 : -1 : 1), (1 : 0 : 1), (1 : 1 : 1)]
         """
+        B = kwds.pop('bound', 0)
+        tol = kwds.pop('tolerance', 1e-2)
+        prec = kwds.pop('precision', 53)
+
         X = self.codomain()
         from sage.schemes.projective.projective_space import is_ProjectiveSpace
         if not is_ProjectiveSpace(X) and X.base_ring() in Fields():
@@ -188,13 +198,17 @@ class SchemeHomset_points_projective_field(SchemeHomset_points):
         if is_RationalField(R):
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
-            from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
-            return enum_projective_rational_field(self,B)
+            if isinstance(X, AlgebraicScheme_subscheme): # sieve should only be called for subschemes
+                from sage.schemes.projective.projective_rational_point import sieve
+                return sieve(X, B)
+            else:
+                from sage.schemes.projective.projective_rational_point import enum_projective_rational_field
+                return enum_projective_rational_field(self, B)
         elif R in NumberFields():
             if not B > 0:
                 raise TypeError("a positive bound B (= %s) must be specified"%B)
             from sage.schemes.projective.projective_rational_point import enum_projective_number_field
-            return enum_projective_number_field(self,B, prec=prec)
+            return enum_projective_number_field(self, bound=B, tolerance=tol, precision=prec)
         elif is_FiniteField(R):
             from sage.schemes.projective.projective_rational_point import enum_projective_finite_field
             return enum_projective_finite_field(self.extended_codomain())

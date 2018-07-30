@@ -546,7 +546,7 @@ class ChowGroupFactory(UniqueFactory):
     """
 
     def create_key_and_extra_args(self, toric_variety, base_ring=ZZ, check=True):
-        """
+        r"""
         Create a key that uniquely determines the :class:`ChowGroup_class`.
 
         INPUT:

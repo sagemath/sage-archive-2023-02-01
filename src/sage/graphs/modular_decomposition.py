@@ -670,6 +670,7 @@ def recursively_number_parts(part_root, part_num, by_type):
         part_num += 1
     return part_num - orig_part_num
 
+
 def assembly(graph, root, vertex_status, vertex_dist):
     """
     Assemble the forest obtained after the promotion phase into a modular 
@@ -686,7 +687,7 @@ def assembly(graph, root, vertex_status, vertex_dist):
 
     EXAMPLES::
 
-        sage: from sage.graphs.modular_decomposition import Node, NodeType, \ 
+        sage: from sage.graphs.modular_decomposition import Node, NodeType, \
               VertexPosition, create_normal_node, number_cocomponents, \
               number_components, assembly
         sage: g = Graph()
@@ -742,7 +743,6 @@ def assembly(graph, root, vertex_status, vertex_dist):
         sage: assembly(g, forest, vertex_status, vertex_dist)
         sage: forest.children
         [PRIME [NORMAL [2], SERIES [NORMAL [4], NORMAL [5], NORMAL [3]], PARALLEL [NORMAL [6], NORMAL [7]], NORMAL [1]]]
-
     """
 
     # Maps index to the mu computed for the (co)component at the index

@@ -27,7 +27,6 @@ from sage.categories.subobjects import SubobjectsCategory
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.sets.family import Family
 from sage.matrix.constructor import matrix
-from sage.modules.free_module_element import vector
 
 class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -422,7 +421,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                              for x in X]
                             for i in range(d) for k in range(d)])
             C = c_mat.right_kernel().basis_matrix()
-            return [self.from_vector(v) for v in C]
+            return [self.from_vector(c) for c in C]
 
         def centralizer(self, S):
             """
@@ -467,6 +466,103 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 1]
             """
             return self.centralizer(self)
+
+        @cached_method
+        def derivations_basis(self):
+            r"""
+            Return a basis for the Lie algebra of derivations
+            of ``self`` as matrices.
+
+            A derivation `D` of an algebra is an endomorphism of `A`
+            such that
+
+            .. MATH::
+
+                D([a, b]) = [D(a), b] + [a, D(b)]
+
+            for all `a, b \in A`. The set of all derivations
+            form a Lie algebra.
+
+            EXAMPLES:
+
+            We construct the derivations of the Heisenberg Lie algebra::
+
+                sage: H = lie_algebras.Heisenberg(QQ, 1)
+                sage: H.derivations_basis()
+                (
+                [1 0 0]  [0 1 0]  [0 0 0]  [0 0 0]  [0 0 0]  [0 0 0]
+                [0 0 0]  [0 0 0]  [1 0 0]  [0 1 0]  [0 0 0]  [0 0 0]
+                [0 0 1], [0 0 0], [0 0 0], [0 0 1], [1 0 0], [0 1 0]
+                )
+
+            We construct the derivations of `\mathfrak{sl}_2`::
+
+                sage: sl2 = lie_algebras.sl(QQ, 2)
+                sage: sl2.derivations_basis()
+                (
+                [ 1  0  0]  [   0    1    0]  [ 0  0  0]
+                [ 0  0  0]  [   0    0 -1/2]  [ 1  0  0]
+                [ 0  0 -1], [   0    0    0], [ 0 -2  0]
+                )
+
+            We verify these are derivations::
+
+                sage: D = [sl2.module_morphism(matrix=M, codomain=sl2)
+                ....:      for M in sl2.derivations_basis()]
+                sage: all(d(a.bracket(b)) == d(a).bracket(b) + a.bracket(d(b))
+                ....:     for a in sl2.basis() for b in sl2.basis() for d in D)
+                True
+
+            REFERENCES:
+
+            :wikipedia:`Derivation_(differential_algebra)`
+            """
+            from sage.matrix.constructor import matrix
+            R = self.base_ring()
+            B = self.basis()
+            keys = list(B.keys())
+            scoeffs = {(j,y,i): c for y in keys for i in keys
+                       for j,c in self.bracket(B[y], B[i])
+                      }
+            zero = R.zero()
+            data = {}
+            N = len(keys)
+            for ii,i in enumerate(keys):
+                for ij,j in enumerate(keys[ii+1:]):
+                    ijp = ij + ii + 1
+                    for il,l in enumerate(keys):
+                        row = ii + N * il + N**2 * ij
+                        for ik,k in enumerate(keys):
+                            data[row,ik+N*il] = (data.get((row,ik+N*il), zero)
+                                                 + scoeffs.get((k, i, j), zero))
+                            data[row,ii+N*ik] = (data.get((row,ii+N*ik), zero)
+                                                 - scoeffs.get((l, k, j), zero))
+                            data[row,ijp+N*ik] = (data.get((row,ijp+N*ik), zero)
+                                                  - scoeffs.get((l, i, k), zero))
+            mat = matrix(R, data, sparse=True)
+            return tuple([matrix(R, N, N, list(b)) for b in mat.right_kernel().basis()])
+
+        @cached_method
+        def inner_derivations_basis(self):
+            r"""
+            Return a basis for the Lie algebra of inner derivations
+            of ``self`` as matrices.
+
+            EXAMPLES::
+
+                sage: H = lie_algebras.Heisenberg(QQ, 1)
+                sage: H.inner_derivations_basis()
+                (
+                [0 0 1]  [0 0 0]
+                [0 0 0]  [0 0 1]
+                [0 0 0], [0 0 0]
+                )
+            """
+            R = self.base_ring()
+            IDer = matrix(R, [b.adjoint_matrix().list() for b in self.basis()])
+            N = self.dimension()
+            return tuple([matrix(R, N, N, list(b))
+                          for b in IDer.row_module().basis()])
 
         @cached_method
         def is_ideal(self, A):
@@ -1083,7 +1179,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Z
             """
             K = self._basis_ordering
-            B = self.basis()
             mats = []
             R = self.base_ring()
             S = dict(self.structure_coefficients())

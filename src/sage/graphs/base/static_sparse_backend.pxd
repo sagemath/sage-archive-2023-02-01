@@ -17,6 +17,7 @@ cdef class StaticSparseBackend(CGraphBackend):
     cdef bint _multiedges
     cdef list _vertex_to_labels
     cdef dict _vertex_to_int
+    cdef bitset_t _seen
 
 cdef uint32_t simple_BFS(short_digraph g,
                          uint32_t source,

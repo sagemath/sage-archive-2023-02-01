@@ -290,7 +290,7 @@ def Newton_polytope_vars_coeffs(polynomial, variables):
          (3, 0, 0): a30}
 
         sage: from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL
-        sage: polytope = LatticePolytope_PPL(p_data.keys());  polytope
+        sage: polytope = LatticePolytope_PPL(list(p_data));  polytope
         A 2-dimensional lattice polytope in ZZ^3 with 3 vertices
         sage: polytope.vertices()
         ((0, 0, 3), (3, 0, 0), (0, 3, 0))
@@ -359,7 +359,7 @@ def Newton_polygon_embedded(polynomial, variables):
          (s, t))
     """
     p_dict = Newton_polytope_vars_coeffs(polynomial, variables)
-    newton_polytope = LatticePolytope_PPL(p_dict.keys())
+    newton_polytope = LatticePolytope_PPL(list(p_dict))
     assert newton_polytope.affine_dimension() <= 2
     embedding = newton_polytope.embed_in_reflexive_polytope('points')
     x, y = variables[0:2]

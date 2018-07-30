@@ -397,11 +397,11 @@ class EtaGroupElement(MultiplicativeGroupElement):
         sumR = sumDR = sumNoverDr = 0
         prod = 1
 
-        for d in rdict.keys():
+        for d in rdict:
             if N % d:
                 raise ValueError("%s does not divide %s" % (d, N))
 
-        for d in rdict.keys():
+        for d in list(rdict):
             if rdict[d] == 0:
                 rdict.pop(d)
                 continue
@@ -419,9 +419,9 @@ class EtaGroupElement(MultiplicativeGroupElement):
         if not is_square(prod):
             raise ValueError("product (N/d)^(r_d) (=%s) is not a square" % prod)
 
-        self._sumDR = sumDR # this is useful to have around
+        self._sumDR = sumDR  # this is useful to have around
         self._rdict = rdict
-        self._keys = rdict.keys() # avoid factoring N every time
+        self._keys = list(rdict)  # avoid factoring N every time
 
     def _mul_(self, other):
         r"""

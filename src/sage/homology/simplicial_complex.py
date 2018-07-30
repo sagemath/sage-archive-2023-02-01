@@ -777,7 +777,7 @@ class Simplex(SageObject):
         try:
             return sorted(self) < sorted(other)
         except TypeError:
-            return sorted(self, key=str) < sorted(other, key=str)
+            return sorted(map(str,self)) < sorted(map(str, other))
 
     def __hash__(self):
         """

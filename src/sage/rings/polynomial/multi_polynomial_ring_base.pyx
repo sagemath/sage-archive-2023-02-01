@@ -938,7 +938,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         counts, total = self._precomp_counts(n, degree)
 
-        if terms > total:
+        if terms and terms > total:
             terms = total
 
         if terms is None:

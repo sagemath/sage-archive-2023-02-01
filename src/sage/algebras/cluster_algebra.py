@@ -96,10 +96,10 @@ and get all its g-vectors, F-polynomials, and cluster variables::
 
     sage: sorted(A.g_vectors_so_far())
     [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, 0)]
-    sage: sorted(A.F_polynomials_so_far())
-    [1, 1, u1 + 1, u0 + 1, u0*u1 + u0 + 1]
-    sage: sorted(A.cluster_variables_so_far())
-    [x0, x1, (x0 + 1)/x1, (x1 + 1)/x0, (x0 + x1 + 1)/(x0*x1)]
+    sage: sorted(A.F_polynomials_so_far(), key=str)
+    [1, 1, u0 + 1, u0*u1 + u0 + 1, u1 + 1]
+    sage: sorted(A.cluster_variables_so_far(), key=str)
+    [(x0 + 1)/x1, (x0 + x1 + 1)/(x0*x1), (x1 + 1)/x0, x0, x1]
 
 Simple operations among cluster variables behave as expected::
 
@@ -346,7 +346,6 @@ mutating at the initial seed::
 # ****************************************************************************
 from __future__ import absolute_import
 
-from six import itervalues
 from six.moves import range, map
 
 from copy import copy
@@ -1675,8 +1674,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: sorted(A.cluster_variables_so_far())
-            [x0, x1, (x1 + 1)/x0]
+            sage: sorted(A.cluster_variables_so_far(), key=str)
+            [(x1 + 1)/x0, x0, x1]
         """
         return [self.cluster_variable(v) for v in self.g_vectors_so_far()]
 
@@ -1689,10 +1688,10 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             sage: A = ClusterAlgebra(['A', 2])
             sage: A.clear_computed_data()
             sage: A.current_seed().mutate(0)
-            sage: sorted(A.F_polynomials_so_far())
+            sage: sorted(A.F_polynomials_so_far(), key=str)
             [1, 1, u0 + 1]
         """
-        return list(itervalues(self._F_poly_dict))
+        return list(self._F_poly_dict.values())
 
     @cached_method(key=lambda a, b: tuple(b))
     def cluster_variable(self, g_vector):

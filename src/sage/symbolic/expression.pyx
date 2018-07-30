@@ -123,6 +123,15 @@ Test if :trac:`9947` is fixed::
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
     2*sqrt(10)/(sqrt(3) + 5)
+
+Check the fix for :trac:`25251` and :trac:`25252`::
+
+    sage: e1 = sqrt(2)*I - sqrt(2) - 2 
+    sage: e2 = sqrt(2)
+    sage: e1 * e2
+    sqrt(2)*((I - 1)*sqrt(2) - 2)
+    sage: (1 + exp(I*pi/4)) * exp(I*pi/4)
+    -(1/4*I + 1/4)*sqrt(2)*(-(I + 1)*sqrt(2) - 2)
 """
 
 #*****************************************************************************
@@ -6831,7 +6840,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x, y, n = var('x, y, n')
             sage: f = pi^3*x - y^2*e - I; f
             pi^3*x - y^2*e - I
-            sage: f.polynomial(CDF)
+            sage: f.polynomial(CDF)  # abs tol 1e-15
             (-2.718281828459045)*y^2 + 31.006276680299827*x - 1.0*I
             sage: f.polynomial(CC)
             (-2.71828182845905)*y^2 + 31.0062766802998*x - 1.00000000000000*I
@@ -6945,7 +6954,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f = e*x^3 + pi*y^3 + sqrt(2) + I; f
             pi*y^3 + x^3*e + sqrt(2) + I
             sage: R = CDF['x,y']
-            sage: R(f)
+            sage: R(f)  # abs tol 1e-15
             2.718281828459045*x^3 + 3.141592653589793*y^3 + 1.414213562373095 + 1.0*I
 
         We coerce to a higher-precision polynomial ring::

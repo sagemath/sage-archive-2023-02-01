@@ -182,6 +182,7 @@ $(1): $$(INST)/$(1)-$(2)
 $(1)-clean:
 	sage-spkg-uninstall $(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-files) \
 		$(1) '$(SAGE_LOCAL)'
+
 endef
 
 $(foreach pkgname, $(NORMAL_PACKAGES),\
@@ -214,6 +215,7 @@ $(1): $(2)
 
 $(1)-clean:
 	-sage --pip uninstall -y $(1)
+
 endef
 
 $(foreach pkgname,$(PIP_PACKAGES),\
@@ -252,6 +254,7 @@ $(1)-clean:
 	-$(AM_V_at)cd '$$(SAGE_ROOT)' && \
 		source '$$(SAGE_ROOT)/src/bin/sage-env' && \
 		'$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-uninstall'
+
 endef
 
 $(foreach pkgname,$(SCRIPT_PACKAGES),\

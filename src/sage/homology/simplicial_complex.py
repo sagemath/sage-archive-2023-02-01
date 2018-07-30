@@ -1018,7 +1018,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
         if isinstance(vertex_set, (int, Integer)):
             vertices = tuple(range(vertex_set + 1))
         elif sort_facets:
-            vertices = tuple(sorted(vertex_set))
+            try:
+                vertices = tuple(sorted(vertex_set))
+            except TypeError:
+                vertices = tuple(sorted(vertex_set, key=str))
         else:
             vertices = tuple(vertex_set)
         gen_dict = {}
@@ -1049,7 +1052,10 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 any(face.is_face(other) for other in good_faces)):
                 continue
             if sort_facets:
-                face = Simplex(sorted(face.tuple()))
+                try:
+                    face = Simplex(sorted(face.tuple()))
+                except TypeError:
+                    face = Simplex(sorted(face.tuple(), key=str))
             good_faces.append(face)
 
         # if no maximal faces, add the empty face as a facet

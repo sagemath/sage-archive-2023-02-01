@@ -34,8 +34,7 @@ def JohnsonGraph(n, k):
     Johnson graphs are a special class of undirected graphs defined from systems
     of sets. The vertices of the Johnson graph `J(n,k)` are the `k`-element
     subsets of an `n`-element set; two vertices are adjacent when they meet in a
-    `(k-1)`-element set. For more information about Johnson graphs, see the
-    corresponding :wikipedia:`Wikipedia page <Johnson_graph>`.
+    `(k-1)`-element set. See :wikipedia:`Johnson_graph` for more information.
 
     EXAMPLES:
 
@@ -1008,8 +1007,7 @@ def FoldedCubeGraph(n):
     `2^{n-1}` vertices by adding an edge between opposed vertices. This
     second construction is the one produced by this method.
 
-    For more information on folded cube graphs, see the corresponding
-    :wikipedia:`Wikipedia page <Folded_cube_graph>`.
+    See :wikipedia:`Folded_cube_graph` for more information.
 
     EXAMPLES:
 
@@ -2193,8 +2191,7 @@ def line_graph_forbidden_subgraphs():
     r"""
     Returns the 9 forbidden subgraphs of a line graph.
 
-    `Wikipedia article on the line graphs
-    <http://en.wikipedia.org/wiki/Line_graph>`_
+    See :wikipedia:`Line_graph` for more information.
 
     The graphs are returned in the ordering given by the Wikipedia
     drawing, read from left to right and from top to bottom.
@@ -2984,12 +2981,11 @@ def TuranGraph(n,r):
     r"""
     Returns the Turan graph with parameters `n, r`.
 
-    Turan graphs are complete multipartite graphs with `n` vertices and
-    `r` subsets, denoted `T(n,r)`, with the property that the sizes of the
-    subsets are as close to equal as possible. The graph `T(n,r)` will have
-    `n \pmod r` subsets of size `\lfloor n/r \rfloor` and `r - (n \pmod r)` subsets of
-    size `\lceil n/r \rceil`. For more information about Turan graphs, see the
-    corresponding :wikipedia:`Wikipedia page <Turan_graph>`
+    Turan graphs are complete multipartite graphs with `n` vertices and `r`
+    subsets, denoted `T(n,r)`, with the property that the sizes of the subsets
+    are as close to equal as possible. The graph `T(n,r)` will have `n \pmod r`
+    subsets of size `\lfloor n/r \rfloor` and `r - (n \pmod r)` subsets of size
+    `\lceil n/r \rceil`. See :wikipedia:`Turan_graph` for more information.
 
     INPUT:
 

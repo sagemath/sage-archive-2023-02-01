@@ -473,8 +473,8 @@ class FinitePosets(CategoryWithAxiom):
             Let us hold back defining this, and introduce birational
             toggles and birational rowmotion first. These notions have
             been introduced in [EP2013]_ as generalizations of the notions
-            of toggles (:meth:`order_ideal_toggle`) and :meth:`rowmotion
-            <rowmotion>` on order ideals of a finite poset. They
+            of toggles (:meth:`~sage.categories.posets.Posets.ParentMethods.order_ideal_toggle`) 
+            and :meth:`rowmotion <rowmotion>` on order ideals of a finite poset. They
             have been studied further in [GR2013]_.
 
             Let `\mathbf{K}` be a field, and `P` be a finite poset. Let
@@ -1350,7 +1350,7 @@ class FinitePosets(CategoryWithAxiom):
             operation of toggling the vertices ``vs[0], vs[1], ...``
             in this order.
 
-            See :meth:`order_ideal_toggle` for a definition of toggling.
+            See :meth:`~sage.categories.posets.Posets.ParentMethods.order_ideal_toggle` for a definition of toggling.
 
             .. WARNING::
 
@@ -1590,7 +1590,7 @@ class FinitePosets(CategoryWithAxiom):
             ``self`` under the operation of toggling the vertices
             ``vs[0], vs[1], ...`` in this order.
 
-            See :meth:`order_ideal_toggle` for a definition of toggling.
+            See :meth:`~sage.categories.posets.Posets.ParentMethods.order_ideal_toggle` for a definition of toggling.
 
             .. WARNING::
 

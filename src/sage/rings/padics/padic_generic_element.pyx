@@ -3153,7 +3153,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: W.<a> = Zq(5^3)
             sage: S.<x> = W[]
-            sage: R.<pi> = W.extension(x^7 + 15*a*x - 5)
+            sage: R.<pi> = W.extension(x^8 + 15*a*x - 5)
             sage: y = R.random_element()
             sage: for n in [5, 10, 15]:
             ....:     z = y**n

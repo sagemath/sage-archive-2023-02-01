@@ -2570,6 +2570,10 @@ REFERENCES:
              Mathematical Society, Vol. 355, No. 12 (Dec., 2003),
              pp. 4807--4823
 
+.. [ST2010] Einar Steingrimmsson and Bridget Tenner
+            *The Moebius Function of the Permutation Pattern Poset*,
+            Journal of Combinatorics 1 (2010), 39-52 
+
 .. [Sti2006] Douglas R. Stinson. *Cryptography: Theory and
              Practice*. 3rd edition, Chapman \& Hall/CRC, 2006.
 

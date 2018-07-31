@@ -265,9 +265,9 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
           internally used to pass in additional structural information, e.g.,
           about the field from which this field is created as a subfield.
 
-    We explicitly take a ``kwds`` attribute for compatibility
+    We accept ``implementation`` and ``prec`` attributes for compatibility
     with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
-    but we ignore it as it is not used.
+    but we ignore them as they are not used.
 
     EXAMPLES::
 
@@ -541,6 +541,11 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
     """
     if names is not None:
         name = names
+    for key, val in kwds.items():
+        if key not in ['implementation', 'prec']:
+            raise TypeError("NumberField() got an unexpected keyword argument '%s'"%key)
+        if not (val is None or isinstance(val, list) and all(c is None for c in val)):
+            raise NotImplementedError("Number field with prescribed %s is not implemented"%key)
     if isinstance(polynomial, (list,tuple)):
         return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structure)
 

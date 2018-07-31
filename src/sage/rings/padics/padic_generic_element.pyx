@@ -194,7 +194,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
-    @coerce_binop
     def _quo_rem(self, right):
         """
         Quotient with remainder.
@@ -345,7 +344,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a // 15 # indirect doctest
             5 + O(5^4)
         """
-        return self._quo_rem(right)[0]
+        return self.quo_rem(right, integral=True)[0]
 
     def __getitem__(self, n):
         r"""
@@ -583,10 +582,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         EXAMPLES::
 
             sage: Zp(5,5)(1/3).minimal_polynomial('x')
-            (1 + O(5^5))*x + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+            (1 + O(5^5))*x + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
 
             sage: Zp(5,5)(1/3).minimal_polynomial('foo')
-            (1 + O(5^5))*foo + (3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5))
+            (1 + O(5^5))*foo + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
 
         ::
 
@@ -1139,7 +1138,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(3)
             sage: R(3).gcd(9)
-            3 + O(3^20)
+            3
 
         And elements with a capped absolute precision::
 
@@ -1303,7 +1302,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(3)
             sage: R(3).xgcd(9)
-            (3 + O(3^20), 1 + O(3^20), O(3^20))
+            (3, 1, 0)
 
         And elements with a capped absolute precision::
 
@@ -1908,7 +1907,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_generic(5)
-            5 + 2*5^2 + 4*5^3 + O(5^4)
+            5 + 2*5^2 + 4*5^3
 
         Only implemented for elements congruent to 1 modulo the maximal ideal::
 
@@ -1916,7 +1915,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: r._log_generic(5)
             Traceback (most recent call last):
             ...
-            ValueError: Input value (=2 + O(5^4)) must be 1 in the residue field
+            ValueError: Input value (=2) must be 1 in the residue field
 
         """
         x = 1-self
@@ -2062,8 +2061,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_binary_splitting(5)
-            5 + 2*5^2 + 4*5^3 + O(5^4)
-
+            5 + 2*5^2 + 4*5^3
         """
         raise NotImplementedError
 
@@ -2355,13 +2353,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = ZpFM(7,10)
             sage: x = R(41152263); x
-            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
+            5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9
             sage: x.log(aprec = 5)
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^10)
+            7 + 3*7^2 + 4*7^3 + 3*7^4
             sage: x.log(aprec = 7)
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^10)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6
             sage: x.log()
-            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
+            7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9
 
         Check that precision is computed correctly in highly ramified
         extensions::
@@ -2827,18 +2825,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: Z13 = ZpFM(13, 10)
             sage: a = Z13(14); a
-            1 + 13 + O(13^10)
+            1 + 13
             sage: a.log().exp()
-            1 + 13 + O(13^10)
+            1 + 13
 
             sage: R = ZpFM(5,5)
             sage: S.<x> = R[]
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
-            1 + w^2 + 4*w^7 + O(w^20)
+            1 + w^2 + 4*w^7
             sage: z.log().exp()
-            1 + w^2 + 4*w^7 + O(w^20)
+            1 + w^2 + 4*w^7
 
         Some corner cases::
 
@@ -3595,7 +3593,7 @@ def _compute_g(p, n, prec, terms):
     EXAMPLES::
 
         sage: sage.rings.padics.padic_generic_element._compute_g(7, 3, 3, 3)[0]
-        (O(7^3))*v^2 + (1 + O(7^3))*v + (O(7^3))
+        O(7^3)*v^2 + (1 + O(7^3))*v + O(7^3)
 
     """
     from sage.rings.power_series_ring import PowerSeriesRing

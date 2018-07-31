@@ -861,8 +861,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             '5563A4105291255628.148272'
             sage: repr(y*847)[3:]
             '000000000000000000000003'
-            sage: repr(W(77/3, relprec=0))
-            '0'
+            sage: repr(W(77/3, relprec=0))[3:]
+            '000'
             sage: c = F(11^-1 + O(11^2)); repr(c)[3:]
             '011111.01A'
             sage: repr(c * 11)[3:]
@@ -2521,7 +2521,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = Zp(5).extension(x^2 - 5)
             sage: (w + W(5, 7)).polynomial()
-            (1 + O(5^3))*x + (5 + O(5^4))
+            (1 + O(5^3))*x + 5 + O(5^4)
         """
         R = self.base_ring()
         S = R[var]

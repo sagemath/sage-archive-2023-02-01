@@ -275,7 +275,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(3,5,'fixed-mod', 'series')
             sage: R.uniformizer()
-            3 + O(3^5)
+            3
         """
         return self(self.prime_pow._prime())
 

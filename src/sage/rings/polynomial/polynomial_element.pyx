@@ -11216,7 +11216,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
             sage: R = Zp(5)
             sage: S.<x> = R[]
             sage: S([1,R(0,20)])
-            (O(5^20))*x + (1 + O(5^20))
+            O(5^20)*x + 1 + O(5^20)
         """
         cdef list x = self.__coeffs
         cdef Py_ssize_t n = len(x) - 1
@@ -11252,7 +11252,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
             sage: K = Qp(3,10)
             sage: R.<T> = K[]
             sage: f = T + 2; f
-            (1 + O(3^10))*T + (2 + O(3^10))
+            (1 + O(3^10))*T + 2 + O(3^10)
             sage: f.degree()
             1
             sage: (f-T).degree()
@@ -11266,7 +11266,7 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
             sage: li = [3^i * x for i in range(0,5)]; li
             [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
             sage: f = R(li); f
-            (O(3^9))*T^4 + (O(3^8))*T^3 + (O(3^7))*T^2 + (O(3^6))*T + (O(3^5))
+            O(3^9)*T^4 + O(3^8)*T^3 + O(3^7)*T^2 + O(3^6)*T + O(3^5)
             sage: f.degree()
             -1
             sage: f.degree(secure=True)
@@ -11304,14 +11304,14 @@ cdef class Polynomial_generic_dense_inexact(Polynomial_generic_dense):
             sage: K = Qp(3,10)
             sage: R.<T> = K[]
             sage: f = T + 2; f
-            (1 + O(3^10))*T + (2 + O(3^10))
+            (1 + O(3^10))*T + 2 + O(3^10)
             sage: f.degree()
             1
             sage: f.prec_degree()
             1
 
             sage: g = f - T; g
-            (O(3^10))*T + (2 + O(3^10))
+            O(3^10)*T + 2 + O(3^10)
             sage: g.degree()
             0
             sage: g.prec_degree()
@@ -11448,7 +11448,7 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: R.<t> = Qp(2)[]
             sage: f = R.convert_map_from(R.base_ring())    # indirect doctest
             sage: f(Qp(2).one()*3)
-            (1 + 2 + O(2^20))
+            1 + 2 + O(2^20)
             sage: (Qp(2).one()*3)*t
             (1 + 2 + O(2^20))*t
         """
@@ -11515,7 +11515,7 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: from sage.rings.polynomial.polynomial_element import PolynomialBaseringInjection
             sage: m = PolynomialBaseringInjection(Qp(5), Qp(5)['x'])
             sage: m(1 + O(5^11), absprec = 5)   # indirect doctest
-            (1 + O(5^11))
+            1 + O(5^11)
         """
         try:
             return self._codomain._element_constructor_(x, *args, **kwds)

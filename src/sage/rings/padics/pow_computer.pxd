@@ -12,11 +12,11 @@ cdef class PowComputer_class(SageObject):
     cdef long ram_prec_cap # = prec_cap * e
 
     # the following constants should be set by the subclasses
-    # the relative degree of the p-adic ring over its base
+    # the absolute degree of the p-adic ring
     cdef long deg
-    # the ramification index of the p-adic ring over its base
+    # the absolute ramification index of the p-adic ring
     cdef long e
-    # the residual degree of the p-adic ring over its base
+    # the absolute residual degree of the p-adic ring
     cdef long f
 
     cdef unsigned long cache_limit

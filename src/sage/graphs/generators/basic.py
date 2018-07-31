@@ -422,7 +422,7 @@ def CompleteBipartiteGraph(n1, n2, set_position=True):
     - ``n1, n2`` -- number of vertices in each side
 
     - ``set_position`` -- boolean (default ``True``); if set to ``True``, we
-      assign positions to the vertices so that the set of cardinality `n1` is 
+      assign positions to the vertices so that the set of cardinality `n1` is
       on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
 
     PLOTTING: Upon construction, the position dictionary is filled to override

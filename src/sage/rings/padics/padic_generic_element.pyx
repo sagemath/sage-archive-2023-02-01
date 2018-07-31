@@ -3045,7 +3045,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
 
         When `n` is divisible by the underlying prime `p`, we
-        are loosing precision (which is consistant with the fact
+        are losing precision (which is consistant with the fact
         that raising to the pth power increases precision)::
 
             sage: z = x.nth_root(3); z
@@ -3069,7 +3069,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ...
             ValueError: This element is not a nth power
 
-        Similarly, when precision on the input is too small, an error 
+        Similarly, when precision on the input is too small, an error
         is raised:
 
             sage: x = R(1,6); x
@@ -3104,7 +3104,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         val = self.valuation()
         if val % n != 0:
             raise ValueError("This element is not a nth power")
-        # and the fact that the nth root 
+        # and the residue
         a = self >> val
         abar = a.residue()
         try:
@@ -3158,7 +3158,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # First, we check valuation and renormalize if needed
         val = self.valuation()
-        if val % p == 1:
+        if val % p != 0:
             return None
         a = self >> val
 
@@ -3190,18 +3190,20 @@ cdef class pAdicGenericElement(LocalGenericElement):
             # (which is theoretically a bit faster)
             b = (ainv - x**p) >> (p*curprec)
             if b == 0: break
-            for i in range(e - (p-1)*curprec):
+            bexp = b.expansion()
+            if b.parent().is_field():
+                # We'd like to use start_val=0, but that isn't supported by NTL ramified extensions
+                bexp = [0] * b.valuation() + bexp
+            for i in range(b.valuation(), e - (p-1)*curprec):
                 if i % p == 0:
                     try:
-                        # We shouldn't recompute the expansion of b at the iteration
-                        cbar = k(b.expansion(i)).nth_root(p)
+                        cbar = k(bexp[i]).nth_root(p)
                     except ValueError:
                         return None
                     c = ring(cbar).lift_to_precision()
                     x += c << (curprec + i//p)
-                else:
-                    if k(b.expansion(i)) != 0:
-                         return None
+                elif k(bexp[i]) != 0:
+                    return None
             curprec = (curprec + e + p-1) // p
 
         # We lift one step further
@@ -3219,7 +3221,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x += ring(roots[0][0]) << ep
 
         # For Newton iteration, we redefine curprec
-        # as (a lower bound on) valuation(a*x^2 - 1)
+        # as (a lower bound on) valuation(a*x^p - 1)
         curprec = e + ep + 1
 
         # We perform Newton iteration

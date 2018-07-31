@@ -71,13 +71,11 @@ required to plot::
 AUTHORS:
 
 - Karim Van Aelst (2017): initial version
-- Jaffredo Florentin (2018): speed improvements and multi-chart version
 
 """
 
 #***********************************************************************
 #       Copyright (C) 2017 Karim Van Aelst <karim.van-aelst@obspm.fr>
-#       Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -99,7 +97,6 @@ from sage.misc.functional import numerical_approx
 from sage.arith.srange import srange
 from sage.ext.fast_callable import fast_callable
 from sage.symbolic.ring import SR
-from sage.matrix.constructor import matrix
 import numpy as np
 from scipy.integrate import ode
 from random import shuffle
@@ -535,8 +532,9 @@ class IntegratedCurve(DifferentiableCurve):
             self._equations_rhs = list(equations_rhs) # converts to list
             # since might not already be a list (which is later required)
         else: # case multi charts
-            self._equations_rhs_multichart = equations_rhs
+            self._equations_rhs = equations_rhs
 
+        self._across_charts = across_charts
         if across_charts:
             # pre-compute the changes of chart for faster switching
             # approx gain : 200 ms per switch
@@ -662,11 +660,11 @@ class IntegratedCurve(DifferentiableCurve):
              manifold M
 
         """
-
+        print("here")
         return (type(self), (self.parent(), self._equations_rhs,
                 self._velocities, self._curve_parameter,
                 self._initial_tangent_vector, self._chart,
-                self._name, self._latex_name))
+                self._name, self._latex_name, False, self._across_charts))
 
     def system(self, verbose=False):
         r"""
@@ -1503,7 +1501,7 @@ class IntegratedCurve(DifferentiableCurve):
             sage: interp = c.interpolate()
 
         To plot the result, you must first be sure that the mapping encompasses
-        all the charts, which is the case here (see cell 6).
+        all the chart, which is the case here (see cell 6).
 
         You must also specify ``across_charts=True`` in order to call
         ``plot_integrated`` again on each part.
@@ -1593,7 +1591,7 @@ class IntegratedCurve(DifferentiableCurve):
         t_min = self.domain().lower_bound()
         t_max = self.domain().upper_bound()
 
-        eqns_num = self._equations_rhs_multichart.copy()
+        eqns_num = self._equations_rhs.copy()
 
         v0 = self._initial_tangent_vector
 
@@ -1706,7 +1704,7 @@ class IntegratedCurve(DifferentiableCurve):
 
             current_sol = r.integrate(times[i])
             if not r.successful():
-                raise RuntimeError("Unsuccessful integration.")
+                raise RuntimeError("unsuccessful integration")
 
             # step leads outside of the chart domain
             if abs(r.t-times[i]) > 1e-8:
@@ -1771,10 +1769,10 @@ class IntegratedCurve(DifferentiableCurve):
                     if verbose:
                         print("No chart found, stopping integration.")
                         # col-stack the times
-                        sol_chart = np.column_stack((times[start_index:i-1],
-                                            sol_chart[:i-start_index-1, :]))
-                        # add it to the global solution
-                        sol.append((chart, sol_chart))
+                    sol_chart = np.column_stack((times[start_index:i-1],
+                                        sol_chart[:i-start_index-1, :]))
+                    # add it to the global solution
+                    sol.append((chart, sol_chart))
                     break
 
             # the integration step was successful
@@ -3513,7 +3511,8 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
 
         return (type(self), (self.parent(), self._affine_connection,
                 self._curve_parameter, self._initial_tangent_vector,
-                self._chart, self._name, self._latex_name))
+                self._chart, self._name, self._latex_name, False,
+                self._across_chart))
 
     def system(self, verbose=False):
         r"""
@@ -3892,7 +3891,8 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
 
         return (type(self), (self.parent(), self._metric,
                 self._curve_parameter, self._initial_tangent_vector,
-                self._chart, self._name, self._latex_name))
+                self._chart, self._name, self._latex_name, False,
+                self._across_charts))
 
     def system(self, verbose=False):
         r"""

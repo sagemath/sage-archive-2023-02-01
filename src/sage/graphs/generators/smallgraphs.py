@@ -4198,8 +4198,8 @@ def SousselierGraph():
     Return the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
-    edges. For more information, see :wikipedia:`Graphe_de_Sousselier` (in
-    french).
+    edges. For more information, see the corresponding `Wikipedia page (in
+    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
 
     EXAMPLES::
 
@@ -4373,7 +4373,7 @@ def TruncatedTetrahedralGraph():
 
 def Tutte12Cage():
     r"""
-    Return the Tutte's 12-Cage.
+    Return the Tutte 12-Cage.
 
     See the :wikipedia:`Tutte_12-cage`.
 
@@ -4585,8 +4585,9 @@ def WienerArayaGraph():
 
     The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
     67 edges. For more information, see the `Wolfram Page on the Wiener-Araya
-    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or
-    :wikipedia:`Graphe_de_Wiener-Araya` (in french).
+    Graph <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its
+    `(french) Wikipedia page
+    <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
 
     EXAMPLES::
 

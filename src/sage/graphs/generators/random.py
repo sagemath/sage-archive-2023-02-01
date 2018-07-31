@@ -187,13 +187,13 @@ def RandomBipartite(n1, n2, p, set_position=False):
 
     INPUT:
 
-    - ``n1, n2`` : Cardinalities of the two sets
+    - ``n1, n2`` -- Cardinalities of the two sets
 
-    - ``p``   : Probability for an edge to exist
+    - ``p`` -- Probability for an edge to exist
 
-    - ``set_position`` -- boolean (default ``False``) if set to ``True``, we
-      assign positions to the vertices.
-
+    - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
+      assign positions to the vertices so that the set of cardinality `n1` is
+      on the line `x=0` and the set of cardinality `n2` is on the line `x=1`.
 
     EXAMPLES::
 
@@ -248,8 +248,8 @@ def RandomBipartite(n1, n2, p, set_position=False):
                 g.add_edge((0,v),(1,w))
 
     # We now assign positions to vertices:
-    # - vertex (0, i) in S1 at position (0, 1 - i/(n1 - 1)
-    # - vertex (1, i) in S2 at position (1, 1 - i/(n2 - 1)
+    # - vertex (0, i) in S1 at position (0, 1 - i/(n1 - 1))
+    # - vertex (1, i) in S2 at position (1, 1 - i/(n2 - 1))
     if set_position:
         pos = {}
         if n1 == 1:
@@ -272,14 +272,15 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     Return a random regular bipartite graph on `n1 + n2` vertices.
 
     The bipartite graph has `n1 * d1` edges. Hence, `n2` must divide `n1 * d1`.
-    Each vertex of the set of cardinality `n1` has degree `d1` and each vertex
-    in the set of cardinality `n2` has degree `(n1 * d1) / n2`. The bipartite
-    graph has no multiple edges.
+    Each vertex of the set of cardinality `n1` has degree `d1` (which can be at
+    most `n2`) and each vertex in the set of cardinality `n2` has degree 
+    `(n1 * d1) / n2`. The bipartite graph has no multiple edges.
 
-    This generator implements the algorithm proposed in [MW1990]_ for the
-    uniform generation of random regular bipartite graphs. It performs well when
-    `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})). In other case, the running
-    time can be huge.
+    This generator implements an algorithm inspired by that of [MW1990]_ for 
+    the uniform generation of random regular bipartite graphs. It performs well
+    when `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})). In other cases, the
+    running time can be huge. Note that the currently implemented algorithm
+    does not generate uniformly random graphs.
 
     INPUT:
 
@@ -287,8 +288,9 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
 
     - ``d1`` -- degree of the vertices in the set of cardinality `n1`.
 
-    - ``set_position`` -- boolean (default ``False``) if set to ``True``, we
-      assign positions to the vertices.
+    - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
+      assign positions to the vertices so that the set of cardinality `n1` is 
+      on the line `x=0` and the set of cardinality `n2` is on the line `x=1`.
 
     EXAMPLES::
 
@@ -318,9 +320,15 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         Traceback (most recent call last):
         ...
         ValueError: the product n1 * d1 must be a multiple of n2
+        sage: graphs.RandomRegularBipartite(1, 1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: d1 must be less than or equal to n2
     """
     if n1 < 1 or n2 < 1:
         raise ValueError("n1 and n2 must be integers greater than 0")
+    if d1 > n2:
+        raise ValueError("d1 must be less than or equal to n2")
     d2 = (n1 * d1) // n2
     if n1 * d1 != n2 * d2:
         raise ValueError("the product n1 * d1 must be a multiple of n2")
@@ -336,8 +344,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     F = set()
 
     if d1:
-        from sage.misc.prandom import shuffle
-        from sage.misc.prandom import choice
+        from sage.misc.prandom import shuffle, choice
 
         M1 = n1 * d1 * (d1 - 1)
         M2 = n2 * d2 * (d2 - 1)
@@ -345,7 +352,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         UB_parallel = (M1 * M2) / M**2
 
         # We create a set of n1 * d1 random edges with possible repetitions. We
-        # do so that the number of repeated edges is bounded and that an edge
+        # require that the number of repeated edges is bounded and that an edge
         # can be repeated only once.
         L = [u for u in range(n1) for i in range(d1)]
         R = [u for u in range(n1, n1 + n2) for i in range(d2)]
@@ -358,8 +365,8 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
             for e in zip(L, R):
                 if e in E:
                     if e in F:
-                        # We have more than 3 times e => restart
-                        retart = True
+                        # We have more than 2 times e => restart
+                        restart = True
                         break
                     else:
                         F.add(e)
@@ -372,7 +379,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
 
     # We remove multiple edges by applying random forward d-switching. That is,
     # given edge e that is repeated twice, we select single edges f and g with
-    # no common end points, and then create 4 new edges. We forbid vreating new
+    # no common end points, and then create 4 new edges. We forbid creating new
     # multiple edges.
     while F:
         # random forward d-switching
@@ -388,7 +395,10 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
             if e[0] != g[0] and e[1] != g[1] and f[0] != g[0] and f[1] != g[1]:
                 new_edges = [(f[0], e[1]), (e[0], f[1]), (e[0], g[1]), (g[0], e[1])]
                 if not E.intersection(new_edges):
-                    # We are not creating new parallel eges
+                    # We are not creating new parallel edges.
+                    # To generate uniformly random graphs we would have to
+                    # implement a probabilistic restart of the whole algorithm
+                    # here, see [MW1990].
                     break
         E.discard(f)
         E.discard(g)
@@ -399,12 +409,12 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         E = E.symmetric_difference(CompleteBipartiteGraph(n1, n2).edges(labels=False))
         d1, d2 = n2 - d1, n1 - d2
 
-    name = "Random regular bipartite graph of order {} + {} and degrees {} and {}".format(n1, n2, d1, d2)
+    name = "Random regular bipartite graph of order {}+{} and degrees {} and {}".format(n1, n2, d1, d2)
     G = Graph(list(E), name=name)
 
     # We now assign positions to vertices:
-    # - vertex i in L at position (0, 1 - i/(n1 - 1)
-    # - vertex i + n1 in R at position (1, 1 - i/(n2 - 1)
+    # - vertex i in L at position (0, 1 - i/(n1 - 1))
+    # - vertex i + n1 in R at position (1, 1 - i/(n2 - 1))
     if set_position:
         pos = {}
         if n1 == 1:

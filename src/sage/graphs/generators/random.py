@@ -181,9 +181,8 @@ def RandomBarabasiAlbert(n, m, seed=None):
 
 def RandomBipartite(n1, n2, p, set_position=False):
     r"""
-    Returns a bipartite graph with `n1+n2` vertices
-    such that any edge from `[n1]` to `[n2]` exists
-    with probability `p`.
+    Returns a bipartite graph with `n1+n2` vertices such that any edge
+    from `[n1]` to `[n2]` exists with probability `p`.
 
     INPUT:
 
@@ -197,24 +196,24 @@ def RandomBipartite(n1, n2, p, set_position=False):
 
     EXAMPLES::
 
-        sage: g=graphs.RandomBipartite(5,2,0.5)
+        sage: g = graphs.RandomBipartite(5, 2, 0.5)
         sage: g.vertices()
         [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1)]
 
     TESTS::
 
-        sage: g=graphs.RandomBipartite(5,-3,0.5)
+        sage: g = graphs.RandomBipartite(5, -3, 0.5)
         Traceback (most recent call last):
         ...
         ValueError: n1 and n2 should be integers strictly greater than 0
-        sage: g=graphs.RandomBipartite(5,3,1.5)
+        sage: g = graphs.RandomBipartite(5, 3, 1.5)
         Traceback (most recent call last):
         ...
-        ValueError: Parameter p is a probability, and so should be a real value between 0 and 1
+        ValueError: parameter p is a probability, and so should be a real value between 0 and 1
 
     :trac:`12155`::
 
-        sage: graphs.RandomBipartite(5,6,.2).complement()
+        sage: graphs.RandomBipartite(5, 6, .2).complement()
         complement(Random bipartite graph of order 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
 
     Test assigned positions::
@@ -228,9 +227,9 @@ def RandomBipartite(n1, n2, p, set_position=False):
         sage: graphs.RandomBipartite(2, 2, .1, set_position=False).get_pos()
 
     """
-    if not (p>=0 and p<=1):
-        raise ValueError("Parameter p is a probability, and so should be a real value between 0 and 1")
-    if not (n1>0 and n2>0):
+    if not (p >= 0 and p <= 1):
+        raise ValueError("parameter p is a probability, and so should be a real value between 0 and 1")
+    if not (n1 > 0 and n2 > 0):
         raise ValueError("n1 and n2 should be integers strictly greater than 0")
 
     from numpy.random import uniform
@@ -244,8 +243,8 @@ def RandomBipartite(n1, n2, p, set_position=False):
 
     for w in range(n2):
         for v in range(n1):
-            if uniform()<=p :
-                g.add_edge((0,v),(1,w))
+            if uniform() <= p :
+                g.add_edge((0, v), (1, w))
 
     # We now assign positions to vertices:
     # - vertices in S1 are placed on the line from (0, 1) to (max(n1, n2), 1)
@@ -270,7 +269,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
 
     This generator implements an algorithm inspired by that of [MW1990]_ for 
     the uniform generation of random regular bipartite graphs. It performs well
-    when `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})). In other cases, the
+    when `d1 = o(n2^{1/3})` or (`n2 - d1 = o(n2^{1/3})`). In other cases, the
     running time can be huge. Note that the currently implemented algorithm
     does not generate uniformly random graphs.
 

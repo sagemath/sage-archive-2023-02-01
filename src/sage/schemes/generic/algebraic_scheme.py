@@ -906,8 +906,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
           x^2 - y*z
     """
 
-    def __init__(self, A, polynomials, ambient_projective_space=None,
-                 default_embedding_index=None):
+    def __init__(self, A, polynomials):
         """
         See ``AlgebraicScheme_subscheme`` for documentation.
 

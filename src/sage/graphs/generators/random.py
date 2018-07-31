@@ -193,7 +193,7 @@ def RandomBipartite(n1, n2, p, set_position=False):
 
     - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
       assign positions to the vertices so that the set of cardinality `n1` is
-      on the line `x=0` and the set of cardinality `n2` is on the line `x=1`.
+      on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
 
     EXAMPLES::
 
@@ -215,7 +215,7 @@ def RandomBipartite(n1, n2, p, set_position=False):
     :trac:`12155`::
 
         sage: graphs.RandomBipartite(5,6,.2).complement()
-        complement(Random bipartite graph of size 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
+        complement(Random bipartite graph of order 5+6 with edge probability 0.200000000000000): Graph on 11 vertices
 
     Test assigned positions::
 
@@ -235,7 +235,7 @@ def RandomBipartite(n1, n2, p, set_position=False):
 
     from numpy.random import uniform
 
-    g=Graph(name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
+    g=Graph(name="Random bipartite graph of order "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
 
     S1 = [(0,i) for i in range(n1)]
     S2 = [(1,i) for i in range(n2)]
@@ -282,7 +282,7 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
 
     - ``set_position`` -- boolean (default ``False``); if set to ``True``, we
       assign positions to the vertices so that the set of cardinality `n1` is 
-      on the line `x=0` and the set of cardinality `n2` is on the line `x=1`.
+      on the line `y=1` and the set of cardinality `n2` is on the line `y=0`.
 
     EXAMPLES::
 

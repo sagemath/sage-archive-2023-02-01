@@ -3758,7 +3758,7 @@ const numeric numeric::ratlog(const numeric &b, bool& israt) const {
                 return c;
         }
         if (b.t == LONG)
-                return ratlog(to_bigint(), israt);
+                return ratlog(b.to_bigint(), israt);
         if (t == LONG)
                 return to_bigint().ratlog(b, israt);
         if (t == MPZ and b.t == MPZ) {

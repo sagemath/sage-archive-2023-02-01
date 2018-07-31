@@ -659,7 +659,6 @@ cpdef automorphism_group(G, partition=None, use_edge_labels=True):
         sage: automorphism_group(gg).cardinality()                              # optional - bliss
         12
         sage: automorphism_group(gg,[[0],[1,2,3,4]]).cardinality()              # optional - bliss
-
         6
 
     Making sure that #25426 is fixed:

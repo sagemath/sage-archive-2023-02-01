@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Directed graphs
 
@@ -112,8 +113,51 @@ graphs. Here is what they can do
 Methods
 -------
 """
-from __future__ import print_function
-from __future__ import absolute_import
+
+# ****************************************************************************
+#       Copyright (C) 2010      Alexandre Blondin Masse <alexandre.blondin.masse at gmail.com>
+#                               Carl Witty <cwitty@newtonlabs.com>
+#                               Gregory McWhirter <gmcwhirt@uci.edu>
+#                               Minh Van Nguyen <nguyenminh2@gmail.com>
+#                     2010-2011 Robert L. Miller <rlm@rlmiller.org>
+#                     2010-2015 Nathann Cohen <nathann.cohen@gmail.com>
+#                               Nicolas M. Thiery <nthiery@users.sf.net>
+#                     2011      Johannes Klaus Fichte <fichte@kr.tuwien.ac.at>
+#                     2012      Javier López Peña <vengoroso@gmail.com>
+#                     2012      Jim Stark <jstarx@gmail.com>
+#                     2012      Karl-Dieter Crisman <kcrisman@gmail.com>
+#                     2012      Keshav Kini <keshav.kini@gmail.com>
+#                     2012      Lukas Lansky <lansky@kam.mff.cuni.cz>
+#                     2012-2015 Volker Braun <vbraun.name@gmail.com>
+#                     2012-2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#                     2012-2018 David Coudert <david.coudert@inria.fr>
+#                     2013      Emily Gunawan <egunawan@umn.edu>
+#                     2013      Gregg Musiker <musiker@math.mit.edu>
+#                     2013      Mathieu Guay-Paquet <mathieu.guaypaquet@gmail.com>
+#                     2013-2014 Simon King <simon.king@uni-jena.de>
+#                     2014      Clemens Heuberger <clemens.heuberger@aau.at>
+#                               Erik Massop <e.massop@hccnet.nl>
+#                               R. Andrew Ohana <andrew.ohana@gmail.com>
+#                               Wilfried Luebbe <wluebbe@gmail.com>
+#                     2014-2015 André Apitzsch <andre.apitzsch@etit.tu-chemnitz.de>
+#                               Darij Grinberg <darijgrinberg@gmail.com>
+#                               Travis Scrimshaw <tscrim at ucdavis.edu>
+#                               Vincent Delecroix <20100.delecroix@gmail.com>
+#                     2014-2017 Frédéric Chapoton <chapoton@math.univ-lyon1.fr>
+#                     2015      Michele Borassi <michele.borassi@imtlucca.it>
+#                     2015-2017 John H. Palmieri <palmieri@math.washington.edu>
+#                               Jori Mäntysalo <jori.mantysalo@uta.fi>
+#                     2016      Dima Pasechnik <dimpase@gmail.com>
+#                     2018      Meghana M Reddy <mreddymeghana@gmail.com>
+#                               Julian Rüth <julian.rueth@fsfe.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from __future__ import print_function, absolute_import
 
 from copy import copy
 from sage.rings.integer import Integer
@@ -123,7 +167,6 @@ import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.dot2tex_utils import have_dot2tex
 
-from sage.misc.superseded import deprecation
 
 class DiGraph(GenericGraph):
     r"""
@@ -755,7 +798,7 @@ class DiGraph(GenericGraph):
             self.allow_multiple_edges(multiedges,check=False)
             self.allow_loops(loops,check=False)
             self.add_vertices(data.nodes())
-            self.add_edges((u,v,r(l)) for u,v,l in data.edges_iter(data=True))
+            self.add_edges((u,v,r(l)) for u,v,l in data.edges(data=True))
         elif format == 'igraph':
             if not data.is_directed():
                 raise ValueError("A *directed* igraph graph was expected. To "+
@@ -819,7 +862,7 @@ class DiGraph(GenericGraph):
 
     ### Formats
     def dig6_string(self):
-        """
+        r"""
         Return the dig6 representation of the digraph as an ASCII string.
 
         This is only valid for single (no multiple edges) digraphs
@@ -2819,9 +2862,8 @@ class DiGraph(GenericGraph):
         INPUT:
 
         - ``implementation`` -- Use the default Cython implementation
-          (``implementation = default``), the default NetworkX library
-          (``implementation = "NetworkX"``) or the recursive NetworkX
-          implementation (``implementation = "recursive"``)
+          (``implementation = default``), or the default NetworkX library
+          (``implementation = "NetworkX"``)
 
         .. SEEALSO::
 
@@ -2845,12 +2887,7 @@ class DiGraph(GenericGraph):
 
         Using the NetworkX implementation ::
 
-            sage: D.topological_sort(implementation = "NetworkX")
-            [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
-
-        Using the NetworkX recursive implementation ::
-
-            sage: D.topological_sort(implementation = "recursive")
+            sage: list(D.topological_sort(implementation = "NetworkX"))
             [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
 
         ::
@@ -2861,21 +2898,6 @@ class DiGraph(GenericGraph):
             ...
             TypeError: Digraph is not acyclic; there is no topological
             sort.
-
-        .. note::
-
-           There is a recursive version of this in NetworkX, it used to
-           have problems in earlier versions but they have since been
-           fixed::
-
-              sage: import networkx
-              sage: D = DiGraph({ 0:[1,2,3], 4:[2,5], 1:[8], 2:[7], 3:[7],
-              ....:   5:[6,7], 7:[8], 6:[9], 8:[10], 9:[10] })
-              sage: N = D.networkx_graph()
-              sage: networkx.topological_sort(N)
-              [4, 5, 6, 9, 0, 1, 2, 3, 7, 8, 10]
-              sage: networkx.topological_sort_recursive(N)
-              [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
 
         TESTS:
 
@@ -2895,12 +2917,9 @@ class DiGraph(GenericGraph):
             else:
                 raise TypeError('Digraph is not acyclic; there is no topological sort.')
 
-        elif implementation == "NetworkX" or implementation == "recursive":
+        elif implementation == "NetworkX":
             import networkx
-            if implementation == "NetworkX":
-                S = networkx.topological_sort(self.networkx_graph(copy=False))
-            else:
-                S = networkx.topological_sort_recursive(self.networkx_graph(copy=False))
+            S = networkx.topological_sort(self.networkx_graph(copy=False))
             if S is None:
                 raise TypeError('Digraph is not acyclic; there is no topological sort.')
             else:

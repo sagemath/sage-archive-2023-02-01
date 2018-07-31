@@ -1250,34 +1250,33 @@ class ImplicitSuffixTree(SageObject):
         """
         # Every factor is a prefix of a suffix, so we do a depth
         # first search of the implicit suffix tree of the word.
+        w = self.word()
+        wlen = self.word().length()
         if n is None:
-            queue = [(0, self._word.parent()())]
+            queue = [(0, 0, -1, 0)]
+            yield w[0:0]
             while queue:
-                (v,w) = queue.pop()
-                yield w
-                if self._transition_function[v] != {}:
+                (v,i,j,l) = queue.pop()
+                for k in range(i,j+1):
+                    yield w[j-l:k]
+                for ((i,j),u) in iteritems(self._transition_function[v]):
+                    if j is None:
+                        j = wlen
+                    queue.append((u,i,j, l+j-i+1))
+        elif isinstance(n, (int,Integer)):
+            queue = [(0, 0, -1, 0)]
+            while queue:
+                (v,i,j,l) = queue.pop()
+                if l == n:
+                    yield w[j-l:j]
+                if l < n:
                     for ((i,j),u) in iteritems(self._transition_function[v]):
                         if j is None:
-                            j = self.word().length()
-                        for k in range(i,j):
-                            yield w * self.word()[i-1:k]
-                        queue.append((u,w*self.word()[i-1:j]))
-        elif isinstance(n, (int,Integer)):
-            queue = [(0, self._word.parent()())]
-            while queue:
-                (v,w) = queue.pop()
-                length_w = w.length()
-                if length_w == n:
-                    yield w
-                if length_w < n:
-                    if self._transition_function[v] != {}:
-                        for ((i,j),u) in iteritems(self._transition_function[v]):
-                            if j is None:
-                                j = self.word().length()
-                            if j - i >= n - length_w:
-                                yield w*self.word()[i-1:i-1+n-length_w]
-                            else:
-                                queue.append((u,w*self.word()[i-1:j]))
+                            j = wlen
+                        if j - i >= n - l:
+                            yield w[i-l-1:i-l+n-1]
+                        else:
+                            queue.append((u,i,j, l+j-i+1))
         else:
             raise TypeError("not an integer or None: %s" %s)
 

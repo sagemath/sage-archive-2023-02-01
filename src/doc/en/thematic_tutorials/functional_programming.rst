@@ -302,7 +302,7 @@ out all items that satisfy some condition(s) defined in the given
 function. For example, you could use ``filter`` to filter out all
 primes between 1 and 50, inclusive. ::
 
-    sage: filter(is_prime, [1..50])
+    sage: list(filter(is_prime, [1..50]))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
 
 For a given positive integer `n`, the
@@ -320,7 +320,7 @@ to 20. Then you could use ``filter`` instead of list comprehension
 to obtain all the required `a`'s. ::
 
     sage: is_coprime = lambda k: gcd(k, 20) == 1
-    sage: filter(is_coprime, range(1, 21))
+    sage: list(filter(is_coprime, range(1, 21)))
     [1, 3, 7, 9, 11, 13, 17, 19]
 
 The function ``primroots`` defined below returns all primitive roots

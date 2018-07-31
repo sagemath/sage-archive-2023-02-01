@@ -913,7 +913,7 @@ cdef class Ring(ParentWithGens):
         """
         if self.is_zero():
             return True
-        raise NotImplementedError
+        return super(Ring, self).is_finite()
 
     def cardinality(self):
         """

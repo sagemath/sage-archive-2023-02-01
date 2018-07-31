@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Bipartite graphs
 
@@ -27,10 +28,14 @@ TESTS::
 
 #*****************************************************************************
 #         Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
+#                       2018 Julian Rüth <julian.rueth@fsfe.org>
 #
-# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
-#                         http://www.gnu.org/licenses/
-#*****************************************************************************
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from __future__ import print_function
 from __future__ import absolute_import
 from six import iteritems
@@ -1421,7 +1426,7 @@ class BipartiteGraph(Graph):
             sage: G = graphs.CycleGraph(4)
             sage: B = BipartiteGraph([(u,v,2) for u,v in G.edges(labels=0)])
             sage: B.matching(use_edge_labels=True)
-            [(0, 3, 2), (1, 2, 2)]
+            [(1, 2, 2), (0, 3, 2)]
             sage: B.matching(use_edge_labels=True, value_only=True)
             4
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Edmonds')
@@ -1480,7 +1485,7 @@ class BipartiteGraph(Graph):
             g = networkx.Graph()
             if use_edge_labels:
                 for u, v in W:
-                    g.add_edge(u, v, attr_dict={"weight": W[u, v]})
+                    g.add_edge(u, v, weight=W[u, v])
             else:
                 for u, v in L:
                     g.add_edge(u, v)

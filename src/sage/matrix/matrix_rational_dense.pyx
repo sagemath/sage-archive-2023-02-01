@@ -124,7 +124,7 @@ from cypari2.paridecl cimport *
 #########################################################
 
 cdef class Matrix_rational_dense(Matrix_dense):
-    def __cinit__(self, parent, entries, copy, coerce):
+    def __cinit__(self):
         """
         Create and allocate memory for the matrix.
 
@@ -140,8 +140,6 @@ cdef class Matrix_rational_dense(Matrix_dense):
            This is for internal use only, or if you really know what
            you're doing.
         """
-        Matrix_dense.__init__(self, parent)
-
         sig_on()
         fmpq_mat_init(self._matrix, self._nrows, self._ncols)
         sig_off()

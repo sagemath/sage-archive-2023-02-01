@@ -60,8 +60,8 @@ The default projection is ``'perspective'``::
     sage: t.light((-4,-4,4), .1, (1,1,1))
     sage: t.show()
 
-Another option is ``projection='fisheye'``, which requires frustrum
-information. The frustrum data is (bottom angle, top angle, left
+Another option is ``projection='fisheye'``, which requires frustum
+information. The frustum data is (bottom angle, top angle, left
 angle, right angle)::
 
     sage: t = Tachyon(xres=800, yres=600, camera_center=(-1.5,0.0,0.0),

@@ -27,7 +27,6 @@ from sage.categories.subobjects import SubobjectsCategory
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.sets.family import Family
 from sage.matrix.constructor import matrix
-from sage.modules.free_module_element import vector
 
 class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -131,6 +130,61 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 (0, 1, 2)
             """
             return tuple(self.basis().keys())
+
+        @lazy_attribute
+        def _basis_key_inverse(self):
+            """
+            A dictionary for keys to their appropriate index given by
+            ``self._basis_ordering``.
+
+            EXAMPLES::
+
+                sage: G = SymmetricGroup(3)
+                sage: S = GroupAlgebra(G, QQ)
+                sage: L = LieAlgebra(associative=S)
+                sage: [L._basis_key_inverse[k] for k in L._basis_ordering]
+                [0, 1, 2, 3, 4, 5]
+            """
+            return {k: i for i,k in enumerate(self._basis_ordering)}
+
+        def _basis_key(self, x):
+            """
+            Return a key for sorting for the index ``x``.
+
+            TESTS::
+
+                sage: L = lie_algebras.three_dimensional_by_rank(QQ, 3, names=['E','F','H'])
+                sage: PBW = L.pbw_basis()
+                sage: PBW._basis_key('E') < PBW._basis_key('H')
+                True
+
+            ::
+
+                sage: L = lie_algebras.sl(QQ, 2)
+                sage: def neg_key(x):
+                ....:     return -L.basis().keys().index(x)
+                sage: PBW = L.pbw_basis(basis_key=neg_key)
+                sage: prod(PBW.gens())  # indirect doctest
+                PBW[-alpha[1]]*PBW[alphacheck[1]]*PBW[alpha[1]]
+                 - 4*PBW[-alpha[1]]*PBW[alpha[1]] + PBW[alphacheck[1]]^2
+                 - 2*PBW[alphacheck[1]]
+
+            Check that :trac:`23266` is fixed::
+
+                sage: sl2 = lie_algebras.sl(QQ, 2, 'matrix')
+                sage: sl2.indices()
+                {'e1', 'f1', 'h1'}
+                sage: type(sl2.basis().keys())
+                <type 'list'>
+                sage: Usl2 = sl2.pbw_basis()
+                sage: Usl2._basis_key(2)
+                2
+                sage: Usl2._basis_key(3)
+                Traceback (most recent call last):
+                ...
+                KeyError: 3
+            """
+            return self._basis_key_inverse[x]
 
         def _dense_free_module(self, R=None):
             """
@@ -280,15 +334,15 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: S = GroupAlgebra(G, QQ)
                 sage: L = LieAlgebra(associative=S)
                 sage: L.structure_coefficients()
-                Finite family {((1,3,2), (1,3)): (2,3) - (1,2),
+                Finite family {((1,2), (1,3,2)): (2,3) - (1,3),
+                               ((1,3,2), (1,3)): (2,3) - (1,2),
                                ((1,2), (1,2,3)): -(2,3) + (1,3),
                                ((1,2,3), (1,3)): -(2,3) + (1,2),
-                               ((2,3), (1,3,2)): -(1,2) + (1,3),
                                ((2,3), (1,3)): -(1,2,3) + (1,3,2),
-                               ((2,3), (1,2)): (1,2,3) - (1,3,2),
-                               ((2,3), (1,2,3)): (1,2) - (1,3),
-                               ((1,2), (1,3,2)): (2,3) - (1,3),
-                               ((1,2), (1,3)): (1,2,3) - (1,3,2)}
+                               ((1,2), (2,3)): -(1,2,3) + (1,3,2),
+                               ((1,3,2), (2,3)): (1,2) - (1,3),
+                               ((1,2), (1,3)): (1,2,3) - (1,3,2),
+                               ((1,2,3), (2,3)): -(1,2) + (1,3)}
             """
             d = {}
             B = self.basis()
@@ -367,7 +421,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                              for x in X]
                             for i in range(d) for k in range(d)])
             C = c_mat.right_kernel().basis_matrix()
-            return [self.from_vector(v) for v in C]
+            return [self.from_vector(c) for c in C]
 
         def centralizer(self, S):
             """
@@ -412,6 +466,103 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 1]
             """
             return self.centralizer(self)
+
+        @cached_method
+        def derivations_basis(self):
+            r"""
+            Return a basis for the Lie algebra of derivations
+            of ``self`` as matrices.
+
+            A derivation `D` of an algebra is an endomorphism of `A`
+            such that
+
+            .. MATH::
+
+                D([a, b]) = [D(a), b] + [a, D(b)]
+
+            for all `a, b \in A`. The set of all derivations
+            form a Lie algebra.
+
+            EXAMPLES:
+
+            We construct the derivations of the Heisenberg Lie algebra::
+
+                sage: H = lie_algebras.Heisenberg(QQ, 1)
+                sage: H.derivations_basis()
+                (
+                [1 0 0]  [0 1 0]  [0 0 0]  [0 0 0]  [0 0 0]  [0 0 0]
+                [0 0 0]  [0 0 0]  [1 0 0]  [0 1 0]  [0 0 0]  [0 0 0]
+                [0 0 1], [0 0 0], [0 0 0], [0 0 1], [1 0 0], [0 1 0]
+                )
+
+            We construct the derivations of `\mathfrak{sl}_2`::
+
+                sage: sl2 = lie_algebras.sl(QQ, 2)
+                sage: sl2.derivations_basis()
+                (
+                [ 1  0  0]  [   0    1    0]  [ 0  0  0]
+                [ 0  0  0]  [   0    0 -1/2]  [ 1  0  0]
+                [ 0  0 -1], [   0    0    0], [ 0 -2  0]
+                )
+
+            We verify these are derivations::
+
+                sage: D = [sl2.module_morphism(matrix=M, codomain=sl2)
+                ....:      for M in sl2.derivations_basis()]
+                sage: all(d(a.bracket(b)) == d(a).bracket(b) + a.bracket(d(b))
+                ....:     for a in sl2.basis() for b in sl2.basis() for d in D)
+                True
+
+            REFERENCES:
+
+            :wikipedia:`Derivation_(differential_algebra)`
+            """
+            from sage.matrix.constructor import matrix
+            R = self.base_ring()
+            B = self.basis()
+            keys = list(B.keys())
+            scoeffs = {(j,y,i): c for y in keys for i in keys
+                       for j,c in self.bracket(B[y], B[i])
+                      }
+            zero = R.zero()
+            data = {}
+            N = len(keys)
+            for ii,i in enumerate(keys):
+                for ij,j in enumerate(keys[ii+1:]):
+                    ijp = ij + ii + 1
+                    for il,l in enumerate(keys):
+                        row = ii + N * il + N**2 * ij
+                        for ik,k in enumerate(keys):
+                            data[row,ik+N*il] = (data.get((row,ik+N*il), zero)
+                                                 + scoeffs.get((k, i, j), zero))
+                            data[row,ii+N*ik] = (data.get((row,ii+N*ik), zero)
+                                                 - scoeffs.get((l, k, j), zero))
+                            data[row,ijp+N*ik] = (data.get((row,ijp+N*ik), zero)
+                                                  - scoeffs.get((l, i, k), zero))
+            mat = matrix(R, data, sparse=True)
+            return tuple([matrix(R, N, N, list(b)) for b in mat.right_kernel().basis()])
+
+        @cached_method
+        def inner_derivations_basis(self):
+            r"""
+            Return a basis for the Lie algebra of inner derivations
+            of ``self`` as matrices.
+
+            EXAMPLES::
+
+                sage: H = lie_algebras.Heisenberg(QQ, 1)
+                sage: H.inner_derivations_basis()
+                (
+                [0 0 1]  [0 0 0]
+                [0 0 0]  [0 0 1]
+                [0 0 0], [0 0 0]
+                )
+            """
+            R = self.base_ring()
+            IDer = matrix(R, [b.adjoint_matrix().list() for b in self.basis()])
+            N = self.dimension()
+            return tuple([matrix(R, N, N, list(b))
+                          for b in IDer.row_module().basis()])
 
         @cached_method
         def is_ideal(self, A):
@@ -1028,7 +1179,6 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 Z
             """
             K = self._basis_ordering
-            B = self.basis()
             mats = []
             R = self.base_ring()
             S = dict(self.structure_coefficients())

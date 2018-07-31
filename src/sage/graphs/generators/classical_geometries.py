@@ -1198,8 +1198,8 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     P = map(lambda x: normalize(x[0]-x[1]), G.vertices())
     O = list(set(map(tuple,P)))
     I_ks = {x:[] for x in range(q+2)} # the partition into I_k's
-    for i in range(len(P)):
-        I_ks[O.index(tuple(P[i]))].append(i)
+    for i, Pi in enumerate(P):
+        I_ks[O.index(tuple(Pi))].append(i)
 
     # perform the adjustment of the edges, as described.
     G.relabel()
@@ -1212,6 +1212,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     G.add_edges(e for c in cliques for e in combinations(c,2))
     G.name('Haemers('+str(q)+')')
     return G
+
 
 def CossidentePenttilaGraph(q):
     r"""

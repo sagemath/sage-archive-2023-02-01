@@ -211,7 +211,8 @@ def cm_j_invariants(K, proof=None):
         sage: len(cm_j_invariants(K))
         23
     """
-    return list(sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)]))
+    return sorted([j for D,f,j in cm_j_invariants_and_orders(K, proof=proof)])
+
 
 @cached_function
 def cm_j_invariants_and_orders(K, proof=None):
@@ -403,7 +404,7 @@ def largest_fundamental_disc_with_class_number(h):
 
 @cached_function
 def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
-    """
+    r"""
     Return dictionary with keys class numbers `h\le hmax` and values the
     list of all pairs `(D, f)`, with `D<0` a fundamental discriminant such
     that `Df^2` has class number `h`.  If the optional bound `B` is given,
@@ -678,7 +679,7 @@ def is_cm_j_invariant(j, method='new'):
     # divides all the values a_P^2-4N(P), since that is the
     # discriminant of the order containing the Frobenius at P.  So we
     # end up with a finite number (usually one) of candidate
-    # discriminats to test.  Each is tested by checking that its class
+    # discriminants to test.  Each is tested by checking that its class
     # number is h, and if so then that j is a root of its Hilbert
     # class polynomial.  In practice non CM curves will be eliminated
     # by the local test at a small number of primes (probably just 2).

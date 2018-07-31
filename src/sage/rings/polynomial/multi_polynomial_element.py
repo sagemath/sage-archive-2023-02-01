@@ -99,7 +99,7 @@ class MPolynomial_element(MPolynomial):
     ####################
 
     def __call__(self, *x, **kwds):
-        """
+        r"""
         Evaluate this multi-variate polynomial at `x`, where
         `x` is either the tuple of values to substitute in, or one
         can use functional notation `f(a_0,a_1,a_2, \ldots)` to
@@ -1412,7 +1412,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.__lc
 
     def lt(self):
-        """
+        r"""
         Returns the leading term of self i.e., self.lc()\*self.lm(). The
         notion of "leading term" depends on the ordering defined in the
         parent ring.
@@ -1435,7 +1435,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f=x+y
             sage: f.lt()
             x
-
         """
         try:
             return self.__lt

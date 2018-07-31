@@ -1517,7 +1517,7 @@ class Posets(object):
         if there is a (not necessarily consecutive) subsequence of `u` 
         of length `m` whose entries have the same relative order as `v`.
 
-        See :wikipedia:`Permutation Pattern`.
+        See :wikipedia:`Permutation_pattern`.
 
         EXAMPLES::
 
@@ -1560,7 +1560,7 @@ class Posets(object):
         if there is a (not necessarily consecutive) subsequence of `u` 
         of length `m` whose entries have the same relative order as `v`.
 
-        See :wikipedia:`Permutation Pattern`.
+        See :wikipedia:`Permutation_pattern`.
 
         EXAMPLES::
 
@@ -1621,7 +1621,7 @@ class Posets(object):
         For futher information (and picture illustrating included example),
         see [ST2010]_ .
 
-        See :wikipedia:`Permutation Pattern`.
+        See :wikipedia:`Permutation_pattern`.
 
         EXAMPLES::
 

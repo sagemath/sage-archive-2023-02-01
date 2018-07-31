@@ -345,6 +345,11 @@ class Arrow(GraphicPrimitive):
             True
             sage: p1.shrinkB == p2.shrinkB
             True
+
+        Dashed arrows should have solid arrowheads, :trac:`12852`. We tried to
+        make up a test for this, which turned out to be fragile and hence was
+        removed. In general, robust testing of graphics seems basically need a
+        human eye or AI.
         """
         from sage.plot.misc import get_matplotlib_linestyle
 

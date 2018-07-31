@@ -567,17 +567,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
-    def minimal_polynomial(self, name='x', ground=None):
+    def minimal_polynomial(self, name='x', base=None):
         """
-        Returns the minimal polynomial of this element over ``ground``
-        (by default its base ring)
+        Returns the minimal polynomial of this element over ``base``
 
         INPUT:
 
         - ``name`` -- string (default: ``x``): the name of the variable
 
-        - ``ground`` -- a ring (default: the base ring of the parent): 
-          the ground ring over which the minimal polynomial is computed
+        - ``base`` -- a ring (default: the base ring of the parent):
+          the base ring over which the minimal polynomial is computed
 
         EXAMPLES::
 
@@ -606,13 +605,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
             True
         """
         parent = self.parent()
-        base = parent.base_ring()
-        if ground is None:
-            ground = parent.base_ring()
-        polring = ground[name]
-        if ground is parent:
+        R = parent.base_ring()
+        if base is None:
+            base = R
+        polring = base[name]
+        if base is parent:
             return polring([-self,1])
-        elif ground is base:
+        elif base is R:
             from sage.modules.free_module import VectorSpace
             L = parent.fraction_field()
             K = base.fraction_field()
@@ -635,24 +634,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             raise NotImplementedError
 
-    def norm(self, ground=None):
+    def norm(self, base=None):
         """
-        Returns the norm of this `p`-adic element over ``ground``.
+        Returns the norm of this `p`-adic element over ``base``.
 
         .. WARNING::
 
             This is not the `p`-adic absolute value.  This is a field
-            theoretic norm down to a ground ring.  If you want the
+            theoretic norm down to a base ring.  If you want the
             `p`-adic absolute value, use the ``abs()`` function
             instead.
 
         INPUT:
 
-        - ``ground`` -- a subring of the parent (default: base ring)
+        - ``base`` -- a subring of the parent (default: base ring)
 
         OUTPUT:
 
-        The norm of this `p`-adic element over the ground ring.
+        The norm of this `p`-adic element over the given base.
 
         EXAMPLES::
 
@@ -681,25 +680,24 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         parent = self.parent()
-        if ground is None:
-            ground = parent.base_ring()
-        poly = self.minimal_polynomial(ground=ground)
+        if base is None:
+            base = parent.base_ring()
+        poly = self.minimal_polynomial(base=base)
         polydeg = poly.degree()
-        extdeg = parent.absolute_degree() // (ground.absolute_degree() * polydeg)
+        extdeg = parent.absolute_degree() // (base.absolute_degree() * polydeg)
         return ((-1)**polydeg * poly[0]) ** extdeg
 
-    def trace(self, ground=None):
+    def trace(self, base=None):
         """
-        Returns the trace of this `p`-adic element over the ground ring
+        Returns the trace of this `p`-adic element over the base ring
 
         INPUT:
 
-        - ``ground`` -- a subring of the ground ring (default: base
-          ring)
+        - ``base`` -- a subring of the parent (default: base ring)
 
         OUTPUT:
 
-        The trace of this `p`-adic element over the ground ring.
+        The trace of this `p`-adic element over the given base.
 
         EXAMPLES::
 
@@ -724,11 +722,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         """
         parent = self.parent()
-        if ground is None:
-            ground = parent.base_ring()
-        poly = self.minimal_polynomial(ground=ground)
+        if base is None:
+            base = parent.base_ring()
+        poly = self.minimal_polynomial(base=base)
         polydeg = poly.degree()
-        extdeg = parent.absolute_degree() // (ground.absolute_degree() * polydeg)
+        extdeg = parent.absolute_degree() // (base.absolute_degree() * polydeg)
         return -extdeg * poly[polydeg-1]
 
     def algdep(self, n):

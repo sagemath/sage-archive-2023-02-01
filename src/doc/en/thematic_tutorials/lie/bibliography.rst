@@ -101,6 +101,10 @@ Bibliography
    graphs for representations of the `q`-analogue of classical Lie
    algebras. *Journal Algebra*, 165(2):295--345, 1994.
 
+.. [KMPS] Kass, Moody, Patera and Slansky, *Affine Lie algebras,
+   weight multiplicities, and branching rules*. Vols. 1, 2. University
+   of California Press, Berkeley, CA, 1990.
+
 .. [KimShin2010] \J.-A. Kim and D.-U. Shin. Generalized Young walls and
    crystal bases for quantum affine algebra of type `A`. *Proc. Amer.
    Math. Soc.*, 138(11):3877--3889, 2010.

@@ -173,8 +173,8 @@ weight lattice in certain finite-dimensional representions of
 `\mathfrak{g}'` that cannot be extended to `\mathfrak{g}` (although they
 do have infinite-dimensional analogs). These finite-dimensional
 representations have crystal bases, including the Kirillov-Reshetikhin
-crystals. Thus for Kirillov-Reshetikhin crystals we prefer tue See
-:ref:`AffineFinite`.
+crystals. Thus for Kirillov-Reshetikhin crystals we prefer to use
+the non-extended weight lattice. See :ref:`AffineFinite`.
 
 Twisted Types
 -------------
@@ -345,13 +345,13 @@ the `G_2` short root is `\alpha_1`::
   
 By contrast in Kac, `\alpha_2` is the short root.
 
-Column annihilator of the Cartan matrix
----------------------------------------
+Labels and Coxeter Number
+-------------------------
 
-Certain constants `a_i` label the vertices `i=0,\cdots,\ell` in
-the tables Aff1, Aff2 and Aff3 in [Kac]_ Chapter 4. They
-play an important role in the theory. In Sage they are available
-as follows::
+Certain constants `a_i` label the vertices `i=0,\cdots,\ell` in the tables
+Aff1, Aff2 and Aff3 in [Kac]_ Chapter 4. They are called *labels*
+by Kac and *marks* in [KMPS]_. They play an important role in the
+theory. In Sage they are available as follows::
 
     sage: CartanType(['B',5,1]).a()
     Finite family {0: 1, 1: 1, 2: 2, 3: 2, 4: 2, 5: 2}
@@ -380,12 +380,24 @@ nullspace of `A`::
     [0]
     [0]
 
-The nullroot `\delta` equals `\sum a_i\alpha_i`::
+The nullroot `\delta` equals `\sum_{i\in I} a_i\alpha_i`::
 
     sage: WL = RootSystem('C3~').weight_lattice(extended=True); WL
     Extended weight lattice of the Root system of type ['C', 3, 1]
     sage: sum(WL.cartan_type().a()[i]*WL.simple_root(i) for i in WL.cartan_type().index_set())
     delta
+
+The number `h=\sum_{i\in I} a_i` is called the *Coxeter number*.
+In the untwisted case it is the order of a Coxeter element of
+the finite Weyl group of `\mathfrak{g}^\circ`. The *dual Coxeter number*
+`h^\vee` is the Coxeter number of the dual root system. It
+appears frequently in representation theory. The Coxeter number and dual
+Coxeter number may be computed as follow::
+
+    sage: sum(CartanType(['F',4,1]).a()) # Coxeter number
+    12
+    sage: sum(CartanType(['F',4,1]).dual().a()) # Dual Coxeter number
+    9
 
 The Weyl Group and extended Affine Weyl Group
 ---------------------------------------------
@@ -422,21 +434,20 @@ See the documentation in
 Integrable Highest Weight Representations
 -----------------------------------------
 
-In this section `\mathfrak{g}` can be an arbitrary
-Kac-Moody Lie Algebra.
+In this section `\mathfrak{g}` can be an arbitrary Kac-Moody Lie Algebra.
 
-Suppose that `V` is a representation with a weight
-decomposition as in :ref:`roots_and_weights`.
-Let `\alpha` be a real root, and let `\mathfrak{g}_\alpha`
-be the corresponding weight space, called a *root space*.
-Then `-\alpha` is also a root. The two
-one-dimensional spaces `\mathfrak{g}_\alpha` and
-`\mathfrak{g}_{-\alpha}` generate a Lie algebra
-isomorphic to `\mathfrak{sl}_2`. The module `V`
-is called *integrable* if for each such `\alpha`
-the representation of `\mathfrak{sl}_2` obtained this
-way integrates to a representation of the Lie group
-`\text{SL}_2`.
+Suppose that `V` is a representation with a weight decomposition as in
+:ref:`roots_and_weights`.  Let `\alpha` be a real root, and let
+`\mathfrak{g}_\alpha` be the corresponding weight space, called a *root
+space*.  Then `-\alpha` is also a root. The two one-dimensional spaces
+`\mathfrak{g}_\alpha` and `\mathfrak{g}_{-\alpha}` generate a Lie algebra
+isomorphic to `\mathfrak{sl}_2`. The module `V` is called *integrable* if for
+each such `\alpha` the representation of `\mathfrak{sl}_2` obtained this way
+integrates to a representation of the Lie group `\text{SL}_2`. Since
+this group contains an element that stabilizes `\mathfrak{h}` and induces
+the corresponding simple reflection on the weight lattice, integrability
+implies that the weight multiplicities are invariant under the
+action of the Weyl group.
 
 If the Kac-Moody Lie algebra `\mathfrak{g}` is finite-dimensional
 then the integrable highest weight representations are
@@ -450,23 +461,12 @@ such as the parametrization by dominant weights, and
 generalizations of the Weyl denominator and character
 formulas, due to Macdonald and Kac respectively.
 
-Within `\mathfrak{h}^\ast` there is a lattice `\Lambda`,
-called the *weight* lattice such that if `V` is an
-integrable highest weight representation, the weights
-in the weight space decomposition (:ref:`roots_and_weights`)
-are in `\Lambda`. Moreover, there exists a cone `\Lambda^+`
-of *dominant weights* such that `\lambda\in\mathfrak{h}^\ast` is
-the highest weight of a (unique) integrable highest
-weight module if and only if `\lambda\in\Lambda^+`. See
-[Kac]_ Chapters 9 and 10 for the theory of integrable
-highest weight representations.
-
-There exists a basis `\Lambda_i` of the lattice `\Lambda` such that the
-dominant weights are the nonnegative linear combinations of the
-`\Lambda_i`. In the affine cases we label the weights
-`i=0,1,\cdots,r-1`. If `\mathfrak{g}` is the untwisted affine Lie
-algebra of Cartan type `X_\ell^{(1)}`` then `r=\ell+1`. The labels correspond
-to the nodes in the Dynkin diagram.
+If `\lambda` is a dominant weight, then the irreducible
+highest weight module `L(\lambda)` is integrable. A particular
+case is when `\lambda=\Lambda_0`. In this case `L(\Lambda_0)` is
+called the *basic representation*. It arises in a variety of
+contexts from string theory to the modular representations
+of the symmetric group.
 
 :class:`~sage.combinat.root_system.integrable_representations.IntegrableRepresentation`
 

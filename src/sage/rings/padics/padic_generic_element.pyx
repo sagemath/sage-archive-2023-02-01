@@ -3137,10 +3137,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         return (~x) << (val // n)
 
-        
     def _pth_root(self):
         """
-        Return the pth root of this element or ``None`` 
+        Return the pth root of this element or ``None``
         if this number does not have a pth root.
 
         This is an helper function for :meth:`square_root`
@@ -3151,6 +3150,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R = Zp(11)
             sage: [ R.teichmuller(x).nth_root(11) == R.teichmuller(x) for x in range(1,11) ]
             [True, True, True, True, True, True, True, True, True, True]
+
+            sage: W.<a> = Zq(5^3)
+            sage: S.<x> = W[]
+            sage: R.<pi> = W.extension(x^7 + 15*a*x - 5)
+            sage: y = R.random_element()
+            sage: for n in [5, 10, 15]:
+            ....:     z = y**n
+            ....:     assert z.nth_root(n)**n == z
         """
         ring = self.parent()
         p = ring.prime()
@@ -3193,7 +3200,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             bexp = b.expansion()
             if b.parent().is_field():
                 # We'd like to use start_val=0, but that isn't supported by NTL ramified extensions
-                bexp = [0] * b.valuation() + bexp
+                bexp = [0] * b.valuation() + list(bexp)
             for i in range(b.valuation(), e - (p-1)*curprec):
                 if i % p == 0:
                     try:

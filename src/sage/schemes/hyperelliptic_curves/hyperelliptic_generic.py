@@ -19,7 +19,7 @@ EXAMPLES::
 
     sage: D = C.affine_patch(0)
     sage: D.defining_polynomials()[0].parent()
-    Multivariate Polynomial Ring in x0, x1 over Rational Field
+    Multivariate Polynomial Ring in x1, x2 over Rational Field
 """
 from __future__ import absolute_import
 

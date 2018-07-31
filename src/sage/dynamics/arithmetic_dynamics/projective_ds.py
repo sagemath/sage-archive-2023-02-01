@@ -479,8 +479,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+y^2, y^2])
             sage: f.dehomogenize(0)
             Dynamical System of Affine Space of dimension 1 over Integer Ring
-              Defn: Defined on coordinates by sending (x) to
-                    (x^2/(x^2 + 1))
+              Defn: Defined on coordinates by sending (y) to
+                    (y^2/(y^2 + 1))
         """
         F = self.as_scheme_morphism().dehomogenize(n)
         return F.as_dynamical_system()

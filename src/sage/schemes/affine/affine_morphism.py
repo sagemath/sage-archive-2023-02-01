@@ -129,8 +129,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
             sage: f = H([5*x^3 + 3*x*y^2-y^3, 3*z^3 + y*x^2, x^3-z^3])
             sage: f.dehomogenize(2)
             Scheme endomorphism of Affine Space of dimension 2 over Integer Ring
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    ((5*x0^3 + 3*x0*x1^2 - x1^3)/(x0^3 - 1), (x0^2*x1 + 3)/(x0^3 - 1))
+              Defn: Defined on coordinates by sending (x, y) to
+                    ((5*x^3 + 3*x*y^2 - y^3)/(x^3 - 1), (x^2*y + 3)/(x^3 - 1))
 
             If you pass in quotient ring elements, they are reduced::
 

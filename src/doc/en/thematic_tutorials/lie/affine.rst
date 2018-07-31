@@ -5,7 +5,7 @@ Affine Root Systems and Integrable Highest Weight modules
 Among infinite-dimensional Lie algebras, *Kac-Moody Lie algebras*
 are generalizations of finite-dimensional simple Lie algebras.
 They include finite-dimensional simple Lie algebras as a special
-case but are usually infinite-dimensional.  many concepts and
+case but are usually infinite-dimensional. Many concepts and
 results from the representation theory of finite-dimensional Lie groups
 and Lie algebras extend to Kac-Moody Lie algebras.  This includes the root
 system, Weyl group, weight lattice, the parametrization of an important
@@ -77,9 +77,9 @@ If `\det(A)=0` and its nullspace is one-dimensional,
 then `\mathfrak{g}` is an *affine Lie algebra*, as in
 the second example above. 
 
------------------------------
-Affine Kac-Moody Lie Algebras
------------------------------
+---------------------------------------
+Untwisted Affine Kac-Moody Lie Algebras
+---------------------------------------
 
 One realization of affine Lie algebras, described in Chapter 7
 of [Kac]_ begins with a
@@ -127,13 +127,14 @@ We can infer some Levi subalgebras of `\mathfrak{g}`, obtained by
 omitting one node from the Dynkin diagram; particularly omitting
 the "affine node" `0` gives `E_6`, that is `\mathfrak{g}^\circ`.
 
+The *index set* for the finite-dimensional Lie algebra
+`\mathfrak{g}^\circ` is `I=\{1,2,\cdots,\ell\}`.
+This means we label the roots, coroots etc. by `i\in I`. The
+index set for the affine Lie algebra `\mathfrak{g}` adds
+one index `0` for the *affine root* `\alpha_0`.
+
 The subset of `\lambda\in\mathfrak{h}^*` characterized by `\lambda(\alpha_i^\vee)\in\ZZ`
 for the coroots `\alpha_i` is called the *weight lattice* `P`.
-The term lattice is a slight misnomer because `P` is not
-discrete; it contains all multiples of `\delta`, which is
-orthogonal to the coroots. However
-
-
 There are two versions of the weight lattice, depending on
 whether we are working with `\mathfrak{g}` or `\mathfrak{g}'`.
 The larger Lie algebra of `\mathfrak{g}` is called the
@@ -143,6 +144,20 @@ The larger Lie algebra of `\mathfrak{g}` is called the
     Weight lattice of the Root system of type ['A', 2, 1]
     sage: RootSystem("A2~").weight_lattice(extended=True)
     Extended weight lattice of the Root system of type ['A', 2, 1]
+
+Referring to the extended lattice, the term *lattice* is a slight misnomer
+because `P` is not discrete; it contains all complex multiples of `\delta`, which is
+orthogonal to the coroots. However the image of `P` in
+`\mathfrak{h}^*/\CC\delta` is a bona fide lattice. Indeed,
+the *fundamental weights* are vectors `\Lambda_i\in\mathfrak{h}^*` such that
+`\Lambda_i(\alpha_j^\vee)=\delta_{ij}`, and then
+
+.. MATH::
+
+    P = \CC\delta \oplus \bigoplus_{i=0}^\ell\ZZ\Lambda_i.
+
+The weight lattice `P` contains the *root lattice* `Q`, which is the lattice
+spanned by `\alpha_0,\alpha_1,\cdots,\alpha_\ell`.
 
 Usually there is an advantage to working with `\mathfrak{g}` instead of
 `\mathfrak{g}'`. (Thus we prefer the extended weight lattice,
@@ -260,6 +275,9 @@ of `M(\lambda)`. In particular `M(\lambda)` (which is also called
 a *Verma module*) has a unique irreducible quotient denoted `L(\lambda)`.
 Looking ahead to crystal bases, the infinity crystal `\mathcal{B}(\infty)`
 is a crystal base of the Verma module `M(0)`.
+
+A weight `\lambda\in P` is called *dominant* if `\lambda(\alpha_i^\vee)\geq 0`
+for `i\in I`. Let `P^+` be the set of dominant weights.
 
 Affine Root System and Weyl Group
 ---------------------------------
@@ -400,27 +418,6 @@ It may be constructed in Sage as follows::
 
 See the documentation in
 :file:`~sage.combinat.root_system.extended_affine_weyl_group` if you need this.
-
-Weight Lattice
---------------
-
-The rank of the weight lattice of `{\mathfrak{g}}` is larger
-by 2 than the weight lattice of `\mathfrak{g}^\circ`. It contains
-fundamental weights `\Lambda_1,\cdots,\Lambda_l`
-corresponding to the fundamental weights of `\mathfrak{g}`
-and one more, the *affine* fundamental weight `\Lambda_0`.
-
-A finite linear combination with nonnegative integer
-coefficients of `\Lambda_0,\cdots,\Lambda_l` is a
-*dominant weight*.
-
-If `\Lambda` is a dominant weight then `\mathfrak{g}` has
-an infinite-dimensional irreducible representation with highest
-weight `\Lambda`. We can study these using the
-``IntegrableRepresentation`` class of Sage.
-
-Now there is a distinction between the weight lattices
-of `\mathfrak{g}` and `\mathfrak{g}'`.
 
 Integrable Highest Weight Representations
 -----------------------------------------

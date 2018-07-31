@@ -220,11 +220,11 @@ def RandomBipartite(n1, n2, p, set_position=False):
     Test assigned positions::
 
         sage: graphs.RandomBipartite(1, 2, .1, set_position=True).get_pos()
-        {(0, 0): (0, 0.5), (1, 0): (1, 0.0), (1, 1): (1, 1.0)}
+        {(0, 0): (1, 1), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
         sage: graphs.RandomBipartite(2, 1, .1, set_position=True).get_pos()
-        {(0, 0): (0, 0.0), (0, 1): (0, 1.0), (1, 2): (1, 0.5)}
+        {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (1, 0)}
         sage: graphs.RandomBipartite(2, 2, .1, set_position=True).get_pos()
-        {(0, 0): (0, 0.0), (0, 1): (0, 1.0), (1, 0): (1, 0.0), (1, 1): (1, 1.0)}
+        {(0, 0): (0, 1), (0, 1): (2.0, 1.0), (1, 0): (0, 0), (1, 1): (2.0, 0.0)}
         sage: graphs.RandomBipartite(2, 2, .1, set_position=False).get_pos()
 
     """
@@ -237,8 +237,8 @@ def RandomBipartite(n1, n2, p, set_position=False):
 
     g=Graph(name="Random bipartite graph of size "+str(n1) +"+"+str(n2)+" with edge probability "+str(p))
 
-    S1=[(0,i) for i in range(n1)]
-    S2=[(1,i) for i in range(n2)]
+    S1 = [(0,i) for i in range(n1)]
+    S2 = [(1,i) for i in range(n2)]
     g.add_vertices(S1)
     g.add_vertices(S2)
 
@@ -248,22 +248,14 @@ def RandomBipartite(n1, n2, p, set_position=False):
                 g.add_edge((0,v),(1,w))
 
     # We now assign positions to vertices:
-    # - vertex (0, i) in S1 at position (0, 1 - i/(n1 - 1))
-    # - vertex (1, i) in S2 at position (1, 1 - i/(n2 - 1))
+    # - vertices in S1 are placed on the line from (0, 1) to (max(n1, n2), 1)
+    # - vertices in S2 are placed on the line from (0, 0) to (max(n1, n2), 0)
+    # If S1 or S2 has a single vertex, it is centered in the line.
     if set_position:
-        pos = {}
-        if n1 == 1:
-            pos[(0, 0)] = (0, 0.5)
-        else:
-            for i in range(n1):
-                pos[(0,i)] = (0, i/(n1-1.0))
-        if n2 == 1:
-            pos[(1, n1)] = (1, 0.5)
-        else:
-            for i in range(n2):
-                pos[(1,i)] = (1, i/(n2-1.0))
-
-        g.set_pos(pos)
+        from sage.graphs.graph_plot import _line_embedding
+        nmax = max(n1, n2)
+        _line_embedding(g, S1, first=(0, 1), last=(nmax, 1))
+        _line_embedding(g, S2, first=(0, 0), last=(nmax, 0))
 
     return g
 
@@ -301,11 +293,11 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
         {2, 3}
 
         sage: graphs.RandomRegularBipartite(1, 2, 2, set_position=True).get_pos()
-        {0: (0, 0.5), 1: (1, 1.0), 2: (1, 0.0)}
+        {0: (1, 1), 1: (0, 0), 2: (2.0, 0.0)}
         sage: graphs.RandomRegularBipartite(2, 1, 1, set_position=True).get_pos()
-        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 0.5)}
+        {0: (0, 1), 1: (2.0, 1.0), 2: (1, 0)}
         sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=True).get_pos()
-        {0: (0, 1.0), 1: (0, 0.0), 2: (1, 1.0), 3: (1, 0.5), 4: (1, 0.0)}
+        {0: (0, 1), 1: (3.0, 1.0), 2: (0, 0), 3: (1.5, 0.0), 4: (3.0, 0.0)}
         sage: graphs.RandomRegularBipartite(2, 3, 3, set_position=False).get_pos()
 
     TESTS:
@@ -413,22 +405,14 @@ def RandomRegularBipartite(n1, n2, d1, set_position=False):
     G = Graph(list(E), name=name)
 
     # We now assign positions to vertices:
-    # - vertex i in L at position (0, 1 - i/(n1 - 1))
-    # - vertex i + n1 in R at position (1, 1 - i/(n2 - 1))
+    # - vertices 0,..,n1-1 are placed on the line (0, 1) to (max(n1, n2), 1)
+    # - vertices n1,..,n1+n2-1 are placed on the line (0, 0) to (max(n1, n2), 0)
+    # If n1 (or n2) is 1, the vertex is centered in the line.
     if set_position:
-        pos = {}
-        if n1 == 1:
-            pos[0] = (0, 0.5)
-        else:
-            for i in range(n1):
-                pos[i] = (0, 1 - i/(n1-1.0))
-        if n2 == 1:
-            pos[n1] = (1, 0.5)
-        else:
-            for i in range(n2):
-                pos[i + n1] = (1, 1 - i/(n2-1.0))
-
-        G.set_pos(pos)
+        from sage.graphs.graph_plot import _line_embedding
+        nmax = max(n1, n2)
+        _line_embedding(G, list(range(n1)), first=(0, 1), last=(nmax, 1))
+        _line_embedding(G, list(range(n1, n1+n2)), first=(0, 0), last=(nmax, 0))
 
     return G
 

@@ -41,7 +41,7 @@ Index
 
     :meth:`is_strongly_regular` | Tests if a graph is strongly regular
     :meth:`triangles_count` | Return the number of triangles containing `v`, for every `v`
-    :meth:`connected_subgraph_iterator` | Iterator over the connected subgraphs of order at most `k`
+    :meth:`connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
 Functions
 ---------
@@ -288,26 +288,32 @@ def triangles_count(G):
 
 def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
     r"""
-    Iterator over the connected subgraphs of order at most `k`.
+    Iterator over the induced connected subgraphs of order at most `k`.
 
-    This method implements a iterator over the connected subgraphs
-    of the input (di)graph. Edge orientation is ignored.
+    This method implements a iterator over the induced connected subgraphs of
+    the input (di)graph. An induced subgraph of a graph is another graph, formed
+    from a subset of the vertices of the graph and all of the edges connecting
+    pairs of vertices in that subset (:wikipedia:`Induced_subgraph`).
+
+    As for method :meth:`sage.graphs.generic_graph.connected_components`, edge
+    orientation is ignored. Hence, the directed graph with a single arc `0 \to
+    1` is considered connected.
 
     INPUT:
 
-    - ``G`` -- a :class:`Graph` or a :class:`DiGraph`; loops and
-      multiple edges are allowed
+    - ``G`` -- a :class:`Graph` or a :class:`DiGraph`; loops and multiple edges
+      are allowed
 
-    - ``k`` -- (optional) integer; maximum order of the connected
-      subgraphs to report; by default, the method iterates over all
-      connected subgraphs (equivalent to ``k == n``)
+    - ``k`` -- (optional) integer; maximum order of the connected subgraphs to
+      report; by default, the method iterates over all connected subgraphs
+      (equivalent to ``k == n``)
 
-    - ``vertices_only`` -- (default: ``False``) boolean; whether to
-      return (Di)Graph or list of vertices
+    - ``vertices_only`` -- (default: ``False``) boolean; whether to return
+      (Di)Graph or list of vertices
 
     EXAMPLES:
 
-        sage: G = DiGraph([[1,2],[2,3],[3,4],[4,2]])
+        sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 2)])
         sage: list(G.connected_subgraph_iterator())
         [Subgraph of (): Digraph on 1 vertex,
          Subgraph of (): Digraph on 2 vertices,
@@ -336,7 +342,7 @@ def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
         sage: list(G.connected_subgraph_iterator(k=2, vertices_only=True))
         [[1], [1, 2], [2], [2, 3], [2, 4], [3], [3, 4], [4]]
 
-        sage: G = DiGraph([[1,2],[2,1]])
+        sage: G = DiGraph([(1, 2), (2, 1)])
         sage: list(G.connected_subgraph_iterator())
         [Subgraph of (): Digraph on 1 vertex,
          Subgraph of (): Digraph on 2 vertices,
@@ -365,24 +371,24 @@ def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
 
     Checks that it works with general graphs and corner cases::
 
-        sage: G = DiGraph([[1,2],[1,2]], multiedges=True)
+        sage: G = DiGraph([(1, 2), (1, 2)], multiedges=True)
         sage: len(list(G.connected_subgraph_iterator()))
-        5
+        3
         sage: len(list(G.connected_subgraph_iterator(k=0)))
         0
         sage: len(list(G.connected_subgraph_iterator(vertices_only=True)))
-        5
-
-        sage: G = Graph([[1,2],[1,1]], loops=True)
-        sage: len(list(G.connected_subgraph_iterator(vertices_only=False)))
-
-        sage: G = Graph([[1,2],[1,2],[1,1]], loops=True, multiedges=True)
-        sage: len(list(G.connected_subgraph_iterator()))
-        6
-        sage: len(list(G.connected_subgraph_iterator(k=1)))
         3
+
+        sage: G = Graph([(1, 2), (1, 1)], loops=True)
+        sage: len(list(G.connected_subgraph_iterator(vertices_only=False)))
+        3
+        sage: G = Graph([(1, 2), (1, 2), (1, 1)], loops=True, multiedges=True)
+        sage: len(list(G.connected_subgraph_iterator()))
+        3
+        sage: len(list(G.connected_subgraph_iterator(k=1)))
+        2
         sage: len(list(G.connected_subgraph_iterator(vertices_only=True)))
-        6
+        3
     """
     cdef Py_ssize_t mk = G.order() if k is None else k
     cdef Py_ssize_t n = G.order()

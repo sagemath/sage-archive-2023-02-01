@@ -253,7 +253,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.min_spanning_tree` | Return the edges of a minimum spanning tree.
     :meth:`~GenericGraph.spanning_trees_count` | Return the number of spanning trees in a graph.
     :meth:`~GenericGraph.dominator_tree`    | Returns a dominator tree of the graph.
-    :meth:`~GenericGraph.connected_subgraph_iterator` | Iterator over the connected subgraphs of order at most `k`
+    :meth:`~GenericGraph.connected_subgraph_iterator` | Iterator over the induced connected subgraphs of order at most `k`
 
 **Plot/embedding-related methods:**
 

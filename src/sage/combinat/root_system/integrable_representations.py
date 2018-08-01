@@ -850,6 +850,35 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         self._mdict[n] = ret
         return ret
 
+    def mult(self, mu):
+        """
+        INPUT:
+
+        - ``mu`` -- an element of the weight lattice
+
+        Returns the weight multiplicity of mu.
+
+        EXAMPLES:
+
+            sage: L = RootSystem("B3~").weight_lattice(extended=True)
+            sage: Lambda = L.fundamental_weights()
+            sage: delta = L.null_root()
+            sage: W = L.weyl_group(prefix="s")
+            sage: [s0,s1,s2,s3]=W.simple_reflections()
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: weights = [w.action(Lambda[1]-4*delta) for w in [s1,s2,s0*s1*s2*s3]]; weights
+            [-Lambda[1] + Lambda[2] - 4*delta,
+            Lambda[1] - 4*delta,
+            -Lambda[1] + Lambda[2] - 4*delta]
+            sage: [V.mult(mu) for mu in weights]
+            [35, 35, 35]
+        """
+        try:
+            n = self.from_weight(mu)
+        except:
+            return 0
+        return self.m(n)
+
     @cached_method
     def dominant_maximal_weights(self):
         r"""

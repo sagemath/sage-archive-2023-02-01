@@ -475,12 +475,10 @@ class DeltaComplex(GenericCellComplex):
         r"""
         TESTS::
 
-            sage: hash(delta_complexes.Sphere(2))
-            -789842226           # 32-bit
-            -5090854238868998450 # 64-bit
-            sage: hash(delta_complexes.Sphere(4))
-            376965290           # 32-bit
-            8539734868592429226 # 64-bit
+            sage: hash(delta_complexes.Sphere(2)) == hash(delta_complexes.Sphere(2))
+            True
+            sage: hash(delta_complexes.Sphere(4)) == hash(delta_complexes.Sphere(4))
+            True
         """
         return hash(frozenset(self._cells_dict.items()))
 
@@ -1230,7 +1228,7 @@ class DeltaComplex(GenericCellComplex):
 
         *Elementary subdivision* of a simplex means replacing that
         simplex with the cone on its boundary.  That is, given a
-        `\Delta`-complex containing an `d`-simplex `S` with vertices
+        `\Delta`-complex containing a `d`-simplex `S` with vertices
         `v_0`, ..., `v_d`, form a new `\Delta`-complex by
 
         - removing `S`
@@ -1301,7 +1299,11 @@ class DeltaComplex(GenericCellComplex):
             new_cells = {}
             # for each n-cell in the standard simplex, add an
             # (n+1)-cell to the subdivided complex.
-            for simplex in pi[n]:
+            try:
+                simplices = sorted(pi[n])
+            except TypeError:
+                simplices = pi[n]
+            for simplex in simplices:
                 # compute the faces of the new (n+1)-cell.
                 cell = []
                 for i in simplex:
@@ -1749,7 +1751,7 @@ class DeltaComplexExamples():
 
             sage: delta_g4 = delta_complexes.SurfaceOfGenus(4)
             sage: delta_g4.f_vector()
-            [1, 5, 33, 22]
+            [1, 3, 27, 18]
             sage: simpl_g4 = simplicial_complexes.SurfaceOfGenus(4)
             sage: simpl_g4.f_vector()
             [1, 19, 75, 50]

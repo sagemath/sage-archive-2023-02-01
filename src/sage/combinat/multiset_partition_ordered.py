@@ -582,28 +582,28 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: sorted(OrderedMultisetPartition([[7,1],[3,4,5]]).deconcatenate())
             [([], [{1,7}, {3,4,5}]), ([{1,7}], [{3,4,5}]), ([{1,7}, {3,4,5}], [])]
-            sage: OrderedMultisetPartition([['b','c'],['a']]).deconcatenate()
-            {([], [{'b','c'}, {'a'}]), ([{'b','c'}, {'a'}], []), ([{'b','c'}], [{'a'}])}
-            sage: OrderedMultisetPartition([['a','b','c']]).deconcatenate(3)
-            {([{'a','b','c'}], [], []),
+            sage: sorted(OrderedMultisetPartition([['b','c'],['a']]).deconcatenate(), key=str)
+            [([], [{'b','c'}, {'a'}]), ([{'b','c'}, {'a'}], []), ([{'b','c'}], [{'a'}])]
+            sage: sorted(OrderedMultisetPartition([['a','b','c']]).deconcatenate(3), key=str)
+            [([], [], [{'a','b','c'}]),
              ([], [{'a','b','c'}], []),
-             ([], [], [{'a','b','c'}])}
+             ([{'a','b','c'}], [], [])]
 
         TESTS::
 
             sage: C = OrderedMultisetPartition([['a'],['b'],['c'],['d'],['e']]); C
             [{'a'}, {'b'}, {'c'}, {'d'}, {'e'}]
-            sage: all( C.deconcatenate(k).cardinality()
+            sage: all( len(C.deconcatenate(k))
             ....:      == binomial(C.length() + k-1, k-1)
             ....:      for k in range(1, 5) )
             True
         """
         P = OrderedMultisetPartitions(alphabet=self.letters(), max_length=self.length())
-        out = []
+        out = set()
         for c in IntegerListsLex(self.length(), length=k):
             ps = [sum(c[:i]) for i in range(k+1)]
-            out.append(tuple([P(self[ps[i]:ps[i+1]]) for i in range(len(ps)-1)]))
-        return Set(out)
+            out.add(tuple([P(self[ps[i]:ps[i+1]]) for i in range(len(ps)-1)]))
+        return out
 
     def split_blocks(self, k=2):
         r"""
@@ -623,13 +623,13 @@ class OrderedMultisetPartition(ClonableArray):
 
             sage: sorted(OrderedMultisetPartition([[1,2],[3,4]]).split_blocks())
             [([], [{1,2}, {3,4}]), ([{3,4}], [{1,2}]),
-             ([{2}, {4}], [{1}, {3}]), ([{2}, {3,4}], [{1}]),
-             ([{1}, {4}], [{2}, {3}]), ([{3}], [{1,2}, {4}]),
-             ([{2}], [{1}, {3,4}]), ([{1}], [{2}, {3,4}]),
+            ([{2}, {4}], [{1}, {3}]), ([{2}, {3,4}], [{1}]),
+             ([{1}, {4}], [{2}, {3}]), ([{2}], [{1}, {3,4}]),
+             ([{2}, {3}], [{1}, {4}]), ([{1}], [{2}, {3,4}]),
              ([{1}, {3}], [{2}, {4}]), ([{1}, {3,4}], [{2}]),
-             ([{2}, {3}], [{1}, {4}]), ([{1,2}], [{3,4}]),
-             ([{1,2}, {4}], [{3}]), ([{1,2}, {3,4}], []),
-             ([{4}], [{1,2}, {3}]), ([{1,2}, {3}], [{4}])]
+             ([{1,2}], [{3,4}]), ([{1,2}, {4}], [{3}]),
+             ([{1,2}, {3}], [{4}]), ([{1,2}, {3,4}], []),
+             ([{3}], [{1,2}, {4}]), ([{4}], [{1,2}, {3}])]
             sage: OrderedMultisetPartition([[1,2]]).split_blocks(3)
             {([], [], [{1,2}]): 1, ([], [{1}], [{2}]): 1, ([], [{2}], [{1}]): 1,
              ([], [{1,2}], []): 1, ([{2}], [], [{1}]): 1, ([{1}], [], [{2}]): 1,
@@ -677,9 +677,9 @@ class OrderedMultisetPartition(ClonableArray):
         EXAMPLES::
 
             sage: C = OrderedMultisetPartition([[3,2]]).finer()
-            sage: C.cardinality()
+            sage: len(C)
             3
-            sage: C.list()
+            sage: list(C)
             [[{2}, {3}], [{2,3}], [{3}, {2}]]
             sage: OrderedMultisetPartition([]).finer()
             {[]}
@@ -687,16 +687,16 @@ class OrderedMultisetPartition(ClonableArray):
             sage: o = O([{1}, {'a', 'b'}, {1}])
             sage: sorted(o.finer(), key=str)
             [[{1}, {'a','b'}, {1}], [{1}, {'a'}, {'b'}, {1}], [{1}, {'b'}, {'a'}, {1}]]
-            sage: o.finer() & o.fatter() == Set([o])
+            sage: o.finer() & o.fatter() == set([o])
             True
         """
         P = OrderedMultisetPartitions(self._multiset)
 
         if not self:
-            return Set([self])
+            return set([self])
         else:
             tmp = cartesian_product([_refine_block(block, strong) for block in self])
-            return Set([P(_concatenate(map(list,c))) for c in tmp])
+            return set(P(_concatenate(map(list,c))) for c in tmp)
 
     def is_finer(self, co):
         """
@@ -800,7 +800,7 @@ class OrderedMultisetPartition(ClonableArray):
         EXAMPLES::
 
             sage: C = OrderedMultisetPartition([{1,4,5}, {2}, {1,7}]).fatter()
-            sage: C.cardinality()
+            sage: len(C)
             3
             sage: list(C)
             [[{1,4,5}, {2}, {1,7}], [{1,4,5}, {1,2,7}], [{1,2,4,5}, {1,7}]]
@@ -822,7 +822,7 @@ class OrderedMultisetPartition(ClonableArray):
                 out.add(self.fatten(c))
             except ValueError:
                 pass
-        return Set(out)
+        return out
 
 
     def minimaj(self):
@@ -1344,7 +1344,7 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
             alph = args[0]; ord = args[1]
             if alph in ZZ:
                 alph = range(1,alph+1)
-            if (alph and len(Set(alph)) == len(alph)) and (ord in ZZ and ord >= 0):
+            if (alph and len(set(alph)) == len(alph)) and (ord in ZZ and ord >= 0):
                 constraints.pop("alphabet", None)
                 constraints.pop("order", None)
                 if constraints == {}:
@@ -2212,7 +2212,7 @@ class OrderedMultisetPartitions_X(OrderedMultisetPartitions):
         alpha = Permutations_mset(self._Xtup).random_element()
         co = _break_at_descents(alpha)
         finer = self.element_class(self, map(frozenset,co)).finer()
-        return finer.random_element()
+        return finer.pop()
 
     def __iter__(self):
         """
@@ -2537,7 +2537,7 @@ def _has_nonempty_sets(x):
     for block in x:
         if not isinstance(block, (list, tuple, set, frozenset, Set_object)):
             return False
-        if not tuple(block) or Set(block).cardinality() != len(tuple(block)):
+        if not tuple(block) or len(set(block)) != len(tuple(block)):
             return False
     return True
 
@@ -2594,8 +2594,8 @@ def _is_finite(constraints):
         return True
     elif "alphabet" in constraints:
         # Assume the alphabet is finite
-        Bounds = Set(["length", "max_length", "order", "max_order"])
-        return Bounds.intersection(Set(constraints)) != Set()
+        Bounds = set(["length", "max_length", "order", "max_order"])
+        return Bounds.intersection(set(constraints)) != set()
 
 def _base_iterator(constraints):
     """
@@ -2613,8 +2613,8 @@ def _base_iterator(constraints):
         sage: constraints = {"weight": {1:3, 2:3, 4:1}, "length": 5}
         sage: it = _base_iterator(constraints)
         sage: [next(it) for _ in range(4)] # note the partitions of length 6 and 7
-        [[{1}, {1}, {1}, {2}, {2}, {2,4}],
-         [{1}, {1}, {1}, {2}, {2}, {2}, {4}],
+        [[{1}, {1}, {1}, {2}, {2}, {2}, {4}],
+         [{1}, {1}, {1}, {2}, {2}, {2,4}],
          [{1}, {1}, {1,2}, {2}, {2,4}],
          [{1}, {1}, {1,2}, {2}, {2}, {4}]]
 
@@ -2715,7 +2715,7 @@ def _iterator_weight(weight):
     else:
         # We build ordered multiset partitions of `X` by permutation + deconcatenation
         # We first standardize the multiset to combat unreliable sorting behavior.
-        em = enumerate(Set(multiset))
+        em = enumerate(set(multiset))
         key_to_indx = {}
         indx_to_key = {}
         for (i,key) in em:
@@ -2729,7 +2729,7 @@ def _iterator_weight(weight):
         for alpha in Permutations_mset(std_multiset):
             co = _break_at_descents(alpha, weak=True)
             for A in OrderedMultisetPartition(co).finer(strong=True):
-                B = tuple([Set([indx_to_key[i] for i in block]) for block in A])
+                B = tuple([set([indx_to_key[i] for i in block]) for block in A])
                 yield P(B)
 
 def _iterator_size(size, length=None, alphabet=None):
@@ -2904,12 +2904,13 @@ def _refine_block(S, strong=False):
 
         sage: from sage.combinat.multiset_partition_ordered import _refine_block
         sage: _refine_block([1, 2, 3])
-        {({3}, {1, 2}), ({2}, {3}, {1}), ({1, 2, 3},), ({1, 3}, {2}),
-         ({1}, {2, 3}), ({3}, {2}, {1}), ({1}, {2}, {3}), ({3}, {1}, {2}),
-         ({2, 3}, {1}), ({2}, {1}, {3}), ({1, 2}, {3}), ({2}, {1, 3}),
-         ({1}, {3}, {2})}
+        {({2}, {1, 3}), ({1, 2}, {3}), ({2}, {3}, {1}), ({2, 3}, {1}),
+         ({3}, {1}, {2}), ({1}, {2}, {3}), ({1}, {3}, {2}), ({3}, {2}, {1}),
+         ({1, 3}, {2}), ({1}, {2, 3}), ({2}, {1}, {3}), ({1, 2, 3},),
+         ({3}, {1, 2})}
+
         sage: _refine_block([1, 2, 3], strong=True)
-        {({1}, {2, 3}), ({1, 2}, {3}), ({1}, {2}, {3}), ({1, 2, 3},)}
+        {({1, 2}, {3}), ({1}, {2}, {3}), ({1, 2, 3},), ({1}, {2, 3})}
 
     TESTS::
 
@@ -2942,7 +2943,7 @@ def _refine_block(S, strong=False):
             for pos in range(n):
                 a[w[pos]].add(X[pos])
             out.append(a)
-    return Set([tuple(map(Set,x)) for x in out])
+    return set(tuple(map(Set, x)) for x in out)
 
 def _is_initial_segment(lst):
     r"""
@@ -2973,12 +2974,12 @@ def _split_block(S, k=2):
         sage: _split_block(S, 1)
         {({1, 2, 3},)}
         sage: _split_block(S, 2)
-        {({3}, {1, 2}), ({}, {1, 2, 3}), ({1, 3}, {2}), ({1}, {2, 3}),
-         ({2, 3}, {1}), ({1, 2}, {3}), ({1, 2, 3}, {}), ({2}, {1, 3})}
+        {({2}, {1, 3}), ({}, {1, 2, 3}), ({2, 3}, {1}), ({1, 2}, {3}),
+         ({1}, {2, 3}), ({1, 3}, {2}), ({1, 2, 3}, {}), ({3}, {1, 2})}
         sage: _split_block({2, 4}, 3)
-        {({}, {2, 4}, {}), ({}, {2}, {4}), ({4}, {2}, {}),
-         ({2, 4}, {}, {}), ({4}, {}, {2}), ({}, {4}, {2}),
-         ({2}, {4}, {}), ({2}, {}, {4}), ({}, {}, {2, 4})}
+        {({}, {2}, {4}), ({4}, {2}, {}), ({}, {4}, {2}),
+         ({2}, {4}, {}), ({4}, {}, {2}), ({}, {}, {2, 4}),
+         ({2, 4}, {}, {}), ({}, {2, 4}, {}), ({2}, {}, {4})}
     """
     if all(s in ZZ for s in S):
         X = sorted(S)
@@ -2992,7 +2993,7 @@ def _split_block(S, k=2):
         for pos in range(n):
             a[w[pos]].add(X[pos])
         out.append(a)
-    return Set([tuple(map(Set,x)) for x in out])
+    return set(tuple(map(Set, x)) for x in out)
 
 def _to_minimaj_blocks(T):
     r"""

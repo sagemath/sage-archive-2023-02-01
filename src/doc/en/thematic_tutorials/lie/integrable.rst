@@ -71,14 +71,18 @@ and very helpful exposition of the theory of integrable representations of
 affine Lie algebras with explicit examples and explanations of the
 connections with mathematical physics and vertex operators.
 
-The structure of an integrable highest weight representation
-------------------------------------------------------------
+The support of an integrable highest weight representation
+----------------------------------------------------------
 
 Let `\Lambda\in P^+` and let `V=L(\lambda)` be the integrable representation
 with highest weight `\Lambda`. If `\mu` is another weight, let `m(\mu)` denote the
-multiplicity of the weight `\mu` in `L(\lambda)`. The set
-`\text{supp}(V)` of `\mu` such that `m(\mu) > 0` is contained in the
-paraboloid
+multiplicity of the weight `\mu` in `L(\lambda)`. Define the
+*support* of the representation `\text{supp}(V)` to be the set
+of `\mu` such that `m(\mu) > 0`.
+
+If `m(\mu)>0` then `\lambda-\mu` is a linear combination
+of the simple roots with nonnegative integer coefficients.
+Moreover `\text{supp}(V)` is contained in the paraboloid
 
 .. MATH::
 
@@ -112,14 +116,14 @@ Sage methods for integrable representations
 
 In the following example, we work with the integrable representation
 with highest weight `2\Lambda_0` for `\widehat{\mathfrak{sl}}_2`,
-that is, `A_1^{(1)}. We compute the string functions. There are
+that is, `A_1^{(1)}`. We compute the string functions. There are
 two, since there are two dominant multiple weights. One of them
 is the highest weight `2\Lambda_0`, and the other is `2\Lambda_1-\delta`.
 We apply the simple reflection `s_0` to the second, giving
 `2\Lambda_1-\delta`, a maximal weight that is not dominant.
 Then we compute the string function at this weight, which we see
 agrees with the string function for the corresponding dominant
-maximal weight.
+maximal weight::
 
     sage: L = RootSystem("A1~").weight_lattice(extended=True)
     sage: Lambda = L.fundamental_weights()

@@ -1396,9 +1396,9 @@ class SimplicialSetMorphism(Morphism):
             [0|2]
             sage: g3 = f.induced_homology_morphism(base_ring=GF(3), cohomology=True)
             sage: g3.to_matrix()
-            [2|0]
+            [1|0]
             [-+-]
-            [0|1]
+            [0|2]
         """
         return InducedHomologyMorphism(self, base_ring, cohomology)
 

@@ -19,10 +19,10 @@ algorithms. We will cover only some of these.
    lie/lie_basics
    lie/weyl_character_ring
    lie/branching_rules
-   lie/weight_ring
    lie/weyl_groups
    lie/crystals
    lie/affine
+   lie/integrable
    lie/affine_finite_crystals
    lie/affine_hw_crystals
    lie/elementary_crystals

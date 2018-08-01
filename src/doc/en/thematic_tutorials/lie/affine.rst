@@ -1,6 +1,8 @@
----------------------------------------------------------
-Affine Root Systems and Integrable Highest Weight modules
----------------------------------------------------------
+=========================
+Affine Root System Basics
+=========================
+
+.. linkall
 
 Among infinite-dimensional Lie algebras, *Kac-Moody Lie algebras*
 are generalizations of finite-dimensional simple Lie algebras.
@@ -26,7 +28,6 @@ explain what facilities there are in Sage for computing
 with these. We will often restrict ourselves to the case
 of affine Lie algebras.
 
--------------
 Cartan Matrix
 -------------
 
@@ -77,7 +78,8 @@ If `\det(A)=0` and its nullspace is one-dimensional,
 then `\mathfrak{g}` is an *affine Lie algebra*, as in
 the second example above. 
 
----------------------------------------
+.. _untwisted_affine:
+
 Untwisted Affine Kac-Moody Lie Algebras
 ---------------------------------------
 
@@ -156,8 +158,11 @@ the *fundamental weights* are vectors `\Lambda_i\in\mathfrak{h}^*` such that
 
     P = \CC\delta \oplus \bigoplus_{i=0}^\ell\ZZ\Lambda_i.
 
-The weight lattice `P` contains the *root lattice* `Q`, which is the lattice
-spanned by `\alpha_0,\alpha_1,\cdots,\alpha_\ell`.
+The *Weyl vector* `\rho` is the sum of the fundamental weights.
+This plays the role as does the classical Weyl vector, half the
+sum of the positive roots, in the theory of finite semisimple
+Lie algebras. The weight lattice `P` contains the *root lattice* `Q`, which is
+the lattice spanned by `\alpha_0,\alpha_1,\cdots,\alpha_\ell`.
 
 Usually there is an advantage to working with `\mathfrak{g}` instead of
 `\mathfrak{g}'`. (Thus we prefer the extended weight lattice,
@@ -286,16 +291,13 @@ We now specialize to affine Kac-Moody Lie algebras and their
 root systems. The basic reference for the affine root system and Weyl
 group is [Kac]_ Chapter 6.
 
-There is a minimal imaginary root `\delta`, sometimes called
-the *nullroot*. The imaginary roots
-are the vectors `n\delta` where `n` is a nonzero integer. This
-root is positive if and only if `n>0`. The root system `\Delta`
-contains a copy of the finite root system `\Delta^\circ` of
-`\mathfrak{g}^\circ`. In the untwisted case, the real roots
-are `\alpha+n\delta` where `n` is an integer; the root is
-positive if `n>0` or if `n=0` and `\alpha` is positive. For
-a description of the real roots in the twisted case, see
-[Kac]_ Proposition 6.3.
+In the untwisted affine case, the root system `\Delta` contains
+a copy of the root system `\Delta^\circ` of `\mathfrak{g}^\circ`.
+The real roots consist of `\alpha+n\delta` with `\alpha\in\Delta^\circ`,
+and `n\in\ZZ`. The root is positive if either `n>0` or `n=0`
+and `\alpha\in\Delta^\circ_+`. The imaginary roots consist of `n\delta` with
+`n\in\ZZ` nonzero. See [Kac]_, Proposition 6.3 for a description
+of the root system in the twisted affine case.
 
 The multiplicity `m(\alpha)` is the dimension of `\mathfrak{g}_\alpha`.
 It is 1 if `\alpha` is a real root. For the affine Lie algebras
@@ -430,43 +432,4 @@ It may be constructed in Sage as follows::
 
 See the documentation in
 :file:`~sage.combinat.root_system.extended_affine_weyl_group` if you need this.
-
-Integrable Highest Weight Representations
------------------------------------------
-
-In this section `\mathfrak{g}` can be an arbitrary Kac-Moody Lie Algebra.
-
-Suppose that `V` is a representation with a weight decomposition as in
-:ref:`roots_and_weights`.  Let `\alpha` be a real root, and let
-`\mathfrak{g}_\alpha` be the corresponding weight space, called a *root
-space*.  Then `-\alpha` is also a root. The two one-dimensional spaces
-`\mathfrak{g}_\alpha` and `\mathfrak{g}_{-\alpha}` generate a Lie algebra
-isomorphic to `\mathfrak{sl}_2`. The module `V` is called *integrable* if for
-each such `\alpha` the representation of `\mathfrak{sl}_2` obtained this way
-integrates to a representation of the Lie group `\text{SL}_2`. Since
-this group contains an element that stabilizes `\mathfrak{h}` and induces
-the corresponding simple reflection on the weight lattice, integrability
-implies that the weight multiplicities are invariant under the
-action of the Weyl group.
-
-If the Kac-Moody Lie algebra `\mathfrak{g}` is finite-dimensional
-then the integrable highest weight representations are
-just the irreducible finite-dimensional ones. For a general
-Kac-Moody Lie algebra the integrable highest weight representations
-are the analogs of the finite-dimensional ones,
-discussed in :file:`weyl_character_ring`, and their
-theory has many aspects in common with the finite-dimensional
-representations of finite-dimensional simple Lie algebras,
-such as the parametrization by dominant weights, and
-generalizations of the Weyl denominator and character
-formulas, due to Macdonald and Kac respectively.
-
-If `\lambda` is a dominant weight, then the irreducible
-highest weight module `L(\lambda)` is integrable. A particular
-case is when `\lambda=\Lambda_0`. In this case `L(\Lambda_0)` is
-called the *basic representation*. It arises in a variety of
-contexts from string theory to the modular representations
-of the symmetric group.
-
-:class:`~sage.combinat.root_system.integrable_representations.IntegrableRepresentation`
 

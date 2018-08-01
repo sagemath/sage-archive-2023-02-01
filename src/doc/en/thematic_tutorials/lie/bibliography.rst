@@ -81,6 +81,10 @@ Bibliography
 .. [Kac] Victor G. Kac. *Infinite Dimensional Lie algebras*
    Cambridge University Press, third edition, 1994.
 
+.. [KacPeterson] Kac and Peterson. *Infinite-dimensional Lie algebras,
+   theta functions and modular forms*. Adv. in Math. 53 (1984),
+   no. 2, 125-264.
+
 .. [KKMMNN1992] S-J. Kang, M. Kashiwara, K. C. Misra, T. Miwa,
    T. Nakashima, A. Nakayashiki.
    Affine crystals and vertex models.

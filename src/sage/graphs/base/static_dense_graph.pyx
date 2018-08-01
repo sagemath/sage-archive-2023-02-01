@@ -311,7 +311,7 @@ def connected_subgraph_iterator(G, k=None, bint vertices_only=False):
     - ``vertices_only`` -- (default: ``False``) boolean; whether to return
       (Di)Graph or list of vertices
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: G = DiGraph([(1, 2), (2, 3), (3, 4), (4, 2)])
         sage: list(G.connected_subgraph_iterator())

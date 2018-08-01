@@ -2714,7 +2714,7 @@ class Triconnectivity:
         self.n = self.graph_copy.order() # number of vertices
         self.m = self.graph_copy.size() # number of edges
 
-        # status of each edge: unseen=0, tree=1, frond=2, removed=3
+        # status of each edge: unseen=0, tree=1, frond=2
         self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
 
         # Edges of the graph which are in the reverse direction in palm tree
@@ -2899,10 +2899,8 @@ class Triconnectivity:
 
         If there are `k` multiple edges between `u` and `v`, then `k+1`
         edges will be added to a new component (one of them is a virtual edge),
-        all the `k` edges are removed from the graph and a virtual edge is
-        between `u` and `v` is added to the graph. Instead of deleting edges
-        from the graph, they are instead marked as removed, i.e., 3 in
-        the dictionary `edge_status`.
+        all the `k` edges are deleted from the graph and a virtual edge is
+        between `u` and `v` is added to the graph.
 
         No return value. Update the `components_list` and `graph_copy`.
         `graph_copy` will become simple graph after this function.
@@ -2916,12 +2914,12 @@ class Triconnectivity:
                 # Find multi edges and add to component and delete from graph
                 if (sorted_edges[i][0] == sorted_edges[i + 1][0]) and \
                    (sorted_edges[i][1] == sorted_edges[i + 1][1]):
-                    self.edge_status[sorted_edges[i]] = 3 # edge removed
+                    self.graph_copy.delete_edge(sorted_edges[i])
                     comp.append(sorted_edges[i])
                 else:
                     if comp:
                         comp.append(sorted_edges[i])
-                        self.edge_status[sorted_edges[i]] = 3 # edge removed
+                        self.graph_copy.delete_edge(sorted_edges[i])
 
                         # Add virtual edge to graph_copy
                         newVEdge = tuple([sorted_edges[i][0], sorted_edges[i][1], "newVEdge"+str(self.virtual_edge_num)])
@@ -2936,7 +2934,7 @@ class Triconnectivity:
                     comp = []
             if comp:
                 comp.append(sorted_edges[i+1])
-                self.edge_status[sorted_edges[i+1]] = 3 # edge removed
+                self.graph_copy.delete_edge(sorted_edges[i+1])
 
                 # Add virtual edge to graph_copy
                 newVEdge = tuple([sorted_edges[i+1][0], sorted_edges[i+1][1], "newVEdge"+str(self.virtual_edge_num)])
@@ -3039,8 +3037,6 @@ class Triconnectivity:
 
         for e in self.graph_copy.edges():
             edge_type = self.edge_status[e]
-            if edge_type == 3: # If edge status is `removed`, go to next edge
-                continue
 
             # compute phi value
             # bucket sort adjacency list by phi values

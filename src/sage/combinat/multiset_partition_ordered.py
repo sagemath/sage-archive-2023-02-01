@@ -685,8 +685,8 @@ class OrderedMultisetPartition(ClonableArray):
             {[]}
             sage: O = OrderedMultisetPartitions([1, 1, 'a', 'b'])
             sage: o = O([{1}, {'a', 'b'}, {1}])
-            sage: o.finer()
-            {[{1}, {'b'}, {'a'}, {1}], [{1}, {'a'}, {'b'}, {1}], [{1}, {'a','b'}, {1}]}
+            sage: sorted(o.finer(), key=str)
+            [[{1}, {'a','b'}, {1}], [{1}, {'a'}, {'b'}, {1}], [{1}, {'b'}, {'a'}, {1}]]
             sage: o.finer() & o.fatter() == Set([o])
             True
         """

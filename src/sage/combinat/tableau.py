@@ -8895,21 +8895,21 @@ class IncreasingTableaux_shape_inf(IncreasingTableaux):
 
     def __iter__(self):
         """
-        An iterator for the semistandard partitions of shape ``p`` and no
+        An iterator for the increasing partitions of shape ``p`` and no
         maximum entry. Iterates through with maximum entry as order.
 
         EXAMPLES::
 
-            sage: SST = SemistandardTableaux([3, 1], max_entry=oo)
-            sage: SST[1000]
-            [[1, 1, 10], [6]]
-            sage: [ SST[t] for t in range(0, 5) ]
-            [[[1, 1, 1], [2]],
-             [[1, 1, 2], [2]],
-             [[1, 2, 2], [2]],
-             [[1, 1, 1], [3]],
-             [[1, 1, 2], [3]]]
-            sage: SST[0].parent() is SST
+            sage: IT = IncreasingTableaux([3, 1], max_entry=oo)
+            sage: IT[1000]
+            [[1, 2, 12], [6]]
+            sage: [ IT[t] for t in range(0, 5) ]
+            [[[1, 3, 4], [2]],
+             [[1, 2, 4], [3]],
+             [[1, 2, 3], [4]],
+             [[1, 3, 5], [2]],
+             [[1, 2, 5], [3]]]
+            sage: IT[0].parent() is IT
             True
         """
         # Iterates through with maximum entry as order
@@ -8930,29 +8930,29 @@ class IncreasingTableaux_shape_inf(IncreasingTableaux):
 
 class IncreasingTableaux_size(IncreasingTableaux):
     """
-    Semistandard tableaux of fixed size `n`.
+    Increasing tableaux of fixed size `n`.
     """
     def __init__(self, n, max_entry=None):
         r"""
-        Initializes the class of semistandard tableaux of size ``n``.
+        Initializes the class of increasing tableaux of size ``n``.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux`
+            Input is not checked; please use :class:`IncreasingTableaux`
             to ensure the options are properly parsed.
 
         TESTS::
 
-            sage: SST = SemistandardTableaux(3); SST
-            Semistandard tableaux of size 3 and maximum entry 3
-            sage: type(SST)
-            <class 'sage.combinat.tableau.SemistandardTableaux_size_with_category'>
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux(3); IT
+            Increasing tableaux of size 3 and maximum entry 3
+            sage: type(IT)
+            <class 'sage.combinat.tableau.IncreasingTableaux_size_with_category'>
+            sage: TestSuite(IT).run()
 
-            sage: SST = SemistandardTableaux(3, max_entry=6)
-            sage: type(SST)
-            <class 'sage.combinat.tableau.SemistandardTableaux_size_with_category'>
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux(3, max_entry=6)
+            sage: type(IT)
+            <class 'sage.combinat.tableau.IncreasingTableaux_size_with_category'>
+            sage: TestSuite(IT).run()
         """
 
         if max_entry is None:
@@ -8965,11 +8965,11 @@ class IncreasingTableaux_size(IncreasingTableaux):
         """
         TESTS::
 
-            sage: repr(SemistandardTableaux(3))    # indirect doctest
-            'Semistandard tableaux of size 3 and maximum entry 3'
+            sage: repr(IncreasingTableaux(3))    # indirect doctest
+            'Increasing tableaux of size 3 and maximum entry 3'
 
-            sage: repr(SemistandardTableaux(3, max_entry=6))
-            'Semistandard tableaux of size 3 and maximum entry 6'
+            sage: repr(IncreasingTableaux(3, max_entry=6))
+            'Increasing tableaux of size 3 and maximum entry 6'
         """
         return "Increasing tableaux of size %s and maximum entry %s"%(str(self.size), str(self.max_entry))
 
@@ -8977,21 +8977,15 @@ class IncreasingTableaux_size(IncreasingTableaux):
         """
         EXAMPLES::
 
-            sage: [[1,2],[3,3]] in SemistandardTableaux(3)
+            sage: [[1,2],[2,3]] in IncreasingTableaux(3)
             False
-            sage: [[1,2],[3,3]] in SemistandardTableaux(4)
+            sage: [[1,2],[2,3]] in IncreasingTableaux(4)
             True
-            sage: [[1,2],[3,3]] in SemistandardTableaux(4, max_entry=2)
+            sage: [[1,2],[2,3]] in IncreasingTableaux(4, max_entry=2)
             False
-            sage: SST = SemistandardTableaux(4)
-            sage: all(sst in SST for sst in SST)
+            sage: IT = IncreasingTableaux(4)
+            sage: all(it in IT for it in IT)
             True
-
-        Check that :trac:`14145` is fixed::
-
-            sage: SST = SemistandardTableaux(4)
-            sage: 1 in SST
-            False
         """
         if self.size==0:
             return x == []
@@ -9006,17 +9000,19 @@ class IncreasingTableaux_size(IncreasingTableaux):
 
         EXAMPLES::
 
-            sage: SemistandardTableaux(3).cardinality()
-            19
-            sage: SemistandardTableaux(4).cardinality()
-            116
-            sage: SemistandardTableaux(4, max_entry=2).cardinality()
-            9
-            sage: SemistandardTableaux(4, max_entry=10).cardinality()
-            4225
+            sage: IncreasingTableaux(3).cardinality()
+            4
+            sage: IncreasingTableaux(5).cardinality()
+            86
+            sage: IncreasingTableaux(5, max_entry=2).cardinality()
+            0
+            sage: IncreasingTableaux(5, max_entry=4).cardinality()
+            12
+            sage: IncreasingTableaux(5, max_entry=9).cardinality()
+            4788
             sage: ns = list(range(1, 6))
-            sage: ssts = [ SemistandardTableaux(n) for n in ns ]
-            sage: all(sst.cardinality() == len(sst.list()) for sst in ssts)
+            sage: IT = [ IncreasingTableaux(n) for n in ns ]
+            sage: all(it.cardinality() == len(it.list()) for it in IT)
             True
         """
         from sage.combinat.partition import Partitions
@@ -9030,39 +9026,26 @@ class IncreasingTableaux_size(IncreasingTableaux):
         """
         EXAMPLES::
 
-            sage: [ t for t in SemistandardTableaux(2) ]
-            [[[1, 1]], [[1, 2]], [[2, 2]], [[1], [2]]]
-            sage: [ t for t in SemistandardTableaux(3) ]
-            [[[1, 1, 1]],
-             [[1, 1, 2]],
-             [[1, 1, 3]],
-             [[1, 2, 2]],
-             [[1, 2, 3]],
-             [[1, 3, 3]],
-             [[2, 2, 2]],
-             [[2, 2, 3]],
-             [[2, 3, 3]],
-             [[3, 3, 3]],
-             [[1, 1], [2]],
-             [[1, 1], [3]],
-             [[1, 2], [2]],
-             [[1, 2], [3]],
+            sage: [ t for t in IncreasingTableaux(2) ]
+            [[[1, 2]], [[1], [2]]]
+            sage: [ t for t in IncreasingTableaux(3) ]
+            [[[1, 2, 3]],
              [[1, 3], [2]],
+             [[1, 2], [3]],
+             [[1, 2], [2]],
              [[1, 3], [3]],
-             [[2, 2], [3]],
              [[2, 3], [3]],
              [[1], [2], [3]]]
 
-            sage: [ t for t in SemistandardTableaux(3, max_entry=2) ]
-            [[[1, 1, 1]],
-             [[1, 1, 2]],
-             [[1, 2, 2]],
-             [[2, 2, 2]],
-             [[1, 1], [2]],
-             [[1, 2], [2]]]
+            sage: [ t for t in IncreasingTableaux(4, max_entry=3) ]
+            [[[1, 2, 3], [2]],
+             [[1, 2, 3], [3]],
+             [[1, 2], [2, 3]],
+             [[1, 2], [2], [3]],
+             [[1, 3], [2], [3]]]
 
-            sage: sst = SemistandardTableaux(3)
-            sage: sst[0].parent() is sst
+            sage: IT = IncreasingTableaux(3)
+            sage: IT[0].parent() is IT
             True
         """
         from sage.combinat.partition import Partitions

@@ -138,7 +138,7 @@ maximal weight::
      (2*Lambda[0], 2*Lambda[1] - delta)
      sage: s0.action(mw2)
      2*Lambda[1] - delta
-     sage: [V.m(V.from_weight(s0.action(mw2)-k*delta)) for k in [0..10]]
+     sage: [V.mult(s0.action(mw2)-k*delta) for k in [0..10]]
      [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196]
 
 For further documentation, see the reference manual

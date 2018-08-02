@@ -22,13 +22,18 @@ REFERENCES: [BM2012]_, [Mol2015]_
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.functions.hyperbolic import cosh
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.all import CC
+from sage.rings.complex_field import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.binary_form_reduce import covariant_z0, epsinv
 from sage.rings.rational_field import QQ
 from sage.schemes.affine.affine_space import AffineSpace
+from sage.symbolic.constants import e
 from sage.arith.all import gcd
 from copy import copy
 
@@ -145,7 +150,8 @@ def blift(LF, Li, p, k, S=None, all_orbits=False):
 
         sage: R.<b> = PolynomialRing(QQ)
         sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import blift
-        sage: blift([8*b^3 + 12*b^2 + 6*b + 1, 48*b^2 + 483*b + 117, 72*b + 1341, -24*b^2 + 411*b + 99, -144*b + 1233, -216*b], 2, 3, 2)
+        sage: blift([8*b^3 + 12*b^2 + 6*b + 1, 48*b^2 + 483*b + 117, 72*b + 1341,\
+        ....: -24*b^2 + 411*b + 99, -144*b + 1233, -216*b], 2, 3, 2)
         [[True, 4]]
     """
 
@@ -896,4 +902,265 @@ def HS_all_minimal(f, return_transformation=False, D=None):
         return M
     else:
         return [funct for funct, matr in M]
+
+#######################
+#functionality for smallest coefficients
+#
+# Ben Hutz July 2018
+#####################################3
+
+def get_bound_dynamical(F, f, m=1, dynatomic=True, prec=53, emb=None):
+    """
+    The hyperbolic distance from `j` which must contain the smallest map.
+
+    This defines the maximum possible distance from `j` to the `z_0` covariant
+    of the assocaited binary form `F` in the hyperbolic 3-space
+    for which the map `f`` could have smaller coefficients.
+
+    INPUT:
+
+    - ``F`` -- binary form of degree at least 3 with no multiple roots associated
+      to ``f``
+
+    - ``f`` -- a dynamical system on `P^1`
+
+    - ``m`` - positive integer. the period used to create ``F``
+
+    - ``dyantomic`` -- boolean. whether ``F`` is the periodic points or the
+      formal periodic points of period ``m`` for ``f``
+
+    - ``prec``-- positive integer. precision to use in CC
+
+    - ``emb`` -- embedding into CC
+
+    OUTPUT: a positive real number
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import get_bound_dynamical
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([50*x^2 + 795*x*y + 2120*y^2, 265*x^2 + 106*y^2])
+        sage: get_bound_dynamical(f.dynatomic_polynomial(1), f)
+        35.5546923182219
+    """
+    def coshdelta(z):
+        #The cosh of the hyperbolic distance from z = t+uj to j
+        return (z.norm() + 1)/(2*z.imag())
+    if F.base_ring() != ComplexField(prec=prec):
+        if emb is None:
+            compF = F.change_ring(ComplexField(prec=prec))
+        else:
+            compF = F.change_ring(emb)
+    else:
+        compF = F
+    n = F.degree()
+
+    z0F, thetaF = covariant_z0(compF, prec=prec, emb=emb)
+    cosh_delta = coshdelta(z0F)
+    d = f.degree()
+    hF = e**f.global_height(prec=prec)
+    #get precomputed constants C,k
+    if m == 1:
+        C = 4*d+2;k=2
+    else:
+        Ck_values = {(False, 2, 2): (322, 6), (False, 2, 3): (385034, 14),\
+                     (False, 2, 4): (4088003923454, 30), (False, 3, 2): (18044, 8),\
+                     (False, 4, 2): (1761410, 10), (False, 5, 2): (269283820, 12),\
+                     (True, 2, 2): (43, 4), (True, 2, 3): (106459, 12),\
+                     (True, 2, 4): (39216735905, 24), (True, 3, 2): (1604, 6),\
+                     (True, 4, 2): (114675, 8), (True, 5, 2): (14158456, 10)}
+        try:
+            C,k = Ck_values[(dynatomic,d,m)]
+        except KeyError:
+            raise ValueError("constants not computed for this (m,d) pair")
+    if n == 2 and d == 2:
+        #bound with epsilonF = 1
+        bound = 2*((2*C*(hF**k))/(thetaF))
+    else:
+        bound = cosh(epsinv(F, (2**(n-1))*C*(hF**k)/thetaF, prec=prec))
+    return bound
+
+
+def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorithm='HS', check_minimal=True):
+    """
+    Determine the poly with smallest coefficients in `SL(2,\Z)` orbit of ``F``
+
+    Smallest is in the sense of global height.
+    The method is the algorithm in Hutz-Stoll [HS2018]_.
+    A binary form defining the periodic points is associated to ``f``.
+    From this polynomial a bound on the search space can be determined.
+
+    ``f`` should already me a minimal model or finding the orbit
+    representatives may give wrong results.
+
+    INPUT:
+
+    - ``f`` -- a dynamical system on `P^1`
+
+    - ``dyantomic`` -- boolean. whether ``F`` is the periodic points or the
+      formal periodic points of period ``m`` for ``f``
+
+    - ``start_n`` - positive integer. the period used to start trying to
+      create associate binary form ``F``
+
+    - ``prec``-- positive integer. precision to use in CC
+
+    - ``emb`` -- embedding into CC
+
+    - ``algorithm`` -- (optional) string; either ``'BM'`` for the Bruin-Molnar
+      algorithm or ``'HS'`` for the Hutz-Stoll algorithm. If not specified,
+      properties of the map are utilized to choose how to compute minimal
+      orbit representatives
+
+
+    OUTPUT: pair [dynamical system, matrix]
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_minimal_model import smallest_dynamical
+        sage: P.<x,y> = ProjectiveSpace(QQ,1)
+        sage: f = DynamicalSystem([50*x^2 + 795*x*y + 2120*y^2, 265*x^2 + 106*y^2])
+        sage: smallest_dynamical(f)  #long time
+        [
+        Dynamical System of Projective Space of dimension 1 over Rational Field
+          Defn: Defined on coordinates by sending (x : y) to
+                (-480*x^2 - 1125*x*y + 1578*y^2 : 265*x^2 + 1060*x*y + 1166*y^2),
+        <BLANKLINE>
+        [1 2]
+        [0 1]
+        ]
+    """
+    def insert_item(pts, item, index):
+        # binary insertion to maintain list of points left to consider
+        N = len(pts)
+        if N == 0:
+          return [item]
+        elif N == 1:
+            if item[index] > pts[0][index]:
+                pts.insert(0,item)
+            else:
+                pts.append(item)
+            return pts
+        else: # binary insertion
+            left = 1
+            right = N
+            mid = ((left + right)/2)# these are ints so this is .floor()
+            if item[index] > pts[mid][index]: # item goes into first half
+                return insert_item(pts[:mid], item, index) + pts[mid:N]
+            else: # item goes into second half
+                return pts[:mid] + insert_item(pts[mid:N], item, index)
+
+    def coshdelta(z):
+        # The cosh of the hyperbolic distance from z = t+uj to j
+        return (z.norm() + 1)/(2*z.imag())
+    #g,M = f.minimal_model(return_transformation=True)
+    # can't be smaller if height 0
+    f.normalize_coordinates()
+    if f.global_height(prec=prec) == 0:
+        return [f, matrix(ZZ,2,2,[1,0,0,1])]
+    all_min = f.all_minimal_models(return_transformation=True, algorithm=algorithm, check_minimal=check_minimal)
+    # make conjugation current
+    #for i in range(len(all_min)):
+    #    all_min[i][1] = M*all_min[i][1]
+
+    current_min = None
+    current_size = None
+    # search for minimum over all orbits
+    for g,M in all_min:
+        PS = g.domain()
+        CR = PS.coordinate_ring()
+        x,y = CR.gens()
+        n = start_n # sometimes you get a problem later with 0,infty as roots
+        if dynatomic:
+            pts_poly = g.dynatomic_polynomial(n)
+        else:
+            gn = g.nth_iterate_map(n)
+            pts_poly = y*gn[0] - x*gn[1]
+        d = ZZ(pts_poly.degree())
+        # repeated_roots = (max([ex for p,ex in pts_poly.factor()]) > 1)
+        max_mult = max([ex for p,ex in pts_poly.factor()])
+        while ((d < 3) or (max_mult >= d/2) and (n < 5)):
+            n = n+1
+            if dynatomic:
+                pts_poly = g.dynatomic_polynomial(n)
+            else:
+                gn = g.nth_iterate_map(n)
+                pts_poly = y*gn[0] - x*gn[1]
+            d = ZZ(pts_poly.degree())
+            max_mult = max([ex for p,ex in pts_poly.factor()])
+            # repeated_roots = (max([ex for p,ex in pts_poly.factor()]) > 1)
+        assert(n<=4), "n > 4, failed to find usable poly"
+
+        R = get_bound_dynamical(pts_poly, g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
+        try:
+            G,MG = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
+            if G != pts_poly:
+                red_g = f.conjugate(M*MG)
+                R2 = get_bound_dynamical(G, red_g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
+                if R2 < R:
+                    R = R2
+                else:
+                    #use pts_poly since the search space is smaller
+                    G = pts_poly
+                    MG = matrix(ZZ,2,2,[1,0,0,1])
+        except: # any failure -> skip
+            G = pts_poly
+            MG = matrix(ZZ,2,2,[1,0,0,1])
+
+        red_g = f.conjugate(M*MG)
+        red_g.normalize_coordinates()
+        if red_g.global_height(prec=prec) == 0:
+            return [red_g, M*MG]
+
+        # height
+        if current_size is None:
+            current_size = e**red_g.global_height(prec=prec)
+        v0, th = covariant_z0(G, prec=prec, emb=emb)
+        rep = 2*CC.gen(0)
+        from math import isnan
+        if isnan(v0.abs()):
+            raise ValueError("invalid covariant: %s"%v0)
+
+        # get orbit
+        S = matrix(ZZ,2,2,[0,-1,1,0])
+        T = matrix(ZZ,2,2,[1,1,0,1])
+        TI = matrix(ZZ,2,2,[1,-1,0,1])
+
+        count = 0
+        pts = [[G, red_g, v0, rep, M*MG, coshdelta(v0), 0]]  #label - 0:None, 1:S, 2:T, 3:T^(-1)
+        if current_min is None:
+            current_min = [G, red_g, v0, rep, M*MG, coshdelta(v0)]
+        while pts != []:
+            G, g, v, rep, M, D, label = pts.pop()
+            #apply ST and keep z, Sz
+            if D > R:
+                break #all remaining pts are too far away
+            #check if it is smaller. If so, we can improve the bound
+            count += 1
+            new_size = e**g.global_height(prec=prec)
+            if new_size < current_size:
+                current_min = [G ,g, v, rep, M, coshdelta(v)]
+                current_size = new_size
+                new_R = get_bound_dynamical(G, g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
+                if new_R < R:
+                    R = new_R
+
+            #add new points to check
+            if label != 1 and min((rep+1).norm(), (rep-1).norm()) >= 1: #don't undo S
+                #do inversion if outside "bad" domain
+                z = -1/v
+                new_pt = [G.subs({x:-y, y:x}), g.conjugate(S), z, -1/rep, M*S, coshdelta(z), 1]
+                pts = insert_item(pts, new_pt, 5)
+            if label != 3:  #don't undo T on g
+                #do right shift
+                z = v-1
+                new_pt = [G.subs({x:x+y}), g.conjugate(TI), z, rep-1, M*TI, coshdelta(z), 2]
+                pts = insert_item(pts, new_pt, 5)
+            if label != 2:  #don't undo TI on g
+                #do left shift
+                z = v+1
+                new_pt = [G.subs({x:x-y}), g.conjugate(T), z, rep+1, M*T, coshdelta(z), 3]
+                pts = insert_item(pts, new_pt, 5)
+
+    return [current_min[1], current_min[4]]
 

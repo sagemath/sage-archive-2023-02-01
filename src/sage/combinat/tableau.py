@@ -9145,13 +9145,13 @@ class IncreasingTableaux_shape(IncreasingTableaux):
             sage: len([x for x in IncreasingTableaux(3) if x in IT])
             5
             sage: IT.cardinality()
-            8
+            5
 
             sage: IT = IncreasingTableaux([2,1], max_entry=4)
             sage: all(it in IT for it in IT)
             True
             sage: IT.cardinality()
-            20
+            14
         """
         return IncreasingTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
 
@@ -9173,20 +9173,18 @@ class IncreasingTableaux_shape(IncreasingTableaux):
 
         EXAMPLES::
 
-            sage: SemistandardTableaux([2,1]).cardinality()
-            8
-            sage: SemistandardTableaux([2,2,1]).cardinality()
-            75
-            sage: SymmetricFunctions(QQ).schur()([2,2,1]).expand(5)(1,1,1,1,1) # cross check
-            75
-            sage: SemistandardTableaux([5]).cardinality()
-            126
-            sage: SemistandardTableaux([3,2,1]).cardinality()
-            896
-            sage: SemistandardTableaux([3,2,1], max_entry=7).cardinality()
-            2352
-            sage: SemistandardTableaux([6,5,4,3,2,1], max_entry=30).cardinality()
-            208361017592001331200
+            sage: IncreasingTableaux([2,1]).cardinality()
+            5
+            sage: IncreasingTableaux([2,2,1]).cardinality()
+            40
+            sage: IncreasingTableaux([5]).cardinality()
+            1
+            sage: IncreasingTableaux([3,2,1]).cardinality()
+            330
+            sage: IncreasingTableaux([3,2,1], max_entry=7).cardinality()
+            1001
+            sage: IncreasingTableaux([4,3,2,1], max_entry=8).cardinality()
+            26026
         """
         c = 0
         list_of_partial_binary_vecs = [[]]
@@ -9204,22 +9202,22 @@ class IncreasingTableaux_shape(IncreasingTableaux):
 
 class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
     r"""
-    Semistandard tableaux of fixed shape `p` and binary weight `wt`.
+    Increasing tableaux of fixed shape `p` and binary weight `wt`.
     """
     def __init__(self, p, wt):
         r"""
-        Initializes the class of all semistandard tableaux of shape ``p`` and
+        Initializes the class of all increasing tableaux of shape ``p`` and
         weight ``mu``.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux` to
+            Input is not checked; please use :class:`IncreasingTableaux` to
             ensure the options are properly parsed.
 
         TESTS::
 
-            sage: SST = SemistandardTableaux([2,1], [2,1])
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux([2,1], (1,0,1))
+            sage: TestSuite(IT).run()
         """
         super(IncreasingTableaux_shape_weight, self).__init__(p, len(wt))
         self.weight = wt
@@ -9228,8 +9226,8 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
         """
         TESTS::
 
-            sage: repr(SemistandardTableaux([2,1],[2,1]))    # indirect doctest
-            'Semistandard tableaux of shape [2, 1] and weight [2, 1]'
+            sage: repr(IncreasingTableaux([2,1],(1,0,1)))    # indirect doctest
+            'Increasing tableaux of shape [2, 1] and weight [2, 1]'
         """
         return "Increasing tableaux of shape %s and weight %s"%(self.shape, self.weight)
 
@@ -9237,12 +9235,12 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
         """
         EXAMPLES::
 
-            sage: SST = SemistandardTableaux([2,1], [2,1])
-            sage: all(sst in SST for sst in SST)
+            sage: IT = IncreasingTableaux([2,1], (1,0,1))
+            sage: all(it in IT for it in IT)
             True
-            sage: len([x for x in SemistandardTableaux(3) if x in SST])
+            sage: len([x for x in IncreasingTableaux(3) if x in IT])
             1
-            sage: SST.cardinality()
+            sage: IT.cardinality()
             1
         """
         if x not in IncreasingTableaux_shape(self.shape, self.max_entry):
@@ -9252,16 +9250,12 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
         if n == 0 and len(x) == 0:
             return True
 
-        content = {}
+        content_list = [0]*int(self.max_entry)
         for row in x:
             for i in row:
-                content[i] = content.get(i, 0) + 1
-        content_list = [0]*int(max(content))
+                content_list[i-1] = 1
 
-        for key in content:
-            content_list[key-1] = content[key]
-
-        if content_list != self.weight:
+        if tuple(content_list) != self.weight:
             return False
 
         return True

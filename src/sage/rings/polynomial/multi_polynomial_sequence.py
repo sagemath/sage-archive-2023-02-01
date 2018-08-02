@@ -275,6 +275,16 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
         sage: R.<x,y> = PolynomialRing(L,'x,y')
         sage: PolynomialSequence([0], R)
         [0]
+
+    A PolynomialSequence can be created from an iterator (see :trac:`25989`)::
+
+        sage: R.<x,y,z> = QQ[]
+        sage: PolynomialSequence(iter(R.gens()))
+        [x, y, z]
+        sage: PolynomialSequence(iter(R.gens()), R)
+        [x, y, z]
+        sage: PolynomialSequence(iter([(x,y), (z,)]), R)
+        [x, y, z]
     """
     from sage.structure.element import is_Matrix
     from sage.rings.polynomial.pbori import BooleanMonomialMonoid, BooleanMonomial
@@ -325,15 +335,22 @@ def PolynomialSequence(arg1, arg2=None, immutable=False, cr=False, cr_str=None):
                 raise TypeError("Cannot determine ring.")
 
     try:
-        e = next(iter(gens))
+        gens = iter(gens)
+        e = next(gens)
         # fast path for known collection types
         if isinstance(e, (tuple, list, Sequence_generic, PolynomialSequence_generic)):
-            parts = tuple(tuple(ring(f) for f in part) for part in gens)
+            nested = True
         else:
+            nested = False
             try:
-                parts = tuple(map(ring, gens)),
+                e2 = ring(e)
             except TypeError:
-                parts = tuple(tuple(ring(f) for f in part) for part in gens)
+                nested = True
+        from itertools import chain
+        if nested:
+            parts = tuple(tuple(ring(f) for f in part) for part in chain([e], gens))
+        else:
+            parts = tuple(chain([e2], map(ring, gens))),
     except StopIteration:
         parts = ((),)
 

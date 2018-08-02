@@ -9264,10 +9264,10 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
         """
         TESTS::
 
-            sage: sst = SemistandardTableaux([3,1],[2,1,1])
-            sage: [sst[i] for i in range(2)]
-            [[[1, 1, 2], [3]], [[1, 1, 3], [2]]]
-            sage: sst[0].parent() is sst
+            sage: IT = IncreasingTableaux([3,1],(1,0,1,1))
+            sage: [IT[i] for i in range(2)]
+            [[[1, 3, 4], [3]], [[1, 3, 4], [4]]]
+            sage: IT[0].parent() is IT
             True
         """
         if self.shape != []:

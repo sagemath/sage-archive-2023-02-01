@@ -717,8 +717,8 @@ class OrderedMultisetPartition(ClonableArray):
             return False
 
         # trim common prefix and suffix to make the search-space smaller
-        co1 = map(Set,self)
-        co2 = map(Set,co)
+        co1 = map(set, self)
+        co2 = map(set, co)
         while co1[0] == co2[0]:
             co1 = co1[1:]; co2 = co2[1:]
         while co1[-1] == co2[-1]:
@@ -1512,7 +1512,9 @@ class OrderedMultisetPartitions(UniqueRepresentation, Parent):
         if not cdict:
             cdict = dict(self.constraints)
         if "alphabet" in cdict:
-            cdict["alphabet"] = Set(cdict["alphabet"])
+            # make, e.g., `set([2,3,4])` print as `{2, 3, 4}`
+            A = set(cdict["alphabet"])
+            cdict["alphabet"] = "{" + repr(A)[5:-2] + "}"
         constr = ""
         ss = ['%s=%s'%(key, val) for (key,val) in iteritems(cdict)]
         if len(ss) > 1:
@@ -2899,18 +2901,23 @@ def _refine_block(S, strong=False):
 
     If optional argument ``strong`` is set to ``True``, then only those
     refinements that are deconcatenations of the list ``sorted(S)`` are returned.
+    
+    (The subsets involved are stored as ``frozenset`` objects.)
 
     EXAMPLES::
 
         sage: from sage.combinat.multiset_partition_ordered import _refine_block
-        sage: _refine_block([1, 2, 3])
-        {({2}, {1, 3}), ({1, 2}, {3}), ({2}, {3}, {1}), ({2, 3}, {1}),
-         ({3}, {1}, {2}), ({1}, {2}, {3}), ({1}, {3}, {2}), ({3}, {2}, {1}),
-         ({1, 3}, {2}), ({1}, {2, 3}), ({2}, {1}, {3}), ({1, 2, 3},),
-         ({3}, {1, 2})}
+        sage: _refine_block([1, 2], strong=True)
+        {(frozenset({1}), frozenset({2})), (frozenset({1, 2}),)}
 
-        sage: _refine_block([1, 2, 3], strong=True)
-        {({1, 2}, {3}), ({1}, {2}, {3}), ({1, 2, 3},), ({1}, {2, 3})}
+        sage: sorted(tuple(Set(x) for x in tupl) for tupl in _refine_block([1, 2, 3], strong=True))
+        [({1, 2}, {3}), ({1}, {2}, {3}), ({1, 2, 3},), ({1}, {2, 3})]
+        sage: sorted(tuple(Set(x) for x in tupl) for tupl in _refine_block([1, 2, 3]))
+        [({2}, {1, 3}), ({1, 2}, {3}), ({2}, {3}, {1}),
+         ({2, 3}, {1}), ({3}, {1}, {2}), ({1}, {2}, {3}),
+         ({1}, {3}, {2}), ({3}, {2}, {1}), ({1, 3}, {2}),
+         ({1}, {2, 3}), ({2}, {1}, {3}), ({1, 2, 3},),
+         ({3}, {1, 2})]
 
     TESTS::
 
@@ -2943,7 +2950,7 @@ def _refine_block(S, strong=False):
             for pos in range(n):
                 a[w[pos]].add(X[pos])
             out.append(a)
-    return set(tuple(map(Set, x)) for x in out)
+    return set(tuple(map(frozenset, x)) for x in out)
 
 def _is_initial_segment(lst):
     r"""
@@ -2967,19 +2974,22 @@ def _split_block(S, k=2):
 
     A splitting of `S` is a tuple of (possibly empty) subsets whose union is `S`.
 
+    (The subsets involved are stored as ``frozenset`` objects.)
+
     EXAMPLES::
 
         sage: from sage.combinat.multiset_partition_ordered import _split_block
         sage: S = [1, 2, 3]
         sage: _split_block(S, 1)
-        {({1, 2, 3},)}
-        sage: _split_block(S, 2)
-        {({2}, {1, 3}), ({}, {1, 2, 3}), ({2, 3}, {1}), ({1, 2}, {3}),
-         ({1}, {2, 3}), ({1, 3}, {2}), ({1, 2, 3}, {}), ({3}, {1, 2})}
-        sage: _split_block({2, 4}, 3)
-        {({}, {2}, {4}), ({4}, {2}, {}), ({}, {4}, {2}),
+        {(frozenset({1, 2, 3}),)}
+
+        sage: sorted(tuple(Set(x) for x in tupl) for tupl in _split_block(S, 2))
+        [({2}, {1, 3}), ({}, {1, 2, 3}), ({2, 3}, {1}), ({1, 2}, {3}),
+         ({1}, {2, 3}), ({1, 3}, {2}), ({1, 2, 3}, {}), ({3}, {1, 2})]
+        sage: sorted(tuple(Set(x) for x in tupl) for tupl in _split_block({2, 4}, 3))
+        [({}, {2}, {4}), ({4}, {2}, {}), ({}, {4}, {2}),
          ({2}, {4}, {}), ({4}, {}, {2}), ({}, {}, {2, 4}),
-         ({2, 4}, {}, {}), ({}, {2, 4}, {}), ({2}, {}, {4})}
+         ({2, 4}, {}, {}), ({}, {2, 4}, {}), ({2}, {}, {4})]
     """
     if all(s in ZZ for s in S):
         X = sorted(S)
@@ -2993,7 +3003,7 @@ def _split_block(S, k=2):
         for pos in range(n):
             a[w[pos]].add(X[pos])
         out.append(a)
-    return set(tuple(map(Set, x)) for x in out)
+    return set(tuple(map(frozenset, x)) for x in out)
 
 def _to_minimaj_blocks(T):
     r"""

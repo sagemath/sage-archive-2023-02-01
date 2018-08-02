@@ -9139,18 +9139,18 @@ class IncreasingTableaux_shape(IncreasingTableaux):
         """
         EXAMPLES::
 
-            sage: SST = SemistandardTableaux([2,1])
-            sage: all(sst in SST for sst in SST)
+            sage: IT = IncreasingTableaux([2,1])
+            sage: all(it in IT for it in IT)
             True
-            sage: len([x for x in SemistandardTableaux(3) if x in SST])
-            8
-            sage: SST.cardinality()
+            sage: len([x for x in IncreasingTableaux(3) if x in IT])
+            5
+            sage: IT.cardinality()
             8
 
-            sage: SST = SemistandardTableaux([2,1], max_entry=4)
-            sage: all(sst in SST for sst in SST)
+            sage: IT = IncreasingTableaux([2,1], max_entry=4)
+            sage: all(it in IT for it in IT)
             True
-            sage: SST.cardinality()
+            sage: IT.cardinality()
             20
         """
         return IncreasingTableaux.__contains__(self, x) and [len(_) for _ in x] == self.shape
@@ -9159,54 +9159,17 @@ class IncreasingTableaux_shape(IncreasingTableaux):
         """
         TESTS::
 
-            sage: repr(SemistandardTableaux([2,1]))    # indirect doctest
-            'Semistandard tableaux of shape [2, 1] and maximum entry 3'
+            sage: repr(IncreasingTableaux([2,1]))    # indirect doctest
+            'Increasing tableaux of shape [2, 1] and maximum entry 3'
 
-            sage: repr(SemistandardTableaux([2,1], max_entry=5))
-            'Semistandard tableaux of shape [2, 1] and maximum entry 5'
+            sage: repr(IncreasingTableaux([2,1], max_entry=5))
+            'Increasing tableaux of shape [2, 1] and maximum entry 5'
         """
         return "Increasing tableaux of shape %s and maximum entry %s" %(str(self.shape), str(self.max_entry))
-
-    def random_element(self):
-        """
-        Return a uniformly distributed random tableau of the given ``shape`` and ``max_entry``.
-
-        Uses the algorithm from [Kra1999]_ based on the Novelli-Pak-Stoyanovskii bijection
-
-        EXAMPLES::
-
-           http://www.sciencedirect.com/science/article/pii/0012365X9290368P
-            sage: SemistandardTableaux([2, 2, 1, 1]).random_element()
-            [[1, 1], [2, 3], [3], [5]]
-            sage: SemistandardTableaux([2, 2, 1, 1], max_entry=7).random_element()
-            [[1, 4], [5, 5], [6], [7]]
-
-        """
-        raise NotImplementedError
 
     def cardinality(self):
         r"""
         Return the cardinality of ``self``.
-
-        INPUT:
-
-        - ``algorithm`` -- (default: ``'hook'``) any one of the following:
-
-          - ``'hook'`` -- use Stanley's hook length formula
-
-          - ``'sum'`` -- sum over the compositions of ``max_entry`` the
-            number of semistandard tableau with ``shape`` and given
-            weight vector
-
-        This is computed using *Stanley's hook length formula*:
-
-        .. MATH::
-
-           f_{\lambda} = \prod_{u\in\lambda} \frac{n+c(u)}{h(u)}.
-
-        where `n` is the ``max_entry``, `c(u)` is the content of `u`,
-        and `h(u)` is the hook length of `u`.
-        See [Sta-EC2]_ Corollary 7.21.4.
 
         EXAMPLES::
 
@@ -9224,14 +9187,19 @@ class IncreasingTableaux_shape(IncreasingTableaux):
             2352
             sage: SemistandardTableaux([6,5,4,3,2,1], max_entry=30).cardinality()
             208361017592001331200
-            sage: ssts = [SemistandardTableaux(p, max_entry=6) for p in Partitions(5)]
-            sage: all(sst.cardinality() == sst.cardinality(algorithm='sum')
-            ....:     for sst in ssts)
-            True
         """
         c = 0
-        for comp in integer_vectors_nk_fast_iter(sum(self.shape), self.max_entry):
-            c += IncreasingTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
+        list_of_partial_binary_vecs = [[]]
+        list_of_binary_vecs = []
+        while list_of_partial_binary_vecs != []:
+            active_vec = list_of_partial_binary_vecs.pop()
+            if len(active_vec) < self.max_entry:
+                list_of_partial_binary_vecs.append(active_vec + [0])
+                list_of_partial_binary_vecs.append(active_vec + [1])
+            else:
+                list_of_binary_vecs.append(tuple(active_vec))
+        for wt in list_of_binary_vecs:
+            c += IncreasingTableaux_shape_weight(self.shape, wt).cardinality()
         return c
 
 class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):

@@ -34,6 +34,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.affine.affine_subscheme import AlgebraicScheme_subscheme_affine
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from copy import copy
 
 @add_metaclass(InheritComparisonClasscallMetaclass)
@@ -289,7 +290,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         - ``homset`` -- (optional) homset of specialized map
 
-        OUTPUT: :class:`NumberField`
+        OUTPUT: :class:`DynamicalSystem`
 
         EXAMPLES::
 
@@ -304,23 +305,31 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         F = self.as_scheme_morphism().specialization(D, phi, homset)
         return F.as_dynamical_system()
 
-    def field_of_definition_critical(self, n, simplify_all = False, names = 'a'):
+    def field_of_definition_critical(self, n, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field extention of `\QQ` that contains the critical points of the ``n``-th
-        iterate of this dynamical system
+        Return field extention of the base field of the dynamical system that contains the critical points of the
+        ``n``-th iterate of this dynamical system.
 
-        Must be dimension 1.
+        Domain of dynamical system must be a 1 dimensional space defined over a number field or finite field.
 
         INPUT:
 
         - ``n`` -- a positive integer
 
+        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
+          system into the returned number field. Note that computing this embedding might be expensive.
+
         - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
-          fields and also the resulting number field.
+          fields and also the resulting number field. Note that this is not implemented for finite fields and has
+          no effect
 
         - ``names`` -- (optional) string to be used as generator for returned number field
 
-        OUTPUT: :class:`NumberField`
+        OUTPUT:
+
+        If ``return_embedding`` is ``False``, the field of definition as an absolute number
+        field or finite field.  If ``return_embedding`` is ``True``, a tuple ``(K, phi)`` where ``phi``
+        is an embedding of the base field in ``K``.
 
         EXAMPLES::
 
@@ -330,17 +339,34 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             Number Field in a with defining polynomial x^2 + 1
 
         ::
+
             sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem([z^2 + 1], domain = A)
             sage: K.<a> = f.field_of_definition_critical(2); K
             Number Field in a with defining polynomial z^2 + 1
             sage: a^2
             -1
+
+        ::
+
+            sage: G.<a> = GF(9)
+            sage: R.<z> = G[]
+            sage: R.irreducible_element(3, algorithm = 'first_lexicographic')
+            z^3 + (a + 1)*z + a
+            sage: A.<x> = AffineSpace(G,1)
+            sage: f = DynamicalSystem([x^4 + (2*a+2)*x^2 + a*x], domain = A)
+            sage: f[0].derivative(x).univariate_polynomial().is_irreducible()
+            True
+            sage: f.field_of_definition_critical(1, return_embedding = True, names = 'b')
+            (Finite Field in b of size 3^6, Ring morphism:
+                From: Finite Field in a of size 3^2
+                To:   Finite Field in b of size 3^6
+                Defn: a |--> 2*b^5 + 2*b^3 + b^2 + 2*b + 2)
         """
         ds = copy(self)
         if n < 1: 
             raise ValueError('`n` must be >= 1') 
-        space = ds.domain()
+        space = ds.domain().ambient_space()
         if space.dimension() != 1:
             raise ValueError('Domain of `ds` must be a 1 dimensional space')
         if space.is_projective():
@@ -353,30 +379,43 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             CR = CR.ring()
         x = CR.gen(0)
         poly = (g*CR(f).derivative(x) - f*CR(g).derivative(x)).univariate_polynomial()
-        return poly.splitting_field(names, simplify_all = simplify_all)
+        K = ds.base_ring()
+        if poly == CR(0):
+            return K
+        elif is_FiniteField(K):
+            return poly.splitting_field(names, map = return_embedding)
+        else:
+            return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
 
-    def field_of_definition_periodic(self, n, formal = False, simplify_all = False, names = 'a'):
+    def field_of_definition_periodic(self, n, formal = False, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return finite field extention of `\QQ` that contains the periodic points of the ``n``-th
+        Return field extention of the base field of the dynamical system that contains the periodic points of the ``n``-th
         iterate of this dynamical system.
 
-        Must be dimension 1.
+        Domain of dynamical system must be a 1 dimensional space defined over a number field or finite field.
 
         INPUT:
 
         - ``n`` -- a positive integer
 
         - ``formal`` -- (default: ``False``) boolean; ``True`` signals to return number field over which
-          the formal periodic points are defined, where a formal periodic point is a point of exact period ``n``,
-          or equivalently a root of the ``n``-th dynatomic polynomial. ``False`` specifies to find number field
-          over which all periodic points of the ``n``-th iterate are defined
+          the formal periodic points are defined, where a formal periodic point is a root of the ``n``-th dynatomic polynomial.
+          ``False`` specifies to find number field over which all periodic points of the ``n``-th iterate are defined
+
+        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
+          system into the returned number field. Note that computing this embedding might be expensive.
 
         - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
-          fields and also the resulting number field
+          fields and also the resulting number field. Note that this is not implemented for finite fields and has
+          no effect
 
         - ``names`` -- (optional) string to be used as generator for returned number field
 
-        OUTPUT: :class:`NumberField`
+        OUTPUT:
+
+        If ``return_embedding`` is ``False``, the field of definition as an absolute number
+        field or finite field.  If ``return_embedding`` is ``True``, a tuple ``(K, phi)`` where ``phi``
+        is an embedding of the base field in ``K``.
 
         EXAMPLES::
 
@@ -386,17 +425,32 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             Number Field in a with defining polynomial x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
 
         ::
+
             sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem([(z^2 + 1)/(2*z + 1)], domain = A)
             sage: K.<a> = f.field_of_definition_periodic(2); K
             Number Field in a with defining polynomial z^4 + 12*z^3 + 39*z^2 + 18*z + 171
             sage: F.<b> = f.field_of_definition_periodic(2, formal = True); F
             Number Field in b with defining polynomial z^2 + 3*z + 6
+
+        ::
+
+            sage: G.<a> = GF(4)
+            sage: A.<x> = AffineSpace(G, 1)
+            sage: f = DynamicalSystem([x^2 + (a+1)*x + 1], domain = A)
+            sage: g = f.nth_iterate_map(2)[0]
+            sage: (g-x).univariate_polynomial().factor()
+            (x + 1) * (x + a + 1) * (x^2 + a*x + 1)
+            sage: f.field_of_definition_periodic(2, return_embedding = True, names = 'b')
+            (Finite Field in b of size 2^4, Ring morphism:
+                From: Finite Field in a of size 2^2
+                To:   Finite Field in b of size 2^4
+                Defn: a |--> b^2 + b)
         """
         ds = copy(self)
         if n < 1: 
             raise ValueError('`n` must be >= 1')
-        space = ds.domain()
+        space = ds.domain().ambient_space()
         if space.dimension() != 1:
             raise ValueError('Domain of `ds` must be a 1 dimensional space')
         if space.is_projective():
@@ -413,14 +467,20 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             fn = ds.nth_iterate_map(n)
             f,g = fn[0].numerator(), fn[0].denominator()
             poly = (f - g*x).univariate_polynomial()        
-        return poly.splitting_field(names, simplify_all = simplify_all)
+        K = ds.base_ring()
+        if poly == CR(0):
+            return K
+        elif is_FiniteField(K):
+            return poly.splitting_field(names, map = return_embedding)
+        else:
+            return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
 
-    def field_of_definition_preimage(self, n, point, simplify_all = False, names = 'a'):
+    def field_of_definition_preimage(self, n, point, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field extention of `\QQ` that contains all of the ``n``-th preimage points
-        of a given ``point`` in the map's domain
+        Return field extention of the base field of the dynamical system that contains all of the ``n``-th preimage points
+        of a given ``point`` in the map's domain.
 
-        Must be dimension 1.
+        Domain of dynamical system must be a 1 dimensional space defined over a number field or finite field.
 
         INPUT:
 
@@ -428,12 +488,20 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
         - ``point`` -- a point in this map's domain
 
+        - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
+          system into the returned number field. Note that computing this embedding might be expensive.
+
         - ``simplify_all`` -- (default: ``False``) boolean; If ``True``, simplify intermediate
-          fields and also the resulting number field.
+          fields and also the resulting number field. Note that this is not implemented for finite fields and has
+          no effect
 
         - ``names`` -- (optional) string to be used as generator for returned number field
 
-        OUTPUT: :class:`NumberField`
+        OUTPUT:
+
+        If ``return_embedding`` is ``False``, the field of definition as an absolute number
+        field or finite field.  If ``return_embedding`` is ``True``, a tuple ``(K, phi)`` where ``phi``
+        is an embedding of the base field in ``K``.
 
         EXAMPLES::
 
@@ -443,15 +511,27 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             Number Field in a with defining polynomial x^8 - 4*x^7 - 128*x^6 + 398*x^5 + 3913*x^4 - 8494*x^3 - 26250*x^2 + 30564*x - 2916
 
         ::
+
             sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem([z^2], domain = A)
             sage: K.<a> = f.field_of_definition_preimage(3, A(1)); K
             Number Field in a with defining polynomial z^4 + 1
+
+        ::
+
+            sage: G = GF(5)
+            sage: P.<x,y> = ProjectiveSpace(G, 1)
+            sage: f = DynamicalSystem([x^2 + 2*y^2, y^2], domain = P)
+            sage: f.field_of_definition_preimage(2, P(2,1), return_embedding = True, names = 'a')
+            (Finite Field in a of size 5^2, Ring morphism:
+                From: Finite Field of size 5
+                To:   Finite Field in a of size 5^2
+                Defn: 1 |--> 1)
         """
         ds = copy(self)
         if n < 1: 
             raise ValueError('`n` must be >= 1')
-        space = ds.domain()
+        space = ds.domain().ambient_space()
         if space.dimension() != 1:
             raise ValueError('Domain of `ds` must be a 1 dimensional space')
         try:
@@ -467,5 +547,10 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             #want the polynomial ring not the fraction field
             CR = CR.ring()
         poly = CR(f - g*point[0]).univariate_polynomial()
-        return poly.splitting_field(names, simplify_all = simplify_all)
-
+        K = ds.base_ring()
+        if poly == CR(0):
+            return K
+        elif is_FiniteField(K):
+            return poly.splitting_field(names, map = return_embedding)
+        else:
+            return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)

@@ -25,6 +25,7 @@ Element classes:
 * :class:`SemistandardTableau`
 * :class:`StandardTableau`
 * :class:`RowStandardTableau`
+* :class:`IncreasingTableau`
 
 Factory classes:
 
@@ -32,6 +33,7 @@ Factory classes:
 * :class:`SemistandardTableaux`
 * :class:`StandardTableaux`
 * :class:`RowStandardTableaux`
+* :class:`IncreasingTableaux`
 
 Parent classes:
 
@@ -8641,12 +8643,12 @@ class IncreasingTableaux(Tableaux):
 
     def __contains__(self, t):
         """
-        Return ``True`` if ``t`` can be interpreted as a
-        :class:`SemistandardTableau`.
+        Return ``True`` if ``t`` can be interpreted as an
+        :class:`IncreasingTableau`.
 
         TESTS::
 
-            sage: T = sage.combinat.tableau.SemistandardTableaux_all()
+            sage: T = sage.combinat.tableau.IncreasingTableaux_all()
             sage: [[1,2],[2]] in T
             True
             sage: [] in T
@@ -8663,10 +8665,6 @@ class IncreasingTableaux(Tableaux):
             sage: [[1,3,2]] in T
             False
 
-        Check that :trac:`14145` is fixed::
-
-            sage: 1 in sage.combinat.tableau.SemistandardTableaux()
-            False
         """
         if isinstance(t, IncreasingTableau):
             return self.max_entry is None or \
@@ -8678,7 +8676,7 @@ class IncreasingTableaux(Tableaux):
             for row in t:
                 if not all(c > 0 for c in row):
                     return False
-                if not all(row[i] <= row[i+1] for i in range(len(row)-1)):
+                if not all(row[i] < row[i+1] for i in range(len(row)-1)):
                     return False
             for row, next in zip(t, t[1:]):
                 if not all(row[c] < next[c] for c in range(len(next))):

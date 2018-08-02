@@ -49,6 +49,13 @@ Parent classes:
 * :class:`StandardTableaux_all` (facade class)
 * :class:`StandardTableaux_size`
 * :class:`StandardTableaux_shape`
+* :class:`IncreasingTableaux_all` (facade class)
+* :class:`IncreasingTableaux_size`
+* :class:`IncreasingTableaux_size_inf`
+* :class:`IncreasingTableaux_size_weight`
+* :class:`IncreasingTableaux_shape`
+* :class:`IncreasingTableaux_shape_inf`
+* :class:`IncreasingTableaux_shape_weight`
 * :class:`RowStandardTableaux_all` (facade class)
 * :class:`RowStandardTableaux_size`
 * :class:`RowStandardTableaux_shape`
@@ -8687,23 +8694,23 @@ class IncreasingTableaux(Tableaux):
 
 class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
     """
-    All semistandard tableaux.
+    All increasing tableaux.
     """
     def __init__(self, max_entry=None):
         r"""
-        Initializes the class of all semistandard tableaux.
+        Initializes the class of all increasing tableaux.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux` to
+            Input is not checked; please use :class:`IncreasingTableaux` to
             ensure the options are properly parsed.
 
         TESTS::
 
-            sage: T = sage.combinat.tableau.SemistandardTableaux_all()
+            sage: T = sage.combinat.tableau.IncreasingTableaux_all()
             sage: TestSuite(T).run()
 
-            sage: T=sage.combinat.tableau.SemistandardTableaux_all(max_entry=3)
+            sage: T=sage.combinat.tableau.IncreasingTableaux_all(max_entry=3)
             sage: TestSuite(T).run() # long time
         """
         if max_entry is not PlusInfinity():
@@ -8720,11 +8727,11 @@ class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
         """
         TESTS::
 
-            sage: SemistandardTableaux()    # indirect doctest
-            Semistandard tableaux
+            sage: IncreasingTableaux()    # indirect doctest
+            Increasing tableaux
 
-            sage: SemistandardTableaux(max_entry=3)
-            Semistandard tableaux with maximum entry 3
+            sage: IncreasingTableaux(max_entry=3)
+            Increasing tableaux with maximum entry 3
         """
         if self.max_entry is not None:
             return "Increasing tableaux with maximum entry %s"%str(self.max_entry)
@@ -8735,7 +8742,7 @@ class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
         """
         TESTS::
 
-            sage: SemistandardTableaux().list()
+            sage: IncreasingTableaux().list()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -8745,21 +8752,21 @@ class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
 
 class IncreasingTableaux_size_inf(IncreasingTableaux):
     """
-    Semistandard tableaux of fixed size `n` with no maximum entry.
+    Increasing tableaux of fixed size `n` with no maximum entry.
     """
     def __init__(self, n):
         r"""
-        Initializes the class of semistandard tableaux of size ``n`` with no
+        Initializes the class of increasing tableaux of size ``n`` with no
         maximum entry.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux` to
+            Input is not checked; please use :class:`IncreasingTableaux` to
             ensure the options are properly parsed.
 
         TESTS::
 
-            sage: T = sage.combinat.tableau.SemistandardTableaux_size_inf(3)
+            sage: T = sage.combinat.tableau.IncreasingTableaux_size_inf(3)
             sage: TestSuite(T).run()
         """
         super(IncreasingTableaux_size_inf, self).__init__(
@@ -8771,8 +8778,8 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
         """
         TESTS::
 
-            sage: repr(SemistandardTableaux(3, max_entry=oo))    # indirect doctest
-            'Semistandard tableaux of size 3'
+            sage: repr(IncreasingTableaux(3, max_entry=oo))    # indirect doctest
+            'Increasing tableaux of size 3'
         """
         return "Increasing tableaux of size %s"%str(self.size)
 
@@ -8783,7 +8790,7 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
 
         TESTS::
 
-            sage: T = SemistandardTableaux(3, max_entry=oo)
+            sage: T = IncreasingTableaux(3, max_entry=oo)
             sage: [[1,2],[5]] in T
             True
             sage: StandardTableau([[1, 2], [3]]) in T
@@ -8793,11 +8800,6 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
             False
             sage: Tableau([[1]]) in T
             False
-
-        Check that :trac:`14145` is fixed::
-
-            sage: 1 in SemistandardTableaux(3, max_entry=oo)
-            False
         """
         return IncreasingTableaux.__contains__(self, t) and sum(map(len, t)) == self.size
 
@@ -8805,16 +8807,12 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
         """
         EXAMPLES::
 
-            sage: sst = SemistandardTableaux(3, max_entry=oo)
-            sage: [sst[t] for t in range(0,5)]
-            [[[1, 1, 1]],
-             [[1, 1, 2]],
-             [[1, 2, 2]],
-             [[2, 2, 2]],
-             [[1, 1], [2]]]
-            sage: sst[1000]
-            [[2, 12], [7]]
-            sage: sst[0].parent() is sst
+            sage: IT = IncreasingTableaux(3, max_entry=oo)
+            sage: [IT[t] for t in range(0,5)]
+            [[[1, 2, 3]], [[1, 3], [2]], [[1, 2], [3]], [[1], [2], [3]], [[1, 2, 4]]]
+            sage: IT[1000]
+            [[3, 13], [10]]
+            sage: IT[0].parent() is IT
             True
         """
         from sage.combinat.partition import Partitions
@@ -8838,7 +8836,7 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
         """
         TESTS::
 
-            sage: SemistandardTableaux(3, max_entry=oo).list()
+            sage: IncreasingTableaux(3, max_entry=oo).list()
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -8848,24 +8846,24 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
 
 class IncreasingTableaux_shape_inf(IncreasingTableaux):
     """
-    Semistandard tableaux of fixed shape `p` and no maximum entry.
+    Increasing tableaux of fixed shape `p` and no maximum entry.
     """
     def __init__(self, p):
         r"""
-        Initializes the class of semistandard tableaux of shape ``p`` and no
+        Initializes the class of increasing tableaux of shape ``p`` and no
         maximum entry.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux` to
+            Input is not checked; please use :class:`IncreasingTableaux` to
             ensure the options are properly parsed.
 
         TESTS::
 
-            sage: SST = SemistandardTableaux([2,1], max_entry=oo)
-            sage: type(SST)
-            <class 'sage.combinat.tableau.SemistandardTableaux_shape_inf_with_category'>
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux([2,1], max_entry=oo)
+            sage: type(IT)
+            <class 'sage.combinat.tableau.IncreasingTableaux_shape_inf_with_category'>
+            sage: TestSuite(IT).run()
         """
         super(IncreasingTableaux_shape_inf, self).__init__(
               category=InfiniteEnumeratedSets())
@@ -8876,17 +8874,11 @@ class IncreasingTableaux_shape_inf(IncreasingTableaux):
         """
         EXAMPLES::
 
-            sage: SST = SemistandardTableaux([2,1], max_entry=oo)
-            sage: [[13, 67], [1467]] in SST
+            sage: IT = IncreasingTableaux([2,1], max_entry=oo)
+            sage: [[13, 67], [1467]] in IT
             True
-            sage: SST = SemistandardTableaux([3,1], max_entry=oo)
-            sage: [[13, 67], [1467]] in SST
-            False
-
-        Check that :trac:`14145` is fixed::
-
-            sage: SST = SemistandardTableaux([3,1], max_entry=oo)
-            sage: 1 in SST
+            sage: IT = IncreasingTableaux([3,1], max_entry=oo)
+            sage: [[13, 67], [1467]] in IT
             False
         """
         return IncreasingTableaux.__contains__(self, x) and [len(_) for _ in x]==self.shape
@@ -8895,10 +8887,10 @@ class IncreasingTableaux_shape_inf(IncreasingTableaux):
         """
         TESTS::
 
-            sage: repr(SemistandardTableaux([2,1], max_entry=oo))    # indirect doctest
-            'Semistandard tableaux of shape [2, 1]'
+            sage: repr(IncreasingTableaux([2,1], max_entry=oo))    # indirect doctest
+            'Increasing tableaux of shape [2, 1]'
         """
-        return "Semistandard tableaux of shape %s" %str(self.shape)
+        return "Increasing tableaux of shape %s" %str(self.shape)
 
 
     def __iter__(self):

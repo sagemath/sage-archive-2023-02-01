@@ -933,9 +933,19 @@ class BipartiteGraph(Graph):
             sage: G = B.project_right()
             sage: G.order(), G.size()
             (10, 10)
+
+        TESTS:
+
+        Ticket :trac:`25985` is fixed::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(6))
+            sage: B.project_left().vertices()
+            [0, 2, 4]
+            sage: B.project_right().vertices()
+            [1, 3, 5]
         """
         G = Graph()
-        G.add_vertices(self.left)
+        G.add_vertices(self.right)
         for v in G:
             for u in self.neighbor_iterator(v):
                 G.add_edges(((v, w) for w in self.neighbor_iterator(u)), loops=None)

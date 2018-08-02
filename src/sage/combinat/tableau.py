@@ -9055,9 +9055,9 @@ class IncreasingTableaux_size(IncreasingTableaux):
 
 class IncreasingTableaux_shape(IncreasingTableaux):
     """
-    Semistandard tableaux of fixed shape `p` with a given max entry.
+    Increasing tableaux of fixed shape `p` with a given max entry.
 
-    A semistandard tableau with max entry `i` is required to have all
+    An increasing tableau with max entry `i` is required to have all
     its entries less or equal to `i`. It is not required to actually
     contain an entry `i`.
 
@@ -9068,21 +9068,21 @@ class IncreasingTableaux_shape(IncreasingTableaux):
     """
     def __init__(self, p, max_entry=None):
         r"""
-        Initializes the class of semistandard tableaux of shape ``p``, with a
+        Initializes the class of increasing tableaux of shape ``p``, with a
         given ``max_entry``.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux` to
+            Input is not checked; please use :class:`IncreasingTableaux` to
             ensure the options are properly parsed.
 
         TESTS::
 
-            sage: SST = SemistandardTableaux([2,1])
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux([2,1])
+            sage: TestSuite(IT).run()
 
-            sage: SST = SemistandardTableaux([2,1], max_entry=5)
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux([2,1], max_entry=5)
+            sage: TestSuite(IT).run()
         """
         if max_entry is None:
             max_entry = sum(p)
@@ -9092,42 +9092,33 @@ class IncreasingTableaux_shape(IncreasingTableaux):
 
     def __iter__(self):
         """
-        An iterator for the semistandard tableaux of the specified shape
+        An iterator for the increasing tableaux of the specified shape
         with the specified max entry.
 
         EXAMPLES::
 
-            sage: [ t for t in SemistandardTableaux([3]) ]
-            [[[1, 1, 1]],
-             [[1, 1, 2]],
-             [[1, 1, 3]],
-             [[1, 2, 2]],
-             [[1, 2, 3]],
-             [[1, 3, 3]],
-             [[2, 2, 2]],
-             [[2, 2, 3]],
-             [[2, 3, 3]],
-             [[3, 3, 3]]]
-            sage: [ t for t in SemistandardTableaux([2,1]) ]
-            [[[1, 1], [2]],
-             [[1, 1], [3]],
-             [[1, 2], [2]],
-             [[1, 2], [3]],
-             [[1, 3], [2]],
-             [[1, 3], [3]],
-             [[2, 2], [3]],
-             [[2, 3], [3]]]
-            sage: [ t for t in SemistandardTableaux([1,1,1]) ]
-            [[[1], [2], [3]]]
+            sage: [ t for t in IncreasingTableaux([3]) ]
+            [[[1, 2, 3]]]
+            sage: [ t for t in IncreasingTableaux([2,1]) ]
+            [[[1, 3], [2]], [[1, 2], [3]], [[1, 2], [2]], [[1, 3], [3]], [[2, 3], [3]]]
+            sage: [ t for t in IncreasingTableaux([3,1]) ]
+            [[[1, 3, 4], [2]],
+             [[1, 2, 4], [3]],
+             [[1, 2, 3], [4]],
+             [[1, 2, 3], [2]],
+             [[1, 2, 3], [3]],
+             [[1, 2, 4], [2]],
+             [[1, 2, 4], [4]],
+             [[1, 3, 4], [3]],
+             [[1, 3, 4], [4]],
+             [[2, 3, 4], [3]],
+             [[2, 3, 4], [4]]]
 
-            sage: [ t for t in SemistandardTableaux([1,1,1], max_entry=4) ]
-            [[[1], [2], [3]],
-             [[1], [2], [4]],
-             [[1], [3], [4]],
-             [[2], [3], [4]]]
+            sage: [ t for t in IncreasingTableaux([3,1], max_entry=3) ]
+            [[[1, 2, 3], [2]], [[1, 2, 3], [3]]]
 
-            sage: sst = SemistandardTableaux([3])
-            sage: sst[0].parent() is sst
+            sage: IT = IncreasingTableaux([3])
+            sage: IT[0].parent() is IT
             True
         """
         list_of_partial_binary_vecs = [[]]

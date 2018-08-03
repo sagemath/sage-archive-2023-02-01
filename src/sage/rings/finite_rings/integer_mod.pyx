@@ -4370,7 +4370,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
     """
     def __init__(self, R):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
     cpdef Element _call_(self, x):

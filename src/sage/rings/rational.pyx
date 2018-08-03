@@ -4221,7 +4221,7 @@ cdef class int_to_Q(Morphism):
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), rational_field.QQ))
 
     cpdef Element _call_(self, a):
@@ -4281,7 +4281,7 @@ cdef class long_to_Q(Morphism):
         """
         from . import rational_field
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(
             Set_PythonType(long), rational_field.QQ))
 

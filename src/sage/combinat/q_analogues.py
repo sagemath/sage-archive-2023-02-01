@@ -61,9 +61,14 @@ def q_int(n, q=None):
 
     We check that :trac:`15805` is fixed::
 
-        sage: from sage.combinat.q_analogues import q_int
         sage: q_int(0).parent()
         Univariate Polynomial Ring in q over Integer Ring
+
+    We check that :trac:`25715` is fixed::
+
+        sage: q_int(0, 3r)
+        0
+
     """
     if n not in ZZ:
         raise ValueError('%s must be an integer' % n)
@@ -71,8 +76,8 @@ def q_int(n, q=None):
     if q is None:
         q = ZZ['q'].gen()
     if n == 0:  # Special case
-        return q.parent().zero()
-    if n >= 0:
+        return parent(q)(0)
+    if n > 0:
         return sum(q**i for i in range(n))
     return -q**n*sum(q**i for i in range(-n))
 
@@ -556,6 +561,11 @@ def q_pochhammer(n, a, q=None):
         sage: q_pochhammer(0, var('a'))
         1
 
+    We check that :trac:`25715` is fixed::
+
+        sage: q_pochhammer(0, 3r)
+        1
+
     REFERENCES:
 
     - :wikipedia:`Q-Pochhammer_symbol`
@@ -564,8 +574,8 @@ def q_pochhammer(n, a, q=None):
         q = ZZ['q'].gen()
     if n not in ZZ:
         raise ValueError("{} must be an integer".format(n))
-    R = q.parent()
-    one = R.one()
+    R = parent(q)
+    one = R(1)
     if n < 0:
         return R.prod(one / (one - a/q**-k) for k in range(1,-n+1))
     return R.prod((one - a*q**k) for k in range(n))
@@ -754,6 +764,15 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
         sage: q_subgroups_of_abelian_group([2], [1,1], algorithm='delsarte')
         0
 
+    Check that :trac:`25715` is fixed::
+
+        sage: parent(q_subgroups_of_abelian_group([2], [1], algorithm='delsarte'))
+        Univariate Polynomial Ring in q over Integer Ring
+        sage: q_subgroups_of_abelian_group([7,7,1], [])
+        1
+        sage: q_subgroups_of_abelian_group([7,7,1], [0,0])
+        1
+
     REFERENCES:
 
     .. [Bu87] Butler, Lynne M. *A unimodality result in the enumeration
@@ -768,15 +787,18 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
     AUTHORS:
 
     - Amritanshu Prasad (2013-06-07): Implemented the Delsarte algorithm
-    - Tomer Bauer (2013-09-26): Implemented the Birkhoff algorithm
+    - Tomer Bauer (2013, 2018): Implemented the Birkhoff algorithm and refactoring
     """
     if q is None:
         q = ZZ['q'].gen()
     la_c = _Partitions(la).conjugate()
     mu_c = _Partitions(mu).conjugate()
     k = mu_c.length()
+    if not mu_c:
+        # There is only one trivial subgroup
+        return parent(q)(1)
     if not la_c.contains(mu_c):
-        return q.parent().zero()
+        return parent(q)(0)
 
     if algorithm == 'delsarte':
         def F(args):
@@ -784,7 +806,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
             F1 = prod(args[i]**mu_c[i+1] * prd(i) for i in range(k-1))
             return F1 * prod(args[k-1]-q**i for i in range(mu_c[k-1]))
 
-        return F([q**ss for ss in la_c[:k]])/F([q**rr for rr in mu_c])
+        return F([q**ss for ss in la_c[:k]])//F([q**rr for rr in mu_c])
 
     if algorithm == 'birkhoff':
         fac1 = q**(sum(mu_c[i+1] * (la_c[i]-mu_c[i]) for i in range(k-1)))
@@ -839,6 +861,11 @@ def q_stirling_number1(n, k, q=None):
         ...
         ValueError: q-Stirling numbers are not defined for n < 0
 
+    We check that :trac:`25715` is fixed::
+
+        sage: q_stirling_number1(2,1,1r)
+        1
+
     REFERENCES:
 
     - [Ca1948]_
@@ -847,15 +874,14 @@ def q_stirling_number1(n, k, q=None):
     """
     if q is None:
         q = ZZ['q'].gen()
-    A = q.parent()
     if n < 0:
         raise ValueError('q-Stirling numbers are not defined for n < 0')
     if n == 0 == k:
-        return A.one()
+        return parent(q)(1)
     if k > n or k < 1:
-        return A.zero()
+        return parent(q)(0)
     return (q_stirling_number1(n - 1, k - 1, q=q) +
-            q_int(n - 1) * q_stirling_number1(n - 1, k, q=q))
+            q_int(n - 1, q=q) * q_stirling_number1(n - 1, k, q=q))
 
 @cached_function
 def q_stirling_number2(n, k, q=None):
@@ -896,6 +922,13 @@ def q_stirling_number2(n, k, q=None):
         ...
         ValueError: q-Stirling numbers are not defined for n < 0
 
+    We check that :trac:`25715` is fixed::
+
+        sage: q_stirling_number2(1,0).parent()
+        Univariate Polynomial Ring in q over Integer Ring
+        sage: q_stirling_number2(2,1,3r)
+        1
+
     REFERENCES:
 
     - [Mil1978]_
@@ -903,12 +936,11 @@ def q_stirling_number2(n, k, q=None):
     """
     if q is None:
         q = ZZ['q'].gen()
-    A = q.parent()
     if n < 0:
         raise ValueError('q-Stirling numbers are not defined for n < 0')
     if n == 0 == k:
-        return A.one()
-    if k > n or k < 0:
-        return A.zero()
+        return parent(q)(1)
+    if k > n or k <= 0:
+        return parent(q)(0)
     return (q**(k-1)*q_stirling_number2(n - 1, k - 1, q=q) +
-            q_int(k) * q_stirling_number2(n - 1, k, q=q))
+            q_int(k, q=q) * q_stirling_number2(n - 1, k, q=q))

@@ -1180,6 +1180,55 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self)
 
+    def _maximal_qth_root_of_unity(self):
+        r"""
+        Return a couple `(s, \zeta)` where `s` is the greatest
+        integer for which this ring has a `p^s`-th root of unity
+        and `\zeta` is such a root.
+
+        EXAMPLES::
+
+            sage: R = Zp(2,5)
+            sage: R._maximal_qth_root_of_unity()
+            (1, 1 + 2 + 2^2 + 2^3 + O(2^4))
+
+            sage: K.<a> = Qq(2^3)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^2 + 2*x + 2)
+            sage: L._maximal_qth_root_of_unity()
+            (2, 1 + pi + pi^2 + O(pi^36))
+
+        """
+        p = self.prime()
+        e = self.absolute_e()
+        k = self.residue_field()
+        cap = self.precision_cap()
+
+        # Check if this ring has a pth root of unity
+        if e % (p-1) != 0:
+            return 0, self(1)
+        res = k(self(p).expansion(e))
+        if res != -1:
+            return 0, self(1)
+        # It has, so we compute it
+        m = e // (p-1)
+        zeta = 1 + self.uniformizer_pow(m)
+        curprec = m*p + 1
+        while curprec < cap:
+            curprec -= e
+            curprec = min(2*curprec + e, p*curprec)
+            zeta = zeta.lift_to_precision(min(cap,curprec))
+            zeta += zeta * (1 - zeta**p) / p
+
+        s = 1
+        while True:
+            nextzeta = zeta._pth_root()
+            if nextzeta is None:
+                return s, zeta
+            zeta = nextzeta
+            s += 1
+
+
 class ResidueReductionMap(Morphism):
     """
     Reduction map from a p-adic ring or field to its residue field or ring.

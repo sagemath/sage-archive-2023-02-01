@@ -2937,7 +2937,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             ValueError: element is not a square
 
         In particular, an error is raised when we try to compute the square
-        root of an inexact
+        root of an inexact zero.
 
         TESTS::
 
@@ -3077,7 +3077,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x.nth_root(5)
             Traceback (most recent call last):
             ...
-            PrecisionError: not enough precision to be sure that this element is a nth power
+            PrecisionError: Not enough precision to be sure that this element is a nth power
 
         TESTS::
 
@@ -3085,20 +3085,32 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: (elt^100).nth_root(100) == elt
             True
 
+            sage: K.<a> = Qq(2^3)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^2 + 2*x + 2)
+            sage: zeta = 1 + pi + pi^2  # a square root of -1
+            sage: elt = L.random_element()
+            sage: (elt^8).nth_root(8) in [ elt, elt*zeta, -elt, -elt*zeta ]
+            True
+
         """
         n = ZZ(n)
         if n == 0:
-            raise ValueError("n must a nonzero integer")
+            raise ValueError("n must be a nonzero integer")
+        elif n == 1:
+            return self
         elif n < 0:
             return (~self).nth_root(-n)
         R = self.parent()
         p = R.prime()
+        e = R.absolute_e()
+        ep = e // (p-1)
 
         # We first check trivial cases
         if self._is_exact_zero():
             return self
         if self.is_zero():
-            raise PrecisionError("not enough precision to be sure that this element is a nth power")
+            raise PrecisionError("Not enough precision to be sure that this element is a nth power")
 
         # We check the valuation
         val = self.valuation()
@@ -3112,28 +3124,45 @@ cdef class pAdicGenericElement(LocalGenericElement):
         except ValueError:
             raise ValueError("This element is not a nth power")
 
-        m = n
-        while True:
-            q, r = m.quo_rem(p)
-            if r > 0: break
-            try:
-                a = a._pth_root()
-            except PrecisionError:
-                raise PrecisionError("not enough precision to be sure that this element is a nth power")
-            if a is None:
+        v = n.valuation(p)
+        m = n // (p**v)
+        s, zeta = R._maximal_qth_root_of_unity()
+        qthroot = a.add_bigoh(v*e + ep + 1)  # we lower the precision in order to avoid unnecessary Newton lifts
+        for i in range(v):
+            if s > 0 and i >= s:
+                conjugate = qthroot
+                for _ in range(p):
+                    qthroot = conjugate._pth_root()
+                    if qthroot is not None: break
+                    conjugate *= zeta
+            else:
+                qthroot = qthroot._pth_root()
+            if qthroot is None:
                 raise ValueError("This element is not a nth power")
-            m = q
 
-        if m == 1: return a << (val // n)
+        # We check the precision
+        prec = a.precision_absolute()
+        minprec = v*e + ep + 1
+        if v > 0 and prec < minprec:
+            raise PrecisionError("Not enough precision to be sure that this element is a nth power")
 
+        # We now use Newton iteration
+        # first to lift at precision minprec = v*e + [e/(p-1)] + 1
         x = R(~xbar)
         invm = R(1/m)
-        prec = a.precision_absolute()
         curprec = 1
-        while curprec < prec:
+        while curprec < minprec:
             curprec *= 2
+            x = x.lift_to_precision(min(minprec,curprec))
+            x += invm * x * (1 - qthroot*(x**m))
+        # second to lift at the required precision
+        divisor = R(p**v)
+        curprec = minprec
+        while curprec < prec:
+            curprec -= v*e
+            curprec = min(2*curprec + v*e, p*curprec + (v-1)*e)
             x = x.lift_to_precision(min(prec,curprec))
-            x += invm * x * (1 - a*(x**m))
+            x += invm * x * (1 - a*(x**n)) // divisor
 
         return (~x) << (val // n)
 
@@ -3142,8 +3171,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
         Return the pth root of this element or ``None``
         if this number does not have a pth root.
 
-        This is an helper function for :meth:`square_root`
-        and :meth:`nth_root`.
+        This is an helper function for :meth:`nth_root`.
+
+        .. NOTE::
+
+            This function assumes that the input element is
+            a unit in the integer ring.
 
         TESTS::
 
@@ -3162,17 +3195,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         ring = self.parent()
         p = ring.prime()
         e = ring.absolute_e()
-
-        # First, we check valuation and renormalize if needed
-        val = self.valuation()
-        if val % p != 0:
-            return None
-        a = self >> val
+        a = self
 
         prec = a.precision_absolute()
         ep = e // (p-1)
-        if prec < e + ep + 1:
-            raise PrecisionError
 
         # We compute the p-th root of 1/a in the residue field
         abar = a.residue()
@@ -3191,7 +3217,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         # We lift modulo p
         k = ring.residue_field()
-        while curprec < e/(p-1):   # curprec is the number of correct digits of x
+        while curprec < min(prec/p, e/(p-1)):   # curprec is the number of correct digits of x
             # recomputing x^p is not necessary:
             # we can alternatively update it after each update of x
             # (which is theoretically a bit faster)
@@ -3201,7 +3227,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if b.parent().is_field():
                 # We'd like to use start_val=0, but that isn't supported by NTL ramified extensions
                 bexp = [0] * b.valuation() + list(bexp)
-            for i in range(b.valuation(), e - (p-1)*curprec):
+            for i in range(b.valuation(), min(prec-p*curprec, e-(p-1)*curprec)):
                 if i % p == 0:
                     try:
                         cbar = k(bexp[i]).nth_root(p)
@@ -3212,6 +3238,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 elif k(bexp[i]) != 0:
                     return None
             curprec = (curprec + e + p-1) // p
+
+        # Not enough precision to continue
+        if prec < e + ep + 1:
+            return (~x).add_bigoh((prec+p-1) // p)
 
         # We lift one step further
         if e % (p-1) == 0:
@@ -3238,7 +3268,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             x = x.lift_to_precision(min(prec,curprec))
             x += x * (1 - a*x**p) / p
 
-        return (~x) << (val // p)
+        return ~x
 
 
     def __abs__(self):

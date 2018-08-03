@@ -1982,6 +1982,10 @@ REFERENCES:
              products*, Journal of Geometry and Physics **23**, 350
              (1997); :doi:`10.1016/S0393-0440(97)80009-5`
 
+.. [Mark1992] George Markowsky, *Primes, irreducibles and
+              extremal lattices*, Order 9 (1992), no. **3**, 265-290.
+              :doi:`10.1007%2FBF00383950`
+
 .. [Mas1969] James L. Massey, "Shift-Register Synthesis and BCH
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.

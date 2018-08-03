@@ -174,10 +174,12 @@ sdh_pip_install() {
     echo "Installing $PKG_NAME"
     if [ -n "$SAGE_DESTDIR" ]; then
         local sudo=""
+        local root="--root=$SAGE_DESTDIR"
     else
         local sudo="$SAGE_SUDO"
+        local root=""
     fi
-    $sudo sage-pip-install "$@" || \
+    $sudo sage-pip-install $root "$@" || \
         sdh_die "Error installing $PKG_NAME"
 }
 

@@ -8270,17 +8270,17 @@ cdef class Matrix(Matrix1):
 
             sage: a.randomize(0.5)
             sage: a
-            [      1/2*x^2 - x - 12 1/2*x^2 - 1/95*x - 1/2                      0]
-            [-5/2*x^2 + 2/3*x - 1/4                      0                      0]
-            [          -x^2 + 2/3*x                      0                      0]
+            [                     0                      0                      0]
+            [                     0                      0       1/2*x^2 - x - 12]
+            [1/2*x^2 - 1/95*x - 1/2                      0                      0]
 
         Now we randomize all the entries of the resulting matrix::
 
             sage: a.randomize()
             sage: a
-            [     1/3*x^2 - x + 1             -x^2 + 1              x^2 - x]
-            [ -1/14*x^2 - x - 1/4           -4*x - 1/5 -1/4*x^2 - 1/2*x + 4]
-            [ 1/9*x^2 + 5/2*x - 3     -x^2 + 3/2*x + 1   -2/7*x^2 - x - 1/2]
+            [                     0 -5/2*x^2 + 2/3*x - 1/4           -x^2 + 2/3*x]
+            [                     1        x^2 + 1/3*x - 1                     -1]
+            [                    -1       -x^2 - 1/4*x + 1                  -1/14]
 
         We create the zero matrix over the integers::
 
@@ -8296,8 +8296,8 @@ cdef class Matrix(Matrix1):
 
             sage: a.randomize(x=-2^64, y=2^64)
             sage: a
-            [-12401200298100116246   1709403521783430739]
-            [ -4417091203680573707  17094769731745295000]
+            [-3789934696463997112 -3775200185786627805]
+            [-8014573080042851913  7914454492632997238]
         """
         randint = current_randstate().python_random().randint
 

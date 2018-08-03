@@ -1700,6 +1700,26 @@ class Function_sum(BuiltinFunction):
         return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                       latex(b), latex(x))
 
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Sum.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: s = sum(k, k, 1, n, hold=True)
+            sage: s
+            sum(k, k, 1, n)
+            sage: s._sympy_() # indirect test
+            Sum(k, (k, 1, n))
+            sage: s._sympy_().doit()
+            n**2/2 + n/2
+
+        """
+        import sympy
+        return sympy.Sum(term, (k, a, n))
+
 symbolic_sum = Function_sum()
 
 
@@ -1747,6 +1767,21 @@ class Function_prod(BuiltinFunction):
         """
         return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                        latex(b), latex(x))
+
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Product.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: p = product(k^2+k+1,k,1,n, hold=True)
+            sage: p._sympy_() # indirect test
+            Product(k**2 + k + 1, (k, 1, n))
+        """
+        import sympy
+        return sympy.Product(term, (k, a, n))
 
 symbolic_product = Function_prod()
 

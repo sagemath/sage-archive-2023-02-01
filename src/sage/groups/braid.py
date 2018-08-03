@@ -51,6 +51,7 @@ AUTHORS:
 - Robert Lipshitz
 - Thierry Monteil: add a ``__hash__`` method consistent with the word
   problem to ensure correct Cayley graph computations.
+- Sebastian Oehms (July 2018): add other versions for burau_matrix (unitary + wikipedia)
 """
 
 ##############################################################################
@@ -179,14 +180,25 @@ class Braid(FiniteTypeArtinGroupElement):
         - ``var`` -- string (default: ``'t'``); the name of the
           variable in the entries of the matrix
         - ``reduced`` -- boolean (default: ``False``); whether to
-          return the reduced or unreduced Burau representation
+          return the reduced or unreduced Burau representation, can
+          be one of the following:
+
+          * ``True`` or ``'increasing'`` - returns the reduced form using
+            the basis given by `e_1 - e_i` for `2 \leq i \leq n`
+          * ``'unitary'`` - the unitary form according to Squier [Squ1984]_
+          * ``'simple'`` - returns the reduced form using the basis given
+            by simple roots `e_i - e_{i+1}`, which yields the matrices
+            given on the Wikipedia page
 
         OUTPUT:
 
         The Burau matrix of the braid. It is a matrix whose entries
         are Laurent polynomials in the variable ``var``. If ``reduced``
         is ``True``, return the matrix for the reduced Burau representation
-        instead.
+        instead in the format specified. If ``reduced`` is ``'unitary'``,
+        a triple ``M, Madj, H`` is returned, where ``M`` is the Burau matrix
+        in the unitary form, ``Madj`` the adjoined to ``M`` and ``H``
+        the hermitian form.
 
         EXAMPLES::
 
@@ -209,9 +221,33 @@ class Braid(FiniteTypeArtinGroupElement):
             [-t  1  0]
             [-t  0  1]
 
+        Using the different reduced forms::
+
+            sage: b.burau_matrix(reduced='simple')
+            [    1 - t -t^-1 + 1        -1]
+            [        1 -t^-1 + 1        -1]
+            [        1     -t^-1         0]
+
+            sage: M, Madj, H = b.burau_matrix(reduced='unitary')
+            sage: M
+            [  1 - t^2 -t^-1 + t      -t^2]  
+            [     t^-1 -t^-2 + 1        -t]
+            [     t^-2     -t^-3         0]
+            sage: Madj
+            [-t^-2 + 1         t       t^2]
+            [ t^-1 - t   1 - t^2      -t^3]
+            [    -t^-2     -t^-1         0]
+            sage: H
+            [t^-1 + t       -1        0]
+            [      -1 t^-1 + t       -1]
+            [       0       -1 t^-1 + t]
+            sage: Madj * H * M == H
+            True
+
         REFERENCES:
 
         - :wikipedia:`Burau_representation`
+        - [Squ1984]_
         """
         R = LaurentPolynomialRing(IntegerRing(), var)
         t = R.gen()
@@ -231,30 +267,74 @@ class Braid(FiniteTypeArtinGroupElement):
                     A[-1-i, -i] = 1
                     A[-i, -1-i] = t**(-1)
                 M = M * A
+
         else:
-            M = identity_matrix(R, n - 1)
-            for j in self.Tietze():
-                A = identity_matrix(R, n - 1)
-                if j > 1:
-                    i = j-1
-                    A[i-1, i-1] = 1-t
-                    A[i, i] = 0
-                    A[i, i-1] = 1
-                    A[i-1, i] = t
-                if j < -1:
-                    i = j+1
-                    A[-1-i, -1-i] = 0
-                    A[-i, -i] = 1-t**(-1)
-                    A[-1-i, -i] = 1
-                    A[-i, -1-i] = t**(-1)
-                if j == 1:
-                    for k in range(n - 1):
-                        A[k, 0] = -t
-                if j == -1:
-                    A[0, 0] = -t**(-1)
-                    for k in range(1, n - 1):
-                        A[k, 0] = -1
-                M = M * A
+            if reduced is True or reduced == "increasing":
+                M = identity_matrix(R, n - 1)
+                for j in self.Tietze():
+                    A = identity_matrix(R, n - 1)
+                    if j > 1:
+                        i = j - 1
+                        A[i-1, i-1] = 1 - t
+                        A[i, i] = 0
+                        A[i, i-1] = 1
+                        A[i-1, i] = t
+                    if j < -1:
+                        i = j + 1
+                        A[-1-i, -1-i] = 0
+                        A[-i, -i] = 1 - t**-1
+                        A[-1-i, -i] = 1
+                        A[-i, -1-i] = t**-1
+                    if j == 1:
+                        for k in range(n - 1):
+                            A[k, 0] = -t
+                    if j == -1:
+                        A[0, 0] = -t**-1
+                        for k in range(1, n - 1):
+                            A[k, 0] = -1
+                    M = M * A
+
+            elif reduced in ["simple", "unitary"]:
+                M = identity_matrix(R, n - 1)
+                for j in self.Tietze():
+                    A = identity_matrix(R, n-1)
+                    if j > 0:
+                        A[j-1, j-1] = -t
+                        if j > 1:
+                            A[j-1, j-2] = t
+                        if j < n-1:
+                            A[j-1, j] = 1
+                    if j < 0:
+                        A[-j-1, -j-1] = -t**(-1)
+                        if -j > 1:
+                            A[-j-1, -j-2] = 1
+                        if -j < n-1 :
+                            A[-j-1, -j] = t**(-1)
+                    M = M * A
+
+            else:
+                raise ValueError("invalid reduced type")
+
+            if reduced == "unitary":
+                t_sq = R.hom([t**2], codomain=R)
+                M = matrix(R, n-1, n-1, lambda i, j: t**(j-i) * t_sq(M[i,j]))
+
+                t_inv = R.hom([t**(-1)], codomain=R)
+                Madj = matrix(R, n-1, n-1, lambda i, j: t_inv(M[j,i]))
+
+                # We see if the hermitian form has been cached
+                #   in the parent
+                H = self.parent()._hermitian_form
+                if H is None:
+                    # Defining the hermitian form
+                    H = (t + t**(-1)) * identity_matrix(R, n-1)
+                    for i in range(n-2):
+                        H[i, i+1] = -1
+                        H[i+1 ,i] = -1
+                    self.parent()._hermitian_form = H
+
+                return M, Madj, H
+
         return M
 
     def alexander_polynomial(self, var='t', normalized=True):
@@ -1393,6 +1473,9 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         # For caching TL_representation()
         self._TL_representation_dict = {}
+
+        # For caching hermitian form of unitary Burau representation
+        self._hermitian_form = None
 
     def __reduce__(self):
         """

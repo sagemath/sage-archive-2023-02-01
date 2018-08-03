@@ -1180,6 +1180,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         from sage.rings.padics.padic_valuation import pAdicValuation
         return pAdicValuation(self)
 
+    @cached_method
     def _maximal_qth_root_of_unity(self):
         r"""
         Return a couple `(s, \zeta)` where `s` is the greatest

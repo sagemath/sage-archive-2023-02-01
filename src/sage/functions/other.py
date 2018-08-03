@@ -438,7 +438,22 @@ class Function_ceil(BuiltinFunction):
             8
             sage: ceil(x)
             ceil(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: ceil(x)
+            x
+            sage: ceil(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: ceil(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.ceil()
         except AttributeError:
@@ -587,7 +602,22 @@ class Function_floor(BuiltinFunction):
             7
             sage: floor(x)
             floor(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: floor(x)
+            x
+            sage: floor(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: floor(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.floor()
         except AttributeError:

@@ -264,7 +264,7 @@ class CellModule(CombinatorialFreeModule):
         return tuple([self.from_vector(v) for v in mat.left_kernel().basis()])
 
     def radical(self):
-        """
+        r"""
         Return the radical of ``self``.
 
         Let `W(\lambda)` denote a cell module. The *radical* of `W(\lambda)`
@@ -375,8 +375,9 @@ class CellModule(CombinatorialFreeModule):
         _lmul_ = _acted_upon_
         _rmul_ = _acted_upon_
 
+
 class SimpleModule(QuotientModuleWithBasis):
-    """
+    r"""
     A simple module of a cellular algebra.
 
     Let `W(\lambda)` denote a cell module. The simple module `L(\lambda)`

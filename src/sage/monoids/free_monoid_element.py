@@ -358,7 +358,7 @@ class FreeMonoidElement(MonoidElement):
         return W(sum([ [alph[gens.index(i[0])]] * i[1] for i in list(self) ], []))
 
     def to_list(self, indices=False):
-        """
+        r"""
         Return ``self`` as a list of generators.
 
         If ``self`` equals `x_{i_1} x_{i_2} \cdots x_{i_n}`, with

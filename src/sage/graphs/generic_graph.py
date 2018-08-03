@@ -12811,23 +12811,33 @@ class GenericGraph(GenericGraph_pyx):
 
         return True
 
-    def is_clique(self, vertices=None, directed_clique=False):
+    def is_clique(self, vertices=None, directed_clique=False, induced=True, loops=False):
         """
         Tests whether a set of vertices is a clique
 
-        A clique is a set of vertices such that there is an edge between any two
-        vertices.
+        A clique is a set of vertices such that there is exactly one edge
+        between any two vertices.
 
         INPUT:
 
-        -  ``vertices`` - Vertices can be a single vertex or an
-           iterable container of vertices, e.g. a list, set, graph, file or
-           numeric array. If not passed, defaults to the entire graph.
+        - ``vertices`` -- Vertices can be a single vertex or an iterable
+          container of vertices, e.g. a list, set, graph, file or numeric
+          array. If not passed, defaults to the entire graph.
 
-        -  ``directed_clique`` - (default False) If set to
-           False, only consider the underlying undirected graph. If set to
-           True and the graph is directed, only return True if all possible
-           edges in _both_ directions exist.
+        - ``directed_clique`` -- (default: ``False``) If set to ``False``, only
+          consider the underlying undirected graph. If set to ``True`` and the
+          graph is directed, only return True if all possible edges in _both_
+          directions exist.
+
+        - ``induced`` -- (default: ``True``) If set to ``True``, check that the
+          graph has exactly one edge between any two vertices. If set to
+          ``False``, check that the graph has at least one edge between any two
+          vertices.
+
+        - ``loops`` -- (default: ``False``) If set to ``True``, check that each
+          vertex of the graph has a loop, and exactly one if furthermore
+          ``induced == True``. If set to ``False``, check that the graph has no
+          loop when ``induced == True``, and ignore loops otherwise.
 
         EXAMPLES::
 
@@ -12845,28 +12855,114 @@ class GenericGraph(GenericGraph_pyx):
             False
             sage: i = graphs.CompleteGraph(4).to_directed()
             sage: i.delete_edge([0,1])
-            sage: i.is_clique()
+            sage: i.is_clique(directed_clique=False, induced=True)
+            False
+            sage: i.is_clique(directed_clique=False, induced=False)
             True
             sage: i.is_clique(directed_clique=True)
             False
+
+        TESTS:
+
+        Check that :trac:`25696` is fixed::
+
+            sage: G = Graph([(0, 1), (0, 1), (0, 1), (0, 3), (1, 2), (2, 3)], multiedges=True)
+            sage: G.is_clique()
+            False
+
+        Check cases with loops or multiple edges::
+
+            sage: G = Graph(multiedges=True, loops=True)
+            sage: G.add_clique([0, 1, 2, 3])
+            sage: G.is_clique(induced=True, loops=False)
+            True
+            sage: G.is_clique(induced=True, loops=True)
+            False
+            sage: G.is_clique(induced=False, loops=False)
+            True
+            sage: G.is_clique(induced=False, loops=True)
+            False
+            sage: G.add_edges([(0, 0)] * 4)
+            sage: G.is_clique(induced=True, loops=False)
+            False
+            sage: G.is_clique(induced=True, loops=True)
+            False
+            sage: G.is_clique(induced=False, loops=False)
+            True
+            sage: G.is_clique(induced=False, loops=True)
+            False
+            sage: G.add_edges([(1, 1), (2, 2), (3, 3)])
+            sage: G.is_clique(induced=True, loops=False)
+            False
+            sage: G.is_clique(induced=True, loops=True)
+            False
+            sage: G.is_clique(induced=False, loops=False)
+            True
+            sage: G.is_clique(induced=False, loops=True)
+            True
+            sage: G.delete_edges([(0, 0)] * 3)
+            sage: G.is_clique(induced=True, loops=False)
+            False
+            sage: G.is_clique(induced=True, loops=True)
+            True
+            sage: G.is_clique(induced=False, loops=False)
+            True
+            sage: G.is_clique(induced=False, loops=True)
+            True
+
+        Giving a set of vertices that is not a subset of the vertices of the
+        graph::
+
+            sage: g = Graph({1: [2]})
+            sage: g.is_clique([1, 2, 3])
+            False
         """
-        if directed_clique and self._directed:
-            subgraph=self.subgraph(vertices, immutable = False)
-            subgraph.allow_loops(False)
-            subgraph.allow_multiple_edges(False)
-            n=subgraph.order()
-            return subgraph.size()==n*(n-1)
+        if vertices is not None:
+            for u in vertices:
+                if not self.has_vertex(u):
+                    return False
+            G = self.subgraph(vertices, immutable=False)
         else:
-            if vertices is None:
-                subgraph = self
+            G = self
+
+        N = G.order()
+        if G.is_directed() and directed_clique:
+            M = N*(N-1) + (N if loops else 0)
+        else:
+            M = N*(N-1)/2 + (N if loops else 0)
+
+        # We check that the graph has a priori enough edges
+        if G.size() < M or (induced and G.size() > M):
+            return False
+
+        if loops and not G.allows_loops():
+            return False
+        elif not loops and G.allows_loops():
+            loop_edges = G.loop_edges(labels=False)
+            if induced and loop_edges:
+                return False
+
+        if G.allows_multiple_edges() or (G.is_directed() and not directed_clique):
+            # We check that we have edges between all pairs of vertices
+            if G.is_directed() and not directed_clique:
+                R = lambda u,v:(u, v) if u <= v else (v, u)
             else:
-                subgraph=self.subgraph(vertices)
+                R = lambda u,v:(u,v)
+            if loops:
+                edges = set(R(u, v) for u,v in G.edge_iterator(labels=False))
+            else:
+                edges = set(R(u, v) for u,v in G.edge_iterator(labels=False) if u != v)
 
-            if self._directed:
-                subgraph = subgraph.to_simple()
+            # If induced == True, we already know that G.size() == M, so
+            # we only need to check that we have the right set of edges.
+            return len(edges) >= M
 
-            n=subgraph.order()
-            return subgraph.size()==n*(n-1)/2
+        else:
+            # The graph is simple
+            if G.allows_loops() and not induced and not loops:
+                return G.size() - len(loop_edges) == M
+
+            return G.size() == M
 
     def is_cycle(self, directed_cycle=True):
         r"""
@@ -16869,7 +16965,7 @@ class GenericGraph(GenericGraph_pyx):
             [0, 1, 2, 3]
             sage: D = DiGraph(4, loops=True)
             sage: D.add_clique(range(4), loops=True)
-            sage: D.is_clique(directed_clique=True)
+            sage: D.is_clique(directed_clique=True, loops=True)
             True
         """
         import itertools

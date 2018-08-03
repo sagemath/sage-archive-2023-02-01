@@ -1041,6 +1041,7 @@ class FriCASElement(ExpectElement):
         from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.matrix.constructor import matrix
@@ -1067,6 +1068,9 @@ class FriCASElement(ExpectElement):
 
         if head == "IntegerMod":
             return Integers(domain[1].integer().sage())
+
+        if head == "PrimeField":
+            return FiniteField(domain[1].integer().sage())
 
         if head == "Fraction":
             return FractionField(self._get_sage_type(domain[1]))
@@ -1227,6 +1231,11 @@ class FriCASElement(ExpectElement):
 
             sage: fricas("((42^17)^1783)::IntegerMod(5^(5^5))").sage() == Integers(5^(5^5))((42^17)^1783) # optional - fricas
             True
+
+        Matrices over a prime field::
+
+            sage: fricas("matrix [[1::PF 3, 2],[2, 0]]").sage().parent()        # optional - fricas
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 3
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
@@ -1405,7 +1414,7 @@ class FriCASElement(ExpectElement):
             s = unparsed_InputForm[:-len("::AlgebraicNumber()")]
             return sage_eval("QQbar(" + s + ")")
 
-        if head == "IntegerMod":
+        if head == "IntegerMod" or head == "PrimeField":
             # one might be tempted not to go via InputForm here, but
             # it turns out to be safer to do it.
             n = unparsed_InputForm[len("index("):]

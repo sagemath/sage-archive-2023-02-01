@@ -447,6 +447,12 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(0).add_bigoh(infinity)
             0
 
+        Check that :trac:`23464` has been resolved::
+
+            sage: R.<pi> = Qp(7).extension(x^3 - 7)
+            sage: (pi^93).add_bigoh(-10)
+            O(pi^-10)
+
         """
         parent = self.parent()
         if absprec >= self.precision_absolute():

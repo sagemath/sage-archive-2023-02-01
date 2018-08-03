@@ -2578,15 +2578,12 @@ class Triconnectivity:
     of the $i^{th}$ component - 1 for bond, 2 for polygon, 3 for triconnected
     component. The output can be accessed through these variables.
 
-    ALGORITHM:
-
-      We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
-      original version is recursive. We emulate the recursion using a stack.
-
     ALGORITHM::
     We implement the algorithm proposed by Hopcroft and Tarjan in
     [Hopcroft1973]_ and later corrected by Gutwenger and Mutzel in
     [Gut2001]_.
+    In the case of a digraph, the computation is done on the underlying
+    graph.
 
     .. SEEALSO::
 
@@ -2662,6 +2659,15 @@ class Triconnectivity:
         sage: tric2 = Triconnectivity(G2)
         Triconnected:  [('a', 'b', None), ('b', 'c', None), ('a', 'c', None), ('c', 'd', None), ('b', 'd', None), ('a', 'd', None)]
 
+        An example of a directed graph with multi-edges:
+
+        sage: G3 = DiGraph()
+        sage: G3.allow_multiple_edges(True)
+        sage: G3.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(5,1)])
+        sage: tric2 = Triconnectivity(G3)
+        Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
+        Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
+
     TESTS::
 
         A disconnected graph:
@@ -2684,7 +2690,7 @@ class Triconnectivity:
 
     """
     def __init__(self, G, check=True):
-        from sage.graphs.graph import Graph
+        from sage.graphs.graph import Graph, DiGraph
         # graph_copy is a SparseGraph of the input graph `G`
         # We relabel the edges with increasing numbers to be able to
         # distinguish between multi-edges
@@ -3161,7 +3167,6 @@ class Triconnectivity:
                 self.__path_search(w)
 
                 self.e_stack.append(self.tree_arc[w])
-
                 temp_node = self.adj[w].get_head()
                 temp = temp_node.get_data()
                 if temp in self.reverse_edges:
@@ -3526,7 +3531,14 @@ class Triconnectivity:
                     if isinstance(e[2], str):
                         label = e[2]
                     else:
-                        label = self.edge_label_dict[(source, target,e[2])][2]
+                        # If the original input graph was a directed graph, the
+                        # source and target can in reversed in the edge.
+                        # Hence, we check for both. Since we use unique edge
+                        # labels, this does not fetch a wrong edge.
+                        if (source, target, e[2]) in self.edge_label_dict:
+                            label = self.edge_label_dict[(source, target, e[2])][2]
+                        else:
+                            label = self.edge_label_dict[(target, source, e[2])][2]
                     e_list_new.append(tuple([source, target, label]))
                 # Add the component data to `comp_list_new` and `comp_type`
                 self.comp_type.append(self.components_list[i].component_type)

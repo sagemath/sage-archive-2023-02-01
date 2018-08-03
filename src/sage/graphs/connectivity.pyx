@@ -386,6 +386,14 @@ def blocks_and_cut_vertices(G, algorithm="Tarjan_Boost"):
         sage: blocks_and_cut_vertices(g)
         ([[1, 2, 3], [5, 6], [5, 7], [5, 8], [4]], [5])
 
+    A directed graph with Boost's algorithm (:trac:`25994`)::
+
+        sage: rings = graphs.CycleGraph(10)
+        sage: rings.merge_vertices([0, 5])
+        sage: rings = rings.to_directed()
+        sage: blocks_and_cut_vertices(rings, algorithm="Tarjan_Boost")
+        ([[0, 1, 4, 2, 3], [0, 6, 9, 7, 8]], [0])
+
     TESTS::
 
         sage: blocks_and_cut_vertices(Graph(0))

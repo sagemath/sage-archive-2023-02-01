@@ -748,7 +748,7 @@ cpdef blocks_and_cut_vertices(g):
     if not isinstance(g, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if g.allows_loops() or g.allows_multiple_edges():
+    if g.allows_loops() or g.allows_multiple_edges() or g.is_directed():
         g = g.to_simple()
 
     cdef BoostVecGraph g_boost

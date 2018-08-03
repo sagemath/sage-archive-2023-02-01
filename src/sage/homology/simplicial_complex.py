@@ -3206,12 +3206,27 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: SC = SimplicialComplex([(0,1,2),(0,2,3),(2,3,4),(1,2,4), \
                                           (1,4,5),(0,3,6),(3,6,7),(4,5,7)])
-            sage: SC.minimal_nonfaces() #  This was taking a long time before :trac:`20078`
+
+        This was taking a long time before :trac:`20078`::
+
+            sage: SC.minimal_nonfaces() # random order
             {(3, 4, 7), (0, 7), (0, 4), (0, 5), (3, 5), (1, 7), (2, 5), (5, 6),
             (1, 3), (4, 6), (2, 7), (2, 6), (1, 6)}
-
+            sage: sorted(SC.minimal_nonfaces())
+            [(0, 4),
+             (0, 5),
+             (0, 7),
+             (1, 3),
+             (1, 6),
+             (1, 7),
+             (2, 5),
+             (2, 6),
+             (2, 7),
+             (3, 4, 7),
+             (3, 5),
+             (4, 6),
+             (5, 6)]
         """
-
         face_dict = self.faces()
         vertices = self.vertices()
         dimension = self.dimension()
@@ -3472,11 +3487,16 @@ class SimplicialComplex(Parent, GenericCellComplex):
             used_vertices = []  # vertices which are in an edge
             d = {}
             for e in edges:
-                v = min(e)
+                try:
+                    v = min(e)
+                    max_e = max(e)
+                except TypeError:
+                    v = min(e, key=str)
+                    max_e = max(e, key=str)
                 if v in d:
-                    d[v].append(max(e))
+                    d[v].append(max_e)
                 else:
-                    d[v] = [max(e)]
+                    d[v] = [max_e]
                 used_vertices.extend(list(e))
             for v in vertices:
                 if v not in used_vertices:

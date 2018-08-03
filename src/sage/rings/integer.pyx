@@ -149,7 +149,7 @@ cdef extern from "<limits.h>":
     const long LONG_MAX  # Work around https://github.com/cython/cython/pull/2016
 
 from cysignals.memory cimport check_allocarray, check_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
+from cysignals.signals cimport sig_on, sig_off, sig_check
 
 import operator
 import sys
@@ -3954,7 +3954,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def coprime_integers(self, m):
         """
-        Return the positive integers `< m` that are coprime to
+        Return the non-negative integers `< m` that are coprime to
         this integer.
 
         EXAMPLES::
@@ -3973,15 +3973,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: for n in srange(-6,7):
-            ....:     for m in range(1,abs(n)+3):
-            ....:         assert n.coprime_integers(m) == [k for k in srange(1,m) if gcd(k,n) == 1]
+            sage: 0.coprime_integers(10^100)
+            [1]
+            sage: 1.coprime_integers(10^100)
+            Traceback (most recent call last):
+            ...
+            OverflowError: bound is too large
+            sage: for n in srange(-6, 7):
+            ....:     for m in range(-1, 10):
+            ....:         assert n.coprime_integers(m) == [k for k in srange(0, m) if gcd(k, n) == 1]
 
         AUTHORS:
 
         - Naqi Jaffery (2006-01-24): examples
 
-        - David Roe (2017-10-02): Now uses sieving for larger inputs
+        - David Roe (2017-10-02): Use sieving
+
+        - Jeroen Demeyer (2018-06-25): allow returning zero (only relevant for 1.coprime_integers(n))
 
         ALGORITHM:
 
@@ -3990,32 +3998,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Then return a list of integers corresponding to the unset bits.
         """
         cdef Integer sieve, p, slf, mInteger = Integer(m)
-        if mpz_cmp_ui(mInteger.value, 1) <= 0:
-            return []
-        if mpz_sgn(self.value) == 0:
-            return [one]
-        if mpz_fits_slong_p(mInteger.value) == 0:
-            raise ValueError("m is too large")
-        cdef long mlong = mpz_get_si(mInteger.value)
+        cdef long k
         cdef unsigned long ilong, plong
+
+        # Trivial case m <= 0
+        if mpz_sgn(mInteger.value) <= 0:
+            return []
+
+        # Handle 0.coprime_integers(n) first because it's the only case
+        # where very large n are allowed
+        if mpz_sgn(self.value) == 0:
+            if mpz_cmp_ui(mInteger.value, 1) <= 0:
+                return []
+            return [one]
+
+        if mpz_fits_slong_p(mInteger.value) == 0:
+            raise OverflowError("bound is too large")
+        cdef long mlong = mpz_get_si(mInteger.value)
         if mpz_cmpabs_ui(self.value, 1) == 0:
-            return [Integer(ilong) for ilong in range(1, mlong)]
+            return [smallInteger(k) for k in range(mlong)]
         if (mpz_cmpabs(self.value, mInteger.value) >= 0 and
             (mpz_sgn(self.value) > 0 and self.is_prime() or
              mpz_sgn(self.value) < 0 and (-self).is_prime())):
-            return [Integer(ilong) for ilong in range(1, mlong)]
+            return [smallInteger(k) for k in range(1, mlong)]
         sieve = PY_NEW(Integer)
-        p = one
         slf = PY_NEW(Integer)
         mpz_set(slf.value, self.value)
+        p = one
+
         while True:
+            sig_check()
             p = slf.trial_division(mlong, mpz_get_si(p.value)+1)
             if mpz_cmp_si(p.value, mlong) >= 0:
                 # p is larger than m, so no more primes are needed.
                 break
-            sig_on()
             ilong = plong = mpz_get_ui(p.value)
-            while ilong < mlong:
+            while ilong < <unsigned long>mlong:
                 # Set bits in sieve at each multiple of p
                 mpz_setbit(sieve.value, ilong)
                 ilong += plong
@@ -4023,12 +4041,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             mpz_divexact_ui(slf.value, slf.value, plong)
             while mpz_divisible_ui_p(slf.value, plong):
                 mpz_divexact_ui(slf.value, slf.value, plong)
-            sig_off()
             # If we have found all factors, we break
             if mpz_cmpabs_ui(slf.value, 1) == 0:
                 break
-        return [Integer(ilong) for ilong in range(1, mlong)
-                if mpz_tstbit(sieve.value, ilong) == 0]
+        return [smallInteger(k) for k in range(1, mlong)
+                if mpz_tstbit(sieve.value, k) == 0]
 
     def divides(self, n):
         """

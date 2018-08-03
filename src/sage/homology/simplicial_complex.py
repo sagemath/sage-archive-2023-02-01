@@ -183,7 +183,6 @@ from itertools import combinations
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 from sage.misc.cachefunc import cached_method
 from sage.misc.decorators import rename_keyword
-from sage.misc.superseded import deprecated_function_alias
 
 def lattice_paths(t1, t2, length=None):
     r"""
@@ -1257,8 +1256,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: Y = SimplicialComplex([[0,2], [1,4]])
-            sage: Y.maximal_faces() # random
-            {(1, 4), (0, 2)}
             sage: sorted(Y.maximal_faces())
             [(0, 2), (1, 4)]
 
@@ -1349,8 +1346,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
         EXAMPLES::
 
             sage: S1 = simplicial_complexes.Sphere(1)
-            sage: [f for f in S1.face_iterator()] # random
-            [(), (2,), (0,), (1,), (1, 2), (0, 2), (0, 1)]
             sage: sorted(S1.face_iterator())
             [(), (0,), (0, 1), (0, 2), (1,), (1, 2), (2,)]
         """
@@ -1364,7 +1359,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     cells = faces
 
-    n_faces = deprecated_function_alias(25986, GenericCellComplex.n_cells)
+    n_faces = GenericCellComplex.n_cells
 
     def is_pure(self):
         """
@@ -3209,9 +3204,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
         This was taking a long time before :trac:`20078`::
 
-            sage: SC.minimal_nonfaces() # random order
-            {(3, 4, 7), (0, 7), (0, 4), (0, 5), (3, 5), (1, 7), (2, 5), (5, 6),
-            (1, 3), (4, 6), (2, 7), (2, 6), (1, 6)}
             sage: sorted(SC.minimal_nonfaces())
             [(0, 4),
              (0, 5),
@@ -4405,8 +4397,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X = SimplicialComplex([[1,2],[1,4],[3,4],[2,5]])
             sage: X.is_balanced()
             True
-            sage: X.is_balanced(certificate=True) # random ordering
-            [[2, 4], [1, 3, 5]]
             sage: sorted(X.is_balanced(certificate=True))
             [[1, 3, 5], [2, 4]]
             sage: X = SimplicialComplex([[1,2],[1,4],[3,4],[2,4]])
@@ -4426,8 +4416,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X=SimplicialComplex([[1,2,3],[3,4]])
             sage: X.is_balanced(check_purity=True)
             False
-            sage: X.is_balanced(certificate=True) # random ordering
-            [[2], [1, 4], [3]]
             sage: sorted(X.is_balanced(certificate=True))
             [[1, 4], [2], [3]]
         """
@@ -4530,8 +4518,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: X = SimplicialComplex([[1,2,3],[1,2,4]])
             sage: Y = SimplicialComplex([[1,2,3],[1,4,5]])
             sage: Z = SimplicialComplex([[1,2,3],[1,4],[2,4]])
-            sage: X.intersection(Y).facets() # random order
-            {(1, 4), (1, 2, 3)}
             sage: sorted(X.intersection(Y).facets())
             [(1, 2, 3), (1, 4)]
             sage: X.intersection(X) == X

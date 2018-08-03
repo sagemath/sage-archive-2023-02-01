@@ -331,6 +331,8 @@ the `G_2` short root is `\alpha_1`::
   
 By contrast in Kac, `\alpha_2` is the short root.
 
+.. _coxeternumber:
+
 Labels and Coxeter Number
 -------------------------
 

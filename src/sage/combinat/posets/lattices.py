@@ -4345,8 +4345,20 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         ok = (True, None) if certificate else True
 
         H = self._hasse_diagram
-        if H.order() == 0:
+        if H.order() < 3:
             return ok
+
+        # Check for trivial cases
+        x = H._trivial_nonregular_congruence()
+        if x is not None:
+            if certificate:
+                return (False, self.congruence([[self._vertex_to_element(x[0]), self._vertex_to_element(x[1])]]))
+            return False
+        x = self.is_vertically_decomposable(certificate=True)
+        if x[0]:
+            if certificate:
+                return (False, self.congruence([self.vertical_decomposition()[0]]))
+            return False
 
         for c in H.congruences_iterator():
             cong = list(c)

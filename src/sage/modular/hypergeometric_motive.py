@@ -1004,7 +1004,7 @@ class HypergeometricData(object):
                        for r in range(q-1)]
 
         sigma = sum( ((-p)**(sum(gauss_table[(v * r) % (q - 1)][0] * gv
-                                for v, gv in gamma.items()) // (p - 1)) * 
+                                for v, gv in gamma.items()) // (p - 1)) *
                      prod(gauss_table[(v * r) % (q - 1)][1] ** gv
                           for v, gv in gamma.items()) * teich ** r)
                      << (f*(D+m[0]-m[r])) for r in range(q-1))

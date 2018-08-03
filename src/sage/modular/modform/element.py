@@ -175,6 +175,7 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.q_expansion(prec)(x)
 
+    @cached_method
     def valuation(self):
         """
         Return the valuation of self (i.e. as an element of the power
@@ -191,16 +192,10 @@ class ModularForm_abstract(ModuleElement):
             sage: ModularForms(25,6).6.valuation()
             7
         """
-        try:
-            return self.__valuation
-        except AttributeError:
-            v = self.qexp().valuation()
-            if v != self.qexp().prec():
-                self.__valuation = v
-                return v
-            v = self.qexp(self.parent().sturm_bound()).valuation()
-            self.__valuation = v
+        v = self.qexp().valuation()
+        if v != self.qexp().prec():
             return v
+        return self.qexp(self.parent().sturm_bound()).valuation()
 
     def qexp(self, prec=None):
         """
@@ -1389,6 +1384,7 @@ class Newform(ModularForm_abstract):
         # other is a ModularFormElement
         return self.element() == other
 
+    @cached_method
     def abelian_variety(self):
         """
         Return the abelian variety associated to self.
@@ -1405,12 +1401,8 @@ class Newform(ModularForm_abstract):
             TypeError: f must have weight 2
 
         """
-        try:
-            return self.__abelian_variety
-        except AttributeError:
-            from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
-            self.__abelian_variety = ModularAbelianVariety_newform(self)
-            return self.__abelian_variety
+        from sage.modular.abvar.abvar_newform import ModularAbelianVariety_newform
+        return ModularAbelianVariety_newform(self)
 
     def hecke_eigenvalue_field(self):
         r"""
@@ -2796,6 +2788,7 @@ class EisensteinSeries(ModularFormElement):
                               for d in divisors(m)]))
         return v
 
+    @cached_method
     def __defining_parameters(self):
         r"""
         Return defining parameters for ``self``.
@@ -2805,23 +2798,19 @@ class EisensteinSeries(ModularFormElement):
             sage: EisensteinForms(11,2).eisenstein_series()[0]._EisensteinSeries__defining_parameters()
             (-1/24, Dirichlet character modulo 1 of conductor 1, Dirichlet character modulo 1 of conductor 1, Rational Field, 2, 11, 1, 1)
         """
-        try:
-            return self.__defining_params
-        except AttributeError:
-            chi = self.__chi.primitive_character()
-            psi = self.__psi.primitive_character()
-            k = self.weight()
-            t = self.__t
-            L = chi.conductor()
-            M = psi.conductor()
-            K = chi.base_ring()
-            n = K.zeta_order()
-            if L == 1:
-                c0 = K(-psi.bernoulli(k))/K(2*k)
-            else:
-                c0 = K(0)
-            self.__defining_params = (c0, chi, psi, K, n, t, L, M)
-        return self.__defining_params
+        chi = self.__chi.primitive_character()
+        psi = self.__psi.primitive_character()
+        k = self.weight()
+        t = self.__t
+        L = chi.conductor()
+        M = psi.conductor()
+        K = chi.base_ring()
+        n = K.zeta_order()
+        if L == 1:
+            c0 = K(-psi.bernoulli(k))/K(2*k)
+        else:
+            c0 = K(0)
+        return (c0, chi, psi, K, n, t, L, M)
 
     def chi(self):
         """
@@ -2889,6 +2878,7 @@ class EisensteinSeries(ModularFormElement):
         """
         return self.__psi.conductor()
 
+    @cached_method
     def character(self):
         """
         Return the character associated to self.
@@ -2917,11 +2907,7 @@ class EisensteinSeries(ModularFormElement):
             sage: [ [ f.character() == chi for f in EisensteinForms(chi).eisenstein_series() ] for chi in DirichletGroup(16) ]
             [[True, True, True, True, True], [], [True, True], [], [True, True, True, True], [], [True, True], []]
         """
-        try:
-            return self.__character
-        except AttributeError:
-            self.__character = self.__chi * self.__psi
-        return self.__character
+        return self.__chi * self.__psi
 
     def new_level(self):
         """

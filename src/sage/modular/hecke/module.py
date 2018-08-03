@@ -776,7 +776,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             Li's.
 
             With Sage's conventions, the operator `W_d` satisfies
-            
+
             .. math::
 
                 W_d^2 = d^{k - 2} \langle x^{-1} \rangle

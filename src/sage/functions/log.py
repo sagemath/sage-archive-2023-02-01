@@ -764,7 +764,7 @@ class Function_lambert_w(BuiltinFunction):
 
             sage: var("n")
             n
-            sage: lambert_w(n, x)._fricas_()
+            sage: lambert_w(n, x)._fricas_()                                    # optional - fricas
             generalizedLambertW(n,x)
         """
         BuiltinFunction.__init__(self, "lambert_w", nargs=2,

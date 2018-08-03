@@ -12674,8 +12674,7 @@ cdef class Matrix(Matrix1):
             sage: a.conjugate()
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'
-            object has no attribute 'conjugate'
+            TypeError: cardinality of the field must be a square number
             sage: A = matrix(F,
             ....:     [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
             ....:      [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
@@ -12945,9 +12944,11 @@ cdef class Matrix(Matrix1):
 
     def conjugate_transpose(self):
         r"""
-        Returns the transpose of ``self`` after each entry has been converted to its complex conjugate.
+        Return the transpose of ``self`` after each entry has been
+        converted to its complex conjugate.
 
         .. NOTE::
+
             This function is sometimes known as the "adjoint" of a matrix,
             though there is substantial variation and some confusion with
             the use of that term.
@@ -13006,7 +13007,19 @@ cdef class Matrix(Matrix1):
             [             zeta5^3]
             [-zeta5^3 - zeta5 - 1]
 
-        Conjugation does not make sense over rings not containing complex numbers. ::
+        Furthermore, this method can be applied to matrices over
+        quadratic extensions of finite fields::
+
+            sage: F.<a> = GF(9,'a')
+            sage: N = matrix(F, 2, [0,a,-a,1]); N
+            [  0   a]
+            [2*a   1]
+            sage: N.conjugate_transpose()
+            [      0   a + 2]
+            [2*a + 1       1]
+
+        Conjugation does not make sense over rings not containing complex
+        numbers or finite fields which are not a qadratic extension::
 
             sage: N = matrix(GF(5), 2, [0,1,2,3])
             sage: N.conjugate_transpose()

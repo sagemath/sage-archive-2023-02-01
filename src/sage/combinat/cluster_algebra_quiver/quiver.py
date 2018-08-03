@@ -1514,7 +1514,7 @@ class ClusterQuiver(SageObject):
 
         if show_sequence:
             def _plot_arrow( v, k, center=(0,0) ):
-                return text("$\longleftrightarrow$",(center[0],center[1]), fontsize=25) + text("$\mu_"+str(v)+"$",(center[0],center[1]+0.15), fontsize=15) \
+                return text(r"$\longleftrightarrow$",(center[0],center[1]), fontsize=25) + text(r"$\mu_"+str(v)+"$",(center[0],center[1]+0.15), fontsize=15) \
                     + text("$"+str(k)+"$",(center[0],center[1]-0.2), fontsize=15)
             plot_sequence = [ quiver_sequence[i].plot( circular=True, center=(i*width_factor,0) ) for i in range(len(quiver_sequence)) ]
             arrow_sequence = [ _plot_arrow( sequence[i],i+1,center=((i+0.5)*width_factor,0) ) for i in range(len(sequence)) ]

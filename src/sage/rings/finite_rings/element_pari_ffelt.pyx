@@ -430,18 +430,25 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                 return
 
             t = typ(x_GEN)
-            if t == t_FFELT and FF_samefield(x_GEN, g):
-                self.construct(x_GEN)
+            if t == t_FFELT:
+                if FF_samefield(x_GEN, g):
+                    self.construct(x_GEN)
+                    return
             elif t == t_INT:
                 self.construct(_INT_to_FFELT(g, x_GEN))
-            elif t == t_INTMOD and gequal0(modii(gel(x_GEN, 1), FF_p_i(g))):
-                self.construct(_INT_to_FFELT(g, gel(x_GEN, 2)))
-            elif t == t_FRAC and not gequal0(modii(gel(x_GEN, 2), FF_p_i(g))):
-                self.construct(FF_div(_INT_to_FFELT(g, gel(x_GEN, 1)),
-                                      _INT_to_FFELT(g, gel(x_GEN, 2))))
-            else:
-                sig_off()
-                raise TypeError("no coercion defined")
+                return
+            elif t == t_INTMOD:
+                if gequal0(modii(gel(x_GEN, 1), FF_p_i(g))):
+                    self.construct(_INT_to_FFELT(g, gel(x_GEN, 2)))
+                    return
+            elif t == t_FRAC:
+                if not gequal0(modii(gel(x_GEN, 2), FF_p_i(g))):
+                    elt = FF_div(_INT_to_FFELT(g, gel(x_GEN, 1)),
+                                 _INT_to_FFELT(g, gel(x_GEN, 2)))
+                    self.construct(elt)
+                    return
+            sig_off()
+            raise TypeError(f"unable to convert PARI {x.type()} to finite field element")
 
         elif (isinstance(x, FreeModuleElement)
               and x.parent() is self._parent.vector_space()):

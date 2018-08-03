@@ -33,15 +33,22 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import print_function
-from __future__ import absolute_import
-import __future__
+from __future__ import absolute_import, print_function
 
-import hashlib, multiprocessing, os, sys, time, warnings, signal, linecache
+import os
+import sys
+import time
+import signal
+import linecache
+import hashlib
+import multiprocessing
+import warnings
 import re
 import errno
-import doctest, traceback
+import doctest
+import traceback
 import tempfile
+import gc
 import six
 
 import sage.misc.randstate as randstate
@@ -51,12 +58,12 @@ from .parsing import OriginalSource, reduce_hex
 from sage.structure.sage_object import SageObject
 from .parsing import SageOutputChecker, pre_hash, get_source
 from sage.repl.user_globals import set_globals
-from sage.interfaces.process import ContainChildren
 from sage.cpython.atexit import restore_atexit
 from sage.cpython.string import bytes_to_str, str_to_bytes
 
 
 # All doctests run as if the following future imports are present
+import __future__
 MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
 
 
@@ -567,7 +574,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             with OriginalSource(example):
                 print("sage: " + example.source[:-1] + " ## line %s ##"%(test.lineno + example.lineno + 1))
             # Update the position so that result comparison works
-            throwaway = self._fakeout.getvalue()
+            self._fakeout.getvalue()
             if not quiet:
                 self.report_start(out, test, example)
 
@@ -587,9 +594,22 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             # any exception that gets raised. But for SystemExit, we
             # simply propagate the exception.
             exception = None
+            def compiler(example):
+                # Compile mode "single" is meant for running a single
+                # statement like on the Python command line. It implies
+                # in particular that the resulting value will be printed.
+                return compile(example.source, filename, "single",
+                               compileflags, 1)
+
+            if not self.options.gc:
+                pass
+            elif self.options.gc > 0:
+                if gc.isenabled():
+                    gc.collect()
+            elif self.options.gc < 0:
+                gc.disable()
+
             try:
-                compiler = lambda example:compile(
-                    example.source, filename, "single", compileflags, 1)
                 # Don't blink!  This is where the user's code gets run.
                 self.compile_and_execute(example, compiler, test.globs)
             except SystemExit:
@@ -1286,7 +1306,6 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                         if ex.want:
                             print(doctest._indent(ex.want[:-1]))
                     from sage.repl.configuration import sage_ipython_config
-                    from sage.repl.prompts import DebugPrompts
                     from IPython.terminal.embed import InteractiveShellEmbed
                     cfg = sage_ipython_config.default()
                     # Currently this doesn't work: prompts only work in pty

@@ -47,7 +47,7 @@ REFERENCES:
 """
 from __future__ import print_function, division
 
-from builtins import zip
+from six.moves import zip, filter
 
 from sage.modular.btquotients.btquotient import DoubleCosetReduction
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1194,11 +1194,11 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         d = self._k - 1
         for e in self._E:
             try:
-                g = filter(lambda g: g[2], S[e.label])[0]
+                g = next(filter(lambda g: g[2], S[e.label]))
                 C = self._U.acting_matrix(self._Sigma0(self.embed_quaternion(g[0])), d).transpose()  # Warning - Need to allow the check = True
                 C -= self._U.acting_matrix(self._Sigma0(Matrix(QQ, 2, 2, p ** g[1])), d).transpose()  # Warning - Need to allow the check = True
                 stab_conds.append([e.label, C])
-            except IndexError:
+            except StopIteration:
                 pass
 
         n_stab_conds = len(stab_conds)

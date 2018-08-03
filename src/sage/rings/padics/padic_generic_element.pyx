@@ -1363,12 +1363,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(1).is_square())
         else:
             e = parent.absolute_e()
-            if self.precision_relative() < 1 + 2*e:
-                raise PrecisionError("not enough precision to be sure that this element has a square root")
             try:
                 self.add_bigoh(self.valuation() + 2*e + 1).nth_root(2)
             except ValueError:
                 return False
+            except PrecisionError:
+                raise PrecisionError("not enough precision to be sure that this element has a square root")
             return True
 
     def is_squarefree(self):

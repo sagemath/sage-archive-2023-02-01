@@ -3161,7 +3161,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             g = crystal.digraph()
             mults = {}
-            for x in g.vertices():
+            for x in g.vertex_iterator():
                 wt = self(x.weight())
                 mults[wt] = mults.get(wt, []) + [x]
             positions = {x: plot_options.projection(x) for x in mults.keys()}

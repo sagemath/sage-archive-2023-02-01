@@ -2345,7 +2345,7 @@ def _bipartite_graph_to_digraph(g):
             dg.add_edge( edge[0],edge[1],edge[2] )
         else:
             dg.add_edge( edge[1],edge[0],edge[2] )
-    for vert in g.vertices():
+    for vert in g.vertex_iterator():
         if vert not in dg.vertices():
             dg.add_vertex(vert)
     return dg

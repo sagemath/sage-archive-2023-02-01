@@ -951,6 +951,10 @@ REFERENCES:
 .. [Du2009] Du Ye. *On the Complexity of Deciding Degeneracy in
             Games*. :arxiv:`0905.3012v1` (2009)
 
+.. [Du2018] \O. Dunkelman, *Efficient Construction of the Boomerang
+            Connection Table* (preprint); in Cryptology ePrint Archive,
+            (2018), 631.
+
 .. [DW1995] Andreas W.M. Dress and Walter Wenzel, *A Simple Proof of
             an Identity Concerning Pfaffians of Skew Symmetric
             Matrices*, Advances in Mathematics, volume 112, Issue 1,

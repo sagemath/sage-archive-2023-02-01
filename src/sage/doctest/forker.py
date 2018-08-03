@@ -60,6 +60,27 @@ from sage.cpython.string import bytes_to_str, str_to_bytes
 MANDATORY_COMPILE_FLAGS = __future__.print_function.compiler_flag
 
 
+if not six.PY2:
+    # These lists are used on Python 3+ only for backwards compatibility with
+    # Python 2 in traceback parsing
+    # These exceptions in Python 2 have been rolled into OSError on Python 3;
+    # see https://docs.python.org/3/library/exceptions.html#OSError
+    _OSError_ALIASES = [
+        'IOError', 'EnvironmentError', 'socket.error', 'select.error',
+        'mmap.error'
+    ]
+    # This list is sort of the opposite case: these are new built-in exceptions
+    # in Python 3 that are subclasses of OSError; see
+    # https://docs.python.org/3/library/exceptions.html#os-exceptions
+    import builtins
+    _OSError_SUBCLASSES = [
+        exc.__name__ for exc in vars(builtins).values()
+        if isinstance(exc, type) and issubclass(exc, OSError) and
+           exc is not OSError
+    ]
+
+
+
 def init_sage():
     """
     Import the Sage library.
@@ -619,22 +640,23 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
                     else:
                         exc_fullname = exc_cls.__qualname__
 
-                    # See
-                    # https://docs.python.org/3/library/exceptions.html#OSError
-                    oserror_aliases = ['IOError', 'EnvironmentError',
-                                       'socket.error', 'select.error',
-                                       'mmap.error']
-
                     if (example.exc_msg.startswith(exc_name) and
                             exc_msg.startswith(exc_fullname)):
                         exc_msg = exc_msg.replace(exc_fullname, exc_name, 1)
                     else:
                         # Special case: On Python 3 these exceptions are all
                         # just aliases for OSError
-                        for alias in oserror_aliases:
+                        for alias in _OSError_ALIASES:
                             if example.exc_msg.startswith(alias + ':'):
                                 exc_msg = exc_msg.replace('OSError', alias, 1)
                                 break
+                        else:
+                            for subcls in _OSError_SUBCLASSES:
+                                if exc_msg.startswith(subcls + ':'):
+                                    exc_msg = exc_msg.replace(subcls, 'OSError',
+
+                                                              1)
+                                    break
 
                 if not quiet:
                     got += doctest._exception_traceback(exc_info)

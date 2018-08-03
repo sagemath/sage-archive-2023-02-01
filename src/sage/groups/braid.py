@@ -982,13 +982,8 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(4)
             sage: b = B([1, 2, 1, -2, 3, 1])
-            sage: b.right_normal_form() # optional - libbraiding
+            sage: b.right_normal_form()
             (s1*s0, s0*s2, 1)
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import rightnormalform
@@ -1006,13 +1001,9 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(4)
             sage: b = B([2, 1, 3, 2])
-            sage: b.centralizer() # optional - libbraiding
+            sage: b.centralizer()
             [s1*s0*s2*s1, s0*s2]
 
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import centralizer
@@ -1030,16 +1021,12 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
-            sage: b.super_summit_set() # optional - libbraiding
+            sage: b.super_summit_set()
             [s0^-1*s1^-1*s0^-2*s1^2*s0^2,
             (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^3*s1,
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^3*s1^2,
             s0^-1*s1^-1*s0^-2*s1^-1*s0*s1^3*s0]
 
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import supersummitset
@@ -1062,15 +1049,10 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: c = B([1, 2, 1])
-            sage: b.gcd(c) # optional - libbraiding
+            sage: b.gcd(c)
             s0^-1*s1^-1*s0^-2*s1^2*s0
-            sage: c.gcd(b) # optional - libbraiding
+            sage: c.gcd(b)
             s0^-1*s1^-1*s0^-2*s1^2*s0
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import greatestcommondivisor
@@ -1093,12 +1075,8 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1, -2, -2, 1])
             sage: c = B([1, 2, 1])
-            sage: b.lcm(c) # optional - libbraiding
+            sage: b.lcm(c)
             (s0*s1)^2*s0
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package to be installed.
         """
         try:
             from sage.libs.braiding import leastcommonmultiple
@@ -1122,18 +1100,13 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: a = B([2, 2, -1, -1])
             sage: b = B([2, 1, 2, 1])
             sage: c = b * a / b
-            sage: d = a.conjugating_braid(c) # optional - libbraiding
-            sage: d * c / d == a # optional - libbraiding
+            sage: d = a.conjugating_braid(c)
+            sage: d * c / d == a
             True
-            sage: d # optional - libbraiding
+            sage: d
             s1*s0
-            sage: d * a / d == c # optional - libbraiding
+            sage: d * a / d == c
             False
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import conjugatingbraid
@@ -1159,15 +1132,10 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: a = B([2, 2, -1, -1])
             sage: b = B([2, 1, 2, 1])
             sage: c = b * a / b
-            sage: c.is_conjugated(a) # optional - libbraiding
+            sage: c.is_conjugated(a)
             True
-            sage: c.is_conjugated(b) # optional - libbraiding
+            sage: c.is_conjugated(b)
             False
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import conjugatingbraid
@@ -1185,9 +1153,9 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
-            sage: b.ultra_summit_set() # optional - libbraiding
+            sage: b.ultra_summit_set()
             [[s0*s1*s0^2, (s0*s1)^2]]
-            sage: a.ultra_summit_set() # optional - libbraiding
+            sage: a.ultra_summit_set()
             [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3,
             (s0^-1*s1^-1*s0^-1)^2*s1^2*s0^2*s1^4,
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^2*s1^5,
@@ -1200,11 +1168,6 @@ class Braid(FiniteTypeArtinGroupElement):
             (s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1,
             s0^-1*s1^-1*s0^-2*s1^-1*s0^4*s1^2*s0,
             s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2]]
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import ultrasummitset
@@ -1226,19 +1189,14 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1])
-            sage: b.thurston_type() # optional - libbraiding
+            sage: b.thurston_type()
             'reducible'
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.thurston_type() # optional - libbraiding
+            sage: a.thurston_type()
             'pseudo-anosov'
             sage: c = B([2, 1, 2, 1])
-            sage: c.thurston_type() # optional - libbraiding
+            sage: c.thurston_type()
             'periodic'
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import thurston_type
@@ -1254,16 +1212,12 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: b = B([1, 2, -1])
-            sage: b.is_reducible() # optional - libbraiding
+            sage: b.is_reducible()
             True
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.is_reducible() # optional - libbraiding
+            sage: a.is_reducible()
             False
 
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         return self.thurston_type() == 'reducible'
 
@@ -1276,15 +1230,10 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
-            sage: a.is_periodic() # optional - libbraiding
+            sage: a.is_periodic()
             False
-            sage: b.is_periodic() # optional - libbraiding
+            sage: b.is_periodic()
             True
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         return self.thurston_type() == 'periodic'
 
@@ -1297,15 +1246,10 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
             sage: b = B([2, 1, 2, 1])
-            sage: a.is_pseudoanosov() # optional - libbraiding
+            sage: a.is_pseudoanosov()
             True
-            sage: b.is_pseudoanosov() # optional - libbraiding
+            sage: b.is_pseudoanosov()
             False
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         return self.thurston_type() == 'pseudo-anosov'
 
@@ -1318,15 +1262,10 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: B = BraidGroup(3)
             sage: b = B([2, 1, 2, 1])
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.rigidity() # optional - libbraiding
+            sage: a.rigidity()
             6
-            sage: b.rigidity() # optional - libbraiding
+            sage: b.rigidity()
             0
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import rigidity
@@ -1347,7 +1286,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
             sage: B = BraidGroup(3)
             sage: a = B([2, 2, -1, -1, 2, 2])
-            sage: a.sliding_circuits() # optional - libbraiding
+            sage: a.sliding_circuits()
             [[(s0^-1*s1^-1*s0^-1)^2*s1^3*s0^2*s1^3],
              [s0^-1*s1^-1*s0^-2*s1^-1*s0^2*s1^2*s0^3],
              [s0^-1*s1^-1*s0^-2*s1^-1*s0^3*s1^2*s0^2],
@@ -1361,13 +1300,8 @@ class Braid(FiniteTypeArtinGroupElement):
              [(s0^-1*s1^-1*s0^-1)^2*s1*s0^6*s1],
              [s0^-1*s1^-1*s0^-2*s1^5*s0]]
             sage: b = B([2, 1, 2, 1])
-            sage: b.sliding_circuits() # optional - libbraiding
+            sage: b.sliding_circuits()
             [[s0*s1*s0^2, (s0*s1)^2]]
-
-        .. WARNING::
-
-            This functionality requires the libbraiding package
-            to be installed.
         """
         try:
             from sage.libs.braiding import sliding_circuits

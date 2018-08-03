@@ -13,9 +13,9 @@ EXAMPLES::
     sage: E = EllipticCurve('433a')
     sage: P = E.heegner_point(-8,3)
     sage: z = P.point_exact(201); z
-    (-4/3 : 1/27*a - 4/27 : 1)
+    (-4/3 : 1/9*a - 4/9 : 1)
     sage: parent(z)
-    Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 44*x + 1159
+    Abelian group of points on Elliptic Curve defined by y^2 + x*y = x^3 + 1 over Number Field in a with defining polynomial x^2 - 20*x + 175
     sage: parent(z[0]).discriminant()
     -3
     sage: E.quadratic_twist(-3).rank()
@@ -91,7 +91,9 @@ The above is consistent with the following analytic computation::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
+
+from __future__ import print_function, absolute_import, division
+
 from six.moves import range
 
 from sage.misc.all import verbose, prod
@@ -109,6 +111,7 @@ from sage.rings.all import (ZZ, GF, QQ, CDF,
                             is_fundamental_discriminant)
 from sage.arith.all import (gcd, xgcd, lcm, prime_divisors, factorial,
         binomial)
+from sage.rings.factorint import factor_trial_division
 from sage.quadratic_forms.all import (BinaryQF,
                                       BinaryQF_reduced_representatives)
 from sage.matrix.all import MatrixSpace, matrix
@@ -4938,7 +4941,7 @@ class HeegnerQuatAlg(SageObject):
                 reps = Q.representation_vector_list(n+1)[-1]
                 k = len([r for r in reps if gcd(r) == 1])
                 assert k%2 == 0
-                v[i] += k/2
+                v[i] += k // 2
         return B(v)
 
     @cached_method
@@ -6245,43 +6248,64 @@ def satisfies_weak_heegner_hypothesis(N, D):
             return False
     return True
 
+
 def make_monic(f):
     r"""
-    ``make_monic`` returns a monic integral polynomial `g` and an
-    integer `d` such that if `\alpha` is a root of `g` then a root of
-    `f` is `\alpha/d`.
+    Return a monic integral polynomial `g` and an integer `d` such
+    that if `\alpha` is a root of `g`, then `\alpha/d` is a root of `f`.
+    In other words, `c f(x) = g(d x)` for some scalar `c`.
 
     INPUT:
 
-        - f -- polynomial over the rational numbers
+    - f -- polynomial over the rational numbers
+
+    OUTPUT:
+
+    a monic integral polynomial and an integer
 
     EXAMPLES::
 
+        sage: from sage.schemes.elliptic_curves.heegner import make_monic
         sage: R.<x> = QQ[]
-        sage: sage.schemes.elliptic_curves.heegner.make_monic(3*x^3 + 14*x^2 - 7*x + 5)
+        sage: make_monic(3*x^3 + 14*x^2 - 7*x + 5)
         (x^3 + 14*x^2 - 21*x + 45, 3)
 
-    In this example we verify that make_monic does what we claim it does::
+    In this example we verify that ``make_monic`` does what we claim it does::
 
         sage: K.<a> = NumberField(x^3 + 17*x - 3)
         sage: f = (a/7+2/3).minpoly(); f
         x^3 - 2*x^2 + 247/147*x - 4967/9261
-        sage: g, d = sage.schemes.elliptic_curves.heegner.make_monic(f)
-        sage: g
-        x^3 - 18522*x^2 + 144110421*x - 426000323007
-        sage: d
-        9261
+        sage: g, d = make_monic(f); (g, d)
+        (x^3 - 42*x^2 + 741*x - 4967, 21)
         sage: K.<b> = NumberField(g)
         sage: (b/d).minpoly()
         x^3 - 2*x^2 + 247/147*x - 4967/9261
+
+    TESTS::
+
+        sage: f = x^5 + x^3/4 + 5
+        sage: make_monic(f)
+        (x^5 + x^3 + 160, 2)
+
+    Scalar factors do not matter, the result is always monic::
+
+        sage: make_monic(f * 1000000)
+        (x^5 + x^3 + 160, 2)
+        sage: make_monic(f / 1000000)
+        (x^5 + x^3 + 160, 2)
     """
-    # make f monic
+    R = f.parent()
     n = f.degree()
-    f = f / f.leading_coefficient()
-    # find lcm of denominators
-    d = lcm([b.denominator() for b in f.list() if b])
-    x = f.variables()[0]
-    g = (d**n) * f(x/d)
+    lc = f[n]
+    d = ZZ.one()
+    for i in range(n):
+        expo = n - i
+        # We require that (d^expo * f[i] / lc) is an integer
+        den = (d**expo * f[i] / lc).denominator()
+        for p, e in factor_trial_division(den, 1000000):
+            # Round up e/expo
+            d *= p ** ((e + expo - 1) // expo)
+    g = R([d**(n-i) * f[i] / lc for i in range(n+1)])
     return g, d
 
 

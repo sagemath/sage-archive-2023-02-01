@@ -263,20 +263,31 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
         return self._Q
 
     @cached_method
-    def level(self):
+    def level(self, mu=None):
         """
-        Return the level of ``self``.
+        By default, returns the level of ``self``. If a parameter ``mu``
+        in the weight lattice is supplied, returns the level of ``mu``.
 
-        The level of a highest weight representation `V_{\Lambda}` is
-        defined as `(\Lambda | \delta)` See [Ka1990]_ section 12.4.
+        OPTIONAL:
+
+        - ``mu`` -- A weight
+
+        The level of a weight `\mu` is `(\mu | \delta)`. The level
+        of the highest weight representation `V_{\Lambda}` is the level
+        of `\Lambda`. See [Ka1990]_ section 12.4.
 
         EXAMPLES::
 
             sage: Lambda = RootSystem(['G',2,1]).weight_lattice(extended=true).fundamental_weights()
             sage: [IntegrableRepresentation(Lambda[i]).level() for i in [0,1,2]]
             [1, 1, 2]
+            sage: V = IntegrableRepresentation(Lambda[0])
+            sage: [V.level(Lambda[i]) for i in [0,1,2]]
+            [1, 1, 2]
         """
-        return ZZ(self._inner_pq(self._Lam, self._Q.null_root()))
+        if mu is None:
+            mu = self._Lam
+        return ZZ(self._inner_pq(mu, self._Q.null_root()))
 
     @cached_method
     def coxeter_number(self):

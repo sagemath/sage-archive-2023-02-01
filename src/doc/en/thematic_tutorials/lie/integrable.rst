@@ -37,7 +37,7 @@ this way, so these representations are in bijection with the cone `P^+` of
 dominant weights.
 
 The affine case
-===============
+---------------
 
 Now we assume that `\mathfrak{g}` is affine. The integrable
 highest weight representations (and their crystals) are
@@ -100,16 +100,18 @@ We adjust `\mu` by a multiple of `\delta` to the beginning
 of the positive part of the sequence. Thus we define
 `\mu` to be *maximal* if `m(\mu) \neq 0` but `m(\mu + \delta) = 0`.
 
-Since `\delta` is fixed under the action of the affine Weyl group,
-and since the weight multiplicities are Weyl group invariant, the
-function `k \mapsto m(\mu - k \delta)` is unchanged if `\mu` is replaced
-by an equivalent weight. Now every Weyl orbit contains a dominant weight.
-Therefore in a assume that `\mu` is dominant. There are only a finite
-number of dominant maximal weights. Thus there are only a finite
-number of such strings to be computed.
+Since `\delta` is fixed under the action of the affine Weyl group, and since
+the weight multiplicities are Weyl group invariant, the function
+`k \mapsto m(\mu - k \delta)` is unchanged if `\mu` is replaced by `w(\mu)`
+for some Weyl group element `w`. Now every Weyl orbit contains a dominant
+weight.  Therefore in enumerating the string we may assume that the weight
+`\mu` is dominant. There are only a finite number of dominant maximal
+weights. Thus there are only a finite number of such strings to be computed.
 
 Remarkably, [KacPeterson]_ showed that each string is the set of Fourier
-coefficients of a modular form; see also [Kac]_ Chapter 13.
+coefficients of a modular form; see also [Kac]_ Chapter 13. To this end
+we define the *modular characteristic
+
 
 Sage methods for integrable representations
 -------------------------------------------

@@ -45,8 +45,10 @@ AUTHOR:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from __future__ import absolute_import
 
+cimport cython
 from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AsString
 from libc.math cimport exp, floor, log, pow, sqrt
 from libc.string cimport memcpy
@@ -177,7 +179,7 @@ cdef class TimeSeries:
 
             sage: v = finance.TimeSeries([1,-3.5])
             sage: v.__reduce__()
-            (<built-in function unpickle_time_series_v1>, (..., 2))
+            (<cyfunction unpickle_time_series_v1 at ...>, (..., 2))
             sage: loads(dumps(v)) == v
             True
 
@@ -2562,6 +2564,8 @@ cdef new_time_series(Py_ssize_t length):
     t._values = <double*> sig_malloc(sizeof(double)*length)
     return t
 
+
+@cython.binding(True)
 def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     """
     Version 1 unpickle method.
@@ -2588,8 +2592,6 @@ def unpickle_time_series_v1(bytes v, Py_ssize_t n):
     cdef TimeSeries t = new_time_series(n)
     memcpy(t._values, PyBytes_AsString(v), n*sizeof(double))
     return t
-
-
 
 
 def autoregressive_fit(acvs):

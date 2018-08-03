@@ -754,7 +754,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: n = 5
             sage: t = n.__reduce__(); t
-            (<built-in function make_integer>, ('5',))
+            (<cyfunction make_integer at ...>, ('5',))
             sage: t[0](*t[1])
             5
             sage: loads(dumps(n)) == n
@@ -768,17 +768,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # tuple as input. All kinds of problems happen
         # if we don't do this.
         return sage.rings.integer.make_integer, (self.str(32),)
-
-    cdef _reduce_set(self, s):
-        """
-        Set this integer from a string in base 32.
-
-        .. NOTE::
-
-           Integers are supposed to be immutable, so you should not
-           use this function.
-        """
-        mpz_set_str(self.value, str_to_bytes(s), 32)
 
     def __index__(self):
         """
@@ -7029,6 +7018,8 @@ def GCD_list(v):
 
     return z
 
+
+@cython.binding(True)
 def make_integer(s):
     """
     Create a Sage integer from the base-32 Python *string* s. This is
@@ -7045,8 +7036,9 @@ def make_integer(s):
         TypeError: expected str...Integer found
     """
     cdef Integer r = PY_NEW(Integer)
-    r._reduce_set(s)
+    mpz_set_str(r.value, str_to_bytes(s), 32)
     return r
+
 
 cdef class int_to_Z(Morphism):
     """

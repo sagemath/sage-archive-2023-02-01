@@ -46,6 +46,8 @@ AUTHORS:
   for the construction of the Reynolds operator in Singular.
 
 - Volker Braun (2013-1) port to new Parent, libGAP.
+
+- Sebastian Oehms (2018-07): Added _permutation_group_element_ (Trac #25706)
 """
 
 ##############################################################################
@@ -585,6 +587,14 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: a, b= MatrixGroup([A, B]).as_permutation_group().gens()
             sage: a.order(), b.order()
             (2, 1)
+
+        Check that ``_permutation_group_morphism`` works (:trac:`25706`)::
+
+            sage: MG = GU(3,2).as_matrix_group()
+            sage: PG = MG.as_permutation_group()  # this constructs the morphism
+            sage: mg = MG.an_element()
+            sage: MG._permutation_group_morphism(mg)
+            (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
         """
         # Note that the output of IsomorphismPermGroup() depends on
         # memory locations and will change if you change the order of
@@ -601,12 +611,23 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             mats.append(m)
         mats_str = str(gap([[list(r) for r in m] for m in mats]))
         gap.eval("iso:=IsomorphismPermGroup(Group("+mats_str+"))")
+        gap_permutation_map = gap("iso;")
         if algorithm == "smaller":
             gap.eval("small:= SmallerDegreePermutationRepresentation( Image( iso ) );")
             C = gap("Image( small )")
         else:
             C = gap("Image( iso )")
-        return PermutationGroup(gap_group=C, canonicalize=False)
+        PG = PermutationGroup(gap_group=C, canonicalize=False)
+
+        def permutation_group_map(element):
+            return PG(gap_permutation_map.ImageElm(element.gap()))
+
+        from sage.categories.homset import Hom
+        self._permutation_group_morphism = Hom(self, PG)(permutation_group_map)
+
+        return PG
+
+    _permutation_group_ = as_permutation_group
 
     def module_composition_factors(self, algorithm=None):
         r"""

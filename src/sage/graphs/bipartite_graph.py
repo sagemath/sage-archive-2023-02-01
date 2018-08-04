@@ -1460,13 +1460,6 @@ class BipartiteGraph(Graph):
             sage: G.matching(use_edge_labels=True, value_only=True)
             444
         """
-        from sage.rings.real_mpfr import RR
-        def weight(x):
-            if x in RR:
-                return x
-            else:
-                return 1
-
         if algorithm is None:
             algorithm = "Edmonds" if use_edge_labels else "Hopcroft-Karp"
 
@@ -1474,32 +1467,27 @@ class BipartiteGraph(Graph):
             if use_edge_labels:
                 raise ValueError('use_edge_labels can not be used with ' +
                                  '"Hopcroft-Karp" or "Eppstein"')
-            W = dict()
-            L = dict()
-            for u,v,l in self.edge_iterator():
-                if not (u, v) in L or ( use_edge_labels and W[u, v] < weight(l) ):
-                    L[u, v] = l
-                    if use_edge_labels:
-                        W[u, v] = weight(l)
             import networkx
-            g = networkx.Graph()
-            if use_edge_labels:
-                for u, v in W:
-                    g.add_edge(u, v, weight=W[u, v])
+            # NetworkX matching algorithms for bipartite graphs may fail when
+            # the graph is not connected
+            if not self.is_connected():
+                CC = [g for g in self.connected_components_subgraphs() if g.order() > 1]
             else:
-                for u, v in L:
-                    g.add_edge(u, v)
-            if algorithm == "Hopcroft-Karp":
-                d = networkx.bipartite.hopcroft_karp_matching(g)
-            else:
-                d = networkx.bipartite.eppstein_matching(g)
-            if value_only:
-                if use_edge_labels:
-                    return sum(W[u, v] for u, v in iteritems(d) if u < v)
+                CC = [self]
+            d = []
+            for g in CC:
+                h = g.networkx_graph()
+                if algorithm == "Hopcroft-Karp":
+                    m = networkx.bipartite.hopcroft_karp_matching(h)
                 else:
-                    return Integer(len(d) // 2)
+                    m = networkx.bipartite.eppstein_matching(h)
+                d.extend((u, v, g.edge_label(u,v)) for u,v in m.items() if u < v)
+
+            if value_only:
+                return Integer(len(d))
             else:
-                return [(u, v, L[u, v]) for u, v in iteritems(d) if u < v]
+                return d
+
         elif algorithm == "Edmonds" or algorithm == "LP":
             return Graph.matching(self, value_only=value_only,
                                   algorithm=algorithm,
@@ -1508,3 +1496,293 @@ class BipartiteGraph(Graph):
         else:
             raise ValueError('algorithm must be "Hopcroft-Karp", ' +
                              '"Eppstein", "Edmonds" or "LP"')
+
+    def vertex_cover(self, algorithm="Konig", value_only=False,
+                     reduction_rules=True, solver=None, verbosity=0):
+        r"""
+        Return a minimum vertex cover of self represented by a set of vertices.
+
+        A minimum vertex cover of a graph is a set `S` of vertices such that
+        each edge is incident to at least one element of `S`, and such that `S`
+        is of minimum cardinality. For more information, see
+        :wikipedia:`Vertex_cover`.
+
+        Equivalently, a vertex cover is defined as the complement of an
+        independent set.
+
+        As an optimization problem, it can be expressed as follows:
+
+        .. MATH::
+
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\forall (u,v) \in G.edges(), b_u+b_v\geq 1\\
+            &\forall x\in G, b_x\mbox{ is a binary variable}
+
+        INPUT:
+
+        - ``algorithm`` -- string (default: ``"Konig"``). Indicating
+          which algorithm to use. It can be one of those values.
+
+          - ``"Konig"`` will compute a minimum vertex cover using Konig's
+            algorithm (:wikipedia:`Kőnig's_theorem_(graph_theory)`).
+
+          - ``"Cliquer"`` will compute a minimum vertex cover
+            using the Cliquer package.
+
+          - ``"MILP"`` will compute a minimum vertex cover through a mixed
+            integer linear program.
+
+          - If ``algorithm = "mcqd"`` - Uses the MCQD solver
+            (`<http://www.sicmm.org/~konc/maxclique/>`_). Note that the MCQD
+            package must be installed.
+
+        - ``value_only`` -- boolean (default: ``False``). If set to ``True``,
+          only the size of a minimum vertex cover is returned. Otherwise,
+          a minimum vertex cover is returned as a list of vertices.
+
+        - ``reduction_rules`` -- (default: ``True``) Specify if the reductions
+          rules from kernelization must be applied as pre-processing or not.
+          See [ACFLSS04]_ for more details. Note that depending on the instance,
+          it might be faster to disable reduction rules.
+          This parameter is currently ignored when ``algorithm == "Konig"``.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
+          to be used. If set to ``None``, the default one is used. For more
+          information on LP solvers and which default solver is used, see the
+          method :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of
+          the class :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+
+        - ``verbosity`` -- non-negative integer (default: ``0``). Set the level
+          of verbosity you want from the linear program solver. Since the
+          problem of computing a vertex cover is `NP`-complete, its solving may
+          take some time depending on the graph. A value of 0 means that there
+          will be no message printed by the solver. This option is only useful
+          if ``algorithm="MILP"``.
+
+        EXAMPLES:
+
+        On the Cycle Graph::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(6))
+            sage: len(B.vertex_cover())
+            3
+            sage: B.vertex_cover(value_only=True)
+            3
+
+        The two algorithms should return the same result::
+
+           sage: g = BipartiteGraph(graphs.RandomBipartite(10, 10, .5))
+           sage: vc1 = g.vertex_cover(algorithm="Konig")
+           sage: vc2 = g.vertex_cover(algorithm="Cliquer")
+           sage: len(vc1) == len(vc2)
+           True
+
+        TESTS:
+
+        Giving a non connected bipartite graph::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(4) * 2)
+            sage: len(B.vertex_cover())
+            4
+        """
+        if not algorithm == "Konig":
+            return Graph.vertex_cover(self, algorithm=algorithm, value_only=value_only,
+                                          reduction_rules=reduction_rules, solver=solver,
+                                          verbosity=verbosity)
+
+        if not self.is_connected():
+            VC = []
+            for b in self.connected_components_subgraphs():
+                if b.order() > 1:
+                    VC.extend(b.vertex_cover(algorithm="Konig"))
+            return VC
+
+        M = Graph(self.matching())
+        left = set(self.left)
+        right = set(self.right)
+
+        # Initialize Z with vertices in left that are not involved in the
+        # matching
+        Z = left.difference(M.vertex_iterator())
+
+        # Alternate: extend Z with all vertices reacheable by alternate paths
+        # (match / non-match edges).
+        X = set(Z)
+        while X:
+            # Follow non matched edges
+            Y = set()
+            for u in X:
+                for v in self.neighbors(u):
+                    if not v in Z and not M.has_edge(u, v):
+                        Y.add(v)
+            Z.update(Y)
+
+            # Follow matched edges
+            X = set()
+            for u in Y:
+                for v in M.neighbor_iterator(u):
+                    if not v in Z:
+                        X.add(v)
+            Z.update(X)
+
+        # The solution is (left \ Z) + (right \cap Z)
+        VC = list((left.difference(Z)).union(right.intersection(Z)))
+
+        if value_only:
+            return len(VC)
+        return VC
+
+    def _subgraph_by_adding(self, vertices=None, edges=None, edge_property=None, immutable=None):
+        r"""
+        Return the subgraph containing the given vertices and edges.
+
+        The edges also satisfy the edge_property, if it is not None. The
+        subgraph is created by creating a new empty graph and adding the
+        necessary vertices, edges, and other properties.
+
+        INPUT:
+
+        -  ``vertices`` - Vertices is a list of vertices
+
+        - ``edges`` - Edges can be a single edge or an iterable container of
+          edges (e.g., a list, set, file, numeric array, etc.). If no edges are
+          specified, then all edges are assumed and the returned graph is an
+          induced subgraph. In the case of multiple edges, specifying an edge as
+          `(u, v)` means to keep all edges `(u, v)`, regardless of the label.
+
+        - ``edge_property`` - If specified, this is expected to be a function on
+          edges, which is intersected with the edges specified, if any are.
+
+        - ``immutable`` (boolean) -- This parameter is currently ignored for
+          ``BipartiteGraph``.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(6))
+            sage: H = B._subgraph_by_adding(vertices=B.left)
+            sage: H.order(), H.size()
+            (3, 0)
+            sage: H = B._subgraph_by_adding(vertices=[0, 1])
+            sage: H.order(), H.size()
+            (2, 1)
+            sage: H = B._subgraph_by_adding(vertices=[0, 1, 2], edges=[(0, 1)])
+            sage: H.order(), H.size()
+            (3, 1)
+
+        Using the property arguments::
+
+            sage: B = BipartiteGraph([(0, 1, 1), (0, 2, 0), (0, 3, 0), (3, 4, 1)])
+            sage: H = B._subgraph_by_adding(vertices=B.vertices(), edge_property=(lambda e: e[2] == 1))
+            sage: H.order(), H.size()
+            (5, 2)
+        """
+        B = self.__class__(weighted=self._weighted, loops=self.allows_loops(),
+                           multiedges= self.allows_multiple_edges())
+        B.name("Subgraph of ({})".format(self.name()))
+        for u in vertices:
+            if u in self.left:
+                B.add_vertex(u, left=True)
+            elif u in self.right:
+                B.add_vertex(u, right=True)
+        if edges is None:
+            edges_to_keep = self.edge_boundary(B.left, B.right, sort=False)
+        else:
+            edges_to_keep_labeled = [tuple(sorted(e[0:2])+[e[2]]) for e in edges if len(e)==3]
+            edges_to_keep_unlabeled = [tuple(sorted(e)) for e in edges if len(e)==2]
+            edges_to_keep = []
+            for u,v,l in self.edge_boundary(B.left, B.right, sort=False):
+                u,v = (u, v) if u < v else (v, u)
+                if (u, v, l) in edges_to_keep_labeled or (u, v) in edges_to_keep_unlabeled:
+                    edges_to_keep.append((u, v, l))
+
+        if edge_property is not None:
+            edges_to_keep = [e for e in edges_to_keep if edge_property(e)]
+
+        B.add_edges(edges_to_keep)
+
+        attributes_to_update = ('_pos', '_assoc')
+        for attr in attributes_to_update:
+            if hasattr(self, attr) and getattr(self, attr) is not None:
+                value = dict([(v, getattr(self, attr).get(v, None)) for v in B])
+                setattr(B, attr, value)
+
+        return B
+
+    def _subgraph_by_deleting(self, vertices=None, edges=None, inplace=False,
+                              edge_property=None, immutable=None):
+        r"""
+        Return the subgraph containing the given vertices and edges.
+
+        The edges also satisfy the edge_property, if it is not None. The
+        subgraph is created by creating deleting things that are not needed.
+
+        INPUT:
+
+        -  ``vertices`` -- Vertices is a list of vertices
+
+        - ``edges`` -- Edges can be a single edge or an iterable container of
+          edges (e.g., a list, set, file, numeric array, etc.). If no edges are
+          specified, then all edges are assumed and the returned graph is an
+          induced subgraph. In the case of multiple edges, specifying an edge as
+          `(u,v)` means to keep all edges `(u,v)`, regardless of the label.
+
+        - ``edge_property`` -- If specified, this is expected to be a function
+          on edges, which is intersected with the edges specified, if any are.
+
+        - ``inplace`` -- Using inplace is True will simply delete the extra
+          vertices and edges from the current graph. This will modify the graph.
+
+        - ``immutable`` (boolean) -- This parameter is currently ignored for
+          ``BipartiteGraph``.
+
+        EXAMPLES::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(6))
+            sage: H = B._subgraph_by_deleting(vertices=B.left)
+            sage: H.order(), H.size()
+            (3, 0)
+            sage: H = B._subgraph_by_deleting(vertices=[0, 1])
+            sage: H.order(), H.size()
+            (2, 1)
+            sage: H = B._subgraph_by_deleting(vertices=[0, 1, 2], edges=[(0,1)])
+            sage: H.order(), H.size()
+            (3, 1)
+
+        Using the property arguments::
+
+            sage: B = BipartiteGraph([(0, 1, 1), (0, 2, 0), (0, 3, 0), (3, 4, 1)])
+            sage: H = B._subgraph_by_deleting(vertices=B.vertices(), edge_property=(lambda e: e[2] == 1))
+            sage: H.order(), H.size()
+            (5, 2)
+
+        TESTS::
+        """
+        if inplace:
+            B = self
+        else:
+            # We make a copy of the graph
+            B = BipartiteGraph(data=self.edges(), partition=[self.left, self.right])
+            attributes_to_update = ('_pos', '_assoc')
+            for attr in attributes_to_update:
+                if hasattr(self, attr) and getattr(self, attr) is not None:
+                    value = dict([(v, getattr(self, attr).get(v, None)) for v in B])
+                    setattr(B, attr, value)
+        B.name("Subgraph of ({})".format(self.name()))
+
+        B.delete_vertices([v for v in B.vertex_iterator() if v not in vertices])
+
+        edges_to_delete = []
+        if edges is not None:
+            edges_graph = [sorted(e[0:2])+[e[2]] for e in B.edge_iterator()]
+            edges_to_keep_labeled = [sorted(e[0:2])+[e[2]] for e in edges if len(e) == 3]
+            edges_to_keep_unlabeled = [sorted(e) for e in edges if len(e) == 2]
+            for e in edges_graph:
+                if e not in edges_to_keep_labeled and e[0:2] not in edges_to_keep_unlabeled:
+                    edges_to_delete.append(tuple(e))
+        if edge_property is not None:
+            # We might get duplicate edges, but this does handle the case of
+            # multiple edges.
+            edges_to_delete.extend(e for e in B.edge_iterator() if not edge_property(e))
+
+        B.delete_edges(edges_to_delete)
+        return B

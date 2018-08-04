@@ -6549,6 +6549,12 @@ class Graph(GenericGraph):
             [1]
             sage: G.vertex_cover(reduction_rules=False)
             [1]
+
+        Ticket :trac:`25988` is fixed::
+
+            sage: B = BipartiteGraph(graphs.CycleGraph(6))
+            sage: B.vertex_cover(algorithm='Cliquer', reduction_rules=True)
+            [1, 3, 5]
         """
         self._scream_if_not_simple(allow_multiple_edges=True)
         g = self
@@ -6565,7 +6571,8 @@ class Graph(GenericGraph):
             # belongs to an optimal vertex cover
 
             # We first take a copy of the graph without multiple edges, if any.
-            g = copy(self)
+            g = Graph(data=self.edges(), format='list_of_edges',
+                          multiedges=self.allows_multiple_edges())
             g.allow_multiple_edges(False)
 
             degree_at_most_two = {u for u in g if g.degree(u) <= 2}

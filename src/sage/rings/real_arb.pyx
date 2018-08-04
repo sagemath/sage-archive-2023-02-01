@@ -1336,7 +1336,6 @@ cdef class RealBall(RingElement):
         cdef fmpq_t tmpq
         cdef arf_t  tmpr
         cdef mag_t  tmpm
-        cdef Integer foo
 
         Element.__init__(self, parent)
 

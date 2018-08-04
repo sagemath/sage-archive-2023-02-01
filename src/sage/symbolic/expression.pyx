@@ -132,6 +132,13 @@ Check the fix for :trac:`25251` and :trac:`25252`::
     sqrt(2)*((I - 1)*sqrt(2) - 2)
     sage: (1 + exp(I*pi/4)) * exp(I*pi/4)
     -(1/4*I + 1/4)*sqrt(2)*(-(I + 1)*sqrt(2) - 2)
+
+Test if :trac:`24883` is fixed::
+
+    sage: a = exp(I*pi/4) + 1
+    sage: b = 1 - exp(I*pi/4)
+    sage: a*b
+    1/4*((I + 1)*sqrt(2) - 2)*(-(I + 1)*sqrt(2) - 2)
 """
 
 #*****************************************************************************

@@ -2880,6 +2880,29 @@ def RingedTree(k, vertex_labels = True):
     return g
 
 def FurerGadget(k, prefix=None):
+    r"""
+    Return a Furer gadget of order ``k`` and their coloring.
+    
+    Construct the Furer gadget described for the first time in https://doi.org/10.1007/BF01305232,
+    a graph composed by a middle layer of 2^(k-1) nodes and two sets of nodes (a_0, ... , a_(k-1)) and (b_0, ... , b_(k-1)).
+    Each node in the middle is connected to one of either a_i or b_i, for each i in [0,k[.
+    To read about the complete construction, see the paper mentioned above.
+    The returned coloring colors the middle section with one color, and then each pair (a_i, b_i) with another color.
+    Since this method is mainly used to create Furer gadgets for the Cai-Furer-Immerman construction, returning gadgets that don't
+    always have the same vertex labels is important, that's why there is a parameter to manually set a prefix to be appended to each vertex label.
+    
+    INPUT:
+
+    - ``k`` -- The order of the returned FurerGadget
+
+    - ``prefix`` -- Prefix to be appended to each vertex label, so as to individualise the returned Furer gadget
+    
+    OUTPUT:
+    
+    - ``G`` -- The Furer gadget of order ``k``
+    
+    - ``coloring`` -- A list of list of vertices, representing the partition induced by the coloring on the vertices of ``G``
+    """
     from itertools import repeat as rep, chain, combinations
     from sage.graphs.graph import DiGraph
     G = Graph()
@@ -2906,7 +2929,37 @@ def FurerGadget(k, prefix=None):
     partition.append(powerset)
     return G, partition
 
-def CaiFurerImmermanGraph(G):
+def CaiFurerImmermanGraph(G, twisted=False):
+    r"""
+    Return the a Cai-Furer-Immerman graph from ``G``, possibly a twisted one, and a partition of its nodes.
+
+    A Cai-Furer-Immerman graph from/on ``G`` is a graph created by applying the transformation
+    described in https://doi.org/10.1007/BF01305232 on a graph ``G``, that is substituting every vertex v in ``G`` with a
+    Furer gadget F(v) of order d equal to the degree of the vertex, and then substituting every edge (v,u) in ``G`` 
+    with a pair of edges, one connecting the two "a" nodes of F(v) and F(u) and the other their two "b" nodes.
+    The returned coloring of the vertices is made by the union of the colorings of each single Furer gadget,
+    individualised for each vertex of ``G``.
+    To understand better what these "a" and "b" nodes are, see the documentation on  Furer gadgets.
+    
+    Furthermore, this method can apply what is described in the paper mentioned above as a "twist" on an edge,
+    that is taking only one of the pairs of edges introduced in the new graph and swap two of their extremes,
+    making each edge go from an "a" node to a "b" node. This is only doable if the original graph G is connected.
+    
+    A CaiFurerImmerman graph on a graph with no balanced vertex separators smaller than s and its twisted version
+    cannot be distinguished by k-WL for any k < s.
+
+    INPUT:
+
+    - ``G`` -- An undirected graph on which to construct the Cai-Furer-Immerman graph
+
+    - ``twisted`` -- A boolean indicating if the version to construct is a twisted one or not
+    
+    OUTPUT:
+    
+    - ``H`` -- The Cai-Furer-Immerman graph on ``G``
+    
+    - ``coloring`` -- A list of list of vertices, representing the partition induced by the coloring on the vertices of ``H``
+    """
     isConnected = G.is_connected()
     newG = Graph()
     total_partition = []
@@ -2925,14 +2978,19 @@ def CaiFurerImmermanGraph(G):
         edge_vb = (v, (i, 'b'))
         edge_ua = (u, (j, 'a'))
         edge_ub = (u, (j, 'b'))
-        if isConnected:
+        if isConnected and twisted:
             temp = edge_ua
             edge_ua = edge_ub
             edge_ua = temp
             isConnected = False
         newG.add_edge(edge_va, edge_ua)
         newG.add_edge(edge_vb, edge_ub)
-    return newG, total_partition
+    if(twisted and G.is_connected()):
+        s = " twisted"
+    else:
+        s = ""
+    newG.name("CaiFurerImmerman" + s + " graph constructed from a " + G.name())
+return newG, total_partition
             
             
 def MathonPseudocyclicMergingGraph(M, t):

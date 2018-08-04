@@ -6553,7 +6553,7 @@ class Graph(GenericGraph):
         Ticket :trac:`25988` is fixed::
 
             sage: B = BipartiteGraph(graphs.CycleGraph(6))
-            sage: B.vertex_cover(reduction_rules=True)
+            sage: B.vertex_cover(algorithm='Cliquer', reduction_rules=True)
             [1, 3, 5]
         """
         self._scream_if_not_simple(allow_multiple_edges=True)

@@ -199,7 +199,7 @@ from __future__ import print_function
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.interfaces.expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.misc.misc import SAGE_TMP_INTERFACE
-from sage.env import DOT_SAGE
+from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
 import re
 
@@ -1170,6 +1170,17 @@ class FriCASElement(ExpectElement):
             sage: dilog(1.0)
             1.64493406684823
 
+        Check that :trac:`25602` is fixed::
+
+            sage: r = fricas.integrate(72000/(1+x^5),x).sage()                  # optional - fricas
+            sage: n(r.subs(x=5)-r.subs(x=3))                                    # optional - fricas tol 0.1
+            193.020947266210
+
+            sage: var("a"); r = fricas.integrate(72000*a^8/(a^5+x^5),x).sage()  # optional - fricas
+            a
+            sage: n(r.subs(a=1, x=5)-r.subs(a=1, x=3))                          # optional - fricas tol 0.1
+            193.020947266268 - 8.73114913702011e-11*I
+
         """
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.libs.pynac.pynac import symbol_table, register_symbol
@@ -1178,16 +1189,61 @@ class FriCASElement(ExpectElement):
         register_symbol(lambda x,y: x + y*I, {'fricas':'complex'})
         register_symbol(lambda x: dilog(1-x), {'fricas':'dilog'})
 
+        def explicitely_not_implemented(*args):
+            raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %args)
+        register_symbol(explicitely_not_implemented, {'fricas':'rootOfADE'})
+        register_symbol(explicitely_not_implemented, {'fricas':'rootOfRec'})
+
+        rootOf = dict() # (variable, polynomial)
+        rootOf_ev = dict() # variable -> (complex) algebraic number
+        def convert_rootOf(x, y):
+            if y in rootOf:
+                assert rootOf[y] == x
+            else:
+                rootOf[y] = x
+            return y
+        register_symbol(convert_rootOf, {'fricas':'rootOf'})
+
         s = unparsed_InputForm
         replacements = [('pi()', 'pi '),
-                        ('::Symbol', ' ')]
+                        ('::Symbol', ' '),
+                        ('%', '_')] # this last one is a workaround - python does not allow % in variable names
         for old, new in replacements:
             s = s.replace(old, new)
+
         try:
-            return symbolic_expression_from_string(s, symbol_table["fricas"])
+            ex = symbolic_expression_from_string(s, symbol_table["fricas"])
         except (SyntaxError, TypeError):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
+        from sage.rings.all import QQbar, PolynomialRing
+        from sage.symbolic.ring import SR
+        i = 0
+        while rootOf:
+            (var, poly) = rootOf.items()[i]
+            pvars = poly.variables()
+            rvars = [v for v in pvars if v not in rootOf_ev] # remaining variables
+            uvars = [v for v in rvars if v in rootOf] # variables to evaluate
+            if len(uvars) == 1:
+                assert uvars[0] == var
+                # substitute known roots
+                poly = poly.subs(rootOf_ev)
+                evars = [v for v in rvars if v not in rootOf] # extraneous variables
+                assert set(evars) == set(poly.variables()).difference([var])
+                if evars:
+                    # we just need any root per FriCAS specification
+                    rootOf_ev[var] = poly.roots(var, multiplicities=False)[0]
+                else:
+                    R = PolynomialRing(QQbar, "x")
+                    # PolynomialRing does not accept variable names with leading underscores
+                    poly = R(poly.subs({var:R.gen()}))
+                    # we just need any root per FriCAS specification
+                    rootOf_ev[var] = poly.roots(multiplicities=False)[0].radical_expression()
+                del rootOf[var]
+                i = 0
+            else:
+                i += 1
+        return ex.subs(rootOf_ev)
 
     def _sage_(self):
         """

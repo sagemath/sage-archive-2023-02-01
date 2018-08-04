@@ -3026,7 +3026,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             raise ValueError("element is not a square")
 
 
-    def nth_root(self, n):
+    def nth_root(self, n, all=False):
         """
         Return the nth root of this element.
 
@@ -3034,24 +3034,33 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - ``n`` -- an integer
 
+        - ``all`` -- a boolean (default: ``False``): if ``True``, 
+          return all ntn roots of this element, instead of just one.
+
         EXAMPLES::
 
-            sage: A = Zp(3,10)
-            sage: x = A(10135); x
-            1 + 3^2 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 3^8 + O(3^10)
-            sage: y = x.nth_root(5); y
-            1 + 2*3^2 + 2*3^5 + 2*3^6 + 3^8 + 3^9 + O(3^10)
-            sage: y^5 == x
+            sage: A = Zp(5,10)
+            sage: x = A(61376); x
+            1 + 5^3 + 3*5^4 + 4*5^5 + 3*5^6 + O(5^10)
+            sage: y = x.nth_root(4); y
+            2 + 5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^6 + O(5^10)
+            sage: y^4 == x
             True
+
+            sage: x.nth_root(4, all=True)
+            [2 + 5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^6 + O(5^10),
+             4 + 4*5 + 4*5^2 + 4*5^4 + 3*5^5 + 5^6 + 3*5^7 + 5^8 + 5^9 + O(5^10),
+             3 + 3*5 + 2*5^2 + 5^4 + 4*5^5 + 3*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10),
+             1 + 4*5^3 + 5^5 + 3*5^6 + 5^7 + 3*5^8 + 3*5^9 + O(5^10)]
 
         When `n` is divisible by the underlying prime `p`, we
         are losing precision (which is consistant with the fact
         that raising to the pth power increases precision)::
 
-            sage: z = x.nth_root(3); z
-            1 + 3 + 3^2 + 2*3^3 + 3^4 + 3^5 + 2*3^6 + 3^8 + O(3^9)
-            sage: z^3
-            1 + 3^2 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 3^8 + O(3^10)
+            sage: z = x.nth_root(5); z
+            1 + 5^2 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 2*5^8 + O(5^9)
+            sage: z^5
+            1 + 5^3 + 3*5^4 + 4*5^5 + 3*5^6 + O(5^10)
 
         Everything works over extensions as well::
 
@@ -3060,6 +3069,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R.<pi> = W.extension(x^7 - 5)
             sage: R(5).nth_root(7)
             pi + O(pi^141)
+            sage: R(5).nth_root(7, all=True)
+            [pi + O(pi^141)]
 
         An error is raised if the given element is not a nth power
         in the ring::
@@ -3088,9 +3099,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: K.<a> = Qq(2^3)
             sage: S.<x> = K[]
             sage: L.<pi> = K.extension(x^2 + 2*x + 2)
-            sage: zeta = 1 + pi + pi^2  # a square root of -1
             sage: elt = L.random_element()
-            sage: (elt^8).nth_root(8) in [ elt, elt*zeta, -elt, -elt*zeta ]
+            sage: elt in (elt^8).nth_root(8, all=True)
             True
 
         """
@@ -3126,7 +3136,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         v = n.valuation(p)
         m = n // (p**v)
-        s, zeta = R._maximal_qth_root_of_unity()
+        zeta, s = R._primitive_qth_root_of_unity(v)
         qthroot = a.add_bigoh(v*e + ep + 1)  # we lower the precision in order to avoid unnecessary Newton lifts
         for i in range(v):
             if s > 0 and i >= s:
@@ -3163,8 +3173,12 @@ cdef class pAdicGenericElement(LocalGenericElement):
             curprec = min(2*curprec + v*e, p*curprec + (v-1)*e)
             x = x.lift_to_precision(min(prec,curprec))
             x += invm * x * (1 - a*(x**n)) // divisor
+        nthroot = (~x) << (val // n)
 
-        return (~x) << (val // n)
+        if all:
+            return [ nthroot*zeta for zeta in R.roots_of_unity(n) ]
+        else:
+            return nthroot
 
     def _pth_root(self):
         """

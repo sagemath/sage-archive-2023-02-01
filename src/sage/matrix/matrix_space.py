@@ -151,6 +151,19 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
         <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
+        sage: get_matrix_class(GF(25,'x'),4,4,False, 'meataxe')         # optional: meataxe
+        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        sage: get_matrix_class(IntegerModRing(3),4,4,False, 'meataxe')  # optional: meataxe
+        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        sage: get_matrix_class(IntegerModRing(4),4,4,False, 'meataxe')
+        Traceback (most recent call last):
+        ...
+        ValueError: meataxe library only deals with finite fields of order < 256
+        sage: get_matrix_class(GF(next_prime(255)),4,4,False, 'meataxe')
+        Traceback (most recent call last):
+        ...
+        ValueError: meataxe library only deals with finite fields of order < 256
+
         sage: get_matrix_class(ZZ, 3, 5, False, 'crazy_matrix')
         Traceback (most recent call last):
         ...
@@ -182,6 +195,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
         <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+
     """
     if isinstance(implementation, type):
         return implementation
@@ -245,6 +259,17 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                     raise ValueError('linbox-double can only deal with order < %s' % matrix_modn_dense_double.MAX_MODULUS)
                 else:
                     return matrix_modn_dense_double.Matrix_modn_dense_double
+            elif implementation == 'meataxe':
+                if not (R.is_field() and R.order()<256):
+                    raise ValueError('meataxe library only deals with finite fields of order < 256')
+                else:
+                    try:
+                        from . import matrix_gfpn_dense
+                    except ImportError:
+                        from sage.misc.package import PackageNotFoundError
+                        raise PackageNotFoundError('meataxe')
+                    else:
+                        return matrix_gfpn_dense.Matrix_gfpn_dense
 
         elif sage.rings.finite_rings.finite_field_constructor.is_FiniteField(R):
             if implementation is None:

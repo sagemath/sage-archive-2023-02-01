@@ -1370,7 +1370,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return self.m().from_polynomial(f)
 
     def register_isomorphism(self, morphism, only_conversion=False):
-        """
+        r"""
         Register an isomorphism between two bases of ``self``, as a canonical coercion
         (unless the optional keyword ``only_conversion`` is set to ``True``,
         in which case the isomorphism is registered as conversion only).

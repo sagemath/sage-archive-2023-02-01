@@ -21,6 +21,7 @@ from sage.misc.lazy_import import lazy_import
 
 import sage.algebras.catalog as algebras
 
+from .quantum_groups.all import *
 from .quatalg.all import *
 
 # Algebra base classes

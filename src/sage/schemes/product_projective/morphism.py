@@ -22,6 +22,10 @@ EXAMPLES::
 #*****************************************************************************
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.categories.fields import Fields
+from sage.categories.number_fields import NumberFields
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.rings.fraction_field import FractionField
+from sage.rings.qqbar import QQbar
 _Fields = Fields()
 
 
@@ -365,3 +369,99 @@ class ProductProjectiveSpaces_morphism_ring(SchemeMorphism_polynomial):
         from sage.misc.superseded import deprecation
         deprecation(23479, "use sage.dynamics.arithmetic_dynamics.projective_ds.green_function instead")
         return self.as_dynamical_system().nth_iterate_map(n)
+
+    def global_height(self, prec=None):
+        r"""
+        Returns the maximum of the absolute logarithmic heights of the coefficients
+        in any of the coordinate functions of this map.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        .. TODO::
+
+            Add functionality for `\QQbar`, implement function to convert
+            the map defined over `\QQbar` to map over a number field.
+
+        EXAMPLES::
+
+            sage: P1xP1.<x,y,u,v> = ProductProjectiveSpaces([1, 1], ZZ)
+            sage: H = End(P1xP1)
+            sage: f = H([x^2*u, 3*y^2*v, 5*x*v^2, y*u^2])
+            sage: f.global_height()
+            1.60943791243410
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: R = NumberField(u^2 - 2, 'v')
+            sage: PP.<x,y,a,b> = ProductProjectiveSpaces([1, 1], R)
+            sage: H = End(PP)
+            sage: O = R.maximal_order()
+            sage: g = H([3*O(u)*x^2, 13*x*y, 7*a*y, 5*b*x + O(u)*a*y])
+            sage: g.global_height()
+            2.56494935746154
+        """
+        K = self.domain().base_ring()
+        if K in NumberFields() or is_NumberFieldOrder(K):
+            H = 0
+            for i in range(self.domain().ambient_space().ngens()):
+                C = self[i].coefficients()
+                h = max(c.global_height(prec=prec) for c in C)
+                H = max(H, h)
+            return H
+        elif K == QQbar:
+            raise NotImplementedError("not implemented for QQbar")
+        else:
+            raise TypeError("Must be over a Numberfield or a Numberfield Order or QQbar")
+
+    def local_height(self, v, prec=None):
+        r"""
+        Returns the maximum of the local height of the coefficients in any
+        of the coordinate functions of this map.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: T.<x,y,z,w,u> = ProductProjectiveSpaces([2, 1], QQ)
+            sage: H = T.Hom(T)
+            sage: f = H([4*x^2+3/100*y^2, 8/210*x*y, 1/10000*z^2, 20*w^2, 1/384*u*w])
+            sage: f.local_height(2)
+            4.85203026391962
+
+        ::
+
+            sage: R.<z> = PolynomialRing(QQ)
+            sage: K.<w> = NumberField(z^2-5)
+            sage: P.<x,y,a,b> = ProductProjectiveSpaces([1, 1], K)
+            sage: H = Hom(P,P)
+            sage: f = H([2*x^2 + w/3*y^2, 1/w*y^2, a^2, 6*b^2 + 1/9*a*b])
+            sage: f.local_height(K.ideal(3))
+            2.19722457733622
+        """
+        K = FractionField(self.domain().base_ring())
+        if K not in NumberFields():
+            raise TypeError("must be over a number field or a number field order")
+
+        H = 0
+        for i in range(self.domain().ambient_space().ngens()):
+            C = self[i].coefficients()
+            h = max(K(c).local_height(v, prec) for c in C)
+            H = max(H, h)
+        return H

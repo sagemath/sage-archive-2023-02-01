@@ -3054,15 +3054,15 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         And a nice big example::
 
             sage: K.<x> = QQ[]
-            sage: p = K.random_element(4); p
-            1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4
+            sage: p = K.random_element(3); p
+            -12*x^3 + 1/2*x^2 - 1/95*x - 1/2
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
-            [-1.830225346898784?, 1.842584249981426?, 0.004346864248152390? - 1.540200655088741?*I, 0.004346864248152390? + 1.540200655088741?*I]
+            [-0.3325236940280402?, 0.1870951803473535? - 0.3004991638609601?*I, 0.1870951803473535? + 0.3004991638609601?*I]
             sage: sage_input(rts, verify=True)  # long time (2s on sage.math, 2013)
             # Verified
             R.<x> = AA[]
-            cp = AA.common_polynomial(1/2*x^4 - 1/95*x^3 - 1/2*x^2 - 4)
-            [QQbar.polynomial_root(cp, CIF(RIF(-RR(1.8302253468987832), -RR(1.830225346898783)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(1.8425842499814258), RR(1.842584249981426)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(-RR(1.5402006550887404), -RR(1.5402006550887402)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.0043468642481523899), RR(0.0043468642481523908)), RIF(RR(1.5402006550887402), RR(1.5402006550887404))))]
+            cp = AA.common_polynomial(-12*x^3 + 1/2*x^2 - 1/95*x - 1/2)
+            [QQbar.polynomial_root(cp, CIF(RIF(-RR(0.33252369402804022), -RR(0.33252369402804016)), RIF(RR(0)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(-RR(0.30049916386096009), -RR(0.30049916386096004)))), QQbar.polynomial_root(cp, CIF(RIF(RR(0.18709518034735342), RR(0.18709518034735345)), RIF(RR(0.30049916386096004), RR(0.30049916386096009))))]
 
             sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()

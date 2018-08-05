@@ -11135,11 +11135,11 @@ cdef class Expression(CommutativeRingElement):
             (diff(f(x), x) + 1)*(diff(f(x), x) - 1)
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string, symbolic_expression_from_string
-        if len(dontfactor) > 0:
+        if dontfactor:
             m = self._maxima_()
             name = m.name()
-            varstr = ','.join(['_SAGE_VAR_'+str(v) for v in dontfactor])
-            cmd = 'block([dontfactor:[%s]],factor(%s))'%(varstr, name)
+            varstr = ','.join(['_SAGE_VAR_' + str(v) for v in dontfactor])
+            cmd = 'block([dontfactor:[%s]],factor(%s))' % (varstr, name)
             return symbolic_expression_from_maxima_string(cmd)
         else:
             try:

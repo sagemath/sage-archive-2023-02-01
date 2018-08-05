@@ -17,6 +17,8 @@ AUTHORS:
 
 - Andrew Mathas (2016-08-11): Row standard tableaux added
 
+- Oliver Pechenik (2018): Added increasing tableaux.
+
 This file consists of the following major classes:
 
 Element classes:
@@ -8994,34 +8996,6 @@ class IncreasingTableaux_size(IncreasingTableaux):
             and sum(map(len, x)) == self.size
             and max(max(row) for row in x) <= self.max_entry)
 
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: IncreasingTableaux(3).cardinality()
-            4
-            sage: IncreasingTableaux(5).cardinality()
-            86
-            sage: IncreasingTableaux(5, max_entry=2).cardinality()
-            0
-            sage: IncreasingTableaux(5, max_entry=4).cardinality()
-            12
-            sage: IncreasingTableaux(5, max_entry=9).cardinality()
-            4788
-            sage: ns = list(range(1, 6))
-            sage: IT = [ IncreasingTableaux(n) for n in ns ]
-            sage: all(it.cardinality() == len(it.list()) for it in IT)
-            True
-        """
-        from sage.combinat.partition import Partitions
-        c = 0
-        for part in Partitions(self.size):
-            c += IncreasingTableaux_shape(part, self.max_entry).cardinality()
-        return c
-
-
     def __iter__(self):
         """
         EXAMPLES::
@@ -9167,39 +9141,6 @@ class IncreasingTableaux_shape(IncreasingTableaux):
         """
         return "Increasing tableaux of shape %s and maximum entry %s" %(str(self.shape), str(self.max_entry))
 
-    def cardinality(self):
-        r"""
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: IncreasingTableaux([2,1]).cardinality()
-            5
-            sage: IncreasingTableaux([2,2,1]).cardinality()
-            40
-            sage: IncreasingTableaux([5]).cardinality()
-            1
-            sage: IncreasingTableaux([3,2,1]).cardinality()
-            330
-            sage: IncreasingTableaux([3,2,1], max_entry=7).cardinality()
-            1001
-            sage: IncreasingTableaux([4,3,2,1], max_entry=8).cardinality()
-            26026
-        """
-        c = 0
-        list_of_partial_binary_vecs = [[]]
-        list_of_binary_vecs = []
-        while list_of_partial_binary_vecs != []:
-            active_vec = list_of_partial_binary_vecs.pop()
-            if len(active_vec) < self.max_entry:
-                list_of_partial_binary_vecs.append(active_vec + [0])
-                list_of_partial_binary_vecs.append(active_vec + [1])
-            else:
-                list_of_binary_vecs.append(tuple(active_vec))
-        for wt in list_of_binary_vecs:
-            c += IncreasingTableaux_shape_weight(self.shape, wt).cardinality()
-        return c
-
 class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
     r"""
     Increasing tableaux of fixed shape `p` and binary weight `wt`.
@@ -9310,29 +9251,6 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
             yield IncreasingTableau([])
 
 
-    def cardinality(self):
-        """
-        Returns the number of semistandard tableaux of the given shape and
-        weight, as computed by ``kostka_number`` function of symmetrica.
-
-        EXAMPLES::
-
-            sage: SemistandardTableaux([2,2], [2, 1, 1]).cardinality()
-            1
-            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).cardinality()
-            1
-            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).cardinality()
-            1
-            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).cardinality()
-            2
-        """
-        counter = 0
-        for tab in self:
-            counter += 1
-        return counter
-
-
-
     def list(self):
         """
         Return a list of all semistandard tableaux in ``self`` generated
@@ -9402,23 +9320,6 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
             for sst in IncreasingTableaux_shape_weight(p, self.weight):
                 yield self.element_class(self, sst)
 
-
-    def cardinality(self):
-        """
-        Return the cardinality of ``self``.
-
-        EXAMPLES::
-
-            sage: SemistandardTableaux(3, [2,1]).cardinality()
-            2
-            sage: SemistandardTableaux(4, [2,2]).cardinality()
-            3
-        """
-        from sage.combinat.partition import Partitions
-        c = 0
-        for p in Partitions(self.size):
-            c += IncreasingTableaux_shape_weight(p, self.weight).cardinality()
-        return c
 
     def __contains__(self, x):
         """

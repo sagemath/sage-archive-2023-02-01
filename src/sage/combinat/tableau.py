@@ -9253,41 +9253,40 @@ class IncreasingTableaux_shape_weight(IncreasingTableaux_shape):
 
     def list(self):
         """
-        Return a list of all semistandard tableaux in ``self`` generated
-        by symmetrica.
+        Return a list of all increasing tableaux in ``self``.
 
         EXAMPLES::
 
-            sage: SemistandardTableaux([2,2], [2, 1, 1]).list()
-            [[[1, 1], [2, 3]]]
-            sage: SemistandardTableaux([2,2,2], [2, 2, 1,1]).list()
-            [[[1, 1], [2, 2], [3, 4]]]
-            sage: SemistandardTableaux([2,2,2], [2, 2, 2]).list()
-            [[[1, 1], [2, 2], [3, 3]]]
-            sage: SemistandardTableaux([3,2,1], [2, 2, 2]).list()
-            [[[1, 1, 2], [2, 3], [3]], [[1, 1, 3], [2, 2], [3]]]
+            sage: IncreasingTableaux([2,2], (1,0,1,1)).list()
+            [[[1, 3], [3, 4]]]
+            sage: IncreasingTableaux([2,2,2], (1,0,1,1,0,1,1)).list()
+            [[[1, 3], [3, 6], [4, 7]],
+             [[1, 3], [3, 4], [6, 7]],
+             [[1, 4], [3, 6], [4, 7]],
+             [[1, 4], [3, 6], [6, 7]],
+             [[1, 3], [4, 6], [6, 7]]]
         """
         return [tab for tab in self]
 
 
 class IncreasingTableaux_size_weight(IncreasingTableaux):
     r"""
-    Semistandard tableaux of fixed size `n` and weight `wt`.
+    Increasing tableaux of fixed size `n` and weight `wt`.
     """
     def __init__(self, n, wt):
         r"""
-        Initializes the class of semistandard tableaux of size ``n`` and
-        weight ``mu``.
+        Initializes the class of increasing tableaux of size ``n`` and
+        weight ``wt``.
 
         .. WARNING::
 
-            Input is not checked; please use :class:`SemistandardTableaux` to
+            Input is not checked; please use :class:`IncreasingTableaux` to
             ensure the options are properly parsed.
 
         TESTS::
 
-            sage: SST = SemistandardTableaux(3, [2,1])
-            sage: TestSuite(SST).run()
+            sage: IT = IncreasingTableaux(3, (1,0,1))
+            sage: TestSuite(IT).run()
         """
         super(IncreasingTableaux_size_weight, self).__init__(max_entry=len(wt),
               category=FiniteEnumeratedSets())
@@ -9298,8 +9297,8 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         """
         TESTS::
 
-            sage: repr(SemistandardTableaux(3, [2,1]))    # indirect doctest
-            'Semistandard tableaux of size 3 and weight [2, 1]'
+            sage: repr(IncreasingTableaux(3, (1,0,1)))    # indirect doctest
+            'Increasing tableaux of size 3 and weight (1, 0, 1)'
         """
         return "Increasing tableaux of size %s and weight %s"%(self.size, self.weight)
 
@@ -9307,12 +9306,16 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         """
         EXAMPLES::
 
-            sage: [ t for t in SemistandardTableaux(3, [2,1]) ]
-            [[[1, 1, 2]], [[1, 1], [2]]]
-            sage: [ t for t in SemistandardTableaux(4, [2,2]) ]
-            [[[1, 1, 2, 2]], [[1, 1, 2], [2]], [[1, 1], [2, 2]]]
-            sage: sst = SemistandardTableaux(4, [2,2])
-            sage: sst[0].parent() is sst
+            sage: [ T for T in IncreasingTableaux(3, (1,0,1)) ]
+            [[[1, 3], [3]]]
+            sage: [ T for T in IncreasingTableaux(4, (1,0,1,1)) ]
+            [[[1, 3, 4], [3]],
+             [[1, 3, 4], [4]],
+             [[1, 3], [3, 4]],
+             [[1, 3], [3], [4]],
+             [[1, 4], [3], [4]]]
+            sage: IT = IncreasingTableaux(4, (1,0,1,1))
+            sage: IT[0].parent() is IT
             True
         """
         from sage.combinat.partition import Partitions
@@ -9325,10 +9328,10 @@ class IncreasingTableaux_size_weight(IncreasingTableaux):
         """
         TESTS::
 
-            sage: SST = SemistandardTableaux(6, [2,2,2])
-            sage: all(sst in SST for sst in SST)
+            sage: IT = IncreasingTableaux(4, (1,0,1,1))
+            sage: all(it in IT for it in IT)
             True
-            sage: all(sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2]))
+            sage: all(it in IT for it in IncreasingTableaux([2,2],(1,0,1,1)))
             True
         """
         from sage.combinat.partition import Partition

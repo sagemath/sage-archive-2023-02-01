@@ -4534,7 +4534,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        - [Or2016]_
+        - [Or2017]_
 
         EXAMPLES:
 
@@ -4627,7 +4627,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         REFERENCES:
 
-        - [Or2016]_
+        - [Or2017]_
 
         - [RNPA2011]_
 
@@ -4701,16 +4701,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         TESTS:
 
-        The vectors `L(x)` and `s` are orthogonal for every pair `(x,s)`
-        in the :meth:`discrete_complementarity_set` of the cone::
+        Every operator in a :meth:`lyapunov_like_basis` is Lyapunov-like
+        on the cone::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
-            sage: dcs = K.discrete_complementarity_set()
             sage: LL = K.lyapunov_like_basis()
-            sage: ips = [ s*(L*x) for (x,s) in dcs for L in LL ]
-            sage: sum(map(abs, ips))
-            0
+            sage: all([ L.is_lyapunov_like_on(K) for L in LL ])
+            True
 
         The Lyapunov-like transformations on a cone and its dual are
         transposes of one another. However, there's no reason to expect
@@ -4780,11 +4778,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
         space is `n > 0`, then the resulting Lyapunov rank will be
         between `1` and `n^2` inclusive. If this cone :meth:`is_proper`,
         then that upper bound reduces from `n^2` to `n`. A Lyapunov rank
-        of `n-1` is not possible (by Lemma 5 [Or2016]_) in either case.
+        of `n-1` is not possible (by Lemma 6 [Or2017]_) in either case.
 
         ALGORITHM:
 
-        Algorithm 3 [Or2016]_ is used. Every closed convex cone is
+        Algorithm 3 [Or2017]_ is used. Every closed convex cone is
         isomorphic to a Cartesian product of a proper cone, a subspace,
         and a trivial cone. The Lyapunov ranks of the subspace and
         trivial cone are easy to compute. Essentially, we "peel off"
@@ -4797,7 +4795,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         - [GT2014]_
 
-        - [Or2016]_
+        - [Or2017]_
 
         - [RNPA2011]_
 
@@ -4817,7 +4815,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             3
 
         A vector space of dimension `n` has Lyapunov rank `n^{2}`
-        [Or2016]_::
+        [Or2017]_::
 
             sage: Q5 = VectorSpace(QQ, 5)
             sage: gs = Q5.basis() + [ -r for r in Q5.basis() ]
@@ -4835,7 +4833,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             1
 
         A ray in `n` dimensions has Lyapunov rank `n^{2} - n + 1`
-        [Or2016]_::
+        [Or2017]_::
 
             sage: K = Cone([(1,0,0,0,0)])
             sage: K.lyapunov_rank()
@@ -4844,7 +4842,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             21
 
         A subspace of dimension `m` in an `n`-dimensional ambient space
-        has Lyapunov rank `n^{2} - m(n - m)` [Or2016]_::
+        has Lyapunov rank `n^{2} - m(n - m)` [Or2017]_::
 
             sage: e1 = vector(QQ, [1,0,0,0,0])
             sage: e2 = vector(QQ, [0,1,0,0,0])
@@ -4896,7 +4894,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             True
 
         Lyapunov rank should be invariant under a linear isomorphism
-        [Or2016]_::
+        [Or2017]_::
 
             sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=8)
@@ -4930,7 +4928,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
 
         No polyhedral closed convex cone in `n` dimensions has Lyapunov
-        rank `n-1` [Or2016]_::
+        rank `n-1` [Or2017]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -4938,7 +4936,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             False
 
         The calculation of the Lyapunov rank of an improper cone can
-        be reduced to that of a proper cone [Or2016]_::
+        be reduced to that of a proper cone [Or2017]_::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -4960,7 +4958,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
 
         A "perfect" cone has Lyapunov rank `n` or more in `n`
         dimensions. We can make any cone perfect by adding a slack
-        variable [Or2016]_::
+        variable::
 
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
@@ -5698,8 +5696,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
             sage: cp_gens = K.cross_positive_operators_gens()
-            sage: dcs = K.discrete_complementarity_set()
-            sage: all([ s*(g*x) >= 0 for g in cp_gens for (x,s) in dcs ])
+            sage: all([ L.is_cross_positive_on(K) for L in cp_gens ])
             True
 
         The lineality space of the cone of cross-positive operators is
@@ -5899,8 +5896,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=3)
             sage: Z_gens = K.Z_operators_gens()
-            sage: dcs = K.discrete_complementarity_set()
-            sage: all([ s*(z*x) <= 0 for z in Z_gens for (x,s) in dcs ])
+            sage: all([ L.is_Z_operator_on(K) for L in Z_gens ])
             True
         """
         return [ -cp for cp in self.cross_positive_operators_gens() ]

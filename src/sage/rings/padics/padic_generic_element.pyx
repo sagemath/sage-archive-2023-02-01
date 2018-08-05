@@ -194,6 +194,69 @@ cdef class pAdicGenericElement(LocalGenericElement):
     cdef bint _set_prec_both(self, long absprec, long relprec) except -1:
         return 0
 
+    def _quo_rem(self, right):
+        """
+        Quotient with remainder.
+
+        We choose the remainder to have the same p-adic expansion
+        as the numerator, but truncated at the valuation of the denominator.
+
+        EXAMPLES::
+
+            sage: R = Zp(3, 5)
+            sage: R(12).quo_rem(R(2))
+            (2*3 + O(3^6), 0)
+            sage: R(2).quo_rem(R(12))
+            (O(3^4), 2 + O(3^5))
+            sage: q, r = R(4).quo_rem(R(12)); q, r
+            (1 + 2*3 + 2*3^3 + O(3^4), 1 + O(3^5))
+            sage: 12*q + r == 4
+            True
+
+        In general, the remainder is returned with maximal precision.
+        However, it is not the case when the valuation of the divisor
+        is greater than the absolute precision on the numerator::
+
+            sage: R(1,2).quo_rem(R(81))
+            (O(3^0), 1 + O(3^2))
+
+        For fields the normal quotient always has remainder 0:
+
+            sage: K = Qp(3, 5)
+            sage: K(12).quo_rem(K(2))
+            (2*3 + O(3^6), 0)
+            sage: q, r = K(4).quo_rem(K(12)); q, r
+            (3^-1 + O(3^4), 0)
+            sage: 12*q + r == 4
+            True
+
+        You can get the same behavior for fields as for rings
+        by using this underscored method::
+
+            sage: K(12)._quo_rem(K(2))
+            (2*3 + O(3^6), 0)
+            sage: K(2)._quo_rem(K(12))
+            (O(3^4), 2 + O(3^5))
+        """
+        if right._is_exact_zero():
+            raise ZeroDivisionError("cannot divide by zero")
+        if right.is_zero():
+            raise PrecisionError("cannot divide by something indistinguishable from zero")
+        K = self.parent()
+        R = K.integer_ring()
+        sval = self.valuation()
+        diff = sval - right.valuation()
+        srelprec = self.precision_relative()
+        if diff + srelprec < 0:
+            return K(0,0), self
+        if srelprec == 0:
+            return K(0,diff), K(0)
+        if diff >= 0:  # remainder is 0
+            return K(self/right), K(0)
+        unit = R(self.unit_part())
+        high = (unit << diff) >> (diff - sval)
+        return K(high/right), K(self-high).lift_to_precision()
+
     def __floordiv__(self, right):
         """
         Divides self by right and throws away the nonintegral part if
@@ -241,41 +304,35 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a // b = ((a - a % b) >> b.valuation()) / b.unit_part()
 
 
-        In Sage we choose option (3), mainly because it is more easily
-        defined in terms of shifting and thus generalizes more easily
-        to extension rings.
+        In Sage we choose option (4) since it has better precision behavior.
 
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
             sage: a // b #indirect doctest
-            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
+            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
             sage: a / b
             4*5^-4 + 3*5^-3 + 2*5^-2 + 5^-1 + 3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
             sage: a % b
-            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
+            3 + O(5^20)
+            sage: a
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
             sage: (a // b) * b + a % b
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^16)
+            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
 
         The alternative definition::
 
-            sage: a
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
-            sage: c = ((a - 3)>>4)/b.unit_part(); c
-            1 + 2*5 + 2*5^3 + 4*5^4 + 5^6 + 5^7 + 5^8 + 4*5^9 + 2*5^10 + 4*5^11 + 4*5^12 + 2*5^13 + 3*5^14 + O(5^16)
-            sage: c*b + 3
-            3 + 2*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^20)
+            sage: c = (a // b.unit_part()) >> b.valuation(); c
+            3 + 3*5 + 4*5^2 + 2*5^4 + 2*5^6 + 4*5^7 + 5^9 + 5^10 + 5^11 + O(5^12)
+            sage: othermod = a - c*b; othermod
+            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
         """
-        P = self.parent()
-        if P.is_field():
-            return self / right
-        else:
-            right = P(right)
-            if right._is_inexact_zero():
-                raise PrecisionError("cannot divide by something indistinguishable from zero")
-            elif right._is_exact_zero():
-                raise ZeroDivisionError("cannot divide by zero")
-            return self._floordiv_(right)
+        right = self.parent()(right)
+        if right._is_inexact_zero():
+            raise PrecisionError("cannot divide by something indistinguishable from zero")
+        elif right._is_exact_zero():
+            raise ZeroDivisionError("cannot divide by zero")
+        return self._floordiv_(right)
 
     cpdef _floordiv_(self, right):
         """
@@ -285,10 +342,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: R = Zp(5, 5); a = R(77)
             sage: a // 15 # indirect doctest
-            1 + 4*5 + 5^2 + 3*5^3 + O(5^4)
+            5 + O(5^4)
         """
-        v, u = right.val_unit()
-        return self.parent()(self / u) >> v
+        return self.quo_rem(right, integral=True)[0]
 
     def __getitem__(self, n):
         r"""
@@ -438,22 +494,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
         a // b = ((a - a % b) >> b.valuation()) / b.unit_part()
 
 
-        In Sage we choose option (3), mainly because it is more easily
-        defined in terms of shifting and thus generalizes more easily
-        to extension rings.
+        In Sage we choose option (4) because it has better precision behavior.
 
         EXAMPLES::
 
             sage: R = ZpCA(5); a = R(129378); b = R(2398125)
             sage: a % b
-            3 + 5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + O(5^16)
+            3 + O(5^20)
         """
-        if right == 0:
-            raise ZeroDivisionError
-        if self.parent().is_field():
-            return self.parent()(0)
-        else:
-            return self - (self // right) * right
+        return self._quo_rem(right)[1]
 
     #def _is_exact_zero(self):
     #    return False

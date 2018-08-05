@@ -2053,7 +2053,7 @@ class DirichletGroupFactory(UniqueFactory):
             sage: DirichletGroup(-33)
             Traceback (most recent call last):
             ...
-            ValueError: modulus should be positive            
+            ValueError: modulus should be positive
         """
         modulus = rings.Integer(N)
         if modulus <= 0:

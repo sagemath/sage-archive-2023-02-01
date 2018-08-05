@@ -504,7 +504,7 @@ class SineGordonYsystem(SageObject):
 
         def triangle(x):
             (a, b) = sorted(x[:2])
-            for p in self.vertices():
+            for p in self.vertex_iterator():
                 if (p, a) in self.triangulation() or (a, p) in self.triangulation():
                     if (p, b) in self.triangulation() or (b, p) in self.triangulation():
                         if p < a or p > b:
@@ -596,7 +596,7 @@ class SineGordonYsystem(SageObject):
         # Vertices
         v_points = {x: (radius * cos(vertex_to_angle(x)),
                         radius * sin(vertex_to_angle(x)))
-                    for x in self.vertices()}
+                    for x in self.vertex_iterator()}
         for v in v_points:
             P += point(v_points[v], zorder=len(P), **points_opts)
         # Reflection axes

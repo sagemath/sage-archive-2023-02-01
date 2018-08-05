@@ -1037,7 +1037,7 @@ done from the right side.""")
         return self.element_class(self, x, coerce, copy)
 
     def __richcmp__(self, other, op):
-        """
+        r"""
         Rich comparison via containment in the same ambient space.
 
         Two modules compare if their ambient module/space is equal.
@@ -3305,7 +3305,7 @@ class FreeModule_generic_pid(FreeModule_generic):
                     "with base_ring (= %s)."%base_ring)
 
     def submodule_with_basis(self, basis, check=True, already_echelonized=False):
-        """
+        r"""
         Create the R-submodule of the ambient vector space with given
         basis, where R is the base ring of self.
 
@@ -4052,7 +4052,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
     def complement(self):
-        """
+        r"""
         Return the complement of ``self`` in the
         :meth:`~sage.modules.free_module.FreeModule_ambient_field.ambient_vector_space`.
 

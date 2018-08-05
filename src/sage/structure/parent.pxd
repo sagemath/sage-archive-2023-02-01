@@ -98,10 +98,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
     # An optional single Morphism that describes a canonical coercion out of self
     cdef _embedding
 
+
+cdef class Set_generic(Parent):
+    pass
+
+
 # Flags for Parent.flags
 cdef enum:
     # If this flag is set, call __richcmp__ on elements without
     # coercion. This allows a completely custom comparison function.
     Parent_richcmp_element_without_coercion = 1
-
-cpdef Parent Set_PythonType(theType)

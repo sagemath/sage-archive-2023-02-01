@@ -2,17 +2,6 @@ export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
 
 cd src
 
-# A portable random number generator
-cp ../patches/random.{c,h} lib-src/
-cp ../patches/random.{c,h} lib-src-gmp/
-
-# Required by sage.geometry.polyhedron
-cp ../patches/cdd_both_reps.c src/
-cp ../patches/cdd_both_reps.c src-gmp/cdd_both_reps.c
-
-# Use newer version of config.guess and config.sub (see Trac #19718)
-cp "$SAGE_ROOT"/config/config.* .
-
 sdh_configure
 sdh_make
 sdh_make_install

@@ -1,4 +1,4 @@
-"""
+r"""
 A catalog of posets and lattices.
 
 Some common posets can be accessed through the ``posets.<tab>`` object::
@@ -349,7 +349,7 @@ class Posets(object):
 
     @staticmethod
     def Crown(n, facade=None):
-        """
+        r"""
         Return the crown poset of `2n` elements.
 
         In this poset every element `i` for `0 \leq i \leq n-1`
@@ -565,7 +565,7 @@ class Posets(object):
 
     @staticmethod
     def PowerPoset(n):
-        """
+        r"""
         Return the power poset on `n` element posets.
 
         Elements of the power poset are all posets on
@@ -1509,7 +1509,7 @@ class Posets(object):
 
 
 def _random_lattice(n, p):
-    """
+    r"""
     Return a random lattice.
 
     INPUT:
@@ -1593,7 +1593,7 @@ def _random_lattice(n, p):
 
 
 def _random_dismantlable_lattice(n):
-    """
+    r"""
     Return a random dismantlable lattice on `n` elements.
 
     INPUT:
@@ -1636,7 +1636,7 @@ def _random_dismantlable_lattice(n):
 
 
 def _random_planar_lattice(n):
-    """
+    r"""
     Return a random planar lattice on `n` elements.
 
     INPUT:

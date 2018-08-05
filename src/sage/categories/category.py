@@ -2214,7 +2214,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return self
 
-    _flatten_categories = _flatten_categories
+    _flatten_categories = staticmethod(_flatten_categories)  # a cythonised helper
 
     @staticmethod
     def _sort(categories):
@@ -2263,7 +2263,7 @@ class Category(UniqueRepresentation, SageObject):
         """
         return tuple(sorted(categories, key=category_sort_key, reverse=True))
 
-    _sort_uniq = _sort_uniq   # a cythonised helper
+    _sort_uniq = staticmethod(_sort_uniq)  # a cythonised helper
 
     def __and__(self, other):
         """

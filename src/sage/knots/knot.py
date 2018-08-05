@@ -250,7 +250,7 @@ class Knot(Link):
             sage: K = trefoil.connected_sum(trefoil); K
             Knot represented by 6 crossings
             sage: K.braid()
-            s0^3*s1*s0^3*s1^-1 
+            s0^3*s1*s0^3*s1^-1
 
         .. PLOT::
             :width: 300 px

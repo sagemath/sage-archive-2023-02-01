@@ -48,8 +48,8 @@ The following constructions are available:
 The Combinatorics module provides further matrix constructors, such as Hadamard
 matrices and Latin squares. See:
 
-    - :ref:`sage.combinat.matrices.hadamard_matrix`
-    - :ref:`sage.combinat.matrices.latin`
+    - :mod:`sage.combinat.matrices.hadamard_matrix`
+    - :mod:`sage.combinat.matrices.latin`
 """
 
 #*****************************************************************************
@@ -76,6 +76,7 @@ from copy import copy
 from .constructor import matrix
 
 import sage.categories.pushout
+
 
 def matrix_method(func=None, name=None):
     """

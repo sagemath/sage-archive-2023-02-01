@@ -606,6 +606,9 @@ cdef class Matrix_double_dense(Matrix_dense):
             [ 3.0 + 9.0*I 4.0 + 16.0*I 5.0 + 25.0*I]
             [6.0 + 36.0*I 7.0 + 49.0*I 8.0 + 64.0*I]
             sage: B.condition()
+            doctest:warning
+            ...
+            ComplexWarning: Casting complex values to real discards the imaginary part
             203.851798...
             sage: B.condition(p='frob')
             203.851798...
@@ -654,9 +657,7 @@ cdef class Matrix_double_dense(Matrix_dense):
             True
             sage: B = A.change_ring(CDF)
             sage: B.condition()
-            Traceback (most recent call last):
-            ...
-            LinAlgError: Singular matrix
+            +Infinity
 
         Improper values of ``p`` are caught.  ::
 

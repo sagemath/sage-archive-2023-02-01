@@ -43,6 +43,20 @@ from sage.structure.element import coerce_binop
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 
 cdef class pAdicGenericElement(LocalGenericElement):
+    def __init__(self, *args, **kwds):
+        """
+        Initializes self.
+
+        EXAMPLES::
+
+            sage: R = Zp(5) #indirect doctest
+            sage: R.precision_cap()
+            20
+
+        """
+        LocalGenericElement.__init__(self, *args, **kwds)
+        self._cache_inverse_pth_root = None
+
     cpdef int _cmp_(left, right) except -2:
         """
         First compare valuations, then compare normalized
@@ -3092,15 +3106,64 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         TESTS::
 
-            sage: elt = R.random_element()
-            sage: (elt^100).nth_root(100) == elt
-            True
+        We check that it works over different fields::
 
             sage: K.<a> = Qq(2^3)
             sage: S.<x> = K[]
             sage: L.<pi> = K.extension(x^2 + 2*x + 2)
             sage: elt = L.random_element()
             sage: elt in (elt^8).nth_root(8, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^16).nth_root(16, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^56).nth_root(56, all=True)
+            True
+
+            sage: K.<a> = Qq(3^2)
+            sage: S.<x> = K[]
+            sage: Z = (1+x)^3
+            sage: E = Z^2 + Z + 1
+            sage: L.<pi> = K.extension(E)
+            sage: elt = L.random_element()
+            sage: elt in (elt^9).nth_root(9, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^27).nth_root(27, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^108).nth_root(108, all=True)
+            True
+
+            sage: K.<a> = ZqCA(3^2)
+            sage: S.<x> = K[]
+            sage: Z = (1+x)^3 + 3*x^2
+            sage: E = Z^2 + Z + 1
+            sage: L.<pi> = K.extension(E)
+            sage: elt = L.random_element()
+            sage: elt in (elt^9).nth_root(9, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^27).nth_root(27, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^108).nth_root(108, all=True)
+            True
+
+            sage: K.<a> = Qq(3^2)
+            sage: S.<x> = K[]
+            sage: Z = (1+x)^3 + 3*x^3
+            sage: E = (Z^2 + Z + 1)(a*x).monic()
+            sage: L.<pi> = K.extension(E)
+            sage: elt = L.random_element()
+            sage: elt in (elt^9).nth_root(9, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^27).nth_root(27, all=True)
+            True
+            sage: elt = L.random_element()
+            sage: elt in (elt^108).nth_root(108, all=True)
             True
 
         """
@@ -3111,9 +3174,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return self
         elif n < 0:
             return (~self).nth_root(-n)
-        R = self.parent()
-        p = R.prime()
-        e = R.absolute_e()
+        parent = self.parent()
+        K = parent.fraction_field()  # due to conversion issues
+        p = parent.prime()
+        e = parent.absolute_e()
         ep = e // (p-1)
 
         # We first check trivial cases
@@ -3122,80 +3186,109 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if self.is_zero():
             raise PrecisionError("Not enough precision to be sure that this element is a nth power")
 
+        v = n.valuation(p)
+        m = n // (p**v)
+
         # We check the valuation
         val = self.valuation()
         if val % n != 0:
             raise ValueError("This element is not a nth power")
         # and the residue
-        a = self >> val
+        a = K(self) >> val
         abar = a.residue()
         try:
-            xbar = abar.nth_root(n)
+            xbar = abar.nth_root(m)
         except ValueError:
             raise ValueError("This element is not a nth power")
 
-        v = n.valuation(p)
-        m = n // (p**v)
-        zeta, s = R._primitive_qth_root_of_unity(v)
-        qthroot = a.add_bigoh(v*e + ep + 1)  # we lower the precision in order to avoid unnecessary Newton lifts
+        # We take the inverse mth root at small precision
+        prec = a.precision_absolute()
+        minprec = v*e + ep + 1
+        if m == 1:
+            parity = 0
+            root = a.add_bigoh(minprec)
+        else:
+            parity = 1
+            root = K(~xbar)
+            invm = K(1/m)
+            curprec = 1
+            while curprec < min(minprec,prec):
+                curprec *= 2
+                root = root.lift_to_precision(min(minprec,prec,curprec))
+                root += invm * root * (1 - a*(root**m))
+
+        # We now extract the (p^v)-th root
+        zeta, s = K._primitive_qth_root_of_unity(v)
         for i in range(v):
             if s > 0 and i >= s:
-                conjugate = qthroot
-                for _ in range(p):
-                    qthroot = conjugate._pth_root()
-                    if qthroot is not None: break
-                    conjugate *= zeta
+                root, accuracy = root._inverse_pth_root(twist=zeta)
             else:
-                qthroot = qthroot._pth_root()
-            if qthroot is None:
+                root, accuracy = root._inverse_pth_root()
+            if accuracy is not infinity and accuracy is not None:
                 raise ValueError("This element is not a nth power")
 
         # We check the precision
-        prec = a.precision_absolute()
-        minprec = v*e + ep + 1
         if v > 0 and prec < minprec:
             raise PrecisionError("Not enough precision to be sure that this element is a nth power")
 
-        # We now use Newton iteration
-        # first to lift at precision minprec = v*e + [e/(p-1)] + 1
-        x = R(~xbar)
-        invm = R(1/m)
-        curprec = 1
-        while curprec < minprec:
-            curprec *= 2
-            x = x.lift_to_precision(min(minprec,curprec))
-            x += invm * x * (1 - qthroot*(x**m))
-        # second to lift at the required precision
-        divisor = R(p**v)
+        # We lift the root using Newton iteration
+        if v % 2 == parity:
+            root = ~root
+        invn = K(1/n)
         curprec = minprec
         while curprec < prec:
             curprec -= v*e
             curprec = min(2*curprec + v*e, p*curprec + (v-1)*e)
-            x = x.lift_to_precision(min(prec,curprec))
-            x += invm * x * (1 - a*(x**n)) // divisor
-        nthroot = (~x) << (val // n)
+            root = root.lift_to_precision(min(prec,curprec))
+            root += invn * root * (1 - a*(root**n))
+        root = (~root) << (val // n)
 
         if all:
-            return [ nthroot*zeta for zeta in R.roots_of_unity(n) ]
+            return [ parent(root*zeta) for zeta in K.roots_of_unity(n) ]
         else:
-            return nthroot
+            return parent(root)
 
-    def _pth_root(self):
+    def _inverse_pth_root(self, twist=None):
         """
-        Return the pth root of this element or ``None``
-        if this number does not have a pth root.
+        In its simplest form, computes the inverse of 
+        ``p``-th root of this element.
 
-        This is an helper function for :meth:`nth_root`.
+        This is an helper function used in :meth:`nth_root`
+        and :meth:`primitive_root_of_unity`.
+
+        INPUT:
+
+        - ``twist`` -- an element in the same parent or ``None``
+          (default: ``None``)
+
+        OUTPUT:
+
+        When ``twist`` is ``None``, the output is a couple
+        ``(invroot, accuracy)`` where:
+
+        - ``accuracy`` is the highest valuation of an element of
+          the form ``self * x^p - 1`` for `x` varying in the 
+          parent of this element, and
+
+        - ``invroot`` is an element realizing this maximum.
+
+        If the precision on the element is not enough to determine 
+        ``accuracy``, the value ``None`` is returned.
+
+        When ``twist`` is not ``None``, the maximum is taken over
+        all elements of the form ``self * x^p * twist^i - 1`` for
+        for `x` varying in the parent of this element and `i`
+        varying in the range `\{0, 1, \ldots, p-1\}`
 
         .. NOTE::
 
-            This function assumes that the input element is
-            a unit in the integer ring.
+            This function assumes that the input element and ``twist``
+            (if given) are units in the integer ring.
 
         TESTS::
 
             sage: R = Zp(11)
-            sage: [ R.teichmuller(x).nth_root(11) == R.teichmuller(x) for x in range(1,11) ]
+            sage: [ R.teichmuller(x).nth_root(11) == R.teichmuller(x) for x in range(1,11) ]  # indirect doctest
             [True, True, True, True, True, True, True, True, True, True]
 
             sage: W.<a> = Zq(5^3)
@@ -3204,85 +3297,124 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: y = R.random_element()
             sage: for n in [5, 10, 15]:
             ....:     z = y**n
-            ....:     assert z.nth_root(n)**n == z
+            ....:     assert z.nth_root(n)**n == z  # indirect doctest
+
         """
         ring = self.parent()
         p = ring.prime()
         e = ring.absolute_e()
-        a = self
-
-        prec = a.precision_absolute()
         ep = e // (p-1)
 
-        # We compute the p-th root of 1/a in the residue field
-        abar = a.residue()
-        xbar = 1/abar.nth_root(p)
-        x = ring(xbar)
-        curprec = 1
+        if twist is None:
+            # We use cache because this function is often called
+            # with the same primitive p^infty-th root of unity
+            if self._cache_inverse_pth_root is not None:
+                return self._cache_inverse_pth_root
+            accuracy = None
+        else:
+            invroottwist, accuracy = twist._inverse_pth_root()
+            if accuracy is None:
+                raise NotImplementedError("Try to increase the precision cap of the parent...")
 
-        x = x.lift_to_precision(ep+1)
+        a = self
+        prec = a.precision_absolute()
 
         # We will need 1/a at higher precision
         ainv = ~(a.add_bigoh(e+ep+1))
 
-        # If x^p is not correct modulo pi^p, there is no solution
-        if (ainv - x**p).valuation() < min(e+1, p):
-            return None
-
-        # We lift modulo p
+        # We lift modulo pi^(e // (p-1))
         k = ring.residue_field()
-        while curprec < min(prec/p, e/(p-1)):   # curprec is the number of correct digits of x
+        x = ring(0)
+        curprec = 0  # curprec is the valuation of (ainv - x^p)
+        while curprec < min(prec, e+ep):
             # recomputing x^p is not necessary:
             # we can alternatively update it after each update of x
             # (which is theoretically a bit faster)
-            b = (ainv - x**p) >> (p*curprec)
+            b = ainv - x**p
             if b == 0: break
-            bexp = b.expansion()
-            if b.parent().is_field():
-                # We'd like to use start_val=0, but that isn't supported by NTL ramified extensions
-                bexp = [0] * b.valuation() + list(bexp)
-            for i in range(b.valuation(), min(prec-p*curprec, e-(p-1)*curprec)):
-                if i % p == 0:
-                    try:
-                        cbar = k(bexp[i]).nth_root(p)
-                    except ValueError:
-                        return None
-                    c = ring(cbar).lift_to_precision()
-                    x += c << (curprec + i//p)
-                elif k(bexp[i]) != 0:
-                    return None
-            curprec = (curprec + e + p-1) // p
+            curprec = startval = b.valuation()
+            bexp = b.unit_part().expansion()
+            maxprec = prec
+            while curprec < maxprec:
+                try:
+                    coeff = k(bexp[curprec-startval])
+                except IndexError:
+                    coeff = k(0)
+                if coeff != 0:
+                    if curprec % p == 0:
+                        cbar = coeff.nth_root(p)
+                        c = ring(cbar).lift_to_precision()
+                        exponent = curprec // p
+                        x += c << exponent
+                        maxprec = min(maxprec, exponent + e)
+                    elif accuracy == curprec:
+                        alpha = (twist * invroottwist.add_bigoh(1 + curprec // p)**p - 1) >> curprec
+                        exponent = coeff / (ainv.residue() * alpha.residue())
+                        try:
+                            exponent = ZZ(exponent)
+                        except TypeError:
+                            if twist is None:
+                                self._cache_inverse_pth_root = x, curprec
+                            return x, curprec
+                        else:
+                            ainv //= twist**exponent
+                            a *= twist**exponent
+                            x *= invroottwist**exponent
+                            break
+                    else:
+                        if twist is None:
+                            self._cache_inverse_pth_root = x, curprec
+                        return x, curprec
+                curprec += 1
 
-        # Not enough precision to continue
+        # We check if the precision was enough
+        # We didn't do it before because we could have proved
+        # that there is no pth root in the previous step.
         if prec < e + ep + 1:
-            return (~x).add_bigoh((prec+p-1) // p)
+            x = x.add_bigoh((prec+p-1) // p)
+            if twist is None:
+                self._cache_inverse_pth_root = x, None
+            return x, None
 
         # We lift one step further
+        curprec = e + ep
         if e % (p-1) == 0:
+            rho = k(ring(p).expansion(e))
+            b = ainv - x**p
+            b >>= curprec
+            coeff = -a.residue()*b.residue()
+            if accuracy == curprec:
+                sigma = rho * (-rho).nth_root(p-1)  # should never fail
+                alpha = (twist * invroottwist.add_bigoh(ep+1)**p - 1) >> curprec
+                alpha = alpha.residue()
+                tr = (alpha/sigma).trace()
+                if tr != 0:
+                    exponent = ZZ(-(coeff/sigma).trace() / tr)
+                    coeff += exponent*alpha
+                    ainv //= twist**exponent
+                    a *= twist**exponent
+                    x *= invroottwist**exponent
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             S = PolynomialRing(k, name='x')
-            b = ainv - x**p
-            if b.valuation() < e + ep:
-                return None
-            b >>= e + ep
-            AS = S([ -b.residue(), xbar**(p-1)*k(ring(p).expansion(e)) ] + (p-2)*[0] + [1])
+            AS = S([ coeff, rho ] + (p-2)*[0] + [1])
             roots = AS.roots()
             if len(roots) == 0:
-                return None
-            x += ring(roots[0][0]) << ep
-
-        # For Newton iteration, we redefine curprec
-        # as (a lower bound on) valuation(a*x^p - 1)
-        curprec = e + ep + 1
+                if twist is None:
+                    self._cache_inverse_pth_root = x, curprec
+                return x, curprec
+            x += ring(roots[0][0] * x.residue()) << ep
 
         # We perform Newton iteration
+        curprec += 1
         while curprec < prec:
             curprec -= e
             curprec = min(2*curprec + e, p*curprec)
             x = x.lift_to_precision(min(prec,curprec))
             x += x * (1 - a*x**p) / p
 
-        return ~x
+        if twist is None:
+            self._cache_inverse_pth_root = x, infinity
+        return x, infinity
 
 
     def __abs__(self):

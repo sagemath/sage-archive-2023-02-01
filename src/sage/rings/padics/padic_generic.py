@@ -1230,23 +1230,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 p = self.prime()
                 e = self.absolute_e()
                 k = self.residue_field()
-                if e % (p-1) != 0 or k(self(p).expansion(e)) != -1:
+                if e % (p-1) != 0:
                     # No pth root of unity in this ring
                     zeta = None
                 else:
-                    # We compute a primitive pth root of unity
-                    m = e // (p-1)
-                    prec = self.precision_cap() + e * (1 + m.valuation(p))
-                    ring = self.change(prec=prec)
-                    zeta = 1 + ring.uniformizer_pow(m)
-                    curprec = m*p + 1
-                    while curprec < prec:
-                        curprec -= e
-                        curprec = min(2*curprec + e, p*curprec)
-                        zeta = zeta.lift_to_precision(min(prec,curprec))
-                        zeta += zeta * (1 - zeta**p) // p
+                    rho = -k(self(p).expansion(e))
+                    try:
+                        r = rho.nth_root(p-1)
+                    except ValueError:
+                        # No pth root of unity in this ring
+                        zeta = None
+                    else:
+                        # We compute a primitive pth root of unity
+                        m = e // (p-1)
+                        prec = self.precision_cap() + e * (1 + m.valuation(p))
+                        ring = self.change(prec=prec)
+                        zeta = 1 + (ring(r).lift_to_precision() << m)
+                        curprec = m*p + 1
+                        while curprec < prec:
+                            curprec -= e
+                            curprec = min(2*curprec + e, p*curprec)
+                            zeta = zeta.lift_to_precision(min(prec,curprec))
+                            zeta += zeta * (1 - zeta**p) // p
             else:
-                zeta = zeta._pth_root()
+                zeta, accuracy = zeta._inverse_pth_root()
+                assert accuracy is not None
+                if accuracy is not Infinity:
+                    zeta = None
             self._qth_roots_of_unity.append(zeta)
             n += 1
         if zeta is None:

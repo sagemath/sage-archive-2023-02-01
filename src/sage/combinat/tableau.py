@@ -4962,6 +4962,397 @@ def from_shape_and_word(shape, w, convention="French"):
         res.reverse()
     return Tableau(res)
 
+class IncreasingTableau(Tableau):
+    """
+    A class to model an increasing tableau.
+
+    INPUT:
+
+    - ``t`` -- a tableau, a list of iterables, or an empty list
+
+    OUTPUT:
+
+    - An IncreasingTableau object constructed from ``t``.
+
+    An increasing tableau is a tableau whose entries are positive integers,
+    which are strictly increasing across rows and strictly increasing down columns.
+
+    EXAMPLES::
+
+        sage: t = IncreasingTableau([[1,2,3],[2,3]]); t
+        [[1, 2, 3], [2, 3]]
+        sage: t.shape()
+        [3, 2]
+        sage: t.pp() # pretty printing
+        1 2 3
+        2 3
+        sage: t = Tableau([[1,2],[2]])
+        sage: s = IncreasingTableau(t); s
+        [[1, 2], [2]]
+        sage: IncreasingTableau([]) # The empty tableau
+        []
+
+    You can also construct an IncreasingTableau from the appropriate
+    :class:`Parent` object::
+
+        sage: IT = IncreasingTableaux()
+        sage: IT([[1, 2, 3], [4, 5]])
+        [[1, 2, 3], [4, 5]]
+
+    .. SEEALSO::
+
+        - :class:`Tableaux`
+        - :class:`Tableau`
+        - :class:`SemistandardTableaux`
+        - :class:`SemistandardTableau`
+        - :class:`StandardTableaux`
+        - :class:`StandardTableau`
+        - :class:`IncreasingTableaux`
+
+    TESTS::
+
+        sage: t = Tableaux()([[1,2],[2]])
+        sage: s = IncreasingTableaux(3)([[1,2],[2]])
+        sage: s == t
+        True
+        sage: s.parent()
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: r = IncreasingTableaux(3)(t); r.parent()
+        Increasing tableaux of size 3 and maximum entry 3
+        sage: isinstance(r, Tableau)
+        True
+        sage: s2 = IncreasingTableaux(3)([(1,2),(2,)])
+        sage: s2 == s
+        True
+        sage: s2.parent()
+        Increasing tableaux of size 3 and maximum entry 3
+    """
+    @staticmethod
+    def __classcall_private__(self, t):
+        r"""
+        This ensures that an IncreasingTableau is only ever constructed as an
+        element_class call of an appropriate parent.
+
+        TESTS::
+
+            sage: t = IncreasingTableau([[1,2],[2]])
+            sage: TestSuite(t).run()
+
+            sage: t.parent()
+            Increasing tableaux
+            sage: t.category()
+            Category of elements of Increasing tableaux
+            sage: type(t)
+            <class 'sage.combinat.tableau.IncreasingTableaux_all_with_category.element_class'>
+        """
+        if isinstance(t, IncreasingTableau):
+            return t
+        elif t in IncreasingTableaux():
+            return IncreasingTableaux_all().element_class(IncreasingTableaux_all(), t)
+
+        # t is not an increasing tableau so we give an appropriate error message
+        if t not in Tableaux():
+            raise ValueError('%s is not a tableau' % t)
+
+        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
+            raise ValueError("entries must be positive integers"%t)
+
+        if any(row[c] >= row[c+1] for row in t for c in range(len(row)-1)):
+            raise ValueError("The rows of %s are not strictly increasing"%t)
+        # If we're still here the columns must not be strictly increasing
+        raise ValueError("The columns of %s are not strictly increasing"%t)
+
+    def check(self):
+        """
+        Check that ``self`` is a valid increasing tableau.
+
+        TESTS::
+
+            sage: IncreasingTableau([[1,2,3],[1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: The columns of [[1, 2, 3], [1]] are not strictly increasing
+
+            sage: IncreasingTableau([[1,2,2]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: the entries in each row of an increasing tableau must be strictly increasing
+
+            sage: IncreasingTableau([[0,1]])  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: entries must be positive integers
+        """
+        super(IncreasingTableau, self).check()
+
+        # Tableau() has checked that t is tableau, so it remains to check that
+        # the entries of t are positive integers which are weakly increasing
+        # along rows
+        from sage.sets.positive_integers import PositiveIntegers
+        PI = PositiveIntegers()
+
+        for row in self:
+            if any(c not in PI for c in row):
+                raise ValueError("the entries of an increasing tableau must be non-negative integers")
+            if any(row[c] >= row[c+1] for c in range(len(row)-1)):
+                raise ValueError("the entries in each row of an increasing tableau must be strictly increasing")
+
+        # and strictly increasing down columns
+        if self:
+            for row, next in zip(self, self[1:]):
+                if not all(row[c] < next[c] for c in range(len(next))):
+                    raise ValueError("the entries of each column of an increasing tableau must be strictly increasing")
+
+    def descent_set(self):
+        """
+        Compute the descents of the increasing tableau ``self``
+        as defined in [DPS2017]. The number i is a 
+        descent of ``self'' if some instance of i+1 appears in a
+        lower row than some instance of i. (This notion is close
+        to the notion of descent for a standard tableau and is
+        unrelated to the notion for semistandard tableaux.)
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,2,4],[3,5,6]])
+            sage: T.descent_set()
+            [2, 4]
+            sage: U = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: U.descent_set()
+            [1, 3, 4]
+
+        REFERENCES:
+
+        .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker
+           *Resonance in orbits of plane partitions and increasing tableaux*,
+           JCTA 148 (2017), 244-274,
+           https://doi.org/10.1016/j.jcta.2016.12.007
+        """
+        ans = []
+        for i in self.entries():
+            for (r1,c1) in self.cells():
+                for (r2,c2) in self.cells():
+                    if r2 > r1 and self[r1][c1] == i and self[r2][c2] == i+1:
+                        if i not in ans:
+                            ans.append(i)
+        return ans
+
+    @combinatorial_map(order=2,name='K-Bender-Knuth involution')
+    def K_BenderKnuth(self,i):
+        """
+        Applies the ith K-Bender-Knuth operator (as defined in [DPS2017])
+        to the tableau ``self``. This swaps the letters i and i+1 everywhere 
+        where doing so would not break increasingness.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_BenderKnuth(2)
+            [[1, 2, 4], [3, 4, 5]]
+            sage: T.K_BenderKnuth(3)
+            [[1, 3, 4], [2, 4, 5]]
+
+        REFERENCES:
+
+        .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker
+           *Resonance in orbits of plane partitions and increasing tableaux*,
+           JCTA 148 (2017), 244-274,
+           https://doi.org/10.1016/j.jcta.2016.12.007
+        """
+        part = list(self.shape())
+        newtab = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            if self[r][c] not in [i,i+1]:
+                newtab[r][c] = self[r][c]
+            if self[r][c] == i:
+                try:
+                    rneigh = self[r][c+1]
+                except IndexError:
+                    rneigh = i+2
+                try:
+                    bneigh = self[r+1][c]
+                except IndexError:
+                    bneigh = i+2
+                if i+1 in [rneigh, bneigh]:
+                    newtab[r][c] = i
+                else:
+                    newtab[r][c] = i+1
+            if self[r][c] == i+1:
+                try:
+                    lneigh = self[r][c-1]
+                except IndexError:
+                    lneigh = i-1
+                try:
+                    tneigh = self[r-1][c]
+                except IndexError:
+                    tneigh = i-1
+                if i in [lneigh, tneigh]:
+                    newtab[r][c] = i+1
+                else:
+                    newtab[r][c] = i
+        return IncreasingTableau(newtab)
+
+    @combinatorial_map(name='K-promotion')
+    def K_promotion(self,ceiling=None):
+        """
+        Applies the K-promotion operator to the
+        tableau ``self``. This operator was introduced
+        in [Pec2014].
+
+        REFERENCES:
+
+        .. [DPS2017] Oliver Pechenik
+           *Cyclic sieving of increasing tableaux and small Schroeder paths*,
+           JCTA 125 (2014), 357-378,
+           https://doi.org/10.1016/j.jcta.2014.04.002
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_promotion()
+            [[1, 2, 3], [3, 4, 5]]
+            sage: T.K_promotion(6)
+            [[1, 2, 3], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_promotion()
+            [[2, 3, 4], [3, 4, 5], [4]]
+        """
+        if ceiling == None:
+            ceiling = max(self.entries())
+        part = self.shape()
+        ans = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            ans[r][c] = self[r][c]
+        ans = IncreasingTableau(ans)
+        for i in range(1,ceiling):
+            ans = ans.K_BenderKnuth(i)
+        return ans
+
+    @combinatorial_map(name='K-promotion inverse')
+    def K_promotion_inverse(self,ceiling=None):
+        """
+        Applies the inverse of K-promotion operator to the
+        tableau ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_promotion_inverse()
+            [[1, 2, 4], [3, 4, 5]]
+            sage: T.K_promotion_inverse(6)
+            [[2, 4, 5], [3, 5, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_promotion_inverse()
+            [[1, 2, 4], [2, 4, 5], [4]]
+
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.K_promotion().K_promotion_inverse()
+            True
+            sage: V == V.K_promotion_inverse().K_promotion()
+            True
+        """
+        if ceiling == None:
+            ceiling = max(self.entries())
+        part = self.shape()
+        ans = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            ans[r][c] = self[r][c]
+        ans = IncreasingTableau(ans)
+        for i in reversed(range(1,ceiling)):
+            ans = ans.K_BenderKnuth(i)
+        return ans
+
+    @combinatorial_map(order=2,name='K-evacuation')
+    def K_evacuation(self,ceiling=None):
+        """
+        Applies the K-evacuation involution to the
+        tableau ``self``. This operator was introduced
+        in [TY2009].
+
+        REFERENCES:
+
+        .. [TY2009] Hugh Thomas and Alexander Yong
+           *A jeu de taquin theory for increasing tableaux, with applications to 
+           K-theoretic Schubert calculus*,
+           Algebra and Number Theory 3 (2009), 121-148,
+           https://projecteuclid.org/euclid.ant/1513797353
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.K_evacuation()
+            [[1, 2, 4], [2, 3, 5]]
+            sage: T.K_evacuation(6)
+            [[2, 3, 5], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.K_evacuation()
+            [[1, 2, 3], [2, 3, 5], [3]]
+
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.K_evacuation().K_evacuation()
+            True
+            sage: V.K_promotion().K_evacuation() == V.K_evacuation().K_promotion_inverse()
+            True
+        """
+        if ceiling == None:
+            ceiling = max(self.entries())
+        part = self.shape()
+        ans = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            ans[r][c] = self[r][c]
+        ans = IncreasingTableau(ans)
+        for j in reversed(range(1,ceiling)):
+            for i in range(1,j+1):
+                ans = ans.K_BenderKnuth(i)
+        return ans
+
+    @combinatorial_map(order=2,name='dual K-evacuation')
+    def dual_K_evacuation(self,ceiling=None):
+        """
+        Applies the dual K-evacuation involution to the
+        tableau ``self``.
+
+        EXAMPLES::
+
+            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
+            sage: T.dual_K_evacuation()
+            [[1, 2, 4], [2, 3, 5]]
+            sage: T.dual_K_evacuation(6)
+            [[2, 3, 5], [3, 4, 6]]
+            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
+            sage: U.dual_K_evacuation()
+            [[1, 2, 3], [2, 3, 5], [3]]
+
+        TESTS::
+
+            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
+            sage: V == V.dual_K_evacuation().dual_K_evacuation()
+            True
+            sage: W = IncreasingTableau([[1,2,4],[2,3,5]])
+            sage: W.K_evacuation() == W.dual_K_evacuation()
+            True
+            sage: X = IncreasingTableau([[1,2,4,7],[3,5,6,8],[5,7,8,10],[7,9,10,11]])
+            sage: X.K_evacuation() == X.dual_K_evacuation()
+            False
+            sage: X.K_promotion().dual_K_evacuation() == X.dual_K_evacuation().K_promotion_inverse()
+            True
+        """
+        if ceiling == None:
+            ceiling = max(self.entries())
+        part = self.shape()
+        ans = [[0] * k for k in part]
+        for (r,c) in self.cells():
+            ans[r][c] = self[r][c]
+        ans = IncreasingTableau(ans)
+        for j in range(1,ceiling):
+            for i in reversed(range(j,ceiling)):
+                ans = ans.K_BenderKnuth(i)
+        return ans
+
 class Tableaux(UniqueRepresentation, Parent):
     """
     A factory class for the various classes of tableaux.
@@ -7887,398 +8278,6 @@ register_unpickle_override('sage.combinat.tableau', 'SemistandardTableaux_pmu', 
 # Deprecations from trac:18555. July 2016
 from sage.misc.superseded import deprecated_function_alias
 Tableaux.global_options=deprecated_function_alias(18555, Tableaux.options)
-
-class IncreasingTableau(Tableau):
-    """
-    A class to model an increasing tableau.
-
-    INPUT:
-
-    - ``t`` -- a tableau, a list of iterables, or an empty list
-
-    OUTPUT:
-
-    - An IncreasingTableau object constructed from ``t``.
-
-    An increasing tableau is a tableau whose entries are positive integers,
-    which are strictly increasing across rows and strictly increasing down columns.
-
-    EXAMPLES::
-
-        sage: t = IncreasingTableau([[1,2,3],[2,3]]); t
-        [[1, 2, 3], [2, 3]]
-        sage: t.shape()
-        [3, 2]
-        sage: t.pp() # pretty printing
-        1 2 3
-        2 3
-        sage: t = Tableau([[1,2],[2]])
-        sage: s = IncreasingTableau(t); s
-        [[1, 2], [2]]
-        sage: IncreasingTableau([]) # The empty tableau
-        []
-
-    You can also construct an IncreasingTableau from the appropriate
-    :class:`Parent` object::
-
-        sage: IT = IncreasingTableaux()
-        sage: IT([[1, 2, 3], [4, 5]])
-        [[1, 2, 3], [4, 5]]
-
-    .. SEEALSO::
-
-        - :class:`Tableaux`
-        - :class:`Tableau`
-        - :class:`SemistandardTableaux`
-        - :class:`SemistandardTableau`
-        - :class:`StandardTableaux`
-        - :class:`StandardTableau`
-        - :class:`IncreasingTableaux`
-
-    TESTS::
-
-        sage: t = Tableaux()([[1,2],[2]])
-        sage: s = IncreasingTableaux(3)([[1,2],[2]])
-        sage: s == t
-        True
-        sage: s.parent()
-        Increasing tableaux of size 3 and maximum entry 3
-        sage: r = IncreasingTableaux(3)(t); r.parent()
-        Increasing tableaux of size 3 and maximum entry 3
-        sage: isinstance(r, Tableau)
-        True
-        sage: s2 = IncreasingTableaux(3)([(1,2),(2,)])
-        sage: s2 == s
-        True
-        sage: s2.parent()
-        Increasing tableaux of size 3 and maximum entry 3
-    """
-    @staticmethod
-    def __classcall_private__(self, t):
-        r"""
-        This ensures that an IncreasingTableau is only ever constructed as an
-        element_class call of an appropriate parent.
-
-        TESTS::
-
-            sage: t = IncreasingTableau([[1,2],[2]])
-            sage: TestSuite(t).run()
-
-            sage: t.parent()
-            Increasing tableaux
-            sage: t.category()
-            Category of elements of Increasing tableaux
-            sage: type(t)
-            <class 'sage.combinat.tableau.IncreasingTableaux_all_with_category.element_class'>
-        """
-        if isinstance(t, IncreasingTableau):
-            return t
-        elif t in IncreasingTableaux():
-            return IncreasingTableaux_all().element_class(IncreasingTableaux_all(), t)
-
-        # t is not an increasing tableau so we give an appropriate error message
-        if t not in Tableaux():
-            raise ValueError('%s is not a tableau' % t)
-
-        if not all(isinstance(c, (int, Integer)) and c > 0 for row in t for c in row):
-            raise ValueError("entries must be positive integers"%t)
-
-        if any(row[c] >= row[c+1] for row in t for c in range(len(row)-1)):
-            raise ValueError("The rows of %s are not strictly increasing"%t)
-        # If we're still here the columns must not be strictly increasing
-        raise ValueError("The columns of %s are not strictly increasing"%t)
-
-    def check(self):
-        """
-        Check that ``self`` is a valid increasing tableau.
-
-        TESTS::
-
-            sage: IncreasingTableau([[1,2,3],[1]])  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: The columns of [[1, 2, 3], [1]] are not strictly increasing
-
-            sage: IncreasingTableau([[1,2,2]])  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: the entries in each row of an increasing tableau must be strictly increasing
-
-            sage: IncreasingTableau([[0,1]])  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: entries must be positive integers
-        """
-        super(IncreasingTableau, self).check()
-
-        # Tableau() has checked that t is tableau, so it remains to check that
-        # the entries of t are positive integers which are weakly increasing
-        # along rows
-        from sage.sets.positive_integers import PositiveIntegers
-        PI = PositiveIntegers()
-
-        for row in self:
-            if any(c not in PI for c in row):
-                raise ValueError("the entries of an increasing tableau must be non-negative integers")
-            if any(row[c] >= row[c+1] for c in range(len(row)-1)):
-                raise ValueError("the entries in each row of an increasing tableau must be strictly increasing")
-
-        # and strictly increasing down columns
-        if self:
-            for row, next in zip(self, self[1:]):
-                if not all(row[c] < next[c] for c in range(len(next))):
-                    raise ValueError("the entries of each column of an increasing tableau must be strictly increasing")
-
-    def descent_set(self):
-        """
-        Compute the descents of the increasing tableau ``self``
-        as defined in [DPS2017]. The number i is a 
-        descent of ``self'' if some instance of i+1 appears in a
-        lower row than some instance of i. (This notion is close
-        to the notion of descent for a standard tableau and is
-        unrelated to the notion for semistandard tableaux.)
-
-        EXAMPLES::
-
-            sage: T = IncreasingTableau([[1,2,4],[3,5,6]])
-            sage: T.descent_set()
-            [2, 4]
-            sage: U = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: U.descent_set()
-            [1, 3, 4]
-
-        REFERENCES:
-
-        .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker
-           *Resonance in orbits of plane partitions and increasing tableaux*,
-           JCTA 148 (2017), 244-274,
-           https://doi.org/10.1016/j.jcta.2016.12.007
-        """
-        ans = []
-        for i in self.entries():
-            for (r1,c1) in self.cells():
-                for (r2,c2) in self.cells():
-                    if r2 > r1 and self[r1][c1] == i and self[r2][c2] == i+1:
-                        if i not in ans:
-                            ans.append(i)
-        return ans
-
-    @combinatorial_map(order=2,name='K-Bender-Knuth involution')
-    def K_BenderKnuth(self,i):
-        """
-        Applies the ith K-Bender-Knuth operator (as defined in [DPS2017])
-        to the tableau ``self``. This swaps the letters i and i+1 everywhere 
-        where doing so would not break increasingness.
-
-        EXAMPLES::
-
-            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: T.K_BenderKnuth(2)
-            [[1, 2, 4], [3, 4, 5]]
-            sage: T.K_BenderKnuth(3)
-            [[1, 3, 4], [2, 4, 5]]
-
-        REFERENCES:
-
-        .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker
-           *Resonance in orbits of plane partitions and increasing tableaux*,
-           JCTA 148 (2017), 244-274,
-           https://doi.org/10.1016/j.jcta.2016.12.007
-        """
-        part = list(self.shape())
-        newtab = [[0] * k for k in part]
-        for (r,c) in self.cells():
-            if self[r][c] not in [i,i+1]:
-                newtab[r][c] = self[r][c]
-            if self[r][c] == i:
-                try:
-                    rneigh = self[r][c+1]
-                except IndexError:
-                    rneigh = i+2
-                try:
-                    bneigh = self[r+1][c]
-                except IndexError:
-                    bneigh = i+2
-                if i+1 in [rneigh, bneigh]:
-                    newtab[r][c] = i
-                else:
-                    newtab[r][c] = i+1
-            if self[r][c] == i+1:
-                try:
-                    lneigh = self[r][c-1]
-                except IndexError:
-                    lneigh = i-1
-                try:
-                    tneigh = self[r-1][c]
-                except IndexError:
-                    tneigh = i-1
-                if i in [lneigh, tneigh]:
-                    newtab[r][c] = i+1
-                else:
-                    newtab[r][c] = i
-        return IncreasingTableau(newtab)
-
-    @combinatorial_map(name='K-promotion')
-    def K_promotion(self,ceiling=None):
-        """
-        Applies the K-promotion operator to the
-        tableau ``self``. This operator was introduced
-        in [Pec2014].
-
-        REFERENCES:
-
-        .. [DPS2017] Oliver Pechenik
-           *Cyclic sieving of increasing tableaux and small Schroeder paths*,
-           JCTA 125 (2014), 357-378,
-           https://doi.org/10.1016/j.jcta.2014.04.002
-
-        EXAMPLES::
-
-            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: T.K_promotion()
-            [[1, 2, 3], [3, 4, 5]]
-            sage: T.K_promotion(6)
-            [[1, 2, 3], [3, 4, 6]]
-            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
-            sage: U.K_promotion()
-            [[2, 3, 4], [3, 4, 5], [4]]
-        """
-        if ceiling == None:
-            ceiling = max(self.entries())
-        part = self.shape()
-        ans = [[0] * k for k in part]
-        for (r,c) in self.cells():
-            ans[r][c] = self[r][c]
-        ans = IncreasingTableau(ans)
-        for i in range(1,ceiling):
-            ans = ans.K_BenderKnuth(i)
-        return ans
-
-    @combinatorial_map(name='K-promotion inverse')
-    def K_promotion_inverse(self,ceiling=None):
-        """
-        Applies the inverse of K-promotion operator to the
-        tableau ``self``.
-
-        EXAMPLES::
-
-            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: T.K_promotion_inverse()
-            [[1, 2, 4], [3, 4, 5]]
-            sage: T.K_promotion_inverse(6)
-            [[2, 4, 5], [3, 5, 6]]
-            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
-            sage: U.K_promotion_inverse()
-            [[1, 2, 4], [2, 4, 5], [4]]
-
-        TESTS::
-
-            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
-            sage: V == V.K_promotion().K_promotion_inverse()
-            True
-            sage: V == V.K_promotion_inverse().K_promotion()
-            True
-        """
-        if ceiling == None:
-            ceiling = max(self.entries())
-        part = self.shape()
-        ans = [[0] * k for k in part]
-        for (r,c) in self.cells():
-            ans[r][c] = self[r][c]
-        ans = IncreasingTableau(ans)
-        for i in reversed(range(1,ceiling)):
-            ans = ans.K_BenderKnuth(i)
-        return ans
-
-    @combinatorial_map(order=2,name='K-evacuation')
-    def K_evacuation(self,ceiling=None):
-        """
-        Applies the K-evacuation involution to the
-        tableau ``self``. This operator was introduced
-        in [TY2009].
-
-        REFERENCES:
-
-        .. [TY2009] Hugh Thomas and Alexander Yong
-           *A jeu de taquin theory for increasing tableaux, with applications to 
-           K-theoretic Schubert calculus*,
-           Algebra and Number Theory 3 (2009), 121-148,
-           https://projecteuclid.org/euclid.ant/1513797353
-
-        EXAMPLES::
-
-            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: T.K_evacuation()
-            [[1, 2, 4], [2, 3, 5]]
-            sage: T.K_evacuation(6)
-            [[2, 3, 5], [3, 4, 6]]
-            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
-            sage: U.K_evacuation()
-            [[1, 2, 3], [2, 3, 5], [3]]
-
-        TESTS::
-
-            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
-            sage: V == V.K_evacuation().K_evacuation()
-            True
-            sage: V.K_promotion().K_evacuation() == V.K_evacuation().K_promotion_inverse()
-            True
-        """
-        if ceiling == None:
-            ceiling = max(self.entries())
-        part = self.shape()
-        ans = [[0] * k for k in part]
-        for (r,c) in self.cells():
-            ans[r][c] = self[r][c]
-        ans = IncreasingTableau(ans)
-        for j in reversed(range(1,ceiling)):
-            for i in range(1,j+1):
-                ans = ans.K_BenderKnuth(i)
-        return ans
-
-    @combinatorial_map(order=2,name='dual K-evacuation')
-    def dual_K_evacuation(self,ceiling=None):
-        """
-        Applies the dual K-evacuation involution to the
-        tableau ``self``.
-
-        EXAMPLES::
-
-            sage: T = IncreasingTableau([[1,3,4],[2,4,5]])
-            sage: T.dual_K_evacuation()
-            [[1, 2, 4], [2, 3, 5]]
-            sage: T.dual_K_evacuation(6)
-            [[2, 3, 5], [3, 4, 6]]
-            sage: U = IncreasingTableau([[1,3,4],[3,4,5],[5]])
-            sage: U.dual_K_evacuation()
-            [[1, 2, 3], [2, 3, 5], [3]]
-
-        TESTS::
-
-            sage: V = IncreasingTableau([[1,3,4],[3,4,5],[5,6]])
-            sage: V == V.dual_K_evacuation().dual_K_evacuation()
-            True
-            sage: W = IncreasingTableau([[1,2,4],[2,3,5]])
-            sage: W.K_evacuation() == W.dual_K_evacuation()
-            True
-            sage: X = IncreasingTableau([[1,2,4,7],[3,5,6,8],[5,7,8,10],[7,9,10,11]])
-            sage: X.K_evacuation() == X.dual_K_evacuation()
-            False
-            sage: X.K_promotion().dual_K_evacuation() == X.dual_K_evacuation().K_promotion_inverse()
-            True
-        """
-        if ceiling == None:
-            ceiling = max(self.entries())
-        part = self.shape()
-        ans = [[0] * k for k in part]
-        for (r,c) in self.cells():
-            ans[r][c] = self[r][c]
-        ans = IncreasingTableau(ans)
-        for j in range(1,ceiling):
-            for i in reversed(range(j,ceiling)):
-                ans = ans.K_BenderKnuth(i)
-        return ans
-
 
 ##########################
 # Increasing tableaux #

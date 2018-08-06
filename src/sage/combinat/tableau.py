@@ -5606,31 +5606,6 @@ class Tableaux(UniqueRepresentation, Parent):
         else:
             return False
 
-#    def list(self):
-#        """
-#        Raises a ``NotImplementedError`` since there is not a method to
-#        enumerate all tableaux.
-#
-#        TESTS::
-#
-#            sage: Tableaux().list()
-#            Traceback (most recent call last):
-#            ...
-#            NotImplementedError
-#        """
-#        raise NotImplementedError
-#
-#    def __iter__(self):
-#        """
-#        TESTS::
-#
-#            sage: iter(Tableaux())
-#            Traceback (most recent call last):
-#            ...
-#            NotImplementedError
-#        """
-#        raise NotImplementedError
-
 class Tableaux_all(Tableaux):
 
     def __init__(self):
@@ -8740,18 +8715,6 @@ class IncreasingTableaux_all(IncreasingTableaux, DisjointUnionEnumeratedSets):
         return "Increasing tableaux"
 
 
-    def list(self):
-        """
-        TESTS::
-
-            sage: IncreasingTableaux().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-
 class IncreasingTableaux_size_inf(IncreasingTableaux):
     """
     Increasing tableaux of fixed size `n` with no maximum entry.
@@ -8832,18 +8795,6 @@ class IncreasingTableaux_size_inf(IncreasingTableaux):
                     for sst in IncreasingTableaux_shape_weight(part, Composition([self.size])):
                         yield self.element_class(self, sst)
             i += 1
-
-
-    def list(self):
-        """
-        TESTS::
-
-            sage: IncreasingTableaux(3, max_entry=oo).list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
 
 
 class IncreasingTableaux_shape_inf(IncreasingTableaux):

@@ -5106,7 +5106,7 @@ class IncreasingTableau(Tableau):
     def descent_set(self):
         """
         Compute the descents of the increasing tableau ``self``
-        as defined in [DPS2017]. The number i is a 
+        as defined in [DPS2017]_. The number i is a 
         descent of ``self'' if some instance of i+1 appears in a
         lower row than some instance of i. (This notion is close
         to the notion of descent for a standard tableau and is
@@ -5140,7 +5140,7 @@ class IncreasingTableau(Tableau):
     @combinatorial_map(order=2,name='K-Bender-Knuth involution')
     def K_BenderKnuth(self,i):
         """
-        Applies the ith K-Bender-Knuth operator (as defined in [DPS2017])
+        Applies the ith K-Bender-Knuth operator (as defined in [DPS2017]_)
         to the tableau ``self``. This swaps the letters i and i+1 everywhere 
         where doing so would not break increasingness.
 
@@ -5197,7 +5197,7 @@ class IncreasingTableau(Tableau):
         """
         Applies the K-promotion operator to the
         tableau ``self``. This operator was introduced
-        in [Pec2014].
+        in [Pec2014]_.
 
         REFERENCES:
 
@@ -5269,7 +5269,7 @@ class IncreasingTableau(Tableau):
         """
         Applies the K-evacuation involution to the
         tableau ``self``. This operator was introduced
-        in [TY2009].
+        in [TY2009]_.
 
         REFERENCES:
 

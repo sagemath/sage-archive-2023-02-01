@@ -763,7 +763,7 @@ class TermOrder(SageObject):
             if name not in print_name_mapping.keys() and name not in singular_name_mapping.values() and not force:
                 raise ValueError("unknown term order {!r}".format(name))
             weights = tuple(int(w) for w in n) # n is a tuple of weights
-            if any([w<=0 for w in weights]):
+            if any(w <= 0 for w in weights):
                 raise ValueError("the degree weights must be positive integers")
 
             self._length = len(weights)
@@ -2099,10 +2099,11 @@ class TermOrder(SageObject):
             sage: T.is_global()
             True
         """
-        if self.name() in ('lex','degrevlex','deglex','degneglex','wdegrevlex','wdeglex'):
+        if self.name() in ('lex', 'degrevlex', 'deglex', 'degneglex',
+                           'wdegrevlex', 'wdeglex'):
             return True
         elif self.name() == 'block':
-            return all([t.is_global() for t in self.blocks()])
+            return all(t.is_global() for t in self.blocks())
         else:
             return False
 
@@ -2124,11 +2125,12 @@ class TermOrder(SageObject):
             sage: T.is_local()
             False
         """
-        if (self.name() in ('neglex','negdegrevlex','negdeglex','negwdegrevlex','negwdeglex') or
-            self.singular_str() in ('ls','ds','Ds','ws','Ws')):
+        if (self.name() in ('neglex', 'negdegrevlex', 'negdeglex',
+                            'negwdegrevlex', 'negwdeglex') or
+            self.singular_str() in ('ls', 'ds', 'Ds', 'ws', 'Ws')):
             return True
         elif self.name() == 'block':
-            return all([t.is_local() for t in self.blocks()])
+            return all(t.is_local() for t in self.blocks())
         else:
             return False
 

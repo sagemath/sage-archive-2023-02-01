@@ -453,7 +453,7 @@ class SBox(SageObject):
         EXAMPLES::
 
             sage: from sage.crypto.sbox import SBox
-            sage: SBox(range(4)).derivative(1)
+            sage: SBox(range(4)).derivative(1).derivative(2)
             (0, 0, 0, 0)
 
             sage: from sage.crypto.sboxes import PRESENT

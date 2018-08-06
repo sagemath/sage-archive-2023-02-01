@@ -927,6 +927,11 @@ REFERENCES:
 .. [Do2009] \P. Dobcsanyi et
             al. DesignTheory.org. http://designtheory.org/database/
 
+.. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker,
+             *Resonance in orbits of plane partitions and increasing
+             tableaux*, JCTA 148 (2017), 244-274,
+             https://doi.org/10.1016/j.jcta.2016.12.007
+
 .. [DPV2001] \J. Daemen, M. Peeters, and G. Van Assche,
              *Bitslice ciphers and power analysis attacks*; in FSE, (2000), pp. 134-149.
 
@@ -2207,6 +2212,10 @@ REFERENCES:
 .. [PearsonTest] :wikipedia:`Goodness_of_fit`, accessed 13th
                  October 2009.
 
+.. [Pec2014] Oliver Pechenik, *Cyclic sieving of increasing tableaux and
+             small Schroeder paths*, JCTA 125 (2014), 357-378,
+             https://doi.org/10.1016/j.jcta.2014.04.002
+
 .. [Pen2012] \R. Pendavingh, On the evaluation at `(-i, i)` of the
              Tutte polynomial of a binary matroid. Preprint:
              :arxiv:`1203.0910`
@@ -2698,6 +2707,11 @@ REFERENCES:
 
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)
+
+.. [TY2009] Hugh Thomas and Alexander Yong, *A jeu de taquin theory for
+            increasing tableaux, with applications to K-theoretic Schubert
+            calculus*, Algebra and Number Theory 3 (2009), 121-148,
+            https://projecteuclid.org/euclid.ant/1513797353
 
 .. _ref-U:
 

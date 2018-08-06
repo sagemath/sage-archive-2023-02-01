@@ -5120,13 +5120,6 @@ class IncreasingTableau(Tableau):
             sage: U = IncreasingTableau([[1,3,4],[2,4,5]])
             sage: U.descent_set()
             [1, 3, 4]
-
-        REFERENCES:
-
-        .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker
-           *Resonance in orbits of plane partitions and increasing tableaux*,
-           JCTA 148 (2017), 244-274,
-           https://doi.org/10.1016/j.jcta.2016.12.007
         """
         ans = []
         for i in self.entries():
@@ -5151,13 +5144,6 @@ class IncreasingTableau(Tableau):
             [[1, 2, 4], [3, 4, 5]]
             sage: T.K_BenderKnuth(3)
             [[1, 3, 4], [2, 4, 5]]
-
-        REFERENCES:
-
-        .. [DPS2017] Kevin Dilks, Oliver Pechenik, and Jessica Striker
-           *Resonance in orbits of plane partitions and increasing tableaux*,
-           JCTA 148 (2017), 244-274,
-           https://doi.org/10.1016/j.jcta.2016.12.007
         """
         part = list(self.shape())
         newtab = [[0] * k for k in part]
@@ -5198,13 +5184,6 @@ class IncreasingTableau(Tableau):
         Applies the K-promotion operator to the
         tableau ``self``. This operator was introduced
         in [Pec2014]_.
-
-        REFERENCES:
-
-        .. [DPS2017] Oliver Pechenik
-           *Cyclic sieving of increasing tableaux and small Schroeder paths*,
-           JCTA 125 (2014), 357-378,
-           https://doi.org/10.1016/j.jcta.2014.04.002
 
         EXAMPLES::
 
@@ -5270,14 +5249,6 @@ class IncreasingTableau(Tableau):
         Applies the K-evacuation involution to the
         tableau ``self``. This operator was introduced
         in [TY2009]_.
-
-        REFERENCES:
-
-        .. [TY2009] Hugh Thomas and Alexander Yong
-           *A jeu de taquin theory for increasing tableaux, with applications to 
-           K-theoretic Schubert calculus*,
-           Algebra and Number Theory 3 (2009), 121-148,
-           https://projecteuclid.org/euclid.ant/1513797353
 
         EXAMPLES::
 

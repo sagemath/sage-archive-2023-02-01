@@ -893,11 +893,11 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         """
         if self.is_finite():
             return 'AbelianGroup(%s)'%list(self.gens_orders())
-        from sage.misc.package import is_package_installed, PackageNotFoundError
-        if is_package_installed('gap_packages'):
-            # Make sure to LoadPackage("Polycyclic") in gap
-            return 'AbelianPcpGroup(%s)'%list(self.gens_orders())
-        raise PackageNotFoundError("gap_packages")
+
+        from sage.features.gap import GapPackage
+        # Make sure to LoadPackage("Polycyclic") in gap
+        GapPackage("polycyclic", spkg="gap_packages").require()
+        return 'AbelianPcpGroup(%s)'%list(self.gens_orders())
 
     def gen(self, i=0):
         """

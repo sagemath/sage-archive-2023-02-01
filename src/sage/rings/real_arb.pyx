@@ -801,7 +801,7 @@ class RealBallField(UniqueRepresentation, Field):
         TESTS::
 
             sage: RBF.sinpi(RLF(sqrt(2)))
-            [-0.96390253284988 +/- 4.11e-15]
+            [-0.963902532849877 +/- 5.69e-16]
         """
         cdef RealBall res, x_as_ball
         cdef Rational x_as_Rational
@@ -845,7 +845,7 @@ class RealBallField(UniqueRepresentation, Field):
         TESTS::
 
             sage: RBF.cospi(RLF(sqrt(2)))
-            [-0.26625534204142 +/- 5.38e-15]
+            [-0.26625534204142 +/- 5.35e-15]
         """
         cdef RealBall res, x_as_ball
         cdef Rational x_as_Rational
@@ -3111,7 +3111,7 @@ cdef class RealBall(RingElement):
         EXAMPLES::
 
             sage: RBF(pi).cos() # abs tol 1e-16
-            [-1.00000000000000 +/- 6.69e-16]
+            [-1.00000000000000 +/- 2.27e-16]
 
         .. SEEALSO:: :meth:`~sage.rings.real_arb.RealBallField.cospi`
         """
@@ -3458,11 +3458,11 @@ cdef class RealBall(RingElement):
             sage: polylog(0, -1)
             -1/2
             sage: RBF(-1).polylog(0)
-            [-0.50000000000000 +/- 1.29e-15]
+            [-0.50000000000000 +/- 1.18e-15]
             sage: polylog(1, 1/2)
             -log(1/2)
             sage: RBF(1/2).polylog(1)
-            [0.6931471805599 +/- 5.02e-14]
+            [0.69314718055994 +/- 9.79e-15]
             sage: RBF(1/3).polylog(1/2)
             [0.44210883528067 +/- 6.7...e-15]
             sage: RBF(1/3).polylog(RLF(pi))

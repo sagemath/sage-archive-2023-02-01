@@ -2359,37 +2359,54 @@ def spqr_tree_to_graph(T):
 
     return G
 
+
 class LinkedListNode:
     """
-    Helper class for ``Triconnectivity``.
-    Node in a linked list.
-    Has pointers to its previous node and next node.
-    If this node is the `head` of the linked list, reference to the linked list
-    object is stored in `listobj`.
+    Node in a ``LinkedList``.
+
+    This class is a helper class for ``Triconnectivity``.
+
+    This class implements a node of a (doubly) linked list and so has pointers
+    to previous and next nodes in the list. If this node is the ``head`` of the
+    linked list, reference to the linked list object is stored in ``listobj``.
     """
-    prev = None
-    next = None
-    data = None #edge or int
-    listobj = None
-    def set_data(self, e):
-        self.data = e
+
+    def __init__(self, data=None):
+        """
+        Initialize this ``LinkedListNode``.
+
+        INPUT:
+
+        - ``data`` -- (default: ``None``) either an edge, or an integer.
+        """
+        self.prev = None
+        self.next = None
+        self.set_data(data)
+        self.listobj = None
+
+    def set_data(self, data):
+        self.data = data
+
     def get_data(self):
         return self.data
+
     def set_obj(self, l):
         self.listobj = l
+
     def clear_obj(self):
         self.listobj = None
+
     def replace(self, node):
         """
         Replace self node with ``node`` in the corresponding linked list.
         """
-        if self.prev == None and self.next == None:
+        if self.prev is None and self.next is None:
             self.listobj.set_head(node)
-        elif self.prev == None:
+        elif self.prev is None:
             self.listobj.head = node
             node.next = self.next
             node.listobj = self.listobj
-        elif self.next == None:
+        elif self.next is None:
             self.prev.next = node
             node.prev = self.prev
         else:
@@ -2400,30 +2417,39 @@ class LinkedListNode:
 
 class LinkedList:
     """
-    A helper class for ``Triconnectivity``.
-    A linked list with a head and a tail pointer
+    A doubly linked list with head and tail pointers.
+
+    This is a helper class for ``Triconnectivity``.
+
+    This class implements a doubly linked list of ``LinkedListNode``.
     """
-    head = None
-    tail = None
-    length = 0
+    def __init__(self):
+        """
+        Initialize this ``LinkedList``.
+        """
+        self.head = None
+        self.tail = None
+        self.length = 0
+
     def remove(self, node):
         """
         Remove the node ``node`` from the linked list.
         """
-        if node.prev == None and node.next == None:
+        if node.prev is None and node.next is None:
             self.head = None
             self.tail = None
-        elif node.prev == None: # node is head
+        elif node.prev is None: # node is head
             self.head = node.next
             node.next.prev = None
             node.next.set_obj(self)
-        elif node.next == None: #node is tail
+        elif node.next is None: #node is tail
             node.prev.next = None
             self.tail = node.prev
         else:
             node.prev.next = node.next
             node.next.prev = node.prev
         self.length -= 1
+
     def set_head(self, h):
         """
         Set the node ``h`` as the head of the linked list.
@@ -2432,33 +2458,37 @@ class LinkedList:
         self.tail = h
         self.length = 1
         h.set_obj(self)
+
     def append(self, node):
         """
         Append the node ``node`` to the linked list.
         """
-        if self.head == None:
+        if self.head is None:
             self.set_head(node)
         else:
             self.tail.next = node
             node.prev = self.tail
             self.tail = node
             self.length += 1
+
     def get_head(self):
         return self.head
+
     def get_length(self):
         return self.length
+
     def replace(self, node1, node2):
         """
         Replace the node ``node1`` with ``node2`` in the linked list.
         """
-        if node1.prev == None and node1.next == None:
+        if node1.prev is None and node1.next is None:
             self.head = node2
             self.tail = node2
-        elif node1.prev == None: # head has to be replaced
+        elif node1.prev is None: # head has to be replaced
             node1.next.prev = node2
             node2.next = node1.next
             self.head = node2
-        elif node1.next == None: # tail has to be replaced
+        elif node1.next is None: # tail has to be replaced
             node1.prev.next = node2
             node2.prev = node1.prev
             self.tail = node2
@@ -2467,31 +2497,36 @@ class LinkedList:
             node1.next.prev = node2
             node2.prev = node1.prev
             node2.next = node1.next
+
     def push_front(self, node):
         """
         Add node ``node`` to the beginning of the linked list.
         """
-        if self.head == None:
-            self.head = node
-            self.tail = node
-            node.set_obj(self)
+        if self.head is None:
+            self.set_head(node)
         else:
             self.head.clear_obj()
             self.head.prev = node
             node.next = self.head
             self.head = node
             node.set_obj(self)
-        self.length += 1
+            self.length += 1
+
     def to_string(self):
+        """
+        Return a string representation of self.
+        """
         temp = self.head
         s = ""
         while temp:
             s += "  " + str(temp.get_data())
             temp = temp.next
         return s
+
     def concatenate(self, lst2):
         """
         Concatenates lst2 to self.
+
         Makes lst2 empty.
         """
         self.tail.next = lst2.head
@@ -2503,47 +2538,50 @@ class LinkedList:
 
 class Component:
     """
-    A helper class for ``Triconnectivity``.
-    A connected component.
-    `edge_list` contains the list of edges belonging to the component.
-    `component_type` stores the type of the component.
+    Connected component class.
+
+    This is a helper class for ``Triconnectivity``.
+
+    This class is used to store a connected component. It contains:
+    - ``edge_list`` -- list of edges belonging to the component, stored as a ``LinkedList``.
+    - ``component_type`` -- the type of the component.
         - 0 if bond.
         - 1 if polygon.
         - 2 is triconnected component.
     """
-    edge_list = LinkedList()
-    component_type = 0  #bond = 0, polygon = 1, triconnected = 2
     def __init__(self, edge_list, type_c):
         """
-        `edge_list` is a list of edges to be added to the component.
-        `type_c` is the type of the component.
+        Initialize this component.
+
+        INPUT:
+
+        - ``edge_list`` -- list of edges to be added to the component.
+
+        - `type_c` -- type of the component (0, 1, or 2).
         """
         self.edge_list = LinkedList()
         for e in edge_list:
-            e_node = LinkedListNode()
-            e_node.set_data(e)
-            self.edge_list.append(e_node)
+            self.edge_list.append(LinkedListNode(e))
         self.component_type = type_c
+
     def add_edge(self, e):
-        e_node = LinkedListNode()
-        e_node.set_data(e)
-        self.edge_list.append(e_node)
+        self.edge_list.append(LinkedListNode(e))
+
     def finish_tric_or_poly(self, e):
         """
         Edge `e` is the last edge to be added to the component.
         Classify the component as a polygon or triconnected component
         depending on the number of edges belonging to it.
         """
-        e_node = LinkedListNode()
-        e_node.set_data(e)
-        self.edge_list.append(e_node)
+        self.add_edge(e)
         if self.edge_list.get_length() >= 4:
             self.component_type = 2
         else:
             self.component_type = 1
+
     def __str__(self):
         """
-        Function for printing the component.
+        Return a string representation of the component.
         """
         if self.component_type == 0:
             type_str = "Bond: "
@@ -2552,11 +2590,12 @@ class Component:
         else:
             type_str = "Triconnected: "
         return type_str + self.edge_list.to_string()
+
     def get_edge_list(self):
         """
-        Return a list of edges belonging to the component.
+        Return the list of edges belonging to the component.
         """
-        e_list = []
+        cdef list e_list = []
         e_node = self.edge_list.get_head()
         while e_node:
             e_list.append(e_node.get_data())
@@ -2897,11 +2936,11 @@ class Triconnectivity:
         """
         Return the high(v) value, which is the first value in highpt list of `v`
         """
-        head = self.highpt[v].head
-        if head == None:
+        head = self.highpt[v].get_head()
+        if head is None:
             return 0
         else:
-            return head.data
+            return head.get_data()
 
     def __del_high(self, e):
         if e in self.in_high:
@@ -3083,8 +3122,7 @@ class Triconnectivity:
         # Populate `adj` and `in_adj` with the sorted edges
         for i in range(1,max+1):
             for e in bucket[i]:
-                node = LinkedListNode()
-                node.set_data(e)
+                node = LinkedListNode(e)
                 if e in self.reverse_edges:
                     self.adj[e[1]].append(node)
                     self.in_adj[e] = node
@@ -3111,8 +3149,7 @@ class Triconnectivity:
                 self.dfs_counter -= 1
             else:
                 # Identified a new frond that enters `w`. Add to `highpt[w]`.
-                highpt_node = LinkedListNode()
-                highpt_node.set_data(self.newnum[v])
+                highpt_node = LinkedListNode(self.newnum[v])
                 self.highpt[w].append(highpt_node)
                 self.in_high[e] = highpt_node
                 self.new_path = True
@@ -3303,8 +3340,7 @@ class Triconnectivity:
                             comp = None
 
                         self.e_stack.append(e_virt)
-                        e_virt_node = LinkedListNode()
-                        e_virt_node.set_data(e_virt)
+                        e_virt_node = LinkedListNode(e_virt)
                         # Replace `it` node with `e_virt_node`
                         it.replace(e_virt_node)
                         it = e_virt_node
@@ -3377,16 +3413,14 @@ class Triconnectivity:
                     if self.node_at[self.lowpt1[w]] != self.parent[v]:
                         self.e_stack.append(e_virt)
 
-                        e_virt_node = LinkedListNode()
-                        e_virt_node.set_data(e_virt)
+                        e_virt_node = LinkedListNode(e_virt)
                         # replace `it` node with `e_virt_node`
                         it.replace(e_virt_node)
                         it = e_virt_node
 
                         self.in_adj[e_virt] = it
                         if not e_virt in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
-                            vnum_node = LinkedListNode()
-                            vnum_node.set_data(vnum)
+                            vnum_node = LinkedListNode(vnum)
                             self.highpt[self.node_at[self.lowpt1[w]]].push_front(vnum_node)
                             self.in_high[e_virt] = vnum_node
 
@@ -3411,8 +3445,7 @@ class Triconnectivity:
                         self.edge_status[e_virt] = 1
                         if eh in self.in_adj:
                             self.in_adj[e_virt] = self.in_adj[eh]
-                        e_virt_node = LinkedListNode()
-                        e_virt_node.set_data(e_virt)
+                        e_virt_node = LinkedListNode(e_virt)
                         self.in_adj[eh] = e_virt_node
                         # end type-1 search
 

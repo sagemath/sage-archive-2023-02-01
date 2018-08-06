@@ -61,7 +61,7 @@ An Eisenstein extension::
     sage: S.<x> = R[]
     sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
     sage: W.<w> = R.ext(f); W
-    Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 of fixed modulus w^25 over 5-adic Ring
+    5-adic Eisenstein Extension Ring in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5
     sage: z = (1+w)^5; z
     1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
     sage: y = z >> 1; y
@@ -483,7 +483,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: y = ~z; y # indirect doctest
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
             sage: y.parent()
-            Eisenstein Extension in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5 of fixed modulus w^25 over 5-adic Ring
+            5-adic Eisenstein Extension Ring in w defined by x^5 + 75*x^3 - 15*x^2 + 125*x - 5
             sage: z = z - 1
             sage: ~z
             Traceback (most recent call last):

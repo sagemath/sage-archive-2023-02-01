@@ -55,65 +55,41 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         pAdicExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         self._res_field = GF(self.prime_pow.pow_Integer_Integer(poly.degree()), name = names[1], modulus = poly.change_ring(poly.base_ring().residue_field()))
 
-    def _repr_(self, do_latex = False):
-        r"""
-        Representation.
+    def _extension_type(self):
+        """
+        Return the type (``Unramified``, ``Eisenstein``) of this 
+        extension as a string, if any.
+
+        Used for printing.
 
         EXAMPLES::
 
-            sage: R.<a> = Zq(125); R #indirect doctest
-            Unramified Extension in a defined by x^3 + 3*x + 3 with capped relative precision 20 over 5-adic Ring
-            sage: latex(R) #indirect doctest
-            \mathbf{Z}_{5^{3}}
+            sage: K.<a> = Qq(5^3)
+            sage: K._extension_type()
+            'Unramified'
+
+            sage: L.<pi> = Qp(5).extension(x^2 - 5)
+            sage: L._extension_type()
+            'Eisenstein'
         """
-        if do_latex:
-            if self.is_field():
-                return "\\mathbf{Q}_{%s^{%s}}" % (self.prime(), self.degree())
-            else:
-                return "\\mathbf{Z}_{%s^{%s}}" % (self.prime(), self.degree())
-        return "Unramified Extension in %s defined by %s %s over %s-adic %s"%(self.variable_name(), self.defining_polynomial(exact=True), precprint(self._prec_type(), self.precision_cap(), self.prime()), self.prime(), "Field" if self.is_field() else "Ring")
+        return "Unramified"
 
-    def ramification_index(self, K = None):
+    def absolute_f(self):
         """
-        Returns the ramification index of self over the subring K.
-
-        INPUT:
-
-            - K -- a subring (or subfield) of self.  Defaults to the
-              base.
+        Return the degree of the residue field of this ring/field
+        over its prime subfield
 
         EXAMPLES::
 
-            sage: R.<a> = Zq(125); R.ramification_index()
+            sage: K.<a> = Qq(3^5)
+            sage: K.absolute_f()
+            5
+
+            sage: L.<pi> = Qp(3).extension(x^2 - 3)
+            sage: L.absolute_f()
             1
         """
-        if K is None:
-            return 1
-        elif K is self:
-            return 1
-        else:
-            raise NotImplementedError
-
-    def inertia_degree(self, K = None):
-        """
-        Returns the inertia degree of self over the subring K.
-
-        INPUT:
-
-            - K -- a subring (or subfield) of self.  Defaults to the
-              base.
-
-        EXAMPLES::
-
-            sage: R.<a> = Zq(125); R.inertia_degree()
-            3
-        """
-        if K is None:
-            return self.modulus().degree()
-        elif K is self:
-            return 1
-        else:
-            raise NotImplementedError
+        return self.modulus().degree()
 
     #def extension(self, *args, **kwds):
     #    raise NotImplementedError

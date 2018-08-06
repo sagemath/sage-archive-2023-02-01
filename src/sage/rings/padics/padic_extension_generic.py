@@ -33,6 +33,7 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 
+
 class pAdicExtensionGeneric(pAdicGeneric):
     def __init__(self, poly, prec, print_mode, names, element_class):
         """
@@ -84,6 +85,86 @@ class pAdicExtensionGeneric(pAdicGeneric):
             elif R._prec_type() == 'fixed-mod':
                 from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
+
+
+    def _extension_type(self):
+        """
+        Return the type (``Unramified``, ``Eisenstein``) of this 
+        extension as a string, if any. 
+
+        Used for printing.
+
+        EXAMPLES::
+
+            sage: K.<a> = Qq(5^3)
+            sage: K._extension_type()
+            'Unramified'
+
+            sage: L.<pi> = Qp(5).extension(x^2 - 5)
+            sage: L._extension_type()
+            'Eisenstein'
+        """
+        return ""
+
+    def _repr_(self, do_latex = False):
+        """
+        Returns a print representation of this extension.
+
+        EXAMPLES::
+
+            sage: R = Zp(7,10)
+            sage: R
+            7-adic Ring with capped relative precision 10
+            sage: R1.<a> = Zq(7^3)
+            sage: R1
+            7-adic Unramified Extension Ring in a defined by x^3 + 6*x^2 + 4
+            sage: R1._latex_()
+            '\\ZZ_{7^{3}}'
+            sage: R2.<t> = R.ext(x^2+7)
+            sage: R2 #indirect doctest
+            7-adic Eisenstein Extension Ring in t defined by x^2 + 7
+            sage: R2._latex_()
+            '\\ZZ_{7}[t]'
+
+            sage: K = Qp(7,10)
+            sage: K
+            7-adic Field with capped relative precision 10
+            sage: K1.<a> = Qq(7^3)
+            sage: K1
+            7-adic Unramified Extension Field in a defined by x^3 + 6*x^2 + 4
+            sage: K1._latex_()
+            '\\QQ_{7^{3}}'
+            sage: K2.<t> = K.ext(x^2+7)
+            sage: K2 #indirect doctest
+            7-adic Eisenstein Extension Field in t defined by x^2 + 7
+            sage: K2._latex_()
+            '\\QQ_{7}[t]'
+        """
+        type = self._extension_type()
+        base = self.base_ring()
+        p = self.prime()
+        if do_latex:
+            if self.absolute_e() == 1:
+                # unramified extension
+                if self.is_field():
+                    letter = "\\QQ"
+                else:
+                    letter = "\\ZZ"
+                f = self.absolute_f()
+                if f == 1:
+                    subscript = str(p)
+                else:
+                    subscript = "%s^{%s}" % (p,f)
+                return "%s_{%s}" % (letter, subscript)
+            else:
+                return "%s[%s]" % (self.base_ring()._repr_(do_latex=True), self.latex_name())
+        else:
+            if type != "":
+                type += " "
+            s = "%s-adic %sExtension %s in %s defined by %s" % (p, type, "Field" if self.is_field() else "Ring", self.variable_name(), self.defining_polynomial(exact=True))
+            if base.absolute_degree() > 1:
+                s += " over its base " + ("field" if base.is_field() else "ring")
+            return s
 
     def _convert_map_from_(self, R):
         """
@@ -188,19 +269,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def is_normal(self):
     #    raise NotImplementedError
 
-    def degree(self):
-        """
-        Returns the degree of this extension.
-
-        EXAMPLES::
-
-            sage: R.<a> = Zq(125); R.degree()
-            3
-            sage: R = Zp(5); S.<x> = ZZ[]; f = x^5 - 25*x^3 + 5; W.<w> = R.ext(f)
-            sage: W.degree()
-            5
-        """
-        return self._given_poly.degree()
 
     def defining_polynomial(self, exact=False):
         """
@@ -386,7 +454,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: c, R0 = R.construction(); R0
             5-adic Ring with capped relative precision 8
             sage: c(R0)
-            Unramified Extension in a defined by x^2 + 4*x + 2 with capped relative precision 8 over 5-adic Ring
+            5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
             sage: c(R0) == R
             True
         """

@@ -85,6 +85,7 @@ def Sphere(dim=2, radius=1, names=None, stereo2d=False, stereo_lim=None):
       stereographic charts, only implemented in 2d.
     - ``stereo_lim`` -- (default: ``None``) Parameter used to restrict the span
       of the stereographic charts, so that they don't cover the whole sphere.
+      Valid domain will be `x**2 + y**2 < stereo_lim**2`.
 
 
     OUTPUT:
@@ -109,7 +110,9 @@ def Sphere(dim=2, radius=1, names=None, stereo2d=False, stereo_lim=None):
         return reduce(operator.mul, iterable, 1)
 
     if stereo2d:
-        dim = 2
+        if dim!=2:
+            raise NotImplementedError("stereographic charts only "
+                                      "implemented for 2d spheres")
         xnames = ("X","Y","Z")
         E = Euclidean(names=xnames)
         S2 = Manifold(dim, 'S', ambient=E, structure='Riemannian')
@@ -137,7 +140,14 @@ def Sphere(dim=2, radius=1, names=None, stereo2d=False, stereo_lim=None):
         A = W.open_subset('A', coord_def={stereoN_W: (y != 0, x < 0),
                                           stereoS_W: (yp != 0, xp < 0)})
         stereoN_A = stereoN_W.restrict(A)
-        spher = A.chart(r'th:(0,pi):\theta ph:(0,2*pi):\phi')
+        if names is None:
+            names = tuple(
+                ["phi_{}:(0,pi)".format(i) for i in range(dim - 1)] +
+                ["phi_{}:(-pi,pi)".format(dim - 1)])
+        else:
+            names = tuple([names[i] + ":(0,pi)" for i in range(dim - 1)] +
+                          [names[dim - 1] + ":(-pi,pi)"])
+        spher = A.chart(names=names)
         th, ph = spher[:]
         spher_to_stereoN = spher.transition_map(stereoN_A, (sin(th)*cos(ph)
                 /(1-cos(th)), sin(th)*sin(ph)/(1-cos(th))))

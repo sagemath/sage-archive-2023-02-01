@@ -1027,7 +1027,7 @@ class ComplexBallField(UniqueRepresentation, Field):
 
             sage: C = ComplexBallField(2000)
             sage: C.integral(lambda x, _: (x + x.exp()).sin(), 0, 8) # long time
-            [0.34740017...55347713 +/- 6.72e-598]
+            [0.34740017...55347713 +/- 5.71e-598]
 
         Here the integration path crosses the branch cut of the square root::
 

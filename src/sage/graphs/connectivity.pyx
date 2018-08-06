@@ -3664,8 +3664,12 @@ def staticSPQRTree(G):
     tric = Triconnectivity(G)
     int_to_treeVertex = []
     Tree = Graph(multiedges=False)
-    partnerNode = {e:None for e in tric.graph_copy.edges()}
-        
+
+    partnerNode = {}
+    for i in range(len(tric.comp_list_new)):
+        for e in tric.comp_list_new[i]:
+            partnerNode[e] = None
+
     for i in range(len(tric.comp_list_new)):
 
         # Do this case exist?
@@ -3684,39 +3688,21 @@ def staticSPQRTree(G):
         else:
             int_to_treeVertex.append(("R", Graph(tric.comp_list_new[i], immutable=True, multiedges=True)))
 
-        for originalEdge in tric.comp_list_new[i]:
-
-            # (u, v) are vertices of graph_copy, construction on graph_copy
-            # is available in Triconnectivity
-            u, v = tric.vertex_to_int[originalEdge[0]], tric.vertex_to_int[originalEdge[1]]
-            label = originalEdge[2]
-
-            # e is an edge of graph_copy
-            e = tuple([u, v, label])
+        for e in tric.comp_list_new[i]:
 
             # check if edge e is an original graph G.
             # if yes assign graph_edge as original form of e.
             # if not assign graph_edge as None
             if e[2] and "newVEdge" in e[2]:
-                graph_edge = None
+                graph_edge = False
             else:
-                if e in tric.reverse_edges:
-                    graph_edge = tuple([originalEdge[1], originalEdge[0]])
-                else:
-                    graph_edge = tuple([originalEdge[0], originalEdge[1]])
+                graph_edge = True
 
             if not graph_edge:
-                try:
-                    if partnerNode[e] == None:
-                        partnerNode[e] = treeVertex
-                    else:
-                        Tree.add_edge(partnerNode[e], treeVertex)
-                except:
-                    new_e = tuple([v, u, label])
-                    if partnerNode[new_e] == None:
-                        partnerNode[new_e] = treeVertex
-                    else:
-                        Tree.add_edge(partnerNode[new_e], treeVertex)
+                if partnerNode[e] == None:
+                    partnerNode[e] = treeVertex
+                else:
+                    Tree.add_edge(partnerNode[e], treeVertex)
 
     Tree.relabel(int_to_treeVertex)
     return Tree

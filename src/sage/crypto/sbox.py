@@ -443,6 +443,26 @@ class SBox(SageObject):
         for i in range(2**self.input_size()):
             yield self(i)
 
+    def derivative(self, u):
+        """
+        Returns the derivative in direction of u
+
+        The derivative of `F` in direction of `u` is defined as
+        ``x \mapsto F(x) + F(x + u)``.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.sbox import SBox
+            sage: SBox(range(4)).derivative(1)
+            (0, 0, 0, 0)
+
+            sage: from sage.crypto.sboxes import PRESENT
+            sage: PRESENT.derivative(1).max_degree() < PRESENT.max_degree()
+            True
+        """
+        return SBox([self(x) ^ self(x ^ u)
+                     for x in range(1 << self.input_size())])
+
     def difference_distribution_matrix(self):
         """
         Return difference distribution matrix ``A`` for this S-box.

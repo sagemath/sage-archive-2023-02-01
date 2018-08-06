@@ -470,8 +470,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         OUTPUT:
 
+        If the dehomogenized morphism is an endomorphism then a
         :class:`DynamicalSystem_affine` given by dehomogenizing the
         source and target of `self` with respect to the given indices.
+        If it is not an endomorphism then the morphism is returned.
 
         EXAMPLES::
 
@@ -479,11 +481,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2+y^2, y^2])
             sage: f.dehomogenize(0)
             Dynamical System of Affine Space of dimension 1 over Integer Ring
-              Defn: Defined on coordinates by sending (x) to
-                    (x^2/(x^2 + 1))
+              Defn: Defined on coordinates by sending (y) to
+                    (y^2/(y^2 + 1))
         """
         F = self.as_scheme_morphism().dehomogenize(n)
-        return F.as_dynamical_system()
+        try:
+            return F.as_dynamical_system()
+        except:
+            return F
 
     def dynatomic_polynomial(self, period):
         r"""

@@ -569,15 +569,13 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) is H
         True
 
-    Conversely, homsets of non-unique parents are non-unique:
-
         sage: H = End(ProjectiveSpace(2, names='x,y,z'))
         sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
-        False
+        True
         sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
         True
         sage: loads(dumps(H)) is H
-        False
+        True
         sage: loads(dumps(H)) == H
         True
 

@@ -2982,8 +2982,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
             isogs = [phi for phi in isogs if not self.is_isomorphic(phi.codomain())]
             codoms = [phi.codomain() for phi in isogs]
             isogs = [phi for i, phi in enumerate(isogs)
-                     if not any([E.is_isomorphic(codoms[i])
-                                 for E in codoms[:i]])]
+                     if not any(E.is_isomorphic(codoms[i])
+                                for E in codoms[:i])]
         return isogs
 
     def is_isogenous(self, other, proof=True, maxnorm=100):
@@ -3133,7 +3133,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
         #  We first try the easiest cases: primes for which X_0(l) has genus 0:
 
         for l in [2,3,5,7,13]:
-            if any([E2.is_isomorphic(f.codomain()) for f in E1.isogenies_prime_degree(l)]):
+            if any(E2.is_isomorphic(f.codomain())
+                   for f in E1.isogenies_prime_degree(l)):
                 return True
 
         #  Next we try the primes for which X_0^+(l) has genus 0 for
@@ -3141,7 +3142,8 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         from .isogeny_small_degree import hyperelliptic_primes
         for l in hyperelliptic_primes:
-            if any([E2.is_isomorphic(f.codomain()) for f in E1.isogenies_prime_degree(l)]):
+            if any(E2.is_isomorphic(f.codomain())
+                   for f in E1.isogenies_prime_degree(l)):
                 return True
 
         # Next we try looking modulo some more primes:
@@ -3157,7 +3159,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
         # Finally we compute the full isogeny class of E1 and check if
         # E2 is isomorphic to any curve in the class:
 
-        return any([E2.is_isomorphic(E3) for E3 in E1.isogeny_class().curves])
+        return any(E2.is_isomorphic(E3) for E3 in E1.isogeny_class().curves)
 
         raise NotImplementedError("Curves appear to be isogenous (same conductor, isogenous modulo all primes of norm up to %s), but no isogeny has been constructed." % (10*maxnorm))
 

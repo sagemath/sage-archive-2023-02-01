@@ -258,7 +258,7 @@ class IsogenyClass_EC(SageObject):
         """
         if not isinstance(x, EllipticCurve_field):
             return False
-        return any([x.is_isomorphic(y) for y in self.curves])
+        return any(x.is_isomorphic(y) for y in self.curves)
 
     @cached_method
     def matrix(self, fill=True):
@@ -794,7 +794,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
         for phi in isogenies:
             E2 = phi.codomain()
             d = ZZ(phi.degree())
-            if not any([E2.is_isomorphic(E3) for E3 in curves]):
+            if not any(E2.is_isomorphic(E3) for E3 in curves):
                 curves.append(E2)
                 if verbose:
                     sys.stdout.write(" -added curve #%s (degree %s)..." % (ncurves,d))

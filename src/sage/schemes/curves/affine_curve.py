@@ -291,9 +291,9 @@ class AffineCurve(Curve_generic, AlgebraicScheme_subscheme_affine):
             if AS.dimension_relative() != len(indices):
                 raise TypeError("(=%s) must have dimension (=%s)"%(AS, len(indices)))
             if AS.base_ring() != AA.base_ring():
-                raise TypeError("(=%s) must be defined over the same base field as this curve"%AS)
+                raise TypeError("(=%s) must be defined over the same base field as this curve" % AS)
         indices = list(indices)
-        if all([f in AA.gens() for f in indices]):
+        if all(f in AA.gens() for f in indices):
             indices = [AA.gens().index(f) for f in indices]
             indices.sort()
         else:

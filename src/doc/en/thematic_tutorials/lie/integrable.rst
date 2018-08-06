@@ -1,6 +1,8 @@
 Integrable Highest Weight Representations of Affine Lie algebras
 ================================================================
 
+.. linkall
+
 In this section `\mathfrak{g}` can be an arbitrary Kac-Moody Lie Algebra
 made with a symmetrizable, indecomposable Cartan matrix.
 
@@ -70,6 +72,8 @@ work remains very useful. The first volume is a down-to-earth
 and very helpful exposition of the theory of integrable representations of
 affine Lie algebras with explicit examples and explanations of the
 connections with mathematical physics and vertex operators.
+
+.. _support_integrable:
 
 The support of an integrable highest weight representation
 ----------------------------------------------------------
@@ -164,17 +168,33 @@ maximal weight::
     sage: V = IntegrableRepresentation(2*Lambda[0])
     sage: V.strings()
     {2*Lambda[0]: [1, 1, 3, 5, 10, 16, 28, 43, 70, 105, 161, 236],
-     2*Lambda[1] - delta: [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196, 287]}
-     sage: [mw1,mw2] = V.dominant_maximal_weights(); mw1,mw2
-     (2*Lambda[0], 2*Lambda[1] - delta)
+    2*Lambda[1] - delta: [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196, 287]}
+    sage: [mw1,mw2] = V.dominant_maximal_weights(); mw1,mw2
+    (2*Lambda[0], 2*Lambda[1] - delta)
+
+We see there are two dominant maximal weights, `2\Lambda_0` and `2\Lambda_1-\delta`.
+We obtain every maximal weight from these by applying Weyl group elements.
+These lie inside the paraboloid described in :ref:`support_integrable`.
+Here are a few more maximal weights.
+
+::
+
+    sage: [w.action(mw) for (w,mw) in [(s0*s1*s0,mw1), (s0*s1,mw2), (s0, mw1), (W.one(), mw2), (W.one(),mw1), (s1,mw2), (s1*s0,mw1), (s1*s0*s1,mw2)]]
+    [-6*Lambda[0] + 8*Lambda[1] - 8*delta,
+     -4*Lambda[0] + 6*Lambda[1] - 5*delta,
+     -2*Lambda[0] + 4*Lambda[1] - 2*delta,
+     2*Lambda[1] - delta,
+     2*Lambda[0],
+     4*Lambda[0] - 2*Lambda[1] - delta,
+     6*Lambda[0] - 4*Lambda[1] - 2*delta,
+     8*Lambda[0] - 6*Lambda[1] - 5*delta]
+
+We confirm that the string function for one in the Weyl orbit
+is the same as that for ``mw2``, calculated above.
+
+::
+
      sage: s0.action(mw2)
      2*Lambda[1] - delta
      sage: [V.mult(s0.action(mw2)-k*delta) for k in [0..10]]
      [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196]
-
-
-
-
-
-
-

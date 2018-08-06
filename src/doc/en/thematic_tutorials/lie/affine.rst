@@ -111,15 +111,15 @@ in Sage. The Dynkin diagram of this
 Cartan type is the extended Dykin-diagram of `\mathfrak{g}^\circ`::
 
     sage: CartanType("E6~").dynkin_diagram()
-
-                  O 0
-                  |
-                  |
-                  O 2
-                  |
-                  |
-          O---O---O---O---O
-          1   3   4   5   6
+             O 0
+             |
+             |
+             O 2
+             |
+             |
+     O---O---O---O---O
+     1   3   4   5   6
+     E6~	  
 
 From the Dynkin diagram, we can read off generators and relations
 for the affine Weyl group, which is a Coxeter group with generators

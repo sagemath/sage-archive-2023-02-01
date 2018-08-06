@@ -78,35 +78,49 @@ class Histogram(GraphicPrimitive):
             sage: Z = histogram([[1,3,2,0], [4,4,3,3]]); z = Z[0]
             sage: z.get_minmax_data()
             {'xmax': 4.0, 'xmin': 0, 'ymax': 2, 'ymin': 0}
+
+        TESTS::
+
+            sage: h = histogram([10,3,5], normed=True)[0]
+            sage: h.get_minmax_data()  # rel tol 1e-15
+            {'xmax': 10.0, 'xmin': 3.0, 'ymax': 0.4761904761904765, 'ymin': 0}
         """
         import numpy
-        options=self.options()
-        opt=dict(range = options.pop('range',None),
-                 bins = options.pop('bins',None),
-                 density = options.pop('density',None),
-                 weights = options.pop('weights', None))
- 
+
+        # Extract these options (if they are not None) and pass them to
+        # histogram()
+        options = self.options()
+        opt = {}
+        for key in ('range', 'bins', 'normed', 'density', 'weights'):
+            try:
+                value = options[key]
+            except KeyError:
+                pass
+            else:
+                if value is not None:
+                    opt[key] = value
+
         #check to see if a list of datasets
-        if not hasattr(self.datalist[0],'__contains__' ):
-            ydata,xdata=numpy.histogram(self.datalist, **opt)
+        if not hasattr(self.datalist[0], '__contains__'):
+            ydata, xdata = numpy.histogram(self.datalist, **opt)
             return minmax_data(xdata,[0]+list(ydata), dict=True)
         else:
             m = { 'xmax': 0, 'xmin':0, 'ymax':0, 'ymin':0}
-            if not options.pop('stacked',None):
+            if not options.get('stacked'):
                 for d in self.datalist:
-                    ydata, xdata = numpy.histogram(d,**opt)
+                    ydata, xdata = numpy.histogram(d, **opt)
                     m['xmax'] = max([m['xmax']] + list(xdata))
                     m['xmin'] = min([m['xmin']] + list(xdata))
                     m['ymax'] = max([m['ymax']] + list(ydata))
                 return m
             else:
                 for d in self.datalist:
-                    ydata, xdata = numpy.histogram(d,**opt)
+                    ydata, xdata = numpy.histogram(d, **opt)
                     m['xmax'] = max([m['xmax']] + list(xdata))
                     m['xmin'] = min([m['xmin']] + list(xdata))
                     m['ymax'] = m['ymax'] + max(list(ydata))
                 return m
-     
+
     def _allowed_options(self):
         """
         Return the allowed options with descriptions for this graphics
@@ -123,8 +137,6 @@ class Histogram(GraphicPrimitive):
              'How the bars align inside of each bin. Acceptable values are "left", "right" or "mid".')
             sage: L[-1]
             ('zorder', 'The layer level to draw the histogram')
-            sage: len(L)
-            18
         """
         return {'color': 'The color of the face of the bars or list of colors if multiple data sets are given.',
                 'edgecolor':'The color of the border of each bar.',
@@ -135,12 +147,13 @@ class Histogram(GraphicPrimitive):
                 'linewidth':'Width of the lines defining the bars',
                 'linestyle': "One of 'solid' or '-', 'dashed' or '--', 'dotted' or ':', 'dashdot' or '-.'",
                 'zorder':'The layer level to draw the histogram',
-                'bins': 'The number of sections in which to divide the range. Also can be a sequence of points within the range that create the partition.', 
+                'bins': 'The number of sections in which to divide the range. Also can be a sequence of points within the range that create the partition.',
                 'align': 'How the bars align inside of each bin. Acceptable values are "left", "right" or "mid".',
                 'rwidth': 'The relative width of the bars as a fraction of the bin width',
                 'cumulative': '(True or False) If True, then a histogram is computed in which each bin gives the counts in that bin plus all bins for smaller values.  Negative values give a reversed direction of accumulation.',
-                'range': 'A list [min, max] which define the range of the histogram. Values outside of this range are treated as outliers and omitted from counts.', 
-                'density': '(True or False) If True, the counts are normalized to form a probability density. (n/(len(x)*dbin)', 
+                'range': 'A list [min, max] which define the range of the histogram. Values outside of this range are treated as outliers and omitted from counts.',
+                'normed': 'Deprecated alias for density',
+                'density': '(True or False) If True, the counts are normalized to form a probability density. (n/(len(x)*dbin)',
                 'weights': 'A sequence of weights the same length as the data list. If supplied, then each value contributes its associated weight to the bin count.',
                 'stacked': '(True or False) If True, multiple data are stacked on top of each other.',
                 'label': 'A string label for each data list given.'}
@@ -186,7 +199,7 @@ class Histogram(GraphicPrimitive):
             subplot.hist(self.datalist.transpose(), **options)
 
 
-@options(aspect_ratio='automatic',align='mid', weights=None, range=None, bins=10, density=False, edgecolor='black')
+@options(aspect_ratio='automatic',align='mid', weights=None, range=None, bins=10, edgecolor='black')
 def histogram(datalist, **options):
     """
     Computes and draws the histogram for list(s) of numerical data.

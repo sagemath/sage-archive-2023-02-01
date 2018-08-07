@@ -112,6 +112,9 @@ weight.  Therefore in enumerating the string we may assume that the weight
 `\mu` is dominant. There are only a finite number of dominant maximal
 weights. Thus there are only a finite number of such strings to be computed.
 
+Modular Forms
+-------------
+
 Remarkably, [KacPeterson]_ showed that each string is the set of Fourier
 coefficients of a modular form; see also [Kac]_ Chapters 12 and 13. To this end
 we define the *modular characteristic*
@@ -135,9 +138,17 @@ defined the *string function*
 
     c_\mu^\Lambda = q^{m_{\Lambda,\mu}}\sum_{n\in\ZZ}\text{mult}(\mu-n\delta)q^n.
 
-It is a modular form. See [Kac]_, Corollary 13.10. Although these
-do arise as partition functions in string theory, the term "string" here does
-not refer to physical strings.
+Although these do arise as partition functions in string theory, the term
+"string" here does not refer to physical strings.
+
+The string function `c_\mu^\Lambda` is a modular form, possibly of
+half-integral weight. See [Kac]_, Corollary 13.10, or [KacPeterson]_.
+It can have poles at infinity, but multiplying `c_\mu^\Lambda` by
+`\eta(\tau)^{\dim\,\mathfrak{g}^\circ}` gives a holomorphic
+modular form. Here `\eta` is the Dedekind eta function:
+
+.. MATH::
+   \eta(\tau)=q^{1/24}\prod_{k=1}^\infty(1-q^k),\qquad q=e^{2\pi i\tau}.
 
 Sage methods for integrable representations
 -------------------------------------------
@@ -183,18 +194,56 @@ Here are a few more maximal weights.
     [-6*Lambda[0] + 8*Lambda[1] - 8*delta,
      -4*Lambda[0] + 6*Lambda[1] - 5*delta,
      -2*Lambda[0] + 4*Lambda[1] - 2*delta,
-     2*Lambda[1] - delta,
-     2*Lambda[0],
-     4*Lambda[0] - 2*Lambda[1] - delta,
-     6*Lambda[0] - 4*Lambda[1] - 2*delta,
-     8*Lambda[0] - 6*Lambda[1] - 5*delta]
+    2*Lambda[1] - delta,
+    2*Lambda[0],
+    4*Lambda[0] - 2*Lambda[1] - delta,
+    6*Lambda[0] - 4*Lambda[1] - 2*delta,
+    8*Lambda[0] - 6*Lambda[1] - 5*delta]
 
 We confirm that the string function for one in the Weyl orbit
 is the same as that for ``mw2``, calculated above.
 
 ::
 
-     sage: s0.action(mw2)
-     2*Lambda[1] - delta
-     sage: [V.mult(s0.action(mw2)-k*delta) for k in [0..10]]
-     [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196]
+    sage: s0.action(mw2)
+    2*Lambda[1] - delta
+    sage: [V.mult(s0.action(mw2)-k*delta) for k in [0..10]]
+    [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196]
+
+String functions of integrable representations often appear
+in the Online Encyclopedia of Integer Sequences.
+
+::
+
+    sage: [oeis(x) for x in V.strings().values()]
+    [0: A233758: Bisection of A006950 (the even part).,
+     0: A233759: Bisection of A006950 (the odd part).]
+
+Reading what the OEIS tells us about the sequence A006950,
+we learn that the two strings are the odd and even parts of the series
+
+.. MATH::
+
+   \prod_{k=1}^\infty\frac{(1+q^{2k-1})}{(1-q^{2k}})=\prod_{k=1}^\infty\frac{(1-q^{2k})}{(1-q^k)(1-q^{4k})}
+   = q^{-1/8}\frac{\eta(2\tau)}{\eta(\tau)\eta(4\tau)}
+
+(This is *not* a modular form because of the factor `q^{-1/8}` in
+front of the ratio of eta functions.) Let us confirm what
+the Online Encyclopedia tells us by computing the above product::
+
+  sage: prod([(1+q^(2*k-1))/(1-q^(2*k)) for k in [1..20]])
+  1 + q + q^2 + 2*q^3 + 3*q^4 + 4*q^5 + 5*q^6 + 7*q^7 + 10*q^8 + 13*q^9 + 16*q^10 + 21*q^11 + 28*q^12 + 35*q^13 + 43*q^14 + 55*q^15 + 70*q^16 + 86*q^17 + 105*q^18 + 130*q^19 + O(q^20)
+
+We see the values of the two strings interspersed in this
+product, with the `\Lambda_0` string values in the even
+positions and the `\Lambda_1` values in the odd positions.
+
+To compute `c^{2\Lambda_0}_\lambda`, which is guaranteed to be
+a modular form, we must compute the modular characteristics.
+We are interested in the cases where `\lambda` is one of the
+two dominant maximal weights::
+
+     sage: [V.modular_characteristic(x) for x in [2*Lambda[0], 2*Lambda[1]-delta]]
+     [-1/16, 7/16]
+
+Now we can compute the string functions.

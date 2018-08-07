@@ -619,6 +619,9 @@ REFERENCES:
              Theory*. Morgan & Claypool Publishers, (2011). ISBN
              9781608456529, :doi:`10.2200/S00355ED1V01Y201107AIM016`.
 
+.. [CFI1992] Cai, JY., Fürer, M. & Immerman, N. Combinatorica (1992) 12: 389.
+             :doi:`10.1007/BF01305232`
+
 .. [CGW2013] Daniel Cabarcas, Florian Göpfert, and Patrick
              Weiden. Provably Secure LWE-Encryption with Uniform
              Secret. Cryptology ePrint Archive, Report 2013/164. 2013.
@@ -978,6 +981,11 @@ REFERENCES:
              Computing Classic Closeness Centrality, at Scale
              In Proceedings of the second ACM conference on Online social networks (COSN '14)
              :doi:`10.1145/2660460.2660465`
+
+.. [Ega1981] Yoshimi Egawa, Characterization of H(n, q) by the parameters,
+             Journal of Combinatorial Theory, Series A, Volume 31, Issue 2,
+             1981, Pages 108-125, ISSN 0097-3165,:doi:`10.1016/0097-3165(81)90007-8`.
+             (http://www.sciencedirect.com/science/article/pii/0097316581900078)
 
 .. [Eh2013] Ehrhardt, Wolfgang. "The AMath and DAMath Special
             Functions: Reference Manual and Implementation Notes,

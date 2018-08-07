@@ -335,6 +335,10 @@ ext_modules = [
 
     Extension('sage.graphs.graph_generators_pyx',
               sources = ['sage/graphs/graph_generators_pyx.pyx']),
+    
+    Extension('sage.graphs.generators.families_pyx',
+              sources = ['sage/graphs/generators/families_pyx.pyx'],
+              language="c++"),
 
     Extension('sage.graphs.distances_all_pairs',
               sources = ['sage/graphs/distances_all_pairs.pyx']),

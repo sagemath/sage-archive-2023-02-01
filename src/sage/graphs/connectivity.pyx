@@ -2551,7 +2551,6 @@ class Component:
             e_node = e_node.next
         return e_list
 
-from sage.graphs.base.sparse_graph cimport SparseGraph
 
 class Triconnectivity:
     """
@@ -2693,38 +2692,26 @@ class Triconnectivity:
 
     """
     def __init__(self, G, check=True):
-        from sage.graphs.graph import Graph, DiGraph
-        # graph_copy is a SparseGraph of the input graph `G`
-        # We relabel the edges with increasing numbers to be able to
-        # distinguish between multi-edges
-        self.graph_copy = Graph(multiedges=True)
+        """
+        """
+        from sage.graphs.graph import Graph
 
-        # Add all the vertices first
-        # there is a possibility of isolated vertices
-        for v in G.vertex_iterator():
-            self.graph_copy.add_vertex(v)
-
-        edges = G.edges()
-        # dict to map new edges with the old edges
+        # Make a copy of the input graph G in which
+        # - vertices are relabeled as integers in [0..n-1]
+        # - edges are relabeled with distinct labels in order to distinguish
+        #   between multi-edges
+        self.n = G.order()
+        self.m = G.size()
+        self.int_to_vertex = G.vertices()
+        self.vertex_to_int = {u:i for i,u in enumerate(self.int_to_vertex)}
         self.edge_label_dict = {}
-        for i in range(len(edges)):
-            newEdge = tuple([edges[i][0], edges[i][1], i])
-            self.graph_copy.add_edge(newEdge)
-            self.edge_label_dict[newEdge] = edges[i]
-
-        # type SparseGraph
-        self.graph_copy = self.graph_copy.copy(implementation='c_graph')
-
-        # mapping of vertices to integers in c_graph
-        self.vertex_to_int = self.graph_copy.relabel(inplace=True, return_map=True)
-
-        # mapping of integers to original vertices
-        self.int_to_vertex = dict([(v,k) for k,v in self.vertex_to_int.items()])
-        self.n = self.graph_copy.order() # number of vertices
-        self.m = self.graph_copy.size() # number of edges
+        self.graph_copy = Graph(self.n, multiedges=True)
+        for i,e in enumerate(G.edge_iterator()):
+            self.graph_copy.add_edge(self.vertex_to_int[e[0]], self.vertex_to_int[e[1]], i)
+            self.edge_label_dict[e[0], e[1], i] = e
 
         # status of each edge: unseen=0, tree=1, frond=2
-        self.edge_status = dict((e, 0) for e in self.graph_copy.edges())
+        self.edge_status = {e: 0 for e in self.graph_copy.edges()}
 
         # Edges of the graph which are in the reverse direction in palm tree
         self.reverse_edges = set()
@@ -2762,7 +2749,7 @@ class Triconnectivity:
         self.graph_copy_adjacency = [[] for i in range(self.n)] # Stores adjacency list
 
         # Dictionary of (e, True/False) to denote if edge e starts a path
-        self.starts_path = dict((e, False) for e in self.graph_copy.edges())
+        self.starts_path = {e:False for e in self.graph_copy.edges()}
 
         self.is_biconnected = True # Boolean to store if the graph is biconnected or not
         self.cut_vertex = None # If graph is not biconnected

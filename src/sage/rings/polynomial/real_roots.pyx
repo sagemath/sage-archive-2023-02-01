@@ -133,11 +133,11 @@ from https://wiki.sagemath.org/days4schedule .
 from __future__ import print_function, absolute_import
 
 from copy import copy
-from random import Random
 import time
 
 from sage.rings.all import ZZ, QQ, RR, AA, RealField, RealIntervalField, RIF, RDF, infinity
 from sage.arith.all import binomial, factorial
+from sage.misc.randstate import randstate
 from sage.modules.all import vector, FreeModule
 from sage.matrix.all import MatrixSpace
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -4273,7 +4273,7 @@ cdef class context:
         Initialize a context class.
         """
         self.seed = seed # saved to make context printable
-        self.random = Random()
+        self.random = randstate().python_random()
         self.random.seed(seed)
         self.do_logging = do_logging
         self.wordsize = wordsize

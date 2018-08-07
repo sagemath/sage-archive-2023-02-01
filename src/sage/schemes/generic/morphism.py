@@ -1484,7 +1484,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                   Defn: Defined on coordinates by sending (x : y) to
                         (x^2 + y^2 : y^2)
 
-            ::
+        ::
 
             sage: R.<a,b> = PolynomialRing(QQ)
             sage: P.<x,y> = ProjectiveSpace(R, 1)

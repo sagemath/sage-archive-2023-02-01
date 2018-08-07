@@ -569,16 +569,17 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) is H
         True
 
-        sage: H = End(ProjectiveSpace(2, names='x,y,z'))
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) is ProjectiveSpace(2, names='x,y,z')
-        True
-        sage: loads(dumps(ProjectiveSpace(2, names='x,y,z'))) == ProjectiveSpace(2, names='x,y,z')
+    Conversely, homsets of non-unique parents are non-unique::
+
+        sage: H = End(ProductProjectiveSpaces(QQ, [1, 1]))
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) is ProductProjectiveSpaces(QQ, [1, 1])
+        False
+        sage: loads(dumps(ProductProjectiveSpaces(QQ, [1, 1]))) == ProductProjectiveSpaces(QQ, [1, 1])
         True
         sage: loads(dumps(H)) is H
-        True
+        False
         sage: loads(dumps(H)) == H
         True
-
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""

@@ -57,10 +57,20 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
           x^2 - y*z
     """
     def __init__(self, A, polynomials):
+        """
+        EXAMPLES::
+
+            sage: A.<x,y,z> = AffineSpace(QQ, 3)
+            sage: A.subscheme([y^2-x*z-x*y])
+            Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
+              -x*y + y^2 - x*z
+        """
         AlgebraicScheme_subscheme.__init__(self, A, polynomials)
         if A._ambient_projective_space is not None:
             self._embedding_morphism = self.projective_embedding \
                 (A._default_embedding_index, A._ambient_projective_space)
+        else:
+            self._embedding_morphism = None
 
     def _morphism(self, *args, **kwds):
         r"""
@@ -189,9 +199,9 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         AA = self.ambient_space()
         n = AA.dimension_relative()
         if i is None:
-            try:
+            if self._embedding_morphism is not None:
                 return self._embedding_morphism
-            except AttributeError:
+            else:
                 i = int(n)
         else:
             i = int(i)

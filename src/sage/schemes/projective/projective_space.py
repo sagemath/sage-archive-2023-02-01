@@ -255,8 +255,14 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         sage: loads(X.dumps()) == X
         True
     """
-    @staticmethod    
+    @staticmethod
     def __classcall__(self, n, RR=ZZ, names=None):
+        """
+        EXAMPLES::
+
+            sage: ProjectiveSpace(QQ, 2, names='XYZ') is ProjectiveSpace(QQ, 2, names='XYZ')
+            True
+        """
         normalized_names = normalize_names(n+1, names)
         return super(ProjectiveSpace_ring, self).__classcall__(self, n, RR, tuple(normalized_names))
 
@@ -964,7 +970,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         if AA is None:
             from sage.schemes.affine.affine_space import AffineSpace
             g = self.gens()
-            gens = [g[j] for j in range(i)] + [g[j] for j in range(i+1, n+1)]
+            gens = g[:i] + g[i+1:]
             AA = AffineSpace(n, self.base_ring(), names=gens,
                              ambient_projective_space=self,
                              default_embedding_index=i)

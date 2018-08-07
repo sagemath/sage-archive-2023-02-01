@@ -104,17 +104,14 @@ def AffineSpace(n, R=None, names='x', ambient_projective_space=None,
         else:
             raise TypeError("you must specify the variables names of the coordinate ring")
     names = normalize_names(n, names)
-    i = default_embedding_index
-    if i is not None:
-        i = int(i)
     if R in _Fields:
         if is_FiniteField(R):
             return AffineSpace_finite_field(n, R, names,
-                                            ambient_projective_space, i)
+                                            ambient_projective_space, default_embedding_index)
         else:
             return AffineSpace_field(n, R, names,
-                                     ambient_projective_space, i)
-    return AffineSpace_generic(n, R, names, ambient_projective_space, i)
+                                     ambient_projective_space, default_embedding_index)
+    return AffineSpace_generic(n, R, names, ambient_projective_space, default_embedding_index)
 
 
 class AffineSpace_generic(AmbientSpace, AffineScheme):
@@ -167,8 +164,13 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
         AffineScheme.__init__(self, self.coordinate_ring(), R)
+        
+        index = default_embedding_index
+        if index is not None:
+            index = int(index)
+
+        self._default_embedding_index = index
         self._ambient_projective_space = ambient_projective_space
-        self._default_embedding_index = default_embedding_index
 
     def __iter__(self):
         """
@@ -728,10 +730,11 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
 
         #if no i-th embedding exists, we may still be here with PP==None
         if PP is None:
-            PP = self._ambient_projective_space
-        if PP is None:
-            from sage.schemes.projective.projective_space import ProjectiveSpace
-            PP = ProjectiveSpace(n, self.base_ring())
+            if self._ambient_projective_space is not None:
+                PP = self._ambient_projective_space
+            else:
+                from sage.schemes.projective.projective_space import ProjectiveSpace
+                PP = ProjectiveSpace(n, self.base_ring())
         elif PP.dimension_relative() != n:
             raise ValueError("projective Space must be of dimension %s"%(n))
 

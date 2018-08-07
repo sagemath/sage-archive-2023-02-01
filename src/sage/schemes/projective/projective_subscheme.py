@@ -277,6 +277,8 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         polys = self.defining_polynomials()
         xi = phi.defining_polynomials()
         U = AA.subscheme([f(xi) for f in polys])
+        phi = U.projective_embedding(i, PP)
+        U._embedding_morphism = phi
         self.__affine_patches[i] = U
         return U
 

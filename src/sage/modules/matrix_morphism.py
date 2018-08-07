@@ -408,7 +408,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         return self.parent()(R(left) * self.matrix())
 
     def __mul__(self, right):
-        """
+        r"""
         Composition of morphisms, denoted by \*.
 
         EXAMPLES::

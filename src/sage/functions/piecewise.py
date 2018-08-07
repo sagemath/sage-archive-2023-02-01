@@ -889,7 +889,7 @@ class PiecewiseFunction(BuiltinFunction):
             return crit_pts
 
         def convolution(self, parameters, variable, other):
-            """
+            r"""
             Return the convolution function,
             `f*g(t)=\int_{-\infty}^\infty f(u)g(t-u)du`, for compactly
             supported `f,g`.

@@ -1097,7 +1097,10 @@ class RESetMapReduce(object):
         TESTS::
 
             sage: from sage.parallel.map_reduce import RESetMapReduce
-            sage: S = RESetMapReduce(roots=[])
+            sage: def children(x):
+            ....:    sleep(0.5)
+            ....:    return []
+            sage: S = RESetMapReduce(roots=[1], children=children)
             sage: S.setup_workers(2)
             sage: S.start_workers()
             sage: all(w.is_alive() for w in S._workers)

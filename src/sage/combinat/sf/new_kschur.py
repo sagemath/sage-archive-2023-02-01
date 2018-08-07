@@ -859,7 +859,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
 
 class kSchur(CombinatorialFreeModule):
-    """
+    r"""
     Space of `k`-Schur functions.
 
     EXAMPLES::

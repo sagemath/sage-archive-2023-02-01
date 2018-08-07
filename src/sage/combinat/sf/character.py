@@ -1,4 +1,4 @@
-"""
+r"""
 Characters of the symmetric group as bases of the symmetric functions
 
 Just as the Schur functions are the irreducible characters of `Gl_n`

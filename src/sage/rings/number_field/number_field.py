@@ -1746,7 +1746,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(x^3 + 17)
             sage: b = K.polynomial_quotient_ring().random_element()
             sage: K(b)
-            -1/2*a^2 - 4
+            1/2*a^2 - 1/95*a - 1/2
 
         We can convert symbolic expressions::
 

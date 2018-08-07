@@ -2382,9 +2382,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(DirichletGroup(24,QQ).1,2,sign=1)
             sage: M.compact_newform_eigenvalues(prime_range(10),'a')
             [(
-            [-1/2 -1/2]                
-            [ 1/2 -1/2]                
-            [  -1    1]                
+            [-1/2 -1/2]
+            [ 1/2 -1/2]
+            [  -1    1]
             [  -2    0], (1, -2*a0 - 1)
             )]
             sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]
@@ -2393,9 +2393,9 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
             sage: M = ModularSymbols(DirichletGroup(13).0^2,2,sign=1)
             sage: M.compact_newform_eigenvalues(prime_range(10),'a')
             [(
-            [  -zeta6 - 1]     
-            [ 2*zeta6 - 2]     
-            [-2*zeta6 + 1]     
+            [  -zeta6 - 1]
+            [ 2*zeta6 - 2]
+            [-2*zeta6 + 1]
             [           0], (1)
             )]
             sage: a = M.compact_newform_eigenvalues([1..10],'a')[0]

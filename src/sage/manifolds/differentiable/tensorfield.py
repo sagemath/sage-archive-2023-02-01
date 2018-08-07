@@ -1212,7 +1212,7 @@ class TensorField(ModuleElement):
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
 
     def add_expr_from_subdomain(self, frame, subdomain):
-        """
+        r"""
         Add an expression to an existing component from a subdomain.
 
         INPUT:
@@ -1292,7 +1292,6 @@ class TensorField(ModuleElement):
             S --> R
             on U: (x, y) |--> x^2 + y^2
             on V: (xp, yp) |--> 1/(xp^2 + yp^2)
-
         """
         dom = frame._domain
         if not dom.is_subset(self._domain):

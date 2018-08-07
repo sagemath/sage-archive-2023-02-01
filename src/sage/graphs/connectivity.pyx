@@ -2704,11 +2704,11 @@ class Triconnectivity:
         self.m = G.size()
         self.int_to_vertex = G.vertices()
         self.vertex_to_int = {u:i for i,u in enumerate(self.int_to_vertex)}
-        self.edge_label_dict = {}
+        self.int_to_original_edge_label = [] # to associate original edge label
         self.graph_copy = Graph(self.n, multiedges=True)
-        for i,e in enumerate(G.edge_iterator()):
-            self.graph_copy.add_edge(self.vertex_to_int[e[0]], self.vertex_to_int[e[1]], i)
-            self.edge_label_dict[e[0], e[1], i] = e
+        for i,(u, v, l) in enumerate(G.edge_iterator()):
+            self.graph_copy.add_edge(self.vertex_to_int[u], self.vertex_to_int[v], i)
+            self.int_to_original_edge_label.append(l)
 
         # status of each edge: unseen=0, tree=1, frond=2
         self.edge_status = {e: 0 for e in self.graph_copy.edge_iterator()}
@@ -3500,28 +3500,21 @@ class Triconnectivity:
         # Convert connected components into original graph vertices and edges
         self.comp_list_new = []
         self.comp_type = []
-        for i in range(len(self.components_list)):
-            if self.components_list[i].edge_list.get_length() > 0:
-                e_list = self.components_list[i].get_edge_list()
+        for comp in self.components_list:
+            if comp.edge_list.get_length() > 0:
+                e_list = comp.get_edge_list()
                 e_list_new = []
                 # For each edge, get the original source, target and label
-                for e in e_list:
-                    source = self.int_to_vertex[e[0]]
-                    target = self.int_to_vertex[e[1]]
-                    if isinstance(e[2], str):
-                        label = e[2]
+                for u,v,l in e_list:
+                    source = self.int_to_vertex[u]
+                    target = self.int_to_vertex[v]
+                    if isinstance(l, str):
+                        label = l
                     else:
-                        # If the original input graph was a directed graph, the
-                        # source and target can in reversed in the edge.
-                        # Hence, we check for both. Since we use unique edge
-                        # labels, this does not fetch a wrong edge.
-                        if (source, target, e[2]) in self.edge_label_dict:
-                            label = self.edge_label_dict[(source, target, e[2])][2]
-                        else:
-                            label = self.edge_label_dict[(target, source, e[2])][2]
-                    e_list_new.append(tuple([source, target, label]))
+                        label = self.int_to_original_edge_label[l]
+                    e_list_new.append((source, target, label))
                 # Add the component data to `comp_list_new` and `comp_type`
-                self.comp_type.append(self.components_list[i].component_type)
+                self.comp_type.append(comp.component_type)
                 self.comp_list_new.append(e_list_new)
 
     def print_triconnected_components(self):

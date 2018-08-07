@@ -116,8 +116,11 @@ Modular Forms
 -------------
 
 Remarkably, [KacPeterson]_ showed that each string is the set of Fourier
-coefficients of a modular form; see also [Kac]_ Chapters 12 and 13. To this end
-we define the *modular characteristic*
+coefficients of a weakly modular form; see also [Kac]_ Chapters 12 and 13.
+Here *weakly modular* means that the form is allowed to have poles at
+cusps.
+
+To this end we define the *modular characteristic*
 
 .. MATH::
 
@@ -141,14 +144,17 @@ defined the *string function*
 Although these do arise as partition functions in string theory, the term
 "string" here does not refer to physical strings.
 
-The string function `c_\mu^\Lambda` is a modular form, possibly of
+The string function `c_\mu^\Lambda` is a weakly modular form, possibly of
 half-integral weight. See [Kac]_, Corollary 13.10, or [KacPeterson]_.
 It can have poles at infinity, but multiplying `c_\mu^\Lambda` by
 `\eta(\tau)^{\dim\,\mathfrak{g}^\circ}` gives a holomorphic
-modular form. Here `\eta` is the Dedekind eta function:
+modular form (for some level). Here `\eta` is the Dedekind eta function:
 
 .. MATH::
    \eta(\tau)=q^{1/24}\prod_{k=1}^\infty(1-q^k),\qquad q=e^{2\pi i\tau}.
+
+The weight of this modular form `\eta(\tau)^{\dim\,\mathfrak{g}^\circ}`
+is the number of positive roots of `\mathfrak{g}^\circ`.
 
 Sage methods for integrable representations
 -------------------------------------------
@@ -225,7 +231,7 @@ we learn that the two strings are the odd and even parts of the series
 .. MATH::
 
    \prod_{k=1}^\infty\frac{(1+q^{2k-1})}{(1-q^{2k}})=\prod_{k=1}^\infty\frac{(1-q^{2k})}{(1-q^k)(1-q^{4k})}
-   = q^{-1/8}\frac{\eta(2\tau)}{\eta(\tau)\eta(4\tau)}
+   = q^{1/8}\frac{\eta(2\tau)}{\eta(\tau)\eta(4\tau)}
 
 (This is *not* a modular form because of the factor `q^{-1/8}` in
 front of the ratio of eta functions.) Let us confirm what
@@ -246,4 +252,20 @@ two dominant maximal weights::
      sage: [V.modular_characteristic(x) for x in [2*Lambda[0], 2*Lambda[1]-delta]]
      [-1/16, 7/16]
 
-Now we can compute the string functions.
+This gives us the string functions.
+
+.. MATH::
+
+     c^{2\Lambda_0}_{2\Lambda_0} = q^{-1/16}(q+q^2+3q^3+5q^4+10q^5+16q^6+\cdots)
+     
+     c^{2\Lambda_0}_{2\Lambda_1-\delta} = q^{7/16}(q+2q^2+4q^3+7q^4+13q^5+21q^6+\cdots)
+
+These are both weakly modular forms. Any linear combination of these two is als
+a weakly modular form, for example we may replace `\tau` by `\tau/2` in our
+previous identity and get
+
+.. MATH::
+
+    c^{2\Lambda_0}_{2\Lambda_0} + c^{2\Lambda_0}_{2\Lambda_1-\delta} =  \frac{\eta(\tau)}{\eta(\tau/2)\eta(2\tau)}.
+
+    

@@ -2954,7 +2954,7 @@ class Triconnectivity:
         Also populates the lists lowpt1, lowpt2, nd, parent, and dfs_number.
         It updates the dict `edge_status` to reflect palm tree arcs and fronds.
 
-        Input::
+        INPUT:
 
         - ``v`` -- The start vertex for DFS.
 
@@ -2964,11 +2964,11 @@ class Triconnectivity:
             graph has a cut vertex, the cut vertex is returned. If set to False,
             the graph is assumed to be biconnected, function returns None.
 
-        Output::
+        OUTPUT:
 
         - If ``check`` is set to True, and a cut vertex is found, the cut vertex
-          is returned. If no cut vertex is found, return value is None.
-          If ``check`` is set to False, ``None`` is returned.
+          is returned. If no cut vertex is found, return None.
+        - If ``check`` is set to False, ``None`` is returned.
         """
         first_son = None # For testing biconnectivity
         s1 = None # Storing the cut vertex, if there is one
@@ -3002,8 +3002,8 @@ class Triconnectivity:
                 # dfs_number[x]) that can be reached from v.
                 # `lowpt2` is the next smallest vertex that can be reached from v.
                 if self.lowpt1[w] < self.lowpt1[v]:
-                        self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
-                        self.lowpt1[v] = self.lowpt1[w]
+                    self.lowpt2[v] = min(self.lowpt1[v], self.lowpt2[w])
+                    self.lowpt1[v] = self.lowpt1[w]
 
                 elif self.lowpt1[w] == self.lowpt1[v]:
                     self.lowpt2[v] = min(self.lowpt2[v], self.lowpt2[w])
@@ -3014,14 +3014,14 @@ class Triconnectivity:
                 self.nd[v] += self.nd[w]
 
             else:
-                self.edge_status[e] = 2 #frond
+                self.edge_status[e] = 2 # frond
                 if self.dfs_number[w] < self.lowpt1[v]:
                     self.lowpt2[v] = self.lowpt1[v]
                     self.lowpt1[v] = self.dfs_number[w]
                 elif self.dfs_number[w] > self.lowpt1[v]:
                     self.lowpt2[v] = min(self.lowpt2[v], self.dfs_number[w])
 
-        return s1 # s1 is None is graph does not have a cut vertex
+        return s1 # s1 is None if graph does not have a cut vertex
 
 
     def __build_acceptable_adj_struct(self):

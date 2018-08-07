@@ -520,6 +520,10 @@ class RiggedConfigurationElement(ClonableArray):
         if a not in self.parent()._rc_index_inverse:
             raise ValueError("{} is not in the index set".format(a))
         a = self.parent()._rc_index_inverse[a]
+        M = self.parent()._cartan_matrix
+
+        if M[a][a] != 2:
+            raise NotImplementedError
 
         new_list = self[a][:]
         new_vac_nums = self[a].vacancy_numbers[:]
@@ -572,8 +576,8 @@ class RiggedConfigurationElement(ClonableArray):
                     if new_list[i] < k:
                         break
 
-                    new_vac_nums[i] += 2
-                    new_rigging[i] += 2
+                    new_vac_nums[i] += M[a][b]
+                    new_rigging[i] += M[a][b]
 
 
                 if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
@@ -636,7 +640,7 @@ class RiggedConfigurationElement(ClonableArray):
         Return the action of the crystal operator `f_a` on ``self``.
 
         This implements the method defined in [CrysStructSchilling06]_ which
-        finds the value `k` which is  the length of the string with the
+        finds the value `k` which is the length of the string with the
         smallest nonpositive rigging of largest length. Then it adds a box from
         a string of length `k` in the `a`-th rigged partition, keeping all
         colabels fixed and decreasing the new label by one. If no such string
@@ -668,6 +672,7 @@ class RiggedConfigurationElement(ClonableArray):
         if a not in self.parent()._rc_index_inverse:
             raise ValueError("{} is not in the index set".format(a))
         a = self.parent()._rc_index_inverse[a]
+        M = self.parent()._cartan_matrix
 
         new_list = self[a][:]
         new_vac_nums = self[a].vacancy_numbers[:]
@@ -694,7 +699,7 @@ class RiggedConfigurationElement(ClonableArray):
         # If we've not found a valid k
         if k is None:
             new_list.append(1)
-            new_rigging.append(Integer(-1))
+            new_rigging.append(Integer((-1/2) * M[a][a]))
             new_vac_nums.append(None)
             k = 0
             add_index = num_rows
@@ -703,7 +708,7 @@ class RiggedConfigurationElement(ClonableArray):
             if add_index is None: # We are adding to the first row in the list
                 add_index = 0
             new_list[add_index] += 1
-            new_rigging.insert(add_index, new_rigging[rigging_index] - 1)
+            new_rigging.insert(add_index, Integer(new_rigging[rigging_index] - (1/2)*M[a][a]))
             new_vac_nums.insert(add_index, None)
             new_rigging.pop(rigging_index + 1) # add 1 for the insertion
             new_vac_nums.pop(rigging_index + 1)
@@ -719,8 +724,8 @@ class RiggedConfigurationElement(ClonableArray):
                         break
 
                     if i != add_index:
-                        new_vac_nums[i] -= 2
-                        new_rigging[i] -= 2
+                        new_vac_nums[i] -= M[a][b]
+                        new_rigging[i] -= M[a][b]
 
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 

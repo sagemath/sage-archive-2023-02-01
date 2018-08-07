@@ -235,8 +235,8 @@ the Online Encyclopedia tells us by computing the above product::
   1 + q + q^2 + 2*q^3 + 3*q^4 + 4*q^5 + 5*q^6 + 7*q^7 + 10*q^8 + 13*q^9 + 16*q^10 + 21*q^11 + 28*q^12 + 35*q^13 + 43*q^14 + 55*q^15 + 70*q^16 + 86*q^17 + 105*q^18 + 130*q^19 + O(q^20)
 
 We see the values of the two strings interspersed in this
-product, with the `\Lambda_0` string values in the even
-positions and the `\Lambda_1` values in the odd positions.
+product, with the `2\Lambda_0` string values in the even
+positions and the `2\Lambda_1-\delta` values in the odd positions.
 
 To compute `c^{2\Lambda_0}_\lambda`, which is guaranteed to be
 a modular form, we must compute the modular characteristics.

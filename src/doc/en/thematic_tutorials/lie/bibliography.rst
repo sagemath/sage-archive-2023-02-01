@@ -67,6 +67,11 @@ Bibliography
    Chevalley group over a finite field. *J. Fac. Sci. Univ. Tokyo
    Sect. I*, 10:215--236, 1964.
 
+.. [JayneMisra2014] \R. Jayne and K. Misra,  Jayne, Rebecca L.,
+   On multiplicities of maximal weights of
+   `\widehat{sl}(n)`-modules. Algebr. Represent. Theory 17 (2014), no. 4,
+   1303–1321. (arXiv:1309.4969)
+
 .. [Jimbo1986] \M. A. Jimbo. `q`-analogue of `U(\mathfrak{gl}(N+1))`,
    Hecke algebra, and the Yang-Baxter equation.
    *Lett. Math. Phys*, 11(3):247--252, 1986.
@@ -112,6 +117,9 @@ Bibliography
 .. [KimShin2010] \J.-A. Kim and D.-U. Shin. Generalized Young walls and
    crystal bases for quantum affine algebra of type `A`. *Proc. Amer.
    Math. Soc.*, 138(11):3877--3889, 2010.
+
+.. [KimLeeOh2017] \Jang Soo Kim, Kyu-Hwan Lee and Se-Jin Oh, Weight multiplicities
+   and Young tableaux through affine crystals. arXiv:1703.10321 (2017).
 
 .. [King1975] \R. C. King. Branching rules for classical Lie groups
    using tensor and spinor methods. *Journal of Physics A*,

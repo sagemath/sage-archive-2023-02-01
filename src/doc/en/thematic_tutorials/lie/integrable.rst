@@ -237,8 +237,9 @@ we learn that the two strings are the odd and even parts of the series
 front of the ratio of eta functions.) Let us confirm what
 the Online Encyclopedia tells us by computing the above product::
 
-  sage: prod([(1+q^(2*k-1))/(1-q^(2*k)) for k in [1..20]])
-  1 + q + q^2 + 2*q^3 + 3*q^4 + 4*q^5 + 5*q^6 + 7*q^7 + 10*q^8 + 13*q^9 + 16*q^10 + 21*q^11 + 28*q^12 + 35*q^13 + 43*q^14 + 55*q^15 + 70*q^16 + 86*q^17 + 105*q^18 + 130*q^19 + O(q^20)
+    sage: PS.<q> = PowerSeriesRing(QQ)
+    sage: prod([(1+q^(2*k-1))/(1-q^(2*k)) for k in [1..20]])
+    1 + q + q^2 + 2*q^3 + 3*q^4 + 4*q^5 + 5*q^6 + 7*q^7 + 10*q^8 + 13*q^9 + 16*q^10 + 21*q^11 + 28*q^12 + 35*q^13 + 43*q^14 + 55*q^15 + 70*q^16 + 86*q^17 + 105*q^18 + 130*q^19 + O(q^20)
 
 We see the values of the two strings interspersed in this
 product, with the `2\Lambda_0` string values in the even
@@ -268,4 +269,69 @@ previous identity and get
 
     c^{2\Lambda_0}_{2\Lambda_0} + c^{2\Lambda_0}_{2\Lambda_1-\delta} =  \frac{\eta(\tau)}{\eta(\tau/2)\eta(2\tau)}.
 
-    
+Many more examples may be found in [KacPeterson]_ and [KMPS]_.
+
+Let `V` be the integrable highest weight representation with highest weight
+`\Lambda`. If `\mu` is in the support of `V` then `\Lambda-\mu` is of the form
+`\sum_i n_i\alpha_i` where `\alpha_i` are the simple roots. Sage employs an
+internal representation of the weights as tuples `(n_0,n_1,\cdots)`. You can
+convert weights to and from this notation as follows::
+
+    sage: L = RootSystem(['E',6,2]).weight_lattice(extended=True)
+    sage: Lambda = L.fundamental_weights()
+    sage: delta = L.null_root()
+    sage: V = IntegrableRepresentation(Lambda[0])
+    sage: V.strings()
+    {Lambda[0]: [1, 2, 7, 14, 35, 66, 140, 252, 485, 840, 1512, 2534]}
+    sage: V.to_weight((1,2,0,1,0))
+    Lambda[0] - 3*Lambda[1] + 4*Lambda[2] - 2*Lambda[3] + Lambda[4] - delta
+    sage: V.from_weight(Lambda[0] - 3*Lambda[1] + 4*Lambda[2] - 2*Lambda[3] + Lambda[4] - delta)
+    (1, 2, 0, 1, 0)
+    sage: V.from_weight(Lambda[0]-delta)
+    (1, 2, 3, 2, 1)
+
+In reporting the strings, one may set the optional parameter depth to get more
+or fewer values. In certain cases even the first coefficient of the string is
+significant.  See [JayneMisra2014]_ and [KimLeeOh2017]_ ::
+
+   sage: Lambda=RootSystem(['A',12,1]).weight_lattice(extended=true).fundamental_weights()
+   sage: IntegrableRepresentation(2*Lambda[0]).strings(depth=1)
+   {2*Lambda[0]: [1],
+    Lambda[1] + Lambda[12] - delta: [1],
+    Lambda[2] + Lambda[11] - 2*delta: [2],
+    Lambda[3] + Lambda[10] - 3*delta: [5],
+    Lambda[4] + Lambda[9] - 4*delta: [14],
+    Lambda[5] + Lambda[8] - 5*delta: [42],
+    Lambda[6] + Lambda[7] - 6*delta: [132]}
+
+(Catalan numbers)
+
+::
+
+    sage: IntegrableRepresentation(Lambda[0]+Lambda[2]).strings(depth=1)
+    {Lambda[0] + Lambda[2]: [1],
+     2*Lambda[1] - delta: [12],
+     Lambda[3] + Lambda[12] - delta: [3],
+     Lambda[4] + Lambda[11] - 2*delta: [9],
+     Lambda[5] + Lambda[10] - 3*delta: [28],
+     Lambda[6] + Lambda[9] - 4*delta: [90],
+     Lambda[7] + Lambda[8] - 5*delta: [297]}
+
+(Catalan triangle numbers OEIS A000245)
+
+::
+
+    sage: Lambda=RootSystem(['B',8,1]).weight_lattice(extended=true).fundamental_weights()
+    sage: IntegrableRepresentation(Lambda[0]+Lambda[1]).strings(depth=1)
+    {Lambda[0] + Lambda[1]: [1],
+    2*Lambda[0]: [1],
+    2*Lambda[1] - delta: [1],
+    Lambda[2] - delta: [3],
+    Lambda[3] - delta: [3],
+    Lambda[4] - 2*delta: [10],
+    Lambda[5] - 2*delta: [10],
+    Lambda[6] - 3*delta: [35],
+    Lambda[7] - 3*delta: [35],
+    2*Lambda[8] - 4*delta: [126]}
+
+(Central binomial coefficients)

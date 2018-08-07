@@ -2597,13 +2597,13 @@ class Sandpile(DiGraph):
         # convert the resolution to a list of Sage poly matrices
         result = []
         zero = self._ring.gens()[0]*0
-        for i in range(1,len(res)+1):
+        for i in range(1, len(res)+1):
             syz_mat = []
             new = [res[i][j] for j in range(1, int(res[i].size())+1)]
             for j in range(self._betti[i]):
                 row = new[j].transpose().sage_matrix(self._ring)
                 row = [r for r in row[0]]
-                if len(row)<self._betti[i-1]:
+                if len(row) < self._betti[i-1]:
                     row += [zero]*(self._betti[i-1]-len(row))
                 syz_mat.append(row)
             syz_mat = matrix(self._ring, syz_mat).transpose()
@@ -2717,7 +2717,8 @@ class Sandpile(DiGraph):
             [1, 6, 9, 4]
         """
         if verbose:
-            print(singular.eval('print(betti(%s),"betti")' % self._singular_resolution.name()))
+            print(singular.eval('print(betti(%s), "betti")' %
+                                self._singular_resolution.name()))
         else:
             return self._betti
 
@@ -2755,7 +2756,7 @@ class Sandpile(DiGraph):
         K = singular.fetch(self._ring, L)
         K = singular.groebner(K)
         singular.LIB('solve.lib')
-        M = K.solve(5,1)
+        M = K.solve(5, 1)
         singular.setring(M)
         sol= singular('SOL').sage_structured_str_list()
         sol = sol[0][0]

@@ -6,11 +6,13 @@ AUTHORS:
 - Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved matrix creation to
   :class:`CartanType` to prepare :func:`cartan_matrix()` for deprecation.
 - Christian Stump, Travis Scrimshaw (2013-04-13): Created :class:`CartanMatrix`.
+- Ben Salisbury (2018-08-07): Added Borcherds-Cartan matrices.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2012,2013 Travis Scrimshaw <tscrim at ucdavis.edu>,
 #       Copyright (C) 2013 Christian Stump,
+#       Copyright (C) 2018 Ben Salisbury <salis1bt at cmich.edu>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -56,6 +58,14 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     Additionally some reference assume that a Cartan matrix is
     *symmetrizable* (see :meth:`is_symmetrizable`). However following Kac, we
     do not make that assumption here.
+
+    An even, integral Borcherds--Cartan matrix is an integral matrix
+    `A = (a_{ij})_{i,j \in I}` for some countable index set `I` which satisfies
+    the following properties:
+
+    - `a_{ii} \in \{2\} \cup 2\ZZ_{<0}` for all `i`,
+    - `a_{ij} \leq 0` for all `i \neq j`,
+    - `a_{ij} = 0` if and only if `a_{ji} = 0` for all `i \neq j`.
 
     INPUT:
 
@@ -272,8 +282,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                     data[(reverse[j], reverse[i])] = -l
             else:
                 M = matrix(data)
-                if not is_generalized_cartan_matrix(M):
-                    raise ValueError("the input matrix is not a generalized Cartan matrix")
+                if not is_borcherds_cartan_matrix(M):
+                    raise ValueError("the input matrix is not a Borcherds-Cartan matrix")
+#                if not is_generalized_cartan_matrix(M):
+#                    raise ValueError("the input matrix is not a generalized Cartan matrix")
                 n = M.ncols()
                 data = M.dict()
                 subdivisions = M._subdivisions
@@ -947,6 +959,43 @@ def is_generalized_cartan_matrix(M):
     n = M.ncols()
     for i in range(n):
         if M[i,i] != 2:
+            return False
+        for j in range(i+1, n):
+            if M[i,j] > 0 or M[j,i] > 0:
+                return False
+            elif M[i,j] == 0 and M[j,i] != 0:
+                return False
+            elif M[j,i] == 0 and M[i,j] != 0:
+                return False
+    return True
+
+def is_borcherds_cartan_matrix(M):
+    """
+    Return ``True`` if ``M`` is an even, integral Borcherds-Cartan matrix.
+    For a definition of such a matrix, see :class:`CartanMatrix`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.root_system.cartan_matrix import is_borcherds_cartan_matrix
+        sage: M = Matrix([[2,-1],[-1,2]])
+        sage: is_borcherds_cartan_matrix(M)
+        True
+        sage: N = Matrix([[2,-1],[-1,0]])
+        sage: is_borcherds_cartan_matrix(N)
+        False
+        sage: O = Matrix([[2,-1],[-1,-2]])
+        sage: is_borcherds_cartan_matrix(O)
+        True
+    """
+    if not is_Matrix(M):
+        return False
+    if not M.is_square():
+        return False
+    n = M.ncols()
+    for i in range(n):
+        if M[i,i] == 0:
+            return False
+        if M[i,i] == 1 % 2:
             return False
         for j in range(i+1, n):
             if M[i,j] > 0 or M[j,i] > 0:

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-OFFSET=80
+OFFSET=1024
 # This script reads from stdin and prints to stdout as long as a the output
 # does not exceed a certain number of bytes. When reading an EOF it prints the
 # last $OFFSET lines if they have not been printed normally already.

@@ -309,6 +309,52 @@ class ProductProjectiveSpaces_point_ring(SchemeMorphism_point):
         for i in range(self.codomain().ambient_space().num_components()):
             self[i].normalize_coordinates()
 
+    def dehomogenize(self, L):
+        r"""
+        Dehomogenizes `k^{th}` point at `L[k]^{th}` coordinate.
+
+        This function computes the appropriate affine patch using ``L``
+        and then returns the dehomogenized point on of this affine space.
+
+        INPUT:
+
+        - ``L`` - a list of non-negative integers
+
+        OUTPUT:
+
+        - :class:`SchemeMorphism_point_affine`.
+
+        EXAMPLES::
+
+            sage: PP = ProductProjectiveSpaces([2, 2, 2], QQ, 'x')
+            sage: A = PP([2, 4, 6, 23, 46, 23, 9, 3, 1])
+            sage: A.dehomogenize([0, 1, 2])
+            (2, 3, 1/2, 1/2, 9, 3)
+
+        ::
+
+            sage: PP.<a,b,x,y,z> = ProductProjectiveSpaces([1, 2], CC)
+            sage: X = PP.subscheme([a^2 + b^2])
+            sage: P = X([2, 2*i, -3, 6*i, 3 - 6*i])
+            sage: P.dehomogenize([1,0])
+            (-1.00000000000000*I, -2.00000000000000*I, -1.00000000000000 + 2.00000000000000*I)
+
+        ::
+
+            sage: PP = ProductProjectiveSpaces([1, 1], ZZ)
+            sage: A = PP([0,1,2,4])
+            sage: A.dehomogenize([0,0])
+            Traceback (most recent call last):
+            ...
+            ValueError: can't dehomogenize at 0 coordinate
+        """
+        PP = self.codomain()
+        A = PP.affine_patch(L)
+        pt = []
+        for i in range(PP.ambient_space().num_components()):
+            pt.extend(self[i].dehomogenize(L[i]))
+        return A(pt)
+
     def scale_by(self, t):
         r"""
         Scale the coordinates of the point by ``t``, done componentwise.

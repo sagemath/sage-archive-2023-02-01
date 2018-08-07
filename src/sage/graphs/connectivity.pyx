@@ -2586,9 +2586,9 @@ class Triconnectivity:
 
         - :meth:`~Graph.is_biconnected`
 
-    EXAMPLES::
+    EXAMPLES:
 
-        An example from [Hopcroft1973]_:
+    An example from [Hopcroft1973]_::
 
         sage: from sage.graphs.connectivity import Triconnectivity
         sage: G = Graph()
@@ -2610,7 +2610,7 @@ class Triconnectivity:
         Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
         Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
 
-        An example from [Gut2001]_
+    An example from [Gut2001]_::
 
         sage: G = Graph()
         sage: G.add_edges([(1,2),(1,4),(2,3),(2,5),(3,4),(3,5),(4,5),(4,6),(5,7),(5,8)])
@@ -2633,7 +2633,7 @@ class Triconnectivity:
         Triconnected:  [(2, 3, None), (3, 4, None), (4, 5, 'newVEdge14'), (3, 5, None), (2, 5, None), (2, 4, 'newVEdge15')]
         Polygon:  [(1, 2, None), (2, 4, 'newVEdge15'), (1, 4, None)]
 
-        An example with multi-edges and accessing the triconnected components:
+    An example with multi-edges and accessing the triconnected components::
 
         sage: G = Graph()
         sage: G.allow_multiple_edges(True)
@@ -2651,7 +2651,7 @@ class Triconnectivity:
         sage: tric.comp_type
         [0, 0, 1]
 
-        An example of a triconnected graph:
+    An example of a triconnected graph::
 
         sage: G2 = Graph()
         sage: G2.allow_multiple_edges(True)
@@ -2660,7 +2660,7 @@ class Triconnectivity:
         sage: tric.print_triconnected_components()
         Triconnected:  [('a', 'b', None), ('b', 'c', None), ('a', 'c', None), ('c', 'd', None), ('b', 'd', None), ('a', 'd', None)]
 
-        An example of a directed graph with multi-edges:
+    An example of a directed graph with multi-edges::
 
         sage: G3 = DiGraph()
         sage: G3.allow_multiple_edges(True)
@@ -2670,18 +2670,18 @@ class Triconnectivity:
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
 
-    TESTS::
+    TESTS:
 
-        A disconnected graph:
+    A disconnected graph::
 
         sage: from sage.graphs.connectivity import Triconnectivity
         sage: G = Graph([(1,2),(3,5)])
         sage: tric = Triconnectivity(G)
         Traceback (most recent call last):
         ...
-        ValueError: Graph is disconnected
+        ValueError: Graph is not connected
 
-        A graph with a cut vertex:
+    A graph with a cut vertex::
 
         sage: from sage.graphs.connectivity import Triconnectivity
         sage: G = Graph([(1,2),(1,3),(2,3),(3,4),(3,5),(4,5)])
@@ -2689,19 +2689,34 @@ class Triconnectivity:
         Traceback (most recent call last):
         ...
         ValueError: Graph has a cut vertex
-
     """
     def __init__(self, G, check=True):
         """
         """
+        self.n = G.order()
+        self.m = G.size()
+
+        # Trivial cases
+        if self.n < 2:
+            raise ValueError("Graph is not biconnected")
+        elif self.n == 2 and self.m:
+            # a P block with at least 1 edge
+            self.comp_list_new = [G.edges()]
+            self.comp_type = [0]
+            return
+        elif self.m < self.n -1:
+            # less edges than a tree
+            raise ValueError("Graph is not connected")
+        elif self.m < self.n:
+            # less edges than a cycle
+            raise ValueError("Graph is not biconnected")
+
         from sage.graphs.graph import Graph
 
         # Make a copy of the input graph G in which
         # - vertices are relabeled as integers in [0..n-1]
         # - edges are relabeled with distinct labels in order to distinguish
         #   between multi-edges
-        self.n = G.order()
-        self.m = G.size()
         self.int_to_vertex = G.vertices()
         self.vertex_to_int = {u:i for i,u in enumerate(self.int_to_vertex)}
         self.int_to_original_edge_label = [] # to associate original edge label
@@ -2710,11 +2725,16 @@ class Triconnectivity:
             self.graph_copy.add_edge(self.vertex_to_int[u], self.vertex_to_int[v], i)
             self.int_to_original_edge_label.append(l)
 
+        #
+        # Initialize data structures needed for the algorithm
+        #
+
         # status of each edge: unseen=0, tree=1, frond=2
         self.edge_status = {e: 0 for e in self.graph_copy.edge_iterator()}
 
         # Edges of the graph which are in the reverse direction in palm tree
         self.reverse_edges = set()
+
         self.dfs_number = [0 for i in range(self.n)] # DFS number of vertex i
 
         # Linked list of fronds entering vertex i in the order they are visited
@@ -2771,20 +2791,11 @@ class Triconnectivity:
         self.comp_list_new = [] # i^th entry is list of edges in i^th component
         self.comp_type = [] # i^th entry is type of i^th component
 
-
-        # Trivial cases
-        if self.n < 2:
-            raise ValueError("Graph is not biconnected")
-        if self.n == 2:
-            if self.m < 3:
-                raise ValueError("Graph is not biconnected")
-            comp = Component([], 0)
-            for e in self.graph_copy.edge_iterator():
-                comp.add_edge(e)
-            self.components_list.append(comp)
-            return
-
+        #
         # Triconnectivity algorithm
+        #
+
+        # Deal with multiple edges
         self.__split_multi_egdes()
 
         # Build adjacency list
@@ -2799,13 +2810,10 @@ class Triconnectivity:
         if check:
             # If graph is disconnected
             if self.dfs_counter < self.n:
-                self.is_biconnected = False
-                raise ValueError("Graph is disconnected")
+                raise ValueError("Graph is not connected")
 
             # If graph has a cut vertex
             if self.cut_vertex != None:
-                self.cut_vertex = self.int_to_vertex[self.cut_vertex]
-                self.is_biconnected = False
                 raise ValueError("Graph has a cut vertex")
 
         # Identify reversed edges to reflect the palm tree arcs and fronds

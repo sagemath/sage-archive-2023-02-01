@@ -3101,7 +3101,7 @@ class Triconnectivity:
     def __dfs2(self):
         """
         Update the values of lowpt1 and lowpt2 lists with the help of
-        new numbering obtained from `Path Finder` funciton.
+        new numbering obtained from `Path Finder` function.
         Populate `highpt` values.
         """
         self.in_high = {e:None for e in self.graph_copy.edge_iterator()}
@@ -3127,9 +3127,8 @@ class Triconnectivity:
     def __path_search(self, v):
         """
         Find the separation pairs and construct the split components.
-        Check for type-1 and type-2 separation pairs, and construct
-        the split components while also creating new virtual edges wherever
-        required.
+        Check for type-1 and type-2 separation pairs, and construct the split
+        components while also creating new virtual edges wherever required.
         """
         y = 0
         vnum = self.newnum[v]
@@ -3300,7 +3299,7 @@ class Triconnectivity:
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair - (self.node_at[self.lowpt1[w]], v)
                     # Create a new component and add edges to it
-                    comp = Component([],0)
+                    comp = Component([], 0)
                     if not self.e_stack:
                         raise ValueError("stack is empty")
                     while self.e_stack:
@@ -3330,7 +3329,7 @@ class Triconnectivity:
 
                     if (xx == vnum and y == self.lowpt1[w]) or \
                         (y == vnum and xx == self.lowpt1[w]):
-                        comp_bond = Component([],type_c = 0) # new triple bond
+                        comp_bond = Component([], type_c=0) # new triple bond
                         eh = self.__estack_pop()
                         if self.in_adj[eh] != it:
                             if eh in self.reverse_edges:
@@ -3340,7 +3339,7 @@ class Triconnectivity:
 
                         comp_bond.add_edge(eh)
                         comp_bond.add_edge(e_virt)
-                        e_virt = tuple([v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num)])
+                        e_virt = (v, self.node_at[self.lowpt1[w]], "newVEdge"+str(self.virtual_edge_num))
                         self.graph_copy.add_edge(e_virt)
                         self.virtual_edge_num += 1
                         comp_bond.add_edge(e_virt)
@@ -3351,6 +3350,7 @@ class Triconnectivity:
 
                         self.components_list.append(comp_bond)
                         comp_bond = None
+
                     if self.node_at[self.lowpt1[w]] != self.parent[v]:
                         self.e_stack.append(e_virt)
 
@@ -3369,7 +3369,7 @@ class Triconnectivity:
                     else:
                         self.adj[v].remove(it)
                         comp_bond = Component([e_virt], type_c=0)
-                        e_virt = tuple([self.node_at[self.lowpt1[w]], v, "newVEdge"+str(self.virtual_edge_num)])
+                        e_virt = (self.node_at[self.lowpt1[w]], v, "newVEdge"+str(self.virtual_edge_num))
                         self.graph_copy.add_edge(e_virt)
                         self.virtual_edge_num += 1
                         comp_bond.add_edge(e_virt)

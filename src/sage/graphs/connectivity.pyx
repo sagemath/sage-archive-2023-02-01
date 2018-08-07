@@ -2711,7 +2711,7 @@ class Triconnectivity:
             self.edge_label_dict[e[0], e[1], i] = e
 
         # status of each edge: unseen=0, tree=1, frond=2
-        self.edge_status = {e: 0 for e in self.graph_copy.edges()}
+        self.edge_status = {e: 0 for e in self.graph_copy.edge_iterator()}
 
         # Edges of the graph which are in the reverse direction in palm tree
         self.reverse_edges = set()
@@ -2722,7 +2722,7 @@ class Triconnectivity:
 
         # A dictionary whose key is an edge e, value is a pointer to element in
         # self.highpt containing the edge e. Used in the `path_search` function.
-        self.in_high = dict((e, None) for e in self.graph_copy.edges())
+        self.in_high = {e:None for e in self.graph_copy.edge_iterator()}
 
         # Translates DFS number of a vertex to its new number
         self.old_to_new = [0 for i in range(self.n+1)]
@@ -2749,7 +2749,7 @@ class Triconnectivity:
         self.graph_copy_adjacency = [[] for i in range(self.n)] # Stores adjacency list
 
         # Dictionary of (e, True/False) to denote if edge e starts a path
-        self.starts_path = {e:False for e in self.graph_copy.edges()}
+        self.starts_path = {e:False for e in self.graph_copy.edge_iterator()}
 
         self.is_biconnected = True # Boolean to store if the graph is biconnected or not
         self.cut_vertex = None # If graph is not biconnected
@@ -2779,7 +2779,7 @@ class Triconnectivity:
             if self.m < 3:
                 raise ValueError("Graph is not biconnected")
             comp = Component([], 0)
-            for e in self.graph_copy.edges():
+            for e in self.graph_copy.edge_iterator():
                 comp.add_edge(e)
             self.components_list.append(comp)
             return
@@ -2788,7 +2788,7 @@ class Triconnectivity:
         self.__split_multi_egdes()
 
         # Build adjacency list
-        for e in self.graph_copy.edges():
+        for e in self.graph_copy.edge_iterator():
             self.graph_copy_adjacency[e[0]].append(e)
             self.graph_copy_adjacency[e[1]].append(e)
 
@@ -2809,7 +2809,7 @@ class Triconnectivity:
                 raise ValueError("Graph has a cut vertex")
 
         # Identify reversed edges to reflect the palm tree arcs and fronds
-        for e in self.graph_copy.edges():
+        for e in self.graph_copy.edge_iterator():
             up = (self.dfs_number[e[1]] - self.dfs_number[e[0]]) > 0
             if (up and self.edge_status[e]==2) or (not up and self.edge_status[e]==1):
                 # Add edge to the set reverse_edges
@@ -2904,7 +2904,7 @@ class Triconnectivity:
         """
         comp = []
         if self.graph_copy.has_multiple_edges():
-            sorted_edges = sorted(self.graph_copy.edges())
+            sorted_edges = sorted(self.graph_copy.edge_iterator())
             for i in range(len(sorted_edges) - 1):
 
                 # Find multi edges and add to component and delete from graph
@@ -3031,7 +3031,7 @@ class Triconnectivity:
         max = 3*self.n + 2
         bucket = [[] for i in range(max+1)]
 
-        for e in self.graph_copy.edges():
+        for e in self.graph_copy.edge_iterator():
             edge_type = self.edge_status[e]
 
             # compute phi value
@@ -3097,10 +3097,10 @@ class Triconnectivity:
         new numbering obtained from `Path Finder` funciton.
         Populate `highpt` values.
         """
-        self.in_high = dict((e, None) for e in self.graph_copy.edges())
+        self.in_high = {e:None for e in self.graph_copy.edge_iterator()}
         self.dfs_counter = self.n
         self.newnum = [0 for i in range(self.n)]
-        self.starts_path = dict((e, False) for e in self.graph_copy.edges())
+        self.starts_path = {e:False for e in self.graph_copy.edge_iterator()}
 
         self.new_path = True
 
@@ -3108,11 +3108,11 @@ class Triconnectivity:
         self.__path_finder(self.start_vertex)
 
         # Update `old_to_new` values with the calculated `newnum` values
-        for v in self.graph_copy.vertices():
+        for v in self.graph_copy.vertex_iterator():
             self.old_to_new[self.dfs_number[v]] = self.newnum[v]
 
         # Update lowpt values according to `newnum` values.
-        for v in self.graph_copy.vertices():
+        for v in self.graph_copy.vertex_iterator():
             self.node_at[self.newnum[v]] = v
             self.lowpt1[v] = self.old_to_new[self.lowpt1[v]]
             self.lowpt2[v] = self.old_to_new[self.lowpt2[v]]

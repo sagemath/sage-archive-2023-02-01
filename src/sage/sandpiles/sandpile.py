@@ -342,7 +342,7 @@ from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
 from sage.arith.all import falling_factorial, lcm
 from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
-from sage.symbolic.all import I, pi
+from sage.symbolic.all import I, pi, SR
 
 # TODO: remove the following line once 4ti2 functions are removed
 path_to_zsolve = os.path.join(SAGE_LOCAL, 'bin', 'zsolve')
@@ -2599,7 +2599,7 @@ class Sandpile(DiGraph):
         zero = self._ring.gens()[0]*0
         for i in range(1,len(res)+1):
             syz_mat = []
-            new = [res[i][j] for j in range(1,res[i].size()+1)]
+            new = [res[i][j] for j in range(1, int(res[i].size())+1)]
             for j in range(self._betti[i]):
                 row = new[j].transpose().sage_matrix(self._ring)
                 row = [r for r in row[0]]
@@ -2746,24 +2746,20 @@ class Sandpile(DiGraph):
             group.  Generators for this group are given exactly by ``points()``.
         """
         singular.setring(self._ring._singular_())
-        v = [singular.var(i) for i in range(1,singular.nvars(self._ring))]
-        vars = '('
-        for i in v:
-            vars += str(i)
-            vars += ','
-        vars = vars[:-1]  # to get rid of the final ,
-        vars += ')'
+        v = [singular.var(i) for i in range(1, int(singular.nvars(self._ring)))]
+        vars_ = '({})'.format(','.join(str(i) for i in v))
+
         L = singular.subst(self._ideal,
-                singular.var(singular.nvars(self._ring)),1)
-        R = singular.ring(0,vars,'lp')
-        K = singular.fetch(self._ring,L)
+                singular.var(singular.nvars(self._ring)), 1)
+        R = singular.ring(0, vars_, 'lp')
+        K = singular.fetch(self._ring, L)
         K = singular.groebner(K)
         singular.LIB('solve.lib')
         M = K.solve(5,1)
         singular.setring(M)
         sol= singular('SOL').sage_structured_str_list()
         sol = sol[0][0]
-        sol = [map(eval,[j.replace('i','I') for j in k]) for k in sol]
+        sol = [[SR(j) for j in k] for k in sol]
         return sol
 
     def _set_points(self):

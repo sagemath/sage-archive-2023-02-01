@@ -107,6 +107,11 @@ class DocTestDefaults(SageObject):
         self.new = False
         self.show_skipped = False
         self.target_walltime = None
+
+        # > 0: always run GC before every test
+        # < 0: disable GC
+        self.gc = 0
+
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
@@ -300,6 +305,9 @@ class DocTestController(SageObject):
                 options.timeout = int(os.getenv('SAGE_TIMEOUT_LONG', 30 * 60))
             else:
                 options.timeout = int(os.getenv('SAGE_TIMEOUT', 5 * 60))
+            # For non-default GC options, double the timeout
+            if options.gc:
+                options.timeout *= 2
         if options.nthreads == 0:
             options.nthreads = int(os.getenv('SAGE_NUM_THREADS_PARALLEL',1))
         if options.failed and not (args or options.new or options.sagenb):

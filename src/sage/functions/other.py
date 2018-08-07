@@ -438,7 +438,22 @@ class Function_ceil(BuiltinFunction):
             8
             sage: ceil(x)
             ceil(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: ceil(x)
+            x
+            sage: ceil(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: ceil(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.ceil()
         except AttributeError:
@@ -587,7 +602,22 @@ class Function_floor(BuiltinFunction):
             7
             sage: floor(x)
             floor(x)
+
+            sage: var('x',domain='integer')
+            x
+            sage: floor(x)
+            x
+            sage: floor(factorial(x) + binomial(x^2, x))
+            binomial(x^2, x) + factorial(x)
+            sage: floor(gamma(abs(2*x)+1) * real(x))
+            x*gamma(2*abs(x) + 1)
+            sage: forget()
         """
+        try:
+            if SR(x).variables() and x.is_integer():
+                return x
+        except TypeError:
+            pass
         try:
             return x.floor()
         except AttributeError:
@@ -1670,6 +1700,26 @@ class Function_sum(BuiltinFunction):
         return r"{{\sum_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                       latex(b), latex(x))
 
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Sum.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: s = sum(k, k, 1, n, hold=True)
+            sage: s
+            sum(k, k, 1, n)
+            sage: s._sympy_() # indirect test
+            Sum(k, (k, 1, n))
+            sage: s._sympy_().doit()
+            n**2/2 + n/2
+
+        """
+        import sympy
+        return sympy.Sum(term, (k, a, n))
+
 symbolic_sum = Function_sum()
 
 
@@ -1717,6 +1767,21 @@ class Function_prod(BuiltinFunction):
         """
         return r"{{\prod_{{{}={}}}^{{{}}} {}}}".format(latex(var), latex(a),
                                                        latex(b), latex(x))
+
+    def _sympy_(self, term, k, a, n):
+        """
+        Convert to sympy Product.
+
+        EXAMPLES::
+
+            sage: var('k, n')
+            (k, n)
+            sage: p = product(k^2+k+1,k,1,n, hold=True)
+            sage: p._sympy_() # indirect test
+            Product(k**2 + k + 1, (k, 1, n))
+        """
+        import sympy
+        return sympy.Product(term, (k, a, n))
 
 symbolic_product = Function_prod()
 

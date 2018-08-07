@@ -51,20 +51,6 @@ from .complex_field import ComplexField
 from sage.misc.cachefunc import cached_method
 
 
-NumberFieldElement_quadratic = None
-def late_import():
-    """
-    Import the objects/modules after build (when needed).
-
-    TESTS::
-
-        sage: sage.rings.complex_interval_field.late_import()
-    """
-    global NumberFieldElement_quadratic
-    if NumberFieldElement_quadratic is None:
-        import sage.rings.number_field.number_field_element_quadratic as nfeq
-        NumberFieldElement_quadratic = nfeq.NumberFieldElement_quadratic
-
 def is_ComplexIntervalField(x):
     """
     Check if ``x`` is a :class:`ComplexIntervalField`.

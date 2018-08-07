@@ -103,6 +103,8 @@ AUTHORS:
 
 - Javier Lopez Pena (2013): Added conjugacy classes.
 
+- Sebastian Oehms (2018): added _coerce_map_from_ in order to use isomorphism coming up with as_permutation_group method (Trac #25706)
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -720,6 +722,18 @@ class PermutationGroup_generic(FiniteGroup):
             sage: g2*g1
             (3,4,5)
 
+        If this permutation group has been constructed via ``as_permutation_group``
+        method (from finite matrix groups)::
+
+           sage: MG = GU(3,2).as_matrix_group()
+           sage: PG = MG.as_permutation_group()
+           sage: f=PG._coerce_map_from_(MG)
+           sage: mg = MG.an_element()
+           sage: p = f(mg); p
+           (1,2,6,19,35,33)(3,9,26,14,31,23)(4,13,5)(7,22,17)(8,24,12)(10,16,32,27,20,28)(11,30,18)(15,25,36,34,29,21)
+           sage: PG(p._gap_()) == p
+           True
+
         TESTS:
 
         We try to convert in a non-permutation::
@@ -766,6 +780,16 @@ class PermutationGroup_generic(FiniteGroup):
         if isinstance(G, PermutationGroup_generic):
             if G.is_subgroup(self):
                 return True
+        if hasattr(G, "_permutation_group_"):
+            # see if this permutation group has been constructed by an as_permutation_group method (Trac #25706)
+            PG = G._permutation_group_()
+            # _permutation_group_element is a morphism
+            if hasattr(G, '_permutation_group_morphism'):
+                if PG is self:
+                    return G._permutation_group_morphism
+                if self.has_coerce_map_from(PG):
+                    return self.coerce_map_from(PG) * G._permutation_group_morphism
+
         return super(PermutationGroup_generic, self)._coerce_map_from_(G)
 
     def list(self):

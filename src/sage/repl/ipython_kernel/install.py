@@ -11,7 +11,8 @@ import errno
 
 from sage.env import (
     SAGE_DOC, SAGE_LOCAL, SAGE_EXTCODE,
-    SAGE_VERSION
+    SAGE_VERSION,
+    MATHJAX_DIR, JSMOL_DIR, THREEJS_DIR,
 )
 
 
@@ -117,7 +118,7 @@ class SageKernelSpec(object):
             sage: os.path.isdir(mathjax)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'mathjax')
+        src = MATHJAX_DIR
         dst = os.path.join(self.nbextensions_dir, 'mathjax')
         self.symlink(src, dst)
 
@@ -134,7 +135,7 @@ class SageKernelSpec(object):
             sage: os.path.isdir(jsmol)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'jsmol')
+        src = os.path.join(JSMOL_DIR)
         dst = os.path.join(self.nbextensions_dir, 'jsmol')
         self.symlink(src, dst)
 
@@ -151,7 +152,7 @@ class SageKernelSpec(object):
             sage: os.path.isdir(threejs)
             True
         """
-        src = os.path.join(SAGE_LOCAL, 'share', 'threejs')
+        src = THREEJS_DIR
         dst = os.path.join(self.nbextensions_dir, 'threejs')
         self.symlink(src, dst)
 

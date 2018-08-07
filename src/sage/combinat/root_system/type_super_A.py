@@ -236,7 +236,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                 for j in range(1, ct.n + 2)]
 
     def fundamental_weight(self, i):
-        """
+        r"""
         Return the fundamental weight `\Lambda_i` of ``self``.
 
         EXAMPLES::

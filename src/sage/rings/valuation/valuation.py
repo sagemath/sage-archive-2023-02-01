@@ -654,9 +654,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             1/3
             sage: G=Delta.change_ring(K) 
             sage: vK.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 3/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + theta^4 + theta^3 + 1) = 5/3 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + 3*theta + 3) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta + 3) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 2*theta + 3) = 5/3 ]]
 
         An easy case that produced the wrong error at some point::
 

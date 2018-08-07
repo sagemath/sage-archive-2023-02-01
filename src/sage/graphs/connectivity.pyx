@@ -3026,8 +3026,8 @@ class Triconnectivity:
 
     def __build_acceptable_adj_struct(self):
         """
-        Builds the adjacency lists for each vertex with certain properties
-        of the ordering, using the ``lowpt1`` and ``lowpt2`` values.
+        Builds the adjacency lists for each vertex with certain properties of
+        the ordering, using the ``lowpt1`` and ``lowpt2`` values.
 
         The list ``adj`` and the dictionary ``in_adj`` are populated.
 
@@ -3035,8 +3035,8 @@ class Triconnectivity:
         incident vertices. The edges are then sorted by the `phi` values and
         added to adjacency list.
         """
-        max = 3*self.n + 2
-        bucket = [[] for i in range(max+1)]
+        max_size = 3*self.n + 2
+        bucket = [[] for _ in range(max_size + 1)]
 
         for e in self.graph_copy.edge_iterator():
             edge_type = self.edge_status[e]
@@ -3044,7 +3044,7 @@ class Triconnectivity:
             # compute phi value
             # bucket sort adjacency list by phi values
             if e in self.reverse_edges:
-                if edge_type==1: # tree arc
+                if edge_type == 1: # tree arc
                     if self.lowpt2[e[0]] < self.dfs_number[e[1]]:
                         phi = 3*self.lowpt1[e[0]]
                     else:
@@ -3052,7 +3052,7 @@ class Triconnectivity:
                 else: # tree frond
                     phi = 3*self.dfs_number[e[0]]+1
             else:
-                if edge_type==1: # tree arc
+                if edge_type == 1: # tree arc
                     if self.lowpt2[e[1]] < self.dfs_number[e[0]]:
                         phi = 3*self.lowpt1[e[1]]
                     else:
@@ -3063,7 +3063,7 @@ class Triconnectivity:
             bucket[phi].append(e)
 
         # Populate `adj` and `in_adj` with the sorted edges
-        for i in range(1,max+1):
+        for i in range(1, max_size + 1):
             for e in bucket[i]:
                 node = LinkedListNode(e)
                 if e in self.reverse_edges:

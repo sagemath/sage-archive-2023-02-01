@@ -6074,13 +6074,13 @@ def sandlib(selector=None):
             sage: from sage.sandpiles.sandpile import sandlib
             sage: sandlib()
               Sandpiles in the sandlib:
-                 kite : generic undirected graphs with 5 vertices
+                 ci1 : complete intersection, non-DAG but equivalent to a DAG
                  generic : generic digraph with 6 vertices
                  genus2 : Undirected graph of genus 2
-                 ci1 : complete intersection, non-DAG but equivalent to a DAG
+                 gor : Gorenstein but not a complete intersection
+                 kite : generic undirected graphs with 5 vertices
                  riemann-roch1 : directed graph with postulation 9 and 3 maximal weight superstables
                  riemann-roch2 : directed graph with a superstable not majorized by a maximal superstable
-                 gor : Gorenstein but not a complete intersection
             sage: S = sandlib('gor')
             sage: S.resolution()
             'R^1 <-- R^5 <-- R^5 <-- R^1'
@@ -6139,7 +6139,7 @@ def sandlib(selector=None):
     if selector is None:
         print('')
         print('  Sandpiles in the sandlib:')
-        for i in sandpiles:
+        for i in sorted(sandpiles):
             print('    ', i, ':', sandpiles[i]['description'])
         print("")
     elif selector not in sandpiles:

@@ -2382,38 +2382,12 @@ class LinkedListNode:
         self.prev = None
         self.next = None
         self.set_data(data)
-        self.listobj = None
 
     def set_data(self, data):
         self.data = data
 
     def get_data(self):
         return self.data
-
-    def set_obj(self, l):
-        self.listobj = l
-
-    def clear_obj(self):
-        self.listobj = None
-
-    def replace(self, node):
-        """
-        Replace self node with ``node`` in the corresponding linked list.
-        """
-        if self.prev is None and self.next is None:
-            self.listobj.set_head(node)
-        elif self.prev is None:
-            self.listobj.head = node
-            node.next = self.next
-            node.listobj = self.listobj
-        elif self.next is None:
-            self.prev.next = node
-            node.prev = self.prev
-        else:
-            self.prev.next = node
-            self.next.prev = node
-            node.prev = self.prev
-            node.next = self.next
 
 class LinkedList:
     """
@@ -2441,7 +2415,6 @@ class LinkedList:
         elif node.prev is None: # node is head
             self.head = node.next
             node.next.prev = None
-            node.next.set_obj(self)
         elif node.next is None: #node is tail
             node.prev.next = None
             self.tail = node.prev
@@ -2457,7 +2430,6 @@ class LinkedList:
         self.head = h
         self.tail = h
         self.length = 1
-        h.set_obj(self)
 
     def append(self, node):
         """
@@ -2477,27 +2449,6 @@ class LinkedList:
     def get_length(self):
         return self.length
 
-    def replace(self, node1, node2):
-        """
-        Replace the node ``node1`` with ``node2`` in the linked list.
-        """
-        if node1.prev is None and node1.next is None:
-            self.head = node2
-            self.tail = node2
-        elif node1.prev is None: # head has to be replaced
-            node1.next.prev = node2
-            node2.next = node1.next
-            self.head = node2
-        elif node1.next is None: # tail has to be replaced
-            node1.prev.next = node2
-            node2.prev = node1.prev
-            self.tail = node2
-        else:
-            node1.prev.next = node2
-            node1.next.prev = node2
-            node2.prev = node1.prev
-            node2.next = node1.next
-
     def push_front(self, node):
         """
         Add node ``node`` to the beginning of the linked list.
@@ -2505,11 +2456,9 @@ class LinkedList:
         if self.head is None:
             self.set_head(node)
         else:
-            self.head.clear_obj()
             self.head.prev = node
             node.next = self.head
             self.head = node
-            node.set_obj(self)
             self.length += 1
 
     def to_string(self):
@@ -3340,10 +3289,8 @@ class Triconnectivity:
                             comp = None
 
                         self.e_stack.append(e_virt)
-                        e_virt_node = LinkedListNode(e_virt)
-                        # Replace `it` node with `e_virt_node`
-                        it.replace(e_virt_node)
-                        it = e_virt_node
+                        # Replace the edge `it` with `e_virt`
+                        it.set_data(e_virt)
 
                         self.in_adj[e_virt] = it
                         self.degree[x] += 1
@@ -3413,10 +3360,8 @@ class Triconnectivity:
                     if self.node_at[self.lowpt1[w]] != self.parent[v]:
                         self.e_stack.append(e_virt)
 
-                        e_virt_node = LinkedListNode(e_virt)
-                        # replace `it` node with `e_virt_node`
-                        it.replace(e_virt_node)
-                        it = e_virt_node
+                        # replace edge `it` with `e_virt`
+                        it.set_data(e_virt)
 
                         self.in_adj[e_virt] = it
                         if not e_virt in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:

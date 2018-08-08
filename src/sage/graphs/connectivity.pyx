@@ -2066,7 +2066,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
     return cut_sides, cocycles, virtual_cut_graph
 
-def spqr_tree(G):
+def spqr_tree(G, algorithm="Hopcroft_tarjan"):
     r"""
     Return an SPQR-tree representing the triconnected components of the graph.
 
@@ -2094,6 +2094,18 @@ def spqr_tree(G):
     cocycles are dipole graphs with one edge per real edge between the included
     vertices and one additional (virtual) edge per connected component resulting
     from deletion of the vertices in the cut. See :wikipedia:`SPQR_tree`.
+
+    INPUT:
+
+    - ``G`` - the input graph.
+
+    - ``algorithm`` -- The algorithm to use in computing the SPQR tree of ``G``.
+        The following algorithms are supported:
+
+      - ``"Hopcroft_tarjan"`` (default) -- Hopcroft and Tarjan's algorithm.
+        Refer to [Hopcroft1973]_.
+
+      - ``"Cleave"`` -- Using the ``cleave`` function.
 
     OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
     and the subgraph of three-blocks in the decomposition.
@@ -2155,14 +2167,26 @@ def spqr_tree(G):
         sage: spqr_tree(G)
         Traceback (most recent call last):
         ...
-        ValueError: generation of SPQR-trees is only implemented for 2-connected graphs
+        ValueError: Graph is not biconnected
 
         sage: G = Graph([(0, 0)], loops=True)
         sage: spqr_tree(G)
         Traceback (most recent call last):
         ...
-        ValueError: generation of SPQR-trees is only implemented for graphs without loops
+        ValueError: Graph is not biconnected
     """
+    from sage.graphs.generic_graph import GenericGraph
+    if not isinstance(G, GenericGraph):
+        raise TypeError("the input must be a Sage graph")
+
+    if algorithm == "Hopcroft_tarjan":
+        from sage.graphs.connectivity import TriconnectivitySPQR
+        tric = TriconnectivitySPQR(G)
+        return tric.get_spqr_tree()
+
+    if algorithm != "Cleave":
+        raise NotImplementedError("SPQR tree algorithm '%s' is not implemented." % algorithm)
+
     from sage.graphs.graph import Graph
     from collections import Counter
 
@@ -2364,7 +2388,7 @@ class LinkedListNode:
     """
     Node in a ``LinkedList``.
 
-    This class is a helper class for ``Triconnectivity``.
+    This class is a helper class for ``TriconnectivitySPQR``.
 
     This class implements a node of a (doubly) linked list and so has pointers
     to previous and next nodes in the list. If this node is the ``head`` of the
@@ -2393,7 +2417,7 @@ class LinkedList:
     """
     A doubly linked list with head and tail pointers.
 
-    This is a helper class for ``Triconnectivity``.
+    This is a helper class for ``TriconnectivitySPQR``.
 
     This class implements a doubly linked list of ``LinkedListNode``.
     """
@@ -2489,7 +2513,7 @@ class Component:
     """
     Connected component class.
 
-    This is a helper class for ``Triconnectivity``.
+    This is a helper class for ``TriconnectivitySPQR``.
 
     This class is used to store a connected component. It contains:
     - ``edge_list`` -- list of edges belonging to the component, stored as a ``LinkedList``.
@@ -2552,10 +2576,10 @@ class Component:
         return e_list
 
 
-class Triconnectivity:
+class TriconnectivitySPQR:
     """
     This module implements the algorithm for finding the triconnected
-    components of a biconnected graph.
+    components of a biconnected graph and constructing the SPQR tree.
     A biconnected graph is a graph where deletion of any one vertex does
     not disconnect the graph.
 
@@ -2590,12 +2614,12 @@ class Triconnectivity:
 
     An example from [Hopcroft1973]_::
 
-        sage: from sage.graphs.connectivity import Triconnectivity
+        sage: from sage.graphs.connectivity import TriconnectivitySPQR
         sage: G = Graph()
         sage: G.add_edges([(1,2),(1,4),(1,8),(1,12),(1,13),(2,3),(2,13),(3,4)])
         sage: G.add_edges([(3,13),(4,5),(4,7),(5,6),(5,7),(5,8),(6,7),(8,9),(8,11)])
         sage: G.add_edges([(8,12),(9,10),(9,11),(9,12),(10,11),(10,12)])
-        sage: tric = Triconnectivity(G)
+        sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
         Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
@@ -2616,7 +2640,7 @@ class Triconnectivity:
         sage: G.add_edges([(1,2),(1,4),(2,3),(2,5),(3,4),(3,5),(4,5),(4,6),(5,7),(5,8)])
         sage: G.add_edges([(5,14),(6,8),(7,14),(8,9),(8,10),(8,11),(8,12),(9,10),(10,13)])
         sage: G.add_edges([(10,14),(10,15),(10,16),(11,12),(11,13),(12,13),(14,15),(14,16),(15,16)])
-        sage: tric = Triconnectivity(G)
+        sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Polygon:  [(6, 8, None), (4, 6, None), (5, 8, 'newVEdge12'), (5, 4, 'newVEdge13')]
         Polygon:  [(8, 9, None), (9, 10, None), (8, 10, 'newVEdge1')]
@@ -2638,7 +2662,7 @@ class Triconnectivity:
         sage: G = Graph()
         sage: G.allow_multiple_edges(True)
         sage: G.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(1,5),(2,3)])
-        sage: tric = Triconnectivity(G)
+        sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Bond:  [(2, 3, None), (2, 3, None), (2, 3, 'newVEdge1')]
@@ -2656,7 +2680,7 @@ class Triconnectivity:
         sage: G2 = Graph()
         sage: G2.allow_multiple_edges(True)
         sage: G2.add_edges([('a','b'),('a','c'),('a','d'),('b','c'),('b','d'),('c','d')])
-        sage: tric = Triconnectivity(G2)
+        sage: tric = TriconnectivitySPQR(G2)
         sage: tric.print_triconnected_components()
         Triconnected:  [('a', 'b', None), ('b', 'c', None), ('a', 'c', None), ('c', 'd', None), ('b', 'd', None), ('a', 'd', None)]
 
@@ -2665,7 +2689,7 @@ class Triconnectivity:
         sage: G3 = DiGraph()
         sage: G3.allow_multiple_edges(True)
         sage: G3.add_edges([(1,2),(2,3),(3,4),(4,5),(1,5),(5,1)])
-        sage: tric = Triconnectivity(G3)
+        sage: tric = TriconnectivitySPQR(G3)
         sage: tric.print_triconnected_components()
         Bond:  [(1, 5, None), (1, 5, None), (1, 5, 'newVEdge0')]
         Polygon:  [(4, 5, None), (1, 5, 'newVEdge0'), (3, 4, None), (1, 2, None), (2, 3, None)]
@@ -2674,18 +2698,18 @@ class Triconnectivity:
 
     A disconnected graph::
 
-        sage: from sage.graphs.connectivity import Triconnectivity
+        sage: from sage.graphs.connectivity import TriconnectivitySPQR
         sage: G = Graph([(1,2),(3,5)])
-        sage: tric = Triconnectivity(G)
+        sage: tric = TriconnectivitySPQR(G)
         Traceback (most recent call last):
         ...
         ValueError: Graph is not connected
 
     A graph with a cut vertex::
 
-        sage: from sage.graphs.connectivity import Triconnectivity
+        sage: from sage.graphs.connectivity import TriconnectivitySPQR
         sage: G = Graph([(1,2),(1,3),(2,3),(3,4),(3,5),(4,5)])
-        sage: tric = Triconnectivity(G)
+        sage: tric = TriconnectivitySPQR(G)
         Traceback (most recent call last):
         ...
         ValueError: Graph has a cut vertex
@@ -2837,7 +2861,6 @@ class Triconnectivity:
         c = None
 
         self.__assemble_triconnected_components()
-        #self.print_triconnected_components()
 
     def __tstack_push(self, h, a, b):
         """
@@ -3534,107 +3557,142 @@ class Triconnectivity:
         for i in range(len(self.comp_list_new)):
             print("{}: {}".format(prefix[self.comp_type[i]], self.comp_list_new[i]))
 
-def staticSPQRTree(G):
-    r"""
-    Return an SPQR-tree representing the triconnected components of the graph.
+    def __staticSPQRTree(self):
+        """
+        Constructs the SPQR tree using the triconnected components.
+        """
+        from sage.graphs.graph import Graph
+        # Types of components 0: "P", 1: "S", 2: "R"
+        component_type = ["P", "S", "R"]
 
-    An SPQR-tree is a tree data structure used to represent the triconnected
-    components of a biconnected (multi)graph and the 2-vertex cuts separating
-    them. A node of a SPQR-tree, and the graph associated with it, can be one of
-    the following four types:
+        Tree = Graph(multiedges=False)
+        int_to_vertex = []
+        partner_nodes = {}
 
-    - ``S`` -- the associated graph is a cycle with at least three vertices.
-      ``S`` stands for ``series``.
+        for i in range(len(self.comp_list_new)):
+            # Create a new tree vertex
+            u = (component_type[self.comp_type[i]],
+                     Graph(self.comp_list_new[i], immutable=True, multiedges=True))
+            Tree.add_vertex(u)
+            int_to_vertex.append(u)
 
-    - ``P`` -- the associated graph is a dipole graph, a multigraph with two
-      vertices and three or more edges. ``P`` stands for ``parallel``.
+            # Add an edge to each node containing the same virtual edge
+            for e in self.comp_list_new[i]:
+                if e[2] and "newVEdge" in e[2]:
+                    if e in partner_nodes:
+                        for j in partner_nodes[e]:
+                            Tree.add_edge(int_to_vertex[i], int_to_vertex[j])
+                        partner_nodes[e].append(i)
+                    else:
+                        partner_nodes[e] = [i]
 
-    - ``Q`` -- the associated graph has a single real edge. This trivial case is
-      necessary to handle the graph that has only one edge.
+        return Tree
 
-    - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
-      or dipole. ``R`` stands for ``rigid``.
+    def get_triconnected_components(self):
+        r"""
+        Return the triconnected components as a list of tuples.
 
-    This method constructs a static spqr-tree using the decomposition of a
-    biconnected graph into cycles, cocycles, and 3-connected blocks generated by
-    :class:`sage.graphs.connectivity.Triconnectivity`.
-    See :wikipedia:`SPQR_tree`.
+        Each component is represented as a tuple of the type of the component
+        and the list of edges of the component.
 
-    OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
-    and the subgraph of three-blocks in the decomposition.
+        EXAMPLES:
+
+            sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1]) 
+            sage: tric = TriconnectivitySPQR(G)
+            sage: tric.get_triconnected_components()
+            [('Polygon', [(4, 5, None), (0, 4, None), (1, 5, None), (1, 0, 'newVEdge1')]),
+            ('Polygon', [(6, 7, None), (0, 6, None), (1, 7, None), (1, 0, 'newVEdge3')]),
+            ('Bond', [(1, 0, 'newVEdge1'), (1, 0, 'newVEdge3'), (1, 0, 'newVEdge4')]),
+            ('Polygon', [(1, 3, None), (1, 0, 'newVEdge4'), (0, 2, None), (2, 3, None)])]
+        """
+        comps = []
+        prefix = ["Bond", "Polygon", "Triconnected"]
+        for i in range(len(self.comp_list_new)):
+            comps.append((prefix[self.comp_type[i]], self.comp_list_new[i]))
+        return comps
+
+    def get_spqr_tree(self):
+        r"""
+        Return an SPQR-tree representing the triconnected components of the graph.
+
+        An SPQR-tree is a tree data structure used to represent the triconnected
+        components of a biconnected (multi)graph and the 2-vertex cuts separating
+        them. A node of a SPQR-tree, and the graph associated with it, can be one of
+        the following four types:
+
+        - ``S`` -- the associated graph is a cycle with at least three vertices.
+          ``S`` stands for ``series``.
+
+        - ``P`` -- the associated graph is a dipole graph, a multigraph with two
+          vertices and three or more edges. ``P`` stands for ``parallel``.
+
+        - ``Q`` -- the associated graph has a single real edge. This trivial case is
+          necessary to handle the graph that has only one edge.
+
+        - ``R`` -- the associated graph is a 3-connected graph that is not a cycle
+          or dipole. ``R`` stands for ``rigid``.
+
+        This method constructs a static spqr-tree using the decomposition of a
+        biconnected graph into cycles, cocycles, and 3-connected blocks generated by
+        :class:`sage.graphs.connectivity.TriconnectivitySPQR`.
+        See :wikipedia:`SPQR_tree`.
+
+        OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
+        and the subgraph of three-blocks in the decomposition.
 
 
-    EXAMPLES::
+        EXAMPLES::
 
-        sage: from sage.graphs.connectivity import staticSPQRTree
-        sage: G = Graph(2)
-        sage: for i in range(3):
-        ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
-        sage: Tree = staticSPQRTree(G)
-        sage: K4 = graphs.CompleteGraph(4)
-        sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
-        True
-        sage: from sage.graphs.connectivity import spqr_tree_to_graph
-        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
-        True
+            sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_clique([0, 1, G.add_vertex(), G.add_vertex()])
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: K4 = graphs.CompleteGraph(4)
+            sage: all(u[1].is_isomorphic(K4) for u in Tree.vertices() if u[0] == 'R')
+            True
+            sage: from sage.graphs.connectivity import spqr_tree_to_graph
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
 
-        sage: G = Graph(2)
-        sage: for i in range(3):
-        ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1])
-        sage: Tree = staticSPQRTree(G)
-        sage: C4 = graphs.CycleGraph(4)
-        sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
-        True
-        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
-        True
+            sage: G = Graph(2)
+            sage: for i in range(3):
+            ....:     G.add_path([0, G.add_vertex(), G.add_vertex(), 1])
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: C4 = graphs.CycleGraph(4)
+            sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
+            True
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
 
-        sage: G.allow_multiple_edges(True)
-        sage: G.add_edges(G.edges())
-        sage: Tree = staticSPQRTree(G)
-        sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
-        True
-        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
-        True
+            sage: G.allow_multiple_edges(True)
+            sage: G.add_edges(G.edges())
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: all(u[1].is_isomorphic(C4) for u in Tree.vertices() if u[0] == 'S')
+            True
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
 
-        sage: G = graphs.CycleGraph(6)
-        sage: Tree = staticSPQRTree(G)
-        sage: Tree.order()
-        1
-        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
-        True
-        sage: G.add_edge(0, 3)
-        sage: Tree = staticSPQRTree(G)
-        sage: Tree.order()
-        3
-        sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
-        True
-    """
-    from sage.graphs.graph import Graph
-    # Types of components 0: "P", 1: "S", 2: "R"
-    component_type = ["P", "S", "R"]
-
-    tric = Triconnectivity(G)
-
-    Tree = Graph(multiedges=False)
-    int_to_vertex = []
-    partner_nodes = {}
-
-    for i in range(len(tric.comp_list_new)):
-        # Create a new tree vertex
-        u = (component_type[tric.comp_type[i]],
-                 Graph(tric.comp_list_new[i], immutable=True, multiedges=True))
-        Tree.add_vertex(u)
-        int_to_vertex.append(u)
-
-        # Add an edge to each node containing the same virtual edge
-        for e in tric.comp_list_new[i]:
-            if e[2] and "newVEdge" in e[2]:
-                if e in partner_nodes:
-                    for j in partner_nodes[e]:
-                        Tree.add_edge(int_to_vertex[i], int_to_vertex[j])
-                    partner_nodes[e].append(i)
-                else:
-                    partner_nodes[e] = [i]
-
-    return Tree
+            sage: G = graphs.CycleGraph(6)
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: Tree.order()
+            1
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+            sage: G.add_edge(0, 3)
+            sage: tric = TriconnectivitySPQR(G)
+            sage: Tree = tric.get_spqr_tree()
+            sage: Tree.order()
+            3
+            sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
+            True
+        """
+        return self.__staticSPQRTree()
 

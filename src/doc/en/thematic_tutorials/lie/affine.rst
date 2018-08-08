@@ -291,6 +291,14 @@ is a crystal base of the Verma module `M(0)`.
 A weight `\lambda\in P` is called *dominant* if `\lambda(\alpha_i^\vee)\geq 0`
 for all simple coroots `\alpha_i^\vee`. Let `P^+` be the set of dominant weights.
 
+A weight has a *level* which can be defined as its inner
+product with the null vector delta. Each weight knows its
+level::
+
+     sage: L = RootSystem(['E',6,1]).weight_lattice(extended=True)
+     sage: [V.level(Lambda[i]) for i in [0..6]]
+     [1, 1, 2, 2, 3, 2, 1]
+
 Affine Root System and Weyl Group
 ---------------------------------
 

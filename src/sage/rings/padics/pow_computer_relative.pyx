@@ -87,8 +87,8 @@ cdef class PowComputer_relative(PowComputer_class):
 
         """
         PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
-        self.e = poly.degree()
-        self.f = 1
+        self.e = poly.degree() * poly.base_ring().absolute_e()
+        self.f = poly.base_ring().absolute_f()
 
         self.modulus = poly
 
@@ -217,9 +217,6 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
 
         """
         PowComputer_relative.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
-
-        self.e = self.modulus.degree()
-        self.f = 1
         self._inv_shift_seed = self.invert(shift_seed, self.ram_prec_cap)
 
     cpdef Polynomial_generic_dense invert(self, Polynomial_generic_dense a, long prec):
@@ -245,13 +242,13 @@ cdef class PowComputer_relative_eis(PowComputer_relative):
             sage: W.<w> = R.ext(f)
             sage: g = 1 + 2*w; ginv = ~g
             sage: ginv
-            1 + 3*w + 4*w^2 + 2*w^3 + (3*a + 3)*w^4 + ... + O(w^9)
+            1 + 3*w + 4*w^2 + 2*w^3 + (3*a + 3)*w^4 + ... + (3*a + 2)*w^8
             sage: RFP = R.change(field=False, show_prec=False, type='floating-point')
             sage: shift_seed = (-f[:3] // 5).change_ring(RFP)
             sage: PC = PowComputer_relative_maker(5, 3, 3, 9, False, f, shift_seed, 'fixed-mod')
             sage: g = 1 + 2*x
             sage: ginv = PC.invert(g, 5); ginv
-            (4 + (3*a + 1)*5 + (2*a + 2)*5^2 + O(5^3))*x^2 + (3 + (a + 1)*5 + (3*a + 2)*5^2 + O(5^3))*x + 1 + 2*a*5 + 2*5^2 + O(5^3)
+            (4 + (3*a + 1)*5 + (2*a + 2)*5^2)*x^2 + (3 + (a + 1)*5 + (3*a + 2)*5^2)*x + 1 + 2*a*5 + 2*5^2
         """
         k = self.base_ring.residue_field()
         a0 = k(a[0])
@@ -415,7 +412,7 @@ def PowComputer_relative_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_fi
         sage: W.<w> = R.extension(f)
         sage: PC = W.prime_pow  # indirect doctest
         sage: PC
-        Relative PowComputer for modulus (1 + O(5^3))*x^3 + (4*5 + 4*5^2 + O(5^3))*x + 4*a*5 + 4*a*5^2 + O(5^3)
+        Relative PowComputer for modulus x^3 + (4*5 + 4*5^2)*x + 4*a*5 + 4*a*5^2
 
     """
     PC = PowComputer_relative_eis(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)

@@ -367,12 +367,18 @@ cdef class pAdicPrinter_class(SageObject):
               p-adic digits into strings (so that no separator need be
               used in 'digits' mode).
 
-            - show_prec -- Determines whether `` + O(p^prec)`` is added.
-              If None, uses defaults determined by print mode.
+            - show_prec -- Specify how the precision is printed; it 
+              can be 'none', 'bigoh' or 'dots' (the latter being not
+              available for all modes)
 
         TESTS::
 
             sage: R = Qp(7, print_mode='bars', print_sep='&') #indirect doctest
+
+            sage: R = Zp(5, print_mode='digits', print_max_terms=10)
+            Traceback (most recent call last):
+            ...
+            ValueError: max_ram_terms must be unset when show_prec is 'dots'
         """
         global _printer_defaults
         self.ring = ring
@@ -440,7 +446,12 @@ cdef class pAdicPrinter_class(SageObject):
                 raise ValueError("max_terse_terms must be positive and fit in a long")
         else:
             self.max_terse_terms = _printer_defaults._max_terse_terms
-        self.show_prec = show_prec
+        from .factory import _canonicalize_show_prec
+        self.show_prec = _canonicalize_show_prec(self.ring._prec_type(), mode, show_prec)
+
+        # Incompatibilities
+        if self.show_prec == 'dots' and max_ram_terms >= 0:
+            raise ValueError("max_ram_terms must be unset when show_prec is 'dots'")
 
     def __reduce__(self):
         """
@@ -706,7 +717,7 @@ cdef class pAdicPrinter_class(SageObject):
         EXAMPLES::
 
             sage: R = ZpFP(5); R._printer._show_prec()
-            False
+            'none'
         """
         return self.show_prec
 
@@ -886,35 +897,41 @@ cdef class pAdicPrinter_class(SageObject):
             sage: padic_printing.sep('|')
             sage: repr(Qp(97, print_mode='bars')(1/13))
             '...29|82|7|44|74|59|67|14|89|52|22|37|29|82|7|44|74|59|67|15'
+
+        TESTS:
+
+        Check that :trac:`24843` is resolved::
+
+            sage: R = Zp(2, print_mode='digits', show_prec=True)
+            sage: repr(R(0,10))
+            '...0000000000'
         """
         cdef Py_ssize_t i
+        s = ""
+        if self.show_prec == "dots":
+            unknown_digit = "?"
+        else:
+            unknown_digit = "0"
         if elt._is_exact_zero():
             return "0"
-        if elt._is_inexact_zero():
-            if self.show_prec is False:
-                return "0"
-            if mode == val_unit or mode == series:
-                s = "O(%s"%(ram_name)
-            elif mode == terse:
-                s = "0 + O(%s"%(ram_name)
-            elif mode == digits:
-                prec = elt.precision_absolute()
+        elif elt._is_inexact_zero():
+            prec = elt.precision_absolute()
+            if mode == digits and self.show_prec == "dots":
                 if prec > 0:
-                    s = "..." + (self.alphabet[0] * prec)
+                    s = (self.alphabet[0] * prec)
                 else:
-                    s = "...?." + ("?" * (-prec)) + self.alphabet[0]
-            elif mode == bars:
+                    s = unknown_digit + "." + (unknown_digit * (-prec)) + self.alphabet[0]
+            elif mode == bars and self.show_prec == "dots":
                 if self.base or self._ring().absolute_f() == 1:
                     zero = '0'
                 else:
                     zero = '[]'
-                prec = elt.precision_absolute()
                 if prec > 0:
                     L = [zero] * prec
-                    s = "..." + self.sep.join(L)
+                    s = self.sep.join(L)
                 else:
-                    L = ['.'] + (['?'] * (-prec)) + [zero]
-                    s = "..." + self.sep + self.sep.join(L)
+                    L = ['.'] + ([unknown_digit] * (-prec)) + [zero]
+                    s = self.sep + self.sep.join(L)
         elif mode == val_unit:
             if do_latex:
                 if elt.valuation() == 0:
@@ -930,8 +947,6 @@ cdef class pAdicPrinter_class(SageObject):
                     s = "%s * %s"%(ram_name, self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name))
                 else:
                     s = "%s^%s * %s"%(ram_name, elt.valuation(), self._repr_spec(elt.unit_part(), do_latex, pos, terse, 1, ram_name))
-            if not (self.show_prec is False):
-                s += " + O(%s"%(ram_name)
         elif mode == digits:
             n = elt.valuation()
             if self.base:
@@ -942,9 +957,10 @@ cdef class pAdicPrinter_class(SageObject):
                 lenL = elt.precision_relative()
             else:
                 lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
-            if len(L) < lenL:
-                L += [0] * (lenL - len(L))
-            elif len(L) > lenL:
+            if self.show_prec == "dots":
+                if len(L) < lenL:
+                    L += [0] * (lenL - len(L))
+            if len(L) > lenL:
                 L = L[:lenL]
             L.reverse()
             # The following step should work since mode is only allowed to be digits in the case of totally ramified extensions
@@ -953,13 +969,9 @@ cdef class pAdicPrinter_class(SageObject):
             if n > 0:
                 L += [self.alphabet[0]]*n
             elif n < 0:
-                L = ['?']*(1 - n - lenL) + L
+                L = [unknown_digit]*(1 - n - lenL) + L
                 L = L[:n] + ['.'] + L[n:]
             s = "".join(L)
-            if self.show_prec:
-                s += " + O(%s"%(ram_name)
-            else:
-                s = "..." + s
         elif mode == bars:
             n = elt.valuation()
             if self.base:
@@ -970,12 +982,13 @@ cdef class pAdicPrinter_class(SageObject):
                 lenL = elt.precision_relative()
             else:
                 lenL = min(elt.precision_relative(), max(self.max_ram_terms, -n))
-            if len(L) < lenL:
-                if self.base or self._ring().absolute_f() == 1:
-                    L += [0]*(lenL - len(L))
-                else:
-                    L += [[]]*(lenL - len(L))
-            elif len(L) > lenL:
+            if self.show_prec == "dots":
+                if len(L) < lenL:
+                    if self.base or self._ring().absolute_f() == 1:
+                        L += [0]*(lenL - len(L))
+                    else:
+                        L += [[]]*(lenL - len(L))
+            if len(L) > lenL:
                 L = L[:lenL]
             L.reverse()
             if self.base or self._ring().absolute_f() == 1 or self.max_unram_terms == -1:
@@ -994,19 +1007,22 @@ cdef class pAdicPrinter_class(SageObject):
                     L += ['[]']*n
             elif n < 0:
                 L = ['0']*(min(-n, elt.precision_relative()) - len(L)) + L
-                L = ['?']*(-n - len(L)) + L
+                L = [unknown_digit]*(-n - len(L)) + L
                 L = L[:n] + ['.'] + L[n:]
-            if self.show_prec:
-                s = "%s + O(%s"%(self.sep.join(L), ram_name)
-            elif L[0] == '.':
-                s = "..." + self.sep + self.sep.join(L)
+            if L[0] == '.':
+                s = self.sep + self.sep.join(L)
             else:
-                s = "..." + self.sep.join(L)
+                s = self.sep.join(L)
         else: # mode == terse or series
             s = self._repr_spec(elt, do_latex, pos, mode, 0, ram_name)
-            if not (self.show_prec is False):
-                s += " + O(%s"%(ram_name)
-        if (mode == bars or mode == digits) and self.show_prec or (mode == terse or mode == series or mode == val_unit) and not (self.show_prec is False):
+
+        if self.show_prec == "dots":
+            s = "..." + s
+        if self.show_prec == "bigoh":
+            if s == "":
+                s = "O(%s" % ram_name
+            else:
+                s += " + O(%s" % ram_name
             if elt.precision_absolute() == 1:
                 s += ")"
             else:
@@ -1014,6 +1030,7 @@ cdef class pAdicPrinter_class(SageObject):
                     s += "^{%s})"%(elt.precision_absolute())
                 else:
                     s += "^%s)"%(elt.precision_absolute())
+        if s == "": s = "0"
         return s
 
     cdef _repr_spec(self, pAdicGenericElement elt, bint do_latex, bint pos, int mode, bint paren, ram_name):

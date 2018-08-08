@@ -30,6 +30,8 @@ from functools import reduce
 from sage.categories.morphism import Morphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.integral_domains import IntegralDomains
+from sage.categories.euclidean_domains import EuclideanDomains
+from sage.categories.metric_spaces import MetricSpaces
 from sage.categories.fields import Fields
 from sage.categories.homset import Hom
 
@@ -73,17 +75,31 @@ class pAdicExtensionGeneric(pAdicGeneric):
             w + w^5 + O(w^10)
         """
         # Far more functionality needs to be added here later.
-        if isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
+        if R is self.base_ring():
+            return True
+        elif isinstance(R, pAdicExtensionGeneric) and R.fraction_field() is self:
             if self._implementation == 'NTL':
                 return True
             elif R._prec_type() == 'capped-abs':
-                from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+                if R.absolute_e() == 1:
+                    from sage.rings.padics.qadic_flint_CA import pAdicCoercion_CA_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_CA import pAdicCoercion_CA_frac_field as coerce_map
             elif R._prec_type() == 'capped-rel':
-                from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+                if R.absolute_e() == 1:
+                    from sage.rings.padics.qadic_flint_CR import pAdicCoercion_CR_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_CR import pAdicCoercion_CR_frac_field as coerce_map
             elif R._prec_type() == 'floating-point':
-                from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+                if R.absolute_e() == 1:
+                    from sage.rings.padics.qadic_flint_FP import pAdicCoercion_FP_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_FP import pAdicCoercion_FP_frac_field as coerce_map
             elif R._prec_type() == 'fixed-mod':
-                from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
+                if R.absolute_e() == 1:
+                    from sage.rings.padics.qadic_flint_FM import pAdicCoercion_FM_frac_field as coerce_map
+                else:
+                    from sage.rings.padics.relative_ramified_FM import pAdicCoercion_FM_frac_field as coerce_map
             return coerce_map(R, self)
 
 
@@ -196,11 +212,13 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if self._implementation == 'NTL' and R == QQ:
             # Want to use DefaultConvertMap
             return None
-        if isinstance(R, pAdicExtensionGeneric) and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
+        if isinstance(R, pAdicExtensionGeneric) and R.prime() == self.prime() and R.defining_polynomial(exact=True) == self.defining_polynomial(exact=True):
             if R.is_field() and not self.is_field():
                 cat = SetsWithPartialMaps()
-            else:
+            elif R.category() is self.category():
                 cat = R.category()
+            else:
+                cat = EuclideanDomains() & MetricSpaces().Complete()
         elif isinstance(R, Order) and R.number_field().defining_polynomial() == self.defining_polynomial():
             cat = IntegralDomains()
         elif isinstance(R, NumberField) and R.defining_polynomial() == self.defining_polynomial():
@@ -269,15 +287,16 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def is_normal(self):
     #    raise NotImplementedError
 
-
-    def defining_polynomial(self, exact=False):
+    def defining_polynomial(self, var=None, exact=False):
         """
         Returns the polynomial defining this extension.
 
         INPUT:
 
+        - ``var`` -- string (default: ``'x'``), the name of the variable
+
         - ``exact`` -- boolean (default ``False``), whether to return the underlying exact
-                       defining polynomial rather than the one with coefficients in the base ring.
+            defining polynomial rather than the one with coefficients in the base ring.
 
         EXAMPLES::
 
@@ -290,15 +309,22 @@ class pAdicExtensionGeneric(pAdicGeneric):
             sage: W.defining_polynomial(exact=True)
             x^5 + 75*x^3 - 15*x^2 + 125*x - 5
 
+            sage: W.defining_polynomial(var='y', exact=True)
+            y^5 + 75*y^3 - 15*y^2 + 125*y - 5
+
         .. SEEALSO::
 
             :meth:`modulus`
             :meth:`exact_field`
         """
         if exact:
-            return self._exact_modulus
+            ans = self._exact_modulus
         else:
-            return self._given_poly
+            ans = self._given_poly
+        if var is None:
+            return ans
+        else:
+            return ans.change_variable_name(var)
 
     def exact_field(self):
         r"""
@@ -374,7 +400,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
             :meth:`defining_polynomial`
             :meth:`exact_field`
         """
-        return self.defining_polynomial(exact)
+        return self.defining_polynomial(exact=exact)
 
     def ground_ring(self):
         """
@@ -439,7 +465,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #        xnew = x - x*delta*(1-q*delta)
     #    return x
 
-    def construction(self):
+    def construction(self, forbid_frac_field=False):
         """
         Returns the functorial construction of this ring, namely,
         the algebraic extension of the base ring defined by the given
@@ -447,6 +473,12 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
         Also preserves other information that makes this ring unique
         (e.g. precision, rounding, print mode).
+
+        INPUT:
+
+        - ``forbid_frac_field`` -- require a completion functor rather
+          than a fraction field functor.  This is used in the
+          :meth:`sage.rings.padics.local_generic.LocalGeneric.change` method.
 
         EXAMPLES::
 
@@ -457,12 +489,31 @@ class pAdicExtensionGeneric(pAdicGeneric):
             5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
             sage: c(R0) == R
             True
+
+        For a field, by default we return a fraction field functor.
+
+            sage: K.<a> = Qq(25, 8)
+            sage: c, R = K.construction(); R
+            5-adic Unramified Extension Ring in a defined by x^2 + 4*x + 2
+            sage: c
+            FractionField
+
+        If you prefer an extension functor, you can use the ``forbit_frac_field`` keyword::
+
+            sage: c, R = K.construction(forbid_frac_field=True); R
+            5-adic Field with capped relative precision 8
+            sage: c
+            AlgebraicExtensionFunctor
+            sage: c(R) is K
+            True
         """
-        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF
+        from sage.categories.pushout import AlgebraicExtensionFunctor as AEF, FractionField as FF
+        if not forbid_frac_field and self.is_field():
+            return (FF(), self.integer_ring())
         print_mode = self._printer.dict()
         return (AEF([self.defining_polynomial(exact=True)], [self.variable_name()],
-                    prec=self.precision_cap(), print_mode=self._printer.dict(),
-                    implementation=self._implementation),
+                    precs=[self.precision_cap()], print_mode=self._printer.dict(),
+                    implementations=[self._implementation]),
                 self.base_ring())
 
     #def hasGNB(self):

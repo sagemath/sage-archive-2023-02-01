@@ -652,6 +652,18 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: L
             19-adic Unramified Extension Field in a defined by x^2 + 8751674996211859573806383*x + 1
         """
+        if isinstance(modulus, list):
+            if len(modulus) == 0:
+                return self
+            else:
+                return self.extension(modulus[-1], prec=prec[-1],
+                                      names=names[-1],
+                                      implementation=implementation[-1],
+                                      print_mode=print_mode, **kwds).extension(
+                                          modulus[:-1], prec=prec[:-1],
+                                          names=names[:-1],
+                                          implementation=implementation[:-1],
+                                          print_mode=print_mode, **kwds)
         from sage.rings.padics.factory import ExtensionFactory
         if print_mode is None:
             print_mode = {}
@@ -892,6 +904,49 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_shift(self, **options):
+        """
+        Test the shift operator on elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_shift()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        tester = self._tester(**options)
+        cap = self.precision_cap()
+        k = self.residue_field()
+        for v in range(min(cap,10)):
+            if self.is_capped_absolute() or self.is_fixed_mod():
+                prec = cap - v
+            else:
+                prec = cap
+            b = self.uniformizer_pow(v)
+            for x in tester.some_elements():
+                y = (x << v) >> v
+                if x._is_exact_zero() or self.is_field():
+                    tester.assertEqual(x, y)
+                else:
+                    tester.assertTrue(x.is_equal_to(y, prec))
+                y = (x >> v) << v
+                if x._is_exact_zero() or self.is_field():
+                    tester.assertEqual(x, y)
+                else:
+                    for i in range(min(v,prec)):
+                        tester.assertEqual(k(y.expansion(i)), 0)
+                    for i in range(v,prec):
+                        tester.assertEqual(y.expansion(i), x.expansion(i))
+                    xx = y + (x % b)
+                    tester.assertTrue(xx.is_equal_to(x,prec))
+
+
     def _test_log(self, **options):
         """
         Test the log operator on elements of this ring.
@@ -911,17 +966,21 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         tester = self._tester(**options)
         for x in tester.some_elements():
             if x.is_zero(): continue
-            l = x.log(p_branch=0)
-            tester.assertIs(l.parent(), self)
-            tester.assertGreater(l.valuation(), 0)
+            try:
+                l = x.log(p_branch=0)
+                tester.assertIs(l.parent(), self)
+            except ValueError:
+                l = x.log(p_branch=0, change_frac=True)
             if self.is_capped_absolute() or self.is_capped_relative():
-                tester.assertEqual(x.precision_relative(), l.precision_absolute())
+                if self.absolute_e() == 1:
+                    tester.assertEqual(l.precision_absolute(), x.precision_relative())
+                else:
+                    tester.assertLessEqual(l.precision_absolute(), x.precision_relative())
 
         if self.is_capped_absolute() or self.is_capped_relative():
             # In the fixed modulus setting, rounding errors may occur
-            elements = list(tester.some_elements())
-            for x, y, b in some_tuples(elements, 3, tester._max_runs):
-                if x.is_zero() or y.is_zero(): continue
+            for x, y, b in tester.some_elements(repeat=3):
+                if (x*y).is_zero(): continue
                 r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
                 r2 = (x*y).log(pi_branch=b)
                 tester.assertEqual(r1, r2)
@@ -1327,15 +1386,18 @@ class ResidueLiftingMap(Morphism):
             O(3^4)
         """
         R = self.codomain()
-        if R.degree() == 1:
-            return R.element_class(R, x, self._n)
-        elif R.f() == 1:
-            return R([x], self._n)
-        elif R.e() == 1:
-            return R(x.polynomial().list(), self._n)
+        K = R.maximal_unramified_subextension()
+        if self._n == 1 or K is R:
+            #unram_n = (self._n - 1) // R.absolute_e() + 1
+            unram_n = self._n
+            if K.absolute_degree() == 1:
+                lift = K._element_constructor_(x, unram_n)
+            else:
+                lift = K(x.polynomial().list(), unram_n)
+            return R(lift, self._n)
         else:
             raise NotImplementedError
-
+ 
     def _call_with_args(self, x, args=(), kwds={}):
         """
         Evaluate this morphism with extra arguments.
@@ -1347,16 +1409,20 @@ class ResidueLiftingMap(Morphism):
             1 + 2 + 2^2 + O(2^5)
         """
         R = self.codomain()
+        e = R.absolute_e()
+        kwds = dict(kwds) # we're changing it
         if args:
             args = (min(args[0], self._n),) + args[1:]
+            absprec = args[0]
         else:
-            kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
-        if R.degree() == 1:
-            return R.element_class(R, x, *args, **kwds)
-        elif R.f() == 1:
-            return R([x], *args, **kwds)
-        elif R.e() == 1:
-            return R(x.polynomial().list(), *args, **kwds)
+            absprec = kwds['absprec'] = min(kwds.get('absprec', self._n), self._n)
+        K = R.maximal_unramified_subextension()
+        if absprec == 1 or K is R:
+            if K.absolute_degree() == 1:
+                lift = K._element_constructor_(x, *args, **kwds)
+            else:
+                lift = K(x.polynomial().list(), *args, **kwds)
+            return R(lift, *args, **kwds)
         else:
             raise NotImplementedError
 

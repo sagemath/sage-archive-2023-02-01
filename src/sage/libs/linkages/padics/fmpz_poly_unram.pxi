@@ -33,6 +33,8 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
 
+DEF CELEMENT_IS_PY_OBJECT = False
+
 cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     """
     Construct a new element.
@@ -177,7 +179,7 @@ cdef inline bint creduce_small(celement out, celement a, long prec, PowComputer_
     """
     return creduce(out, a, prec, prime_pow)
 
-cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow) except -1:
+cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime_pow, bint reduce_relative=False) except -1:
     """
     Extract the maximum power of the uniformizer dividing this element.
 
@@ -187,6 +189,9 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     - ``a`` -- the element whose valuation and unit are desired.
     - ``prec`` -- a long, used if `a = 0`.
     - ``prime_pow`` -- the PowComputer for the ring.
+    - ``reduce_relative`` -- a bint: whether the final result          
+      should be reduced at precision ``prec`` (case ``False``)
+      or ``prec - valuation`` (case ``True``)
 
     OUTPUT:
 
@@ -530,6 +535,26 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_ prime_pow)
     cdef Integer h = PY_NEW(Integer)
     fmpz_poly_get_coeff_mpz(h.value, a, 0)
     return hash(h)
+
+cdef inline cmodp_rep(fmpz_poly_t rep, fmpz_poly_t value, expansion_mode mode, bint return_list, PowComputer_ prime_pow):
+    cdef long i
+    cdef fmpz* c
+    cdef Integer digit
+    sig_on()
+    fmpz_poly_scalar_mod_fmpz(rep, value, prime_pow.fprime)
+    sig_off()
+    if return_list or mode == smallest_mode:
+        L = []
+        for i in range(fmpz_poly_length(rep)):
+            c = fmpz_poly_get_coeff_ptr(rep, i)
+            if mode == smallest_mode and fmpz_cmp(c, prime_pow.half_prime) > 0:
+                fmpz_sub(c, c, prime_pow.fprime)
+            if return_list:
+                digit = PY_NEW(Integer)
+                fmpz_get_mpz(digit.value, c)
+                L.append(digit)
+        if return_list:
+            return L
 
 # the expansion_mode enum is defined in padic_template_element_header.pxi
 cdef inline cexpansion_next(fmpz_poly_t value, expansion_mode mode, long curpower, PowComputer_ prime_pow):

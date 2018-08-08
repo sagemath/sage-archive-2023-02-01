@@ -80,11 +80,14 @@ cdef class FMElement(pAdicTemplateElement):
             sage: a = R(25/9); a #indirect doctest
             4*5^2 + 2*5^3 + O(5^5)
         """
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            self.value = <celement>polyt.__new__(polyt)
         cconstruct(self.value, self.prime_pow)
         if isinstance(x,FMElement) and x.parent() is self.parent():
             cshift_notrunc(self.value, (<FMElement>x).value, 0, 0, self.prime_pow, False)
         else:
-            cconv(self.value, x, self.prime_pow.prec_cap, 0, self.prime_pow)
+            cconv(self.value, x, self.prime_pow.ram_prec_cap, 0, self.prime_pow)
 
     cdef FMElement _new_c(self):
         """
@@ -99,6 +102,9 @@ cdef class FMElement(pAdicTemplateElement):
         cdef FMElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            ans.value = <celement>polyt.__new__(polyt)
         cconstruct(ans.value, ans.prime_pow)
         return ans
 
@@ -116,7 +122,7 @@ cdef class FMElement(pAdicTemplateElement):
         """
         Sets ``value`` to the unit of this p-adic element.
         """
-        cremove(value, self.value, 0, self.prime_pow)
+        cremove(value, self.value, self.prime_pow.ram_prec_cap, self.prime_pow)
 
     cdef int check_preccap(self) except -1:
         """
@@ -184,8 +190,8 @@ cdef class FMElement(pAdicTemplateElement):
             6*7 + 6*7^2 + 6*7^3 + O(7^4)
         """
         cdef FMElement ans = self._new_c()
-        cneg(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
+        cneg(ans.value, self.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
+        creduce_small(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
     cpdef _add_(self, _right):
@@ -204,8 +210,8 @@ cdef class FMElement(pAdicTemplateElement):
         """
         cdef FMElement right = _right
         cdef FMElement ans = self._new_c()
-        cadd(ans.value, self.value, right.value, ans.prime_pow.prec_cap, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
+        cadd(ans.value, self.value, right.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
+        creduce_small(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
     cpdef _sub_(self, _right):
@@ -224,8 +230,8 @@ cdef class FMElement(pAdicTemplateElement):
         """
         cdef FMElement right = _right
         cdef FMElement ans = self._new_c()
-        csub(ans.value, self.value, right.value, ans.prime_pow.prec_cap, ans.prime_pow)
-        creduce_small(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
+        csub(ans.value, self.value, right.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
+        creduce_small(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
     def __invert__(self):
@@ -250,7 +256,7 @@ cdef class FMElement(pAdicTemplateElement):
         if not cisunit(self.value, self.prime_pow):
             raise ValueError("cannot invert non-unit")
         cdef FMElement ans = self._new_c()
-        cinvert(ans.value, self.value, ans.prime_pow.prec_cap, ans.prime_pow)
+        cinvert(ans.value, self.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
     cpdef _mul_(self, _right):
@@ -267,8 +273,8 @@ cdef class FMElement(pAdicTemplateElement):
         """
         cdef FMElement right = _right
         cdef FMElement ans = self._new_c()
-        cmul(ans.value, self.value, right.value, ans.prime_pow.prec_cap, ans.prime_pow)
-        creduce(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
+        cmul(ans.value, self.value, right.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
+        creduce(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
     cpdef _div_(self, _right):
@@ -294,8 +300,8 @@ cdef class FMElement(pAdicTemplateElement):
         cdef FMElement ans = self._new_c()
         if not cisunit(right.value, self.prime_pow):
             raise ValueError("cannot invert non-unit")
-        cdivunit(ans.value, self.value, right.value, ans.prime_pow.prec_cap, ans.prime_pow)
-        creduce(ans.value, ans.value, ans.prime_pow.prec_cap, ans.prime_pow)
+        cdivunit(ans.value, self.value, right.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
+        creduce(ans.value, ans.value, ans.prime_pow.ram_prec_cap, ans.prime_pow)
         return ans
 
     def _quo_rem(self, _right):
@@ -371,7 +377,7 @@ cdef class FMElement(pAdicTemplateElement):
         if right < 0:
             self = ~self
             mpz_neg(right.value, right.value)
-        cpow(ans.value, self.value, right.value, self.prime_pow.prec_cap, self.prime_pow)
+        cpow(ans.value, self.value, right.value, self.prime_pow.ram_prec_cap, self.prime_pow)
         return ans
 
     cdef pAdicTemplateElement _lshift_c(self, long shift):
@@ -415,7 +421,7 @@ cdef class FMElement(pAdicTemplateElement):
         elif shift == 0:
             return self
         cdef FMElement ans = self._new_c()
-        if shift >= self.prime_pow.prec_cap:
+        if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
             cshift_notrunc(ans.value, self.value, shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
@@ -449,7 +455,7 @@ cdef class FMElement(pAdicTemplateElement):
         elif shift == 0:
             return self
         cdef FMElement ans = self._new_c()
-        if shift >= self.prime_pow.prec_cap:
+        if shift >= self.prime_pow.ram_prec_cap:
             csetzero(ans.value, ans.prime_pow)
         else:
             cshift(ans.value, ans.prime_pow.shift_rem, self.value, -shift, ans.prime_pow.ram_prec_cap, ans.prime_pow, True)
@@ -554,7 +560,7 @@ cdef class FMElement(pAdicTemplateElement):
             return iszero
         if not isinstance(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
+        if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.ram_prec_cap) >= 0:
             return iszero
         cdef long val = self.valuation_c()
         return mpz_cmp_si((<Integer>absprec).value, val) <= 0
@@ -606,7 +612,7 @@ cdef class FMElement(pAdicTemplateElement):
             right = self.parent()(_right)
         if absprec is None:
             # The default absolute precision is given by the precision cap
-            aprec = self.prime_pow.prec_cap
+            aprec = self.prime_pow.ram_prec_cap
         else:
             if not isinstance(absprec, Integer):
                 absprec = Integer(absprec)
@@ -616,15 +622,15 @@ cdef class FMElement(pAdicTemplateElement):
                 return True
             # If absprec is bigger than the precision cap, we use it
             # instead.
-            if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
-                aprec = self.prime_pow.prec_cap
+            if mpz_cmp_si((<Integer>absprec).value, self.prime_pow.ram_prec_cap) >= 0:
+                aprec = self.prime_pow.ram_prec_cap
             else:
                 aprec = mpz_get_si((<Integer>absprec).value)
         return ccmp(self.value,
                     right.value,
                     aprec,
-                    aprec < self.prime_pow.prec_cap,
-                    aprec < right.prime_pow.prec_cap,
+                    aprec < self.prime_pow.ram_prec_cap,
+                    aprec < right.prime_pow.ram_prec_cap,
                     self.prime_pow) == 0
 
     cdef int _cmp_units(self, pAdicGenericElement _right) except -2:
@@ -641,7 +647,7 @@ cdef class FMElement(pAdicTemplateElement):
             True
         """
         cdef FMElement right = _right
-        return ccmp(self.value, right.value, self.prime_pow.prec_cap, False, False, self.prime_pow)
+        return ccmp(self.value, right.value, self.prime_pow.ram_prec_cap, False, False, self.prime_pow)
 
     cdef pAdicTemplateElement lift_to_precision_c(self, long absprec):
         """
@@ -691,7 +697,7 @@ cdef class FMElement(pAdicTemplateElement):
             O(17^5)
         """
         if cisunit(self.value, self.prime_pow):
-            cteichmuller(self.value, self.value, self.prime_pow.prec_cap, self.prime_pow)
+            cteichmuller(self.value, self.value, self.prime_pow.ram_prec_cap, self.prime_pow)
         else:
             csetzero(self.value, self.prime_pow)
 
@@ -717,7 +723,7 @@ cdef class FMElement(pAdicTemplateElement):
         R = self.base_ring()
         S = R[var]
         prec = self.precision_absolute()
-        e = self.parent().e()
+        e = self.parent().relative_e()
         L = ccoefficients(self.value, 0, self.prime_pow.prec_cap, self.prime_pow)
         if e == 1:
             L = [R(c, prec) for c in L]
@@ -735,7 +741,7 @@ cdef class FMElement(pAdicTemplateElement):
             4
         """
         cdef Integer ans = Integer.__new__(Integer)
-        mpz_set_si(ans.value, self.prime_pow.prec_cap)
+        mpz_set_si(ans.value, self.prime_pow.ram_prec_cap)
         return ans
 
     def precision_relative(self):
@@ -750,7 +756,7 @@ cdef class FMElement(pAdicTemplateElement):
             0
         """
         cdef Integer ans = Integer.__new__(Integer)
-        mpz_set_si(ans.value, self.prime_pow.prec_cap - self.valuation_c())
+        mpz_set_si(ans.value, self.prime_pow.ram_prec_cap - self.valuation_c())
         return ans
 
     cpdef pAdicTemplateElement unit_part(FMElement self):
@@ -775,7 +781,7 @@ cdef class FMElement(pAdicTemplateElement):
             3 + O(5^5)
         """
         cdef FMElement ans = (<FMElement>self)._new_c()
-        cremove(ans.value, (<FMElement>self).value, (<FMElement>self).prime_pow.prec_cap, (<FMElement>self).prime_pow)
+        cremove(ans.value, (<FMElement>self).value, (<FMElement>self).prime_pow.ram_prec_cap, (<FMElement>self).prime_pow)
         return ans
 
     cdef long valuation_c(self):
@@ -807,7 +813,7 @@ cdef class FMElement(pAdicTemplateElement):
             2
         """
         # for backward compatibility
-        return cvaluation(self.value, self.prime_pow.prec_cap, self.prime_pow)
+        return cvaluation(self.value, self.prime_pow.ram_prec_cap, self.prime_pow)
 
     cpdef val_unit(self):
         """
@@ -827,7 +833,7 @@ cdef class FMElement(pAdicTemplateElement):
         """
         cdef FMElement unit = self._new_c()
         cdef Integer valuation = Integer.__new__(Integer)
-        mpz_set_si(valuation.value, cremove(unit.value, self.value, self.prime_pow.prec_cap, self.prime_pow))
+        mpz_set_si(valuation.value, cremove(unit.value, self.value, self.prime_pow.ram_prec_cap, self.prime_pow))
         return valuation, unit
 
     def __hash__(self):
@@ -840,7 +846,7 @@ cdef class FMElement(pAdicTemplateElement):
             sage: hash(R(3)) == hash(3)
             True
         """
-        return chash(self.value, 0, self.prime_pow.prec_cap, self.prime_pow)
+        return chash(self.value, 0, self.prime_pow.ram_prec_cap, self.prime_pow)
 
 cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
     """
@@ -925,7 +931,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cconv_mpz_t(ans.value, (<Integer>x).value, ans.prime_pow.prec_cap, True, ans.prime_pow)
+        cconv_mpz_t(ans.value, (<Integer>x).value, ans.prime_pow.ram_prec_cap, True, ans.prime_pow)
         return ans
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -964,7 +970,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism):
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cconv_mpz_t(ans.value, (<Integer>x).value, ans.prime_pow.prec_cap, True, ans.prime_pow)
+        cconv_mpz_t(ans.value, (<Integer>x).value, ans.prime_pow.ram_prec_cap, True, ans.prime_pow)
         return ans
 
     def section(self):
@@ -1028,7 +1034,7 @@ cdef class pAdicConvert_FM_ZZ(RingMap):
         """
         cdef Integer ans = Integer.__new__(Integer)
         cdef FMElement x = _x
-        cconv_mpz_t_out(ans.value, x.value, 0, x.prime_pow.prec_cap, x.prime_pow)
+        cconv_mpz_t_out(ans.value, x.value, 0, x.prime_pow.ram_prec_cap, x.prime_pow)
         return ans
 
 cdef class pAdicConvert_QQ_FM(Morphism):
@@ -1107,7 +1113,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cconv_mpq_t(ans.value, (<Rational>x).value, ans.prime_pow.prec_cap, True, ans.prime_pow)
+        cconv_mpq_t(ans.value, (<Rational>x).value, ans.prime_pow.ram_prec_cap, True, ans.prime_pow)
         return ans
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -1146,7 +1152,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef FMElement ans = self._zero._new_c()
-        cconv_mpq_t(ans.value, (<Rational>x).value, ans.prime_pow.prec_cap, True, ans.prime_pow)
+        cconv_mpq_t(ans.value, (<Rational>x).value, ans.prime_pow.ram_prec_cap, True, ans.prime_pow)
         return ans
 
 cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
@@ -1199,6 +1205,10 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
             return self._zero
         cdef FPElement ans = self._zero._new_c()
         ans.ordp = cremove(ans.unit, x.value, x.prime_pow.ram_prec_cap, x.prime_pow)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            K = ans.unit.base_ring()
+            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1245,6 +1255,10 @@ cdef class pAdicCoercion_FM_frac_field(RingHomomorphism):
         if rprec <= 0:
             return self._zero
         creduce(ans.unit, ans.unit, rprec, x.prime_pow)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            K = ans.unit.base_ring()
+            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     def section(self):
@@ -1398,6 +1412,10 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
             return self._zero
         cdef FMElement ans = self._zero._new_c()
         cshift_notrunc(ans.value, x.unit, x.ordp, ans.prime_pow.ram_prec_cap, ans.prime_pow, x.ordp > 0)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            R = ans.value.base_ring()
+            ans.value.__coeffs = [R(c) for c in ans.value.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -1441,6 +1459,10 @@ cdef class pAdicConvert_FM_frac_field(Morphism):
         if rprec < aprec - x.ordp:
             aprec = x.ordp + rprec
         cshift_notrunc(ans.value, x.unit, x.ordp, aprec, ans.prime_pow, x.ordp > 0)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            R = ans.value.base_ring()
+            ans.value.__coeffs = [R(c) for c in ans.value.__coeffs]
         return ans
 
     cdef dict _extra_slots(self):
@@ -1515,6 +1537,9 @@ def unpickle_fme_v2(cls, parent, value):
     cdef FMElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_?>parent.prime_pow
+    IF CELEMENT_IS_PY_OBJECT:
+        polyt = type(ans.prime_pow.modulus)
+        ans.value = <celement>polyt.__new__(polyt)
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     return ans

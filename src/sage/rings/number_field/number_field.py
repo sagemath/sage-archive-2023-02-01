@@ -235,7 +235,7 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None):
+def NumberField(polynomial, name=None, check=True, names=None, embedding=None, latex_name=None, assume_disc_small=False, maximize_at_primes=None, structure=None, **kwds):
     r"""
     Return *the* number field (or tower of number fields) defined by the
     irreducible ``polynomial``.
@@ -264,6 +264,10 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None, l
           :class:`structure.NumberFieldStructure` (default: ``None``),
           internally used to pass in additional structural information, e.g.,
           about the field from which this field is created as a subfield.
+
+    We explicitly take a ``kwds`` attribute for compatibility
+    with :class:`~sage.categories.pushout.AlgebraicExtensionFunctor`
+    but we ignore it as it is not used.
 
     EXAMPLES::
 

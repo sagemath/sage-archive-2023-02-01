@@ -132,8 +132,11 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R(S(17, 5)) #indirect doctest
             2 + 3*5 + O(5^5)
         """
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            self.unit = <celement>polyt.__new__(polyt)
         cconstruct(self.unit, self.prime_pow)
-        cdef long rprec = comb_prec(relprec, self.prime_pow.prec_cap)
+        cdef long rprec = comb_prec(relprec, self.prime_pow.ram_prec_cap)
         cdef long aprec = comb_prec(absprec, xprec)
         if aprec <= val: # this may also hit an exact zero, if aprec == val == maxordp
             self._set_inexact_zero(aprec)
@@ -182,11 +185,21 @@ cdef class CRElement(pAdicTemplateElement):
             sage: R = Zp(5)
             sage: R(6,5) * R(7,8) #indirect doctest
             2 + 3*5 + 5^2 + O(5^5)
+
+            sage: R.<a> = ZqCR(25)
+            sage: S.<x> = ZZ[]
+            sage: W.<w> = R.ext(x^2 - 5)
+            sage: w * (w+1) #indirect doctest
+            w + w^2 + O(w^41)
         """
         cdef type t = type(self)
+        cdef type polyt
         cdef CRElement ans = t.__new__(t)
         ans._parent = self._parent
         ans.prime_pow = self.prime_pow
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(self.prime_pow.modulus)
+            ans.unit = <celement>polyt.__new__(polyt)
         cconstruct(ans.unit, ans.prime_pow)
         return ans
 
@@ -221,7 +234,7 @@ cdef class CRElement(pAdicTemplateElement):
             ...
             PrecisionError: Precision higher than allowed by the precision cap.
         """
-        if self.relprec > self.prime_pow.prec_cap:
+        if self.relprec > self.prime_pow.ram_prec_cap:
             raise PrecisionError("Precision higher than allowed by the precision cap.")
 
     def __copy__(self):
@@ -259,7 +272,7 @@ cdef class CRElement(pAdicTemplateElement):
             if is_zero:
                 self._set_inexact_zero(self.ordp + self.relprec)
             else:
-                diff = cremove(self.unit, self.unit, self.relprec, self.prime_pow)
+                diff = cremove(self.unit, self.unit, self.relprec, self.prime_pow, True)
                 # diff is less than self.relprec since the reduction didn't yield zero
                 self.ordp += diff
                 check_ordp(self.ordp)
@@ -1199,7 +1212,7 @@ cdef class CRElement(pAdicTemplateElement):
                 ans._set_exact_zero()
                 return ans
             else:
-                absprec = self.ordp + self.prime_pow.prec_cap
+                absprec = self.ordp + self.prime_pow.ram_prec_cap
         cdef long relprec = absprec - self.ordp
         if relprec <= self.relprec:
             return self
@@ -1293,7 +1306,7 @@ cdef class CRElement(pAdicTemplateElement):
             return S([])
         else:
             prec = self.precision_absolute()
-            e = self.parent().e()
+            e = self.parent().relative_e()
             L = ccoefficients(self.unit, self.ordp, self.relprec, self.prime_pow)
             if e == 1:
                 L = [R(c, prec) for c in L]
@@ -1575,7 +1588,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
         if mpz_sgn((<Integer>x).value) == 0:
             return self._zero
         cdef CRElement ans = self._zero._new_c()
-        ans.relprec = ans.prime_pow.prec_cap
+        ans.relprec = ans.prime_pow.ram_prec_cap
         ans.ordp = cconv_mpz_t(ans.unit, (<Integer>x).value, ans.relprec, False, ans.prime_pow)
         return ans
 
@@ -1593,7 +1606,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism):
             sage: R = Zp(5,4)
             sage: type(R(10,2))
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: R(10,2)
+            sage: R(10,2) # indirect doctest
             2*5 + O(5^2)
             sage: R(10,3,1)
             2*5 + O(5^2)
@@ -1795,7 +1808,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef CRElement ans = self._zero._new_c()
-        ans.relprec = ans.prime_pow.prec_cap
+        ans.relprec = ans.prime_pow.ram_prec_cap
         ans.ordp = cconv_mpq_t(ans.unit, (<Rational>x).value, ans.relprec, False, self._zero.prime_pow)
         return ans
 
@@ -1813,7 +1826,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism):
             sage: R = Qp(5,4)
             sage: type(R(10/3,2))
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: R(10/3,2)
+            sage: R(10/3,2) # indirect doctest
             4*5 + O(5^2)
             sage: R(10/3,3,1)
             4*5 + O(5^2)
@@ -1994,7 +2007,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         if mpq_sgn((<Rational>x).value) == 0:
             return self._zero
         cdef CRElement ans = self._zero._new_c()
-        ans.relprec = ans.prime_pow.prec_cap
+        ans.relprec = ans.prime_pow.ram_prec_cap
         ans.ordp = cconv_mpq_t(ans.unit, (<Rational>x).value, ans.relprec, False, self._zero.prime_pow)
         if ans.ordp < 0:
             raise ValueError("p divides the denominator")
@@ -2014,7 +2027,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             sage: R = Zp(5,4)
             sage: type(R(10/3,2))
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
-            sage: R(10/3,2)
+            sage: R(10/3,2) # indirect doctest
             4*5 + O(5^2)
             sage: R(10/3,3,1)
             4*5 + O(5^2)
@@ -2121,6 +2134,10 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
         ans.ordp = x.ordp
         ans.relprec = x.relprec
         cshift_notrunc(ans.unit, x.unit, 0, ans.relprec, x.prime_pow, False)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            K = ans.unit.base_ring()
+            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -2139,7 +2156,7 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f(a, 3)
             a + O(3^3)
             sage: b = 9*a
-            sage: f(b, 3)
+            sage: f(b, 3) # indirect doctest
             a*3^2 + O(3^3)
             sage: f(b, 4, 1)
             a*3^2 + O(3^3)
@@ -2174,6 +2191,10 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             ans.ordp = x.ordp
             ans.relprec = rprec
             cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            IF CELEMENT_IS_PY_OBJECT:
+                # The base ring is wrong, so we fix it.
+                K = ans.unit.base_ring()
+                ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     def section(self):
@@ -2188,6 +2209,10 @@ cdef class pAdicCoercion_CR_frac_field(RingHomomorphism):
             sage: f = K.coerce_map_from(R)
             sage: f(K.gen())
             a + O(3^20)
+            sage: f.section()
+            Generic morphism:
+              From: 3-adic Unramified Extension Field in a defined by x^3 + 2*x + 1
+              To:   3-adic Unramified Extension Ring in a defined by x^3 + 2*x + 1
         """
         from sage.misc.constant_function import ConstantFunction
         if not isinstance(self._section.domain, ConstantFunction):
@@ -2328,6 +2353,10 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
         ans.relprec = x.relprec
         ans.ordp = x.ordp
         cshift_notrunc(ans.unit, x.unit, 0, ans.relprec, ans.prime_pow, False)
+        IF CELEMENT_IS_PY_OBJECT:
+            # The base ring is wrong, so we fix it.
+            K = ans.unit.base_ring()
+            ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cpdef Element _call_with_args(self, _x, args=(), kwds={}):
@@ -2346,7 +2375,7 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
             sage: f(a, 3)
             a + O(3^3)
             sage: b = 9*a
-            sage: f(b, 3)
+            sage: f(b, 3) # indirect doctest
             a*3^2 + O(3^3)
             sage: f(b, 4, 1)
             a*3^2 + O(3^3)
@@ -2382,6 +2411,10 @@ cdef class pAdicConvert_CR_frac_field(Morphism):
             ans.ordp = x.ordp
             ans.relprec = rprec
             cshift_notrunc(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+            IF CELEMENT_IS_PY_OBJECT:
+                # The base ring is wrong, so we fix it.
+                K = ans.unit.base_ring()
+                ans.unit.__coeffs = [K(c) for c in ans.unit.__coeffs]
         return ans
 
     cdef dict _extra_slots(self):
@@ -2457,6 +2490,9 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     cdef CRElement ans = cls.__new__(cls)
     ans._parent = parent
     ans.prime_pow = <PowComputer_?>parent.prime_pow
+    IF CELEMENT_IS_PY_OBJECT:
+        polyt = type(ans.prime_pow.modulus)
+        ans.unit = <celement>polyt.__new__(polyt)
     cconstruct(ans.unit, ans.prime_pow)
     cunpickle(ans.unit, unit, ans.prime_pow)
     ans.ordp = ordp

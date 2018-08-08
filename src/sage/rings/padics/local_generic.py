@@ -386,7 +386,7 @@ class LocalGeneric(CommutativeRing):
             if 'p' in kwds and kwds['p'] != p:
                 raise ValueError("q does not match p")
             kwds['p'] = p
-        functor, ring = self.construction()
+        functor, ring = self.construction(forbid_frac_field=True)
         functor = copy(functor)
         if 'mode' in kwds and 'show_prec' not in kwds:
             new_type = kwds.get('type', self._prec_type())
@@ -475,10 +475,10 @@ class LocalGeneric(CommutativeRing):
             if 'prec' in kwds:
                 # This will need to be modified once lattice precision supports extensions
                 prec = kwds.pop('prec')
-                baseprec = (prec - 1) // self.e() + 1
+                baseprec = (prec - 1) // self.relative_e() + 1
                 if baseprec > self.base_ring().precision_cap():
                     kwds['prec'] = baseprec
-                functor.kwds['prec'] = prec
+                functor.precs = [prec]
             from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
             if 'names' in kwds:
                 functor.names = [kwds.pop('names')]
@@ -487,9 +487,12 @@ class LocalGeneric(CommutativeRing):
                 modulus = kwds.pop('modulus')
                 if n is not None and modulus.degree() != n:
                     raise ValueError("modulus must have degree matching q")
-            elif q is not None and self.f() != 1:
-                # If q is specified, replace the modulus with one from q.
-                modulus = get_unramified_modulus(q, functor.kwds.get('res_name', functor.names[0] + '0'))
+            elif q is not None:
+                if self.relative_e() == 1:
+                    # If q is specified, replace the modulus with one from q.
+                    modulus = get_unramified_modulus(q, functor.kwds.get('res_name', functor.names[0] + '0'))
+                elif self.relative_f() != 1:
+                    raise ValueError("Cannot change q in mixed extensions")
             for atr in ('var_name', 'res_name', 'unram_name', 'ram_name'):
                 if atr in kwds:
                     functor.kwds[atr] = kwds.pop(atr)
@@ -501,7 +504,7 @@ class LocalGeneric(CommutativeRing):
             if 'base' in kwds:
                 ring = kwds['base']
             else:
-                if q is not None and self.f() == 1:
+                if q is not None and self.relative_f() == 1:
                     kwds['q'] = q
                 ring = ring.change(**kwds)
             if modulus is None:
@@ -594,26 +597,40 @@ class LocalGeneric(CommutativeRing):
         """
         return self.residue_class_field().characteristic()
 
-    def defining_polynomial(self, var = 'x'):
+    def defining_polynomial(self, var='x', exact=False):
         r"""
-        Returns the defining polynomial of this local ring, i.e. just ``x``.
+        Returns the defining polynomial of this local ring
 
         INPUT:
 
-        - ``self`` -- a local ring
-        - ``var`` -- string (default: ``'x'``) the name of the variable
+        - ``var`` -- string (default: ``'x'``), the name of the variable
+
+        - ``exact`` -- a boolean (default: ``False``), whether to return the
+          underlying exact  defining polynomial rather than the one with coefficients
+          in the base ring.
 
         OUTPUT:
 
-        - polynomial -- the defining polynomial of this ring as an extension over its ground ring
+        The defining polynomial of this ring as an extension over its ground ring
 
         EXAMPLES::
 
-            sage: R = Zp(3, 3, 'fixed-mod'); R.defining_polynomial('foo')
+            sage: R = Zp(3, 3, 'fixed-mod')
+
+            sage: R.defining_polynomial()
+            (1 + O(3^3))*x + (O(3^3))
+            sage: R.defining_polynomial('foo')
             (1 + O(3^3))*foo + (O(3^3))
+
+            sage: R.defining_polynomial(exact=True)
+            x
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        return PolynomialRing(self, var).gen()
+        if exact:
+            from sage.rings.integer_ring import ZZ
+            return PolynomialRing(ZZ,var).gen()
+        else:
+            return PolynomialRing(self,var).gen()
 
     def ground_ring(self):
         r"""
@@ -732,7 +749,10 @@ class LocalGeneric(CommutativeRing):
             2
         """
         # Override this in subclasses (if appropriate)
-        return ZZ(1)
+        if self is self.base_ring():
+            return ZZ(1)
+        else:
+            return self.base_ring().absolute_e()
 
     def absolute_ramification_index(self):
         """
@@ -838,7 +858,10 @@ class LocalGeneric(CommutativeRing):
             1
         """
         # Override this in subclasses (if appropriate)
-        return ZZ(1)
+        if self is self.base_ring():
+            return ZZ(1)
+        else:
+            return self.base_ring().absolute_f()
 
     def absolute_inertia_degree(self):
         """

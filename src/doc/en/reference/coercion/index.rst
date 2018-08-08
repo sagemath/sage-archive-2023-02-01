@@ -613,8 +613,8 @@ These are accessed via the :meth:`construction` method, which returns a
     (FractionField, Integer Ring)
     sage: ZZ.construction()  # None
 
-    sage: Qp(5).construction()
-    (Completion[5, prec=20], Rational Field)
+    sage: Zp(5).construction()
+    (Completion[5, prec=20], Integer Ring)
     sage: QQ.completion(5, 100, {})
     5-adic Field with capped relative precision 100
     sage: c, R = RR.construction()

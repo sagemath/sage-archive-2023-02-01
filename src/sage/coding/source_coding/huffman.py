@@ -31,8 +31,6 @@ Classes and functions
 from __future__ import print_function
 
 from collections import defaultdict
-from heapq import heappush, heappop
-from itertools import count
 
 import six
 
@@ -316,31 +314,30 @@ class Huffman(SageObject):
             sage: d = {}
             sage: h._build_code(frequency_table(str))
         """
-        heap = []
-        node_id = count()
-        # We include a unique id in each node along with the weight so that
-        # tuple comparisons have something unique and unambiguous to sort on
-        # when given two nodes with the same weight; this is necessary on
-        # Python 3 in order for the tuple comparisons to always work (otherwise
-        # it will try to compare the two sub-trees, which is meaningless from
-        # the algorithm's perspective)
-
-        symbols = sorted(dic.items())
+        symbols = sorted(dic.items(), key=lambda x: (x[1], x[0]))
 
         # Each alphabetic symbol is now represented by an element with weight w
         # and index i.
-        for idx, (sym, weight) in enumerate(symbols):
-            heappush(heap, (weight, next(node_id), idx))
+        q0 = [(weight, idx) for idx, (sym, weight) in enumerate(symbols)]
+        q1 = []
 
-        for i in range(1, len(dic)):
-            weight_a, _, node_a = heappop(heap)
-            weight_b, _, node_b = heappop(heap)
-            heappush(heap, (weight_a + weight_b, next(node_id),
-                            (node_a, node_b)))
+        queues = [q0, q1]
+        tot_weight = sum(s[1] for s in symbols)  # Just used as a sentinel below
+
+        def pop():
+            # pop the lowest weight node from the heads of the two queues (as
+            # long as at least one of them has one node)
+            q = min(queues, key=lambda q: (q and q[0][0] or tot_weight))
+            return q.pop(0)
+
+        while len(q0) + len(q1) > 1:
+            weight_a, node_a = pop()
+            weight_b, node_b = pop()
+            q1.append((weight_a + weight_b, (node_a, node_b)))
 
         # dictionary of symbol to Huffman encoding
         d = {}
-        self._tree = heap[0][2]
+        self._tree = q1[0][1]
         # Build the binary tree of a Huffman code, where the root of the tree
         # is associated with the empty string.
         self._build_code_from_tree(self._tree, d, prefix="")

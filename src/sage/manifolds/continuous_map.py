@@ -878,6 +878,24 @@ class ContinuousMap(Morphism):
             {}
             sage: f._inverse
 
+        ``_extensions_graph`` and ``_restrictions_graph`` were not originally
+        derived quantities, but this induced a bug when dealing with other
+        derived quantities (see :trac:`26012`)::
+
+            sage: M = Manifold(2, 'M')
+            sage: C.<x, y> = M.chart()
+            sage: U = M.open_subset('U', coord_def={C:x>0})
+            sage: g = M.metric('g')
+            sage: g[:] = [[1, 0], [0, 1]]
+            sage: gU = g.restrict(U)
+            sage: g[:] = [[1, 0], [0, 2]]
+            sage: g.inverse()[:]
+            [  1   0]
+            [  0 1/2]
+            sage: g.inverse().restrict(U)[:] # used to be wrong
+            [  1   0]
+            [  0 1/2]
+
         """
         self._restrictions = {} # dict. of restrictions to subdomains of
                                 # self._domain
@@ -1760,8 +1778,8 @@ class ContinuousMap(Morphism):
                     self._restrictions[(subdomain, subcodomain)] = res
                     self._restrictions.update(res._restrictions)
                     self._restrictions_graph.update(res._restrictions_graph)
-                    res._extension_graph.update(self._extension_graph)
-                    for ext in self._extension._graph.values():
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
                         ext._restrictions[subdomain] = res
                         ext._restrictions.update(res._restrictions)
                         ext._restrictions_graph.update(res._restrictions_graph)

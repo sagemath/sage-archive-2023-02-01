@@ -567,88 +567,166 @@ cdef class pAdicGenericElement(LocalGenericElement):
         else:
             return infinity
 
-    def minimal_polynomial(self, name='x', ground=None):
+    def minimal_polynomial(self, name='x', base=None):
         """
-        Returns the minimal polynomial of this element over ``ground``
-        (by default its base ring)
+        Returns the minimal polynomial of this element over ``base``
 
         INPUT:
 
         - ``name`` -- string (default: ``x``): the name of the variable
 
-        - ``ground`` -- a ring (default: the base ring of the parent): 
-          the ground ring over which the minimal polynomial is computed
+        - ``base`` -- a ring (default: the base ring of the parent):
+          the base ring over which the minimal polynomial is computed
 
         EXAMPLES::
 
             sage: Zp(5,5)(1/3).minimal_polynomial('x')
             (1 + O(5^5))*x + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
+
+            sage: Zp(5,5)(1/3).minimal_polynomial('foo')
+            (1 + O(5^5))*foo + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
+
+        ::
+
+            sage: K.<a> = QqCR(2^3,5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^4 - 2*a)
+
+            sage: pi.minimal_polynomial()
+            (1 + O(2^5))*x^4 + a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
+            sage: (pi^2).minimal_polynomial()
+            (1 + O(2^5))*x^2 + a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
+            sage: (1/pi).minimal_polynomial()
+            (1 + O(2^5))*x^4 + (a^2 + 1)*2^-1 + O(2^4)
+
+            sage: elt = L.random_element()
+            sage: P = elt.minimal_polynomial()
+            sage: P(elt) == 0
+            True
         """
         parent = self.parent()
-        if ground is None:
-            ground = parent.base_ring()
-        if ground is parent:
-            R = ground[name]
-            return R.gen() - R(self)
+        R = parent.base_ring()
+        if base is None:
+            base = R
+        polring = base[name]
+        if base is parent:
+            return polring([-self,1])
+        elif base is R:
+            from sage.modules.free_module import VectorSpace
+            L = parent.fraction_field()
+            K = base.fraction_field()
+            deg = L.relative_degree()
+            V = VectorSpace(K, deg)
+            vector = [K(1)] + (deg-1)*[K(0)]
+            vectors = [vector]
+            W = V.span(vectors)
+            elt = self
+            while True:
+                poly = elt.polynomial()
+                vector = V([ poly[i] for i in range(deg) ])
+                if vector in W: break
+                vectors.append(vector)
+                W += V.span([vector])
+                elt *= self
+            W = V.span_of_basis(vectors)
+            coeffs = [ -c for c in W.coordinate_vector(vector) ] + [K(1)]
+            return polring(coeffs)
         else:
             raise NotImplementedError
 
-    def norm(self, ground=None):
+    def norm(self, base=None):
         """
-        Returns the norm of this `p`-adic element over ``ground``.
+        Returns the norm of this `p`-adic element over ``base``.
 
         .. WARNING::
 
             This is not the `p`-adic absolute value.  This is a field
-            theoretic norm down to a ground ring.  If you want the
+            theoretic norm down to a base ring.  If you want the
             `p`-adic absolute value, use the ``abs()`` function
             instead.
 
         INPUT:
 
-        - ``ground`` -- a subring of the parent (default: base ring)
+        - ``base`` -- a subring of the parent (default: base ring)
 
         OUTPUT:
 
-        The norm of this `p`-adic element over the ground ring.
+        The norm of this `p`-adic element over the given base.
 
         EXAMPLES::
 
             sage: Zp(5)(5).norm()
             5 + O(5^21)
+
+        ::
+
+            sage: K.<a> = QqCR(2^3,5)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^4 - 2*a)
+
+            sage: pi.norm()  # norm over K
+            a*2 + a*2^2 + a*2^3 + a*2^4 + a*2^5 + O(2^6)
+            sage: (pi^2).norm()
+            a^2*2^2 + O(2^7)
+            sage: pi.norm()^2
+            a^2*2^2 + O(2^7)
+
+        TESTS::
+
+            sage: x = L.random_element()
+            sage: y = L.random_element()
+            sage: (x*y).norm() == x.norm() * y.norm()
+            True
+
         """
         parent = self.parent()
-        if ground is None:
-            ground = parent.base_ring()
-        poly = self.minimal_polynomial(ground=ground)
+        if base is None:
+            base = parent.base_ring()
+        poly = self.minimal_polynomial(base=base)
         polydeg = poly.degree()
-        extdeg = parent.absolute_degree() // (ground.absolute_degree() * polydeg)
+        extdeg = parent.absolute_degree() // (base.absolute_degree() * polydeg)
         return ((-1)**polydeg * poly[0]) ** extdeg
 
-    def trace(self, ground=None):
+    def trace(self, base=None):
         """
-        Returns the trace of this `p`-adic element over the ground ring
+        Returns the trace of this `p`-adic element over the base ring
 
         INPUT:
 
-        - ``ground`` -- a subring of the ground ring (default: base
-          ring)
+        - ``base`` -- a subring of the parent (default: base ring)
 
         OUTPUT:
 
-        The trace of this `p`-adic element over the ground ring.
+        The trace of this `p`-adic element over the given base.
 
         EXAMPLES::
 
             sage: Zp(5,5)(5).trace()
             5 + O(5^6)
+
+            sage: K.<a> = QqCR(2^3,7)
+            sage: S.<x> = K[]
+            sage: L.<pi> = K.extension(x^4 - 4*a*x^3 + 2*a)
+
+            sage: pi.trace()  # trace over K
+            a*2^2 + O(2^8)
+            sage: (pi+1).trace()
+            (a + 1)*2^2 + O(2^7)
+
+        TESTS::
+
+            sage: x = L.random_element()
+            sage: y = L.random_element()
+            sage: (x+y).trace() == x.trace() + y.trace()
+            True
+
         """
         parent = self.parent()
-        if ground is None:
-            ground = parent.base_ring()
-        poly = self.minimal_polynomial(ground=ground)
+        if base is None:
+            base = parent.base_ring()
+        poly = self.minimal_polynomial(base=base)
         polydeg = poly.degree()
-        extdeg = parent.absolute_degree() // (ground.absolute_degree() * polydeg)
+        extdeg = parent.absolute_degree() // (base.absolute_degree() * polydeg)
         return -extdeg * poly[polydeg-1]
 
     def algdep(self, n):

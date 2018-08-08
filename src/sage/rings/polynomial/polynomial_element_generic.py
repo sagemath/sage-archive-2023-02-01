@@ -292,7 +292,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: x.integral()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of Mod(2, 4) does not exist
         """
         R = self.parent()
         # TODO:

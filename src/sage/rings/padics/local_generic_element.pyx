@@ -82,7 +82,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: R(3).inverse_of_unit()
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: Inverse does not exist.
+            ZeroDivisionError: inverse of 3 + O(3^5) does not exist
 
         Unlike the usual inverse of an element, the result is in the same ring
         as ``self`` and not just in its fraction field::
@@ -166,11 +166,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         """
         if not self.is_unit():
-            raise ZeroDivisionError("Inverse does not exist.")
+            raise ZeroDivisionError(f"inverse of {self} does not exist")
         return self.parent()(~self)
-
-    #def __getitem__(self, n):
-    #    raise NotImplementedError
 
     def __iter__(self):
         """

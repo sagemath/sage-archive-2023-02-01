@@ -311,7 +311,6 @@ class Huffman(SageObject):
             sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
             sage: str = "Sage is my most favorite general purpose computer algebra system"
             sage: h = Huffman(str)
-            sage: d = {}
             sage: h._build_code(frequency_table(str))
         """
         symbols = sorted(dic.items(), key=lambda x: (x[1], x[0]))

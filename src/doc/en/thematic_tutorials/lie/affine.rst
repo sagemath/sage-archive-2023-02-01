@@ -125,12 +125,12 @@ Cartan type is the extended Dynkin-diagram of `\mathfrak{g}^\circ`::
              |
      O---O---O---O---O
      1   3   4   5   6
-     E6~	  
+     E6~
 
 From the Dynkin diagram, we can read off generators and relations
 for the affine Weyl group, which is a Coxeter group with generators
 `s_i` of order 2, that commute if `i` and `j` are not adjacent in
-the Dynkin diagram, and othrwise are subject to a braid relation.
+the Dynkin diagram, and otherwise are subject to a braid relation.
 We can infer some Levi subalgebras of `\mathfrak{g}`, obtained by
 omitting one node from the Dynkin diagram; particularly omitting
 the "affine node" `0` gives `E_6`, that is `\mathfrak{g}^\circ`.
@@ -220,7 +220,7 @@ Dynkin node to the Cartan type "F4"::
 
 The Cartan types `['E',6,2]` and `['F',4,1]` (abbreviated ``F4~``) are dual
 in the sense that long roots of one correspond to short roots of the other.
-(Thus `\alpha_0`,`\alpha_1` and `\alpha_2` are short roots of `['E',6,2]`, they are long roots of
+(Thus `\alpha_0`, `\alpha_1` and `\alpha_2` are short roots of `['E',6,2]`, they are long roots of
 `['F',4,1]`.) More generally, every twisted affine type is dual to a
 unique untwisted type, and the Macdonald convention is to refer to
 the Cartan type as the dual of the corresponding untwisted type::
@@ -256,7 +256,7 @@ dimension is the *multiplicity* of the weight `\lambda`.
 
 As a special case, `\mathfrak{g}` is a module over itself
 under the adjoint representation, and it has a weight
-spce decomposition.
+space decomposition.
 
 The roots are the nonzero weights in the adjoint representation of `\mathfrak{g}`
 on itself. In contrast with the finite-dimensional
@@ -296,7 +296,8 @@ product with the null vector delta. Each weight knows its
 level::
 
      sage: L = RootSystem(['E',6,1]).weight_lattice(extended=True)
-     sage: [V.level(Lambda[i]) for i in [0..6]]
+     sage: Lambda = L.fundamental_weights()
+     sage: [Lambda[i].level() for i in [0..6]]
      [1, 1, 2, 2, 3, 2, 1]
 
 Affine Root System and Weyl Group
@@ -317,7 +318,7 @@ of the root system in the twisted affine case.
 The multiplicity `m(\alpha)` is the dimension of `\mathfrak{g}_\alpha`.
 It is 1 if `\alpha` is a real root. For the untwisted affine Lie algebras, the
 multiplicity of an imaginary root is the rank `\ell` of `\mathfrak{g}^\circ`.
-(For the twisted cases, see [Kac]_
+(For the twisted cases, see [Kac]_ Corollary 8.3.)
 
 In most cases we recommend creating the weight lattice with the
 option ``extended=True``::

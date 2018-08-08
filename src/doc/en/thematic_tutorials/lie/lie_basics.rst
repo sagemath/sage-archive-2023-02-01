@@ -1,5 +1,5 @@
 ----------------
-lie Group Basics
+Lie Group Basics
 ----------------
 
 

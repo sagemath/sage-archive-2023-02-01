@@ -6,7 +6,7 @@ Integrable Highest Weight Representations of Affine Lie algebras
 In this section `\mathfrak{g}` can be an arbitrary Kac-Moody Lie Algebra
 made with a symmetrizable, indecomposable Cartan matrix.
 
-Suppose that `V` is a representation with a weight decomposition as in
+Suppose that `V` is a representation with a weight space decomposition as in
 :ref:`roots_and_weights`.  Let `\alpha` be a real root, and let
 `\mathfrak{g}_\alpha` be the corresponding root space, that is,
 the one-dimensional weight space for `\alpha` in the adjoint
@@ -32,8 +32,8 @@ such as the parametrization by dominant weights, and
 generalizations of the Weyl denominator and character
 formulas, due to Macdonald and Kac respectively.
 
-If `\lambda` is a dominant weight, then the irreducible
-highest weight module `L(\lambda)` defined in :ref:`roots_and_weights`
+If `\Lambda` is a dominant weight, then the irreducible
+highest weight module `L(\Lambda)` defined in :ref:`roots_and_weights`
 is integrable. Moreover every highest weight integrable representation arises
 this way, so these representations are in bijection with the cone `P^+` of
 dominant weights.
@@ -99,7 +99,7 @@ is an element of the root lattice `Q` ([Kac]_, Propositions 11.3 and 11.4).
     
 We organize the weight multiplicities into sequences called *string functions*
 or *strings* as follows. By [Kac]_, Proposition 11.3 or Corollary 11.9, for fixed `\mu`
-the function `\text{mult}(\mu - k\delta)` of `k` is a increasing sequence.
+the function `\text{mult}(\mu - k\delta)` of `k` is an increasing sequence.
 We adjust `\mu` by a multiple of `\delta` to the beginning
 of the positive part of the sequence. Thus we define
 `\mu` to be *maximal* if `\text{mult}(\mu) \neq 0` but `\text{mult}(\mu + \delta) = 0`.
@@ -116,8 +116,8 @@ Modular Forms
 -------------
 
 Remarkably, [KacPeterson]_ showed that each string is the set of Fourier
-coefficients of a weakly modular form; see also [Kac]_ Chapters 12 and 13.
-Here *weakly modular* means that the form is allowed to have poles at
+coefficients of a weakly holomorphic modular form; see also [Kac]_ Chapters 12 and 13.
+Here *weakly holomorphic modular* means that the form is allowed to have poles at
 cusps.
 
 To this end we define the *modular characteristic*
@@ -144,7 +144,7 @@ defined the *string function*
 Although these do arise as partition functions in string theory, the term
 "string" here does not refer to physical strings.
 
-The string function `c_\mu^\Lambda` is a weakly modular form, possibly of
+The string function `c_\mu^\Lambda` is a weakly holomorphic modular form, possibly of
 half-integral weight. See [Kac]_, Corollary 13.10, or [KacPeterson]_.
 It can have poles at infinity, but multiplying `c_\mu^\Lambda` by
 `\eta(\tau)^{\dim\,\mathfrak{g}^\circ}` gives a holomorphic
@@ -153,14 +153,14 @@ modular form (for some level). Here `\eta` is the Dedekind eta function:
 .. MATH::
    \eta(\tau)=q^{1/24}\prod_{k=1}^\infty(1-q^k),\qquad q=e^{2\pi i\tau}.
 
-The weight of this modular form `\eta(\tau)^{\dim\,\mathfrak{g}^\circ}`
+The weight of this modular form `\eta(\tau)^{\dim\,\mathfrak{g}^\circ}c^\Lambda_\lambda`
 is the number of positive roots of `\mathfrak{g}^\circ`.
 
 Sage methods for integrable representations
 -------------------------------------------
 
 In this section we will show how to use Sage to compute with
-integrable highest weight Lie algebras.
+integrable highest weight representations of affine Lie algebras.
 For further documentation, see the reference manual
 :class:`~sage.combinat.root_system.integrable_representations.IntegrableRepresentation`
 
@@ -169,10 +169,8 @@ with highest weight `2\Lambda_0` for `\widehat{\mathfrak{sl}}_2`,
 that is, `A_1^{(1)}`. First we create a dominant weight in
 the extended weight lattice, then create the ``IntegrableRepresentation``
 class. We compute the strings. There are
-two, since there are two dominant multiple weights. One of them
+two, since there are two dominant maximal weights. One of them
 is the highest weight `2\Lambda_0`, and the other is `2\Lambda_1-\delta`.
-We apply the simple reflection `s_0` to the second, giving
-`2\Lambda_1-\delta`, a maximal weight that is not dominant.
 Then we compute the string function at this weight, which we see
 agrees with the string function for the corresponding dominant
 maximal weight::
@@ -211,8 +209,9 @@ is the same as that for ``mw2``, calculated above.
 
 ::
 
-    sage: s0.action(mw2)
-    2*Lambda[1] - delta
+
+    sage: s1.action(mw2)
+    4*Lambda[0] - 2*Lambda[1] - delta
     sage: [V.mult(s0.action(mw2)-k*delta) for k in [0..10]]
     [1, 2, 4, 7, 13, 21, 35, 55, 86, 130, 196]
 
@@ -230,12 +229,15 @@ we learn that the two strings are the odd and even parts of the series
 
 .. MATH::
 
-   \prod_{k=1}^\infty\frac{(1+q^{2k-1})}{(1-q^{2k}})=\prod_{k=1}^\infty\frac{(1-q^{2k})}{(1-q^k)(1-q^{4k})}
+   \prod_{k=1}^\infty\frac{(1+q^{2k-1})}{(1-q^{2k})}=
+   \prod_{k=1}^\infty\frac{(1-q^{2k})}{(1-q^k)(1-q^{4k})}
    = q^{1/8}\frac{\eta(2\tau)}{\eta(\tau)\eta(4\tau)}
 
-(This is *not* a modular form because of the factor `q^{-1/8}` in
-front of the ratio of eta functions.) Let us confirm what
-the Online Encyclopedia tells us by computing the above product::
+This is *not* a modular form because of the factor `q^{1/8}` in
+front of the ratio of eta functions.
+
+Let us confirm what the Online Encyclopedia tells us by computing the above
+product::
 
     sage: PS.<q> = PowerSeriesRing(QQ)
     sage: prod([(1+q^(2*k-1))/(1-q^(2*k)) for k in [1..20]])
@@ -257,12 +259,12 @@ This gives us the string functions.
 
 .. MATH::
 
-     c^{2\Lambda_0}_{2\Lambda_0} = q^{-1/16}(q+q^2+3q^3+5q^4+10q^5+16q^6+\cdots)
+     c^{2\Lambda_0}_{2\Lambda_0} = q^{-1/16}(1+q+3q^2+5q^3+10q^4+16q^5+\cdots)
      
-     c^{2\Lambda_0}_{2\Lambda_1-\delta} = q^{7/16}(q+2q^2+4q^3+7q^4+13q^5+21q^6+\cdots)
+     c^{2\Lambda_0}_{2\Lambda_1-\delta} = q^{7/16}(1+2q+4q^2+7q^3+13q^4+21q^5+\cdots)
 
-These are both weakly modular forms. Any linear combination of these two is als
-a weakly modular form, for example we may replace `\tau` by `\tau/2` in our
+These are both weakly holomorphic modular forms. Any linear combination of these two is also
+a weakly holomorphic modular form, for example we may replace `\tau` by `\tau/2` in our
 previous identity and get
 
 .. MATH::
@@ -292,7 +294,9 @@ convert weights to and from this notation as follows::
 
 In reporting the strings, one may set the optional parameter depth to get more
 or fewer values. In certain cases even the first coefficient of the string is
-significant.  See [JayneMisra2014]_ and [KimLeeOh2017]_ ::
+significant.  See [JayneMisra2014]_ and [KimLeeOh2017]_.
+
+::
 
    sage: Lambda=RootSystem(['A',12,1]).weight_lattice(extended=true).fundamental_weights()
    sage: IntegrableRepresentation(2*Lambda[0]).strings(depth=1)

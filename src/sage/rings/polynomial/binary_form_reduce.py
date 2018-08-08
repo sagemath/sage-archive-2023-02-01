@@ -436,13 +436,11 @@ def get_bound_poly(F, prec=53, norm_type='norm', emb=None):
          #euclidean norm squared
         normF = (sum([abs(i)**2 for i in compF.coefficients()]))
         target = (2**(n-1))*normF/thetaF
-        #print(normF,target)
     elif norm_type == 'height':
         hF = e**max([c.global_height(prec=prec) for c in F.coefficients()]) #height
         target = (2**(n-1))*(n+1)*(hF**2)/thetaF
     else:
         raise ValueError('type must be norm or height')
-    #print(epsinv(F, target, prec=prec))
     return cosh(epsinv(F, target, prec=prec))
 
 
@@ -528,7 +526,6 @@ def smallest_poly(F, prec=53, norm_type='norm', emb=None):
     def coshdelta(z):
         #The cosh of the hyperbolic distance from z = t+uj to j
         return (z.norm() + 1)/(2*z.imag())#reduce in the sense of Cremona-Stoll
-    #G,MG = F.reduced_form(prec=prec) #F \circ MG = G
     G = F
     MG = matrix(ZZ,2,2,[1,0,0,1])
     x,y = G.parent().gens()

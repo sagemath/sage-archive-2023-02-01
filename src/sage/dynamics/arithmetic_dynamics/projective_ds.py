@@ -3826,7 +3826,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           * ``'BM'`` -- Bruin-Molnar algorithm [BM2012]_
           * ``'HS'`` -- Hutz-Stoll algorithm [HS2018]_
 
-        - ``check_minimal``
+        - ``check_minimal`` -- (default: True), boolean, whether to check
+          if this map is a minimal model
 
         - ``smallest_coeffs`` -- (default: True), boolean, whether to find the
           model with smallest coefficients
@@ -3987,11 +3988,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (-2*x^2 - y^2 : 2*x^2 - 2*y^2)
+                    (-2*x^2 + 2*y^2 : x^2 + 2*y^2)
             ,
             <BLANKLINE>
-            [2 2]
-            [0 3]
+            [ 2 -2]
+            [ 3  0]
             )
 
         ::
@@ -4032,11 +4033,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             (
             Dynamical System of Projective Space of dimension 1 over Rational Field
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^2 + x*y : y^2)
+                    (x^2 - x*y + y^2 : y^2)
             ,
             <BLANKLINE>
-            [2 1]
-            [0 2]
+            [ 2 -1]
+            [ 0  2]
             )
         """
         if self.domain().ambient_space().dimension_relative() != 1:

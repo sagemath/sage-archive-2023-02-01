@@ -1012,6 +1012,8 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
       properties of the map are utilized to choose how to compute minimal
       orbit representatives
 
+    - ``check_minimal`` -- (default: True), boolean, whether to check
+      if this map is a minimal model
 
     OUTPUT: pair [dynamical system, matrix]
 
@@ -1053,15 +1055,12 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
     def coshdelta(z):
         # The cosh of the hyperbolic distance from z = t+uj to j
         return (z.norm() + 1)/(2*z.imag())
-    #g,M = f.minimal_model(return_transformation=True)
+
     # can't be smaller if height 0
     f.normalize_coordinates()
     if f.global_height(prec=prec) == 0:
         return [f, matrix(ZZ,2,2,[1,0,0,1])]
     all_min = f.all_minimal_models(return_transformation=True, algorithm=algorithm, check_minimal=check_minimal)
-    # make conjugation current
-    #for i in range(len(all_min)):
-    #    all_min[i][1] = M*all_min[i][1]
 
     current_min = None
     current_size = None
@@ -1092,22 +1091,14 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
         assert(n<=4), "n > 4, failed to find usable poly"
 
         R = get_bound_dynamical(pts_poly, g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
-        try:
-            G,MG = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
-            if G != pts_poly:
-                red_g = f.conjugate(M*MG)
-                R2 = get_bound_dynamical(G, red_g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
-                if R2 < R:
-                    R = R2
-                else:
-                    #use pts_poly since the search space is smaller
-                    G = pts_poly
-                    MG = matrix(ZZ,2,2,[1,0,0,1])
-        except: # any failure -> skip
-            G = pts_poly
-            MG = matrix(ZZ,2,2,[1,0,0,1])
-
+        # search starts in fundamental domain
+        G,MG = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
         red_g = f.conjugate(M*MG)
+        if G != pts_poly:
+            R2 = get_bound_dynamical(G, red_g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
+            if R2 < R:
+                # use the better bound
+                R = R2
         red_g.normalize_coordinates()
         if red_g.global_height(prec=prec) == 0:
             return [red_g, M*MG]
@@ -1141,6 +1132,8 @@ def smallest_dynamical(f, dynatomic=True, start_n=1, prec=53, emb=None, algorith
             if new_size < current_size:
                 current_min = [G ,g, v, rep, M, coshdelta(v)]
                 current_size = new_size
+                if new_size == 1: # early exit
+                    return [current_min[1], current_min[4]]
                 new_R = get_bound_dynamical(G, g, m=n, dynatomic=dynatomic, prec=prec, emb=emb)
                 if new_R < R:
                     R = new_R

@@ -307,10 +307,9 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
     def field_of_definition_critical(self, n, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field extention of the base field of the dynamical system that contains the critical points of the
-        ``n``-th iterate of this dynamical system.
+        Return field of definition for the critical points of the ``n``-th iterate
 
-        Domain of dynamical system must be a 1 dimensional space defined over a number field or finite field.
+        Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
         INPUT:
 
@@ -323,7 +322,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
           fields and also the resulting number field. Note that this is not implemented for finite fields and has
           no effect
 
-        - ``names`` -- (optional) string to be used as generator for returned number field
+        - ``names`` -- (optional) string to be used as generator for returned number field or finite field
 
         OUTPUT:
 
@@ -364,11 +363,11 @@ class DynamicalSystem(SchemeMorphism_polynomial):
                 Defn: a |--> 2*b^5 + 2*b^3 + b^2 + 2*b + 2)
         """
         ds = copy(self)
-        if n < 1: 
+        if int(n) < 1: 
             raise ValueError('`n` must be >= 1') 
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
-            raise ValueError('Domain of `ds` must be a 1 dimensional space')
+            raise ValueError('Ambient space of dynamical system must be either the affine line or projective line')
         if space.is_projective():
             ds = ds.dehomogenize(1)
         fn = ds.nth_iterate_map(n)
@@ -389,10 +388,9 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
     def field_of_definition_periodic(self, n, formal = False, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field extention of the base field of the dynamical system that contains the periodic points of the ``n``-th
-        iterate of this dynamical system.
+        Return field of definition for the ``n``-th periodic points
 
-        Domain of dynamical system must be a 1 dimensional space defined over a number field or finite field.
+        Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
         INPUT:
 
@@ -409,7 +407,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
           fields and also the resulting number field. Note that this is not implemented for finite fields and has
           no effect
 
-        - ``names`` -- (optional) string to be used as generator for returned number field
+        - ``names`` -- (optional) string to be used as generator for returned number field or finite field
 
         OUTPUT:
 
@@ -448,11 +446,11 @@ class DynamicalSystem(SchemeMorphism_polynomial):
                 Defn: a |--> b^2 + b)
         """
         ds = copy(self)
-        if n < 1: 
+        if int(n) < 1: 
             raise ValueError('`n` must be >= 1')
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
-            raise ValueError('Domain of `ds` must be a 1 dimensional space')
+            raise NotImplementedError("not implemented for affine or projective spaces of degree >1")
         if space.is_projective():
             ds = ds.dehomogenize(1)
         CR = ds.coordinate_ring()
@@ -477,10 +475,9 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
     def field_of_definition_preimage(self, n, point, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field extention of the base field of the dynamical system that contains all of the ``n``-th preimage points
-        of a given ``point`` in the map's domain.
+        Return field of definition for the ``n``-th preimages of ``point``
 
-        Domain of dynamical system must be a 1 dimensional space defined over a number field or finite field.
+        Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
         INPUT:
 
@@ -495,7 +492,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
           fields and also the resulting number field. Note that this is not implemented for finite fields and has
           no effect
 
-        - ``names`` -- (optional) string to be used as generator for returned number field
+        - ``names`` -- (optional) string to be used as generator for returned number field or finite field
 
         OUTPUT:
 
@@ -529,24 +526,26 @@ class DynamicalSystem(SchemeMorphism_polynomial):
                 Defn: 1 |--> 1)
         """
         ds = copy(self)
-        if n < 1: 
+        if int(n) < 1: 
             raise ValueError('`n` must be >= 1')
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
-            raise ValueError('Domain of `ds` must be a 1 dimensional space')
+            raise NotImplementedError("not implemented for affine or projective spaces of degree >1")
         try:
             point = space(point)
         except TypeError:
             raise TypeError('`point` must be in {}'.format(ds.domain()))
         if space.is_projective():
-            ds = ds.dehomogenize(1)        
+            ds = ds.dehomogenize(1) 
+        else:
+            point = (point,1)       
         fn = ds.nth_iterate_map(n)
         f, g = fn[0].numerator(), fn[0].denominator()
         CR = ds.coordinate_ring()
         if CR.is_field():
             #want the polynomial ring not the fraction field
             CR = CR.ring()
-        poly = CR(f - g*point[0]).univariate_polynomial()
+        poly = (f*point[1] - g*CR(point[0])).univariate_polynomial()
         K = ds.base_ring()
         if poly == CR(0):
             return K

@@ -130,6 +130,8 @@ class Huffman(SageObject):
        table to the constructor of this class. The table ``source`` can be a
        table of frequencies or a table of weights.
 
+    In either case, the alphabet must consist of at least two symbols.
+
     Examples::
 
         sage: from sage.coding.source_coding.huffman import Huffman, frequency_table
@@ -312,7 +314,34 @@ class Huffman(SageObject):
             sage: str = "Sage is my most favorite general purpose computer algebra system"
             sage: h = Huffman(str)
             sage: h._build_code(frequency_table(str))
+
+        TESTS:
+
+        Trying to build a Huffman code for fewer than two symbols fails.  We
+        could support these corner cases of course, but instead we just don't
+        allow it::
+
+            sage: Huffman('')
+            Traceback (most recent call last):
+            ...
+            ValueError: The alphabet for Huffman must contain at least two
+            symbols.
+            sage: Huffman(' ')
+            Traceback (most recent call last):
+            ...
+            ValueError: The alphabet for Huffman must contain at least two
+            symbols.
         """
+
+        if len(dic) < 2:
+            # Most of the rest of this class assumes there are at least two
+            # symbols in the alphabet; we could explicitly handle the corner
+            # cases of 0 or 1 characters, but they are also pretty useless so
+            # enforce 2 or more characters
+            raise ValueError(
+                "The alphabet for {} must contain at least two symbols.".format(
+                    self.__class__.__name__))
+
         symbols = sorted(dic.items(), key=lambda x: (x[1], x[0]))
 
         # Each alphabetic symbol is now represented by an element with weight w

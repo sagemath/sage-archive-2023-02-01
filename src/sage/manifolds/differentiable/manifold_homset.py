@@ -49,7 +49,6 @@ from sage.manifolds.differentiable.curve import DifferentiableCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedAutoparallelCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedGeodesic
-from sage.misc.cachefunc import cached_method
 
 class DifferentiableManifoldHomset(TopologicalManifoldHomset):
     r"""
@@ -892,8 +891,6 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         t = dom.canonical_coordinate()
         t_min = dom.lower_bound() # this is either an expression or a
         # finite value thanks to tests in '__init__'
-        t_max = dom.upper_bound() # this is either an expression or a
-        # finite value thanks to tests in '__init__'
 
         codom = self.codomain()
         dim = codom.dim()
@@ -1358,7 +1355,6 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         dim = codom.dim()
         i0 = codom.start_index()
         chart2 = codom.default_chart()
-        x = chart2[:][0]
         # In case the codomain coincides with the domain,
         # it is important to distinguish between the canonical
         # coordinate, and the curve parameter since, in such a

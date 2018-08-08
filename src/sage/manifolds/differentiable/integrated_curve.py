@@ -651,7 +651,9 @@ class IntegratedCurve(DifferentiableCurve):
                differentiable manifold M,
               Chart (M, (x1, x2, x3)),
               'c',
-              'c'))
+              'c',
+              False,
+              False))
 
         Test of pickling::
 
@@ -660,7 +662,6 @@ class IntegratedCurve(DifferentiableCurve):
              manifold M
 
         """
-        print("here")
         return (type(self), (self.parent(), self._equations_rhs,
                 self._velocities, self._curve_parameter,
                 self._initial_tangent_vector, self._chart,
@@ -1551,9 +1552,6 @@ class IntegratedCurve(DifferentiableCurve):
             c = M.integrated_geodesic(g, (t, 0, 10), v, across_charts=True)
 
             sol = c.solve_across_charts(step=0.1, verbose=True)
-
-            for chart, solution in sol:
-                print chart
 
             interp = c.interpolate()
 
@@ -3384,13 +3382,13 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         if chart is None:
             chart = parent.codomain().default_chart()
 
-        coordinate_functions = chart[:]
         velocities = chart.symbolic_velocities()
 
 
         dim = parent.codomain().dim()
         i0 = parent.codomain().start_index()
 
+        self._across_charts = across_charts
         if not across_charts:
 
             equations_rhs = []
@@ -3439,6 +3437,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
                                  verbose=verbose, across_charts=across_charts)
 
         self._affine_connection = affine_connection
+
 
     def _repr_(self):
         r"""
@@ -3500,7 +3499,9 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
                differentiable manifold M,
               Chart (M, (x1, x2, x3)),
               'c',
-              'c'))
+              'c',
+              False,
+              False))
 
         Test of pickling::
 
@@ -3512,7 +3513,7 @@ class IntegratedAutoparallelCurve(IntegratedCurve):
         return (type(self), (self.parent(), self._affine_connection,
                 self._curve_parameter, self._initial_tangent_vector,
                 self._chart, self._name, self._latex_name, False,
-                self._across_chart))
+                self._across_charts))
 
     def system(self, verbose=False):
         r"""
@@ -3817,6 +3818,7 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
                                              verbose=verbose, across_charts=across_charts)
 
         self._metric = metric
+        self._across_charts = across_charts
 
     def _repr_(self):
         r"""
@@ -3880,7 +3882,9 @@ class IntegratedGeodesic(IntegratedAutoparallelCurve):
                differentiable manifold S^2,
               Chart (S^2, (theta, phi)),
               'c',
-              'c'))
+              'c',
+              False,
+              False))
 
         Test of pickling::
 

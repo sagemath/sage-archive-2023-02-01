@@ -448,7 +448,7 @@ class SBox(SageObject):
         Returns the derivative in direction of u
 
         The derivative of `F` in direction of `u` is defined as
-        ``x \mapsto F(x) + F(x + u)``.
+        `x \mapsto F(x) + F(x + u)`.
 
         EXAMPLES::
 

@@ -1815,6 +1815,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: Q = P(RSA768,1)
             sage: f.canonical_height(Q, error_bound=0.00000000000000001)
             931.18256422718241278672729195
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([2*( -2*x^3 + 3*(x^2*y)) + 3*y^3,3*y^3])
+            sage: f.canonical_height(P(1,0))
+            0.00000000000000000000000000000
         """
         bad_primes = kwds.get("badprimes", None)
         prec = kwds.get("prec", 100)
@@ -1863,7 +1870,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 t = lcm(t, c.denominator())
             A = t * f[0]
             B = t * f[1]
-            Res = f.resultant(normalize=True)
+            Res = f.resultant(normalize=True).abs()
             H = 0
             x_i = Q[0]
             y_i = Q[1]
@@ -1875,7 +1882,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if Res > 1:
                 if not err is None:
                     err = err / 2
-                    N = ceil((R(Res.abs()).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
+                    N = ceil((R(Res).log().log() - R(d-1).log() - R(err).log())/(R(d).log()))
                     if N < 1:
                         N = 1
                     kwds.update({'error_bound': err})

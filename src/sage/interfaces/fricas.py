@@ -1038,12 +1038,11 @@ class FriCASElement(ExpectElement):
             sage: fricas(0)._get_sage_type(m)                                   # optional - fricas
             Rational Field
         """
-        from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
+        from sage.rings.all import ZZ, QQbar, RDF
         from sage.rings.fraction_field import FractionField
         from sage.rings.finite_rings.integer_mod_ring import Integers
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
-        from sage.matrix.constructor import matrix
 
         # first implement domains without arguments
         head = str(domain.car())
@@ -1256,7 +1255,6 @@ class FriCASElement(ExpectElement):
             raise NotImplementedError("The translation of the FriCAS Expression %s to sage is not yet implemented." %s)
 
         from sage.rings.all import QQbar, PolynomialRing
-        from sage.symbolic.ring import SR
         i = 0
         while rootOf:
             (var, poly) = rootOf.items()[i]
@@ -1423,9 +1421,7 @@ class FriCASElement(ExpectElement):
             <BLANKLINE>
                Cannot convert the value from type Any to InputForm .
         """
-        from sage.rings.all import ZZ, QQ, QQbar, PolynomialRing, RDF
-        from sage.rings.fraction_field import FractionField
-        from sage.rings.finite_rings.integer_mod_ring import Integers
+        from sage.rings.all import ZZ, PolynomialRing, RDF
         from sage.rings.real_mpfr import RealField
         from sage.symbolic.ring import SR
         from sage.symbolic.all import I

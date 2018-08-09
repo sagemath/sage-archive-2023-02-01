@@ -646,7 +646,6 @@ class ShiftedPrimedTableau(ClonableArray):
         if self._skew is None:
             res = [len([y for y in row if y <= n]) for row in self]
         else:
-            m = len(self._skew)
             res = [len([y for y in row if y is None or y <= n])
                    for i, row in enumerate(self)]
 
@@ -914,7 +913,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if T[r][c].is_primed():
             T = [[elt.increase_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
             r, c = c, r
         h, l = len(T), len(T[0])
 
@@ -947,7 +946,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if r > c:
             T = [[elt.decrease_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
 
         T = [tuple(elt for elt in row if elt is not None) for row in T]
         return type(self)(self.parent(), T, check=False, preprocessed=True)
@@ -1006,7 +1005,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if T[r][c].is_primed():
             T = [[elt.increase_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
             r, c = c, r
 
         if (c == 0 or T[r][c-1] is None or T[r][c-1] <= ind_e):
@@ -1033,7 +1032,7 @@ class CrystalElementShiftedPrimedTableau(ShiftedPrimedTableau):
         if r > c:
             T = [[elt.decrease_half() if elt is not None else elt
                   for elt in row] for row in T]
-            T = map(list, zip(*T))
+            T = [list(z) for z in zip(*T)]
 
         T = [tuple(elt for elt in row if elt is not None) for row in T]
         return type(self)(self.parent(), T, check=False, preprocessed=True)

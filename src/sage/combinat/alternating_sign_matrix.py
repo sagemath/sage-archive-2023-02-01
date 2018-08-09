@@ -866,7 +866,7 @@ class AlternatingSignMatrix(Element):
             sage: asm.to_dyck_word()
             Traceback (most recent call last):
             ...
-            TypeError: to_dyck_word() takes exactly 2 arguments (1 given)
+            TypeError: to_dyck_word() ...argument...
             sage: asm.to_dyck_word(algorithm = 'notamethod')
             Traceback (most recent call last):
             ...
@@ -1813,7 +1813,7 @@ def _is_a_cover(mt0, mt1):
             return False
     return diffs == 1
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
 register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
 
@@ -1935,12 +1935,13 @@ class ContreTableaux_n(ContreTableaux):
 
 
 def _next_column_iterator(previous_column, height, i = None):
-    """
+    r"""
     Return a generator for all columns of height ``height``
     properly filled from row 1 to ``i``.
-    ("Properly filled" means strictly increasing and having
+
+    "Properly filled" means strictly increasing and having
     the property that the `k`-th entry is `\geq` to the `k`-th
-    entry of ``previous_column`` for each `k`.)
+    entry of ``previous_column`` for each `k`.
 
     EXAMPLES::
 

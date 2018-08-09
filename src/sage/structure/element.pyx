@@ -283,10 +283,11 @@ continue down the MRO and find the ``_add_`` method in the category.
 
 from __future__ import absolute_import, division, print_function
 
+cimport cython
 from cpython cimport *
-from sage.ext.stdsage cimport *
-
 from cpython.ref cimport PyObject
+
+from sage.ext.stdsage cimport *
 
 import types
 cdef add, sub, mul, div, truediv, floordiv, mod, pow
@@ -384,6 +385,7 @@ cdef class Element(SageObject):
     .. automethod:: __floordiv__
     .. automethod:: __mod__
     """
+    @cython.binding(False)
     def __getmetaclass__(_):
         from sage.misc.inherit_comparison import InheritComparisonMetaclass
         return InheritComparisonMetaclass
@@ -2170,6 +2172,7 @@ cdef class ElementWithCachedMethod(Element):
     ::
 
         sage: cython_code = ["from sage.structure.element cimport Element, ElementWithCachedMethod",
+        ....:     "from sage.structure.richcmp cimport richcmp",
         ....:     "cdef class MyBrokenElement(Element):",
         ....:     "    cdef public object x",
         ....:     "    def __init__(self,P,x):",
@@ -2181,8 +2184,8 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, right) except -2:",
-        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "        return richcmp(left.x,right.x,op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "cdef class MyElement(ElementWithCachedMethod):",
@@ -2196,8 +2199,8 @@ cdef class ElementWithCachedMethod(Element):
         ....:     "        return '<%s>'%self.x",
         ....:     "    def __hash__(self):",
         ....:     "        return hash(self.x)",
-        ....:     "    cpdef int _cmp_(left, right) except -2:",
-        ....:     "        return cmp(left.x,right.x)",
+        ....:     "    cpdef _richcmp_(left, right, int op):",
+        ....:     "        return richcmp(left.x,right.x,op)",
         ....:     "    def raw_test(self):",
         ....:     "        return -self",
         ....:     "class MyPythonElement(MyBrokenElement): pass",
@@ -2843,9 +2846,7 @@ cdef class CommutativeRingElement(RingElement):
             sage: R(121).divides(R(120))
             True
             sage: R(120).divides(R(121))
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: reduction modulo 120 not defined
+            False
 
         If ``x`` has different parent than ``self``, they are first coerced to a
         common parent if possible. If this coercion fails, it returns a
@@ -2891,7 +2892,12 @@ cdef class CommutativeRingElement(RingElement):
             except (AttributeError, NotImplementedError):
                 pass
 
-            return (x % self) == 0
+            try:
+                return (x % self).is_zero()
+            except (TypeError, NotImplementedError):
+                pass
+
+            raise NotImplementedError
 
         else:
             #Different parents, use coercion
@@ -3668,9 +3674,25 @@ cdef class Matrix(ModuleElement):
             [33 36] [39 42]
             [45 48]]
         """
-        if have_same_parent(left, right):
+        cdef int cl = classify_elements(left, right)
+        if HAVE_SAME_PARENT(cl):
             return (<Matrix>left)._matrix_times_matrix_(<Matrix>right)
-        return coercion_model.bin_op(left, right, mul)
+        if BOTH_ARE_ELEMENT(cl):
+            return coercion_model.bin_op(left, right, mul)
+
+        cdef long value
+        cdef int err = -1
+        try:
+            # Special case multiplication with C long
+            integer_check_long_py(right, &value, &err)
+            if not err:
+                return (<Element>left)._mul_long(value)
+            integer_check_long_py(left, &value, &err)
+            if not err:
+                return (<Element>right)._mul_long(value)
+            return coercion_model.bin_op(left, right, mul)
+        except TypeError:
+            return NotImplemented
 
     def __truediv__(left, right):
         """
@@ -4076,6 +4098,8 @@ cpdef bin_op(x, y, op):
 
 
 def coerce(Parent p, x):
+    from sage.misc.superseded import deprecation
+    deprecation(25236, "sage.structure.element.coerce is deprecated")
     try:
         return p._coerce_c(x)
     except AttributeError:

@@ -234,7 +234,7 @@ class MoebiusAlgebra(Parent, UniqueRepresentation):
     natural = E
 
     class I(BasisAbstract):
-        """
+        r"""
         The (orthogonal) idempotent basis of a Möbius algebra.
 
         Let `I_x` and `I_y` be basis elements of `M_L` for some lattice `L`.
@@ -592,7 +592,7 @@ class QuantumMoebiusAlgebra(Parent, UniqueRepresentation):
     characteristic_basis = C
 
     class KL(BasisAbstract):
-        """
+        r"""
         The Kazhdan-Lusztig basis of a quantum Möbius algebra.
 
         The Kazhdan-Lusztig basis `\{ B_x \mid x \in L \}` of `M_L`

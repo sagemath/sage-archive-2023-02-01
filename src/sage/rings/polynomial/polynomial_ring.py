@@ -146,6 +146,7 @@ from six.moves import range
 from sage.structure.element import Element
 
 import sage.categories as categories
+from sage.categories.morphism import IdentityMorphism
 
 import sage.algebras.algebra
 import sage.rings.commutative_algebra as commutative_algebra
@@ -165,13 +166,15 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
 from sage.rings.real_mpfr import is_RealField
-from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 from sage.rings.fraction_field_element import FractionFieldElement
 from sage.rings.finite_rings.element_base import FiniteRingElement
 
 from .polynomial_element import PolynomialBaseringInjection
 from .polynomial_real_mpfr_dense import PolynomialRealDense
 from .polynomial_integer_dense_flint import Polynomial_integer_dense_flint
+from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
+from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
+
 
 _CommutativeRings = categories.commutative_rings.CommutativeRings()
 
@@ -582,6 +585,29 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self([one,0,one]), # an irreducible element
             self([2*one,0,2*one]), # an element with non-trivial content
         ]
+
+    @cached_method
+    def flattening_morphism(self):
+        r"""
+        Return the flattening morphism of this polynomial ring
+
+        EXAMPLES::
+
+            sage: QQ['a','b']['x'].flattening_morphism()
+            Flattening morphism:
+              From: Univariate Polynomial Ring in x over Multivariate Polynomial Ring in a, b over Rational Field
+              To:   Multivariate Polynomial Ring in a, b, x over Rational Field
+
+            sage: QQ['x'].flattening_morphism()
+            Identity endomorphism of Univariate Polynomial Ring in x over Rational Field
+        """
+        from .multi_polynomial_ring import is_MPolynomialRing
+        base = self.base_ring()
+        if is_PolynomialRing(base) or is_MPolynomialRing(base):
+            from .flatten import FlatteningMorphism
+            return FlatteningMorphism(self)
+        else:
+            return IdentityMorphism(self)
 
     def construction(self):
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()
@@ -1274,21 +1300,21 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
             sage: R.<x> = ZZ[]
             sage: R.random_element(10, 5,10)
-            9*x^10 + 8*x^9 + 6*x^8 + 8*x^7 + 8*x^6 + 9*x^5 + 8*x^4 + 8*x^3 + 6*x^2 + 8*x + 8
+            5*x^10 + 5*x^9 + 9*x^8 + 8*x^7 + 6*x^6 + 8*x^5 + 8*x^4 + 9*x^3 + 8*x^2 + 8*x + 8
             sage: R.random_element(6)
-            x^6 - 3*x^5 - x^4 + x^3 - x^2 + x + 1
+            x^6 - 2*x^5 - 2*x^3 + 2*x^2 - 3*x
             sage: R.random_element(6)
-            -2*x^6 - 2*x^5 + 2*x^4 - 3*x^3 + 1
+            -x^6 + x^5 + x^2 - x
             sage: R.random_element(6)
-            -x^6 + x^5 - x^4 + 4*x^3 - x^2 + x
+            -5*x^6 + x^5 + 14*x^4 - x^3 + x^2 - x + 4
 
-        If a tuple of two integers is given for the degree argument, a
-        polynomial of degree in between the bound is given::
+        If a tuple of two integers is given for the degree argument, a degree
+        is first uniformly chosen, then a polynomial of that degree is given::
 
             sage: R.random_element(degree=(0,8))
-            x^8 + 4*x^7 + 2*x^6 - x^4 + 4*x^3 - 5*x^2 + x + 14
+            4*x^4 + 2*x^3 - x + 4
             sage: R.random_element(degree=(0,8))
-            -5*x^7 + x^6 - 3*x^5 + 4*x^4 - x^2 - 2*x + 1
+            x + 1
 
         Note that the zero polynomial has degree ``-1``, so if you want to
         consider it set the minimum degree to ``-1``::
@@ -1334,10 +1360,31 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if degree[0] <= -2:
             raise ValueError("degree should be an integer greater or equal than -1")
 
-        p = self([R.random_element(*args,**kwds) for _ in range(degree[1]+1)])
+        # If the coefficient range only contains 0, then
+        # * if the degree range includes -1, return the zero polynomial,
+        # * otherwise raise a value error
+        if args == (0, 1):
+            if degree[0] == -1:
+                return self.zero()
+            else:
+                raise ValueError("No polynomial of degree >= 0 has all coefficients zero")
 
-        if p.degree() < degree[0]:
-            p += R._random_nonzero_element() * self.gen()**randint(degree[0],degree[1])
+        # Pick a random degree 
+        d = randint(degree[0], degree[1])
+
+        # If degree is -1, return the 0 polynomial
+        if d == -1:
+            return self.zero()
+
+        # If degree is 0, return a random constant term
+        if d == 0:
+            return self(R._random_nonzero_element(*args, **kwds))
+
+        # Pick random coefficients
+        p = self([R.random_element(*args, **kwds) for _ in range(d)])
+
+        # Add non-zero leading coefficient
+        p += R._random_nonzero_element(*args, **kwds) * self.gen() ** d
 
         return p
 
@@ -1407,6 +1454,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         from sage.matrix.matrix_space import MatrixSpace
         if isinstance(base_ring, MatrixSpace):
             return 0
+        from sage.rings.fraction_field import FractionField_generic
+        if isinstance(base_ring, FractionField_generic):
+            return 1 << 60
         # Generic default value
         return 8
 
@@ -1685,7 +1735,8 @@ class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.Com
         return roots
 
 
-class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDomain):
+class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_singular_repr,
+                                     ring.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None, category=None):
         """
@@ -1714,6 +1765,7 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
                     element_class = Polynomial_integer_dense_flint
         PolynomialRing_commutative.__init__(self, base_ring, name=name,
                 sparse=sparse, element_class=element_class, category=category)
+        self._has_singular = can_convert_to_singular(self)
 
     @staticmethod
     def _implementation_names_impl(implementation, base_ring, sparse):
@@ -1753,7 +1805,6 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, ring.IntegralDo
 
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
-                           PolynomialRing_singular_repr,
                            ring.PrincipalIdealDomain):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None, category=None):
         """
@@ -1779,7 +1830,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: x^(10^20) # this should be fast
             x^100000000000000000000
         """
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         import sage.rings.complex_arb
 
         if not element_class:
@@ -1804,8 +1854,6 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                 element_class = polynomial_element_generic.Polynomial_generic_dense_field
 
         PolynomialRing_integral_domain.__init__(self, base_ring, name=name, sparse=sparse, element_class=element_class, category=category)
-
-        self._has_singular = can_convert_to_singular(self)
 
     def _ideal_class_(self, n=0):
         """
@@ -1903,7 +1951,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
         """
         to_base_ring = self.base_ring()
-        points = [map(to_base_ring, x) for x in points]
+        points = [tuple(to_base_ring(c) for c in p) for p in points]
         n = len(points)
         F = [[points[i][1]] for i in range(n)]
         for i in range(1, n):
@@ -2139,6 +2187,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         else:
             raise ValueError("algorithm must be one of 'divided_difference' or 'neville'")
 
+    @cached_method
     def fraction_field(self):
         """
         Returns the fraction field of self.
@@ -2148,19 +2197,32 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: R.<t> = GF(5)[]
             sage: R.fraction_field()
             Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 5
+
+        TESTS:
+
+        Check that :trac:`25449` has been resolved::
+
+            sage: k = GF(25453)
+            sage: F.<x> = FunctionField(k)
+            sage: R.<t> = k[]
+            sage: t(x)
+            x
+
+            sage: k = GF(55667)
+            sage: F.<x> = FunctionField(k)
+            sage: R.<t> = k[]
+            sage: t(x)
+            x
+
         """
-        try:
-            return self._fraction_field
-        except AttributeError:
-            R = self.base_ring()
-            p = R.characteristic()
-            if p != 0 and R.is_prime_field() and 2 < p and p < 2**16:
-                from sage.rings.fraction_field_FpT import FpT
-                self._fraction_field = FpT(self)
-            else:
-                from sage.rings.fraction_field import FractionField_1poly_field
-                self._fraction_field = FractionField_1poly_field(self)
-            return self._fraction_field
+        R = self.base_ring()
+        p = R.characteristic()
+        if p != 0 and R.is_prime_field():
+            from sage.rings.fraction_field_FpT import FpT
+            if 2 < p and p < FpT.INTEGER_LIMIT:
+                return FpT(self)
+        from sage.rings.fraction_field import FractionField_1poly_field
+        return FractionField_1poly_field(self)
 
 
 class PolynomialRing_dense_finite_field(PolynomialRing_field):
@@ -2252,7 +2314,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         EXAMPLES::
 
             sage: GF(5^3, 'a')['x'].irreducible_element(2)
-            x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
+            x^2 + 3*a^2 + a + 2
             sage: GF(19)['x'].irreducible_element(21, algorithm="first_lexicographic")
             x^21 + x + 5
             sage: GF(5**2, 'a')['x'].irreducible_element(17, algorithm="first_lexicographic")
@@ -2956,7 +3018,6 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name=name,
                 element_class=element_class, category=category)
 
-        from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)
 
     @staticmethod

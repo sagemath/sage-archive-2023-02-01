@@ -11,12 +11,12 @@ Functions and Methods
 ----------------------
 """
 from six.moves import range
-from six import iteritems
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
 from sage.misc.decorators import rename_keyword
+
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
     """
@@ -486,9 +486,9 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
                 else:
                     min = optimize.fmin_tnc(f, x0, approx_grad=True, bounds=cons, messages=0, **args)[0]
         elif isinstance(cons[0], function_type) or isinstance(cons[0], Expression):
-            min = optimize.fmin_cobyla(f, x0, cons, iprint=0, **args)
+            min = optimize.fmin_cobyla(f, x0, cons, **args)
     elif isinstance(cons, function_type) or isinstance(cons, Expression):
-        min = optimize.fmin_cobyla(f, x0, cons, iprint=0, **args)
+        min = optimize.fmin_cobyla(f, x0, cons, **args)
     return vector(RDF, min)
 
 
@@ -755,44 +755,56 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     return [item[0] == item[1] for item in zip(parameters, estimated_params)]
 
-def binpacking(items,maximum=1,k=None):
+def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
     r"""
-    Solves the bin packing problem.
+    Solve the bin packing problem.
 
     The Bin Packing problem is the following :
 
-    Given a list of items of weights `p_i` and a real value `K`, what is
-    the least number of bins such that all the items can be put in the
-    bins, while keeping sure that each bin contains a weight of at most `K` ?
+    Given a list of items of weights `p_i` and a real value `k`, what is the
+    least number of bins such that all the items can be packed in the bins,
+    while ensuring that the sum of the weights of the items packed in each bin
+    is at most `k` ?
 
-    For more informations, see :wikipedia:`Bin_packing_problem`
+    For more informations, see :wikipedia:`Bin_packing_problem`.
 
-    Two version of this problem are solved by this algorithm :
-         * Is it possible to put the given items in `L` bins ?
-         * What is the assignment of items using the
-           least number of bins with the given list of items ?
+    Two versions of this problem are solved by this algorithm :
+
+    - Is it possible to put the given items in `k` bins ?
+    - What is the assignment of items using the least number of bins with
+      the given list of items ?
 
     INPUT:
 
-    - ``items`` -- A list of real values (the items' weight)
+    - ``items`` -- list or dict; either a list of real values (the items'
+      weight), or a dictionary associating to each item its weight.
 
-    - ``maximum``   -- The maximal size of a bin
+    - ``maximum`` -- (default: 1); the maximal size of a bin
 
-    - ``k``     -- Number of bins
+    - ``k`` -- integer (default: ``None``); Number of bins
 
-      - When set to an integer value, the function returns a partition
-        of the items into `k` bins if possible, and raises an
-        exception otherwise.
+      - When set to an integer value, the function returns a partition of the
+        items into `k` bins if possible, and raises an exception otherwise.
 
       - When set to ``None``, the function returns a partition of the items
-        using the least number possible of bins.
+        using the least possible number of bins.
+
+    - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     OUTPUT:
 
-    A list of lists, each member corresponding to a box and containing
-    the list of the weights inside it. If there is no solution, an
-    exception is raised (this can only happen when ``k`` is specified
-    or if ``maximum`` is less that the size of one item).
+    A list of lists, each member corresponding to a bin and containing either
+    the list of the weights inside it when ``items`` is a list of items' weight,
+    or the list of items inside it when ``items`` is a dictionary. If there is
+    no solution, an exception is raised (this can only happen when ``k`` is
+    specified or if ``maximum`` is less than the weight of one item).
 
     EXAMPLES:
 
@@ -807,13 +819,18 @@ def binpacking(items,maximum=1,k=None):
 
     Checking the bins are of correct size ::
 
-        sage: all([ sum(b)<= 1 for b in bins ])
+        sage: all(sum(b) <= 1 for b in bins)
         True
 
     Checking every item is in a bin ::
 
         sage: b1, b2, b3 = bins
-        sage: all([ (v in b1 or v in b2 or v in b3) for v in values ])
+        sage: all((v in b1 or v in b2 or v in b3) for v in values)
+        True
+
+    And only in one bin ::
+
+        sage: sum(len(b) for b in bins) == len(values)
         True
 
     One way to use only three boxes (which is best possible) is to put
@@ -826,50 +843,70 @@ def binpacking(items,maximum=1,k=None):
         sage: binpacking([0.2,0.3,0.8,0.9], k=2)
         Traceback (most recent call last):
         ...
-        ValueError: This problem has no solution !
-    """
+        ValueError: this problem has no solution !
 
-    if max(items) > maximum:
-        raise ValueError("This problem has no solution !")
+    We can also provide a dictionary keyed by items and associating to each item
+    its weight. Then, the bins contain the name of the items inside it ::
+
+        sage: values = {'a':1/5, 'b':1/3, 'c':2/3, 'd':3/4, 'e':5/7}
+        sage: bins = binpacking(values)
+        sage: set(flatten(bins)) == set(values.keys())
+        True
+
+    TESTS:
+
+    Wrong type for parameter items::
+
+        sage: binpacking(set())
+        Traceback (most recent call last):
+        ...
+        TypeError: parameter items must be a list or a dictionary.
+    """
+    if isinstance(items, list):
+        weight = {i:w for i,w in enumerate(items)}
+    elif isinstance(items, dict):
+        weight = items
+    else:
+        raise TypeError("parameter items must be a list or a dictionary.")
+
+    if max(weight.values()) > maximum:
+        raise ValueError("this problem has no solution !")
 
     if k is None:
         from sage.functions.other import ceil
-        k=ceil(sum(items)/maximum)
+        k = ceil(sum(weight.values())/maximum)
         while True:
             from sage.numerical.mip import MIPSolverException
             try:
-                return binpacking(items,k=k,maximum=maximum)
+                return binpacking(items, k=k, maximum=maximum, solver=solver, verbose=verbose)
             except MIPSolverException:
                 k = k + 1
 
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
-    p=MixedIntegerLinearProgram()
+    p = MixedIntegerLinearProgram(solver=solver)
 
-    # Boolean variable indicating whether
-    # the i th element belongs to box b
-    box=p.new_variable(binary = True)
+    # Boolean variable indicating whether the ith element belongs to box b
+    box = p.new_variable(binary=True)
 
-    # Each bin contains at most max
+    # Capacity constraint of each bin
     for b in range(k):
-        p.add_constraint(p.sum([items[i]*box[i,b] for i in range(len(items))]) <= maximum)
+        p.add_constraint(p.sum(weight[i]*box[i,b] for i in weight) <= maximum)
 
     # Each item is assigned exactly one bin
-    for i in range(len(items)):
-        p.add_constraint(p.sum([box[i,b] for b in range(k)]) == 1)
-
-    p.set_objective(None)
+    for i in weight:
+        p.add_constraint(p.sum(box[i,b] for b in range(k)) == 1)
 
     try:
-        p.solve()
+        p.solve(log=verbose)
     except MIPSolverException:
-        raise ValueError("This problem has no solution !")
+        raise ValueError("this problem has no solution !")
 
     box = p.get_values(box)
 
     boxes = [[] for i in range(k)]
 
-    for (i, b), value in iteritems(box):
-        if value == 1:
-            boxes[b].append(items[i])
+    for i,b in box:
+        if box[i,b] == 1:
+            boxes[b].append(weight[i] if isinstance(items, list) else i)
 
     return boxes

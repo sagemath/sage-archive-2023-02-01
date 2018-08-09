@@ -18,11 +18,15 @@ fields:
 * :class:`~sage.manifolds.differentiable.diff_form.DiffForm` for differential
   forms (fully antisymmetric covariant tensor fields)
 
+* :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
+  for multivector fields (fully antisymmetric contravariant tensor fields)
+
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015) : initial version
 - Travis Scrimshaw (2016): review tweaks
-- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian
+- Eric Gourgoulhon (2018): operators divergence, Laplacian and d'Alembertian;
+  method :meth:`TensorField.along`
 
 REFERENCES:
 
@@ -418,6 +422,16 @@ class TensorField(ModuleElement):
             self._latex_name = latex_name
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
+
+        self._extensions_graph = {self._domain: self}
+                    # dict. of known extensions of self on bigger domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as incomming edges on a graph.
+        self._restrictions_graph = {self._domain: self}
+                    # dict. of known restrictions of self on smaller domains,
+                    # including self, with domains as keys. Its elements can be
+                    # seen as outgoing edges on a graph.
+
         self._restrictions = {} # dict. of restrictions of self on subdomains
                                 # of self._domain, with the subdomains as keys
         # Treatment of symmetry declarations:
@@ -947,19 +961,57 @@ class TensorField(ModuleElement):
                                  "the {}".format(self))
             # First one tries to get the restriction from a tighter domain:
             for dom, rst in self._restrictions.items():
-                if subdomain.is_subset(dom):
+                if subdomain.is_subset(dom) and subdomain in rst._restrictions:
+                    res = rst._restrictions[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
+            for dom, rst in self._restrictions.items():
+                if subdomain.is_subset(dom) and dom is not self._domain:
                     self._restrictions[subdomain] = rst.restrict(subdomain)
-                    break
+                    self._restrictions_graph[subdomain] = rst.restrict(subdomain)
+                    return self._restrictions[subdomain]
+
+            # Secondly one tries to get the restriction from one previously
+            # defined on a larger domain:
+            for dom, ext in self._extensions_graph.items():
+                if subdomain in ext._restrictions:
+                    res = ext._restrictions_graph[subdomain]
+                    self._restrictions[subdomain] = res
+                    self._restrictions_graph[subdomain] = res
+                    res._extensions_graph.update(self._extensions_graph)
+                    for ext in self._extensions_graph.values():
+                        ext._restrictions[subdomain] = res
+                        ext._restrictions_graph[subdomain] = res
+                    return self._restrictions[subdomain]
+
             # If this fails, the restriction is created from scratch:
-            else:
-                smodule = subdomain.vector_field_module(dest_map=dest_map)
-                self._restrictions[subdomain] = smodule.tensor(
-                                                  self._tensor_type,
-                                                  name=self._name,
-                                                  latex_name=self._latex_name,
-                                                  sym=self._sym,
-                                                  antisym=self._antisym,
-                                                  specific_type=type(self))
+            smodule = subdomain.vector_field_module(dest_map=dest_map)
+            res = smodule.tensor(self._tensor_type, name=self._name,
+                                 latex_name=self._latex_name, sym=self._sym,
+                                 antisym=self._antisym,
+                                 specific_type=type(self))
+            res._extensions_graph.update(self._extensions_graph)
+            for dom, ext in self._extensions_graph.items():
+                ext._restrictions[subdomain] = res
+                ext._restrictions_graph[subdomain] = res
+
+            for dom, rst in self._restrictions.items():
+                if dom.is_subset(subdomain):
+                    if rst is not res:
+                        res._restrictions.update(rst._restrictions)
+                    res._restrictions_graph.update(rst._restrictions_graph)
+                    rst._extensions_graph.update(res._extensions_graph)
+
+            self._restrictions[subdomain] = res
+            self._restrictions_graph[subdomain] = res
+            res._extensions_graph.update(self._extensions_graph)
+
         return self._restrictions[subdomain]
 
     def set_comp(self, basis=None):
@@ -1158,6 +1210,104 @@ class TensorField(ModuleElement):
         resu = self.add_comp(frame) # _del_derived is performed here
         for ind in resu.non_redundant_index_generator():
             resu[[ind]] = dom.scalar_field({chart: scomp[[ind]].expr(schart)})
+
+    def add_expr_from_subdomain(self, frame, subdomain):
+        r"""
+        Add an expression to an existing component from a subdomain.
+
+        INPUT:
+
+        - ``frame`` -- vector frame `e` in which the components are to be set
+        - ``subdomain`` -- open subset of `e`'s domain in which the
+          components have additional expressions.
+
+        EXAMPLES:
+
+        We are going to consider a vector field in `\RR^3` along the 2-sphere::
+
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: S = Manifold(2, 'S', structure="Riemannian")
+            sage: E.<X,Y,Z> = M.chart()
+
+        Let us define ``S`` in terms of stereographic charts::
+
+            sage: U = S.open_subset('U')
+            sage: V = S.open_subset('V')
+            sage: S.declare_union(U,V)
+            sage: stereoN.<x,y> = U.chart()
+            sage: stereoS.<xp,yp> = V.chart("xp:x' yp:y'")
+            sage: stereoN_to_S = stereoN.transition_map(stereoS,
+            ....:                                 (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                                 intersection_name='W',
+            ....:                                 restrictions1= x^2+y^2!=0,
+            ....:                                 restrictions2= xp^2+yp^2!=0)
+            sage: stereoS_to_N = stereoN_to_S.inverse()
+            sage: W = U.intersection(V)
+            sage: stereoN_W = stereoN.restrict(W)
+            sage: stereoS_W = stereoS.restrict(W)
+
+        The embedding of `S^2` in `\RR^3`::
+
+            sage: phi = S.diff_map(M, {(stereoN, E): [2*x/(1+x^2+y^2),
+            ....:                                     2*y/(1+x^2+y^2),
+            ....:                                     (x^2+y^2-1)/(1+x^2+y^2)],
+            ....:                        (stereoS, E): [2*xp/(1+xp^2+yp^2),
+            ....:                                       2*yp/(1+xp^2+yp^2),
+            ....:                               (1-xp^2-yp^2)/(1+xp^2+yp^2)]},
+            ....:                   name='Phi', latex_name=r'\Phi')
+
+        To define a vector field ``v`` along ``S`` taking its values in ``M``,
+        we first set the components on ``U``::
+
+            sage: v = M.vector_field('v').along(phi)
+            sage: vU = v.restrict(U)
+            sage: vU[:] = [x,y,x**2+y**2]
+
+        But because ``M`` is parallelizable, these components can be extended
+        to ``S`` itself::
+
+            sage: v.add_comp_by_continuation(E.frame().along(phi), U)
+
+        One can see that ``v`` is not yet fully defined: the components
+        (scalar fields) do not have values on the whole manifold::
+
+            sage: v._components.values()[0]._comp[(0,)].display()
+            S --> R
+            on U: (x, y) |--> x
+
+        To fix that, we first extend the components from ``W`` to ``V`` using
+        :meth:`add_comp_by_continuation`::
+
+            sage: v.add_comp_by_continuation(E.frame().along(phi).restrict(V),
+            ....:                            W, stereoS)
+
+        Then, the expression on the subdomain ``V`` is added to the
+        already known components on ``S`` by::
+
+            sage: v.add_expr_from_subdomain(E.frame().along(phi), V)
+
+        The definition of ``v`` is now complete::
+
+            sage: v._components.values()[0]._comp[(2,)].display()
+            S --> R
+            on U: (x, y) |--> x^2 + y^2
+            on V: (xp, yp) |--> 1/(xp^2 + yp^2)
+        """
+        dom = frame._domain
+        if not dom.is_subset(self._domain):
+            raise ValueError("the vector frame is not defined on a subset " +
+                             "of the tensor field domain")
+        if frame not in self.restrict(frame.domain())._components:
+            raise ValueError("the tensor doesn't have an expression in "
+                             "the frame"+frame._repr_())
+        comp = self.comp(frame)
+        scomp = self.restrict(subdomain).comp(frame.restrict(subdomain))
+        for ind in comp.non_redundant_index_generator():
+            comp[[ind]]._express.update(scomp[[ind]]._express)
+
+        rst = self._restrictions.copy()
+        self._del_derived()         # delete restrictions
+        self._restrictions = rst
 
     def comp(self, basis=None, from_basis=None):
         r"""
@@ -3427,16 +3577,12 @@ class TensorField(ModuleElement):
 
         Divergence of a vector field in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
-            sage: v = M.vector_field('v')
-            sage: v[:] = x, y
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(x, y, name='v')
             sage: s = v.divergence(); s
-            Scalar field div(v) on the 2-dimensional Riemannian manifold M
+            Scalar field div(v) on the Euclidean plane E^2
             sage: s.display()
-            div(v): M --> R
+            div(v): E^2 --> R
                (x, y) |--> 2
 
         A shortcut alias of ``divergence`` is ``div``::
@@ -3456,19 +3602,19 @@ class TensorField(ModuleElement):
         not the default one::
 
             sage: h = M.lorentzian_metric('h')
-            sage: h[0,0], h[1,1] = -1, 1/(1+x^2+y^2)
+            sage: h[1,1], h[2,2] = -1, 1/(1+x^2+y^2)
             sage: s = v.div(h); s
-            Scalar field div_h(v) on the 2-dimensional Riemannian manifold M
+            Scalar field div_h(v) on the Euclidean plane E^2
             sage: s.display()
-            div_h(v): M --> R
+            div_h(v): E^2 --> R
                (x, y) |--> (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
 
         The standard formula
 
         .. MATH::
 
-            \mathrm{div}_h \, v = \frac{1}{\sqrt{\det h}}
-            \frac{\partial}{\partial x^i} \left( \sqrt{\det h} \, v^i \right)
+            \mathrm{div}_h \, v = \frac{1}{\sqrt{|\det h|}}
+            \frac{\partial}{\partial x^i} \left( \sqrt{|\det h|} \, v^i \right)
 
         is checked as follows::
 
@@ -3479,24 +3625,22 @@ class TensorField(ModuleElement):
 
         A divergence-free vector::
 
-            sage: w = M.vector_field('w')
-            sage: w[:] = -y, x
+            sage: w = M.vector_field(-y, x, name='w')
             sage: w.div().display()
-            div(w): M --> R
+            div(w): E^2 --> R
                (x, y) |--> 0
             sage: w.div(h).display()
-            div_h(w): M --> R
+            div_h(w): E^2 --> R
                (x, y) |--> 0
 
         Divergence of a type-``(2,0)`` tensor field::
 
             sage: t = v*w; t
-            Tensor field v*w of type (2,0) on the 2-dimensional Riemannian
-             manifold M
+            Tensor field v*w of type (2,0) on the Euclidean plane E^2
             sage: s = t.div(); s
-            Vector field div(v*w) on the 2-dimensional Riemannian manifold M
+            Vector field div(v*w) on the Euclidean plane E^2
             sage: s.display()
-            div(v*w) = -y d/dx + x d/dy
+            div(v*w) = -y e_x + x e_y
 
         """
         n_con = self._tensor_type[0] # number of contravariant indices = k
@@ -3565,16 +3709,12 @@ class TensorField(ModuleElement):
 
         Laplacian of a vector field in the Euclidean plane::
 
-            sage: M = Manifold(2, 'M', structure='Riemannian')
-            sage: X.<x,y> = M.chart()
-            sage: g = M.metric()
-            sage: g[0,0], g[1,1] = 1, 1
-            sage: v = M.vector_field(name='v')
-            sage: v[:] = x^3 + y^2, x*y
+            sage: M.<x,y> = EuclideanSpace()
+            sage: v = M.vector_field(x^3 + y^2, x*y, name='v')
             sage: Dv = v.laplacian(); Dv
-            Vector field Delta(v) on the 2-dimensional Riemannian manifold M
+            Vector field Delta(v) on the Euclidean plane E^2
             sage: Dv.display()
-            Delta(v) = (6*x + 2) d/dx
+            Delta(v) = (6*x + 2) e_x
 
         The function :func:`~sage.manifolds.operators.laplacian` from the
         :mod:`~sage.manifolds.operators` module can be used instead of the
@@ -3594,12 +3734,12 @@ class TensorField(ModuleElement):
         not the default one::
 
             sage: h = M.lorentzian_metric('h')
-            sage: h[0,0], h[1,1] = -1, 1+x^2
+            sage: h[1,1], h[2,2] = -1, 1+x^2
             sage: Dv = v.laplacian(h); Dv
-            Vector field Delta_h(v) on the 2-dimensional Riemannian manifold M
+            Vector field Delta_h(v) on the Euclidean plane E^2
             sage: Dv.display()
-            Delta_h(v) = -(8*x^5 - 2*x^4 - x^2*y^2 + 15*x^3 - 4*x^2
-             + 6*x - 2)/(x^4 + 2*x^2 + 1) d/dx - 3*x^3*y/(x^4 + 2*x^2 + 1) d/dy
+            Delta_h(v) = -(8*x^5 - 2*x^4 - x^2*y^2 + 15*x^3 - 4*x^2 + 6*x
+             - 2)/(x^4 + 2*x^2 + 1) e_x - 3*x^3*y/(x^4 + 2*x^2 + 1) e_y
 
         """
         n_con = self._tensor_type[0] # number of contravariant indices = k
@@ -3714,4 +3854,122 @@ class TensorField(ModuleElement):
             # The name is propagated to possible restrictions of self:
             for restrict in resu._restrictions.values():
                 restrict.set_name(resu._name, latex_name=resu._latex_name)
+        return resu
+
+    def along(self, mapping):
+        r"""
+        Return the tensor field deduced from ``self`` via a differentiable map,
+        the codomain of which is included in the domain of ``self``.
+
+        More precisely, if ``self`` is a tensor field `t` on `M` and if
+        `\Phi: U \rightarrow M` is a differentiable map from some
+        differentiable manifold `U` to `M`, the returned object is
+        a tensor field `\tilde t` along `U` with values on `M` such that
+
+        .. MATH::
+
+           \forall p \in U,\  \tilde t(p) = t(\Phi(p)).
+
+        INPUT:
+
+        - ``mapping`` -- differentiable map `\Phi: U \rightarrow M`
+
+        OUTPUT:
+
+        - tensor field `\tilde t` along `U` defined above.
+
+        EXAMPLES:
+
+        Let us consider the 2-dimensional sphere `S^2`::
+
+            sage: M = Manifold(2, 'S^2') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x/(x^2+y^2), y/(x^2+y^2)),
+            ....:                 intersection_name='W', restrictions1= x^2+y^2!=0,
+            ....:                 restrictions2= u^2+v^2!=0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: W = U.intersection(V)
+
+        and the following map from the open interval `(0,5\pi/2)` to `S^2`,
+        the image of it being the great circle `x=0`, `u=0`, which goes through
+        the North and South poles::
+
+            sage: I.<t> = OpenInterval(0, 5*pi/2)
+            sage: J = I.open_interval(0, 3*pi/2)
+            sage: K = I.open_interval(pi, 5*pi/2)
+            sage: c_J = J.canonical_chart(); c_K = K.canonical_chart()
+            sage: Phi = I.diff_map(M, {(c_J, c_xy):
+            ....:                      (0, sgn(pi-t)*sqrt((1+cos(t))/(1-cos(t)))),
+            ....:                      (c_K, c_uv):
+            ....:                      (0,  sgn(t-2*pi)*sqrt((1-cos(t))/(1+cos(t))))},
+            ....:                  name='Phi')
+
+        Let us consider a vector field on `S^2`::
+
+            sage: eU = c_xy.frame(); eV = c_uv.frame()
+            sage: w = M.vector_field(name='w')
+            sage: w[eU,0] = 1
+            sage: w.add_comp_by_continuation(eV, W, chart=c_uv)
+            sage: w.display(eU)
+            w = d/dx
+            sage: w.display(eV)
+            w = (-u^2 + v^2) d/du - 2*u*v d/dv
+
+        We have then::
+
+            sage: wa = w.along(Phi); wa
+            Vector field w along the Real interval (0, 5/2*pi) with values on
+             the 2-dimensional differentiable manifold S^2
+            sage: wa.display(eU.along(Phi))
+            w = d/dx
+            sage: wa.display(eV.along(Phi))
+            w = -(cos(t) - 1)*sgn(-2*pi + t)^2/(cos(t) + 1) d/du
+
+        Some tests::
+
+            sage: p = K.an_element()
+            sage: wa.at(p) == w.at(Phi(p))
+            True
+            sage: wa.at(J(4*pi/3)) == wa.at(K(4*pi/3))
+            True
+            sage: wa.at(I(4*pi/3)) == wa.at(K(4*pi/3))
+            True
+            sage: wa.at(K(7*pi/4)) == eU[0].at(Phi(I(7*pi/4))) # since eU[0]=d/dx
+            True
+
+        """
+        dom = self._domain
+        if self._ambient_domain is not dom:
+            raise ValueError("{} is not a tensor field ".format(self) +
+                             "with values in the {}".format(dom))
+        if mapping.codomain().is_subset(dom):
+            rmapping = mapping
+        else:
+            rmapping = None
+            for doms, rest in mapping._restrictions.items():
+                if doms[1].is_subset(dom):
+                    rmapping = rest
+                    break
+            else:
+                raise ValueError("the codomain of {} is not ".format(mapping) +
+                                 "included in the domain of {}".format(self))
+        resu_ambient_domain = rmapping.codomain()
+        if resu_ambient_domain.is_manifestly_parallelizable():
+            return self.restrict(resu_ambient_domain).along(rmapping)
+        dom_resu = rmapping.domain()
+        vmodule = dom_resu.vector_field_module(dest_map=rmapping)
+        resu = vmodule.tensor(self._tensor_type, name=self._name,
+                              latex_name=self._latex_name, sym=self._sym,
+                              antisym=self._antisym)
+        for rdom in resu_ambient_domain._parallelizable_parts:
+            if rdom in resu_ambient_domain._top_subsets:
+                for chart1, chart2 in rmapping._coord_expression:
+                    if chart2.domain() is rdom:
+                        dom1 = chart1.domain()
+                        rrmap = rmapping.restrict(dom1, subcodomain=rdom)
+                        resu._restrictions[dom1] = self.restrict(rdom).along(rrmap)
         return resu

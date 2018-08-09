@@ -48,8 +48,9 @@ from . import combination
 
 ZZ_0 = ZZ.zero()
 
+
 def Subsets(s, k=None, submultiset=False):
-    """
+    r"""
     Return the combinatorial class of the subsets of the finite set
     ``s``. The set can be given as a list, Set or any iterable
     convertible to a set. Alternatively, a non-negative integer `n`
@@ -157,9 +158,6 @@ def Subsets(s, k=None, submultiset=False):
             raise ValueError("s must be non-negative")
         from sage.sets.integer_range import IntegerRange
         s = IntegerRange(1,s+1)
-
-#    if len(Set(s)) != len(s):
-#        multi = True
 
     if k is None:
         if submultiset:

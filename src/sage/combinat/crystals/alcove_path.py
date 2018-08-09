@@ -28,7 +28,6 @@ from sage.structure.element import Element
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.richcmp import richcmp
-from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
 from sage.categories.loop_crystals import LoopCrystals
 from sage.graphs.all import DiGraph
@@ -382,7 +381,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             return self.element_class(self, tuple(sorted([lambda_chain[i] for i in data])))
 
     def vertices(self):
-        """
+        r"""
         Return a list of all the vertices of the crystal.
 
         The vertices are represented as lists of integers recording the folding

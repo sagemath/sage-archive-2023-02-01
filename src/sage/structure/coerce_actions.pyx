@@ -525,7 +525,7 @@ cdef class ModuleAction(Action):
             sage: cm.explain(x, 1, operator.truediv)
             Action discovered.
                 Right inverse action by Symbolic Constants Subring on Univariate Polynomial Ring in x over Symbolic Constants Subring
-                with precomposition on right by Coercion map:
+                with precomposition on right by Conversion via _symbolic_ method map:
                   From: Integer Ring
                   To:   Symbolic Constants Subring
             Result lives in Univariate Polynomial Ring in x over Symbolic Constants Subring
@@ -667,7 +667,7 @@ cdef class IntegerAction(Action):
     """
     def __init__(self, Z, S, is_left, op):
         if isinstance(Z, type):
-            from sage.structure.parent import Set_PythonType
+            from sage.sets.pythonclass import Set_PythonType
             Z = Set_PythonType(Z)
         super().__init__(Z, S, is_left, op)
 

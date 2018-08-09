@@ -345,8 +345,7 @@ mutating at the initial seed::
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import absolute_import
-from six.moves import range
-from future_builtins import map
+from six.moves import range, map
 
 from copy import copy
 
@@ -453,7 +452,7 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: x.d_vector()
             (1, 1, 2, -2)
         """
-        monomials = self.lift()._dict().keys()
+        monomials = self.lift().dict().keys()
         minimal = map(min, zip(*monomials))
         return tuple(-vector(minimal))[:self.parent().rank()]
 
@@ -2039,7 +2038,8 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         mutating_F = kwargs.get('mutating_F', True)
 
         # which directions are we allowed to mutate into
-        allowed_dirs = list(sorted(kwargs.get('allowed_directions', range(self.rank()))))
+        allowed_dirs = sorted(kwargs.get('allowed_directions',
+                                         range(self.rank())))
 
         # setup seeds storage
         cl = frozenset(seed.g_vectors())
@@ -2052,7 +2052,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             # remember if we got a new seed
             gets_bigger = False
 
-            for cl in clusters.keys():
+            for cl in list(clusters):
                 sd, directions = clusters[cl]
                 while directions:
                     try:

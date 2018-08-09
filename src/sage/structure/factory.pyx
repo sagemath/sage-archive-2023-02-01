@@ -568,7 +568,7 @@ def register_factory_unpickle(name, callable):
 
     :class:`UniqueFactory` pickles use a global name through
     :func:`generic_factory_unpickle()`, so the usual
-    :func:`~sage.structure.sage_object.register_unpickle_override()`
+    :func:`~sage.misc.persist.register_unpickle_override()`
     cannot be used here.
 
     .. SEEALSO::

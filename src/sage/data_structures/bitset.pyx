@@ -50,7 +50,7 @@ cdef class FrozenBitset:
 
     The interface in this class mirrors the interface in the ``frozenset``
     data type of Python. See the Python documentation on `set types
-    <http://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_
+    <https://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_
     for more details on Python's ``set`` and ``frozenset`` classes.
 
     .. warning::
@@ -99,7 +99,7 @@ cdef class FrozenBitset:
 
         - :class:`Bitset`
 
-        - Python's `set types <http://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_
+        - Python's `set types <https://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_
 
     EXAMPLES:
 
@@ -390,7 +390,7 @@ cdef class FrozenBitset:
             bitset_from_str(self._bitset, iter)
         else:  # an iterable
             iter = list(iter)
-            if len(iter) > 0:
+            if iter:
                 need_capacity = max(iter) + 1
             else:
                 need_capacity = 0
@@ -1262,7 +1262,7 @@ cdef class Bitset(FrozenBitset):
     .. SEEALSO::
 
         - :class:`FrozenBitset`
-        - Python's `set types <http://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_
+        - Python's `set types <https://docs.python.org/library/stdtypes.html#set-types-set-frozenset>`_
 
     EXAMPLES::
 

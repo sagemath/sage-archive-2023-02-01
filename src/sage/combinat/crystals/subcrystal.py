@@ -25,7 +25,6 @@ AUTHORS:
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 from sage.categories.crystals import Crystals
@@ -37,7 +36,7 @@ from sage.structure.richcmp import richcmp
 
 
 class Subcrystal(UniqueRepresentation, Parent):
-    """
+    r"""
     A subcrystal `X` of an ambient crystal `Y` is a crystal formed by taking a
     subset of `Y` and whose crystal structure is induced by `Y`.
 

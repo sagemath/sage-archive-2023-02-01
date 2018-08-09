@@ -18,9 +18,12 @@ elements. For general information about libGAP, you should read the
 
 from __future__ import absolute_import, print_function
 
-from cpython.object cimport *
+from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from cysignals.signals cimport sig_on, sig_off
 
+from .gap_includes cimport *
+from .util cimport *
+from sage.cpython.string cimport char_to_str, str_to_bytes
 from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object cimport SageObject
 from sage.structure.parent import Parent
@@ -99,7 +102,7 @@ cdef libGAP_Obj make_gap_record(sage_dict) except NULL:
     cdef libGAP_UInt rnam
     for d in data:
         key, val = d
-        rnam = libGAP_RNamName(key)
+        rnam = libGAP_RNamName(str_to_bytes(key))
         libGAP_AssPRec(rec, rnam, val.value)
     libgap_exit()
     return rec
@@ -147,7 +150,8 @@ cdef libGAP_Obj make_gap_string(sage_string) except NULL:
     """
     libgap_enter()
     cdef libGAP_Obj result
-    libGAP_C_NEW_STRING(result, len(sage_string), <char*>sage_string)
+    sage_string = str_to_bytes(sage_string)
+    libGAP_C_NEW_STRING(result, len(sage_string), sage_string)
     libgap_exit()
     return result
 
@@ -597,7 +601,7 @@ cdef class GapElement(RingElement):
             libgap_enter()
             libgap_start_interaction('')
             libGAP_ViewObjHandler(self.value)
-            s = libgap_get_output()
+            s = char_to_str(libgap_get_output())
             return s.strip()
         finally:
             libgap_finish_interaction()
@@ -1300,13 +1304,13 @@ cdef class GapElement_Integer(GapElement):
 
             sage: int(libgap(3))
             3
-            sage: type(_)
-            <... 'int'>
+            sage: type(_) is int
+            True
 
             sage: int(libgap(2)**128)
             340282366920938463463374607431768211456L
-            sage: type(_)
-            <type 'long'>
+            sage: type(_) is long
+            True
         """
         return self.sage(ring=int)
 
@@ -2093,7 +2097,7 @@ cdef class GapElement_String(GapElement):
             <... 'str'>
         """
         libgap_enter()
-        s = libGAP_CSTR_STRING(self.value)
+        s = char_to_str(libGAP_CSTR_STRING(self.value))
         libgap_exit()
         return s
 
@@ -2417,7 +2421,7 @@ cdef class GapElement_MethodProxy(GapElement_Function):
             sage: lst
             [ 1,, 3, 4, 5 ]
         """
-        if len(args) > 0:
+        if args:
             return GapElement_Function.__call__(self, * ([self.first_argument] + list(args)))
         else:
             return GapElement_Function.__call__(self, self.first_argument)
@@ -2887,13 +2891,13 @@ cdef class GapElement_Record(GapElement):
         return GapElement_RecordIterator(self)
 
 
-    cpdef libGAP_UInt record_name_to_index(self, bytes py_name):
+    cpdef libGAP_UInt record_name_to_index(self, name):
         r"""
         Convert string to GAP record index.
 
         INPUT:
 
-        - ``py_name`` -- a python string.
+        - ``name`` -- a python string.
 
         OUTPUT:
 
@@ -2909,10 +2913,11 @@ cdef class GapElement_Record(GapElement):
             sage: rec.record_name_to_index('no_such_name') # random output
             3776L
         """
-        cdef char* c_name = py_name
+        name = str_to_bytes(name)
+
         try:
             libgap_enter()
-            return libGAP_RNamName(c_name)
+            return libGAP_RNamName(name)
         finally:
             libgap_exit()
 
@@ -3033,7 +3038,7 @@ cdef class GapElement_RecordIterator(object):
         # note the abs: negative values mean the rec keys are not sorted
         libgap_enter()
         key_index = abs(libGAP_GET_RNAM_PREC(self.rec.value, i))
-        key = libGAP_NAME_RNAM(key_index)
+        key = char_to_str(libGAP_NAME_RNAM(key_index))
         cdef libGAP_Obj result = libGAP_GET_ELM_PREC(self.rec.value,i)
         libgap_exit()
         val = make_any_gap_element(self.rec.parent(), result)

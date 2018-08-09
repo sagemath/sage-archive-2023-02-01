@@ -245,13 +245,13 @@ class PeriodLattice_ell(PeriodLattice):
             self._ei.sort()  # e1 < e2 < e3
             e1, e2, e3 = self._ei
         elif self.real_flag == -1: # negative discriminant
-            self._ei = self.f2.roots(QQbar,multiplicities=False)
-            self._ei = list(sorted(self._ei,key=lambda z: z.imag()))
+            self._ei = self.f2.roots(QQbar, multiplicities=False)
+            self._ei = sorted(self._ei, key=lambda z: z.imag())
             e1, e3, e2 = self._ei # so e3 is real
             e3 = AA(e3)
             self._ei = [e1, e2, e3]
         else:
-            self._ei = self.f2.roots(QQbar,multiplicities=False)
+            self._ei = self.f2.roots(QQbar, multiplicities=False)
             e1, e2, e3 = self._ei
 
         # The quantities sqrt(e_i-e_j) are cached (as elements of
@@ -1182,30 +1182,23 @@ class PeriodLattice_ell(PeriodLattice):
             0.958696500380444
         """
         C = z.parent()
-        z_is_real = False
         if is_RealField(C):
-            z_is_real = True
             C = ComplexField(C.precision())
             z = C(z)
+        elif is_ComplexField(C):
+            pass
         else:
-            if is_ComplexField(C):
-                z_is_real = z.is_real()
-            else:
-                try:
-                    C = ComplexField()
-                    z = C(z)
-                    z_is_real = z.is_real()
-                except TypeError:
-                    raise TypeError("%s is not a complex number"%z)
+            try:
+                C = ComplexField()
+                z = C(z)
+            except TypeError:
+                raise TypeError("%s is not a complex number" % z)
         prec = C.precision()
         if self.real_flag:
-            w1,w2 = self.basis(prec) # w1 real
+            w1, w2 = self.basis(prec)  # w1 real
         else:
-            w1,w2 = self.normalised_basis(prec)
-    #    print "z = ",z
-    #    print "w1,w2 = ",w1,w2
-        u,v = self.coordinates(z, rounding='floor')
-    #    print "u,v = ",u,v
+            w1, w2 = self.normalised_basis(prec)
+        u, v = self.coordinates(z, rounding='floor')
         z = z-u*w1-v*w2
 
         # Final adjustments for the real case.
@@ -1321,7 +1314,6 @@ class PeriodLattice_ell(PeriodLattice):
 
         R = RealField(prec2)
         C = ComplexField(prec2)
-        pi = R.pi()
         e1,e2,e3 = self._ei
         a1,a2,a3 = [self.embedding(a) for a in self.E.ainvs()[:3]]
 
@@ -1823,8 +1815,7 @@ def reduce_tau(tau):
         sage: reduce_tau(CC(1.23,0.0000345))
         (0.130000000001761 + 2.89855072463768*I, [13, -16, 100, -123])
     """
-    assert tau.imag()>0
-    tau_orig = tau
+    assert tau.imag() > 0
     a, b = ZZ(1), ZZ(0)
     c, d = b, a
     k = tau.real().round()
@@ -1842,7 +1833,8 @@ def reduce_tau(tau):
     assert tau.abs()>=0.999 and tau.real().abs() <= 0.5
     return tau, [a,b,c,d]
 
-def normalise_periods(w1,w2):
+
+def normalise_periods(w1, w2):
     r"""
     Normalise the period basis `(w_1,w_2)` so that `w_1/w_2` is in the fundamental region.
 

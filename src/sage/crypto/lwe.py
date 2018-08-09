@@ -51,9 +51,9 @@ Note that Ring-LWE samples are returned as vectors::
     sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], euler_phi(16), 5)
     sage: ringlwe = RingLWE(16, 257, D, secret_dist='uniform')
     sage: samples(30, euler_phi(16), ringlwe)
-    [((41, 78, 232, 79, 223, 85, 26, 68), (195, 99, 106, 57, 93, 113, 23, 68)),
+    [((232, 79, 223, 85, 26, 68, 60, 72), (72, 158, 117, 166, 140, 103, 142, 223)),
     ...
-    ((185, 89, 244, 122, 249, 140, 173, 142), (98, 196, 70, 49, 55, 8, 158, 57))]
+    ((27, 191, 241, 179, 246, 204, 36, 72), (207, 158, 127, 240, 225, 141, 156, 201))]
 
 One technical issue when working with these generators is that by default they
 return vectors and scalars over/in rings modulo some `q`. These are represented
@@ -64,9 +64,9 @@ scalars over/in the integers are returned::
 
     sage: from sage.crypto.lwe import samples
     sage: samples(30, 20, 'Regev', balanced=True)
-    [((-105, 43, -25, -16, 57, 141, -108, 92, -173, 4, 179, -191, 164, 101, -16, -175, 172, 10, 147, 1), 114),
+    [((-46, -84, 21, -72, -47, -162, -40, -31, -9, -131, 74, 183, 62, -83, -135, 164, -33, -109, -127, -124), 96),
     ...
-    ((-166, -147, 120, -56, 130, 163, 83, 17, -125, -159, -124, 19, 198, -181, -124, -155, 84, -15, -113, 113), 39)]
+    ((-48, 185, 118, 69, 57, 109, 109, 138, -42, -45, -16, 180, 34, 178, 20, -119, -58, -136, -46, 169), -72)]
 
 AUTHORS:
 
@@ -88,16 +88,15 @@ REFERENCES:
 """
 from six.moves import range
 
-from sage.functions.log import exp, log
+from sage.functions.log import log
 from sage.functions.other import sqrt, floor, ceil
 from sage.misc.functional import cyclotomic_polynomial
 from sage.misc.randstate import set_random_seed
 from sage.misc.prandom import randint
-from sage.misc.misc import get_verbose
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import random_vector, vector
 from sage.numerical.optimize import find_root
-from sage.rings.all import ZZ, RealField, IntegerModRing, RR
+from sage.rings.all import ZZ, IntegerModRing, RR
 from sage.arith.all import next_prime, euler_phi
 from sage.structure.element import parent
 from sage.structure.sage_object import SageObject
@@ -240,7 +239,7 @@ class LWE(SageObject):
     .. automethod:: __call__
     """
     def __init__(self, n, q, D, secret_dist='uniform', m=None):
-        """
+        r"""
         Construct an LWE oracle in dimension ``n`` over a ring of order
         ``q`` with noise distribution ``D``.
 
@@ -579,7 +578,7 @@ class RingLWE(SageObject):
             sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], n, 5)
             sage: ringlwe = RingLWE(N, 257, D, secret_dist='uniform')
             sage: ringlwe()
-            ((228, 149, 226, 198, 38, 222, 222, 127), (178, 132, 72, 147, 77, 159, 187, 250))
+            ((226, 198, 38, 222, 222, 127, 194, 124), (11, 191, 177, 59, 105, 203, 108, 42))
         """
         if self.m is not None:
             if self.__i >= self.m:
@@ -652,7 +651,7 @@ class RingLWEConverter(SageObject):
             sage: lwe = RingLWEConverter(RingLWE(16, 257, D, secret_dist='uniform'))
             sage: set_random_seed(1337)
             sage: lwe()
-            ((130, 32, 216, 3, 125, 58, 197, 171), 189)
+            ((32, 216, 3, 125, 58, 197, 171, 43), 81)
         """
         self.ringlwe = ringlwe
         self._i = 0
@@ -668,7 +667,7 @@ class RingLWEConverter(SageObject):
             sage: lwe = RingLWEConverter(RingLWE(16, 257, D, secret_dist='uniform'))
             sage: set_random_seed(1337)
             sage: lwe()
-            ((130, 32, 216, 3, 125, 58, 197, 171), 189)
+            ((32, 216, 3, 125, 58, 197, 171, 43), 81)
         """
         R_q = self.ringlwe.R_q
 
@@ -778,9 +777,9 @@ def balance_sample(s, q=None):
         sage: D = DiscreteGaussianDistributionPolynomialSampler(ZZ['x'], 8, 5)
         sage: rlwe = RingLWE(20, 257, D)
         sage: list(map(balance_sample, samples(10, 8, rlwe)))
-        [((-7, -37, -64, 107, -91, -24, 120, 54), (74, 83, 18, 55, -53, 43, 4, 10)),
+        [((-64, 107, -91, -24, 120, 54, 38, -35), (-84, 121, 28, -99, 91, 54, -60, 11)),
         ...
-        ((-63, 34, 82, -112, 49, 89, -72, -41), (117, 43, 13, -37, 102, 55, -97, 56))]
+        ((-40, -117, 35, -69, -11, 10, 122, 48), (-80, -2, 119, -91, 27, 66, 121, -1))]
 
     .. note::
 

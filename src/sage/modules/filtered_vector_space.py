@@ -114,7 +114,7 @@ from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
 from sage.categories.fields import Fields
 from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
-from sage.matrix.constructor import vector, matrix
+from sage.matrix.constructor import matrix
 from sage.misc.all import uniq, cached_method
 
 
@@ -145,7 +145,7 @@ def is_FilteredVectorSpace(X):
 
 
 def FilteredVectorSpace(arg1, arg2=None, base_ring=QQ, check=True):
-    """
+    r"""
     Construct a filtered vector space.
 
     INPUT:
@@ -543,7 +543,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         return (len(f) == 1) or (len(f) == 2 and f[1][0] == infinity)
 
     def is_exhaustive(self):
-        """
+        r"""
         Return whether the filtration is exhaustive.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is
@@ -568,7 +568,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             self.ambient_vector_space().dimension()
 
     def is_separating(self):
-        """
+        r"""
         Return whether the filtration is separating.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is

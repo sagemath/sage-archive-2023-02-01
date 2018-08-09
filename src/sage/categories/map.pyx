@@ -25,7 +25,7 @@ from . import homset
 import weakref
 from sage.ext.stdsage cimport HAS_DICTIONARY
 from sage.arith.power cimport generic_power
-from sage.structure.parent cimport Set_PythonType
+from sage.sets.pythonclass cimport Set_PythonType
 from sage.misc.constant_function import ConstantFunction
 from sage.misc.superseded import deprecated_function_alias
 from sage.structure.element cimport parent

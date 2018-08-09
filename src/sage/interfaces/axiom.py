@@ -569,7 +569,7 @@ class PanAxiomElement(ExpectElement):
         P = self.parent()
         return P('%s(%s)'%(self.name(), x))
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES::
 

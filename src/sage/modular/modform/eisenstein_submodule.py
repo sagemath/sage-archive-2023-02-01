@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from six.moves import range
 
 from sage.structure.all import Sequence
-from sage.misc.all import verbose
+from sage.misc.all import verbose, cached_method
 import sage.rings.all as rings
 from sage.categories.all import Objects
 from sage.matrix.all import Matrix
@@ -68,6 +68,7 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
         """
         return self
 
+    @cached_method
     def modular_symbols(self, sign=0):
         r"""
         Return the corresponding space of modular symbols with given sign. This
@@ -109,18 +110,12 @@ class EisensteinSubmodule(submodule.ModularFormsSubmodule):
             ...
             ValueError: the weight must be at least 2
         """
-        try:
-            return self.__modular_symbols[sign]
-        except AttributeError:
-            self.__modular_symbols = {}
-        except KeyError:
-            pass
         A = self.ambient_module()
-        S = A.modular_symbols(sign).eisenstein_submodule()
-        self.__modular_symbols[sign] = S
-        return S
+        return A.modular_symbols(sign).eisenstein_submodule()
 
 class EisensteinSubmodule_params(EisensteinSubmodule):
+
+    @cached_method
     def parameters(self):
         r"""
         Return a list of parameters for each Eisenstein series
@@ -151,16 +146,11 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             sage: EisensteinForms(DirichletGroup(24).0,1).parameters()
             [(Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 1), (Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 2), (Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 3), (Dirichlet character modulo 24 of conductor 1 mapping 7 |--> 1, 13 |--> 1, 17 |--> 1, Dirichlet character modulo 24 of conductor 4 mapping 7 |--> -1, 13 |--> 1, 17 |--> 1, 6)]
         """
-        try:
-            return self.__parameters
-        except AttributeError:
-            char = self._parameters_character()
-            if char is None:
-                P = eis_series.compute_eisenstein_params(self.level(), self.weight())
-            else:
-                P = eis_series.compute_eisenstein_params(char, self.weight())
-            self.__parameters = P
-            return P
+        char = self._parameters_character()
+        if char is None:
+            return eis_series.compute_eisenstein_params(self.level(), self.weight())
+        else:
+            return eis_series.compute_eisenstein_params(char, self.weight())
 
     def new_submodule(self, p=None):
         r"""
@@ -296,17 +286,12 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             q^3 + O(q^6)
             ]
         """
-        try:
-            return self.__eisenstein_series
-        except AttributeError:
-            P = self.parameters()
-            E = Sequence([element.EisensteinSeries(self.change_ring(chi.base_ring()),
-                                                      None, t, chi, psi) for \
-                                              chi, psi, t in P], immutable=True,
-                         cr = True, universe=Objects())
-            assert len(E) == self.dimension(), "bug in enumeration of Eisenstein series."
-            self.__eisenstein_series = E
-            return E
+        P = self.parameters()
+        E = Sequence([element.EisensteinSeries(self.change_ring(chi.base_ring()),
+              None, t, chi, psi) for chi, psi, t in P],
+              immutable=True, cr=True, universe=Objects())
+        assert len(E) == self.dimension(), "bug in enumeration of Eisenstein series."
+        return E
 
     def new_eisenstein_series(self):
         r"""
@@ -662,7 +647,6 @@ def cyclotomic_restriction_tower(L,K):
         raise ValueError("K must be contained in L")
     f = L.defining_polynomial()
     R = K['x']
-    x = R.gen()
     g = R(f)
     h_ls = [ t[0] for t in g.factor() if t[0](L.gen(0)) == 0 ]
     if len(h_ls) == 0:

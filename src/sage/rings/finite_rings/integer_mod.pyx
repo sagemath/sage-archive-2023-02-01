@@ -105,7 +105,7 @@ from sage.structure.element cimport RingElement, ModuleElement, Element
 from sage.categories.morphism cimport Morphism
 from sage.categories.map cimport Map
 
-from sage.structure.sage_object import register_unpickle_override
+from sage.misc.persist import register_unpickle_override
 from sage.misc.superseded import deprecated_function_alias
 
 from sage.structure.parent cimport Parent
@@ -333,6 +333,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             <type 'sage.rings.finite_rings.integer_mod.IntegerMod_gmp'>
             sage: loads(a.dumps()) == a
             True
+
+        TESTS::
+
+            sage: TestSuite(Zmod(1)).run()
+            sage: TestSuite(Zmod(2)).run()
+            sage: TestSuite(Zmod(3)).run()
+            sage: TestSuite(Zmod(4)).run()
+            sage: TestSuite(Zmod(5)).run()
+            sage: TestSuite(Zmod(6)).run()
+            sage: TestSuite(Zmod(2^10 * 3^5)).run()
+            sage: TestSuite(Zmod(2^30 * 3^50 * 5^20)).run()
         """
         self._parent = parent
         self.__modulus = parent._pyx_order
@@ -914,6 +925,31 @@ cdef class IntegerMod_abstract(FiniteRingElement):
     cpdef bint is_unit(self):
         raise NotImplementedError
 
+    @coerce_binop
+    def divides(self, other):
+        r"""
+        Test wheter ``self`` divides ``other``.
+
+        EXAMPLES::
+
+            sage: R = Zmod(6)
+            sage: R(2).divides(R(4))
+            True
+            sage: R(4).divides(R(2))
+            True
+            sage: R(2).divides(R(3))
+            False
+        """
+        if not other:
+            return True
+        elif not self:
+            return False
+        mod = self.modulus()
+        sl = self.lift().gcd(mod)
+        if sl.is_one():
+            return True
+        return sl.divides(other.lift().gcd(mod))
+
     def is_square(self):
         r"""
         EXAMPLES::
@@ -1473,21 +1509,17 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             ....:             b = K(a)
             ....:             try:
             ....:                 L = b.nth_root(e, all=True)
-            ....:                 if len(L) > 0:
+            ....:                 if L:
             ....:                     c = b.nth_root(e)
             ....:             except Exception:
             ....:                 L = [-1]
             ....:             M = b._nth_root_naive(e)
             ....:             if sorted(L) != M:
             ....:                 print("mod(%s, %s).nth_root(%s,all=True), mod(%s, %s)._nth_root_naive(%s)" % (a,n,e,a,n,e))
-            ....:             if len(L) > 0 and (c not in L):
+            ....:             if L and (c not in L):
             ....:                 print("mod(%s, %s).nth_root(%s), mod(%s, %s).nth_root(%s,all=True)" % (a,n,e,a,n,e))
         """
-        L = []
-        for a in self.parent():
-            if a**n == self:
-                L.append(a)
-        return L
+        return [a for a in self.parent() if a**n == self]
 
     def _balanced_abs(self):
         """
@@ -4334,7 +4366,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
     """
     def __init__(self, R):
         import sage.categories.homset
-        from sage.structure.parent import Set_PythonType
+        from sage.sets.pythonclass import Set_PythonType
         IntegerMod_hom.__init__(self, sage.categories.homset.Hom(Set_PythonType(int), R))
 
     cpdef Element _call_(self, x):

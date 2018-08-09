@@ -72,7 +72,7 @@ class Magmas(Category_singleton):
 
         @cached_method
         def Associative(self):
-            """
+            r"""
             Return the full subcategory of the associative objects
             of ``self``.
 
@@ -98,7 +98,7 @@ class Magmas(Category_singleton):
 
         @cached_method
         def Commutative(self):
-            """
+            r"""
             Return the full subcategory of the commutative objects
             of ``self``.
 

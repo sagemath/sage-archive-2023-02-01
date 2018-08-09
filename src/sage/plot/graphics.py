@@ -4,15 +4,18 @@ Graphics objects
 
 This file contains the definition of the classes :class:`Graphics` and
 :class:`GraphicsArray`.  Usually, you don't create these classes directly
-(although you can do it), you would use :func:`plot` or
-:func:`graphics_array` instead.
+(although you can do it), you would use :func:`plot` or :func:`graphics_array`
+instead.
 
 AUTHORS:
 
 - Jeroen Demeyer (2012-04-19): split off this file from plot.py (:trac:`12857`)
+
 - Punarbasu Purkayastha (2012-05-20): Add logarithmic scale (:trac:`4529`)
+
 - Emily Chen (2013-01-05): Add documentation for
   :meth:`~sage.plot.graphics.Graphics.show` figsize parameter (:trac:`5956`)
+
 - Eric Gourgoulhon (2015-03-19): Add parameter axes_labels_size (:trac:`18004`)
 
 """
@@ -34,7 +37,6 @@ from six import integer_types
 import os
 from math import isnan
 import sage.misc.misc
-from sage.misc.html import html
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.fast_methods import WithEqualityById
 from sage.structure.sage_object import SageObject
@@ -2126,7 +2128,7 @@ class Graphics(WithEqualityById, SageObject):
         return self._limit_output_aspect_ratio(xmin, xmax, ymin, ymax)
 
     def _limit_output_aspect_ratio(self, xmin, xmax, ymin, ymax):
-        """
+        r"""
         Private helper function for :meth:`get_minmax_data`
 
         INPUT:
@@ -2254,6 +2256,7 @@ class Graphics(WithEqualityById, SageObject):
         from matplotlib.ticker import FuncFormatter, FixedFormatter
         from sage.misc.latex import latex
         from sage.symbolic.ring import SR
+        from .misc import _multiple_of_constant
         #---------------------- Formatting x-ticks ----------------------#
         if x_formatter is None:
             if scale[0] == 'log':
@@ -2261,7 +2264,6 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 x_formatter = OldScalarFormatter()
         elif x_formatter in SR:
-            from .misc import _multiple_of_constant
             x_const = x_formatter
             x_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,x_const))
@@ -2287,7 +2289,6 @@ class Graphics(WithEqualityById, SageObject):
             else:
                 y_formatter = OldScalarFormatter()
         elif y_formatter in SR:
-            from .misc import _multiple_of_constant
             y_const = y_formatter
             y_formatter = FuncFormatter(lambda n,pos:
                                         _multiple_of_constant(n,pos,y_const))
@@ -2457,7 +2458,7 @@ class Graphics(WithEqualityById, SageObject):
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
-                   stylesheet='classic',
+                   stylesheet=None,
                    typeset='default'):
         r"""
         Return a matplotlib figure object representing the graphic
@@ -2527,13 +2528,20 @@ class Graphics(WithEqualityById, SageObject):
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
 
+        # as discussed in trac #25799 and #23696, Sage prefers the computer
+        # modern fonts of TeX for math texts such as axes labels, but otherwise
+        # adopts the default style of matplotlib
+        from matplotlib import rcParams
+        rcParams['mathtext.fontset'] = 'cm'
+        rcParams['mathtext.rm'] = 'serif'
+
         import matplotlib.pyplot as plt
-        if stylesheet not in plt.style.available:
-            stylesheet = 'classic'
-        plt.style.use(stylesheet)
+        if stylesheet in plt.style.available:
+            plt.style.use(stylesheet)
 
         from sage.symbolic.ring import SR
-        if not isinstance(tick_formatter, (list, tuple)):  # make sure both formatters typeset or both don't
+        # make sure both formatters typeset or both don't
+        if not isinstance(tick_formatter, (list, tuple)):
             if tick_formatter == "latex" or tick_formatter in SR:
                 tick_formatter = (tick_formatter, "latex")
             else:
@@ -2546,7 +2554,6 @@ class Graphics(WithEqualityById, SageObject):
             axes = self._show_axes
 
         from matplotlib.figure import Figure
-        from matplotlib import rcParams
         if typeset == 'type1': # Requires LaTeX, dvipng, gs to be installed.
             rcParams['ps.useafm'] = True
             rcParams['pdf.use14corefonts'] = True
@@ -2578,10 +2585,12 @@ class Graphics(WithEqualityById, SageObject):
         if figsize is not None:
             # then the figsize should be two positive numbers
             if len(figsize) != 2:
-                raise ValueError("figsize should be a positive number or a list of two positive numbers, not {0}".format(figsize))
+                raise ValueError("figsize should be a positive number "
+                                 "or a list of two positive numbers, not {0}".format(figsize))
             figsize = (float(figsize[0]),float(figsize[1])) # floats for mpl
             if not (figsize[0] > 0 and figsize[1] > 0):
-                raise ValueError("figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1]))
+                raise ValueError("figsize should be positive numbers, "
+                                 "not {0} and {1}".format(figsize[0],figsize[1]))
 
         if figure is None:
             figure=Figure(figsize=figsize)

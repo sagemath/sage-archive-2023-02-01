@@ -1445,7 +1445,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']', ')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         for index1, index2 in self.lines:
@@ -1566,7 +1566,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' % (tag, tag)
+            coord = '\\coordinate %s at %s;\n' % (tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         for index1, index2 in self.lines:
@@ -1729,7 +1729,7 @@ class Projection(SageObject):
             v_vect = v_vect.replace(']',')')
             tag = '%s' %v_vect
             node = "\\node[%s] at %s     {};\n" % ('vertex', tag)
-            coord = '\coordinate %s at %s;\n' %(tag, tag)
+            coord = '\\coordinate %s at %s;\n' %(tag, tag)
             dict_drawing[vert] = node, coord, tag
 
         # Separate the edges between back and front

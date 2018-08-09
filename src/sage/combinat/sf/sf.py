@@ -550,6 +550,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     * Jack bases
     * Macdonald bases
     * `k`-Schur functions
+    * Hecke character basis
 
     We briefly demonstrate how to access these bases. For more information, see
     the documentation of the individual bases.
@@ -577,6 +578,16 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: P = Mcd.P(); J = Mcd.J(); Q = Mcd.Q()
         sage: J(P[2,1])
         (1/(-q*t^4+2*q*t^3-q*t^2+t^2-2*t+1))*McdJ[2, 1]
+
+    We can also construct the `\bar{q}` basis that can be used
+    to determine character tables for Hecke algebras (with quadratic
+    relation `T_i^2 = (1-q) T_i + q`::
+
+        sage: Sym = SymmetricFunctions(ZZ['q'].fraction_field())
+        sage: qbar = Sym.hecke_character()
+        sage: s = Sym.s()
+        sage: s(qbar[2,1])
+        -s[1, 1, 1] + (q-1)*s[2, 1] + q*s[3]
 
     .. rubric:: `k`-Schur functions
 
@@ -1171,6 +1182,24 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return orthogonal.SymmetricFunctionAlgebra_orthogonal(self)
     o = orthogonal
 
+    def hecke_character(self, q='q'):
+        """
+        The basis of symmetric functions that determines the character
+        tables for Hecke algebras.
+
+        EXAMPLES::
+
+            sage: SymmetricFunctions(ZZ['q'].fraction_field()).hecke_character()
+            Symmetric Functions over
+             Fraction Field of Univariate Polynomial Ring in q over Integer Ring
+             in the Hecke character with q=q basis
+            sage: SymmetricFunctions(QQ).hecke_character(1/2)
+            Symmetric Functions over Rational Field in the Hecke character with q=1/2 basis
+        """
+        from sage.combinat.sf.hecke import HeckeCharacter
+        return HeckeCharacter(self, q)
+    qbar = hecke_character
+
     def macdonald(self, q='q', t='t'):
         r"""
         Returns the entry point for the various Macdonald bases.
@@ -1341,7 +1370,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         return self.m().from_polynomial(f)
 
     def register_isomorphism(self, morphism, only_conversion=False):
-        """
+        r"""
         Register an isomorphism between two bases of ``self``, as a canonical coercion
         (unless the optional keyword ``only_conversion`` is set to ``True``,
         in which case the isomorphism is registered as conversion only).

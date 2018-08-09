@@ -51,6 +51,7 @@ from sage.libs.flint.fmpz cimport fmpz_init, fmpz_clear, fmpz_set, fmpz_set_mpz,
 from sage.libs.flint.fmpq cimport fmpq_is_zero, fmpq_get_mpq, fmpq_set_mpq, fmpq_canonicalise
 from sage.libs.flint.fmpq_mat cimport fmpq_mat_entry_num, fmpq_mat_entry_den, fmpq_mat_entry
 
+from .args cimport MatrixArgs_init
 from .constructor import matrix
 from .matrix_space import MatrixSpace
 from .matrix cimport Matrix
@@ -84,16 +85,8 @@ echelon_verbose_level = 1
 
 
 cdef class Matrix_cyclo_dense(Matrix_dense):
-    def __cinit__(self, parent, entries, coerce, copy):
+    def __cinit__(self):
         """
-        Create a new dense cyclotomic matrix.
-
-        INPUT:
-            parent -- a matrix space over a cyclotomic field
-            entries -- a list of entries or scalar
-            coerce -- bool; if true entries are coerced to base ring
-            copy -- bool; ignored due to underlying data structure
-
         EXAMPLES::
 
             sage: from sage.matrix.matrix_cyclo_dense import Matrix_cyclo_dense
@@ -102,37 +95,30 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             <type 'sage.matrix.matrix_cyclo_dense.Matrix_cyclo_dense'>
 
         Note that the entries of A haven't even been set yet above; that doesn't
-        happen until init is called::
+        happen until ``__init__`` is called::
 
             sage: A[0,0]
             Traceback (most recent call last):
             ...
             ValueError: matrix entries not yet initialized
         """
-        Matrix.__init__(self, parent)
         self._degree = self._base_ring.degree()
         self._n = int(self._base_ring._n())
 
-    # This is not necessary, since we do not (yet) explicitly allocate
-    # any memory.
-    #def __dealloc__(self):
-    #    pass
-
-    def __init__(self, parent, entries=None, copy=True, coerce=True):
+    def __init__(self, parent, entries=None, copy=None, bint coerce=True):
         """
         Initialize a newly created cyclotomic matrix.
 
         INPUT:
 
-        - ``parent`` -- a matrix space over a cyclotomic field
+        - ``parent`` -- a matrix space over a cyclotomic number field
 
-        - ``entries`` -- a list of entries or scalar
+        - ``entries`` -- see :func:`matrix`
 
-        - ``coerce`` -- boolean; if true entries are coerced to base
-          ring
+        - ``copy`` -- ignored (for backwards compatibility)
 
-        - ``copy`` -- boolean; ignored due to underlying data
-          structure
+        - ``coerce`` -- if False, assume without checking that the
+          entries lie in the base ring
 
         EXAMPLES:
 
@@ -161,32 +147,15 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: A
             [0 1]
             [2 3]
-
         """
-        cdef int i
-        z = None
-        if (entries is None) or (entries == 0):
-            pass
-        elif isinstance(entries, list):
-            # This code could be made much faster using Cython, etc.
-            if coerce:
-                K = parent.base_ring()
-                entries = [K(a) for a in entries]
-            entries = sum([a.list() for a in entries], [])
-        else:
-            K = self._base_ring
-            z = K(entries)
-            entries = 0
+        ma = MatrixArgs_init(parent, entries)
+        cdef list L = []
+        for x in ma.iter(coerce):
+            L += x.list()
 
-        self._n = int(self._base_ring._n())
-        self._matrix = Matrix_rational_dense(MatrixSpace(QQ, self._nrows*self._ncols, self._degree),
-                                            entries, copy=False, coerce=False).transpose()
-        # This could also be made much faster.
-        if z is not None:
-            if self._nrows != self._ncols:
-                raise TypeError("nonzero scalar matrix must be square")
-            for i in range(self._nrows):
-                self.set_unsafe(i,i,z)
+        QQspace = MatrixSpace(QQ, self._nrows * self._ncols, self._degree)
+        QQmat = Matrix_rational_dense(QQspace, L, False, False)
+        self._matrix = QQmat.transpose()
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         """

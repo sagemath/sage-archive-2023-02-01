@@ -22,7 +22,7 @@ from sage.rings.all import ZZ
 
 
 class WeylCharacterRing(CombinatorialFreeModule):
-    """
+    r"""
     A class for rings of Weyl characters.
 
     Let `K` be a compact Lie group, which we assume is semisimple and
@@ -87,7 +87,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
     For more information, see the thematic tutorial *Lie Methods and
     Related Combinatorics in Sage*, available at:
 
-    http://doc.sagemath.org/html/en/thematic_tutorials/lie.html
+    https://doc.sagemath.org/html/en/thematic_tutorials/lie.html
     """
     @staticmethod
     def __classcall__(cls, ct, base_ring=ZZ, prefix=None, style="lattice"):
@@ -494,8 +494,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         """
         alphacheck = self._space.simple_coroots()
         alpha = self._space.simple_roots()
-        sr = self._space.weyl_group().simple_reflections()
-        [epsilon, ret] = [1,a]
+        [epsilon, ret] = [1, a]
         done = False
         while not done:
             done = True
@@ -586,9 +585,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
             [{(1, 0): 1, (0, 1): 1}, {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 1/2): 1}]
         """
         alphacheck = self._space.simple_coroots()
-        alpha = self._space.simple_roots()
         dd = {}
-        h = tuple(int(hwv.inner_product(alphacheck[j])) for j in self._space.index_set())
+        h = tuple(int(hwv.inner_product(alphacheck[j]))
+                  for j in self._space.index_set())
         dd[h] = int(1)
         return self._demazure_helper(dd, word=word, debug=debug)
 
@@ -1344,7 +1343,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             return self.parent().char_from_weights(d)
 
         def frobenius_schur_indicator(self):
-            """
+            r"""
             Return:
 
             - `1` if the representation is real (orthogonal)
@@ -1459,8 +1458,9 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 raise ValueError("{} is not irreducible".format(other))
             return self.coefficient(other.support()[0])
 
+
 def irreducible_character_freudenthal(hwv, debug=False):
-    """
+    r"""
     Return the dictionary of multiplicities for the irreducible
     character with highest weight `\lambda`.
 
@@ -1908,7 +1908,7 @@ class WeightRing(CombinatorialFreeModule):
             return self.parent()._from_dict(d2)
 
         def shift(self, mu):
-            """
+            r"""
             Add `\mu` to any weight. Extended by linearity to the weight ring.
 
             INPUT:

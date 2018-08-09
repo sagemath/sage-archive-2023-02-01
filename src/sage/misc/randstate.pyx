@@ -55,22 +55,22 @@ results of these random number generators reproducible. ::
 
     sage: set_random_seed(0)
     sage: rtest()
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3), [ 0, 0, 0, 0, 1 ], 265625921, 5842, 0.9661911734708414)
+    (303, -0.266166246380421, 1/6, (1,2), [ 1, 1, 1, 1, 0 ], 265625921, 79302, 0.2450652680687958)
     sage: set_random_seed(1)
     sage: rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
+    (978, 0.0557699430711638, -1/8*x^2 - 1/2*x + 1/2, (1,2,3), [ 1, 0, 0, 0, 1 ], 807447831, 23865, 0.6170498912488264)
     sage: set_random_seed(2)
     sage: rtest()
-    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 1642898426, 41662, 0.19982565117278328)
+    (207, -0.0141049486533456, 0, (1,3)(4,5), [ 1, 1, 1, 1, 1 ], 1642898426, 16190, 0.9343331114872127)
     sage: set_random_seed(0)
     sage: rtest()
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3), [ 0, 0, 0, 0, 1 ], 265625921, 5842, 0.9661911734708414)
+    (303, -0.266166246380421, 1/6, (1,2), [ 1, 1, 1, 1, 0 ], 265625921, 79302, 0.2450652680687958)
     sage: set_random_seed(1)
     sage: rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
+    (978, 0.0557699430711638, -1/8*x^2 - 1/2*x + 1/2, (1,2,3), [ 1, 0, 0, 0, 1 ], 807447831, 23865, 0.6170498912488264)
     sage: set_random_seed(2)
     sage: rtest()
-    (207, -0.0141049486533456, 4*x^2 + 1/2, (1,2)(4,5), [ 0, 0, 1, 0, 1 ], 1642898426, 41662, 0.19982565117278328)
+    (207, -0.0141049486533456, 0, (1,3)(4,5), [ 1, 1, 1, 1, 1 ], 1642898426, 16190, 0.9343331114872127)
 
 Once we've set the random number seed, we can check what seed was used.
 (This is not the current random number state; it does not change when
@@ -80,7 +80,7 @@ random numbers are generated.)  ::
     sage: initial_seed()
     12345L
     sage: rtest()
-    (720, -0.612180244315804, x^2 - x, (1,2,3), [ 1, 0, 0, 0, 0 ], 1911581957, 27093, 0.9205331599518184)
+    (720, -0.612180244315804, 0, (1,3), [ 1, 0, 1, 1, 1 ], 1911581957, 65175, 0.8043027951758298)
     sage: initial_seed()
     12345L
 
@@ -215,9 +215,9 @@ that you get without intervening ``with seed``. ::
 
     sage: set_random_seed(0)
     sage: r1 = rtest(); r1
-    (303, -0.266166246380421, 1/2*x^2 - 1/95*x - 1/2, (1,3), [ 0, 0, 0, 0, 1 ], 265625921, 5842, 0.9661911734708414)
+    (303, -0.266166246380421, 1/6, (1,2), [ 1, 1, 1, 1, 0 ], 265625921, 79302, 0.2450652680687958)
     sage: r2 = rtest(); r2
-    (105, 0.642309615982449, -x^2 - x - 6, (1,2)(4,5), [ 1, 0, 0, 1, 1 ], 53231108, 77132, 0.001767155077382232)
+    (443, 0.185001351421963, -2, (1,3), [ 0, 0, 1, 1, 0 ], 53231108, 8171, 0.28363811590618193)
 
 We get slightly different results with an intervening ``with seed``. ::
 
@@ -225,9 +225,9 @@ We get slightly different results with an intervening ``with seed``. ::
     sage: r1 == rtest()
     True
     sage: with seed(1): rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
+    (978, 0.0557699430711638, -1/8*x^2 - 1/2*x + 1/2, (1,2,3), [ 1, 0, 0, 0, 1 ], 807447831, 23865, 0.6170498912488264)
     sage: r2m = rtest(); r2m
-    (105, 0.642309615982449, -x^2 - x - 6, (1,2)(4,5), [ 1, 0, 0, 1, 1 ], 53231108, 40267, 0.001767155077382232)
+    (443, 0.185001351421963, -2, (1,3), [ 0, 0, 1, 1, 0 ], 53231108, 51295, 0.28363811590618193)
     sage: r2m == r2
     False
 
@@ -244,8 +244,8 @@ case, as we see in this example::
     sage: with seed(1):
     ....:     rtest()
     ....:     rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
-    (138, -0.0404945051288503, 2*x - 24, (2,3), [ 1, 1, 1, 0, 1 ], 1010791326, 91360, 0.0033332230808060803)
+    (978, 0.0557699430711638, -1/8*x^2 - 1/2*x + 1/2, (1,2,3), [ 1, 0, 0, 0, 1 ], 807447831, 23865, 0.6170498912488264)
+    (181, 0.607995392046754, -x + 1/2, (2,3)(4,5), [ 0, 1, 1, 0, 0 ], 1010791326, 9693, 0.5691716786307407)
     sage: r2m == rtest()
     True
 
@@ -257,7 +257,7 @@ NTL random numbers were generated inside the ``with seed``.
     True
     sage: with seed(1):
     ....:     rtest()
-    (978, 0.0557699430711638, -3*x^2 - 1/12, (1,2), [ 0, 1, 1, 0, 0 ], 807447831, 29982, 0.8335077654199736)
+    (978, 0.0557699430711638, -1/8*x^2 - 1/2*x + 1/2, (1,2,3), [ 1, 0, 0, 0, 1 ], 807447831, 23865, 0.6170498912488264)
     sage: r2m == rtest()
     True
 
@@ -419,6 +419,7 @@ import binascii
 import os
 import time
 import weakref
+import random as _random
 import sys
 
 use_urandom = False
@@ -458,6 +459,9 @@ cpdef randstate current_randstate():
 
 # Keep track of the stack of randstates involved in "with seed(s):".
 randstate_stack = []
+
+# Default class to use for randstate.python_random
+DEFAULT_PYTHON_RANDOM = _random.Random
 
 # The following components of Sage use random numbers that I have not
 # figured out how to seed: fpLLL, mwrank, mpfi
@@ -559,7 +563,7 @@ cdef class randstate:
         """
         return self._seed
 
-    def python_random(self):
+    def python_random(self, cls=None):
         r"""
         Return a :class:`random.Random` object.  The first time it is
         called on a given :class:`randstate`, a new :class:`random.Random`
@@ -568,6 +572,13 @@ cdef class randstate:
 
         It is expected that ``python_random`` will only be
         called on the current :class:`randstate`.
+
+        INPUT:
+
+        - ``cls`` -- (optional) a class with the same interface as
+          :class:`random.Random` (e.g. a subclass thereof) to use as the
+          Python RNG interface.  Otherwise the standard :class:`random.Random`
+          is used.
 
         EXAMPLES::
 
@@ -578,12 +589,15 @@ cdef class randstate:
             sage: rnd.randrange(1000)
             544
         """
-        if self._python_random is not None:
+
+        if cls is None:
+            cls = DEFAULT_PYTHON_RANDOM
+
+        if type(self._python_random) is cls:
             return self._python_random
 
-        import random
         from sage.rings.integer_ring import ZZ
-        rand = random.Random()
+        rand = cls()
         rand.seed(long(ZZ.random_element(long(1)<<128)))
         self._python_random = rand
         return rand
@@ -899,6 +913,7 @@ cdef class randstate:
         global _current_randstate
         _current_randstate = randstate_stack.pop()
         return False
+
 
 cpdef set_random_seed(seed=None):
     r"""

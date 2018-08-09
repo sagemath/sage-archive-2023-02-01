@@ -342,7 +342,7 @@ def DesarguesianProjectivePlaneDesign(n, point_coordinates=True, check=True):
     K = FiniteField(n, 'a')
     n2 = n**2
     relabel = {x:i for i,x in enumerate(K)}
-    Kiter = relabel  # it is much faster to iterate throug a dict than through
+    Kiter = relabel  # it is much faster to iterate through a dict than through
                      # the finite field K
 
     # we decompose the (equivalence class) of points [x:y:z] of the projective
@@ -993,9 +993,10 @@ def HadamardDesign(n):
     # A is the incidence matrix of the block design
     return IncidenceStructure(incidence_matrix=A,name="HadamardDesign")
 
+
 def Hadamard3Design(n):
-    """
-    Return the Hadamard 3-design with parameters `3-(n, \\frac n 2, \\frac n 4 - 1)`.
+    r"""
+    Return the Hadamard 3-design with parameters `3-(n, \frac n 2, \frac n 4 - 1)`.
 
     This is the unique extension of the Hadamard `2`-design (see
     :meth:`HadamardDesign`).  We implement the description from pp. 12 in
@@ -1012,7 +1013,7 @@ def Hadamard3Design(n):
 
     We verify that any two blocks of the Hadamard `3`-design `3-(8, 4, 1)`
     design meet in `0` or `2` points. More generally, it is true that any two
-    blocks of a Hadamard `3`-design meet in `0` or `\\frac{n}{4}` points (for `n
+    blocks of a Hadamard `3`-design meet in `0` or `\frac{n}{4}` points (for `n
     > 4`).
 
     ::

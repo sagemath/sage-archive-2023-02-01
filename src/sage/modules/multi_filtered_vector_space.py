@@ -40,12 +40,11 @@ arbitrary indexing set and values are
 #*****************************************************************************
 from six import iteritems, itervalues
 
-from sage.rings.all import QQ, ZZ, RDF, RR, Integer
-from sage.rings.infinity import InfinityRing, infinity, minus_infinity
+from sage.rings.all import QQ, ZZ, Integer
+from sage.rings.infinity import infinity, minus_infinity
 from sage.categories.fields import Fields
 from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
-from sage.matrix.constructor import vector, matrix, block_matrix, zero_matrix, identity_matrix
-from sage.misc.all import uniq, cached_method, prod
+from sage.misc.all import cached_method
 from sage.modules.filtered_vector_space import FilteredVectorSpace
 
 
@@ -237,7 +236,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         return all(F.is_constant() for F in self._filt.values())
 
     def is_exhaustive(self):
-        """
+        r"""
         Return whether the multi-filtration is exhaustive.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is
@@ -259,7 +258,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         return all(F.is_exhaustive() for F in self._filt.values())
 
     def is_separating(self):
-        """
+        r"""
         Return whether the multi-filtration is separating.
 
         A filtration $\{F_d\}$ in an ambient vector space $V$ is
@@ -460,11 +459,10 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
                                     base_ring=self.base_ring())
             return 'Unfiltered ' + repr(F)
         rows = []
-        support = self.support()
         min_deg, max_deg = self.min_degree(), self.max_degree()
         for key in sorted(self.index_set()):
             F = self.get_filtration(key)
-            r = [str(key)] + F._repr_degrees(min_deg, max_deg-1)
+            r = [str(key)] + F._repr_degrees(min_deg, max_deg - 1)
             rows.append(r)
         from sage.misc.table import table
         t = table(rows)

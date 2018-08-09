@@ -50,6 +50,9 @@ from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutati
 
 from sage.misc.decorators import rename_keyword
 
+from sage.combinat.cluster_algebra_quiver.interact import cluster_interact
+
+
 class ClusterQuiver(SageObject):
     """
     The *quiver* associated to an *exchange matrix*.
@@ -368,16 +371,17 @@ class ClusterQuiver(SageObject):
                 n = self._n = data.order() - m
                 mlist = self._mlist = []
 
-            elif isinstance(frozen,list):
-                if not set(frozen).issubset(set(data.vertices())):
+            elif isinstance(frozen, list):
+                frozen = set(frozen)
+                if not frozen.issubset(data.vertex_iterator()):
                     raise ValueError("the optional list of frozen elements"
                                      " must be vertices of the digraph")
                 else:
+                    nlist = self._nlist = sorted(x for x in data.vertex_iterator() if x not in frozen)
                     mlist = self._mlist = list(frozen)
-                    nlist = self._nlist = [x for x in data.vertices() if x not in mlist]
-                    labelDict = {(nlist + mlist)[i]: range(len(nlist) + len(mlist))[i] for i in range(data.order())}
                     m = self._m = len(frozen)
                     n = self._n = data.order() - m
+                    labelDict = {x: i for i, x in enumerate(nlist + mlist)}
 
             else:
                   raise ValueError("the optional parameter 'frozen' must be"
@@ -385,13 +389,14 @@ class ClusterQuiver(SageObject):
 
             dg = copy( data )
             dg_labelling = False
-            edges = data.edges(labels=False)
-            if any((a,a) in edges for a in data.vertices()):
+            if data.has_loops():
                 raise ValueError("the input DiGraph contains a loop")
-            if any((b,a) in edges for (a,b) in edges):
+
+            edges = set(data.edge_iterator(labels=False))
+            if any((b, a) in edges for (a, b) in edges):
                 raise ValueError("the input DiGraph contains two-cycles")
 
-            if not set(dg.vertices()) == set(range(n+m)):
+            if not set(dg.vertex_iterator()) == set(range(n + m)):
                 # frozen vertices must be preserved
                 if m != 0:
                     dg_labelling = nlist + mlist
@@ -399,18 +404,21 @@ class ClusterQuiver(SageObject):
                 else:
                     dg_labelling = dg.vertices()
                     dg.relabel()
-            if dg.has_multiple_edges():
+
+            multiple_edges = dg.multiple_edges()
+            if multiple_edges:
                 multi_edges = {}
-                for v1,v2,label in dg.multiple_edges():
+                for v1, v2, label in multiple_edges:
                     if label not in ZZ:
                         raise ValueError("the input DiGraph contains multiple"
                                          " edges labeled by non-integers")
-                    elif (v1,v2) in multi_edges:
-                        multi_edges[(v1,v2)] += label
+                    elif (v1, v2) in multi_edges:
+                        multi_edges[(v1, v2)] += label
                     else:
-                        multi_edges[(v1,v2)] = label
-                    dg.delete_edge(v1,v2)
-                dg.add_edges( [ (v1,v2,multi_edges[(v1,v2)]) for v1,v2 in multi_edges ] )
+                        multi_edges[(v1, v2)] = label
+                    dg.delete_edge(v1, v2)
+                dg.add_edges([(v1, v2, multi_edges[(v1,v2)])
+                              for v1, v2 in multi_edges])
 
             for edge in dg.edge_iterator():
                 if edge[0] >= n and edge[1] >= n:
@@ -544,8 +552,12 @@ class ClusterQuiver(SageObject):
         EXAMPLES::
 
             sage: Q = ClusterQuiver(['A',5])
-            sage: pl = Q.plot()
-            sage: pl = Q.plot(circular=True)
+            sage: Q.plot()
+            Graphics object consisting of 15 graphics primitives
+            sage: Q.plot(circular=True)
+            Graphics object consisting of 15 graphics primitives
+            sage: Q.plot(circular=True, mark=1)
+            Graphics object consisting of 15 graphics primitives
         """
         from sage.plot.colors import rainbow
         from sage.graphs.graph_generators import GraphGenerators
@@ -600,9 +612,11 @@ class ClusterQuiver(SageObject):
         if mark is not None:
 
             if mark in nlist:
-                partition = (nlist.remove(mark), mlist, [mark])
+                nlist.remove(mark)
+                partition = (nlist, mlist, [mark])
             elif mark in mlist:
-                partition = (nlist, mlist.remove(mark), [mark])
+                mlist.remove(mark)
+                partition = (nlist, mlist, [mark])
             else:
                 raise ValueError("The given mark is not a vertex of self.")
         else:
@@ -671,64 +685,26 @@ class ClusterQuiver(SageObject):
             plot.show( figsize=[fig_size*n+1,fig_size*n+1] )
 
     def interact(self, fig_size=1, circular=True):
-        """
-        Only in notebook mode. Starts an interactive window for cluster seed mutations.
+        r"""
+        Start an interactive window for cluster quiver mutations.
+
+        Only in *Jupyter notebook mode*.
 
         INPUT:
 
-        - ``fig_size`` -- (default: 1) factor by which the size of the plot is multiplied.
-        - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``fig_size`` -- (default: 1) factor by which the size of the
+          plot is multiplied.
+
+        - ``circular`` -- (default: ``True``) if ``True``, the circular plot
+          is chosen, otherwise >>spring<< is used.
 
         TESTS::
 
-            sage: Q = ClusterQuiver(['A',4])
-            sage: Q.interact() # long time
-            'The interactive mode only runs in the Sage notebook.'
+            sage: S = ClusterQuiver(['A',4])
+            sage: S.interact()
+            VBox(children=...
         """
-        from sage.plot.plot import EMBEDDED_MODE
-        from sagenb.notebook.interact import interact, selector
-        from sage.misc.all import html,latex
-
-        if not EMBEDDED_MODE:
-            return "The interactive mode only runs in the Sage notebook."
-        else:
-            seq = []
-            sft = [True]
-            sss = [True]
-            ssm = [True]
-            ssl = [True]
-            @interact
-            def player(k=selector(values=list(range(self._n)),nrows = 1,label='Mutate at: '), show_seq=("Mutation sequence:", True), show_matrix=("B-Matrix:", True), show_lastmutation=("Show last mutation:", True) ):
-                ft,ss,sm,sl = sft.pop(), sss.pop(), ssm.pop(), ssl.pop()
-                if ft:
-                    self.show(fig_size=fig_size, circular=circular)
-                elif show_seq is not ss or show_matrix is not sm or show_lastmutation is not sl:
-                    if seq and show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular, mark=seq[len(seq)-1])
-                    else:
-                        self.show(fig_size=fig_size, circular=circular )
-                else:
-                    self.mutate(k)
-                    seq.append(k)
-                    if not show_lastmutation:
-                        self.show(fig_size=fig_size, circular=circular)
-                    else:
-                        self.show(fig_size=fig_size, circular=circular,mark=k)
-                sft.append(False)
-                sss.append(show_seq)
-                ssm.append(show_matrix)
-                ssl.append(show_lastmutation)
-                if show_seq: html( "Mutation sequence: $" + str( [ seq[i] for i in range(len(seq)) ] ).strip('[]') + "$" )
-                if show_matrix:
-                    html( "B-Matrix:" )
-                    m = self._M
-                    #m = matrix(range(1,self._n+1),sparse=True).stack(m)
-                    m = latex(m)
-                    m = m.split('(')[1].split('\\right')[0]
-                    html( "$ $" )
-                    html( "$\\begin{align*} " + m + "\\end{align*}$" )
-                    #html( "$" + m + "$" )
-                    html( "$ $" )
+        return cluster_interact(self, fig_size, circular, kind="quiver")
 
     def save_image(self,filename,circular=False):
         """
@@ -1543,7 +1519,7 @@ class ClusterQuiver(SageObject):
 
         if show_sequence:
             def _plot_arrow( v, k, center=(0,0) ):
-                return text("$\longleftrightarrow$",(center[0],center[1]), fontsize=25) + text("$\mu_"+str(v)+"$",(center[0],center[1]+0.15), fontsize=15) \
+                return text(r"$\longleftrightarrow$",(center[0],center[1]), fontsize=25) + text(r"$\mu_"+str(v)+"$",(center[0],center[1]+0.15), fontsize=15) \
                     + text("$"+str(k)+"$",(center[0],center[1]-0.2), fontsize=15)
             plot_sequence = [ quiver_sequence[i].plot( circular=True, center=(i*width_factor,0) ) for i in range(len(quiver_sequence)) ]
             arrow_sequence = [ _plot_arrow( sequence[i],i+1,center=((i+0.5)*width_factor,0) ) for i in range(len(sequence)) ]
@@ -1632,9 +1608,11 @@ class ClusterQuiver(SageObject):
         else:
             raise ValueError('not a total order on the vertices of the quiver or a list of edges to be oriented')
 
-    def mutation_class_iter( self, depth=infinity, show_depth=False, return_paths=False, data_type="quiver", up_to_equivalence=True, sink_source=False ):
+    def mutation_class_iter(self, depth=infinity, show_depth=False,
+                            return_paths=False, data_type="quiver",
+                            up_to_equivalence=True, sink_source=False):
         """
-        Returns an iterator for the mutation class of self together with certain constrains.
+        Return an iterator for the mutation class of ``self`` together with certain constraints.
 
         INPUT:
 
@@ -1773,7 +1751,7 @@ class ClusterQuiver(SageObject):
     def mutation_class(self, depth=infinity, show_depth=False, return_paths=False,
                        data_type="quiver", up_to_equivalence=True, sink_source=False):
         """
-        Return the mutation class of ``self`` together with certain constrains.
+        Return the mutation class of ``self`` together with certain constraints.
 
         INPUT:
 

@@ -121,6 +121,7 @@ Individual Categories
    sage/categories/infinite_enumerated_sets
    sage/categories/integral_domains
    sage/categories/j_trivial_semigroups
+   sage/categories/kac_moody_algebras
    sage/categories/lattice_posets
    sage/categories/left_modules
    sage/categories/lie_algebras
@@ -148,6 +149,7 @@ Individual Categories
    sage/categories/posets
    sage/categories/principal_ideal_domains
    sage/categories/quotient_fields
+   sage/categories/quantum_group_representations
    sage/categories/regular_crystals
    sage/categories/regular_supercrystals
    sage/categories/right_modules
@@ -171,6 +173,7 @@ Individual Categories
    sage/categories/super_modules
    sage/categories/super_modules_with_basis
    sage/categories/topological_spaces
+   sage/categories/triangular_kac_moody_algebras
    sage/categories/unique_factorization_domains
    sage/categories/unital_algebras
    sage/categories/vector_spaces

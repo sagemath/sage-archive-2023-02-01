@@ -266,6 +266,23 @@ class MappedValuation_base(DiscretePseudoValuation):
         """
         return self.residue_ring().coerce(F)
 
+    def element_with_valuation(self, s):
+        r"""
+        Return an element with valuation ``s``.
+
+        EXAMPLES::
+
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = valuations.pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.element_with_valuation(1)
+            5
+
+        """
+        return self._from_base_domain(self._base_valuation.element_with_valuation(s))
+
     def _test_to_from_base_domain(self, **options):
         r"""
         Check the correctness of :meth:`to_base_domain` and
@@ -560,7 +577,6 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
         # this valuation nicely, dropping any unnecessary information
         self._approximants = approximants
 
-        from .valuation_space import DiscretePseudoValuationSpace
         from .limit_valuation import LimitValuation
         limit = LimitValuation(approximant, G)
         FiniteExtensionFromInfiniteValuation.__init__(self, parent, limit)
@@ -594,4 +610,3 @@ class FiniteExtensionFromLimitValuation(FiniteExtensionFromInfiniteValuation):
             from .augmented_valuation import AugmentedValuation_base
             return "[ %s ]-adic valuation"%(", ".join("v(%r) = %r"%(v._phi, v._mu) if (isinstance(v, AugmentedValuation_base) and v.domain() == self._base_valuation.domain()) else repr(v) for v in unique_approximant))
         return "%s-adic valuation"%(self._base_valuation)
-

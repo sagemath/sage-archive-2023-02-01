@@ -27,6 +27,9 @@ Comprehensive Module list
     sage/combinat/binary_tree
     sage/combinat/cartesian_product
     sage/combinat/catalog_partitions
+    sage/combinat/chas/__init__
+    sage/combinat/chas/fsym
+    sage/combinat/chas/wqsym
     sage/combinat/cluster_algebra_quiver/__init__
     sage/combinat/cluster_algebra_quiver/all
     sage/combinat/cluster_algebra_quiver/cluster_seed
@@ -119,6 +122,7 @@ Comprehensive Module list
     sage/combinat/finite_class
     sage/combinat/finite_state_machine
     sage/combinat/finite_state_machine_generators
+    sage/combinat/fqsym
     sage/combinat/free_module
     sage/combinat/free_dendriform_algebra
     sage/combinat/free_prelie_algebra
@@ -129,6 +133,7 @@ Comprehensive Module list
     sage/combinat/growth
     sage/combinat/grossman_larson_algebras
     sage/combinat/hall_polynomial
+    sage/combinat/hillman_grassl
     sage/combinat/integer_lists/base
     sage/combinat/integer_lists/lists
     sage/combinat/integer_lists/invlex
@@ -169,6 +174,7 @@ Comprehensive Module list
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
+    sage/combinat/partition_kleshchev
     sage/combinat/partition_tuple
     sage/combinat/partitions
     sage/combinat/perfect_matching
@@ -221,6 +227,7 @@ Comprehensive Module list
     sage/combinat/root_system/ambient_space
     sage/combinat/root_system/associahedron
     sage/combinat/root_system/braid_move_calculator
+    sage/combinat/root_system/braid_orbit
     sage/combinat/root_system/branching_rules
     sage/combinat/root_system/cartan_matrix
     sage/combinat/root_system/cartan_type
@@ -282,6 +289,7 @@ Comprehensive Module list
     sage/combinat/sf/dual
     sage/combinat/sf/elementary
     sage/combinat/sf/hall_littlewood
+    sage/combinat/sf/hecke
     sage/combinat/sf/homogeneous
     sage/combinat/sf/jack
     sage/combinat/sf/k_dual
@@ -339,6 +347,7 @@ Comprehensive Module list
     sage/combinat/subsets_pairwise
     sage/combinat/subword
     sage/combinat/subword_complex
+    sage/combinat/superpartition
     sage/combinat/symmetric_group_algebra
     sage/combinat/symmetric_group_representations
     sage/combinat/tableau

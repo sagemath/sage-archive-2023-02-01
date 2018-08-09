@@ -57,8 +57,6 @@ from sage.plot.plot import generate_plot_points
 
 from sage.arith.all import lcm
 import sage.rings.all as rings
-from sage.rings.number_field.number_field_base import is_NumberField
-from sage.misc.all import prod as mul
 from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.fast_methods import WithEqualityById
 
@@ -1469,60 +1467,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             u = self.base_ring()(u)     # because otherwise 1/u would round!
         return self.change_weierstrass_model(1/u,0,0,0)
 
-    def discriminant(self):
-        r"""
-        Returns the discriminant of this elliptic curve.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0,0,1,-1,0])
-            sage: E.discriminant()
-            37
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])
-            sage: E.discriminant()
-            -161051
-
-        ::
-
-            sage: E = EllipticCurve([GF(7)(2),1])
-            sage: E.discriminant()
-            1
-        """
-        try:
-            return self.__discriminant
-        except AttributeError:
-            b2, b4, b6, b8 = self.b_invariants()
-            self.__discriminant = -b2**2*b8 - 8*b4**3 - 27*b6**2 + 9*b2*b4*b6
-            return self.__discriminant
-
-    def j_invariant(self):
-        r"""
-        Returns the j-invariant of this elliptic curve.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve([0,0,1,-1,0])
-            sage: E.j_invariant()
-            110592/37
-            sage: E = EllipticCurve([0, -1, 1, -10, -20])
-            sage: E.j_invariant()
-            -122023936/161051
-            sage: E = EllipticCurve([-4,0])
-            sage: E.j_invariant()
-            1728
-
-        ::
-
-            sage: E = EllipticCurve([GF(7)(2),1])
-            sage: E.j_invariant()
-            1
-        """
-        try:
-            return self.__j_invariant
-        except AttributeError:
-            c4, _ = self.c_invariants()
-            self.__j_invariant = c4**3 / self.discriminant()
-            return self.__j_invariant
 
 #############################################################
 #
@@ -2646,14 +2590,12 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E.plot()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Plotting of curves over Complex Field with 53 bits of precision not implemented yet
+            NotImplementedError: plotting of curves over Complex Field with 53 bits of precision is not implemented yet
         """
         RR = rings.RealField()
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
         if components not in ['both', 'bounded', 'unbounded']:
             raise ValueError("component must be one of 'both', 'bounded' or 'unbounded'")
 
@@ -2978,7 +2920,6 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         """
         K = self.base_ring()
         R = PolynomialRing(K, 'x')
-        x = R.gen(0)
         a1, a2, a3, a4, a6 = self.ainvs()
         return R([a6, a4, a2, 1]), R([a3, a1])
 

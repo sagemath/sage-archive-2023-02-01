@@ -70,7 +70,7 @@ cdef caller_locals = builtins.locals
 
 # Sage imports
 from .misc import embedded
-from sage.structure.sage_object import load, save
+from sage.misc.persist import load, save
 
 # This module-scope variables is used to save the
 # global state of the sage environment at the moment

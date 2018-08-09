@@ -158,6 +158,109 @@ def normalize_type_repr(s):
     return _type_repr_re.sub(subst, s)
 
 
+_long_repr_re = re.compile(r'([+-]?[0-9]+)[lL]')
+def normalize_long_repr(s):
+    """
+    Simple conversion from Python 2 representation of ``long`` ints (that
+    is, integers with the ``L``) suffix, to the Python 3 representation
+    (same number, without the suffix, since Python 3 doesn't have a
+    distinct ``long`` type).
+
+    Note: This just uses a simple regular expression that can't distinguish
+    representations of long objects from strings containing a long repr.
+
+    EXAMPLES::
+        sage: from sage.doctest.parsing import normalize_long_repr
+        sage: normalize_long_repr('10L')
+        '10'
+        sage: normalize_long_repr('[10L, -10L, +10L, "ALL"]')
+        '[10, -10, +10, "ALL"]'
+    """
+
+    return _long_repr_re.sub(lambda m: m.group(1), s)
+
+
+_normalize_bound_method_re = re.compile(
+    r'<bound method \S+[.](?P<meth>[^. ]+)\sof\s(?P<obj>.+)>', re.M | re.S)
+
+def normalize_bound_method_repr(s):
+    """
+    Normalize differences between Python 2 and 3 in how bound methods are
+    represented.
+
+    On Python 2 bound methods are represented using the class name of the
+    object the method was bound to, whereas on Python 3 they are represented
+    with the fully-qualified name of the function that implements the method.
+
+    In the context of a doctest it's almost impossible to convert accurately
+    from the latter to the former or vice-versa, so we simplify the reprs of
+    bound methods to just the bare method name.
+
+    This is slightly regressive since it means one can't use the repr of a
+    bound method to test whether some element is getting a method from the
+    correct class (imporant sometimes in the cases of dynamic classes).
+    However, such tests could be written could be written more explicitly to
+    emphasize that they are testing such behavior.
+
+    EXAMPLES:
+
+    ::
+
+        sage: from sage.doctest.parsing import normalize_bound_method_repr
+        sage: el = Semigroups().example().an_element()
+        sage: el
+        42
+        sage: el.is_idempotent
+        <bound method ....is_idempotent of 42>
+        sage: normalize_bound_method_repr(repr(el.is_idempotent))
+        '<bound method is_idempotent of 42>'
+
+    An example where the object ``repr`` contains whitespace::
+
+        sage: U = DisjointUnionEnumeratedSets(
+        ....:          Family([1, 2, 3], Partitions), facade=False)
+        sage: U._element_constructor_
+        <bound method ...._element_constructor_default of Disjoint union of
+        Finite family {...}>
+        sage: normalize_bound_method_repr(repr(U._element_constructor_))
+        '<bound method _element_constructor_default of Disjoint union of Finite
+        family {...}>'
+    """
+
+    def subst(m):
+        return '<bound method {meth} of {obj}>'.format(**m.groupdict())
+
+    return _normalize_bound_method_re.sub(subst, s)
+
+
+# Collection of fixups applied in the SageOutputChecker.  Each element in this
+# this list a pair of functions applied to the actual test output ('g' for
+# "got") and the expected test output ('w' for "wanted").  The first function
+# should be a simple fast test on the expected and/or actual output to
+# determine if a fixup should be applied.  The second function is the actual
+# fixup, which is applied if the test function passes.  In most fixups only one
+# of the expected or recevied outputs are normalized, depending on the
+# application.
+# For example, on Python 3 we strip all u prefixes from unicode strings in the
+# expected output, because we never expect to see those on Python 3.
+if six.PY2:
+    _repr_fixups = []
+else:
+    _repr_fixups = [
+        (lambda g, w: 'u"' in w or "u'" in w,
+         lambda g, w: (g, remove_unicode_u(w))),
+
+        (lambda g, w: '<class' in g and '<type' in w,
+         lambda g, w: (g, normalize_type_repr(w))),
+
+        (lambda g, w: 'L' in w or 'l' in w,
+         lambda g, w: (g, normalize_long_repr(w))),
+        (lambda g, w: '<bound method' in w,
+         lambda g, w: (normalize_bound_method_repr(g),
+                       normalize_bound_method_repr(w)))
+    ]
+
+
 def parse_optional_tags(string):
     """
     Returns a set consisting of the optional tags from the following
@@ -962,24 +1065,11 @@ class SageOutputChecker(doctest.OutputChecker):
         if ok:
             return ok
 
-        # Possibly fix up the desired output to account for the difference in
-        # reprs of some objects between Python 2 and Python 3
-        # Since most of the tests are currently written for Python 2 the only
-        # fixups we perform right now are on Python 3
-        if six.PY2:
-            repr_fixups = []
-        else:
-            repr_fixups = [
-                (lambda g, w: 'u"' in w or "u'" in w, remove_unicode_u),
-                (lambda g, w: '<class' in g and '<type' in w,
-                 normalize_type_repr)
-            ]
-
         did_fixup = False
-        for quick_check, fixup in repr_fixups:
+        for quick_check, fixup in _repr_fixups:
             do_fixup = quick_check(got, want)
             if do_fixup:
-                want = fixup(want)
+                got, want = fixup(got, want)
                 did_fixup = True
 
         if not did_fixup:

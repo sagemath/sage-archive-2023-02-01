@@ -1037,7 +1037,7 @@ done from the right side.""")
         return self.element_class(self, x, coerce, copy)
 
     def __richcmp__(self, other, op):
-        """
+        r"""
         Rich comparison via containment in the same ambient space.
 
         Two modules compare if their ambient module/space is equal.
@@ -3305,7 +3305,7 @@ class FreeModule_generic_pid(FreeModule_generic):
                     "with base_ring (= %s)."%base_ring)
 
     def submodule_with_basis(self, basis, check=True, already_echelonized=False):
-        """
+        r"""
         Create the R-submodule of the ambient vector space with given
         basis, where R is the base ring of self.
 
@@ -3732,7 +3732,6 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             #    by clearing denominators, computing the kernel of a matrix with
             #    entries in R, then restoring denominators to the answer.
             K = self.base_ring()
-            R = other.base_ring()
             B = self.basis_matrix().transpose()
             W = B.kernel()
             phi = W.basis_matrix().transpose()
@@ -4053,7 +4052,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
     def complement(self):
-        """
+        r"""
         Return the complement of ``self`` in the
         :meth:`~sage.modules.free_module.FreeModule_ambient_field.ambient_vector_space`.
 
@@ -6301,7 +6300,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [  4   5   6]
         """
         if base_field is None:
-            K = self.base_ring().fraction_field()
             V = self.ambient_vector_space()
             return V.submodule_with_basis(self.basis())
         return self.change_ring(base_field)

@@ -1453,7 +1453,7 @@ class MPolynomialIdeal_singular_repr(
 
     @require_field
     def genus(self):
-        """
+        r"""
         Return the genus of the projective curve defined by this ideal,
         which must be 1 dimensional.
 
@@ -2227,7 +2227,7 @@ class MPolynomialIdeal_singular_repr(
             sage: I = ideal([x^2+2*y-5,x+y+3])
             sage: v = I.variety(AA)[0]; v
             {x: 4.464101615137755?, y: -7.464101615137755?}
-            sage: v.keys()[0].parent()
+            sage: list(v)[0].parent()
             Multivariate Polynomial Ring in x, y over Algebraic Real Field
             sage: v[x]
             4.464101615137755?
@@ -3646,9 +3646,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: R.<X,Y,Z> = F[]
             sage: I = Ideal([f + P.random_element() for f in sage.rings.ideal.Katsura(R).gens()])
             sage: I.groebner_basis()
-            [Z^3 + (79/105*t^2 - 79/105*t + 79/630)*Z^2 + (-11/105*t^4 + 22/105*t^3 - 17/45*t^2 + 197/630*t + 557/1890)*Y + ...,
-            Y^2 + (-3/5)*Z^2 + (2/5*t^2 - 2/5*t + 1/15)*Y + (-2/5*t^2 + 2/5*t - 1/15)*Z - 1/10*t^4 + 1/5*t^3 - 7/30*t^2 + 2/5*t + 11/90,
-            Y*Z + 6/5*Z^2 + (1/5*t^2 - 1/5*t + 1/30)*Y + (4/5*t^2 - 4/5*t + 2/15)*Z + 1/5*t^4 - 2/5*t^3 + 7/15*t^2 - 3/10*t - 11/45, X + 2*Y + 2*Z + t^2 - t - 1/3]
+            [Z^3 + (-79/105*t - 79/70)*Z^2 + (2/15*t^2 - 74/315*t + 94/105)*Y + (2/35*t^2 + 194/315*t + 1/105)*Z - 4/105*t^2 - 17/210*t - 1/28, Y^2 + (-3/5)*Z^2 + (-2/5*t - 3/5)*Y + (2/5*t + 3/5)*Z - 4/15*t + 1/2, Y*Z + 6/5*Z^2 + (-1/5*t - 3/10)*Y + (-4/5*t - 6/5)*Z + 8/15*t - 1/2, X + 2*Y + 2*Z - t - 2]
 
         In cases where a characteristic cannot be determined, we use a toy implementation of Buchberger's algorithm
         (see :trac:`6581`)::
@@ -4185,16 +4183,12 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         from sage.rings.real_mpfr import RR
         from sage.plot.all import implicit_plot
 
-
         K = self.base_ring()
-        try:
-            RR._coerce_(K(1))
-        except TypeError:
-            raise NotImplementedError("Plotting of curves over %s not implemented yet"%K)
+        if not RR.has_coerce_map_from(K):
+            raise NotImplementedError("plotting of curves over %s is not implemented yet" % K)
 
         if not self.is_principal():
-            raise TypeError("Ideal must be principal.")
-
+            raise TypeError("ideal must be principal")
 
         f = self.gens()[0]
 
@@ -4245,7 +4239,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             raise TypeError("Ideal generator may not have either 2 or 3 variables.")
 
     def random_element(self, degree, compute_gb=False, *args, **kwds):
-        """
+        r"""
         Return a random element in this ideal as `r = \sum h_i·f_i`.
 
         INPUT:
@@ -4333,7 +4327,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     @require_field
     def weil_restriction(self):
-        """
+        r"""
         Compute the Weil restriction of this ideal over some extension
         field. If the field is a finite field, then this computes
         the Weil restriction to the prime subfield.

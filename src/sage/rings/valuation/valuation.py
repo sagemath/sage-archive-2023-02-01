@@ -654,9 +654,9 @@ class DiscreteValuation(DiscretePseudoValuation):
             1/3
             sage: G=Delta.change_ring(K) 
             sage: vK.mac_lane_approximants(G)
-            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 3/2*theta^4 + theta^3 + 5*theta + 1) = 5/3 ],
-             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + theta^4 + theta^3 + 1) = 5/3 ]]
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + 3*theta + 3) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 1/2*theta^4 + theta + 3) = 5/3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x + 1) = 1/4, v(x^4 + 2*x^2 + 2*theta + 3) = 5/3 ]]
 
         An easy case that produced the wrong error at some point::
 
@@ -703,7 +703,6 @@ class DiscreteValuation(DiscretePseudoValuation):
         from sage.misc.misc import verbose
         verbose("Approximants of %r on %r towards %r"%(self, self.domain(), G), level=3)
 
-        from sage.rings.all import infinity
         from sage.rings.valuation.gauss_valuation import GaussValuation
 
         if not all([self(c) >= 0 for c in G.coefficients()]):
@@ -787,7 +786,7 @@ class DiscreteValuation(DiscretePseudoValuation):
 
         # The order of the leafs is not predictable in parallel mode and in
         # serial mode it depends on the hash functions and so on the underlying
-        # archictecture (32/64 bit). There is no natural ordering on these
+        # architecture (32/64 bit). There is no natural ordering on these
         # valuations but it is very convenient for doctesting to return them in
         # some stable order, so we just order them by their string
         # representation which should be very fast.

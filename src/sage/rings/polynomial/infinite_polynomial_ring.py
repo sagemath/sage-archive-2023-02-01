@@ -446,7 +446,7 @@ class InfiniteGenDict:
             sage: D._D # indirect doctest
             [InfiniteGenDict defined by ['a', 'b'], {'1': 1}]
         """
-        return "InfiniteGenDict defined by %s"%repr(self._D.keys())
+        return "InfiniteGenDict defined by %s" % sorted(self._D)
 
     def __getitem__(self, k):
         """
@@ -711,7 +711,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         self._identify_variable = lambda x, y: (-self._names.index(x), int(y))
         self._find_maxshift = re.compile('_([0-9]+)')  # findall yields stringrep of the shifts
         self._find_variables = re.compile('[a-zA-Z0-9]+_[0-9]+')
-        self._find_varpowers = re.compile('([a-zA-Z0-9]+)_([0-9]+)\^?([0-9]*)') # findall yields triple "generator_name", "index", "exponent"
+        self._find_varpowers = re.compile(r'([a-zA-Z0-9]+)_([0-9]+)\^?([0-9]*)') # findall yields triple "generator_name", "index", "exponent"
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         # Create some small underlying polynomial ring.
         # It is used to ensure that the parent of the underlying

@@ -1484,7 +1484,7 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
                     self._magma = magma
                 else:
                     self._magma = magma_session
-                magmap = self._magma(p)
+                self._magma(p)
                 # print("Warning: this input needs magma to work...")
             except RuntimeError:
                 raise NotImplementedError('Sage does not know yet how to work with the kind of orders that you are trying to use. Try installing Magma first and set it up so that Sage can use it.')
@@ -1990,8 +1990,6 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             raise NotImplementedError('The level should be squarefree for '
                                       'this function to work... Sorry!')
         GH = lambda N,ker: Gamma0(N) if character is None else GammaH_constructor(N,ker)
-
-        divs = lev.divisors()
 
         def mumu(N):
             p = 1
@@ -2935,16 +2933,16 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
             [-2]
         """
         E = self.get_edge_list()
-        # self._increase_precision(20)
 
         nninc = -2
         V = []
         p = self._p
-        while len(V) == 0:
+        while not V:
             nninc += 2
-            #print 'Searching for norm', q*self._p**nninc
-            F = lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1
-            V = filter(F, self._find_elements_in_order(q * self._p ** nninc))
+            V = [g for g in self._find_elements_in_order(q * self._p ** nninc)
+                 if prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0]))
+                          / self._character(p ** (nninc // 2))
+                          for v in self.get_extra_embedding_matrices()]) == 1]
 
         beta1 = Matrix(QQ, 4, 1, V[0])
 
@@ -2988,9 +2986,12 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
         T0 = []
         V = []
         nninc = 0
-        while len(V) == 0:
-            V = filter(lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(l * p ** nninc))
-            if len(V) == 0:
+        while not V:
+            V = [g for g in self._find_elements_in_order(l * p ** nninc)
+                 if prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0]))
+                          / self._character((p ** (nninc // 2)))
+                          for v in self.get_extra_embedding_matrices()]) == 1]
+            if not V:
                 nninc += 2
 
         alpha1 = V[0]
@@ -2998,7 +2999,11 @@ class BruhatTitsQuotient(SageObject, UniqueRepresentation):
 
         alpha = Matrix(QQ, 4, 1, alpha1)
         alphamat = self.embed_quaternion(alpha)
-        letters = self.get_nontorsion_generators() + filter(lambda g: prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0])) / self._character((p ** ZZ(nninc / 2))) for v in self.get_extra_embedding_matrices()]) == 1, self._find_elements_in_order(1))
+        letters = self.get_nontorsion_generators()
+        letters += [g for g in self._find_elements_in_order(1)
+                    if prod([self._character(ZZ((v * Matrix(ZZ, 4, 1, g))[0, 0]))
+                             / self._character((p ** (nninc // 2)))
+                             for v in self.get_extra_embedding_matrices()]) == 1]
         n_iters = 0
 
         def enumerate_words(v, n=None):

@@ -850,7 +850,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             sage: A3.<z> = GradedCommutativeAlgebra(QQ)
             sage: z**2 == 0
             True
-            sage: A4.<z> = GradedCommutativeAlgebra(GF(2))
+            sage: A4.<z> = GradedCommutativeAlgebra(QQ, degrees=[4])
+            sage: z**2 == 0
+            False
+            sage: A5.<z> = GradedCommutativeAlgebra(GF(2))
             sage: z**2 == 0
             False
         """

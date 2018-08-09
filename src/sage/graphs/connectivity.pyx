@@ -2066,7 +2066,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
     return cut_sides, cocycles, virtual_cut_graph
 
-def spqr_tree(G, algorithm="Hopcroft_tarjan"):
+def spqr_tree(G, algorithm="Hopcroft_Tarjan"):
     r"""
     Return an SPQR-tree representing the triconnected components of the graph.
 
@@ -2102,10 +2102,11 @@ def spqr_tree(G, algorithm="Hopcroft_tarjan"):
     - ``algorithm`` -- The algorithm to use in computing the SPQR tree of ``G``.
         The following algorithms are supported:
 
-      - ``"Hopcroft_tarjan"`` (default) -- Hopcroft and Tarjan's algorithm.
-        Refer to [Hopcroft1973]_.
+      - ``"Hopcroft_Tarjan"`` (default) -- Use the algorithm proposed by
+        Hopcroft and Tarjan in [Hopcroft1973]_ and later corrected by Gutwenger
+        and Mutzel in [Gut2001]_.
 
-      - ``"Cleave"`` -- Using the ``cleave`` function.
+      - ``"cleave"`` -- Using method :meth:`sage.graphs.connectivity.cleave`.
 
     OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
     and the subgraph of three-blocks in the decomposition.
@@ -2161,6 +2162,14 @@ def spqr_tree(G, algorithm="Hopcroft_tarjan"):
         sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
         True
 
+        sage: G = Graph('LlCG{O@?GBoMw?')
+        sage: T = spqr_tree(G, algorithm="Hopcroft_Tarjan")
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+        sage: T2 = spqr_tree(G, algorithm='cleave')
+        sage: G.is_isomorphic(spqr_tree_to_graph(T2))
+        True
+
     TESTS::
 
         sage: G = graphs.PathGraph(4)
@@ -2174,18 +2183,23 @@ def spqr_tree(G, algorithm="Hopcroft_tarjan"):
         Traceback (most recent call last):
         ...
         ValueError: Graph is not biconnected
+
+        sage: spqr_tree(Graph(), algorithm="easy")
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: SPQR tree algorithm 'easy' is not implemented
     """
     from sage.graphs.generic_graph import GenericGraph
     if not isinstance(G, GenericGraph):
         raise TypeError("the input must be a Sage graph")
 
-    if algorithm == "Hopcroft_tarjan":
+    if algorithm == "Hopcroft_Tarjan":
         from sage.graphs.connectivity import TriconnectivitySPQR
         tric = TriconnectivitySPQR(G)
         return tric.get_spqr_tree()
 
-    if algorithm != "Cleave":
-        raise NotImplementedError("SPQR tree algorithm '%s' is not implemented." % algorithm)
+    if algorithm != "cleave":
+        raise NotImplementedError("SPQR tree algorithm '{}' is not implemented".format(algorithm))
 
     from sage.graphs.graph import Graph
     from collections import Counter
@@ -2290,6 +2304,7 @@ def spqr_tree(G, algorithm="Hopcroft_tarjan"):
     Tree = Graph(name='SPQR tree of {}'.format(G.name()))
     SR_blocks = S_blocks + R_blocks
     Tree.add_vertices(SR_blocks)
+    P2 = []
     for e,num in cocycles_count.items():
         if num:
             P_block = ('P', Graph([e] * (num + max(0, counter_multiedges[e] - 1)), multiedges=True, immutable=True))
@@ -2302,6 +2317,17 @@ def spqr_tree(G, algorithm="Hopcroft_tarjan"):
                         Tree.add_edge(block, P_block)
                 except:
                     continue
+            if num == 2:
+                # When 2 S or R blocks are separated by a 2-cut without edge, we
+                # have added a P block with only 2 edges. We must remove them
+                # and connect neighbors by an edge. So we record these blocks
+                P2.append(P_block)
+
+    # We now remove the P blocks with only 2 edges.
+    for P_block in P2:
+        u, v = Tree.neighbors(P_block)
+        Tree.add_edge(u, v)
+        Tree.delete_vertex(P_block)
 
     # We finally add P blocks to account for multiple edges of the input graph
     # that are not involved in any separator of the graph
@@ -2383,6 +2409,13 @@ def spqr_tree_to_graph(T):
             continue
         for _ in range(num):
             G.add_edge(e)
+
+    # Some edges might only be in P_blocks. Such edges are true edges of the
+    # graph. This happen when virtual edges have distinct labels.
+    for e,num in count_P.items():
+        if e not in count_G:
+            for _ in range(num):
+                G.add_edge(e)
 
     return G
 

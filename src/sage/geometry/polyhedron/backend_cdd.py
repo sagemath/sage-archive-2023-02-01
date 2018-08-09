@@ -218,7 +218,7 @@ class Polyhedron_cdd(Polyhedron_base):
         cddout = cddout.splitlines()
 
         def parse_indices(count, cdd_indices, cdd_indices_to_sage_indices=None):
-            cdd_indices = map(int, cdd_indices)
+            cdd_indices = list(map(int, cdd_indices))
             if cdd_indices_to_sage_indices is None:
                 cdd_indices_to_sage_indices = {i:i-1 for i in cdd_indices}
             if count < 0:

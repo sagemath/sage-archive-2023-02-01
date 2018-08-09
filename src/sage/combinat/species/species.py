@@ -178,7 +178,7 @@ class GenericCombinatorialSpecies(SageObject):
         return not (self == other)
     
     def __getstate__(self):
-        """
+        r"""
         This is used during the pickling process and returns a dictionary
         of the data needed to create this object during the unpickling
         process. It returns an (\*args, \*\*kwds) tuple which is to be
@@ -195,7 +195,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: sorted(kwds.items())
             [('max', None), ('min', None), ('weight', 1)]
         """
-        kwds = {'weight':self._weight, 'min':self._min, 'max':self._max}
+        kwds = {'weight': self._weight, 'min': self._min, 'max': self._max}
         try:
             return (dict(enumerate(self._state_info)), kwds)
         except AttributeError:

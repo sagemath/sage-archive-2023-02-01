@@ -869,8 +869,8 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: F._latex_()
             '$\\mathrm{AbelianGroup}( 10, (2, 2, 2, 2, 2, 2, 2, 2, 2, 2) )$'
         """
-        s = "$\mathrm{AbelianGroup}( %s, %s )$"%(self.ngens(), self.gens_orders())
-        return s
+        return r"$\mathrm{AbelianGroup}( %s, %s )$" % (self.ngens(),
+                                                       self.gens_orders())
 
     def _gap_init_(self):
         r"""

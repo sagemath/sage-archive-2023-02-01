@@ -400,7 +400,7 @@ class OrthogonalMatrixGroup_gap(OrthogonalMatrixGroup_generic, NamedMatrixGroup_
 
     @cached_method
     def invariant_quadratic_form(self):
-        """
+        r"""
         Return the quadratic form preserved by the orthogonal group.
 
         OUTPUT:

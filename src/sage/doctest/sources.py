@@ -36,7 +36,7 @@ from sage.structure.dynamic_class import dynamic_class
 from sage.env import SAGE_SRC, SAGE_LOCAL
 
 # Python file parsing
-triple_quotes = re.compile("\s*[rRuU]*((''')|(\"\"\"))")
+triple_quotes = re.compile(r"\s*[rRuU]*((''')|(\"\"\"))")
 name_regex = re.compile(r".*\s(\w+)([(].*)?:")
 
 # LaTeX file parsing
@@ -50,7 +50,7 @@ skip = re.compile(r".*%skip.*")
 link_all = re.compile(r"^\s*\.\.\s+linkall\s*$")
 double_colon = re.compile(r"^(\s*).*::\s*$")
 
-whitespace = re.compile("\s*")
+whitespace = re.compile(r"\s*")
 bitness_marker = re.compile('#.*(32|64)-bit')
 bitness_value = '64' if sys.maxsize > (1 << 32) else '32'
 

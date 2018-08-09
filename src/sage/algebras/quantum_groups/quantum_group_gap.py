@@ -854,7 +854,7 @@ class QuantumGroup(UniqueRepresentation, Parent):
             return self.__class__(self.parent(), self._libgap * other._libgap)
 
         def bar(self):
-            """
+            r"""
             Return the bar involution on ``self``.
 
             The bar involution is defined by

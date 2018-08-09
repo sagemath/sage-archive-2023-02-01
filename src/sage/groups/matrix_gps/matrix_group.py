@@ -589,7 +589,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
             TypeError: matrix is not in the finitely generated group
         """
         from sage.libs.gap.libgap import libgap
-        libgap_contains = libgap.eval('\in')
+        libgap_contains = libgap.eval(r'\in')
         is_contained = libgap_contains(x_gap, self.gap())
         if not is_contained.sage():
             raise TypeError('matrix is not in the finitely generated group')

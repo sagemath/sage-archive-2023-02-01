@@ -31,6 +31,8 @@ from __future__ import print_function
 
 from subprocess import Popen, PIPE
 
+import six
+
 from sage.structure.sage_object import SageObject
 from sage.matrix.all import matrix
 from sage.rings.all import Integer, ZZ
@@ -133,7 +135,17 @@ class PALPreader(SageObject):
             sage: polygons._palp_Popen()
             <subprocess.Popen object at 0x...>
         """
-        return Popen(["class.x", "-b2a", "-di", self._data_basename], stdout=PIPE)
+
+        if six.PY2:
+            encoding_kwargs = {}
+        else:
+            encoding_kwargs = {
+                'encoding': 'utf-8',
+                'errors': 'surrogateescape'
+            }
+
+        return Popen(["class.x", "-b2a", "-di", self._data_basename],
+                     stdout=PIPE, **encoding_kwargs)
 
     def _read_vertices(self, stdout, rows, cols):
         r"""
@@ -148,8 +160,8 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
-            sage: palp.stdout.readline().decode('utf-8')
-            u'2 3  \n'
+            sage: palp.stdout.readline()
+            '2 3  \n'
             sage: polygons._read_vertices(palp.stdout, 2, 3)
             [[1, 0], [0, 1], [-1, -1]]
         """
@@ -172,8 +184,8 @@ class PALPreader(SageObject):
             sage: from sage.geometry.polyhedron.palp_database import PALPreader
             sage: polygons = PALPreader(2)
             sage: palp = polygons._palp_Popen()
-            sage: palp.stdout.readline().decode('utf-8')
-            u'2 3  \n'
+            sage: palp.stdout.readline()
+            '2 3  \n'
             sage: polygons._read_vertices_transposed(palp.stdout, 2, 3)
             [[1, 0, -1], [0, 1, -1]]
         """
@@ -455,9 +467,15 @@ class Reflexive4dHodge(PALPreader):
             sage: polygons._palp_Popen()                # optional - polytopes_db_4d
             <subprocess.Popen object at 0x...>
         """
+        if six.PY2:
+            encoding_kwargs = {}
+        else:
+            encoding_kwargs = {
+                'encoding': 'utf-8',
+                'errors': 'surrogateescape'
+            }
+
         return Popen(['class-4d.x', '-He',
                       'H'+str(self._h21)+':'+str(self._h11)+'L100000000',
-                      '-di', self._data_basename], stdout=PIPE)
-
-
-
+                      '-di', self._data_basename], stdout=PIPE,
+                      **encoding_kwargs)

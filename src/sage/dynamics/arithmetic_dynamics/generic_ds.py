@@ -305,15 +305,13 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         F = self.as_scheme_morphism().specialization(D, phi, homset)
         return F.as_dynamical_system()
 
-    def field_of_definition_critical(self, n, return_embedding = False, simplify_all = False, names = 'a'):
+    def field_of_definition_critical(self, return_embedding = False, simplify_all = False, names = 'a'):
         r"""
-        Return field of definition for the critical points of the ``n``-th iterate
+        Return field of definition for the critical points
 
         Ambient space of dynamical system must be either the affine line or projective line over a number field or finite field.
 
         INPUT:
-
-        - ``n`` -- a positive integer
 
         - ``return_embedding`` -- (default: ``False``) boolean; If ``True``, return an embedding of base field of dynamical
           system into the returned number field. Note that computing this embedding might be expensive.
@@ -334,14 +332,14 @@ class DynamicalSystem(SchemeMorphism_polynomial):
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([1/3*x^3 + x*y^2, y^3], domain = P)
-            sage: N.<a> = f.field_of_definition_critical(1); N
+            sage: N.<a> = f.field_of_definition_critical(); N
             Number Field in a with defining polynomial x^2 + 1
 
         ::
 
             sage: A.<z> = AffineSpace(QQ, 1)
-            sage: f = DynamicalSystem([z^2 + 1], domain = A)
-            sage: K.<a> = f.field_of_definition_critical(2); K
+            sage: f = DynamicalSystem([z^4 + 2*z^2 + 2], domain = A)
+            sage: K.<a> = f.field_of_definition_critical(); K
             Number Field in a with defining polynomial z^2 + 1
             sage: a^2
             -1
@@ -356,32 +354,26 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             sage: f = DynamicalSystem([x^4 + (2*a+2)*x^2 + a*x], domain = A)
             sage: f[0].derivative(x).univariate_polynomial().is_irreducible()
             True
-            sage: f.field_of_definition_critical(1, return_embedding = True, names = 'b')
+            sage: f.field_of_definition_critical(return_embedding = True, names = 'b')
             (Finite Field in b of size 3^6, Ring morphism:
                 From: Finite Field in a of size 3^2
                 To:   Finite Field in b of size 3^6
                 Defn: a |--> 2*b^5 + 2*b^3 + b^2 + 2*b + 2)
         """
         ds = copy(self)
-        if int(n) < 1: 
-            raise ValueError('`n` must be >= 1') 
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
             raise ValueError('Ambient space of dynamical system must be either the affine line or projective line')
         if space.is_projective():
             ds = ds.dehomogenize(1)
-        fn = ds.nth_iterate_map(n)
-        f,g = fn[0].numerator(), fn[0].denominator()
-        CR = ds.coordinate_ring()
+        f,g = ds[0].numerator(), ds[0].denominator()
+        CR = space.coordinate_ring()
         if CR.is_field():
             #want the polynomial ring not the fraction field
             CR = CR.ring()
         x = CR.gen(0)
         poly = (g*CR(f).derivative(x) - f*CR(g).derivative(x)).univariate_polynomial()
-        K = ds.base_ring()
-        if poly == CR(0):
-            return K
-        elif is_FiniteField(K):
+        if is_FiniteField(ds.base_ring()):
             return poly.splitting_field(names, map = return_embedding)
         else:
             return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
@@ -446,14 +438,15 @@ class DynamicalSystem(SchemeMorphism_polynomial):
                 Defn: a |--> b^2 + b)
         """
         ds = copy(self)
-        if int(n) < 1: 
+        n = int(n)
+        if n < 1:
             raise ValueError('`n` must be >= 1')
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
             raise NotImplementedError("not implemented for affine or projective spaces of degree >1")
         if space.is_projective():
             ds = ds.dehomogenize(1)
-        CR = ds.coordinate_ring()
+        CR = space.coordinate_ring()
         if CR.is_field():
             #want the polynomial ring not the fraction field
             CR = CR.ring() 
@@ -465,10 +458,7 @@ class DynamicalSystem(SchemeMorphism_polynomial):
             fn = ds.nth_iterate_map(n)
             f,g = fn[0].numerator(), fn[0].denominator()
             poly = (f - g*x).univariate_polynomial()        
-        K = ds.base_ring()
-        if poly == CR(0):
-            return K
-        elif is_FiniteField(K):
+        if is_FiniteField(ds.base_ring()):
             return poly.splitting_field(names, map = return_embedding)
         else:
             return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)
@@ -526,7 +516,8 @@ class DynamicalSystem(SchemeMorphism_polynomial):
                 Defn: 1 |--> 1)
         """
         ds = copy(self)
-        if int(n) < 1: 
+        n = int(n)
+        if n < 1:
             raise ValueError('`n` must be >= 1')
         space = ds.domain().ambient_space()
         if space.dimension() != 1:
@@ -538,18 +529,15 @@ class DynamicalSystem(SchemeMorphism_polynomial):
         if space.is_projective():
             ds = ds.dehomogenize(1) 
         else:
-            point = (point,1)       
+            point = (point[0],1) 
         fn = ds.nth_iterate_map(n)
         f, g = fn[0].numerator(), fn[0].denominator()
-        CR = ds.coordinate_ring()
+        CR = space.coordinate_ring()
         if CR.is_field():
             #want the polynomial ring not the fraction field
             CR = CR.ring()
         poly = (f*point[1] - g*CR(point[0])).univariate_polynomial()
-        K = ds.base_ring()
-        if poly == CR(0):
-            return K
-        elif is_FiniteField(K):
+        if is_FiniteField(ds.base_ring()):
             return poly.splitting_field(names, map = return_embedding)
         else:
             return poly.splitting_field(names, map = return_embedding, simplify_all = simplify_all)

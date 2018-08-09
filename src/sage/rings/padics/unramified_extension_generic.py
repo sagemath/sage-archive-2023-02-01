@@ -332,19 +332,18 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
         return self.ground_ring().has_pth_root()
 
     def has_root_of_unity(self, n):
-        """
-        Returns whether or not `\ZZ_p` has a primitive `n^{\mbox{th}}`
+        r"""
+        Return whether or not `\ZZ_p` has a primitive `n^{\mbox{th}}`
         root of unity.
 
         INPUT:
 
-            - self -- a p-adic ring
-            - n -- an integer
+        - ``self`` -- a p-adic ring
+        - ``n`` -- an integer
 
         OUTPUT:
 
-            - boolean -- whether self has primitive `n^{\mbox{th}}`
-              root of unity
+        - boolean
 
         EXAMPLES::
 
@@ -356,7 +355,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
             sage: R.has_root_of_unity(11)
             False
         """
-        if (self.prime() == 2):
-            return n.divides(2*(self.residue_class_field().order()-1))
+        if self.prime() == 2:
+            return n.divides(2 * (self.residue_class_field().order() - 1))
         else:
             return n.divides(self.residue_class_field().order() - 1)

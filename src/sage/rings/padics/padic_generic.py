@@ -997,7 +997,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     @cached_method
     def _log_unit_part_p(self):
-        """
+        r"""
         Compute the logarithm of the unit-part of `p`.
 
         If `\pi` is the uniformizer in this ring, then we can uniquely write
@@ -1021,7 +1021,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: W.<pi> = R.extension(x^3-3*x-3)
             sage: W._log_unit_part_p()
             2 + pi + 2*pi^2 + pi^4 + pi^5 + 2*pi^7 + 2*pi^8 + pi^9 + 2*pi^10 + pi^11 + pi^12 + 2*pi^14 + O(pi^15)
-
         """
         return self(self.prime()).unit_part().log()
 

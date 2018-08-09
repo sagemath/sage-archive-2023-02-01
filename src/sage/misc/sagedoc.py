@@ -324,7 +324,7 @@ def skip_TESTS_block(docstring):
     # underscores.
     # Also match uppercase text followed by a colon, like
     # "REFERENCES:" or "ALGORITHM:".
-    end_of_block = re.compile('[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
+    end_of_block = re.compile(r'[ ]*(\.\.[ ]+[-_A-Za-z]+|[A-Z]+):')
     # header: match a string of hyphens, or other characters which are
     # valid markers for reST headers: - = ` : ' " ~ _ ^ * + # < >
     header = re.compile(r'^[ ]*([-=`:\'"~_^*+#><])\1+[ ]*$')
@@ -925,7 +925,7 @@ You can build this with 'sage -docbuild {} html'.""".format(s))
     # done with preparation; ready to start search
     for dirpath, dirs, files in os.walk(os.path.join(base_path, module)):
         for f in files:
-            if not f.startswith('.') and re.search("\.(" + "|".join(exts) + ")$", f):
+            if not f.startswith('.') and re.search(r"\.(" + "|".join(exts) + ")$", f):
                 filename = os.path.join(dirpath, f)
                 if re.search(path_re, filename):
                     if multiline:

@@ -1211,7 +1211,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(self._eliminate_denominators(g), e)
-                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
+                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()), sort=False)
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()

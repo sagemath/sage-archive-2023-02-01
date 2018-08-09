@@ -650,8 +650,9 @@ def lift_cross_ratios(A, lift_map = None):
 
     return Z
 
+
 def lift_map(target):
-    """
+    r"""
     Create a lift map, to be used for lifting the cross ratios of a matroid
     representation.
 

@@ -81,7 +81,7 @@ from sage.matroids.advanced import newlabel
 
 
 def it(M, B1, nB1, lps):
-    """
+    r"""
     Return points on and off the triangle and lines to be drawn for a rank 3
     matroid.
 
@@ -133,10 +133,8 @@ def it(M, B1, nB1, lps):
 
     .. NOTE::
 
-            This method does NOT do any checks.
-
+        This method does NOT do any checks.
     """
-
     tripts = [(0, 0), (1, 2), (2, 0)]
     pts = {}
     j = 0

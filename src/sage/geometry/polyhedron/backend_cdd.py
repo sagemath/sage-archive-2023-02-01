@@ -218,7 +218,7 @@ class Polyhedron_cdd(Polyhedron_base):
         cddout = cddout.splitlines()
 
         def parse_indices(count, cdd_indices, cdd_indices_to_sage_indices=None):
-            cdd_indices = list(map(int, cdd_indices))
+            cdd_indices = [int(_) for _ in cdd_indices]
             if cdd_indices_to_sage_indices is None:
                 cdd_indices_to_sage_indices = {i:i-1 for i in cdd_indices}
             if count < 0:
@@ -247,7 +247,7 @@ class Polyhedron_cdd(Polyhedron_base):
             assert self.ambient_dim() == dimension - 1, "Unexpected ambient dimension"
             assert len(data) == count, "Unexpected number of lines"
             for i, line in enumerate(data):
-                coefficients = list(map(self.base_ring(), line))
+                coefficients = [self.base_ring()(x) for x in line]
                 if coefficients[0] != 0 and all(e == 0 for e in coefficients[1:]):
                     # cddlib sometimes includes an implicit plane at infinity: 1 0 0 ... 0
                     # We do not care about this entry.

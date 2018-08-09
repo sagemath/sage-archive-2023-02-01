@@ -3551,7 +3551,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return m * self.group().dimension_new_cusp_forms(self.weight(), eps=self.character())
 
     def _matrix_of_operator_on_modular_symbols(self, codomain, R, character_twist=False):
-        """
+        r"""
         INPUT:
 
 
@@ -3582,7 +3582,6 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             sage: M._matrix_of_operator_on_modular_symbols(M,HeilbronnCremona(3))
             [ 6  6]
             [ 0 10]
-
         """
         eps = self.character()
         rows = []

@@ -843,7 +843,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         return self.free_module().nonembedded_free_module()
 
     def old_submodule(self, p=None):
-        """
+        r"""
         Return the old or p-old submodule of this space of modular
         symbols.
 

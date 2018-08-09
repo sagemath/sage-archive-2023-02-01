@@ -224,13 +224,11 @@ class QmodnZ(Parent, UniqueRepresentation):
             sage: list(itertools.islice(QQ/(5*ZZ),19))
             [0, 1, 2, 3, 4, 1/2, 3/2, 5/2, 7/2, 9/2, 1/3, 2/3, 4/3, 5/3, 7/3, 8/3, 10/3, 11/3, 13/3]
         """
-
         if self.n == 0:
             for x in QQ:
                 yield self(x)
         else:
-            yield self(0)
-            d = ZZ(1)
+            d = ZZ(0)
             while True:
                 for a in d.coprime_integers((d*self.n).floor()):
                     yield self(a/d)

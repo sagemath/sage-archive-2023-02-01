@@ -4270,9 +4270,10 @@ def SylvesterGraph():
     g.name("Sylvester Graph")
     return g
 
+
 def SimsGewirtzGraph():
-    """
-    Returns the Sims-Gewirtz Graph.
+    r"""
+    Return the Sims-Gewirtz Graph.
 
     This graph is obtained from the Higman Sims graph by considering the graph
     induced by the vertices at distance two from the vertices of an (any)
@@ -4454,14 +4455,19 @@ def TruncatedIcosidodecahedralGraph():
     and 180 edges. For more information, see the
     :wikipedia:`Truncated_icosidodecahedron`.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    Unfortunately, this graph can not be constructed currently, due to numerical issues::
 
         sage: g = graphs.TruncatedIcosidodecahedralGraph(); g
-        Truncated Icosidodecahedron: Graph on 120 vertices
-        sage: g.order(), g.size()
+        Traceback (most recent call last):
+        ...
+        ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
+        sage: g.order(), g.size() # not tested
         (120, 180)
     """
     from sage.geometry.polyhedron.library import polytopes
+    # note that dropping exact=False here makes the construction take forever
     G = polytopes.icosidodecahedron(exact=False).truncation().graph()
     G.name("Truncated Icosidodecahedron")
     return G

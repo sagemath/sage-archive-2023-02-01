@@ -92,7 +92,7 @@ class MPolynomial_element(MPolynomial):
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
             sage: x + QQbar.random_element() # indirect doctest
-            x - 4
+            x + 0.4142135623730951?
         """
         return "%s"%self.__element
 
@@ -1412,7 +1412,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             return self.__lc
 
     def lt(self):
-        """
+        r"""
         Returns the leading term of self i.e., self.lc()\*self.lm(). The
         notion of "leading term" depends on the ordering defined in the
         parent ring.
@@ -1435,7 +1435,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: f=x+y
             sage: f.lt()
             x
-
         """
         try:
             return self.__lt

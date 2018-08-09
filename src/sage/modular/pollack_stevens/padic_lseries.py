@@ -179,7 +179,7 @@ class pAdicLseries(SageObject):
         """
         if not isinstance(other, pAdicLseries):
             return False
-        
+
         return (self._symb == other._symb and
                 self._quadratic_twist == other._quadratic_twist and
                 self._gamma == other._gamma and
@@ -197,7 +197,7 @@ class pAdicLseries(SageObject):
             False
         """
         return not self.__eq__(other)
-    
+
     def symbol(self):
         r"""
         Return the overconvergent modular symbol

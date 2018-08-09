@@ -1,8 +1,7 @@
 r"""
 Solve S-unit equation x + y = 1
 
-Inspired by work of Tzanakis--de Weger, Baker--W{\"{u}}stholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation x + y = 1.
-This is a preliminary patch and does not have all functions to solve the equation.
+Inspired by work of Tzanakis--de Weger, Baker--Wustholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation $x + y = 1$.
 
 REFERENCES:
 
@@ -14,7 +13,7 @@ REFERENCES:
 
 AUTHORS:
 
-- Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2017-01-10): original version
+- Alejandra Alvarado, Angelos Koutsianas, Beth Malmskog, Christopher Rasmussen, Christelle Vincent, Mckenzie West (2018-04-25): original version
 
     
 """

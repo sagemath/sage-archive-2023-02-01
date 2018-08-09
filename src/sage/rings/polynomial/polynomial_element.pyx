@@ -166,7 +166,7 @@ cpdef is_Polynomial(f):
 
 from .polynomial_compiled cimport CompiledPolynomialFunction
 
-from .polydict import ETuple
+from sage.rings.polynomial.polydict cimport ETuple
 
 cdef object is_AlgebraicRealField
 cdef object is_AlgebraicField
@@ -903,9 +903,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: etb = ExpressionTreeBuilder(vars=['t'])
             sage: R.<t> = QQ[]
             sage: v = R.random_element(6); v
-            -t^6 - 12*t^5 + 1/2*t^4 - 1/95*t^3 - 1/2*t^2 - 4
+            -1/4*t^6 + 1/2*t^5 - t^4 - 12*t^3 + 1/2*t^2 - 1/95*t - 1/2
             sage: v._fast_callable_(etb)
-            add(mul(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2), v_0), v_0), -4)
+            add(mul(add(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1/4), 1/2), v_0), -1), v_0), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2)
 
         TESTS::
 
@@ -1892,7 +1892,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if all(a[1] % 2 == 0 for a in f) and u.is_square():
             g = u.sqrt()
             for a in f:
-                g *= a[0] ** (a[1] / 2)
+                g *= a[0] ** (a[1] // 2)
             return (True, g) if root else True
         else:
             return (False, None) if root else False
@@ -3200,7 +3200,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -2/7*theta^3 + 2/3*theta - 19/993
         """
         R = self._parent.base_ring()[var]
-        return R(self.list())
+        return R(self.list(copy=False))
 
     def change_ring(self, R):
         """
@@ -3242,9 +3242,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 R = self._parent.hom(R, self._parent.change_ring(R.codomain()))
             return R(self)
         else:
-            return self._parent.change_ring(R)(list(self))
+            return self._parent.change_ring(R)(self.list(copy=False))
 
-    def _mpoly_dict_recursive(self, variables=None, base_ring=None):
+    cpdef dict _mpoly_dict_recursive(self, tuple variables=None, base_ring=None):
         """
         Return a dict of coefficient entries suitable for construction of a
         MPolynomial_polydict with the given variables.
@@ -3261,32 +3261,37 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if not self:
             return {}
 
+        cdef ETuple const_ix
+        cdef list mpolys
+        cdef Py_ssize_t k
+
         var = self._parent.variable_name()
         if variables is None:
             variables = self._parent.variable_names_recursive()
-        if not var in variables:
+        if var not in variables:
             x = base_ring(self) if base_ring else self
             const_ix = ETuple((0,)*len(variables))
             return { const_ix: x }
 
-        prev_variables = variables[:list(variables).index(var)]
+        cdef tuple prev_variables = variables[:variables.index(var)]
         const_ix = ETuple((0,)*len(prev_variables))
         mpolys = None
 
-        if len(prev_variables) > 0:
+        if prev_variables:
             try:
-                mpolys = [a._mpoly_dict_recursive(prev_variables, base_ring) for a in self]
-            except AttributeError as msg:
+                mpolys = [a._mpoly_dict_recursive(prev_variables, base_ring)
+                          for a in self]
+            except AttributeError:
                 pass
 
         if mpolys is None:
             if base_ring is not None and base_ring is not self.base_ring():
-                mpolys = [{const_ix:base_ring(a)} if a else {} for a in self]
+                mpolys = [{const_ix: base_ring(a)} if a else {} for a in self]
             else:
-                mpolys = [{const_ix:a} if a else {} for a in self]
+                mpolys = [{const_ix: a} if a else {} for a in self]
 
-        D = {}
-        leftovers = (0,) * (len(variables) - len(prev_variables) - 1)
+        cdef dict D = {}
+        cdef tuple leftovers = (0,) * (len(variables) - len(prev_variables) - 1)
         for k in range(len(mpolys)):
             for i,a in mpolys[k].iteritems():
                 j = ETuple((k,) + leftovers)
@@ -3815,8 +3820,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.dict()
             {0: 13, 1: -1/7, 3: 1}
         """
-        X = {}
-        Y = self.list(copy=False)
+        cdef dict X = {}
+        cdef list Y = self.list(copy=False)
+        cdef Py_ssize_t i
         for i in xrange(len(Y)):
             c = Y[i]
             if c:
@@ -4175,6 +4181,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p = (x - a)*(b*x + c)*(a*b*x + a*c) / (a + 2)
             sage: factor(p)
             (a/(a + 2)) * (x - a) * (b*x + c)^2
+
+        Check that :trac:`24973` is fixed::
+
+            sage: x1 = ZZ['x'].gen()
+            sage: x2 = ZZ['x']['x'].gen()
+            sage: (x1 - x2).factor()
+            -x + x
         """
         # PERFORMANCE NOTE:
         #     In many tests with SMALL degree PARI is substantially
@@ -4227,17 +4240,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return Factorization([], unit=self.get_unsafe(0))
 
         # Use multivariate implementations for polynomials over polynomial rings
-        variables = self._parent.variable_names_recursive()
-        if len(variables) > 1:
-            base = self._parent._mpoly_base_ring()
-            ring = PolynomialRing(base, variables)
-            if ring._has_singular:
-                try:
-                    d = self._mpoly_dict_recursive()
-                    F = ring(d).factor(**kwargs)
-                    return Factorization([(self._parent(f),m) for (f,m) in F], unit = F.unit())
-                except NotImplementedError:
-                    pass
+        flatten = self._parent.flattening_morphism()
+        tgt = flatten.codomain()
+        if tgt is not self._parent and tgt._has_singular:
+            try:
+                F = flatten(self).factor(**kwargs)
+                unflatten = flatten.section()
+                return Factorization(((unflatten(f),m) for (f,m) in F), unit = F.unit())
+            except NotImplementedError:
+                pass
 
         R = self._parent.base_ring()
         if hasattr(R, '_factor_univariate_polynomial'):
@@ -5091,8 +5102,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         If self and right are polynomials of positive degree, the determinant
         of the Sylvester matrix is the resultant of the polynomials.::
 
-            sage: h1 = R.random_element()
-            sage: h2 = R.random_element()
+            sage: h1 = R._random_nonzero_element()
+            sage: h2 = R._random_nonzero_element()
             sage: M1 = h1.sylvester_matrix(h2)
             sage: M1.determinant() == h1.resultant(h2)
             True
@@ -9578,7 +9589,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: u = x^5-2; u.has_cyclotomic_factor()
             False
             sage: u = pol(cyclotomic_polynomial(7)) * pol.random_element() #random
-            sage: u.has_cyclotomic_factor()
+            sage: u.has_cyclotomic_factor() # random
             True
         """
         if not QQ.has_coerce_map_from(self.base_ring()):

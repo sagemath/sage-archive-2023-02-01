@@ -133,6 +133,8 @@ List of Poset methods
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
     :meth:`~FinitePoset.maximal_antichains` | Return the maximal antichains of the poset.
     :meth:`~FinitePoset.antichains_iterator` | Return an iterator over the antichains of the poset.
+    :meth:`~FinitePoset.random_maximal_chain` | Return a random maximal chain.
+    :meth:`~FinitePoset.random_maximal_antichain` | Return a random maximal antichain.
 
 **Drawing**
 
@@ -212,6 +214,7 @@ List of Poset methods
     :meth:`~FinitePoset.promotion` | Return the (extended) promotion on the linear extension of the poset.
     :meth:`~FinitePoset.evacuation` | Return evacuation on the linear extension associated to the poset.
     :meth:`~FinitePoset.with_linear_extension` | Return a copy of ``self`` with a different default linear extension.
+    :meth:`~FinitePoset.random_linear_extension` | Return a random linear extension.
 
 **Matrices**
 
@@ -2188,8 +2191,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.relations_number()
             13
 
-            sage: from sage.combinat.tamari_lattices import TamariLattice
-            sage: TamariLattice(4).relations_number()
+            sage: posets.TamariLattice(4).relations_number()
             68
 
         .. SEEALSO::
@@ -2754,8 +2756,8 @@ class FinitePoset(UniqueRepresentation, Parent):
           of the poset
 
         - ``ordered`` -- a Boolean. If ``True``, then return ``True``
-          only if elements in `elms` are strictly increasing in the
-          poset; this makes no sense if `elms` is a set. If ``False``
+          only if elements in ``elms`` are strictly increasing in the
+          poset; this makes no sense if ``elms`` is a set. If ``False``
           (the default), then elements can be repeated and be in any
           order.
 
@@ -2968,11 +2970,11 @@ class FinitePoset(UniqueRepresentation, Parent):
         Return the dimension of the Poset.
 
         The (Dushnik-Miller) dimension of a poset is the minimal
-        number of total orders so that the poset can be defined as
-        "intersection" of all of them. Mathematically said, dimension
-        of a poset defined on a set `X` of points is the smallest
-        integer `n` such that there exists `P_1,...,P_n` linear
-        extensions of `P` satisfying the following property:
+        number of total orders so that the poset is their
+        "intersection".  More precisely, the dimension of a poset
+        defined on a set `X` of points is the smallest integer `n`
+        such that there exist linear extensions `P_1,...,P_n` of `P`
+        satisfying:
 
         .. MATH::
 
@@ -3035,8 +3037,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset( (L[0], lambda x, y: all(l.index(x) < l.index(y) for l in L)) ) == P
             True
 
-        According to Schnyder's theorem, the poset (of height 2) of a graph has
-        dimension `\leq 3` if and only if the graph is planar::
+        According to Schnyder's theorem, the incidence poset (of
+        height 2) of a graph has dimension `\leq 3` if and only if
+        the graph is planar::
 
             sage: G = graphs.CompleteGraph(4)
             sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
@@ -3056,18 +3059,30 @@ class FinitePoset(UniqueRepresentation, Parent):
             0
             sage: Poset().dimension(certificate=True)
             (0, [])
+
         """
         if self.cardinality() == 0:
             return (0, []) if certificate else 0
+        if self.is_chain():
+            return (1, self.list()) if certificate else 1
+
+        # current bound on the chromatic number of the hypergraph
+        k = 2
+        # if a realizer is not needed, we can optimize a little
+        if not certificate:
+            # polynomial time check for dimension 2
+            from sage.graphs.comparability import greedy_is_comparability as is_comparability
+            if is_comparability(self._hasse_diagram.transitive_closure().to_undirected().complement()):
+                return 2
+            k = 3
+            # known upper bound for dimension
+            max_value = max(self.cardinality() // 2, self.width())
 
         from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
         P = Poset(self._hasse_diagram) # work on an int-labelled poset
         hasse_diagram = P.hasse_diagram()
         inc_graph = P.incomparability_graph()
         inc_P = inc_graph.edges(labels=False)
-
-        # Current bound on the chromatic number of the hypergraph
-        k = 1
 
         # cycles is the list of all cycles found during the execution of the
         # algorithm
@@ -3093,6 +3108,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         p,b = init_LP(k,cycles,inc_P)
 
         while True:
+            if not certificate and k == max_value:
+                return k
             # Compute a coloring of the hypergraph. If there is a problem,
             # increase the number of colors and start again.
             try:
@@ -3124,19 +3141,6 @@ class FinitePoset(UniqueRepresentation, Parent):
                 break
 
         linear_extensions = [g.topological_sort() for g in linear_extensions]
-
-        # Check that the linear extensions do generate the poset (just to be
-        # sure)
-        from itertools import combinations
-        n = P.cardinality()
-        d = DiGraph()
-        for l in linear_extensions:
-            d.add_edges(combinations(l,2))
-
-        # The only 2-cycles are the incomparable pair
-        if d.size() != (n*(n-1))/2+inc_graph.size():
-            raise RuntimeError("Something went wrong. Please report this "
-                               "bug to sage-devel@googlegroups.com")
 
         if certificate:
             return (k, [[self._list[i] for i in l]
@@ -3977,8 +3981,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def isomorphic_subposets_iterator(self, other):
         """
-        Return an iterator over the subposets of `self` isomorphic to
-        `other`.
+        Return an iterator over the subposets of ``self`` isomorphic to
+        ``other``.
 
         By subposet we mean ``self.subposet(X)`` which is isomorphic
         to ``other`` and where ``X`` is a subset of elements of
@@ -4018,7 +4022,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def isomorphic_subposets(self, other):
         """
-        Return a list of subposets of `self` isomorphic to `other`.
+        Return a list of subposets of ``self`` isomorphic to ``other``.
 
         By subposet we mean ``self.subposet(X)`` which is isomorphic to
         ``other`` and where ``X`` is a subset of elements of ``self``.
@@ -4029,8 +4033,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: C2=Poset({0:[1]})
-            sage: C3=Poset({'a':['b'], 'b':['c']})
+            sage: C2 = Poset({0:[1]})
+            sage: C3 = Poset({'a':['b'], 'b':['c']})
             sage: for x in C3.isomorphic_subposets(C2):
             ....:     print(x.cover_relations())
             [['b', 'c']]
@@ -5818,6 +5822,112 @@ class FinitePoset(UniqueRepresentation, Parent):
         if direction != 'down':
             raise ValueError("direction must be 'up', 'down' or 'antichain'")
         return [self._vertex_to_element(i) for i,x in enumerate(state) if x == 0]
+
+    def random_maximal_chain(self):
+        """
+        Return a random maximal chain of the poset.
+
+        The distribution is not uniform.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # results are reproduceable
+            sage: P = posets.BooleanLattice(4)
+            sage: P.random_maximal_chain()
+            [0, 2, 10, 11, 15]
+
+        TESTS::
+
+            sage: Poset().random_maximal_chain()
+            []
+            sage: Poset({42: []}).random_maximal_chain()
+            [42]
+        """
+        from sage.misc.prandom import randint
+
+        if self.cardinality() == 0:
+            return []
+
+        mins = self.minimal_elements()
+        new = mins[randint(0, len(mins)-1)]
+        result = [new]
+        nexts = self.upper_covers(new)
+        while nexts:
+            new = nexts[randint(0, len(nexts)-1)]
+            result.append(new)
+            nexts = self.upper_covers(new)
+        return result
+
+    def random_maximal_antichain(self):
+        """
+        Return a random maximal antichain of the poset.
+
+        The distribution is not uniform.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # results are reproduceable
+            sage: P = posets.BooleanLattice(4)
+            sage: P.random_maximal_antichain()
+            [1, 8, 2, 4]
+
+        TESTS::
+
+            sage: Poset().random_maximal_antichain()
+            []
+            sage: Poset({42: []}).random_maximal_antichain()
+            [42]
+        """
+        H = self.hasse_diagram()
+        result = []
+
+        while H.order():
+            new = H.random_vertex()
+            result.append(new)
+            down = list(H.depth_first_search(new, neighbors=H.neighbor_in_iterator))
+            up = list(H.depth_first_search(new))
+            H.delete_vertices(down+up)
+
+        return result
+
+    def random_linear_extension(self):
+        """
+        Return a random linear extension of the poset.
+
+        The distribution is not uniform.
+
+        EXAMPLES::
+
+            sage: set_random_seed(0)  # results are reproduceable
+            sage: P = posets.BooleanLattice(4)
+            sage: P.random_linear_extension()
+            [0, 2, 8, 1, 9, 4, 5, 10, 6, 12, 14, 13, 3, 7, 11, 15]
+
+        TESTS::
+
+            sage: Poset().random_linear_extension()
+            []
+            sage: Poset({42: []}).random_linear_extension()
+            [42]
+        """
+        from sage.misc.prandom import randint
+
+        H = self._hasse_diagram
+        result = []
+        indegs = list(H.in_degree_iterator())
+        mins = H.sources()
+
+        for _ in range(H.order()):
+            new_index = randint(0, len(mins)-1)
+            new = mins[new_index]
+            result.append(new)
+            mins = mins[:new_index]+mins[new_index+1:]
+            for u in H.neighbors_out(new):
+                indegs[u] -= 1
+                if indegs[u] == 0:
+                    mins.append(u)
+
+        return [self._vertex_to_element(v) for v in result]
 
     def order_filter(self, elements):
         r"""

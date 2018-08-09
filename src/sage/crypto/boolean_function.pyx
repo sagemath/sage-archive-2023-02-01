@@ -995,13 +995,13 @@ cdef class BooleanFunction(SageObject):
 
         kg = M.kernel().gens()
 
-        if len(kg)>0:
+        if kg:
             res = sum([kg[0][i]*ri for i,ri in enumerate(r)])
         else:
             res = None
 
         if dim:
-            return res,len(kg)
+            return res, len(kg)
         else:
             return res
 
@@ -1041,6 +1041,27 @@ cdef class BooleanFunction(SageObject):
                     else:
                         return i
         raise ValueError("you just found a bug!")
+
+    def algebraic_degree(self):
+        r"""
+        Return the algebraic degree of this Boolean function.
+
+        The algebraic degree of a Boolean function is defined as the degree
+        of its algebraic normal form. Note that the degree of the constant
+        zero function is defined to be equal to -1.
+
+        EXAMPLES::
+
+            sage: from sage.crypto.boolean_function import BooleanFunction
+            sage: B.<x0, x1, x2, x3> = BooleanPolynomialRing()
+            sage: f = BooleanFunction(x1*x2 + x1*x2*x3 + x1)
+            sage: f.algebraic_degree()
+            3
+            sage: g = BooleanFunction([0, 0])
+            sage: g.algebraic_degree()
+            -1
+        """
+        return self.algebraic_normal_form().degree()
 
     def is_plateaued(self):
         r"""

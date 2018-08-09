@@ -266,6 +266,23 @@ class MappedValuation_base(DiscretePseudoValuation):
         """
         return self.residue_ring().coerce(F)
 
+    def element_with_valuation(self, s):
+        r"""
+        Return an element with valuation ``s``.
+
+        EXAMPLES::
+
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = valuations.pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.element_with_valuation(1)
+            5
+
+        """
+        return self._from_base_domain(self._base_valuation.element_with_valuation(s))
+
     def _test_to_from_base_domain(self, **options):
         r"""
         Check the correctness of :meth:`to_base_domain` and

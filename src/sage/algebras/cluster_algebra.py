@@ -452,7 +452,7 @@ class ClusterAlgebraElement(ElementWrapper):
             sage: x.d_vector()
             (1, 1, 2, -2)
         """
-        monomials = self.lift()._dict().keys()
+        monomials = self.lift().dict().keys()
         minimal = map(min, zip(*monomials))
         return tuple(-vector(minimal))[:self.parent().rank()]
 

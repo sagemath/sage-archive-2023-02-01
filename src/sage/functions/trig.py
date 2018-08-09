@@ -5,9 +5,10 @@ from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import is_Expression
 import math
 
+
 class Function_sin(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The sine function.
 
         EXAMPLES::
@@ -122,9 +123,10 @@ class Function_sin(GinacFunction):
 
 sin = Function_sin()
 
+
 class Function_cos(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The cosine function.
 
         EXAMPLES::
@@ -184,9 +186,10 @@ class Function_cos(GinacFunction):
 
 cos = Function_cos()
 
+
 class Function_tan(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The tangent function.
 
         EXAMPLES::
@@ -529,13 +532,8 @@ class Function_arcsin(GinacFunction):
             arcsin
             sage: asin(complex(1,1))
             (0.6662394324925152+1.0612750619050357j)
-
-        Check that :trac:`22823` is fixed::
-
-            sage: bool(asin(SR(2.1)) == NaN)
-            True
-            sage: asin(SR(2.1)).is_real()
-            False
+            sage: asin(SR(2.1))
+            1.57079632679490 - 1.37285914424258*I
         """
         GinacFunction.__init__(self, 'arcsin', latex_name=r"\arcsin",
                 conversions=dict(maxima='asin', sympy='asin', fricas="asin", giac="asin"))
@@ -595,13 +593,8 @@ class Function_arccos(GinacFunction):
             arccos
             sage: acos(complex(1,1))
             (0.9045568943023814-1.0612750619050357j)
-
-        Check that :trac:`22823` is fixed::
-
-            sage: bool(acos(SR(2.1)) == NaN)
-            True
-            sage: acos(SR(2.1)).is_real()
-            False
+            sage: acos(SR(2.1))
+            1.37285914424258*I
         """
         GinacFunction.__init__(self, 'arccos', latex_name=r"\arccos",
                 conversions=dict(maxima='acos', sympy='acos', fricas='acos', giac='acos'))
@@ -807,7 +800,7 @@ class Function_arcsec(GinacFunction):
             sage: arcsec(2).n(100)
             1.0471975511965977461542144611
             sage: arcsec(1/2).n(100)
-            NaN
+            1.3169578969248167086250463473*I
             sage: RDF(arcsec(2))  # abs tol 1e-15
             1.0471975511965976
             sage: arcsec(1 + I)
@@ -958,7 +951,9 @@ class Function_arctan2(GinacFunction):
             sage: atan2(0,0,hold=True)
             arctan2(0, 0)
             sage: atan2(0,0,hold=True).n()
-            NaN
+            Traceback (most recent call last):
+            ...
+            RuntimeError: atan2(): division by zero
 
         Check if :trac:`10062` is fixed, this was caused by
         ``(I*I).is_positive()`` returning ``True``::

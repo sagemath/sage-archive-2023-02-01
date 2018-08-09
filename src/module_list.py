@@ -495,16 +495,14 @@ ext_modules = [
     Extension('sage.libs.gmp.pylong',
               sources = ['sage/libs/gmp/pylong.pyx']),
 
-    OptionalExtension('sage.libs.braiding',
+    Extension('sage.libs.braiding',
                       sources = ["sage/libs/braiding.pyx"],
                       libraries = ["braiding"],
-                      package="libbraiding",
                       language = 'c++'),
 
-    OptionalExtension('sage.libs.homfly',
+    Extension('sage.libs.homfly',
                       sources = ["sage/libs/homfly.pyx"],
-                      libraries = ["homfly", "gc"],
-                      package="libhomfly"),
+                      libraries = ["homfly", "gc"]),
 
     OptionalExtension('sage.libs.sirocco',
                       sources = ["sage/libs/sirocco.pyx"],
@@ -583,24 +581,13 @@ ext_modules = [
 
     Extension('*', ["sage/libs/eclib/*.pyx"]),
 
-
     ################################
     ##
     ## sage.libs.gap
     ##
     ################################
 
-    Extension('sage.libs.gap.util',
-              sources = ["sage/libs/gap/util.pyx"],
-              libraries = ['gmp', 'gap', 'm']),
-
-    Extension('sage.libs.gap.element',
-              sources = ["sage/libs/gap/element.pyx"],
-              libraries = ['gmp', 'gap', 'm']),
-
-    Extension('sage.libs.gap.libgap',
-              sources = ["sage/libs/gap/libgap.pyx"],
-              libraries = ['gmp', 'gap', 'm']),
+    Extension('*', ["sage/libs/gap/*.pyx"]),
 
     ###################################
     ##

@@ -198,16 +198,19 @@ usage_advanced() {
     echo "                         selected options:"
     echo "                           --long - include lines with the phrase 'long time'"
     echo "                           --verbose - print debugging output during the test"
+    echo "                           --all - test all files"
+    echo "                           --sagenb - test all sagenb files"
     echo "                           --optional - controls which optional tests are run"
-    echo "                           --randorder[=seed] - randomize order of tests"
     echo "                           --new - only test files modified since last commit"
     echo "                           --initial - only show the first failure per block"
     echo "                           --debug - drop into PDB after an unexpected error"
     echo "                           --failed - only test files that failed last test"
-    echo "                           --sagenb - test all sagenb files"
-    echo "                           --help - show all testing options"
     echo "                           --warn-long [timeout] - warning if doctest is slow"
     echo "                           --only-errors - only output failures, not successes"
+    echo "                           --gc=GC - control garbarge collection (ALWAYS:"
+    echo "                                     collect garbage before every test; NEVER:"
+    echo "                                     disable gc; DEFAULT: Python default)"
+    echo "                           --help - show all testing options"
     echo "  -tp <N> [...]       -- like -t above, but tests in parallel using N threads"
     echo "                         with 0 interpreted as a sensible default"
     echo "  -testall [options]  -- test all source files, docs, and examples.  options"
@@ -232,6 +235,8 @@ usage_advanced() {
     echo "File conversion:"
     echo "  -rst2ipynb [...]    -- Generates Jupyter notebook (.ipynb) from standalone"
     echo "                         reStructuredText source."
+    echo "  -ipynb2rst [...]    -- Generates a reStructuredText source file from"
+    echo "                         a Jupyter notebook (.ipynb)."
     echo "  -rst2txt [...]      -- Generates Sage worksheet text file from standalone"
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
@@ -773,6 +778,11 @@ fi
 if [ "$1" = '-rst2ipynb' -o "$1" = '--rst2ipynb' ]; then
     shift
     exec rst2ipynb --kernel=sagemath "$@"
+fi
+
+if [ "$1" = '-ipynb2rst' -o "$1" = '--ipynb2rst' ]; then
+    shift
+    exec sage-ipynb2rst "$@"
 fi
 
 if [ "$1" = '-rst2txt' -o "$1" = '--rst2txt' ]; then

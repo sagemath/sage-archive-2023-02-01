@@ -896,7 +896,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         return s
 
     def _latex_term(self, t):
-        """
+        r"""
         LaTeX representation of the monomial specified by the tuple ``t``.
 
         INPUT:

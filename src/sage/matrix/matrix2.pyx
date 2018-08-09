@@ -1485,8 +1485,10 @@ cdef class Matrix(Matrix1):
 
         ALGORITHM:
 
-        For small matrices (n less than 4), this is computed using the naive
-        formula. In the specific case of matrices over the integers modulo a
+        If the base ring has a method :meth:`_matrix_determinant`, we call it.
+
+        Otherwise, for small matrices (n less than 4), this is computed using the 
+        naive formula. In the specific case of matrices over the integers modulo a
         non-prime, the determinant of a lift is computed over the integers.
         In general, the characteristic polynomial is computed either using
         the Hessenberg form (specified by ``"hessenberg"``) or the generic
@@ -1602,6 +1604,12 @@ cdef class Matrix(Matrix1):
         if not d is None:
             return d
 
+        R = self._base_ring
+        if hasattr(R, '_matrix_determinant'):
+            d = R._matrix_determinant(self)
+            self.cache('det', d)
+            return d
+
         # If charpoly known, then det is easy.
         f = self.fetch('charpoly')
         if f is not None:
@@ -1614,7 +1622,6 @@ cdef class Matrix(Matrix1):
 
         cdef Py_ssize_t n
         n = self._ncols
-        R = self._base_ring
 
         # For small matrices, you can't beat the naive formula.
         if n <= 3:
@@ -8263,17 +8270,17 @@ cdef class Matrix(Matrix1):
 
             sage: a.randomize(0.5)
             sage: a
-            [      1/2*x^2 - x - 12 1/2*x^2 - 1/95*x - 1/2                      0]
-            [-5/2*x^2 + 2/3*x - 1/4                      0                      0]
-            [          -x^2 + 2/3*x                      0                      0]
+            [                     0                      0                      0]
+            [                     0                      0       1/2*x^2 - x - 12]
+            [1/2*x^2 - 1/95*x - 1/2                      0                      0]
 
         Now we randomize all the entries of the resulting matrix::
 
             sage: a.randomize()
             sage: a
-            [     1/3*x^2 - x + 1             -x^2 + 1              x^2 - x]
-            [ -1/14*x^2 - x - 1/4           -4*x - 1/5 -1/4*x^2 - 1/2*x + 4]
-            [ 1/9*x^2 + 5/2*x - 3     -x^2 + 3/2*x + 1   -2/7*x^2 - x - 1/2]
+            [                     0 -5/2*x^2 + 2/3*x - 1/4           -x^2 + 2/3*x]
+            [                     1        x^2 + 1/3*x - 1                     -1]
+            [                    -1       -x^2 - 1/4*x + 1                  -1/14]
 
         We create the zero matrix over the integers::
 
@@ -8289,8 +8296,8 @@ cdef class Matrix(Matrix1):
 
             sage: a.randomize(x=-2^64, y=2^64)
             sage: a
-            [-12401200298100116246   1709403521783430739]
-            [ -4417091203680573707  17094769731745295000]
+            [-3789934696463997112 -3775200185786627805]
+            [-8014573080042851913  7914454492632997238]
         """
         randint = current_randstate().python_random().randint
 
@@ -12667,8 +12674,7 @@ cdef class Matrix(Matrix1):
             sage: a.conjugate()
             Traceback (most recent call last):
             ...
-            AttributeError: 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'
-            object has no attribute 'conjugate'
+            TypeError: cardinality of the field must be a square number
             sage: A = matrix(F,
             ....:     [[      a^2 + 2*a, 4*a^2 + 3*a + 4,       3*a^2 + a, 2*a^2 + 2*a + 1],
             ....:      [4*a^2 + 3*a + 4,       4*a^2 + 2,             3*a, 2*a^2 + 4*a + 2],
@@ -12938,9 +12944,11 @@ cdef class Matrix(Matrix1):
 
     def conjugate_transpose(self):
         r"""
-        Returns the transpose of ``self`` after each entry has been converted to its complex conjugate.
+        Return the transpose of ``self`` after each entry has been
+        converted to its complex conjugate.
 
         .. NOTE::
+
             This function is sometimes known as the "adjoint" of a matrix,
             though there is substantial variation and some confusion with
             the use of that term.
@@ -12999,7 +13007,19 @@ cdef class Matrix(Matrix1):
             [             zeta5^3]
             [-zeta5^3 - zeta5 - 1]
 
-        Conjugation does not make sense over rings not containing complex numbers. ::
+        Furthermore, this method can be applied to matrices over
+        quadratic extensions of finite fields::
+
+            sage: F.<a> = GF(9,'a')
+            sage: N = matrix(F, 2, [0,a,-a,1]); N
+            [  0   a]
+            [2*a   1]
+            sage: N.conjugate_transpose()
+            [      0   a + 2]
+            [2*a + 1       1]
+
+        Conjugation does not make sense over rings not containing complex
+        numbers or finite fields which are not a qadratic extension::
 
             sage: N = matrix(GF(5), 2, [0,1,2,3])
             sage: N.conjugate_transpose()

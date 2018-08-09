@@ -90,6 +90,7 @@ def GammaH_constructor(level, H):
         _gammaH_cache[key] = GammaH_class(level, H, Hlist)
         return _gammaH_cache[key]
 
+
 def is_GammaH(x):
     """
     Return True if x is a congruence subgroup of type GammaH.
@@ -192,7 +193,7 @@ class GammaH_class(CongruenceSubgroup):
         sage: GammaH(32079, [21676]).dimension_cusp_forms(20)
         180266112
 
-    We can sometimes show that there are no weight 1 cusp forms::
+    An example in weight 1::
 
         sage: GammaH(20, [9]).dimension_cusp_forms(1)
         0
@@ -1196,6 +1197,38 @@ class GammaH_class(CongruenceSubgroup):
 
         return self.ncusps() - self.nregcusps()
 
+    def dimension_cusp_forms(self, k=2):
+        r"""
+        Return the dimension of the space of weight k cusp forms for this
+        group. For `k \ge 2`, this is given by a standard formula in terms of k
+        and various invariants of the group; see Diamond + Shurman, "A First
+        Course in Modular Forms", section 3.5 and 3.6. If k is not given,
+        default to k = 2.
+
+        For dimensions of spaces of cusp forms with character for Gamma1, use
+        the dimension_cusp_forms method of the Gamma1 class, or the standalone
+        function dimension_cusp_forms().
+
+        For weight 1 cusp forms, there is no simple formula for the dimensions,
+        so we first try to rule out nonzero cusp forms existing via
+        Riemann-Roch, and if this fails, we trigger computation of the cusp
+        form space using Schaeffer's algorithm; this can be quite expensive in
+        large levels.
+
+        EXAMPLES::
+
+            sage: GammaH(31, [23]).dimension_cusp_forms(10)
+            69
+            sage: GammaH(31, [7]).dimension_cusp_forms(1)
+            1
+        """
+        k = ZZ(k)
+        if k != 1:
+            return CongruenceSubgroup.dimension_cusp_forms(self, k)
+        else:
+            from sage.modular.modform.weight1 import dimension_wt1_cusp_forms_gH
+            return dimension_wt1_cusp_forms_gH(self)
+
     def dimension_new_cusp_forms(self, k=2, p=0):
         r"""
         Return the dimension of the space of new (or `p`-new)
@@ -1299,6 +1332,48 @@ class GammaH_class(CongruenceSubgroup):
         # so w * Q - z*(N/Q) = 1
         return matrix(ZZ, 2, 2, [Q, 1, N*z, Q*w])
 
+    @cached_method
+    def characters_mod_H(self, sign=None, galois_orbits=False):
+        r"""
+        Return the characters of `(\ZZ / N\ZZ)^*`, of the specified sign, which
+        are trivial on H.
+
+        INPUT:
+
+        - ``sign`` (default: None): if not None, return only characters of the
+          given sign
+
+        - ``galois_orbits`` (default: False): if True, return only one
+          character from each Galois orbit.
+
+        EXAMPLES::
+
+            sage: GammaH(5, [-1]).characters_mod_H()
+            [Dirichlet character modulo 5 of conductor 5 mapping 2 |--> -1,
+             Dirichlet character modulo 5 of conductor 1 mapping 2 |--> 1]
+            sage: Gamma1(31).characters_mod_H(galois_orbits=True,sign=-1)
+            [Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30,
+             Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30^3,
+             Dirichlet character modulo 31 of conductor 31 mapping 3 |--> zeta30^5,
+             Dirichlet character modulo 31 of conductor 31 mapping 3 |--> -1]
+            sage: GammaH(31, [-1]).characters_mod_H(sign=-1)
+            []
+        """
+        if sign == -1 and self.is_even():
+            # shortcut for trivial special case
+            return []
+
+        from sage.modular.dirichlet import DirichletGroup
+        chis = DirichletGroup(self.level()).galois_orbits()
+        A = []
+        for U in chis:
+            chi = U[0]
+            if sign is not None:
+                if chi(-1) != sign: continue
+            if not all(chi(h) == 1 for h in self._generators_for_H()): continue
+            if galois_orbits: A.append(chi)
+            else: A += U
+        return A
 
 def _list_subgroup(N, gens):
     r"""
@@ -1358,8 +1433,7 @@ def mumu(N):
 
     INPUT:
 
-
-    -  ``N`` - an integer at least 1
+    - ``N`` - an integer at least 1
 
 
     OUTPUT: Integer

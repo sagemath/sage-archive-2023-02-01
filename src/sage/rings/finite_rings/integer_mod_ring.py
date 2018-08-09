@@ -593,6 +593,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             [1, 5, 7, 11]
             sage: type(L[0])
             <... 'int'>
+            sage: Zmod(1).list_of_elements_of_multiplicative_group()
+            [0]
         """
         import sage.rings.fast_arith as a
         if self.__order <= 46340:   # todo: don't hard code
@@ -600,8 +602,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         elif self.__order <= 2147483647:   # todo: don't hard code
             gcd = a.arith_llong().gcd_longlong
         else:
-            raise MemoryError("creating the list would exhaust memory")
+            raise NotImplementedError("list_of_elements_of_multiplicative_group() is not implemented for large moduli")
         N = self.__order
+        # Don't use N.coprime_integers() here because we want Python ints
         return [i for i in range(N) if gcd(i, N) == 1]
 
     @cached_method
@@ -1007,7 +1010,7 @@ In the latter case, please inform the developers.""".format(self.order()))
         return factor(self.__order, int_=(self.__order < 2**31))
 
     def factored_unit_order(self):
-        """
+        r"""
         Return a list of :class:`Factorization` objects, each the factorization
         of the order of the units in a `\ZZ / p^n \ZZ` component of this group
         (using the Chinese Remainder Theorem).
@@ -1195,7 +1198,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             i = i + 1
 
     def _coerce_map_from_(self, S):
-        """
+        r"""
         EXAMPLES::
 
             sage: R = Integers(15)

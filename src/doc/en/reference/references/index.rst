@@ -399,6 +399,10 @@ REFERENCES:
             Adv. Math. **222** (2009), 1883–1942.
             :mathscinet:`MR2562768`
 
+.. [BK2017] Pascal Baseilhac and Stefan Kolb. *Braid group action
+            and root vectors for the* `q`-*Onsager algebra*.
+            Preprint, (2017) :arxiv:`1706.08747`.
+
 .. [BKK2000]  Georgia Benkart, Seok-Jin Kang, Masaki Kashiwara.
               *Crystal bases for the quantum superalgebra* `U_q(\mathfrak{gl}(m,n))`,
               J. Amer. Math. Soc. **13** (2000), no. 2, 295-331.
@@ -857,6 +861,10 @@ REFERENCES:
 .. [Dev2005] Devaney, Robert L. *An Introduction to Chaotic Dynamical Systems.*
              Boulder: Westview, 2005, 331.
 
+.. [DG1982] Louise Dolan and Michael Grady.
+            *Conserved charges from self-duality*,
+            Phys. Rev. D(3) **25** (1982), no. 6, 1587-1604.
+
 .. [DGRB2010] David Avis, Gabriel D. Rosenberg, Rahul Savani, Bernhard
               von Stengel. *Enumeration of Nash equilibria for
               two-player games.*
@@ -942,6 +950,10 @@ REFERENCES:
 
 .. [Du2009] Du Ye. *On the Complexity of Deciding Degeneracy in
             Games*. :arxiv:`0905.3012v1` (2009)
+
+.. [Du2018] \O. Dunkelman, *Efficient Construction of the Boomerang
+            Connection Table* (preprint); in Cryptology ePrint Archive,
+            (2018), 631.
 
 .. [DW1995] Andreas W.M. Dress and Walter Wenzel, *A Simple Proof of
             an Identity Concerning Pfaffians of Skew Symmetric
@@ -1970,6 +1982,10 @@ REFERENCES:
              products*, Journal of Geometry and Physics **23**, 350
              (1997); :doi:`10.1016/S0393-0440(97)80009-5`
 
+.. [Mark1992] George Markowsky, *Primes, irreducibles and
+              extremal lattices*, Order 9 (1992), no. **3**, 265-290.
+              :doi:`10.1007%2FBF00383950`
+
 .. [Mas1969] James L. Massey, "Shift-Register Synthesis and BCH
              Decoding." IEEE Trans. on Information Theory, vol. 15(1),
              pp. 122-127, Jan 1969.
@@ -1988,6 +2004,11 @@ REFERENCES:
 
 .. [May1967] \J. P. May, Simplicial Objects in Algebraic Topology,
              University of Chicago Press (1967)
+
+.. [MW1990] Brendan D. McKay and Nicholas C. Worland. "Uniform Generation of
+            Random Regular Graphs of Moderate Degree". Journal of Algorithms,
+            11(1):52-67, 1990.
+            :doi:`10.1016/0196-6774(90)90029-E`.
 
 .. [McC1978] \K. McCrimmon. *Jordan algebras and their
              applications*. Bull. Amer. Math. Soc. **84** 1978.
@@ -2161,6 +2182,10 @@ REFERENCES:
 
 .. [ONe1983] \B. O'Neill : *Semi-Riemannian Geometry*, Academic Press
              (San Diego) (1983)
+
+.. [Onsager1944] Lars Onsager. *Crystal statistics. I. A two-dimensional
+                 model with an order-disorder transition*, Phys. Rev.
+                 (2) **65** (1944), pp. 117-149.
 
 .. [Or2016] \M. Orlitzky. The Lyapunov rank of an improper
             cone. Citation: Optimization Methods and Software
@@ -2508,6 +2533,10 @@ REFERENCES:
 .. [SPRQL2004] \F.-X. Standaert, G. Piret, G. Rouvroy, J.-J. Quisquarter,
                and J.-D. Legat, *ICEBERG: An involutional cipher efficient for block
                encryption in reconfigurable hardware*; in FSE, (2004), pp. 279-299.
+
+.. [Squ1984] \C. C. Squier. *The Burau representation is unitary*.
+             Proceedings of the American Mathematical Society,
+             Volume 90. Number 2, February 1984, pp. 199-202.
 
 .. [SS1990] Bruce E. Sagan and Richard P. Stanley.
             *Robinson-Schensted algorithms for skew tableaux*.

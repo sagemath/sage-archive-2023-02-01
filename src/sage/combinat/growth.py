@@ -4022,7 +4022,7 @@ class RuleDomino(Rule):
 
         sage: pi = [3,-1,2,4,-5]
         sage: G = Domino(pi)
-        sage: G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         True
 
     Negating all signs transposes all the partitions::
@@ -4048,12 +4048,13 @@ class RuleDomino(Rule):
         [   2  3,   3  3 ]
 
         sage: l = {pi: Domino(pi) for pi in SignedPermutations(4)}
-        sage: len(Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()]))
+        sage: S = Set([(G.P_symbol(), G.Q_symbol()) for G in l.values()])
+        sage: S.cardinality()
         384
 
     Check the color-to-spin property for all permutations of size 4::
 
-        sage: all(G.filling().values().count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
+        sage: all(list(G.filling().values()).count(-1) == spin(G.P_symbol()) + spin(G.Q_symbol())
         ....:     for G in l.values())
         True
 

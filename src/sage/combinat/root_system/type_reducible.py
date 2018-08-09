@@ -234,7 +234,7 @@ class CartanType(SageObject, CartanType_abstract):
 
     @cached_method
     def index_set(self):
-        """
+        r"""
         Implements :meth:`CartanType_abstract.index_set`.
 
         For the moment, the index set is always of the form `\{1, \ldots, n\}`.

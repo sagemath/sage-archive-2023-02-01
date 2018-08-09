@@ -2585,9 +2585,26 @@ class EllipticCurve_number_field(EllipticCurve_field):
     ##########################################################
     # Isogeny class
     ##########################################################
-    def isogeny_class(self):
+    def isogeny_class(self, reducible_primes=None, algorithm='Billerey', minimal_models=True):
         r"""
         Returns the isogeny class of this elliptic curve.
+
+        INPUT:
+
+        - ``reducible_primes`` (list of ints, or None (default)) -- if
+          not None then this should be a list of primes; in computing
+          the isogeny class, only composites isogenies of these
+          degrees will be used.
+
+        - ``algorithm`` (string, default 'Billerey') -- the algorithm
+          to use to compute the reducible primes.  Ignored for CM
+          curves or if ``reducible_primes`` is provided.  Values are
+          'Billerey' (default), 'Larson', and 'heuristic'.
+
+        - ``minimal_models`` (bool, default ``True``) -- if ``True``,
+          all curves in the class will be minimal or semi-minimal
+          models.  Over fields of larger degree it can be expensive to
+          compute these so set to ``False``.
 
         OUTPUT:
 
@@ -2599,9 +2616,22 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         .. note::
 
-            The curves in the isogeny class will all be minimal models
-            if these exist (for example, when the class number is
-            `1`); otherwise they will be minimal at all but one prime.
+            If using the algorithm 'heuristic' for non-CM curves, the
+            result is not guaranteed to be the complete isogeny class,
+            since only reducible primes up to the default bound in
+            :meth:`reducible_primes_naive` (currently 1000) are
+            tested.  However, no examples of non-CM elliptic curves
+            with reducible primes greater than 100 have yet been
+            computed so the output is likely to be correct.
+
+        .. note::
+
+            By default, the curves in the isogeny class will all be
+            minimal models if these exist (for example, when the class
+            number is `1`); otherwise they will be minimal at all but
+            one prime.  This behaviour can be switched off if desired,
+            for example over fields where the computation of the class
+            group would be too expensive.
 
         EXAMPLES::
 
@@ -2842,9 +2872,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         number)::
 
             sage: EL = E.change_ring(L)
-            sage: CL = EL.isogeny_class(); len(CL) # long time (~80s)
+            sage: CL = EL.isogeny_class(minimal_models=False); len(CL)
             6
-            sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False)) # long time
+            sage: Set([EE.j_invariant() for EE in CL.curves]) == Set(pol26.roots(L,multiplicities=False))
             True
 
         In each position in the matrix of degrees, we see primes (or
@@ -2886,6 +2916,23 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: G.show3d(color_by_label=True) # long time
 
+        Over larger number fields several options make computations
+        tractable.  Here we use algorithm 'heuristic' which avoids a
+        rigorous computation of the reducible primes, only testing
+        those less than 1000, and setting ``minimal_models`` to
+        ``False`` avoid having to compute the class group of `K`.  To
+        obtain minimal models set proof.number_field(False); the class
+        group computation takes an additional 10s::
+
+            sage: K.<z> = CyclotomicField(53)
+            sage: E = EllipticCurve(K,[0,6,0,2,0])
+            sage: C = E.isogeny_class(algorithm='heuristic', minimal_models=False); C # long time (10s)
+            Isogeny class of Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52
+            sage: C.curves # long time
+            [Elliptic Curve defined by y^2 = x^3 + 6*x^2 + (-8)*x + (-48) over Cyclotomic Field of order 53 and degree 52,
+            Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52]
+
+
         TESTS:
 
         An example which failed until fixed at :trac:`19229`::
@@ -2899,10 +2946,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             return self._isoclass
         except AttributeError:
             from sage.schemes.elliptic_curves.isogeny_class import IsogenyClass_EC_NumberField
-            self._isoclass = IsogenyClass_EC_NumberField(self)
+            self._isoclass = IsogenyClass_EC_NumberField(self, reducible_primes=reducible_primes, algorithm=algorithm, minimal_models=minimal_models)
             return self._isoclass
 
-    def isogenies_prime_degree(self, l=None):
+    def isogenies_prime_degree(self, l=None, algorithm='Billerey', minimal_models=True):
         r"""
         Returns a list of `\ell`-isogenies from self, where `\ell` is a
         prime.
@@ -2910,6 +2957,16 @@ class EllipticCurve_number_field(EllipticCurve_field):
         INPUT:
 
         - ``l`` -- either None or a prime or a list of primes.
+
+        - ``algorithm`` (string, default 'Billerey') -- the algorithm
+          to use to compute the reducible primes when ``l`` is None.
+          Ignored for CM curves or if ``l`` is provided.  Values are
+          'Billerey' (default), 'Larson', and 'heuristic'.
+
+        - ``minimal_models`` (bool, default ``True``) -- if ``True``,
+          all curves computed will be minimal or semi-minimal models.
+          Over fields of larger degree it can be expensive to compute
+          these so set to ``False``.
 
         OUTPUT:
 
@@ -2947,6 +3004,19 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: len(E.isogenies_prime_degree())  # long time
             3
 
+        Set ``minimal_models`` to False to avoid computing minimal
+        models of the isogenous curves, since that can be
+        time-consuming since it requires computation of the class
+        group::
+
+            sage: proof.number_field(False)
+            sage: K.<z> = CyclotomicField(53)
+            sage: E = EllipticCurve(K,[0,6,0,2,0])
+            sage: E.isogenies_prime_degree(2, minimal_models=False)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52 to Elliptic Curve defined by y^2 = x^3 + 6*x^2 + (-8)*x + (-48) over Cyclotomic Field of order 53 and degree 52]
+            sage: E.isogenies_prime_degree(2, minimal_models=True) # not tested (10s)
+            [Isogeny of degree 2 from Elliptic Curve defined by y^2 = x^3 + 6*x^2 + 2*x over Cyclotomic Field of order 53 and degree 52 to Elliptic Curve defined by y^2 = x^3 + (-20)*x + (-16) over Cyclotomic Field of order 53 and degree 52]
+
         TESTS::
 
             sage: E.isogenies_prime_degree(4)
@@ -2964,7 +3034,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
                 raise ValueError("%s is not a prime integer" % l)
             try:
                 if l.is_prime(proof=False):
-                    return isogenies_prime_degree(self, l)
+                    return isogenies_prime_degree(self, l, minimal_models=minimal_models)
                 else:
                     raise ValueError("%s is not prime." % l)
             except AttributeError:
@@ -2973,9 +3043,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         if l is None:
             from .isogeny_class import possible_isogeny_degrees
             L = possible_isogeny_degrees(self)
-            return self.isogenies_prime_degree(L)
+            return self.isogenies_prime_degree(L, minimal_models=minimal_models)
 
-        isogs = sum([self.isogenies_prime_degree(p) for p in l],[])
+        isogs = sum([self.isogenies_prime_degree(p, minimal_models=minimal_models) for p in l],
+                    [])
 
         if self.has_rational_cm():
             # eliminate any endomorphisms and repeated codomains
@@ -3217,6 +3288,79 @@ class EllipticCurve_number_field(EllipticCurve_field):
         except ValueError:
             return ZZ(0)
 
+    def reducible_primes(self, algorithm='Billerey', max_l=None,
+                         num_l=None, verbose=False):
+        r"""
+        Return a finite set of primes `\ell` for which `E` has a
+        K-rational `\ell`-isogeny.
+
+        For curves without CM the list returned is exactly the finite
+        set of primes `\ell` for which the mod-`\ell` Galois
+        representation is reducible.  For curves with CM this set is
+        infinite; we return a finite list of primes `\ell` such that
+        every curve isogenous to this curve can be obtained by a
+        finite sequence of isogenies of degree one of the primes in
+        the list.
+
+        INPUT:
+
+        - ``algorithm`` (string) -- only relevant for non-CM curves.
+          Either 'Billerey", to use the methods of [Bil2011]_,
+          'Larson' to use Larson's implementation using Galois
+          representations, or 'heuristic' (see below).
+
+        - ``max_l`` (int or ``None``) -- only relevant for non-CM
+          curves and algorithms 'Billerey' and 'heuristic.  Controls
+          the maximum prime used in either algorithm.  If ``None``,
+          use the default for that algorithm.
+
+        - ``num_l`` (int or ``None``) -- only relevant for non-CM
+          curves and algorithm 'Billerey'.  Controls the maximum
+          number of primes used in the algorithm.  If ``None``, use
+          the default for that algorithm.
+
+        .. note::
+
+            The 'heuristic' algorithm only checks primes up to the
+            bound ``max_l``.  This is faster but not guaranteed to be
+            complete.  Both the Billerey and Larson algorithms are
+            rigorous.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x**2 - 29, 'a'); a = K.gen()
+            sage: E = EllipticCurve([1, 0, ((5 + a)/2)**2, 0, 0])
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes()
+            [3, 5]
+            sage: E.reducible_primes()
+            [3, 5]
+            sage: K = NumberField(x**2 + 1, 'a')
+            sage: E = EllipticCurve_from_j(K(1728)) # CM over K
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes() # CM curves always return [0]
+            [0]
+            sage: E.reducible_primes()
+            [2]
+            sage: E = EllipticCurve_from_j(K(0)) # CM but NOT over K
+            sage: rho = E.galois_representation()
+            sage: rho.reducible_primes()
+            [2, 3]
+            sage: E.reducible_primes()
+            [2, 3]
+            sage: E = EllipticCurve_from_j(K(2268945/128)).global_minimal_model() # c.f. [Sutherland12]
+            sage: rho = E.galois_representation()
+            sage: rho.isogeny_bound() # ... but there is no 7-isogeny ...
+            [7]
+            sage: rho.reducible_primes()
+            []
+            sage: E.reducible_primes()
+            []
+
+        """
+        from sage.schemes.elliptic_curves.isogeny_class import possible_isogeny_degrees
+        return possible_isogeny_degrees(self, max_l=max_l, num_l=num_l, exact=True, verbose=verbose)
+
     def lll_reduce(self, points, height_matrix=None, precision=None):
         r"""
         Return an LLL-reduced basis from a given basis, with transform
@@ -3426,7 +3570,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ``True`` if this curve has CM over the algebraic closure
         of the base field, otherwise ``False``.  See also
-        :meth:`cm_discriminant()` and :meth:`has_rational_cm`.
+        :meth:`cm_discriminant` and :meth:`has_rational_cm`.
 
         .. note::
 
@@ -3473,7 +3617,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         ``True`` if the ring of endomorphisms of this curve over
         the given field is larger than `\ZZ`; otherwise ``False``.
-        See also :meth:`cm_discriminant()` and :meth:`has_cm`.
+        See also :meth:`cm_discriminant` and :meth:`has_cm`.
 
         .. note::
 
@@ -3481,7 +3625,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
            the given field `K` then the extra endomorphisms will not
            be defined over `K`, and this function will return
            ``False``.  See also :meth:`has_cm`.  To obtain the CM
-           discriminant, use :meth:`cm_discriminant()`.
+           discriminant, use :meth:`cm_discriminant`.
 
         EXAMPLES::
 

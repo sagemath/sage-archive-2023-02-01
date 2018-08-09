@@ -923,7 +923,7 @@ def semi_global_minimal_model(E, debug=False):
     sage: ainvs = (0, 0, 0, -382586771000351226384*a - 2498023791133552294513515, 358777608829102441023422458989744*a + 1110881475104109582383304709231832166)
     sage: E = EllipticCurve(ainvs)
     sage: from sage.schemes.elliptic_curves.kraus import semi_global_minimal_model
-    sage: Emin, p = semi_global_minimal_model(E) # long time (15s)
+    sage: Emin, p = semi_global_minimal_model(E) # long time (25s)
     sage: p                                      # long time
     Fractional ideal (23567, a + 2270)
     sage: p.norm()                               # long time
@@ -940,7 +940,7 @@ def semi_global_minimal_model(E, debug=False):
     else:
         if debug:
             print("No global minimal model, obstruction class = %s of order %s" % (c,c.order()))
-        bound = E.base_field().minkowski_bound()
+        bound = round(E.base_field().minkowski_bound())*5
         have_prime = False
         while not have_prime:
             try:
@@ -949,7 +949,7 @@ def semi_global_minimal_model(E, debug=False):
             except RuntimeError:
                 bound *=2
         if debug:
-            print("Using a prime in that class: %s" % P)
+            print("Using prime {} of norm {} in that class".format(P,P.norm()))
         I = I/P
     u = I.gens_reduced()[0]
     rc4 = c4/u**4

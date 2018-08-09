@@ -3226,6 +3226,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f.change_ring(K.embeddings(CC)[0])
             x^2 - 0.500000000000000 - 0.866025403784439*I
 
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^2 + 1
+            sage: f.change_ring(QQ.embeddings(CC)[0])
+            x^2 + 1.00000000000000
+
         TESTS:
 
         Check that :trac:`25022` is fixed::
@@ -3236,7 +3243,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x.change_ring(ZZ['x']) == ZZ['x']['x'].gen()
             True
         """
-        if isinstance(R, Morphism):
+        if isinstance(R, Map):
             # we're given a hom of the base ring extend to a poly hom
             if R.domain() == self.base_ring():
                 R = self._parent.hom(R, self._parent.change_ring(R.codomain()))

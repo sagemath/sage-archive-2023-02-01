@@ -2366,18 +2366,21 @@ def spqr_tree_to_graph(T):
     from collections import Counter
 
     count_G = Counter()
-    for t,g in T.vertex_iterator():
-        if not t == 'P':
-            count_G.update(g.edge_iterator(labels=False))
-
+    count_P = Counter()
     for t,g in T.vertex_iterator():
         if t == 'P':
-            count_g = Counter(g.edge_iterator(labels=False))
-            for e,num in count_g.items():
-                count_G[e] = abs(count_g[e] - count_G[e])
+            count_P.update(g.edge_iterator())
+        else:
+            count_G.update(g.edge_iterator())
 
     G = Graph(multiedges=True)
     for e,num in count_G.items():
+        if e in count_P:
+            num = abs(count_P[e] - count_G[e])
+        elif num == 2:
+            # Case of 2 S or R blocks separated by a 2-cut without edge.
+            # No P-block was created as a P-block has at least 3 edges.
+            continue
         for _ in range(num):
             G.add_edge(e)
 

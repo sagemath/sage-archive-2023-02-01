@@ -14,8 +14,7 @@ The cdd backend for polyhedral computations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 from six import PY2
 
 from subprocess import Popen, PIPE
@@ -26,6 +25,7 @@ from sage.matrix.constructor import matrix
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_RDF import Polyhedron_RDF
+
 
 class Polyhedron_cdd(Polyhedron_base):
     r"""
@@ -247,8 +247,8 @@ class Polyhedron_cdd(Polyhedron_base):
             assert self.ambient_dim() == dimension - 1, "Unexpected ambient dimension"
             assert len(data) == count, "Unexpected number of lines"
             for i, line in enumerate(data):
-                coefficients = map(self.base_ring(), line)
-                if coefficients[0] != 0 and all([e == 0 for e in coefficients[1:]]):
+                coefficients = list(map(self.base_ring(), line))
+                if coefficients[0] != 0 and all(e == 0 for e in coefficients[1:]):
                     # cddlib sometimes includes an implicit plane at infinity: 1 0 0 ... 0
                     # We do not care about this entry.
                     self._cdd_H_to_sage_H[i+1] = None

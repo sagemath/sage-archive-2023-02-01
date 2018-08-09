@@ -349,6 +349,7 @@ class Hrepresentation(PolyhedronRepresentation):
             sage: TestSuite(pH).run(skip='_test_pickling')
         """
         assert polyhedron.parent() is self._polyhedron_parent
+        data = list(data)
         if len(data) != self._vector.degree():
             raise ValueError('H-representation data requires a list of length ambient_dim+1')
 

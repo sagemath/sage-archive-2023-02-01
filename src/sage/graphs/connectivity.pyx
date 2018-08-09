@@ -3593,37 +3593,6 @@ class TriconnectivitySPQR:
         for i in range(len(self.comp_list_new)):
             print("{}: {}".format(prefix[self.comp_type[i]], self.comp_list_new[i]))
 
-    def __staticSPQRTree(self):
-        """
-        Constructs the SPQR tree using the triconnected components.
-        """
-        from sage.graphs.graph import Graph
-        # Types of components 0: "P", 1: "S", 2: "R"
-        component_type = ["P", "S", "R"]
-
-        Tree = Graph(multiedges=False)
-        int_to_vertex = []
-        partner_nodes = {}
-
-        for i in range(len(self.comp_list_new)):
-            # Create a new tree vertex
-            u = (component_type[self.comp_type[i]],
-                     Graph(self.comp_list_new[i], immutable=True, multiedges=True))
-            Tree.add_vertex(u)
-            int_to_vertex.append(u)
-
-            # Add an edge to each node containing the same virtual edge
-            for e in self.comp_list_new[i]:
-                if e[2] and "newVEdge" in e[2]:
-                    if e in partner_nodes:
-                        for j in partner_nodes[e]:
-                            Tree.add_edge(int_to_vertex[i], int_to_vertex[j])
-                        partner_nodes[e].append(i)
-                    else:
-                        partner_nodes[e] = [i]
-
-        return Tree
-
     def get_triconnected_components(self):
         r"""
         Return the triconnected components as a list of tuples.
@@ -3730,5 +3699,30 @@ class TriconnectivitySPQR:
             sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
             True
         """
-        return self.__staticSPQRTree()
+        from sage.graphs.graph import Graph
+        # Types of components 0: "P", 1: "S", 2: "R"
+        component_type = ["P", "S", "R"]
+
+        Tree = Graph(multiedges=False)
+        int_to_vertex = []
+        partner_nodes = {}
+
+        for i in range(len(self.comp_list_new)):
+            # Create a new tree vertex
+            u = (component_type[self.comp_type[i]],
+                     Graph(self.comp_list_new[i], immutable=True, multiedges=True))
+            Tree.add_vertex(u)
+            int_to_vertex.append(u)
+
+            # Add an edge to each node containing the same virtual edge
+            for e in self.comp_list_new[i]:
+                if e[2] and "newVEdge" in e[2]:
+                    if e in partner_nodes:
+                        for j in partner_nodes[e]:
+                            Tree.add_edge(int_to_vertex[i], int_to_vertex[j])
+                        partner_nodes[e].append(i)
+                    else:
+                        partner_nodes[e] = [i]
+
+        return Tree
 

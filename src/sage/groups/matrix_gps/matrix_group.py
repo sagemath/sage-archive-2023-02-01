@@ -126,12 +126,14 @@ class MatrixGroup_base(Group):
 
         EXAMPLES::
 
-            sage: G = SU(2,GF(5))
-            sage: G._check_matrix(identity_matrix(GF(5),2))
-            sage: G._check_matrix(matrix(GF(5),[[1,1],[0,1]]))
+            sage: G = SU(2,GF(5)); F = G.base_ring() # this is GF(5^2,'a')
+            sage: G._check_matrix(identity_matrix(F,2))
+            sage: G._check_matrix(matrix(F,[[1,1],[0,1]]))
             Traceback (most recent call last):
             ...
-            TypeError: matrix must be unitary
+            TypeError: matrix must be unitary with respect to the hermitian form
+            [0 1]
+            [1 0]
         """
         if not x.is_invertible():
             raise TypeError('matrix is not invertible')

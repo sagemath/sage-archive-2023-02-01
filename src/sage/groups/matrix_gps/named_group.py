@@ -118,10 +118,73 @@ def normalize_args_vectorspace(*args, **kwds):
     return (ZZ(degree), ring)
 
 
+def normalize_args_invariant_form(R, d, invariant_form):
+    """
+    function to normalize the input of a user defined invariant 
+    bilinear form for orthogonal, unitary and symplectic groups.
+    Further informations and examples can be found in the defining
+    functions (GU, SU, Sp,...) for unitary and symplectic groups
+
+    INPUT:
+
+        - ``R`` -- instance of the integral domain which should become
+          the base_ring of the classical group
+
+        - ``d`` -- integer giving the dimension of the module the classical 
+          group is operating on
+
+        - ``invariant_form`` --  instances being accepted by the 
+          matrix-constructor which define a d x d square matrix
+          over R describing the bilinear form to be kept invariant 
+          by the classical group
+
+    OUTPUT: an instance of sage.matrix.matrix2.Matrix if the
+         normalization was possible. Else, an error is raised except the 
+         the imput has been None.
+
+    TESTS:
+    
+        sage: from sage.groups.matrix_gps.named_group import normalize_args_invariant_form
+        sage: CF3 = CyclotomicField(3)
+        sage: m = normalize_args_invariant_form(CF3, 3, (1,2,3,0,2,0,0,2,1)); m
+        [1 2 3]
+        [0 2 0]
+        [0 2 1]
+        sage: m.base_ring() == CF3
+        True
+
+        sage: normalize_args_invariant_form(ZZ, 3, (1,2,3,0,2,0,0,2))
+        Traceback (most recent call last):
+        ...
+        ValueError: invariant_form must be a 3 x 3 matrix over Integer Ring
+
+        sage: normalize_args_invariant_form(QQ, 3, (1,2,3,0,2,0,0,2,0))
+        Traceback (most recent call last):
+        ...
+        ValueError: invariant_form must be non degenerated
+
+    AUTHORS:
+
+    - Sebastian Oehms (2018-8) (see :trac:`26028`)
+    """
+    if invariant_form == None:
+        return invariant_form
+     
+    from sage.matrix.constructor import matrix
+    try:
+        m = matrix(R, d, d, invariant_form)
+    except:
+        raise ValueError("invariant_form must be a %s x %s matrix over %s" %(d, d, R))
+
+    if m.is_singular():
+        raise ValueError("invariant_form must be non degenerated")
+    return m
+
+
 class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
 
     def __init__(self, degree, base_ring, special, sage_name, latex_string,
-                 category=None):
+                 category=None, invariant_form=None):
         """
         Base class for "named" matrix groups
 
@@ -135,9 +198,18 @@ class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
         - ``special`` -- boolean. Whether the matrix group is special,
           that is, elements have determinant one.
 
+        - ``sage_name`` -- string. the name displayed in a sage session.
+
         - ``latex_string`` -- string. The latex representation.
 
-        EXAMPLES::
+        - ``category`` -- (optional) instance of sage.categories.groups.Groups 
+          passed to the constructor of MatrixGroup_generic.
+
+        - ``invariant_form`` --  (optional) square-matrix of the given 
+          degree over the given base_ring describing a bilinear form 
+          to be kept invariant by the group.
+
+        EXAMPLES (see the examples for GU, SU, Sp,.., as well)::
 
             sage: G = GL(2, QQ)
             sage: from sage.groups.matrix_gps.named_group import NamedMatrixGroup_generic
@@ -148,6 +220,7 @@ class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
         self._special = special
         self._name_string = sage_name
         self._latex_string = latex_string
+        self._user_invariant_form_ = invariant_form
 
     def _an_element_(self):
         """
@@ -218,6 +291,7 @@ class NamedMatrixGroup_generic(CachedRepresentation, MatrixGroup_generic):
             False
         """
         return MatrixGroup_generic.__richcmp__(self, other, op)
+
 
 
 class NamedMatrixGroup_gap(NamedMatrixGroup_generic, MatrixGroup_gap):

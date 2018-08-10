@@ -1227,7 +1227,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
                 sage: K.<A,B> = LieAlgebra(QQ, abelian=True)
-                sage: L.lie_algebra_morphism({X: A, Y: B})
+                sage: L.morphism({X: A, Y: B})
                 Lie algebra morphism:
                   From: Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
                   To:   Abelian Lie algebra on 2 generators (A, B) over Rational Field
@@ -1239,10 +1239,10 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             The reverse map `A \mapsto X`, `B \mapsto Y` does not define a Lie
             algebra morphism, since `[A,B] = 0`, but `[X,Y] \neq 0`::
 
-                sage: K.lie_algebra_morphism({A:X, B: Y})
+                sage: K.morphism({A:X, B: Y})
                 Traceback (most recent call last):
                 ...
-                ValueError: {B: Y, A: X} does not define a Lie algebra morphism,
+                ValueError: {B: Y, A: X} does not define a Lie algebra morphism;
                  contradictory values for brackets of length 2
             """
             from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators

@@ -4843,7 +4843,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
             False
         """
         # TODO:  Use Singular (4.x) intrinsics.  (Temporary solution from #17254.)
-        return all([ e == 1 for (f, e) in self.factor() ])
+        return all(e == 1 for (f, e) in self.factor())
 
     @coerce_binop
     def quo_rem(self, MPolynomial_libsingular right):

@@ -316,7 +316,8 @@ cdef class FunctionFieldElement(FieldElement):
             W^2 - W + 4*x
         """
         R = self.parent().base_field().maximal_order()
-        return all([a in R for a in self.minimal_polynomial()])
+        return all(a in R for a in self.minimal_polynomial())
+
 
 cdef class FunctionFieldElement_polymod(FunctionFieldElement):
     """

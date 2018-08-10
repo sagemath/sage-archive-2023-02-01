@@ -9034,7 +9034,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # - AttributeError in case p-th roots are not (or do not exist)
         except (NotImplementedError, AttributeError):
             F = self.factor()
-        return all([e<=1 for (f,e) in F])
+        return all(e <= 1 for (f, e) in F)
 
     def radical(self):
         """

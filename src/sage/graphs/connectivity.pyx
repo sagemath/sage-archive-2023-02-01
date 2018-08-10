@@ -1887,7 +1887,7 @@ def bridges(G, labels=True):
 # Methods for finding 3-vertex-connected components and building SPQR-tree
 # ==============================================================================
 
-def cleave(G, cut_vertices=None, virtual_edges=True):
+def cleave(G, cut_vertices=None, virtual_edges=True, solver=None, verbose=0):
     r"""
     Return the connected subgraphs separated by the input vertex cut.
 
@@ -1906,6 +1906,15 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
     - ``virtual_edges`` -- boolean (default: ``True``); whether to add virtual
       edges to the sides of the cut or not. A virtual edge is an edge between a
       pair of vertices of the cut that are not connected by an edge in ``G``.
+
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     OUTPUT: A triple `(S, C, f)`, where
 
@@ -2021,7 +2030,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
                 raise ValueError("vertex {} is not a vertex of the input graph".format(u))
         cut_vertices = list(cut_vertices)
     else:
-        cut_size,cut_vertices = G.vertex_connectivity(value_only=False)
+        cut_size,cut_vertices = G.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
         if not cut_vertices:
             # Typical example is a clique
             raise ValueError("the input graph has no vertex cut")
@@ -2066,7 +2075,7 @@ def cleave(G, cut_vertices=None, virtual_edges=True):
 
     return cut_sides, cocycles, virtual_cut_graph
 
-def spqr_tree(G, algorithm="Hopcroft_Tarjan"):
+def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     r"""
     Return an SPQR-tree representing the triconnected components of the graph.
 
@@ -2107,6 +2116,15 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan"):
         and Mutzel in [Gut2001]_.
 
       - ``"cleave"`` -- Using method :meth:`sage.graphs.connectivity.cleave`.
+
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
+      :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+      to 0 by default, which means quiet.
 
     OUTPUT: ``SPQR-tree`` a tree whose vertices are labeled with the block's type
     and the subgraph of three-blocks in the decomposition.
@@ -2207,7 +2225,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan"):
     if G.has_loops():
         raise ValueError("generation of SPQR-trees is only implemented for graphs without loops")
 
-    cut_size, cut_vertices = G.vertex_connectivity(value_only=False)
+    cut_size, cut_vertices = G.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
 
     if cut_size < 2:
         raise ValueError("generation of SPQR-trees is only implemented for 2-connected graphs")
@@ -2252,7 +2270,7 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan"):
                 # Add all the edges of K to cycles list.
                 cycles_graph.add_edges(e for e in K.edge_iterator(labels=False))
             else:
-                K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False)
+                K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
                 if K_cut_size == 2:
                     # The graph has a 2-vertex cut. We add it to the stack
                     two_blocks.append((K, K_cut_vertices))

@@ -2296,13 +2296,14 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     S_blocks = []
     if not cycles_graph:
         tmp = []
-    elif cycles_graph.is_connected():
+    elif cycles_graph.is_biconnected():
         tmp = [cycles_graph]
     else:
-        tmp = list(cycles_graph.connected_components_subgraphs())
+        B,C = cycles_graph.blocks_and_cut_vertices()
+        tmp = [cycles_graph.subgraph(b) for b in B]
     while tmp:
         block = tmp.pop()
-        if block.is_cycle():
+        if block.order() > 2 and block.is_cycle():
             S_blocks.append(('S', Graph(block, immutable=True)))
         elif block.has_multiple_edges():
             cut = block.multiple_edges(labels=False)[0]

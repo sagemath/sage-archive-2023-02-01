@@ -315,14 +315,10 @@ class BipartiteGraph(Graph):
         # need to turn off partition checking for Graph.__init__() adding
         # vertices and edges; methods are restored ad the end of big "if"
         # statement below
-        import types
-        self.add_vertex = types.MethodType(Graph.add_vertex,
-                                           self,
-                                           BipartiteGraph)
-        self.add_vertices = types.MethodType(Graph.add_vertices,
-                                             self,
-                                             BipartiteGraph)
-        self.add_edge = types.MethodType(Graph.add_edge, self, BipartiteGraph)
+        from types import MethodType
+        self.add_vertex = MethodType(Graph.add_vertex, self)
+        self.add_vertices = MethodType(Graph.add_vertices, self)
+        self.add_edge = MethodType(Graph.add_edge, self)
 
         from sage.structure.element import is_Matrix
         if isinstance(data, BipartiteGraph):
@@ -432,15 +428,9 @@ class BipartiteGraph(Graph):
                     raise TypeError("Input graph is not bipartite!")
 
         # restore vertex partition checking
-        self.add_vertex = types.MethodType(BipartiteGraph.add_vertex,
-                                           self,
-                                           BipartiteGraph)
-        self.add_vertices = types.MethodType(BipartiteGraph.add_vertices,
-                                             self,
-                                             BipartiteGraph)
-        self.add_edge = types.MethodType(BipartiteGraph.add_edge,
-                                         self,
-                                         BipartiteGraph)
+        del self.add_vertex
+        del self.add_vertices
+        del self.add_edge
 
         # post-processing
         if isinstance(data, str):

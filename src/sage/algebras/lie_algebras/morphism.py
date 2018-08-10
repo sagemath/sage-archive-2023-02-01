@@ -17,7 +17,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Homset
+from sage.categories.homset import Homset, Hom
 from sage.structure.sequence import Sequence, Sequence_generic
 
 # TODO: Refactor out common functionality with RingHomomorphism_im_gens
@@ -259,60 +259,69 @@ class LieAlgebraHomset(Homset):
 
 class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
     r"""
-    A morphism between two Lie algebras defined by images of a Lie generating subset.
-    
+    A morphism between two Lie algebras defined by images of a
+    generating set as a Lie algebra.
+
+    INPUT:
+
+    - ``on_generators`` -- dictionary ``{X: Y}`` of the images `Y`
+      in ``codomain`` of elements `X` of ``domain``
+    - ``codomain`` -- a Lie algebra (optional); this is inferred
+      from the values of ``on_generators`` if not given
+    - ``check`` -- (default: ``True``) boolean; if ``False`` the
+      values  on the Lie brackets implied by ``on_generators`` will
+      not be checked for contradictory values
+
     EXAMPLES: 
-        
-    A reflection of one horizontal vector in the Heisenberg algebra ::
-    
-        sage: from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
-        sage: L.<X,Y,Z>=LieAlgebra(QQ,{('X','Y'):{'Z':1}})
-        sage: phi = LieAlgebraMorphism_from_generators({X:-X, Y:Y}); phi
+
+    A reflection of one horizontal vector in the Heisenberg algebra::
+
+        sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z':1}})
+        sage: phi = L.morphism({X:-X, Y:Y}); phi
         Lie algebra endomorphism of Lie algebra on 3 generators (X, Y, Z) over Rational Field
           Defn: X |--> -X
                 Y |--> Y
                 Z |--> -Z
-        
+
     There is no Lie algebra morphism that reflects one horizontal vector, 
-    but not the vertical one ::
-    
-        sage: LieAlgebraMorphism_from_generators({X:-X, Y:Y, Z:Z})
+    but not the vertical one::
+
+        sage: L.morphism({X:-X, Y:Y, Z:Z})
         Traceback (most recent call last):
         ...
-        ValueError: {X: -X, Y: Y, Z: Z} does not define a Lie algebra morphism,
-        contradictory values for brackets of length 2
-        
-    Checking for mistakes can be disabled ::
-    
-        sage: LieAlgebraMorphism_from_generators({X:-X, Y:Y, Z:Z}, check=False)
+        ValueError: {X: -X, Y: Y, Z: Z} does not define a Lie algebra morphism;
+         contradictory values for brackets of length 2
+
+    Checking for mistakes can be disabled::
+
+        sage: L.morphism({X:-X, Y:Y, Z:Z}, check=False)
         Lie algebra endomorphism of Lie algebra on 3 generators (X, Y, Z) over Rational Field
           Defn: X |--> -X
                 Y |--> Y
                 Z |--> Z
-        
-    The set of keys must generate the Lie algebra ::
-    
-        sage: LieAlgebraMorphism_from_generators({X:X})
+
+    The set of keys must generate the Lie algebra::
+
+        sage: L.morphism({X: X})
         Traceback (most recent call last):
         ...
         ValueError: [X] is not a generating set of Lie algebra on 3 generators 
         (X, Y, Z) over Rational Field
-        
-    Over non-fields, generating subsets are more restricted ::
-    
-        sage: from sage.algebras.lie_algebras.abelian import AbelianLieAlgebra
-        sage: L.<X,Y,Z>=LieAlgebra(ZZ,{('X','Y'):{'Z':2}})
-        sage: LieAlgebraMorphism_from_generators({X: X, Y: Y})
+
+    Over non-fields, generating subsets are more restricted::
+
+        sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z':2}})
+        sage: L.morphism({X: X, Y: Y})
         Traceback (most recent call last):
         ...
         ValueError: [X, Y] is not a generating set of Lie algebra on 3 
         generators (X, Y, Z) over Integer Ring
-        
-    A quotient type Lie algebra morphism ::
+
+    A quotient type Lie algebra morphism::
     
-        sage: L.<X,Y,Z,W>=LieAlgebra(QQ,{('X','Y'):{'Z':1}, ('X','Z'):{'W':1}})
-        sage: K.<A,B> = AbelianLieAlgebra(SR)
-        sage: LieAlgebraMorphism_from_generators({X:A, Y: B})
+        sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+        sage: K.<A,B> = LieAlgebra(SR, abelian=True)
+        sage: L.morphism({X: A, Y: B})
         Lie algebra morphism:
           From: Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
           To:   Abelian Lie algebra on 2 generators (A, B) over Symbolic Ring
@@ -321,65 +330,53 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
                 Z |--> 0
                 W |--> 0
     """
-
-    def __init__(self, on_generators, domain = None, codomain = None, check=True):
+    def __init__(self, on_generators, domain=None, codomain=None, check=True):
         r"""
-        Initialize self
+        Initialize ``self``.
         
-        INPUT:
-    
-        - ``on_generators`` -- a dictionary ``{X:Y}`` of the images `Y` in 
-          ``codomain`` of elements `X` of ``domain`` 
-        - ``domain`` -- a parent in ``LieAlgebras(...)`` (default: ``None``);
-          if None, the codomain is inferred from the keys of ``on_generators``
-        - ``codomain`` -- a parent in ``LieAlgebras(...)`` (default: ``None``); 
-          if None, the codomain is inferred from the values of ``on_generators``
-        - ``check`` -- a boolean (default:``True``); if ``False`` the values 
-          on the Lie brackets implied by ``on_generators`` will not be 
-          checked for contradictory values.
+        The keys of ``on_generators`` need to generate ``domain``
+        as a Lie algebra.
         
-        The keys of ``on_generators`` need to generate ``domain`` as a Lie algebra.
-        
-        .. TODO ::
-        
+        .. TODO::
+
             It might be possible to extract an explicit bracket relation that 
             fails whenever some linear system fails to be solved. This would 
             allow outputting an even more explicit error.
-            
-        TESTS :
+
+        TESTS:
         
-        Test suite for a morphism ::
-        
-            sage: from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
-            sage: L.<X,Y,Z,W> = LieAlgebra(QQ,{('X','Y'):{'Z':1}, ('X','Z'):{'W':1}})
-            sage: K.<A,B,C> = LieAlgebra(QQ,{('A','B'):{'C':2}})
-            sage: phi = LieAlgebraMorphism_from_generators({X+2*Y:A, X-Y:B})
+        Test suite for a morphism::
+
+            sage: L.<X,Y,Z,W> = LieAlgebra(QQ,{('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+            sage: K.<A,B,C> = LieAlgebra(QQ,{('A','B'): {'C':2}})
+            sage: phi = L.morphism({X+2*Y:A, X-Y:B})
             sage: TestSuite(phi).run(skip=['_test_category'])
-        
-        Failure of inferring domain or codomain ::
-        
+
+        Failure of inferring codomain::
+
             sage: L.<X> = LieAlgebra(QQ, abelian=True)
+            sage: L.morphism({X: int(1)})
+            Traceback (most recent call last):
+            ...
+            TypeError: codomain <type 'int'> is not a Lie algebra
+
+            sage: from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
+            sage: LieAlgebraMorphism_from_generators({ZZ(1): X})
+            Traceback (most recent call last):
+            ...
+            TypeError: domain Integer Ring is not a Lie algebra
             sage: LieAlgebraMorphism_from_generators({})
             Traceback (most recent call last):
             ...
             ValueError: no elements to infer domain from
-            sage: LieAlgebraMorphism_from_generators({}, domain = L)
+            sage: LieAlgebraMorphism_from_generators({}, domain=L)
             Traceback (most recent call last):
             ...
             ValueError: no elements to infer codomain from
-            sage: LieAlgebraMorphism_from_generators({ZZ(1):X})
-            Traceback (most recent call last):
-            ...
-            TypeError: domain Integer Ring is not a Lie algebra
-            sage: LieAlgebraMorphism_from_generators({X:int(1)})
-            Traceback (most recent call last):
-            ...
-            TypeError: codomain <type 'int'> is not a Lie algebra
         """
-        
         from sage.structure.element import get_coercion_model
         from sage.categories.lie_algebras import LieAlgebras
-        
+
         cm = get_coercion_model()
         if domain is None:
             if len(on_generators.keys()) == 0:
@@ -393,20 +390,21 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             codomain = cm.common_parent(*on_generators.values())
             if codomain not in LieAlgebras:
                 raise TypeError("codomain %s is not a Lie algebra"%codomain)
-        
+
         m = domain.module()
         cm = codomain.module()
-        
+
         spanning_set = [m(X.to_vector()) for X in on_generators.keys()]
         im_gens = [cm(Y.to_vector()) for Y in on_generators.values()]
-        
-        if len(im_gens) == 0:
+
+        # FIXME: This is not correct anymore!!!!!
+        if not im_gens:
             H = LieAlgebraHomset(domain, codomain)
             return LieAlgebraHomomorphism_im_gens(H, im_gens, check=check)
-        
+
         from sage.matrix.constructor import matrix
         from itertools import combinations
-        
+
         # helper function to solve linear systems Ax=b, where both x and b
         # are vectors of vectors
         def solve_linear_system(A, b, check):
@@ -432,8 +430,8 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             try:
                 im_gens = solve_linear_system(A, im_gens, check)
             except ValueError:
-                raise ValueError("%s does not define a Lie algebra morphism, \
-contradictory values for brackets of length %d"%(on_generators, bracketlength))
+                raise ValueError("%s does not define a Lie algebra morphism; "
+                                 "contradictory values for brackets of length %d"%(on_generators, bracketlength))
             
             spanning_set = list(sm.basis())
             if n == len(spanning_set):
@@ -457,5 +455,6 @@ contradictory values for brackets of length %d"%(on_generators, bracketlength))
         A = matrix(m.base_ring(), spanning_set)
         im_gens = solve_linear_system(A, im_gens, check)
         
-        H = LieAlgebraHomset(domain, codomain)
+        H = Hom(domain, codomain)
         LieAlgebraHomomorphism_im_gens.__init__(self, H, im_gens, check=check)
+

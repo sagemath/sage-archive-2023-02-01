@@ -20,6 +20,7 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Homset, Hom
 from sage.structure.sequence import Sequence, Sequence_generic
 from sage.structure.element import get_coercion_model
+from sage.structure.richcmp import richcmp
 from sage.matrix.constructor import matrix
 from itertools import combinations
 
@@ -114,6 +115,28 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             [x, y, z]
         """
         return list(self._im_gens)
+
+    def _richcmp_(self, other, op):
+        """
+        Rich comparisons.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: H = L.Hall()
+            sage: x,y,z = H.gens()
+            sage: f = Hom(Lyn, H)([x,y,z])
+            sage: g = Hom(Lyn, H)([x,y,z])
+            sage: h = Hom(Lyn, H)([y,x,z])
+            sage: f == g
+            True
+            sage: f is g
+            False
+            sage: f != h
+            True
+        """
+        return richcmp(self._im_gens, other._im_gens, op)
 
     def __hash__(self):
         """

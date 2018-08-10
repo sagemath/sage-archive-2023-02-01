@@ -271,6 +271,9 @@ REFERENCES:
            Fast and Simple Computation of Top-k Closeness Centralities.
            :arXiv:`1507.01490`.
 
+.. [BCN1989] Andries E. Brouwer, Arjeh M. Cohen, and Arnold Neumaier.
+             *Distance-Regular Graphs*, Springer, 1989.
+
 .. [BdJ2008] Besser, Amnon, and Rob de Jeu. "Li^(p)-Service? An Algorithm
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
@@ -770,6 +773,10 @@ REFERENCES:
 .. [Crossproduct] Algebraic Properties of the Cross Product
                   :wikipedia:`Cross_product`
 
+.. [CRS2016] Dean Crnković, Sanja Rukavina, and Andrea Švob. *Strongly regular
+             graphs from orthogonal groups `O^+(6,2)` and `O^-(6,2)`*.
+             :arxiv:`1609.07133`
+
 .. [CRV2018] Xavier Caruso, David Roe and Tristan Vaccon.
             *ZpL: a p-adic precision package*, (2018) :arxiv:`1802.08532`.
 
@@ -991,6 +998,10 @@ REFERENCES:
 .. [EM2001] Pavel Etingof and Xiaoguang Ma.
             *Lecture notes on Cherednik algebras*.
             http://www-math.mit.edu/~etingof/73509.pdf :arXiv:`1001.0432`.
+
+.. [EMMN1998] \P. Eaded, J. Marks, P.Mutzel, S. North.
+              *Fifth Annual Graph Drawing Contest*;
+              http://www.merl.com/papers/docs/TR98-16.pdf
 
 .. [EP2013] David Einstein, James Propp. *Combinatorial,
             piecewise-linear, and birational homomesy for products of
@@ -1214,6 +1225,11 @@ REFERENCES:
                  *SCREAM & iSCREAM Side-Channel Resistant Authenticated Encryption
                  with Masking*; in CAESAR Competition, (2014).
 
+.. [GM1987] Peter B. Gibbons and Rudolf Mathon.
+            *Construction methods for Bhaskar Rao and related designs*.
+            J. Austral. Math. Soc. Ser. A 42 (1987), no. 1, 5--30.
+            http://journals.cambridge.org/article_S1446788700033929
+
 .. [GM2002] Daniel Goldstein and Andrew Mayer. On the equidistribution
             of Hecke points. Forum Mathematicum, 15:2, pp. 165--189,
             De Gruyter, 2003.
@@ -1249,7 +1265,7 @@ REFERENCES:
              Cryptographic
              Constructions*. STOC 2008. http://www.cc.gatech.edu/~cpeikert/pubs/trap_lattice.pdf
 
-.. [GR2001] \C.Godsil and G.Royle, *Algebraic Graph Theory*. Graduate
+.. [GR2001] Chris Godsil and Gordon Royle, *Algebraic Graph Theory*. Graduate
             Texts in Mathematics, Springer, 2001.
 
 .. [Gr2007] \J. Green, Polynomial representations of `GL_n`, Springer
@@ -1313,9 +1329,15 @@ REFERENCES:
 
 .. [Hac2016] \M. Hachimori. http://infoshako.sk.tsukuba.ac.jp/~hachi/math/library/dunce_hat_eng.html
 
+.. [Haf2004] Paul R. Hafner. *On the Graphs of Hoffman-Singleton and Higman-Sims*.
+             The Electronic Journal of Combinatorics 11 (2004), #R77.
+             http://www.combinatorics.org/Volume_11/PDF/v11i1r77.pdf
+
 .. [Hai1989] M.D. Haiman, *On mixed insertion, symmetry, and shifted
              Young tableaux*. Journal of Combinatorial Theory, Series
              A Volume 50, Number 2 (1989), pp. 196-225.
+
+.. [Har1994] Frank Harary. *Graph Theory*. Reading, MA: Addison-Wesley, 1994.
 
 .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
             a graph. Publ. Math. Debrecen 13 1966 103-107.
@@ -1412,6 +1434,11 @@ REFERENCES:
              J. Symbolic Computation. **11** (2000).
              http://www.maths.usyd.edu.au/u/bobh/hrt.pdf
 
+.. [HS1968] Donald G. Higman and Charles C. Sims.
+            *A simple group of order 44,352,000*.
+            Mathematische Zeitschrift 105(2): 110-113, 1968.
+            :doi:`10.1007/BF01110435`.
+
 .. [Hsu1996] Tim Hsu, "Identifying congruence subgroups of the modular
              group", Proc. AMS 124, no. 5, 1351-1359 (1996)
 
@@ -1444,6 +1471,11 @@ REFERENCES:
             *Representation Theory of the Virasoro Algebra*.
             Springer, (2010).
 
+.. [IK2003] Yury Ionin and Hadi Kharaghani.
+            *New families of strongly regular graphs*.
+            Journal of Combinatorial Designs, 11(3):208--217, 2003.
+            :doi:`10.1002/jcd.10038`
+
 .. [ILS2012] Giuseppe F. Italiano, Luigi Laura, and Federico
              Santaroni. *Finding strong bridges and strong
              articulation points in linear time*. Theoretical Computer
@@ -1472,6 +1504,17 @@ REFERENCES:
 
 .. [Ja1971] \N. Jacobson. *Exceptional Lie Algebras*. Marcel Dekker,
             Inc. New York. 1971. IBSN No. 0-8247-1326-5.
+
+.. [JK2002] Zvonimir Jankoa and Hadi Kharaghani. *A Block Negacyclic Bush-Type
+            Hadamard Matrix and Two Strongly Regular Graphs*.
+            J. Combin. Theory Ser. A 98 (2002), no. 1, 118--126.
+            :doi:`10.1006/jcta.2001.3231`
+
+.. [JKT2001] Zvonimir Janko, Hadi Kharaghani, and Vladimir D. Tonchev.
+             *The existence of a Bush-type Hadamard matrix of order 324
+             and two new infinite classes of symmetric designs*.
+             Des. Codes Cryptogr. 24(2):225--232, 2001.
+             :doi:`10.1023/A:1011212922844`
 
 .. [JL2009] Nicolas Jacon and Cedric Lecouvey.
             *Kashiwara and Zelevinsky involutions in affine type A*.
@@ -1685,6 +1728,9 @@ REFERENCES:
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
             (2001). http://www.combinatorics.org/Volume_8/Abstracts/v8i2r11.html
+
+.. [Kre2002] \V. Kreps. *Social Network Analysis* (2002).
+             [Online] Available: http://www.orgnet.com/sna.html
 
 .. [KS1998] Maximilian Kreuzer and Harald Skarke, *Classification of
             Reflexive Polyhedra in Three Dimensions*,

@@ -122,7 +122,7 @@ class ElementWithLabel(object):
             {'a': 'element 1', 'b': 'element 2'}
             sage: a = ElementWithLabel("a", [2,3])
             sage: hash(a)
-            8557659973429537476
+            12416037344
         """
         return hash(self.element)
 

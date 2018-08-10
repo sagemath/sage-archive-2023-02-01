@@ -246,8 +246,9 @@ class Polyhedron_cdd(Polyhedron_base):
             count, dimension = map(int, data.pop(0))
             assert self.ambient_dim() == dimension - 1, "Unexpected ambient dimension"
             assert len(data) == count, "Unexpected number of lines"
+            R = self.base_ring()
             for i, line in enumerate(data):
-                coefficients = [self.base_ring()(x) for x in line]
+                coefficients = [R(x) for x in line]
                 if coefficients[0] != 0 and all(e == 0 for e in coefficients[1:]):
                     # cddlib sometimes includes an implicit plane at infinity: 1 0 0 ... 0
                     # We do not care about this entry.

@@ -19,6 +19,9 @@ from sage.categories.morphism import Morphism
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Homset, Hom
 from sage.structure.sequence import Sequence, Sequence_generic
+from sage.structure.element import get_coercion_model
+from sage.matrix.constructor import matrix
+from itertools import combinations
 
 # TODO: Refactor out common functionality with RingHomomorphism_im_gens
 class LieAlgebraHomomorphism_im_gens(Morphism):
@@ -76,7 +79,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             import copy
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
-        self.__im_gens = im_gens
+        self._im_gens = im_gens
 
     def _repr_type(self):
         """
@@ -110,7 +113,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             sage: f.im_gens()
             [x, y, z]
         """
-        return list(self.__im_gens)
+        return list(self._im_gens)
 
     def __hash__(self):
         """
@@ -125,7 +128,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             sage: hash(phi) == hash(phi)
             True
         """
-        return hash(self.__im_gens)
+        return hash(self._im_gens)
 
     def _repr_defn(self):
         """
@@ -143,7 +146,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             z |--> z
         """
         D = self.domain()
-        ig = self.__im_gens
+        ig = self._im_gens
         return '\n'.join(['%s |--> %s'%(x, ig[i]) for i, x in enumerate(D.gens())])
 
     def _call_(self, x):
@@ -235,6 +238,15 @@ class LieAlgebraHomset(Homset):
         """
         if isinstance(im_gens, Morphism):
             return im_gens
+        from sage.categories.lie_algebras import LieAlgebras
+        if (self.domain() in LieAlgebras.FiniteDimensional.WithBasis
+            and self.codomain() in LieAlgebras.FiniteDimensional.WithBasis):
+            try:
+                return LieAlgebraMorphism_from_generators(self.domain(), im_gens,
+                                                          codomain=self.codomain(),
+                                                          check=check)
+            except (TypeError, ValueError):
+                pass
         return LieAlgebraHomomorphism_im_gens(self, im_gens)
 
     @cached_method
@@ -261,6 +273,10 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
     r"""
     A morphism between two Lie algebras defined by images of a
     generating set as a Lie algebra.
+
+    This is the Lie algebra morphism `\phi \colon L \to K` defined on
+    the chosen basis of `L` to that of `K` be using the image of some
+    generating set (as a Lie algebra) of `L`.
 
     INPUT:
 
@@ -292,13 +308,16 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
         ValueError: {X: -X, Y: Y, Z: Z} does not define a Lie algebra morphism;
          contradictory values for brackets of length 2
 
-    Checking for mistakes can be disabled::
+    Checking for mistakes can be disabled, which can produce
+    invalid results::
 
-        sage: L.morphism({X:-X, Y:Y, Z:Z}, check=False)
+        sage: phi = L.morphism({X:-X, Y:Y, Z:Z}, check=False); phi
         Lie algebra endomorphism of Lie algebra on 3 generators (X, Y, Z) over Rational Field
           Defn: X |--> -X
                 Y |--> Y
                 Z |--> Z
+        sage: L[phi(X), phi(Y)] == phi(L[X,Y])
+        False
 
     The set of keys must generate the Lie algebra::
 
@@ -317,9 +336,33 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
         ValueError: [X, Y] is not a generating set of Lie algebra on 3
         generators (X, Y, Z) over Integer Ring
 
-    A quotient type Lie algebra morphism::
+    The generators do not have to correspond to the defined generating
+    set of the domain::
 
         sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+        sage: K.<A,B,C> = LieAlgebra(QQ, {('A','B'): {'C':2}})
+        sage: phi = L.morphism({X+2*Y: A, X-Y: B}); phi
+        Lie algebra morphism:
+          From: Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
+          To:   Lie algebra on 3 generators (A, B, C) over Rational Field
+          Defn: X |--> 1/3*A + 2/3*B
+                Y |--> 1/3*A - 1/3*B
+                Z |--> -2/3*C
+                W |--> 0
+        sage: phi(X+2*Y)
+        A
+        sage: phi(X)
+        1/3*A + 2/3*B
+        sage: phi(W)
+        0
+        sage: phi(Z)
+        -2/3*C
+        sage: all(K[phi(p), phi(q)] == phi(L[p,q])
+        ....:     for p in L.basis() for q in L.basis())
+        True
+
+    A quotient type Lie algebra morphism::
+
         sage: K.<A,B> = LieAlgebra(SR, abelian=True)
         sage: L.morphism({X: A, Y: B})
         Lie algebra morphism:
@@ -347,9 +390,9 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
 
         Test suite for a morphism::
 
-            sage: L.<X,Y,Z,W> = LieAlgebra(QQ,{('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
-            sage: K.<A,B,C> = LieAlgebra(QQ,{('A','B'): {'C':2}})
-            sage: phi = L.morphism({X+2*Y:A, X-Y:B})
+            sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+            sage: K.<A,B,C> = LieAlgebra(QQ, {('A','B'): {'C':2}})
+            sage: phi = L.morphism({X+2*Y: A, X-Y: B})
             sage: TestSuite(phi).run(skip=['_test_category'])
 
         Failure of inferring codomain::
@@ -374,38 +417,34 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             ...
             ValueError: no elements to infer codomain from
         """
-        from sage.structure.element import get_coercion_model
         from sage.categories.lie_algebras import LieAlgebras
 
         cm = get_coercion_model()
         if domain is None:
-            if len(on_generators.keys()) == 0:
+            if not on_generators:
                 raise ValueError("no elements to infer domain from")
-            domain = cm.common_parent(*on_generators.keys())
+            domain = cm.common_parent(*on_generators)
             if domain not in LieAlgebras:
-                raise TypeError("domain %s is not a Lie algebra"%domain)
+                raise TypeError("domain %s is not a Lie algebra" % domain)
         if codomain is None:
-            if len(on_generators.values()) == 0:
+            if not on_generators:
                 raise ValueError("no elements to infer codomain from")
-            codomain = cm.common_parent(*on_generators.values())
+            codomain = cm.common_parent(*list(on_generators.values()))
             if codomain not in LieAlgebras:
-                raise TypeError("codomain %s is not a Lie algebra"%codomain)
+                raise TypeError("codomain %s is not a Lie algebra" % codomain)
 
+        parent = Hom(domain, codomain)
         m = domain.module()
         cm = codomain.module()
 
-        spanning_set = [m(X.to_vector()) for X in on_generators.keys()]
-        im_gens = [cm(Y.to_vector()) for Y in on_generators.values()]
+        spanning_set = [X.to_vector() for X in on_generators]
+        im_gens = [Y.to_vector() for Y in on_generators.values()]
 
-        # FIXME: This is not correct anymore!!!!!
         if not im_gens:
-            H = LieAlgebraHomset(domain, codomain)
-            return LieAlgebraHomomorphism_im_gens(H, im_gens, check=check)
+            LieAlgebraHomomorphism_im_gens.__init__(self, parent, [], check=check)
+            return
 
-        from sage.matrix.constructor import matrix
-        from itertools import combinations
-
-        # helper function to solve linear systems Ax=b, where both x and b
+        # helper function to solve linear systems Ax = b, where both x and b
         # are vectors of vectors
         def solve_linear_system(A, b, check):
             R = cm.base_ring()
@@ -414,13 +453,14 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             if check:
                 # Verify validity of solution x = A_inv*b. Since b is a vector of
                 # vectors, need to expand the matrix product by hand.
-                M = A*A_inv
-                for Mi,bk in zip(M.rows(),b):
-                    test_bk = sum((R(Mij)*bj for Mij,bj in zip(Mi,b)), cm.zero())
+                M = A * A_inv
+                for Mi, bk in zip(M.rows(), b):
+                    test_bk = sum((R(Mij) * bj for Mij,bj in zip(Mi,b)), cm.zero())
                     if test_bk != bk:
                         raise ValueError("contradictory linear system")
 
-            return [sum((R(Aij)*bk for Aij,bk in zip(Ai,b)),cm.zero()) for Ai in A_inv.rows()]
+            return [sum((R(Aij) * bk for Aij,bk in zip(Ai,b)), cm.zero())
+                    for Ai in A_inv.rows()]
 
         bracketlength = 1
         n = 0
@@ -431,7 +471,8 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
                 im_gens = solve_linear_system(A, im_gens, check)
             except ValueError:
                 raise ValueError("%s does not define a Lie algebra morphism; "
-                                 "contradictory values for brackets of length %d"%(on_generators, bracketlength))
+                                 "contradictory values for brackets of length %d"
+                                 % (on_generators, bracketlength))
 
             spanning_set = list(sm.basis())
             if n == len(spanning_set):
@@ -441,20 +482,54 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             # compute brackets and repeat
             bracketlength += 1
             n = len(spanning_set)
-            for i,j in combinations(range(n),2):
+            for i,j in combinations(range(n), 2):
                 # add the value of the bracket to known images
-                Z = domain.bracket(spanning_set[i],spanning_set[j])
-                imZ = codomain.bracket(im_gens[i],im_gens[j])
+                Z = domain.bracket(spanning_set[i], spanning_set[j])
+                imZ = codomain.bracket(im_gens[i], im_gens[j])
                 spanning_set.append(Z.to_vector())
                 im_gens.append(imZ.to_vector())
 
         # verify that sm is the full module m
         if not sm.has_coerce_map_from(m):
-            raise ValueError("%s is not a generating set of %s"%(on_generators.keys(), domain))
+            raise ValueError("%s is not a generating set of %s"
+                             % (list(on_generators), domain))
 
         A = matrix(m.base_ring(), spanning_set)
         im_gens = solve_linear_system(A, im_gens, check)
 
-        H = Hom(domain, codomain)
-        LieAlgebraHomomorphism_im_gens.__init__(self, H, im_gens, check=check)
+        LieAlgebraHomomorphism_im_gens.__init__(self, parent, im_gens, check=check)
+
+    def _call_(self, x):
+        """
+        Evaluate this homomorphism at ``x``.
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+            sage: K.<A,B> = LieAlgebra(SR, abelian=True)
+            sage: phi = L.morphism({X: A, Y: B})
+            sage: phi(X)
+            A
+            sage: phi(Y)
+            B
+            sage: phi(Z)
+            0
+            sage: phi(W)
+            0
+            sage: phi(-X + 3*Y)
+            -A + 3*B
+
+            sage: K.<A,B,C> = LieAlgebra(QQ, {('A','B'): {'C':2}})
+            sage: phi = L.morphism({X+2*Y: A, X-Y: B})
+            sage: phi(X)
+            1/3*A + 2/3*B
+            sage: phi(Y)
+            1/3*A - 1/3*B
+            sage: phi(3*X+Y)
+            4/3*A + 5/3*B
+            sage: phi(3/2*W-Z+Y)
+            1/3*A - 1/3*B + 2/3*C
+        """
+        C = self.codomain()
+        return C.sum(c * self._im_gens[i] for i,c in x.to_vector().iteritems())
 

@@ -272,7 +272,7 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
       values  on the Lie brackets implied by ``on_generators`` will
       not be checked for contradictory values
 
-    EXAMPLES: 
+    EXAMPLES:
 
     A reflection of one horizontal vector in the Heisenberg algebra::
 
@@ -283,7 +283,7 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
                 Y |--> Y
                 Z |--> -Z
 
-    There is no Lie algebra morphism that reflects one horizontal vector, 
+    There is no Lie algebra morphism that reflects one horizontal vector,
     but not the vertical one::
 
         sage: L.morphism({X:-X, Y:Y, Z:Z})
@@ -305,7 +305,7 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
         sage: L.morphism({X: X})
         Traceback (most recent call last):
         ...
-        ValueError: [X] is not a generating set of Lie algebra on 3 generators 
+        ValueError: [X] is not a generating set of Lie algebra on 3 generators
         (X, Y, Z) over Rational Field
 
     Over non-fields, generating subsets are more restricted::
@@ -314,11 +314,11 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
         sage: L.morphism({X: X, Y: Y})
         Traceback (most recent call last):
         ...
-        ValueError: [X, Y] is not a generating set of Lie algebra on 3 
+        ValueError: [X, Y] is not a generating set of Lie algebra on 3
         generators (X, Y, Z) over Integer Ring
 
     A quotient type Lie algebra morphism::
-    
+
         sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
         sage: K.<A,B> = LieAlgebra(SR, abelian=True)
         sage: L.morphism({X: A, Y: B})
@@ -333,18 +333,18 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
     def __init__(self, on_generators, domain=None, codomain=None, check=True):
         r"""
         Initialize ``self``.
-        
+
         The keys of ``on_generators`` need to generate ``domain``
         as a Lie algebra.
-        
+
         .. TODO::
 
-            It might be possible to extract an explicit bracket relation that 
-            fails whenever some linear system fails to be solved. This would 
+            It might be possible to extract an explicit bracket relation that
+            fails whenever some linear system fails to be solved. This would
             allow outputting an even more explicit error.
 
         TESTS:
-        
+
         Test suite for a morphism::
 
             sage: L.<X,Y,Z,W> = LieAlgebra(QQ,{('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
@@ -410,18 +410,18 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
         def solve_linear_system(A, b, check):
             R = cm.base_ring()
             A_inv = A.solve_left(matrix.identity(A.ncols()))
-            
+
             if check:
-                # Verify validity of solution x = A_inv*b. Since b is a vector of 
+                # Verify validity of solution x = A_inv*b. Since b is a vector of
                 # vectors, need to expand the matrix product by hand.
                 M = A*A_inv
                 for Mi,bk in zip(M.rows(),b):
                     test_bk = sum((R(Mij)*bj for Mij,bj in zip(Mi,b)), cm.zero())
                     if test_bk != bk:
                         raise ValueError("contradictory linear system")
-        
+
             return [sum((R(Aij)*bk for Aij,bk in zip(Ai,b)),cm.zero()) for Ai in A_inv.rows()]
-        
+
         bracketlength = 1
         n = 0
         while True:
@@ -432,12 +432,12 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
             except ValueError:
                 raise ValueError("%s does not define a Lie algebra morphism; "
                                  "contradictory values for brackets of length %d"%(on_generators, bracketlength))
-            
+
             spanning_set = list(sm.basis())
             if n == len(spanning_set):
                 # no increase in dimension => no further values will be computed
                 break
-            
+
             # compute brackets and repeat
             bracketlength += 1
             n = len(spanning_set)
@@ -447,14 +447,14 @@ class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
                 imZ = codomain.bracket(im_gens[i],im_gens[j])
                 spanning_set.append(Z.to_vector())
                 im_gens.append(imZ.to_vector())
-                    
+
         # verify that sm is the full module m
         if not sm.has_coerce_map_from(m):
             raise ValueError("%s is not a generating set of %s"%(on_generators.keys(), domain))
-            
+
         A = matrix(m.base_ring(), spanning_set)
         im_gens = solve_linear_system(A, im_gens, check)
-        
+
         H = Hom(domain, codomain)
         LieAlgebraHomomorphism_im_gens.__init__(self, H, im_gens, check=check)
 

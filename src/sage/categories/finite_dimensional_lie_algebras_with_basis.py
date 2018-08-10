@@ -1220,7 +1220,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             .. SEEALSO::
 
                 :class:`sage.algebras.lie_algebras.morphism.LieAlgebraMorphism_from_generators`
-            
+
             EXAMPLES:
 
             A quotient type Lie algebra morphism ::
@@ -1246,7 +1246,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                  contradictory values for brackets of length 2
             """
             from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
-            return LieAlgebraMorphism_from_generators(on_generators, domain=self, 
+            return LieAlgebraMorphism_from_generators(on_generators, domain=self,
                                                       codomain=codomain, check=check)
 
     class ElementMethods:

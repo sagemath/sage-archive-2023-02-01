@@ -2286,11 +2286,12 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     # the number of S-blocks. We start removing edges of the triangulation.
     count = Counter([frozenset(e) for e in cycles_graph.multiple_edges(labels=False)])
     for e,num in count.items():
-        if num == 2 and e in virtual_edges:
+        if num == 2 and e in virtual_edges and cocycles_count[e] == 2:
+            # This virtual edge is only between 2 cycles
             virtual_edges.discard(e)
-            for _ in range(num):
-                cycles_graph.delete_edge(e)
-                cocycles_count[e] -= 1
+            cycles_graph.delete_edge(e)
+            cycles_graph.delete_edge(e)
+            cocycles_count[e] -= 2
 
     # We then extract cycles to form S_blocks
     S_blocks = []

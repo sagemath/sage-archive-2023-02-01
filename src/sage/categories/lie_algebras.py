@@ -515,6 +515,51 @@ class LieAlgebras(Category_over_base_ring):
                 sage: L.is_nilpotent()
                 True
             """
+            
+        def lie_algebra_morphism(self, on_generators, codomain=None, check=True):
+            r"""
+            Return a Lie algebra morphism defined by images of a Lie generating subset of ``self``.
+            
+            INPUT:
+        
+            - ``on_generators`` -- a dictionary ``{X:Y}`` of the images `Y` in 
+              ``codomain`` of elements `X` of ``domain`` 
+            - ``codomain`` -- a parent in ``LieAlgebras(...)`` (default: ``None``); 
+              if None, the codomain is inferred from the values of ``on_generators``
+            - ``check`` -- a boolean (default:``True``); if ``False`` the values 
+              on the Lie brackets implied by ``on_generators`` will not be 
+              checked for contradictory values.
+            
+            The keys of ``on_generators`` need to generate ``domain`` as a Lie algebra.
+            
+            EXAMPLES :: 
+            
+            A quotient type Lie algebra morphism ::
+            
+                sage: L.<X,Y,Z,W>=LieAlgebra(QQ,{('X','Y'):{'Z':1}, ('X','Z'):{'W':1}})
+                sage: K.<A,B> = LieAlgebra(QQ, abelian=True)
+                sage: L.lie_algebra_morphism({X:A, Y: B})
+                Lie algebra morphism:
+                  From: Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
+                  To:   Abelian Lie algebra on 2 generators (A, B) over Rational Field
+                  Defn: X |--> A
+                        Y |--> B
+                        Z |--> 0
+                        W |--> 0
+                        
+            The reverse map `A\mapsto X`, `B\mapsto Y` does not define a Lie
+            algebra morphism, since `[A,B] = 0`, but `[X,Y] \neq 0` ::
+            
+                sage: K.lie_algebra_morphism({A:X, B: Y})
+                Traceback (most recent call last):
+                ...
+                ValueError: {B: Y, A: X} does not define a Lie algebra morphism,
+                contradictory values for brackets of length 2
+            
+            """
+            from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
+            return LieAlgebraMorphism_from_generators(on_generators, domain=self, 
+                                                      codomain=codomain, check=check)
 
         def _test_jacobi_identity(self, **options):
             """

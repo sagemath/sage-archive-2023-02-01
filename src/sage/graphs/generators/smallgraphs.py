@@ -3612,12 +3612,6 @@ def McGeeGraph(embedding=2):
         ...
         ValueError: the value of embedding must be 1 or 2
     """
-
-    L = [47, -23, -31, 39, 25, -21, -31, -41, 25, 15, 29, -41, -19, 15,
-         -49, 33, 39, -35, -21, 17, -33, 49, 41, 31, -15, -29, 41, 31,
-         -15, -25, 21, 31, -51, -25, 23, 9, -17, 51, 35, -29, 21, -51,
-         -39, 33, -9, -51, 51, -47, -33, 19, 51, -21, 29, 21, -31, -39]
-
     from sage.graphs.generators.families import LCFGraph
     g = LCFGraph(24, [12, 7, -7], 8)
     g.name('McGee graph')
@@ -4827,7 +4821,6 @@ def JankoKharaghaniTonchevGraph():
         sage: Gamma.is_strongly_regular(parameters=True)  # long time
         (324, 153, 72, 72)
     """
-    from itertools import product
     from sage.misc.misc_c import prod
     from sage.combinat.permutation import Permutation as P
     from sage.libs.gap.libgap import libgap
@@ -5014,7 +5007,7 @@ def IoninKharaghani765Graph():
         return matrix.block([Xi[i:]+Xi[:i]
                              for i in range(len(Xi))])
 
-    sigma = lambda Xi: Xi[1:] + [pi[Xi[0]]]
+    #sigma = lambda Xi: Xi[1:] + [pi[Xi[0]]]
     f_pow = lambda f,i,X : f_pow(f,i-1,f(X)) if i else X
 
     sigma2 = lambda Xi: Xi[1:] + [Xi[0]]
@@ -5038,8 +5031,8 @@ def IoninKharaghani765Graph():
         vec = f_pow(sigma2,i%5,vec)
         int_to_matrix[i+1] = N(vec)
 
-    M = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
-    g = Graph(M,name="Ionin-Kharaghani")
+    M2 = matrix.block([[int_to_matrix[x] for x in R] for R in W.rows()])
+    g = Graph(M2, name="Ionin-Kharaghani")
     return g
 
 

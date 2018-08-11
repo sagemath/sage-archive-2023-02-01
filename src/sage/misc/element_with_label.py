@@ -108,7 +108,7 @@ class ElementWithLabel(object):
     def __hash__(self):
         """
         Return the hash of the labeled element ``self``,
-        which is constructed from hashes of both constituents.
+        which is just the hash of ``self.element``.
 
         TESTS::
 
@@ -121,8 +121,8 @@ class ElementWithLabel(object):
             sage: print(d)
             {'a': 'element 1', 'b': 'element 2'}
             sage: a = ElementWithLabel("a", [2,3])
-            sage: hash(a)
-            12416037344
+            sage: hash(a) == hash(a.element)
+            True
         """
         return hash(self.element)
 

@@ -852,31 +852,46 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
     def mult(self, mu):
         """
+        Return the weight multiplicity of ``mu``.
+
         INPUT:
 
         - ``mu`` -- an element of the weight lattice
 
-        Returns the weight multiplicity of mu.
-
-        EXAMPLES:
+        EXAMPLES::
 
             sage: L = RootSystem("B3~").weight_lattice(extended=True)
             sage: Lambda = L.fundamental_weights()
             sage: delta = L.null_root()
             sage: W = L.weyl_group(prefix="s")
-            sage: [s0,s1,s2,s3]=W.simple_reflections()
+            sage: [s0,s1,s2,s3] = W.simple_reflections()
             sage: V = IntegrableRepresentation(Lambda[0])
-            sage: weights = [w.action(Lambda[1]-4*delta) for w in [s1,s2,s0*s1*s2*s3]]; weights
+            sage: V.mult(Lambda[2]-2*delta)
+            3
+            sage: V.mult(Lambda[2]-Lambda[1])
+            0
+            sage: weights = [w.action(Lambda[1]-4*delta) for w in [s1,s2,s0*s1*s2*s3]]
+            sage: weights
             [-Lambda[1] + Lambda[2] - 4*delta,
             Lambda[1] - 4*delta,
             -Lambda[1] + Lambda[2] - 4*delta]
             sage: [V.mult(mu) for mu in weights]
             [35, 35, 35]
+
+        TESTS::
+
+            sage: L = RootSystem("B3~").weight_lattice(extended=True)
+            sage: La = L.fundamental_weights()
+            sage: V = IntegrableRepresentation(La[0])
+            sage: Q = RootSystem("B3~").root_space()
+            sage: al = Q.simple_roots()
+            sage: V.mult(1/2*al[1])
+            0
         """
         try:
             n = self.from_weight(mu)
-        except:
-            return 0
+        except TypeError:
+            return ZZ.zero()
         return self.m(n)
 
     @cached_method

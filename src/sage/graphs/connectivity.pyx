@@ -2256,19 +2256,29 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
     # We now search for 2-vertex cuts. If a cut is found, we split the graph and
     # check each side for S or R blocks or another 2-vertex cut
     R_blocks = []
-    virtual_edges = set()
     two_blocks = [(SG, cut_vertices)]
-    cycles_graph = Graph(multiedges=True)
     cocycles_count = Counter()
+    cycles_list = []
+    virtual_to_cycles = dict()
 
     while two_blocks:
         B,B_cut = two_blocks.pop()
         # B will be always simple graph.
         S, C, f = cleave(B, cut_vertices=B_cut)
+        # Store the number of edges of the cocycle (P block)
+        fe = frozenset(B_cut)
+        cocycles_count[fe] += C.size()
+        # Check the sides of the cut
         for K in S:
             if K.is_cycle():
-                # Add all the edges of K to cycles list.
-                cycles_graph.add_edges(e for e in K.edge_iterator(labels=False))
+                # Add this cycle to the list of cycles
+                cycles_list.append(K)
+                # We associate the index of K in cycle_list to the virtual edge
+                if f.size():
+                    if fe in virtual_to_cycles:
+                        virtual_to_cycles[fe].append(len(cycles_list)-1)
+                    else:
+                        virtual_to_cycles[fe] = [len(cycles_list)-1]
             else:
                 K_cut_size,K_cut_vertices = K.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
                 if K_cut_size == 2:
@@ -2277,47 +2287,29 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
                 else:
                     # The graph is 3-vertex connected
                     R_blocks.append(('R', Graph(K, immutable=True)))
-        # Store edges of cocycle (P block) and virtual edges (if any)
-        cocycles_count.update(frozenset(e) for e in C.edge_iterator(labels=False))
-        virtual_edges.update(frozenset(e) for e in f.edge_iterator(labels=False))
 
-
-    # Cycles of order > 3 may have been triangulated; We undo this to reduce
-    # the number of S-blocks. We start removing edges of the triangulation.
-    count = Counter([frozenset(e) for e in cycles_graph.multiple_edges(labels=False)])
-    for e,num in count.items():
-        if num == 2 and e in virtual_edges and cocycles_count[e] == 2:
+    # Cycles of order > 3 may have been triangulated; We undo this to reduce the
+    # number of S-blocks. Two cycles can be merged if they share a virtual edge
+    # that is not shared by any other block, i.e., cocycles_count[e] == 2. We
+    # use a DisjointSet to form the groups of cycles to be merged.
+    from sage.sets.disjoint_set import DisjointSet
+    DS = DisjointSet(range(len(cycles_list)))
+    for e in virtual_to_cycles:
+        if cocycles_count[e] == 2 and len(virtual_to_cycles[e]) == 2:
             # This virtual edge is only between 2 cycles
-            virtual_edges.discard(e)
-            cycles_graph.delete_edge(e)
-            cycles_graph.delete_edge(e)
+            C1, C2 = virtual_to_cycles[e]
+            DS.union(C1, C2)
+            cycles_list[C1].delete_edge(e)
+            cycles_list[C2].delete_edge(e)
             cocycles_count[e] -= 2
 
-    # We then extract cycles to form S_blocks
+    # We finalize the creation of S_blocks.
     S_blocks = []
-    if not cycles_graph:
-        tmp = []
-    elif cycles_graph.is_biconnected():
-        tmp = [cycles_graph]
-    else:
-        B,C = cycles_graph.blocks_and_cut_vertices()
-        tmp = [cycles_graph.subgraph(b) for b in B]
-    while tmp:
-        block = tmp.pop()
-        if block.order() > 2 and block.is_cycle():
-            S_blocks.append(('S', Graph(block, immutable=True)))
-        elif block.has_multiple_edges():
-            cut = block.multiple_edges(labels=False)[0]
-            S,C,f = cleave(block, cut_vertices=cut)
-            # Remove the cut edge from `S block` components if present
-            for h in S:
-                while h.has_edge(cut):
-                    h.delete_edge(cut)
-                h.add_edge(cut)
-                tmp.append(h)
-        else:
-            # This should never happen
-            raise ValueError("something goes wrong")
+    for root,indexes in DS.root_to_elements_dict().items():
+        E = []
+        for i in indexes:
+            E.extend(cycles_list[i].edge_iterator(labels=False))
+        S_blocks.append(('S', Graph(E, immutable=True)))
 
 
     # We now build the SPQR tree

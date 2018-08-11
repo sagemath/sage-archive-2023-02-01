@@ -79,10 +79,10 @@ connections with mathematical physics and vertex operators.
 The support of an integrable highest weight representation
 ----------------------------------------------------------
 
-Let `\Lambda \in P^+` and let `V = L(\lambda)` be the integrable
+Let `\Lambda \in P^+` and let `V = L(\Lambda)` be the integrable
 representation with highest weight `\Lambda`. If `\mu` is another
 weight, let `\operatorname{mult}(\mu)` denote the multiplicity of
-the weight `\mu` in `L(\lambda)`. Define the *support* of the
+the weight `\mu` in `L(\Lambda)`. Define the *support* of the
 representation `\operatorname{supp}(V)` to be the set of `\mu`
 such that `\operatorname{mult}(\mu) > 0`.
 
@@ -171,7 +171,7 @@ Sage methods for integrable representations
 In this section we will show how to use Sage to compute with
 integrable highest weight representations of affine Lie algebras.
 For further documentation, see the reference manual
-:class:`~sage.combinat.root_system.integrable_representations.IntegrableRepresentation`
+:class:`~sage.combinat.root_system.integrable_representations.IntegrableRepresentation`.
 
 In the following example, we work with the integrable representation
 with highest weight `2 \Lambda_0` for `\widehat{\mathfrak{sl}}_2`,
@@ -179,9 +179,7 @@ that is, `A_1^{(1)}`. First we create a dominant weight in
 the extended weight lattice, then create the ``IntegrableRepresentation``
 class. We compute the strings. There are two, since there are two
 dominant maximal weights. One of them is the highest weight `2\Lambda_0`,
-and the other is `2\Lambda_1 - \delta`. Then we compute the string
-function at this weight, which we see agrees with the string function
-for the corresponding dominant maximal weight::
+and the other is `2\Lambda_1 - \delta`::
 
     sage: L = RootSystem("A1~").weight_lattice(extended=True)
     sage: Lambda = L.fundamental_weights()
@@ -271,7 +269,7 @@ This gives us the string functions
     \end{aligned}
 
 These are both weakly holomorphic modular forms. Any linear combination
-of these two is also a weakly holomorphic modular form, for example we
+of these two is also a weakly holomorphic modular form. For example we
 may replace `\tau` by `\tau/2` in our previous identity and get
 
 .. MATH::
@@ -329,7 +327,7 @@ Catalan triangle numbers (:oeis:`A000245`)::
      Lambda[6] + Lambda[9] - 4*delta: [90],
      Lambda[7] + Lambda[8] - 5*delta: [297]}
 
-Central binomial coefficients (:oeis:`A001700`. :oeis:`128015`)::
+Central binomial coefficients (:oeis:`A001700`, :oeis:`128015`)::
 
     sage: P = RootSystem(['B',8,1]).weight_lattice(extended=true)
     sage: Lambda = P.fundamental_weights()

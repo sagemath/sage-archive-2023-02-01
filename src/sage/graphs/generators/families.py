@@ -350,7 +350,15 @@ def HammingGraph(n, q, X=None):
         sage: g = graphs.HammingGraph(1, 23)
         sage: g.is_isomorphic(graphs.CompleteGraph(23))
         True
-
+    
+    If a parameter ``q`` is provided which is not equal to ``X``'s cardinality, an exception is raised. ::
+    
+        sage: X = ['a','b','c','d','e']
+        sage: g = graphs.HammingGraph(2, 3, X)
+        Traceback (most recent call last):
+        ...
+        ValueError: q must be the cardinality of X
+        
     REFERENCES:
     
     For a more accurate description, see the following wikipedia page:

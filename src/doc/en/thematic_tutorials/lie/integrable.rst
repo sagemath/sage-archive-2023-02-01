@@ -25,8 +25,8 @@ If the Kac-Moody Lie algebra `\mathfrak{g}` is finite-dimensional
 then the integrable highest weight representations are
 just the irreducible finite-dimensional ones. For a general
 Kac-Moody Lie algebra the integrable highest weight representations
-are the analogs of the finite-dimensional ones,
-discussed in :file:`weyl_character_ring`, and their
+are the analogs of the finite-dimensional ones, that is,
+with :class:`WeylCharacterRing` elements. Their
 theory has many aspects in common with the finite-dimensional
 representations of finite-dimensional simple Lie algebras,
 such as the parametrization by dominant weights, and
@@ -327,7 +327,7 @@ Catalan triangle numbers (:oeis:`A000245`)::
      Lambda[6] + Lambda[9] - 4*delta: [90],
      Lambda[7] + Lambda[8] - 5*delta: [297]}
 
-Central binomial coefficients (:oeis:`A001700`, :oeis:`128015`)::
+Central binomial coefficients (:oeis:`A001700`, :oeis:`A128015`)::
 
     sage: P = RootSystem(['B',8,1]).weight_lattice(extended=true)
     sage: Lambda = P.fundamental_weights()

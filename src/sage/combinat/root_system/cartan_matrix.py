@@ -76,6 +76,9 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     input matrix against possible standard types of Cartan matrices. To disable
     this check, use the keyword ``cartan_type_check = False``.
 
+    If one wants to initialize a Borcherds-Cartan matrix, use the keyword
+    ``borcherds_type = True``.
+
     EXAMPLES::
 
         sage: CartanMatrix(['A', 4])
@@ -201,6 +204,9 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         [ 2  0 -1]
         [ 0  2 -3]
         [-1 -1  2]
+        sage: CartanMatrix([[2,-1],[-1,-2]],borcherds_type=True)
+        [ 2 -1]
+        [-1 -2]
 
     .. NOTE::
 
@@ -212,7 +218,8 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
     """
     @staticmethod
     def __classcall_private__(cls, data=None, index_set=None,
-                              cartan_type=None, cartan_type_check=True):
+                              cartan_type=None, cartan_type_check=True,
+                              borcherds_type=False):
         """
         Normalize input so we can inherit from sparse integer matrix.
 
@@ -282,10 +289,10 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                     data[(reverse[j], reverse[i])] = -l
             else:
                 M = matrix(data)
-                if not is_borcherds_cartan_matrix(M):
+                if borcherds_type == True and not is_borcherds_cartan_matrix(M):
                     raise ValueError("the input matrix is not a Borcherds-Cartan matrix")
-#                if not is_generalized_cartan_matrix(M):
-#                    raise ValueError("the input matrix is not a generalized Cartan matrix")
+                if borcherds_type == False and not is_generalized_cartan_matrix(M):
+                    raise ValueError("the input matrix is not a generalized Cartan matrix")
                 n = M.ncols()
                 data = M.dict()
                 subdivisions = M._subdivisions
@@ -525,6 +532,8 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             [-2 -1  2]
         """
         if self._cartan_type is None:
+            return self
+        if is_borcherds_cartan_matrix(self) and not is_generalized_cartan_matrix(self):
             return self
         return self._cartan_type
 

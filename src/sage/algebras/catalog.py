@@ -9,6 +9,7 @@ easy way to discover and quickly create the algebras that are available
 Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 ``algebras.<tab>`` to the see the currently implemented named algebras.
 
+- :class:`algebras.AskeyWilson <sage.algebras.askey_wilson.AskeyWilsonAlgebra>`
 - :class:`algebras.Brauer <sage.combinat.diagram_algebras.BrauerAlgebra>`
 - :class:`algebras.Clifford <sage.algebras.clifford_algebra.CliffordAlgebra>`
 - :class:`algebras.ClusterAlgebra <sage.algebras.cluster_algebra.ClusterAlgebra>`
@@ -79,6 +80,7 @@ from sage.misc.lazy_import import lazy_import
 lazy_import('sage.algebras.iwahori_hecke_algebra', 'IwahoriHeckeAlgebra', 'IwahoriHecke')
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra', 'NilCoxeter')
 lazy_import('sage.algebras.free_zinbiel_algebra', 'FreeZinbielAlgebra', 'FreeZinbiel')
+lazy_import('sage.algebras.askey_wilson', 'AskeyWilsonAlgebra', 'AskeyWilson')
 lazy_import('sage.algebras.hall_algebra', 'HallAlgebra', 'Hall')
 lazy_import('sage.algebras.jordan_algebra', 'JordanAlgebra', 'Jordan')
 lazy_import('sage.algebras.orlik_solomon', 'OrlikSolomonAlgebra', 'OrlikSolomon')

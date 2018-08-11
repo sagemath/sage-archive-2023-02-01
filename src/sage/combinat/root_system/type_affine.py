@@ -14,6 +14,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from .weight_lattice_realizations import WeightLatticeRealizations
 
+
 class AmbientSpace(CombinatorialFreeModule):
     r"""
     Ambient space for affine types.
@@ -106,6 +107,11 @@ class AmbientSpace(CombinatorialFreeModule):
         ['G', 2, 1]^*
         ['BC', 1, 2]^*
         ['BC', 5, 2]^*
+
+    TESTS::
+
+            sage: Lambda[1]
+            e[0] + e['deltacheck']
     """
     @classmethod
     def smallest_base_ring(cls, cartan_type):
@@ -153,6 +159,7 @@ class AmbientSpace(CombinatorialFreeModule):
                                          basis_keys,
                                          prefix = "e",
                                          latex_prefix = "e",
+                                         sorting_key=str,
                                          category = WeightLatticeRealizations(base_ring))
         self._weight_space = self.root_system.weight_space(base_ring=base_ring,extended=True)
         self.classical().module_morphism(self.monomial, codomain=self).register_as_coercion()

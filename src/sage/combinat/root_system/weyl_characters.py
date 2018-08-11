@@ -1291,7 +1291,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
             # a generic product) in the weight ring to optimize by
             # running only through pairs of weights instead of couples.
             c = self.weight_multiplicities()
-            ckeys = c.keys()
+            ckeys = list(c)
             d = {}
             for j in range(len(ckeys)):
                 for i in range(j+1):
@@ -1306,7 +1306,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         d[t] += coef
                     else:
                         d[t] = coef
-            for k in d.keys():
+            for k in list(d):
                 if d[k] == 0:
                     del d[k]
             return self.parent().char_from_weights(d)
@@ -1322,7 +1322,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                 A2(0,1)
             """
             c = self.weight_multiplicities()
-            ckeys = c.keys()
+            ckeys = list(c)
             d = {}
             for j in range(len(ckeys)):
                 for i in range(j+1):
@@ -1337,7 +1337,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
                         d[t] += coef
                     else:
                         d[t] = coef
-            for k in d.keys():
+            for k in list(d):
                 if d[k] == 0:
                     del d[k]
             return self.parent().char_from_weights(d)

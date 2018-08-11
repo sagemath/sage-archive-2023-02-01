@@ -824,25 +824,24 @@ class OrderedMultisetPartition(ClonableArray):
                 pass
         return out
 
-
     def minimaj(self):
         """
         Return the minimaj statistic on ordered multiset partitions.
 
         We define `minimaj` via an example:
 
-        1. Sort the block in ``self`` as prescribed by ``self.minimaj_word()``,
-           keeping track of the original separation into blocks.
-           - in:   [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
-           - out:  ( 5,7,1 /  2,4 /  5,6 /  4,6,8 /  3,1 /  1,2,3 )
+            1. Sort the block in ``self`` as prescribed by ``self.minimaj_word()``,
+               keeping track of the original separation into blocks.
+               - in:   [{1,5,7}, {2,4}, {5,6}, {4,6,8}, {1,3}, {1,2,3}]
+               - out:  ( 5,7,1 /  2,4 /  5,6 /  4,6,8 /  3,1 /  1,2,3 )
 
-        2. Record the indices where descents in this word occur.
-           - word:      (5, 7, 1 / 2, 4 / 5, 6 / 4, 6, 8 / 3, 1 / 1, 2, 3)
-           - indices:    1  2  3   4  5   6  7   8  9 10  11 12  13 14 15
-           - descents:  {   2,               7,       10, 11             }
+            2. Record the indices where descents in this word occur.
+               - word:      (5, 7, 1 / 2, 4 / 5, 6 / 4, 6, 8 / 3, 1 / 1, 2, 3)
+               - indices:    1  2  3   4  5   6  7   8  9 10  11 12  13 14 15
+               - descents:  {   2,               7,       10, 11             }
 
-        3. Compute the sum of the descents
-           - minimaj = 2 + 7 + 10 + 11 = 30
+            3. Compute the sum of the descents
+               - minimaj = 2 + 7 + 10 + 11 = 30
 
         REFERENCES:
 
@@ -1882,7 +1881,7 @@ class OrderedMultisetPartitions_all_constraints(OrderedMultisetPartitions):
         INPUT:
 
         - ``size`` -- an integer representing a slice of all ordered
-                      multiset partitions.
+          multiset partitions.
 
         The slice alluded to above is taken with respect to length, or
         to order or to size, depending on the constraints of  ``self``.
@@ -1921,8 +1920,6 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         TESTS::
 
             sage: C = OrderedMultisetPartitions(Integer(4))
-            sage: C == loads(dumps(C))
-            True
             sage: TestSuite(C).run()
             sage: C2 = OrderedMultisetPartitions(int(4))
             sage: C is C2
@@ -1968,11 +1965,11 @@ class OrderedMultisetPartitions_n(OrderedMultisetPartitions):
         # The 2-regular partitions have a nice generating function (see OEIS:A000009).
         # Below, we take (products of) coefficients of polynomials to compute cardinality.
         t = var('t')
-        partspoly = prod([1+t**k for k in range(1,self._n+1)]).coefficients()
+        partspoly = prod(1+t**k for k in range(1,self._n+1)).coefficients()
         def partspoly_coeff(d): return partspoly[d][0]
         deg = 0
         for alpha in Compositions(self._n):
-            deg += prod([partspoly_coeff(d) for d in alpha])
+            deg += prod(partspoly_coeff(d) for d in alpha)
         return ZZ(deg)
 
     def an_element(self):
@@ -3212,6 +3209,8 @@ class MinimajCrystal(UniqueRepresentation, Parent):
         r"""
         Return the bijection `\varphi^{-1}` of [BCHOPSY2017]_ applied to ``t``.
 
+        INPUT: ``t`` -- a sequence of column tableaux and a ribbon tableau
+
         EXAMPLES::
 
             sage: B = crystals.Minimaj(3,6,3)
@@ -3219,6 +3218,10 @@ class MinimajCrystal(UniqueRepresentation, Parent):
             ((1, 2, 3), (3, 1), (2,))
             sage: t = b.to_tableau(); t
             [[1], [3, 2], [1, 3, 2]]
+            sage: B.from_tableau(t)
+            ((1, 2, 3), (3, 1), (2,))
+            sage: B.from_tableau(t) == b
+            True
 
         TESTS::
 

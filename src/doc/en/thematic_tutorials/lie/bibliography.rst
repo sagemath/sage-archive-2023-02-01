@@ -67,7 +67,7 @@ Bibliography
    Chevalley group over a finite field. *J. Fac. Sci. Univ. Tokyo
    Sect. I*, 10:215--236, 1964.
 
-.. [JayneMisra2014] \R. Jayne and K. Misra,  Jayne, Rebecca L.,
+.. [JayneMisra2014] \R. Jayne and K. Misra,
    On multiplicities of maximal weights of
    `\widehat{sl}(n)`-modules. Algebr. Represent. Theory 17 (2014), no. 4,
    1303–1321. (arXiv:1309.4969)
@@ -83,7 +83,7 @@ Bibliography
 .. [Joseph1995] \A. Joseph. *Quantum Groups and Their Primitive Ideals*.
    Springer-Verlag, 1995.
 
-.. [Kac] Victor G. Kac. *Infinite Dimensional Lie algebras*
+.. [Kac] Victor G. Kac. *Infinite Dimensional Lie algebras*,
    Cambridge University Press, third edition, 1994.
 
 .. [KacPeterson] Kac and Peterson. *Infinite-dimensional Lie algebras,
@@ -118,8 +118,9 @@ Bibliography
    crystal bases for quantum affine algebra of type `A`. *Proc. Amer.
    Math. Soc.*, 138(11):3877--3889, 2010.
 
-.. [KimLeeOh2017] \Jang Soo Kim, Kyu-Hwan Lee and Se-Jin Oh, Weight multiplicities
-   and Young tableaux through affine crystals. arXiv:1703.10321 (2017).
+.. [KimLeeOh2017] Jang Soo Kim, Kyu-Hwan Lee and Se-Jin Oh,
+   Weight multiplicities and Young tableaux through affine crystals.
+   :arXiv:`1703.10321` (2017).
 
 .. [King1975] \R. C. King. Branching rules for classical Lie groups
    using tensor and spinor methods. *Journal of Physics A*,
@@ -143,8 +144,8 @@ Bibliography
 .. [L1995] \P. Littelmann. *Paths and root operators in representation theory*.
    Ann. of Math. (2) 142 (1995), no. 3, 499-525.
 
-.. [Macdonald2003] \I. Macdonald, Affine Hecke algebras and orthogonal polynomials,
-   Cambridge, 2003.
+.. [Macdonald2003] \I. Macdonald.
+   *Affine Hecke algebras and orthogonal polynomials*, Cambridge, 2003.
 
 .. [McKayPatera1981] \W. G. McKay and J. Patera. *Tables of Dimensions,
    Indices and Branching Rules for Representations of Simple Lie

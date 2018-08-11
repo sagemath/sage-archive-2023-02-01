@@ -1,5 +1,3 @@
-from libcpp cimport bool
-from libcpp cimport string
 from sage.graphs.graph import Graph
 def FurerGadget(int k, prefix=None):
     r"""
@@ -65,7 +63,7 @@ def FurerGadget(int k, prefix=None):
     partition.append(powerset)
     return G, partition
 
-def CaiFurerImmermanGraph(G, bool twisted=False):
+def CaiFurerImmermanGraph(G, bint twisted=False):
     r"""
     Return the a Cai-Furer-Immerman graph from ``G``, possibly a twisted one, and a partition of its nodes.
 
@@ -84,7 +82,14 @@ def CaiFurerImmermanGraph(G, bool twisted=False):
     A CaiFurerImmerman graph on a graph with no balanced vertex separators smaller than s and its twisted version
     cannot be distinguished by k-WL for any k < s.
 
-    INPUT:
+    INPUT:If a parameter ``q`` is provided which is not equal to ``X``'s cardinality, an exception is raised. ::
+    
+        sage: X = ['a','b','c','d','e']
+        sage: g = graphs.HammingGraph(2, 3, X)
+        Traceback (most recent call last):
+        ...
+        ValueError: q must be the cardinality of X
+        
 
     - ``G`` -- An undirected graph on which to construct the Cai-Furer-Immerman graph
 
@@ -96,7 +101,7 @@ def CaiFurerImmermanGraph(G, bool twisted=False):
     
     - ``coloring`` -- A list of list of vertices, representing the partition induced by the coloring on the vertices of ``H``
     """
-    cdef bool isConnected = G.is_connected()
+    cdef bint isConnected = G.is_connected()
     newG = Graph()
     cdef list total_partition = []
     cdef dict edge_index = {}

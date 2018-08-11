@@ -366,7 +366,7 @@ class LinearCodeAutGroupCanLabel:
 
         it = iter(z)
         for p in P:
-            while len(p) > 0:
+            while p:
                 pos = p.pop()
                 perm[pos] = next(it) + 1
 

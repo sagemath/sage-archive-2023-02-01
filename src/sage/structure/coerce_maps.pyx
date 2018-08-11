@@ -6,9 +6,9 @@ from __future__ import print_function, absolute_import
 import re
 import types
 
-from .parent import Set_PythonType
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
+from sage.sets.pythonclass cimport Set_PythonType
 
 cdef object BuiltinMethodType = type(repr)
 

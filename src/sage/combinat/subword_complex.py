@@ -980,6 +980,7 @@ class SubwordComplexFacet(Simplex, Element):
         """
         return self.plot().show(*kwds, **args)
 
+
 class SubwordComplex(UniqueRepresentation, SimplicialComplex):
     r"""
     Fix a Coxeter system `(W,S)`. The subword complex
@@ -1020,6 +1021,22 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
         [(0, 1), (0, 4), (1, 2), (2, 3), (3, 4)]
 
     REFERENCES: [KnuMil]_, [PilStu]_
+
+    TESTS::
+
+        sage: W = ReflectionGroup(['A',2])                          # optional - gap3
+        sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
+        sage: SC1 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
+        sage: SC2 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
+        sage: SC1 == SC2                                            # optional - gap3
+        True
+
+        sage: W = CoxeterGroup(['A',2])
+        sage: w = W.from_reduced_word([1,2,1])
+        sage: SC1 = SubwordComplex([1,2,1,2,1], w)
+        sage: SC2 = SubwordComplex([1,2,1,2,1], w)
+        sage: SC1 == SC2
+        True
     """
 
     # standard functions
@@ -1154,32 +1171,6 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             return "Subword complex of unknown type for Q = {} and pi = {}".format(self._Q, self._pi.reduced_word())
         else:
             return 'Subword complex of type {} for Q = {} and pi = {}'.format(self.cartan_type(), self._Q, self._pi.reduced_word())
-
-    def __eq__(self, other):
-        r"""
-        Compare the subword complexes ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- another subword complex.
-
-        EXAMPLES::
-
-            sage: W = ReflectionGroup(['A',2])                          # optional - gap3
-            sage: w = W.from_reduced_word([1,2,1])                      # optional - gap3
-            sage: SC1 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
-            sage: SC2 = SubwordComplex([1,2,1,2,1], w)                  # optional - gap3
-            sage: SC1 == SC2                                            # optional - gap3
-            True
-
-            sage: W = CoxeterGroup(['A',2])
-            sage: w = W.from_reduced_word([1,2,1])
-            sage: SC1 = SubwordComplex([1,2,1,2,1], w)
-            sage: SC2 = SubwordComplex([1,2,1,2,1], w)
-            sage: SC1 == SC2
-            True
-        """
-        return self is other
 
     def __call__(self, F, facet_test=True):
         r"""

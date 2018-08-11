@@ -18,6 +18,7 @@ from six.moves import range
 from six import integer_types
 
 import math
+import collections
 
 from sage.misc.misc import powerset
 from sage.misc.misc_c import prod
@@ -3197,7 +3198,7 @@ def multinomial(*ks):
     INPUT:
 
     - An arbitrary number of integer arguments `k_1,\dots,k_n`
-    - A list of integers `[k_1,\dots,k_n]`
+    - An iterable (e.g. a list) of integers `[k_1,\dots,k_n]`
 
     OUTPUT:
 
@@ -3221,15 +3222,19 @@ def multinomial(*ks):
         618970023101454657175683075
         sage: multinomial([2^30, 2, 1])
         618970023101454657175683075
+        sage: multinomial(Composition([1, 3]))
+        4
+        sage: multinomial(Partition([4, 2]))
+        15
 
     AUTHORS:
 
     - Gabriel Ebner
     """
-    if isinstance(ks[0],list):
-        if len(ks) >1:
-            raise ValueError("multinomial takes only one list argument")
-        ks=ks[0]
+    if isinstance(ks[0], collections.Iterable):
+        if len(ks) > 1:
+            raise ValueError("multinomial takes only one iterable argument")
+        ks = ks[0]
 
     s, c = 0, 1
     for k in ks:

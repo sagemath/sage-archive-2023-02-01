@@ -36,7 +36,6 @@ from sage.rings.all import Integer
 from sage.misc.all import prod
 from functools import partial
 from sage.misc.misc import repr_lincomb, is_iterator
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.algebras.algebra import Algebra
 import sage.structure.parent_base
@@ -61,12 +60,8 @@ class LazyPowerSeriesRing(Algebra):
 
         """
         #Make sure R is a ring with unit element
-        if not R in Rings():
+        if R not in Rings():
             raise TypeError("Argument R must be a ring.")
-        try:
-            z = R(Integer(1))
-        except Exception:
-            raise ValueError("R must have a unit element")
 
         #Take care of the names
         if names is None:
@@ -98,7 +93,7 @@ class LazyPowerSeriesRing(Algebra):
         return "Lazy Power Series Ring over %s"%self.base_ring()
 
     def __eq__(self, x):
-        """ 
+        """
         Check whether ``self`` is equal to ``x``.
 
         EXAMPLES::
@@ -535,9 +530,9 @@ class LazyPowerSeries(AlgebraElement):
         """
         n = len(self._stream)
         m = ['1', x]
-        m += [x+"^"+str(i) for i in range(2, n)]
-        c = [ self._stream[i] for i in range(n) ]
-        return [ (m,c) for m,c in zip(m,c) if c != 0]
+        m += [x + "^" + str(i) for i in range(2, n)]
+        c = [self._stream[i] for i in range(n)]
+        return [(mo, co) for mo, co in zip(m, c) if co != 0]
 
     def __repr__(self):
         """
@@ -1232,7 +1227,7 @@ class LazyPowerSeries(AlgebraElement):
 
     def _compose_gen(self, y, ao):
         """
-        Returns a iterator for the coefficients of the composition of this
+        Return a iterator for the coefficients of the composition of this
         power series with the power series y.
 
         EXAMPLES::
@@ -1246,14 +1241,11 @@ class LazyPowerSeries(AlgebraElement):
         """
         assert y.coefficient(0) == 0
         yield self._stream[0]
-        z = self.tail().compose(y)*y
-        c = z.coefficient(1)
-
+        z = self.tail().compose(y) * y
         n = 1
         while True:
             yield z._stream[n]
             n += 1
-
 
     def tail(self):
         """
@@ -1514,9 +1506,9 @@ class LazyPowerSeries(AlgebraElement):
             for _ in range(ao-1):
                 yield self._zero
 
-            n = max(1,ao)
+            n = max(1, ao)
             while True:
-                c = self.coefficient(n-1)
+                self.coefficient(n - 1)
 
                 #Check to see if the stream is finite
                 if self.is_finite(n-1):

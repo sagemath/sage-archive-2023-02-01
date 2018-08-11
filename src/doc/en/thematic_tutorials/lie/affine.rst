@@ -469,6 +469,6 @@ It may be constructed in Sage as follows::
     Extended affine Weyl group of type ['A', 2, 1]
 
 See the documentation in
-:file:`~sage.combinat.root_system.extended_affine_weyl_group`
+:mod:`~sage.combinat.root_system.extended_affine_weyl_group`
 if you need this.
 

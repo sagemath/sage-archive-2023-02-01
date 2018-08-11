@@ -266,7 +266,7 @@ This gives us the string functions
 .. MATH::
 
     \begin{aligned}
-    c^{2\Lambda_0}_{2\Lambda_0} & = q^{-1/16}(1+q+3q^2+5q^3+10q^4+16q^5+\cdots),
+    c^{2\Lambda_0}_{2\Lambda_0} & = q^{-1/16}(1+q+3q^2+5q^3+10q^4+16q^5+\cdots),\\
     c^{2\Lambda_0}_{2\Lambda_1-\delta} & = q^{7/16}(1+2q+4q^2+7q^3+13q^4+21q^5+\cdots).
     \end{aligned}
 
@@ -329,7 +329,7 @@ Catalan triangle numbers (:oeis:`A000245`)::
      Lambda[6] + Lambda[9] - 4*delta: [90],
      Lambda[7] + Lambda[8] - 5*delta: [297]}
 
-Central binomial coefficients (:oeis:`A001700`)::
+Central binomial coefficients (:oeis:`A001700`. :oeis:`128015`)::
 
     sage: P = RootSystem(['B',8,1]).weight_lattice(extended=true)
     sage: Lambda = P.fundamental_weights()

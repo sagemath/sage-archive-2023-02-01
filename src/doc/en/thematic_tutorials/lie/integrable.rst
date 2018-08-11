@@ -47,9 +47,8 @@ highest weight representations (and their crystals) are
 extremely interesting. Integrable highest weight representations of
 `\mathfrak{g}` arise in a variety of contexts, from string
 theory to the modular representation theory of the symmetric
-groups, and the theory of modular forms. One particular
-representation, `L(\Lambda_0)` is particularly ubiquitous,
-and this is called the *basic representation*.
+groups, and the theory of modular forms. The representation `L(\Lambda_0)`
+is particularly ubiquitous and is called the *basic representation*.
 
 Therefore in [KMPS]_ (published in 1990) tabulated data for
 many of these representations. They wrote
@@ -139,7 +138,7 @@ If `\mu` is a weight, define
 
     m_{\Lambda,\mu} = m_\Lambda - \frac{|\mu|^2}{2k}.
 
-Let `\lambda` be a weight, which we may assume maximal. Then Kac
+Let `\Lambda` be a weight, which we may assume maximal. Then Kac
 and Peterson defined the *string function*
 
 .. MATH::

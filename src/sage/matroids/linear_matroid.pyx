@@ -472,7 +472,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         Let `M` be a matroid on `n` elements with rank `r`. Let `E` be an
         ordering of the groundset, as output by
         :func:`M.groundset_list() <sage.matroids.basis_exchange_matroid.BasisExchangeMatroid.groundset_list>`.
-        A *representation* of the matroid is an `r \times n` matrix with the
+        A *representation* of the matroid is an `r \\times n` matrix with the
         following property. Consider column ``i`` to be labeled by ``E[i]``,
         and denote by `A[F]` the submatrix formed by the columns labeled by
         the subset `F \subseteq E`. Then for all `F \subseteq E`, the columns
@@ -480,7 +480,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
         independent set in the matroid.
 
         A *reduced representation* is a matrix `D` such that `[I\ \ D]` is a
-        representation of the matroid, where `I` is an `r \times r` identity
+        representation of the matroid, where `I` is an `r \\times r` identity
         matrix. In this case, the rows of `D` are considered to be labeled by
         the first `r` elements of the list ``E``, and the columns by the
         remaining `n - r` elements.
@@ -3944,20 +3944,30 @@ cdef class BinaryMatroid(LinearMatroid):
             sage: loads(dumps(M)).representation()
             [1 0 1]
             [1 0 1]
+
+        TESTS::
+
+        From :trac:`23437` and comments:
+
+            sage: M = matroids.named_matroids.Fano().dual()
+            sage: _ = list(M.bases())
+            sage: N = loads(dumps(M))
+            sage: N.closure(frozenset({'d'}))
+            frozenset({'d'})
+            sage: N.is_isomorphic(M)
+            True
         """
         import sage.matroids.unpickling
         version = 0
+        gs = self._E
         cdef list basis = [0] * self.full_rank()
         if self._representation is not None:
             A = self._representation
-            gs = self._E
             basis = None
         else:
             A = self._A
-            for e in self.basis():
-                basis[self._prow[self._idx[e]]] = e
-            rows, cols = self._current_rows_cols()
-            gs = rows + cols
+            # current basis ordered so matrix cols form identity matrix:
+            basis, _ = self._current_rows_cols()
         data = (A, gs, basis, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_binary_matroid, (version, data)
 
@@ -4833,17 +4843,15 @@ cdef class TernaryMatroid(LinearMatroid):
         """
         import sage.matroids.unpickling
         version = 0
+        gs = self._E
         cdef list basis = [0] * self.full_rank()
         if self._representation is not None:
             A = self._representation
-            gs = self._E
             basis = None
         else:
             A = self._A
-            for e in self.basis():
-                basis[self._prow[self._idx[e]]] = e
-            rows, cols = self._current_rows_cols()
-            gs = rows + cols
+            # current basis ordered so matrix cols form identity matrix:
+            basis, _ = self._current_rows_cols()
         data = (A, gs, basis, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_ternary_matroid, (version, data)
 
@@ -5540,17 +5548,15 @@ cdef class QuaternaryMatroid(LinearMatroid):
         """
         import sage.matroids.unpickling
         version = 0
+        gs = self._E
         cdef list basis = [0] * self.full_rank()
         if self._representation is not None:
             A = self._representation
-            gs = self._E
             basis = None
         else:
             A = self._A
-            for e in self.basis():
-                basis[self._prow[self._idx[e]]] = e
-            rows, cols = self._current_rows_cols()
-            gs = rows + cols
+            # current basis ordered so matrix cols form identity matrix:
+            basis, _ = self._current_rows_cols()
         data = (A, gs, basis, getattr(self, '__custom_name'))
         return sage.matroids.unpickling.unpickle_quaternary_matroid, (version, data)
 

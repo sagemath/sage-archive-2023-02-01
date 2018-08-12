@@ -3,8 +3,7 @@ Examples of Lie Algebras
 
 There are the following examples of Lie algebras:
 
-- A rather comprehensive family of 3-dimensional Lie
-  algebras
+- A rather comprehensive family of 3-dimensional Lie algebras
 - The Lie algebra of affine transformations of the line
 - All abelian Lie algebras on free modules
 - The Lie algebra of upper triangular matrices
@@ -31,6 +30,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
+from sage.algebras.lie_algebras.rank_two_heisenberg_virasoro import RankTwoHeisenbergVirasoro
 from sage.algebras.lie_algebras.onsager import OnsagerAlgebra
 from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra as Affine
 

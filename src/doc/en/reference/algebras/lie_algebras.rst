@@ -15,6 +15,7 @@ Lie Algebras
    sage/algebras/lie_algebras/morphism
    sage/algebras/lie_algebras/onsager
    sage/algebras/lie_algebras/poincare_birkhoff_witt
+   sage/algebras/lie_algebras/rank_two_heisenberg_virasoro
    sage/algebras/lie_algebras/structure_coefficients
    sage/algebras/lie_algebras/verma_module
    sage/algebras/lie_algebras/virasoro

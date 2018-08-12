@@ -1897,6 +1897,10 @@ REFERENCES:
             groups*. Australian Mathematical Society Lecture
             Series, 2009.
 
+.. [LT2018] Zhiqiang Li, Shaobin Tan.
+            *Verma modules for rank two Heisenberg-Virasoro algebra*.
+            Preprint, (2018). :arxiv:`1807.07735`.
+
 .. [Lut2002] Frank H. Lutz, Császár's Torus, Electronic Geometry Model
              No. 2001.02.069
              (2002). http://www.eg-models.de/models/Classical_Models/2001.02.069/_direct_link.html

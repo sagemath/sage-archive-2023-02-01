@@ -1819,16 +1819,8 @@ class SetPartitions_all(SetPartitions):
 
             sage: it = SetPartitions().__iter__()
             sage: [next(it) for x in range(10)]
-            [{},
-             {{1}},
-             {{1, 2}},
-             {{1}, {2}},
-             {{1, 2, 3}},
-             {{1, 2}, {3}},
-             {{1, 3}, {2}},
-             {{1}, {2, 3}},
-             {{1}, {2}, {3}},
-             {{1, 2, 3, 4}}]
+            [{}, {{1}}, {{1, 2}}, {{1}, {2}}, {{1, 2, 3}}, {{1, 2}, {3}},
+             {{1, 3}, {2}}, {{1}, {2, 3}}, {{1}, {2}, {3}}, {{1, 2, 3, 4}}]
         """
         n = 0
         while True:
@@ -1984,7 +1976,6 @@ class SetPartitions_set(SetPartitions):
              [[1, x], [-1]],
              [[1], [-1, x]],
              [[1], [-1], [x]]]
-
         """
         base_set = list(self.base_set())
         def from_word(w):
@@ -2207,7 +2198,7 @@ class SetPartitions_setn(SetPartitions_set):
 
     @property
     def n(self):
-        """
+        r"""
         ``self.n`` is deprecated; use :meth:`number_of_blocks` instead.
 
         TESTS::
@@ -2216,21 +2207,20 @@ class SetPartitions_setn(SetPartitions_set):
             doctest:...: DeprecationWarning: The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.
             See https://trac.sagemath.org/25462 for details.
             3
-
         """
         from sage.misc.superseded import deprecation
-        deprecation(25462, 'The attribute n for the number of blocks is deprecated, use the method number_of_blocks instead.')
+        deprecation(25462, "The attribute n for the number of blocks is deprecated,"
+                           " use the method number_of_blocks instead.")
         return self.number_of_blocks()
 
     def number_of_blocks(self):
-        """
+        r"""
         Return the number of blocks of the set partitions in ``self``.
 
         EXAMPLES::
 
             sage: SetPartitions(5, 3).number_of_blocks()
             3
-
         """
         return self._k
 
@@ -2276,7 +2266,6 @@ class SetPartitions_setn(SetPartitions_set):
 
             sage: list(SetPartitions([1,-1,x], 2)._fast_iterator())
             [[[1, x], [-1]], [[1], [-1, x]], [[1, -1], [x]]]
-
         """
         base_set = list(self.base_set())
         def from_word(w):

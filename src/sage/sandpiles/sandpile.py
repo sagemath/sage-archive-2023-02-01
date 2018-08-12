@@ -6564,19 +6564,19 @@ def admissible_partitions(S, k):
         sage: from sage.sandpiles.sandpile import admissible_partitions
         sage: from sage.sandpiles.sandpile import partition_sandpile
         sage: S = sandpiles.Cycle(4)
-        sage: P = [set(admissible_partitions(S, i)) for i in [2,3,4]]
+        sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: P
-        [{{{0}, {1, 2, 3}},
-          {{0, 1}, {2, 3}},
-          {{0, 1, 2}, {3}},
+        [[{{0, 2, 3}, {1}},
+          {{0, 3}, {1, 2}},
           {{0, 1, 3}, {2}},
-          {{0, 2, 3}, {1}},
-          {{0, 3}, {1, 2}}},
-         {{{0}, {1}, {2, 3}},
+          {{0}, {1, 2, 3}},
+          {{0, 1}, {2, 3}},
+          {{0, 1, 2}, {3}}],
+         [{{0, 3}, {1}, {2}},
+          {{0}, {1}, {2, 3}},
           {{0}, {1, 2}, {3}},
-          {{0, 1}, {2}, {3}},
-          {{0, 3}, {1}, {2}}},
-         {{{0}, {1}, {2}, {3}}}]
+          {{0, 1}, {2}, {3}}],
+         [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:
         ....:  sum([partition_sandpile(S, i).betti(verbose=False)[-1] for i in p])
         6

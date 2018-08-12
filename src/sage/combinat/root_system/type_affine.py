@@ -110,8 +110,8 @@ class AmbientSpace(CombinatorialFreeModule):
 
     TESTS::
 
-            sage: Lambda[1]
-            e[0] + e['deltacheck']
+        sage: Lambda[1]
+        e[0] + e['deltacheck']
     """
     @classmethod
     def smallest_base_ring(cls, cartan_type):
@@ -154,12 +154,15 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         self.root_system = root_system
         classical = root_system.cartan_type().classical().root_system().ambient_space(base_ring)
-        basis_keys = tuple(classical.basis().keys()) + ("delta","deltacheck")
+        basis_keys = tuple(classical.basis().keys()) + ("delta", "deltacheck")
+
+        def sortkey(x):
+            return (1 if isinstance(x, str) else 0, x)
         CombinatorialFreeModule.__init__(self, base_ring,
                                          basis_keys,
                                          prefix = "e",
                                          latex_prefix = "e",
-                                         sorting_key=str,
+                                         sorting_key=sortkey,
                                          category = WeightLatticeRealizations(base_ring))
         self._weight_space = self.root_system.weight_space(base_ring=base_ring,extended=True)
         self.classical().module_morphism(self.monomial, codomain=self).register_as_coercion()

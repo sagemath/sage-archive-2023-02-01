@@ -2660,9 +2660,9 @@ class TriconnectivitySPQR:
     OUTPUT:
 
     No output, the triconnected components are printed.
-    The triconnected components are stored in `comp_list_new and `comp_type`.
-    `comp_list_new` is a list of components, with `comp_list_new[i]` contains
-    the list of edges in the $i^{th}$ component. `comp_type[i]` stores the type
+    The triconnected components are stored in `comp\_list\_new` and `comp\_type`.
+    `comp\_list\_new` is a list of components, with `comp\_list\_new[i]` contains
+    the list of edges in the $i^{th}$ component. `comp\_type[i]` stores the type
     of the $i^{th}$ component - 1 for bond, 2 for polygon, 3 for triconnected
     component. The output can be accessed through these variables.
 
@@ -3668,7 +3668,7 @@ class TriconnectivitySPQR:
         Each component is represented as a tuple of the type of the component
         and the list of edges of the component.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: from sage.graphs.connectivity import TriconnectivitySPQR
             sage: G = Graph(2)

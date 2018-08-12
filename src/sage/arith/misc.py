@@ -5063,6 +5063,7 @@ def squarefree_divisors(x):
     for a in powerset(prime_divisors(x)):
         yield prod(a, ZZ.one())
 
+
 def dedekind_sum(p, q, algorithm='default'):
     r"""
     Return the Dedekind sum `s(p,q)` defined for integers `p`, `q` as
@@ -5273,3 +5274,33 @@ def gauss_sum(char_value, finite_field):
         gen_power *= gen
         zq_power *= zeta_q
     return resu
+
+
+def dedekind_psi(N):
+    r"""
+    Return the value of the Dedekind psi function at ``N``.
+
+    INPUT:
+
+    - ``N`` -- a positive integer
+
+    OUTPUT:
+
+    an integer
+
+    The Dedekind psi function is the multiplicative function defined by
+
+    .. MATH::
+
+        \psi(n) = n \prod_{p|n, p prime} (1 + 1/p).
+
+    See :wikipedia:`Dedekind_psi_function` and :oeis:`A001615`.
+
+    EXAMPLES::
+
+        sage: from sage.arith.misc import dedekind_psi
+        sage: [dedekind_psi(d) for d in range(1, 12)]
+        [1, 3, 4, 6, 6, 12, 8, 12, 12, 18, 12]
+    """
+    N = Integer(N)
+    return Integer(N * prod(1 + 1 / p for p in N.prime_divisors()))

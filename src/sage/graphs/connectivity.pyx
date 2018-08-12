@@ -2188,6 +2188,19 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
         sage: G.is_isomorphic(spqr_tree_to_graph(T2))
         True
 
+        sage: G = Graph([(0, 1)], multiedges=True)
+        sage: T = spqr_tree(G, algorithm='cleave')
+        sage: T.vertices()
+        [('Q', Multi-graph on 2 vertices)]
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+        sage: T = spqr_tree(G, algorithm='Hopcroft_Tarjan')
+        sage: T.vertices()
+        [('Q', Multi-graph on 2 vertices)]
+        sage: G.add_edge(0, 1)
+        sage: spqr_tree(G, algorithm='cleave').vertices()
+        [('P', Multi-graph on 2 vertices)]
+
     TESTS::
 
         sage: G = graphs.PathGraph(4)
@@ -2224,6 +2237,10 @@ def spqr_tree(G, algorithm="Hopcroft_Tarjan", solver=None, verbose=0):
 
     if G.has_loops():
         raise ValueError("generation of SPQR-trees is only implemented for graphs without loops")
+
+    if G.order() == 2 and G.size():
+        return Graph({('Q' if G.size() == 1 else 'P', Graph(G, immutable=True, multiedges=True)):[]},
+                         name='SPQR-tree of {}'.format(G.name()))
 
     cut_size, cut_vertices = G.vertex_connectivity(value_only=False, solver=solver, verbose=verbose)
 
@@ -2406,7 +2423,7 @@ def spqr_tree_to_graph(T):
     count_G = Counter()
     count_P = Counter()
     for t,g in T.vertex_iterator():
-        if t == 'P':
+        if t in ['P', 'Q']:
             count_P.update(g.edge_iterator())
         else:
             count_G.update(g.edge_iterator())
@@ -2767,6 +2784,7 @@ class TriconnectivitySPQR:
         """
         self.n = G.order()
         self.m = G.size()
+        self.graph_name = G.name()
 
         # Trivial cases
         if self.n < 2:
@@ -3710,12 +3728,27 @@ class TriconnectivitySPQR:
             3
             sage: G.is_isomorphic(spqr_tree_to_graph(Tree))
             True
+
+            sage: G = Graph([(0, 1)], multiedges=True)
+            sage: Tree = TriconnectivitySPQR(G).get_spqr_tree()
+            sage: Tree.vertices()
+            [('Q', Multi-graph on 2 vertices)]
+            sage: G.add_edge(0, 1)
+            sage: Tree = TriconnectivitySPQR(G).get_spqr_tree()
+            sage: Tree.vertices()
+            [('P', Multi-graph on 2 vertices)]
         """
         from sage.graphs.graph import Graph
         # Types of components 0: "P", 1: "S", 2: "R"
         component_type = ["P", "S", "R"]
 
-        Tree = Graph(multiedges=False)
+        Tree = Graph(multiedges=False, name='SPQR-tree of {}'.format(self.graph_name))
+
+        if len(self.comp_list_new) == 1 and self.comp_type[0] == 0:
+            Tree.add_vertex(('Q' if len(self.comp_list_new[0]) == 1 else 'P',
+                                 Graph(self.comp_list_new[0], immutable=True, multiedges=True)))
+            return Tree
+
         int_to_vertex = []
         partner_nodes = {}
 

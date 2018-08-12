@@ -39,7 +39,7 @@ The infinite set of all posets can be used to find minimal examples::
     :meth:`~posets.PentagonPoset` | Return the Pentagon poset.
     :meth:`~posets.PermutationPattern` | Return the Permutation pattern poset.
     :meth:`~posets.PermutationPatternInterval` | Return an interval in the Permutation pattern poset.
-    :meth:`~posets.PermutationPatternOccurenceInterval` | Return the occurence poset for a pair of comparable elements in the Permutation pattern poset.
+    :meth:`~posets.PermutationPatternOccurrenceInterval` | Return the occurrence poset for a pair of comparable elements in the Permutation pattern poset.
     :meth:`~posets.PowerPoset` | Return a power poset.
     :meth:`~posets.RandomLattice` | Return a random lattice on `n` elements.
     :meth:`~posets.RandomPoset` | Return a random poset on `n` elements.
@@ -1443,7 +1443,7 @@ class Posets(object):
 
         Elements of the (infinite) lattice are words with letters '1'
         and '2'.  The covers of a word are the words with another '1'
-        added somewhere not after the first occurence of an existing
+        added somewhere not after the first occurrence of an existing
         '1' and, additionally, the words where the first '1' is replaced by a
         '2'. The lattice is truncated to have rank `n`.
 
@@ -1618,7 +1618,7 @@ class Posets(object):
         return Poset((elem,rel))
 
     @staticmethod
-    def PermutationPatternOccurenceInterval(bottom, top, pos):
+    def PermutationPatternOccurrenceInterval(bottom, top, pos):
         r"""
         Return the poset consisting of an interval in the poset of
         permutations under pattern containment between ``bottom`` and
@@ -1641,7 +1641,7 @@ class Posets(object):
 
             sage: t = Permutation([3,2,1])
             sage: b = Permutation([6,3,4,5,2,1])
-            sage: A = posets.PermutationPatternOccurenceInterval(t, b, (0,2,4)); A
+            sage: A = posets.PermutationPatternOccurrenceInterval(t, b, (0,2,4)); A
             Finite poset containing 8 elements
 
         .. SEEALSO::

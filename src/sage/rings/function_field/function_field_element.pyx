@@ -524,7 +524,7 @@ cdef class FunctionFieldElement_polymod(FunctionFieldElement):
 
     def list(self):
         """
-        Return the list of the coefficients prepresenting the element.
+        Return the list of the coefficients representing the element.
 
         If the function field is `K[y]/(f(y))`, then return the coefficients of
         the reduced presentation of the element as a polynomial in `K[y]`.

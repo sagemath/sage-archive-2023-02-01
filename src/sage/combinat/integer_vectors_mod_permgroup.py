@@ -523,7 +523,7 @@ class IntegerVectorsModPermutationGroup_All(UniqueRepresentation, SearchForest):
         r"""
         Element class for the set of integer vectors of given sum enumerated modulo
         the action of a permutation group. These vector are clonable lists of integers
-        which must check conditions comming form the parent appearing in the method
+        which must check conditions coming form the parent appearing in the method
         :meth:`~sage.structure.list_clone.ClonableIntArray.check`.
 
         TESTS::
@@ -930,7 +930,7 @@ class IntegerVectorsModPermutationGroup_with_constraints(UniqueRepresentation, S
         r"""
         Element class for the set of integer vectors with constraints enumerated
         modulo the action of a permutation group. These vectors are clonable lists
-        of integers which must check conditions comming form the parent as in
+        of integers which must check conditions coming form the parent as in
         the method :meth:`~sage.combinat.integer_vectors_mod_permgroup.IntegerVectorsModPermutationGroup_with_constraints.Element.check`.
 
         TESTS::

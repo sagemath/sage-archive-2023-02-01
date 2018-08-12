@@ -1187,7 +1187,7 @@ def HaemersGraph(q, hyperoval=None, hyperoval_matching=None, field=None, check_h
     else:
         F = field
 
-    # for q=8, 95% of CPU time taken by this function is spent in the follwing call
+    # for q=8, 95% of CPU time taken by this function is spent in the following call
     G = T2starGeneralizedQuadrangleGraph(q, field=F, dual=True, hyperoval=hyperoval, check_hyperoval=check_hyperoval)
 
     def normalize(v):  # make sure the 1st non-0 coordinate is 1.
@@ -1222,7 +1222,7 @@ def CossidentePenttilaGraph(q):
     quadrange `GQ(q,q^2)` into two parts, so that on any of them the induced subgraph of
     the point graph of the GQ has parameters as above [CP05]_.
 
-    Directly follwing the construction in [CP05]_ is not efficient,
+    Directly following the construction in [CP05]_ is not efficient,
     as one then needs to construct the dual `GQ(q^2,q)`. Thus we
     describe here a more efficient approach that we came up with, following a suggestion by
     T.Penttila. Namely, this partition is invariant

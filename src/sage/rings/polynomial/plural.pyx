@@ -2683,7 +2683,7 @@ cdef inline NCPolynomial_plural new_NCP(NCPolynomialRing_plural parent,
 
 cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
     """
-    Construct MPolynomialRing_libsingular from ringWrap, assumming the ground field to be base_ring
+    Construct MPolynomialRing_libsingular from ringWrap, assuming the ground field to be base_ring
 
     EXAMPLES::
 
@@ -2739,9 +2739,10 @@ cpdef MPolynomialRing_libsingular new_CRing(RingWrap rw, base_ring):
 
     return self
 
+
 cpdef NCPolynomialRing_plural new_NRing(RingWrap rw, base_ring):
     """
-    Construct NCPolynomialRing_plural from ringWrap, assumming the ground field to be base_ring
+    Construct NCPolynomialRing_plural from ringWrap, assuming the ground field to be base_ring
 
     EXAMPLES::
 

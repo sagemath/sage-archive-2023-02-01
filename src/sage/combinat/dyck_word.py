@@ -2388,7 +2388,7 @@ class DyckWord_complete(DyckWord):
         staying above the diagonal, where `1` is an up step and `0` is
         a right step. Then each horizontal step has a co-height (`0`
         at the top and `n-1` at most at the bottom). One reads the
-        Dyck word from left to right. At the begining, all vertices
+        Dyck word from left to right. At the beginning, all vertices
         from `0` to `n+1` are available. For each horizontal step,
         one creates an edge from the vertex indexed by the co-height
         to the next available vertex. This chops out a triangle from

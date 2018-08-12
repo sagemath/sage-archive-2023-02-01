@@ -3284,7 +3284,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: E.heegner_point(-7, 13).numerical_approx()
             (1.034302915374... - 3.302744319777...*I : 1.323937875767... + 6.908264226850...*I : 1.00000000000000)
 
-        We find (probably) the definining polynomial of the
+        We find (probably) the defining polynomial of the
         `x`-coordinate of `P`, which defines a class field.  The shape of
         the discriminant below is strong confirmation -- but not proof
         -- that this polynomial is correct::

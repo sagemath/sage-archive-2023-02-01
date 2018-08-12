@@ -1127,7 +1127,7 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
         The bases of ``self``.
 
         The bases are given as a list of ``HierarchyElement``s, sorted
-        decreasingly accoding to the ``key`` function.
+        decreasingly according to the ``key`` function.
 
         EXAMPLES::
 

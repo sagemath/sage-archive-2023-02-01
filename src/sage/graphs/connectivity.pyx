@@ -2643,7 +2643,7 @@ class Component:
 
 class TriconnectivitySPQR:
     """
-    This module implements the algorithm for finding the triconnected
+    This class implements the algorithm for finding the triconnected
     components of a biconnected graph and constructing the SPQR tree.
     A biconnected graph is a graph where deletion of any one vertex does
     not disconnect the graph.
@@ -2673,17 +2673,29 @@ class TriconnectivitySPQR:
 
     .. SEEALSO::
 
+        - :meth:`sage.graphs.connectivity.spqr_tree`
         - :meth:`~Graph.is_biconnected`
 
     EXAMPLES:
 
-    An example from [Hopcroft1973]_::
+    :wikipedia:`SPQR_tree` reference paper example::
 
         sage: from sage.graphs.connectivity import TriconnectivitySPQR
-        sage: G = Graph()
-        sage: G.add_edges([(1,2),(1,4),(1,8),(1,12),(1,13),(2,3),(2,13),(3,4)])
-        sage: G.add_edges([(3,13),(4,5),(4,7),(5,6),(5,7),(5,8),(6,7),(8,9),(8,11)])
-        sage: G.add_edges([(8,12),(9,10),(9,11),(9,12),(10,11),(10,12)])
+        sage: from sage.graphs.connectivity import spqr_tree_to_graph
+        sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (3, 4), (2, 3),
+        ....: (2, 13), (3, 13), (4, 5), (4, 7), (5, 6), (5, 8), (5, 7), (6, 7),
+        ....: (8, 11), (8, 9), (8, 12), (9, 10), (9, 11), (9, 12), (10, 12)])
+        sage: tric = TriconnectivitySPQR(G)
+        sage: T = tric.get_spqr_tree()
+        sage: G.is_isomorphic(spqr_tree_to_graph(T))
+        True
+
+    An example from [Hopcroft1973]_::
+
+        sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (1, 13), (2, 3),
+        ....: (2, 13), (3, 4), (3, 13), (4, 5), (4, 7), (5, 6), (5, 7), (5, 8),
+        ....: (6, 7), (8, 9), (8, 11), (8, 12), (9, 10), (9, 11), (9, 12),
+        ....: (10, 11), (10, 12)])
         sage: tric = TriconnectivitySPQR(G)
         sage: tric.print_triconnected_components()
         Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
@@ -3618,6 +3630,30 @@ class TriconnectivitySPQR:
         Print the type and list of edges of each component.
 
         The types are ``{0: "Bond", 1: "Polygon", 2: "Triconnected"}``.
+
+        EXAMPLES:
+
+        An example from [Hopcroft1973]_::
+
+            sage: from sage.graphs.connectivity import TriconnectivitySPQR
+            sage: G = Graph([(1, 2), (1, 4), (1, 8), (1, 12), (1, 13), (2, 3),
+            ....: (2, 13), (3, 4), (3, 13), (4, 5), (4, 7), (5, 6), (5, 7), (5, 8),
+            ....: (6, 7), (8, 9), (8, 11), (8, 12), (9, 10), (9, 11), (9, 12),
+            ....: (10, 11), (10, 12)])
+            sage: tric = TriconnectivitySPQR(G)
+            sage: tric.print_triconnected_components()
+            Triconnected:  [(8, 9, None), (9, 10, None), (10, 11, None), (9, 11, None), (8, 11, None), (10, 12, None), (9, 12, None), (8, 12, 'newVEdge0')]
+            Bond:  [(8, 12, None), (8, 12, 'newVEdge0'), (8, 12, 'newVEdge1')]
+            Polygon:  [(8, 12, 'newVEdge1'), (1, 12, None), (8, 1, 'newVEdge2')]
+            Bond:  [(1, 8, None), (8, 1, 'newVEdge2'), (8, 1, 'newVEdge3')]
+            Polygon:  [(5, 8, None), (8, 1, 'newVEdge3'), (4, 5, 'newVEdge8'), (4, 1, 'newVEdge9')]
+            Polygon:  [(5, 6, None), (6, 7, None), (5, 7, 'newVEdge5')]
+            Bond:  [(5, 7, None), (5, 7, 'newVEdge5'), (5, 7, 'newVEdge6')]
+            Polygon:  [(5, 7, 'newVEdge6'), (4, 7, None), (5, 4, 'newVEdge7')]
+            Bond:  [(5, 4, 'newVEdge7'), (4, 5, 'newVEdge8'), (4, 5, None)]
+            Bond:  [(1, 4, None), (4, 1, 'newVEdge9'), (4, 1, 'newVEdge10')]
+            Polygon:  [(3, 4, None), (4, 1, 'newVEdge10'), (3, 1, 'newVEdge11')]
+            Triconnected:  [(1, 2, None), (2, 3, None), (3, 1, 'newVEdge11'), (3, 13, None), (2, 13, None), (1, 13, None)]
         """
         prefix = ["Bond", "Polygon", "Triconnected"]
         for i in range(len(self.comp_list_new)):

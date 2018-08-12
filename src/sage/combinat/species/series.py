@@ -1242,6 +1242,7 @@ class LazyPowerSeries(AlgebraElement):
         assert y.coefficient(0) == 0
         yield self._stream[0]
         z = self.tail().compose(y) * y
+        z.coefficient(1)
         n = 1
         while True:
             yield z._stream[n]

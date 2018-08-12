@@ -27,6 +27,8 @@ Here is what the module can do:
     :meth:`is_cut_vertex` | Return True if the input vertex is a cut-vertex.
     :meth:`edge_connectivity` | Return the edge connectivity of the graph.
     :meth:`vertex_connectivity` | Return the vertex connectivity of the graph.
+    :meth:`~TriconnectivitySPQR.get_triconnected_components` | Return the triconnected components of a biconnected graph.
+    :meth:`~TriconnectivitySPQR.get_spqr_tree` | Returns the SPQR tree of a biconnected graph constructed from its triconnected components.
 
 **For DiGraph:**
 
@@ -2449,7 +2451,7 @@ def spqr_tree_to_graph(T):
     return G
 
 
-class LinkedListNode:
+class _LinkedListNode:
     """
     Node in a ``LinkedList``.
 
@@ -2478,7 +2480,7 @@ class LinkedListNode:
     def get_data(self):
         return self.data
 
-class LinkedList:
+class _LinkedList:
     """
     A doubly linked list with head and tail pointers.
 
@@ -2574,7 +2576,7 @@ class LinkedList:
         lst2.head = None
         lst2.length = 0
 
-class Component:
+class _Component:
     """
     Connected component class.
 
@@ -2597,13 +2599,13 @@ class Component:
 
         - `type_c` -- type of the component (0, 1, or 2).
         """
-        self.edge_list = LinkedList()
+        self.edge_list = _LinkedList()
         for e in edge_list:
-            self.edge_list.append(LinkedListNode(e))
+            self.edge_list.append(_LinkedListNode(e))
         self.component_type = type_c
 
     def add_edge(self, e):
-        self.edge_list.append(LinkedListNode(e))
+        self.edge_list.append(_LinkedListNode(e))
 
     def finish_tric_or_poly(self, e):
         """
@@ -2840,7 +2842,7 @@ class TriconnectivitySPQR:
         self.dfs_number = [0 for i in range(self.n)] # DFS number of vertex i
 
         # Linked list of fronds entering vertex i in the order they are visited
-        self.highpt = [LinkedList() for i in range(self.n)]
+        self.highpt = [_LinkedList() for i in range(self.n)]
 
         # A dictionary whose key is an edge e, value is a pointer to element in
         # self.highpt containing the edge e. Used in the `path_search` function.
@@ -2854,7 +2856,7 @@ class TriconnectivitySPQR:
         self.lowpt2 = [None for i in range(self.n)] # lowpt2 number of vertex i
 
         # i^th value contains a LinkedList of incident edges of vertex i
-        self.adj = [LinkedList() for i in range(self.n)]
+        self.adj = [_LinkedList() for i in range(self.n)]
 
         # A dictionary whose key is an edge, value is a pointer to element in
         # self.adj containing the edge. Used in the `path_search` function.
@@ -2931,7 +2933,7 @@ class TriconnectivitySPQR:
         self.__path_search(self.start_vertex)
 
         # last split component
-        c = Component([],0)
+        c = _Component([],0)
         while self.e_stack:
             c.add_edge(self.__estack_pop())
         c.component_type = 2 if c.edge_list.get_length() > 4 else 1
@@ -2973,7 +2975,7 @@ class TriconnectivitySPQR:
         Create a new component, add `edges` to it.
         type_c = 0 for bond, 1 for polygon, 2 for triconnected component
         """
-        c = Component(edges, type_c)
+        c = _Component(edges, type_c)
         self.components_list.append(c)
         return c
 
@@ -3166,7 +3168,7 @@ class TriconnectivitySPQR:
         # Populate `adj` and `in_adj` with the sorted edges
         for i in range(1, max_size + 1):
             for e in bucket[i]:
-                node = LinkedListNode(e)
+                node = _LinkedListNode(e)
                 if e in self.reverse_edges:
                     self.adj[e[1]].append(node)
                     self.in_adj[e] = node
@@ -3193,7 +3195,7 @@ class TriconnectivitySPQR:
                 self.dfs_counter -= 1
             else:
                 # Identified a new frond that enters `w`. Add to `highpt[w]`.
-                highpt_node = LinkedListNode(self.newnum[v])
+                highpt_node = _LinkedListNode(self.newnum[v])
                 self.highpt[w].append(highpt_node)
                 self.in_high[e] = highpt_node
                 self.new_path = True
@@ -3306,7 +3308,7 @@ class TriconnectivitySPQR:
                             if e2_source != w:
                                 raise ValueError("Graph is not biconnected")
 
-                            comp = Component([e1, e2, e_virt], 1)
+                            comp = _Component([e1, e2, e_virt], 1)
                             self.components_list.append(comp)
                             comp = None
 
@@ -3327,7 +3329,7 @@ class TriconnectivitySPQR:
                             h = self.t_stack_h[self.t_stack_top]
                             self.t_stack_top -= 1
 
-                            comp = Component([],0)
+                            comp = _Component([],0)
                             while True:
                                 xy = self.e_stack[-1]
                                 if xy in self.reverse_edges:
@@ -3372,7 +3374,7 @@ class TriconnectivitySPQR:
                             x = self.node_at[b]
 
                         if e_ab is not None:
-                            comp = Component([e_ab, e_virt], type_c=0)
+                            comp = _Component([e_ab, e_virt], type_c=0)
                             e_virt = tuple([v, x, "newVEdge"+str(self.virtual_edge_num)])
                             self.graph_copy.add_edge(e_virt)
                             self.virtual_edge_num += 1
@@ -3400,7 +3402,7 @@ class TriconnectivitySPQR:
                     (self.parent[v] != self.start_vertex or outv >= 2):
                     # type-1 separation pair - (self.node_at[self.lowpt1[w]], v)
                     # Create a new component and add edges to it
-                    comp = Component([], 0)
+                    comp = _Component([], 0)
                     if not self.e_stack:
                         raise ValueError("stack is empty")
                     while self.e_stack:
@@ -3430,7 +3432,7 @@ class TriconnectivitySPQR:
 
                     if (xx == vnum and y == self.lowpt1[w]) or \
                         (y == vnum and xx == self.lowpt1[w]):
-                        comp_bond = Component([], type_c=0) # new triple bond
+                        comp_bond = _Component([], type_c=0) # new triple bond
                         eh = self.__estack_pop()
                         if self.in_adj[eh] != it:
                             if eh in self.reverse_edges:
@@ -3460,7 +3462,7 @@ class TriconnectivitySPQR:
 
                         self.in_adj[e_virt] = it
                         if not e_virt in self.in_high and self.__high(self.node_at[self.lowpt1[w]]) < vnum:
-                            vnum_node = LinkedListNode(vnum)
+                            vnum_node = _LinkedListNode(vnum)
                             self.highpt[self.node_at[self.lowpt1[w]]].push_front(vnum_node)
                             self.in_high[e_virt] = vnum_node
 
@@ -3469,7 +3471,7 @@ class TriconnectivitySPQR:
 
                     else:
                         self.adj[v].remove(it)
-                        comp_bond = Component([e_virt], type_c=0)
+                        comp_bond = _Component([e_virt], type_c=0)
                         e_virt = (self.node_at[self.lowpt1[w]], v, "newVEdge"+str(self.virtual_edge_num))
                         self.graph_copy.add_edge(e_virt)
                         self.virtual_edge_num += 1
@@ -3485,7 +3487,7 @@ class TriconnectivitySPQR:
                         self.edge_status[e_virt] = 1
                         if eh in self.in_adj:
                             self.in_adj[e_virt] = self.in_adj[eh]
-                        e_virt_node = LinkedListNode(e_virt)
+                        e_virt_node = _LinkedListNode(e_virt)
                         self.in_adj[eh] = e_virt_node
                         # end type-1 search
 

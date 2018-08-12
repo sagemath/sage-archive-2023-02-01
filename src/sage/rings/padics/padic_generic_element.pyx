@@ -754,6 +754,70 @@ cdef class pAdicGenericElement(LocalGenericElement):
             return self.parent()(c, prec)
         #return the value as a p-adic
 
+
+    def artin_hasse_exp_Newton(x, prec=None):
+        val = x.valuation()
+        if val < 1:
+            raise ValueError("Artin-Hasse exponential does not converge on this input")
+        R = x.parent()
+        p = R.prime()
+        e = R.absolute_e()
+        if prec is None:
+            prec = min(x.precision_absolute(), R.precision_cap())
+        else:
+            prec = min(prec, x.precision_absolute(), R.precision_cap())
+
+        # Step 1:
+        # We compute a sufficiently good approximation of the result
+        # in order to bootstrap the Newton iteration
+
+        # We compute the Artin-Hasse series at the requested precision
+        from sage.rings.padics.factory import ZpFM
+        from sage.functions.other import ceil
+        ep = e // (p-1)
+        startprec = min(prec, ep+1)
+        R2 = ZpFM(p, prec = 1 + ceil(startprec.log()/p.log()))
+        L = [ R2(1) ]
+        for i in range(1,startprec):
+            c = R2(0)
+            dec = 1
+            while dec <= i:
+                c += L[i-dec]
+                dec *= p
+            L.append(c // i)
+        # We evaluate it using Hörner algorithm
+        y = R(0)
+        xx = x.add_bigoh(startprec)
+        for i in range(startprec-1, -1, -1):
+            y = y*xx + R(L[i])
+
+        # Step 2:
+        # We use Newton iteration to solve the equation
+        # log(AH(x)) = x + x^p/p + x^(p^2)/p^2 + ...
+
+        # We compute b = 1 + x + x^p/p + x^(p^2)/p^2 + ...
+        pow = x
+        b = 1 + x
+        v = val; denom = 1
+        vmax = max(ep, prec // p)
+        while v <= vmax:
+            pow = pow**p
+            denom *= p
+            b += pow/denom
+            v *= p
+        # We iterate the Newton scheme: y_(n+1) = y_n * (b - log(y_n))
+        curprec = startprec
+        while curprec < prec:
+            if p == 2:
+                curprec = 2*curprec - e
+            else:
+                curprec = 2*curprec
+            y = y.lift_to_precision(min(prec,curprec))
+            y *= b - y.log()
+
+        return R(y)
+
+
     def minimal_polynomial(self, name='x', ground=None):
         """
         Returns the minimal polynomial of this element over ``ground``
